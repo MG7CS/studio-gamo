@@ -1,54 +1,69 @@
 ---
 import Logo from '@studio-gamo/ui/components/Logo.astro';
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+const churchLinks = [
+  { label: 'Find Musicians', url: 'https://worship.gamostudios.com/' },
+  { label: 'Booking Plans', url: 'https://worship.gamostudios.com/' },
+  { label: 'Standby Coverage', url: 'https://worship.gamostudios.com/' },
+  { label: 'Host a Class', url: 'https://academy.gamostudios.com/host/apply' },
+];
+const musicianLinks = [
+  { label: 'Join as a Musician', url: 'https://worship.gamostudios.com/apply/start' },
+  { label: 'Audition Process', url: 'https://worship.gamostudios.com/apply/start' },
+  { label: 'Opportunities', url: 'https://worship.gamostudios.com/' },
+  { label: 'Musician Portal', url: 'https://worship.gamostudios.com/' },
+];
+const exploreLinks = [
+  { label: 'Gamo Academy', url: 'https://academy.gamostudios.com/' },
+  { label: 'Gamo Live', url: 'https://live.gamostudios.com/' },
+  { label: 'A/V Production', url: 'https://production.gamostudios.com/' },
+];
 ---
-<footer class="bg-[#181F20] text-[#F4EDE3] py-16 px-6 relative z-10 border-t border-white/10">
-		<div class="max-w-[1440px] mx-auto">
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-16">
-				<div class="lg:col-span-2 space-y-6">
-					<a href="/" class="flex items-center text-white">
-						<Logo width="160" height="30" />
-					</a>
-					<p class="text-[#DED6CC] max-w-sm">
-						Worship continuity through trusted professionals. Keeping your service covered.
-					</p>
-				</div>
-				
-				<div>
-					<h4 class="font-semibold text-white mb-4">Platform</h4>
-					<ul class="space-y-3">
-						<li><a href="/worship" class="text-[#DED6CC] hover:text-white transition-colors">Worship</a></li>
-						<li><a href="/academy" class="text-[#DED6CC] hover:text-white transition-colors">Academy</a></li>
-						<li><a href="/live" class="text-[#DED6CC] hover:text-white transition-colors">Live</a></li>
-						<li><a href="/production" class="text-[#DED6CC] hover:text-white transition-colors">Production</a></li>
-					</ul>
-				</div>
-				
-				<div>
-					<h4 class="font-semibold text-white mb-4">Company</h4>
-					<ul class="space-y-3">
-						<li><a href="/about" class="text-[#DED6CC] hover:text-white transition-colors">About Us</a></li>
-						<li><a href="/careers" class="text-[#DED6CC] hover:text-white transition-colors">Careers</a></li>
-						<li><a href="/contact" class="text-[#DED6CC] hover:text-white transition-colors">Contact</a></li>
-					</ul>
-				</div>
-				
-				<div>
-					<h4 class="font-semibold text-white mb-4">Legal</h4>
-					<ul class="space-y-3">
-						<li><a href="/privacy" class="text-[#DED6CC] hover:text-white transition-colors">Privacy Policy</a></li>
-						<li><a href="/terms" class="text-[#DED6CC] hover:text-white transition-colors">Terms of Service</a></li>
-					</ul>
-				</div>
-			</div>
-			
-			<div class="pt-8 border-t border-[#2A3131] flex flex-col md:flex-row items-center justify-between gap-4">
-				<p class="text-sm text-[#DED6CC]">© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
-				<div class="flex gap-4">
-					<a href="#" class="w-10 h-10 rounded-full bg-[#2A3131] flex items-center justify-center text-[#DED6CC] hover:bg-[#B65B35] hover:text-white transition-colors">
-						<span class="sr-only">Instagram</span>
-						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-					</a>
-				</div>
-			</div>
-		</div>
-	</footer>
+<footer class="relative isolate overflow-hidden bg-[#171E20] text-[#F4EDE3]">
+  <!-- Subtle photographic continuation from the final CTA -->
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] opacity-20" aria-hidden="true">
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-32-am-9" widths={[480,768,1200,1600]} sizes="100vw" alt="" class="h-full w-full object-cover object-[center_60%]" />
+    <div class="absolute inset-0 bg-gradient-to-b from-[#171E20] via-[#171E20]/70 to-[#171E20]/30"></div>
+  </div>
+  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-20 pb-12 sm:px-12 lg:px-[5%]">
+    <div class="grid gap-11 sm:grid-cols-2 lg:grid-cols-[1.65fr_1fr_1fr_1fr_1.5fr] lg:gap-8">
+      <div>
+        <a href="/" class="inline-flex items-center" aria-label="Gamo Studios homepage"><Logo width="210" height="45" /></a>
+        <p class="mt-5 max-w-[300px] text-base leading-relaxed text-[#D8D4D0]">
+          Connecting churches with vetted musicians, supporting music education, and bringing communities together through live events.
+        </p>
+        <p class="mt-6 text-xs uppercase tracking-[.17em] text-[#D7AD86]">Arizona · Growing Nationwide</p>
+      </div>
+      <nav aria-label="For churches">
+        <h2 class="mb-5 text-base font-semibold text-white">For Churches</h2>
+        <ul class="space-y-3">{churchLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="For musicians">
+        <h2 class="mb-5 text-base font-semibold text-white">For Musicians</h2>
+        <ul class="space-y-3">{musicianLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Explore Gamo Studios">
+        <h2 class="mb-5 text-base font-semibold text-white">Explore</h2>
+        <ul class="space-y-3">{exploreLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      </nav>
+      <div>
+        <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
+        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">News about musicians, Academy programs, and future events.</p>
+        <!-- Visual preview only: no newsletter service exists during the design phase. -->
+        <div class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5">
+          <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/55">Your email address</span>
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#B65B35] text-xl" aria-hidden="true">→</span>
+        </div>
+        <p class="mt-2 text-xs text-[#D7AD86]">Newsletter sign-up coming soon</p>
+      </div>
+    </div>
+    <div class="mt-16 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
+      <p>© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
+      <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
+        <a href="/legal/terms" class="hover:text-white">Terms of Service</a>
+        <a href="/legal/privacy" class="hover:text-white">Privacy Policy</a>
+        <a href="/contact" class="hover:text-white">Contact</a>
+      </nav>
+    </div>
+  </div>
+</footer>
