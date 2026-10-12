@@ -1,0 +1,11 @@
+---
+interface Props {
+  label: string;
+  theme?: 'light' | 'dark';
+  class?: string;
+}
+const { label, theme = 'light', class: className = '' } = Astro.props;
+---
+<div class:list={['flex items-center gap-5 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em]', theme === 'light' ? 'text-[#B65B35]' : 'text-[#D7AD86]', className]}>
+  <span>{label}</span><span aria-hidden="true" class:list={['h-px w-12', theme === 'light' ? 'bg-[#B65B35]/50' : 'bg-[#D7AD86]/50']}></span>
+</div>
