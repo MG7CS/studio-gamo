@@ -1,0 +1,56 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// This acts as the administrative queue for staff to review auditions and assign musicians
+---
+<Layout>
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#1D2323] text-white flex flex-col">
+      <div class="p-6 font-bold text-xl tracking-tight">GAMO <span class="text-[#B65B35]">ADMIN</span></div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a href="/admin" class="block px-4 py-2 bg-white/10 rounded-lg">Dashboard</a>
+        <a href="/admin/auditions" class="block px-4 py-2 hover:bg-white/5 rounded-lg text-gray-300">Auditions</a>
+        <a href="/admin/gigs" class="block px-4 py-2 hover:bg-white/5 rounded-lg text-gray-300">Gigs & Dispatch</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+      <header class="bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Worship Dispatch Radar</h1>
+        <div class="text-sm text-gray-500">Staff Role Active</div>
+      </header>
+
+      <div class="p-6">
+        <h2 class="text-lg font-bold mb-4">Pending Gig Assignments</h2>
+        
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="p-4 font-semibold text-gray-600">Church</th>
+                <th class="p-4 font-semibold text-gray-600">Date</th>
+                <th class="p-4 font-semibold text-gray-600">Role</th>
+                <th class="p-4 font-semibold text-gray-600">Status</th>
+                <th class="p-4 font-semibold text-gray-600">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Simulated Data row -->
+              <tr class="border-b border-gray-100">
+                <td class="p-4">Grace Community (Demo)</td>
+                <td class="p-4">Sunday, Oct 18</td>
+                <td class="p-4">Acoustic Guitar</td>
+                <td class="p-4"><span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">Needs Assignment</span></td>
+                <td class="p-4">
+                  <a href="/admin/assign/123" class="text-[#B65B35] font-medium hover:underline">Assign Musicians</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layout>
