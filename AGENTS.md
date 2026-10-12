@@ -15,11 +15,11 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 
 ## Autonomy model & Active Priorities
 
-- **Active Development Priority**: Complete **all UI/UX screens across all six Gamo Studios applications before adding functionality**.
+- **Active Development Priority**: Complete and visually approve the **global website (`apps/web`)** before starting subdomain applications. Current focus: all homepage sections **below the approved hero**. After review, continue design-first one application at a time. Backend functionality remains deferred.
 - **Autonomy**: Agents autonomously make ordinary coding and design decisions, edit workspace files, run local builds and tests, resolve compilation errors, and continue through the screen inventory without asking for confirmation after every step.
 - Preserve existing work and regularly update the progress log (`docs/BUILD_LOG.md`).
 - **Never deploy, push remotely, modify secrets, change security settings, or perform destructive operations without explicit authorization.**
-- Plan briefly, then **execute continuously**. Do not stop after scaffolding, the homepage, a demo screen, or the first passing build.
+- Plan briefly, then execute continuously **within the currently approved application and design scope**. Stop for visual sign-off at the defined review checkpoint; never start an unapproved application.
 - Work through `ROADMAP.md` milestones in order, end-to-end, unless blocked by protected external dependencies. Independent work continues even if one integration is blocked.
 - Routine architectural and UI choices are your responsibility. Choose stable, supported technologies and document architectural decisions in `docs/DECISIONS.md`.
 - Always inspect installed tool versions and vendor docs before pasting framework commands.
@@ -31,7 +31,7 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 `inspect → plan → scaffold → implement real vertical slice → test → inspect browser → improve → document → commit → next slice`
 
 On each meaningful change:
-- Implement actual routes/actions, persistent state, validation and roles; avoid placeholder-only dashboards.
+- During the current design-first phase, implement responsive, accessible visuals with clearly labeled demo states and no live backend integrations. Build persistent actions, validation, and roles only when the functionality phase is authorized.
 - Maintain demos that operate locally with fake, clearly labeled data and no external secrets.
 - Write/extend tests alongside implementation, including negative paths.
 - Keep one coherent visual system (Inter, charcoal/terracotta/cream, premium cinematic photography).
@@ -76,6 +76,14 @@ These custom agents are located in `.agents/agents/` and can be delegated tasks 
 
 ## Tool Usage
 - **MANDATORY**: For all Gamo Studios workspace agents, strictly prefer native Antigravity workspace file-reading and editing tools (e.g., `view_file`, `write_to_file`, `replace_file_content`) over external Filesystem MCP tools whenever equivalent native tools are available. Do not attempt to bypass workspace permissions.
+
+## Visual fidelity for approved homepage sections
+
+- Treat `design-reference/homepage/02-musicians.png` through `07-footer.png` as the **composition targets** for the global homepage below the hero.
+- Preserve the currently approved hero unless explicitly instructed otherwise.
+- Use photographic mosaics, large asymmetric type, sculptural photo masks, restrained floating product UI and cream/charcoal transitions; avoid generic equal-width SaaS grids.
+- Reconstruct responsive Astro markup, not screenshot backgrounds. Label all fictional musicians, bookings, concert events and story cards as sample content.
+- Capture and compare full-page desktop and mobile screenshots before reporting visual sign-off.
 
 ## Component-First Workflow
 
