@@ -1,0 +1,45 @@
+---
+/**
+ * Compact "this Sunday's team" lineup card used in the homepage hero.
+ * Demo content only — not a real booking.
+ */
+import InitialsAvatar from './InitialsAvatar.astro';
+
+interface Member { initials: string; instrument: string; tone?: 'terracotta' | 'charcoal' | 'cream' }
+interface Props {
+  title?: string;
+  date?: string;
+  members?: Member[];
+  class?: string;
+}
+const {
+  title = "This Sunday's Team",
+  date = 'Sun · 9:00 AM',
+  members = [
+    { initials: 'DK', instrument: 'Keys', tone: 'terracotta' },
+    { initials: 'AR', instrument: 'Bass', tone: 'charcoal' },
+    { initials: 'JM', instrument: 'Drums', tone: 'cream' },
+    { initials: 'TL', instrument: 'Vocals', tone: 'terracotta' },
+  ],
+  class: className = '',
+} = Astro.props;
+---
+<div class:list={['rounded-[24px] border border-white/20 bg-[#1D2323]/80 p-5 text-[#F4EDE3] shadow-2xl backdrop-blur-xl', className]}>
+  <div class="flex items-center justify-between">
+    <p class="text-sm font-semibold">{title}</p>
+    <span class="rounded-full border border-white/20 px-2 py-0.5 text-[10px] uppercase tracking-widest text-white/70">Demo</span>
+  </div>
+  <p class="mt-1 text-xs text-white/60">{date}</p>
+  <ul class="mt-4 grid grid-cols-4 gap-2">
+    {members.map((m) => (
+      <li class="flex flex-col items-center gap-1.5">
+        <InitialsAvatar initials={m.initials} tone={m.tone} class="h-11 w-11 text-xs ring-2 ring-[#1D2323]" />
+        <span class="text-[11px] text-white/75">{m.instrument}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="mt-4 flex items-center gap-2 border-t border-white/10 pt-3 text-xs text-white/70">
+    <span class="h-2 w-2 rounded-full bg-[#5FAE7C]" aria-hidden="true"></span>
+    Sample lineup · All parts filled
+  </p>
+</div>

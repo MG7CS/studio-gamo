@@ -1,27 +1,28 @@
 ---
+import Icon from '../editorial/Icon.astro';
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 ---
 <section id="join" aria-labelledby="join-title" class="relative isolate overflow-hidden bg-[#A84F2F] text-[#FFF9F2]">
   <!-- Image and warm color block share a continuous sculpted boundary. -->
   <div class="absolute inset-y-0 right-0 w-full sm:w-[65%] lg:w-[64%]">
-    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 65vw, 100vw" alt="Professional Black gospel musician playing the keyboard during worship" class="h-full w-full object-cover object-[52%_center]" />
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="(min-width: 1024px) 65vw, 100vw" alt="Musicians of all ages rehearsing together in a church" class="h-full w-full object-cover object-[60%_center] sepia-[.25] saturate-[1.1]" />
     <div class="absolute inset-0 bg-gradient-to-r from-[#A84F2F]/90 via-transparent to-black/15"></div>
   </div>
   <div class="cta-cut absolute inset-y-0 left-0 w-full bg-[#A84F2F]/85 sm:w-[70%] sm:bg-[#A84F2F] lg:w-[52%]" aria-hidden="true"></div>
 
-  <div class="relative z-10 mx-auto flex min-h-[510px] max-w-[1536px] items-center px-6 py-20 sm:px-12 lg:px-[5%]">
+  <div class="relative z-10 mx-auto flex min-h-[510px] max-w-[1536px] items-center px-6 py-20 sm:px-12 lg:px-[4.5%]">
     <div class="max-w-[640px]">
       <SectionEyebrow label="Ready to Get Started?" theme="dark" />
-      <h2 id="join-title" class="mt-7 text-[clamp(3.3rem,5.3vw,5.7rem)] font-extrabold leading-[1.02] tracking-[-.055em]">
-        Let's Keep <span class="block text-[#F5D4BD]">Worship Going.</span>
+      <h2 id="join-title" class="mt-7 text-[clamp(3.3rem,5.3vw,5.7rem)] font-bold leading-[1.02] tracking-[-.03em]">
+        Find Your Place <span class="block text-[#F5D4BD]">in Worship.</span>
       </h2>
       <p class="mt-6 max-w-[515px] text-lg leading-relaxed text-[#FFF9F2]/90">
         Whether you're a church planning your next service or a musician ready to serve, Gamo Studios brings the community together.
       </p>
       <div class="mt-8 flex flex-wrap gap-4">
-        <a href="https://worship.gamostudios.com/" class="inline-flex items-center gap-6 rounded-full bg-[#FFF9F2] px-7 py-4 font-semibold text-[#1D2323] transition-colors hover:bg-white">Find a Musician <span aria-hidden="true">→</span></a>
-        <a href="https://worship.gamostudios.com/apply/start" class="inline-flex items-center gap-6 rounded-full border border-white/80 bg-transparent px-7 py-4 font-semibold text-white transition-colors hover:bg-white/15">Join as a Musician <span aria-hidden="true">→</span></a>
+        <a href="https://worship.gamostudios.com/" class="inline-flex items-center gap-6 rounded-full bg-[#FFF9F2] px-7 py-4 font-semibold text-[#1D2323] transition-colors hover:bg-white">Get Started <Icon name="arrow" class="h-5 w-5" /></a>
+        <a href="/contact" class="inline-flex items-center gap-6 rounded-full border border-white/80 bg-transparent px-7 py-4 font-semibold text-white transition-colors hover:bg-white/15">Talk to Our Team <Icon name="arrow" class="h-5 w-5" /></a>
       </div>
     </div>
   </div>

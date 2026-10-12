@@ -45,3 +45,49 @@
 - Extracted shared generic UI components into `packages/ui` (`Button`, `Badge`, `Container`, `Logo`).
 - Refactored `apps/web/src/pages/index.astro` from a monolithic file into composed layout and page-specific section components (`HeroSection`, `MusiciansSection`, `WorshipCoverageSection`, etc.) maintaining 100% visual fidelity.
 - Fixed workspace dependencies, enabling `@studio-gamo/ui` internal imports and updated `package.json` configurations.
+
+## Homepage Refinement Pass vs. design-reference/homepage (02–07)
+- Captured section screenshots of the running page (`docs/screenshots/current-*.png`) and compared against references.
+- Loosened headline tracking / weight (extrabold → bold) in below-hero sections to stop glyph collisions.
+- Added `KeepWorshipGoingSection` (dark church/musician CTA from reference 06) before the terracotta `FinalCTA`.
+- Footer now matches reference 07: six links per column, social icons (placeholders), legal row (Privacy / Terms / Cookie / Help Center).
+- Academy lesson cards now stretch to equal height.
+- Remaining gaps: musicians/academy/coverage photo selection is limited by available assets; cream wave dividers; Live floating card avatars; mobile pass.
+
+## 2026-10-12 — Hero sizing + floating header
+
+- `SiteHeader.astro`: rebuilt as a fixed, floating rounded-full glass bar (pill nav group, pill Sign In / terracotta Get Started), stronger contrast after scrolling, accessible mobile menu (aria-expanded, Escape to close).
+- `HeroSection.astro`: hero is now viewport-height (`100svh`, clamped 620–880px) instead of a fixed 780px minimum; headline and body text scale with viewport height; photo bleeds to the right edge on wide screens; mobile stack is more compact (hero 1177px → 939px at 390px wide).
+- Verified with Playwright at 1366×768, 1440×900, 1920×1080, 820×1180 and 390×844, plus the mobile menu toggle; `pnpm --filter apps-web build` passes.
+
+## 2026-10-12 — Homepage section transitions & sizing pass
+- Added `SectionCurve` (editorial) arched edge; applied at Musicians→Coverage, Stories→Keep Going, Final CTA→Footer (Coverage→How-it-works now uses it too).
+- Removed doubled ~220px gaps (Musicians, How it works, Live events, Stories padding tightened); Academy given warm sand tone `#ECE1D3` to break the cream run; hairline divider before Stories.
+- Keep Going: gutter aligned to page grid, taller (520px), headline changed to "Find Your Place in Worship" (no longer duplicates Final CTA).
+- Mobile: How it works / Events / Stories cards are swipe rails; footer link columns 2-up. Mobile page height 15,660px → 12,919px; no horizontal overflow at 390 or 1440.
+- Evidence: Playwright boundary crops in agent scratch dir (desktop 1440×900, mobile 390×844).
+
+## 2026-10-12 — Homepage content audit cleanup
+- Image slots on homepage: ~41 → 14 (Playwright `main img` count); no photo used more than twice; Final CTA no longer reuses the hero photo; footer photo removed.
+- Fictional people no longer share one portrait: Marcus T., standby musician, Daniel K., Live attendees use new `InitialsAvatar` (hero David K. untouched — approved).
+- How it works, Academy lessons, Stories → icon/text cards (equal height); Musicians instrument photo tiles → icon chip links; Coverage hero → church exterior, booking-card thumbnail removed; Academy video thumb desktop-only.
+- Keep Going merged into Final CTA ("Find Your Place in Worship."); hero headline now unique. CTAs unified: "Find a Musician" / "Join the Roster"; "Explore Plans" → /pricing.
+- Removed non-functional Stories arrows. `KeepWorshipGoingSection.astro` left on disk, unused (untracked).
+- Heights: desktop page 7,703 → 6,875px; mobile 12,919 → 11,407px. No console errors, no horizontal overflow.
+
+## 2026-10-12 — Owner feedback: Musicians / Coverage / How it works
+- Musicians: single feature photo (mosaic removed); "Browse by instrument" list moved into the text column so it no longer floats between sections.
+- Extracted approved hero card into `editorial/ServiceCoverageCard.astro`; hero renders identically via the component; Coverage now reuses it (lead + standby) instead of its bespoke booking card.
+- How it works moved onto Coverage's dark band (one section); removed the duplicate curved divider at Coverage's bottom edge.
+- Academy lesson cards no longer stretch to the classes-panel height. Homepage images: 14 → 11. No console errors; no horizontal overflow at 390/1440.
+
+## 2026-10-12 — Homepage feedback pass
+- Hero: replaced duplicate service-coverage card with new `WorshipTeamCard` (sample lineup).
+- De-duplicated CTAs: Musicians → "Browse the Roster"; Coverage → single "See Coverage Plans"; Final CTA → "Get Started" / "Talk to Our Team" (`/contact` page not yet built).
+- Removed curved `SectionCurve` dividers from Coverage and Final CTA.
+- How It Works: numbers only, icons removed.
+- Removed Stories/testimonials section from homepage.
+- Live photo mask changed to a clean diagonal.
+- Verified: `astro build` OK; full-page 1440px screenshot captured.
+- Removed "Your Sunday, Covered" feature (kept How It Works) and Academy lesson category cards.
+- Removed "Church-hosted Classes" section from Academy.
