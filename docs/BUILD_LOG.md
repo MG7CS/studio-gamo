@@ -27,3 +27,9 @@
 - Workspace successfully builds via `pnpm build` and typechecks via `pnpm typecheck` successfully across all Astro domains.
 - Generated `docs/SCREEN_INVENTORY.md` to reflect all completed app pages according to `ROADMAP.md` requests.
 - Created `docs/FUNCTIONALITY_PHASE_PLAN.md` pending owner's approval for phase transition.
+
+## Scope Correction: Web Only Phase
+- Received updated scope restricting active development strictly to the global homepage (`apps/web` -> gamostudios.com).
+- Instructed to cease further prototyping of `worship`, `academy`, `live`, `production`, and `admin` apps.
+- The `apps/web` homepage will be fully implemented according to the design-reference composition guides.
+- Custom workspace agents (`design-lead`, `frontend-builder`, `ui-reviewer`) will handle the implementation and review of this single application.
