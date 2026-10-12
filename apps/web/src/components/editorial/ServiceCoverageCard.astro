@@ -1,0 +1,53 @@
+---
+/**
+ * Floating service-coverage card (approved hero design). Reused wherever a
+ * musician's coverage status for a service is previewed. Demo content only.
+ */
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+import Icon from './Icon.astro';
+import InitialsAvatar from './InitialsAvatar.astro';
+
+interface Props {
+  name: string;
+  role: string;
+  /** Portrait image stem; falls back to initials when omitted. */
+  photoStem?: string;
+  initials?: string;
+  badge?: string;
+  service?: string;
+  time: string;
+  status: string;
+  /** Progress bar fill, 0–100. */
+  progress?: number;
+  tone?: 'covered' | 'standby';
+  verified?: boolean;
+  class?: string;
+}
+const {
+  name, role, photoStem, initials = '', badge = 'Demo', service = 'Sunday Service', time, status,
+  progress = 80, tone = 'covered', verified = true, class: className = '',
+} = Astro.props;
+const accent = tone === 'covered' ? 'bg-[#26865B]' : 'bg-[#B65B35]';
+const accentText = tone === 'covered' ? 'text-[#26865B]' : 'text-[#B65B35]';
+---
+<div class:list={['rounded-[24px] border border-white/65 bg-[#FFF9F2]/90 p-5 text-[#1D2323] shadow-2xl backdrop-blur-xl', className]}>
+  <div class="mb-4 flex items-center gap-3">
+    {photoStem ? (
+      <div class="h-12 w-12 shrink-0 overflow-hidden rounded-full">
+        <ResponsivePicture stem={photoStem} widths={[480,768]} sizes="48px" alt="" class="h-full w-full object-cover" />
+      </div>
+    ) : (
+      <InitialsAvatar initials={initials} tone={tone === 'covered' ? 'terracotta' : 'charcoal'} />
+    )}
+    <div class="min-w-0">
+      <p class="font-bold">{name} {verified && <Icon name="verified" class="inline h-4 w-4 align-[-2px] text-[#B65B35]" strokeWidth={2} />}</p>
+      <p class="text-sm text-[#555B5A]">{role}</p>
+    </div>
+    <span class="ml-auto rounded-full bg-[#F4EDE3] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#8F432A]">{badge}</span>
+  </div>
+  <div class="rounded-2xl bg-[#F4EDE3] p-4">
+    <div class="flex items-center justify-between text-sm font-semibold"><span>{service}</span><span class="text-xs font-medium text-[#626866]">{time}</span></div>
+    <div class="mt-3 h-2 overflow-hidden rounded-full bg-[#1D2323]/10"><div class:list={['h-full rounded-full', accent]} style={`width:${progress}%`}></div></div>
+    <p class="mt-2 flex items-center gap-2 text-xs text-[#626866]"><Icon name="check" class:list={['h-3.5 w-3.5', accentText]} strokeWidth={2.6} />{status}</p>
+  </div>
+</div>

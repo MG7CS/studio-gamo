@@ -1,63 +1,42 @@
 ---
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+import SectionEyebrow from '../editorial/SectionEyebrow.astro';
+import Icon from '../editorial/Icon.astro';
+import WorshipTeamCard from '../editorial/WorshipTeamCard.astro';
 ---
-<section class="relative min-h-screen flex items-center pt-24 pb-12 overflow-hidden">
-  <!-- Full Bleed Background Image with dark gradient fade to left -->
-  <div class="absolute inset-0 z-0">
-    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="100vw" alt="Keyboardist playing worship" class="w-full h-full object-cover object-center" loading="eager" decoding="sync" fetchpriority="high" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#1D2323] via-[#1D2323]/80 to-transparent"></div>
+<section aria-labelledby="hero-title" class="relative flex flex-col overflow-hidden bg-[#1D2323] pt-24 pb-12 text-[#F4EDE3] sm:pt-28 lg:block lg:h-[100svh] lg:max-h-[880px] lg:min-h-[620px] lg:py-0">
+  <!-- Full-height photograph with sculptural boundary; bleeds to the right viewport edge on wide screens. -->
+  <div class="hero-photo relative order-2 mx-5 mt-8 h-[clamp(260px,68vw,420px)] overflow-hidden rounded-[30px] bg-[#111616] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-full lg:w-[calc(50%+min(14vw,215px))] lg:rounded-none">
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 64vw, 100vw" alt="Keyboardist playing during a worship service" class="h-full w-full object-cover object-[55%_center]" loading="eager" decoding="sync" fetchpriority="high" />
+    <div class="absolute inset-0 bg-gradient-to-l from-[#1D2323]/45 via-transparent to-transparent"></div>
   </div>
-  
-  <div class="relative z-10 w-full max-w-[1440px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-    <div class="max-w-xl space-y-8 text-white">
-      <h1 class="text-6xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tight leading-[1.05]">
-        Keep Worship<br/>Going.
+
+  <div class="contents lg:relative lg:mx-auto lg:block lg:h-full lg:max-w-[1536px]">
+    <!-- Editorial copy: vertically centred in the space below the floating header. -->
+    <div class="relative z-10 order-1 px-6 sm:px-12 lg:absolute lg:inset-y-0 lg:left-0 lg:flex lg:w-[46%] lg:flex-col lg:justify-center lg:px-[4.5%] lg:pt-24 lg:pb-10">
+      <SectionEyebrow label="Gamo Studios" theme="dark" />
+      <h1 id="hero-title" class="mt-5 text-[clamp(2.9rem,10vw,4rem)] font-bold leading-[.95] tracking-[-.03em] lg:mt-6 lg:text-[clamp(3.25rem,min(5.6vw,10.5svh),5.75rem)]">
+        Keep Worship <span class="block text-[#D7AD86]">Going.</span>
       </h1>
-      <p class="text-xl md:text-2xl text-[#F4EDE3]/80 leading-relaxed font-medium">
+      <p class="mt-5 max-w-[24rem] text-base leading-relaxed text-[#F4EDE3]/75 sm:text-lg lg:mt-6 lg:text-[clamp(1.0625rem,2.2svh,1.25rem)]">
         Reliable musicians for every service. A curated roster of professionals ready when you need them.
       </p>
-      <div class="flex flex-col sm:flex-row items-center gap-4 pt-6">
-        <a href="/worship/hire" class="bg-[#B65B35] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#8F432A] transition-colors w-full sm:w-auto text-center">
-          Hire a Musician
-        </a>
-        <a href="/worship/apply" class="bg-white/10 backdrop-blur-md text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-colors border border-white/20 w-full sm:w-auto text-center">
-          Join the Roster
-        </a>
+      <div class="mt-7 flex flex-wrap gap-3 lg:mt-8">
+        <a href="/worship/hire" class="inline-flex items-center gap-8 rounded-full bg-[#B65B35] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">Find a Musician <Icon name="arrow" class="h-5 w-5" /></a>
+        <a href="/worship/apply" class="inline-flex items-center gap-8 rounded-full border border-[#F4EDE3]/60 px-7 py-4 text-base font-semibold text-[#F4EDE3] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">Join the Roster <Icon name="arrow" class="h-5 w-5" /></a>
       </div>
     </div>
 
-    <!-- Floating UI Glassmorphism Cards -->
-    <div class="hidden lg:block relative h-[600px] w-full">
-      <!-- Musician Card -->
-      <div class="absolute bottom-32 right-10 bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl shadow-2xl flex items-center gap-4 w-72 transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
-        <div class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
-          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="56px" alt="David K." class="w-full h-full object-cover" loading="lazy" decoding="async" />
-        </div>
-        <div>
-          <div class="font-bold text-white text-lg flex items-center gap-2">David K. <svg class="w-4 h-4 text-[#26865B]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>
-          <div class="text-white/70 text-sm">Keys • Vocals</div>
-        </div>
-      </div>
-
-      <!-- Church Service Card -->
-      <div class="absolute top-20 left-10 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl shadow-2xl w-80 transform rotate-[3deg] hover:rotate-0 transition-transform duration-500">
-        <div class="w-full h-32 rounded-lg overflow-hidden mb-4">
-          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-33-am-10" widths={[480,768,1200]} sizes="300px" alt="Church Service" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-        </div>
-        <div class="font-bold text-white flex items-center justify-between">Sunday Service <span class="bg-white/20 text-[10px] uppercase px-2 py-0.5 rounded border border-white/30">Demo</span></div>
-        <div class="text-white/70 text-sm mb-3">Today at 9:00 AM</div>
-        <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden">
-          <div class="bg-[#26865B] h-full w-[80%]"></div>
-        </div>
-        <div class="text-right text-xs text-white/50 mt-1">Status: Covered</div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Curved bottom overlap to next section -->
-  <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[1px]">
-    <svg viewBox="0 0 1440 120" class="w-full h-[60px] md:h-[120px]" preserveAspectRatio="none">
-      <path d="M0,120 C320,0 1120,0 1440,120 L1440,120 L0,120 Z" fill="#F4EDE3"></path>
-    </svg>
+    <!-- Sample team lineup panel (demo content) -->
+    <WorshipTeamCard class="relative z-20 order-3 mx-9 -mt-20 max-w-sm sm:mx-16 lg:absolute lg:bottom-[7%] lg:right-[4%] lg:mx-0 lg:mt-0 lg:w-[320px]" />
   </div>
 </section>
+
+<style>
+  @media (min-width: 1024px) {
+    .hero-photo {
+      clip-path: polygon(16% 0, 100% 0, 100% 100%, 0 100%, 11% 74%, 0 35%);
+      border-top-left-radius: 19% 48%;
+    }
+  }
+</style>

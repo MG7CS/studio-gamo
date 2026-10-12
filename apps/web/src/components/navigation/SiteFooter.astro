@@ -1,38 +1,52 @@
 ---
+import Icon from '../editorial/Icon.astro';
 import Logo from '@studio-gamo/ui/components/Logo.astro';
-import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 const churchLinks = [
-  { label: 'Find Musicians', url: 'https://worship.gamostudios.com/' },
-  { label: 'Booking Plans', url: 'https://worship.gamostudios.com/' },
-  { label: 'Standby Coverage', url: 'https://worship.gamostudios.com/' },
-  { label: 'Host a Class', url: 'https://academy.gamostudios.com/host/apply' },
+  { label: 'Find a Musician', url: 'https://worship.gamostudios.com/' },
+  { label: 'How It Works', url: '/#coverage' },
+  { label: 'Pricing & Plans', url: 'https://worship.gamostudios.com/' },
+  { label: 'Success Stories', url: '/#stories' },
+  { label: 'Church Resources', url: 'https://worship.gamostudios.com/' },
+  { label: 'Get Started', url: 'https://worship.gamostudios.com/' },
 ];
 const musicianLinks = [
-  { label: 'Join as a Musician', url: 'https://worship.gamostudios.com/apply/start' },
+  { label: 'Join the Roster', url: 'https://worship.gamostudios.com/apply/start' },
   { label: 'Audition Process', url: 'https://worship.gamostudios.com/apply/start' },
   { label: 'Opportunities', url: 'https://worship.gamostudios.com/' },
+  { label: 'Resources', url: 'https://worship.gamostudios.com/' },
   { label: 'Musician Portal', url: 'https://worship.gamostudios.com/' },
+  { label: 'Get Started', url: 'https://worship.gamostudios.com/apply/start' },
 ];
 const exploreLinks = [
   { label: 'Gamo Academy', url: 'https://academy.gamostudios.com/' },
   { label: 'Gamo Live', url: 'https://live.gamostudios.com/' },
+  { label: 'Upcoming Events', url: 'https://live.gamostudios.com/' },
   { label: 'A/V Production', url: 'https://production.gamostudios.com/' },
+  { label: 'About Us', url: '/#musicians' },
+  { label: 'Contact', url: '/contact' },
+];
+// Placeholder social destinations; no real accounts are linked during the design phase.
+const socials = [
+  { label: 'Instagram', path: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm5.5-1.5h.01' },
+  { label: 'YouTube', path: 'M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Zm7 1.5v5l4.5-2.5L10 9.5Z' },
+  { label: 'Facebook', path: 'M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v7h4v-7h3l1-4h-4V8.5c0-.3.2-.5.5-.5Z' },
+  { label: 'LinkedIn', path: 'M5 9h3v10H5V9Zm1.5-4.5a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4ZM10 9h3v1.5c.5-1 1.7-1.8 3.2-1.8 3 0 3.8 2 3.8 4.6V19h-3v-5c0-1.3-.3-2.2-1.6-2.2-1.4 0-1.4 1.2-1.4 2.3V19h-3V9Z' },
 ];
 ---
 <footer class="relative isolate overflow-hidden bg-[#171E20] text-[#F4EDE3]">
-  <!-- Subtle photographic continuation from the final CTA -->
-  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] opacity-20" aria-hidden="true">
-    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-32-am-9" widths={[480,768,1200,1600]} sizes="100vw" alt="" class="h-full w-full object-cover object-[center_60%]" />
-    <div class="absolute inset-0 bg-gradient-to-b from-[#171E20] via-[#171E20]/70 to-[#171E20]/30"></div>
-  </div>
-  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-20 pb-12 sm:px-12 lg:px-[5%]">
-    <div class="grid gap-11 sm:grid-cols-2 lg:grid-cols-[1.65fr_1fr_1fr_1fr_1.5fr] lg:gap-8">
-      <div>
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] bg-gradient-to-t from-[#B65B35]/10 to-transparent" aria-hidden="true"></div>
+  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-20 pb-16 sm:px-12 lg:px-[4.5%]">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.65fr_1fr_1fr_1fr_1.5fr] lg:gap-8">
+      <div class="col-span-2 lg:col-span-1">
         <a href="/" class="inline-flex items-center" aria-label="Gamo Studios homepage"><Logo width="210" height="45" /></a>
         <p class="mt-5 max-w-[300px] text-base leading-relaxed text-[#D8D4D0]">
           Connecting churches with vetted musicians, supporting music education, and bringing communities together through live events.
         </p>
-        <p class="mt-6 text-xs uppercase tracking-[.17em] text-[#D7AD86]">Arizona · Growing Nationwide</p>
+        <ul class="mt-7 flex gap-3" aria-label="Social media (placeholders)">
+          {socials.map((s) => (
+            <li><span title={s.label} class="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d={s.path} /></svg><span class="sr-only">{s.label} (coming soon)</span></span></li>
+          ))}
+        </ul>
       </div>
       <nav aria-label="For churches">
         <h2 class="mb-5 text-base font-semibold text-white">For Churches</h2>
@@ -46,13 +60,13 @@ const exploreLinks = [
         <h2 class="mb-5 text-base font-semibold text-white">Explore</h2>
         <ul class="space-y-3">{exploreLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
       </nav>
-      <div>
+      <div class="col-span-2 lg:col-span-1">
         <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
-        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">News about musicians, Academy programs, and future events.</p>
+        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">Get updates on new musicians, upcoming events, and resources for your church.</p>
         <!-- Visual preview only: no newsletter service exists during the design phase. -->
         <div class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5">
-          <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/55">Your email address</span>
-          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#B65B35] text-xl" aria-hidden="true">→</span>
+          <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/75">Your email address</span>
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#B65B35] " aria-hidden="true"><Icon name="arrow" class="h-5 w-5" /></span>
         </div>
         <p class="mt-2 text-xs text-[#D7AD86]">Newsletter sign-up coming soon</p>
       </div>
@@ -60,9 +74,10 @@ const exploreLinks = [
     <div class="mt-16 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
       <p>© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
       <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
-        <a href="/legal/terms" class="hover:text-white">Terms of Service</a>
         <a href="/legal/privacy" class="hover:text-white">Privacy Policy</a>
-        <a href="/contact" class="hover:text-white">Contact</a>
+        <a href="/legal/terms" class="hover:text-white">Terms of Service</a>
+        <a href="/legal/cookies" class="hover:text-white">Cookie Policy</a>
+        <a href="/contact" class="hover:text-white">Help Center</a>
       </nav>
     </div>
   </div>

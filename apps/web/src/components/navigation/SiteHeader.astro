@@ -1,21 +1,119 @@
 ---
 import Logo from '@studio-gamo/ui/components/Logo.astro';
+import Icon from '../editorial/Icon.astro';
+
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  /** Optional override for the primary navigation items. */
+  items?: NavItem[];
+}
+
+const {
+  items = [
+    { label: 'Worship', href: '/worship' },
+    { label: 'Academy', href: '/academy' },
+    { label: 'Live', href: '/live' },
+    { label: 'Production', href: '/production' },
+  ],
+} = Astro.props;
 ---
-<header class="absolute top-0 w-full z-50 flex items-center justify-between p-6 max-w-[1440px] left-1/2 -translate-x-1/2 text-white">
-		<a href="/" class="flex items-center text-white">
-			<Logo width="160" height="30" />
-		</a>
-		<nav class="hidden lg:flex gap-8 items-center font-medium">
-			<a href="/worship" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Worship</a>
-			<a href="/academy" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Academy</a>
-			<a href="/live" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Live</a>
-			<a href="/production" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Production</a>
-		</nav>
-		<div class="hidden md:flex items-center gap-4">
-			<a href="/signin" class="font-medium hover:opacity-70 transition-opacity">Sign In</a>
-			<a href="/get-started" class="bg-white text-[#1D2323] px-5 py-2.5 rounded-lg font-medium hover:bg-white/90 transition-colors">Get Started</a>
-		</div>
-		<button class="lg:hidden text-white">
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-		</button>
-	</header>
+<!-- Floating, rounded glass navigation bar. Fixed so it stays available while scrolling; gains more contrast once the page scrolls. -->
+<header
+  id="site-header"
+  class="site-header fixed inset-x-0 top-3 z-50 mx-auto w-[calc(100%-1.5rem)] max-w-[1280px] text-[#F4EDE3] sm:top-4 sm:w-[calc(100%-2.5rem)]"
+>
+  <div class="site-header__bar flex h-14 items-center justify-between gap-4 rounded-full border border-white/10 bg-[#1D2323]/55 py-2 pl-5 pr-2 shadow-[0_10px_40px_-12px_rgba(0,0,0,.55)] backdrop-blur-xl transition-[background-color,box-shadow,border-color] duration-300 lg:h-16 lg:pl-6">
+    <a href="/" class="flex shrink-0 items-center rounded-full text-[#F4EDE3] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">
+      <Logo width="138" height="26" />
+    </a>
+
+    <nav aria-label="Primary" class="hidden lg:block">
+      <ul class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[.04] p-1">
+        {items.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class="block rounded-full px-4 py-2 text-[15px] font-medium text-[#F4EDE3]/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86]"
+            >{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href="/signin" class="hidden rounded-full border border-[#F4EDE3]/35 px-5 py-2.5 text-sm font-semibold text-[#F4EDE3] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] md:inline-flex">Sign In</a>
+      <a href="/get-started" class="hidden items-center gap-2 rounded-full bg-[#B65B35] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] sm:inline-flex">
+        Get Started <Icon name="arrow" class="h-4 w-4" />
+      </a>
+      <button
+        type="button"
+        class="site-header__toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-[#F4EDE3] transition-colors hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] lg:hidden"
+        aria-expanded="false"
+        aria-controls="site-mobile-menu"
+        aria-label="Open menu"
+      >
+        <svg class="icon-open h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+        <svg class="icon-close hidden h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu panel (local UI state only) -->
+  <div id="site-mobile-menu" class="mt-2 hidden rounded-[28px] border border-white/10 bg-[#1D2323]/95 p-3 shadow-2xl backdrop-blur-xl lg:hidden">
+    <nav aria-label="Mobile primary">
+      <ul class="flex flex-col">
+        {items.map((item) => (
+          <li>
+            <a href={item.href} class="block rounded-2xl px-4 py-3 text-base font-medium text-[#F4EDE3]/85 hover:bg-white/10 hover:text-white">{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
+      <a href="/signin" class="rounded-full border border-[#F4EDE3]/35 px-4 py-3 text-center text-sm font-semibold">Sign In</a>
+      <a href="/get-started" class="rounded-full bg-[#B65B35] px-4 py-3 text-center text-sm font-semibold text-white">Get Started</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header[data-scrolled] .site-header__bar {
+    background-color: rgb(29 35 35 / 0.88);
+    border-color: rgb(255 255 255 / 0.14);
+    box-shadow: 0 14px 44px -14px rgb(0 0 0 / 0.7);
+  }
+</style>
+
+<script>
+  const header = document.getElementById('site-header');
+  const toggle = header?.querySelector<HTMLButtonElement>('.site-header__toggle');
+  const menu = document.getElementById('site-mobile-menu');
+
+  const onScroll = () => header?.toggleAttribute('data-scrolled', window.scrollY > 24);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  const setOpen = (open: boolean) => {
+    if (!toggle || !menu) return;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    menu.classList.toggle('hidden', !open);
+    toggle.querySelector('.icon-open')?.classList.toggle('hidden', open);
+    toggle.querySelector('.icon-close')?.classList.toggle('hidden', !open);
+  };
+
+  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  menu?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+</script>

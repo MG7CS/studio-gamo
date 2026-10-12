@@ -1,0 +1,19 @@
+---
+/**
+ * Initials avatar for sample/illustrative people. Used instead of reusing a
+ * real portrait for multiple fictional names.
+ */
+interface Props {
+  initials: string;
+  /** Tailwind size classes, e.g. "h-14 w-14 text-lg". */
+  class?: string;
+  tone?: 'terracotta' | 'charcoal' | 'cream';
+}
+const { initials, class: className = 'h-12 w-12 text-base', tone = 'terracotta' } = Astro.props;
+const tones = {
+  terracotta: 'bg-[#B65B35] text-white',
+  charcoal: 'bg-[#2A3032] text-[#F4EDE3]',
+  cream: 'bg-[#F4EDE3] text-[#8F432A]',
+};
+---
+<span class:list={['flex shrink-0 items-center justify-center rounded-full font-bold tracking-wide', tones[tone], className]} aria-hidden="true">{initials}</span>
