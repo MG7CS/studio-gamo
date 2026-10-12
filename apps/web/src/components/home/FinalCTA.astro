@@ -1,12 +1,9 @@
 ---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 ---
 <section class="py-32 px-6 w-full relative overflow-hidden bg-[#181F20]">
   <div class="absolute inset-0 z-0 opacity-20">
-    <picture>
-      <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-768w.avif 768w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.avif 1200w" sizes="100vw" />
-      <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-768w.webp 768w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.webp 1200w" sizes="100vw" />
-      <img src="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.webp" alt="Church Exterior" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-    </picture>
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-33-am-10" widths={[480,768,1200]} sizes="100vw" alt="Church Exterior" class="w-full h-full object-cover" loading="lazy" decoding="async" />
     <div class="absolute inset-0 bg-gradient-to-t from-[#181F20] via-[#181F20]/50 to-[#181F20]"></div>
   </div>
   <div class="max-w-4xl mx-auto text-center relative z-10">
