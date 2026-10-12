@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <header class="w-full py-6 px-4 md:px-8 bg-[#1D2323] text-[#F4EDE3] flex justify-between items-center">
+    <div class="font-bold text-xl tracking-tight">GAMO STUDIOS <span class="font-normal opacity-70">| PRODUCTION</span></div>
+    <nav class="hidden md:flex gap-6 text-sm font-medium">
+      <a href="/" class="hover:text-white transition-colors">Services</a>
+      <a href="#portfolio" class="hover:text-white transition-colors">Portfolio</a>
+      <a href="/contact" class="hover:text-white transition-colors">Consultation</a>
+    </nav>
+    <a href="/contact" class="bg-[#B65B35] text-[#F4EDE3] px-5 py-2.5 rounded-full text-sm font-medium hover:bg-[#a04e2d] transition-colors">Book Consultation</a>
+  </header>
+
+  <main>
+    <section class="py-24 px-4 md:px-8 max-w-7xl mx-auto">
+      <div class="max-w-3xl">
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-[#1D2323] mb-6">
+          Elevate your sound and visual presence.
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-700 mb-10 leading-relaxed">
+          Gamo Studios provides premium production services for worship artists, churches, and live events. From studio recording to live multi-cam broadcasting.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a href="/contact" class="bg-[#1D2323] text-[#F4EDE3] px-8 py-4 rounded-full font-medium text-center hover:bg-black transition-colors">
+            Start a Project
+          </a>
+          <a href="#portfolio" class="bg-transparent border-2 border-[#1D2323] text-[#1D2323] px-8 py-4 rounded-full font-medium text-center hover:bg-[#1D2323] hover:text-[#F4EDE3] transition-colors">
+            View Our Work
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-20 bg-white px-4 md:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold mb-12 text-[#1D2323]">Our Services</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-[#F4EDE3] p-8 rounded-2xl">
+            <div class="w-12 h-12 bg-[#B65B35] rounded-full mb-6"></div>
+            <h3 class="text-xl font-bold mb-3">Studio Recording</h3>
+            <p class="text-gray-700">Full-scale audio production, mixing, and mastering for worship albums and singles.</p>
+          </div>
+          <div class="bg-[#F4EDE3] p-8 rounded-2xl">
+            <div class="w-12 h-12 bg-[#1D2323] rounded-full mb-6"></div>
+            <h3 class="text-xl font-bold mb-3">Live Broadcast</h3>
+            <p class="text-gray-700">Multi-camera directing, streaming, and live audio mixing for conferences and major events.</p>
+          </div>
+          <div class="bg-[#F4EDE3] p-8 rounded-2xl">
+            <div class="w-12 h-12 bg-[#D7AD86] rounded-full mb-6"></div>
+            <h3 class="text-xl font-bold mb-3">Creative Consulting</h3>
+            <p class="text-gray-700">Service design, stage and lighting direction, and technical training for church teams.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portfolio" class="py-24 px-4 md:px-8 bg-[#1D2323] text-[#F4EDE3]">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold mb-12">Featured Projects</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Placeholder Real Asset 1 -->
+          <div class="group cursor-pointer">
+            <div class="aspect-video bg-gray-800 rounded-2xl overflow-hidden mb-4 relative">
+              <div class="absolute inset-0 flex items-center justify-center text-gray-500 font-medium">Demo Video Placeholder</div>
+            </div>
+            <h3 class="text-xl font-bold group-hover:text-[#B65B35] transition-colors">Worship Nights Vol. 1</h3>
+            <p class="text-gray-400">Live Recording & Broadcast</p>
+          </div>
+          <!-- Placeholder Real Asset 2 -->
+          <div class="group cursor-pointer">
+            <div class="aspect-video bg-gray-800 rounded-2xl overflow-hidden mb-4 relative">
+              <div class="absolute inset-0 flex items-center justify-center text-gray-500 font-medium">Demo Video Placeholder</div>
+            </div>
+            <h3 class="text-xl font-bold group-hover:text-[#B65B35] transition-colors">City Church Sunday Experience</h3>
+            <p class="text-gray-400">Technical Direction & Consulting</p>
+          </div>
+          <!-- Placeholder Real Asset 3 -->
+          <div class="group cursor-pointer">
+            <div class="aspect-video bg-gray-800 rounded-2xl overflow-hidden mb-4 relative">
+              <div class="absolute inset-0 flex items-center justify-center text-gray-500 font-medium">Demo Image Placeholder</div>
+            </div>
+            <h3 class="text-xl font-bold group-hover:text-[#B65B35] transition-colors">Voices of Grace Album</h3>
+            <p class="text-gray-400">Studio Production & Mixing</p>
+          </div>
+          <!-- Placeholder Real Asset 4 -->
+          <div class="group cursor-pointer">
+            <div class="aspect-video bg-gray-800 rounded-2xl overflow-hidden mb-4 relative">
+              <div class="absolute inset-0 flex items-center justify-center text-gray-500 font-medium">Demo Image Placeholder</div>
+            </div>
+            <h3 class="text-xl font-bold group-hover:text-[#B65B35] transition-colors">Summer Youth Conference</h3>
+            <p class="text-gray-400">Stage Design & Live Broadcast</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="py-12 px-4 md:px-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+    &copy; 2026 Gamo Studios. All rights reserved.
+  </footer>
+</Layout>

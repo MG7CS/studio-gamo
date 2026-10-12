@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <header class="w-full py-6 px-4 md:px-8 bg-white border-b border-gray-100 flex justify-between items-center">
+    <a href="/" class="font-bold text-xl tracking-tight text-[#1D2323]">GAMO STUDIOS <span class="font-normal opacity-70">| PRODUCTION</span></a>
+    <a href="/" class="text-sm font-medium text-gray-500 hover:text-[#1D2323]">Back to Services</a>
+  </header>
+
+  <main class="py-16 px-4 md:px-8 max-w-3xl mx-auto min-h-screen">
+    <div class="mb-10">
+      <h1 class="text-4xl font-bold tracking-tight text-[#1D2323] mb-4">Start a Project</h1>
+      <p class="text-gray-600 text-lg">Tell us about your production needs. We'll get back to you within 48 hours to schedule a consultation.</p>
+    </div>
+
+    <form class="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-[#1D2323] mb-2" for="firstName">First Name</label>
+          <input type="text" id="firstName" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent" placeholder="Jane" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#1D2323] mb-2" for="lastName">Last Name</label>
+          <input type="text" id="lastName" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent" placeholder="Doe" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[#1D2323] mb-2" for="email">Email Address</label>
+        <input type="email" id="email" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent" placeholder="jane@example.com" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[#1D2323] mb-2" for="organization">Organization / Church (Optional)</label>
+        <input type="text" id="organization" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent" placeholder="City Church" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[#1D2323] mb-2" for="serviceType">Service Needed</label>
+        <select id="serviceType" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent bg-white">
+          <option>Studio Recording & Mixing</option>
+          <option>Live Broadcast & Streaming</option>
+          <option>Creative & Technical Consulting</option>
+          <option>Event Stage Design</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[#1D2323] mb-2" for="details">Project Details</label>
+        <textarea id="details" rows="5" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#B65B35] focus:border-transparent" placeholder="Tell us about your timeline, budget expectations, and vision..."></textarea>
+      </div>
+
+      <div class="pt-4">
+        <button type="button" class="w-full bg-[#B65B35] text-[#F4EDE3] px-6 py-4 rounded-xl font-medium text-lg hover:bg-[#a04e2d] transition-colors shadow-sm">
+          Submit Inquiry
+        </button>
+      </div>
+    </form>
+  </main>
+</Layout>

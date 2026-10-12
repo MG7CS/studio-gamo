@@ -211,6 +211,78 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  apps/academy:
+    dependencies:
+      '@astrojs/cloudflare':
+        specifier: ^14.3.4
+        version: 14.3.4(astro@7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0)(yaml@2.9.1)
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.4(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      astro:
+        specifier: ^7.3.8
+        version: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      wrangler:
+        specifier: ^4.149.0
+        version: 4.149.0
+
+  apps/admin:
+    dependencies:
+      '@astrojs/cloudflare':
+        specifier: ^14.3.4
+        version: 14.3.4(astro@7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0)(yaml@2.9.1)
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.4(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      astro:
+        specifier: ^7.3.8
+        version: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      wrangler:
+        specifier: ^4.149.0
+        version: 4.149.0
+
+  apps/live:
+    dependencies:
+      '@astrojs/cloudflare':
+        specifier: ^14.3.4
+        version: 14.3.4(astro@7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0)(yaml@2.9.1)
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.4(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      astro:
+        specifier: ^7.3.8
+        version: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      wrangler:
+        specifier: ^4.149.0
+        version: 4.149.0
+
+  apps/production:
+    dependencies:
+      '@astrojs/cloudflare':
+        specifier: ^14.3.4
+        version: 14.3.4(astro@7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0)(yaml@2.9.1)
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.4(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      astro:
+        specifier: ^7.3.8
+        version: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      wrangler:
+        specifier: ^4.149.0
+        version: 4.149.0
+
   apps/web:
     dependencies:
       '@astrojs/cloudflare':
