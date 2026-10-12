@@ -1,13 +1,10 @@
 ---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 ---
 <section class="relative min-h-screen flex items-center pt-24 pb-12 overflow-hidden">
   <!-- Full Bleed Background Image with dark gradient fade to left -->
   <div class="absolute inset-0 z-0">
-    <picture>
-      <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-25-am-1-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-768w.avif 768w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-1200w.avif 1200w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-1600w.avif 1600w" sizes="100vw" />
-      <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-25-am-1-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-768w.webp 768w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-1200w.webp 1200w, /images/optimized/photo-oct-12-2026-at-10-50-25-am-1-1600w.webp 1600w" sizes="100vw" />
-      <img src="/images/optimized/photo-oct-12-2026-at-10-50-25-am-1-1600w.webp" alt="Keyboardist playing worship" class="w-full h-full object-cover object-center" fetchpriority="high" loading="eager" decoding="sync" />
-    </picture>
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="100vw" alt="Keyboardist playing worship" class="w-full h-full object-cover object-center" loading="eager" decoding="sync" fetchpriority="high" />
     <div class="absolute inset-0 bg-gradient-to-r from-[#1D2323] via-[#1D2323]/80 to-transparent"></div>
   </div>
   
@@ -34,11 +31,7 @@
       <!-- Musician Card -->
       <div class="absolute bottom-32 right-10 bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl shadow-2xl flex items-center gap-4 w-72 transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
         <div class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
-          <picture>
-            <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.avif 768w" sizes="56px" />
-            <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.webp 768w" sizes="56px" />
-            <img src="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.webp" alt="David K." class="w-full h-full object-cover" loading="lazy" decoding="async" />
-          </picture>
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="56px" alt="David K." class="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
         <div>
           <div class="font-bold text-white text-lg flex items-center gap-2">David K. <svg class="w-4 h-4 text-[#26865B]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></div>
@@ -49,11 +42,7 @@
       <!-- Church Service Card -->
       <div class="absolute top-20 left-10 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl shadow-2xl w-80 transform rotate-[3deg] hover:rotate-0 transition-transform duration-500">
         <div class="w-full h-32 rounded-lg overflow-hidden mb-4">
-          <picture>
-            <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-768w.avif 768w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.avif 1200w" sizes="300px" />
-            <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-768w.webp 768w, /images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.webp 1200w" sizes="300px" />
-            <img src="/images/optimized/photo-oct-12-2026-at-10-50-33-am-10-1200w.webp" alt="Church Service" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-          </picture>
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-33-am-10" widths={[480,768,1200]} sizes="300px" alt="Church Service" class="w-full h-full object-cover" loading="lazy" decoding="async" />
         </div>
         <div class="font-bold text-white flex items-center justify-between">Sunday Service <span class="bg-white/20 text-[10px] uppercase px-2 py-0.5 rounded border border-white/30">Demo</span></div>
         <div class="text-white/70 text-sm mb-3">Today at 9:00 AM</div>
