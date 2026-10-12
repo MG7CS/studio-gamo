@@ -12,15 +12,15 @@ const lessons = [
 ---
 <section id="academy" aria-labelledby="academy-title" class="relative overflow-hidden bg-[#F4EDE3] pt-16 pb-24 lg:pt-0">
   <div class="mx-auto max-w-[1536px]">
-    <div class="relative lg:min-h-[625px]">
+    <div class="relative flex flex-col lg:block lg:min-h-[625px]">
       <!-- Hero-sized lesson image: sculptural boundary with cream editorial panel. -->
-      <div class="academy-photo relative mx-5 h-[410px] overflow-hidden rounded-[30px] bg-[#1D2323] sm:mx-10 lg:absolute lg:top-0 lg:right-0 lg:mx-0 lg:h-[625px] lg:w-[66%] lg:rounded-none">
+      <div class="academy-photo relative order-2 mx-5 h-[410px] overflow-hidden rounded-[30px] bg-[#1D2323] sm:mx-10 lg:absolute lg:top-0 lg:right-0 lg:mx-0 lg:h-[625px] lg:w-[66%] lg:rounded-none">
         <ResponsivePicture stem="photo-oct-12-2026-at-10-50-46-am-1" widths={[480,768,1200]} sizes="(min-width: 1024px) 67vw, 100vw" alt="African music teacher guiding a young guitarist in a church practice room" class="h-full w-full object-cover object-[50%_center]" />
         <div class="absolute inset-0 bg-gradient-to-l from-[#1D2323]/55 via-transparent to-transparent"></div>
       </div>
 
       <!-- Brand/editorial information -->
-      <div class="relative z-10 -mt-0 px-6 pt-10 sm:px-12 lg:absolute lg:left-0 lg:top-[11%] lg:mt-0 lg:w-[43%] lg:px-[4.5%] lg:pt-0">
+      <div class="relative z-10 order-1 -mt-0 px-6 pt-10 sm:px-12 lg:absolute lg:left-0 lg:top-[11%] lg:mt-0 lg:w-[43%] lg:px-[4.5%] lg:pt-0">
         <SectionEyebrow label="Gamo Academy" />
         <h2 id="academy-title" class="mt-6 text-[clamp(3rem,4.4vw,4.6rem)] font-extrabold leading-[1.03] tracking-[-.055em] text-[#1D2323]">
           Grow <span class="block text-[#B65B35]">Musical Talent</span> for a Stronger Church Tomorrow
@@ -35,7 +35,7 @@ const lessons = [
       </div>
 
       <!-- Floating instructor panel inside the photography on desktop. -->
-      <div class="relative z-20 mx-5 mt-5 grid gap-3 sm:mx-10 lg:absolute lg:right-[2.5%] lg:top-[13%] lg:mx-0 lg:mt-0 lg:w-[295px]">
+      <div class="relative z-20 order-3 mx-5 mt-5 grid gap-3 sm:mx-10 lg:absolute lg:right-[2.5%] lg:top-[13%] lg:mx-0 lg:mt-0 lg:w-[295px]">
         <div class="rounded-[24px] border border-white/65 bg-[#FFF9F2]/90 p-5 text-[#1D2323] shadow-2xl backdrop-blur-xl">
           <div class="mb-4 flex items-center gap-3">
             <div class="h-14 w-14 shrink-0 overflow-hidden rounded-full">
