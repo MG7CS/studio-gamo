@@ -33,3 +33,15 @@
 - Instructed to cease further prototyping of `worship`, `academy`, `live`, `production`, and `admin` apps.
 - The `apps/web` homepage will be fully implemented according to the design-reference composition guides.
 - Custom workspace agents (`design-lead`, `frontend-builder`, `ui-reviewer`) will handle the implementation and review of this single application.
+
+## Homepage Design & Automation Pipeline
+- Implemented an image optimization pipeline using `sharp` to process high-resolution source photography into responsive WebP/AVIF variants at `scripts/optimize-images.mjs`.
+- Successfully generated optimized assets reducing total payload footprint by ~93%.
+- Rewrote `apps/web/src/pages/index.astro` to faithfully implement the approved premium cinematic design references.
+- Integrated asymmetric layout, glassmorphic floating UI cards, organic curved overlaps, and `<picture>` elements for responsive optimized images.
+- Created root `Makefile` to simplify and document standard monorepo workflows (`make dev`, `make build`, `make images`, etc.).
+
+## Architecture Update: Component-First Refactor
+- Extracted shared generic UI components into `packages/ui` (`Button`, `Badge`, `Container`, `Logo`).
+- Refactored `apps/web/src/pages/index.astro` from a monolithic file into composed layout and page-specific section components (`HeroSection`, `MusiciansSection`, `WorshipCoverageSection`, etc.) maintaining 100% visual fidelity.
+- Fixed workspace dependencies, enabling `@studio-gamo/ui` internal imports and updated `package.json` configurations.

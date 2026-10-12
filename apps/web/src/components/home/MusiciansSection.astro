@@ -1,0 +1,88 @@
+---
+---
+<section class="py-32 px-6 w-full bg-[#F4EDE3] relative z-20">
+  <div class="max-w-[1440px] mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+      <div class="max-w-2xl">
+        <h2 class="text-[#B65B35] font-semibold tracking-wider text-sm uppercase mb-3">The Roster</h2>
+        <h3 class="text-4xl md:text-5xl font-bold text-[#1D2323] tracking-tight">Meet the Musicians.</h3>
+      </div>
+      <a href="/roster" class="text-[#1D2323] font-medium border-b border-[#1D2323] pb-1 hover:text-[#B65B35] hover:border-[#B65B35] transition-colors">View full roster</a>
+    </div>
+
+    <!-- Instrument Categories Discovery -->
+    <div class="flex flex-wrap gap-3 mb-10">
+      <button class="bg-[#1D2323] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#B65B35] transition-colors">All Musicians</button>
+      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Keys</button>
+      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Vocals</button>
+      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Drums</button>
+      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Bass</button>
+      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Guitar</button>
+    </div>
+
+    <!-- Asymmetric Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+      <!-- Large Card (Vocalist) -->
+      <div class="md:col-span-2 md:row-span-2 relative rounded-3xl overflow-hidden group cursor-pointer">
+        <picture>
+          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.avif 768w" sizes="(min-width: 768px) 66vw, 100vw" />
+          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.webp 768w" sizes="(min-width: 768px) 66vw, 100vw" />
+          <img src="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.webp" alt="Sarah M. singing" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+        </picture>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        
+        <!-- Tasteful Audition Preview Element -->
+        <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 group-hover:scale-110 group-hover:bg-[#B65B35] group-hover:border-[#B65B35] transition-all duration-300 shadow-xl" aria-label="Play audition preview">
+          <svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+
+        <div class="absolute bottom-0 left-0 p-8 w-full">
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <h4 class="font-bold text-3xl text-white">Sarah M.</h4>
+                <span class="bg-white/20 text-white text-xs px-2 py-1 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo Profile</span>
+              </div>
+              <p class="text-white/80 font-medium">Lead Vocals • Choir Director</p>
+            </div>
+            <button class="bg-white/20 backdrop-blur-md text-white px-6 py-2 rounded-full font-medium hover:bg-white/30 transition-colors">View Profile</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Small Card Top (Bass) -->
+      <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
+        <picture>
+          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.avif 768w" sizes="(min-width: 768px) 33vw, 100vw" />
+          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.webp 768w" sizes="(min-width: 768px) 33vw, 100vw" />
+          <img src="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.webp" alt="Marcus W. on Bass" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+        </picture>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="font-bold text-xl text-white">Marcus W.</h4>
+            <span class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo</span>
+          </div>
+          <p class="text-white/80 text-sm">Bass Guitar</p>
+        </div>
+      </div>
+
+      <!-- Small Card Bottom (Drummer) -->
+      <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
+        <picture>
+          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.avif 768w" sizes="(min-width: 768px) 33vw, 100vw" />
+          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.webp 768w" sizes="(min-width: 768px) 33vw, 100vw" />
+          <img src="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.webp" alt="Elijah T. on Drums" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+        </picture>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 p-6 w-full">
+          <div class="flex items-center gap-2 mb-1">
+            <h4 class="font-bold text-xl text-white">Elijah T.</h4>
+            <span class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo</span>
+          </div>
+          <p class="text-white/80 text-sm">Drums • Percussion</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -73,3 +73,16 @@ This repository contains customized Antigravity agents configured to operate aut
 - **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
 
 These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts.
+
+## Tool Usage
+- **MANDATORY**: For all Gamo Studios workspace agents, strictly prefer native Antigravity workspace file-reading and editing tools (e.g., `view_file`, `write_to_file`, `replace_file_content`) over external Filesystem MCP tools whenever equivalent native tools are available. Do not attempt to bypass workspace permissions.
+
+## Component-First Workflow
+
+- **Permanent Rule**: Every page must be built by composing small, reusable, independently maintainable components. Do not write large, monolithic Astro page files with hundreds of lines of inline HTML/Tailwind.
+- **Level 1 (Shared UI)**: Generic components (Buttons, Cards, Badges, Containers) live in `packages/ui` and are reused across all applications.
+- **Level 2 (App-Specific UI)**: Components specific to one application (e.g., `MusicianProfileCard`, `AuditionPreview`) live in that app's `src/components/`.
+- **Level 3 (Page Sections)**: Large page sections (e.g., `HeroSection`, `WorshipCoverageSection`) must be extracted into their own components and composed within the page layout.
+- Maintain clear typed interfaces (Props) for all components.
+- Component extraction should improve clarity, independent testing, and reuse.
+- All specialized agents (`frontend-builder`, `design-lead`, `ui-reviewer`) must adhere to this architecture.

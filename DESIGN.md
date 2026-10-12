@@ -1,60 +1,80 @@
-# Gamo Studios — Design System
+# Gamo Studios — Cinematic Editorial Interface
 
-**Status:** approved visual direction; exact UI/brand assets evolve through review.
+## Design Identity
 
-## Brand and voice
+Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, sculptural geometric layouts, and refined, layered application interfaces.
 
-- Brand: **Gamo Studios** (never change public brand to Studio Gamo solely because the repo is named `studio-gamo`).
-- Positioning: worship continuity through trusted professionals; music education and live experiences as extensions.
-- Tone: assured, warm, concise, modern, human; never overpromise.
-- Visually: premium music editorial + modern product UI. Realistic photography, high image density, confident negative space, restrained text.
-- Avoid: generic SaaS dashboards on marketing pages, fake reviews, fake attendance rates, neon/cyber styling, decorative floating icons, stock-looking 3D people.
+The goal is to create the visual character of a sophisticated music brand while communicating the reliability and usability of a professional musician marketplace.
 
-## Typography
+## Core Principles
 
-**Inter variable** is the approved universal interface typeface. Use local or reliable licensed/font CDN loading with fallback `system-ui, sans-serif`. Logo lettering is an independent vector mark: do not auto-rewrite logo assets when font CSS changes.
+**Photography is structural.** Large photographs shape the composition rather than merely illustrating the content. Images may form full-bleed backgrounds, asymmetric mosaics, organically cropped regions, or visual anchors beneath product interface overlays.
 
-| Usage | Desktop | Mobile | Weight |
-| --- | --- | --- | --- |
-| Hero | clamp(3rem, 6vw, 5rem) | fluid | 700–800 |
-| Section title | clamp(2.25rem, 4vw, 3.5rem) | fluid | 700 |
-| Card title | 1.25–1.75rem | 1.125–1.5rem | 600 |
-| Body | 1–1.125rem | 1rem | 400 |
-| Nav/buttons | 0.875–1rem | 0.875–1rem | 500–600 |
-| Eyebrows | 0.75–0.8125rem | 0.75rem | 600 |
+**Layouts are deliberately asymmetric.** Favor varied visual proportions, editorial alignment, staggered image placement, and controlled overlaps over predictable centered layouts and equal-width grids.
 
-Headings may use tight tracking (-0.025em to -0.045em); body line-height 1.5–1.65. Never sacrifice readability for oversized display type.
+**Geometry connects the experience.** Use broad organic curves, flowing masks, angled boundaries, and occasional sculptural transitions to connect photographic and typographic regions. Geometry should feel purposeful, not decorative.
 
-## Color tokens
+**Typography is expressive.** Use Inter with bold, oversized headlines, tight visual proportions, intentional line breaks, and selective terracotta emphasis. Supporting copy remains brief and subordinate to the photography.
 
-| Token | Hex | Role |
-| --- | --- | --- |
-| `brand.terracotta` | `#B65B35` | accents, graphic treatments |
-| `brand.terracottaDeep` | `#8F432A` | accessible primary CTA on cream/white |
-| `brand.charcoal` | `#1D2323` | typography, dark sections |
-| `brand.cream` | `#F4EDE3` | primary light section background |
-| `brand.copper` | `#D7AD86` | subtle highlight |
-| `neutral.white` | `#FFFFFF` | surfaces and contrast |
-| `neutral.muted` | `#6B6B67` | secondary text (check contrast per surface) |
-| `neutral.border` | `#DED6CC` | subtle stroke |
-| `state.success` | `#26865B` | confirmed states with accessible text pairing |
+**Product interfaces live within the composition.** Present musician profiles, audition controls, booking summaries, standby assignments, and event cards as elegant layered interface elements. Use restrained translucency, subtle borders, and readable contrast.
 
-Use accessibility-tested combinations. `#B65B35` on very light backgrounds may not always meet required small-text contrast; use darker deep terracotta for small CTA labels or large filled controls where needed. Verify with actual contrast tests.
+**Contrast establishes rhythm.** Alternate between cinematic charcoal regions and warm cream editorial surfaces. Terracotta serves as the recognizable brand accent. Allow the photography to supply additional tonal richness.
 
-## Site-wide layout
+**Every section has a distinct composition.** Reuse underlying design-system components without forcing all sections into identical grids, cards, or hero templates.
 
-- Header: logo left, spare primary navigation, Sign In and terracotta Get Started. Keep mobile menu functional and accessible.
-- Hero: dark cinematic photography (real worship musicians) and generous typographic zone. Main line: **Keep Worship Going.** Supporting line may read **Reliable musicians for every service.** Primary actions: **Hire a Musician** and **Join as a Musician**.
-- Build alternating deep charcoal and warm cream compositions, not repetitive same-size feature card grids.
-- Edges: occasional large radii (16–28px) for photography panels, smaller (8–12px) for UI controls; not indiscriminate pill shapes.
-- Content width around 1200–1440px with generous gutters and responsive rhythm.
-- Images should resemble real professional editorial photographs (skin texture, physical instruments, coherent stage light and hands), not illustration or plastic-looking imagery.
-- Put headings and CTAs in accessible HTML, not baked into image files.
-- Subdomains share logo, font, core tokens and accessible component primitives, but use distinctive brand expressions: Worship (continuity), Academy (learning), Live (concert energy), Production (technical craft), Admin (operational clarity).
+## Brand Tokens
+
+- Primary terracotta: `#B65B35`
+- Deep terracotta: `#8F432A`
+- Deep charcoal: `#1D2323`
+- Warm cream: `#F4EDE3`
+- Soft copper: `#D7AD86`
+- White: `#FFFFFF`
+- Typography: Inter
+
+## Photography
+
+Use premium, believable photographs of professional musicians, predominantly African and African-diaspora church communities, worship services, music education, and concerts.
+
+Favor natural expressions, realistic instruments, warm stage lighting, authentic environments, cinematic depth, and intentional editorial framing.
+
+Avoid generic corporate stock imagery, excessive visual effects, artificial-looking anatomy, and photography that lacks relevance to the surrounding content.
+
+## Layout Implementation
+
+Treat approved section references as binding composition targets rather than loose inspiration.
+
+Before implementing a section, identify:
+
+1. Its dominant photographic region.
+2. Its typography region and visual hierarchy.
+3. Major geometric boundaries and masks.
+4. Supporting image groups and their proportions.
+5. Overlapping interface elements.
+6. Primary user action and navigation behavior.
+7. Responsive adaptations.
+
+Reconstruct the layout using genuine responsive Astro components, CSS Grid/Flexbox, CSS masks or clip paths, and reusable UI primitives.
+
+Do not use complete design screenshots as webpage backgrounds.
+
+## Responsive Design
+
+Mobile layouts must preserve the visual language and content hierarchy without attempting a literal desktop shrink.
+
+Reorganize photographic mosaics, reduce complex overlays, preserve readable text, and keep the primary actions immediately understandable.
+
+## Visual Quality Standard
+
+Correct fonts, colors, headings, and successful builds are not sufficient to establish design fidelity.
+
+Review the rendered page against the approved reference for geometry, photographic composition, color distribution, typography, spacing, image cropping, and layering.
+
+**Gamo Studios must feel like an immersive, carefully art-directed music experience—not a generic SaaS dashboard or conventional church website.**
 
 ## Approved homepage narrative
 
-1. **Hero — Keep Worship Going:** strong photo-led B2B/B2C split, two core paths, no invented stats.
+1. **Hero — Keep Worship Going:** strong photo-led B2B/B2C split, two core paths, no invented stats. The first hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon, and supporting paragraph. Those latest changes take precedence over older mockups.
 2. **Meet the Musicians:** editorial artist gallery and demo audition cards; verified status only for actually verified roster members (sample names explicitly labeled).
 3. **Your Sunday, Covered:** primary/standby workflow, booking steps and failover logic explained visually; no absolute attendance guarantee.
 4. **Gamo Academy:** instructor-and-student photos, private lessons and church-hosted clinics.
@@ -62,20 +82,3 @@ Use accessibility-tested combinations. `#B65B35` on very light backgrounds may n
 6. **Final CTA:** audience-specific calls to action; testimonials only once consented real statements exist.
 7. **Footer:** paths to each vertical, account access, contact, legal pages, social links once verified.
 
-## Product components
-
-- `AppHeader`, `BrandLogo`, `PrimaryButton`, `SecondaryButton`, `SectionHeader`, `PhotoPanel`, `RosterPreviewCard`, `VerifiedStatus`, `GigCard`, `StandbyStatus`, `PlanSelector`, `AvailabilityPicker`, `CheckoutSummary`, `AuditStatus`, `FormStepper`, `Toast`, `EmptyState`.
-- Forms: persistent labels, descriptive errors, progress indicators, keyboard support, server validation, submit idempotency.
-- Dashboards: dense enough to act, not dense enough to overwhelm. Sunday dispatch prioritizes huge status and call-to-action, not decorative images.
-- Include loading, empty, error, success and permission-denied views for all workflows.
-
-## Responsive and motion
-
-- Design and test at 360, 390, 768, 1024, 1440px widths.
-- Do not crop musician faces/hands under critical overlay text; use responsive `<picture>` or CSS object-position.
-- Respect `prefers-reduced-motion`; reserve motion for meaningful interactions.
-- Aim WCAG 2.2 AA; test contrast, focus order, focus visibility, keyboard menus, semantic landmarks and forms.
-
-## Source assets
-
-Approved logo concept: warm terracotta waveform symbol, bold GAMO, lighter spaced STUDIOS; use actual versioned SVGs if supplied in repository, do not reproduce with emoji or a generic stock icon. Existing chat mockups are **visual inspiration**, not production assets or proof of real church/artist affiliations. Photograph/media licensing and consent are mandatory before production use.
