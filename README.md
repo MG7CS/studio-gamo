@@ -62,9 +62,16 @@ Read in this order:
 5. [ROADMAP.md](ROADMAP.md) — milestones, evidence and acceptance criteria.
 6. [prompts/ANTIGRAVITY_MASTER_PROMPT.md](prompts/ANTIGRAVITY_MASTER_PROMPT.md) — execution kickoff.
 
-## Getting started (after agents scaffold the project)
+## Getting started
 
-This repository begins **documentation-first**. The development agent must scaffold the application without deleting these files. After scaffolding, update this section with actual verified commands for install, local dev, tests, type-check, database migrations and deployment previews. Never document commands that have not been verified.
+This repository uses a root `Makefile` to simplify common development commands. 
+Run `make help` to see all available commands.
+
+**Common Commands:**
+- `make dev` — Start the global website development server.
+- `make build` — Build the monorepo projects.
+- `make check` — Run TypeScript type-checking.
+- `make images` — Optimize new images using the optimization pipeline.
 
 Local configuration goes in `.dev.vars` or other current Wrangler-compatible local secret files, excluded from git. Create `.dev.vars.example` with variable names only. Do not commit API keys or account identifiers.
 

@@ -157,3 +157,29 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 
 ## Definition of deployable
 An application is deployable only after real tests, verified migrations, access controls, webhook verification, secret management, observability, rollback documentation, and user approval for external deployments.
+
+## Component-First Architecture & Development Workflow
+
+Gamo Studios strictly follows a **component-first architecture** to ensure UI scalability, maintainability, and visual consistency across all applications.
+
+### 1. Architectural Principle
+**Pages compose components. Components implement interfaces. Shared packages provide reusable building blocks.** 
+Large monolithic page files are prohibited.
+
+### 2. Levels of Reusability
+
+- **Level 1 (Shared UI Primitives)**: Located in `packages/ui/src/components/`. Contains highly reusable components like `Button`, `Card`, `Badge`, `Container`, and `SectionHeading`. These enforce the Gamo Studios design tokens (Inter, terracotta, charcoal, cream).
+- **Level 2 (Application-Specific Components)**: Located in `apps/<app-name>/src/components/`. Contains components specific to a single application's domain (e.g., `MusicianProfileCard`, `AuditionPreview`, `StandbyAssignment`).
+- **Level 3 (Page-Specific Sections)**: Large sections of a page (e.g., `HeroSection.astro`, `WorshipCoverageSection.astro`) must be extracted into their own components within `apps/<app-name>/src/components/<page-name>/` and composed in the page file.
+
+### 3. Component Development Rules
+- Ensure components have explicit, typed interfaces (Props).
+- Use Astro slots to separate structure from content.
+- Keep data fetching and business logic separated from presentation components when practical.
+- Avoid repeating generic Tailwind classes across multiple files; abstract them into reusable variants.
+- Do not extract components merely to reduce line counts; extract them to improve clarity, reuse, maintainability, or independent testing.
+
+### 4. Shared Packages and Workspaces
+- `packages/ui` is the central repository for the design system.
+- Application workspaces (`apps/web`, `apps/worship`, etc.) must depend on `packages/ui` rather than duplicating basic elements.
+- Introduce client-side JS (React, Vue, or Vanilla islands) only when interactions demand it, maintaining Astro's static-first approach for presentation.

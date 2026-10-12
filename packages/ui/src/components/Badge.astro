@@ -1,0 +1,19 @@
+---
+interface Props {
+  variant?: 'default' | 'demo' | 'success';
+  class?: string;
+}
+
+const { variant = 'default', class: className = '' } = Astro.props;
+
+const variants = {
+  default: "bg-[#1D2323] text-white",
+  demo: "bg-white/20 text-white border border-white/30 uppercase tracking-wider font-semibold",
+  success: "bg-[#26865B]/10 text-[#26865B] font-bold uppercase tracking-wider",
+};
+
+const classes = `text-xs px-2 py-1 rounded inline-block ${variants[variant]} ${className}`;
+---
+<span class={classes}>
+  <slot />
+</span>

@@ -7,7 +7,9 @@
     "dev": "pnpm --filter web dev & pnpm --filter worship dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit",
-    "lint": "echo \"Linting not set up yet\""
+    "lint": "echo \"Linting not set up yet\"",
+    "images:optimize": "node scripts/optimize-images.mjs",
+    "images:report": "node scripts/optimize-images.mjs --report"
   },
   "keywords": [],
   "author": "",
@@ -22,5 +24,10 @@
   "type": "module",
   "dependencies": {
     "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "playwright": "^1.64.0",
+    "sharp": "^0.35.5"
   }
 }
