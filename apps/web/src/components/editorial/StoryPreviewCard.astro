@@ -1,0 +1,21 @@
+---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+interface Props {
+  heading: string;
+  description: string;
+  stem: string;
+  widths: number[];
+}
+const { heading, description, stem, widths } = Astro.props;
+---
+<article class="overflow-hidden rounded-3xl bg-[#FFF9F2] shadow-[0_18px_45px_-28px_rgba(64,34,22,.25)]">
+  <div class="relative h-48 overflow-hidden">
+    <ResponsivePicture stem={stem} widths={widths} sizes="(min-width: 1024px) 22vw, (min-width: 640px) 40vw, 90vw" alt="" class="h-full w-full object-cover" />
+  </div>
+  <div class="p-6">
+    <span class="mb-4 inline-block rounded-full bg-[#B65B35]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#8F432A]">Illustrative scenario</span>
+    <h3 class="mb-3 text-xl font-bold text-[#1D2323]">{heading}</h3>
+    <p class="text-base leading-relaxed text-[#545A59]">{description}</p>
+    <div class="mt-5 border-t border-[#DED6CC] pt-4 text-xs tracking-wider text-[#6B6B67]">Sample content · Not a customer testimonial</div>
+  </div>
+</article>
