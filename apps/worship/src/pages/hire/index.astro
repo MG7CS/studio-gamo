@@ -1,0 +1,28 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout>
+  <main class="max-w-3xl mx-auto py-12 px-4">
+    <h1 class="text-4xl font-bold mb-6 text-[#1D2323]">Your Sunday, Covered.</h1>
+    <p class="text-xl text-[#6B6B67] mb-12">
+      Select the plan that fits your church's needs. All plans include a primary musician and a paid standby understudy to guarantee coverage.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="border border-[#DED6CC] rounded-xl p-8 bg-white hover:border-[#B65B35] transition-colors">
+        <h2 class="text-2xl font-bold mb-2">Spot Fill</h2>
+        <p class="text-sm text-[#6B6B67] mb-6">Single weekend coverage for emergencies or planned absences.</p>
+        <div class="text-3xl font-bold mb-6">$350 <span class="text-sm font-normal text-[#6B6B67]">(proposed)</span></div>
+        <a href="/hire/gig-details?plan=spot" class="block w-full text-center bg-[#F4EDE3] text-[#1D2323] px-4 py-3 rounded-lg font-medium hover:bg-[#DED6CC] transition-colors">Select Plan</a>
+      </div>
+
+      <div class="border-2 border-[#B65B35] rounded-xl p-8 bg-white relative">
+        <div class="absolute top-0 right-0 transform translate-x-2 -translate-y-3 bg-[#B65B35] text-white text-xs font-bold px-3 py-1 rounded-full">RECOMMENDED</div>
+        <h2 class="text-2xl font-bold mb-2">Monthly Coverage</h2>
+        <p class="text-sm text-[#6B6B67] mb-6">Four consecutive weekends of reliable, consistent worship leadership.</p>
+        <div class="text-3xl font-bold mb-6">$1,200 <span class="text-sm font-normal text-[#6B6B67]">(proposed)</span></div>
+        <a href="/hire/gig-details?plan=monthly" class="block w-full text-center bg-[#B65B35] text-white px-4 py-3 rounded-lg font-medium hover:bg-[#8F432A] transition-colors">Select Plan</a>
+      </div>
+    </div>
+  </main>
+</Layout>

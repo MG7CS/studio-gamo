@@ -1,0 +1,49 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+<Layout>
+  <main class="max-w-4xl mx-auto py-12 px-4">
+    <a href="/admin" class="text-sm text-[#B65B35] mb-6 inline-block hover:underline">← Back to Radar</a>
+    <h1 class="text-3xl font-bold mb-8">Assign Musicians</h1>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <h2 class="text-xl font-bold mb-4">Gig Details</h2>
+        <div class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <div>
+            <div class="text-sm text-gray-500">Church</div>
+            <div class="font-medium">Grace Community (Demo)</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Role</div>
+            <div class="font-medium">Acoustic Guitar</div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Call Time</div>
+            <div class="font-medium">Sunday, 7:00 AM</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-bold mb-4">Assignments</h2>
+        <form class="space-y-4" method="POST" action="/api/admin/assign">
+          <div class="bg-white border border-gray-200 rounded-xl p-6">
+            <label class="block text-sm font-bold mb-2">Primary Musician</label>
+            <select name="primary_musician" class="w-full border border-gray-300 p-2 rounded mb-4">
+              <option value="">Select an approved musician...</option>
+              <option value="john">John Doe (Demo) - 4 miles away</option>
+            </select>
+
+            <label class="block text-sm font-bold mb-2 text-[#B65B35]">Standby Understudy</label>
+            <select name="standby_musician" class="w-full border border-gray-300 p-2 rounded">
+              <option value="">Select standby musician...</option>
+              <option value="jane">Jane Smith (Demo) - 2 miles away</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-[#1D2323] text-white py-3 rounded-lg font-bold hover:bg-black">Confirm Assignments & Notify</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</Layout>
