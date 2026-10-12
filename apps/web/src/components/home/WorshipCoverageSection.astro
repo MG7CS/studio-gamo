@@ -1,93 +1,117 @@
 ---
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
----
-<section class="py-32 w-full bg-white relative">
-  <!-- Top Curve -->
-  <div class="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 -translate-y-full rotate-180">
-    <svg viewBox="0 0 1440 120" class="w-full h-[60px] md:h-[120px]" preserveAspectRatio="none">
-      <path d="M0,120 C320,0 1120,0 1440,120 L1440,120 L0,120 Z" fill="#ffffff"></path>
-    </svg>
-  </div>
+import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 
-  <div class="max-w-[1440px] mx-auto px-6">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-      <div class="space-y-8 max-w-xl">
-        <div>
-          <h2 class="text-[#B65B35] font-semibold tracking-wider text-sm uppercase mb-3">Worship Coverage</h2>
-          <h3 class="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1D2323] tracking-tight leading-[1.1]">Your Sunday,<br/>Covered.</h3>
-        </div>
-        <p class="text-xl text-[#6B6B67] leading-relaxed">
-          We provide a vetted local roster with paid standby understudies and a reliable dispatch workflow so you're never left without a team.
+const steps = [
+  {
+    number: '01', title: 'Post Your Need',
+    description: 'Tell us the date, instruments, and worship schedule.',
+    stem: 'photo-oct-12-2026-at-10-50-33-am-10', widths: [480,768,1200],
+    alt: 'Church location ready for worship service'
+  },
+  {
+    number: '02', title: 'Get Matched',
+    description: 'Discover musicians for your style and location.',
+    stem: 'photo-oct-12-2026-at-10-50-27-am-3', widths: [480,768],
+    alt: 'Worship singer performing'
+  },
+  {
+    number: '03', title: 'Primary & Standby',
+    description: 'See the lead musician and the available backup.',
+    stem: 'photo-oct-12-2026-at-10-50-46-am-2', widths: [480,768,1200],
+    alt: 'Church musician coordinating from the keyboard'
+  },
+  {
+    number: '04', title: 'Worship Continues',
+    description: 'Keep the focus on music and your congregation.',
+    stem: 'photo-oct-12-2026-at-10-50-32-am-9', widths: [480,768,1200],
+    alt: 'Worship concert with congregation'
+  },
+];
+---
+<section id="coverage" aria-labelledby="coverage-title" class="relative overflow-hidden bg-[#F4EDE3]">
+  <!-- Upper cinematic feature -->
+  <div class="relative isolate min-h-[820px] overflow-hidden bg-[#1D2323] text-white lg:min-h-[650px]">
+    <div class="absolute inset-y-0 left-[22%] right-0 lg:left-[31%]">
+      <ResponsivePicture stem="photo-oct-12-2026-at-10-50-46-am-2" widths={[480,768,1200]} sizes="(min-width: 1024px) 72vw, 100vw" alt="Gospel musician managing the keyboard while a church worship team rehearses" class="h-full w-full object-cover object-[42%_center]" />
+      <div class="absolute inset-0 bg-gradient-to-r from-[#1D2323] via-[#1D2323]/40 to-[#1D2323]/10"></div>
+    </div>
+    <div class="absolute inset-y-0 left-0 w-[46%] bg-[#1D2323]/85 lg:coverage-edge" aria-hidden="true"></div>
+
+    <div class="relative z-10 mx-auto flex max-w-[1536px] flex-col px-6 pt-20 pb-[380px] sm:px-12 lg:min-h-[650px] lg:justify-center lg:pb-16 lg:pt-16 lg:px-[5%]">
+      <div class="max-w-[540px]">
+        <SectionEyebrow label="Your Sunday, Covered" theme="dark" />
+        <h2 id="coverage-title" class="mt-7 text-[clamp(3rem,5.5vw,5.6rem)] font-extrabold leading-[.99] tracking-[-.05em]">
+          Reliable<br/>Coverage for <span class="text-[#D4865B]">Every Service</span>
+        </h2>
+        <p class="mt-6 max-w-[420px] text-lg leading-relaxed text-[#F4EDE3]/85">
+          From last-minute needs to recurring plans, churches can find vetted musicians and arrange standby coverage.
         </p>
-        
-        <div class="space-y-6 pt-4">
-          <div class="flex gap-5">
-            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold text-xl">1</div>
-            <div>
-              <h4 class="text-xl font-bold text-[#1D2323] mb-2">Book the primary</h4>
-              <p class="text-[#6B6B67] text-lg">Select a verified professional for your specific service times.</p>
-            </div>
-          </div>
-          <div class="flex gap-5">
-            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold text-xl">2</div>
-            <div>
-              <h4 class="text-xl font-bold text-[#1D2323] mb-2">Standby assigned</h4>
-              <p class="text-[#6B6B67] text-lg">We automatically designate a standby musician on call.</p>
-            </div>
-          </div>
-          <div class="flex gap-5">
-            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold text-xl">3</div>
-            <div>
-              <h4 class="text-xl font-bold text-[#1D2323] mb-2">Failover logic</h4>
-              <p class="text-[#6B6B67] text-lg">If the primary is delayed or sick, the standby is dispatched instantly.</p>
-            </div>
-          </div>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="https://worship.gamostudios.com/" class="inline-flex items-center gap-7 rounded-full bg-[#B65B35] px-7 py-3.5 font-semibold text-white transition-colors hover:bg-[#8F432A]">Book a Musician <span aria-hidden="true">→</span></a>
+          <a href="https://worship.gamostudios.com/" class="inline-flex items-center rounded-full border border-white/65 bg-black/10 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10">Explore Plans</a>
         </div>
       </div>
-      
-      <!-- Right side image with overlapping UI -->
-      <div class="relative rounded-3xl overflow-hidden h-[600px] shadow-2xl">
-        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-46-am-2" widths={[480,768,1200]} sizes="50vw" alt="Worship Staffing" class="absolute inset-0 w-full h-full object-cover object-center" loading="lazy" decoding="async" />
-        
-        <!-- Simulated Glass UI snippet -->
-        <div class="absolute bottom-10 right-10 w-full max-w-sm bg-white/90 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border border-white/50 p-6">
-          <div class="flex justify-between items-center mb-5 border-b border-[#DED6CC] pb-4">
-            <div>
-              <div class="flex items-center gap-2">
-                <h5 class="font-bold text-[#1D2323]">Sunday Morning Service</h5>
-                <span class="text-[9px] bg-[#E8E1D9] text-[#6B6B67] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Demo</span>
-              </div>
-              <div class="text-xs text-[#6B6B67] mt-1">Oct 18, 9:00 AM • Main Sanctuary</div>
-            </div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-[#26865B] bg-[#26865B]/10 px-3 py-1.5 rounded-full">Fully Staffed</span>
-          </div>
-          <div class="space-y-5">
-            <div class="flex items-center gap-4 relative">
-              <!-- Connection line to standby -->
-              <div class="absolute left-[19px] top-10 w-[2px] h-6 bg-gradient-to-b from-[#26865B] to-[#DED6CC]"></div>
-              
-              <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#26865B]">
-                <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="40px" alt="Sarah M" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-              </div>
-              <div class="flex-1">
-                <div class="text-sm font-bold text-[#1D2323] flex items-center gap-2">Sarah M. <span class="text-[10px] bg-[#26865B] text-white px-1.5 py-0.5 rounded font-medium uppercase">Primary</span></div>
-                <div class="text-xs text-[#6B6B67]">Keys • Confirmed</div>
-              </div>
-              <div class="w-2.5 h-2.5 rounded-full bg-[#26865B] shadow-[0_0_8px_#26865B]"></div>
-            </div>
-            <div class="flex items-center gap-4 opacity-80">
-              <div class="w-10 h-10 rounded-full border-2 border-dashed border-[#DED6CC] p-0.5">
-                <div class="w-full h-full rounded-full bg-[#F4EDE3] flex items-center justify-center text-xs font-bold text-[#6B6B67]">DK</div>
-              </div>
-              <div class="flex-1">
-                <div class="text-sm font-bold text-[#1D2323] flex items-center gap-2">David K. <span class="text-[10px] bg-[#DED6CC] text-[#1D2323] px-1.5 py-0.5 rounded font-medium uppercase">Standby</span></div>
-                <div class="text-xs text-[#6B6B67]">Keys • On-Call</div>
-              </div>
-              <div class="w-2.5 h-2.5 rounded-full bg-[#D7AD86]"></div>
+
+      <!-- Product UI: these represent planned states and are not real bookings. -->
+      <div class="absolute bottom-10 left-5 right-5 z-20 mx-auto max-w-md space-y-3 sm:left-auto sm:right-10 lg:top-[14%] lg:right-[3%] lg:bottom-auto lg:w-[390px]">
+        <div class="rounded-[26px] border border-white/80 bg-[#FFF9F2] p-6 text-[#1D2323] shadow-2xl">
+          <div class="mb-4 flex items-start justify-between gap-3">
+            <span class="rounded-full bg-[#DCECDD] px-3 py-1 text-xs font-medium text-[#17613E]">● Confirmed · Demo</span>
+            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-[22px]">
+              <ResponsivePicture stem="photo-oct-12-2026-at-10-50-33-am-10" widths={[480,768,1200]} sizes="80px" alt="Example church exterior" class="h-full w-full object-cover" />
             </div>
           </div>
+          <h3 class="text-2xl font-bold leading-tight">Sunday Service</h3>
+          <p class="mt-1 text-sm text-[#6B6B67]">Illustrative booking · Phoenix, Arizona</p>
+          <dl class="mt-5 space-y-3 text-sm">
+            <div class="flex gap-3"><dt class="w-5 shrink-0" aria-label="Location">⌖</dt><dd>Phoenix Metro</dd></div>
+            <div class="flex gap-3"><dt class="w-5 shrink-0" aria-label="Musician role">♫</dt><dd>Keys · Primary musician</dd></div>
+            <div class="flex gap-3"><dt class="w-5 shrink-0" aria-label="Standby">♧</dt><dd>Backup · Assigned</dd></div>
+          </dl>
+        </div>
+        <div class="flex items-center gap-4 rounded-[24px] border border-white/80 bg-[#FFF9F2] p-5 text-[#1D2323] shadow-2xl">
+          <div class="h-16 w-16 shrink-0 overflow-hidden rounded-full">
+            <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="64px" alt="Demo musician portrait" class="h-full w-full object-cover" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold">Sample standby musician</p>
+            <p class="text-xs text-[#6B6B67]">Keys · Gospel & CCM</p>
+            <p class="mt-1 text-xs text-[#8F432A]">Illustrative profile</p>
+          </div>
+          <span class="rounded-full bg-[#B65B35]/10 px-3 py-1 text-xs font-semibold text-[#8F432A]">Standby</span>
         </div>
       </div>
     </div>
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-9 rounded-[50%_50%_0_0] bg-[#F4EDE3]" aria-hidden="true"></div>
+  </div>
+
+  <!-- Light editorial process strip -->
+  <div class="relative mx-auto grid max-w-[1536px] gap-10 px-6 pt-14 pb-24 sm:px-12 lg:grid-cols-[330px_minmax(0,1fr)] lg:gap-8 lg:px-[5%]">
+    <div class="lg:pt-4">
+      <SectionEyebrow label="How It Works" />
+      <h3 class="mt-7 max-w-[360px] text-[clamp(2.2rem,3.1vw,3.25rem)] font-extrabold leading-[1.07] tracking-[-.045em] text-[#1D2323]">
+        From booking to backup, <span class="text-[#854630]">built for peace of mind.</span>
+      </h3>
+    </div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {steps.map((step) => (
+        <article class="relative overflow-visible rounded-2xl border border-white/65 bg-[#FFF9F2]">
+          <div class="relative h-40 overflow-hidden rounded-t-2xl">
+            <ResponsivePicture stem={step.stem} widths={step.widths} sizes="(min-width: 1024px) 17vw, (min-width: 640px) 40vw, 88vw" alt={step.alt} class="h-full w-full object-cover" />
+          </div>
+          <span class="absolute -top-4 left-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#F4EDE3] font-bold text-xl text-[#8F432A] shadow-sm">{step.number}</span>
+          <div class="p-5">
+            <h4 class="mb-2 text-lg font-bold text-[#1D2323]">{step.title}</h4>
+            <p class="text-sm leading-relaxed text-[#626866]">{step.description}</p>
+          </div>
+        </article>
+      ))}
+    </div>
   </div>
 </section>
+<style>
+@media (min-width: 1024px) {
+  .coverage-edge { clip-path: polygon(0 0, 89% 0, 72% 20%, 95% 100%, 0 100%); }
+}
+</style>
