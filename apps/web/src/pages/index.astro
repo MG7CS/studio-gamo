@@ -3,50 +3,378 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-	<header class="flex items-center justify-between p-6 max-w-[1440px] mx-auto w-full">
-		<div class="text-2xl font-bold tracking-tight">GAMO <span class="font-normal">STUDIOS</span></div>
-		<nav class="hidden md:flex gap-8 items-center font-medium">
-			<a href="http://worship.gamostudios.localhost:4321" class="hover:text-[#B65B35] transition-colors">Worship</a>
-			<a href="#" class="hover:text-[#B65B35] transition-colors">Academy</a>
-			<a href="#" class="hover:text-[#B65B35] transition-colors">Live</a>
-			<a href="#" class="hover:text-[#B65B35] transition-colors">Production</a>
-		</nav>
-		<div class="flex items-center gap-4">
-			<a href="#" class="font-medium hover:opacity-70 transition-opacity">Sign In</a>
-			<a href="#" class="bg-[#B65B35] text-white px-5 py-2.5 rounded-lg font-medium hover:bg-[#8F432A] transition-colors">Get Started</a>
+	<!-- 1. Global Navigation -->
+	<header class="flex items-center justify-between p-6 max-w-[1440px] mx-auto w-full relative z-20 bg-transparent">
+		<div class="text-2xl font-bold tracking-tight text-[#1D2323] flex items-center gap-2">
+			<!-- Placeholder Logo -->
+			<div class="w-8 h-8 bg-[#B65B35] rounded-full flex items-center justify-center">
+				<span class="text-white text-xs">GS</span>
+			</div>
+			GAMO <span class="font-normal text-[#6B6B67]">STUDIOS</span>
 		</div>
+		<nav class="hidden lg:flex gap-8 items-center font-medium text-[#1D2323]">
+			<a href="/worship" class="hover:text-[#B65B35] transition-colors">Worship</a>
+			<a href="/academy" class="hover:text-[#B65B35] transition-colors">Academy</a>
+			<a href="/live" class="hover:text-[#B65B35] transition-colors">Live</a>
+			<a href="/production" class="hover:text-[#B65B35] transition-colors">Production</a>
+		</nav>
+		<div class="hidden md:flex items-center gap-4">
+			<a href="/signin" class="font-medium text-[#1D2323] hover:opacity-70 transition-opacity">Sign In</a>
+			<a href="/get-started" class="bg-[#B65B35] text-white px-5 py-2.5 rounded-lg font-medium hover:bg-[#8F432A] transition-colors">Get Started</a>
+		</div>
+		<button class="lg:hidden text-[#1D2323]">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+		</button>
 	</header>
 
 	<main>
-		<section class="relative bg-[#1D2323] text-[#F4EDE3] min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-24 overflow-hidden">
-			<!-- Note: In production this should be a cinematic photograph -->
-			<div class="absolute inset-0 opacity-20 bg-gradient-to-br from-black/80 to-transparent z-0"></div>
+		<!-- 2. Hero — Keep Worship Going -->
+		<section class="relative bg-[#1D2323] text-white min-h-[90vh] flex flex-col justify-center items-center text-center px-4 py-24 overflow-hidden rounded-b-[2rem] mx-2 mt-[-88px] pt-[120px]">
+			<!-- Dark cinematic photography placeholder -->
+			<div class="absolute inset-0 bg-[#2A3131] z-0">
+				<div class="absolute inset-0 flex items-center justify-center opacity-10">
+					<span class="text-2xl">[ Cinematic Worship Photography Placeholder ]</span>
+				</div>
+			</div>
+			<div class="absolute inset-0 bg-gradient-to-t from-[#1D2323] via-[#1D2323]/80 to-transparent z-0"></div>
 			
-			<div class="relative z-10 max-w-4xl mx-auto space-y-8">
-				<h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
+			<div class="relative z-10 max-w-4xl mx-auto space-y-8 mt-12">
+				<h1 class="text-5xl md:text-6xl lg:text-[5rem] font-bold tracking-tight leading-[1.1]">
 					Keep Worship Going.
 				</h1>
-				<p class="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-gray-300">
+				<p class="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-[#F4EDE3]/80">
 					Reliable musicians for every service.
 				</p>
 				<div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-					<a href="http://worship.gamostudios.localhost:4321/hire" class="bg-[#B65B35] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#8F432A] transition-colors w-full sm:w-auto">
+					<a href="/worship/hire" class="bg-[#B65B35] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#8F432A] transition-colors w-full sm:w-auto text-center">
 						Hire a Musician
 					</a>
-					<a href="http://worship.gamostudios.localhost:4321/apply" class="bg-white/10 text-white backdrop-blur-sm px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-colors w-full sm:w-auto">
+					<a href="/worship/apply" class="bg-white/10 text-white backdrop-blur-sm px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-colors border border-white/20 w-full sm:w-auto text-center">
 						Join as a Musician
 					</a>
 				</div>
 			</div>
 		</section>
 
+		<!-- 3. Meet the Musicians -->
+		<section class="py-24 px-6 max-w-[1440px] mx-auto w-full bg-[#F4EDE3]">
+			<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+				<div class="max-w-2xl">
+					<h2 class="text-[#B65B35] font-semibold tracking-wider text-sm uppercase mb-3">The Roster</h2>
+					<h3 class="text-4xl md:text-5xl font-bold text-[#1D2323] tracking-tight">Meet the Musicians.</h3>
+				</div>
+				<a href="/roster" class="text-[#1D2323] font-medium border-b border-[#1D2323] pb-1 hover:text-[#B65B35] hover:border-[#B65B35] transition-colors">View full roster</a>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<!-- Card 1 -->
+				<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#DED6CC] group">
+					<div class="aspect-[4/5] bg-[#DED6CC] relative overflow-hidden">
+						<div class="absolute inset-0 flex items-center justify-center text-[#6B6B67] text-sm text-center p-4">
+							[ Photo: Sarah M. (Demo) ]
+						</div>
+					</div>
+					<div class="p-5">
+						<div class="flex justify-between items-start mb-2">
+							<h4 class="font-bold text-lg text-[#1D2323]">Sarah M.</h4>
+							<span class="inline-flex items-center gap-1 bg-[#F4EDE3] text-[#26865B] text-xs font-semibold px-2 py-1 rounded-md">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+								Verified
+							</span>
+						</div>
+						<p class="text-[#6B6B67] text-sm mb-4">Keys • Vocals</p>
+						<button class="w-full py-2 bg-[#F4EDE3] text-[#1D2323] rounded-lg font-medium text-sm hover:bg-[#DED6CC] transition-colors">View Profile</button>
+					</div>
+				</div>
+				<!-- Card 2 -->
+				<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#DED6CC] group">
+					<div class="aspect-[4/5] bg-[#DED6CC] relative overflow-hidden">
+						<div class="absolute inset-0 flex items-center justify-center text-[#6B6B67] text-sm text-center p-4">
+							[ Photo: David K. (Demo) ]
+						</div>
+					</div>
+					<div class="p-5">
+						<div class="flex justify-between items-start mb-2">
+							<h4 class="font-bold text-lg text-[#1D2323]">David K.</h4>
+							<span class="inline-flex items-center gap-1 bg-[#F4EDE3] text-[#26865B] text-xs font-semibold px-2 py-1 rounded-md">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+								Verified
+							</span>
+						</div>
+						<p class="text-[#6B6B67] text-sm mb-4">Drums • Percussion</p>
+						<button class="w-full py-2 bg-[#F4EDE3] text-[#1D2323] rounded-lg font-medium text-sm hover:bg-[#DED6CC] transition-colors">View Profile</button>
+					</div>
+				</div>
+				<!-- Card 3 -->
+				<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#DED6CC] group">
+					<div class="aspect-[4/5] bg-[#DED6CC] relative overflow-hidden">
+						<div class="absolute inset-0 flex items-center justify-center text-[#6B6B67] text-sm text-center p-4">
+							[ Photo: Jessica T. (Demo) ]
+						</div>
+					</div>
+					<div class="p-5">
+						<div class="flex justify-between items-start mb-2">
+							<h4 class="font-bold text-lg text-[#1D2323]">Jessica T.</h4>
+							<span class="inline-flex items-center gap-1 bg-[#F4EDE3] text-[#26865B] text-xs font-semibold px-2 py-1 rounded-md">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+								Verified
+							</span>
+						</div>
+						<p class="text-[#6B6B67] text-sm mb-4">Electric Guitar</p>
+						<button class="w-full py-2 bg-[#F4EDE3] text-[#1D2323] rounded-lg font-medium text-sm hover:bg-[#DED6CC] transition-colors">View Profile</button>
+					</div>
+				</div>
+				<!-- Card 4 -->
+				<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#DED6CC] group">
+					<div class="aspect-[4/5] bg-[#DED6CC] relative overflow-hidden">
+						<div class="absolute inset-0 flex items-center justify-center text-[#6B6B67] text-sm text-center p-4">
+							[ Photo: Marcus W. (Demo) ]
+						</div>
+					</div>
+					<div class="p-5">
+						<div class="flex justify-between items-start mb-2">
+							<h4 class="font-bold text-lg text-[#1D2323]">Marcus W.</h4>
+							<span class="inline-flex items-center gap-1 bg-[#F4EDE3] text-[#26865B] text-xs font-semibold px-2 py-1 rounded-md">
+								<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+								Verified
+							</span>
+						</div>
+						<p class="text-[#6B6B67] text-sm mb-4">Bass</p>
+						<button class="w-full py-2 bg-[#F4EDE3] text-[#1D2323] rounded-lg font-medium text-sm hover:bg-[#DED6CC] transition-colors">View Profile</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 4. Your Sunday, Covered. -->
+		<section class="py-24 px-6 mx-2 my-12 bg-white rounded-[2rem] border border-[#DED6CC]">
+			<div class="max-w-[1440px] mx-auto w-full">
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+					<div class="space-y-8">
+						<div>
+							<h2 class="text-[#B65B35] font-semibold tracking-wider text-sm uppercase mb-3">Worship Coverage</h2>
+							<h3 class="text-4xl md:text-5xl font-bold text-[#1D2323] tracking-tight">Your Sunday, Covered.</h3>
+						</div>
+						<p class="text-xl text-[#6B6B67] leading-relaxed">
+							We provide a vetted local roster with paid standby understudies and a reliable dispatch workflow so you're never left without a team.
+						</p>
+						
+						<div class="space-y-6 pt-4">
+							<div class="flex gap-4">
+								<div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold">1</div>
+								<div>
+									<h4 class="text-lg font-bold text-[#1D2323] mb-1">Book the primary</h4>
+									<p class="text-[#6B6B67]">Select a verified professional for your specific service times.</p>
+								</div>
+							</div>
+							<div class="flex gap-4">
+								<div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold">2</div>
+								<div>
+									<h4 class="text-lg font-bold text-[#1D2323] mb-1">Standby assigned</h4>
+									<p class="text-[#6B6B67]">We automatically designate a standby musician on call.</p>
+								</div>
+							</div>
+							<div class="flex gap-4">
+								<div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#F4EDE3] flex items-center justify-center text-[#B65B35] font-bold">3</div>
+								<div>
+									<h4 class="text-lg font-bold text-[#1D2323] mb-1">Failover logic</h4>
+									<p class="text-[#6B6B67]">If the primary is delayed or sick, the standby is dispatched instantly.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="relative bg-[#F4EDE3] rounded-2xl p-8 h-[500px] flex flex-col justify-center items-center border border-[#DED6CC]">
+						<div class="absolute inset-0 flex items-center justify-center text-[#6B6B67] p-8 text-center">
+							[ App Mockup: Dispatch Dashboard showing Primary and Standby Status ]
+						</div>
+						
+						<!-- Simulated UI snippet for visual interest -->
+						<div class="w-full max-w-sm bg-white rounded-xl shadow-lg border border-[#DED6CC] p-5 relative z-10">
+							<div class="flex justify-between items-center mb-4 border-b border-[#F4EDE3] pb-3">
+								<h5 class="font-bold text-sm">Sunday Morning Service</h5>
+								<span class="text-xs font-semibold text-[#26865B] bg-[#26865B]/10 px-2 py-1 rounded">Confirmed</span>
+							</div>
+							<div class="space-y-3">
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 rounded-full bg-[#DED6CC]"></div>
+									<div class="flex-1">
+										<div class="text-sm font-semibold">Sarah M.</div>
+										<div class="text-xs text-[#6B6B67]">Primary • Keys</div>
+									</div>
+									<div class="w-2 h-2 rounded-full bg-[#26865B]"></div>
+								</div>
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 rounded-full bg-[#DED6CC]"></div>
+									<div class="flex-1">
+										<div class="text-sm font-semibold">David K.</div>
+										<div class="text-xs text-[#6B6B67]">Standby • Keys</div>
+									</div>
+									<div class="w-2 h-2 rounded-full bg-[#D7AD86]"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 5. Gamo Academy & 6. Gamo Live -->
 		<section class="py-24 px-6 max-w-[1440px] mx-auto w-full">
-			<div class="max-w-3xl mb-16">
-				<h2 class="text-4xl md:text-5xl font-bold mb-6 text-[#1D2323]">Your Sunday, Covered.</h2>
-				<p class="text-xl text-[#6B6B67] leading-relaxed">
-					We provide a vetted local roster with paid standby understudies and a reliable dispatch workflow so you're never left without a team.
-				</p>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+				
+				<!-- Gamo Academy -->
+				<div class="bg-[#1D2323] text-[#F4EDE3] rounded-3xl p-10 md:p-14 relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+					<div class="absolute inset-0 bg-[#2A3131] z-0">
+						<div class="absolute inset-0 flex items-center justify-center opacity-20 text-center p-8">
+							[ Photo: Instructor and Student Lesson ]
+						</div>
+					</div>
+					<div class="absolute inset-0 bg-gradient-to-t from-[#1D2323] via-[#1D2323]/80 to-transparent z-0"></div>
+					
+					<div class="relative z-10">
+						<div class="inline-block bg-[#D7AD86] text-[#1D2323] font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+							Academy
+						</div>
+					</div>
+					
+					<div class="relative z-10 space-y-4">
+						<h3 class="text-3xl md:text-4xl font-bold tracking-tight text-white">Master your instrument.</h3>
+						<p class="text-lg text-[#F4EDE3]/80 max-w-md">
+							Private lessons and church-hosted clinics from working professionals to build the next generation of worship leaders.
+						</p>
+						<div class="pt-4">
+							<a href="/academy" class="inline-flex items-center gap-2 text-white font-semibold hover:text-[#D7AD86] transition-colors">
+								Explore Academy
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+							</a>
+						</div>
+					</div>
+				</div>
+
+				<!-- Gamo Live -->
+				<div class="bg-[#B65B35] text-white rounded-3xl p-10 md:p-14 relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+					<div class="absolute inset-0 bg-[#8F432A] z-0">
+						<div class="absolute inset-0 flex items-center justify-center opacity-20 text-center p-8">
+							[ Photo: Cinematic Concert Presentation ]
+						</div>
+					</div>
+					<div class="absolute inset-0 bg-gradient-to-t from-[#8F432A] via-[#8F432A]/80 to-transparent z-0"></div>
+					
+					<div class="relative z-10">
+						<div class="inline-block bg-white text-[#B65B35] font-bold text-xs uppercase tracking-wider px-3 py-1 rounded-full mb-6">
+							Live
+						</div>
+					</div>
+					
+					<div class="relative z-10 space-y-4">
+						<h3 class="text-3xl md:text-4xl font-bold tracking-tight">Experience the energy.</h3>
+						<p class="text-lg text-white/90 max-w-md">
+							Curated live worship events, nights of worship, and special artist showcases. Join us for our next gathering.
+						</p>
+						<div class="pt-4">
+							<a href="/live" class="inline-flex items-center gap-2 text-white font-semibold hover:text-[#D7AD86] transition-colors">
+								View Upcoming Events
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+							</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</section>
+
+		<!-- 7. Testimonials and Final CTA -->
+		<section class="py-24 px-6 mx-2 mb-12 bg-white rounded-[2rem] border border-[#DED6CC]">
+			<div class="max-w-4xl mx-auto text-center space-y-12">
+				<div>
+					<h2 class="text-3xl md:text-4xl font-bold text-[#1D2323] mb-8">What our partners say</h2>
+					
+					<!-- Testimonial placeholder -->
+					<div class="bg-[#F4EDE3] p-10 rounded-2xl relative">
+						<svg class="absolute top-6 left-6 w-10 h-10 text-[#DED6CC]" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+						<p class="text-xl md:text-2xl font-medium text-[#1D2323] italic relative z-10 leading-relaxed mb-6">
+							"[ This is a demo placeholder for a testimonial. Real testimonials will be placed here once consented real statements exist. ]"
+						</p>
+						<div class="flex items-center justify-center gap-3">
+							<div class="w-10 h-10 rounded-full bg-[#DED6CC]"></div>
+							<div class="text-left">
+								<div class="font-bold text-[#1D2323] text-sm">Demo User</div>
+								<div class="text-xs text-[#6B6B67]">Worship Pastor, Demo Church</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="pt-12 border-t border-[#DED6CC]">
+					<h2 class="text-3xl md:text-4xl font-bold text-[#1D2323] mb-6">Ready to bring consistency to your stage?</h2>
+					<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+						<a href="/worship/hire" class="bg-[#B65B35] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#8F432A] transition-colors w-full sm:w-auto">
+							Hire a Musician
+						</a>
+						<a href="/contact" class="bg-[#F4EDE3] text-[#1D2323] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#DED6CC] transition-colors border border-[#DED6CC] w-full sm:w-auto">
+							Contact Sales
+						</a>
+					</div>
+				</div>
 			</div>
 		</section>
 	</main>
+
+	<!-- 8. Footer -->
+	<footer class="bg-[#1D2323] text-[#F4EDE3] py-16 px-6">
+		<div class="max-w-[1440px] mx-auto">
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-16">
+				<div class="lg:col-span-2 space-y-6">
+					<div class="text-2xl font-bold tracking-tight flex items-center gap-2">
+						<div class="w-8 h-8 bg-[#B65B35] rounded-full flex items-center justify-center">
+							<span class="text-white text-xs">GS</span>
+						</div>
+						GAMO <span class="font-normal text-[#DED6CC]">STUDIOS</span>
+					</div>
+					<p class="text-[#DED6CC] max-w-sm">
+						Worship continuity through trusted professionals. Keeping your service covered.
+					</p>
+				</div>
+				
+				<div>
+					<h4 class="font-semibold text-white mb-4">Platform</h4>
+					<ul class="space-y-3">
+						<li><a href="/worship" class="text-[#DED6CC] hover:text-white transition-colors">Worship</a></li>
+						<li><a href="/academy" class="text-[#DED6CC] hover:text-white transition-colors">Academy</a></li>
+						<li><a href="/live" class="text-[#DED6CC] hover:text-white transition-colors">Live</a></li>
+						<li><a href="/production" class="text-[#DED6CC] hover:text-white transition-colors">Production</a></li>
+					</ul>
+				</div>
+				
+				<div>
+					<h4 class="font-semibold text-white mb-4">Company</h4>
+					<ul class="space-y-3">
+						<li><a href="/about" class="text-[#DED6CC] hover:text-white transition-colors">About Us</a></li>
+						<li><a href="/careers" class="text-[#DED6CC] hover:text-white transition-colors">Careers</a></li>
+						<li><a href="/contact" class="text-[#DED6CC] hover:text-white transition-colors">Contact</a></li>
+					</ul>
+				</div>
+				
+				<div>
+					<h4 class="font-semibold text-white mb-4">Legal</h4>
+					<ul class="space-y-3">
+						<li><a href="/privacy" class="text-[#DED6CC] hover:text-white transition-colors">Privacy Policy</a></li>
+						<li><a href="/terms" class="text-[#DED6CC] hover:text-white transition-colors">Terms of Service</a></li>
+					</ul>
+				</div>
+			</div>
+			
+			<div class="pt-8 border-t border-[#2A3131] flex flex-col md:flex-row items-center justify-between gap-4">
+				<p class="text-sm text-[#DED6CC]">© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
+				<div class="flex gap-4">
+					<!-- Social Links placeholders -->
+					<a href="#" class="w-10 h-10 rounded-full bg-[#2A3131] flex items-center justify-center text-[#DED6CC] hover:bg-[#B65B35] hover:text-white transition-colors">
+						<span class="sr-only">Instagram</span>
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+					</a>
+				</div>
+			</div>
+		</div>
+	</footer>
 </Layout>
