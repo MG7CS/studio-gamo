@@ -1,15 +1,7 @@
-# Architecture Decision Log
+# Gamo Studios Architecture Decisions
 
-Create entries with date, status (`proposed`, `accepted`, `superseded`), decision, reason, alternatives and consequence.
-
-## Initial decisions — proposed
-
-- **Brand:** Gamo Studios; repo `studio-gamo`.
-- **Runtime:** Astro SSR on Cloudflare Workers.
-- **Database:** D1 for relational core; DO when consistent per-resource coordination is required.
-- **Payments:** Stripe Connect, test mode first; no escrow assumption.
-- **Email:** Resend server-side, local fallback.
-- **Typography:** Inter; brand colors terracotta `#B65B35`, charcoal `#1D2323`, cream `#F4EDE3`.
-- **Architecture:** one monorepo, logically independent domain verticals.
-
-Document auth provider, migration framework, local deployment shape and routing before irreversible implementation choices.
+## Milestone 0 Decisions
+- **Monorepo Structure**: using `pnpm` workspaces. This provides native workspace resolution and avoids conflicts, keeping deployables separated while sharing domain models.
+- **Framework**: Astro SSR on Cloudflare Workers for all applications.
+- **Styling**: Tailwind CSS for rapid styling matching the design tokens.
+- **Authentication Strategy**: Custom implementation using HttpOnly/Secure cookies backed by Cloudflare D1. Heavy third-party auth services (like Auth0 or Supabase Auth) often have friction with Cloudflare Workers' Edge environment or add significant bundle sizes. Since user identity and verification are crucial (M1), owning the auth model in D1 keeps us within our strict boundaries. 
