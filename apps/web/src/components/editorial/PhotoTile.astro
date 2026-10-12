@@ -1,0 +1,23 @@
+---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+interface Props {
+  label: string;
+  stem: string;
+  widths: number[];
+  href: string;
+  sizes?: string;
+  class?: string;
+  alt?: string;
+}
+const { label, stem, widths, href, sizes = '(min-width: 1024px) 18vw, 65vw', class: className = '', alt = '' } = Astro.props;
+---
+<a href={href} class:list={['group relative isolate block min-h-36 overflow-hidden rounded-2xl bg-[#1D2323] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B65B35]', className]} aria-label={label}>
+  <div class="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-105">
+    <ResponsivePicture stem={stem} widths={widths} sizes={sizes} alt={alt} class="h-full w-full object-cover" />
+  </div>
+  <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent"></div>
+  <div class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4 text-white">
+    <span class="font-medium text-sm sm:text-base">{label}</span>
+    <span aria-hidden="true" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/70 bg-black/20 text-xl transition-colors group-hover:bg-[#B65B35]">↗</span>
+  </div>
+</a>
