@@ -27,7 +27,7 @@ const asset = (width: number, format: 'webp' | 'avif') => `/images/optimized/${s
 const srcset = (format: 'webp' | 'avif') => available.map((width) => `${asset(width, format)} ${width}w`).join(', ');
 const fallback = asset(available[available.length - 1], 'webp');
 ---
-<picture>
+<picture class="block h-full w-full">
   <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
   <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
   <img src={fallback} alt={alt} class={className} loading={loading} decoding={decoding} fetchpriority={fetchpriority} />
