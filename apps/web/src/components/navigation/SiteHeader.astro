@@ -1,0 +1,21 @@
+---
+import Logo from '@studio-gamo/ui/components/Logo.astro';
+---
+<header class="absolute top-0 w-full z-50 flex items-center justify-between p-6 max-w-[1440px] left-1/2 -translate-x-1/2 text-white">
+		<a href="/" class="flex items-center text-white">
+			<Logo width="160" height="30" />
+		</a>
+		<nav class="hidden lg:flex gap-8 items-center font-medium">
+			<a href="/worship" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Worship</a>
+			<a href="/academy" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Academy</a>
+			<a href="/live" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Live</a>
+			<a href="/production" class="text-white/80 hover:text-white transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-white hover:after:w-full after:transition-all">Production</a>
+		</nav>
+		<div class="hidden md:flex items-center gap-4">
+			<a href="/signin" class="font-medium hover:opacity-70 transition-opacity">Sign In</a>
+			<a href="/get-started" class="bg-white text-[#1D2323] px-5 py-2.5 rounded-lg font-medium hover:bg-white/90 transition-colors">Get Started</a>
+		</div>
+		<button class="lg:hidden text-white">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+		</button>
+	</header>
