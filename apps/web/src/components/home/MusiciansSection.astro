@@ -1,4 +1,5 @@
 ---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 ---
 <section class="py-32 px-6 w-full bg-[#F4EDE3] relative z-20">
   <div class="max-w-[1440px] mx-auto">
@@ -24,11 +25,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
       <!-- Large Card (Vocalist) -->
       <div class="md:col-span-2 md:row-span-2 relative rounded-3xl overflow-hidden group cursor-pointer">
-        <picture>
-          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.avif 768w" sizes="(min-width: 768px) 66vw, 100vw" />
-          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.webp 768w" sizes="(min-width: 768px) 66vw, 100vw" />
-          <img src="/images/optimized/photo-oct-12-2026-at-10-50-27-am-3-768w.webp" alt="Sarah M. singing" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        </picture>
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-27-am-3" widths={[480,768]} sizes="(min-width: 768px) 66vw, 100vw" alt="Sarah M. singing" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
         
         <!-- Tasteful Audition Preview Element -->
@@ -52,11 +49,7 @@
       
       <!-- Small Card Top (Bass) -->
       <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
-        <picture>
-          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.avif 768w" sizes="(min-width: 768px) 33vw, 100vw" />
-          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.webp 768w" sizes="(min-width: 768px) 33vw, 100vw" />
-          <img src="/images/optimized/photo-oct-12-2026-at-10-50-28-am-4-768w.webp" alt="Marcus W. on Bass" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        </picture>
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-28-am-4" widths={[480,768]} sizes="(min-width: 768px) 33vw, 100vw" alt="Marcus W. on Bass" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
         <div class="absolute bottom-0 left-0 p-6 w-full">
           <div class="flex items-center gap-2 mb-1">
@@ -69,11 +62,7 @@
 
       <!-- Small Card Bottom (Drummer) -->
       <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
-        <picture>
-          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.avif 768w" sizes="(min-width: 768px) 33vw, 100vw" />
-          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.webp 768w" sizes="(min-width: 768px) 33vw, 100vw" />
-          <img src="/images/optimized/photo-oct-12-2026-at-10-50-29-am-5-768w.webp" alt="Elijah T. on Drums" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        </picture>
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-29-am-5" widths={[480,768]} sizes="(min-width: 768px) 33vw, 100vw" alt="Elijah T. on Drums" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
         <div class="absolute bottom-0 left-0 p-6 w-full">
           <div class="flex items-center gap-2 mb-1">
