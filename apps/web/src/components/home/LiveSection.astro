@@ -1,12 +1,9 @@
 ---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 ---
 <section class="py-32 w-full relative overflow-hidden flex items-center min-h-[700px]">
   <div class="absolute inset-0 z-0">
-    <picture>
-      <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-32-am-9-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-768w.avif 768w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-1200w.avif 1200w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-1600w.avif 1600w" sizes="100vw" />
-      <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-32-am-9-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-768w.webp 768w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-1200w.webp 1200w, /images/optimized/photo-oct-12-2026-at-10-50-32-am-9-1600w.webp 1600w" sizes="100vw" />
-      <img src="/images/optimized/photo-oct-12-2026-at-10-50-32-am-9-1600w.webp" alt="Live Concert" class="w-full h-full object-cover object-right" loading="lazy" decoding="async" />
-    </picture>
+    <ResponsivePicture stem="photo-oct-12-2026-at-10-50-32-am-9" widths={[480,768,1200,1600]} sizes="100vw" alt="Live Concert" class="w-full h-full object-cover object-right" loading="lazy" decoding="async" />
     <div class="absolute inset-0 bg-gradient-to-r from-[#8F432A]/90 via-[#8F432A]/70 to-transparent"></div>
   </div>
   
