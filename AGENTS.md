@@ -65,3 +65,11 @@ The assigned roadmap milestone is done when its acceptance criteria pass and evi
 ## Final reporting
 
 Report completed milestones, commands/tests actually run, page URLs, screenshot artifact locations, commits, unfinished items, requested owner actions and known risks. Never claim work continued in the background if the agent process ended.
+
+## Custom Specialized Agents
+This repository contains customized Antigravity agents configured to operate autonomously for specialized roles during the development lifecycle:
+- **`design-lead`**: Interprets Gamo Studios design references (`design-reference/`), ensures visual consistency (Inter, brand colors), and reviews application screens without implementing complex logic.
+- **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Live, Production, and Admin domains using plausible demo states (no live backends during the design phase).
+- **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
+
+These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts.
