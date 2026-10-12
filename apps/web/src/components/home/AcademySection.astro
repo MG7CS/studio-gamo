@@ -1,29 +1,89 @@
 ---
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+import SectionEyebrow from '../editorial/SectionEyebrow.astro';
+import LessonCategoryCard from '../editorial/LessonCategoryCard.astro';
+
+const lessons = [
+  { title: 'Keys & Synth', description: 'From fundamentals to worship keys.', symbol: '♬', stem: 'photo-oct-12-2026-at-10-50-25-am-1', widths: [480,768,1200] },
+  { title: 'Guitar', description: 'Acoustic, electric, and worship styles.', symbol: '♩', stem: 'photo-oct-12-2026-at-10-50-46-am-1', widths: [480,768,1200] },
+  { title: 'Drums', description: 'Build rhythm and confidence.', symbol: '◉', stem: 'photo-oct-12-2026-at-10-50-29-am-5', widths: [480,768] },
+  { title: 'Vocals', description: 'Technique, harmony, and lead worship.', symbol: '♫', stem: 'photo-oct-12-2026-at-10-50-27-am-3', widths: [480,768] },
+];
 ---
-<section class="py-32 w-full bg-[#1D2323] relative text-white overflow-hidden">
-  <div class="max-w-[1440px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-    <div class="order-2 lg:order-1 relative rounded-3xl overflow-hidden h-[600px] shadow-2xl">
-      <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="(min-width: 768px) 50vw, 100vw" alt="Academy Instructor" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-    </div>
-    <div class="order-1 lg:order-2 space-y-8 max-w-xl">
-      <div>
-        <h2 class="text-[#D7AD86] font-semibold tracking-wider text-sm uppercase mb-3">Gamo Academy</h2>
-        <h3 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]">Master your<br/>instrument.</h3>
+<section id="academy" aria-labelledby="academy-title" class="relative overflow-hidden bg-[#F4EDE3] pt-16 pb-24 lg:pt-0">
+  <div class="mx-auto max-w-[1536px]">
+    <div class="relative lg:min-h-[625px]">
+      <!-- Hero-sized lesson image: sculptural boundary with cream editorial panel. -->
+      <div class="academy-photo relative mx-5 h-[410px] overflow-hidden rounded-[30px] bg-[#1D2323] sm:mx-10 lg:absolute lg:top-0 lg:right-0 lg:mx-0 lg:h-[625px] lg:w-[66%] lg:rounded-none">
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-46-am-1" widths={[480,768,1200]} sizes="(min-width: 1024px) 67vw, 100vw" alt="African music teacher guiding a young guitarist in a church practice room" class="h-full w-full object-cover object-[50%_center]" />
+        <div class="absolute inset-0 bg-gradient-to-l from-[#1D2323]/55 via-transparent to-transparent"></div>
       </div>
-      <p class="text-xl text-[#F4EDE3]/80 leading-relaxed">
-        Private lessons and clinics from working professionals. Build the next generation of musicians through our structured, faith-based curriculum.
-      </p>
-      <ul class="space-y-4 text-[#F4EDE3]/90 pt-2 font-medium">
-        <li class="flex items-center gap-3"><svg class="w-5 h-5 text-[#D7AD86]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 1-on-1 Mentorship</li>
-        <li class="flex items-center gap-3"><svg class="w-5 h-5 text-[#D7AD86]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Masterclasses & Clinics</li>
-        <li class="flex items-center gap-3"><svg class="w-5 h-5 text-[#D7AD86]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Custom Church Training Plans</li>
-      </ul>
-      <div class="pt-4">
-        <a href="/academy" class="inline-flex items-center justify-center gap-2 bg-[#D7AD86] text-[#1D2323] px-8 py-4 rounded-xl font-semibold hover:bg-[#C29871] transition-colors w-full sm:w-auto">
-          Explore Academy
-        </a>
+
+      <!-- Brand/editorial information -->
+      <div class="relative z-10 -mt-0 px-6 pt-10 sm:px-12 lg:absolute lg:left-0 lg:top-[11%] lg:mt-0 lg:w-[43%] lg:px-[4.5%] lg:pt-0">
+        <SectionEyebrow label="Gamo Academy" />
+        <h2 id="academy-title" class="mt-6 text-[clamp(3rem,4.4vw,4.6rem)] font-extrabold leading-[1.03] tracking-[-.055em] text-[#1D2323]">
+          Grow <span class="block text-[#B65B35]">Musical Talent</span> for a Stronger Church Tomorrow
+        </h2>
+        <p class="mt-5 max-w-sm text-lg leading-relaxed text-[#626866]">
+          Private lessons and church-hosted classes led by experienced musicians — for all ages and skill levels.
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a href="https://academy.gamostudios.com/" class="inline-flex items-center gap-6 rounded-full bg-[#B65B35] px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8F432A]">Find a Lesson <span aria-hidden="true">→</span></a>
+          <a href="https://academy.gamostudios.com/host/apply" class="inline-flex items-center gap-6 rounded-full border border-[#1D2323] px-6 py-3.5 text-sm font-semibold text-[#1D2323] transition-colors hover:bg-white/70">Host a Class <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <!-- Floating instructor panel inside the photography on desktop. -->
+      <div class="relative z-20 mx-5 mt-5 grid gap-3 sm:mx-10 lg:absolute lg:right-[2.5%] lg:top-[13%] lg:mx-0 lg:mt-0 lg:w-[295px]">
+        <div class="rounded-[24px] border border-white/65 bg-[#FFF9F2]/90 p-5 text-[#1D2323] shadow-2xl backdrop-blur-xl">
+          <div class="mb-4 flex items-center gap-3">
+            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-full">
+              <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="56px" alt="" class="h-full w-full object-cover" />
+            </div>
+            <div class="min-w-0">
+              <p class="font-bold">Daniel K. <span class="text-[#B65B35]" aria-hidden="true">●</span></p>
+              <p class="text-sm text-[#6B6B67]">Guitar Instructor</p>
+            </div>
+          </div>
+          <span class="mb-4 inline-block rounded-full bg-[#F4EDE3] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#8F432A]">Illustrative profile</span>
+          <div class="mb-3 flex flex-wrap gap-1.5">
+            {['Worship Guitar','Beginners','Teens','Nashville Numbers'].map((tag) => <span class="rounded-full bg-[#F4EDE3] px-2.5 py-1 text-xs text-[#1D2323]">{tag}</span>)}
+          </div>
+          <p class="mb-4 text-xs text-[#626866]">⌖ Phoenix, AZ</p>
+          <a href="https://academy.gamostudios.com/" class="flex items-center justify-between rounded-full bg-[#B65B35] px-5 py-3 text-sm font-semibold text-white">Explore Lessons <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="relative h-32 overflow-hidden rounded-[22px] border border-white/35 bg-[#1D2323] text-white shadow-2xl">
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="295px" alt="Guitar teaching preview" class="h-full w-full object-cover object-center" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"></div>
+          <div class="absolute inset-x-0 bottom-0 flex items-center justify-between p-4 text-sm font-semibold"><span>▶ Watch Intro</span><span class="rounded-full bg-white/15 px-2 py-1 text-[10px]">Demo · 1:28</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 grid gap-5 px-5 sm:mt-12 sm:px-10 lg:grid-cols-[minmax(0,2.2fr)_minmax(300px,1fr)] lg:gap-6 lg:px-[3.5%]">
+      <!-- Photo-first categories -->
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {lessons.map((lesson) => <LessonCategoryCard {...lesson} />)}
+      </div>
+      <div class="rounded-[28px] bg-[#EFE3D6]/70 p-6 lg:p-8">
+        <SectionEyebrow label="Church-hosted Classes" />
+        <h3 class="mt-4 max-w-[320px] text-2xl font-extrabold leading-[1.1] tracking-tight text-[#1D2323] lg:text-3xl">Turn Your Space Into a Music Academy</h3>
+        <p class="mt-3 text-sm leading-relaxed text-[#545A59]">Partner churches can host group lessons, music clinics, and workshops during the week.</p>
+        <ul class="mt-5 space-y-3">
+          {['Curriculum support','Student registration','Background-screened instructors','Flexible weekday scheduling'].map((feature) => (
+            <li class="flex items-start gap-3 text-sm text-[#303737]"><span aria-hidden="true" class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#B65B35] text-xs text-white">✓</span>{feature}</li>
+          ))}
+        </ul>
       </div>
     </div>
   </div>
 </section>
+<style>
+@media (min-width: 1024px) {
+  .academy-photo {
+    clip-path: polygon(16% 0,100% 0,100% 100%,0 100%,11% 74%,0 35%);
+    border-top-left-radius: 19% 48%;
+  }
+}
+</style>
