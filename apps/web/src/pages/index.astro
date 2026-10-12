@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+	<header class="flex items-center justify-between p-6 max-w-[1440px] mx-auto w-full">
+		<div class="text-2xl font-bold tracking-tight">GAMO <span class="font-normal">STUDIOS</span></div>
+		<nav class="hidden md:flex gap-8 items-center font-medium">
+			<a href="http://worship.gamostudios.localhost:4321" class="hover:text-[#B65B35] transition-colors">Worship</a>
+			<a href="#" class="hover:text-[#B65B35] transition-colors">Academy</a>
+			<a href="#" class="hover:text-[#B65B35] transition-colors">Live</a>
+			<a href="#" class="hover:text-[#B65B35] transition-colors">Production</a>
+		</nav>
+		<div class="flex items-center gap-4">
+			<a href="#" class="font-medium hover:opacity-70 transition-opacity">Sign In</a>
+			<a href="#" class="bg-[#B65B35] text-white px-5 py-2.5 rounded-lg font-medium hover:bg-[#8F432A] transition-colors">Get Started</a>
+		</div>
+	</header>
+
+	<main>
+		<section class="relative bg-[#1D2323] text-[#F4EDE3] min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-24 overflow-hidden">
+			<!-- Note: In production this should be a cinematic photograph -->
+			<div class="absolute inset-0 opacity-20 bg-gradient-to-br from-black/80 to-transparent z-0"></div>
+			
+			<div class="relative z-10 max-w-4xl mx-auto space-y-8">
+				<h1 class="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
+					Keep Worship Going.
+				</h1>
+				<p class="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-gray-300">
+					Reliable musicians for every service.
+				</p>
+				<div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
+					<a href="http://worship.gamostudios.localhost:4321/hire" class="bg-[#B65B35] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#8F432A] transition-colors w-full sm:w-auto">
+						Hire a Musician
+					</a>
+					<a href="http://worship.gamostudios.localhost:4321/apply" class="bg-white/10 text-white backdrop-blur-sm px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-colors w-full sm:w-auto">
+						Join as a Musician
+					</a>
+				</div>
+			</div>
+		</section>
+
+		<section class="py-24 px-6 max-w-[1440px] mx-auto w-full">
+			<div class="max-w-3xl mb-16">
+				<h2 class="text-4xl md:text-5xl font-bold mb-6 text-[#1D2323]">Your Sunday, Covered.</h2>
+				<p class="text-xl text-[#6B6B67] leading-relaxed">
+					We provide a vetted local roster with paid standby understudies and a reliable dispatch workflow so you're never left without a team.
+				</p>
+			</div>
+		</section>
+	</main>
+</Layout>
