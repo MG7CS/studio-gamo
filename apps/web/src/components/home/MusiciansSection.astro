@@ -1,77 +1,96 @@
 ---
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
+import SectionEyebrow from '../editorial/SectionEyebrow.astro';
+import PhotoTile from '../editorial/PhotoTile.astro';
+
+const categories = [
+  { label: 'Keyboardists', stem: 'photo-oct-12-2026-at-10-50-25-am-1', widths: [480,768,1200], href: 'https://worship.gamostudios.com/', alt: 'Keyboardist performing' },
+  { label: 'Guitarists', stem: 'photo-oct-12-2026-at-10-50-46-am-1', widths: [480,768,1200], href: 'https://worship.gamostudios.com/', alt: 'Guitar lesson' },
+  { label: 'Bassists', stem: 'photo-oct-12-2026-at-10-50-28-am-4', widths: [480,768], href: 'https://worship.gamostudios.com/', alt: 'Bass guitarist performing' },
+  { label: 'Drummers', stem: 'photo-oct-12-2026-at-10-50-29-am-5', widths: [480,768], href: 'https://worship.gamostudios.com/', alt: 'Drummer playing' },
+  { label: 'Vocalists', stem: 'photo-oct-12-2026-at-10-50-27-am-3', widths: [480,768], href: 'https://worship.gamostudios.com/', alt: 'Gospel vocalist singing' },
+  { label: 'More Instruments', stem: 'photo-oct-12-2026-at-10-50-32-am-9', widths: [480,768,1200], href: 'https://worship.gamostudios.com/', alt: 'Live worship band' },
+];
+const waveform = [10,22,14,31,16,27,39,19,34,13,27,19,11,28,18,8,16,23,10];
 ---
-<section class="py-32 px-6 w-full bg-[#F4EDE3] relative z-20">
-  <div class="max-w-[1440px] mx-auto">
-    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-      <div class="max-w-2xl">
-        <h2 class="text-[#B65B35] font-semibold tracking-wider text-sm uppercase mb-3">The Roster</h2>
-        <h3 class="text-4xl md:text-5xl font-bold text-[#1D2323] tracking-tight">Meet the Musicians.</h3>
+<section id="musicians" aria-labelledby="musicians-title" class="relative overflow-hidden bg-[#F4EDE3] pt-20 pb-24 lg:pt-0 lg:pb-24">
+  <div class="mx-auto max-w-[1536px]">
+    <div class="relative min-h-0 lg:h-[670px]">
+      <!-- The left editorial panel is intentionally narrower than the photographic mosaic. -->
+      <div class="relative z-20 px-6 pb-10 sm:px-12 lg:absolute lg:top-[19%] lg:left-0 lg:w-[34%] lg:px-[4%] lg:pb-0">
+        <SectionEyebrow label="The Gamo Roster" />
+        <h2 id="musicians-title" class="mt-7 text-[clamp(3.15rem,5.7vw,5.75rem)] leading-[.96] font-extrabold tracking-[-.055em] text-[#1D2323]">
+          Meet the <span class="block text-[#854630]">Musicians</span>
+        </h2>
+        <p class="mt-6 max-w-[20rem] text-lg leading-relaxed text-[#303737] lg:text-xl">
+          Skilled, vetted, and ready to serve, our musicians bring excellence to every service.
+        </p>
+        <a href="https://worship.gamostudios.com/" class="mt-7 inline-flex items-center gap-8 rounded-full bg-[#B65B35] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B65B35]">
+          Explore the Roster <span aria-hidden="true" class="text-xl">→</span>
+        </a>
       </div>
-      <a href="/roster" class="text-[#1D2323] font-medium border-b border-[#1D2323] pb-1 hover:text-[#B65B35] hover:border-[#B65B35] transition-colors">View full roster</a>
+
+      <!-- Featured keyboardist. On desktop this photograph sculpts the cream/text transition. -->
+      <div class="roster-feature relative mx-5 h-[400px] overflow-hidden rounded-3xl bg-[#1D2323] sm:mx-10 lg:absolute lg:inset-y-0 lg:left-[29%] lg:mx-0 lg:h-full lg:w-[40%] lg:rounded-none">
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 42vw, 100vw" alt="Black gospel keyboardist performing with a worship band" class="h-full w-full object-cover object-[58%_center]" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+      </div>
+
+      <!-- Sample audition panel: visually demonstrates the planned marketplace interaction. -->
+      <div class="relative z-20 mx-9 -mt-24 max-w-sm rounded-[24px] border border-white/35 bg-[#202527]/85 p-5 text-[#F4EDE3] shadow-2xl backdrop-blur-xl sm:mx-16 lg:absolute lg:bottom-7 lg:left-[31%] lg:mx-0 lg:mt-0 lg:w-[360px]">
+        <div class="mb-4 flex items-center gap-3">
+          <div class="h-12 w-12 shrink-0 overflow-hidden rounded-full">
+            <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="48px" alt="" class="h-full w-full object-cover" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 text-lg font-semibold">Marcus T. <span class="text-[#D7AD86]" aria-label="Illustrative verification badge">●</span></div>
+            <p class="text-xs text-[#F4EDE3]/75">Keys · Gospel & CCM</p>
+          </div>
+          <span class="ml-auto rounded-full border border-white/20 px-2 py-1 text-[10px] uppercase tracking-widest text-white/70">Demo</span>
+        </div>
+        <div class="flex items-center gap-3" aria-label="Audition player preview; playback not available">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F4EDE3] text-[#1D2323]" aria-hidden="true">▶</span>
+          <div class="flex h-9 min-w-0 flex-1 items-center justify-center gap-[3px] overflow-hidden" aria-hidden="true">
+            {waveform.map((height) => <span class="w-[3px] shrink-0 rounded-full bg-[#D7AD86]" style={{height: height + 'px'}}></span>)}
+          </div>
+          <span class="text-[11px] text-white/70">0:00 / 2:15</span>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-2">
+          {['Keys','MainStage','Nashville Numbers'].map((tag) => <span class="rounded-full border border-white/25 bg-white/5 px-3 py-1 text-[11px]">{tag}</span>)}
+        </div>
+        <p class="mt-3 text-xs text-white/70">⌖ Phoenix Metro · Sample profile</p>
+      </div>
+
+      <!-- Supporting vocalist / bass / drummer mosaic. -->
+      <div class="relative mx-5 mt-5 grid h-[470px] grid-cols-2 grid-rows-2 gap-3 sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-full lg:w-[31%] lg:grid-rows-[1fr_0.95fr] lg:gap-3 lg:pl-3">
+        <div class="col-span-2 overflow-hidden rounded-2xl bg-[#1D2323] lg:rounded-tr-none">
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-27-am-3" widths={[480,768]} sizes="(min-width: 1024px) 31vw, 100vw" alt="Female Black gospel vocalist singing" class="h-full w-full object-cover object-center" />
+        </div>
+        <div class="min-w-0 overflow-hidden rounded-2xl bg-[#1D2323]">
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-28-am-4" widths={[480,768]} sizes="(min-width: 1024px) 16vw, 50vw" alt="Bass guitarist during worship" class="h-full w-full object-cover object-center" />
+        </div>
+        <div class="min-w-0 overflow-hidden rounded-2xl bg-[#1D2323]">
+          <ResponsivePicture stem="photo-oct-12-2026-at-10-50-29-am-5" widths={[480,768]} sizes="(min-width: 1024px) 16vw, 50vw" alt="Drummer performing during worship" class="h-full w-full object-cover object-center" />
+        </div>
+      </div>
     </div>
 
-    <!-- Instrument Categories Discovery -->
-    <div class="flex flex-wrap gap-3 mb-10">
-      <button class="bg-[#1D2323] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:bg-[#B65B35] transition-colors">All Musicians</button>
-      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Keys</button>
-      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Vocals</button>
-      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Drums</button>
-      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Bass</button>
-      <button class="bg-white text-[#1D2323] border border-[#DED6CC] px-6 py-2.5 rounded-full text-sm font-medium hover:border-[#1D2323] transition-colors">Guitar</button>
-    </div>
-
-    <!-- Asymmetric Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
-      <!-- Large Card (Vocalist) -->
-      <div class="md:col-span-2 md:row-span-2 relative rounded-3xl overflow-hidden group cursor-pointer">
-        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-27-am-3" widths={[480,768]} sizes="(min-width: 768px) 66vw, 100vw" alt="Sarah M. singing" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-        
-        <!-- Tasteful Audition Preview Element -->
-        <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30 group-hover:scale-110 group-hover:bg-[#B65B35] group-hover:border-[#B65B35] transition-all duration-300 shadow-xl" aria-label="Play audition preview">
-          <svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-
-        <div class="absolute bottom-0 left-0 p-8 w-full">
-          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-            <div>
-              <div class="flex items-center gap-3 mb-2">
-                <h4 class="font-bold text-3xl text-white">Sarah M.</h4>
-                <span class="bg-white/20 text-white text-xs px-2 py-1 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo Profile</span>
-              </div>
-              <p class="text-white/80 font-medium">Lead Vocals • Choir Director</p>
-            </div>
-            <button class="bg-white/20 backdrop-blur-md text-white px-6 py-2 rounded-full font-medium hover:bg-white/30 transition-colors">View Profile</button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Small Card Top (Bass) -->
-      <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
-        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-28-am-4" widths={[480,768]} sizes="(min-width: 768px) 33vw, 100vw" alt="Marcus W. on Bass" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-        <div class="absolute bottom-0 left-0 p-6 w-full">
-          <div class="flex items-center gap-2 mb-1">
-            <h4 class="font-bold text-xl text-white">Marcus W.</h4>
-            <span class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo</span>
-          </div>
-          <p class="text-white/80 text-sm">Bass Guitar</p>
-        </div>
-      </div>
-
-      <!-- Small Card Bottom (Drummer) -->
-      <div class="relative rounded-3xl overflow-hidden group cursor-pointer">
-        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-29-am-5" widths={[480,768]} sizes="(min-width: 768px) 33vw, 100vw" alt="Elijah T. on Drums" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-        <div class="absolute bottom-0 left-0 p-6 w-full">
-          <div class="flex items-center gap-2 mb-1">
-            <h4 class="font-bold text-xl text-white">Elijah T.</h4>
-            <span class="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded border border-white/30 uppercase tracking-wider font-semibold">Demo</span>
-          </div>
-          <p class="text-white/80 text-sm">Drums • Percussion</p>
-        </div>
+    <div class="mt-10 px-5 sm:px-10 lg:mt-12 lg:px-[3.5%]">
+      <div class="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-3 lg:grid lg:grid-cols-6 lg:overflow-visible">
+        {categories.map((category) => (
+          <PhotoTile {...category} class="min-w-[190px] snap-start lg:min-w-0 lg:h-[188px]" />
+        ))}
       </div>
     </div>
   </div>
+  <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 bottom-0 h-10 rounded-[50%] bg-[#FFFAF4]/60 blur-2xl"></div>
 </section>
+
+<style>
+  @media (min-width: 1024px) {
+    .roster-feature {
+      clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%, 12% 74%, 0 35%);
+      border-top-left-radius: 18% 38%;
+    }
+  }
+</style>
