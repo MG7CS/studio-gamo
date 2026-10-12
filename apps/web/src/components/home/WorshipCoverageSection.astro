@@ -1,4 +1,5 @@
 ---
+import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 ---
 <section class="py-32 w-full bg-white relative">
   <!-- Top Curve -->
@@ -46,11 +47,7 @@
       
       <!-- Right side image with overlapping UI -->
       <div class="relative rounded-3xl overflow-hidden h-[600px] shadow-2xl">
-        <picture>
-          <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-46-am-2-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-46-am-2-768w.avif 768w, /images/optimized/photo-oct-12-2026-at-10-50-46-am-2-1200w.avif 1200w" sizes="50vw" />
-          <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-46-am-2-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-46-am-2-768w.webp 768w, /images/optimized/photo-oct-12-2026-at-10-50-46-am-2-1200w.webp 1200w" sizes="50vw" />
-          <img src="/images/optimized/photo-oct-12-2026-at-10-50-46-am-2-1200w.webp" alt="Worship Staffing" class="absolute inset-0 w-full h-full object-cover object-center" loading="lazy" decoding="async" />
-        </picture>
+        <ResponsivePicture stem="photo-oct-12-2026-at-10-50-46-am-2" widths={[480,768,1200]} sizes="50vw" alt="Worship Staffing" class="absolute inset-0 w-full h-full object-cover object-center" loading="lazy" decoding="async" />
         
         <!-- Simulated Glass UI snippet -->
         <div class="absolute bottom-10 right-10 w-full max-w-sm bg-white/90 backdrop-blur-2xl rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border border-white/50 p-6">
@@ -70,11 +67,7 @@
               <div class="absolute left-[19px] top-10 w-[2px] h-6 bg-gradient-to-b from-[#26865B] to-[#DED6CC]"></div>
               
               <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#26865B]">
-                <picture>
-                  <source type="image/avif" srcset="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-480w.avif 480w, /images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.avif 768w" sizes="40px" />
-                  <source type="image/webp" srcset="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-480w.webp 480w, /images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.webp 768w" sizes="40px" />
-                  <img src="/images/optimized/photo-oct-12-2026-at-10-50-26-am-2-768w.webp" alt="Sarah M" class="w-full h-full object-cover" loading="lazy" decoding="async" />
-                </picture>
+                <ResponsivePicture stem="photo-oct-12-2026-at-10-50-26-am-2" widths={[480,768]} sizes="40px" alt="Sarah M" class="w-full h-full object-cover" loading="lazy" decoding="async" />
               </div>
               <div class="flex-1">
                 <div class="text-sm font-bold text-[#1D2323] flex items-center gap-2">Sarah M. <span class="text-[10px] bg-[#26865B] text-white px-1.5 py-0.5 rounded font-medium uppercase">Primary</span></div>
