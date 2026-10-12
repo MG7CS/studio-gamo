@@ -10,9 +10,15 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 4. `SECURITY.md` — mandatory gates
 5. `ROADMAP.md` — milestone definitions
 6. `prompts/ANTIGRAVITY_MASTER_PROMPT.md` — kickoff intent
+7. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
+8. `design-reference/README.md` — reference materials.
 
-## Autonomy model
+## Autonomy model & Active Priorities
 
+- **Active Development Priority**: Complete **all UI/UX screens across all six Gamo Studios applications before adding functionality**.
+- **Autonomy**: Agents autonomously make ordinary coding and design decisions, edit workspace files, run local builds and tests, resolve compilation errors, and continue through the screen inventory without asking for confirmation after every step.
+- Preserve existing work and regularly update the progress log (`docs/BUILD_LOG.md`).
+- **Never deploy, push remotely, modify secrets, change security settings, or perform destructive operations without explicit authorization.**
 - Plan briefly, then **execute continuously**. Do not stop after scaffolding, the homepage, a demo screen, or the first passing build.
 - Work through `ROADMAP.md` milestones in order, end-to-end, unless blocked by protected external dependencies. Independent work continues even if one integration is blocked.
 - Routine architectural and UI choices are your responsibility. Choose stable, supported technologies and document architectural decisions in `docs/DECISIONS.md`.
