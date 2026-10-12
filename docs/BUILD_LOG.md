@@ -14,3 +14,16 @@
 
 - Setup `@gamo/auth` package using Lucia v3 and Cloudflare D1 adapter.
 - Scaffolded basic `worship.gamostudios.com` application flow placeholders (`/apply/identity`).
+
+## Milestone 2/3/4 UI Prototyping
+- Completed remaining `/apply` UI flows for the Worship app.
+- Scaffolding Astro apps for Academy, Live, and Production subdomains.
+
+## Finalizing UI Mock Phase
+- Recreated standard Layout and styling (Tailwind CSS configuration applied) across `production` and `admin` apps.
+- Built UI screens for Production (`/` and `/contact`).
+- Scaffolding the central Admin Hub (`/` dashboard and `/legal` documentation) and copied baseline Astro and Vite config.
+- Fixed TS typecheck scripts across `package.json` configurations.
+- Workspace successfully builds via `pnpm build` and typechecks via `pnpm typecheck` successfully across all Astro domains.
+- Generated `docs/SCREEN_INVENTORY.md` to reflect all completed app pages according to `ROADMAP.md` requests.
+- Created `docs/FUNCTIONALITY_PHASE_PLAN.md` pending owner's approval for phase transition.

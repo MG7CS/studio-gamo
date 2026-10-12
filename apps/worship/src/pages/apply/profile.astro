@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout>
+  <main class="max-w-2xl mx-auto py-12 px-4">
+    <div class="text-sm text-[#6B6B67] mb-2 font-semibold uppercase">Step 2 of 4</div>
+    <h1 class="text-3xl font-bold mb-6 text-[#1D2323]">Profile & Experience</h1>
+    <form method="POST" action="/apply/logistics" class="space-y-6">
+      <div>
+        <label class="block text-sm font-bold mb-2">Short Bio</label>
+        <textarea name="bio" rows="4" class="w-full border p-3 rounded-lg" placeholder="Tell us about your worship experience..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-bold mb-2">Primary Instrument</label>
+        <select name="instrument" class="w-full border p-3 rounded-lg">
+          <option value="keys">Keys</option>
+          <option value="acoustic">Acoustic Guitar</option>
+          <option value="electric">Electric Guitar</option>
+          <option value="bass">Bass</option>
+          <option value="drums">Drums</option>
+          <option value="vocals">Vocals</option>
+        </select>
+      </div>
+      <button type="submit" class="bg-[#1D2323] text-white px-6 py-3 rounded-lg font-bold">Continue to Travel & Availability</button>
+    </form>
+  </main>
+</Layout>
