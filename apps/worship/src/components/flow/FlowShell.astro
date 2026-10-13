@@ -19,18 +19,18 @@ interface Props {
 }
 const { eyebrow, title, accent, lede, steps, current = 0, photo, notice = 'Nothing you enter here is saved, reviewed or sent. Names and services shown are samples.', wide = false } = Astro.props;
 ---
-<section class="bg-cream pt-28 pb-20 lg:pt-36 lg:pb-28">
+<section class="bg-cream page-intro-space">
   <div class="mx-auto max-w-7xl px-5 sm:px-8">
-    {steps && <StepIndicator steps={steps} current={current} class="mb-10" />}
-    <div class:list={['grid gap-12', !wide && photo && 'lg:grid-cols-12']}>
+    {steps && <StepIndicator steps={steps} current={current} class="mb-8" />}
+    <div class:list={['grid gap-8', !wide && photo && 'lg:grid-cols-12']}>
       <div class:list={[!wide && photo && 'lg:col-span-7']}>
         <EditorialHeading as="h1" size="section" eyebrow={eyebrow} title={title} accent={accent} lede={lede} />
         <DemoNotice class="mt-6">{notice}</DemoNotice>
-        <div class="mt-10"><slot /></div>
+        <div class="mt-8"><slot /></div>
       </div>
       {!wide && photo && (
         <aside class="hidden lg:col-span-5 lg:block">
-          <div class="sticky top-32 aspect-[4/5] overflow-hidden mask-arch-sm shadow-float"><Photo name={photo} sizes="35vw" /></div>
+          <div class="sticky top-28 mx-auto aspect-[4/5] w-full max-w-[360px] overflow-hidden mask-arch-sm shadow-float"><Photo name={photo} sizes="35vw" /></div>
           <slot name="aside" />
         </aside>
       )}

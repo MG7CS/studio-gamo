@@ -5,7 +5,7 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import type { Instrument } from '../../data/instruments';
 interface Props { instrument: Instrument; size?: 'sm' | 'lg'; class?: string }
 const { instrument: i, size = 'lg', class: className } = Astro.props;
-const tall = size === 'lg' ? 'min-h-[300px] sm:min-h-[340px]' : 'min-h-[220px]';
+const tall = size === 'lg' ? 'min-h-[280px] sm:min-h-[300px]' : 'min-h-[220px]';
 ---
 <a href={`/instruments/${i.slug}`} class:list={['group relative flex flex-col justify-end overflow-hidden rounded-[28px] ring-1 ring-sand transition-transform duration-300 hover:-translate-y-1', tall, i.photo ? 'bg-charcoal text-white' : `${i.tint} text-charcoal`, className]}>
   {i.photo ? (

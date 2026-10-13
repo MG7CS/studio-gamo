@@ -5,10 +5,10 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { supportAreas } from '../../data/production';
 const [lead, ...rest] = supportAreas;
 ---
-<section class="bg-ivory py-16 md:py-24" aria-label="Technical support areas">
+<section class="bg-ivory section-space" aria-label="Technical support areas">
   <div class="mx-auto grid max-w-7xl gap-8 px-5 md:px-8 lg:grid-cols-12">
     <a href={`/services/${lead.slug}`} class="group relative block overflow-hidden rounded-[2.5rem] bg-night text-cream lg:col-span-5 lg:row-span-2">
-      <div class="aspect-[4/5] lg:aspect-auto lg:h-full">
+      <div class="aspect-[4/5] sm:aspect-[5/4] lg:aspect-auto lg:h-full">
         <Photo name={lead.photo} sizes="(min-width:1024px) 40vw, 100vw" class="h-full w-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-[1.02]" />
       </div>
       <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night/95 to-transparent p-8 pt-24">
@@ -21,8 +21,8 @@ const [lead, ...rest] = supportAreas;
     <ul class="divide-y divide-sand border-y border-sand lg:col-span-7">
       {rest.map((a, i) => (
         <li>
-          <a href={`/services/${a.slug}`} class="group grid grid-cols-[auto_1fr_auto] items-center gap-5 py-6 md:gap-8">
-            <div class="h-20 w-20 overflow-hidden rounded-2xl md:h-24 md:w-28">
+          <a href={`/services/${a.slug}`} class="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 py-6 md:gap-8">
+            <div class="h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-2xl md:h-24 md:w-28">
               <Photo name={a.photo} sizes="112px" class="h-full w-full object-cover" />
             </div>
             <div>

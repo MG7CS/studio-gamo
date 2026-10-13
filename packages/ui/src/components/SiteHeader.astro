@@ -54,7 +54,7 @@ const dark = theme === 'dark';
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 class:list={[
-                  'block rounded-full px-4 py-2 text-[15px] font-medium transition-colors',
+                  'block rounded-full px-3 py-2 text-sm font-medium transition-colors xl:px-4 xl:text-[15px]',
                   active
                     ? dark ? 'bg-cream text-charcoal' : 'bg-charcoal text-cream'
                     : dark ? 'text-cream/80 hover:bg-white/10 hover:text-white' : 'text-charcoal/75 hover:bg-cream hover:text-charcoal',
@@ -67,8 +67,8 @@ const dark = theme === 'dark';
     </nav>
 
     <div class="flex items-center gap-2">
-      <a href={signIn} class:list={['hidden rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors md:inline-flex', dark ? 'border-cream/35 hover:bg-white/10' : 'border-charcoal/20 hover:bg-white']}>Sign In</a>
-      <a href={getInvolved} class="hidden items-center gap-2 rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracotta-dark sm:inline-flex">
+      <a href={signIn} class:list={['hidden rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors md:inline-flex xl:px-5', dark ? 'border-cream/35 hover:bg-white/10' : 'border-charcoal/20 hover:bg-white']}>Sign In</a>
+      <a href={getInvolved} class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5">
         Get Involved <Icon name="arrow" class="h-4 w-4" />
       </a>
       <button

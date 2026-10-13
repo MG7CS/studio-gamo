@@ -8,7 +8,7 @@ import type { LiveEvent } from '../../data/events';
 interface Props { events: LiveEvent[] }
 const { events } = Astro.props;
 ---
-<section class="bg-cream px-4 py-16 sm:px-8 lg:py-24" aria-labelledby="nearby-title">
+<section class="bg-cream px-4 section-space sm:px-8" aria-labelledby="nearby-title">
   <div class="mx-auto max-w-[1320px]">
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <EditorialHeading id="nearby-title" eyebrow="Upcoming nearby" title="This month, close to home." lede="Showing a sample “Southeast” region. Location will only ever be used with your permission." />

@@ -5,7 +5,7 @@ import { participation } from '../../data/organization';
 interface Props { compact?: boolean; }
 const { compact = false } = Astro.props;
 ---
-<section id="paths" class="bg-ivory px-6 py-20 sm:px-12 lg:py-28">
+<section id="paths" class="bg-ivory px-6 section-space sm:px-12">
   <div class="mx-auto max-w-[1320px]">
     <div class="mb-10 flex flex-wrap items-end justify-between gap-6"><h2 class="section-heading">Find your place.</h2><p class="max-w-sm leading-relaxed text-ink-soft">Different gifts. Different starting points. One shared purpose.</p></div>
     <div class:list={['grid gap-x-10', compact ? 'lg:grid-cols-2' : 'md:grid-cols-2']}>

@@ -10,7 +10,7 @@ const paths = [
   ['Share practical resources', 'Facilities, instruments, sound equipment and professional skills can all support the mission.'],
 ];
 ---
-<section id="opportunities" class="px-6 py-20 sm:px-12 lg:py-28">
+<section id="opportunities" class="px-6 section-space sm:px-12">
   <div class="mx-auto grid max-w-[1320px] gap-14 lg:grid-cols-[.85fr_1.15fr] lg:gap-24">
     <div><EditorialHeading eyebrow="Partnership possibilities" title="What can we" accent="build together?" /><div class="mt-10 h-[390px] overflow-hidden mask-arch"><Photo name="guitarMentor" sizes="(min-width:1024px) 37vw, 100vw" /></div><p class="mt-5 text-sm text-ink-soft">Photography illustrates the mission; it does not identify an existing partner.</p></div>
     <div>{paths.map(([title, body], i) => <article class="border-t border-sand py-7"><p class="eyebrow text-terracotta">0{i + 1} · Proposed pathway</p><h3 class="mt-3 text-2xl font-semibold tracking-tight">{title}</h3><p class="mt-3 max-w-xl leading-relaxed text-ink-soft">{body}</p></article>)}<ButtonLink href="/partners/interest" arrow>Preview a partnership inquiry</ButtonLink></div>

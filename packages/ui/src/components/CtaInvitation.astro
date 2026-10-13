@@ -14,15 +14,15 @@ interface Props {
 const { eyebrow, title, body, photo, photoPosition, tone = 'light', id } = Astro.props;
 const dark = tone === 'dark';
 ---
-<section id={id} data-surface={dark ? 'dark' : undefined} class:list={['px-4 py-16 sm:px-8 lg:py-24', dark ? 'bg-charcoal' : 'bg-cream']}>
+<section id={id} data-surface={dark ? 'dark' : undefined} class:list={['section-space px-4 sm:px-8', dark ? 'bg-charcoal' : 'bg-cream']}>
   <div class:list={['mx-auto grid max-w-[1320px] items-stretch overflow-hidden rounded-[36px] lg:grid-cols-[1.05fr_1fr]', dark ? 'bg-night text-cream' : 'bg-ivory text-charcoal ring-1 ring-sand']}>
-    <div class="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+    <div class="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
       {eyebrow && <p class:list={['eyebrow mb-4', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
       <h2 class="section-heading text-balance">{title}</h2>
       <p class:list={['mt-5 max-w-xl text-lg leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>{body}</p>
       <div class="mt-8 flex flex-wrap gap-3"><slot /></div>
     </div>
-    <div class="relative min-h-[300px] lg:min-h-[480px]">
+    <div class="relative min-h-[300px] lg:min-h-[400px]">
       <div class="absolute inset-3 overflow-hidden rounded-[28px] lg:inset-4 lg:rounded-[200px_28px_28px_28px]">
         <Photo name={photo} sizes="(min-width:1024px) 45vw, 100vw" position={photoPosition} class="h-full w-full object-cover" />
       </div>
