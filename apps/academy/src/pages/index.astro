@@ -1,21 +1,31 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import AcademyHero from '../components/home/AcademyHero.astro';
+import InstrumentDiscovery from '../components/home/InstrumentDiscovery.astro';
+import LearningPaths from '../components/home/LearningPaths.astro';
+import InstructionFormats from '../components/home/InstructionFormats.astro';
+import InstructorsPreview from '../components/home/InstructorsPreview.astro';
+import HowLessonsWork from '../components/home/HowLessonsWork.astro';
+import SponsoredPrograms from '../components/home/SponsoredPrograms.astro';
+import ChurchHosted from '../components/home/ChurchHosted.astro';
+import FamilyJourney from '../components/home/FamilyJourney.astro';
+import AcademyFaq from '../components/home/AcademyFaq.astro';
 ---
-<Layout>
-  <main class="max-w-4xl mx-auto py-12 px-4">
-    <h1 class="text-4xl font-bold mb-4">Gamo Academy</h1>
-    <p class="text-xl text-[#6B6B67] mb-8">Elevating worship through world-class instruction.</p>
-    <div class="grid md:grid-cols-2 gap-6">
-      <div class="bg-white border border-[#DED6CC] p-6 rounded-xl">
-        <h2 class="text-2xl font-bold mb-2">Private Lessons</h2>
-        <p class="text-[#6B6B67] mb-4">One-on-one instruction with our vetted roster of professional musicians.</p>
-        <a href="/lessons" class="text-[#B65B35] font-bold hover:underline">Browse Instructors &rarr;</a>
-      </div>
-      <div class="bg-white border border-[#DED6CC] p-6 rounded-xl">
-        <h2 class="text-2xl font-bold mb-2">Church Clinics</h2>
-        <p class="text-[#6B6B67] mb-4">Host an intensive workshop at your facility for your whole team.</p>
-        <a href="/clinics" class="text-[#B65B35] font-bold hover:underline">Learn More &rarr;</a>
-      </div>
-    </div>
-  </main>
+<Layout description="Gamo Academy: friendly music lessons for children, teens and adults — piano, guitar, bass, drums and vocals. A proposed nonprofit program of Gamo Studios.">
+  <AcademyHero />
+  <InstrumentDiscovery />
+  <LearningPaths />
+  <InstructionFormats />
+  <InstructorsPreview />
+  <HowLessonsWork />
+  <SponsoredPrograms />
+  <ChurchHosted />
+  <FamilyJourney />
+  <AcademyFaq />
+  <CtaInvitation eyebrow="Start your music journey" title="Your first song is closer than you think." body="Explore instruments, meet sample instructors and preview how registration will work for your family." photo="girlGuitar">
+    <ButtonLink href="/instruments" size="lg" arrow>Choose an instrument</ButtonLink>
+    <ButtonLink href="/register" size="lg" variant="secondary">Preview registration</ButtonLink>
+  </CtaInvitation>
 </Layout>

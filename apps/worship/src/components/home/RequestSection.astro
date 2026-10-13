@@ -1,0 +1,16 @@
+---
+/** How churches request musicians. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import ProcessSteps from './ProcessSteps.astro';
+import { requestSteps } from '../../data/worship';
+---
+<section class="bg-ivory py-20 lg:py-28" aria-labelledby="request-title">
+  <div class="mx-auto max-w-7xl px-5 sm:px-8">
+    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+      <EditorialHeading id="request-title" eyebrow="For churches" title="Requesting musicians," accent="in four calm steps." class="max-w-2xl" />
+      <ButtonLink href="/hire" variant="secondary" arrow>Preview the request form</ButtonLink>
+    </div>
+    <div class="mt-14"><ProcessSteps steps={requestSteps} /></div>
+  </div>
+</section>

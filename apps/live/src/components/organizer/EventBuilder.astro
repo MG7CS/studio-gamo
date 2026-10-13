@@ -1,0 +1,83 @@
+---
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+---
+<section class="px-4 pb-20 sm:px-8" data-event-builder>
+  <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[1.5fr_1fr]">
+    <form class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
+      <ol class="mb-8 flex flex-wrap gap-2 text-sm" aria-label="Event builder steps">
+        {['Event', 'Schedule', 'Venue', 'Registration', 'Review'].map((label, i) => <li data-step-label={i} class="rounded-full bg-cream px-3 py-2">{i + 1}. {label}</li>)}
+      </ol>
+      <fieldset data-step class="space-y-5"><legend class="mb-5 text-2xl font-semibold">Tell the story.</legend>
+        <FormField label="Event title" name="title" required placeholder="Sample worship gathering" />
+        <FormField label="Christian event category" name="category" type="select" required options={['Gospel concert', 'Worship gathering', 'Bible study', 'Christian conference', 'Youth & family']} />
+        <FormField label="Description" name="description" type="textarea" required placeholder="Who is welcome, what to expect and how the gathering serves the community." />
+        <div class="rounded-2xl bg-cream p-4 text-sm text-ink-soft">Media preview uses an approved sample photo. Uploads are unavailable; do not enter sensitive information.</div>
+      </fieldset>
+      <fieldset data-step hidden class="space-y-5"><legend class="mb-5 text-2xl font-semibold">Make time to gather.</legend>
+        <div class="grid gap-4 sm:grid-cols-2"><FormField label="Local event date" name="date" type="date" required /><FormField label="Start time" name="time" type="time" required /></div>
+        <FormField label="Time zone" name="timezone" type="select" required options={['America/Phoenix', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles']} />
+        <FormField label="Recurrence" name="recurrence" type="select" required options={['One-time event', 'Weekly', 'Monthly']} />
+        <FormField label="Last recurring date (optional)" name="endDate" type="date" hint="Use an end date for a recurring series." />
+      </fieldset>
+      <fieldset data-step hidden class="space-y-5"><legend class="mb-5 text-2xl font-semibold">A welcoming place.</legend>
+        <FormField label="Venue" name="venue" required placeholder="Sample fellowship hall" />
+        <div class="grid gap-4 sm:grid-cols-2"><FormField label="City and state" name="city" required placeholder="Phoenix, AZ" /><FormField label="Street address" name="address" required placeholder="Sample address only" /></div>
+        <FormField label="Accessibility and family notes" name="accessibility" type="textarea" placeholder="Step-free access, parking, supervision and seating." />
+      </fieldset>
+      <fieldset data-step hidden class="space-y-5"><legend class="mb-5 text-2xl font-semibold">Keep participation clear.</legend>
+        <FormField label="Admission approach" name="admission" type="select" required options={['Free — open gathering', 'Free — optional registration', 'Paid ticketing preview', 'External ticketing preview']} />
+        <div class="grid gap-4 sm:grid-cols-2"><FormField label="Sample tier name" name="tier" placeholder="General admission" /><FormField label="Illustrative tier price (USD)" name="price" type="number" placeholder="0" hint="Preview only. All fees and policies remain unapproved." /></div>
+        <FormField label="Sample external source (optional)" name="external" placeholder="Organizer website — no live link" />
+        <p class="rounded-2xl bg-cream p-4 text-sm text-ink-soft">Organizer identity, authority to publish and ticketing authorization must be reviewed before any real listing or ticket sales.</p>
+      </fieldset>
+      <fieldset data-step hidden><legend class="mb-5 text-2xl font-semibold">Review your local preview.</legend>
+        <dl data-review class="space-y-4"></dl>
+        <p class="mt-5 text-sm text-ink-soft">No information has been sent or saved. A real submission would require organizer verification and staff review.</p>
+      </fieldset>
+      <p data-error role="alert" class="mt-4 text-sm text-red-800"></p>
+      <div class="mt-8 flex flex-wrap justify-between gap-3">
+        <button type="button" data-back class="rounded-full border border-sand px-5 py-3 font-semibold" hidden>Back</button>
+        <button type="button" data-next class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">Next step →</button>
+        <a href="/promote/status" data-finish hidden class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">View sample review status →</a>
+      </div>
+    </form>
+    <aside class="h-fit overflow-hidden rounded-[28px] bg-charcoal text-cream"><Photo name="worshipNight" sizes="(min-width:1024px) 35vw, 100vw" class="aspect-[4/3] w-full object-cover" /><div class="p-6"><p class="eyebrow text-gold">Local preview only</p><h2 class="mt-3 text-2xl font-semibold">Every gathering starts with a story.</h2><p class="mt-4 text-cream/75">Explore the submission journey without publishing an event. Your entries exist only on this page and clear when you leave.</p></div></aside>
+  </div>
+</section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-event-builder]').forEach((root) => {
+    const form = root.querySelector('form')!;
+    const steps = [...root.querySelectorAll<HTMLFieldSetElement>('[data-step]')];
+    const labels = [...root.querySelectorAll<HTMLElement>('[data-step-label]')];
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+    const finish = root.querySelector<HTMLElement>('[data-finish]')!;
+    const error = root.querySelector<HTMLElement>('[data-error]')!;
+    let current = 0;
+    const show = () => {
+      steps.forEach((step, i) => { step.hidden = i !== current; step.disabled = i !== current; });
+      labels.forEach((label, i) => { label.classList.toggle('bg-charcoal', i === current); label.classList.toggle('text-white', i === current); if (i === current) label.setAttribute('aria-current', 'step'); else label.removeAttribute('aria-current'); });
+      back.hidden = current === 0; next.hidden = current === steps.length - 1; finish.hidden = !next.hidden;
+      error.textContent = '';
+    };
+    const review = () => {
+      const list = root.querySelector('[data-review]')!; list.replaceChildren();
+      form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input,textarea,select').forEach((input) => {
+        if (!input.value) return;
+        const row = document.createElement('div'); const title = document.createElement('dt'); const value = document.createElement('dd');
+        title.className = 'text-xs uppercase tracking-wider text-ink-soft'; value.className = 'break-words font-medium';
+        title.textContent = form.querySelector(`label[for="${input.id}"]`)?.textContent || input.name; value.textContent = input.value;
+        row.append(title, value); list.append(row);
+      });
+    };
+    next.addEventListener('click', () => {
+      if (!form.reportValidity()) { error.textContent = 'Complete the required fields before continuing.'; return; }
+      const price = form.querySelector<HTMLInputElement>('[name="price"]')!;
+      if (current === 3 && price.value && (Number(price.value) < 0 || !/^\d+(\.\d{1,2})?$/.test(price.value))) { error.textContent = 'Use a nonnegative sample price with up to two decimal places.'; price.focus(); return; }
+      current++; if (current === steps.length - 1) review(); show(); steps[current].querySelector<HTMLElement>('input,select,textarea')?.focus();
+    });
+    back.addEventListener('click', () => { current--; show(); });
+    form.addEventListener('submit', (event) => { event.preventDefault(); next.click(); }); show();
+  });
+</script>

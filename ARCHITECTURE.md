@@ -6,6 +6,12 @@
 
 ## System model
 
+### Public frontend phase — 2026-10-12
+
+The five public apps now compose a shared `BaseLayout`, `SiteHeader`, `SiteFooter`, design tokens and catalog-driven `Photo` component. Typed catalogs describe demonstration programs, instruments, musicians, lessons, support categories and events; app-owned sections/flow components compose small route files. `siteUrl()` resolves sibling links to fixed development ports 4321–4325 and the planned production domains. No domain deployment is implied.
+
+Local interactions validate forms, advance steps, filter sample collections and preview statuses. They do not create accounts, persist application data, send messages, reserve inventory, approve participants or process payments. Legacy transactional-looking routes redirect to non-transactional previews where appropriate. The image manifest and package TypeScript exports are shared; icon types live in `lib/icons.ts` so TypeScript data modules do not depend on `.astro` modules. See [component architecture](docs/COMPONENT_ARCHITECTURE.md) and [current frontend review](docs/MULTIPAGE_DESIGN_REVIEW.md).
+
 ```
                   gamostudios.com (organization hub + entry + account)
                                     |

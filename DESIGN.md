@@ -1,5 +1,13 @@
 # Gamo Studios — Cinematic Editorial Interface
 
+## Approved 2026 public design phase
+
+The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Live uses a cinematic manual event spotlight; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
+
+The original homepage hero remains approved and preserved. Its bright alternative is isolated at `/preview/hero-2026`; it does not replace `/` without visual acceptance. References under `design-reference/2026-brand-refresh` are composition guides only, never embedded webpage screenshots. Delivered PNG originals stay under `assets/images/2026-brand-refresh`; only responsive AVIF/WebP derivatives are served. See [asset inventory](docs/ASSET_INVENTORY_2026.md), [component ownership](docs/COMPONENT_ARCHITECTURE.md) and [multi-page review](docs/MULTIPAGE_DESIGN_REVIEW.md).
+
+Engineering review does not equal founder visual sign-off. All program launch, scholarship, ticketing, partnership and transaction states remain clearly labeled previews. Reduced motion suppresses movement; scroll reveals keep content visible. Desktop/mobile evidence comes from actual running pages.
+
 ## Design Identity
 
 Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, sculptural geometric layouts, and refined, layered application interfaces.

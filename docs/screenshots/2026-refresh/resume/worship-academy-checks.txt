@@ -1,0 +1,35 @@
+worship/: 200, one h1, no broken images, no overflow at all five widths
+worship/apply: 200, one h1, no broken images, no overflow at all five widths
+worship/apply/profile: 200, one h1, no broken images, no overflow at all five widths
+worship/apply/audition: 200, one h1, no broken images, no overflow at all five widths
+worship/apply/status: 200, one h1, no broken images, no overflow at all five widths
+worship/hire: 200, one h1, no broken images, no overflow at all five widths
+worship/hire/repertoire: 200, one h1, no broken images, no overflow at all five widths
+worship/hire/schedule: 200, one h1, no broken images, no overflow at all five widths
+worship/hire/summary: 200, one h1, no broken images, no overflow at all five widths
+worship/opportunities: 200, one h1, no broken images, no overflow at all five widths
+worship/church/roster: 200, one h1, no broken images, no overflow at all five widths
+worship/check-in/sample: 200, one h1, no broken images, no overflow at all five widths
+worship/check-in/success: 200, one h1, no broken images, no overflow at all five widths
+worship/check-in/standby-notified: 200, one h1, no broken images, no overflow at all five widths
+worship: no horizontal overflow at 390px
+worship: no horizontal overflow at 768px
+worship: no horizontal overflow at 1024px
+worship: no horizontal overflow at 1440px
+worship: no horizontal overflow at 1920px
+academy/: 200, one h1, no broken images, no overflow at all five widths
+academy/instruments: 200, one h1, no broken images, no overflow at all five widths
+academy/lessons: 200, one h1, no broken images, no overflow at all five widths
+academy/register: 200, one h1, no broken images, no overflow at all five widths
+academy/dashboard: 200, one h1, no broken images, no overflow at all five widths
+academy/sponsored: 200, one h1, no broken images, no overflow at all five widths
+academy/host-apply: 200, one h1, no broken images, no overflow at all five widths
+academy/instruments/piano: 200, one h1, no broken images, no overflow at all five widths
+academy/lessons/first-piano-steps: 200, one h1, no broken images, no overflow at all five widths
+academy/instructors/maya-thompson: 200, one h1, no broken images, no overflow at all five widths
+academy: no horizontal overflow at 390px
+academy: no horizontal overflow at 768px
+academy: no horizontal overflow at 1024px
+academy: no horizontal overflow at 1440px
+academy: no horizontal overflow at 1920px
+Passed: invalid-form negative paths, valid step navigation, opportunity role filter, Academy registration completion, lesson filter empty and reset states, no browser page errors.

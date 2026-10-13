@@ -1,13 +1,27 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StepIndicator from '@studio-gamo/ui/components/StepIndicator.astro';
+import PageHeader from '../components/shared/PageHeader.astro';
+import DigitalTicket from '../components/tickets/DigitalTicket.astro';
+import { getEvent } from '../data/events';
+export const prerender = false;
+const event = getEvent(Astro.url.searchParams.get('event') || '') || getEvent('harvest-night-of-gospel')!;
+const quantities = event.tiers.map((_, i) => { const raw = Number(Astro.url.searchParams.get(`q${i}`)); return Number.isInteger(raw) && raw >= 0 && raw <= 10 ? raw : 0; });
+if (!quantities.some(Boolean)) quantities[0] = 1;
 ---
-<Layout>
-  <main class="max-w-md mx-auto py-12 px-4 text-center">
-    <h1 class="text-2xl font-bold mb-8">Your Ticket</h1>
-    <div class="bg-white border-2 border-dashed border-gray-300 p-8 rounded-xl">
-      <div class="w-48 h-48 bg-gray-200 mx-auto mb-4 flex items-center justify-center text-gray-500">[QR CODE]</div>
-      <h2 class="font-bold text-xl">Night of Worship</h2>
-      <p class="text-gray-500">General Admission</p>
+<Layout title="Sample digital ticket" headerTheme="light">
+  <PageHeader eyebrow="Digital ticket design" title="A sample ticket, at a glance." lede="A design preview of how a Gamo Live ticket could look on a phone." />
+  <section class="bg-cream px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-[1100px] space-y-8">
+      <StepIndicator steps={[{ label: 'Select' }, { label: 'Checkout preview' }, { label: 'Sample ticket' }]} current={2} />
+      <DemoNotice title="Sample ticket, not valid for entry">The code below is decorative and does not encode anything. No ticket has been issued.</DemoNotice>
+      {event.status === 'canceled' || event.ticketing === 'external' ? <p class="rounded-2xl bg-white p-6 text-center text-red-800">No Gamo sample ticket is available for a canceled or externally ticketed event.</p> : <DigitalTicket event={event} quantities={quantities} />}
+      <div class="flex flex-wrap justify-center gap-3">
+        <ButtonLink href="/events" variant="secondary">Explore more events</ButtonLink>
+        <ButtonLink href="/organizer/scan" variant="secondary">See the organizer check-in view</ButtonLink>
+      </div>
     </div>
-  </main>
+  </section>
 </Layout>

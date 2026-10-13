@@ -1,4 +1,5 @@
 ---
+import { siteUrl } from "@studio-gamo/ui/lib/sites";
 import Icon from '../editorial/Icon.astro';
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
@@ -24,8 +25,8 @@ import InitialsAvatar from '../editorial/InitialsAvatar.astro';
           Approachable lessons for children, teens, adults, and families. Churches can host or sponsor classes to welcome more students.
         </p>
         <div class="mt-7 flex flex-wrap gap-3">
-          <a href="https://academy.gamostudios.com/" class="inline-flex items-center gap-6 rounded-full bg-[#B65B35] px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8F432A]">Find a Lesson <Icon name="arrow" class="h-5 w-5" /></a>
-          <a href="https://academy.gamostudios.com/host/apply" class="inline-flex items-center gap-6 rounded-full border border-[#1D2323] px-6 py-3.5 text-sm font-semibold text-[#1D2323] transition-colors hover:bg-white/70">Host or Sponsor a Class <Icon name="arrow" class="h-5 w-5" /></a>
+          <a href={siteUrl("academy","/lessons")} class="inline-flex items-center gap-6 rounded-full bg-[#B65B35] px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8F432A]">Find a Lesson <Icon name="arrow" class="h-5 w-5" /></a>
+          <a href={siteUrl("academy","/host-apply")} class="inline-flex items-center gap-6 rounded-full border border-[#1D2323] px-6 py-3.5 text-sm font-semibold text-[#1D2323] transition-colors hover:bg-white/70">Host or Sponsor a Class <Icon name="arrow" class="h-5 w-5" /></a>
         </div>
       </div>
 
@@ -44,7 +45,7 @@ import InitialsAvatar from '../editorial/InitialsAvatar.astro';
             {['Acoustic Guitar','Beginners','Teens','Families'].map((tag) => <span class="rounded-full bg-[#F4EDE3] px-2.5 py-1 text-xs text-[#1D2323]">{tag}</span>)}
           </div>
           <p class="mb-4 flex items-center gap-2 text-xs text-[#626866]"><Icon name="pin" class="h-4 w-4" />Phoenix, AZ</p>
-          <a href="https://academy.gamostudios.com/" class="flex items-center justify-between rounded-full bg-[#B65B35] px-5 py-3 text-sm font-semibold text-white">Explore Lessons <Icon name="arrow" class="h-5 w-5" /></a>
+          <a href={siteUrl("academy","/lessons")} class="flex items-center justify-between rounded-full bg-[#B65B35] px-5 py-3 text-sm font-semibold text-white">Explore Lessons <Icon name="arrow" class="h-5 w-5" /></a>
         </div>
         <div class="relative hidden h-32 overflow-hidden rounded-[22px] border lg:block border-white/35 bg-[#1D2323] text-white shadow-2xl">
           <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="295px" alt="Instructor leading a group music class in a church" class="h-full w-full object-cover object-center" />

@@ -33,7 +33,7 @@ Financial sustainability is important, but it is subordinate to the mission.
 
 ## Autonomy model & Active Priorities
 
-- **Active Development Priority**: Complete and visually approve the **global website (`apps/web`)** before starting subdomain applications. Current focus: all homepage sections **below the approved hero**. After review, continue design-first one application at a time. Backend functionality remains deferred.
+- **Active Development Priority (2026-10-12 approved resume)**: Complete the multi-page public frontend across `apps/web`, Worship, Academy, Live and Production under the founder's Bright Cinematic Editorial brief. Preserve the approved homepage hero; the proposed bright replacement lives separately at `/preview/hero-2026`. The founder explicitly authorized these public apps and specialist delegation; the earlier web-only scope is superseded for this work. Stop before backend functionality and record visual evidence for owner review in `docs/MULTIPAGE_DESIGN_REVIEW.md`. Admin expansion remains outside this public brief.
 - **Autonomy**: Agents autonomously make ordinary coding and design decisions, edit workspace files, run local builds and tests, resolve compilation errors, and continue through the screen inventory without asking for confirmation after every step.
 - Preserve existing work and regularly update the progress log (`docs/BUILD_LOG.md`).
 - **Never deploy, push remotely, modify secrets, change security settings, or perform destructive operations without explicit authorization.**

@@ -1,0 +1,33 @@
+---
+import { opportunities, formatUsd } from '../../data/worship';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+const roles = [...new Set(opportunities.map((o) => o.role))];
+---
+<div data-opportunity-board>
+  <label class="block max-w-sm text-sm font-semibold">Filter by instrument<select data-role class="mt-2 block w-full rounded-2xl border border-sand bg-white px-4 py-3 text-base"><option value="">All instruments</option>{roles.map((role) => <option>{role}</option>)}</select></label>
+  <p class="mt-4 text-sm text-ink-soft" aria-live="polite"><span data-count>{opportunities.length}</span> sample opportunities</p>
+  <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    {opportunities.map((o) => <article data-opportunity data-role={o.role} class="rounded-[2rem] border border-sand bg-white p-6">
+      <div class="flex flex-wrap gap-2"><StatusPill kind="sample">Sample church</StatusPill>{o.standby && <StatusPill>Standby role</StatusPill>}</div>
+      <h2 class="mt-5 text-2xl font-semibold">{o.role}</h2><p class="mt-2 font-medium">{o.church}</p><p class="text-sm text-ink-soft">{o.city}</p>
+      <p class="mt-5 text-sm">{o.date}</p><p class="mt-1 text-sm text-ink-soft">{o.style}{o.recurring && ' · Recurring'}</p>
+      <p class="mt-5 text-lg font-semibold">{formatUsd(o.payCents)} <span class="text-xs font-normal text-ink-soft">sample musician pay</span></p>
+      <p class="mt-2 text-xs text-ink-soft">Illustrative amount only. No deduction from agreed musician pay.</p>
+      <ButtonLink href="/apply" variant="secondary" class="mt-6">Preview musician application</ButtonLink>
+    </article>)}
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-opportunity-board]').forEach((root) => {
+    const select = root.querySelector<HTMLSelectElement>('select[data-role]')!;
+    select.addEventListener('change', () => {
+      let count = 0;
+      root.querySelectorAll<HTMLElement>('[data-opportunity]').forEach((card) => {
+        card.hidden = Boolean(select.value && card.dataset.role !== select.value);
+        if (!card.hidden) count++;
+      });
+      root.querySelector('[data-count]')!.textContent = String(count);
+    });
+  });
+</script>

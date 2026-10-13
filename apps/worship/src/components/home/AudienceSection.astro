@@ -1,0 +1,51 @@
+---
+/** Intro + audience switch between churches and musicians. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { IconName } from '@studio-gamo/ui/components/Icon.astro';
+
+const churches: [IconName, string, string][] = [
+  ['calendar', 'Scheduling', 'Request a single service or a recurring Sunday pattern.'],
+  ['users', 'Thoughtful matching', 'Instrument, style and location considered together.'],
+  ['clock', 'Availability', 'See who is proposed and confirmed before the week begins.'],
+  ['book', 'Rehearsal info', 'Set lists, keys and call times shared in one place.'],
+  ['repeat', 'Standby support', 'A prepared backup where local availability allows.'],
+];
+const musicians: [IconName, string, string][] = [
+  ['music', 'Application', 'Tell us your instruments, styles and experience.'],
+  ['mic', 'Audition', 'Share recordings and meet a coordinator.'],
+  ['check', 'Approval', 'Join a collection known for preparation and character.'],
+  ['calendar', 'Opportunities', 'Choose services that fit your calendar.'],
+  ['heart', 'Fair compensation', 'Your pay is always its own line — never reduced.'],
+];
+---
+<section class="bg-ivory py-20 lg:py-28" aria-labelledby="intro-title">
+  <div class="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <EditorialHeading id="intro-title" eyebrow="Two sides of one service" title="Every Sunday is shared work." accent="We help it hold together." lede="Gamo Worship is designed to support both the congregation that needs musicians and the musicians who want to serve well." />
+      <div class="mt-10 hidden aspect-[4/3] overflow-hidden mask-leaf lg:block">
+        <Photo name="sanctuaryCongregation" sizes="35vw" />
+      </div>
+    </div>
+    <div class="lg:col-span-7" data-reveal>
+      <AudienceSwitch id="audience" label="Choose your perspective" options={[{ id: 'churches', label: 'For churches' }, { id: 'musicians', label: 'For musicians' }]}>
+        {[['churches', churches, '/hire', 'Start a church request'], ['musicians', musicians, '/apply', 'Begin an application']].map(([slot, items, href, cta]) => (
+          <div slot={slot as string}>
+            <ul class="mt-6 divide-y divide-sand rounded-3xl border border-sand bg-white">
+              {(items as [IconName, string, string][]).map(([icon, t, b]) => (
+                <li class="flex gap-4 p-5">
+                  <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-terracotta"><Icon name={icon} class="h-5 w-5" /></span>
+                  <div><p class="font-semibold text-charcoal">{t}</p><p class="text-sm text-ink-soft">{b}</p></div>
+                </li>
+              ))}
+            </ul>
+            <ButtonLink href={href as string} class="mt-6" arrow>{cta}</ButtonLink>
+          </div>
+        ))}
+      </AudienceSwitch>
+    </div>
+  </div>
+</section>

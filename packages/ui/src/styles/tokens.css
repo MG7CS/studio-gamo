@@ -76,17 +76,15 @@
 /* Scroll reveal: only active when JS marks <html class="js">; never hides content without JS. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
-    opacity: 0;
     transform: translateY(24px);
     transition: opacity 0.7s ease, transform 0.7s ease;
   }
   html.js [data-reveal].is-visible {
-    opacity: 1;
     transform: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 /* Visible keyboard focus: terracotta on light surfaces, cream on dark ones ([data-surface="dark"]). */
@@ -103,3 +101,10 @@ textarea:focus-visible {
 [data-surface="dark"] :focus-visible { outline-color: #f4ede3; }
 
 html { scroll-padding-top: 6rem; }
+
+/* Small accent text needs stronger contrast on cream/ivory; large brand type
+   and terracotta button fills retain the approved palette. */
+.eyebrow.text-terracotta,
+.text-xs.text-terracotta,
+.text-sm.text-terracotta,
+.text-base.text-terracotta { color: var(--color-terracotta-dark); }

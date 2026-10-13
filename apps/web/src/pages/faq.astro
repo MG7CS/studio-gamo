@@ -1,0 +1,10 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { generalFaq } from '../data/organization';
+---
+<SiteLayout title="Frequently Asked Questions | Gamo Studios">
+  <section class="px-6 pt-36 pb-20 sm:px-12"><div class="mx-auto max-w-[1050px]"><EditorialHeading eyebrow="A little more clarity" title="Good questions." accent="Honest answers." as="h1" size="display" lede="Our mission, the design preview and what is still being developed." /><FaqAccordion items={generalFaq} class="mt-12" /><div class="mt-10"><ButtonLink href="/contact" arrow>Explore the contact preview</ButtonLink></div></div></section>
+</SiteLayout>

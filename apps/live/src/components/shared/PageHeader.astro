@@ -1,0 +1,14 @@
+---
+/** Bright sub-page header: eyebrow, oversized title, lede, optional breadcrumb + slot for actions. */
+interface Props { eyebrow?: string; title: string; accent?: string; lede?: string; back?: { href: string; label: string } }
+const { eyebrow, title, accent, lede, back } = Astro.props;
+---
+<header class="bg-cream px-4 pb-10 pt-28 sm:px-8 lg:pb-14 lg:pt-36">
+  <div class="mx-auto max-w-[1320px]">
+    {back && <a href={back.href} class="text-sm font-medium text-ink-soft hover:text-terracotta">← {back.label}</a>}
+    {eyebrow && <p class="eyebrow mt-4 text-terracotta">{eyebrow}</p>}
+    <h1 class="display-lg mt-3 max-w-4xl text-balance">{title}{accent && <span class="block text-terracotta">{accent}</span>}</h1>
+    {lede && <p class="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">{lede}</p>}
+    <div class="mt-6 flex flex-wrap items-center gap-3"><slot /></div>
+  </div>
+</header>

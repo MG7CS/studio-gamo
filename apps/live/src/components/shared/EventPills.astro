@@ -1,0 +1,15 @@
+---
+/** Trust/status pills for an event — sample label always first. */
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import type { LiveEvent } from '../../data/events';
+interface Props { event: LiveEvent; class?: string; showSample?: boolean }
+const { event: e, class: className, showSample = true } = Astro.props;
+---
+<div class:list={['flex flex-wrap items-center gap-1.5', className]}>
+  {showSample && <StatusPill kind="sample">Sample event</StatusPill>}
+  {e.status === 'canceled' && <StatusPill kind="canceled">Canceled</StatusPill>}
+  {e.status === 'rescheduled' && <StatusPill kind="rescheduled">Rescheduled</StatusPill>}
+  {e.ticketing === 'free' && <StatusPill kind="free">Free</StatusPill>}
+  {e.ticketing === 'preview' && <StatusPill kind="paid">Gamo ticketing preview</StatusPill>}
+  {e.ticketing === 'external' && <StatusPill kind="external">External tickets</StatusPill>}
+</div>

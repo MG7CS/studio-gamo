@@ -1,0 +1,30 @@
+---
+/** Section 5: how lessons work — numbered editorial timeline on a charcoal band. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+const steps = [
+  { t: 'Choose an instrument', d: 'Explore instruments and sample first lessons to find what excites you.' },
+  { t: 'Meet your instructor', d: 'A short introductory call to talk about goals, schedule and experience.' },
+  { t: 'Learn week by week', d: 'Regular lessons with a simple practice plan and notes for families.' },
+  { t: 'Celebrate progress', d: 'Milestones, friendly recitals and, when ready, playing with others.' },
+];
+---
+<section data-surface="dark" class="bg-charcoal px-4 py-16 text-cream sm:px-8 lg:py-24" data-reveal>
+  <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[1fr_1.3fr] lg:items-center">
+    <div>
+      <EditorialHeading tone="dark" eyebrow="How lessons work" title="Simple steps," accent="steady progress." lede="A clear rhythm for students and parents, so everyone knows what comes next." />
+      <div class="mask-leaf mt-10 hidden aspect-[4/3] overflow-hidden lg:block">
+        <Photo name="youngPianist" sizes="35vw" position="50% 35%" class="h-full w-full object-cover" />
+      </div>
+    </div>
+    <ol class="relative space-y-4 border-l border-cream/15 pl-8 sm:pl-12">
+      {steps.map((s, i) => (
+        <li class="relative rounded-[28px] bg-white/5 p-6 ring-1 ring-cream/10 sm:p-8">
+          <span class="absolute -left-[52px] top-6 grid h-10 w-10 place-items-center rounded-full bg-terracotta text-sm font-bold text-white sm:-left-[68px]">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="text-2xl font-bold tracking-tight">{s.t}</h3>
+          <p class="mt-2 leading-relaxed text-cream/70">{s.d}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

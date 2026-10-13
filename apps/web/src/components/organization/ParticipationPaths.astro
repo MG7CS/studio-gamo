@@ -1,0 +1,18 @@
+---
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { participation } from '../../data/organization';
+interface Props { compact?: boolean; }
+const { compact = false } = Astro.props;
+---
+<section id="paths" class="bg-ivory px-6 py-20 sm:px-12 lg:py-28">
+  <div class="mx-auto max-w-[1320px]">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-6"><h2 class="section-heading">Find your place.</h2><p class="max-w-sm leading-relaxed text-ink-soft">Different gifts. Different starting points. One shared purpose.</p></div>
+    <div class:list={['grid gap-x-10', compact ? 'lg:grid-cols-2' : 'md:grid-cols-2']}>
+      {participation.map((p, i) => <a href={p.href} class="group flex items-center gap-5 border-t border-sand py-7 sm:gap-7">
+        <div class:list={['h-[130px] w-[105px] shrink-0 overflow-hidden sm:h-[165px] sm:w-[135px]', i % 2 ? 'rounded-[60px_20px_20px_20px]' : 'rounded-[70px_70px_20px_20px]']}><Photo name={p.photo} sizes="135px" alt="" /></div>
+        <div class="min-w-0"><h3 class="text-xl font-bold tracking-tight sm:text-2xl">{p.title}</h3><p class="mt-3 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</p><span class="mt-4 inline-flex items-center gap-3 text-sm font-semibold text-terracotta group-hover:underline">{p.action}<Icon name="arrow" class="h-4 w-4 shrink-0" /></span></div>
+      </a>)}
+    </div>
+  </div>
+</section>

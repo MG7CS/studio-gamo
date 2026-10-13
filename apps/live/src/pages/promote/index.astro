@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
+import PromoteHero from '../../components/promote/PromoteHero.astro';
+import PromoteSteps from '../../components/promote/PromoteSteps.astro';
+import PromoteCommitments from '../../components/promote/PromoteCommitments.astro';
+import TrustLegend from '../../components/shared/TrustLegend.astro';
+export const prerender = true;
+const faqs = [
+  { q: 'Who can list an event?', a: 'The plan is to welcome churches, ministries and Christian organizers nationwide. Eligibility is about the event, never ethnicity or nationality.' },
+  { q: 'Does it cost anything?', a: 'Free events are intended to be free to list. Any fee or Gamo administrative contribution on paid tickets is a proposal awaiting board approval.' },
+  { q: 'Can I use my own ticketing?', a: 'Yes — listings can point to an external ticket source, clearly labeled for guests.' },
+  { q: 'Is this live?', a: 'Not yet. This is a design preview; nothing is submitted or published.' },
+];
+---
+<Layout title="Promote your Christian event" headerTheme="light">
+  <PromoteHero />
+  <div class="bg-cream px-4 pb-10 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">Organizer tools are a design preview. Gamo Studios is a proposed nonprofit; submissions are not accepted yet.</DemoNotice></div>
+  <PromoteSteps />
+  <PromoteCommitments />
+  <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-20">
+    <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[1fr_1fr]">
+      <TrustLegend compact />
+      <div><h2 class="section-subheading mb-6">Questions organizers ask</h2><FaqAccordion items={faqs} /></div>
+    </div>
+  </section>
+  <CtaInvitation eyebrow="Design preview" title="Walk through the event builder." body="See every step — description, schedule, venue, registration and review — using sample content." photo="acousticLeaderAlt">
+    <ButtonLink href="/promote/create" arrow>Open the builder</ButtonLink>
+    <ButtonLink href="/" variant="secondary">Explore events</ButtonLink>
+  </CtaInvitation>
+</Layout>

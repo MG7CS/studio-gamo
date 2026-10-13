@@ -1,9 +1,11 @@
 # Gamo Studios: Functionality Phase Plan
 
+**2026-10-12 frontend handoff:** the approved public frontend brief covers the organization hub, Worship, Academy, Live and Production. Current route/state evidence is in [SCREEN_INVENTORY.md](SCREEN_INVENTORY.md) and [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md). Owner visual acceptance and explicit functionality-phase authorization remain required. No real auth, identity, safeguarding decisions, email, booking, ticketing, payments or persistence were added during this work.
+
 ## Overview
 This document outlines the phased backend integration strategy to transition the Gamo Studios ecosystem from a pure UI prototype to a fully functional application, fulfilling the local demonstration requirements.
 
-**Objective:** Wire up the UI prototypes with Cloudflare D1 persistence, secure user sessions (Lucia v3), external service adapters (Stripe / Resend test mode), and inter-application communication, maintaining strict adherence to architectural boundaries and security constraints.
+**Objective (future, pending authorization):** Wire up the UI prototypes with Cloudflare D1 persistence, secure user sessions using a currently supported implementation selected after evaluation, external service adapters (Stripe / Resend test mode), and inter-application communication, maintaining architectural boundaries and security constraints. The earlier Lucia v3 suggestion is not an approved provider decision.
 
 **Organizational context:** these phases build infrastructure for a proposed Christian nonprofit ([GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md)). No fee, contribution amount or tier is hardcoded; all are configuration set by approved policy. Musician and instructor pay are always recorded separately from any Gamo allocation.
 
@@ -12,7 +14,7 @@ This document outlines the phased backend integration strategy to transition the
    - Solidify Drizzle schema for `User`, `Role`, `Session`, `Gig`, `Application`, `Ticket`, `Class`, etc.
    - Run local D1 migrations and populate seed data for predictable development.
 2. **Global Auth implementation (`packages/auth`)**
-   - Finalize Lucia v3 integration using HTTP-only cookies and D1 adapter.
+   - Evaluate a currently supported authentication implementation using HTTP-only cookies and D1-compatible session storage before choosing a provider.
    - Implement `signIn`, `signUp`, and `signOut` mutations.
    - Implement role-based middleware to secure sensitive routes across all Astro apps (e.g., `/admin` routes require `admin` role, `/organizer` routes require `organizer` role).
 3. **Shared Layout State**

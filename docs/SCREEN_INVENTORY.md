@@ -1,91 +1,94 @@
-# Gamo Studios UI Screen Inventory
+# Gamo Studios — Public frontend screen inventory
 
-## Global Brand (`apps/web`)
-- [x] `/` (Homepage / Root Hub)
+Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial implementation. All five public apps are in the founder-approved scope. **UI ready** means implemented as a local frontend preview, not launched or connected. Engineering evidence is in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md); new screens await founder visual acceptance.
 
-## Worship Application (`apps/worship`)
-- [x] `/` (Worship index - Not required? Using web)
-- [x] `/hire` (Church posting wizard)
-- [x] `/apply` (Musician application flow)
-- [x] `/apply/identity` (Identity capture demo)
-- [x] `/admin` (Worship dispatch/admin radar)
-- [x] `/admin/assign` (Assignment flow)
-- [x] `/check-in/[id]` (Check-in and standby demo)
+## Organization hub — apps/web — port 4321
 
-## Academy Application (`apps/academy`)
-- [x] `/` (Academy listing / courses)
-- [x] `/lessons` (Lesson booking and details)
-- [x] `/host-apply` (Host application flow)
+| Routes | Screens | Status |
+| --- | --- | --- |
+| / | Existing approved hero, nonprofit homepage, local sibling links | UI ready; hero preserved |
+| /mission | Mission, needs, four programs, audiences, values, invitation | UI ready |
+| /get-involved | Churches, musicians, families, instructors, volunteers, organizers, supporters | UI ready |
+| /partners | Hosting, sponsorship, shared resources and partnership integrity | UI ready |
+| /partners/interest | Local inquiry; required/invalid-email/preview/reset states | UI ready |
+| /support | Education, resources, institutional support, volunteering, stewardship | UI ready |
+| /contact | Local contact preview, no sending or storage | UI ready |
+| /faq | Native accessible FAQ expansion | UI ready |
+| /legal | Current status and policies pending review | UI ready; not final legal terms |
+| /signin | Public sample-workspace entry, no credentials | UI ready |
+| /get-started | Audience routing to real program preview destinations | UI ready |
+| /preview/hero-2026 | Separate bright hero and four photographic program cards | UI ready; replacement pending approval |
 
-## Live Application (`apps/live`)
-- [x] `/` (Events listing / discovery)
-- [x] `/events/[id]` (Event details and tier selection)
-- [x] `/checkout` (Stripe sandbox checkout flow)
-- [x] `/ticket` (Generated ticket / QR)
-- [x] `/organizer` (Organizer dashboard)
+No filler news pages, donation checkout or automatic homepage hero rotation. Partnership/support pathways lead to dedicated pages.
 
-## Production Application (`apps/production`)
-- [x] `/` (Production portfolio / services)
-- [x] `/contact` (Consultation intake)
+## Gamo Worship — apps/worship — port 4322
 
-## Global Admin Hub (`apps/admin`)
-- [x] `/` (Admin dashboard / quick stats)
-- [x] `/legal` (Legal document management)
+| Routes | Screens | Status |
+| --- | --- | --- |
+| / | Bright worship hero, audience switch, instruments, preparation, primary/standby, recurring needs, FAQs | UI ready |
+| /apply, /apply/profile, /apply/audition, /apply/status | Application start, instrument/genre profile, audition-link validation, sample review status | UI ready |
+| /hire, /hire/repertoire, /hire/schedule, /hire/summary | Church request, rehearsal/repertoire, scheduling, local review; pay/allocation separated | UI ready |
+| /church/roster | Sample church roster | UI ready |
+| /opportunities | Filterable sample opportunity board | UI ready |
+| /apply/identity, /apply/logistics | Legacy redirects to current preview | UI ready |
+| /hire/checkout, /hire/gig-details, /hire/success | Legacy redirects to non-transactional request screens | UI ready |
+| /check-in/[id], /check-in/success, /check-in/standby-notified | Honest illustrative states, no attendance or dispatch submission | Preserved preview |
+| /admin, /admin/assign/[id] | Older staff prototypes | Preserved; outside public redesign |
 
-## Planned — Nonprofit mission, Gamo Live, Church Partnerships & dynamic homepage (Not started)
-See [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md) and [GAMO_LIVE_AND_PARTNERS.md](GAMO_LIVE_AND_PARTNERS.md). Desktop + mobile, plus empty/loading/error/validation states. **Each new section/page below is a proposal requiring design approval; no layouts have been invented.**
+Identity capture, real vetting/approvals, payments, dispatch and persistence are deferred. Older redirect-only API stubs are not live integration evidence.
 
-**Global (`apps/web`)**
-- [x] Homepage copy aligned to nonprofit mission (all sections, header, footer) — In progress, pending owner visual review (2026-10-12)
-- [x] Homepage How It Works pill (For Churches / Join the Collection) — In progress
-- [x] Homepage Gamo Live pill (Promote Event / Explore Events) — In progress
-- [ ] Homepage **Church Partnerships** section (proposed) — how churches host classes, sponsor students/events, join the musician network and contribute to shared resources; no named partners until signed
-- [ ] Homepage **Support Our Mission** section (proposed) — audiences: churches, sponsors, foundations, donors, community supporters; "contact us" interest only; no donation processing; legal-status statement required
-- [ ] `/mission` (Our Mission: mission, vision, values, programs, legal status)
-- [ ] `/partners` (Church Partnerships overview — participation pathways, no tiers/prices)
-- [ ] `/partners/interest` (church partnership interest form — demo, no payment)
-- [ ] `/support` (Opportunities to Support — sponsorship, in-kind, volunteering, future giving; donation processing disabled)
-- [ ] `/contact` (general contact — referenced by homepage and footer)
-- [ ] `/` dynamic hero spotlight — **requires explicit approval before any implementation**
+## Gamo Academy — apps/academy — port 4323
 
-**Live (`apps/live`)**
-- [ ] `/promote` (Promote Event landing for churches, ministries, artists, organizers)
-- [ ] `/organizer/events/new` (event submission, incl. recurring schedule)
-- [ ] `/organizer/verification` (organizer identity & ticketing authorization status)
-- [ ] `/organizer/events/[id]/promotion` (optional promotion request: website, social, partner communications, creative)
-- [ ] `/organizer/events/[id]/report` (attendance, registrations, ticket and promotion report)
-- [ ] `/events` filters (location, date, organizer, type, free/paid)
-- [ ] `/organizers/[slug]` (church/artist/ministry profile & events, verified badge only if verified)
-- [ ] `/events/[id]/register` (free registration)
-- [ ] `/my-tickets` (attendee tickets & confirmations)
+| Routes | Screens | Status |
+| --- | --- | --- |
+| / | Exact approved headline, bright learning hero, instruments, ages, formats, instructors, sponsored/hosted pathways, FAQs | UI ready |
+| /instruments, /instruments/[slug] | Discovery and piano, acoustic/electric guitar, bass, percussion, vocals detail | UI ready |
+| /instructors/[slug] | Sample instructor profile | UI ready |
+| /lessons, /lessons/[slug] | Filterable discovery and sample lesson details | UI ready |
+| /register | Local family registration, guardian/learner fields, validation, review | UI ready |
+| /dashboard | Sample student/family dashboard | UI ready |
+| /sponsored | Proposed sponsored/scholarship details | UI ready |
+| /host-apply | Church hosting/sponsorship interest preview | UI ready |
 
-**Academy (`apps/academy`)**
-- [ ] Sponsored / scholarship enrollment states (demo)
-- [ ] Church host & sponsor interest form
-- [ ] Parent/guardian-oriented lesson discovery copy pass
+No sponsored places, screened instructors or real enrollments are offered. Safeguarding, tuition and launch decisions remain pending.
 
-**Admin (`apps/admin`)**
-- [ ] `/events` (moderation & approval queue, Christian-event policy checks)
-- [ ] `/organizers` (organizer verification & ticketing authorization)
-- [ ] `/promotions` (optional promotion intake and status)
-- [ ] `/placements` (featured-placement scheduler, sponsored vs editorial vs Gamo program)
-- [ ] `/ticketing` (ticketing oversight)
-- [ ] `/partnerships` (church partnership records — no tiers)
-- [ ] `/stewardship` (program ledger, funds, board reports — demo data)
+## Gamo Live — apps/live — port 4324
 
-**Production (`apps/production`)**
-- [ ] Technical training & volunteer development page
-- [ ] Event creative support page
+| Routes | Screens | Status |
+| --- | --- | --- |
+| / | Manual cinematic spotlight, nearby rail, location/date, event categories, free/ticketed, organizers | UI ready |
+| /events | Search/filter/clear/no-results collection | UI ready |
+| /events/[id] | Sample event details, organizer identity, venue/date, ticketing state | UI ready |
+| /events/[id]/tickets, /events/[id]/register | Sample tiers/free registration; canceled/external distinctions | UI ready |
+| /organizers/[slug] | Sample organizer profile without fictional verified badges | UI ready |
+| /promote | Distinct organizer introduction | UI ready |
+| /promote/create, /organizer/events/new | Media, recurrence, venue, free/paid tiers, local validation and review | UI ready |
+| /promote/status | Sample submission/review/publishing status | UI ready |
+| /organizer, /organizer/manage | Sample dashboard and event management | UI ready |
+| /organizer/verification | Pending identity/authority and ticketing authorization | UI ready |
+| /organizer/preview, /organizer/report, /organizer/promotion | Preview, sample reports, proposed labeled promotion | UI ready |
+| /checkout, /ticket, /my-tickets | Non-transactional checkout, invalid-for-admission ticket, sample collection | UI ready |
+| /organizer/scan | Manual simulated scan states, no camera or real admission | UI ready |
 
-**Existing screens flagged for nonprofit copy review (not yet edited):**
-- `apps/worship` `/`, `/hire` (fee presentation must separate musician pay from any Gamo allocation)
-- `apps/live` `/`, `/checkout`, `/organizer`
-- `apps/academy` `/`, `/lessons`, `/host-apply`
-- `apps/production` `/`, `/contact`
-- `apps/admin` `/`, `/legal` (demo table shows "Published" for a contractor agreement — must read "Draft — pending counsel review")
+All events, dates, prices, capacities and organizers are samples/proposals. No publishing, sales, payment, external ticket destination or live inventory is connected.
 
-## Shared Architecture
-- [x] Tailwind config / UI tokens in all Astro apps
-- [x] Shared layout structure (`Inter`, layout, global styles)
+## Gamo Production — apps/production — port 4325
 
-**Status:** Essential mock UI screens for Milestone 0 and visual prototypes for Milestones 1-4 exist. The global homepage copy has been aligned with the nonprofit mission and awaits visual review; nonprofit-specific pages above are proposed, not started.
+| Routes | Screens | Status |
+| --- | --- | --- |
+| / | Technical ministry, audio/video/lighting, volunteers, event support, equipment, honest project empty state | UI ready |
+| /services, /services/[slug] | Six support categories, learning skills and planning prompts | UI ready |
+| /training | Proposed technical/volunteer training | UI ready |
+| /assessment | Required fields, Back/Next and actual local answer review | UI ready |
+| /consultation, /consultation/confirmation | Required/invalid-email inquiry and explicit demo confirmation | UI ready |
+| /contact | Legacy redirect to /consultation | UI ready |
+
+No completed projects, customers, scheduled consultations or available training places are claimed.
+
+## Admin and functionality — excluded from this public brief
+
+Older Admin dashboard/legal inventory remain prototypes. Legal agreements now read drafts pending counsel review. New moderation, placement, ticketing, partnership and stewardship dashboards are **Not started**, requiring their own scope. No backend milestone is completed by this inventory. See [FUNCTIONALITY_PHASE_PLAN.md](FUNCTIONALITY_PHASE_PLAN.md).
+
+## Shared state coverage
+
+Mobile menu/Escape, active navigation, keyboard focus, reduced motion, audience switches, FAQs, local filters/no results, manual carousel, wizard Back/Next, required/malformed input, disabled unavailable transaction states, pending review and preview summaries. No-JavaScript form fallbacks prevent sending details. Persistent server failures and live authorization belong to future functionality.

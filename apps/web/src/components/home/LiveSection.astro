@@ -3,14 +3,15 @@ import Icon from '../editorial/Icon.astro';
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 import InitialsAvatar from '../editorial/InitialsAvatar.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
 const liveModes = [
   {
-    id: 'promote', label: 'Promote Event', cta: 'Promote an Event', href: 'https://live.gamostudios.com/promote',
+    id: 'promote', label: 'Promote Event', cta: 'Promote an Event', href: siteUrl('live', '/promote'),
     description: 'Churches, ministries, and Christian artists: share your worship nights, concerts, and gatherings, with optional registration and ticketing.',
   },
   {
-    id: 'explore', label: 'Explore Events', cta: 'Explore Events', href: 'https://live.gamostudios.com/',
+    id: 'explore', label: 'Explore Events', cta: 'Explore Events', href: siteUrl('live'),
     description: 'Find worship nights, gospel concerts, conferences, Bible studies, and free community gatherings near you.',
   },
 ];

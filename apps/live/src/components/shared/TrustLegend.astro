@@ -1,0 +1,27 @@
+---
+/** Trust legend: explains every trust/status state. The verified style appears ONLY here, as a design state. */
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+interface Props { class?: string; compact?: boolean }
+const { class: className, compact = false } = Astro.props;
+const rows = [
+  { kind: 'verified', label: 'Verified organizer', body: 'Planned state after identity and ministry review. No organizer is verified during the design preview.' },
+  { kind: 'paid', label: 'Gamo ticketing', body: 'Tickets issued and checked in through Gamo Live (preview only — nothing is on sale).' },
+  { kind: 'external', label: 'External tickets', body: 'Sold by the organizer or venue. You leave Gamo Live to purchase.' },
+  { kind: 'free', label: 'Free', body: 'No cost to attend. Optional registration may help hosts plan.' },
+  { kind: 'rescheduled', label: 'Rescheduled', body: 'Date or time changed; the new schedule is shown first.' },
+  { kind: 'canceled', label: 'Canceled', body: 'The event will not take place. Actions are disabled.' },
+  { kind: 'sample', label: 'Sample event', body: 'Fictional listing for design review.' },
+] as const;
+---
+<section aria-labelledby="trust-legend-title" class:list={['rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8', className]}>
+  <p class="eyebrow text-terracotta">Trust legend · design states</p>
+  <h2 id="trust-legend-title" class="mt-2 text-2xl font-semibold tracking-tight">How to read an event listing</h2>
+  <dl class:list={['mt-6 grid gap-x-8 gap-y-5', compact ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4']}>
+    {rows.map((r) => (
+      <div>
+        <dt><StatusPill kind={r.kind}>{r.label}</StatusPill></dt>
+        <dd class="mt-2 text-sm leading-relaxed text-ink-soft">{r.body}</dd>
+      </div>
+    ))}
+  </dl>
+</section>

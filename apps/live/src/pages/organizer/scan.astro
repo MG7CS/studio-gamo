@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import PageHeader from '../../components/shared/PageHeader.astro';
+import ScannerPreview from '../../components/organizer/ScannerPreview.astro';
+export const prerender = true;
+---
+<Layout title="Guest check-in (preview)" headerTheme="light">
+  <PageHeader eyebrow="Door check-in" title="Welcome guests quickly." back={{ href: '/organizer/dashboard', label: 'Dashboard' }} />
+  <div class="bg-cream px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1100px]">Choose accepted, duplicate and invalid sample states. The camera is never accessed and no tickets are validated.</DemoNotice></div>
+  <ScannerPreview />
+</Layout>

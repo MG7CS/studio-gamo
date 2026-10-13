@@ -1,0 +1,33 @@
+---
+/** Organizer intro hero (bright, editorial) with the audience selector. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import AudienceSelector from '../shared/AudienceSelector.astro';
+---
+<header class="overflow-hidden bg-cream px-4 pb-16 pt-28 sm:px-8 lg:pb-24 lg:pt-32">
+  <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_1fr]">
+    <div>
+      <AudienceSelector current="promote" tone="light" />
+      <p class="eyebrow mt-10 text-terracotta">For churches, ministries &amp; Christian organizers</p>
+      <h1 class="display-xl mt-4 text-balance">Share your event <span class="text-terracotta">with the wider church.</span></h1>
+      <p class="mt-6 max-w-xl text-lg text-ink-soft">Gamo Live is being designed to help Christian events across the country be found — with honest listings, clear ticketing and simple check-in. Every submission would be reviewed before it is published.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <ButtonLink href="/promote/create" size="lg" arrow>Start an event (preview)</ButtonLink>
+        <ButtonLink href="/organizer" size="lg" variant="secondary">Organizer dashboard</ButtonLink>
+      </div>
+    </div>
+    <div class="relative mx-auto w-full max-w-xl">
+      <div class="aspect-[4/5] overflow-hidden rounded-[240px_240px_36px_36px]"><Photo name="worshipBand" sizes="(min-width:1024px) 45vw, 100vw" priority class="h-full w-full object-cover" alt="Worship band leading a bright sanctuary service" /></div>
+      <div class="absolute -left-2 bottom-10 w-60 rounded-[24px] bg-white p-4 shadow-float ring-1 ring-sand sm:-left-10">
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Submission status</p>
+        <p class="mt-1 font-semibold">Saturday Night Worship</p>
+        <StatusPill kind="pending" class="mt-2">In review · sample</StatusPill>
+      </div>
+      <div class="absolute -right-2 top-10 flex items-center gap-3 rounded-[20px] bg-charcoal px-4 py-3 text-cream shadow-float sm:-right-6">
+        <Icon name="qr" class="h-6 w-6 text-gold" /><span class="text-sm"><span class="block font-semibold">Check-in ready</span><span class="text-cream/60">Design preview</span></span>
+      </div>
+    </div>
+  </div>
+</header>

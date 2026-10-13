@@ -1,0 +1,47 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import InstructorCard from '../../components/shared/InstructorCard.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { lessons, formatTuition, type Lesson } from '../../data/lessons';
+import { instructorBySlug } from '../../data/instructors';
+import { instrumentBySlug } from '../../data/instruments';
+
+export const prerender = true;
+export function getStaticPaths() {
+  return lessons.map((lesson) => ({ params: { slug: lesson.slug }, props: { lesson } }));
+}
+const { lesson: l } = Astro.props as { lesson: Lesson };
+const t = instructorBySlug(l.instructorSlug)!;
+const inst = instrumentBySlug(l.instrumentSlug);
+const facts = [['calendar', 'Schedule', l.schedule], ['clock', 'Length', l.length], ['pin', 'Location', l.location], ['users', 'Ages', l.ages.join(', ')]] as const;
+---
+<Layout title={`${l.title} (sample lesson)`} description={l.summary}>
+  <PageHero eyebrow={`${l.instrument} · ${l.level} · ${l.format}`} title={l.title} lede={l.summary} photo={inst?.photo ?? 'guitarMentor'} mask="mask-arch" crumbs={[{ label: 'Lessons', href: '/lessons' }, { label: l.title, href: `/lessons/${l.slug}` }]}>
+    <div class="mt-6"><StatusPill kind="sample">Sample lesson</StatusPill></div>
+  </PageHero>
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+      <div class="space-y-8">
+        <dl class="grid gap-3 sm:grid-cols-2">
+          {facts.map(([icon, k, v]) => <div class="flex gap-3 rounded-2xl bg-white p-5 ring-1 ring-sand"><Icon name={icon} class="h-5 w-5 text-terracotta" /><div><dt class="text-xs text-ink-soft">{k}</dt><dd class="font-semibold">{v}</dd></div></div>)}
+        </dl>
+        <div class="rounded-[28px] bg-ivory p-8 ring-1 ring-sand">
+          <h2 class="section-subheading">What students will learn</h2>
+          <ul class="mt-5 space-y-3">{l.outcomes.map((o) => <li class="flex items-center gap-3"><Icon name="check" class="h-5 w-5 text-terracotta" />{o}</li>)}</ul>
+        </div>
+        <div><h2 class="mb-4 text-xl font-bold">Your instructor</h2><div class="max-w-sm"><InstructorCard instructor={t} /></div></div>
+      </div>
+      <aside class="rounded-[28px] bg-white p-7 ring-1 ring-sand shadow-float lg:sticky lg:top-32 lg:self-start">
+        <p class="text-sm text-ink-soft">Tuition</p>
+        <p class="mt-1 text-2xl font-bold">{formatTuition(l.proposedTuitionCents)}</p>
+        <p class="mt-2 text-sm text-ink-soft">Tuition has not been approved. Planned sponsored places are not yet available.</p>
+        <ButtonLink href={`/register?lesson=${l.slug}`} class="mt-6 w-full justify-center" arrow>Preview registration</ButtonLink>
+        <DemoNotice class="mt-4">Nothing is booked or charged.</DemoNotice>
+      </aside>
+    </div>
+  </section>
+</Layout>

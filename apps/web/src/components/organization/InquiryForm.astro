@@ -1,0 +1,43 @@
+---
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+interface Props { partnership?: boolean; }
+const { partnership = false } = Astro.props;
+---
+<div class="rounded-[28px] border border-sand bg-white p-6 sm:p-9">
+  <h2 class="text-2xl font-bold tracking-tight">{partnership ? 'Partnership inquiry preview' : 'Contact form preview'}</h2>
+  <DemoNotice class="mt-5">Try the local form with sample details. Nothing is sent or stored; a working contact channel will be provided before launch.</DemoNotice>
+  <form data-inquiry-form class="mt-7" method="post">
+    <fieldset disabled data-inquiry-fields class="space-y-5">
+      <legend class="sr-only">{partnership ? 'Partnership inquiry' : 'Contact details'}</legend>
+      <div class="grid gap-5 sm:grid-cols-2"><FormField label="Your name" name="name" required placeholder="Sample name" autocomplete="off" /><FormField label="Email address" name="email" type="email" required placeholder="sample@example.com" autocomplete="off" /></div>
+      <FormField label="Church or organization (optional)" name="organization" placeholder="Sample organization" autocomplete="off" />
+      <FormField label={partnership ? 'How would you like to participate?' : 'What would you like to explore?'} name="interest" type="select" required options={['Worship support', 'Music education', 'Teaching', 'Christian events', 'Technical support', 'Hosting a program', 'Partnerships', 'Mission support', 'Volunteering', 'General inquiry']} />
+      <FormField label="Your idea or question" name="message" type="textarea" required placeholder="Use sample information to explore this form." hint="Please do not enter private documents, financial information or details about children." />
+      <button type="submit" class="inline-flex rounded-full bg-terracotta px-6 py-3 font-semibold text-white hover:bg-terracotta-dark">Preview inquiry</button>
+    </fieldset>
+    <noscript><p class="mt-5 text-sm">JavaScript is needed for this local preview. The form is disabled so your details cannot be submitted.</p></noscript>
+    <div data-inquiry-result hidden role="status" tabindex="-1" class="mt-6 rounded-2xl bg-cream p-5"><h3 class="text-lg font-semibold">Inquiry preview complete</h3><p class="mt-2 text-sm leading-relaxed text-ink-soft">Your sample form passes the local required-field checks. No inquiry was sent or saved. A real contact route will be available before launch.</p><button data-inquiry-reset type="button" class="mt-4 text-sm font-semibold text-terracotta underline">Clear sample details</button></div>
+  </form>
+</div>
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-inquiry-form]').forEach((form) => {
+    const fields = form.querySelector<HTMLFieldSetElement>('[data-inquiry-fields]');
+    const result = form.querySelector<HTMLElement>('[data-inquiry-result]');
+    if (!fields || !result) return;
+    fields.disabled = false;
+    const interest = new URLSearchParams(location.search).get('interest');
+    const select = form.querySelector<HTMLSelectElement>('[name="interest"]');
+    if (select && interest && [...select.options].some((o) => o.value === interest)) select.value = interest;
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      result.hidden = false;
+      result.focus();
+    });
+    form.querySelector('[data-inquiry-reset]')?.addEventListener('click', () => {
+      form.reset(); result.hidden = true;
+      form.querySelector<HTMLInputElement>('[name="name"]')?.focus();
+    });
+  });
+</script>

@@ -2,7 +2,6 @@
 @import "@studio-gamo/ui/styles/tokens.css";
 
 /* Homepage-specific focus overrides for dark sections (shared defaults live in tokens.css). */
-header :focus-visible,
 footer :focus-visible,
 #coverage :focus-visible,
 #keep-going :focus-visible,

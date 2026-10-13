@@ -1,0 +1,39 @@
+---
+/** Review & publishing timeline for a sample submission, with a listing preview. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import EventCard from '../shared/EventCard.astro';
+import { getEvent } from '../../data/events';
+const ev = getEvent('saturday-worship-gathering')!;
+const stages = [
+  { label: 'Draft saved', note: 'Oct 2 · by organizer', state: 'done' },
+  { label: 'Submitted for review', note: 'Oct 3', state: 'done' },
+  { label: 'Under review', note: 'A reviewer is checking details and organizer contact', state: 'current' },
+  { label: 'Approved', note: 'Pending', state: 'todo' },
+  { label: 'Published', note: 'Visible on Explore Events', state: 'todo' },
+];
+---
+<section class="bg-cream px-4 pb-20 sm:px-8">
+  <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[1.3fr_1fr]">
+    <div class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
+      <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-2xl font-semibold tracking-tight">{ev.title}</h2><StatusPill kind="pending">Under review · sample</StatusPill></div>
+      <ol class="mt-8 space-y-0">
+        {stages.map((s, i) => (
+          <li class="relative flex gap-4 pb-8 last:pb-0">
+            {i < stages.length - 1 && <span class:list={['absolute left-[15px] top-8 h-[calc(100%-2rem)] w-0.5', s.state === 'done' ? 'bg-terracotta' : 'bg-sand']} aria-hidden="true"></span>}
+            <span class:list={['grid h-8 w-8 shrink-0 place-items-center rounded-full', s.state === 'done' ? 'bg-terracotta text-white' : s.state === 'current' ? 'bg-amber-100 text-amber-900 ring-2 ring-amber-300' : 'bg-cream text-ink-soft ring-1 ring-sand']}>
+              <Icon name={s.state === 'done' ? 'check' : s.state === 'current' ? 'clock' : 'minus'} class="h-4 w-4" />
+            </span>
+            <span><span class="block font-semibold">{s.label}</span><span class="text-sm text-ink-soft">{s.note}</span></span>
+          </li>
+        ))}
+      </ol>
+      <div class="mt-8 rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200"><strong>Reviewer note (sample):</strong> Please add accessibility details for the venue entrance.</div>
+    </div>
+    <aside>
+      <p class="eyebrow mb-4 text-terracotta">Event preview</p>
+      <EventCard event={ev} />
+      <p class="mt-4 text-sm text-ink-soft">Publishing status: <strong>Not published</strong>. Guests cannot see this listing until it is approved.</p>
+    </aside>
+  </div>
+</section>

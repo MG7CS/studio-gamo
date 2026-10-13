@@ -1,0 +1,14 @@
+---
+import { roster } from '../../data/worship';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+---
+<div class="flex flex-wrap items-center justify-between gap-5"><div><h2 class="text-2xl font-semibold">November · Sample schedule</h2><p class="mt-2 text-ink-soft">Primary and standby musicians receive the same repertoire.</p></div><ButtonLink href="/hire" arrow>Preview another request</ButtonLink></div>
+<div class="mt-8 grid gap-4 lg:grid-cols-2">
+  {roster.map((row) => <article class="rounded-3xl border border-sand bg-white p-6">
+    <div class="flex items-center justify-between gap-3"><p class="font-semibold">{row.date} · {row.role}</p><StatusPill kind={row.status === 'confirmed' ? 'success' : 'pending'}>{row.status === 'confirmed' ? 'Sample confirmed' : row.status === 'pending' ? 'Sample pending' : 'Sample open'}</StatusPill></div>
+    <p class="mt-2 text-sm text-ink-soft">{row.service}</p>
+    <dl class="mt-5 grid grid-cols-2 gap-4"><div><dt class="text-xs text-ink-soft">Primary musician</dt><dd class="mt-1 font-medium">{row.primary}</dd></div><div><dt class="text-xs text-ink-soft">Standby · where available</dt><dd class="mt-1 font-medium">{row.standby ?? 'Not assigned in sample'}</dd></div></dl>
+    <ButtonLink href="/hire/repertoire" variant="secondary" class="mt-5">Preview repertoire details →</ButtonLink>
+  </article>)}
+</div>

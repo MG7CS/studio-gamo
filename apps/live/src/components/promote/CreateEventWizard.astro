@@ -1,0 +1,87 @@
+---
+/**
+ * Multi-step event builder (local step navigation only). Without JS every step is visible in order.
+ * Panels are slots-free markup to keep each step readable; nothing is submitted.
+ */
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import CreateReviewStep from './CreateReviewStep.astro';
+const steps = ['Description & media', 'Schedule & recurrence', 'Venue & location', 'Registration & tickets', 'Review'];
+const radio = 'flex cursor-pointer items-start gap-3 rounded-2xl bg-cream p-4 ring-1 ring-sand has-[:checked]:bg-white has-[:checked]:ring-2 has-[:checked]:ring-terracotta';
+---
+<section class="bg-cream px-4 pb-20 sm:px-8" data-wizard>
+  <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[260px_1fr]">
+    <nav aria-label="Event builder steps" class="lg:sticky lg:top-28 lg:self-start">
+      <ol class="scroll-rail flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
+        {steps.map((s, i) => (
+          <li class="shrink-0"><a href={`#step-${i + 1}`} data-goto={i} aria-current={i === 0 ? 'step' : undefined} class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-ink-soft hover:bg-white aria-[current=step]:bg-charcoal aria-[current=step]:text-cream">
+            <span class="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-bold text-charcoal ring-1 ring-sand">{i + 1}</span>{s}</a></li>
+        ))}
+      </ol>
+    </nav>
+    <form onsubmit="return false" class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-10">
+      <fieldset id="step-1" data-step class="space-y-5">
+        <legend class="section-subheading mb-2">Description &amp; media</legend>
+        <FormField label="Event title" name="title" value="Saturday Night Worship" />
+        <FormField label="Event type" name="type" type="select" options={['Worship gathering', 'Gospel concert', 'Bible study', 'Christian conference', 'Youth & family']} />
+        <FormField label="Description" name="desc" type="textarea" value="An open, unhurried night of praise and prayer. (Sample text)" />
+        <div class="rounded-2xl border-2 border-dashed border-sand p-8 text-center text-ink-soft"><Icon name="upload" class="mx-auto h-7 w-7 text-terracotta" /><p class="mt-2 text-sm">Cover photo upload — disabled in design preview</p></div>
+      </fieldset>
+      <fieldset id="step-2" data-step class="space-y-5">
+        <legend class="section-subheading mb-2">Schedule &amp; recurrence</legend>
+        <div class="grid gap-4 sm:grid-cols-3"><FormField label="Date" name="date" type="date" value="2026-11-07" /><FormField label="Start" name="start" type="time" value="18:30" /><FormField label="End" name="end" type="time" value="20:30" /></div>
+        <FormField label="Time zone" name="tz" type="select" options={['Central Time (CT)', 'Eastern Time (ET)', 'Mountain Time (MT)', 'Pacific Time (PT)']} />
+        <div class="grid gap-3 sm:grid-cols-3">
+          {['One-time', 'Weekly', 'Monthly'].map((r, i) => <label class={radio}><input type="radio" name="repeat" checked={i === 2} class="mt-1 accent-[#B65B35]" /><span class="font-medium">{r}</span></label>)}
+        </div>
+      </fieldset>
+      <fieldset id="step-3" data-step class="space-y-5">
+        <legend class="section-subheading mb-2">Venue &amp; location</legend>
+        <FormField label="Venue name" name="venue" value="Sample Community Church" />
+        <div class="grid gap-4 sm:grid-cols-[2fr_1fr]"><FormField label="City" name="city" value="Dallas" /><FormField label="State" name="state" value="TX" /></div>
+        <FormField label="Accessibility & parking notes" name="access" type="textarea" rows={3} hint="Step-free entry, parking, childcare — helps every guest plan." />
+      </fieldset>
+      <fieldset id="step-4" data-step class="space-y-5">
+        <legend class="section-subheading mb-2">Registration &amp; tickets</legend>
+        <div class="grid gap-3 sm:grid-cols-2">
+          {[['Free — no registration', 'Guests just show up.'], ['Free with registration', 'Plan seating and send reminders.'], ['Gamo ticketing (preview)', 'Paid tiers and door check-in.'], ['External tickets', 'Link to your own ticket page.']].map(([t, b], i) => (
+            <label class={radio}><input type="radio" name="reg" checked={i === 1} class="mt-1 accent-[#B65B35]" /><span><span class="block font-semibold">{t}</span><span class="text-sm text-ink-soft">{b}</span></span></label>
+          ))}
+        </div>
+        <div class="rounded-2xl bg-cream p-5">
+          <p class="font-semibold">Ticket tiers (paid events)</p>
+          <div class="mt-3 grid gap-3 sm:grid-cols-[2fr_1fr_1fr]"><FormField label="Tier name" name="tier" value="General admission" /><FormField label="Price (USD)" name="price" type="number" value="0" /><FormField label="Capacity" name="cap" type="number" value="250" /></div>
+          <p class="mt-3 text-xs text-ink-soft">Any Gamo administrative contribution is a proposal and would always be shown separately from the ticket price.</p>
+        </div>
+      </fieldset>
+      <fieldset id="step-5" data-step><legend class="section-subheading mb-4">Review</legend><CreateReviewStep /></fieldset>
+      <div class="mt-10 flex justify-between gap-3 border-t border-sand pt-6" data-wizard-controls hidden>
+        <button type="button" data-back class="rounded-full px-5 py-3 text-sm font-semibold ring-1 ring-sand hover:bg-cream disabled:opacity-40">Back</button>
+        <button type="button" data-forward class="rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white hover:bg-terracotta-dark">Continue</button>
+      </div>
+    </form>
+  </div>
+</section>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-wizard]').forEach((root) => {
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-step]')];
+    const links = [...root.querySelectorAll<HTMLAnchorElement>('[data-goto]')];
+    const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+    const fwd = root.querySelector<HTMLButtonElement>('[data-forward]')!;
+    root.querySelector<HTMLElement>('[data-wizard-controls]')!.hidden = false;
+    let cur = 0;
+    const show = (n: number, focus = false) => {
+      cur = Math.max(0, Math.min(panels.length - 1, n));
+      panels.forEach((p, i) => (p.hidden = i !== cur));
+      links.forEach((l, i) => (i === cur ? l.setAttribute('aria-current', 'step') : l.removeAttribute('aria-current')));
+      back.disabled = cur === 0;
+      fwd.hidden = cur === panels.length - 1;
+      if (focus) panels[cur].querySelector<HTMLElement>('legend')?.scrollIntoView({ block: 'center' });
+    };
+    links.forEach((l, i) => l.addEventListener('click', (e) => { e.preventDefault(); show(i); }));
+    back.addEventListener('click', () => show(cur - 1, true));
+    fwd.addEventListener('click', () => show(cur + 1, true));
+    const m = location.hash.match(/step-(\d)/);
+    show(m ? Number(m[1]) - 1 : 0);
+  });
+</script>

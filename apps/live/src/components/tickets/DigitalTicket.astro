@@ -1,0 +1,36 @@
+---
+/** Digital ticket design. Static decorative QR pattern — encodes nothing, not valid for entry. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import { dateParts, getOrganizer, type LiveEvent } from '../../data/events';
+interface Props { event: LiveEvent; quantities?: number[] }
+const { event: e, quantities = [1] } = Astro.props;
+const d = dateParts(e.date);
+const org = getOrganizer(e.organizer);
+// Deterministic decorative pattern (not a real QR code).
+const cells = Array.from({ length: 21 * 21 }, (_, i) => { const x = i % 21, y = Math.floor(i / 21); const finder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13); return finder ? (x % 6 === 0 || y % 6 === 0 || (x % 21 > 1 && x % 21 < 5 && y % 21 > 1 && y % 21 < 5) || (x > 15 && x < 19 && y > 1 && y < 5) || (x > 1 && x < 5 && y > 15 && y < 19) || x === 20 || y === 20 || x === 14 || y === 14) : (x * 7 + y * 13 + x * y) % 3 === 0; });
+---
+<div class="mx-auto max-w-md overflow-hidden rounded-[32px] bg-white shadow-float ring-1 ring-sand">
+  <div class="relative aspect-[16/9] bg-night">
+    <Photo name={e.photo} sizes="448px" class="h-full w-full object-cover opacity-90" alt="" />
+    <span class="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-bold uppercase tracking-wider text-charcoal">Sample ticket</span>
+  </div>
+  <div class="p-6">
+    <p class="eyebrow text-terracotta">Gamo Live · Admission</p>
+    <h2 class="mt-2 text-2xl font-semibold tracking-tight">{e.title}</h2>
+    <dl class="mt-5 grid grid-cols-2 gap-4 text-sm">
+      <div><dt class="text-ink-soft">Date</dt><dd class="font-semibold">{d.weekday}, {d.month} {d.day}</dd></div>
+      <div><dt class="text-ink-soft">Time</dt><dd class="font-semibold">{e.time}</dd></div>
+      <div class="col-span-2"><dt class="text-ink-soft">Venue</dt><dd class="font-semibold">{e.venue}, {e.city}, {e.state}</dd></div>
+      <div><dt class="text-ink-soft">Ticket</dt><dd class="font-semibold">{e.tiers.filter((_,i) => quantities[i] > 0).map(t => t.name).join(', ')}</dd></div>
+      <div><dt class="text-ink-soft">Holder</dt><dd class="font-semibold">Sample Attendee</dd></div>
+    </dl>
+  </div>
+  <div class="relative border-t-2 border-dashed border-sand p-6">
+    <span class="absolute -left-4 -top-4 h-8 w-8 rounded-full bg-cream"></span><span class="absolute -right-4 -top-4 h-8 w-8 rounded-full bg-cream"></span>
+    <div class="mx-auto grid w-44 grid-cols-[repeat(21,1fr)] opacity-40" role="img" aria-label="Decorative QR placeholder — not a scannable code">
+      {cells.map((on) => <span class:list={['aspect-square', on ? 'bg-charcoal' : 'bg-white']}></span>)}
+    </div>
+    <p class="mt-4 text-center text-sm font-semibold text-red-800">Sample ticket, not valid for entry</p>
+    <p class="mt-1 text-center text-xs text-ink-soft">Organizer: {org.name} (sample) · Code GL-SAMPLE-0000</p>
+  </div>
+</div>

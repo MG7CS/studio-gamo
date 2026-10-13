@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./components/*": "./src/components/*",
-    "./lib/*": "./src/lib/*",
+    "./lib/*.ts": "./src/lib/*.ts",
+    "./lib/*": "./src/lib/*.ts",
     "./styles/*": "./src/styles/*"
   },
   "peerDependencies": {

@@ -1,25 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+/** Legacy prototype entry preserved as a redirect to the non-transactional design preview. */
+return Astro.redirect('/apply/profile', 302);
 ---
-<Layout>
-  <main class="max-w-2xl mx-auto py-12 px-4">
-    <div class="text-sm text-[#6B6B67] mb-2 font-semibold uppercase">Step 3 of 4</div>
-    <h1 class="text-3xl font-bold mb-6 text-[#1D2323]">Travel & Availability</h1>
-    <form method="POST" action="/apply/audition" class="space-y-6">
-      <div>
-        <label class="block text-sm font-bold mb-2">Home Zone (Approximate)</label>
-        <select name="zone" class="w-full border p-3 rounded-lg">
-          <option value="phoenix_central">Phoenix Central</option>
-          <option value="scottsdale">Scottsdale</option>
-          <option value="mesa">Mesa / Tempe</option>
-          <option value="west_valley">West Valley</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-bold mb-2">Maximum Travel Radius (Miles)</label>
-        <input type="number" name="radius" value="30" class="w-full border p-3 rounded-lg" />
-      </div>
-      <button type="submit" class="bg-[#1D2323] text-white px-6 py-3 rounded-lg font-bold">Continue to Audition</button>
-    </form>
-  </main>
-</Layout>

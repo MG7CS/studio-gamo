@@ -1,0 +1,30 @@
+---
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+interface Props { eyebrow: string; title: string; accent: string; body: string; photo: PhotoKey; inset?: PhotoKey; variant?: 'community' | 'collage' | 'support'; }
+const { eyebrow, title, accent, body, photo, inset, variant = 'community' } = Astro.props;
+---
+<section class:list={['organization-hero relative overflow-hidden pt-32 pb-16 sm:pt-40 lg:pb-24', variant === 'support' ? 'bg-[#EAE0D2]' : 'bg-cream']} aria-labelledby="organization-title">
+  <div class="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 sm:px-12 lg:grid-cols-[.95fr_1.1fr] lg:gap-14">
+    <div class="relative z-10">
+      <p class="eyebrow mb-6 text-terracotta">{eyebrow}</p>
+      <h1 id="organization-title" class="display-xl max-w-[700px] text-balance">{title}<span class="block text-terracotta">{accent}</span></h1>
+      <p class="mt-7 max-w-[510px] text-lg leading-relaxed text-ink-soft">{body}</p>
+      <div class="mt-8 flex flex-wrap gap-3"><slot /></div>
+      <p class="mt-6 text-xs tracking-wide text-ink-soft">Developing Christian nonprofit · Programs in preparation</p>
+    </div>
+    <div class:list={['hero-composition relative mx-auto w-full max-w-[680px]', variant]}>
+      <div class="hero-main relative h-[350px] overflow-hidden bg-sand sm:h-[510px] lg:h-[580px]">
+        <Photo name={photo} sizes="(min-width:1024px) 48vw, 100vw" priority />
+      </div>
+      {inset && <div class="hero-inset absolute -bottom-5 -left-2 h-[170px] w-[135px] overflow-hidden rounded-[65px_65px_20px_20px] border-[7px] border-cream shadow-float sm:-left-5 sm:h-[250px] sm:w-[195px]"><Photo name={inset} sizes="(min-width:640px) 195px, 135px" /></div>}
+      <div class="absolute -right-2 bottom-6 rounded-[22px] bg-ivory px-5 py-4 shadow-float sm:px-7"><p class="eyebrow text-terracotta">One shared mission</p><p class="mt-2 text-sm font-semibold">Worship. Learn. Gather. Serve.</p></div>
+    </div>
+  </div>
+</section>
+<style>
+  .hero-main { border-radius: 42% 42% 10% 10% / 34% 34% 10% 10%; }
+  .collage .hero-main { border-radius: 46% 46% 28px 46%; }
+  .support .hero-main { border-radius: 200px 32px 200px 32px; }
+  @media (max-width: 639px) { .hero-main { height: 350px; } .hero-composition { margin-bottom: 1rem; } }
+</style>

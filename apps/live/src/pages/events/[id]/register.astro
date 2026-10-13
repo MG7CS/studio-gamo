@@ -1,0 +1,11 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import PageHeader from '../../../components/shared/PageHeader.astro';
+import TicketSelector from '../../../components/tickets/TicketSelector.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import { events, type LiveEvent } from '../../../data/events';
+export const prerender = true;
+export function getStaticPaths() { return events.filter(event => event.ticketing === 'free').map(event => ({params:{id:event.id}, props:{event}})); }
+const {event} = Astro.props as {event:LiveEvent};
+---
+<Layout title="Free registration preview" headerTheme="light"><PageHeader eyebrow="Free registration · demo" title={event.title}/><div class="px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1100px]">Preview headcount only. Nothing is registered or emailed.</DemoNotice></div><TicketSelector event={event}/></Layout>

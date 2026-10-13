@@ -1,0 +1,43 @@
+---
+/** Detail body for one support area: coverage, volunteer skills and preparation questions. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import ChecklistPreview from './ChecklistPreview.astro';
+import type { SupportArea } from '../../data/production';
+interface Props { area: SupportArea }
+const { area } = Astro.props;
+---
+<section class="bg-ivory py-16 md:py-24" aria-labelledby="covers-title">
+  <div class="mx-auto grid max-w-7xl gap-12 px-5 md:px-8 lg:grid-cols-12">
+    <div class="lg:col-span-7">
+      <h2 id="covers-title" class="section-subheading text-charcoal">What support is intended to cover</h2>
+      <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+        {area.covers.map((c) => (
+          <li class="flex items-start gap-3 rounded-3xl bg-white p-5 ring-1 ring-sand">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-terracotta"><Icon name={area.icon} class="h-4 w-4" /></span>
+            <span class="font-medium text-charcoal">{c}</span>
+          </li>
+        ))}
+      </ul>
+      <h2 class="section-subheading mt-16 text-charcoal">Questions to consider first</h2>
+      <ol class="mt-6 space-y-4">
+        {area.questions.map((q, i) => (
+          <li class="flex gap-4 border-t border-sand pt-4 text-lg text-ink-soft"><span class="font-semibold text-terracotta">{i + 1}.</span>{q}</li>
+        ))}
+      </ol>
+    </div>
+    <aside class="lg:col-span-5">
+      <div class="lg:sticky lg:top-28">
+        <ChecklistPreview title="Volunteer skills to build" items={area.volunteerSkills} />
+        <div class="mt-6 rounded-3xl bg-charcoal p-6 text-cream" data-surface="dark">
+          <p class="font-semibold">Thinking about {area.title.toLowerCase()}?</p>
+          <p class="mt-2 text-sm text-cream/75">The needs assessment preview walks through your setup, priorities and team.</p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <ButtonLink href="/assessment" arrow>Start assessment</ButtonLink>
+            <ButtonLink href="/consultation" variant="ghost-dark">Consultation</ButtonLink>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/shared/PageHero.astro';
+import DemoStepForm from '../components/forms/DemoStepForm.astro';
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import { registrationSteps } from '../data/registration';
+import { instruments } from '../data/instruments';
+const names = instruments.map((i) => i.name);
+---
+<Layout title="Register (preview)" description="Preview the family-friendly Gamo Academy registration journey.">
+  <PageHero eyebrow="Registration preview" title="Let's get you" accent="started." lede="Register yourself or your children in five short steps. This is a design preview — registration is not open yet." crumbs={[{ label: 'Register', href: '/register' }]} />
+  <section class="px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-3xl">
+      <DemoStepForm id="register" steps={registrationSteps.map((s) => s.label)} doneTitle="Thanks for trying the preview" doneBody="Nothing was sent. When registration opens, families will receive a confirmation and an introductory call with an instructor.">
+        <Fragment slot="step-0">
+          <FormField label="Who is registering?" name="registrant" type="select" options={['A parent or guardian', 'An adult learner (myself)']} />
+          <div class="grid gap-5 sm:grid-cols-2">
+            <FormField label="Full name" name="name" autocomplete="name" required />
+            <FormField label="Email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <FormField label="Phone (optional)" name="phone" type="tel" autocomplete="tel" />
+        </Fragment>
+        <Fragment slot="step-1">
+          <div class="grid gap-5 sm:grid-cols-2">
+            <FormField label="Learner's first name" name="learner" required />
+            <FormField label="Age" name="age" type="number" required />
+          </div>
+          <p class="rounded-2xl border border-dashed border-sand p-4 text-sm text-ink-soft">Adding more learners will be supported when registration opens.</p>
+        </Fragment>
+        <Fragment slot="step-2">
+          <FormField label="Instrument" name="instrument" type="select" options={names} />
+          <FormField label="Experience" name="level" type="select" options={['Beginner — never played', 'Developing — some lessons', 'Advancing — play regularly']} />
+          <FormField label="Anything instructors should know?" name="notes" type="textarea" rows={3} hint="Goals, favourite music, learning needs." />
+        </Fragment>
+        <Fragment slot="step-3">
+          <FormField label="Format" name="format" type="select" options={['Private', 'Group', 'Church-hosted (planned)', 'No preference']} />
+          <FormField label="Preferred days" name="days" type="select" options={['Weekdays after school', 'Weekday evenings', 'Saturdays', 'Flexible']} />
+          <FormField label="Lesson location" name="location" type="select" options={['Online', 'In person', 'Either']} />
+        </Fragment>
+        <Fragment slot="step-4">
+          <p class="text-ink-soft">On a live form you would review your details here. Tuition is not set; any amounts would be shown as separate line items before anything is confirmed. Sponsored places are planned but not yet available.</p>
+        </Fragment>
+      </DemoStepForm>
+    </div>
+  </section>
+</Layout>

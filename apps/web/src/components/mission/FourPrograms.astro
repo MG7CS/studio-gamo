@@ -1,0 +1,41 @@
+---
+/** One Mission, Four Programs — asymmetric bento of differently shaped photo panels. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { programs } from '../../data/programs';
+
+const layout = [
+  { wrap: 'lg:col-span-7 lg:row-span-2', media: 'aspect-[4/3] lg:aspect-auto lg:flex-1 rounded-[28px] rounded-tl-[140px]', tone: 'bg-white' },
+  { wrap: 'lg:col-span-5', media: 'aspect-[16/9] rounded-[28px] rounded-tr-[110px]', tone: 'bg-[#F3E4D6]' },
+  { wrap: 'lg:col-span-5', media: 'aspect-[16/9] rounded-[28px]', tone: 'bg-night text-cream', dark: true },
+  { wrap: 'lg:col-span-12', media: 'aspect-[16/9] sm:aspect-[21/9] rounded-[28px] rounded-br-[140px]', tone: 'bg-white' },
+];
+---
+<section id="programs" aria-labelledby="programs-title" class="scroll-mt-28 bg-cream px-5 py-20 sm:px-8 lg:py-28">
+  <div class="mx-auto max-w-[1320px]">
+    <div class="max-w-3xl">
+      <p class="eyebrow text-terracotta">One mission, four programs</p>
+      <h2 id="programs-title" class="section-heading mt-4 text-balance text-charcoal">Interconnected programs serving one purpose.</h2>
+    </div>
+    <div class="mt-12 grid gap-5 lg:grid-cols-12 lg:grid-rows-[auto_auto_auto]">
+      {programs.map((p, i) => {
+        const l = layout[i];
+        return (
+          <a href={p.href} data-reveal data-surface={l.dark ? 'dark' : undefined} class:list={['group flex flex-col rounded-[34px] p-3 ring-1 ring-black/5 transition-transform hover:-translate-y-1', l.wrap, l.tone]}>
+            <div class:list={['relative overflow-hidden', l.media]}>
+              <Photo name={p.photo} sizes="(min-width:1024px) 55vw, 92vw" alt="" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+            </div>
+            <div class="flex items-end justify-between gap-6 p-4 sm:p-6">
+              <div>
+                <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal" style={`background:${p.accent}`}><Icon name={p.icon} class="h-5 w-5" /></span>
+                <h3 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{p.name}</h3>
+                <p class:list={['mt-2 max-w-xl leading-relaxed', l.dark ? 'text-cream/75' : 'text-ink-soft']}>{p.summary}</p>
+              </div>
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta text-white"><Icon name="arrow" class="h-5 w-5" /></span>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</section>

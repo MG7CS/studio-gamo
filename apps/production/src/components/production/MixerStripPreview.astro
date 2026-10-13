@@ -1,0 +1,26 @@
+---
+/** Small static mock of a mixer channel strip (decorative, illustrative UI preview). */
+interface Props { class?: string }
+const { class: className } = Astro.props;
+const channels = [
+  { name: 'Lead Vox', level: 78 },
+  { name: 'Keys', level: 58 },
+  { name: 'Ac Gtr', level: 64 },
+  { name: 'Pastor', level: 84 },
+];
+---
+<figure class:list={['rounded-3xl border border-sand bg-white p-4 shadow-float', className]} aria-label="Illustrative mixer channel preview">
+  <figcaption class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-ink-soft">
+    <span>Worship mix</span><span class="rounded-full bg-gold/25 px-2 py-0.5 text-[10px] text-[#6B4426]">Sample</span>
+  </figcaption>
+  <div class="mt-4 grid grid-cols-4 gap-3" aria-hidden="true">
+    {channels.map((c) => (
+      <div class="flex flex-col items-center gap-2">
+        <div class="relative h-24 w-2 rounded-full bg-cream">
+          <div class="absolute bottom-0 w-2 rounded-full bg-gradient-to-t from-terracotta to-gold" style={`height:${c.level}%`}></div>
+        </div>
+        <span class="text-center text-[10px] font-medium leading-tight text-charcoal">{c.name}</span>
+      </div>
+    ))}
+  </div>
+</figure>
