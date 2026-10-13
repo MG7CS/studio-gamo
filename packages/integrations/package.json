@@ -1,1 +1,11 @@
-{"name": "@gamo/integrations", "version": "0.0.0", "private": true, "type": "module", "main": "index.ts"}
+{
+  "name": "@studio-gamo/integrations",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./stripe": "./src/stripe.ts",
+    "./resend": "./src/resend.ts"
+  }
+}
