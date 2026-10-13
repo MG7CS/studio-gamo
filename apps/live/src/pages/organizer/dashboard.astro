@@ -1,16 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import PageHeader from '../../components/shared/PageHeader.astro';
-import DashboardOverview from '../../components/organizer/DashboardOverview.astro';
-export const prerender = true;
+/** Consolidated organizer workspace lives at /organizer. */
+return Astro.redirect('/organizer', 301);
 ---
-<Layout title="Organizer dashboard (preview)" headerTheme="light">
-  <PageHeader eyebrow="Organizer dashboard · Riverside Fellowship Choir (sample)" title="Your events at a glance.">
-    <ButtonLink href="/promote/create" arrow>Create event</ButtonLink>
-    <ButtonLink href="/organizer/scan" variant="secondary">Open check-in</ButtonLink>
-  </PageHeader>
-  <div class="bg-cream px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">Signed-in organizer view shown with sample data. There is no account, login or live data.</DemoNotice></div>
-  <DashboardOverview />
-</Layout>

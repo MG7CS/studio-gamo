@@ -137,3 +137,59 @@
 - Documentation reconciled: DESIGN, ARCHITECTURE, ROADMAP, AGENTS, DESIGN_FIRST_OVERRIDES, COMPONENT_ARCHITECTURE, SCREEN_INVENTORY, FUNCTIONALITY_PHASE_PLAN, asset inventory, decision log and centralized multi-page review. Corrected older Admin legal inventory's unsupported Published statuses to drafts pending counsel review; no Admin expansion.
 - Limitations: `pnpm run lint` remains a placeholder, and `astro check` is unsupported with installed TypeScript 7.0.2. Founder visual acceptance remains pending. No backend, real payment/ticketing, identity/background screening, auth, email, dispatch, donation checkout, production deployment or DNS work. Future functionality and legal/safeguarding gates remain intact.
 - Version-control instruction: verified work is committed and pushed directly to `main` under the founder's explicit brief; actual commit/push outcome is reported at handoff. Unrelated `.DS_Store` and scratch changes are preserved outside the implementation commit.
+
+## 2026-10-13 — Complete Authenticated Dashboard UI System (design-first)
+
+- **Authorized scope**: Build the complete frontend UI/UX for all user dashboards and account experiences across the Gamo Studios monorepo (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin`). Remains in the design-first phase: zero live authentication, payments, external integrations, or backend persistence.
+- **Shared Dashboard Design System (`packages/ui`)**:
+  - Reusable layout & application shell (`DashboardShell.astro`): desktop sidebar (`DashNav.astro`), persistent conspicuous demo-mode banner (`DemoModeBanner.astro`), top bar with workspace switcher (`WorkspaceSwitcher.astro`), account menu (`AccountMenu.astro`), search, notifications shortcut, mobile drawer and bottom quick-tab bar.
+  - Contextual page header (`DashPageHeader.astro`) with restrained typography scale (26–30px titles, 16–17px panel titles, 14–16px body, 11–13px labels) and `?state=loading|empty|error|success` design review preview switcher.
+  - Reusable container-query responsive blocks (`DashBlocks.astro`): `StatGrid`, `DataTable` (desktop table ≥md, stacked card view on mobile with local client filtering), `ItemList`, `Agenda`, `MonthCalendar`, `StepList`, `KeyValueList`, `InlineNotice`, `QuickActions`, `DashForm`/`FormFields` (client-side validation), `SettingsPanel` (switches), `ProgressList`, `CardGrid`, `Statement` (musician/instructor pay vs proposed allocation strictly separated), `DashDialog` (native `<dialog>` with focus trapping and demo submission), and `StateView`.
+  - Focused account-entry shell (`AuthLayout.astro`) for sign in, sign up, recovery, and onboarding.
+  - Shared typed model in `packages/ui/src/lib/dashboard.ts`, client-side local interactive handler in `packages/ui/src/lib/dashboard-client.ts`, and expanded stroke line icons in `packages/ui/src/lib/icons.ts`.
+- **Identity & Role Architecture (`docs/DASHBOARD_ARCHITECTURE.md`)**:
+  - Distinguishes Personal Account, Active Role, Active Organization, Program Workspace, and Permission Level.
+  - Single human identity (`Jordan Avery`, demo persona) holding multiple program roles (Musician in Worship, Instructor in Academy, Church Admin in Worship/Academy/Live, Event Organizer in Live, Client in Production).
+  - Cross-application workspace switcher (`workspaceDirectory()`) connects all 12 demo workspaces across dev ports (4321–4326) and production origins without impersonating real users or altering permissions.
+- **Account Entry & Personal Account (`apps/web`)**:
+  - `/account/signin`: Focused sign-in demo with demo continue link.
+  - `/account/signup`: Registration preview with demo validation.
+  - `/account/recover`: Password recovery simulation.
+  - `/account/onboarding`: 4-step role, program, and organization onboarding wizard.
+  - `/account/signed-out` & `/account/access-denied`: Honest demo confirmation and authorization boundary explanations.
+  - `/account`: Personal account hub showcasing multi-role capabilities.
+  - `/account/roles`, `/account/organizations`, `/account/profile`, `/account/notifications`, `/account/settings`.
+- **Church Partner & Supporter Workspace (`apps/web`)**:
+  - `/partner`: Grace Fellowship partnership overview.
+  - `/partner/programs`, `/partner/commitments`, `/partner/activities`, `/partner/updates`, `/partner/contributions`, `/partner/reports`, `/partner/contacts`.
+  - Demonstrates collaborative nonprofit partnership without commercial vendor contracts, protects musician pay, and includes prominent nonprofit status disclosures (no tax-deductibility claims).
+- **Gamo Worship Dashboards (`apps/worship`)**:
+  - Musician workspace (`/musician/*`): overview, opportunities board, assignments, availability calendar, standby commitments, gig details with setlists, repertoire & instruments profile, audition verification progress, statements.
+  - Church workspace (`/church/*`): overview, request a musician wizard, active requests, upcoming services agenda, assigned musicians roster, standby coverage tracking, recurring scheduling patterns, request history, statements, church profile & team permissions.
+  - Consolidated legacy `/church/roster` to `/church/musicians` (301) and legacy Worship admin prototypes to `apps/admin` (301).
+- **Gamo Academy Dashboards (`apps/academy`)**:
+  - Student / Family workspace (`/family/*`): lesson overview, upcoming lessons, enrolled programs, lesson schedule, learning tracks, instructor directory, practice audio/materials, attendance history, household learners (minors privacy protected), term announcements. Redirected legacy `/dashboard` to `/family` (301).
+  - Instructor workspace (`/instructor/*`): teaching overview, calendar, assigned classes, student roster (first name + initial, level, attendance only; privacy notice), lesson plan preparation, attendance recording checklist, learning resources, screening & qualification status, compensation statements (instructor pay vs proposed allocation separated), profile.
+  - Church Host & Sponsor workspace (`/host/*`): hosted program overview, class schedule, facility & classroom rules, instructor liaisons, aggregate enrollment summaries (no private minor data), proposed youth scholarships, community educational outcomes, host communications.
+- **Gamo Live Dashboards (`apps/live`)**:
+  - Consolidated Organizer workspace (`/organizer/*`): overview, event management, recurring schedules, attendee registrations, ticket tiers & inventory, attendance & door scanning, attendee announcements, proposed promotion requests (labeled Sponsored), post-event reports, organizer verification steps, payout statements.
+  - Removed competing `organizer.astro` and redirected legacy `/organizer/dashboard`, `/organizer/manage`, and `/organizer/report` to consolidated workspace endpoints (301).
+  - Attendee account (`/me/*`): overview, digital tickets (prominently labeled 'Not valid for admission'), event registrations, upcoming agenda, saved events & organizers, history, account settings. Redirected legacy `/my-tickets` to `/me/tickets` (301).
+- **Gamo Production Dashboards (`apps/production`)**:
+  - Church / Client workspace (`/client/*`): project overview, technical support requests, acoustic needs assessments, consultation scheduling calendar, project milestone tracker, technical schematics & documents, service history, communications.
+  - Volunteer / Technician workspace (`/crew/*`): technician overview, operational task list, service availability calendar, equipment checklists (stage, broadcast, wireless), volunteer audio/video training tracks, crew team directory, technical reference resources.
+- **Internal Staff Operations Application (`apps/admin`)**:
+  - Expanded `apps/admin` (running on port 4326) into a comprehensive operational command center.
+  - Organization Operations: `/` (Command Center by program), `/programs`, `/people`, `/staff-roles`, `/activity`.
+  - Worship Operations: `/worship/applications`, `/worship/review` (audition video review + decision dialog), `/worship/requests`, `/worship/placement`, `/worship/standby`, `/worship/dispatch`.
+  - Academy Operations: `/academy/instructors`, `/academy/enrollments`, `/academy/classes`, `/academy/hosted`, `/academy/sponsorships`, `/academy/safeguarding` (background screening status tracking).
+  - Live Operations: `/live/submissions`, `/live/organizers`, `/live/moderation`, `/live/ticketing`, `/live/refunds`, `/live/reports`, `/live/scanning`.
+  - Production Operations: `/production/requests`, `/production/projects`, `/production/training`, `/production/personnel`.
+  - Nonprofit Administration: `/nonprofit/partnerships`, `/nonprofit/sponsorships`, `/nonprofit/funding`, `/nonprofit/budgets`, `/nonprofit/stewardship`, `/nonprofit/reconciliation`, `/nonprofit/governance`.
+  - Re-styled `/legal` draft documents registry inside `DashboardShell`.
+- **Verification & Evidence**:
+  - Typecheck passed: `pnpm --filter apps-* exec tsc --noEmit` across all apps.
+  - Builds passed: `pnpm run build` across all six applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin`).
+  - Automated responsive tests: `scripts/verify-public-ui.mjs` passed 60 route checks; `scripts/dashboard-shots.mjs` verified every single dashboard route across desktop (1440px) and mobile (390px) with 0 HTTP errors, 0 console errors, and 0 horizontal overflow flags.
+  - Real screenshots captured and stored in `docs/screenshots/dashboards/` for all major user roles on desktop (1440px) and mobile (390px).
+

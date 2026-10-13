@@ -1,0 +1,7 @@
+---
+/** Volunteer / technician workspace (demo). One dynamic route renders every screen from typed data. */
+import '../../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { crewWorkspace } from '../../data/workspaces/crew';
+---
+<WorkspaceScreen workspace={crewWorkspace} slug={Astro.params.slug} />

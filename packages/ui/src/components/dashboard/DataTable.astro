@@ -1,0 +1,71 @@
+---
+/**
+ * Responsive data table: semantic <table> from md up, stacked cards on mobile.
+ * Optional local search + single-select filter chips (no server requests).
+ */
+import Icon from '../Icon.astro';
+import CellValue from './CellValue.astro';
+import type { Cell } from '../../lib/dashboard';
+interface Props {
+  columns: { key: string; label: string; primary?: boolean }[];
+  rows: Record<string, Cell>[];
+  filter?: boolean;
+  filterOptions?: string[];
+  filterKey?: string;
+  emptyText?: string;
+  caption?: string;
+}
+const { columns, rows, filter = false, filterOptions = [], filterKey, emptyText = 'No sample records match.', caption = 'Sample records' } = Astro.props;
+const text = (c: Cell | undefined) => (c === undefined ? '' : typeof c === 'string' ? c : c.badge);
+const primary = columns.find((c) => c.primary) ?? columns[0];
+const rest = columns.filter((c) => c !== primary);
+const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
+---
+<div data-table>
+  {filter && (
+    <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <label class="relative block sm:w-72"><span class="sr-only">Filter {caption.toLowerCase()}</span>
+        <Icon name="filter" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+        <input type="search" data-table-filter placeholder="Filter records" class="h-10 w-full rounded-lg border border-sand bg-ivory pl-9 pr-3 text-[14px]" />
+      </label>
+      {filterOptions.length > 0 && (
+        <div class="flex flex-wrap gap-1.5" role="group" aria-label="Status filter">
+          <button type="button" data-table-chip data-value="" aria-pressed="true" class="chip">All</button>
+          {filterOptions.map((o) => <button type="button" data-table-chip data-value={o} aria-pressed="false" class="chip">{o}</button>)}
+        </div>
+      )}
+    </div>
+  )}
+  <div class="hidden overflow-x-auto md:block">
+    <table class="w-full border-collapse text-left text-[14px]">
+      <caption class="sr-only">{caption}</caption>
+      <thead><tr class="border-b border-sand text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{columns.map((c) => <th scope="col" class="whitespace-nowrap px-3 py-2.5 first:pl-0 last:pr-0">{c.label}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr data-row data-key={i} data-filter={fval(r)} class="border-b border-sand/60 last:border-0 hover:bg-ivory">
+            {columns.map((c) => c === primary
+              ? <th scope="row" class="px-3 py-3 font-semibold first:pl-0"><CellValue value={r[c.key]} /></th>
+              : <td class="px-3 py-3 align-middle text-charcoal/85 last:pr-0"><CellValue value={r[c.key]} /></td>)}
+          </tr>
+        ))}
+        <tr data-table-empty hidden><td colspan={columns.length} class="py-8 text-center text-ink-soft">{emptyText}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul class="space-y-2 md:hidden" aria-label={caption}>
+    {rows.map((r, i) => (
+      <li data-row data-key={i} data-filter={fval(r)} class="rounded-xl border border-sand/80 bg-ivory p-3.5">
+        <p class="text-[15px] font-semibold"><CellValue value={r[primary.key]} /></p>
+        <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+          {rest.map((c) => <div class="min-w-0"><dt class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{c.label}</dt><dd class="mt-0.5 break-words text-[13px]"><CellValue value={r[c.key]} /></dd></div>)}
+        </dl>
+      </li>
+    ))}
+    <li data-table-empty hidden class="py-6 text-center text-ink-soft">{emptyText}</li>
+  </ul>
+  {filter && <p class="mt-3 text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} sample records</p>}
+</div>
+<style>
+  .chip { min-height: 2.25rem; border-radius: 999px; border: 1px solid var(--color-sand); background: white; padding: 0 0.85rem; font-size: 13px; font-weight: 500; }
+  .chip[aria-pressed='true'] { background: var(--color-charcoal); border-color: var(--color-charcoal); color: var(--color-cream); }
+</style>

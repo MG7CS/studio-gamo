@@ -1,0 +1,29 @@
+---
+/** Upcoming schedule list with a compact date tile. */
+import StatusPill from '../StatusPill.astro';
+import type { BadgeValue } from '../../lib/dashboard';
+interface Props { items: { date: string; time?: string; title: string; meta?: string; badge?: BadgeValue; href?: string }[] }
+const { items } = Astro.props;
+const split = (d: string) => { const [a, ...b] = d.split(' '); return [a, b.join(' ')]; };
+---
+<ol class="space-y-2.5">
+  {items.map((it) => {
+    const [mon, day] = split(it.date);
+    const Tag = it.href ? 'a' : 'div';
+    return (
+      <li data-search-item>
+        <Tag href={it.href} class:list={['flex items-start gap-3 rounded-xl border border-sand/80 bg-ivory p-3', it.href && 'hover:border-charcoal/30']}>
+          <span class="grid w-12 shrink-0 rounded-lg bg-white py-1.5 text-center ring-1 ring-sand" aria-hidden="true">
+            <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-terracotta-dark">{mon}</span>
+            <span class="text-[18px] font-semibold leading-6">{day}</span>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="text-[14px] font-semibold"><span class="sr-only">{it.date}: </span>{it.title}</p>
+            <p class="text-[12px] text-ink-soft">{[it.time, it.meta].filter(Boolean).join(' · ')}</p>
+          </div>
+          {it.badge && <StatusPill kind={it.badge.tone ?? 'info'} class="shrink-0">{it.badge.badge}</StatusPill>}
+        </Tag>
+      </li>
+    );
+  })}
+</ol>

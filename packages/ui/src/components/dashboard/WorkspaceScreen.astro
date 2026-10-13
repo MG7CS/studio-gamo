@@ -1,0 +1,29 @@
+---
+/**
+ * Complete workspace screen: shell + contextual header + blocks, with `?state=` design-review
+ * previews (loading / empty / error / success). Unknown slugs render a not-found state.
+ * Usage in an app route:  <WorkspaceScreen workspace={ws} slug={Astro.params.slug} />
+ */
+import DashboardShell from './DashboardShell.astro';
+import DashPageHeader from './DashPageHeader.astro';
+import DashBlocks from './DashBlocks.astro';
+import StateView from './StateView.astro';
+import { findScreen, screenHref, type Workspace } from '../../lib/dashboard';
+interface Props { workspace: Workspace; slug?: string }
+const { workspace, slug } = Astro.props;
+const screen = findScreen(workspace, slug);
+if (!screen) Astro.response.status = 404;
+const state = Astro.url.searchParams.get('state') ?? '';
+const valid = ['loading', 'empty', 'error', 'success'].includes(state) ? (state as 'loading' | 'empty' | 'error' | 'success') : undefined;
+const path = screen ? screenHref(workspace, screen.slug) : Astro.url.pathname;
+---
+<DashboardShell workspace={workspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'}>
+  {screen ? (
+    <Fragment>
+      <DashPageHeader workspace={workspace} title={screen.title} description={screen.description} actions={screen.actions} path={path} state={valid} />
+      {valid ? <StateView state={valid} retryHref={path} /> : <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />}
+    </Fragment>
+  ) : (
+    <StateView state="empty" title="This demo screen doesn’t exist" body="Check the workspace navigation for available preview screens." retryHref={screenHref(workspace, '')} />
+  )}
+</DashboardShell>

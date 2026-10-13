@@ -1,0 +1,8 @@
+---
+/** Renders a table/list cell: plain text or a semantic status badge. */
+import StatusPill from '../StatusPill.astro';
+import type { Cell } from '../../lib/dashboard';
+interface Props { value: Cell | undefined }
+const { value } = Astro.props;
+---
+{value === undefined ? <span class="text-ink-soft">—</span> : typeof value === 'string' ? <Fragment>{value}</Fragment> : <StatusPill kind={value.tone ?? 'info'} class="whitespace-nowrap">{value.badge}</StatusPill>}

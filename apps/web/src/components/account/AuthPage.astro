@@ -1,0 +1,22 @@
+---
+/** Account-entry page: shared AuthLayout + a not-available notice + optional demo form + links. */
+import AuthLayout from '@studio-gamo/ui/components/dashboard/AuthLayout.astro';
+import InlineNotice from '@studio-gamo/ui/components/dashboard/InlineNotice.astro';
+import DashForm from '@studio-gamo/ui/components/dashboard/DashForm.astro';
+import AuthLinks from './AuthLinks.astro';
+import type { AuthScreen } from '../../data/account-entry';
+interface Props { screen: AuthScreen }
+const { screen: s } = Astro.props;
+---
+<AuthLayout title={s.title} heading={s.heading} intro={s.intro} wide={s.wide}>
+  {s.notice && <div class="mb-5"><InlineNotice tone={s.notice.tone} body={s.notice.body} /></div>}
+  {s.fields && <DashForm id={s.id} fields={s.fields} submitLabel={s.submitLabel} successText={s.successText} redirect={s.redirect} />}
+  <slot />
+  {s.actions && (
+    <div class="mt-2 flex flex-wrap gap-3">
+      {s.actions.map((a, i) => <a href={a.href} class:list={['inline-flex min-h-10 items-center rounded-lg px-4 text-[14px] font-semibold', i === 0 ? 'bg-terracotta text-white hover:bg-terracotta-dark' : 'border border-sand bg-white hover:border-charcoal/30']}>{a.label}</a>)}
+    </div>
+  )}
+  {s.links && <AuthLinks links={s.links} />}
+  <p slot="footer">Design preview · no account exists · nothing you type is sent or stored.</p>
+</AuthLayout>

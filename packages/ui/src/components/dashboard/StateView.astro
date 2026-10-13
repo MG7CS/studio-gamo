@@ -1,0 +1,28 @@
+---
+/** Empty / loading / error / success states for any dashboard screen or panel. */
+import Icon from '../Icon.astro';
+interface Props { state: 'loading' | 'empty' | 'error' | 'success'; title?: string; body?: string; retryHref?: string }
+const { state, title, body, retryHref } = Astro.props;
+const copy = {
+  loading: ['Loading sample records…', 'Skeleton placeholders keep the layout stable while data loads.'],
+  empty: ['Nothing here yet', 'When real records exist they will appear here. This is a demo empty state.'],
+  error: ['We couldn’t load this section', 'This is a simulated error. In production we would explain what happened and how to retry. No data was lost.'],
+  success: ['Changes recorded in this preview', 'This is a simulated success message. Nothing was saved or sent.'],
+}[state];
+---
+{state === 'loading' ? (
+  <div role="status" aria-live="polite" class="space-y-4" aria-label={title ?? copy[0]}>
+    <span class="sr-only">{title ?? copy[0]}</span>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map(() => <div class="h-24 animate-pulse rounded-2xl bg-sand/50" />)}</div>
+    <div class="grid gap-4 lg:grid-cols-3"><div class="h-64 animate-pulse rounded-2xl bg-sand/50 lg:col-span-2" /><div class="h-64 animate-pulse rounded-2xl bg-sand/50" /></div>
+  </div>
+) : (
+  <div role={state === 'error' ? 'alert' : 'status'} class:list={['flex flex-col items-center rounded-2xl border px-6 py-12 text-center', state === 'error' ? 'border-red-200 bg-red-50/60' : state === 'success' ? 'border-emerald-200 bg-emerald-50/60' : 'border-dashed border-charcoal/20 bg-white']}>
+    <span class:list={['grid h-12 w-12 place-items-center rounded-full', state === 'error' ? 'bg-red-100 text-red-800' : state === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-cream text-terracotta-dark']}>
+      <Icon name={state === 'error' ? 'alert' : state === 'success' ? 'check' : 'list'} class="h-6 w-6" strokeWidth={1.8} />
+    </span>
+    <h2 class="mt-4 text-[18px] font-semibold">{title ?? copy[0]}</h2>
+    <p class="mt-1.5 max-w-md text-[14px] text-ink-soft">{body ?? copy[1]}</p>
+    {retryHref && <a href={retryHref} class="mt-5 inline-flex min-h-10 items-center rounded-lg border border-sand bg-white px-4 text-[14px] font-semibold hover:border-charcoal/30">{state === 'error' ? 'Try again' : 'Back to sample data'}</a>}
+  </div>
+)}
