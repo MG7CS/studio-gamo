@@ -115,3 +115,9 @@
 - Verification: `pnpm --filter apps-web build` OK; `pnpm run typecheck` OK; `pnpm run lint` is a placeholder; no `test` script exists. Playwright at 1440/1024/390: no console errors, no horizontal overflow, no broken images. Heights desktop 5,009 → 5,282px; mobile 6,958 → 7,050px.
 - Screenshots: `docs/screenshots/nonprofit-desktop-1440.png`, `nonprofit-laptop-1024.png`, `nonprofit-mobile-390.png`.
 - Remaining: /mission, /partners, /support, /contact, /get-started pages not built; admin `/legal` demo still shows contractor agreement as "Published"; worship/live/academy/production app copy review pending; legal/governance decisions in `docs/GAMO_NONPROFIT_MODEL.md` §8 and the checklist.
+
+## 2026-10-12 — Gamo Studios favicons
+
+- Replaced default Astro favicons in `apps/{web,worship,academy,live,production,admin}/public` with the official waveform symbol: `favicon.svg` (light/dark aware), `favicon.ico` (16/32/48), `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png` (180). Generator: `scripts/generate-favicons.mjs` (sharp).
+- Added matching `<link rel="icon">`/`apple-touch-icon` tags to each app `Layout.astro`; no layout or visual changes.
+- Recorded `gogamostudio.org` as a founder-owned domain under consideration (see DECISIONS.md); no domain/redirect changes made.
