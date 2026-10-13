@@ -1,6 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import FlowShell from '../../components/flow/FlowShell.astro';
-import ChurchRoster from '../../components/dashboard/ChurchRoster.astro';
+/** Legacy route: redirect to the consolidated church musicians workspace screen. */
+return Astro.redirect('/church/musicians', 301);
 ---
-<Layout title="Church roster (sample)"><FlowShell eyebrow="For churches · Sample roster" title="Prepare together." accent="See the month ahead." lede="A sample view of primary musicians, standby availability and open roles across recurring services." wide notice="All musicians, services and confirmation states below are fictional. No booking, approval or notification is taking place."><ChurchRoster /></FlowShell></Layout>

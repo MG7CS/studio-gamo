@@ -5,4 +5,6 @@ export type IconName =
   | 'calendar' | 'ticket' | 'video' | 'light' | 'sliders' | 'school' | 'heart'
   | 'hand' | 'mail' | 'clock' | 'shield' | 'plus' | 'minus' | 'chevron-down'
   | 'chevron-left' | 'chevron-right' | 'x' | 'menu' | 'qr' | 'upload' | 'star'
-  | 'headphones' | 'building' | 'book' | 'repeat' | 'info' | 'speaker' | 'external';
+  | 'headphones' | 'building' | 'book' | 'repeat' | 'info' | 'speaker' | 'external'
+  | 'bell' | 'search' | 'settings' | 'home' | 'grid' | 'file' | 'wallet' | 'list'
+  | 'user' | 'logout' | 'lock' | 'alert' | 'chart' | 'clipboard' | 'wrench' | 'message' | 'filter' | 'swap';

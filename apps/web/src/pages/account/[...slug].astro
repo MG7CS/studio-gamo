@@ -1,0 +1,7 @@
+---
+/** Personal account workspace (demo). One dynamic route renders every screen from typed data. */
+import '../../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { accountWorkspace } from '../../data/workspaces/account';
+---
+<WorkspaceScreen workspace={accountWorkspace} slug={Astro.params.slug} />

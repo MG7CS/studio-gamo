@@ -1,0 +1,16 @@
+---
+/**
+ * Demonstration statement. Every amount is illustrative; musician/instructor pay and any
+ * proposed Gamo administrative allocation are always separate lines.
+ */
+interface Props { lines: { label: string; amount: string; note?: string }[]; total?: { label: string; amount: string }; footnote?: string }
+const { lines, total, footnote = 'Illustrative amounts only. No payment, payout or receipt exists. Fees and allocations are proposals pending board approval.' } = Astro.props;
+---
+<div>
+  <p class="mb-3 inline-block rounded bg-gold/30 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#5C3A20]">Demonstration statement · not a financial record</p>
+  <dl class="divide-y divide-sand/70">
+    {lines.map((l) => <div class="flex items-start justify-between gap-4 py-2.5" data-search-item><dt class="text-[14px]">{l.label}{l.note && <span class="block text-[12px] text-ink-soft">{l.note}</span>}</dt><dd class="text-[14px] font-medium tabular-nums">{l.amount}</dd></div>)}
+    {total && <div class="flex items-center justify-between gap-4 pt-3"><dt class="text-[14px] font-semibold">{total.label}</dt><dd class="text-[16px] font-semibold tabular-nums">{total.amount}</dd></div>}
+  </dl>
+  <p class="mt-3 text-[12px] text-ink-soft">{footnote}</p>
+</div>

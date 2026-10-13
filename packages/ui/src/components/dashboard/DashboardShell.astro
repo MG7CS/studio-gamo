@@ -1,0 +1,103 @@
+---
+/**
+ * Authenticated application shell (design-first demo).
+ * Full document: demo banner · desktop sidebar · top bar (search, notifications,
+ * workspace switcher, account menu) · mobile drawer + bottom tab bar · content slot.
+ * Each app wraps this in its own `DashboardLayout.astro` that imports the app stylesheet.
+ */
+import Logo from '../Logo.astro';
+import Icon from '../Icon.astro';
+import DemoModeBanner from './DemoModeBanner.astro';
+import DashNav from './DashNav.astro';
+import WorkspaceSwitcher from './WorkspaceSwitcher.astro';
+import AccountMenu from './AccountMenu.astro';
+import { screenHref, type Workspace } from '../../lib/dashboard';
+import { siteUrl } from '../../lib/sites';
+
+interface Props { workspace: Workspace; current: string; title: string }
+const { workspace, current, title } = Astro.props;
+const flat = workspace.nav.flatMap((g) => g.items);
+const tabs = flat.slice(0, 4);
+const notifSlug = flat.find((i) => i.slug === 'notifications');
+const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('web', '/account/notifications');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>{`${title} · ${workspace.name} (demo) | ${workspace.program}`}</title>
+  </head>
+  <body class="dash bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
+    <a href="#dash-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
+    <DemoModeBanner staff={workspace.staff} />
+    <div class="lg:grid lg:min-h-[calc(100vh-36px)] lg:grid-cols-[256px_1fr]">
+      <aside class="hidden bg-charcoal text-cream lg:flex lg:flex-col" data-surface="dark">
+        <div class="sticky top-0 flex max-h-screen flex-col overflow-y-auto">
+          <div class="border-b border-white/10 px-5 py-5">
+            <a href={siteUrl('web', '/')} class="block text-cream" aria-label="Gamo Studios home"><Logo width={132} height={24} /></a>
+            <p class="mt-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p>
+            <p class="text-[13px] text-cream/70">{workspace.name}</p>
+          </div>
+          <div class="flex-1 px-3 py-5"><DashNav workspace={workspace} current={current} /></div>
+          <div class="border-t border-white/10 px-5 py-4 text-[12px] text-cream/60">
+            <p><span class="text-cream/90">Role:</span> {workspace.role}</p>
+            {workspace.organization && <p><span class="text-cream/90">Organization:</span> {workspace.organization}</p>}
+            <p><span class="text-cream/90">Permission:</span> {workspace.permission}</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0 pb-20 lg:pb-0">
+        <header class="sticky top-0 z-40 border-b border-sand bg-ivory/95 backdrop-blur">
+          <div class="flex h-14 items-center gap-2 px-3 sm:px-5 lg:h-16 lg:px-8">
+            <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white lg:hidden" data-drawer-open aria-controls="dash-drawer" aria-label="Open workspace menu"><Icon name="menu" class="h-5 w-5" /></button>
+            <a href={siteUrl('web', '/')} class="text-charcoal lg:hidden" aria-label="Gamo Studios home"><Logo width={104} height={20} /></a>
+            <div class="hidden min-w-0 md:block"><WorkspaceSwitcher currentId={workspace.id} /></div>
+            <form role="search" class="ml-auto hidden max-w-sm flex-1 md:block" data-dash-search onsubmit="return false">
+              <label class="relative block"><span class="sr-only">Search this workspace</span>
+                <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+                <input type="search" placeholder="Search this page (demo)" class="h-10 w-full rounded-lg border border-sand bg-white pl-9 pr-3 text-[14px] placeholder:text-ink-soft/70" data-dash-search-input />
+              </label>
+            </form>
+            <a href={notifHref} class="relative ml-auto grid h-10 w-10 place-items-center rounded-lg hover:bg-white md:ml-0" aria-label="Notifications (3 sample)"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
+            <AccountMenu />
+          </div>
+          <div class="border-t border-sand px-3 py-2 md:hidden"><WorkspaceSwitcher currentId={workspace.id} /></div>
+        </header>
+
+        <main id="dash-main" class="mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <dialog id="dash-drawer" class="m-0 h-full max-h-none w-[min(20rem,88vw)] max-w-none bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
+      <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+        <div><p class="text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p><p class="text-[13px] text-cream/75">{workspace.name}</p></div>
+        <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white/10" data-drawer-close aria-label="Close menu"><Icon name="x" class="h-5 w-5" /></button>
+      </div>
+      <div class="px-3 py-4"><DashNav workspace={workspace} current={current} /></div>
+    </dialog>
+
+    <nav aria-label="Quick navigation" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-sand bg-white lg:hidden">
+      {tabs.map((t) => (
+        <a href={screenHref(workspace, t.slug)} aria-current={t.slug === current ? 'page' : undefined} class:list={['flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium', t.slug === current ? 'text-terracotta-dark' : 'text-ink-soft']}>
+          <Icon name={t.icon} class="h-5 w-5" strokeWidth={1.8} /><span class="max-w-full truncate">{t.label}</span>
+        </a>
+      ))}
+      <button type="button" data-drawer-open aria-controls="dash-drawer" class="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-soft"><Icon name="grid" class="h-5 w-5" strokeWidth={1.8} />More</button>
+    </nav>
+
+    <script>
+      import { initDashboard } from '../../lib/dashboard-client';
+      initDashboard();
+    </script>
+  </body>
+</html>

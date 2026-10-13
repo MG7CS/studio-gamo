@@ -1,0 +1,75 @@
+---
+/** Multi-step onboarding (client-side Back/Next only). Nothing is sent or stored. */
+import FormFields from '@studio-gamo/ui/components/dashboard/FormFields.astro';
+import { onboardingSteps } from '../../data/account-entry';
+const total = onboardingSteps.length + 1;
+const labels = [...onboardingSteps.map((s) => s.label), 'Review'];
+const btn = 'inline-flex min-h-10 items-center rounded-lg px-4 text-[14px] font-semibold';
+---
+<div data-onboarding>
+  <ol class="mb-6 grid grid-cols-4 gap-2" aria-label="Onboarding progress">
+    {labels.map((l, i) => (
+      <li data-step-dot={i} class="text-[11px] font-semibold leading-4 text-ink-soft">
+        <span class="mb-1.5 block h-1.5 rounded-full bg-sand" data-bar></span><span class="hidden sm:inline">{l}</span><span class="sm:hidden">{i + 1}</span>
+      </li>
+    ))}
+  </ol>
+  <form novalidate onsubmit="return false">
+    {onboardingSteps.map((s, i) => (
+      <fieldset data-step={i} hidden={i !== 0}>
+        <legend class="mb-4 text-[16px] font-semibold">Step {i + 1} of {total} · {s.label}</legend>
+        <FormFields fields={s.fields} idPrefix={`onb-${s.id}`} />
+      </fieldset>
+    ))}
+    <fieldset data-step={total - 1} hidden>
+      <legend class="mb-4 text-[16px] font-semibold">Step {total} of {total} · Review</legend>
+      <dl data-review class="divide-y divide-sand rounded-lg border border-sand text-[14px]"></dl>
+      <p class="mt-3 text-[12px] text-ink-soft">Finishing opens the demo account hub. Nothing is saved.</p>
+    </fieldset>
+    <div class="mt-6 flex items-center justify-between gap-3">
+      <button type="button" data-back class:list={[btn, 'border border-sand bg-white hover:border-charcoal/30']} disabled>Back</button>
+      <button type="button" data-next class:list={[btn, 'bg-terracotta text-white hover:bg-terracotta-dark']}>Next</button>
+    </div>
+  </form>
+</div>
+<script>
+  const root = document.querySelector<HTMLElement>('[data-onboarding]');
+  if (root) {
+    const steps = Array.from(root.querySelectorAll<HTMLFieldSetElement>('[data-step]'));
+    const dots = Array.from(root.querySelectorAll<HTMLElement>('[data-step-dot]'));
+    const back = root.querySelector<HTMLButtonElement>('[data-back]')!;
+    const next = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    const review = root.querySelector<HTMLElement>('[data-review]')!;
+    let cur = 0;
+    const render = () => {
+      steps.forEach((s, i) => (s.hidden = i !== cur));
+      dots.forEach((d, i) => {
+        d.querySelector('[data-bar]')!.className = `mb-1.5 block h-1.5 rounded-full ${i <= cur ? 'bg-terracotta' : 'bg-sand'}`;
+        if (i === cur) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
+      });
+      back.disabled = cur === 0;
+      next.textContent = cur === steps.length - 1 ? 'Finish (demo)' : 'Next';
+      if (cur === steps.length - 1) {
+        review.replaceChildren();
+        steps.slice(0, -1).forEach((s) => s.querySelectorAll<HTMLInputElement>('input, select').forEach((el) => {
+          const label = s.querySelector(`label[for="${el.id}"]`)?.textContent ?? el.closest('label')?.textContent ?? el.name;
+          const val = el.type === 'checkbox' ? (el.checked ? 'Yes' : '') : el.value;
+          if (!val) return;
+          const row = document.createElement('div'); row.className = 'flex flex-wrap justify-between gap-2 px-3 py-2';
+          const dt = document.createElement('dt'); dt.className = 'text-ink-soft'; dt.textContent = label.replace(/\s*\*$/, '');
+          const dd = document.createElement('dd'); dd.className = 'font-semibold'; dd.textContent = val;
+          row.append(dt, dd); review.append(row);
+        }));
+      }
+      steps[cur].querySelector<HTMLElement>('legend')?.focus?.();
+    };
+    next.addEventListener('click', () => {
+      const req = Array.from(steps[cur].querySelectorAll<HTMLInputElement>('[required]')).find((el) => !el.value.trim());
+      if (req) { req.setAttribute('aria-invalid', 'true'); req.focus(); return; }
+      if (cur === steps.length - 1) { window.location.href = '/account'; return; }
+      cur++; render();
+    });
+    back.addEventListener('click', () => { if (cur > 0) { cur--; render(); } });
+    render();
+  }
+</script>

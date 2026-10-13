@@ -4,7 +4,7 @@
  * navigation works both locally (fixed dev ports) and on the planned production domains.
  * Production domains are planned routes; nothing is deployed by this helper.
  */
-export type SiteKey = 'web' | 'worship' | 'academy' | 'live' | 'production';
+export type SiteKey = 'web' | 'worship' | 'academy' | 'live' | 'production' | 'admin';
 
 export const PRODUCTION_ORIGINS: Record<SiteKey, string> = {
   web: 'https://gamostudios.com',
@@ -12,6 +12,8 @@ export const PRODUCTION_ORIGINS: Record<SiteKey, string> = {
   academy: 'https://academy.gamostudios.com',
   live: 'https://live.gamostudios.com',
   production: 'https://production.gamostudios.com',
+  /** Staff-only operations app (planned; future Cloudflare Access + server authorization). */
+  admin: 'https://admin.gamostudios.com',
 };
 
 /** Local dev ports — kept in sync with each app's astro.config.mjs `server.port`. */
@@ -21,6 +23,7 @@ export const DEV_PORTS: Record<SiteKey, number> = {
   academy: 4323,
   live: 4324,
   production: 4325,
+  admin: 4326,
 };
 
 const isDev = (): boolean => {

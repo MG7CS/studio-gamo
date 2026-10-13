@@ -1,0 +1,52 @@
+---
+/** Renders a typed list of dashboard blocks in a responsive 3-column grid. */
+import Panel from './Panel.astro';
+import StatGrid from './StatGrid.astro';
+import DataTable from './DataTable.astro';
+import ItemList from './ItemList.astro';
+import Agenda from './Agenda.astro';
+import MonthCalendar from './MonthCalendar.astro';
+import StepList from './StepList.astro';
+import KeyValueList from './KeyValueList.astro';
+import InlineNotice from './InlineNotice.astro';
+import QuickActions from './QuickActions.astro';
+import DashForm from './DashForm.astro';
+import SettingsPanel from './SettingsPanel.astro';
+import ProgressList from './ProgressList.astro';
+import CardGrid from './CardGrid.astro';
+import Statement from './Statement.astro';
+import StateView from './StateView.astro';
+import DashDialog from './DashDialog.astro';
+import type { DashBlock } from '../../lib/dashboard';
+interface Props { blocks: DashBlock[]; idPrefix?: string }
+const { blocks, idPrefix = 'blk' } = Astro.props;
+const spanCls = (b: DashBlock) => {
+  const s = b.span ?? (['stats', 'notice', 'table', 'cards'].includes(b.type) ? 3 : 1);
+  return s === 3 ? 'lg:col-span-3' : s === 2 ? 'lg:col-span-2' : 'lg:col-span-1';
+};
+---
+<div class="grid gap-4 lg:grid-cols-3 lg:gap-5">
+  {blocks.map((b, i) => {
+    const cls = spanCls(b);
+    if (b.type === 'dialog') return <DashDialog id={b.id} title={b.title ?? 'Confirm'} body={b.body} fields={b.fields} confirmLabel={b.confirmLabel} successText={b.successText} />;
+    if (b.type === 'stats') return <div class={cls}>{b.title && <h2 class="mb-2 text-[16px] font-semibold">{b.title}</h2>}<StatGrid items={b.items} /></div>;
+    if (b.type === 'notice') return <div class={cls}><InlineNotice tone={b.tone} title={b.title} body={b.body} /></div>;
+    if (b.type === 'empty') return <div class={cls}><StateView state="empty" title={b.title} body={b.body} /></div>;
+    return (
+      <Panel title={b.title} description={b.description} action={b.action} class={cls}>
+        {b.type === 'table' && <DataTable columns={b.columns} rows={b.rows} filter={b.filter} filterOptions={b.filterOptions} filterKey={b.filterKey} emptyText={b.emptyText} caption={b.title} />}
+        {b.type === 'list' && <ItemList items={b.items} />}
+        {b.type === 'agenda' && <Agenda items={b.items} />}
+        {b.type === 'calendar' && <MonthCalendar month={b.month} startDay={b.startDay} days={b.days} events={b.events} />}
+        {b.type === 'steps' && <StepList items={b.items} />}
+        {b.type === 'kv' && <KeyValueList items={b.items} />}
+        {b.type === 'actions' && <QuickActions items={b.items} />}
+        {b.type === 'form' && <DashForm id={b.id ?? `${idPrefix}-${i}`} fields={b.fields} submitLabel={b.submitLabel} successText={b.successText} />}
+        {b.type === 'settings' && <SettingsPanel groups={b.groups} />}
+        {b.type === 'progress' && <ProgressList items={b.items} />}
+        {b.type === 'cards' && <CardGrid items={b.items} />}
+        {b.type === 'statement' && <Statement lines={b.lines} total={b.total} footnote={b.footnote} />}
+      </Panel>
+    );
+  })}
+</div>

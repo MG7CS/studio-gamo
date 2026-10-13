@@ -1,0 +1,7 @@
+---
+/** Musician workspace (demo). One dynamic route renders every screen from typed data. */
+import '../../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { musicianWorkspace } from '../../data/workspaces/musician';
+---
+<WorkspaceScreen workspace={musicianWorkspace} slug={Astro.params.slug} />

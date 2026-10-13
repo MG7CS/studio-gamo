@@ -1,0 +1,7 @@
+---
+/** Organizer workspace (demo). One dynamic route renders every screen from typed data. */
+import '../../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { organizerWorkspace } from '../../data/workspaces/organizer';
+---
+<WorkspaceScreen workspace={organizerWorkspace} slug={Astro.params.slug} />

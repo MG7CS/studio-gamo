@@ -1,0 +1,7 @@
+---
+/** Internal staff operations workspace (demo). One dynamic route renders every screen from typed data. */
+import '../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { adminWorkspace } from '../data/workspace';
+---
+<WorkspaceScreen workspace={adminWorkspace} slug={Astro.params.slug} />

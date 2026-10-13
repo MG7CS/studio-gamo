@@ -1,0 +1,19 @@
+---
+/** Summary metric cards. Values are always sample figures in this phase. */
+import Icon from '../Icon.astro';
+import type { IconName } from '../../lib/icons';
+interface Props { items: { label: string; value: string; hint?: string; icon?: IconName }[] }
+const { items } = Astro.props;
+---
+<ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary (sample figures)">
+  {items.map((s) => (
+    <li class="rounded-2xl border border-sand bg-white p-4 shadow-[0_1px_2px_rgb(29_35_35/0.04)]" data-search-item>
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-[12px] font-medium text-ink-soft sm:text-[13px]">{s.label}</p>
+        {s.icon && <Icon name={s.icon} class="h-4 w-4 text-terracotta-dark" strokeWidth={1.8} />}
+      </div>
+      <p class="mt-2 text-[24px] font-semibold leading-none tracking-[-0.02em] sm:text-[26px]">{s.value}</p>
+      {s.hint && <p class="mt-2 text-[12px] text-ink-soft">{s.hint}</p>}
+    </li>
+  ))}
+</ul>

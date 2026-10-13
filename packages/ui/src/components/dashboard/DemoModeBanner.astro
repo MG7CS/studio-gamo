@@ -1,0 +1,15 @@
+---
+/**
+ * Conspicuous demo-mode disclosure shown at the top of every authenticated preview.
+ * It states that no one is signed in and that the persona is fictional.
+ */
+import Icon from '../Icon.astro';
+import { DEMO_PERSONA } from '../../lib/dashboard';
+interface Props { staff?: boolean }
+const { staff = false } = Astro.props;
+---
+<div role="note" data-demo-banner class:list={['flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-[12px] font-semibold leading-5', staff ? 'bg-[#5C2A1A] text-cream' : 'bg-gold text-[#3E2614]']}>
+  <span class="inline-flex items-center gap-1.5 uppercase tracking-[0.14em]"><Icon name="info" class="h-3.5 w-3.5" strokeWidth={2.2} />Demo mode</span>
+  <span class="font-medium sm:hidden">Not signed in · fictional persona · nothing is saved{staff ? ' · not a secured portal' : ''}</span>
+  <span class="hidden font-medium sm:inline">Not signed in · {DEMO_PERSONA.name} is a {DEMO_PERSONA.note.toLowerCase()} · all records are samples · nothing is saved, sent, charged or published{staff ? ' · not a secured staff portal' : ''}</span>
+</div>

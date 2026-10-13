@@ -1,0 +1,17 @@
+---
+/** Labelled progress bars (e.g. learning tracks, readiness checklists). */
+interface Props { items: { label: string; value: number; note?: string }[] }
+const { items } = Astro.props;
+---
+<ul class="space-y-4">
+  {items.map((p) => {
+    const v = Math.max(0, Math.min(100, p.value));
+    return (
+      <li data-search-item>
+        <div class="flex items-baseline justify-between gap-3"><p class="text-[14px] font-medium">{p.label}</p><p class="text-[13px] font-semibold tabular-nums">{v}%</p></div>
+        <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-sand/60" role="progressbar" aria-label={p.label} aria-valuenow={v} aria-valuemin="0" aria-valuemax="100"><div class="h-full rounded-full bg-terracotta" style={`width:${v}%`} /></div>
+        {p.note && <p class="mt-1 text-[12px] text-ink-soft">{p.note}</p>}
+      </li>
+    );
+  })}
+</ul>

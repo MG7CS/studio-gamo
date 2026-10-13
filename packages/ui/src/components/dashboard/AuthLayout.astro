@@ -1,0 +1,45 @@
+---
+/**
+ * Focused account-entry layout (sign in, sign up, recovery, onboarding…) for the design-first demo.
+ * Full document with the demo banner, a centered card and noindex meta. No sidebar.
+ * The importing page must import its app stylesheet. Nothing here authenticates anyone.
+ */
+import Logo from '../Logo.astro';
+import DemoModeBanner from './DemoModeBanner.astro';
+import { siteUrl } from '../../lib/sites';
+interface Props { title: string; heading: string; intro?: string; wide?: boolean }
+const { title, heading, intro, wide = false } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>{`${title} (demo) | Gamo Studios`}</title>
+  </head>
+  <body class="dash min-h-screen bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
+    <a href="#auth-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
+    <DemoModeBanner />
+    <main id="auth-main" class="flex justify-center px-4 py-10 sm:py-16">
+      <div class:list={['w-full', wide ? 'max-w-[640px]' : 'max-w-[440px]']}>
+        <a href={siteUrl('web', '/')} class="mx-auto mb-8 block w-fit" aria-label="Gamo Studios home"><Logo width={150} height={28} /></a>
+        <div class="@container rounded-2xl border border-sand bg-white p-6 shadow-sm sm:p-8">
+          <h1 class="text-[26px] font-semibold leading-tight tracking-tight">{heading}</h1>
+          {intro && <p class="mt-2 text-[15px] text-ink-soft">{intro}</p>}
+          <div class="mt-6"><slot /></div>
+        </div>
+        <div class="mt-6 text-center text-[12px] text-ink-soft"><slot name="footer" /></div>
+      </div>
+    </main>
+    <script>
+      import { initDashboard } from '../../lib/dashboard-client';
+      initDashboard();
+    </script>
+  </body>
+</html>

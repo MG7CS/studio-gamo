@@ -1,0 +1,22 @@
+---
+/** Card surface with optional heading, description and header action. */
+import Icon from '../Icon.astro';
+import type { DashAction } from '../../lib/dashboard';
+interface Props { title?: string; description?: string; action?: DashAction; class?: string; padded?: boolean; headingLevel?: 'h2' | 'h3' }
+const { title, description, action, class: className, padded = true, headingLevel = 'h2' } = Astro.props;
+const H = headingLevel;
+---
+<section class:list={['min-w-0 rounded-2xl border border-sand bg-white shadow-[0_1px_2px_rgb(29_35_35/0.04)]', className]} data-search-item>
+  {(title || action) && (
+    <header class="flex flex-wrap items-start justify-between gap-3 border-b border-sand/70 px-4 py-3.5 sm:px-5">
+      <div class="min-w-0">
+        {title && <H class="text-[16px] font-semibold leading-6 tracking-[-0.01em] sm:text-[17px]">{title}</H>}
+        {description && <p class="mt-0.5 text-[13px] text-ink-soft">{description}</p>}
+      </div>
+      {action && (action.dialog
+        ? <button type="button" data-dialog-open={action.dialog} class="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-semibold text-terracotta-dark hover:bg-cream">{action.icon && <Icon name={action.icon} class="h-4 w-4" />}{action.label}</button>
+        : <a href={action.href} class="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-semibold text-terracotta-dark hover:bg-cream">{action.label}<Icon name={action.icon ?? 'chevron-right'} class="h-4 w-4" /></a>)}
+    </header>
+  )}
+  <div class:list={['@container', padded && 'p-4 sm:p-5']}><slot /></div>
+</section>

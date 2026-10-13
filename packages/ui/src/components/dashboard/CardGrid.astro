@@ -1,0 +1,27 @@
+---
+/** Compact entity cards (people, programs, projects, resources). */
+import Icon from '../Icon.astro';
+import StatusPill from '../StatusPill.astro';
+import type { BadgeValue } from '../../lib/dashboard';
+import type { IconName } from '../../lib/icons';
+interface Props { items: { title: string; meta?: string; body?: string; badge?: BadgeValue; href?: string; icon?: IconName }[] }
+const { items } = Astro.props;
+---
+<ul class="grid gap-3 @xl:grid-cols-2 @4xl:grid-cols-3">
+  {items.map((c) => {
+    const Tag = c.href ? 'a' : 'div';
+    return (
+      <li data-search-item>
+        <Tag href={c.href} class:list={['flex h-full flex-col rounded-xl border border-sand/80 bg-ivory p-4', c.href && 'hover:border-charcoal/30 hover:bg-white']}>
+          <div class="flex items-start justify-between gap-2">
+            {c.icon && <span class="grid h-9 w-9 place-items-center rounded-lg bg-white text-terracotta-dark ring-1 ring-sand"><Icon name={c.icon} class="h-[18px] w-[18px]" strokeWidth={1.8} /></span>}
+            {c.badge && <StatusPill kind={c.badge.tone ?? 'info'}>{c.badge.badge}</StatusPill>}
+          </div>
+          <h3 class="mt-3 text-[15px] font-semibold leading-5">{c.title}</h3>
+          {c.meta && <p class="mt-0.5 text-[12px] text-ink-soft">{c.meta}</p>}
+          {c.body && <p class="mt-2 text-[13px] text-charcoal/80">{c.body}</p>}
+        </Tag>
+      </li>
+    );
+  })}
+</ul>

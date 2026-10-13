@@ -1,0 +1,9 @@
+---
+import '../../app.css';
+import AuthLayout from '@studio-gamo/ui/components/dashboard/AuthLayout.astro';
+import OnboardingSteps from '../../components/account/OnboardingSteps.astro';
+---
+<AuthLayout title="Onboarding" heading="Welcome — let’s set up your account" intro="A few questions so we can show the right programs. You can change everything later." wide>
+  <OnboardingSteps />
+  <p slot="footer">Design preview · answers stay in this tab and are never sent.</p>
+</AuthLayout>

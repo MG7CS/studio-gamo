@@ -1,0 +1,30 @@
+---
+/** Account menu: persona summary, account links and the demo sign-out preview. */
+import Icon from '../Icon.astro';
+import { DEMO_PERSONA } from '../../lib/dashboard';
+import { siteUrl } from '../../lib/sites';
+const links: [string, string, 'user' | 'settings' | 'bell' | 'users' | 'logout'][] = [
+  ['Profile', siteUrl('web', '/account/profile'), 'user'],
+  ['Roles & organizations', siteUrl('web', '/account/roles'), 'users'],
+  ['Notifications', siteUrl('web', '/account/notifications'), 'bell'],
+  ['Account settings', siteUrl('web', '/account/settings'), 'settings'],
+];
+---
+<details class="dash-menu relative" data-dash-menu>
+  <summary class="flex h-10 cursor-pointer list-none items-center gap-2 rounded-full pl-1 pr-2 hover:bg-white [&::-webkit-details-marker]:hidden">
+    <span class="grid h-8 w-8 place-items-center rounded-full bg-charcoal text-[12px] font-semibold text-cream" aria-hidden="true">{DEMO_PERSONA.initials}</span>
+    <Icon name="chevron-down" class="hidden h-4 w-4 text-ink-soft sm:block" />
+    <span class="sr-only">Account menu for {DEMO_PERSONA.name} (demo)</span>
+  </summary>
+  <div class="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-sand bg-white p-2 shadow-xl">
+    <div class="px-2 py-2">
+      <p class="text-[14px] font-semibold">{DEMO_PERSONA.name}</p>
+      <p class="text-[12px] text-ink-soft">{DEMO_PERSONA.email}</p>
+      <p class="mt-1.5 inline-block rounded bg-gold/30 px-1.5 py-0.5 text-[11px] font-semibold text-[#5C3A20]">{DEMO_PERSONA.note}</p>
+    </div>
+    <ul class="border-t border-sand/70 pt-1">
+      {links.map(([label, href, icon]) => <li><a href={href} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] hover:bg-cream"><Icon name={icon} class="h-4 w-4 text-ink-soft" />{label}</a></li>)}
+      <li class="mt-1 border-t border-sand/70 pt-1"><a href={siteUrl('web', '/account/signed-out')} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] hover:bg-cream"><Icon name="logout" class="h-4 w-4 text-ink-soft" />Exit demo (sign-out preview)</a></li>
+    </ul>
+  </div>
+</details>

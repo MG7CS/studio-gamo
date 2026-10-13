@@ -1,0 +1,7 @@
+---
+/** Church Partner & Supporter workspace (demo). One dynamic route renders every screen from typed data. */
+import '../../app.css';
+import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
+import { partnerWorkspace } from '../../data/workspaces/partner';
+---
+<WorkspaceScreen workspace={partnerWorkspace} slug={Astro.params.slug} />
