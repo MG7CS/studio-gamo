@@ -1,28 +1,26 @@
 ---
 import Icon from '../editorial/Icon.astro';
 import Logo from '@studio-gamo/ui/components/Logo.astro';
-const churchLinks = [
-  { label: 'Find a Musician', url: 'https://worship.gamostudios.com/' },
-  { label: 'How It Works', url: '/#coverage' },
-  { label: 'Pricing & Plans', url: 'https://worship.gamostudios.com/' },
-  { label: 'Success Stories', url: '/#stories' },
-  { label: 'Church Resources', url: 'https://worship.gamostudios.com/' },
-  { label: 'Get Started', url: 'https://worship.gamostudios.com/' },
-];
-const musicianLinks = [
-  { label: 'Join the Collection', url: 'https://worship.gamostudios.com/apply/start' },
-  { label: 'Audition Process', url: 'https://worship.gamostudios.com/apply/start' },
-  { label: 'Opportunities', url: 'https://worship.gamostudios.com/' },
-  { label: 'Resources', url: 'https://worship.gamostudios.com/' },
-  { label: 'Musician Portal', url: 'https://worship.gamostudios.com/' },
-  { label: 'Get Started', url: 'https://worship.gamostudios.com/apply/start' },
-];
-const exploreLinks = [
+const programLinks = [
+  { label: 'Gamo Worship', url: 'https://worship.gamostudios.com/' },
   { label: 'Gamo Academy', url: 'https://academy.gamostudios.com/' },
   { label: 'Gamo Live', url: 'https://live.gamostudios.com/' },
-  { label: 'Upcoming Events', url: 'https://live.gamostudios.com/' },
-  { label: 'A/V Production', url: 'https://production.gamostudios.com/' },
-  { label: 'About Us', url: '/#musicians' },
+  { label: 'Gamo Production', url: 'https://production.gamostudios.com/' },
+  { label: 'How It Works', url: '/#coverage' },
+  { label: 'Upcoming Events', url: '/#upcoming-events' },
+];
+const involvedLinks = [
+  { label: 'Request a Musician', url: 'https://worship.gamostudios.com/' },
+  { label: 'Join the Collection', url: 'https://worship.gamostudios.com/apply/start' },
+  { label: 'Find a Lesson', url: 'https://academy.gamostudios.com/' },
+  { label: 'Promote an Event', url: 'https://live.gamostudios.com/promote' },
+  { label: 'Church Partnerships', url: '/partners' },
+  { label: 'Opportunities to Support', url: '/support' },
+];
+const organizationLinks = [
+  { label: 'Our Mission', url: '/mission' },
+  { label: 'Nonprofit Status', url: '#status' },
+  { label: 'Musician Portal', url: 'https://worship.gamostudios.com/' },
   { label: 'Contact', url: '/contact' },
 ];
 // Placeholder social destinations; no real accounts are linked during the design phase.
@@ -40,7 +38,7 @@ const socials = [
       <div class="col-span-2 lg:col-span-1">
         <a href="/" class="inline-flex items-center" aria-label="Gamo Studios homepage"><Logo width="210" height="45" /></a>
         <p class="mt-5 max-w-[300px] text-base leading-relaxed text-[#D8D4D0]">
-          Connecting churches with vetted musicians, supporting music education, and bringing communities together through live events.
+          Strengthening Christian worship and community by developing musical talent, connecting churches with skilled musicians, expanding music education, and helping people discover Christian events.
         </p>
         <ul class="mt-7 flex gap-3" aria-label="Social media (placeholders)">
           {socials.map((s) => (
@@ -48,21 +46,21 @@ const socials = [
           ))}
         </ul>
       </div>
-      <nav aria-label="For churches">
-        <h2 class="mb-5 text-base font-semibold text-white">For Churches</h2>
-        <ul class="space-y-3">{churchLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      <nav aria-label="Programs">
+        <h2 class="mb-5 text-base font-semibold text-white">Programs</h2>
+        <ul class="space-y-3">{programLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
       </nav>
-      <nav aria-label="For musicians">
-        <h2 class="mb-5 text-base font-semibold text-white">For Musicians</h2>
-        <ul class="space-y-3">{musicianLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      <nav aria-label="Get involved">
+        <h2 class="mb-5 text-base font-semibold text-white">Get Involved</h2>
+        <ul class="space-y-3">{involvedLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
       </nav>
-      <nav aria-label="Explore Gamo Studios">
-        <h2 class="mb-5 text-base font-semibold text-white">Explore</h2>
-        <ul class="space-y-3">{exploreLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
+      <nav aria-label="Organization">
+        <h2 class="mb-5 text-base font-semibold text-white">Organization</h2>
+        <ul class="space-y-3">{organizationLinks.map((item) => <li><a href={item.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{item.label}</a></li>)}</ul>
       </nav>
       <div class="col-span-2 lg:col-span-1">
         <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
-        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">Get updates on new musicians, upcoming events, and resources for your church.</p>
+        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">Get updates on our programs, upcoming events, and ways to get involved.</p>
         <!-- Visual preview only: no newsletter service exists during the design phase. -->
         <div class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5">
           <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/75">Your email address</span>
@@ -71,13 +69,17 @@ const socials = [
         <p class="mt-2 text-xs text-[#D7AD86]">Newsletter sign-up coming soon</p>
       </div>
     </div>
-    <div class="mt-16 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
+    <!-- Legal status statement: keep in sync with docs/GAMO_NONPROFIT_MODEL.md §2.1. Do not claim 501(c)(3) status or tax-deductibility until confirmed. -->
+    <p id="status" class="mt-16 max-w-3xl text-xs leading-relaxed text-[#D8D4D0]/80">
+      Gamo Studios is a developing Christian nonprofit initiative. Nonprofit incorporation and federal tax-exempt recognition are pending, and contributions are not currently tax-deductible.
+    </p>
+    <div class="mt-6 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
       <p>© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
       <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
         <a href="/legal/privacy" class="hover:text-white">Privacy Policy</a>
         <a href="/legal/terms" class="hover:text-white">Terms of Service</a>
         <a href="/legal/cookies" class="hover:text-white">Cookie Policy</a>
-        <a href="/contact" class="hover:text-white">Help Center</a>
+        <a href="/contact" class="hover:text-white">Contact</a>
       </nav>
     </div>
   </div>

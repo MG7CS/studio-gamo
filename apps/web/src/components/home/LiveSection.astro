@@ -6,18 +6,18 @@ import InitialsAvatar from '../editorial/InitialsAvatar.astro';
 
 const liveModes = [
   {
-    id: 'promote', label: 'Promote Events', cta: 'Promote an Event', href: 'https://live.gamostudios.com/promote',
-    description: 'Churches and organizers: we advertise your concerts and worship nights across social media and our website, and handle ticketing so people can easily get tickets.',
+    id: 'promote', label: 'Promote Event', cta: 'Promote an Event', href: 'https://live.gamostudios.com/promote',
+    description: 'Churches, ministries, and Christian artists: share your worship nights, concerts, and gatherings, with optional registration and ticketing.',
   },
   {
     id: 'explore', label: 'Explore Events', cta: 'Explore Events', href: 'https://live.gamostudios.com/',
-    description: 'Discover concerts, worship nights, and choir tours near you — and get your tickets in a few taps.',
+    description: 'Find worship nights, gospel concerts, conferences, Bible studies, and free community gatherings near you.',
   },
 ];
 ---
 <section id="live" aria-labelledby="live-title" class="relative overflow-hidden bg-[#F4EDE3]">
   <div class="mx-auto max-w-[1536px]">
-    <div class="relative flex min-h-[100svh] flex-col justify-center py-8 lg:block lg:min-h-[610px] lg:py-0">
+    <div class="relative flex min-h-[100svh] flex-col justify-center py-8 lg:block lg:min-h-[700px] lg:py-0">
       <!-- Curved performance photo: not a generic image card. -->
       <div class="live-photo relative order-1 mx-5 h-[32svh] min-h-[160px] [@media(max-height:720px)]:h-[25svh] overflow-hidden rounded-[28px] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:h-full lg:w-[70%] lg:rounded-none">
         <ResponsivePicture stem="photo-oct-12-2026-at-10-50-32-am-9" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 70vw, 100vw" alt="Concertgoers gathered for a live worship event" class="h-full w-full object-cover object-center" />
@@ -26,7 +26,7 @@ const liveModes = [
       <div class="relative z-10 order-2 mt-6 px-6 sm:px-12 lg:absolute lg:left-0 lg:top-[15%] lg:w-[40%] lg:px-[4.5%] lg:py-0">
         <SectionEyebrow label="Gamo Live" />
         <h2 id="live-title" class="mt-4 lg:mt-7 section-heading text-[#1D2323]">
-          Promote Your Events. <span class="block text-[#B65B35]">Bring People Together.</span>
+          Christian Events. <span class="block text-[#B65B35]">Bring People Together.</span>
         </h2>
         <div data-live-toggle>
           <div role="tablist" aria-label="Gamo Live options" class="mt-6 inline-flex rounded-full border border-[#1D2323]/15 bg-white/60 p-1">
@@ -44,8 +44,8 @@ const liveModes = [
         </div>
       </div>
       <div class="relative z-20 order-3 hidden lg:block max-w-[325px] rounded-[23px] border border-white/30 bg-[#202627]/90 p-5 text-white shadow-2xl backdrop-blur-xl sm:mx-10 lg:absolute lg:right-[13%] lg:bottom-[9%] lg:mx-0 lg:mt-0">
-        <span class="mb-3 inline-block rounded-full bg-[#B65B35] px-3 py-1 text-[11px] font-semibold uppercase tracking-widest">Live</span>
-        <h3 class="max-w-[250px] text-xl font-bold leading-tight">Grace Community Worship Night</h3>
+        <span class="mb-3 inline-block rounded-full bg-[#B65B35] px-3 py-1 text-[11px] font-semibold uppercase tracking-widest">Sample Event</span>
+        <h3 class="max-w-[250px] text-xl font-bold leading-tight">Community Worship Night</h3>
         <p class="sr-only">Illustrative event preview, not a real event</p>
         <div class="mt-4 flex items-center gap-2" aria-hidden="true">
           {Array.from({length:22},(_,i)=>i).map((i) => <span class="w-[3px] rounded-full bg-[#D7AD86]" style={{height: (8 + (i*7)%25) + 'px'}}></span>)}
