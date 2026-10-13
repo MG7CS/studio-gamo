@@ -1,0 +1,51 @@
+---
+/**
+ * Horizontal content rail with manual prev/next controls (no autoplay).
+ * Children are the slides; they snap and remain swipeable / keyboard-scrollable.
+ */
+import Icon from './Icon.astro';
+interface Props {
+  label: string;
+  tone?: 'light' | 'dark';
+  /** Gap utility between slides. */
+  gap?: string;
+  class?: string;
+  /** Hide the built-in controls (e.g. when the parent renders its own). */
+  controls?: boolean;
+}
+const { label, tone = 'light', gap = 'gap-5', class: className, controls = true } = Astro.props;
+const btn = tone === 'dark'
+  ? 'border-white/20 bg-white/10 text-cream hover:bg-white/20'
+  : 'border-sand bg-white text-charcoal hover:bg-cream';
+---
+<div class:list={['content-rail relative', className]} data-rail>
+  {controls && (
+    <div class="mb-5 flex justify-end gap-2">
+      <button type="button" data-rail-prev class:list={['flex h-11 w-11 items-center justify-center rounded-full border transition-colors disabled:opacity-40', btn]} aria-label={`Previous: ${label}`}><Icon name="chevron-left" class="h-5 w-5" strokeWidth={2} /></button>
+      <button type="button" data-rail-next class:list={['flex h-11 w-11 items-center justify-center rounded-full border transition-colors disabled:opacity-40', btn]} aria-label={`Next: ${label}`}><Icon name="chevron-right" class="h-5 w-5" strokeWidth={2} /></button>
+    </div>
+  )}
+  <div class:list={['scroll-rail pb-2', gap]} data-rail-track role="region" aria-label={label} tabindex="0">
+    <slot />
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rail]').forEach((rail) => {
+    const track = rail.querySelector<HTMLElement>('[data-rail-track]');
+    const prev = rail.querySelector<HTMLButtonElement>('[data-rail-prev]');
+    const next = rail.querySelector<HTMLButtonElement>('[data-rail-next]');
+    if (!track) return;
+    const step = () => (track.firstElementChild as HTMLElement | null)?.getBoundingClientRect().width ?? track.clientWidth * 0.8;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const update = () => {
+      if (prev) prev.disabled = track.scrollLeft <= 4;
+      if (next) next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    };
+    prev?.addEventListener('click', () => track.scrollBy({ left: -step() - 20, behavior: reduce ? 'auto' : 'smooth' }));
+    next?.addEventListener('click', () => track.scrollBy({ left: step() + 20, behavior: reduce ? 'auto' : 'smooth' }));
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
+</script>

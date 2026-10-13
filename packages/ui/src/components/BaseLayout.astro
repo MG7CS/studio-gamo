@@ -1,0 +1,70 @@
+---
+/**
+ * Shared document shell for every public Gamo Studios app.
+ * Each app's own Layout imports its `app.css` and then wraps this component.
+ */
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Active primary nav key. */
+  current?: string;
+  headerTheme?: 'light' | 'dark';
+  /** Background/text classes for <body>. */
+  bodyClass?: string;
+  /** Hide shared chrome for focused flows (e.g. sign-in, scanner). */
+  chrome?: boolean;
+}
+const {
+  title,
+  description = 'Gamo Studios is a developing Christian nonprofit strengthening worship and community through musicians, music education, Christian events and technical support.',
+  current,
+  headerTheme = 'light',
+  bodyClass = 'bg-cream text-charcoal',
+  chrome = true,
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <slot name="head" />
+  </head>
+  <body class:list={['font-sans antialiased', bodyClass]}>
+    {chrome && <SiteHeader current={current} theme={headerTheme} />}
+    <main id="main-content" class="overflow-x-clip">
+      <slot />
+    </main>
+    {chrome && <SiteFooter />}
+    <script>
+      // Progressive enhancement: reveal elements as they scroll into view.
+      document.documentElement.classList.add('js');
+      const items = document.querySelectorAll('[data-reveal]');
+      if (!('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('is-visible'));
+      } else {
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+        items.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>

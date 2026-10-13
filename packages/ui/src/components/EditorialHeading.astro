@@ -1,0 +1,26 @@
+---
+/** Editorial section heading: eyebrow, large title (optional terracotta accent line) and lede. */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Optional second line rendered in the accent colour. */
+  accent?: string;
+  lede?: string;
+  align?: 'left' | 'center';
+  tone?: 'light' | 'dark';
+  size?: 'display' | 'section' | 'sub';
+  as?: 'h1' | 'h2' | 'h3';
+  id?: string;
+  class?: string;
+}
+const { eyebrow, title, accent, lede, align = 'left', tone = 'light', size = 'section', as: Tag = 'h2', id, class: className } = Astro.props;
+const sizeClass = { display: 'display-lg', section: 'section-heading', sub: 'section-subheading' }[size];
+---
+<div class:list={[align === 'center' ? 'mx-auto text-center' : '', 'max-w-3xl', className]}>
+  {eyebrow && <p class:list={['eyebrow mb-4', tone === 'dark' ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
+  <Tag id={id} class:list={[sizeClass, tone === 'dark' ? 'text-cream' : 'text-charcoal', 'text-balance']}>
+    {title}{accent && <span class:list={['block', tone === 'dark' ? 'text-gold' : 'text-terracotta']}>{accent}</span>}
+  </Tag>
+  {lede && <p class:list={['mt-5 text-lg leading-relaxed', align === 'center' && 'mx-auto', 'max-w-2xl', tone === 'dark' ? 'text-cream/75' : 'text-ink-soft']}>{lede}</p>}
+  <slot />
+</div>

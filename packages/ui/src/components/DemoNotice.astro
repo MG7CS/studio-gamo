@@ -1,0 +1,17 @@
+---
+/**
+ * Clear design-phase disclosure. Use on every screen that shows sample data,
+ * demo forms or not-yet-available functionality.
+ */
+import Icon from './Icon.astro';
+interface Props {
+  title?: string;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { title = 'Design preview', tone = 'light', class: className } = Astro.props;
+---
+<aside role="note" class:list={['flex items-start gap-3 rounded-2xl px-4 py-3 text-sm', tone === 'dark' ? 'bg-white/10 text-cream/85' : 'bg-gold/20 text-[#5C3A20]', className]}>
+  <Icon name="info" class="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+  <p><strong class="font-semibold">{title}.</strong> <slot>Sample content shown for design review. Nothing is submitted, booked, charged or published.</slot></p>
+</aside>

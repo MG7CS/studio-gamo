@@ -1,25 +1,7 @@
 ---
-/** Small inline line-icon set (24px grid, stroke-based, inherits currentColor). */
-export type IconName =
-  | 'pin' | 'music' | 'church' | 'users' | 'check' | 'arrow' | 'arrow-left'
-  | 'play' | 'phone' | 'piano' | 'guitar' | 'drums' | 'mic' | 'verified';
-interface Props { name: IconName; class?: string; strokeWidth?: number }
-const { name, class: className = 'h-5 w-5', strokeWidth = 1.6 } = Astro.props;
-const paths: Record<IconName, string> = {
-  pin: 'M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.400-6.500 11-6.500 11Zm0-8.500a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5Z',
-  music: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
-  church: 'M12 2v5M9.500 4.500h5M12 7l5 3.500V21H7V10.500L12 7ZM3 21h18M10 21v-5a2 2 0 0 1 4 0v5M3 21v-7l4-2.500M21 21v-7l-4-2.500',
-  users: 'M16 20v-1.500a3.500 3.500 0 0 0-3.500-3.500h-5A3.500 3.500 0 0 0 4 18.500V20M10 11.500a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7ZM20 20v-1.500a3.500 3.500 0 0 0-2.500-3.300M15.500 4.700a3.500 3.500 0 0 1 0 6.600',
-  check: 'm5 12.500 4.500 4.500L19 7.500',
-  arrow: 'M5 12h14m-6-6 6 6-6 6',
-  'arrow-left': 'M19 12H5m6-6-6 6 6 6',
-  play: 'M8 5.500v13l11-6.500-11-6.500Z',
-  phone: 'M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A15 15 0 0 1 3 6a2 2 0 0 1 2-2Z',
-  piano: 'M3 6h18v12H3V6Zm4.500 0v7M12 6v12M16.500 6v7M7.500 13h0M3 13h18',
-  guitar: 'm20 4-6 6m-1.500-1.500 3 3M11 11.500a4 4 0 0 0-5.500 1l-.5 1.500a3 3 0 0 0-2 4.500 3 3 0 0 0 4.500 0 3 3 0 0 0 1.200-3.400l1.300-.600a4 4 0 0 0 1-2.500M17 3l4 4',
-  drums: 'M3 11c0 1.700 4 3 9 3s9-1.300 9-3-4-3-9-3-9 1.300-9 3Zm0 0v6c0 1.700 4 3 9 3s9-1.300 9-3v-6M7 3l4 5m6-5-4 5',
-  mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM6 11.500a6 6 0 0 0 12 0M12 17.500V21m-3 0h6',
-  verified: 'M12 2.500l2.300 1.700 2.800-.1.900 2.700 2.300 1.700-.9 2.700.9 2.700-2.300 1.700-.9 2.700-2.800-.1L12 21.500l-2.300-1.700-2.800.1-.9-2.700-2.300-1.700.9-2.700-.9-2.700 2.300-1.700.9-2.700 2.800.1L12 2.500Zm-3.500 9.500 2.500 2.500 4.500-4.500',
-};
+/** Re-exports the shared icon set so existing homepage components keep their import path. */
+import UiIcon from '@studio-gamo/ui/components/Icon.astro';
+export type { IconName } from '@studio-gamo/ui/components/Icon.astro';
+const props = Astro.props;
 ---
-<svg viewBox="0 0 24 24" class={className} fill="none" stroke="currentColor" stroke-width={strokeWidth} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>
+<UiIcon {...props} />

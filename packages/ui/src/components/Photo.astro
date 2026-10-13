@@ -1,0 +1,37 @@
+---
+/**
+ * Catalog-driven photo. Usage:
+ *   <Photo name="boyGuitar" sizes="(min-width:1024px) 40vw, 100vw" class="h-full w-full object-cover" />
+ * Pass `priority` only for the likely LCP image on a page.
+ */
+import ResponsivePicture from './ResponsivePicture.astro';
+import { photos, type PhotoKey } from '../lib/images';
+
+interface Props {
+  name: PhotoKey;
+  sizes: string;
+  class?: string;
+  pictureClass?: string;
+  /** Overrides the catalog alt. Use alt="" only when the photo is purely decorative. */
+  alt?: string;
+  /** Overrides the catalog focal point. */
+  position?: string;
+  priority?: boolean;
+}
+const { name, sizes, class: className = 'h-full w-full object-cover', pictureClass, alt, position, priority = false } = Astro.props;
+const p = photos[name];
+---
+<ResponsivePicture
+  stem={p.stem}
+  widths={p.widths}
+  width={p.width}
+  height={p.height}
+  sizes={sizes}
+  alt={alt ?? p.alt}
+  class={className}
+  pictureClass={pictureClass}
+  position={position ?? p.position}
+  loading={priority ? 'eager' : 'lazy'}
+  decoding={priority ? 'sync' : 'async'}
+  fetchpriority={priority ? 'high' : undefined}
+/>

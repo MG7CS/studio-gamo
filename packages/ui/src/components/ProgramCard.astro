@@ -1,0 +1,36 @@
+---
+/**
+ * Rounded floating photo card linking to a program or path
+ * (used by the global hero, Mission "One Mission, Four Programs", Get Involved, etc.).
+ */
+import Photo from './Photo.astro';
+import Icon, { type IconName } from './Icon.astro';
+import type { PhotoKey } from '../lib/images';
+interface Props {
+  title: string;
+  description: string;
+  href: string;
+  photo: PhotoKey;
+  icon?: IconName;
+  /** Accent chip colour behind the icon. */
+  accent?: string;
+  sizes?: string;
+  photoPosition?: string;
+  ratio?: string;
+  class?: string;
+}
+const { title, description, href, photo, icon, accent = '#F3D9C4', sizes = '(min-width:1024px) 22vw, (min-width:640px) 45vw, 85vw', photoPosition, ratio = 'aspect-[4/3]', class: className } = Astro.props;
+---
+<a href={href} class:list={['group flex flex-col rounded-[26px] bg-white p-2 shadow-float ring-1 ring-black/5 transition-transform duration-300 hover:-translate-y-1', className]}>
+  <div class:list={['relative overflow-hidden rounded-[20px]', ratio]}>
+    <Photo name={photo} sizes={sizes} position={photoPosition} alt="" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+    {icon && <span class="absolute bottom-3 left-3 flex h-11 w-11 items-center justify-center rounded-full text-charcoal shadow-md" style={`background:${accent}`}><Icon name={icon} class="h-5 w-5" /></span>}
+  </div>
+  <div class="flex items-end justify-between gap-3 px-3 pb-3 pt-4">
+    <div>
+      <h3 class="text-lg font-bold tracking-tight text-charcoal">{title}</h3>
+      <p class="mt-1 text-sm leading-snug text-ink-soft">{description}</p>
+    </div>
+    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sand text-charcoal transition-colors group-hover:border-terracotta group-hover:bg-terracotta group-hover:text-white"><Icon name="arrow" class="h-4 w-4" /></span>
+  </div>
+</a>

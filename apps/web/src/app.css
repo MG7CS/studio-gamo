@@ -1,41 +1,7 @@
 @import "tailwindcss";
+@import "@studio-gamo/ui/styles/tokens.css";
 
-/* Shared homepage type scale: one primary and one secondary section heading size. */
-@utility section-heading {
-  font-size: clamp(2.75rem, 4vw, 4.25rem);
-  line-height: 1.03;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-  @media (max-width: 1023px) {
-    font-size: clamp(2.125rem, 9vw, 2.75rem);
-  }
-}
-@utility section-subheading {
-  font-size: clamp(2rem, 2.8vw, 3rem);
-  line-height: 1.07;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-}
-
-/* Scroll reveal: only active when JS has marked <html class="js"> so content never stays hidden without JS. */
-@media (prefers-reduced-motion: no-preference) {
-  html.js [data-reveal] {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.7s ease, transform 0.7s ease, translate 0.25s ease, box-shadow 0.25s ease;
-  }
-  html.js [data-reveal].is-visible {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Visible keyboard focus: terracotta on light surfaces, cream on dark ones. */
-a:focus-visible,
-button:focus-visible {
-  outline: 2px solid #b65b35;
-  outline-offset: 3px;
-}
+/* Homepage-specific focus overrides for dark sections (shared defaults live in tokens.css). */
 header :focus-visible,
 footer :focus-visible,
 #coverage :focus-visible,

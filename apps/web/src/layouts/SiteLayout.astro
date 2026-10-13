@@ -1,12 +1,25 @@
 ---
-import Layout from './Layout.astro';
-import SiteHeader from '../components/navigation/SiteHeader.astro';
-import SiteFooter from '../components/navigation/SiteFooter.astro';
+/** Global website layout: shared document shell + web stylesheet. */
+import '../app.css';
+import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  current?: string;
+  headerTheme?: 'light' | 'dark';
+  bodyClass?: string;
+  chrome?: boolean;
+}
+const {
+  title = 'Gamo Studios',
+  description,
+  current,
+  headerTheme = 'light',
+  bodyClass = 'bg-cream text-charcoal',
+  chrome = true,
+} = Astro.props;
 ---
-<Layout>
-  <SiteHeader />
-  <main id="main-content" class="bg-[#1D2323] overflow-hidden">
-    <slot />
-  </main>
-  <SiteFooter />
-</Layout>
+<BaseLayout title={title} description={description} current={current} headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
+  <slot />
+</BaseLayout>

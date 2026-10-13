@@ -1,0 +1,171 @@
+{
+  "academy-boy-learning-acoustic-guitar": {
+    "source": "2026-brand-refresh/academy/boy-learning-acoustic-guitar.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "academy-girl-practicing-acoustic-guitar": {
+    "source": "2026-brand-refresh/academy/girl-practicing-acoustic-guitar.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "academy-young-pianist-bright-classroom": {
+    "source": "2026-brand-refresh/academy/young-pianist-bright-classroom.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "churches-modern-church-exterior-daylight": {
+    "source": "2026-brand-refresh/churches/modern-church-exterior-daylight.png",
+    "width": 1448,
+    "height": 1086,
+    "widths": [
+      480,
+      800,
+      1200,
+      1448
+    ]
+  },
+  "churches-modern-church-exterior-golden-hour": {
+    "source": "2026-brand-refresh/churches/modern-church-exterior-golden-hour.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "churches-white-chapel-steeple-spring": {
+    "source": "2026-brand-refresh/churches/white-chapel-steeple-spring.png",
+    "width": 1448,
+    "height": 1086,
+    "widths": [
+      480,
+      800,
+      1200,
+      1448
+    ]
+  },
+  "community-guitar-mentor-with-student": {
+    "source": "2026-brand-refresh/community/guitar-mentor-with-student.png",
+    "width": 1536,
+    "height": 1024,
+    "widths": [
+      480,
+      800,
+      1200,
+      1536
+    ]
+  },
+  "community-sunlit-sanctuary-congregation": {
+    "source": "2026-brand-refresh/community/sunlit-sanctuary-congregation.png",
+    "width": 1448,
+    "height": 1086,
+    "widths": [
+      480,
+      800,
+      1200,
+      1448
+    ]
+  },
+  "live-gospel-vocalists-concert-stage": {
+    "source": "2026-brand-refresh/live/gospel-vocalists-concert-stage.png",
+    "width": 1254,
+    "height": 1254,
+    "widths": [
+      480,
+      800,
+      1200,
+      1254
+    ]
+  },
+  "live-worship-concert-crowd-wide": {
+    "source": "2026-brand-refresh/live/worship-concert-crowd-wide.png",
+    "width": 1672,
+    "height": 941,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "live-worship-night-hands-raised": {
+    "source": "2026-brand-refresh/live/worship-night-hands-raised.png",
+    "width": 1254,
+    "height": 1254,
+    "widths": [
+      480,
+      800,
+      1200,
+      1254
+    ]
+  },
+  "production-sound-engineer-mixing-console": {
+    "source": "2026-brand-refresh/production/sound-engineer-mixing-console.png",
+    "width": 1254,
+    "height": 1254,
+    "widths": [
+      480,
+      800,
+      1200,
+      1254
+    ]
+  },
+  "worship-acoustic-worship-leader-stage-alt": {
+    "source": "2026-brand-refresh/worship/acoustic-worship-leader-stage-alt.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "worship-acoustic-worship-leader-stage": {
+    "source": "2026-brand-refresh/worship/acoustic-worship-leader-stage.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "worship-gospel-worship-leader-golden-light": {
+    "source": "2026-brand-refresh/worship/gospel-worship-leader-golden-light.png",
+    "width": 1122,
+    "height": 1402,
+    "widths": [
+      480,
+      800,
+      1122
+    ]
+  },
+  "worship-worship-band-sanctuary": {
+    "source": "2026-brand-refresh/worship/worship-band-sanctuary.png",
+    "width": 1254,
+    "height": 1254,
+    "widths": [
+      480,
+      800,
+      1200,
+      1254
+    ]
+  }
+}

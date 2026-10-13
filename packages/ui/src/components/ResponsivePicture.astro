@@ -11,6 +11,13 @@ interface Props {
   loading?: 'eager' | 'lazy';
   decoding?: 'async' | 'sync' | 'auto';
   fetchpriority?: 'high' | 'low' | 'auto';
+  /** Optional intrinsic dimensions (prevents layout shift when the box is not sized by CSS). */
+  width?: number;
+  height?: number;
+  /** Optional CSS object-position for art-directed crops. */
+  position?: string;
+  /** Optional classes for the wrapping <picture>; defaults to filling its box. */
+  pictureClass?: string;
 }
 const {
   stem, widths, sizes, alt,
@@ -18,17 +25,21 @@ const {
   loading = 'lazy',
   decoding = 'async',
   fetchpriority,
+  width,
+  height,
+  position,
+  pictureClass = 'block h-full w-full',
 } = Astro.props;
 const available = [...new Set(widths)].filter((n) => Number.isInteger(n) && n > 0).sort((a, b) => a - b);
 if (!available.length || !/^[a-z0-9-]+$/.test(stem)) {
   throw new Error('ResponsivePicture requires a safe filename stem and at least one width');
 }
-const asset = (width: number, format: 'webp' | 'avif') => `/images/optimized/${stem}-${width}w.${format}`;
-const srcset = (format: 'webp' | 'avif') => available.map((width) => `${asset(width, format)} ${width}w`).join(', ');
+const asset = (w: number, format: 'webp' | 'avif') => `/images/optimized/${stem}-${w}w.${format}`;
+const srcset = (format: 'webp' | 'avif') => available.map((w) => `${asset(w, format)} ${w}w`).join(', ');
 const fallback = asset(available[available.length - 1], 'webp');
 ---
-<picture class="block h-full w-full">
+<picture class={pictureClass}>
   <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
   <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
-  <img src={fallback} alt={alt} class={className} loading={loading} decoding={decoding} fetchpriority={fetchpriority} />
+  <img src={fallback} alt={alt} class={className} loading={loading} decoding={decoding} fetchpriority={fetchpriority} width={width} height={height} style={position ? `object-position: ${position}` : undefined} />
 </picture>
