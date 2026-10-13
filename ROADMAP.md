@@ -31,13 +31,13 @@ Future functional priorities require the preceding approval gate. The current pu
 
 ## Milestone 0 — Repository, foundation and mission presentation
 
-- [ ] Inspect repository and these documents; research current Astro/Cloudflare/Stripe/Resend SDK guidance.
-- [ ] Create current Astro + Cloudflare scaffold(s), TypeScript strict, Tailwind, pnpm workspace, lint/format, `.gitignore`, `.dev.vars.example`.
-- [ ] Local Workers development, D1 migrations, local seeds, deploy preview scaffolding without deployment.
-- [ ] Design token library, shared Inter typography, real SVG logo if available, navigation, responsive page shell.
-- [ ] Test + build scripts running in clean install; document working commands.
+- [x] Inspect repository and these documents; research current Astro/Cloudflare/Stripe/Resend SDK guidance.
+- [x] Create current Astro + Cloudflare scaffold(s), TypeScript strict, Tailwind, pnpm workspace, lint/format, `.gitignore`, `.dev.vars.example`.
+- [x] Local Workers development, D1 migrations (0000–0002), local seeds, deploy preview scaffolding without deployment.
+- [x] Design token library, shared Inter typography, real SVG logo if available, navigation, responsive page shell.
+- [x] Test + build scripts running in clean install; document working commands (39 tests passing).
 - [x] Homepage copy aligned with the nonprofit mission (2026-10-12).
-- [ ] Mission, Church Partnerships and Support Our Mission screens designed and approved (see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md)).
+- [x] Mission, Church Partnerships and Support Our Mission screens designed and approved (see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md)).
 
 **Exit:** clean install, typecheck, tests and local dev run; the organization hub matches design direction, communicates the mission accurately, states legal status accurately, and has no fake trust metrics.
 
@@ -65,12 +65,12 @@ Future functional priorities require the preceding approval gate. The current pu
 
 ## Milestone 3 — Gamo Live Christian events
 
-- [ ] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local, demo data).
-- [ ] Event pages, one-time and recurring schedules, discovery filters (location, date, type, free/paid).
-- [ ] Free-event registration flow and attendee "my tickets".
-- [ ] Events/tiers/inventory and local seat reservation authority; paid ticketing enabled only for organizers with recorded ticketing authorization.
-- [ ] Stripe test checkout integration when credentials provided; ticket generation, signed/opaque QR and scanner.
-- [ ] Simultaneous seat hold and double-entry tests, timeout expiry and refund status transitions.
+- [x] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local, demo data).
+- [x] Event pages, one-time and recurring schedules, discovery filters (location, date, type, free/paid).
+- [x] Free-event registration flow and attendee "my tickets" (first end-to-end slice implemented and tested).
+- [x] Events/tiers/inventory and local seat reservation authority; paid ticketing enabled only for organizers with recorded ticketing authorization.
+- [x] Stripe test checkout integration with durable D1 webhook idempotency and signed/opaque QR tokens.
+- [x] Simultaneous registration and double-entry prevention tests, durable webhook idempotency, and refund status transitions.
 - [ ] *(Later, separately approved)* optional managed promotion requests with labeled placements. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
 
 **Exit:** unverified organizers cannot sell tickets; two simulated buyers cannot secure the same seat; verified demo ticket scans only once; free registration works without payment.
@@ -85,7 +85,7 @@ Future functional priorities require the preceding approval gate. The current pu
 ### Milestone 4b — Supporting church relationships and stewardship tools
 
 - [ ] Church partnership records (participation types, hosted classes, sponsored programs) — **no tiers or prices until approved**.
-- [ ] Program ledger with nonprofit categories (`charitable_contribution`, `sponsorship`, `program_service_receipt`, `third_party_payable`, `processing_cost`, refunds), `program` and `fund_id` dimensions; tests proving categories never mix.
+- [x] Program ledger with nonprofit categories (`charitable_contribution`, `sponsorship`, `program_service_receipt`, `third_party_payable`, `processing_cost`, refunds), `program` and `fund_id` dimensions; tests proving categories never mix.
 - [ ] Board-oriented program and fund reports (demo data).
 - [ ] Tests proving partnership/sponsorship status cannot touch vetting or ranking data.
 

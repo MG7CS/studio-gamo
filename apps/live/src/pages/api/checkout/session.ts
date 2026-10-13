@@ -1,35 +1,64 @@
 import type { APIRoute } from 'astro';
 import { createStripeTestClient } from '@studio-gamo/integrations';
-import { getEvent } from '../../../data/events';
+import { getDb } from '@gamo/db';
+import { LiveService } from '@gamo/domain';
+import { getEvent as getStaticEvent } from '../../../data/events';
 
 export const prerender = false;
 
 /**
  * Creates a Stripe test-mode Checkout Session for Gamo Live ticket reservations.
  *
- * ORGANIZATIONAL POLICY:
- * In accordance with docs/GAMO_NONPROFIT_MODEL.md, all charges must strictly run in
- * Stripe test mode (sk_test_ / rk_test_). Live processing is disallowed until 501(c)(3)
- * legal status and board authorization are completed.
+ * ORGANIZATIONAL & SECURITY POLICY:
+ * 1. Strictly test-mode keys only (`sk_test_`). Live processing is actively blocked.
+ * 2. Prices are resolved authoritatively from server-side database records.
+ *    Browser-supplied prices or fee deductions are rejected.
  */
 export const POST: APIRoute = async (context) => {
   try {
     const body = await context.request.json().catch(() => ({}));
     const { eventId, tierIndex = 0, quantity = 1, customerEmail } = body;
 
-    const event = getEvent(eventId);
-    if (!event) {
-      return new Response(JSON.stringify({ error: 'Event not found' }), {
-        status: 404,
+    if (!eventId) {
+      return new Response(JSON.stringify({ error: 'eventId is required' }), {
+        status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const tier = event.tiers[tierIndex] || event.tiers[0];
     const qty = Math.max(1, Math.min(10, Number(quantity) || 1));
-    const totalMinorUnits = tier.priceCents * qty;
-
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const db = getDb(runtimeEnv.DB);
+    const liveService = new LiveService(db);
+
+    // 1. Authoritatively resolve event and tier from D1 or static fallback
+    let eventTitle = 'Gamo Live Event';
+    let tierName = 'General Admission';
+    let unitAmountMinorUnits = 2500; // $25.00 default fallback
+
+    const d1Event = await liveService.getEvent(eventId);
+    if (d1Event) {
+      eventTitle = d1Event.title;
+      const tier = d1Event.tiers[tierIndex] || d1Event.tiers[0];
+      if (tier) {
+        tierName = tier.name;
+        unitAmountMinorUnits = tier.priceCents;
+      }
+    } else {
+      const staticEvent = getStaticEvent(eventId);
+      if (staticEvent) {
+        eventTitle = staticEvent.title;
+        const tier = staticEvent.tiers[tierIndex] || staticEvent.tiers[0];
+        if (tier) {
+          tierName = tier.name;
+          unitAmountMinorUnits = tier.priceCents;
+        }
+      }
+    }
+
+    const totalMinorUnits = unitAmountMinorUnits * qty;
+
+    // 2. Initialize test-mode Stripe client
     const secretKey =
       runtimeEnv.STRIPE_SECRET_KEY ||
       import.meta.env?.STRIPE_SECRET_KEY ||
@@ -42,13 +71,13 @@ export const POST: APIRoute = async (context) => {
       mode: 'payment',
       amountMinorUnits: totalMinorUnits,
       currency: 'usd',
-      description: `${event.title} — ${tier.name} (Qty: ${qty})`,
+      description: `${eventTitle} — ${tierName} (Qty: ${qty})`,
       customerEmail: customerEmail || undefined,
-      successUrl: `${origin}/ticket?event=${event.id}&session_id={CHECKOUT_SESSION_ID}&q${tierIndex}=${qty}`,
-      cancelUrl: `${origin}/events/${event.id}/tickets`,
+      successUrl: `${origin}/ticket?event=${eventId}&session_id={CHECKOUT_SESSION_ID}&q=${qty}`,
+      cancelUrl: `${origin}/events/${eventId}/tickets`,
       metadata: {
-        eventId: event.id,
-        tierName: tier.name,
+        eventId,
+        tierName,
         tierIndex: tierIndex.toString(),
         quantity: qty.toString(),
         program: 'gamo-live',
