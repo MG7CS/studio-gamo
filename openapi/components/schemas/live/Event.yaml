@@ -62,6 +62,7 @@ properties:
       - pending_review
       - approved
       - rejected
+      - revision_requested
       - canceled
   createdAt:
     $ref: ../shared/Timestamp.yaml

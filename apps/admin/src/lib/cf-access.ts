@@ -68,7 +68,7 @@ async function getJwksKeys(certsUrl: string): Promise<JwkKey[]> {
     return cached.keys;
   }
 
-  const res = await fetch(certsUrl);
+  const res = await fetch(certsUrl, { redirect: 'error', signal: AbortSignal.timeout(5000) });
   if (!res.ok) {
     throw new Error(`Failed to fetch Cloudflare Access JWKS from ${certsUrl} (${res.status})`);
   }
@@ -91,6 +91,7 @@ export async function verifyCloudflareAccessJwt(
   expectedAud?: string,
   teamName?: string
 ): Promise<VerificationResult> {
+  if (!expectedAud || !teamName || !/^[a-zA-Z0-9-]+$/.test(teamName)) return { valid: false, error: 'Access verification configuration unavailable' };
   if (!token) {
     return { valid: false, error: 'Missing cf-access-jwt-assertion token' };
   }
@@ -118,7 +119,7 @@ export async function verifyCloudflareAccessJwt(
 
   // 1. Expiration validation
   const nowSec = Math.floor(Date.now() / 1000);
-  if (payload.exp && payload.exp < nowSec) {
+  if (!Number.isFinite(payload.exp) || payload.exp <= nowSec || typeof payload.sub !== 'string' || !payload.sub || typeof payload.email !== 'string') {
     return { valid: false, error: 'Token has expired' };
   }
   if (payload.nbf && payload.nbf > nowSec + 60) {
@@ -143,7 +144,7 @@ export async function verifyCloudflareAccessJwt(
 
   // 4. Cryptographic Signature Verification via Web Crypto
   try {
-    const certsUrl = `${payload.iss}/cdn-cgi/access/certs`;
+    const certsUrl = `https://${teamName}.cloudflareaccess.com/cdn-cgi/access/certs`;
     const keys = await getJwksKeys(certsUrl);
     const jwkKey = keys.find((k) => k.kid === header.kid);
 

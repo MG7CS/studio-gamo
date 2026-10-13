@@ -1,0 +1,121 @@
+---
+/**
+ * Interactive free-event registration form backed by POST /api/events/{id}/register.
+ */
+interface Props {
+  eventId: string;
+  eventTitle: string;
+}
+
+const { eventId, eventTitle } = Astro.props;
+---
+
+<section class="bg-cream px-4 pb-20 sm:px-8" data-free-registration data-event-id={eventId}>
+  <div class="mx-auto max-w-[1100px] rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
+    <div class="max-w-2xl">
+      <p class="eyebrow text-terracotta">Direct RSVP · Verified Free Event Slice</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-tight text-charcoal">Complete your free registration</h2>
+      <p class="mt-2 text-sm text-ink-soft">
+        Reserve your spot for <strong>{eventTitle}</strong>. Your registration is recorded with atomic capacity protection and queues a confirmation notice.
+      </p>
+
+      <form data-reg-form class="mt-6 space-y-4">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block text-sm">
+            <span class="font-medium text-charcoal">Full name</span>
+            <input
+              type="text"
+              name="attendeeName"
+              required
+              minlength="2"
+              placeholder="Grace Walker"
+              class="mt-1.5 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal focus:border-terracotta focus:outline-none"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="font-medium text-charcoal">Email address</span>
+            <input
+              type="email"
+              name="attendeeEmail"
+              required
+              placeholder="grace@example.org"
+              class="mt-1.5 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal focus:border-terracotta focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <div class="max-w-[200px]">
+          <label class="block text-sm">
+            <span class="font-medium text-charcoal">Quantity (1–10)</span>
+            <input
+              type="number"
+              name="quantity"
+              min="1"
+              max="10"
+              value="1"
+              required
+              class="mt-1.5 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal focus:border-terracotta focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          data-reg-submit
+          class="rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white transition hover:bg-terracotta-dark"
+        >
+          Confirm free registration
+        </button>
+      </form>
+
+      <div
+        data-reg-status
+        hidden
+        role="status"
+        aria-live="polite"
+        class="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm text-charcoal ring-1 ring-sand"
+      ></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-free-registration]').forEach((root) => {
+    const eventId = root.dataset.eventId || '';
+    const form = root.querySelector<HTMLFormElement>('[data-reg-form]');
+    const statusEl = root.querySelector<HTMLElement>('[data-reg-status]');
+
+    const showStatus = (msg: string, isError = false) => {
+      if (!statusEl) return;
+      statusEl.hidden = false;
+      statusEl.textContent = msg;
+      statusEl.className = isError
+        ? 'mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200'
+        : 'mt-5 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-950 ring-1 ring-emerald-200';
+    };
+
+    form?.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(form);
+      const attendeeName = String(fd.get('attendeeName') || '').trim();
+      const attendeeEmail = String(fd.get('attendeeEmail') || '').trim();
+      const quantity = Number(fd.get('quantity') || 1);
+
+      try {
+        const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attendeeName, attendeeEmail, quantity }),
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          showStatus(body.error?.message || body.message || 'Registration failed', true);
+          return;
+        }
+        showStatus(body.data?.message || 'Registration confirmed.', false);
+      } catch (err: any) {
+        showStatus(err?.message || 'Network error while registering', true);
+      }
+    });
+  });
+</script>

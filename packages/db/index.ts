@@ -44,6 +44,15 @@ export type NewAuditLog = InferInsertModel<typeof schema.auditLogs>;
 export type ModerationReview = InferSelectModel<typeof schema.moderationReviews>;
 export type NewModerationReview = InferInsertModel<typeof schema.moderationReviews>;
 
+export type AuthChallenge = InferSelectModel<typeof schema.authChallenges>;
+export type NewAuthChallenge = InferInsertModel<typeof schema.authChallenges>;
+
+export type ExternalIdentity = InferSelectModel<typeof schema.externalIdentities>;
+export type NewExternalIdentity = InferInsertModel<typeof schema.externalIdentities>;
+
+export type NotificationJob = InferSelectModel<typeof schema.notificationJobs>;
+export type NewNotificationJob = InferInsertModel<typeof schema.notificationJobs>;
+
 export function createDb(d1: any) {
   return drizzle(d1, { schema });
 }

@@ -1,0 +1,20 @@
+# Gamo Studios — Local Worker Secrets Example (.dev.vars.example)
+# Copy to .dev.vars in the relevant app directory for local development.
+# Never commit real secrets or API keys.
+
+ENVIRONMENT="local"
+SESSION_SECRET="replace-with-32-character-minimum-random-secret"
+ALLOW_DEMO_SESSION="false"
+ALLOW_TEST_CHALLENGE_OUTBOX="false"
+
+# Cloudflare Zero Trust Access (apps/admin)
+REQUIRE_ADMIN_AUTH="true"
+CF_ACCESS_TEAM_NAME="your-cf-access-team"
+CF_ACCESS_AUD="your-cf-access-application-aud-tag"
+
+# Stripe Sandbox Only (sk_live_ and rk_live_ keys are blocked by assertStripeTestMode)
+STRIPE_SECRET_KEY="sk_test_placeholder"
+STRIPE_WEBHOOK_SECRET="whsec_placeholder"
+
+# Resend Transactional Email (re_mock_ prefix safely logs locally without sending external mail)
+RESEND_API_KEY="re_mock_local"

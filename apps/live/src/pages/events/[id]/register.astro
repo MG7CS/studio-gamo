@@ -2,10 +2,73 @@
 import Layout from '../../../layouts/Layout.astro';
 import PageHeader from '../../../components/shared/PageHeader.astro';
 import TicketSelector from '../../../components/tickets/TicketSelector.astro';
+import FreeRegistrationForm from '../../../components/tickets/FreeRegistrationForm.astro';
 import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import { getDb } from '@gamo/db';
+import { LiveService } from '@gamo/domain';
 import { events, type LiveEvent } from '../../../data/events';
-export const prerender = true;
-export function getStaticPaths() { return events.filter(event => event.ticketing === 'free').map(event => ({params:{id:event.id}, props:{event}})); }
-const {event} = Astro.props as {event:LiveEvent};
+
+export const prerender = false;
+
+const id = Astro.params.id ?? '';
+let event: LiveEvent | undefined = events.find((e) => e.id === id);
+
+const runtimeEnv = (Astro.locals as Record<string, any>)?.runtime?.env;
+if (!event && runtimeEnv?.DB) {
+  const db = getDb(runtimeEnv.DB);
+  const service = new LiveService(db);
+  const dbEvent = await service.getEventById(id);
+  if (dbEvent) {
+    event = {
+      id: dbEvent.id,
+      sample: true,
+      title: dbEvent.title,
+      tagline: dbEvent.tagline ?? 'Christian community gathering',
+      category: 'worship',
+      date: dbEvent.startsAt.toISOString().slice(0, 10),
+      time: '7:00 PM',
+      city: dbEvent.city ?? 'Community',
+      state: dbEvent.state ?? 'US',
+      venue: dbEvent.venueName ?? 'Main Sanctuary',
+      organizer: 'grace-chapel',
+      photo: 'worshipNight',
+      ticketing: 'free',
+      status: 'scheduled',
+      tiers: [{ name: 'Free Registration', priceCents: 0, note: 'General admission' }],
+      description: dbEvent.description ?? 'Christian community gathering.',
+    };
+  }
+}
+
+if (!event) {
+  event = {
+    id,
+    sample: true,
+    title: 'Community Worship Gathering',
+    tagline: 'Free registration slice',
+    category: 'worship',
+    date: '2026-11-15',
+    time: '7:00 PM',
+    city: 'Dallas',
+    state: 'TX',
+    venue: 'Main Sanctuary',
+    organizer: 'grace-chapel',
+    photo: 'worshipNight',
+    ticketing: 'free',
+    status: 'scheduled',
+    tiers: [{ name: 'Free Registration', priceCents: 0, note: 'General admission' }],
+    description: 'Free community gathering registration.',
+  };
+}
 ---
-<Layout title="Free registration preview" headerTheme="light"><PageHeader eyebrow="Free registration · demo" title={event.title}/><div class="px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1100px]">Preview headcount only. Nothing is registered or emailed.</DemoNotice></div><TicketSelector event={event}/></Layout>
+
+<Layout title="Free registration preview" headerTheme="light">
+  <PageHeader eyebrow="Free registration · demo" title={event.title} />
+  <div class="px-4 pb-8 sm:px-8">
+    <DemoNotice class="mx-auto max-w-[1100px]">
+      Sample event preview with local/sandbox free-registration vertical slice below.
+    </DemoNotice>
+  </div>
+  <TicketSelector event={event} />
+  <FreeRegistrationForm eventId={event.id} eventTitle={event.title} />
+</Layout>

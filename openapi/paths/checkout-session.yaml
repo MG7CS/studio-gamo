@@ -6,9 +6,8 @@ post:
   tags:
     - Payments
   summary: Create sandbox checkout
-  description: Sandbox only. Event must exist and be approved, paid, with a valid
-    server-priced tier. No inventory reservation, organizer authorization or
-    client idempotency yet; not production ready.
+  description: Checkout disabled until authoritative order, inventory, organizer
+    permission and fulfillment are implemented. Valid requests return 503.
   security: []
   x-application: live
   x-status: implemented
@@ -30,6 +29,8 @@ post:
     "409":
       $ref: ../components/responses/SimpleError.yaml
     "500":
+      $ref: ../components/responses/SimpleError.yaml
+    "503":
       $ref: ../components/responses/SimpleError.yaml
   requestBody:
     required: true

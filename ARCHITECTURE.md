@@ -2,19 +2,22 @@
 
 **Status:** proposed architecture and build constraints; verify vendor APIs and dependencies at implementation time.
 
-**Organizational context:** Gamo Studios is a proposed Christian nonprofit. The software exists to support connected religious and educational programs, not to maximize transaction revenue. Organizational purpose, fee philosophy and funding sources are defined in [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md); this document covers technical boundaries only.
+**Organizational context:** Gamo Studios is a Christian, mission-driven organization whose final legal incorporation structure and tax status remain undecided (legal-structure-neutral). The software exists to support connected religious, educational and community programs, not to maximize transaction revenue. Organizational purpose, fee philosophy and funding sources are defined in [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md); this document covers technical boundaries only.
 
 ## System model
 
-### Cloudflare Backend & API Foundation — 2026-10-13
+### Cloudflare Backend & API Foundation — 2026-10-13 (Audit-Reconciled)
 
-The backend infrastructure is now fully architected and wired with Cloudflare-native primitives:
-- **Cloudflare D1**: Serverless relational database holding users, organizations, memberships, roles, musician profiles, gigs, academy classes, live events, registrations, production projects, and financial records. D1 migrations 0000–0002 are fully verified.
-- **Shared Authentication (`@gamo/auth`)**: Native Web Crypto session manager with HMAC-SHA256 signed HTTP-only cookies (`__session`), multi-tenant organization authorization, and server-side RBAC guards.
-- **R2 Storage Abstraction (`@studio-gamo/integrations`)**: Tightly scoped presigned upload authorization tickets, MIME/size validation, and private/restricted asset protection.
-- **Domain Services (`@gamo/domain`)**: Typed service layer with thin Astro API routes, Zod input validation, and predictable error envelopes.
-- **Durable Stripe Webhooks**: Persists webhook event IDs to D1 `stripe_webhook_events` to prevent duplicate fulfillment, with discrete nonprofit ledger entries separating third-party payables, administrative allocations, and processing fees.
-- **First Functional Slice (Gamo Live)**: Real end-to-end workflow verified in automated tests: organizer event creation -> pending review -> staff approval -> public discovery -> free attendee registration -> Resend notification -> organizer dashboard metrics. See [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) and [`docs/API_INVENTORY.md`](docs/API_INVENTORY.md).
+> [!IMPORTANT]
+> Earlier pre-audit statements claiming end-to-end backend completion or live webhook fulfillment have been removed per [`docs/BACKEND_INDEPENDENT_AUDIT.md`](docs/BACKEND_INDEPENDENT_AUDIT.md) and [`docs/BACKEND_RELEASE_READINESS.md`](docs/BACKEND_RELEASE_READINESS.md). Production release remains **NO-GO** until all release gates in [`docs/BACKEND_RELEASE_READINESS.md`](docs/BACKEND_RELEASE_READINESS.md) pass.
+
+The backend foundation uses Cloudflare-native primitives with strict safety gates:
+- **Cloudflare D1**: Serverless SQLite relational database with tracked migrations (`0000`–`0004`), foreign keys, and SQLite triggers enforcing atomic registration capacity, immutable fields, and one-time moderation transitions.
+- **Shared Authentication (`@gamo/auth`)**: Native Web Crypto session manager with HMAC-SHA256 signed host-only `HttpOnly` cookies (`__session`), verified email challenges (`auth_challenges`), multi-tenant organization onboarding, Cloudflare Access `sub` staff identity binding (`external_identities`), and server-side RBAC + same-origin CSRF guards.
+- **R2 Storage Abstraction (`@studio-gamo/integrations`)**: Scoped upload authorization tickets, prefix ownership checks, MIME/magic-byte spoofing rejection, no-overwrite semantics, and quarantine-by-default for non-public metadata. Sensitive student and identity documents are never collected.
+- **Contract-First API & Domain Services (`openapi/root.yaml`, `@gamo/api-contracts`, `@gamo/domain`)**: OpenAPI 3.1.1 is the source of truth, backed by generated TypeScript types, standalone Ajv Worker validators, and Zod domain validation.
+- **Protective Stripe Sandbox Gates**: Live Stripe keys and `livemode: true` events are rejected (`400`/fatal error). Paid checkout (`POST /api/checkout/session`) and financial webhook events (`checkout.*`, `charge.*`, `payment_intent.*`, `refund.*`) fail closed with `503 Service Unavailable` until authoritative order and inventory hold tables are built.
+- **Gamo Live Free Registration & Durable Outbox**: Organizer event proposal (`pending_review`) → staff moderation (`approved`/`rejected`/`revision_requested`) → public discovery → atomic free attendee registration → transactional `notification_jobs` outbox and worker consumer delivery via Resend. See [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) and [`docs/API_INVENTORY.md`](docs/API_INVENTORY.md).
 
 ```
                   gamostudio.org (organization hub + entry + account)

@@ -1,0 +1,23 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      organization:
+        $ref: ./Organization.yaml
+      membershipRole:
+        type: string
+        const: owner
+      message:
+        type: string
+    required:
+      - organization
+      - membershipRole
+      - message
+required:
+  - success
+  - data

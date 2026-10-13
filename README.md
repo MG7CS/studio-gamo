@@ -1,17 +1,17 @@
 # Gamo Studios
 
-**A proposed Christian nonprofit strengthening worship and community through musical talent, music education, Christian events and shared technical resources.**
+**A Christian, mission-driven organization strengthening worship and community through musical talent, music education, Christian events and shared technical resources.**
 
 > Organization: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudio.org` · Initial service area: Phoenix metropolitan area, Arizona (Gamo Live events: nationwide Christian events).
 
 > [!IMPORTANT]
-> Gamo Studios is a **developing** nonprofit. It is not yet incorporated as a nonprofit corporation and has not received 501(c)(3) recognition; contributions are not tax-deductible. The authoritative organizational reference is **[docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)**. Formation work is tracked in [docs/NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md).
+> Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has not incorporated as a nonprofit corporation and has not received 501(c)(3) recognition; contributions or payments are not tax-deductible. The authoritative organizational reference is **[docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)**. Legal and governance prerequisites are tracked in [docs/NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md).
 
 ## Mission (proposed working statement)
 
 **Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, expanding access to music education, and helping people discover and participate in Christian events.**
 
-Our purpose is religious and educational service, not maximizing financial returns. We are building a Christian nonprofit and its supporting software infrastructure — not a commercial startup.
+Our purpose is religious, educational and community service, not maximizing commercial returns. We are building a Christian, mission-driven organization and its supporting software infrastructure — not a commercial startup.
 
 **Distinctive strength:** a vetted local musician network with paid standby musicians and a practical coordination workflow, so churches can keep worship going. This is not a generic gig board or a chatbot.
 
@@ -19,7 +19,7 @@ Our purpose is religious and educational service, not maximizing financial retur
 
 ## Programs and applications
 
-The applications are **connected programs of one nonprofit mission**, not independent profit centers.
+The applications are **connected programs of one Christian mission**, not independent profit centers.
 
 | Host | Program purpose | Initial priority |
 | --- | --- | --- |

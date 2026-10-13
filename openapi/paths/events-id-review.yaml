@@ -6,18 +6,20 @@ post:
   tags:
     - Administration
   summary: Review Christian event
-  description: Internal only. revision_requested currently becomes rejected; this
-    is a documented semantic mismatch pending workflow decision. Audit and
-    moderation writes are not atomic.
+  description: Requires Access boundary plus active D1 session with staff_reviewer
+    or superadmin role. No demo reviewer fallback.
   security:
     - CloudflareAccess: []
+      BrowserSession: []
     - EmergencyBearer: []
+      BrowserSession: []
     - EmergencyKey: []
+      BrowserSession: []
     - EmergencyBasic: []
+      BrowserSession: []
   x-application: admin
   x-status: implemented
-  x-authorization: Access boundary only. Access subject is not mapped to D1
-    reviewer user; domain permission verification deferred.
+  x-authorization: Access boundary AND D1 staff session; own-organization moderation forbidden.
   x-idempotency: Unsupported; client keys are ignored.
   x-source: apps/admin/src/pages/api/events/[id]/review.ts
   parameters:
@@ -37,11 +39,18 @@ post:
         text/html:
           schema:
             type: string
+        application/json:
+          schema:
+            $ref: ../components/schemas/shared/LegacyError.yaml
       headers:
         WWW-Authenticate:
           schema:
             type: string
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
     "404":
+      $ref: ../components/responses/LegacyError.yaml
+    "409":
       $ref: ../components/responses/LegacyError.yaml
     "500":
       $ref: ../components/responses/LegacyError.yaml

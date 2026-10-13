@@ -6,17 +6,20 @@ get:
   tags:
     - Administration
   summary: List moderation queue
-  description: Internal only. All pending events ordered createdAt descending.
-    Unbounded legacy queue, no pagination. Middleware 401 uses text/html.
+  description: Requires Access boundary plus active D1 session with staff_reviewer
+    or superadmin role. No demo reviewer fallback.
   security:
     - CloudflareAccess: []
+      BrowserSession: []
     - EmergencyBearer: []
+      BrowserSession: []
     - EmergencyKey: []
+      BrowserSession: []
     - EmergencyBasic: []
+      BrowserSession: []
   x-application: admin
   x-status: implemented
-  x-authorization: Verified Access identity or explicit emergency credential at
-    middleware. Domain staff role lookup not implemented.
+  x-authorization: Access boundary AND D1 staff session; own-organization moderation forbidden.
   x-idempotency: Unsupported; client keys are ignored.
   x-source: apps/admin/src/pages/api/events/pending.ts
   parameters: []
@@ -33,10 +36,15 @@ get:
         text/html:
           schema:
             type: string
+        application/json:
+          schema:
+            $ref: ../components/schemas/shared/LegacyError.yaml
       headers:
         WWW-Authenticate:
           schema:
             type: string
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
     "500":
       $ref: ../components/responses/LegacyError.yaml
   x-internal: true

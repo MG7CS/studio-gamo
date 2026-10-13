@@ -1,0 +1,33 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  name:
+    type: string
+  slug:
+    type: string
+  type:
+    type: string
+    enum:
+      - church
+      - ministry
+      - school
+      - sponsor
+      - other
+  verifiedAt:
+    anyOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: "null"
+  status:
+    type: string
+  createdAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - id
+  - name
+  - slug
+  - type
+  - verifiedAt
+  - status
+  - createdAt

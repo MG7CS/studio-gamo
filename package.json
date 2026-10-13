@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
-    "build": "pnpm -r --workspace-concurrency=1 build",
-    "typecheck": "pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro sync && pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
+    "build": "WRANGLER_LOG_PATH=/tmp/wrangler-logs XDG_CONFIG_HOME=/tmp/xdg-config pnpm -r --workspace-concurrency=1 build",
+    "typecheck": "WRANGLER_LOG_PATH=/tmp/wrangler-logs XDG_CONFIG_HOME=/tmp/xdg-config pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro sync && pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
     "lint": "echo \"Linting not set up yet\"",
     "test": "node --test scripts/image-policy.test.mjs packages/integrations/src/stripe.test.ts packages/auth/auth.test.ts packages/integrations/src/storage.test.ts packages/domain/src/services/live-slice.test.ts packages/domain/src/services/payments.test.ts",
     "test:web": "node scripts/verify-public-ui.mjs",
@@ -26,7 +26,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "11.6.0",
+      "version": "11.28.5",
       "onFail": "download"
     }
   },

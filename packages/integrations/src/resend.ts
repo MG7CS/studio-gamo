@@ -47,9 +47,6 @@ export function createResendClient(config?: ResendConfig) {
       // Safe local/preview mock when no key is configured or key is a placeholder
       if (!apiKey || apiKey.startsWith('re_mock_') || apiKey.includes('placeholder')) {
         const mockId = `mock_msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        console.log(
-          `[Resend Mock Email] To: ${recipients.join(', ')} | From: ${from} | Subject: "${options.subject}" (Mock ID: ${mockId})`
-        );
         return {
           success: true,
           id: mockId,
@@ -77,8 +74,8 @@ export function createResendClient(config?: ResendConfig) {
         });
 
         if (!response.ok) {
-          const errBody = await response.text();
-          console.error(`[Resend Error] Status ${response.status}: ${errBody}`);
+          await response.body?.cancel();
+          console.error(`[Resend Error] Status ${response.status}`);
           return {
             success: false,
             error: `Resend API returned status ${response.status}`,
@@ -92,10 +89,10 @@ export function createResendClient(config?: ResendConfig) {
           mock: false,
         };
       } catch (err: any) {
-        console.error('[Resend Network Error]', err);
+        console.error('[Resend Network Error]');
         return {
           success: false,
-          error: err?.message || 'Failed to dispatch email via Resend',
+          error: 'Failed to dispatch email via Resend',
         };
       }
     },

@@ -9,3 +9,4 @@ export * from './services/partnerships.ts';
 export * from './services/payments.ts';
 export * from './services/media.ts';
 export * from './services/admin.ts';
+export * from './services/notifications.ts';

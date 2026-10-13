@@ -1,13 +1,13 @@
-# Gamo Studios — Nonprofit Organizational Model
+# Gamo Studios — Mission-Driven Organizational Model (Legal-Structure-Neutral)
 
-**Status:** Governing organizational direction, adopted by the founder on 2026-10-12. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals).
+**Status:** Governing organizational direction, updated 2026-10-13. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and updates earlier assumptions that a single legal/tax form had already been finalized.
 
 **This is the authoritative reference** for Gamo Studios' purpose, mission, programs, governance, sustainability and financial stewardship. Other documents link here and must not restate conflicting descriptions. If any repository document conflicts with this one on organizational purpose, programs, fees, membership or funding, **this document wins** and the conflict should be fixed.
 
 Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [GAMO_LIVE_AND_PARTNERS.md](GAMO_LIVE_AND_PARTNERS.md) · [README.md](../README.md) · [ROADMAP.md](../ROADMAP.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
 
 > [!IMPORTANT]
-> Gamo Studios is a **proposed / developing** nonprofit. It is **not** yet incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
+> Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has **not** incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe payments or contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
 
 ---
 
@@ -25,7 +25,7 @@ Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) 
 
 ### 1.1 What Gamo Studios is — *Decided*
 
-Gamo Studios is a proposed **Christian nonprofit organization** serving churches, musicians, students, families, Christian artists and faith communities. Its purpose is **religious and educational service, not maximizing financial returns.**
+Gamo Studios is a **Christian, mission-driven organization** serving churches, musicians, students, families, Christian artists and faith communities. Its purpose is **religious, educational and community service, not maximizing commercial returns.** Its software and financial architecture are **legal-structure-neutral** so they support the mission faithfully while final entity incorporation and tax status remain undecided.
 
 It strengthens Christian worship and community life through musical education, dependable worship support, accessible Christian events and shared technical resources. Gamo Studios builds and maintains the infrastructure, relationships, programs and resources that let:
 
@@ -34,13 +34,13 @@ It strengthens Christian worship and community life through musical education, d
 - families access meaningful music education; and
 - people discover opportunities to worship, learn and gather.
 
-It is **not** a for-profit marketplace, advertising agency, concert promoter or software business, even though it uses software and may charge reasonable fees for some services.
+It is **not** a commission-maximizing marketplace, advertising agency, concert promoter or extractive software business, even though it uses software and may charge reasonable, transparent fees for some services.
 
 ### 1.2 Proposed mission statement — *Proposed (working text)*
 
 > **Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, expanding access to music education, and helping people discover and participate in Christian events.**
 
-Use this wording throughout the repository. It has **not** been formally adopted by a board or included in legal filings.
+Use this wording throughout the repository. It has **not** been formally adopted by a governing board or included in legal filings.
 
 ### 1.3 Proposed vision — *Proposed*
 
@@ -74,41 +74,41 @@ Revenue growth is **not** a success metric on its own.
 
 ## 2. Legal status and governance
 
-### 2.1 Intended structure — *Decided intent; Pending formation*
+### 2.1 Legal structure and tax status — *Undecided (Legal-Structure-Neutral)*
 
-- Intended: an **Arizona nonprofit corporation** seeking federal recognition as a **Section 501(c)(3)** religious and educational organization.
-- Until formation and recognition are confirmed:
-  - refer to Gamo Studios as a **proposed** or **developing** nonprofit;
-  - do **not** claim 501(c)(3) status or IRS approval;
-  - do **not** advertise contributions as tax-deductible;
-  - do **not** generate or publish nonprofit registration numbers, EINs or determination letters;
+- **Final incorporation and tax status are undecided.** Options under evaluation with legal and tax counsel include a nonprofit corporation seeking federal tax-exempt recognition (such as Section 501(c)(3)), an interim fiscal-sponsorship arrangement, or another mission-governed legal structure.
+- Because the legal form is undecided, the organizational and technical architecture must remain **legal-structure-neutral**:
+  - describe Gamo Studios as a **Christian, mission-driven organization** (or developing mission initiative);
+  - do **not** claim 501(c)(3) status, IRS approval, or completed nonprofit incorporation;
+  - do **not** advertise any payments, support, or contributions as tax-deductible;
+  - do **not** generate or publish registration numbers, EINs or determination letters;
   - do **not** imply board members, sponsors, donors or institutional partners have committed.
-- Formation steps are tracked in [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md).
+- Legal and governance prerequisites are tracked in [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md).
 
-**Approved public status wording** (use until status changes):
+**Approved public status wording** (use until legal and tax status are formally decided):
 
-> Gamo Studios is a developing Christian nonprofit initiative. Nonprofit incorporation and federal tax-exempt recognition are pending, and contributions are not currently tax-deductible.
+> Gamo Studios is a developing Christian, mission-driven initiative. Final legal incorporation structure and tax status remain under evaluation, and contributions or payments are not tax-deductible.
 
 ### 2.2 Governance — *Decided intent*
 
-- An **independent governing board** will oversee mission accountability, finances, major policy decisions and executive compensation.
+- Appropriate governance and oversight will guide mission accountability, finances, major policy decisions and executive compensation once the legal structure is selected.
 - The founder may serve as **CEO** and initially carry **CTO** responsibilities.
 - The organization may pay **reasonable compensation** to executives, employees, contractors, musicians and instructors for legitimate services.
-- Executive compensation follows nonprofit governance practice: independent board approval, comparability data, documentation and a conflict-of-interest policy (the interested person does not vote).
+- Executive compensation and related-party decisions follow sound stewardship practice: independent review/approval, comparability data, documentation and conflict-of-interest controls.
 
-### 2.3 Compensation vs. ownership — *Decided*
+### 2.3 Compensation and stewardship — *Decided*
 
 | Permitted | Not permitted |
 | --- | --- |
-| Reasonable, documented, independently approved salary or contractor pay for services actually performed | Distribution of surplus, profits or assets to founders, directors or members |
-| Fair pay to musicians and instructors for engagements and lessons | Equity, dividends or ownership-style returns from nonprofit operations |
+| Reasonable, documented, approved salary or contractor pay for services actually performed | Undisclosed deductions from musician or instructor pay |
+| Fair pay to musicians and instructors for engagements and lessons | Commingling third-party payables (musician/instructor/organizer funds) with Gamo operating funds |
 | Reimbursement of documented, legitimate expenses | Personal use of organizational funds or commingled accounts |
 
-Any operating surplus is **reinvested** in programs, reserves, infrastructure, accessibility and organizational development.
+Operating surplus is **reinvested** in programs, reserves, infrastructure, accessibility and mission development in accordance with the chosen legal structure.
 
 ### 2.4 Legal and tax review — *Pending approval*
 
-All legal- and tax-sensitive operational details require review by qualified U.S. nonprofit legal and accounting professionals. In particular, **do not assume** that every musician-engagement fee, ticketing fee, promotional service, production service or other commercial-style activity automatically qualifies as exempt-purpose revenue. Some may be unrelated business income or require different treatment. Keep the platform flexible; do not present unverified legal conclusions as settled.
+All legal- and tax-sensitive operational details require review by qualified U.S. legal and accounting professionals. In particular, **do not assume** a specific tax-exempt status or tax treatment for musician-engagement fees, ticketing fees, promotional services, production services, sponsorships or contributions. Keep the platform legal-structure-neutral; do not present unverified legal or tax conclusions as settled.
 
 ---
 

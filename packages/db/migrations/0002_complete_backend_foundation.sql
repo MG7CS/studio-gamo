@@ -8,15 +8,15 @@ ALTER TABLE `sessions` ADD COLUMN `ip_hash` text;
 --> statement-breakpoint
 ALTER TABLE `sessions` ADD COLUMN `user_agent` text;
 --> statement-breakpoint
-ALTER TABLE `sessions` ADD COLUMN `created_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `sessions` ADD COLUMN `created_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `roles` ADD COLUMN `description` text;
 --> statement-breakpoint
 ALTER TABLE `user_roles` ADD COLUMN `id` text;
 --> statement-breakpoint
-ALTER TABLE `user_roles` ADD COLUMN `created_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `user_roles` ADD COLUMN `created_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
-ALTER TABLE `musician_profiles` ADD COLUMN `created_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `musician_profiles` ADD COLUMN `created_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `applications` ADD COLUMN `review_notes` text;
 --> statement-breakpoint
@@ -24,17 +24,17 @@ ALTER TABLE `churches` ADD COLUMN `organization_id` text REFERENCES `organizatio
 --> statement-breakpoint
 ALTER TABLE `churches` ADD COLUMN `address` text;
 --> statement-breakpoint
-ALTER TABLE `churches` ADD COLUMN `created_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `churches` ADD COLUMN `created_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `gigs` ADD COLUMN `notes` text;
 --> statement-breakpoint
-ALTER TABLE `gigs` ADD COLUMN `created_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `gigs` ADD COLUMN `created_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `gig_positions` ADD COLUMN `agreed_pay_cents` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `gig_positions` ADD COLUMN `admin_allocation_cents` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
-ALTER TABLE `gig_assignments` ADD COLUMN `assigned_at` integer NOT NULL DEFAULT (unixepoch());
+ALTER TABLE `gig_assignments` ADD COLUMN `assigned_at` integer NOT NULL DEFAULT 0;
 --> statement-breakpoint
 ALTER TABLE `checkins` ADD COLUMN `notes` text;
 --> statement-breakpoint

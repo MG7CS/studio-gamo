@@ -14,6 +14,19 @@ export function validateContract<N extends keyof Schemas>(name: N, value: unknow
 export async function readContract<N extends keyof Schemas>(request: Request, name: N): Promise<Schemas[N]> {
   if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') throw new ContractValidationError();
   let value: unknown;
-  try { value = await request.json(); } catch { throw new ContractValidationError(); }
+  try {
+    const reader = request.body?.getReader();
+    if (!reader) throw new ContractValidationError();
+    const chunks: Uint8Array[] = []; let size = 0;
+    while (true) {
+      const {done, value: chunk} = await reader.read(); if (done) break;
+      size += chunk.byteLength;
+      if (size > 65536) { await reader.cancel(); throw new ContractValidationError(); }
+      chunks.push(chunk);
+    }
+    const bytes = new Uint8Array(size); let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    value = JSON.parse(new TextDecoder().decode(bytes));
+  } catch { throw new ContractValidationError(); }
   return validateContract(name, value);
 }

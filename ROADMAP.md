@@ -8,7 +8,7 @@ The founder explicitly approved the multi-page frontend scope across all five pu
 
 ## Operating objective
 
-Build the software infrastructure for a **Christian nonprofit** whose programs serve churches, musicians, students, families and faith communities. Work is ordered by **mission need and dependency**, not by which product could generate the most money. Each milestone ends with tests, screenshots, evidence and a Git commit. Completion is measured by objective checks, not by the agent saying "done".
+Build the software infrastructure for a **Christian, mission-driven organization** (legal-structure-neutral while final incorporation and tax status remain undecided) whose programs serve churches, musicians, students, families and faith communities. Work is ordered by **mission need and dependency**, not by which product could generate the most money. Each milestone ends with tests, screenshots, evidence and a Git commit. Completion is measured by objective checks, not by the agent saying "done".
 
 ## Mission-aligned priority sequence (2026-10-12)
 
@@ -16,7 +16,7 @@ Supersedes the previous revenue-oriented ordering (advertising campaigns and pai
 
 | # | Priority | Maps to | Notes |
 | --- | --- | --- | --- |
-| 1 | **Nonprofit organizational foundation** | Docs + [NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md) | Owner/legal actions; agents maintain documentation only |
+| 1 | **Mission & legal-structure-neutral governance foundation** | Docs + [NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md) | Owner/legal actions; agents maintain documentation only |
 | 2 | **Global website mission and program presentation** | Milestone 0 / current design phase | Homepage copy aligned; Mission, Church Partnerships and Support pages proposed |
 | 3 | **Gamo Worship** musician and church coordination | Milestone 1 | Fair-pay line items; no musician deductions |
 | 4 | **Gamo Academy** instruction and sponsorship support | Milestone 2 | Families first; safeguarding gates for minors |
@@ -24,19 +24,19 @@ Supersedes the previous revenue-oriented ordering (advertising campaigns and pai
 | 6 | **Gamo Production** program support | Milestone 4 | Volunteer development, technical training |
 | 7 | **Supporting church relationships** | Milestone 4b | Partnership records; no tiers/prices without approval |
 | 8 | **Administrative tools and financial stewardship** | Milestones 1–4 (admin slices) | Program ledger, funds, board reports |
-| 9 | **Donations, sponsorships, grants, funding infrastructure** | Milestone 5a | Blocked until formation/recognition and counsel review |
+| 9 | **Donations, sponsorships, grants, funding infrastructure** | Milestone 5a | Blocked until legal structure, tax status and counsel review |
 | 10 | **Accessibility, safeguarding, security, operational maturity** | Every milestone + Milestone 5 | Continuous, with a final readiness gate |
 
-Future functional priorities require the preceding approval gate. The current public frontend scope is explicitly authorized above; this table does not authorize backend work or Admin expansion.
+Future functional priorities require the preceding approval gate. The current public frontend scope is explicitly authorized above; this table does not authorize production deployment.
 
 ## Milestone 0 — Repository, foundation and mission presentation
 
 - [x] Inspect repository and these documents; research current Astro/Cloudflare/Stripe/Resend SDK guidance.
 - [x] Create current Astro + Cloudflare scaffold(s), TypeScript strict, Tailwind, pnpm workspace, lint/format, `.gitignore`, `.dev.vars.example`.
-- [x] Local Workers development, D1 migrations (0000–0002), local seeds, deploy preview scaffolding without deployment.
+- [x] Local Workers development, D1 migrations (0000–0004), local seeds, deploy preview scaffolding without production deployment.
 - [x] Design token library, shared Inter typography, real SVG logo if available, navigation, responsive page shell.
-- [x] Test + build scripts running in clean install; document working commands (39 tests passing).
-- [x] Homepage copy aligned with the nonprofit mission (2026-10-12).
+- [x] Test + build scripts running in clean install; document working commands.
+- [x] Homepage copy aligned with the Christian mission (2026-10-12).
 - [x] Mission, Church Partnerships and Support Our Mission screens designed and approved (see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md)).
 
 **Exit:** clean install, typecheck, tests and local dev run; the organization hub matches design direction, communicates the mission accurately, states legal status accurately, and has no fake trust metrics.
@@ -58,19 +58,18 @@ Future functional priorities require the preceding approval gate. The current pu
 - [ ] Instructor and lesson discovery for students, parents and families; profiles and availability.
 - [ ] Private lessons, church-hosted classes and clinics with registrations and sandbox payment flow.
 - [ ] Sponsored and scholarship-supported enrollment states (demo), with funding source recorded separately from instructor pay.
-- [ ] Guardian consent and safeguarding placeholders clearly marked; no minor bookings until policy approval.
+- [ ] Guardian consent and safeguarding placeholders clearly marked; no minor bookings or student document collection until policy approval.
 - [ ] Student/guardian dashboard; church host and sponsor intake.
 
 **Exit:** end-to-end testable demo lesson/class enrollment (tuition, sponsored and scholarship variants) with permission separation.
 
 ## Milestone 3 — Gamo Live Christian events
 
-- [x] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local, demo data).
-- [x] Event pages, one-time and recurring schedules, discovery filters (location, date, type, free/paid).
-- [x] Free-event registration flow and attendee "my tickets" (first end-to-end slice implemented and tested).
-- [ ] Events/tiers exist, but local atomic reservation authority and recorded organizer authorization enforcement are incomplete (OpenAPI reconciliation 2026-10-13).
-- [x] Stripe test checkout integration with durable D1 webhook idempotency and signed/opaque QR tokens.
-- [ ] Simultaneous registration/double-entry protection and refund transitions remain incomplete; existing webhook dedup tests cover sequential deliveries only (OpenAPI reconciliation 2026-10-13).
+- [x] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local & preview D1).
+- [x] Event pages, one-time and recurring schedules, discovery filters (location, category).
+- [x] Free-event registration flow with atomic D1 capacity triggers, duplicate privacy, and durable `notification_jobs` outbox processor.
+- [ ] Paid ticketing order authority, inventory holds, and recorded organizer authorization enforcement remain unbuilt (`POST /api/checkout/session` and financial webhooks on `POST /api/webhook/stripe` are gated with `503 Service Unavailable` per [`docs/BACKEND_INDEPENDENT_AUDIT.md`](docs/BACKEND_INDEPENDENT_AUDIT.md)).
+- [ ] Simultaneous paid seat/order holds, ticket issuance, QR scan admission route, and refund transitions remain unbuilt.
 - [ ] *(Later, separately approved)* optional managed promotion requests with labeled placements. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
 
 **Exit:** unverified organizers cannot sell tickets; two simulated buyers cannot secure the same seat; verified demo ticket scans only once; free registration works without payment.

@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import {
   createSession,
+  requireSameOrigin,
   revokeSession,
   buildSessionCookie,
   buildClearSessionCookie,
@@ -18,8 +19,9 @@ export const prerender = false;
  */
 export const POST: APIRoute = async (context) => {
   try {
+    requireSameOrigin(context.request);
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
-    if (runtimeEnv.ENVIRONMENT !== 'local' || runtimeEnv.ALLOW_DEMO_SESSION !== 'true') {
+    if (runtimeEnv.ENVIRONMENT !== 'local' || runtimeEnv.ALLOW_DEMO_SESSION !== 'true' || !['localhost', '127.0.0.1', '[::1]'].includes(new URL(context.request.url).hostname)) {
       return errorResponse('FORBIDDEN', 'Demo session creation is disabled. Verified identity login is not implemented.', 403);
     }
     const db = getDb(runtimeEnv.DB);
@@ -47,12 +49,15 @@ export const POST: APIRoute = async (context) => {
       signingSecret
     );
 
-    // 3. Build HTTP-only cookie
+    const prior = extractSessionCookie(context.request);
+    if (prior) {
+      const priorId = await verifySignedValue(prior, signingSecret);
+      if (priorId) await revokeSession(db, priorId);
+    }
+    // 3. Build host-only HTTP-only cookie (cross-subdomain cookie sharing requires approved SSO threat model)
     const isProd = import.meta.env?.PROD || runtimeEnv.ENVIRONMENT === 'production';
-    const domain = isProd ? '.gamostudio.org' : undefined;
 
     const cookieHeader = buildSessionCookie(cookieValue, expiresAt, {
-      domain,
       secure: isProd,
       sameSite: 'Lax',
     });
@@ -75,6 +80,7 @@ export const POST: APIRoute = async (context) => {
  */
 export const DELETE: APIRoute = async (context) => {
   try {
+    requireSameOrigin(context.request);
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
     const db = getDb(runtimeEnv.DB);
 
@@ -92,8 +98,7 @@ export const DELETE: APIRoute = async (context) => {
     }
 
     const isProd = import.meta.env?.PROD || runtimeEnv.ENVIRONMENT === 'production';
-    const domain = isProd ? '.gamostudio.org' : undefined;
-    const clearCookieHeader = buildClearSessionCookie({ domain, secure: isProd });
+    const clearCookieHeader = buildClearSessionCookie({ secure: isProd });
 
     const res = jsonResponse({ message: 'Session revoked successfully.' });
     res.headers.set('Set-Cookie', clearCookieHeader);

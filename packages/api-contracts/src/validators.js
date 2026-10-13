@@ -1766,14 +1766,2437 @@ return errors === 0;
 }
 validate32.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_TierInput = validate33;
-const schema49 = {"$id":"schema_TierInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
+export const schema_AuthChallengeInput = validate33;
+const schema49 = {"$id":"schema_AuthChallengeInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"displayName":{"type":"string","minLength":1,"maxLength":120},"purpose":{"type":"string","enum":["login"],"default":"login"}},"required":["email"]};
 
 function validate33(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
-/*# sourceURL="schema_TierInput" */;
+/*# sourceURL="schema_AuthChallengeInput" */;
 let vErrors = null;
 let errors = 0;
 const evaluated0 = validate33.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.email === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "email"},message:"must have required property '"+"email"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((key0 === "email") || (key0 === "displayName")) || (key0 === "purpose"))){
+const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.email !== undefined){
+let data0 = data.email;
+if(typeof data0 === "string"){
+if(func1(data0) > 254){
+const err2 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/maxLength",keyword:"maxLength",params:{limit: 254},message:"must NOT have more than 254 characters"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(func1(data0) < 3){
+const err3 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/minLength",keyword:"minLength",params:{limit: 3},message:"must NOT have fewer than 3 characters"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(!(formats6.test(data0))){
+const err4 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.displayName !== undefined){
+let data1 = data.displayName;
+if(typeof data1 === "string"){
+if(func1(data1) > 120){
+const err6 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/maxLength",keyword:"maxLength",params:{limit: 120},message:"must NOT have more than 120 characters"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(func1(data1) < 1){
+const err7 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.purpose !== undefined){
+let data2 = data.purpose;
+if(typeof data2 !== "string"){
+const err9 = {instancePath:instancePath+"/purpose",schemaPath:"#/properties/purpose/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+if(!(data2 === "login")){
+const err10 = {instancePath:instancePath+"/purpose",schemaPath:"#/properties/purpose/enum",keyword:"enum",params:{allowedValues: schema49.properties.purpose.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+}
+else {
+const err11 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+validate33.errors = vErrors;
+return errors === 0;
+}
+validate33.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_AuthChallengeResponse = validate34;
+const schema50 = {"$id":"schema_AuthChallengeResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"challengeId":{"$ref":"gamo#/components/schemas/Identifier"},"expiresAt":{"$ref":"gamo#/components/schemas/Timestamp"},"deliveryStatus":{"type":"string","enum":["sent","simulated"]},"message":{"type":"string"}},"required":["challengeId","expiresAt","deliveryStatus","message"]}},"required":["success","data"]};
+
+function validate34(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_AuthChallengeResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate34.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.success === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "success"},message:"must have required property '"+"success"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.data === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "success") || (key0 === "data"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.success !== undefined){
+if(true !== data.success){
+const err3 = {instancePath:instancePath+"/success",schemaPath:"#/properties/success/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.challengeId === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "challengeId"},message:"must have required property '"+"challengeId"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data1.expiresAt === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "expiresAt"},message:"must have required property '"+"expiresAt"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data1.deliveryStatus === undefined){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "deliveryStatus"},message:"must have required property '"+"deliveryStatus"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data1.message === undefined){
+const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "message"},message:"must have required property '"+"message"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+for(const key1 in data1){
+if(!((((key1 === "challengeId") || (key1 === "expiresAt")) || (key1 === "deliveryStatus")) || (key1 === "message"))){
+const err8 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data1.challengeId !== undefined){
+let data2 = data1.challengeId;
+if(typeof data2 === "string"){
+if(func1(data2) < 1){
+const err9 = {instancePath:instancePath+"/data/challengeId",schemaPath:"gamo#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/data/challengeId",schemaPath:"gamo#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data1.expiresAt !== undefined){
+let data3 = data1.expiresAt;
+if(typeof data3 === "string"){
+if(!(formats0.validate(data3))){
+const err11 = {instancePath:instancePath+"/data/expiresAt",schemaPath:"gamo#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/data/expiresAt",schemaPath:"gamo#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+if(data1.deliveryStatus !== undefined){
+let data4 = data1.deliveryStatus;
+if(typeof data4 !== "string"){
+const err13 = {instancePath:instancePath+"/data/deliveryStatus",schemaPath:"#/properties/data/properties/deliveryStatus/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(!((data4 === "sent") || (data4 === "simulated"))){
+const err14 = {instancePath:instancePath+"/data/deliveryStatus",schemaPath:"#/properties/data/properties/deliveryStatus/enum",keyword:"enum",params:{allowedValues: schema50.properties.data.properties.deliveryStatus.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data1.message !== undefined){
+if(typeof data1.message !== "string"){
+const err15 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+}
+else {
+const err17 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+validate34.errors = vErrors;
+return errors === 0;
+}
+validate34.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_AuthVerifyInput = validate35;
+const schema53 = {"$id":"schema_AuthVerifyInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"code":{"type":"string","pattern":"^[0-9]{6}$","minLength":6,"maxLength":6},"displayName":{"type":"string","minLength":1,"maxLength":120}},"required":["email","code"]};
+const pattern4 = new RegExp("^[0-9]{6}$", "u");
+
+function validate35(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_AuthVerifyInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate35.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.email === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "email"},message:"must have required property '"+"email"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.code === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "code"},message:"must have required property '"+"code"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((key0 === "email") || (key0 === "code")) || (key0 === "displayName"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.email !== undefined){
+let data0 = data.email;
+if(typeof data0 === "string"){
+if(func1(data0) > 254){
+const err3 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/maxLength",keyword:"maxLength",params:{limit: 254},message:"must NOT have more than 254 characters"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(func1(data0) < 3){
+const err4 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/minLength",keyword:"minLength",params:{limit: 3},message:"must NOT have fewer than 3 characters"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(!(formats6.test(data0))){
+const err5 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+else {
+const err6 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.code !== undefined){
+let data1 = data.code;
+if(typeof data1 === "string"){
+if(func1(data1) > 6){
+const err7 = {instancePath:instancePath+"/code",schemaPath:"#/properties/code/maxLength",keyword:"maxLength",params:{limit: 6},message:"must NOT have more than 6 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(func1(data1) < 6){
+const err8 = {instancePath:instancePath+"/code",schemaPath:"#/properties/code/minLength",keyword:"minLength",params:{limit: 6},message:"must NOT have fewer than 6 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+if(!pattern4.test(data1)){
+const err9 = {instancePath:instancePath+"/code",schemaPath:"#/properties/code/pattern",keyword:"pattern",params:{pattern: "^[0-9]{6}$"},message:"must match pattern \""+"^[0-9]{6}$"+"\""};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/code",schemaPath:"#/properties/code/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.displayName !== undefined){
+let data2 = data.displayName;
+if(typeof data2 === "string"){
+if(func1(data2) > 120){
+const err11 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/maxLength",keyword:"maxLength",params:{limit: 120},message:"must NOT have more than 120 characters"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(func1(data2) < 1){
+const err12 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+}
+else {
+const err14 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+validate35.errors = vErrors;
+return errors === 0;
+}
+validate35.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_OrganizationMembershipSummary = validate36;
+const schema54 = {"$id":"schema_OrganizationMembershipSummary","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
+
+function validate36(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_OrganizationMembershipSummary" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate36.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.organizationId === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationId"},message:"must have required property '"+"organizationId"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.organizationName === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationName"},message:"must have required property '"+"organizationName"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.organizationSlug === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationSlug"},message:"must have required property '"+"organizationSlug"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.organizationType === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationType"},message:"must have required property '"+"organizationType"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.role === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.status === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((((key0 === "organizationId") || (key0 === "organizationName")) || (key0 === "organizationSlug")) || (key0 === "organizationType")) || (key0 === "role")) || (key0 === "status"))){
+const err6 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.organizationId !== undefined){
+let data0 = data.organizationId;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err7 = {instancePath:instancePath+"/organizationId",schemaPath:"gamo#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/organizationId",schemaPath:"gamo#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.organizationName !== undefined){
+if(typeof data.organizationName !== "string"){
+const err9 = {instancePath:instancePath+"/organizationName",schemaPath:"#/properties/organizationName/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.organizationSlug !== undefined){
+if(typeof data.organizationSlug !== "string"){
+const err10 = {instancePath:instancePath+"/organizationSlug",schemaPath:"#/properties/organizationSlug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.organizationType !== undefined){
+let data3 = data.organizationType;
+if(typeof data3 !== "string"){
+const err11 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
+const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema54.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data4 = data.role;
+if(typeof data4 !== "string"){
+const err13 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(!((((data4 === "owner") || (data4 === "admin")) || (data4 === "coordinator")) || (data4 === "member"))){
+const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema54.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err15 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+validate36.errors = vErrors;
+return errors === 0;
+}
+validate36.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_AuthMeResponse = validate37;
+const schema56 = {"$id":"schema_AuthMeResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"sessionId":{"type":"string"},"roles":{"type":"array","items":{"type":"string"}},"memberships":{"type":"array","items":{"$ref":"gamo#/components/schemas/OrganizationMembershipSummary"}}},"required":["user","sessionId","roles","memberships"]}},"required":["success","data"]};
+
+function validate38(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate38.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.email === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "email"},message:"must have required property '"+"email"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.displayName === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "displayName"},message:"must have required property '"+"displayName"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.verifiedEmailAt === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "verifiedEmailAt"},message:"must have required property '"+"verifiedEmailAt"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.status === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.createdAt === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "createdAt"},message:"must have required property '"+"createdAt"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((((key0 === "id") || (key0 === "email")) || (key0 === "displayName")) || (key0 === "verifiedEmailAt")) || (key0 === "status")) || (key0 === "createdAt"))){
+const err6 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.id !== undefined){
+let data0 = data.id;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err7 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.email !== undefined){
+let data1 = data.email;
+if(typeof data1 === "string"){
+if(!(formats6.test(data1))){
+const err9 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.displayName !== undefined){
+let data2 = data.displayName;
+const _errs8 = errors;
+let valid2 = false;
+const _errs9 = errors;
+if(typeof data2 !== "string"){
+const err11 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf/0/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+var _valid0 = _errs9 === errors;
+valid2 = valid2 || _valid0;
+const _errs11 = errors;
+if(data2 !== null){
+const err12 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+var _valid0 = _errs11 === errors;
+valid2 = valid2 || _valid0;
+if(!valid2){
+const err13 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+else {
+errors = _errs8;
+if(vErrors !== null){
+if(_errs8){
+vErrors.length = _errs8;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.verifiedEmailAt !== undefined){
+let data3 = data.verifiedEmailAt;
+const _errs14 = errors;
+let valid3 = false;
+const _errs15 = errors;
+if(typeof data3 === "string"){
+if(!(formats0.validate(data3))){
+const err14 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+var _valid1 = _errs15 === errors;
+valid3 = valid3 || _valid1;
+const _errs18 = errors;
+if(data3 !== null){
+const err16 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/properties/verifiedEmailAt/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+var _valid1 = _errs18 === errors;
+valid3 = valid3 || _valid1;
+if(!valid3){
+const err17 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/properties/verifiedEmailAt/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+else {
+errors = _errs14;
+if(vErrors !== null){
+if(_errs14){
+vErrors.length = _errs14;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+if(data.createdAt !== undefined){
+let data5 = data.createdAt;
+if(typeof data5 === "string"){
+if(!(formats0.validate(data5))){
+const err19 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+}
+else {
+const err21 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+validate38.errors = vErrors;
+return errors === 0;
+}
+validate38.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+const schema61 = {"type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
+
+function validate40(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate40.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.organizationId === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationId"},message:"must have required property '"+"organizationId"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.organizationName === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationName"},message:"must have required property '"+"organizationName"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.organizationSlug === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationSlug"},message:"must have required property '"+"organizationSlug"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.organizationType === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "organizationType"},message:"must have required property '"+"organizationType"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.role === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.status === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((((key0 === "organizationId") || (key0 === "organizationName")) || (key0 === "organizationSlug")) || (key0 === "organizationType")) || (key0 === "role")) || (key0 === "status"))){
+const err6 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.organizationId !== undefined){
+let data0 = data.organizationId;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err7 = {instancePath:instancePath+"/organizationId",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/organizationId",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.organizationName !== undefined){
+if(typeof data.organizationName !== "string"){
+const err9 = {instancePath:instancePath+"/organizationName",schemaPath:"#/properties/organizationName/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.organizationSlug !== undefined){
+if(typeof data.organizationSlug !== "string"){
+const err10 = {instancePath:instancePath+"/organizationSlug",schemaPath:"#/properties/organizationSlug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.organizationType !== undefined){
+let data3 = data.organizationType;
+if(typeof data3 !== "string"){
+const err11 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
+const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema61.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data4 = data.role;
+if(typeof data4 !== "string"){
+const err13 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(!((((data4 === "owner") || (data4 === "admin")) || (data4 === "coordinator")) || (data4 === "member"))){
+const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema61.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err15 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+validate40.errors = vErrors;
+return errors === 0;
+}
+validate40.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+
+function validate37(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_AuthMeResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate37.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.success === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "success"},message:"must have required property '"+"success"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.data === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "success") || (key0 === "data"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.success !== undefined){
+if(true !== data.success){
+const err3 = {instancePath:instancePath+"/success",schemaPath:"#/properties/success/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.user === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "user"},message:"must have required property '"+"user"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data1.sessionId === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "sessionId"},message:"must have required property '"+"sessionId"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data1.roles === undefined){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "roles"},message:"must have required property '"+"roles"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data1.memberships === undefined){
+const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "memberships"},message:"must have required property '"+"memberships"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+for(const key1 in data1){
+if(!((((key1 === "user") || (key1 === "sessionId")) || (key1 === "roles")) || (key1 === "memberships"))){
+const err8 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data1.user !== undefined){
+if(!(validate38(data1.user, {instancePath:instancePath+"/data/user",parentData:data1,parentDataProperty:"user",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate38.errors : vErrors.concat(validate38.errors);
+errors = vErrors.length;
+}
+}
+if(data1.sessionId !== undefined){
+if(typeof data1.sessionId !== "string"){
+const err9 = {instancePath:instancePath+"/data/sessionId",schemaPath:"#/properties/data/properties/sessionId/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data1.roles !== undefined){
+let data4 = data1.roles;
+if(Array.isArray(data4)){
+const len0 = data4.length;
+for(let i0=0; i0<len0; i0++){
+if(typeof data4[i0] !== "string"){
+const err10 = {instancePath:instancePath+"/data/roles/" + i0,schemaPath:"#/properties/data/properties/roles/items/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/data/roles",schemaPath:"#/properties/data/properties/roles/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data1.memberships !== undefined){
+let data6 = data1.memberships;
+if(Array.isArray(data6)){
+const len1 = data6.length;
+for(let i1=0; i1<len1; i1++){
+if(!(validate40(data6[i1], {instancePath:instancePath+"/data/memberships/" + i1,parentData:data6,parentDataProperty:i1,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate40.errors : vErrors.concat(validate40.errors);
+errors = vErrors.length;
+}
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/data/memberships",schemaPath:"#/properties/data/properties/memberships/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+}
+else {
+const err14 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+validate37.errors = vErrors;
+return errors === 0;
+}
+validate37.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_Organization = validate42;
+const schema63 = {"$id":"schema_Organization","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
+
+function validate42(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_Organization" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate42.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.name === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.slug === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.type === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.verifiedAt === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "verifiedAt"},message:"must have required property '"+"verifiedAt"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.status === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data.createdAt === undefined){
+const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "createdAt"},message:"must have required property '"+"createdAt"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((((((key0 === "id") || (key0 === "name")) || (key0 === "slug")) || (key0 === "type")) || (key0 === "verifiedAt")) || (key0 === "status")) || (key0 === "createdAt"))){
+const err7 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.id !== undefined){
+let data0 = data.id;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err8 = {instancePath:instancePath+"/id",schemaPath:"gamo#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/id",schemaPath:"gamo#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.name !== undefined){
+if(typeof data.name !== "string"){
+const err10 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.slug !== undefined){
+if(typeof data.slug !== "string"){
+const err11 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data.type !== undefined){
+let data3 = data.type;
+if(typeof data3 !== "string"){
+const err12 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
+const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema63.properties.type.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data.verifiedAt !== undefined){
+let data4 = data.verifiedAt;
+const _errs12 = errors;
+let valid2 = false;
+const _errs13 = errors;
+if(typeof data4 === "string"){
+if(!(formats0.validate(data4))){
+const err14 = {instancePath:instancePath+"/verifiedAt",schemaPath:"gamo#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/verifiedAt",schemaPath:"gamo#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+var _valid0 = _errs13 === errors;
+valid2 = valid2 || _valid0;
+const _errs16 = errors;
+if(data4 !== null){
+const err16 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/properties/verifiedAt/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+var _valid0 = _errs16 === errors;
+valid2 = valid2 || _valid0;
+if(!valid2){
+const err17 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/properties/verifiedAt/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+else {
+errors = _errs12;
+if(vErrors !== null){
+if(_errs12){
+vErrors.length = _errs12;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+if(data.createdAt !== undefined){
+let data6 = data.createdAt;
+if(typeof data6 === "string"){
+if(!(formats0.validate(data6))){
+const err19 = {instancePath:instancePath+"/createdAt",schemaPath:"gamo#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/createdAt",schemaPath:"gamo#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+}
+else {
+const err21 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+validate42.errors = vErrors;
+return errors === 0;
+}
+validate42.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_CreateOrganizationInput = validate43;
+const schema67 = {"$id":"schema_CreateOrganizationInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":2,"maxLength":160},"slug":{"type":"string","pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","minLength":2,"maxLength":80},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]}},"required":["name","slug","type"]};
+const pattern5 = new RegExp("^[a-z0-9]+(?:-[a-z0-9]+)*$", "u");
+
+function validate43(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_CreateOrganizationInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate43.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.name === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.slug === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.type === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((key0 === "name") || (key0 === "slug")) || (key0 === "type"))){
+const err3 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.name !== undefined){
+let data0 = data.name;
+if(typeof data0 === "string"){
+if(func1(data0) > 160){
+const err4 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/maxLength",keyword:"maxLength",params:{limit: 160},message:"must NOT have more than 160 characters"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(func1(data0) < 2){
+const err5 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/minLength",keyword:"minLength",params:{limit: 2},message:"must NOT have fewer than 2 characters"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+else {
+const err6 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.slug !== undefined){
+let data1 = data.slug;
+if(typeof data1 === "string"){
+if(func1(data1) > 80){
+const err7 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/maxLength",keyword:"maxLength",params:{limit: 80},message:"must NOT have more than 80 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(func1(data1) < 2){
+const err8 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/minLength",keyword:"minLength",params:{limit: 2},message:"must NOT have fewer than 2 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+if(!pattern5.test(data1)){
+const err9 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/pattern",keyword:"pattern",params:{pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"},message:"must match pattern \""+"^[a-z0-9]+(?:-[a-z0-9]+)*$"+"\""};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.type !== undefined){
+let data2 = data.type;
+if(typeof data2 !== "string"){
+const err11 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(!(((((data2 === "church") || (data2 === "ministry")) || (data2 === "school")) || (data2 === "sponsor")) || (data2 === "other"))){
+const err12 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema67.properties.type.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+else {
+const err13 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+validate43.errors = vErrors;
+return errors === 0;
+}
+validate43.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_CreateOrganizationResponse = validate44;
+const schema68 = {"$id":"schema_CreateOrganizationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"organization":{"$ref":"gamo#/components/schemas/Organization"},"membershipRole":{"type":"string","const":"owner"},"message":{"type":"string"}},"required":["organization","membershipRole","message"]}},"required":["success","data"]};
+const schema69 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
+
+function validate45(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate45.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.name === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "name"},message:"must have required property '"+"name"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.slug === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.type === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.verifiedAt === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "verifiedAt"},message:"must have required property '"+"verifiedAt"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.status === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data.createdAt === undefined){
+const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "createdAt"},message:"must have required property '"+"createdAt"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((((((key0 === "id") || (key0 === "name")) || (key0 === "slug")) || (key0 === "type")) || (key0 === "verifiedAt")) || (key0 === "status")) || (key0 === "createdAt"))){
+const err7 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.id !== undefined){
+let data0 = data.id;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err8 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.name !== undefined){
+if(typeof data.name !== "string"){
+const err10 = {instancePath:instancePath+"/name",schemaPath:"#/properties/name/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.slug !== undefined){
+if(typeof data.slug !== "string"){
+const err11 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data.type !== undefined){
+let data3 = data.type;
+if(typeof data3 !== "string"){
+const err12 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
+const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema69.properties.type.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data.verifiedAt !== undefined){
+let data4 = data.verifiedAt;
+const _errs12 = errors;
+let valid2 = false;
+const _errs13 = errors;
+if(typeof data4 === "string"){
+if(!(formats0.validate(data4))){
+const err14 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+var _valid0 = _errs13 === errors;
+valid2 = valid2 || _valid0;
+const _errs16 = errors;
+if(data4 !== null){
+const err16 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/properties/verifiedAt/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+var _valid0 = _errs16 === errors;
+valid2 = valid2 || _valid0;
+if(!valid2){
+const err17 = {instancePath:instancePath+"/verifiedAt",schemaPath:"#/properties/verifiedAt/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+else {
+errors = _errs12;
+if(vErrors !== null){
+if(_errs12){
+vErrors.length = _errs12;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+if(data.createdAt !== undefined){
+let data6 = data.createdAt;
+if(typeof data6 === "string"){
+if(!(formats0.validate(data6))){
+const err19 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+}
+else {
+const err21 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+validate45.errors = vErrors;
+return errors === 0;
+}
+validate45.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+
+function validate44(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_CreateOrganizationResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate44.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.success === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "success"},message:"must have required property '"+"success"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.data === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "success") || (key0 === "data"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.success !== undefined){
+if(true !== data.success){
+const err3 = {instancePath:instancePath+"/success",schemaPath:"#/properties/success/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.organization === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "organization"},message:"must have required property '"+"organization"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data1.membershipRole === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "membershipRole"},message:"must have required property '"+"membershipRole"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data1.message === undefined){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "message"},message:"must have required property '"+"message"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+for(const key1 in data1){
+if(!(((key1 === "organization") || (key1 === "membershipRole")) || (key1 === "message"))){
+const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data1.organization !== undefined){
+if(!(validate45(data1.organization, {instancePath:instancePath+"/data/organization",parentData:data1,parentDataProperty:"organization",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate45.errors : vErrors.concat(validate45.errors);
+errors = vErrors.length;
+}
+}
+if(data1.membershipRole !== undefined){
+let data3 = data1.membershipRole;
+if(typeof data3 !== "string"){
+const err8 = {instancePath:instancePath+"/data/membershipRole",schemaPath:"#/properties/data/properties/membershipRole/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+if("owner" !== data3){
+const err9 = {instancePath:instancePath+"/data/membershipRole",schemaPath:"#/properties/data/properties/membershipRole/const",keyword:"const",params:{allowedValue: "owner"},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data1.message !== undefined){
+if(typeof data1.message !== "string"){
+const err10 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+}
+else {
+const err12 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+validate44.errors = vErrors;
+return errors === 0;
+}
+validate44.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_TierInput = validate47;
+const schema73 = {"$id":"schema_TierInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
+
+function validate47(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_TierInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate47.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -1901,19 +4324,19 @@ vErrors.push(err9);
 }
 errors++;
 }
-validate33.errors = vErrors;
+validate47.errors = vErrors;
 return errors === 0;
 }
-validate33.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate47.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_Tier = validate34;
-const schema50 = {"$id":"schema_Tier","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
+export const schema_Tier = validate48;
+const schema74 = {"$id":"schema_Tier","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
 
-function validate34(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate48(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Tier" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate34.evaluated;
+const evaluated0 = validate48.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -2203,22 +4626,22 @@ vErrors.push(err22);
 }
 errors++;
 }
-validate34.errors = vErrors;
+validate48.errors = vErrors;
 return errors === 0;
 }
-validate34.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate48.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_CreateEvent = validate35;
-const schema53 = {"$id":"schema_CreateEvent","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string","minLength":3,"maxLength":150},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"type":"string","maxLength":250},"description":{"type":"string","minLength":20},"venueName":{"type":"string","minLength":2},"address":{"type":"string"},"city":{"type":"string","minLength":2},"state":{"type":"string","minLength":2,"maxLength":50},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"timezone":{"type":"string","default":"America/Phoenix","description":"IANA timezone; validated by Intl.DateTimeFormat."},"admissionType":{"type":"string","enum":["free","paid","external"],"default":"free"},"photoKey":{"type":"string"},"externalUrl":{"anyOf":[{"type":"string","format":"uri"},{"const":""}]},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/TierInput"}}},"required":["organizationId","title","category","description","venueName","city","state","startsAt"]};
-const schema57 = {"type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
-const func7 = Object.prototype.hasOwnProperty;
-const formats24 = formats.uri;
+export const schema_CreateEvent = validate49;
+const schema77 = {"$id":"schema_CreateEvent","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string","minLength":3,"maxLength":150},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"type":"string","maxLength":250},"description":{"type":"string","minLength":20},"venueName":{"type":"string","minLength":2},"address":{"type":"string"},"city":{"type":"string","minLength":2},"state":{"type":"string","minLength":2,"maxLength":50},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"timezone":{"type":"string","default":"America/Phoenix","description":"IANA timezone; validated by Intl.DateTimeFormat."},"admissionType":{"type":"string","enum":["free","paid","external"],"default":"free"},"photoKey":{"type":"string"},"externalUrl":{"anyOf":[{"type":"string","format":"uri"},{"const":""}]},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/TierInput"}}},"required":["organizationId","title","category","description","venueName","city","state","startsAt"]};
+const schema81 = {"type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
+const func27 = Object.prototype.hasOwnProperty;
+const formats44 = formats.uri;
 
-function validate35(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate49(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateEvent" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate35.evaluated;
+const evaluated0 = validate49.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -2307,7 +4730,7 @@ vErrors.push(err7);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema53.properties, key0))){
+if(!(func27.call(schema77.properties, key0))){
 const err8 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err8];
@@ -2391,7 +4814,7 @@ vErrors.push(err14);
 errors++;
 }
 if(!(((((data2 === "concert") || (data2 === "worship")) || (data2 === "bible")) || (data2 === "conference")) || (data2 === "youth"))){
-const err15 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema53.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err15 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema77.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -2623,7 +5046,7 @@ vErrors.push(err33);
 errors++;
 }
 if(!(((data12 === "free") || (data12 === "paid")) || (data12 === "external"))){
-const err34 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema53.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err34 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema77.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -2651,7 +5074,7 @@ const _errs34 = errors;
 let valid4 = false;
 const _errs35 = errors;
 if(typeof data14 === "string"){
-if(!(formats24(data14))){
+if(!(formats44(data14))){
 const err36 = {instancePath:instancePath+"/externalUrl",schemaPath:"#/properties/externalUrl/anyOf/0/format",keyword:"format",params:{format: "uri"},message:"must match format \""+"uri"+"\""};
 if(vErrors === null){
 vErrors = [err36];
@@ -2860,19 +5283,19 @@ vErrors.push(err51);
 }
 errors++;
 }
-validate35.errors = vErrors;
+validate49.errors = vErrors;
 return errors === 0;
 }
-validate35.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate49.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_RegisterAttendee = validate36;
-const schema58 = {"$id":"schema_RegisterAttendee","type":"object","additionalProperties":false,"properties":{"attendeeName":{"type":"string","minLength":2},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"tierId":{"$ref":"gamo#/components/schemas/Identifier"},"userId":{"$ref":"gamo#/components/schemas/Identifier"}},"required":["attendeeName","attendeeEmail"]};
+export const schema_RegisterAttendee = validate50;
+const schema82 = {"$id":"schema_RegisterAttendee","type":"object","additionalProperties":false,"properties":{"attendeeName":{"type":"string","minLength":2},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"tierId":{"$ref":"gamo#/components/schemas/Identifier"}},"required":["attendeeName","attendeeEmail"]};
 
-function validate36(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate50(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RegisterAttendee" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate36.evaluated;
+const evaluated0 = validate50.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -2901,7 +5324,7 @@ vErrors.push(err1);
 errors++;
 }
 for(const key0 in data){
-if(!(((((key0 === "attendeeName") || (key0 === "attendeeEmail")) || (key0 === "quantity")) || (key0 === "tierId")) || (key0 === "userId"))){
+if(!((((key0 === "attendeeName") || (key0 === "attendeeEmail")) || (key0 === "quantity")) || (key0 === "tierId"))){
 const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err2];
@@ -3022,11 +5445,9 @@ vErrors.push(err11);
 errors++;
 }
 }
-if(data.userId !== undefined){
-let data4 = data.userId;
-if(typeof data4 === "string"){
-if(func1(data4) < 1){
-const err12 = {instancePath:instancePath+"/userId",schemaPath:"gamo#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+}
+else {
+const err12 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -3035,42 +5456,19 @@ vErrors.push(err12);
 }
 errors++;
 }
-}
-else {
-const err13 = {instancePath:instancePath+"/userId",schemaPath:"gamo#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err13];
-}
-else {
-vErrors.push(err13);
-}
-errors++;
-}
-}
-}
-else {
-const err14 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err14];
-}
-else {
-vErrors.push(err14);
-}
-errors++;
-}
-validate36.errors = vErrors;
+validate50.errors = vErrors;
 return errors === 0;
 }
-validate36.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate50.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_ReviewDecision = validate37;
-const schema61 = {"$id":"schema_ReviewDecision","type":"object","additionalProperties":false,"properties":{"decision":{"type":"string","enum":["approved","rejected","revision_requested"]},"notes":{"type":"string"}},"required":["decision"]};
+export const schema_ReviewDecision = validate51;
+const schema84 = {"$id":"schema_ReviewDecision","type":"object","additionalProperties":false,"properties":{"decision":{"type":"string","enum":["approved","rejected","revision_requested"]},"notes":{"type":"string"}},"required":["decision"]};
 
-function validate37(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate51(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ReviewDecision" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate37.evaluated;
+const evaluated0 = validate51.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3113,7 +5511,7 @@ vErrors.push(err2);
 errors++;
 }
 if(!(((data0 === "approved") || (data0 === "rejected")) || (data0 === "revision_requested"))){
-const err3 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/enum",keyword:"enum",params:{allowedValues: schema61.properties.decision.enum},message:"must be equal to one of the allowed values"};
+const err3 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/enum",keyword:"enum",params:{allowedValues: schema84.properties.decision.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err3];
 }
@@ -3146,19 +5544,761 @@ vErrors.push(err5);
 }
 errors++;
 }
-validate37.errors = vErrors;
+validate51.errors = vErrors;
 return errors === 0;
 }
-validate37.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate51.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_CheckoutInput = validate38;
-const schema62 = {"$id":"schema_CheckoutInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierIndex":{"type":"integer","minimum":0,"default":0},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"customerEmail":{"type":"string","format":"email"}},"required":["eventId"]};
+export const schema_ProvisionStaffInput = validate52;
+const schema85 = {"$id":"schema_ProvisionStaffInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"accessSubject":{"type":"string","minLength":1,"maxLength":255},"displayName":{"type":"string","minLength":1,"maxLength":120}},"required":["email","role","accessSubject"]};
 
-function validate38(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate52(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ProvisionStaffInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate52.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.email === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "email"},message:"must have required property '"+"email"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.role === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.accessSubject === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "accessSubject"},message:"must have required property '"+"accessSubject"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((key0 === "email") || (key0 === "role")) || (key0 === "accessSubject")) || (key0 === "displayName"))){
+const err3 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.email !== undefined){
+let data0 = data.email;
+if(typeof data0 === "string"){
+if(func1(data0) > 254){
+const err4 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/maxLength",keyword:"maxLength",params:{limit: 254},message:"must NOT have more than 254 characters"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(func1(data0) < 3){
+const err5 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/minLength",keyword:"minLength",params:{limit: 3},message:"must NOT have fewer than 3 characters"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(!(formats6.test(data0))){
+const err6 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+else {
+const err7 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data1 = data.role;
+if(typeof data1 !== "string"){
+const err8 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+if(!(((data1 === "staff_reviewer") || (data1 === "finance_manager")) || (data1 === "superadmin"))){
+const err9 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema85.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.accessSubject !== undefined){
+let data2 = data.accessSubject;
+if(typeof data2 === "string"){
+if(func1(data2) > 255){
+const err10 = {instancePath:instancePath+"/accessSubject",schemaPath:"#/properties/accessSubject/maxLength",keyword:"maxLength",params:{limit: 255},message:"must NOT have more than 255 characters"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+if(func1(data2) < 1){
+const err11 = {instancePath:instancePath+"/accessSubject",schemaPath:"#/properties/accessSubject/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/accessSubject",schemaPath:"#/properties/accessSubject/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+if(data.displayName !== undefined){
+let data3 = data.displayName;
+if(typeof data3 === "string"){
+if(func1(data3) > 120){
+const err13 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/maxLength",keyword:"maxLength",params:{limit: 120},message:"must NOT have more than 120 characters"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+if(func1(data3) < 1){
+const err14 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+validate52.errors = vErrors;
+return errors === 0;
+}
+validate52.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ProvisionStaffResponse = validate53;
+const schema86 = {"$id":"schema_ProvisionStaffResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"provider":{"type":"string","const":"cloudflare_access"},"accessSubject":{"type":"string"},"message":{"type":"string"}},"required":["user","role","provider","accessSubject","message"]}},"required":["success","data"]};
+
+function validate54(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate54.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.id === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.email === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "email"},message:"must have required property '"+"email"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(data.displayName === undefined){
+const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "displayName"},message:"must have required property '"+"displayName"+"'"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(data.verifiedEmailAt === undefined){
+const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "verifiedEmailAt"},message:"must have required property '"+"verifiedEmailAt"+"'"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(data.status === undefined){
+const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data.createdAt === undefined){
+const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "createdAt"},message:"must have required property '"+"createdAt"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((((key0 === "id") || (key0 === "email")) || (key0 === "displayName")) || (key0 === "verifiedEmailAt")) || (key0 === "status")) || (key0 === "createdAt"))){
+const err6 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.id !== undefined){
+let data0 = data.id;
+if(typeof data0 === "string"){
+if(func1(data0) < 1){
+const err7 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.email !== undefined){
+let data1 = data.email;
+if(typeof data1 === "string"){
+if(!(formats6.test(data1))){
+const err9 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/email",schemaPath:"#/properties/email/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.displayName !== undefined){
+let data2 = data.displayName;
+const _errs8 = errors;
+let valid2 = false;
+const _errs9 = errors;
+if(typeof data2 !== "string"){
+const err11 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf/0/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+var _valid0 = _errs9 === errors;
+valid2 = valid2 || _valid0;
+const _errs11 = errors;
+if(data2 !== null){
+const err12 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+var _valid0 = _errs11 === errors;
+valid2 = valid2 || _valid0;
+if(!valid2){
+const err13 = {instancePath:instancePath+"/displayName",schemaPath:"#/properties/displayName/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+else {
+errors = _errs8;
+if(vErrors !== null){
+if(_errs8){
+vErrors.length = _errs8;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.verifiedEmailAt !== undefined){
+let data3 = data.verifiedEmailAt;
+const _errs14 = errors;
+let valid3 = false;
+const _errs15 = errors;
+if(typeof data3 === "string"){
+if(!(formats0.validate(data3))){
+const err14 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+var _valid1 = _errs15 === errors;
+valid3 = valid3 || _valid1;
+const _errs18 = errors;
+if(data3 !== null){
+const err16 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/properties/verifiedEmailAt/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+var _valid1 = _errs18 === errors;
+valid3 = valid3 || _valid1;
+if(!valid3){
+const err17 = {instancePath:instancePath+"/verifiedEmailAt",schemaPath:"#/properties/verifiedEmailAt/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+else {
+errors = _errs14;
+if(vErrors !== null){
+if(_errs14){
+vErrors.length = _errs14;
+}
+else {
+vErrors = null;
+}
+}
+}
+}
+if(data.status !== undefined){
+if(typeof data.status !== "string"){
+const err18 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+if(data.createdAt !== undefined){
+let data5 = data.createdAt;
+if(typeof data5 === "string"){
+if(!(formats0.validate(data5))){
+const err19 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+else {
+const err20 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+}
+}
+else {
+const err21 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+validate54.errors = vErrors;
+return errors === 0;
+}
+validate54.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+
+function validate53(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ProvisionStaffResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate53.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.success === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "success"},message:"must have required property '"+"success"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.data === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "success") || (key0 === "data"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.success !== undefined){
+if(true !== data.success){
+const err3 = {instancePath:instancePath+"/success",schemaPath:"#/properties/success/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.user === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "user"},message:"must have required property '"+"user"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data1.role === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data1.provider === undefined){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "provider"},message:"must have required property '"+"provider"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data1.accessSubject === undefined){
+const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "accessSubject"},message:"must have required property '"+"accessSubject"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+if(data1.message === undefined){
+const err8 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "message"},message:"must have required property '"+"message"+"'"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+for(const key1 in data1){
+if(!(((((key1 === "user") || (key1 === "role")) || (key1 === "provider")) || (key1 === "accessSubject")) || (key1 === "message"))){
+const err9 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data1.user !== undefined){
+if(!(validate54(data1.user, {instancePath:instancePath+"/data/user",parentData:data1,parentDataProperty:"user",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate54.errors : vErrors.concat(validate54.errors);
+errors = vErrors.length;
+}
+}
+if(data1.role !== undefined){
+let data3 = data1.role;
+if(typeof data3 !== "string"){
+const err10 = {instancePath:instancePath+"/data/role",schemaPath:"#/properties/data/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+if(!(((data3 === "staff_reviewer") || (data3 === "finance_manager")) || (data3 === "superadmin"))){
+const err11 = {instancePath:instancePath+"/data/role",schemaPath:"#/properties/data/properties/role/enum",keyword:"enum",params:{allowedValues: schema86.properties.data.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data1.provider !== undefined){
+let data4 = data1.provider;
+if(typeof data4 !== "string"){
+const err12 = {instancePath:instancePath+"/data/provider",schemaPath:"#/properties/data/properties/provider/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if("cloudflare_access" !== data4){
+const err13 = {instancePath:instancePath+"/data/provider",schemaPath:"#/properties/data/properties/provider/const",keyword:"const",params:{allowedValue: "cloudflare_access"},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data1.accessSubject !== undefined){
+if(typeof data1.accessSubject !== "string"){
+const err14 = {instancePath:instancePath+"/data/accessSubject",schemaPath:"#/properties/data/properties/accessSubject/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data1.message !== undefined){
+if(typeof data1.message !== "string"){
+const err15 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+}
+else {
+const err17 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+validate53.errors = vErrors;
+return errors === 0;
+}
+validate53.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_CheckoutInput = validate56;
+const schema91 = {"$id":"schema_CheckoutInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierIndex":{"type":"integer","minimum":0,"default":0},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"customerEmail":{"type":"string","format":"email"}},"required":["eventId"]};
+
+function validate56(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CheckoutInput" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate38.evaluated;
+const evaluated0 = validate56.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3309,19 +6449,19 @@ vErrors.push(err11);
 }
 errors++;
 }
-validate38.errors = vErrors;
+validate56.errors = vErrors;
 return errors === 0;
 }
-validate38.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate56.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_CheckoutResponse = validate39;
-const schema64 = {"$id":"schema_CheckoutResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"sessionId":{"type":"string"},"url":{"anyOf":[{"type":"string"},{"type":"null"}]},"mock":{"type":"boolean"}},"required":["success","sessionId","url"]};
+export const schema_CheckoutResponse = validate57;
+const schema93 = {"$id":"schema_CheckoutResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"sessionId":{"type":"string"},"url":{"anyOf":[{"type":"string"},{"type":"null"}]},"mock":{"type":"boolean"}},"required":["success","sessionId","url"]};
 
-function validate39(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate57(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CheckoutResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate39.evaluated;
+const evaluated0 = validate57.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3470,19 +6610,19 @@ vErrors.push(err10);
 }
 errors++;
 }
-validate39.errors = vErrors;
+validate57.errors = vErrors;
 return errors === 0;
 }
-validate39.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate57.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_StripeEvent = validate40;
-const schema65 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":false,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
+export const schema_StripeEvent = validate58;
+const schema94 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":false,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
 
-function validate40(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate58(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_StripeEvent" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate40.evaluated;
+const evaluated0 = validate58.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3654,19 +6794,19 @@ vErrors.push(err13);
 }
 errors++;
 }
-validate40.errors = vErrors;
+validate58.errors = vErrors;
 return errors === 0;
 }
-validate40.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate58.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_WebhookResponse = validate41;
-const schema66 = {"$id":"schema_WebhookResponse","type":"object","additionalProperties":false,"properties":{"received":{"const":true},"eventId":{"type":"string"},"type":{"type":"string"},"deduplicated":{"const":true}},"required":["received","eventId"]};
+export const schema_WebhookResponse = validate59;
+const schema95 = {"$id":"schema_WebhookResponse","type":"object","additionalProperties":false,"properties":{"received":{"const":true},"eventId":{"type":"string"},"type":{"type":"string"},"deduplicated":{"const":true}},"required":["received","eventId"]};
 
-function validate41(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate59(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_WebhookResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate41.evaluated;
+const evaluated0 = validate59.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3765,19 +6905,19 @@ vErrors.push(err7);
 }
 errors++;
 }
-validate41.errors = vErrors;
+validate59.errors = vErrors;
 return errors === 0;
 }
-validate41.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate59.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_Event = validate42;
-const schema67 = {"$id":"schema_Event","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
+export const schema_Event = validate60;
+const schema96 = {"$id":"schema_Event","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
 
-function validate42(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate60(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Event" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate42.evaluated;
+const evaluated0 = validate60.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -3976,7 +7116,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema67.properties, key0))){
+if(!(func27.call(schema96.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -4074,7 +7214,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema67.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema96.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -4350,7 +7490,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema67.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema96.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -4476,8 +7616,8 @@ vErrors.push(err53);
 }
 errors++;
 }
-if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema67.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema96.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -4523,19 +7663,19 @@ vErrors.push(err57);
 }
 errors++;
 }
-validate42.errors = vErrors;
+validate60.errors = vErrors;
 return errors === 0;
 }
-validate42.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate60.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_EventDetails = validate43;
-const schema73 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
-const schema79 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
+export const schema_EventDetails = validate61;
+const schema102 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+const schema108 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
 
-function validate44(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate62(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate44.evaluated;
+const evaluated0 = validate62.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -4825,17 +7965,17 @@ vErrors.push(err22);
 }
 errors++;
 }
-validate44.errors = vErrors;
+validate62.errors = vErrors;
 return errors === 0;
 }
-validate44.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate62.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate43(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate61(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventDetails" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate43.evaluated;
+const evaluated0 = validate61.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -5074,7 +8214,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema73.properties, key0))){
+if(!(func27.call(schema102.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -5172,7 +8312,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema73.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema102.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -5448,7 +8588,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema73.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema102.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -5575,7 +8715,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema73.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema102.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -5639,8 +8779,8 @@ let data21 = data.tiers;
 if(Array.isArray(data21)){
 const len0 = data21.length;
 for(let i0=0; i0<len0; i0++){
-if(!(validate44(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate44.errors : vErrors.concat(validate44.errors);
+if(!(validate62(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate62.errors : vErrors.concat(validate62.errors);
 errors = vErrors.length;
 }
 }
@@ -5692,20 +8832,20 @@ vErrors.push(err66);
 }
 errors++;
 }
-validate43.errors = vErrors;
+validate61.errors = vErrors;
 return errors === 0;
 }
-validate43.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate61.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_EventListResponse = validate46;
-const schema82 = {"$id":"schema_EventListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"$ref":"gamo#/components/schemas/EventDetails"}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
-const schema92 = {"type":"object","additionalProperties":false,"properties":{"total":{"type":"integer","minimum":0}},"required":["total"]};
-const schema83 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+export const schema_EventListResponse = validate64;
+const schema111 = {"$id":"schema_EventListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"$ref":"gamo#/components/schemas/EventDetails"}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+const schema121 = {"type":"object","additionalProperties":false,"properties":{"total":{"type":"integer","minimum":0}},"required":["total"]};
+const schema112 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
 
-function validate48(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate66(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate48.evaluated;
+const evaluated0 = validate66.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -5995,16 +9135,16 @@ vErrors.push(err22);
 }
 errors++;
 }
-validate48.errors = vErrors;
+validate66.errors = vErrors;
 return errors === 0;
 }
-validate48.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate66.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate47(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate65(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate47.evaluated;
+const evaluated0 = validate65.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -6243,7 +9383,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema83.properties, key0))){
+if(!(func27.call(schema112.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -6341,7 +9481,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema83.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema112.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -6617,7 +9757,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema83.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema112.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -6744,7 +9884,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema83.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema112.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -6808,8 +9948,8 @@ let data21 = data.tiers;
 if(Array.isArray(data21)){
 const len0 = data21.length;
 for(let i0=0; i0<len0; i0++){
-if(!(validate48(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate48.errors : vErrors.concat(validate48.errors);
+if(!(validate66(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate66.errors : vErrors.concat(validate66.errors);
 errors = vErrors.length;
 }
 }
@@ -6861,17 +10001,17 @@ vErrors.push(err66);
 }
 errors++;
 }
-validate47.errors = vErrors;
+validate65.errors = vErrors;
 return errors === 0;
 }
-validate47.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate65.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate46(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate64(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventListResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate46.evaluated;
+const evaluated0 = validate64.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -6938,8 +10078,8 @@ let data1 = data.data;
 if(Array.isArray(data1)){
 const len0 = data1.length;
 for(let i0=0; i0<len0; i0++){
-if(!(validate47(data1[i0], {instancePath:instancePath+"/data/" + i0,parentData:data1,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate47.errors : vErrors.concat(validate47.errors);
+if(!(validate65(data1[i0], {instancePath:instancePath+"/data/" + i0,parentData:data1,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate65.errors : vErrors.concat(validate65.errors);
 errors = vErrors.length;
 }
 }
@@ -7028,18 +10168,18 @@ vErrors.push(err11);
 }
 errors++;
 }
-validate46.errors = vErrors;
+validate64.errors = vErrors;
 return errors === 0;
 }
-validate46.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate64.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_EventResponse = validate51;
-const schema93 = {"$id":"schema_EventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"$ref":"gamo#/components/schemas/EventDetails"}},"required":["success","data"]};
+export const schema_EventResponse = validate69;
+const schema122 = {"$id":"schema_EventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"$ref":"gamo#/components/schemas/EventDetails"}},"required":["success","data"]};
 
-function validate52(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate70(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate52.evaluated;
+const evaluated0 = validate70.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -7278,7 +10418,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema83.properties, key0))){
+if(!(func27.call(schema112.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -7376,7 +10516,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema83.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema112.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -7652,7 +10792,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema83.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema112.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -7779,7 +10919,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema83.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema112.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -7843,8 +10983,8 @@ let data21 = data.tiers;
 if(Array.isArray(data21)){
 const len0 = data21.length;
 for(let i0=0; i0<len0; i0++){
-if(!(validate48(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate48.errors : vErrors.concat(validate48.errors);
+if(!(validate66(data21[i0], {instancePath:instancePath+"/tiers/" + i0,parentData:data21,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate66.errors : vErrors.concat(validate66.errors);
 errors = vErrors.length;
 }
 }
@@ -7896,17 +11036,17 @@ vErrors.push(err66);
 }
 errors++;
 }
-validate52.errors = vErrors;
+validate70.errors = vErrors;
 return errors === 0;
 }
-validate52.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate70.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate51(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate69(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate51.evaluated;
+const evaluated0 = validate69.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -7959,8 +11099,8 @@ errors++;
 }
 }
 if(data.data !== undefined){
-if(!(validate52(data.data, {instancePath:instancePath+"/data",parentData:data,parentDataProperty:"data",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate52.errors : vErrors.concat(validate52.errors);
+if(!(validate70(data.data, {instancePath:instancePath+"/data",parentData:data,parentDataProperty:"data",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate70.errors : vErrors.concat(validate70.errors);
 errors = vErrors.length;
 }
 }
@@ -7975,19 +11115,19 @@ vErrors.push(err4);
 }
 errors++;
 }
-validate51.errors = vErrors;
+validate69.errors = vErrors;
 return errors === 0;
 }
-validate51.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate69.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_CreateEventResponse = validate55;
-const schema100 = {"$id":"schema_CreateEventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"message":{"type":"string"}},"required":["event","tiers","message"]}},"required":["success","data"]};
-const schema101 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
+export const schema_CreateEventResponse = validate73;
+const schema129 = {"$id":"schema_CreateEventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"message":{"type":"string"}},"required":["event","tiers","message"]}},"required":["success","data"]};
+const schema130 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
 
-function validate56(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate74(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate56.evaluated;
+const evaluated0 = validate74.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -8186,7 +11326,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema101.properties, key0))){
+if(!(func27.call(schema130.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -8284,7 +11424,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema101.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema130.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -8560,7 +11700,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema101.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema130.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -8686,8 +11826,8 @@ vErrors.push(err53);
 }
 errors++;
 }
-if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema101.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema130.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -8733,16 +11873,16 @@ vErrors.push(err57);
 }
 errors++;
 }
-validate56.errors = vErrors;
+validate74.errors = vErrors;
 return errors === 0;
 }
-validate56.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate74.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate58(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate76(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate58.evaluated;
+const evaluated0 = validate76.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -9032,17 +12172,17 @@ vErrors.push(err22);
 }
 errors++;
 }
-validate58.errors = vErrors;
+validate76.errors = vErrors;
 return errors === 0;
 }
-validate58.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate76.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate55(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate73(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateEventResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate55.evaluated;
+const evaluated0 = validate73.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -9140,8 +12280,8 @@ errors++;
 }
 }
 if(data1.event !== undefined){
-if(!(validate56(data1.event, {instancePath:instancePath+"/data/event",parentData:data1,parentDataProperty:"event",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate56.errors : vErrors.concat(validate56.errors);
+if(!(validate74(data1.event, {instancePath:instancePath+"/data/event",parentData:data1,parentDataProperty:"event",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate74.errors : vErrors.concat(validate74.errors);
 errors = vErrors.length;
 }
 }
@@ -9150,8 +12290,8 @@ let data3 = data1.tiers;
 if(Array.isArray(data3)){
 const len0 = data3.length;
 for(let i0=0; i0<len0; i0++){
-if(!(validate58(data3[i0], {instancePath:instancePath+"/data/tiers/" + i0,parentData:data3,parentDataProperty:i0,rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate58.errors : vErrors.concat(validate58.errors);
+if(!(validate76(data3[i0], {instancePath:instancePath+"/data/tiers/" + i0,parentData:data3,parentDataProperty:i0,rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate76.errors : vErrors.concat(validate76.errors);
 errors = vErrors.length;
 }
 }
@@ -9202,19 +12342,19 @@ vErrors.push(err11);
 }
 errors++;
 }
-validate55.errors = vErrors;
+validate73.errors = vErrors;
 return errors === 0;
 }
-validate55.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate73.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_Registration = validate60;
-const schema110 = {"$id":"schema_Registration","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"userId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"attendeeName":{"type":"string"},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10},"qrToken":{"type":"string"},"status":{"type":"string"},"checkedInAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","eventId","tierId","userId","attendeeName","attendeeEmail","quantity","qrToken","status","checkedInAt","createdAt"]};
+export const schema_Registration = validate78;
+const schema139 = {"$id":"schema_Registration","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"userId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"attendeeName":{"type":"string"},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10},"qrToken":{"type":"string"},"status":{"type":"string"},"checkedInAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","eventId","tierId","userId","attendeeName","attendeeEmail","quantity","qrToken","status","checkedInAt","createdAt"]};
 
-function validate60(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate78(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Registration" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate60.evaluated;
+const evaluated0 = validate78.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -9333,7 +12473,7 @@ vErrors.push(err10);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema110.properties, key0))){
+if(!(func27.call(schema139.properties, key0))){
 const err11 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err11];
@@ -9718,533 +12858,19 @@ vErrors.push(err38);
 }
 errors++;
 }
-validate60.errors = vErrors;
+validate78.errors = vErrors;
 return errors === 0;
 }
-validate60.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate78.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_RegistrationResponse = validate61;
-const schema117 = {"$id":"schema_RegistrationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"registration":{"$ref":"gamo#/components/schemas/Registration"},"isDuplicate":{"type":"boolean"},"message":{"type":"string"}},"required":["registration","isDuplicate","message"]}},"required":["success","data"]};
-const schema118 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"tierId":{"anyOf":[{"$ref":"#/components/schemas/Identifier"},{"type":"null"}]},"userId":{"anyOf":[{"$ref":"#/components/schemas/Identifier"},{"type":"null"}]},"attendeeName":{"type":"string"},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10},"qrToken":{"type":"string"},"status":{"type":"string"},"checkedInAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","eventId","tierId","userId","attendeeName","attendeeEmail","quantity","qrToken","status","checkedInAt","createdAt"]};
+export const schema_RegistrationResponse = validate79;
+const schema146 = {"$id":"schema_RegistrationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"isDuplicate":{"type":"boolean"},"message":{"type":"string"}},"required":["isDuplicate","message"]}},"required":["success","data"]};
 
-function validate62(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
-let vErrors = null;
-let errors = 0;
-const evaluated0 = validate62.evaluated;
-if(evaluated0.dynamicProps){
-evaluated0.props = undefined;
-}
-if(evaluated0.dynamicItems){
-evaluated0.items = undefined;
-}
-if(data && typeof data == "object" && !Array.isArray(data)){
-if(data.id === undefined){
-const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "id"},message:"must have required property '"+"id"+"'"};
-if(vErrors === null){
-vErrors = [err0];
-}
-else {
-vErrors.push(err0);
-}
-errors++;
-}
-if(data.eventId === undefined){
-const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "eventId"},message:"must have required property '"+"eventId"+"'"};
-if(vErrors === null){
-vErrors = [err1];
-}
-else {
-vErrors.push(err1);
-}
-errors++;
-}
-if(data.tierId === undefined){
-const err2 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "tierId"},message:"must have required property '"+"tierId"+"'"};
-if(vErrors === null){
-vErrors = [err2];
-}
-else {
-vErrors.push(err2);
-}
-errors++;
-}
-if(data.userId === undefined){
-const err3 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "userId"},message:"must have required property '"+"userId"+"'"};
-if(vErrors === null){
-vErrors = [err3];
-}
-else {
-vErrors.push(err3);
-}
-errors++;
-}
-if(data.attendeeName === undefined){
-const err4 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "attendeeName"},message:"must have required property '"+"attendeeName"+"'"};
-if(vErrors === null){
-vErrors = [err4];
-}
-else {
-vErrors.push(err4);
-}
-errors++;
-}
-if(data.attendeeEmail === undefined){
-const err5 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "attendeeEmail"},message:"must have required property '"+"attendeeEmail"+"'"};
-if(vErrors === null){
-vErrors = [err5];
-}
-else {
-vErrors.push(err5);
-}
-errors++;
-}
-if(data.quantity === undefined){
-const err6 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "quantity"},message:"must have required property '"+"quantity"+"'"};
-if(vErrors === null){
-vErrors = [err6];
-}
-else {
-vErrors.push(err6);
-}
-errors++;
-}
-if(data.qrToken === undefined){
-const err7 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "qrToken"},message:"must have required property '"+"qrToken"+"'"};
-if(vErrors === null){
-vErrors = [err7];
-}
-else {
-vErrors.push(err7);
-}
-errors++;
-}
-if(data.status === undefined){
-const err8 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
-if(vErrors === null){
-vErrors = [err8];
-}
-else {
-vErrors.push(err8);
-}
-errors++;
-}
-if(data.checkedInAt === undefined){
-const err9 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "checkedInAt"},message:"must have required property '"+"checkedInAt"+"'"};
-if(vErrors === null){
-vErrors = [err9];
-}
-else {
-vErrors.push(err9);
-}
-errors++;
-}
-if(data.createdAt === undefined){
-const err10 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "createdAt"},message:"must have required property '"+"createdAt"+"'"};
-if(vErrors === null){
-vErrors = [err10];
-}
-else {
-vErrors.push(err10);
-}
-errors++;
-}
-for(const key0 in data){
-if(!(func7.call(schema118.properties, key0))){
-const err11 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
-if(vErrors === null){
-vErrors = [err11];
-}
-else {
-vErrors.push(err11);
-}
-errors++;
-}
-}
-if(data.id !== undefined){
-let data0 = data.id;
-if(typeof data0 === "string"){
-if(func1(data0) < 1){
-const err12 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
-if(vErrors === null){
-vErrors = [err12];
-}
-else {
-vErrors.push(err12);
-}
-errors++;
-}
-}
-else {
-const err13 = {instancePath:instancePath+"/id",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err13];
-}
-else {
-vErrors.push(err13);
-}
-errors++;
-}
-}
-if(data.eventId !== undefined){
-let data1 = data.eventId;
-if(typeof data1 === "string"){
-if(func1(data1) < 1){
-const err14 = {instancePath:instancePath+"/eventId",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
-if(vErrors === null){
-vErrors = [err14];
-}
-else {
-vErrors.push(err14);
-}
-errors++;
-}
-}
-else {
-const err15 = {instancePath:instancePath+"/eventId",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err15];
-}
-else {
-vErrors.push(err15);
-}
-errors++;
-}
-}
-if(data.tierId !== undefined){
-let data2 = data.tierId;
-const _errs9 = errors;
-let valid3 = false;
-const _errs10 = errors;
-if(typeof data2 === "string"){
-if(func1(data2) < 1){
-const err16 = {instancePath:instancePath+"/tierId",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
-if(vErrors === null){
-vErrors = [err16];
-}
-else {
-vErrors.push(err16);
-}
-errors++;
-}
-}
-else {
-const err17 = {instancePath:instancePath+"/tierId",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err17];
-}
-else {
-vErrors.push(err17);
-}
-errors++;
-}
-var _valid0 = _errs10 === errors;
-valid3 = valid3 || _valid0;
-const _errs13 = errors;
-if(data2 !== null){
-const err18 = {instancePath:instancePath+"/tierId",schemaPath:"#/properties/tierId/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
-if(vErrors === null){
-vErrors = [err18];
-}
-else {
-vErrors.push(err18);
-}
-errors++;
-}
-var _valid0 = _errs13 === errors;
-valid3 = valid3 || _valid0;
-if(!valid3){
-const err19 = {instancePath:instancePath+"/tierId",schemaPath:"#/properties/tierId/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
-if(vErrors === null){
-vErrors = [err19];
-}
-else {
-vErrors.push(err19);
-}
-errors++;
-}
-else {
-errors = _errs9;
-if(vErrors !== null){
-if(_errs9){
-vErrors.length = _errs9;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-if(data.userId !== undefined){
-let data3 = data.userId;
-const _errs16 = errors;
-let valid5 = false;
-const _errs17 = errors;
-if(typeof data3 === "string"){
-if(func1(data3) < 1){
-const err20 = {instancePath:instancePath+"/userId",schemaPath:"#/components/schemas/Identifier/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
-if(vErrors === null){
-vErrors = [err20];
-}
-else {
-vErrors.push(err20);
-}
-errors++;
-}
-}
-else {
-const err21 = {instancePath:instancePath+"/userId",schemaPath:"#/components/schemas/Identifier/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err21];
-}
-else {
-vErrors.push(err21);
-}
-errors++;
-}
-var _valid1 = _errs17 === errors;
-valid5 = valid5 || _valid1;
-const _errs20 = errors;
-if(data3 !== null){
-const err22 = {instancePath:instancePath+"/userId",schemaPath:"#/properties/userId/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
-if(vErrors === null){
-vErrors = [err22];
-}
-else {
-vErrors.push(err22);
-}
-errors++;
-}
-var _valid1 = _errs20 === errors;
-valid5 = valid5 || _valid1;
-if(!valid5){
-const err23 = {instancePath:instancePath+"/userId",schemaPath:"#/properties/userId/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
-if(vErrors === null){
-vErrors = [err23];
-}
-else {
-vErrors.push(err23);
-}
-errors++;
-}
-else {
-errors = _errs16;
-if(vErrors !== null){
-if(_errs16){
-vErrors.length = _errs16;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-if(data.attendeeName !== undefined){
-if(typeof data.attendeeName !== "string"){
-const err24 = {instancePath:instancePath+"/attendeeName",schemaPath:"#/properties/attendeeName/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err24];
-}
-else {
-vErrors.push(err24);
-}
-errors++;
-}
-}
-if(data.attendeeEmail !== undefined){
-let data5 = data.attendeeEmail;
-if(typeof data5 === "string"){
-if(!(formats6.test(data5))){
-const err25 = {instancePath:instancePath+"/attendeeEmail",schemaPath:"#/properties/attendeeEmail/format",keyword:"format",params:{format: "email"},message:"must match format \""+"email"+"\""};
-if(vErrors === null){
-vErrors = [err25];
-}
-else {
-vErrors.push(err25);
-}
-errors++;
-}
-}
-else {
-const err26 = {instancePath:instancePath+"/attendeeEmail",schemaPath:"#/properties/attendeeEmail/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err26];
-}
-else {
-vErrors.push(err26);
-}
-errors++;
-}
-}
-if(data.quantity !== undefined){
-let data6 = data.quantity;
-if(!((typeof data6 == "number") && (!(data6 % 1) && !isNaN(data6)))){
-const err27 = {instancePath:instancePath+"/quantity",schemaPath:"#/properties/quantity/type",keyword:"type",params:{type: "integer"},message:"must be integer"};
-if(vErrors === null){
-vErrors = [err27];
-}
-else {
-vErrors.push(err27);
-}
-errors++;
-}
-if(typeof data6 == "number"){
-if(data6 > 10 || isNaN(data6)){
-const err28 = {instancePath:instancePath+"/quantity",schemaPath:"#/properties/quantity/maximum",keyword:"maximum",params:{comparison: "<=", limit: 10},message:"must be <= 10"};
-if(vErrors === null){
-vErrors = [err28];
-}
-else {
-vErrors.push(err28);
-}
-errors++;
-}
-if(data6 < 1 || isNaN(data6)){
-const err29 = {instancePath:instancePath+"/quantity",schemaPath:"#/properties/quantity/minimum",keyword:"minimum",params:{comparison: ">=", limit: 1},message:"must be >= 1"};
-if(vErrors === null){
-vErrors = [err29];
-}
-else {
-vErrors.push(err29);
-}
-errors++;
-}
-}
-}
-if(data.qrToken !== undefined){
-if(typeof data.qrToken !== "string"){
-const err30 = {instancePath:instancePath+"/qrToken",schemaPath:"#/properties/qrToken/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err30];
-}
-else {
-vErrors.push(err30);
-}
-errors++;
-}
-}
-if(data.status !== undefined){
-if(typeof data.status !== "string"){
-const err31 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err31];
-}
-else {
-vErrors.push(err31);
-}
-errors++;
-}
-}
-if(data.checkedInAt !== undefined){
-let data9 = data.checkedInAt;
-const _errs33 = errors;
-let valid7 = false;
-const _errs34 = errors;
-if(typeof data9 === "string"){
-if(!(formats0.validate(data9))){
-const err32 = {instancePath:instancePath+"/checkedInAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
-if(vErrors === null){
-vErrors = [err32];
-}
-else {
-vErrors.push(err32);
-}
-errors++;
-}
-}
-else {
-const err33 = {instancePath:instancePath+"/checkedInAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err33];
-}
-else {
-vErrors.push(err33);
-}
-errors++;
-}
-var _valid2 = _errs34 === errors;
-valid7 = valid7 || _valid2;
-const _errs37 = errors;
-if(data9 !== null){
-const err34 = {instancePath:instancePath+"/checkedInAt",schemaPath:"#/properties/checkedInAt/anyOf/1/type",keyword:"type",params:{type: "null"},message:"must be null"};
-if(vErrors === null){
-vErrors = [err34];
-}
-else {
-vErrors.push(err34);
-}
-errors++;
-}
-var _valid2 = _errs37 === errors;
-valid7 = valid7 || _valid2;
-if(!valid7){
-const err35 = {instancePath:instancePath+"/checkedInAt",schemaPath:"#/properties/checkedInAt/anyOf",keyword:"anyOf",params:{},message:"must match a schema in anyOf"};
-if(vErrors === null){
-vErrors = [err35];
-}
-else {
-vErrors.push(err35);
-}
-errors++;
-}
-else {
-errors = _errs33;
-if(vErrors !== null){
-if(_errs33){
-vErrors.length = _errs33;
-}
-else {
-vErrors = null;
-}
-}
-}
-}
-if(data.createdAt !== undefined){
-let data10 = data.createdAt;
-if(typeof data10 === "string"){
-if(!(formats0.validate(data10))){
-const err36 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/format",keyword:"format",params:{format: "date-time"},message:"must match format \""+"date-time"+"\""};
-if(vErrors === null){
-vErrors = [err36];
-}
-else {
-vErrors.push(err36);
-}
-errors++;
-}
-}
-else {
-const err37 = {instancePath:instancePath+"/createdAt",schemaPath:"#/components/schemas/Timestamp/type",keyword:"type",params:{type: "string"},message:"must be string"};
-if(vErrors === null){
-vErrors = [err37];
-}
-else {
-vErrors.push(err37);
-}
-errors++;
-}
-}
-}
-else {
-const err38 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err38];
-}
-else {
-vErrors.push(err38);
-}
-errors++;
-}
-validate62.errors = vErrors;
-return errors === 0;
-}
-validate62.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
-
-
-function validate61(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate79(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RegistrationResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate61.evaluated;
+const evaluated0 = validate79.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -10299,8 +12925,8 @@ errors++;
 if(data.data !== undefined){
 let data1 = data.data;
 if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
-if(data1.registration === undefined){
-const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "registration"},message:"must have required property '"+"registration"+"'"};
+if(data1.isDuplicate === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "isDuplicate"},message:"must have required property '"+"isDuplicate"+"'"};
 if(vErrors === null){
 vErrors = [err4];
 }
@@ -10309,8 +12935,8 @@ vErrors.push(err4);
 }
 errors++;
 }
-if(data1.isDuplicate === undefined){
-const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "isDuplicate"},message:"must have required property '"+"isDuplicate"+"'"};
+if(data1.message === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "message"},message:"must have required property '"+"message"+"'"};
 if(vErrors === null){
 vErrors = [err5];
 }
@@ -10319,8 +12945,9 @@ vErrors.push(err5);
 }
 errors++;
 }
-if(data1.message === undefined){
-const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "message"},message:"must have required property '"+"message"+"'"};
+for(const key1 in data1){
+if(!((key1 === "isDuplicate") || (key1 === "message"))){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err6];
 }
@@ -10329,9 +12956,10 @@ vErrors.push(err6);
 }
 errors++;
 }
-for(const key1 in data1){
-if(!(((key1 === "registration") || (key1 === "isDuplicate")) || (key1 === "message"))){
-const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+}
+if(data1.isDuplicate !== undefined){
+if(typeof data1.isDuplicate !== "boolean"){
+const err7 = {instancePath:instancePath+"/data/isDuplicate",schemaPath:"#/properties/data/properties/isDuplicate/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err7];
 }
@@ -10341,15 +12969,9 @@ vErrors.push(err7);
 errors++;
 }
 }
-if(data1.registration !== undefined){
-if(!(validate62(data1.registration, {instancePath:instancePath+"/data/registration",parentData:data1,parentDataProperty:"registration",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate62.errors : vErrors.concat(validate62.errors);
-errors = vErrors.length;
-}
-}
-if(data1.isDuplicate !== undefined){
-if(typeof data1.isDuplicate !== "boolean"){
-const err8 = {instancePath:instancePath+"/data/isDuplicate",schemaPath:"#/properties/data/properties/isDuplicate/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(data1.message !== undefined){
+if(typeof data1.message !== "string"){
+const err8 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err8];
 }
@@ -10359,9 +12981,9 @@ vErrors.push(err8);
 errors++;
 }
 }
-if(data1.message !== undefined){
-if(typeof data1.message !== "string"){
-const err9 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
+}
+else {
+const err9 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err9];
 }
@@ -10373,7 +12995,7 @@ errors++;
 }
 }
 else {
-const err10 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err10 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -10382,30 +13004,18 @@ vErrors.push(err10);
 }
 errors++;
 }
-}
-}
-else {
-const err11 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err11];
-}
-else {
-vErrors.push(err11);
-}
-errors++;
-}
-validate61.errors = vErrors;
+validate79.errors = vErrors;
 return errors === 0;
 }
-validate61.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate79.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_PendingResponse = validate64;
-const schema125 = {"$id":"schema_PendingResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"organizationName":{"type":"string"},"organizationType":{"type":"string"}},"required":["event","organizationName","organizationType"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+export const schema_PendingResponse = validate80;
+const schema147 = {"$id":"schema_PendingResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"organizationName":{"type":"string"},"organizationType":{"type":"string"}},"required":["event","organizationName","organizationType"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
 
-function validate65(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate81(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate65.evaluated;
+const evaluated0 = validate81.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -10604,7 +13214,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema101.properties, key0))){
+if(!(func27.call(schema130.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -10702,7 +13312,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema101.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema130.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -10978,7 +13588,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema101.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema130.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -11104,8 +13714,8 @@ vErrors.push(err53);
 }
 errors++;
 }
-if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema101.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema130.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -11151,17 +13761,17 @@ vErrors.push(err57);
 }
 errors++;
 }
-validate65.errors = vErrors;
+validate81.errors = vErrors;
 return errors === 0;
 }
-validate65.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate81.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate64(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate80(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_PendingResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate64.evaluated;
+const evaluated0 = validate80.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -11273,8 +13883,8 @@ errors++;
 }
 }
 if(data2.event !== undefined){
-if(!(validate65(data2.event, {instancePath:instancePath+"/data/" + i0+"/event",parentData:data2,parentDataProperty:"event",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate65.errors : vErrors.concat(validate65.errors);
+if(!(validate81(data2.event, {instancePath:instancePath+"/data/" + i0+"/event",parentData:data2,parentDataProperty:"event",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate81.errors : vErrors.concat(validate81.errors);
 errors = vErrors.length;
 }
 }
@@ -11399,18 +14009,18 @@ vErrors.push(err18);
 }
 errors++;
 }
-validate64.errors = vErrors;
+validate80.errors = vErrors;
 return errors === 0;
 }
-validate64.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate80.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_ReviewResponse = validate67;
-const schema133 = {"$id":"schema_ReviewResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"reviewId":{"$ref":"gamo#/components/schemas/Identifier"},"message":{"type":"string"}},"required":["event","reviewId","message"]}},"required":["success","data"]};
+export const schema_ReviewResponse = validate83;
+const schema155 = {"$id":"schema_ReviewResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"reviewId":{"$ref":"gamo#/components/schemas/Identifier"},"message":{"type":"string"}},"required":["event","reviewId","message"]}},"required":["success","data"]};
 
-function validate68(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate84(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate68.evaluated;
+const evaluated0 = validate84.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -11609,7 +14219,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func7.call(schema101.properties, key0))){
+if(!(func27.call(schema130.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -11707,7 +14317,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema101.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema130.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -11983,7 +14593,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema101.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema130.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -12109,8 +14719,8 @@ vErrors.push(err53);
 }
 errors++;
 }
-if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema101.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema130.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -12156,17 +14766,17 @@ vErrors.push(err57);
 }
 errors++;
 }
-validate68.errors = vErrors;
+validate84.errors = vErrors;
 return errors === 0;
 }
-validate68.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate84.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 
-function validate67(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate83(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ReviewResponse" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate67.evaluated;
+const evaluated0 = validate83.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -12264,8 +14874,8 @@ errors++;
 }
 }
 if(data1.event !== undefined){
-if(!(validate68(data1.event, {instancePath:instancePath+"/data/event",parentData:data1,parentDataProperty:"event",rootData,dynamicAnchors}))){
-vErrors = vErrors === null ? validate68.errors : vErrors.concat(validate68.errors);
+if(!(validate84(data1.event, {instancePath:instancePath+"/data/event",parentData:data1,parentDataProperty:"event",rootData,dynamicAnchors}))){
+vErrors = vErrors === null ? validate84.errors : vErrors.concat(validate84.errors);
 errors = vErrors.length;
 }
 }
@@ -12329,19 +14939,19 @@ vErrors.push(err12);
 }
 errors++;
 }
-validate67.errors = vErrors;
+validate83.errors = vErrors;
 return errors === 0;
 }
-validate67.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate83.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_EventFilters = validate70;
-const schema141 = {"$id":"schema_EventFilters","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"city":{"type":"string","minLength":2}}};
+export const schema_EventFilters = validate86;
+const schema163 = {"$id":"schema_EventFilters","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"city":{"type":"string","minLength":2}}};
 
-function validate70(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate86(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventFilters" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate70.evaluated;
+const evaluated0 = validate86.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -12374,7 +14984,7 @@ vErrors.push(err1);
 errors++;
 }
 if(!(((((data0 === "concert") || (data0 === "worship")) || (data0 === "bible")) || (data0 === "conference")) || (data0 === "youth"))){
-const err2 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema141.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err2 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema163.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err2];
 }
@@ -12420,19 +15030,19 @@ vErrors.push(err5);
 }
 errors++;
 }
-validate70.errors = vErrors;
+validate86.errors = vErrors;
 return errors === 0;
 }
-validate70.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+validate86.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_category = validate71;
-const schema142 = {"$id":"schema_category","type":"string","enum":["concert","worship","bible","conference","youth"]};
+export const schema_category = validate87;
+const schema164 = {"$id":"schema_category","type":"string","enum":["concert","worship","bible","conference","youth"]};
 
-function validate71(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate87(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_category" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate71.evaluated;
+const evaluated0 = validate87.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -12450,7 +15060,7 @@ vErrors.push(err0);
 errors++;
 }
 if(!(((((data === "concert") || (data === "worship")) || (data === "bible")) || (data === "conference")) || (data === "youth"))){
-const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema142.enum},message:"must be equal to one of the allowed values"};
+const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema164.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err1];
 }
@@ -12459,19 +15069,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate71.errors = vErrors;
+validate87.errors = vErrors;
 return errors === 0;
 }
-validate71.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate87.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_city = validate72;
-const schema143 = {"$id":"schema_city","type":"string","minLength":2};
+export const schema_city = validate88;
+const schema165 = {"$id":"schema_city","type":"string","minLength":2};
 
-function validate72(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate88(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_city" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate72.evaluated;
+const evaluated0 = validate88.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -12500,7 +15110,7 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate72.errors = vErrors;
+validate88.errors = vErrors;
 return errors === 0;
 }
-validate72.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate88.evaluated = {"dynamicProps":false,"dynamicItems":false};

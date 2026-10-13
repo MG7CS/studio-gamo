@@ -46,7 +46,6 @@ export const registerAttendeeSchema = z.object({
   attendeeEmail: z.string().email('Please enter a valid email address'),
   quantity: z.number().int().min(1).max(10).default(1),
   tierId: z.string().optional(),
-  userId: z.string().optional(),
 });
 
 export type RegisterAttendeeInput = z.infer<typeof registerAttendeeSchema>;
@@ -146,3 +145,44 @@ export const requestUploadTicketSchema = z.object({
 });
 
 export type RequestUploadTicketInput = z.infer<typeof requestUploadTicketSchema>;
+
+// ============================================================================
+// VERIFIED AUTHENTICATION, ORGANIZATION ONBOARDING & STAFF PROVISIONING
+// ============================================================================
+
+export const authChallengeSchema = z.object({
+  email: z.string().email('A valid email address is required').max(254),
+  displayName: z.string().min(1).max(120).optional(),
+  purpose: z.enum(['login']).default('login'),
+});
+
+export type AuthChallengeInput = z.infer<typeof authChallengeSchema>;
+
+export const authVerifySchema = z.object({
+  email: z.string().email('A valid email address is required').max(254),
+  code: z.string().regex(/^[0-9]{6}$/, 'Verification code must be a 6-digit number'),
+  displayName: z.string().min(1).max(120).optional(),
+});
+
+export type AuthVerifyInput = z.infer<typeof authVerifySchema>;
+
+export const createOrganizationSchema = z.object({
+  name: z.string().min(2, 'Organization name must be at least 2 characters').max(160),
+  slug: z
+    .string()
+    .min(2)
+    .max(80)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric words separated by hyphens'),
+  type: z.enum(['church', 'ministry', 'school', 'sponsor', 'other']),
+});
+
+export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
+
+export const provisionStaffSchema = z.object({
+  email: z.string().email('A valid email address is required').max(254),
+  role: z.enum(['staff_reviewer', 'finance_manager', 'superadmin']),
+  accessSubject: z.string().min(1).max(255),
+  displayName: z.string().min(1).max(120).optional(),
+});
+
+export type ProvisionStaffInput = z.infer<typeof provisionStaffSchema>;

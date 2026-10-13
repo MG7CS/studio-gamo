@@ -23,7 +23,7 @@ const servers:Server[]=[];
 const origins:Record<string,string>={};
 const covered=new Set<string>();
 const nativeFetch=globalThis.fetch;
-let eventId:string,orgId:string,cookie:string,otherCookie:string;
+let eventId:string,orgId:string,cookie:string,otherCookie:string, staffCookie:string;
 const input={organizationId:'placeholder',title:'Sample Christian community gathering',category:'worship',description:'A sample Christian gathering for isolated contract tests.',venueName:'Sample venue',city:'Phoenix',state:'AZ',startsAt:'2026-12-15T18:00:00+00:00',timezone:'America/Phoenix',tiers:[{name:'Free admission',priceCents:0,capacity:100}]};
 before(async()=>{
   globalThis.fetch=((url:any,options:any)=>{
@@ -37,6 +37,8 @@ before(async()=>{
   const other=await services.identity.findOrCreateUser('other@example.invalid');
   // Explicit internal demo reviewer matches existing fallback; does not claim Access-to-D1 identity mapping.
   d1.sqlite.prepare('INSERT INTO users (id,email,status,created_at) VALUES (?,?,?,?)').run('staff_reviewer_demo','reviewer@example.invalid','active',Math.floor(Date.now()/1000));
+  await services.identity.assignSystemRole('staff_reviewer_demo','staff_reviewer');
+  staffCookie=`__session=${encodeURIComponent((await createSession(db,'staff_reviewer_demo',secret)).cookieValue)}`;
   orgId=(await services.identity.createOrganization('Sample ministry','contract-ministry','church',owner.id)).id;
   input.organizationId=orgId;
   cookie=`__session=${encodeURIComponent((await createSession(db,owner.id,secret)).cookieValue)}`;
@@ -65,7 +67,7 @@ before(async()=>{
     origins[app]=`http://127.0.0.1:${(server.address() as any).port}`;
   }
 });
-after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size}/12 operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
+after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size}/17 operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
 async function call(app:string,method:string,path:string,expected:number,body?:unknown,headers:Record<string,string>={}){
   const response=await fetch(origins[app]+path,{method,redirect:'manual',headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...headers},...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
   const text=await response.text();assert.equal(response.status,expected,text);
@@ -84,14 +86,50 @@ async function call(app:string,method:string,path:string,expected:number,body?:u
   return {body:parsed,response};
 }
 test('session creation is explicitly local-only; invalid JSON, fields and media type denied',async()=>{
-  const good=await call('web','POST','/api/auth/session',200,{email:'demo@example.invalid'});assert.match(good.response.headers.get('set-cookie')!,/HttpOnly/);
+  const good=await call('web','POST','/api/auth/session',200,{email:'demo@example.invalid'});assert.match(good.response.headers.get('set-cookie')!,/HttpOnly/);assert.doesNotMatch(good.response.headers.get('set-cookie')!,/Domain=/i);
   await call('web','POST','/api/auth/session',403,{email:'owner@example.invalid'},{'x-contract-production':'1'});
   await call('web','POST','/api/auth/session',400,{email:'invalid'});
   await call('web','POST','/api/auth/session',400,{email:'demo@example.invalid',role:'superadmin'});
   await call('web','POST','/api/auth/session',400,'{');
   await call('web','POST','/api/auth/session',400,{email:'demo@example.invalid'},{'Content-Type':'text/plain'});
-  const logout=await call('web','DELETE','/api/auth/session',200,undefined,{cookie:good.response.headers.get('set-cookie')!.split(';')[0]});assert.match(logout.response.headers.get('set-cookie')!,/1970/);
+  const logout=await call('web','DELETE','/api/auth/session',200,undefined,{cookie:good.response.headers.get('set-cookie')!.split(';')[0]});assert.match(logout.response.headers.get('set-cookie')!,/1970/);assert.doesNotMatch(logout.response.headers.get('set-cookie')!,/Domain=/i);
   await call('web','DELETE','/api/auth/session',200);
+});
+test('verified email challenge, session inspection, organization onboarding, and staff provisioning contracts',async()=>{
+  await call('web','POST','/api/auth/challenge',400,{email:'not-an-email'});
+  const challengeRes=await call('web','POST','/api/auth/challenge',200,{email:'verified-leader@example.invalid',displayName:'Verified Leader'});
+  assert.equal(challengeRes.body.data.deliveryStatus,'simulated');
+  await call('web','POST','/api/auth/verify',401,{email:'verified-leader@example.invalid',code:'000000'});
+  // Issue fresh known challenge via service to verify HTTP verify route contract
+  const issued=await services.identity.issueEmailChallenge('verified-leader@example.invalid');
+  const verified=await call('web','POST','/api/auth/verify',200,{email:'verified-leader@example.invalid',code:issued.code,displayName:'Verified Leader'});
+  assert.ok(verified.body.data.user.verifiedEmailAt);
+  const verifiedCookie=verified.response.headers.get('set-cookie')!.split(';')[0];
+  // Replay of consumed challenge must fail with 401
+  await call('web','POST','/api/auth/verify',401,{email:'verified-leader@example.invalid',code:issued.code});
+  await call('web','GET','/api/auth/me',401);
+  const meBeforeOrg=await call('web','GET','/api/auth/me',200,undefined,{cookie:verifiedCookie});
+  assert.equal(meBeforeOrg.body.data.user.email,'verified-leader@example.invalid');
+  // Unverified user session cannot create an organization (403)
+  await call('web','POST','/api/organizations',403,{name:'Unverified Org',slug:'unverified-org',type:'church'},{cookie:otherCookie});
+  // Verified user can onboard an organization (201) and duplicate slug returns 409
+  const createdOrg=await call('web','POST','/api/organizations',201,{name:'Grace Fellowship Ministry',slug:'grace-fellowship-ministry',type:'church'},{cookie:verifiedCookie});
+  assert.equal(createdOrg.body.data.membershipRole,'owner');
+  await call('web','POST','/api/organizations',409,{name:'Duplicate Slug Org',slug:'grace-fellowship-ministry',type:'ministry'},{cookie:verifiedCookie});
+  const meAfterOrg=await call('web','GET','/api/auth/me',200,undefined,{cookie:verifiedCookie});
+  assert.equal(meAfterOrg.body.data.memberships.length,1);
+  assert.equal(meAfterOrg.body.data.memberships[0].organizationSlug,'grace-fellowship-ministry');
+  // Staff provisioning requires superadmin + Access boundary
+  await call('admin','POST','/api/staff/provision',401,{email:'new-reviewer@example.invalid',role:'staff_reviewer',accessSubject:'cf-sub-reviewer-1'});
+  const reviewerHeaders={authorization:`Bearer ${env.ADMIN_ACCESS_TOKEN}`,cookie:staffCookie};
+  await call('admin','POST','/api/staff/provision',403,{email:'new-reviewer@example.invalid',role:'staff_reviewer',accessSubject:'cf-sub-reviewer-1'},reviewerHeaders);
+  const superUser=await services.identity.findOrCreateUser('superadmin@example.invalid','Sample Superadmin');
+  await services.identity.assignSystemRole(superUser.id,'superadmin');
+  const superCookie=`__session=${encodeURIComponent((await createSession(db,superUser.id,secret)).cookieValue)}`;
+  const superHeaders={authorization:`Bearer ${env.ADMIN_ACCESS_TOKEN}`,cookie:superCookie};
+  const prov=await call('admin','POST','/api/staff/provision',200,{email:'new-reviewer@example.invalid',role:'staff_reviewer',accessSubject:'cf-sub-reviewer-1',displayName:'Provisioned Reviewer'},superHeaders);
+  assert.equal(prov.body.data.accessSubject,'cf-sub-reviewer-1');
+  await call('admin','POST','/api/staff/provision',409,{email:'another-staff@example.invalid',role:'staff_reviewer',accessSubject:'cf-sub-reviewer-1'},superHeaders);
 });
 test('event creation checks identity, membership and contract; draft details hidden',async()=>{
   await call('live','POST','/api/events',401,input);
@@ -107,7 +145,8 @@ test('event creation checks identity, membership and contract; draft details hid
 test('admin routes deny unauthenticated HTTP; documented boundary-only success with isolated reviewer',async()=>{
   await call('admin','GET','/api/events/pending',401);
   await call('admin','POST',`/api/events/${eventId}/review`,401,{decision:'approved'});
-  const headers={authorization:`Bearer ${env.ADMIN_ACCESS_TOKEN}`};
+  const headers={authorization:`Bearer ${env.ADMIN_ACCESS_TOKEN}`,cookie:staffCookie};
+  await call('admin','GET','/api/events/pending',403,undefined,{...headers,cookie:otherCookie});
   const pending=await call('admin','GET','/api/events/pending',200,undefined,headers);assert.equal(pending.body.data.length,1);
   await call('admin','POST',`/api/events/${eventId}/review`,400,{decision:'invalid'},headers);
   await call('admin','POST','/api/events/evt_missing/review',404,{decision:'approved'},headers);
@@ -128,20 +167,20 @@ test('registration rejects invalid fields and tiers; sequential duplicate respon
   const body={attendeeName:'Sample attendee',attendeeEmail:'sample@example.invalid',quantity:10};
   const first=await call('live','POST',`/api/events/${eventId}/register`,201,body);
   const second=await call('live','POST',`/api/events/${eventId}/register`,200,body);
-  assert.equal(second.body.data.registration.id,first.body.data.registration.id);assert.equal(second.body.data.isDuplicate,true);
+  assert.equal(first.body.data.registration,undefined);assert.equal(second.body.data.registration,undefined);assert.equal(second.body.data.isDuplicate,true);
 });
 test('checkout validates quantities, lookup, price authority and isolated mock success',async()=>{
   await call('live','POST','/api/checkout/session',400,{});
   await call('live','POST','/api/checkout/session',400,{eventId,quantity:11});
   await call('live','POST','/api/checkout/session',400,{eventId,quantity:'2'});
   await call('live','POST','/api/checkout/session',400,{eventId,amount:1});
-  await call('live','POST','/api/checkout/session',404,{eventId:'evt_missing'});
-  await call('live','POST','/api/checkout/session',409,{eventId});
+  await call('live','POST','/api/checkout/session',503,{eventId:'evt_missing'});
+  await call('live','POST','/api/checkout/session',503,{eventId});
   const paid=await services.live.createEvent(orgId,createEventSchema.parse({...input,admissionType:'paid',tiers:[{name:'Sample paid tier',priceCents:2500,capacity:10}]}));
   await services.admin.reviewEvent('staff_reviewer_demo',paid.event.id,{decision:'approved'});
   await call('live','POST',`/api/events/${paid.event.id}/register`,409,{attendeeName:'Sample attendee',attendeeEmail:'sample@example.invalid'});
-  await call('live','POST','/api/checkout/session',400,{eventId:paid.event.id,tierIndex:10});
-  const checkout=await call('live','POST','/api/checkout/session',200,{eventId:paid.event.id,quantity:2});assert.equal(checkout.body.mock,true);
+  await call('live','POST','/api/checkout/session',503,{eventId:paid.event.id,tierIndex:10});
+  const checkout=await call('live','POST','/api/checkout/session',503,{eventId:paid.event.id,quantity:2});assert.match(checkout.body.error,/disabled/);
 });
 async function signed(event:any, expected = event.livemode ? 400 : 200){
   const body=JSON.stringify(event),timestamp=Math.floor(Date.now()/1000);
@@ -159,9 +198,9 @@ test('webhook verifies raw signature, rejects live events, accepts ignored test 
   await signed(event);const duplicate=await signed(event);assert.equal(duplicate.body.deduplicated,true);
 });
 test('sandbox completion never applies unapproved allocations or estimated fees',async()=>{
-  await signed({id:'evt_contract_completion',type:'checkout.session.completed',livemode:false,data:{object:{id:'cs_contract_test',payment_status:'paid',amount_total:5000,currency:'usd',metadata:{eventId}}}});
+  await signed({id:'evt_contract_completion',type:'checkout.session.completed',livemode:false,data:{object:{id:'cs_contract_test',payment_status:'paid',amount_total:5000,currency:'usd',metadata:{eventId}}}},503);
   const rows=d1.sqlite.prepare('SELECT category,amount_cents FROM ledger_entries WHERE source_id=?').all(eventId);
-  assert.deepEqual(rows.map((row:any)=>({...row})),[{category:'third_party_payable',amount_cents:5000}]);
+  assert.deepEqual(rows.map((row:any)=>({...row})),[]);
 });
 test('Worship operations remain explicitly documented redirect stubs',async()=>{
   await call('worship','POST','/api/check-in/confirm',303);
@@ -180,5 +219,5 @@ test('legacy list cap, stable ordering and response schema negative controls',as
   assert.throws(()=>validateContract('CheckoutInput',{eventId,quantity:null}));
   const response=handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
-  assert.equal(covered.size,12);
+  assert.equal(covered.size,17);
 });

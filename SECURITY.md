@@ -41,21 +41,22 @@
 - Treat all public example reviews, gig availability, profiles, clients and event listings as demo unless sourced and approved.
 - Terms, privacy policy, waivers, refund policy and independent-contractor agreements are legal drafts until counsel review; no fake 'approved' status.
 
-## Nonprofit status and fundraising claims
+## Legal structure, tax status and fundraising claims
 
-- Gamo Studios is a **proposed** nonprofit. Never state or imply 501(c)(3) recognition, IRS approval, tax-deductibility, state charitable registration, an EIN or any registration number until confirmed by the owner with evidence.
+- Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). Never state or imply 501(c)(3) recognition, IRS approval, tax-deductibility, state charitable registration, an EIN or any registration number until confirmed by the owner with evidence.
 - Never name churches, sponsors, foundations, donors or board members as committed unless a signed agreement or documented consent exists.
 - Do not describe mandatory fees or deductions as donations. Payments where the payer receives substantial goods or services are not presented as charitable gifts.
-- Do not assume program fees, ticketing fees, promotion or production services are exempt-purpose income; flag for accountant/tax review.
-- Executive compensation and related-party transactions require independent board approval and conflict-of-interest documentation; agents never implement compensation logic that bypasses this.
+- Do not assume program fees, ticketing fees, promotion or production services are tax-exempt income; flag for accountant/tax review.
+- Executive compensation and related-party transactions require independent approval and conflict-of-interest documentation; agents never implement compensation logic that bypasses this.
 
 ## Events trust
 
 - Ticket sales only for organizers with recorded authorization; verified-organizer badges only after a staff verification decision.
 - Gamo Live accepts Christian events per the approved content policy; moderation decisions are audited.
 
-## Safeguarding
+## Safeguarding & Sensitive Document Prohibition
 
+- **Do not collect sensitive student or identity documents** (e.g., government IDs, passports, driver licenses, birth certificates, or minor student records) in application endpoints, D1 tables, or R2 buckets.
 - Academy and youth programs involving minors require an approved safeguarding policy, instructor screening, guardian consent, supervised/limited messaging and incident reporting before any real booking. Demo states must never display minors' data or imply screening has occurred.
 
 ## Engineering requirements
