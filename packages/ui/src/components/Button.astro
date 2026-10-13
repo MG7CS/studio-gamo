@@ -8,7 +8,7 @@ interface Props {
 
 const { href, variant = 'primary', class: className = '', type = 'button', ...rest } = Astro.props;
 
-const baseClasses = "inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold transition-colors text-center w-full sm:w-auto";
+const baseClasses = "inline-flex min-h-12 items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-colors text-center w-full sm:w-auto";
 
 const variants = {
   primary: "bg-[#B65B35] text-white hover:bg-[#8F432A] shadow-lg shadow-[#B65B35]/20",

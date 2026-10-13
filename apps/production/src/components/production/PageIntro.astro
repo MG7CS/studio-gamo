@@ -12,9 +12,9 @@ interface Props {
 }
 const { eyebrow, title, accent, lede, photo, crumb } = Astro.props;
 ---
-<section class="bg-cream pt-28 pb-14 lg:pt-36 lg:pb-20">
+<section class="bg-cream page-intro-space">
   <div class="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-12">
-    <div class:list={[photo ? 'lg:col-span-7' : 'lg:col-span-9']}>
+    <div class:list={[photo ? 'lg:col-span-6' : 'lg:col-span-9']}>
       {crumb && <a href={crumb.href} class="text-sm font-medium text-ink-soft underline-offset-4 hover:text-charcoal hover:underline">← {crumb.label}</a>}
       <p class="eyebrow mt-4 text-terracotta">{eyebrow}</p>
       <h1 class="display-lg mt-4 text-charcoal">{title}{accent && <><br /><span class="text-terracotta">{accent}</span></>}</h1>
@@ -22,8 +22,8 @@ const { eyebrow, title, accent, lede, photo, crumb } = Astro.props;
       <slot />
     </div>
     {photo && (
-      <div class="lg:col-span-5">
-        <div class="aspect-[16/10] overflow-hidden rounded-[2.5rem] rounded-tr-[7rem] shadow-float lg:aspect-[4/5]">
+      <div class="lg:col-span-6">
+        <div class="mx-auto aspect-[16/10] max-w-[520px] overflow-hidden rounded-[2.5rem] rounded-tr-[7rem] shadow-float lg:aspect-[5/4]">
           <Photo name={photo} priority sizes="(min-width:1024px) 38vw, 100vw" class="h-full w-full object-cover" />
         </div>
       </div>

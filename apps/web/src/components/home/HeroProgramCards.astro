@@ -3,8 +3,8 @@
 import ProgramCard from '@studio-gamo/ui/components/ProgramCard.astro';
 import { programs } from '../../data/programs';
 ---
-<div id="bright-programs" class="relative z-10 mt-8 grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:-mt-48 lg:ml-[38%] lg:grid-cols-4">
+<div id="bright-programs" class="relative z-10 mt-8 grid scroll-mt-28 gap-4 sm:grid-cols-2 lg:-mt-28 lg:ml-[40%] lg:grid-cols-4">
   {programs.map((p) => (
-    <ProgramCard title={p.name.replace('Gamo ', '')} description={p.short} href={p.href} photo={p.photo} icon={p.icon} accent={p.accent} sizes="(min-width:1024px) 15vw, (min-width:640px) 45vw, 92vw" />
+    <ProgramCard compact title={p.name.replace('Gamo ', '')} description={p.short} href={p.href} photo={p.photo} icon={p.icon} accent={p.accent} sizes="(min-width:1024px) 15vw, (min-width:640px) 45vw, 92vw" />
   ))}
 </div>

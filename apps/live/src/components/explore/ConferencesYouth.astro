@@ -10,7 +10,7 @@ const { conferences, youth } = Astro.props;
 const c = conferences[0];
 const d = dateParts(c.date);
 ---
-<section class="bg-cream px-4 py-16 sm:px-8 lg:py-24" aria-label="Conferences and youth & family events">
+<section class="bg-cream px-4 section-space sm:px-8" aria-label="Conferences and youth & family events">
   <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.25fr_1fr]">
     <article class="relative flex flex-col overflow-hidden rounded-[32px] bg-white ring-1 ring-sand">
       <div class="relative aspect-[16/10] overflow-hidden"><Photo name={c.photo} sizes="(min-width:1024px) 55vw, 100vw" class="h-full w-full object-cover" alt="" /></div>

@@ -1,31 +1,31 @@
 ---
-/** Production hero: oversized headline beside a sculptural engineer photo with a floating mixer-strip preview. */
+/** Production hero: controlled headline beside a sculptural engineer photo with a floating mixer-strip preview. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import MixerStripPreview from './MixerStripPreview.astro';
 ---
-<section class="relative overflow-hidden bg-cream pt-28 pb-16 lg:pt-36 lg:pb-24" aria-labelledby="prod-hero-title">
-  <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-12 lg:gap-10">
+<section class="relative overflow-hidden bg-cream pt-28 pb-16 lg:pt-32 lg:pb-16" aria-labelledby="prod-hero-title">
+  <div class="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-12 lg:gap-8">
     <div class="lg:col-span-6">
       <p class="eyebrow text-terracotta">Gamo Production · Technical ministry</p>
-      <h1 id="prod-hero-title" class="display-xl mt-5 text-charcoal">
+      <h1 id="prod-hero-title" class="display-xl production-hero-title mt-4 text-charcoal">
         Better Tools.<br /><span class="text-terracotta">Stronger Worship.</span>
       </h1>
-      <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft md:text-xl">
+      <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">
         A proposed program helping churches grow in worship audio, video, lighting and livestreaming — and in the volunteers who serve behind the board every Sunday.
       </p>
-      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <ButtonLink href="/assessment" size="lg" arrow>Start a needs assessment</ButtonLink>
-        <ButtonLink href="/services" size="lg" variant="secondary">Explore support areas</ButtonLink>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ButtonLink href="/assessment" arrow>Start a needs assessment</ButtonLink>
+        <ButtonLink href="/services" variant="secondary">Explore support areas</ButtonLink>
       </div>
       <StatusPill kind="proposal" class="mt-6">Proposed program · not yet accepting requests</StatusPill>
     </div>
     <div class="relative lg:col-span-6">
-      <div class="relative ml-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden rounded-[2.5rem] rounded-tl-[9rem] bg-night shadow-float sm:aspect-square">
+      <div class="relative ml-auto aspect-[4/5] w-full max-w-[480px] overflow-hidden rounded-[2.5rem] rounded-tl-[9rem] bg-night shadow-float sm:aspect-[5/4] lg:aspect-square">
         <Photo name="soundEngineer" priority sizes="(min-width:1024px) 45vw, 100vw" class="h-full w-full object-cover" />
       </div>
-      <MixerStripPreview class="absolute -bottom-8 left-2 w-56 sm:left-0 md:-left-6 md:w-64" />
+      <MixerStripPreview class="absolute -bottom-8 left-2 w-48 sm:left-0 md:-left-4 md:w-56" />
       <div class="absolute right-3 top-5 hidden rounded-2xl bg-white/95 px-4 py-3 text-sm shadow-float sm:block">
         <p class="font-semibold text-charcoal">Sunday line check</p>
         <p class="text-ink-soft">Illustrative preview</p>

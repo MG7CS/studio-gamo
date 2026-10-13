@@ -10,23 +10,23 @@ const { event: e } = Astro.props;
 const d = dateParts(e.date);
 const org = getOrganizer(e.organizer);
 ---
-<header class="bg-cream px-4 pb-14 pt-28 sm:px-8 lg:pt-36">
-  <div class="mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+<header class="bg-cream page-intro-space px-4 sm:px-8">
+  <div class="mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
     <div>
       <a href="/events" class="text-sm font-medium text-ink-soft hover:text-terracotta">← All events</a>
-      <p class="eyebrow mt-6 text-terracotta">{categoryLabels[e.category]}</p>
-      <h1 class="display-lg mt-3 text-balance">{e.title}</h1>
+      <p class="eyebrow mt-4 text-terracotta">{categoryLabels[e.category]}</p>
+      <h1 class="display-lg event-detail-title mt-3 text-balance">{e.title}</h1>
       <p class="mt-4 text-lg text-ink-soft">{e.tagline}</p>
       <EventPills event={e} class="mt-5" />
       {e.status === 'canceled' && <p class="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">This sample event has been canceled by the organizer. Registration and tickets are closed.</p>}
       {e.status === 'rescheduled' && <p class="mt-5 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200"><strong>New date:</strong> {d.long}, {e.time}. Existing registrations would carry over automatically.</p>}
-      <dl class="mt-7 grid gap-4 sm:grid-cols-2">
+      <dl class="mt-5 grid gap-3 sm:grid-cols-2">
         <div class="flex gap-3"><Icon name="calendar" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">When</dt><dd class="font-medium">{d.long}<br />{e.time}{e.recurring && ` · ${e.recurring}`}</dd></div></div>
         <div class="flex gap-3"><Icon name="pin" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Where</dt><dd class="font-medium">{e.venue}<br />{e.city}, {e.state}</dd></div></div>
         <div class="flex gap-3"><Icon name="users" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Organizer</dt><dd class="font-medium"><a href={`/organizers/${org.slug}`} class="underline-offset-4 hover:underline">{org.name}</a> <span class="text-ink-soft">(sample)</span></dd></div></div>
         <div class="flex gap-3"><Icon name="ticket" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Admission</dt><dd class="font-medium">{fromPrice(e)}{e.externalSource && ` · via ${e.externalSource}`}</dd></div></div>
       </dl>
-      <div class="mt-8 flex flex-wrap gap-3">
+      <div class="mt-6 flex flex-wrap gap-3">
         {e.status === 'canceled' ? <span class="rounded-full bg-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal/50" aria-disabled="true">Registration closed</span>
           : e.ticketing === 'external' ? <ButtonLink href={`/events/${e.id}/tickets`} arrow>External ticket info</ButtonLink>
           : <ButtonLink href={`/events/${e.id}/tickets`} arrow>{e.ticketing === 'free' ? 'Registration preview' : 'Ticketing preview'}</ButtonLink>}
@@ -34,7 +34,7 @@ const org = getOrganizer(e.organizer);
       </div>
     </div>
     <div class="relative">
-      <div class="aspect-[4/5] overflow-hidden rounded-[32px_220px_32px_32px] bg-night sm:aspect-[5/4] lg:aspect-[4/5]">
+      <div class="aspect-[4/5] overflow-hidden rounded-[32px_220px_32px_32px] bg-night sm:aspect-[5/4] lg:aspect-[5/4]">
         <Photo name={e.photo} position={e.photoPosition} sizes="(min-width:1024px) 50vw, 100vw" priority class="h-full w-full object-cover" alt="" />
       </div>
       <div class="absolute -bottom-5 left-4 rounded-[22px] bg-white px-5 py-4 text-center shadow-float ring-1 ring-sand">

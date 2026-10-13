@@ -1,2 +1,8 @@
 @import "tailwindcss";
 @import "@studio-gamo/ui/styles/tokens.css";
+
+/* Keep the approved two-line statement legible within its half-width column. */
+.production-hero-title {
+  font-size: clamp(2.5rem, 4.4vw, 4rem);
+  text-wrap: balance;
+}

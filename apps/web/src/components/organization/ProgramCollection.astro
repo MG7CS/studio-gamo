@@ -6,13 +6,13 @@ import { programs } from '../../data/organization';
 interface Props { compact?: boolean; }
 const { compact = false } = Astro.props;
 ---
-<section id="programs" class="px-6 py-20 sm:px-12 lg:py-28">
+<section id="programs" class="px-6 section-space sm:px-12">
   <div class="mx-auto max-w-[1320px]">
     <EditorialHeading eyebrow="Connected by purpose" title="One mission." accent="Four ways forward." lede="Each program brings something different. Together, they support people who worship, learn, gather and serve." />
     <div class:list={['mt-12 grid gap-7', compact ? 'sm:grid-cols-2 xl:grid-cols-4' : 'lg:grid-cols-2 lg:gap-10']}>
       {programs.map((p, i) => <article class:list={['overflow-hidden rounded-[32px]', i === 2 ? 'bg-charcoal text-cream' : 'bg-ivory', !compact && i % 2 === 1 && 'lg:translate-y-12']}>
         <div class:list={['overflow-hidden', compact ? 'h-[240px]' : 'h-[310px] sm:h-[380px]']}><Photo name={p.photo} sizes={compact ? '(min-width:1280px) 23vw, (min-width:640px) 45vw, 100vw' : '(min-width:1024px) 45vw, 100vw'} position={p.name === 'Worship' ? '50% 28%' : undefined} /></div>
-        <div class="p-7 sm:p-9"><p class:list={['eyebrow', i === 2 ? 'text-gold' : 'text-terracotta']}>Gamo {p.name} · {p.label}</p><h3 class="mt-5 text-3xl font-bold tracking-tight">{p.title}</h3><p class:list={['mt-4 leading-relaxed', i === 2 ? 'text-cream/75' : 'text-ink-soft']}>{p.body}</p><div class="mt-6"><ButtonLink href={p.href} variant={i === 2 ? 'ghost-dark' : 'secondary'} arrow>Explore {p.name}</ButtonLink></div></div>
+        <div class="p-7 sm:p-9"><p class:list={['eyebrow', i === 2 ? 'text-gold' : 'text-terracotta']}>Gamo {p.name} · {p.label}</p><h3 class="mt-5 text-2xl font-bold tracking-tight">{p.title}</h3><p class:list={['mt-4 leading-relaxed', i === 2 ? 'text-cream/75' : 'text-ink-soft']}>{p.body}</p><div class="mt-6"><ButtonLink href={p.href} variant={i === 2 ? 'ghost-dark' : 'secondary'} arrow>Explore {p.name}</ButtonLink></div></div>
       </article>)}
     </div>
   </div>

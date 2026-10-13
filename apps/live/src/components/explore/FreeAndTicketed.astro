@@ -9,7 +9,7 @@ const cols = [
   { id: 'ticketed', title: 'Ticketed events', body: 'Each listing states whether tickets would be issued through Gamo Live or sold externally. Nothing is on sale in this preview.', list: ticketed, href: '/events?price=paid', dark: true },
 ];
 ---
-<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24" aria-label="Free and ticketed events">
+<section class="bg-ivory px-4 section-space sm:px-8" aria-label="Free and ticketed events">
   <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-2">
     {cols.map((c) => (
       <div data-surface={c.dark ? 'dark' : undefined} class:list={['rounded-[32px] p-6 sm:p-10', c.dark ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand']}>

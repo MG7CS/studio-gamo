@@ -8,8 +8,9 @@ import Icon, { type IconName } from './Icon.astro';
 interface Props {
   kind?: 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'canceled' | 'rescheduled' | 'pending' | 'proposal' | 'info' | 'success';
   class?: string;
+  tone?: 'light' | 'dark';
 }
-const { kind = 'info', class: className } = Astro.props;
+const { kind = 'info', class: className, tone = 'light' } = Astro.props;
 const styles: Record<string, [string, IconName | null]> = {
   sample: ['bg-gold/25 text-[#6B4426] ring-gold/50', 'info'],
   verified: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'verified'],
@@ -24,7 +25,8 @@ const styles: Record<string, [string, IconName | null]> = {
   success: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'check'],
 };
 const [cls, icon] = styles[kind];
+const toneClass = tone === 'dark' && (kind === 'sample' || kind === 'paid') ? 'bg-cream text-charcoal ring-cream/50' : cls;
 ---
-<span class:list={['inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset', cls, className]}>
+<span class:list={['inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset', toneClass, className]}>
   {icon && <Icon name={icon} class="h-3.5 w-3.5" strokeWidth={2} />}<slot />
 </span>

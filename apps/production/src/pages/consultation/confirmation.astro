@@ -5,18 +5,18 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 ---
 <Layout title="Inquiry Preview" description="Preview confirmation — nothing was sent." headerTheme="light">
-  <section class="bg-cream pt-32 pb-20 lg:pt-40 lg:pb-28">
+  <section class="bg-cream page-intro-space">
     <div class="mx-auto max-w-2xl px-5 text-center md:px-8">
       <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-terracotta shadow-float"><Icon name="info" class="h-7 w-7" /></span>
       <StatusPill kind="sample" class="mt-6">Preview: nothing was sent</StatusPill>
-      <h1 class="display-lg mt-5 text-charcoal">This is what confirmation will look like.</h1>
+      <h1 class="section-heading mt-5 text-charcoal">This is what confirmation will look like.</h1>
       <p class="mt-6 text-lg text-ink-soft">No information was submitted, stored or emailed. When Gamo Production launches, this page would confirm that your inquiry was received and explain the next steps.</p>
-      <ol class="mx-auto mt-10 max-w-md space-y-3 text-left">
+      <ol class="mx-auto mt-8 max-w-md space-y-3 text-left">
         {['A team member would review your inquiry', 'You would receive a reply by email', 'A conversation would be scheduled if it is a good fit'].map((s, i) => (
           <li class="flex gap-3 rounded-2xl bg-white p-4 text-sm text-charcoal ring-1 ring-sand"><span class="font-semibold text-terracotta">{i + 1}</span>{s}<span class="ml-auto text-xs text-ink-soft">Future</span></li>
         ))}
       </ol>
-      <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+      <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
         <ButtonLink href="/" arrow>Back to Gamo Production</ButtonLink>
         <ButtonLink href="/services" variant="secondary">Explore support areas</ButtonLink>
       </div>

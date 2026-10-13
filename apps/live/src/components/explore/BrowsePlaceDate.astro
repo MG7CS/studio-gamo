@@ -4,7 +4,7 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { cities, dateParts, events } from '../../data/events';
 const dates = [...new Set(events.map((e) => e.date))].sort().slice(0, 10);
 ---
-<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24" aria-labelledby="browse-title">
+<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="browse-title">
   <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
     <div class="min-w-0">
       <p class="eyebrow text-terracotta">Browse by location</p>

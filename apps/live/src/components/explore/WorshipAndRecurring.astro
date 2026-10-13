@@ -8,7 +8,7 @@ import { dateParts, type LiveEvent } from '../../data/events';
 interface Props { worship: LiveEvent[]; recurring: LiveEvent[] }
 const { worship, recurring } = Astro.props;
 ---
-<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24" aria-labelledby="worship-title">
+<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="worship-title">
   <div class="mx-auto max-w-[1320px]">
     <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-end">
       <h2 id="worship-title" class="section-heading text-balance">Worship gatherings <span class="text-terracotta">&amp; weekly fellowship.</span></h2>
