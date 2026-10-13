@@ -24,7 +24,7 @@ export const musicianWorkspace: Workspace = {
     ] },
     { label: 'Commitments', items: [
       { slug: 'standby', label: 'Standby', icon: 'shield' },
-      { slug: 'gig', label: 'Gig details', icon: 'file' },
+      { slug: 'gig', label: 'Service details', icon: 'file' },
     ] },
     { label: 'Profile', items: [
       { slug: 'repertoire', label: 'Instruments & repertoire', icon: 'music' },
@@ -151,7 +151,8 @@ export const musicianWorkspace: Workspace = {
     },
     {
       slug: 'gig',
-      title: 'Gig details',
+      aliases: ['service', 'assignment'],
+      title: 'Service details',
       description: 'Sunday, Oct 18 · Grace Fellowship (sample)',
       actions: [{ label: 'Confirm rehearsal', dialog: 'confirm', icon: 'check' }, { label: 'Message coordinator', dialog: 'message', variant: 'secondary', icon: 'message' }],
       blocks: [

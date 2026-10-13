@@ -128,7 +128,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /musician/assignments | Confirmed services, call times & rehearsal schedule | UI ready |
 | /musician/availability | Interactive calendar & weekly recurring availability | UI ready |
 | /musician/standby | Standby coverage window & activation workflow | UI ready |
-| /musician/gig | Service details, setlist, logistics, payment statement | UI ready |
+| /musician/gig, /musician/service | Service details, setlist, logistics, payment statement (aliases: /musician/service, /musician/assignment) | UI ready |
 | /musician/repertoire | Instruments, musical styles, reading capabilities, bio | UI ready |
 | /musician/verification | Application & audition review progress steps | UI ready |
 | /musician/statements | Sample payment statements (musician pay vs admin allocation) | UI ready |
@@ -138,13 +138,13 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /church/request | Comprehensive musician request form (rehearsal, style, standby) | UI ready |
 | /church/requests | Active musician requests filterable by status | UI ready |
 | /church/services | Upcoming church services agenda & calendar | UI ready |
-| /church/musicians | Assigned musicians roster with approval status | UI ready |
+| /church/musicians | Assigned musicians roster with approval status (aliases: /church/roster) | UI ready |
 | /church/standby | Standby coverage monitoring per service | UI ready |
 | /church/recurring | Recurring weekly scheduling & pattern manager | UI ready |
 | /church/history | Service & request fulfillment history | UI ready |
 | /church/statements | Church financial records (musician pay vs allocation separate) | UI ready |
 | /church/profile | Church profile & team permission access control | UI ready |
-| /church/roster | Legacy redirect to /church/musicians | UI ready |
+| /church/roster | Legacy redirect and route alias to /church/musicians | UI ready |
 | /admin, /admin/assign/[id] | Legacy prototypes redirect to apps/admin (/worship/placement) | UI ready |
 
 ### Gamo Academy Workspaces — apps/academy — port 4323
@@ -156,7 +156,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /family/programs | Enrolled instrument programs & class details | UI ready |
 | /family/schedule | Interactive lesson calendar & reschedule request | UI ready |
 | /family/tracks | Instrument progression & skill milestones | UI ready |
-| /family/instructors | Instructor profiles & contact via program office | UI ready |
+| /family/instructors | Instructor profiles & contact via program office (aliases: /family/teachers) | UI ready |
 | /family/practice | Practice materials, audio stems & chord charts | UI ready |
 | /family/progress | Attendance record & term evaluation notes | UI ready |
 | /family/learners | Household learner management (minors privacy protected) | UI ready |

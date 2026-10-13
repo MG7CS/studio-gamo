@@ -63,7 +63,7 @@ export const partnerWorkspace: Workspace = {
             { date: 'Oct 17', time: '6:00 PM – 7:30 PM', title: 'Worship Team Rehearsal', meta: 'Sanctuary · Guest keyboardist rehearsal', badge: b('Confirmed', 'success') },
             { date: 'Oct 18', time: '10:00 AM Service', title: 'Sunday Morning Worship Gathering', meta: 'Sanctuary · Gamo Worship placement (keys)', badge: b('Confirmed', 'success') },
             { date: 'Oct 20', time: '4:00 PM – 5:30 PM', title: 'Academy First Piano Steps (Class A)', meta: 'Youth Room 102 · Maya Thompson (sample instructor)', badge: b('Academy', 'info') },
-            { date: 'Nov 7', time: '7:00 PM – 9:00 PM', title: 'Harvest Night of Gospel (Concert)', meta: 'Main Auditorium · Gamo Live community gathering', badge: b('Live Event', 'proposal') },
+            { date: 'Nov 14', time: '7:00 PM – 9:00 PM', title: 'Harvest Night of Gospel (Concert)', meta: 'Main Auditorium · Gamo Live community gathering', badge: b('Live Event', 'proposal') },
           ],
         },
         {

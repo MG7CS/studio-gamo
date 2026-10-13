@@ -8,7 +8,16 @@ const cells = [...Array(startDay).fill(null), ...Array.from({ length: days }, (_
 const byDay = (d: number) => events.filter((e) => e.day === d);
 ---
 <div data-calendar>
-  <div class="mb-3 flex items-center justify-between"><p class="text-[15px] font-semibold">{month}</p><p class="text-[12px] text-ink-soft">Select a day</p></div>
+  <div class="mb-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <p class="text-[16px] font-semibold text-charcoal">{month}</p>
+      <div class="flex items-center gap-0.5 text-ink-soft" aria-hidden="true" title="Calendar preview only">
+        <span class="inline-grid h-6 w-6 place-items-center rounded text-[11px] opacity-40">‹</span>
+        <span class="inline-grid h-6 w-6 place-items-center rounded text-[11px] opacity-40">›</span>
+      </div>
+    </div>
+    <p class="text-[12px] text-ink-soft">Select a day</p>
+  </div>
   <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft" aria-hidden="true">{['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => <span>{d}</span>)}</div>
   <div class="mt-1 grid grid-cols-7 gap-1">
     {cells.map((d) => d === null ? <span /> : (
@@ -21,4 +30,7 @@ const byDay = (d: number) => events.filter((e) => e.day === d);
   </div>
   <p data-cal-detail aria-live="polite" class="mt-3 min-h-10 rounded-lg bg-ivory px-3 py-2 text-[13px] text-ink-soft">Select a date to see sample commitments.</p>
 </div>
-<style>.cal-day[aria-pressed='true'] { background: var(--color-charcoal); color: var(--color-cream); }</style>
+<style>
+  .cal-day[aria-pressed='true'] { background: var(--color-charcoal); color: var(--color-cream); }
+  .cal-day[aria-pressed='true'] .rounded-full.bg-charcoal { background-color: var(--color-cream) !important; }
+</style>

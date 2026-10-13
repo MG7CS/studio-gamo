@@ -138,11 +138,13 @@ export const churchWorkspace: Workspace = {
     },
     {
       slug: 'musicians',
+      aliases: ['roster'],
       title: 'Assigned musicians',
       description: 'Musicians assigned to your upcoming services. Approval reflects the program office review (sample).',
       blocks: [
         { type: 'cards', span: 3, items: [
-          { title: 'Jordan A. (sample)', meta: 'Keys · vocals', body: 'Oct 18 primary · Oct 25 primary', badge: b('Approved (sample)', 'sample'), icon: 'piano' },
+          { title: 'Jordan A. (sample)', meta: 'Keys · vocals', body: 'Oct 18 primary · Nov 8 primary', badge: b('Approved (sample)', 'sample'), icon: 'piano' },
+          { title: 'Mateo S. (sample)', meta: 'Keys / piano', body: 'Oct 25 primary', badge: b('Approved (sample)', 'sample'), icon: 'piano' },
           { title: 'Marcus T. (sample)', meta: 'Drums', body: 'Oct 18 primary', badge: b('Approved (sample)', 'sample'), icon: 'drums' },
           { title: 'Elena R. (sample)', meta: 'Acoustic guitar', body: 'Oct 21 midweek prayer', badge: b('Approved (sample)', 'sample'), icon: 'guitar' },
           { title: 'Priya N. (sample)', meta: 'Keys', body: 'Oct 25 standby', badge: b('Approved (sample)', 'sample'), icon: 'shield' },

@@ -51,7 +51,7 @@ export const instructorWorkspace: Workspace = {
         { type: 'agenda', span: 2, title: 'This week', action: { label: 'Teaching calendar', href: `${P}/calendar` }, items: [
           { date: 'Oct 13', time: '4:00 PM · Grace Fellowship (sample)', title: 'Piano Group B — Week 4', meta: '4 students', badge: b('Record attendance', 'pending'), href: `${P}/attendance` },
           { date: 'Oct 14', time: '4:00 PM · Online', title: 'Private lesson — Noah P.', meta: 'Intermediate', badge: b('Scheduled', 'success') },
-          { date: 'Oct 17', time: '10:00 AM · Online', title: 'First Piano Steps — Week 4', meta: '5 students', badge: b('Scheduled', 'success') },
+          { date: 'Oct 17', time: '10:00 AM · Online', title: 'Keyboard Foundations — Week 4', meta: '4 students', badge: b('Scheduled', 'success') },
         ] },
         { type: 'actions', title: 'Quick actions', items: [
           { label: 'Record attendance', href: `${P}/attendance`, icon: 'check' },
@@ -66,9 +66,9 @@ export const instructorWorkspace: Workspace = {
       title: 'Teaching calendar',
       blocks: [
         { type: 'calendar', span: 2, month: 'October 2026', startDay: 4, days: 31, events: [
-          { day: 13, label: 'Group B' }, { day: 14, label: 'Noah P.' }, { day: 17, label: 'First Steps' }, { day: 20, label: 'Group B' }, { day: 21, label: 'Noah P.' }, { day: 24, label: 'First Steps' }, { day: 27, label: 'Group B' }, { day: 28, label: 'Moved', tone: 'rescheduled' }, { day: 31, label: 'First Steps' },
+          { day: 13, label: 'Group B' }, { day: 14, label: 'Noah P.' }, { day: 17, label: 'Foundations' }, { day: 20, label: 'Group B' }, { day: 21, label: 'Noah P.' }, { day: 24, label: 'Foundations' }, { day: 27, label: 'Group B' }, { day: 28, label: 'Moved', tone: 'rescheduled' }, { day: 31, label: 'Foundations' },
         ] },
-        { type: 'kv', title: 'Weekly pattern', items: [['Tuesdays', '4:00 PM · Group B (in person)'], ['Wednesdays', '4:00 PM · Private (online)'], ['Saturdays', '10:00 AM · First Steps (online)'], ['Reschedule requests', b('1 open', 'rescheduled')]] },
+        { type: 'kv', title: 'Weekly pattern', items: [['Tuesdays', '4:00 PM · Group B (in person)'], ['Wednesdays', '4:00 PM · Private (online)'], ['Saturdays', '10:00 AM · Foundations (online)'], ['Reschedule requests', b('1 open', 'rescheduled')]] },
       ],
     },
     {
@@ -76,7 +76,7 @@ export const instructorWorkspace: Workspace = {
       title: 'Assigned classes',
       blocks: [
         { type: 'table', span: 3, columns: [{ key: 'name', label: 'Class', primary: true }, { key: 'level', label: 'Level' }, { key: 'where', label: 'Where' }, { key: 'size', label: 'Students' }, { key: 'week', label: 'Progress' }, { key: 'status', label: 'Status' }], rows: [
-          { name: 'First Piano Steps', level: 'Beginner', where: 'Online', size: '5', week: 'Week 4 of 8', status: b('Active', 'success') },
+          { name: 'Keyboard Foundations', level: 'Beginner', where: 'Online', size: '4', week: 'Week 4 of 8', status: b('Active', 'success') },
           { name: 'Piano Group B', level: 'Beginner', where: 'Grace Fellowship (sample)', size: '4', week: 'Week 4 of 10', status: b('Active', 'success') },
           { name: 'Private — Noah P.', level: 'Intermediate', where: 'Online', size: '1', week: 'Ongoing', status: b('Active', 'success') },
           { name: 'Winter Worship Keys', level: 'Intermediate', where: 'Grace Fellowship (sample)', size: '—', week: 'Starts Jan', status: b('Proposed', 'proposal') },
@@ -88,12 +88,11 @@ export const instructorWorkspace: Workspace = {
       title: 'Student roster',
       blocks: [
         { type: 'notice', tone: 'privacy', title: 'Privacy', body: 'You see each student’s first name, last initial, level and attendance only. Ages, addresses and guardian contact details are never shown; contact families via the program office.' },
-        { type: 'table', span: 3, filter: true, filterKey: 'class', filterOptions: ['First Piano Steps', 'Piano Group B', 'Private'], columns: [{ key: 'name', label: 'Student', primary: true }, { key: 'class', label: 'Class' }, { key: 'level', label: 'Level' }, { key: 'attendance', label: 'Attendance' }], rows: [
-          { name: 'Ava R.', class: 'First Piano Steps', level: 'Beginner', attendance: '4 / 4' },
-          { name: 'Micah L.', class: 'First Piano Steps', level: 'Beginner', attendance: '3 / 4' },
-          { name: 'Sofia G.', class: 'First Piano Steps', level: 'Beginner', attendance: '4 / 4' },
-          { name: 'Isaac T.', class: 'First Piano Steps', level: 'Beginner', attendance: '4 / 4' },
-          { name: 'Hannah W.', class: 'First Piano Steps', level: 'Beginner', attendance: '2 / 4' },
+        { type: 'table', span: 3, filter: true, filterKey: 'class', filterOptions: ['Keyboard Foundations', 'Piano Group B', 'Private'], columns: [{ key: 'name', label: 'Student', primary: true }, { key: 'class', label: 'Class' }, { key: 'level', label: 'Level' }, { key: 'attendance', label: 'Attendance' }], rows: [
+          { name: 'Micah L.', class: 'Keyboard Foundations', level: 'Beginner', attendance: '3 / 4' },
+          { name: 'Sofia G.', class: 'Keyboard Foundations', level: 'Beginner', attendance: '4 / 4' },
+          { name: 'Isaac T.', class: 'Keyboard Foundations', level: 'Beginner', attendance: '4 / 4' },
+          { name: 'Hannah W.', class: 'Keyboard Foundations', level: 'Beginner', attendance: '2 / 4' },
           { name: 'Grace M.', class: 'Piano Group B', level: 'Beginner', attendance: '3 / 3' },
           { name: 'Levi D.', class: 'Piano Group B', level: 'Beginner', attendance: '3 / 3' },
           { name: 'Ruth A.', class: 'Piano Group B', level: 'Beginner', attendance: '2 / 3' },

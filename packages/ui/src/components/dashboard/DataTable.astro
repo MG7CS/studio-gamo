@@ -66,6 +66,18 @@ const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
   {filter && <p class="mt-3 text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} sample records</p>}
 </div>
 <style>
-  .chip { min-height: 2.25rem; border-radius: 999px; border: 1px solid var(--color-sand); background: white; padding: 0 0.85rem; font-size: 13px; font-weight: 500; }
+  .chip {
+    min-height: 2.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-sand);
+    background: white;
+    padding: 0 1rem;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .chip:hover { border-color: var(--color-charcoal); }
   .chip[aria-pressed='true'] { background: var(--color-charcoal); border-color: var(--color-charcoal); color: var(--color-cream); }
+  .chip:focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 2px; }
 </style>

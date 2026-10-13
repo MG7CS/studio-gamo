@@ -47,14 +47,14 @@ export const organizerWorkspace: Workspace = {
         { type: 'stats', items: [
           { label: 'Scheduled events', value: '3', hint: 'Next: Sat, Oct 17', icon: 'calendar' },
           { label: 'Registrations (sample)', value: '214', hint: 'Across scheduled events', icon: 'users' },
-          { label: 'In review', value: '1', hint: 'Fall Family Night', icon: 'clock' },
+          { label: 'In review', value: '1', hint: 'Fall Family Festival & Praise', icon: 'clock' },
           { label: 'Organizer review', value: 'In progress', hint: 'Not verified', icon: 'shield' },
         ] },
-        { type: 'notice', tone: 'warning', title: 'Needs attention', body: 'Fall Family Night (sample) is missing an accessibility note and a parking description. Add them so the review team can finish its check.' },
+        { type: 'notice', tone: 'warning', title: 'Needs attention', body: 'Fall Family Festival & Praise (sample) is missing an accessibility note and a parking description. Add them so the review team can finish its check.' },
         { type: 'agenda', span: 2, title: 'Upcoming', action: { label: 'All events', href: `${P}/events` }, items: [
           { date: 'Oct 17', time: '6:30 PM', title: 'Saturday Night Worship (sample)', meta: 'Free registration · 86 of 150 seats', badge: b('Scheduled', 'success'), href: `${P}/registrations` },
           { date: 'Oct 21', time: '7:00 PM', title: 'Wednesday Bible Study: Psalms (sample)', meta: 'Weekly · drop in', badge: b('Recurring', 'info'), href: `${P}/recurring` },
-          { date: 'Oct 31', time: '2:00 PM', title: 'Fall Family Night (sample)', meta: 'Awaiting content review', badge: b('In review', 'pending'), href: `${P}/events` },
+          { date: 'Oct 31', time: '2:00 PM', title: 'Fall Family Festival & Praise (sample)', meta: 'Awaiting content review', badge: b('In review', 'pending'), href: `${P}/events` },
           { date: 'Nov 14', time: '7:00 PM', title: 'Harvest Night of Gospel (sample)', meta: 'Tiers drafted · not on sale', badge: b('Scheduled', 'success'), href: `${P}/tickets` },
         ] },
         { type: 'actions', title: 'Quick actions', items: [
@@ -65,12 +65,12 @@ export const organizerWorkspace: Workspace = {
         ] },
         { type: 'progress', span: 2, title: 'Registration capacity (sample)', items: [
           { label: 'Saturday Night Worship · Oct 17', value: 57, note: '86 / 150' },
-          { label: 'Fall Family Night · Oct 31', value: 0, note: 'Opens after review' },
+          { label: 'Fall Family Festival & Praise · Oct 31', value: 0, note: 'Opens after review' },
           { label: 'Harvest Night of Gospel · Nov 14', value: 32, note: '128 interested / 400' },
         ] },
         { type: 'list', title: 'Recent activity', items: [
           { title: '12 new registrations', meta: 'Saturday Night Worship · today', icon: 'users' },
-          { title: 'Review comment added', meta: 'Fall Family Night · yesterday', body: 'Please add an accessibility note.', icon: 'message' },
+          { title: 'Review comment added', meta: 'Fall Family Festival & Praise · yesterday', body: 'Please add an accessibility note.', icon: 'message' },
           { title: 'Reminder drafted', meta: 'Not sent · 2 days ago', icon: 'mail' },
         ] },
       ],
@@ -86,7 +86,7 @@ export const organizerWorkspace: Workspace = {
         ], rows: [
           { event: 'Saturday Night Worship (sample)', date: 'Sat, Oct 17 · 6:30 PM', ticketing: b('Free', 'free'), regs: '86 / 150', status: b('Scheduled', 'success') },
           { event: 'Wednesday Bible Study: Psalms (sample)', date: 'Weekly · Wed 7:00 PM', ticketing: b('Free', 'free'), regs: 'Drop in', status: b('Scheduled', 'success') },
-          { event: 'Fall Family Night (sample)', date: 'Sat, Oct 31 · 2:00 PM', ticketing: b('Free', 'free'), regs: '—', status: b('In review', 'pending') },
+          { event: 'Fall Family Festival & Praise (sample)', date: 'Sat, Oct 31 · 2:00 PM', ticketing: b('Free', 'free'), regs: '—', status: b('In review', 'pending') },
           { event: 'Harvest Night of Gospel (sample)', date: 'Sat, Nov 14 · 7:00 PM', ticketing: b('Ticketing pending', 'proposal'), regs: '128 interested', status: b('Scheduled', 'success') },
           { event: 'Advent Lessons & Carols (sample)', date: 'Sun, Dec 13 · 5:00 PM', ticketing: b('Free', 'free'), regs: '—', status: b('Draft', 'sample') },
           { event: 'Gospel Brunch & Testimony (sample)', date: 'Sun, Nov 15 · 11:00 AM', ticketing: b('Free', 'free'), regs: '41 notified (demo)', status: b('Canceled', 'canceled') },

@@ -56,6 +56,7 @@ export interface DashScreen {
   description?: string;
   actions?: DashAction[];
   blocks: DashBlock[];
+  aliases?: string[];
 }
 
 export interface NavItem { slug: string; label: string; icon: IconName; badge?: string }
@@ -110,7 +111,7 @@ export function screenHref(ws: Workspace, slug: string): string {
 
 export function findScreen(ws: Workspace, slug: string | undefined): DashScreen | undefined {
   const clean = (slug ?? '').replace(/^\/+|\/+$/g, '');
-  return ws.screens.find((s) => s.slug === clean);
+  return ws.screens.find((s) => s.slug === clean || (s.aliases && s.aliases.includes(clean)));
 }
 
 export const b = (badge: string, tone: Tone = 'info'): BadgeValue => ({ badge, tone });

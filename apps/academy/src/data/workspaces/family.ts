@@ -26,7 +26,7 @@ export const familyWorkspace: Workspace = {
       { slug: 'tracks', label: 'Learning tracks', icon: 'chart' },
       { slug: 'practice', label: 'Practice materials', icon: 'book' },
       { slug: 'progress', label: 'Progress & attendance', icon: 'clipboard' },
-      { slug: 'instructor', label: 'Instructor', icon: 'user' },
+      { slug: 'instructor', label: 'Instructors', icon: 'user' },
     ] },
     { label: 'Household', items: [
       { slug: 'learners', label: 'Family members', icon: 'users' },
@@ -157,6 +157,7 @@ export const familyWorkspace: Workspace = {
     },
     {
       slug: 'instructor',
+      aliases: ['instructors'],
       title: 'Instructors',
       blocks: [
         { type: 'kv', title: 'Maya Thompson (sample) — Ava’s piano', items: [['Program', 'First Piano Steps'], ['Lesson time', 'Saturdays, 10:00 AM online'], ['Screening', b('Completed (sample)', 'verified')], ['Contact', 'Messages via program office']] },
