@@ -6,12 +6,19 @@
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
     "build": "pnpm -r --workspace-concurrency=1 build",
-    "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit",
+    "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
     "lint": "echo \"Linting not set up yet\"",
     "test": "node --test scripts/image-policy.test.mjs packages/integrations/src/stripe.test.ts packages/auth/auth.test.ts packages/integrations/src/storage.test.ts packages/domain/src/services/live-slice.test.ts packages/domain/src/services/payments.test.ts",
     "test:web": "node scripts/verify-public-ui.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
-    "images:report": "node scripts/optimize-images.mjs --report"
+    "images:report": "node scripts/optimize-images.mjs --report",
+    "api:lint": "redocly lint openapi/root.yaml",
+    "api:bundle": "node scripts/api/generate.mjs",
+    "api:types": "node scripts/api/generate.mjs",
+    "api:docs": "node scripts/api/docs.mjs",
+    "api:check": "pnpm api:lint && node scripts/api/generate.mjs --check && node scripts/api/check.mjs && pnpm api:test",
+    "api:test": "tsx --test scripts/api/contract.test.ts",
+    "api:compatibility": "node scripts/api/compatibility.mjs"
   },
   "keywords": [],
   "author": "",
@@ -24,13 +31,18 @@
     }
   },
   "type": "module",
-  "dependencies": {
-    "typescript": "^7.0.2"
-  },
   "devDependencies": {
     "@playwright/test": "^1.64.0",
+    "@redocly/cli": "^2.62.1",
     "@types/node": "^26.6.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "openapi-fetch": "^0.17.0",
+    "openapi-typescript": "^7.13.0",
     "playwright": "^1.64.0",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.1"
   }
 }

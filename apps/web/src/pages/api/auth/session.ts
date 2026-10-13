@@ -1,3 +1,4 @@
+import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import {
@@ -18,10 +19,13 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    if (runtimeEnv.ENVIRONMENT !== 'local' || runtimeEnv.ALLOW_DEMO_SESSION !== 'true') {
+      return errorResponse('FORBIDDEN', 'Demo session creation is disabled. Verified identity login is not implemented.', 403);
+    }
     const db = getDb(runtimeEnv.DB);
     const identityService = new IdentityService(db);
 
-    const body = await context.request.json().catch(() => ({}));
+    const body = await readContract(context.request, 'SessionInput');
     const { email, displayName } = body;
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {

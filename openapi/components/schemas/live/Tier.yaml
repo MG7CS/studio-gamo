@@ -1,0 +1,30 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  eventId:
+    $ref: ../shared/Identifier.yaml
+  name:
+    type: string
+  priceCents:
+    type: integer
+    minimum: 0
+  capacity:
+    type: integer
+    minimum: 1
+  reservedCount:
+    type: integer
+    minimum: 0
+  note:
+    anyOf:
+      - type: string
+      - type: "null"
+required:
+  - id
+  - eventId
+  - name
+  - priceCents
+  - capacity
+  - reservedCount
+  - note

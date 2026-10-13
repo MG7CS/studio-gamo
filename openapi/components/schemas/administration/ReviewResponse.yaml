@@ -1,0 +1,22 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      event:
+        $ref: ../live/Event.yaml
+      reviewId:
+        $ref: ../shared/Identifier.yaml
+      message:
+        type: string
+    required:
+      - event
+      - reviewId
+      - message
+required:
+  - success
+  - data

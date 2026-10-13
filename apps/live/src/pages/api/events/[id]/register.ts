@@ -1,3 +1,4 @@
+import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import {
@@ -32,7 +33,7 @@ export const POST: APIRoute = async (context) => {
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 
-    const body = await context.request.json().catch(() => ({}));
+    const body = await readContract(context.request, 'RegisterAttendee');
     const validated = registerAttendeeSchema.parse(body);
 
     // 1. Process free registration in D1

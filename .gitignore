@@ -7,3 +7,7 @@ dist
 
 
 .wrangler
+
+# Local-only generated API references (internal must never be published).
+docs/api-reference/*.html
+.pnpm-store/

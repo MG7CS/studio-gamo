@@ -1,0 +1,14 @@
+type: object
+additionalProperties: false
+properties:
+  category:
+    type: string
+    enum:
+      - concert
+      - worship
+      - bible
+      - conference
+      - youth
+  city:
+    type: string
+    minLength: 2

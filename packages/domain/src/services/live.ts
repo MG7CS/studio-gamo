@@ -190,7 +190,7 @@ export class LiveService {
       .innerJoin(organizerProfiles, eq(events.organizerId, organizerProfiles.id))
       .innerJoin(organizations, eq(organizerProfiles.organizationId, organizations.id))
       .where(and(...conditions))
-      .orderBy(events.startsAt)
+      .orderBy(events.startsAt, events.id)
       .limit(filters?.limit ?? 50);
 
     const result: LiveEventWithDetails[] = [];
@@ -276,8 +276,10 @@ export class LiveService {
     }
 
     if (event.status !== 'approved') {
-      throw new Error(`Event is not open for registration (status: ${event.status}).`);
+      throw new Error('CONFLICT: Event is not open for registration.');
     }
+
+    if (event.admissionType !== 'free') throw new Error('CONFLICT: Free registration is unavailable for this event.');
 
     // 2. Check for duplicate registration by email
     const [existing] = await this.db
@@ -308,6 +310,11 @@ export class LiveService {
         .where(eq(ticketTiers.eventId, eventId))
         .limit(1);
       tierId = firstTier?.id;
+    }
+
+    if (tierId) {
+      const [tier] = await this.db.select().from(ticketTiers).where(and(eq(ticketTiers.id, tierId), eq(ticketTiers.eventId, eventId))).limit(1);
+      if (!tier || tier.priceCents !== 0) throw new Error('CONFLICT: Invalid free event tier.');
     }
 
     const regId = `reg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;

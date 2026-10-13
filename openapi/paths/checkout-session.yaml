@@ -1,0 +1,39 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: createTestCheckout
+  tags:
+    - Payments
+  summary: Create sandbox checkout
+  description: Sandbox only. Event must exist and be approved, paid, with a valid
+    server-priced tier. No inventory reservation, organizer authorization or
+    client idempotency yet; not production ready.
+  security: []
+  x-application: live
+  x-status: implemented
+  x-authorization: Public
+  x-idempotency: Unsupported; client keys are ignored.
+  x-source: apps/live/src/pages/api/checkout/session.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/payments/CheckoutResponse.yaml
+    "400":
+      $ref: ../components/responses/SimpleError.yaml
+    "404":
+      $ref: ../components/responses/SimpleError.yaml
+    "409":
+      $ref: ../components/responses/SimpleError.yaml
+    "500":
+      $ref: ../components/responses/SimpleError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/payments/CheckoutInput.yaml

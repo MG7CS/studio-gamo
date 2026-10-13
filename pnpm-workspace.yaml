@@ -8,3 +8,7 @@ allowBuilds:
 settings:
   onlyBuiltDependencies:
     - esbuild
+
+# openapi-typescript uses the compiler API removed from TypeScript 7.
+overrides:
+  'openapi-typescript>typescript': '5.9.3'

@@ -1,0 +1,19 @@
+type: object
+additionalProperties: false
+properties:
+  eventId:
+    $ref: ../shared/Identifier.yaml
+  tierIndex:
+    type: integer
+    minimum: 0
+    default: 0
+  quantity:
+    type: integer
+    minimum: 1
+    maximum: 10
+    default: 1
+  customerEmail:
+    type: string
+    format: email
+required:
+  - eventId

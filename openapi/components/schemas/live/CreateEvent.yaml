@@ -1,0 +1,70 @@
+type: object
+additionalProperties: false
+properties:
+  organizationId:
+    $ref: ../shared/Identifier.yaml
+  title:
+    type: string
+    minLength: 3
+    maxLength: 150
+  category:
+    type: string
+    enum:
+      - concert
+      - worship
+      - bible
+      - conference
+      - youth
+  tagline:
+    type: string
+    maxLength: 250
+  description:
+    type: string
+    minLength: 20
+  venueName:
+    type: string
+    minLength: 2
+  address:
+    type: string
+  city:
+    type: string
+    minLength: 2
+  state:
+    type: string
+    minLength: 2
+    maxLength: 50
+  startsAt:
+    $ref: ../shared/Timestamp.yaml
+  endsAt:
+    $ref: ../shared/Timestamp.yaml
+  timezone:
+    type: string
+    default: America/Phoenix
+    description: IANA timezone; validated by Intl.DateTimeFormat.
+  admissionType:
+    type: string
+    enum:
+      - free
+      - paid
+      - external
+    default: free
+  photoKey:
+    type: string
+  externalUrl:
+    anyOf:
+      - type: string
+        format: uri
+      - const: ""
+  tiers:
+    type: array
+    items:
+      $ref: ../live/TierInput.yaml
+required:
+  - organizationId
+  - title
+  - category
+  - description
+  - venueName
+  - city
+  - state
+  - startsAt

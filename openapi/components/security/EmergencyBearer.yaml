@@ -1,0 +1,3 @@
+type: http
+scheme: bearer
+description: Conditional configured break-glass only; disabled by default in production.

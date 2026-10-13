@@ -1,0 +1,5 @@
+type: apiKey
+in: cookie
+name: __session
+description: HMAC signed session ID verified against D1. Not proof of identity
+  at session issuance.

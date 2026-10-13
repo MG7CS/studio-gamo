@@ -260,3 +260,9 @@ Large monolithic page files are prohibited.
 - `packages/ui` is the central repository for the design system.
 - Application workspaces (`apps/web`, `apps/worship`, etc.) must depend on `packages/ui` rather than duplicating basic elements.
 - Introduce client-side JS (React, Vue, or Vanilla islands) only when interactions demand it, maintaining Astro's static-first approach for presentation.
+
+## Authoritative HTTP contracts — 2026-10-13
+
+All REST work is now contract-first: [openapi/root.yaml](openapi/root.yaml), then generated `@gamo/api-contracts` types and Worker validators, then routes/services and HTTP contract tests. See [docs/OPENAPI_ARCHITECTURE.md](docs/OPENAPI_ARCHITECTURE.md) and the corrected [docs/API_INVENTORY.md](docs/API_INVENTORY.md). Keep six apps and domain-owned origins; no central API deployable is added.
+
+The earlier “fully wired / end-to-end verified” backend wording above describes service tests, not a proven production/browser workflow. Verified identity login, real Access-to-D1 staff identity mapping, domain staff authorization, capacity-safe registration and full payment fulfillment remain incomplete. Node SQLite is isolated in `@gamo/db/testing`; Workers require a real D1 binding. Contract tests use isolated local HTTP handlers/middleware and SQL migrations, without production changes or real provider calls.

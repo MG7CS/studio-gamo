@@ -1,0 +1,27 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        event:
+          $ref: ../live/Event.yaml
+        organizationName:
+          type: string
+        organizationType:
+          type: string
+      required:
+        - event
+        - organizationName
+        - organizationType
+  meta:
+    $ref: ../shared/ListMeta.yaml
+required:
+  - success
+  - data
+  - meta

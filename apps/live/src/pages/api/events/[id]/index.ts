@@ -19,7 +19,7 @@ export const GET: APIRoute = async (context) => {
     const liveService = new LiveService(db);
 
     const event = await liveService.getEvent(id);
-    if (!event) {
+    if (!event || event.status !== 'approved') {
       return errorResponse('NOT_FOUND', `Event ${id} not found.`, 404);
     }
 

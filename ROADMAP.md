@@ -68,9 +68,9 @@ Future functional priorities require the preceding approval gate. The current pu
 - [x] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local, demo data).
 - [x] Event pages, one-time and recurring schedules, discovery filters (location, date, type, free/paid).
 - [x] Free-event registration flow and attendee "my tickets" (first end-to-end slice implemented and tested).
-- [x] Events/tiers/inventory and local seat reservation authority; paid ticketing enabled only for organizers with recorded ticketing authorization.
+- [ ] Events/tiers exist, but local atomic reservation authority and recorded organizer authorization enforcement are incomplete (OpenAPI reconciliation 2026-10-13).
 - [x] Stripe test checkout integration with durable D1 webhook idempotency and signed/opaque QR tokens.
-- [x] Simultaneous registration and double-entry prevention tests, durable webhook idempotency, and refund status transitions.
+- [ ] Simultaneous registration/double-entry protection and refund transitions remain incomplete; existing webhook dedup tests cover sequential deliveries only (OpenAPI reconciliation 2026-10-13).
 - [ ] *(Later, separately approved)* optional managed promotion requests with labeled placements. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
 
 **Exit:** unverified organizers cannot sell tickets; two simulated buyers cannot secure the same seat; verified demo ticket scans only once; free registration works without payment.
@@ -117,3 +117,7 @@ Blocked until nonprofit incorporation, IRS recognition (or counsel-approved inte
 ## Stopping rules
 
 Continue without repetitive confirmation for normal development decisions. Stop **only** when unable to proceed safely (missing credentials critical to current test, irreversible operation, policy/legal or security gate, exhausted environment, or a board/legal/tax decision listed in [docs/GAMO_NONPROFIT_MODEL.md §8](docs/GAMO_NONPROFIT_MODEL.md#8-decisions-requiring-approval)). Document blockers and continue on other independent work first. No infinite loops: after three failed approaches, write cause/alternatives and choose a safe fallback or mark blocked.
+
+## Contract-first prerequisite — 2026-10-13
+
+The OpenAPI foundation covers all 12 existing HTTP operations with generated types/validators and initial local HTTP tests. Earlier completion claims for Milestone 3 do not establish its exit criteria; see `docs/API_INVENTORY.md` for actual behavior and outstanding findings. Verified identity, staff permission/mapping, inventory, ticket fulfillment and payment retry/refund correctness remain blockers. Complete this contract reconciliation before the independent security/reliability audit. No production-readiness milestone is completed by this work.

@@ -1,0 +1,22 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      user:
+        $ref: ../identity/User.yaml
+      sessionId:
+        type: string
+      message:
+        type: string
+    required:
+      - user
+      - sessionId
+      - message
+required:
+  - success
+  - data

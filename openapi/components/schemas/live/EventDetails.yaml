@@ -1,0 +1,102 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  organizerId:
+    $ref: ../shared/Identifier.yaml
+  title:
+    type: string
+  slug:
+    type: string
+  category:
+    type: string
+    enum:
+      - concert
+      - worship
+      - bible
+      - conference
+      - youth
+  tagline:
+    anyOf:
+      - type: string
+      - type: "null"
+  description:
+    type: string
+  venueName:
+    type: string
+  address:
+    anyOf:
+      - type: string
+      - type: "null"
+  city:
+    type: string
+  state:
+    type: string
+  startsAt:
+    $ref: ../shared/Timestamp.yaml
+  endsAt:
+    anyOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: "null"
+  timezone:
+    type: string
+  admissionType:
+    type: string
+    enum:
+      - free
+      - paid
+      - external
+  photoKey:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalUrl:
+    anyOf:
+      - type: string
+      - type: "null"
+  status:
+    type: string
+    enum:
+      - draft
+      - pending_review
+      - approved
+      - rejected
+      - canceled
+  createdAt:
+    $ref: ../shared/Timestamp.yaml
+  organizerName:
+    type: string
+  organizerKind:
+    type: string
+  tiers:
+    type: array
+    items:
+      $ref: ../live/Tier.yaml
+  totalRegistered:
+    type: integer
+    minimum: 0
+required:
+  - id
+  - organizerId
+  - title
+  - slug
+  - category
+  - tagline
+  - description
+  - venueName
+  - address
+  - city
+  - state
+  - startsAt
+  - endsAt
+  - timezone
+  - admissionType
+  - photoKey
+  - externalUrl
+  - status
+  - createdAt
+  - organizerName
+  - organizerKind
+  - tiers
+  - totalRegistered

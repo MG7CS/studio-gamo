@@ -158,3 +158,17 @@ verify-deployment:
 
 verify-config:
 	@pnpm --filter apps-web exec wrangler whoami
+
+.PHONY: api-lint api-bundle api-types api-docs api-check api-test
+api-lint:
+	@pnpm api:lint
+api-bundle:
+	@pnpm api:bundle
+api-types:
+	@pnpm api:types
+api-docs:
+	@pnpm api:docs
+api-check:
+	@pnpm api:check
+api-test:
+	@pnpm api:test

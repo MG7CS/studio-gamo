@@ -1,0 +1,30 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+get:
+  operationId: getEvent
+  tags:
+    - Live
+  summary: Read approved event
+  description: Read approved event
+  security: []
+  x-application: live
+  x-status: implemented
+  x-authorization: Public
+  x-idempotency: Unsupported; client keys are ignored.
+  x-source: apps/live/src/pages/api/events/[id]/index.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/EventResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "404":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml

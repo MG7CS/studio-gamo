@@ -1,0 +1,13 @@
+type: object
+additionalProperties: false
+properties:
+  decision:
+    type: string
+    enum:
+      - approved
+      - rejected
+      - revision_requested
+  notes:
+    type: string
+required:
+  - decision

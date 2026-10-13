@@ -1,8 +1,8 @@
+import { readContract, ContractValidationError } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { createStripeTestClient } from '@studio-gamo/integrations';
 import { getDb } from '@gamo/db';
 import { LiveService } from '@gamo/domain';
-import { getEvent as getStaticEvent } from '../../../data/events';
 
 export const prerender = false;
 
@@ -16,7 +16,7 @@ export const prerender = false;
  */
 export const POST: APIRoute = async (context) => {
   try {
-    const body = await context.request.json().catch(() => ({}));
+    const body = await readContract(context.request, 'CheckoutInput');
     const { eventId, tierIndex = 0, quantity = 1, customerEmail } = body;
 
     if (!eventId) {
@@ -26,35 +26,20 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    const qty = Math.max(1, Math.min(10, Number(quantity) || 1));
+    const qty = quantity;
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 
-    // 1. Authoritatively resolve event and tier from D1 or static fallback
-    let eventTitle = 'Gamo Live Event';
-    let tierName = 'General Admission';
-    let unitAmountMinorUnits = 2500; // $25.00 default fallback
-
+    const failure = (error: string, status: number) => new Response(JSON.stringify({ error }), { status, headers: { 'Content-Type': 'application/json' } });
     const d1Event = await liveService.getEvent(eventId);
-    if (d1Event) {
-      eventTitle = d1Event.title;
-      const tier = d1Event.tiers[tierIndex] || d1Event.tiers[0];
-      if (tier) {
-        tierName = tier.name;
-        unitAmountMinorUnits = tier.priceCents;
-      }
-    } else {
-      const staticEvent = getStaticEvent(eventId);
-      if (staticEvent) {
-        eventTitle = staticEvent.title;
-        const tier = staticEvent.tiers[tierIndex] || staticEvent.tiers[0];
-        if (tier) {
-          tierName = tier.name;
-          unitAmountMinorUnits = tier.priceCents;
-        }
-      }
-    }
+    if (!d1Event || d1Event.status !== 'approved') return failure('Event not found.', 404);
+    if (d1Event.admissionType !== 'paid') return failure('Paid checkout unavailable for this event.', 409);
+    const tier = d1Event.tiers[tierIndex];
+    if (!tier) return failure('Invalid ticket tier.', 400);
+    const eventTitle = d1Event.title;
+    const tierName = tier.name;
+    const unitAmountMinorUnits = tier.priceCents;
 
     const totalMinorUnits = unitAmountMinorUnits * qty;
 
@@ -97,10 +82,11 @@ export const POST: APIRoute = async (context) => {
       }
     );
   } catch (err: any) {
+    if (err instanceof ContractValidationError) return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     console.error('[Stripe Checkout Error]', err);
     return new Response(
       JSON.stringify({
-        error: err?.message || 'Failed to initialize checkout session',
+        error: 'Failed to initialize checkout session',
       }),
       {
         status: 500,

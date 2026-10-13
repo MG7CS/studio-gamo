@@ -1,0 +1,5 @@
+type: apiKey
+in: header
+name: Stripe-Signature
+description: HMAC SHA256 over timestamp and exact raw request body. Replay
+  tolerance enforced. Test events only.
