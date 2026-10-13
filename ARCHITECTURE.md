@@ -125,15 +125,47 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 - Instructor/host payout split is a pricing-policy decision, and must be represented by ledger rows independent of provider payout state.
 
 ## Gamo Live flows
-- Event discovery with user-controlled location fallback; IP-based location is approximate and opt-outable.
-- Event, ticket tier, inventory, cart, Checkout, QR ticket, organizer panel and authorized scanner.
+Gamo Live is two-sided (see [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md)).
+
+**Attendee (Explore Events):**
+- Event discovery by location, date, organizer and type, with user-controlled location fallback; IP-based location is approximate and opt-outable.
+- Event, ticket tier, inventory, cart, Checkout, QR ticket, free-event registration, "my tickets".
 - **Do not use Cloudflare KV as the sole seat lock.** Use a Durable Object per event/inventory shard or equivalent serialized transactional reservation authority; expiry via alarms/job; commit inventory only after verified payment confirmation.
 - QR codes must be unpredictable, scoped, revocable and single-use for admission. Do not expose raw personally identifying data in token payloads.
 - Multiple scans must be idempotent and guarded against races; maintain audit trail and offline policy.
 
+**Organizer (Promote Events):**
+- `/promote` landing → event submission → promotion package selection (audience, location, duration, budget) → staff review → campaign live → reporting.
+- Advertising is a **managed service**: staff run campaigns manually. No third-party ad-platform API is assumed connected; any future integration sits behind an `integrations` adapter and requires approval.
+- Organizer panel: events, ticket tiers, registrations, scanner access, campaign status and performance reports (views, clicks, registrations, sales, available ad analytics).
+
+## Promotion engine & dynamic homepage (future)
+- Homepage hero and featured slots are driven by placement records, not hardcoded slides.
+- Selection inputs: event date, campaign window/expiry, approximate location, editorial priority, active campaigns, membership benefits; capped sponsored density.
+- Every placement has a `kind` of `sponsored | editorial | gamo_service`, rendered as a visible label.
+- Ranking/vetting data for musicians is in a separate domain that promotion code **cannot** read or write.
+- Design phase: static, clearly labeled example slides only.
+
+## Money separation
+Ledger must keep three categories distinct: **(1) advertising/media spend** held for paid media on behalf of an organizer, **(2) Gamo service fees** (campaign management, creative, membership, platform fees), **(3) ticket-sale proceeds** owed to organizers less disclosed fees. Stripe Connect is the payout rail; Stripe is not general-purpose escrow and must not be described as such. Partner discounts reduce Gamo fees only, never musician pay.
+
 ## Production and admin
-- Production: marketing, portfolio/case studies (real work only), consultation intake; do not fabricate client results.
-- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, finance ledger, audit logs.
+- Production: marketing, portfolio/case studies (real work only), consultation intake, optional promotional creative/event marketing for Live campaigns; do not fabricate client results.
+- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, finance ledger, audit logs, **event moderation & approval, campaign intake/management, featured-placement scheduling, ad budget & campaign-status tracking, ticketing oversight, organizer & Church Partners membership management**.
+
+### Additional logical entities (proposed)
+```
+organizer_profiles(id, organization_id, kind, status)
+event_registrations(id, event_id, user_id, status)
+promotion_packages(id, code, scope_json, status)           -- proposed, no prices finalized
+campaigns(id, event_id, organization_id, package_id, status, starts_at, ends_at, media_budget_amount, currency)
+campaign_channels(id, campaign_id, channel, external_reference, status)
+campaign_metrics(id, campaign_id, date, views, clicks, registrations, ticket_sales)
+placements(id, slot, kind, target_type, target_id, priority, region, starts_at, ends_at, status)
+memberships(id, organization_id, plan_code, status, current_period_end)
+membership_credits(id, membership_id, kind, amount, expires_at)
+ledger_entries(id, category, scope_type, scope_id, amount, currency, created_at)  -- category: media_spend | service_fee | ticket_proceeds
+```
 
 ## Integrations / infrastructure
 

@@ -47,6 +47,17 @@ This document outlines the phased backend integration strategy to transition the
    - Generate secure, signed QR codes post-purchase and display them on `/ticket`.
 3. **Check-in Simulation**
    - Write tests to ensure a verified demo ticket scans only once.
+4. **Organizer Publishing & Free Registration**
+   - Organizer event submission persisted to D1; admin moderation states (draft, submitted, approved, rejected, published).
+   - Free-event registration records and attendee "my tickets".
+
+## Phase 4b: Promotion, Placements & Church Partners (separately approved, after Phase 4)
+Ordered per ROADMAP planning categories 5–7. See `docs/GAMO_LIVE_AND_PARTNERS.md`.
+1. **Managed campaign intake** — organizer selects promotion services (audience, location, duration, budget); admin campaign queue and status; manual reporting entry. No ad-platform APIs.
+2. **Placements** — admin scheduler for homepage/featured slots with `sponsored | editorial | gamo_service` kinds, date windows and region; homepage reads placements instead of static slides.
+3. **Ledger separation** — `media_spend`, `service_fee`, `ticket_proceeds` categories with tests proving they never mix.
+4. **Church Partners** — membership records, credits and fee-discount application (only after pricing approval); tests proving discounts never reduce musician pay and never touch vetting/ranking data.
+5. **Later** — personalization, geo relevance, automated campaigns and analytics integrations, each with explicit approval.
 
 ## Phase 5: Production & Operations
 1. **Production Inquiries (`apps/production`)**

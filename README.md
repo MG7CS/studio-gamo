@@ -10,27 +10,37 @@ Make worship staffing dependable. Help churches find qualified musicians, give m
 
 **Differentiator:** a vetted local musician roster with paid standby understudies and a practical dispatch workflow. This is not a generic gig board or a chatbot.
 
+**Ecosystem showcase:** the global homepage is a continuously refreshed, editorially curated showcase of events, lessons, musicians and Gamo services. "Keep Worship Going" remains the permanent brand message. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
+
 ## Applications
 
 | Host | Purpose | Initial priority |
 | --- | --- | --- |
-| `gamostudios.com` | Global brand, account access, legal pages, routing | P0 |
+| `gamostudios.com` | Global brand, dynamic ecosystem showcase, Church Partners discovery, account access, legal pages, routing | P0 |
 | `worship.gamostudios.com` | Applications, church hiring, gigs, musician standby, dispatch | P0 |
-| `admin.gamostudios.com` | Private staff vetting, decisions, bookings, live incidents | P0 |
+| `admin.gamostudios.com` | Private staff vetting, decisions, bookings, live incidents, event moderation, campaigns, placements, memberships | P0 |
 | `academy.gamostudios.com` | Instructors, lessons, church-hosted clinics | P1 |
-| `live.gamostudios.com` | Event discovery, tickets, organizer tools, scanning | P2 |
-| `production.gamostudios.com` | A/V services, portfolio, consultation | P2 |
+| `live.gamostudios.com` | Two-sided events platform: organizers promote events (managed advertising) and sell tickets/registrations; attendees discover and attend | P2 |
+| `production.gamostudios.com` | A/V services, portfolio, consultation, optional promotional creative & event marketing | P2 |
 
 These are product domains, not a requirement to deploy six separate Workers immediately. All share the same visual identity and governed identity/access model.
+
+## Business model (proposed — no prices finalized)
+
+- **Worship / Academy / Production:** service and platform fees.
+- **Event promotion (Gamo Live):** managed campaign fees, advertising packages, optional creative; media budgets kept separate from Gamo fees.
+- **Ticketing (Gamo Live):** transparent platform fees on paid tickets via Stripe Connect; free listings/registrations under defined policy.
+- **Gamo Church Partners:** recurring church membership with advertising credits, featured placements and preferential pricing across Gamo services. Sponsored content is always labeled; advertising never affects musician vetting or rankings; booking discounts come from Gamo fees, never musician pay.
 
 ## Audiences
 
 1. Churches and worship directors looking for planned and emergency staffing.
 2. Auditioned musicians seeking primary or paid standby opportunities.
 3. Students, families, and partner church facilities seeking music education.
-4. Event organizers and concert attendees.
-5. Churches seeking A/V and production services.
-6. Authorized internal staff.
+4. Event organizers (churches, gospel artists, choirs, promoters) seeking promotion and ticketing.
+5. Event attendees discovering concerts, worship nights and community events.
+6. Churches seeking A/V and production services, and churches joining Gamo Church Partners.
+7. Authorized internal staff.
 
 ## Experience principles
 

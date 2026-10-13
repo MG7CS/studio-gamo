@@ -91,3 +91,10 @@
 - Verified: `astro build` OK; full-page 1440px screenshot captured.
 - Removed "Your Sunday, Covered" feature (kept How It Works) and Academy lesson category cards.
 - Removed "Church-hosted Classes" section from Academy.
+
+## 2026-10-12 — Strategy documentation: Gamo Live, Church Partners, dynamic homepage
+- Docs-only update; no application code changed in this commit.
+- Added `docs/GAMO_LIVE_AND_PARTNERS.md` (positioning, Promote/Explore journeys, managed advertising workflow, revenue streams, money separation, Partners benefits & integrity rules, dynamic hero rules, app responsibilities, 13 open owner decisions).
+- Updated `README.md`, `ARCHITECTURE.md`, `DESIGN.md`, `ROADMAP.md`, `AGENTS.md`, `docs/SCREEN_INVENTORY.md`, `docs/DECISIONS.md`, `docs/FUNCTIONALITY_PHASE_PLAN.md`.
+- Screen inventory gained ~20 planned screens (Not started) across web, live, admin, production.
+- Earlier UI copy changes (Gamo Collection rename, How It Works pill, Academy heading, Gamo Live heading + pill) remain uncommitted working-tree changes pending visual review.
