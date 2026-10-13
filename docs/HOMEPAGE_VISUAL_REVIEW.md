@@ -25,6 +25,7 @@ The screenshots in \`design-reference/homepage/\` are the composition source of 
 - Verify that \`make check\`, \`make lint\`, and \`make build\` pass (or document which targets are unavailable).
 - Verify keyboard focus, heading order and link contrast.
 - Confirm that demo people, church bookings, events and story previews are **labeled samples**; do not fabricate partner endorsements or scheduled concerts.
+- Confirm copy follows [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md): accurate "developing nonprofit" status in the footer, no tax-deductibility or 501(c)(3) claims, no unapproved fees, no "verified" badges on sample profiles, Academy headline exactly "Learn to Play the Instrument You Love.", Gamo Live described as Christian events without ethnic framing.
 
 ## Existing media constraint
 

@@ -2,10 +2,12 @@
 
 **Status:** proposed architecture and build constraints; verify vendor APIs and dependencies at implementation time.
 
+**Organizational context:** Gamo Studios is a proposed Christian nonprofit. The software exists to support connected religious and educational programs, not to maximize transaction revenue. Organizational purpose, fee philosophy and funding sources are defined in [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md); this document covers technical boundaries only.
+
 ## System model
 
 ```
-                  gamostudios.com (brand + entry + account)
+                  gamostudios.com (organization hub + entry + account)
                                     |
            +------------------------+-------------------------+
            |                        |                         |
@@ -26,12 +28,12 @@
 
 ```
 apps/
-  web/          # global brand hub
-  worship/      # church & musician marketplace
-  academy/      # lessons / clinics
-  live/         # ticketing
-  production/   # agency site
-  admin/        # private operations
+  web/          # organization hub: mission, programs, partnerships, support pathways
+  worship/      # Gamo Worship: church & musician coordination
+  academy/      # Gamo Academy: lessons, classes, sponsored programs
+  live/         # Gamo Live: Christian event discovery, registration, authorized ticketing
+  production/   # Gamo Production: technical support program for churches
+  admin/        # governance, staff operations, program administration, stewardship
 packages/
   ui/           # design tokens and accessible primitives
   domain/       # business rules, types, validation
@@ -107,7 +109,8 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 ### Church booking
 `/hire/plan-selection` → `/hire/gig-details` → `/hire/repertoire` → `/hire/checkout` → `/hire/success`
 
-- Plans: Spot Fill (single weekend), Monthly (four weekends), Quarterly (twelve weeks). Display **proposed** fees only in development data; do not publish unapproved prices.
+- Plans: Spot Fill (single weekend), Monthly (four weekends), Quarterly (twelve weeks). Display **proposed** amounts only in development data; do not publish unapproved prices or fees.
+- Every engagement records the **musician's agreed pay** and any **Gamo administrative allocation** as separate, labeled line items. No deduction from musician pay may be implemented until the mechanism is approved (see [docs/GAMO_NONPROFIT_MODEL.md §3.1](docs/GAMO_NONPROFIT_MODEL.md#31-gamo-worship)).
 - Church records must be protected by membership permission checks; setlists and charts may include licensed/copyrighted materials — restrict storage and access.
 - Checkout success must be established by verified server-side Stripe webhook events, not a redirect URL alone.
 - Booking fulfillment and musician assignment are separate statuses. Never show a booking as staffed before confirmed assignment.
@@ -120,51 +123,83 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 - Critical attendance promises require operational staffing and contract terms; do not write a 'zero-failure' public guarantee.
 
 ## Academy flows
-- Discovery; instructor profiles and availability; private lessons in 30/45/60 minute offerings; church-hosted clinics; student booking/receipts; facility-host intake.
+- Discovery; instructor profiles and availability; private lessons in 30/45/60 minute offerings; church-hosted classes and clinics; sponsored and scholarship-supported enrollments; student/guardian registration and receipts; facility-host and sponsor intake.
+- Primary audience is students, parents and families; church hosting/sponsorship is a secondary pathway.
 - Instructor eligibility for minors must be policy-gated; background screening and consent/guardian workflows cannot be silently mocked as verified.
-- Instructor/host payout split is a pricing-policy decision, and must be represented by ledger rows independent of provider payout state.
+- An enrollment may be funded by tuition, sliding-scale tuition, a sponsor, a scholarship fund or a combination. Represent funding sources and instructor pay as separate ledger rows, independent of provider payout state. Tuition and instructor-pay policy are pending approval.
 
 ## Gamo Live flows
-Gamo Live is two-sided (see [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md)).
+Gamo Live serves **Christian events nationwide** with two audiences (see [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md)). Event eligibility is enforced by staff moderation against the approved content policy.
 
 **Attendee (Explore Events):**
-- Event discovery by location, date, organizer and type, with user-controlled location fallback; IP-based location is approximate and opt-outable.
-- Event, ticket tier, inventory, cart, Checkout, QR ticket, free-event registration, "my tickets".
+- Event discovery by location, date, organizer, type and free/paid, with user-controlled location fallback; IP-based location is approximate and opt-outable.
+- Event, ticket tier, inventory, cart, Checkout, QR ticket, free-event registration, "my tickets". Prices, fees, refund policy and organizer identity are shown before purchase.
 - **Do not use Cloudflare KV as the sole seat lock.** Use a Durable Object per event/inventory shard or equivalent serialized transactional reservation authority; expiry via alarms/job; commit inventory only after verified payment confirmation.
 - QR codes must be unpredictable, scoped, revocable and single-use for admission. Do not expose raw personally identifying data in token payloads.
 - Multiple scans must be idempotent and guarded against races; maintain audit trail and offline policy.
 
-**Organizer (Promote Events):**
-- `/promote` landing → event submission → promotion package selection (audience, location, duration, budget) → staff review → campaign live → reporting.
-- Advertising is a **managed service**: staff run campaigns manually. No third-party ad-platform API is assumed connected; any future integration sits behind an `integrations` adapter and requires approval.
-- Organizer panel: events, ticket tiers, registrations, scanner access, campaign status and performance reports (views, clicks, registrations, sales, available ad analytics).
+**Organizer (Promote Event):**
+- `/promote` landing → event submission → organizer identity/authority verification → staff review → published → reports. Optional promotion request (website, social, partner communications, creative) is a separate, staff-managed step.
+- Paid ticketing is enabled only when organizer authorization is recorded (`ticketing_authorized_at`, evidence reference).
+- Promotion is a **managed service**: staff run campaigns manually. No third-party ad-platform API is assumed connected; any future integration sits behind an `integrations` adapter and requires approval.
+- Organizer panel: events, recurring schedules, ticket tiers, registrations, scanner access, updates/cancellations, attendance and ticket reports, promotion status.
 
-## Promotion engine & dynamic homepage (future)
-- Homepage hero and featured slots are driven by placement records, not hardcoded slides.
-- Selection inputs: event date, campaign window/expiry, approximate location, editorial priority, active campaigns, membership benefits; capped sponsored density.
-- Every placement has a `kind` of `sponsored | editorial | gamo_service`, rendered as a visible label.
-- Ranking/vetting data for musicians is in a separate domain that promotion code **cannot** read or write.
-- Design phase: static, clearly labeled example slides only.
+## Placements & dynamic homepage (future)
+- Homepage hero and featured slots are driven by placement records, not hardcoded slides. **No carousel without explicit approval.**
+- Selection inputs: event date, campaign window/expiry, approximate location, editorial priority and mission priorities; capped sponsored density.
+- Every placement has a `kind` of `sponsored | editorial | gamo_program`, rendered as a visible label.
+- Ranking/vetting data for musicians is in a separate domain that promotion, sponsorship and partnership code **cannot** read or write.
+- Design phase: static, clearly labeled example content only.
 
-## Money separation
-Ledger must keep three categories distinct: **(1) advertising/media spend** held for paid media on behalf of an organizer, **(2) Gamo service fees** (campaign management, creative, membership, platform fees), **(3) ticket-sale proceeds** owed to organizers less disclosed fees. Stripe Connect is the payout rail; Stripe is not general-purpose escrow and must not be described as such. Partner discounts reduce Gamo fees only, never musician pay.
+## Financial architecture (nonprofit, conceptual)
+The ledger supports nonprofit accounting and must keep these categories distinct (definitions in [docs/GAMO_NONPROFIT_MODEL.md §5.3](docs/GAMO_NONPROFIT_MODEL.md#53-money-categories-the-platform-must-distinguish)):
+
+| Category | Examples | Notes |
+| --- | --- | --- |
+| `charitable_contribution` | donations, gifts | `fund_id` + restricted/unrestricted; no processing until approved |
+| `sponsorship` | program or event sponsorship | may carry recognition benefits; treatment pending review |
+| `program_service_receipt` | tuition, Worship administrative allocation, ticketing admin fee, production cost recovery | each tied to a program |
+| `third_party_payable` | musician pay, instructor pay, organizer ticket proceeds, organizer-funded media budgets | **not organizational income** |
+| `processing_cost` | processor fees | expense |
+| `refund` / `dispute` | reversals, chargebacks | adjustments |
+
+- Every row carries `program` (`worship | academy | live | production | general`) for program-level budgets and board reporting.
+- Musician and instructor pay are never netted against Gamo allocations inside a single amount.
+- Stripe Connect is the intended payout rail; Stripe is **not** regulated escrow and must not be described as such.
+- Any fee, contribution amount or tier remains a configuration value set by approved policy, never a hardcoded assumption.
+
+### Commercial assumptions to reconsider (2026-10-12 audit)
+| Earlier assumption | Disposition |
+| --- | --- |
+| Platform commission maximization on bookings | Replace with configurable, disclosed administrative allocation (pending approval) |
+| Automatic deductions from musician earnings | Do not implement; keep `third_party_payable` musician pay separate |
+| "Marketplace escrow" | Never; describe as payment processing and scheduled payouts |
+| Commercial subscription tiers (`memberships.plan_code`, credits) | Replace with partnership/contribution records; no tiers without approval |
+| Advertising revenue as a core stream | Reframe as optional promotion service with cost recovery |
+| Revenue-based promotion rankings | Prohibited; placements labeled and density-capped |
+| Inflexible fee structures | Fees configurable per program and waivable for free/sponsored gatherings |
+
+Existing payment and database foundations (D1 schema, auth, Stripe adapters) are retained; only their conceptual categories change.
 
 ## Production and admin
-- Production: marketing, portfolio/case studies (real work only), consultation intake, optional promotional creative/event marketing for Live campaigns; do not fabricate client results.
-- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, finance ledger, audit logs, **event moderation & approval, campaign intake/management, featured-placement scheduling, ad budget & campaign-status tracking, ticketing oversight, organizer & Church Partners membership management**.
+- Production: technical support for churches and ministries — worship audio, livestreaming, lighting, technical training, volunteer development, portfolio/case studies (real work only), consultation intake, optional event creative. Do not fabricate client results.
+- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, **program ledger and fund tracking, board financial reports**, audit logs, **event moderation & organizer verification, promotion intake, placement scheduling, ticketing oversight, church partnership and contribution records**.
 
 ### Additional logical entities (proposed)
 ```
-organizer_profiles(id, organization_id, kind, status)
+organizer_profiles(id, organization_id, kind, verification_status, ticketing_authorized_at)
 event_registrations(id, event_id, user_id, status)
-promotion_packages(id, code, scope_json, status)           -- proposed, no prices finalized
-campaigns(id, event_id, organization_id, package_id, status, starts_at, ends_at, media_budget_amount, currency)
-campaign_channels(id, campaign_id, channel, external_reference, status)
-campaign_metrics(id, campaign_id, date, views, clicks, registrations, ticket_sales)
-placements(id, slot, kind, target_type, target_id, priority, region, starts_at, ends_at, status)
-memberships(id, organization_id, plan_code, status, current_period_end)
-membership_credits(id, membership_id, kind, amount, expires_at)
-ledger_entries(id, category, scope_type, scope_id, amount, currency, created_at)  -- category: media_spend | service_fee | ticket_proceeds
+event_schedules(id, event_id, recurrence_rule, timezone)
+promotion_requests(id, event_id, organization_id, scope_json, status, starts_at, ends_at)
+promotion_channels(id, promotion_request_id, channel, external_reference, status)
+promotion_metrics(id, promotion_request_id, date, views, clicks, registrations, ticket_sales)
+placements(id, slot, kind, target_type, target_id, priority, region, starts_at, ends_at, status)  -- kind: sponsored | editorial | gamo_program
+church_partnerships(id, organization_id, participation_json, status, started_at)              -- no tiers/prices until approved
+funds(id, name, restriction, program, status)                                                  -- restricted | unrestricted
+contributions(id, contributor_type, contributor_id, fund_id, kind, amount, currency, received_at) -- kind: donation | sponsorship | in_kind
+sponsorships(id, sponsor_organization_id, program, target_type, target_id, fund_id, status)
+enrollment_funding(id, enrollment_id, source, fund_id, amount, currency)                          -- tuition | sponsor | scholarship
+ledger_entries(id, category, program, fund_id, scope_type, scope_id, amount, currency, created_at)
 ```
 
 ## Integrations / infrastructure

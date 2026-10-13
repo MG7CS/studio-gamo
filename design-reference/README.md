@@ -16,4 +16,6 @@ Additional: `hero-standalone-alternative.png` is an alternative crop, not the pr
 
 Use **Inter** throughout. Palette: terracotta `#B65B35`, charcoal `#1D2323`, warm cream `#F4EDE3`, copper `#D7AD86`. Premium real-looking photography, dynamic section transitions, uncluttered copy, accessible contrast, mobile-first responsiveness. No fabricated statistics, verification guarantees, reviews, prices or operating claims.
 
+**Copy note (2026-10-12):** the reference screenshots predate the nonprofit transition and may contain commercial marketplace wording. They remain binding for **composition only**; all text must follow [docs/GAMO_NONPROFIT_MODEL.md](../docs/GAMO_NONPROFIT_MODEL.md) (proposed Christian nonprofit, accurate legal status, no unapproved fees).
+
 Any photo depicted inside generated screenshots cannot be assumed to exist as a separate production-ready image. Use licensed, explicitly approved individual assets or tasteful safe placeholders; don't crop the full reference screenshot into background artwork.

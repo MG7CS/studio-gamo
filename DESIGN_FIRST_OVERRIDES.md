@@ -1,8 +1,8 @@
 # Gamo Studios — CURRENT PHASE OVERRIDE (read before AGENTS.md and ROADMAP.md)
 
-**This document overrides older build-order instructions in `AGENTS.md`, `ROADMAP.md`, and `prompts/ANTIGRAVITY_MASTER_PROMPT.md` when they conflict.**
+**This document overrides older build-order instructions in `AGENTS.md`, `ROADMAP.md`, and `prompts/MASTER-PROMPT.md` when they conflict on build sequence.** Organizational purpose, program positioning and public messaging are governed by [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (Gamo Studios is a proposed Christian nonprofit); every screen built under this override must follow its copy and legal-status rules.
 
-Current milestone: **complete ALL planned responsive screens and UI states before implementing business functionality or external integrations.** The earlier starter documents remain useful for long-term scope, but their sequence of implementing real vertical slices immediately is superseded.
+Current milestone: **complete ALL planned responsive screens and UI states before implementing business functionality or external integrations.** The earlier starter documents remain useful for long-term scope, but their sequence of implementing real vertical slices immediately is superseded. Major new sections (e.g. Church Partnerships, Support Our Mission) are proposed in `docs/SCREEN_INVENTORY.md` and require design approval before implementation; donation or payment flows are not built in this phase.
 
 ## Actions NOW
 
