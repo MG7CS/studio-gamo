@@ -1,1 +1,14 @@
-{"name": "@gamo/domain", "version": "0.0.0", "private": true, "type": "module", "main": "index.ts"}
+{
+  "name": "@gamo/domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "@gamo/auth": "workspace:*",
+    "@gamo/db": "workspace:*",
+    "@studio-gamo/integrations": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "zod": "^3.24.2"
+  }
+}

@@ -230,3 +230,57 @@
   - Captured 26 fresh desktop (1440px) and mobile (390px) screenshots for all 13 major roles in `docs/screenshots/dashboards/`.
 
 
+---
+
+### Entry: 2026-10-13 — Cloudflare Backend & API Foundation (Phases 1–10)
+
+- **Objective**: Architect and implement a maintainable, secure, Cloudflare-native backend across the Astro monorepo using Cloudflare D1, R2, Workers, and existing Stripe Sandbox / Resend integrations.
+- **Phase 1 — Repository Audit & Architecture Specifications**:
+  - Audited existing packages, endpoints, middleware, bindings, and documentation.
+  - Produced [`docs/BACKEND_ARCHITECTURE.md`](BACKEND_ARCHITECTURE.md) defining D1 relational schema, R2 storage policies, native Web Crypto session authentication, thin API conventions, and durable Stripe webhook handling.
+  - Produced [`docs/API_INVENTORY.md`](API_INVENTORY.md) cataloging all 46 endpoints across Gamo Live, Worship, Academy, Production, Web, and Admin, distinguishing existing, implemented, and planned states.
+- **Phase 2 — Relational Data Architecture (D1)**:
+  - Designed complete 33-table relational schema in `packages/db/schema.ts` for users, sessions, roles, organizations, organization members, musician profiles, gigs, positions, assignments, check-ins, standby dispatches, academy classes, enrollments, live events, occurrences, ticket tiers, event registrations, production requests, partnerships, sponsorships, payment records, nonprofit ledger entries, media files, and audit logs.
+  - Implemented migration `0002_complete_backend_foundation.sql` with foreign keys, indexes, and uniqueness constraints (`reg_event_email_unique`, `org_member_unique`).
+  - Added `client.ts` with `getDb` and `createInMemoryD1()` wrapper for high-speed local testing and seamless Worker runtime connection.
+- **Phase 3 — Authentication Architecture (`@gamo/auth`)**:
+  - Evaluated authentication options: replaced deprecated Lucia v3 with lightweight native Web Crypto session manager.
+  - Implemented HMAC-SHA256 cookie signing (`__session`), constant-time signature verification, and expiration handling.
+  - Implemented multi-tenant and role authorization guards (`hasSystemRole`, `isStaffOrAdmin`, `hasOrgRole`, `requireAuth`, `requireStaff`, `requireOrgAccess`).
+  - Verified with 8 unit tests in `packages/auth/auth.test.ts` (100% pass).
+- **Phase 4 — R2 Object Storage Abstraction (`@studio-gamo/integrations`)**:
+  - Implemented `packages/integrations/src/storage.ts` supporting 7 storage scopes (`public_asset`, `event_media`, `private_document`, `audition_media`, `educational_resource`, `technical_attachment`, `restricted_verification`).
+  - Enforced strict MIME type whitelists, byte size caps, and unpredictable namespaced object keys.
+  - Added signed upload tickets with 15-minute expiration and tenant access verification on object retrieval.
+  - Verified with 8 unit tests in `packages/integrations/src/storage.test.ts` (100% pass).
+- **Phase 5 & 6 — API Conventions & Shared Domain Services (`@gamo/domain`)**:
+  - Created standardized API response envelope (`ApiResponse`), error handler (`handleApiError`), and Zod validation schemas (`createEventSchema`, `registerAttendeeSchema`, `reviewDecisionSchema`, etc.).
+  - Implemented reusable domain services: `LiveService`, `AdminService`, `IdentityService`, `WorshipService`, `AcademyService`, `ProductionService`, `PartnershipService`, `PaymentService`, and `MediaService`.
+- **Phase 7 — Stripe Integration & Durable Webhook Processing**:
+  - Re-engineered `apps/live/src/pages/api/webhook/stripe.ts` to use D1 persistence (`stripe_webhook_events`) for durable webhook deduplication.
+  - Implemented authoritative payment recording in `payment_records`.
+  - Implemented discrete nonprofit ledger entries in `ledger_entries` separating `third_party_payable` (organizer ticket proceeds), `program_service_receipt` (Gamo allocation), and `processing_cost` (processor fee).
+  - Proved via integration tests that musician/organizer pay is never pooled or netted against Gamo funds.
+  - Updated `apps/live/src/pages/api/checkout/session.ts` to resolve prices authoritatively from server-side D1 records.
+- **Phase 8 — First End-to-End Functional Slice (Gamo Live)**:
+  - Implemented and verified complete 9-step workflow in `packages/domain/src/services/live-slice.test.ts`:
+    1. Authorized organizer creates Christian event (`LiveService.createEvent`).
+    2. Event is persisted to D1 in `pending_review` status.
+    3. Pending event is excluded from public discovery.
+    4. Authorized staff reviews and approves event (`AdminService.reviewEvent`).
+    5. Approved event becomes discoverable (`LiveService.listDiscoverableEvents`).
+    6. Attendee registers for free gathering with quantity = 2 (`LiveService.registerFreeAttendee`).
+    7. Unique QR admission token (`gamt_...`) issued and persisted in D1 `event_registrations`.
+    8. Duplicate registration attempt with same email is safely deduplicated without incrementing headcount.
+    9. Resend transactional notification dispatched to attendee.
+    10. Organizer dashboard reflects live registration headcount.
+- **Phase 9 — Automated Testing & Verification**:
+  - Expanded test runner to native `node --test` across all suites:
+    - `scripts/image-policy.test.mjs`
+    - `packages/integrations/src/stripe.test.ts`
+    - `packages/auth/auth.test.ts`
+    - `packages/integrations/src/storage.test.ts`
+    - `packages/domain/src/services/live-slice.test.ts`
+    - `packages/domain/src/services/payments.test.ts`
+  - **Results**: 39 tests across 8 suites, 39 passed, 0 failed.
+  - **Full Monorepo Build**: `pnpm build` completed with exit code 0 across all 6 applications (`web`, `worship`, `academy`, `live`, `production`, `admin`).

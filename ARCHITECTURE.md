@@ -6,11 +6,15 @@
 
 ## System model
 
-### Public frontend phase — 2026-10-12
+### Cloudflare Backend & API Foundation — 2026-10-13
 
-The five public apps now compose a shared `BaseLayout`, `SiteHeader`, `SiteFooter`, design tokens and catalog-driven `Photo` component. Typed catalogs describe demonstration programs, instruments, musicians, lessons, support categories and events; app-owned sections/flow components compose small route files. `siteUrl()` resolves sibling links to fixed development ports 4321–4325 and the planned production domains. No domain deployment is implied.
-
-Local interactions validate forms, advance steps, filter sample collections and preview statuses. They do not create accounts, persist application data, send messages, reserve inventory, approve participants or process payments. Legacy transactional-looking routes redirect to non-transactional previews where appropriate. The image manifest and package TypeScript exports are shared; icon types live in `lib/icons.ts` so TypeScript data modules do not depend on `.astro` modules. See [component architecture](docs/COMPONENT_ARCHITECTURE.md) and [current frontend review](docs/MULTIPAGE_DESIGN_REVIEW.md).
+The backend infrastructure is now fully architected and wired with Cloudflare-native primitives:
+- **Cloudflare D1**: Serverless relational database holding users, organizations, memberships, roles, musician profiles, gigs, academy classes, live events, registrations, production projects, and financial records. D1 migrations 0000–0002 are fully verified.
+- **Shared Authentication (`@gamo/auth`)**: Native Web Crypto session manager with HMAC-SHA256 signed HTTP-only cookies (`__session`), multi-tenant organization authorization, and server-side RBAC guards.
+- **R2 Storage Abstraction (`@studio-gamo/integrations`)**: Tightly scoped presigned upload authorization tickets, MIME/size validation, and private/restricted asset protection.
+- **Domain Services (`@gamo/domain`)**: Typed service layer with thin Astro API routes, Zod input validation, and predictable error envelopes.
+- **Durable Stripe Webhooks**: Persists webhook event IDs to D1 `stripe_webhook_events` to prevent duplicate fulfillment, with discrete nonprofit ledger entries separating third-party payables, administrative allocations, and processing fees.
+- **First Functional Slice (Gamo Live)**: Real end-to-end workflow verified in automated tests: organizer event creation -> pending review -> staff approval -> public discovery -> free attendee registration -> Resend notification -> organizer dashboard metrics. See [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) and [`docs/API_INVENTORY.md`](docs/API_INVENTORY.md).
 
 ```
                   gamostudio.org (organization hub + entry + account)

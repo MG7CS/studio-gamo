@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.4",
+    "@gamo/auth": "workspace:*",
+    "@gamo/db": "workspace:*",
+    "@gamo/domain": "workspace:*",
     "@studio-gamo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.8",
