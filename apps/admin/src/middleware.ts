@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { verifyCloudflareAccessJwt } from './lib/cf-access';
 
 /**
  * Access protection middleware for Gamo Studios Admin (apps/admin).
@@ -6,75 +7,97 @@ import { defineMiddleware } from 'astro:middleware';
  * Requirements:
  * 1. Admin operations must never be exposed publicly without meaningful authentication.
  * 2. Frontend role switching is purely a preview UI affordance and NOT authentication.
- * 3. Enforces Cloudflare Access (Zero Trust) JWT / email assertions or administrative credentials.
- * 4. Local development allows access only when running under Vite dev mode.
+ * 3. Enforces cryptographic Cloudflare Access (Zero Trust) RS256 JWT assertions against JWKS.
+ * 4. In production environments, Basic Auth and Bearer token alternatives are disabled
+ *    by default and only permitted if emergency break-glass mode is explicitly activated.
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const isDev = Boolean(import.meta.env?.DEV);
 
   // Runtime environment variables (from Cloudflare Workers bindings or process)
   const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+  const isProd = !isDev || runtimeEnv.ENVIRONMENT === 'production' || import.meta.env?.PROD;
+
   const requireAuth =
     runtimeEnv.REQUIRE_ADMIN_AUTH === 'true' ||
     import.meta.env?.REQUIRE_ADMIN_AUTH === 'true' ||
-    !isDev;
+    isProd;
 
   // 1. In local dev mode without explicit auth requirement, permit testing
   if (isDev && !requireAuth) {
     return next();
   }
 
-  // 2. Check for Cloudflare Access / Zero Trust headers
+  // 2. Cryptographic Cloudflare Access / Zero Trust Verification
   const cfJwt = context.request.headers.get('cf-access-jwt-assertion');
-  const cfEmail = context.request.headers.get('cf-access-authenticated-user-email');
+  const expectedAud = runtimeEnv.CF_ACCESS_AUD || import.meta.env?.CF_ACCESS_AUD;
+  const teamName = runtimeEnv.CF_ACCESS_TEAM_NAME || import.meta.env?.CF_ACCESS_TEAM_NAME;
 
-  if (cfJwt || cfEmail) {
-    // Verified by Cloudflare Zero Trust Edge
-    return next();
-  }
-
-  // 3. Check for Bearer token or x-admin-key
-  const adminSecret =
-    runtimeEnv.ADMIN_ACCESS_TOKEN ||
-    import.meta.env?.ADMIN_ACCESS_TOKEN ||
-    runtimeEnv.ADMIN_SECRET_KEY ||
-    import.meta.env?.ADMIN_SECRET_KEY;
-
-  const authHeader = context.request.headers.get('authorization') || '';
-  const xAdminKey = context.request.headers.get('x-admin-key');
-
-  if (adminSecret) {
-    if (xAdminKey && xAdminKey === adminSecret) {
+  if (cfJwt) {
+    const result = await verifyCloudflareAccessJwt(cfJwt, expectedAud, teamName);
+    if (result.valid && result.claims) {
+      // Cryptographically verified: attach staff identity
+      (context.locals as Record<string, any>).staffEmail = result.claims.email;
+      (context.locals as Record<string, any>).staffSubject = result.claims.sub;
       return next();
-    }
-    if (authHeader.startsWith('Bearer ') && authHeader.slice(7) === adminSecret) {
-      return next();
+    } else {
+      console.error(`[Cloudflare Access Rejected] ${result.error}`);
     }
   }
 
-  // 4. Check for Basic Auth
-  const basicAuthUser =
-    runtimeEnv.ADMIN_BASIC_AUTH_USER || import.meta.env?.ADMIN_BASIC_AUTH_USER;
-  const basicAuthPass =
-    runtimeEnv.ADMIN_BASIC_AUTH_PASS || import.meta.env?.ADMIN_BASIC_AUTH_PASS;
+  // 3. Alternative credentials policy (Emergency Break-Glass or Staging only)
+  const allowBreakGlass =
+    !isProd ||
+    runtimeEnv.ENABLE_BREAK_GLASS_AUTH === 'true' ||
+    import.meta.env?.ENABLE_BREAK_GLASS_AUTH === 'true';
 
-  if (basicAuthUser && basicAuthPass && authHeader.startsWith('Basic ')) {
-    try {
-      const b64 = authHeader.slice(6);
-      const decoded = atob(b64);
-      const [u, p] = decoded.split(':');
-      if (u === basicAuthUser && p === basicAuthPass) {
+  if (allowBreakGlass) {
+    // Check for Bearer token or x-admin-key
+    const adminSecret =
+      runtimeEnv.ADMIN_ACCESS_TOKEN ||
+      import.meta.env?.ADMIN_ACCESS_TOKEN ||
+      runtimeEnv.ADMIN_SECRET_KEY ||
+      import.meta.env?.ADMIN_SECRET_KEY;
+
+    const authHeader = context.request.headers.get('authorization') || '';
+    const xAdminKey = context.request.headers.get('x-admin-key');
+
+    if (adminSecret && adminSecret.length >= 16) {
+      if (xAdminKey && xAdminKey === adminSecret) {
+        console.warn('[Admin Security] Authenticated via break-glass x-admin-key header.');
         return next();
       }
-    } catch {
-      // Invalid base64, fall through to 401
+      if (authHeader.startsWith('Bearer ') && authHeader.slice(7) === adminSecret) {
+        console.warn('[Admin Security] Authenticated via break-glass Bearer token.');
+        return next();
+      }
+    }
+
+    // Check for Basic Auth
+    const basicAuthUser =
+      runtimeEnv.ADMIN_BASIC_AUTH_USER || import.meta.env?.ADMIN_BASIC_AUTH_USER;
+    const basicAuthPass =
+      runtimeEnv.ADMIN_BASIC_AUTH_PASS || import.meta.env?.ADMIN_BASIC_AUTH_PASS;
+
+    if (basicAuthUser && basicAuthPass && authHeader.startsWith('Basic ')) {
+      try {
+        const b64 = authHeader.slice(6);
+        const decoded = atob(b64);
+        const [u, p] = decoded.split(':');
+        if (u === basicAuthUser && p === basicAuthPass) {
+          console.warn('[Admin Security] Authenticated via break-glass Basic Auth.');
+          return next();
+        }
+      } catch {
+        // Invalid base64, fall through to 401
+      }
     }
   }
 
-  // 5. If local dev and no secrets are configured, allow dev inspection with notice
-  if (isDev && !adminSecret && !basicAuthUser) {
+  // 4. If local dev and no secrets are configured, allow dev inspection with notice
+  if (isDev) {
     console.warn(
-      '[Gamo Admin Security] DEV MODE: Running without configured ADMIN_ACCESS_TOKEN or Cloudflare Access.'
+      '[Gamo Admin Security] DEV MODE: Running without configured Cloudflare Access credentials.'
     );
     return next();
   }
