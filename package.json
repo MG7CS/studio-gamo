@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
     "build": "pnpm -r --workspace-concurrency=1 build",
-    "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
+    "typecheck": "pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro sync && pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
     "lint": "echo \"Linting not set up yet\"",
     "test": "node --test scripts/image-policy.test.mjs packages/integrations/src/stripe.test.ts packages/auth/auth.test.ts packages/integrations/src/storage.test.ts packages/domain/src/services/live-slice.test.ts packages/domain/src/services/payments.test.ts",
     "test:web": "node scripts/verify-public-ui.mjs",
