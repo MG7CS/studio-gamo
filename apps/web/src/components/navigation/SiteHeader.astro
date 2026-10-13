@@ -14,6 +14,7 @@ interface Props {
 
 const {
   items = [
+    { label: 'Mission', href: '/mission' },
     { label: 'Worship', href: '/worship' },
     { label: 'Academy', href: '/academy' },
     { label: 'Live', href: '/live' },
@@ -47,7 +48,7 @@ const {
     <div class="flex items-center gap-2">
       <a href="/signin" class="hidden rounded-full border border-[#F4EDE3]/35 px-5 py-2.5 text-sm font-semibold text-[#F4EDE3] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] md:inline-flex">Sign In</a>
       <a href="/get-started" class="hidden items-center gap-2 rounded-full bg-[#B65B35] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] sm:inline-flex">
-        Get Started <Icon name="arrow" class="h-4 w-4" />
+        Get Involved <Icon name="arrow" class="h-4 w-4" />
       </a>
       <button
         type="button"
@@ -75,7 +76,7 @@ const {
     </nav>
     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
       <a href="/signin" class="rounded-full border border-[#F4EDE3]/35 px-4 py-3 text-center text-sm font-semibold">Sign In</a>
-      <a href="/get-started" class="rounded-full bg-[#B65B35] px-4 py-3 text-center text-sm font-semibold text-white">Get Started</a>
+      <a href="/get-started" class="rounded-full bg-[#B65B35] px-4 py-3 text-center text-sm font-semibold text-white">Get Involved</a>
     </div>
   </div>
 </header>

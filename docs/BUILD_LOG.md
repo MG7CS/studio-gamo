@@ -98,3 +98,20 @@
 - Updated `README.md`, `ARCHITECTURE.md`, `DESIGN.md`, `ROADMAP.md`, `AGENTS.md`, `docs/SCREEN_INVENTORY.md`, `docs/DECISIONS.md`, `docs/FUNCTIONALITY_PHASE_PLAN.md`.
 - Screen inventory gained ~20 planned screens (Not started) across web, live, admin, production.
 - Earlier UI copy changes (Gamo Collection rename, How It Works pill, Academy heading, Gamo Live heading + pill) remain uncommitted working-tree changes pending visual review.
+
+## 2026-10-12 — Nonprofit transformation (supersedes commercial model)
+- Governing brief: `prompts/MASTER-PROMPT.md`. Gamo Studios is now positioned as a **proposed** Christian nonprofit (Arizona nonprofit corporation + 501(c)(3) recognition pending; no tax-deductibility or IRS claims).
+- New docs: `docs/GAMO_NONPROFIT_MODEL.md` (source of truth), `docs/NONPROFIT_TRANSITION_CHECKLIST.md`. Rewrote `docs/GAMO_LIVE_AND_PARTNERS.md` and `ROADMAP.md` (10 mission-aligned priorities). Updated README, ARCHITECTURE, DESIGN, AGENTS, SECURITY, DESIGN_FIRST_OVERRIDES, design-reference/README, SCREEN_INVENTORY, FUNCTIONALITY_PHASE_PLAN, DECISIONS, HOMEPAGE_VISUAL_REVIEW, DESIGN_REVIEW_WEB (historical), and `.agents/agents/*`. (commit `64e378c`)
+- Homepage copy (hero composition, design tokens, photography and components preserved):
+  - Hero: mission subheading; primary CTA "Request a Musician".
+  - Musicians: auditioned/reviewed + paid fairly; CTA "Explore Gamo Worship"; verified badge removed from sample profile.
+  - How It Works: no guarantee language; standby "where available"; musicians "Serve & Be Paid Fairly".
+  - Academy: headline "Learn to Play the Instrument You Love."; family-oriented copy; "Host or Sponsor a Class".
+  - Live: "Christian Events. Bring People Together."; pathways "Promote Event" / "Explore Events"; floating card labeled "Sample Event".
+  - Upcoming Events: second sample is a free community prayer gathering.
+  - Final CTA: "Get Involved" / "Partner With Us".
+  - Header: "Mission" nav item, "Get Involved" button. Footer: Programs / Get Involved / Organization columns, nonprofit-status statement (`#status`). Layout: mission meta description.
+- Layout fixes: Live section `lg:min-h-[700px]` (CTA was clipped); Academy paragraph `lg:max-w-[min(24rem,30vw)]` (overlapped photo mask at 1024px).
+- Verification: `pnpm --filter apps-web build` OK; `pnpm run typecheck` OK; `pnpm run lint` is a placeholder; no `test` script exists. Playwright at 1440/1024/390: no console errors, no horizontal overflow, no broken images. Heights desktop 5,009 → 5,282px; mobile 6,958 → 7,050px.
+- Screenshots: `docs/screenshots/nonprofit-desktop-1440.png`, `nonprofit-laptop-1024.png`, `nonprofit-mobile-390.png`.
+- Remaining: /mission, /partners, /support, /contact, /get-started pages not built; admin `/legal` demo still shows contractor agreement as "Published"; worship/live/academy/production app copy review pending; legal/governance decisions in `docs/GAMO_NONPROFIT_MODEL.md` §8 and the checklist.
