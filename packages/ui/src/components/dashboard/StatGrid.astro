@@ -12,7 +12,7 @@ const { items } = Astro.props;
         <p class="text-[12px] font-medium text-ink-soft sm:text-[13px]">{s.label}</p>
         {s.icon && <Icon name={s.icon} class="h-4 w-4 text-terracotta-dark" strokeWidth={1.8} />}
       </div>
-      <p class="mt-2 text-[24px] font-semibold leading-none tracking-[-0.02em] sm:text-[26px]">{s.value}</p>
+      <p class="mt-2 truncate text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[26px]" title={s.value}>{s.value}</p>
       {s.hint && <p class="mt-2 text-[12px] text-ink-soft">{s.hint}</p>}
     </li>
   ))}

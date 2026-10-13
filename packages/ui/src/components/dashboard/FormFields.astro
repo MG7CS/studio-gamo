@@ -11,22 +11,23 @@ const input = 'mt-1 block w-full rounded-lg border border-sand bg-white px-3 tex
     const span = f.half ? '' : '@lg:col-span-2';
     if (f.type === 'checkbox') return (
       <div class:list={[span]}>
-        <label class="flex items-start gap-2.5 text-[14px]"><input id={id} name={f.name} type="checkbox" required={f.required} checked={f.value === 'on'} class="mt-1 h-4 w-4 accent-terracotta" /><span>{f.label}{f.required && <span class="text-terracotta-dark"> *</span>}</span></label>
-        <p data-error-for={f.name} hidden class="mt-1 text-[12px] font-medium text-red-700" />
+        <label class="flex items-start gap-2.5 text-[14px]"><input id={id} name={f.name} type="checkbox" required={f.required} checked={f.value === 'on'} aria-describedby={`${id}-error`} class="mt-1 h-4 w-4 accent-terracotta" /><span>{f.label}{f.required && <span class="text-terracotta-dark"> *</span>}</span></label>
+        <p id={`${id}-error`} data-error-for={f.name} hidden class="mt-1 text-[12px] font-medium text-red-700" />
       </div>
     );
+    const descBy = f.hint ? `${id}-hint ${id}-error` : `${id}-error`;
     return (
       <div class:list={[span]}>
         <label for={id} class="text-[13px] font-semibold">{f.label}{f.required && <span class="text-terracotta-dark"> *</span>}</label>
         {f.type === 'select' ? (
-          <select id={id} name={f.name} required={f.required} class:list={[input, 'h-10']}><option value="">Select…</option>{(f.options ?? []).map((o) => <option selected={o === f.value}>{o}</option>)}</select>
+          <select id={id} name={f.name} required={f.required} aria-describedby={descBy} class:list={[input, 'h-10']}><option value="">Select…</option>{(f.options ?? []).map((o) => <option selected={o === f.value}>{o}</option>)}</select>
         ) : f.type === 'textarea' ? (
-          <textarea id={id} name={f.name} required={f.required} rows="3" placeholder={f.placeholder} class:list={[input, 'py-2']}>{f.value}</textarea>
+          <textarea id={id} name={f.name} required={f.required} rows="3" placeholder={f.placeholder} aria-describedby={descBy} class:list={[input, 'py-2']}>{f.value}</textarea>
         ) : (
-          <input id={id} name={f.name} type={f.type ?? 'text'} required={f.required} placeholder={f.placeholder} value={f.value} autocomplete="off" class:list={[input, 'h-10']} />
+          <input id={id} name={f.name} type={f.type ?? 'text'} required={f.required} placeholder={f.placeholder} value={f.value} autocomplete="off" aria-describedby={descBy} class:list={[input, 'h-10']} />
         )}
-        {f.hint && <p class="mt-1 text-[12px] text-ink-soft">{f.hint}</p>}
-        <p data-error-for={f.name} hidden class="mt-1 text-[12px] font-medium text-red-700" />
+        {f.hint && <p id={`${id}-hint`} class="mt-1 text-[12px] text-ink-soft">{f.hint}</p>}
+        <p id={`${id}-error`} data-error-for={f.name} hidden class="mt-1 text-[12px] font-medium text-red-700" />
       </div>
     );
   })}

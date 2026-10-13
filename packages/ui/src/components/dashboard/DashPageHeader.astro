@@ -8,7 +8,23 @@ const states = ['', 'loading', 'empty', 'error', 'success'];
 ---
 <div class="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
   <div class="min-w-0">
-    <p class="text-[12px] font-medium text-ink-soft">{workspace.program} <span aria-hidden="true">/</span> {workspace.name}{workspace.organization ? ` · ${workspace.organization}` : ''}</p>
+    <nav aria-label="Breadcrumb" class="mb-1 text-[12px] font-medium text-ink-soft">
+      <ol class="flex flex-wrap items-center gap-1.5">
+        <li>
+          <a href={workspace.basePath || '/'} class="hover:text-charcoal hover:underline">{workspace.name}</a>
+        </li>
+        <li class="flex items-center gap-1.5 text-ink-soft/50" aria-hidden="true">/</li>
+        <li class="font-semibold text-charcoal">
+          <span aria-current="page">{title}</span>
+        </li>
+        {workspace.organization && (
+          <li class="hidden items-center gap-1.5 text-ink-soft/75 sm:inline-flex">
+            <span aria-hidden="true">·</span>
+            <span>{workspace.organization}</span>
+          </li>
+        )}
+      </ol>
+    </nav>
     <h1 class="mt-1 text-[26px] font-semibold leading-tight tracking-[-0.02em] sm:text-[30px]">{title}</h1>
     {description && <p class="mt-1.5 max-w-2xl text-[14px] text-ink-soft sm:text-[15px]">{description}</p>}
   </div>

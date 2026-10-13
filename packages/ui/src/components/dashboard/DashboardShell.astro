@@ -11,7 +11,7 @@ import DemoModeBanner from './DemoModeBanner.astro';
 import DashNav from './DashNav.astro';
 import WorkspaceSwitcher from './WorkspaceSwitcher.astro';
 import AccountMenu from './AccountMenu.astro';
-import { screenHref, type Workspace } from '../../lib/dashboard';
+import { DEMO_PERSONA, screenHref, type Workspace } from '../../lib/dashboard';
 import { siteUrl } from '../../lib/sites';
 
 interface Props { workspace: Workspace; current: string; title: string }
@@ -78,12 +78,47 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
       </div>
     </div>
 
-    <dialog id="dash-drawer" class="m-0 h-full max-h-none w-[min(20rem,88vw)] max-w-none bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
-      <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-        <div><p class="text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p><p class="text-[13px] text-cream/75">{workspace.name}</p></div>
-        <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white/10" data-drawer-close aria-label="Close menu"><Icon name="x" class="h-5 w-5" /></button>
+    <dialog id="dash-drawer" class="fixed inset-y-0 left-0 m-0 flex h-full max-h-none w-[min(21rem,88vw)] max-w-none flex-col bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
+      <div class="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p>
+          <p class="text-[14px] font-medium text-cream">{workspace.name}</p>
+        </div>
+        <button type="button" class="grid h-10 w-10 place-items-center rounded-lg text-cream/70 hover:bg-white/10 hover:text-cream" data-drawer-close aria-label="Close menu">
+          <Icon name="x" class="h-5 w-5" />
+        </button>
       </div>
-      <div class="px-3 py-4"><DashNav workspace={workspace} current={current} /></div>
+
+      <div class="border-b border-white/10 bg-white/5 px-4 py-3">
+        <div class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 place-items-center rounded-full bg-cream text-[12px] font-semibold text-charcoal">{DEMO_PERSONA.initials}</span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-[13px] font-semibold text-cream">{DEMO_PERSONA.name}</p>
+            <p class="truncate text-[11px] text-cream/60">{workspace.role}</p>
+          </div>
+        </div>
+        {workspace.organization && (
+          <p class="mt-1.5 truncate text-[11px] text-gold/80"><span class="text-cream/50">Org:</span> {workspace.organization}</p>
+        )}
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-3 py-4">
+        <DashNav workspace={workspace} current={current} />
+      </div>
+
+      <div class="border-t border-white/10 bg-white/5 p-3 text-[12px]">
+        <div class="mb-2 grid grid-cols-2 gap-2">
+          <a href={siteUrl('web', '/account/profile')} class="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
+            <Icon name="user" class="h-4 w-4 text-cream/60" />Profile
+          </a>
+          <a href={notifHref} class="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
+            <Icon name="bell" class="h-4 w-4 text-cream/60" />Alerts
+          </a>
+        </div>
+        <a href={siteUrl('web', '/account/signed-out')} class="flex items-center justify-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream">
+          <Icon name="logout" class="h-4 w-4 text-cream/60" />Exit demo (Sign out)
+        </a>
+      </div>
     </dialog>
 
     <nav aria-label="Quick navigation" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-sand bg-white lg:hidden">

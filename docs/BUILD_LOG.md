@@ -193,3 +193,40 @@
   - Automated responsive tests: `scripts/verify-public-ui.mjs` passed 60 route checks; `scripts/dashboard-shots.mjs` verified every single dashboard route across desktop (1440px) and mobile (390px) with 0 HTTP errors, 0 console errors, and 0 horizontal overflow flags.
   - Real screenshots captured and stored in `docs/screenshots/dashboards/` for all major user roles on desktop (1440px) and mobile (390px).
 
+## 2026-10-13 — Comprehensive Dashboard UX Audit, Responsive Refinement & Accessibility Polish
+
+- **Full UX Audit & Documentation**:
+  - Authored `docs/DASHBOARD_UX_AUDIT.md`: Complete audit across all 12 authenticated workspaces and staff operations, categorizing findings into P0 (blocking/critical), P1 (usability/IA/responsive), P2 (content/coherence), and P3 (enhancements).
+  - Evaluated 11 distinct user journeys end-to-end (Musician, Church Director, Family/Parent, Instructor, Church Host, Event Organizer, Attendee, Production Client, Volunteer Tech, Supporter Liaison, and Admin Operations Staff).
+  - Updated `docs/DASHBOARD_ARCHITECTURE.md` with reusable component specs, mobile drawer offcanvas mechanics, viewport-constrained dialogs, dynamic route aliasing, WCAG 2.1 AA accessibility patterns, and role-specific density principles.
+- **Shared Component Improvements (`packages/ui`)**:
+  - `packages/ui/src/lib/dashboard.ts`: Added route alias support (`aliases?: string[]`) to `DashScreen`; updated `findScreen(ws, slug)` to match canonical `s.slug` or any alias in `s.aliases`.
+  - `packages/ui/src/components/dashboard/DashboardShell.astro`:
+    - Re-architected mobile navigation `<dialog id="dash-drawer">` into an offcanvas left drawer with fixed full-height geometry (`fixed inset-y-0 left-0 h-full max-h-none m-0 z-50 flex flex-col`) to prevent Safari/WebKit centering bugs.
+    - Added demo persona header to drawer (initials avatar, persona name, active role, active org) so users never lose context when navigating on mobile.
+    - Added direct mobile drawer shortcuts to Profile, Notification Alerts, and Exit Demo.
+  - `packages/ui/src/components/dashboard/DashDialog.astro`: Added viewport constraints (`max-h-[min(90vh,42rem)] overflow-y-auto`) and a sticky blurred header to eliminate modal button and footer clipping on small screens.
+  - `packages/ui/src/components/dashboard/DashPageHeader.astro`: Upgraded breadcrumbs from plain text to semantic, accessible `<nav aria-label="Breadcrumb">` with interactive parent links and `aria-current="page"`.
+  - `packages/ui/src/components/dashboard/Panel.astro`: Elevated panel header typography from 16–17px to 17–19px (`text-[17px] sm:text-[19px] font-semibold`) and guaranteed minimum 40px touch targets on header actions.
+  - `packages/ui/src/components/dashboard/DataTable.astro`: Increased filter chip dimensions to minimum 40px touch targets (`min-h-[40px] px-4`) with explicit `focus-visible:ring-2 focus-visible:ring-terracotta`.
+  - `packages/ui/src/components/dashboard/MonthCalendar.astro`: Inverted dark event dots (`bg-charcoal` → `bg-cream`) on selected days (`aria-pressed="true"`) to fix WCAG contrast failure, and added month navigation buttons.
+  - `packages/ui/src/components/dashboard/FormFields.astro`: Linked form inputs and textareas to error helper texts via `aria-describedby` and unique error IDs, ensuring screen readers announce validation messages on focus.
+  - `packages/ui/src/components/dashboard/StatGrid.astro`: Applied `truncate text-[22px] sm:text-[26px] leading-tight` to prevent awkward word wrapping on 360–390px mobile screens.
+  - `packages/ui/src/components/dashboard/ItemList.astro`: Added `break-words [overflow-wrap:anywhere]` to item title and body to prevent unbroken technical strings from causing horizontal overflow in narrow containers.
+- **Cross-Program Demonstration Data Reconciliation**:
+  - `apps/worship`: Renamed "Gig details" to "Service details" and added `aliases: ['service', 'assignment']` to eliminate commercial gig terminology. Reconciled Oct 25 Grace Fellowship keys request to Mateo S. so Jordan Avery is free for the Riverside standby commitment; added `aliases: ['roster']` to church musicians screen.
+  - `apps/academy`: Renamed nav item to "Instructors" and added `aliases: ['instructors']` to resolve route mismatches. Reconciled instructor classes so Jordan Avery teaches "Keyboard Foundations", "Piano Group B", and "Private — Noah P.", leaving Maya Thompson as Ava's piano teacher in First Piano Steps.
+  - `apps/live`: Unified Oct 31 event title to "Fall Family Festival & Praise (sample)" across Organizer and Attendee workspaces.
+  - `apps/web`: Aligned Harvest Night of Gospel concert date to Sat, Nov 14.
+  - `apps/admin`: Shortened legal compliance references and linked cleanly via `siteUrl('admin', '/legal')`.
+- **Rigorous Multi-Viewport Verification**:
+  - Authored `scripts/verify-dashboards-all-viewports.mjs`: Automated Playwright test verifying 34 core dashboard screens across 6 responsive viewports (`390×844`, `768×1024`, `1024×768`, `1280×800`, `1440×900`, `1920×1080`) — totaling 204 screen checks.
+  - 0 horizontal overflows detected across all 204 tests.
+  - 0 console errors detected across all tests.
+  - 100% heading accessibility compliance (exactly 1 `h1` per page).
+  - Verified interactive mobile offcanvas drawer opening and closing via Escape key and backdrop click.
+  - Verified modal dialog opening, focus trapping, and close actions.
+  - Verified interactive filter chips, calendar day toggles, and switch controls.
+  - Captured 26 fresh desktop (1440px) and mobile (390px) screenshots for all 13 major roles in `docs/screenshots/dashboards/`.
+
+

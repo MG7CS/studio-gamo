@@ -16,11 +16,11 @@ const { items } = Astro.props;
           {it.icon && <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cream text-terracotta-dark"><Icon name={it.icon} class="h-4 w-4" strokeWidth={1.8} /></span>}
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p class="text-[14px] font-semibold group-hover:underline">{it.title}</p>
+              <p class="break-words [overflow-wrap:anywhere] text-[14px] font-semibold group-hover:underline">{it.title}</p>
               {it.badge && <StatusPill kind={it.badge.tone ?? 'info'}>{it.badge.badge}</StatusPill>}
             </div>
-            {it.body && <p class="mt-0.5 text-[13px] text-charcoal/80">{it.body}</p>}
-            {it.meta && <p class="mt-0.5 text-[12px] text-ink-soft">{it.meta}</p>}
+            {it.body && <p class="mt-0.5 break-words [overflow-wrap:anywhere] text-[13px] text-charcoal/80">{it.body}</p>}
+            {it.meta && <p class="mt-0.5 break-words [overflow-wrap:anywhere] text-[12px] text-ink-soft">{it.meta}</p>}
           </div>
           {it.href && <Icon name="chevron-right" class="mt-1 h-4 w-4 shrink-0 text-ink-soft" />}
         </Tag>

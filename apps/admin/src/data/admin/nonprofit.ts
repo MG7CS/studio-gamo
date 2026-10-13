@@ -164,14 +164,14 @@ export const nonprofitScreens: DashScreen[] = [
           { label: 'Nonprofit banking & segregated merchant accounts', body: 'Blocked until EIN and 501(c)(3) determination letter obtained', state: 'blocked' },
         ],
       },
-      {
-        type: 'list',
-        title: 'Compliance references',
-        items: [
-          { title: 'GAMO_NONPROFIT_MODEL.md', body: 'Repository source of truth for nonprofit governance and copy rules.', icon: 'book', href: '/legal' },
-          { title: 'NONPROFIT_TRANSITION_CHECKLIST.md', body: 'Tracks pending owner actions and legal gates.', icon: 'shield', href: '/legal' },
-        ],
-      },
+        {
+          type: 'list',
+          title: 'Compliance references',
+          items: [
+            { title: 'Gamo Nonprofit Model', body: 'Repository source of truth for nonprofit governance and copy rules (docs/GAMO_NONPROFIT_MODEL.md).', icon: 'book', href: siteUrl('admin', '/legal') },
+            { title: 'Nonprofit Transition Checklist', body: 'Tracks pending owner actions and legal gates (docs/NONPROFIT_TRANSITION_CHECKLIST.md).', icon: 'shield', href: siteUrl('admin', '/legal') },
+          ],
+        },
     ],
   },
 ];
