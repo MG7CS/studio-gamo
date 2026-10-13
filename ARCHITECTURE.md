@@ -13,13 +13,13 @@ The five public apps now compose a shared `BaseLayout`, `SiteHeader`, `SiteFoote
 Local interactions validate forms, advance steps, filter sample collections and preview statuses. They do not create accounts, persist application data, send messages, reserve inventory, approve participants or process payments. Legacy transactional-looking routes redirect to non-transactional previews where appropriate. The image manifest and package TypeScript exports are shared; icon types live in `lib/icons.ts` so TypeScript data modules do not depend on `.astro` modules. See [component architecture](docs/COMPONENT_ARCHITECTURE.md) and [current frontend review](docs/MULTIPAGE_DESIGN_REVIEW.md).
 
 ```
-                  gamostudios.com (organization hub + entry + account)
+                  gamostudio.org (organization hub + entry + account)
                                     |
            +------------------------+-------------------------+
            |                        |                         |
-    worship.gamostudios.com  academy.gamostudios.com  live.gamostudios.com
+    worship.gamostudio.org   academy.gamostudio.org    live.gamostudio.org
            |                        |                         |
-       admin.gamostudios.com   production.gamostudios.com
+       admin.gamostudio.org    production.gamostudio.org
            \_______________________|_________________________/
                        Shared domain model, identity,
                   permissions, design and adapters

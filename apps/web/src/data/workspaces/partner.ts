@@ -284,9 +284,9 @@ export const partnerWorkspace: Workspace = {
           type: 'list',
           title: 'Designated Gamo liaisons',
           items: [
-            { title: 'Worship coordinator', body: 'worship@gamostudios.com (demo)', icon: 'music' },
-            { title: 'Academy dean', body: 'academy@gamostudios.com (demo)', icon: 'school' },
-            { title: 'Stewardship desk', body: 'partners@gamostudios.com (demo)', icon: 'heart' },
+            { title: 'Worship coordinator', body: 'worship@gamostudio.org (demo)', icon: 'music' },
+            { title: 'Academy dean', body: 'academy@gamostudio.org (demo)', icon: 'school' },
+            { title: 'Stewardship desk', body: 'partners@gamostudio.org (demo)', icon: 'heart' },
           ],
         },
       ],

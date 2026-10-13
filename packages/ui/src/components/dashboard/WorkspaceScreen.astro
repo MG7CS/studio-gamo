@@ -9,16 +9,42 @@ import DashPageHeader from './DashPageHeader.astro';
 import DashBlocks from './DashBlocks.astro';
 import StateView from './StateView.astro';
 import { findScreen, screenHref, type Workspace } from '../../lib/dashboard';
+import { siteUrl } from '../../lib/sites';
+
 interface Props { workspace: Workspace; slug?: string }
 const { workspace, slug } = Astro.props;
 const screen = findScreen(workspace, slug);
 if (!screen) Astro.response.status = 404;
 const state = Astro.url.searchParams.get('state') ?? '';
-const valid = ['loading', 'empty', 'error', 'success'].includes(state) ? (state as 'loading' | 'empty' | 'error' | 'success') : undefined;
+const valid = ['loading', 'empty', 'error', 'success'].includes(state)
+  ? (state as 'loading' | 'empty' | 'error' | 'success')
+  : undefined;
 const path = screen ? screenHref(workspace, screen.slug) : Astro.url.pathname;
+
+const runtimeEnv = (Astro.locals as Record<string, any>)?.runtime?.env ?? {};
+const allowPublicDemo =
+  runtimeEnv.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false' &&
+  import.meta.env?.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false';
+const requiredDemoKey = runtimeEnv.DEMO_ACCESS_KEY || import.meta.env?.DEMO_ACCESS_KEY;
+const queryKey = Astro.url.searchParams.get('demo_key');
+const cookieKey = Astro.cookies.get('demo_key')?.value;
+
+if (queryKey && requiredDemoKey && queryKey === requiredDemoKey) {
+  Astro.cookies.set('demo_key', queryKey, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
+}
+
+const isAuthorized =
+  allowPublicDemo || !requiredDemoKey || cookieKey === requiredDemoKey || queryKey === requiredDemoKey;
 ---
 <DashboardShell workspace={workspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'}>
-  {screen ? (
+  {!isAuthorized ? (
+    <StateView
+      state="error"
+      title="Demo Workspace Access Restricted"
+      body="Public browsing of interactive role workspaces is disabled in this environment. Staff authorization or an approved reviewer demo key is required."
+      retryHref={siteUrl('web', '/')}
+    />
+  ) : screen ? (
     <Fragment>
       <DashPageHeader workspace={workspace} title={screen.title} description={screen.description} actions={screen.actions} path={path} state={valid} />
       {valid ? <StateView state={valid} retryHref={path} /> : <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />}

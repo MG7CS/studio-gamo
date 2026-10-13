@@ -1,8 +1,32 @@
 name = "gamo-web"
-compatibility_date = "2024-04-05"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
-[[d1_databases]]
-binding = "DB"
-database_name = "gamo_local_db"
-database_id = "00000000-0000-0000-0000-000000000000"
-migrations_dir = "../../packages/db/migrations"
+[[kv_namespaces]]
+binding = "SESSION"
+id = "7d35f3e994d04c00a8a404a552978674"
+
+# Production environment for canonical domain gamostudio.org
+[env.production]
+name = "gamo-web"
+routes = [
+  { pattern = "gamostudio.org/*", zone_name = "gamostudio.org" },
+  { pattern = "www.gamostudio.org/*", zone_name = "gamostudio.org" }
+]
+[env.production.vars]
+ENVIRONMENT = "production"
+PUBLIC_ROOT_DOMAIN = "gamostudio.org"
+PUBLIC_SITE_URL_WEB = "https://gamostudio.org"
+PUBLIC_SITE_URL_WORSHIP = "https://worship.gamostudio.org"
+PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
+PUBLIC_SITE_URL_LIVE = "https://live.gamostudio.org"
+PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
+PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
+
+# Preview environment for workers.dev or testing
+[env.preview]
+name = "gamo-web-preview"
+workers_dev = true
+[env.preview.vars]
+ENVIRONMENT = "preview"
+
