@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --workspace-concurrency=1 build",
     "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit",
     "lint": "echo \"Linting not set up yet\"",
+    "test": "node --test scripts/image-policy.test.mjs",
+    "test:web": "node scripts/verify-public-ui.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
     "images:report": "node scripts/optimize-images.mjs --report"
   },

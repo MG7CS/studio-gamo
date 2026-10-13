@@ -1,0 +1,17 @@
+---
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+const values = [
+  ['Faith & service', 'Christian faith guides our purpose and how we care for people.'],
+  ['Education & excellence', 'We value curiosity, preparation and meaningful musical growth.'],
+  ['Community & access', 'We build with churches, families, musicians and community partners.'],
+  ['Trust & fairness', 'Clear expectations and fair compensation matter. Financial support never buys a vetting outcome.'],
+  ['Stewardship', 'We aim to sustain programs responsibly, with resources serving the mission.'],
+];
+---
+<section data-surface="dark" class="mt-8 bg-charcoal px-6 py-20 text-cream sm:px-12 lg:mt-16 lg:py-28">
+  <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[.9fr_1.1fr] lg:gap-24">
+    <div><EditorialHeading eyebrow="What guides us" title="Our values belong" accent="in the everyday." tone="dark" /><div class="mt-10 h-[350px] overflow-hidden rounded-[140px_28px_28px_28px]"><Photo name="guitarMentor" sizes="(min-width:1024px) 40vw, 100vw" /></div></div>
+    <div class="divide-y divide-white/15">{values.map(([title, body], i) => <article class="py-6 first:pt-0"><div class="flex gap-5"><span class="mt-1 text-sm text-gold">0{i + 1}</span><div><h3 class="text-2xl font-semibold tracking-tight">{title}</h3><p class="mt-3 max-w-lg leading-relaxed text-cream/75">{body}</p></div></div></article>)}</div>
+  </div>
+</section>

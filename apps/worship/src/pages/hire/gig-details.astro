@@ -1,56 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import ScheduleStep from '../../components/flow/ScheduleStep.astro';
 ---
-<Layout>
-  <main class="max-w-2xl mx-auto py-12 px-4">
-    <div class="text-sm text-[#6B6B67] mb-2 font-semibold tracking-wide uppercase">Step 1 of 3</div>
-    <h1 class="text-3xl font-bold mb-8 text-[#1D2323]">Gig Details</h1>
-    
-    <form method="POST" action="/api/hire/details" class="space-y-6">
-      <div class="grid md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium mb-2 text-[#1D2323]">Service Date</label>
-          <input type="date" name="date" required class="w-full border border-[#DED6CC] p-3 rounded-lg focus:ring-2 focus:ring-[#B65B35] outline-none" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-2 text-[#1D2323]">Call Time</label>
-          <input type="time" name="callTime" required class="w-full border border-[#DED6CC] p-3 rounded-lg focus:ring-2 focus:ring-[#B65B35] outline-none" />
-        </div>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium mb-2 text-[#1D2323]">Required Instrument(s)</label>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="keys" class="text-[#B65B35]" />
-            <span>Keys / Piano</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="acoustic" class="text-[#B65B35]" />
-            <span>Acoustic Guitar</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="electric" class="text-[#B65B35]" />
-            <span>Electric Guitar</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="bass" class="text-[#B65B35]" />
-            <span>Bass</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="drums" class="text-[#B65B35]" />
-            <span>Drums</span>
-          </label>
-          <label class="flex items-center gap-2 p-3 border border-[#DED6CC] rounded-lg cursor-pointer hover:bg-[#F4EDE3]">
-            <input type="checkbox" name="instruments" value="vocals" class="text-[#B65B35]" />
-            <span>Vocals</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="pt-6">
-        <a href="/hire/repertoire" class="inline-block w-full md:w-auto text-center bg-[#1D2323] text-[#F4EDE3] px-8 py-3 rounded-lg font-medium hover:bg-black transition-colors">Continue to Repertoire</a>
-      </div>
-    </form>
-  </main>
+<Layout title="Schedule">
+  <ScheduleStep />
 </Layout>

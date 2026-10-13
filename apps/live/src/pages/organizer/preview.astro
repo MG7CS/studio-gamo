@@ -1,0 +1,9 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import EventDetailHero from '../../components/events/EventDetailHero.astro';
+import EventDetailBody from '../../components/events/EventDetailBody.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import { events } from '../../data/events';
+---
+<Layout title="Organizer event preview"><EventDetailHero event={events[0]}/><div class="px-4 py-8 sm:px-8"><div class="mx-auto max-w-[1320px] space-y-4"><DemoNotice>Organizer preview only. This event is fictional and not published.</DemoNotice><ButtonLink href="/organizer/manage" variant="secondary">Back to sample draft</ButtonLink></div></div><EventDetailBody event={events[0]}/></Layout>

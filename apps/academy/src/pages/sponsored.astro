@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/shared/PageHero.astro';
+import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+const principles = [
+  ['heart', 'Need first', 'Support would be guided by family need, never by ability to pay.'],
+  ['shield', 'Dignity & privacy', 'Family financial information would be handled privately and minimally.'],
+  ['users', 'Fair to instructors', 'Instructors would be paid fully for sponsored lessons, shown as a separate line item.'],
+  ['book', 'Open to all', 'Not limited to church members, worship teams or any background.'],
+] as const;
+const qa = [
+  { q: 'Can I apply for a scholarship now?', a: 'No. Scholarship and sponsored programs are planned but not available. No applications are being accepted.' },
+  { q: 'Can I sponsor a student?', a: 'Not yet. Gamo Studios is a proposed nonprofit and is not accepting sponsorships or donations at this time.' },
+  { q: 'Would sponsored students have different instructors?', a: 'No. Sponsored students are planned to learn with the same instructors and curriculum as every other student.' },
+];
+---
+<Layout title="Sponsored & scholarship programs (planned)" description="Planned sponsored and scholarship-supported music lessons at Gamo Academy. Not yet available.">
+  <PageHero eyebrow="Sponsored programs" title="Music for every family," accent="whatever the budget." lede="Gamo Academy plans to offer sponsored and scholarship-supported lessons as part of a proposed nonprofit. These programs are still in design and are not yet available." photo="boyGuitar" mask="mask-arch" crumbs={[{ label: 'Sponsored programs', href: '/sponsored' }]}>
+    <div class="mt-6"><StatusPill kind="proposal">Planned · not yet available</StatusPill></div>
+  </PageHero>
+  <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto max-w-[1320px]">
+      <EditorialHeading eyebrow="Guiding principles (draft)" title="How support is" accent="meant to work." />
+      <ul class="mt-10 grid gap-4 sm:grid-cols-2">
+        {principles.map(([icon, t, d], i) => (
+          <li class:list={['flex gap-5 rounded-[28px] bg-white p-7 ring-1 ring-sand', i % 2 && 'sm:translate-y-6']}>
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cream text-terracotta"><Icon name={icon} class="h-6 w-6" /></span>
+            <div><h3 class="text-xl font-bold">{t}</h3><p class="mt-1 text-ink-soft">{d}</p></div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  <section class="px-4 py-16 sm:px-8 lg:py-24">
+    <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+      <div>
+        <EditorialHeading eyebrow="Questions" title="What this means today" />
+        <div class="mt-6 flex flex-wrap gap-3"><ButtonLink href="/host-apply" variant="secondary" arrow>Church hosting preview</ButtonLink></div>
+      </div>
+      <FaqAccordion items={qa} />
+    </div>
+  </section>
+</Layout>

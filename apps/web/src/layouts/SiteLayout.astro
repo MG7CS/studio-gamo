@@ -21,5 +21,6 @@ const {
 } = Astro.props;
 ---
 <BaseLayout title={title} description={description} current={current} headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
+  <slot name="head" slot="head" />
   <slot />
 </BaseLayout>

@@ -1,0 +1,30 @@
+---
+/** Section 7: church-hosted lessons — layered daylight church photos + hosting outline. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+const roles = [
+  ['A church provides', 'A welcoming room, a schedule window and an invitation to its neighbourhood.'],
+  ['Gamo Academy provides', 'Reviewed instructors, curriculum and family communication (planned).'],
+  ['Students receive', 'Quality lessons close to home, open to the wider community.'],
+];
+---
+<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24" data-reveal>
+  <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_1fr]">
+    <div class="relative order-2 h-[380px] sm:h-[480px] lg:order-1">
+      <div class="absolute left-0 top-0 h-[78%] w-[72%] overflow-hidden rounded-[32px]">
+        <Photo name="churchModernDay" sizes="(min-width:1024px) 35vw, 72vw" class="h-full w-full object-cover" />
+      </div>
+      <div class="mask-arch-sm absolute bottom-0 right-0 h-[62%] w-[46%] overflow-hidden border-[6px] border-ivory shadow-float">
+        <Photo name="worshipBand" sizes="(min-width:1024px) 22vw, 46vw" class="h-full w-full object-cover" />
+      </div>
+    </div>
+    <div class="order-1 lg:order-2">
+      <EditorialHeading eyebrow="Church-hosted lessons" title="Lessons in the heart" accent="of the neighbourhood." lede="Churches may apply to host Gamo Academy lessons for their members and the wider community. Hosting is planned — applications are a design preview." />
+      <dl class="mt-8 divide-y divide-sand border-y border-sand">
+        {roles.map(([t, d]) => <div class="grid gap-1 py-4 sm:grid-cols-[180px_1fr]"><dt class="font-bold">{t}</dt><dd class="text-ink-soft">{d}</dd></div>)}
+      </dl>
+      <div class="mt-8"><ButtonLink href="/host-apply" arrow>Preview the hosting application</ButtonLink></div>
+    </div>
+  </div>
+</section>

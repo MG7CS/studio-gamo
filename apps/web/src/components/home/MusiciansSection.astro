@@ -1,4 +1,5 @@
 ---
+import { siteUrl } from "@studio-gamo/ui/lib/sites";
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 import Icon from '../editorial/Icon.astro';
@@ -26,14 +27,14 @@ const waveform = [10,22,14,31,16,27,39,19,34,13,27,19,11,28,18,8,16,23,10];
         <p class="mt-6 max-w-[20rem] text-lg leading-relaxed text-[#303737] lg:text-xl">
           Skilled musicians who serve. Each one auditions and is reviewed before serving a church — and is paid fairly.
         </p>
-        <a href="https://worship.gamostudios.com/" class="mt-7 inline-flex items-center gap-8 rounded-full bg-[#B65B35] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B65B35]">
+        <a href={siteUrl("worship")} class="mt-7 inline-flex items-center gap-8 rounded-full bg-[#B65B35] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#B65B35]">
           Explore Gamo Worship <Icon name="arrow" class="h-5 w-5" />
         </a>
         <div class="mt-9 hidden lg:block">
           <p class="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-[#8F432A]">Browse by instrument</p>
           <ul class="flex flex-wrap gap-2">
             {categories.map((category) => (
-              <li><a href="https://worship.gamostudios.com/" class="inline-flex items-center gap-2 rounded-full border border-[#D9C8B8] bg-[#FFF9F2] py-1.5 pl-1.5 pr-4 text-sm font-semibold text-[#1D2323] transition-colors hover:border-[#B65B35] hover:bg-white"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#F4EDE3] text-[#8F432A]" aria-hidden="true"><Icon name={category.symbol} class="h-4 w-4" /></span>{category.label}</a></li>
+              <li><a href={siteUrl("worship")} class="inline-flex items-center gap-2 rounded-full border border-[#D9C8B8] bg-[#FFF9F2] py-1.5 pl-1.5 pr-4 text-sm font-semibold text-[#1D2323] transition-colors hover:border-[#B65B35] hover:bg-white"><span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#F4EDE3] text-[#8F432A]" aria-hidden="true"><Icon name={category.symbol} class="h-4 w-4" /></span>{category.label}</a></li>
             ))}
           </ul>
         </div>

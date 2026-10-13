@@ -2,8 +2,8 @@
  * Photo catalog for the 2026 bright brand refresh.
  *
  * Keys are stable, human-readable names. Stems/widths come from the generated
- * `image-manifest.json` (written by `make images`), so a missing optimized file
- * fails loudly at build time instead of shipping a broken <img>.
+ * `image-manifest.json` (written by `make images`). Missing catalog entries fail
+ * at build time; browser verification checks that the delivered files load.
  *
  * `position` is the recommended CSS object-position that keeps faces, hands and
  * instruments visible in tight crops. Override per placement when needed.

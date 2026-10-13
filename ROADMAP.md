@@ -2,6 +2,10 @@
 
 > **Current phase override:** [DESIGN_FIRST_OVERRIDES.md](DESIGN_FIRST_OVERRIDES.md) governs build order. Design-first remains in force: complete and approve screens before functionality, one application at a time. Organizational direction: [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md).
 
+### Public frontend resume — 2026-10-12
+
+The founder explicitly approved the multi-page frontend scope across all five public apps. Stages 1–6 (assets/shared foundation, organization pages, Worship, Academy, Live, Production) have implementations and recorded local verification; Stage 7 is the cross-app engineering review documented in [MULTIPAGE_DESIGN_REVIEW.md](docs/MULTIPAGE_DESIGN_REVIEW.md). Owner visual acceptance remains pending. These are **UI deliverables**, not completion of the functional milestones below. Admin expansion, nonprofit formation, safeguarding, live integrations and production readiness remain deferred.
+
 ## Operating objective
 
 Build the software infrastructure for a **Christian nonprofit** whose programs serve churches, musicians, students, families and faith communities. Work is ordered by **mission need and dependency**, not by which product could generate the most money. Each milestone ends with tests, screenshots, evidence and a Git commit. Completion is measured by objective checks, not by the agent saying "done".
@@ -23,7 +27,7 @@ Supersedes the previous revenue-oriented ordering (advertising campaigns and pai
 | 9 | **Donations, sponsorships, grants, funding infrastructure** | Milestone 5a | Blocked until formation/recognition and counsel review |
 | 10 | **Accessibility, safeguarding, security, operational maturity** | Every milestone + Milestone 5 | Continuous, with a final readiness gate |
 
-Each priority requires the preceding design approval gate; this table is **not** permission to begin all ten in parallel.
+Future functional priorities require the preceding approval gate. The current public frontend scope is explicitly authorized above; this table does not authorize backend work or Admin expansion.
 
 ## Milestone 0 — Repository, foundation and mission presentation
 

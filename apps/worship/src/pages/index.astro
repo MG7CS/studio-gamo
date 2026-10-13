@@ -1,15 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import HeroSection from '../components/home/HeroSection.astro';
+import AudienceSection from '../components/home/AudienceSection.astro';
+import InstrumentsSection from '../components/home/InstrumentsSection.astro';
+import RequestSection from '../components/home/RequestSection.astro';
+import AuditionSection from '../components/home/AuditionSection.astro';
+import CoverageSection from '../components/home/CoverageSection.astro';
+import SchedulingSection from '../components/home/SchedulingSection.astro';
+import JoinSection from '../components/home/JoinSection.astro';
+import FaqSection from '../components/home/FaqSection.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
-<Layout>
-  <main class="min-h-screen flex items-center justify-center">
-    <div class="text-center">
-      <h1 class="text-4xl font-bold mb-4">Gamo Studios Worship</h1>
-      <p class="mb-8">Reliable musicians for every service.</p>
-      <div class="flex gap-4 justify-center">
-        <a href="/hire" class="bg-[#B65B35] text-white px-6 py-2 rounded">Hire a Musician</a>
-        <a href="/apply" class="border border-[#B65B35] text-[#B65B35] px-6 py-2 rounded">Join the Collection</a>
-      </div>
-    </div>
-  </main>
+<Layout title="Stronger Worship Starts Together" description="Gamo Worship is a developing program connecting churches with prepared, vetted worship musicians.">
+  <HeroSection />
+  <AudienceSection />
+  <InstrumentsSection />
+  <RequestSection />
+  <AuditionSection />
+  <CoverageSection />
+  <SchedulingSection />
+  <JoinSection />
+  <FaqSection />
+  <CtaInvitation eyebrow="Take part" title="Help shape Gamo Worship." body="Churches and musicians can explore the preview today. When the program opens, we will begin with a small group and grow carefully." photo="chapelSpring">
+    <ButtonLink href="/hire" arrow>Preview a church request</ButtonLink>
+    <ButtonLink href="/apply" variant="secondary">Preview the musician application</ButtonLink>
+  </CtaInvitation>
 </Layout>

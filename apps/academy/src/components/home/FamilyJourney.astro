@@ -1,0 +1,41 @@
+---
+/** Section 8: family-friendly registration journey with a floating preview card. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { registrationSteps } from '../../data/registration';
+---
+<section class="px-4 py-16 sm:px-8 lg:py-24" data-reveal>
+  <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_1fr]">
+    <div>
+      <EditorialHeading eyebrow="Family-friendly registration" title="Signing up should" accent="feel easy." lede="Parents can register one or more children, or adults can register themselves, in a few short steps." />
+      <ol class="mt-8 grid gap-3 sm:grid-cols-2">
+        {registrationSteps.map((s, i) => (
+          <li class="flex items-start gap-3 rounded-2xl bg-white p-4 ring-1 ring-sand">
+            <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cream text-sm font-bold text-terracotta">{i + 1}</span>
+            <div><p class="font-semibold">{s.label}</p><p class="text-sm text-ink-soft">{s.hint}</p></div>
+          </li>
+        ))}
+      </ol>
+      <div class="mt-8"><ButtonLink href="/register" arrow>Preview registration</ButtonLink></div>
+    </div>
+    <div class="relative mx-auto w-full max-w-md">
+      <div class="absolute -inset-6 -rotate-3 rounded-[40px] bg-[#EFE2D3]" aria-hidden="true"></div>
+      <div class="relative rounded-[32px] bg-white p-6 shadow-float sm:p-8" aria-label="Sample registration preview" role="img">
+        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">Sample · Step 2 of 5</p>
+        <p class="mt-2 text-xl font-bold">Who is learning?</p>
+        <div class="mt-5 space-y-3">
+          {[['A', 'Ava (sample) · age 9', 'Piano'], ['J', 'Jonah (sample) · age 14', 'Drums']].map(([i, n, p]) => (
+            <div class="flex items-center gap-3 rounded-2xl border border-sand p-3">
+              <span class="grid h-10 w-10 place-items-center rounded-full bg-cream font-bold text-terracotta">{i}</span>
+              <div class="flex-1"><p class="text-sm font-semibold">{n}</p><p class="text-xs text-ink-soft">{p}</p></div>
+              <Icon name="check" class="h-5 w-5 text-terracotta" />
+            </div>
+          ))}
+          <div class="flex items-center gap-3 rounded-2xl border border-dashed border-sand p-3 text-sm text-ink-soft"><Icon name="plus" class="h-5 w-5" /> Add another learner</div>
+        </div>
+        <div class="mt-6 h-11 rounded-full bg-terracotta"></div>
+      </div>
+    </div>
+  </div>
+</section>

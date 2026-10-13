@@ -1,0 +1,24 @@
+---
+/** Joining the musician collection: wide photo band with overlapping invitation panel. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+const values = ['Faith and character first', 'Prepared, punctual, teachable', 'Transparent, fair pay on its own line', 'Choose the services you accept'];
+---
+<section class="bg-cream py-20 lg:py-28" aria-labelledby="join-title">
+  <div class="mx-auto max-w-7xl px-5 sm:px-8">
+    <div class="relative">
+      <div class="aspect-[4/3] overflow-hidden rounded-[2.5rem] sm:aspect-[16/7] lg:rounded-[3.5rem]">
+        <Photo name="guitarMentor" sizes="(min-width:1280px) 1200px, 100vw" position="50% 35%" />
+      </div>
+      <div class="relative -mt-16 mx-3 rounded-[2rem] bg-white p-7 shadow-float sm:mx-8 lg:absolute lg:-bottom-12 lg:right-10 lg:mx-0 lg:mt-0 lg:w-[30rem] lg:p-10" data-reveal>
+        <p class="eyebrow text-terracotta">The musician collection</p>
+        <h2 id="join-title" class="section-heading mt-3 text-charcoal">Serve with your gift.</h2>
+        <ul class="mt-5 space-y-2 text-ink-soft">{values.map((v) => <li class="flex gap-3"><span class="text-terracotta">—</span>{v}</li>)}</ul>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <ButtonLink href="/apply" arrow>Start an application</ButtonLink>
+          <ButtonLink href="/opportunities" variant="secondary">Sample opportunities</ButtonLink>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

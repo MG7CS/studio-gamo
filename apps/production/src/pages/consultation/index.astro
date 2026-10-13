@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageIntro from '../../components/production/PageIntro.astro';
+import ConsultationForm from '../../components/production/ConsultationForm.astro';
+---
+<Layout title="Consultation Request" description="Preview of the Gamo Production consultation request form." headerTheme="light">
+  <PageIntro eyebrow="Consultation request" title="Let’s talk about" accent="your worship team." lede="Tell us about your church and the technical needs you are facing. This proposed program is not yet accepting requests — the form is a preview." photo="soundEngineer" />
+  <section class="bg-ivory py-12 md:py-20">
+    <div class="mx-auto max-w-4xl px-5 md:px-8"><ConsultationForm /></div>
+  </section>
+</Layout>

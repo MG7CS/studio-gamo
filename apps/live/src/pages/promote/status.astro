@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import PageHeader from '../../components/shared/PageHeader.astro';
+import ReviewStatus from '../../components/promote/ReviewStatus.astro';
+export const prerender = true;
+---
+<Layout title="Submission status (preview)" headerTheme="light">
+  <PageHeader eyebrow="Review & approval" title="Where your event stands." lede="Every listing would be reviewed by a person before publishing." back={{ href: '/promote', label: 'Promote Event' }}>
+    <ButtonLink href="/organizer/dashboard" variant="secondary" arrow>Organizer dashboard</ButtonLink>
+  </PageHeader>
+  <div class="bg-cream px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1100px]">Sample submission. No review process is running.</DemoNotice></div>
+  <ReviewStatus />
+</Layout>

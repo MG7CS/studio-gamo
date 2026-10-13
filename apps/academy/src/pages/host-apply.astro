@@ -1,15 +1,38 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/shared/PageHero.astro';
+import DemoStepForm from '../components/forms/DemoStepForm.astro';
+import FormField from '@studio-gamo/ui/components/FormField.astro';
 ---
-<Layout>
-  <main class="max-w-2xl mx-auto py-12 px-4">
-    <h1 class="text-3xl font-bold mb-8">Host an Academy Clinic</h1>
-    <form class="space-y-6">
-      <div>
-        <label class="block text-sm font-bold mb-2">Church Name</label>
-        <input type="text" class="w-full border p-3 rounded-lg" />
-      </div>
-      <button class="bg-[#B65B35] text-white px-6 py-3 rounded-lg font-bold">Submit Application</button>
-    </form>
-  </main>
+<Layout title="Host lessons at your church (preview)" description="Preview the planned Gamo Academy church-hosting application.">
+  <PageHero eyebrow="Church-hosting application" title="Open your doors" accent="to young musicians." lede="Churches may one day host Gamo Academy lessons for their members and neighbours. This application is a design preview; hosting is not open yet." photo="chapelSpring" mask="mask-leaf-alt" crumbs={[{ label: 'Host lessons', href: '/host-apply' }]} />
+  <section class="px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-3xl">
+      <DemoStepForm id="host" steps={['Church', 'Space', 'Community', 'Review']} doneTitle="Preview complete — nothing was sent" doneBody="When hosting opens, a Gamo Academy coordinator would follow up to talk through space, safeguarding and scheduling.">
+        <Fragment slot="step-0">
+          <FormField label="Church name" name="church" />
+          <div class="grid gap-5 sm:grid-cols-2">
+            <FormField label="City" name="city" autocomplete="address-level2" />
+            <FormField label="State" name="state" autocomplete="address-level1" />
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <FormField label="Contact name" name="contact" autocomplete="name" />
+            <FormField label="Contact email" name="email" type="email" autocomplete="email" />
+          </div>
+        </Fragment>
+        <Fragment slot="step-1">
+          <FormField label="Available rooms" name="rooms" type="select" options={['1 room', '2–3 rooms', '4 or more rooms']} />
+          <FormField label="Instruments on site" name="gear" type="textarea" rows={3} hint="e.g. piano, drum kit, amplifiers" />
+          <FormField label="Possible schedule window" name="window" type="select" options={['Weekday afternoons', 'Weekday evenings', 'Saturdays', 'Flexible']} />
+        </Fragment>
+        <Fragment slot="step-2">
+          <FormField label="Who would you like to serve?" name="audience" type="select" options={['Children', 'Teens', 'Adults', 'All ages']} />
+          <FormField label="Tell us about your community" name="community" type="textarea" hint="Lessons are planned to be open to the wider community, not only members." />
+        </Fragment>
+        <Fragment slot="step-3">
+          <p class="text-ink-soft">Hosting is a proposed collaboration, not a partnership agreement. Safeguarding policies, any costs and sponsorship options are still being developed and would be discussed before anything is agreed.</p>
+        </Fragment>
+      </DemoStepForm>
+    </div>
+  </section>
 </Layout>

@@ -1,10 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import FlowShell from '../../components/flow/FlowShell.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
-<Layout>
-  <main class="max-w-xl mx-auto py-24 px-4 text-center">
-    <div class="w-16 h-16 bg-[#26865B] text-white rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">✓</div>
-    <h1 class="text-3xl font-bold mb-4">Checked In</h1>
-    <p class="text-gray-500">Have a great service!</p>
-  </main>
-</Layout>
+<Layout title="Sample arrival recorded"><FlowShell eyebrow="Sample coordination screen" title="Sample arrival recorded" lede="This illustrates a future arrival confirmation. No attendance record was created." notice="Design preview only. No attendance, notification or dispatch action takes place." wide><div class="flex flex-wrap gap-3"><ButtonLink href="/church/roster">View sample roster</ButtonLink><ButtonLink href="/check-in/success" variant="secondary">Preview arrival state</ButtonLink><ButtonLink href="/check-in/standby-notified" variant="secondary">Preview standby state</ButtonLink></div></FlowShell></Layout>

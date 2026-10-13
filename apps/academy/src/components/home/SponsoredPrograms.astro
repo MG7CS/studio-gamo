@@ -1,0 +1,33 @@
+---
+/** Section 6: sponsored & scholarship-supported programs — clearly marked as planned. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+const ideas = [
+  { icon: 'heart' as const, t: 'Need-based tuition support', d: 'Proposed reduced or no-cost lessons for families who need it.' },
+  { icon: 'church' as const, t: 'Church-sponsored cohorts', d: 'Proposed groups a congregation could underwrite for its community.' },
+  { icon: 'school' as const, t: 'Instrument lending', d: 'An idea under review for students without an instrument at home.' },
+];
+---
+<section class="px-4 py-16 sm:px-8 lg:py-24" data-reveal>
+  <div class="mx-auto grid max-w-[1320px] overflow-hidden rounded-[36px] bg-[#EFE2D3] lg:grid-cols-[1.1fr_0.9fr]">
+    <div class="p-8 sm:p-12 lg:p-16">
+      <StatusPill kind="proposal">Planned · not yet available</StatusPill>
+      <h2 class="section-heading mt-5 text-balance">Music lessons should not depend on <span class="text-terracotta">a family's budget.</span></h2>
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-ink-soft">As a proposed nonprofit program, Gamo Academy hopes to offer sponsored and scholarship-supported lessons. These programs are still being designed; no scholarships or sponsorships are being offered or accepted yet.</p>
+      <ul class="mt-8 space-y-4">
+        {ideas.map((i) => (
+          <li class="flex gap-4"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-terracotta"><Icon name={i.icon} class="h-5 w-5" /></span>
+            <div><p class="font-bold">{i.t}</p><p class="text-sm text-ink-soft">{i.d}</p></div></li>
+        ))}
+      </ul>
+      <div class="mt-8"><ButtonLink href="/sponsored" arrow>About planned programs</ButtonLink></div>
+    </div>
+    <div class="relative min-h-[320px]">
+      <div class="mask-arch absolute inset-x-8 bottom-0 top-8 overflow-hidden lg:inset-x-10 lg:top-12">
+        <Photo name="boyGuitar" sizes="(min-width:1024px) 35vw, 90vw" position="50% 30%" class="h-full w-full object-cover" />
+      </div>
+    </div>
+  </div>
+</section>

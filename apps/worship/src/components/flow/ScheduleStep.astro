@@ -1,0 +1,21 @@
+---
+/** Schedule step content, shared by /hire/schedule and the legacy /hire/gig-details route. */
+import FlowShell from './FlowShell.astro';
+import DemoForm from './DemoForm.astro';
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import { hireSteps } from '../../data/worship';
+---
+<FlowShell eyebrow="For churches · Schedule" title="When and how often" accent="do you need support?" lede="Request one service or a recurring pattern. Rehearsal details help musicians plan well." steps={hireSteps} current={2} photo="sanctuaryCongregation">
+  <DemoForm next="/hire/summary" back="/hire/repertoire" submitLabel="Review summary">
+    <div class="grid gap-6 sm:grid-cols-2">
+      <FormField label="First service date" name="date" type="date" required />
+      <FormField label="Musician call time" name="call" type="time" required />
+      <FormField label="Service start" name="start" type="time" />
+      <FormField label="Repeats" name="repeat" type="select" options={['Just this service', 'Every week', 'Every other week', 'First Sunday monthly']} />
+      <FormField label="Rehearsal" name="rehearsal" type="select" options={['Same-day soundcheck', 'Mid-week rehearsal', 'No rehearsal needed']} />
+      <FormField label="Request a standby musician?" name="standby" type="select" options={['Yes, where available', 'No']} />
+    </div>
+    <FormField label="Service address" name="address" autocomplete="street-address" />
+    <FormField label="Arrival & parking notes" name="arrival" type="textarea" rows={3} />
+  </DemoForm>
+</FlowShell>

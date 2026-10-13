@@ -1,0 +1,52 @@
+---
+/** Checkout mockup — clearly a preview. Card fields are disabled; nothing is charged or stored. */
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import { dateParts, price, type LiveEvent } from '../../data/events';
+interface Props { event: LiveEvent; quantities?: number[] }
+const { event: e, quantities = [1] } = Astro.props;
+const total = e.tiers.reduce((sum, tier, i) => sum + tier.priceCents * (quantities[i] || 0), 0);
+const selection = quantities.map((n,i) => `q${i}=${n}`).join("&");
+const closed = e.status === "canceled" || e.ticketing === "external";
+const d = dateParts(e.date);
+---
+<section class="bg-cream px-4 pb-20 sm:px-8">
+  <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[1.4fr_1fr]">
+    <form class="space-y-8 rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8" onsubmit="return false" aria-describedby="checkout-note">
+      <fieldset class="space-y-4">
+        <legend class="text-xl font-semibold">Attendee details</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <FormField label="Full name" name="name" placeholder="Sample Attendee" autocomplete="off" />
+          <FormField label="Email" name="email" type="email" placeholder="you@example.org" autocomplete="off" />
+        </div>
+      </fieldset>
+      <fieldset class="space-y-3">
+        <legend class="flex items-center gap-2 text-xl font-semibold">Payment <StatusPill kind="pending">Not connected</StatusPill></legend>
+        <div class="rounded-2xl border border-dashed border-sand bg-cream/60 p-5 text-sm text-ink-soft">
+          Payment fields are intentionally disabled. A future processor would be connected only after legal and board approval. No card data is collected.
+        </div>
+      </fieldset>
+      <p id="checkout-note" class="text-sm text-ink-soft">Selecting “Show sample ticket” only navigates to a sample ticket design.</p>
+      <div class="flex flex-wrap gap-3">
+        {!closed && <ButtonLink href={`/ticket?event=${e.id}&${selection}`} arrow>Show sample ticket</ButtonLink>}
+        {closed && <p class="text-sm text-red-800">This sample is canceled or externally ticketed. No Gamo ticket preview is issued.</p>}
+        <ButtonLink href={`/events/${e.id}/tickets`} variant="secondary">Back</ButtonLink>
+      </div>
+    </form>
+    <aside class="h-fit overflow-hidden rounded-[28px] bg-white ring-1 ring-sand">
+      <div class="aspect-[16/9]"><Photo name={e.photo} sizes="(min-width:1024px) 30vw, 100vw" class="h-full w-full object-cover" alt="" /></div>
+      <div class="p-6">
+        <StatusPill kind="sample">Sample order</StatusPill>
+        <p class="mt-3 font-semibold">{e.title}</p>
+        <p class="text-sm text-ink-soft">{d.long} · {e.time}</p>
+        <dl class="mt-5 space-y-2 border-t border-sand pt-4 text-sm">
+          {e.tiers.map((tier, i) => quantities[i] > 0 && <div class="flex justify-between gap-4"><dt>{quantities[i]} × {tier.name}</dt><dd>{price(tier.priceCents * quantities[i])}</dd></div>)}
+          <div class="flex justify-between text-ink-soft"><dt>Gamo administrative contribution</dt><dd>Proposal — TBD</dd></div>
+          <div class="flex justify-between border-t border-sand pt-2 text-base font-semibold"><dt>Illustrative total</dt><dd>{price(total)}</dd></div>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</section>

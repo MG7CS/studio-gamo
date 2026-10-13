@@ -1,0 +1,40 @@
+---
+/** Interior page hero: editorial heading left, optional masked photo right, breadcrumb above. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+interface Props {
+  eyebrow: string;
+  title: string;
+  accent?: string;
+  lede: string;
+  photo?: PhotoKey;
+  photoPosition?: string;
+  mask?: 'mask-arch' | 'mask-leaf' | 'mask-leaf-alt' | 'mask-pebble';
+  crumbs?: { label: string; href: string }[];
+}
+const { eyebrow, title, accent, lede, photo, photoPosition, mask = 'mask-arch', crumbs = [] } = Astro.props;
+---
+<section class="relative overflow-hidden px-4 pb-14 pt-28 sm:px-8 lg:pb-20 lg:pt-36">
+  <div aria-hidden="true" class="absolute -left-40 top-10 h-[420px] w-[420px] rounded-full bg-ivory"></div>
+  <div class:list={['relative mx-auto grid max-w-[1320px] items-center gap-10', photo && 'lg:grid-cols-[1.2fr_0.8fr]']}>
+    <div>
+      {crumbs.length > 0 && (
+        <nav aria-label="Breadcrumb" class="mb-6 text-sm text-ink-soft">
+          <ol class="flex flex-wrap items-center gap-2">
+            <li><a href="/" class="hover:text-terracotta">Academy</a></li>
+            {crumbs.map((c) => <li class="flex items-center gap-2"><span aria-hidden="true">/</span><a href={c.href} class="hover:text-terracotta">{c.label}</a></li>)}
+          </ol>
+        </nav>
+      )}
+      <p class="eyebrow text-terracotta">{eyebrow}</p>
+      <h1 class="display-lg mt-4 text-balance">{title}{accent && <span class="block text-terracotta">{accent}</span>}</h1>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">{lede}</p>
+      <slot />
+    </div>
+    {photo && (
+      <div class:list={['relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden shadow-float lg:max-w-md', mask]}>
+        <Photo name={photo} priority position={photoPosition} sizes="(min-width:1024px) 30vw, 90vw" class="h-full w-full object-cover" />
+      </div>
+    )}
+  </div>
+</section>

@@ -1,4 +1,5 @@
 ---
+import { siteUrl } from "@studio-gamo/ui/lib/sites";
 import Icon from '../editorial/Icon.astro';
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionCurve from '../editorial/SectionCurve.astro';
@@ -16,8 +17,8 @@ import SectionEyebrow from '../editorial/SectionEyebrow.astro';
         Whether you’re a church looking for trusted musicians or a musician ready to serve, Gamo Studios makes it simple.
       </p>
       <div class="mt-8 flex flex-wrap gap-3">
-        <a href="https://worship.gamostudios.com/" class="inline-flex items-center gap-6 rounded-full bg-[#B65B35] px-7 py-3.5 font-semibold text-white transition-colors hover:bg-[#8F432A]">For Churches <Icon name="arrow" class="h-5 w-5" /></a>
-        <a href="https://worship.gamostudios.com/apply/start" class="inline-flex items-center gap-6 rounded-full border border-white/65 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10">For Musicians <Icon name="arrow" class="h-5 w-5" /></a>
+        <a href={siteUrl("worship")} class="inline-flex items-center gap-6 rounded-full bg-[#B65B35] px-7 py-3.5 font-semibold text-white transition-colors hover:bg-[#8F432A]">For Churches <Icon name="arrow" class="h-5 w-5" /></a>
+        <a href={siteUrl("worship","/apply")} class="inline-flex items-center gap-6 rounded-full border border-white/65 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10">For Musicians <Icon name="arrow" class="h-5 w-5" /></a>
       </div>
     </div>
 

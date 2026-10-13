@@ -50,19 +50,19 @@ install:
 	@pnpm install
 
 build:
-	@pnpm -r build
+	@pnpm run build
 
 check:
-	@pnpm run typecheck || echo "Check script not fully configured yet."
+	@pnpm run typecheck
 
 lint:
 	@pnpm run lint || echo "Lint script not configured yet."
 
 test:
-	@pnpm run test || echo "Test script not configured yet."
+	@pnpm run test
 
 images:
-	@pnpm run images:optimize || node scripts/optimize-images.mjs || echo "Image optimization script not found."
+	@pnpm run images:optimize
 
 clean:
 	@find . -name "dist" -type d -prune -exec rm -rf '{}' + || true

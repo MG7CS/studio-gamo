@@ -1,12 +1,7 @@
 ---
 /** Shared inline line-icon set (24px grid, stroke-based, inherits currentColor). Decorative: always aria-hidden. */
-export type IconName =
-  | 'pin' | 'music' | 'church' | 'users' | 'check' | 'arrow' | 'arrow-left'
-  | 'play' | 'phone' | 'piano' | 'guitar' | 'drums' | 'mic' | 'verified'
-  | 'calendar' | 'ticket' | 'video' | 'light' | 'sliders' | 'school' | 'heart'
-  | 'hand' | 'mail' | 'clock' | 'shield' | 'plus' | 'minus' | 'chevron-down'
-  | 'chevron-left' | 'chevron-right' | 'x' | 'menu' | 'qr' | 'upload' | 'star'
-  | 'headphones' | 'building' | 'book' | 'repeat' | 'info' | 'speaker' | 'external';
+import type { IconName } from '../lib/icons';
+export type { IconName } from '../lib/icons';
 interface Props { name: IconName; class?: string; strokeWidth?: number }
 const { name, class: className = 'h-5 w-5', strokeWidth = 1.6 } = Astro.props;
 const paths: Record<IconName, string> = {

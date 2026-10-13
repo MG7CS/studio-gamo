@@ -1,0 +1,38 @@
+---
+/** Christian conferences (wide feature) + youth & family (stacked, playful mask). */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import EventPills from '../shared/EventPills.astro';
+import EventCard from '../shared/EventCard.astro';
+import { dateParts, type LiveEvent } from '../../data/events';
+interface Props { conferences: LiveEvent[]; youth: LiveEvent[] }
+const { conferences, youth } = Astro.props;
+const c = conferences[0];
+const d = dateParts(c.date);
+---
+<section class="bg-cream px-4 py-16 sm:px-8 lg:py-24" aria-label="Conferences and youth & family events">
+  <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.25fr_1fr]">
+    <article class="relative flex flex-col overflow-hidden rounded-[32px] bg-white ring-1 ring-sand">
+      <div class="relative aspect-[16/10] overflow-hidden"><Photo name={c.photo} sizes="(min-width:1024px) 55vw, 100vw" class="h-full w-full object-cover" alt="" /></div>
+      <div class="flex flex-1 flex-col p-6 sm:p-8">
+        <p class="eyebrow text-terracotta">Christian conferences</p>
+        <h2 class="section-subheading mt-2">{c.title}</h2>
+        <p class="mt-2 text-ink-soft">{d.long} · {c.venue}, {c.city}, {c.state}</p>
+        <EventPills event={c} class="mt-4" />
+        <div class="mt-6 flex flex-wrap gap-3">
+          <ButtonLink href={`/events/${c.id}`} arrow>View conference</ButtonLink>
+          <ButtonLink href="/events?category=conference" variant="secondary">All conferences</ButtonLink>
+        </div>
+        {conferences.slice(1).map((x) => <EventCard event={x} variant="row" class="mt-6" />)}
+      </div>
+    </article>
+    <div class="flex flex-col">
+      <div class="relative overflow-hidden rounded-[32px_32px_32px_160px] bg-night">
+        <Photo name="boyGuitar" sizes="(min-width:1024px) 40vw, 100vw" class="aspect-[5/4] h-full w-full object-cover" alt="Young boy playing acoustic guitar" />
+      </div>
+      <p class="eyebrow mt-8 text-terracotta">Youth &amp; family</p>
+      <h2 class="section-subheading mt-2">Gatherings the whole family can share.</h2>
+      <div class="mt-6 space-y-3">{youth.map((e) => <EventCard event={e} variant="row" />)}</div>
+    </div>
+  </div>
+</section>

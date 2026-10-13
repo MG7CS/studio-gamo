@@ -1,0 +1,33 @@
+---
+/** Text + masked photo split row. Use `reverse` to alternate, slot for actions. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  body: string;
+  points?: string[];
+  photo: PhotoKey;
+  mask?: 'mask-arch-sm' | 'mask-leaf' | 'mask-leaf-alt' | 'rounded-[32px]';
+  reverse?: boolean;
+  id?: string;
+}
+const { eyebrow, title, body, points = [], photo, mask = 'mask-leaf', reverse = false, id } = Astro.props;
+---
+<article id={id} data-reveal class="grid items-center gap-10 lg:grid-cols-2 lg:gap-20">
+  <div class:list={['overflow-hidden aspect-[5/4] shadow-float', mask, reverse && 'lg:order-2']}>
+    <Photo name={photo} sizes="(min-width:1024px) 45vw, 92vw" />
+  </div>
+  <div>
+    {eyebrow && <p class="eyebrow text-terracotta">{eyebrow}</p>}
+    <h3 class="section-subheading mt-3 text-balance text-charcoal">{title}</h3>
+    <p class="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">{body}</p>
+    {points.length > 0 && (
+      <ul class="mt-6 space-y-3">
+        {points.map((p) => <li class="flex gap-3 text-ink-soft"><span aria-hidden="true" class="mt-2.5 h-1.5 w-5 shrink-0 rounded-full bg-terracotta"></span>{p}</li>)}
+      </ul>
+    )}
+    <div class="mt-7 flex flex-wrap gap-3"><slot /></div>
+  </div>
+</article>

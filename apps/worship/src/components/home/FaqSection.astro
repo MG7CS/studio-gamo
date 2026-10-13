@@ -1,0 +1,12 @@
+---
+/** FAQ section. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
+import { faqs } from '../../data/worship';
+---
+<section class="bg-ivory pt-28 pb-20 lg:pt-36 lg:pb-28" aria-labelledby="faq-title">
+  <div class="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-12">
+    <EditorialHeading id="faq-title" eyebrow="Questions" title="Honest answers" accent="while we build." class="lg:col-span-4" />
+    <FaqAccordion items={faqs} class="lg:col-span-8" />
+  </div>
+</section>

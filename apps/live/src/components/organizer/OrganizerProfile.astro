@@ -1,0 +1,17 @@
+---
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import EventCard from '../shared/EventCard.astro';
+import { events, type Organizer } from '../../data/events';
+interface Props { organizer: Organizer }
+const { organizer: org } = Astro.props;
+const listings = events.filter(e => e.organizer === org.slug);
+---
+<section class="px-4 pb-20 sm:px-8"><div class="mx-auto max-w-[1320px]">
+  <div class="grid gap-8 lg:grid-cols-[1fr_1.5fr]">
+    <Photo name={org.photo} sizes="(min-width:1024px) 35vw, 100vw" class="aspect-[4/3] w-full rounded-[32px] object-cover" />
+    <div class="self-center"><StatusPill kind="sample">Sample organizer · not verified</StatusPill><p class="mt-5 text-lg leading-relaxed text-ink-soft">{org.bio}</p><dl class="mt-6 grid grid-cols-2 gap-4"><div><dt class="eyebrow text-terracotta">Community</dt><dd class="mt-2 font-medium">{org.city}</dd></div><div><dt class="eyebrow text-terracotta">Organizer type</dt><dd class="mt-2 font-medium">{org.kind}</dd></div></dl><p class="mt-6 text-sm text-ink-soft">No identity, ministry or ticketing authorization review has taken place. This profile is fictional.</p></div>
+  </div>
+  <h2 class="mt-16 section-subheading">Gatherings from this sample organizer</h2>
+  <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{listings.map(event => <li><EventCard event={event}/></li>)}</ul>
+</div></section>

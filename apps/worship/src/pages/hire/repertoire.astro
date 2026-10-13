@@ -1,31 +1,23 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import FlowShell from '../../components/flow/FlowShell.astro';
+import DemoForm from '../../components/flow/DemoForm.astro';
+import FormField from '@studio-gamo/ui/components/FormField.astro';
+import { hireSteps } from '../../data/worship';
+const sample = [['Goodness of God', 'A'], ['Way Maker', 'E'], ['Great Is Thy Faithfulness', 'D'], ['Firm Foundation', 'B']];
 ---
-<Layout>
-  <main class="max-w-2xl mx-auto py-12 px-4">
-    <div class="text-sm text-[#6B6B67] mb-2 font-semibold tracking-wide uppercase">Step 2 of 3</div>
-    <h1 class="text-3xl font-bold mb-8 text-[#1D2323]">Repertoire & Charts</h1>
-    
-    <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-8">
-      <p class="text-sm font-medium text-yellow-800">Security Notice</p>
-      <p class="text-sm text-yellow-700">Please provide links to unlisted resources (e.g., Planning Center Services, unlisted Google Drive folders). Do not upload copyrighted PDFs directly unless explicitly authorized.</p>
-    </div>
-
-    <form method="POST" action="/api/hire/repertoire" class="space-y-6">
-      <div>
-        <label class="block text-sm font-medium mb-2 text-[#1D2323]">Planning Center Services URL (Optional)</label>
-        <input type="url" name="pcoUrl" placeholder="https://services.planningcenteronline.com/..." class="w-full border border-[#DED6CC] p-3 rounded-lg focus:ring-2 focus:ring-[#B65B35] outline-none" />
+<Layout title="Repertoire">
+  <FlowShell eyebrow="For churches · Repertoire" title="Help musicians" accent="arrive prepared." lede="Share the set list, keys and any charts or reference recordings. Primary and standby musicians would receive the same materials." steps={hireSteps} current={1} photo="worshipLeaderGolden">
+    <DemoForm next="/hire/schedule" back="/hire">
+      <div class="overflow-hidden rounded-3xl border border-sand bg-white">
+        <div class="flex items-center justify-between border-b border-sand px-5 py-3 text-sm"><span class="font-semibold">Sample set list</span><span class="text-ink-soft">Key</span></div>
+        <ol class="divide-y divide-sand">
+          {sample.map(([s, k], i) => <li class="flex items-center gap-4 px-5 py-3"><span class="w-5 text-sm text-ink-soft">{i + 1}</span><span class="flex-1">{s}</span><span class="rounded-full bg-cream px-3 py-1 text-sm font-semibold">{k}</span></li>)}
+        </ol>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium mb-2 text-[#1D2323]">Setlist / Notes</label>
-        <textarea name="notes" rows="4" placeholder="List the songs for this service, preferred keys, or any specific instructions for the musician..." class="w-full border border-[#DED6CC] p-3 rounded-lg focus:ring-2 focus:ring-[#B65B35] outline-none"></textarea>
-      </div>
-
-      <div class="pt-6 flex justify-between">
-        <a href="/hire/gig-details" class="px-6 py-3 text-[#6B6B67] font-medium hover:text-[#1D2323]">Back</a>
-        <a href="/hire/checkout" class="bg-[#1D2323] text-[#F4EDE3] px-8 py-3 rounded-lg font-medium hover:bg-black transition-colors">Continue to Checkout</a>
-      </div>
-    </form>
-  </main>
+      <FormField label="Your set list (song — key)" name="setlist" type="textarea" rows={5} placeholder="One song per line" />
+      <FormField label="Charts or recordings (link)" name="charts" type="url" placeholder="https://" hint="Shared folders are fine. Nothing is uploaded in this preview." />
+      <FormField label="Notes for musicians" name="notes" type="textarea" hint="Transitions, communion moments, a special song…" />
+    </DemoForm>
+  </FlowShell>
 </Layout>

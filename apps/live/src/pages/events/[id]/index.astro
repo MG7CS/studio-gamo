@@ -1,0 +1,19 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import EventDetailHero from '../../../components/events/EventDetailHero.astro';
+import EventDetailBody from '../../../components/events/EventDetailBody.astro';
+import RelatedEvents from '../../../components/events/RelatedEvents.astro';
+import { events, type LiveEvent } from '../../../data/events';
+export const prerender = true;
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { id: event.id }, props: { event } }));
+}
+const { event } = Astro.props as { event: LiveEvent };
+---
+<Layout title={event.title} description={event.tagline} headerTheme="light">
+  <EventDetailHero event={event} />
+  <div class="bg-cream px-4 pb-10 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">This is a fictional sample event. It is not taking place and nothing can be purchased or registered.</DemoNotice></div>
+  <EventDetailBody event={event} />
+  <RelatedEvents current={event} />
+</Layout>

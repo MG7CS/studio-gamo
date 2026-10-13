@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import InstrumentOverview from '../../components/instruments/InstrumentOverview.astro';
+import LessonCard from '../../components/shared/LessonCard.astro';
+import InstructorCard from '../../components/shared/InstructorCard.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { instruments, type Instrument } from '../../data/instruments';
+import { lessons } from '../../data/lessons';
+import { instructors } from '../../data/instructors';
+
+export const prerender = true;
+export function getStaticPaths() {
+  return instruments.map((instrument) => ({ params: { slug: instrument.slug }, props: { instrument } }));
+}
+const { instrument } = Astro.props as { instrument: Instrument };
+const related = lessons.filter((l) => l.instrumentSlug === instrument.slug);
+const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument.slug));
+---
+<Layout title={instrument.name} description={instrument.blurb}>
+  <PageHero eyebrow={instrument.ages} title={instrument.name} lede={instrument.blurb} photo={instrument.photo} mask="mask-leaf" crumbs={[{ label: 'Instruments', href: '/instruments' }, { label: instrument.short, href: `/instruments/${instrument.slug}` }]}>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <ButtonLink href={`/register?instrument=${instrument.slug}`} size="lg" arrow>Preview registration</ButtonLink>
+      <ButtonLink href="/lessons" size="lg" variant="secondary">All sample lessons</ButtonLink>
+    </div>
+  </PageHero>
+  <InstrumentOverview instrument={instrument} />
+  <section class="px-4 py-16 sm:px-8 lg:py-20">
+    <div class="mx-auto max-w-[1320px]">
+      <EditorialHeading eyebrow="Sample lessons" title={`Ways to learn ${instrument.short.toLowerCase()}`} size="sub" />
+      <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {related.map((l) => <LessonCard lesson={l} />)}
+        {teachers.map((t) => <InstructorCard instructor={t} />)}
+      </div>
+    </div>
+  </section>
+</Layout>

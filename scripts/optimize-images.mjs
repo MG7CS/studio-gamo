@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
+import { responsiveWidths, configurationSignature } from './image-policy.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +48,8 @@ async function run() {
       cleanName = cleanName.replace('chatgpt-image-', 'photo-');
     }
     
-    if (cache[file] && cache[file].hash === hash) {
+    const signature = configurationSignature(WIDTHS, FORMATS);
+    if (cache[file] && cache[file].hash === hash && cache[file].configuration === signature && cache[file].variants.every((v) => fs.existsSync(path.join(OPTIMIZED_DIR, v.name)))) {
       continue;
     }
     
@@ -99,6 +101,7 @@ async function run() {
     
     cache[file] = {
       hash,
+      configuration: signature,
       originalSize: fileBuffer.length,
       variants
     };
@@ -142,13 +145,12 @@ async function optimizeBrandRefresh(cache) {
       const stem = `${category}-${path.parse(file).name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       const image = sharp(fileBuffer);
       const metadata = await image.metadata();
-      let widths = BRAND_WIDTHS.filter((w) => w <= metadata.width);
-      if (metadata.width < 1600) widths.push(metadata.width); // largest = intrinsic, never upscaled
-      widths = [...new Set(widths)].sort((a, b) => a - b);
+      const widths = responsiveWidths(metadata.width, BRAND_WIDTHS);
+      const signature = configurationSignature(BRAND_WIDTHS, BRAND_FORMATS);
       manifest[stem] = { source: key, width: metadata.width, height: metadata.height, widths };
 
       const allPresent = widths.every((w) => APP_PUBLIC_DIRS.every((d) => BRAND_FORMATS.every((f) => fs.existsSync(path.join(d, `${stem}-${w}w.${f.ext}`)))));
-      if (cache[key] && cache[key].hash === hash && allPresent) continue;
+      if (cache[key] && cache[key].hash === hash && cache[key].configuration === signature && allPresent) continue;
 
       console.log(`Optimizing (brand refresh): ${key} -> ${stem}`);
       const variants = [];
@@ -161,7 +163,7 @@ async function optimizeBrandRefresh(cache) {
           variants.push({ name: outName, size: fs.statSync(primary).size, width, format: fmt.ext });
         }
       }
-      cache[key] = { hash, originalSize: fileBuffer.length, variants };
+      cache[key] = { hash, configuration: signature, originalSize: fileBuffer.length, variants };
     }
   }
   fs.mkdirSync(path.dirname(MANIFEST_FILE), { recursive: true });
@@ -194,4 +196,4 @@ function printReport(cache) {
   console.log(`Total Variants Footprint: ${(totalVariants/1024/1024).toFixed(2)}MB`);
 }
 
-run().catch(console.error);
+run().catch((error) => { console.error(error); process.exitCode = 1; });

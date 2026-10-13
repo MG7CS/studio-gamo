@@ -40,11 +40,20 @@ The `stem` must be a safe lower-case filename stem with hyphens/numbers, matchin
 
 Abstractions must preserve the approved editorial composition: image crops, art-directed curves, typography and floating interface cards remain section-owned. Avoid turning differentiated sections into identical generic grids.
 
-## Verification before merge
+## Public program component ownership (2026 refresh)
 
-1. Pull the PR into the local repository after saving uncommitted Antigravity work.
-2. Run `make check && make lint && make build` (or the individual supported targets).
+- Shared shell: `BaseLayout`, `SiteHeader`, `SiteFooter`, `ButtonLink`, `EditorialHeading`, `Photo`, `ProgramCard`, `ContentRail`, `AudienceSwitch`, `FaqAccordion`, `DemoNotice`, `FormField`, `StepIndicator` and `CtaInvitation` in `packages/ui`.
+- Shared data utilities: `lib/sites.ts` supplies local/production sibling URLs; `lib/images.ts` supplies typed photo keys, descriptive alt text and focal points; `lib/icons.ts` supplies icon-name types. Package exports support both extensionless and explicit `.ts` library imports.
+- Organization: `OrganizationHero`, `ParticipationPaths`, `PartnershipOpportunities`, `SupportPathways`, `ContactIntroduction`, `InquiryForm`, `AccountEntry`, `GetStartedRoutes` in `apps/web/src/components/organization`; Mission composes `WhyWeExist`, `FourPrograms`, `WhoWeServe`, `OurValues` from `components/mission`. OrganizationHero variants are specific to the hub. The proposed hero composes `HeroBrightSection` and `HeroProgramCards`; the approved `HeroSection` retains its layout. Alternate organization and hero compositions authored during concurrent recovery remain on disk for comparison; inspect each current route before creating more variants.
+- Worship, Academy, Live and Production retain app-owned landing sections, typed demonstration catalogs and dedicated form/detail/dashboard components. Refer to each `src/components/` folder before creating new UI. Do not duplicate shared chrome.
+- Inquiry forms only perform local validation. No-JavaScript fallback must prevent form submission; status copy must say preview, never imply a sent request. Sample wizard status pages may be directly navigable and are not evidence of real approval.
+- Scroll-reveal content stays visible at all times; reduced-motion users receive no transition effects. Before full-page screenshots, decode lazy images and hide only the development toolbar.
+
+## Verification workflow
+
+1. Preserve existing work, inspect `git status`, and work directly on `main` for this founder-approved phase.
+2. Run `make check`, `make test`, and `make build`. `make lint` currently reports an unconfigured placeholder and is not a lint pass. `astro check` currently rejects installed TypeScript 7; do not silently claim Astro template checks passed.
 3. Inspect actual desktop and mobile screenshots and compare them against the pre-refactor screenshots.
 4. Confirm that all optimized images load successfully and that header/footer appearance is unchanged.
 
-**Review status:** This refactor was authored through the GitHub connector, which cannot run the local Astro build or browser checks; those remain required before merge.
+**Review status:** Current local builds and actual browser evidence are recorded in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md). Founder visual acceptance remains pending.

@@ -1,0 +1,6 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHeader from '../components/shared/PageHeader.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+---
+<Layout title="Your tickets · preview" headerTheme="light"><PageHeader eyebrow="Attendee experience · demo" title="Gatherings to look forward to."/><section class="px-4 pb-20 sm:px-8"><div class="mx-auto max-w-[1100px] rounded-[32px] bg-white p-8 ring-1 ring-sand"><h2 class="text-2xl font-semibold">No real tickets here yet.</h2><p class="mt-4 max-w-xl text-ink-soft">This preview is not connected to an account. No purchases, reservations or confirmations exist.</p><div class="mt-6 flex flex-wrap gap-3"><ButtonLink href="/events" arrow>Explore sample events</ButtonLink><ButtonLink href="/ticket" variant="secondary">View a sample ticket design</ButtonLink></div></div></section></Layout>

@@ -1,0 +1,21 @@
+---
+/** Section 4: music instructors — sample profiles with initials avatars. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
+import InstructorCard from '../shared/InstructorCard.astro';
+import { instructors } from '../../data/instructors';
+---
+<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24" data-reveal>
+  <div class="mx-auto max-w-[1320px]">
+    <div class="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-end">
+      <EditorialHeading eyebrow="Music instructors" title="Teachers who care" accent="how you grow." />
+      <div>
+        <p class="text-lg leading-relaxed text-ink-soft">Instructors are planned to go through an application, interview and background review before teaching students. Profiles below are fictional samples for design review.</p>
+        <DemoNotice class="mt-4" title="Sample profiles">These people are fictional. Initials are shown instead of photos.</DemoNotice>
+      </div>
+    </div>
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {instructors.map((t, i) => <InstructorCard instructor={t} class={i % 2 ? 'lg:translate-y-8' : ''} />)}
+    </div>
+  </div>
+</section>

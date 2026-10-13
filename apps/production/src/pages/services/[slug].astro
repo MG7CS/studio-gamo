@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageIntro from '../../components/production/PageIntro.astro';
+import AreaDetail from '../../components/production/AreaDetail.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import { supportAreas, type SupportArea } from '../../data/production';
+
+export const prerender = true;
+export function getStaticPaths() {
+  return supportAreas.map((area) => ({ params: { slug: area.slug }, props: { area } }));
+}
+const { area } = Astro.props as { area: SupportArea };
+---
+<Layout title={area.title} description={area.summary} headerTheme="light">
+  <PageIntro eyebrow="Technical support category" title={area.title} lede={area.summary} photo={area.photo} crumb={{ label: 'All support areas', href: '/services' }}>
+    <StatusPill kind="proposal" class="mt-6">Proposed support · not yet available</StatusPill>
+  </PageIntro>
+  <AreaDetail area={area} />
+</Layout>

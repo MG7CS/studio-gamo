@@ -1,0 +1,24 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import InstrumentCard from '../../components/shared/InstrumentCard.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { instruments, plannedInstruments } from '../../data/instruments';
+---
+<Layout title="Browse instruments" description="Explore the instruments taught at Gamo Academy: piano, guitar, bass, drums and vocals.">
+  <PageHero eyebrow="Browse instruments" title="Find the sound" accent="that moves you." lede="Each instrument page shows who it suits, what first lessons cover and sample lessons you can explore." photo="youngPianist" mask="mask-arch" crumbs={[{ label: 'Instruments', href: '/instruments' }]} />
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <div class="mx-auto grid max-w-[1320px] gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {instruments.map((i) => <InstrumentCard instrument={i} />)}
+    </div>
+    <div class="mx-auto mt-10 max-w-[1320px] rounded-[28px] bg-ivory p-8 ring-1 ring-sand">
+      <h2 class="section-subheading">More instruments are planned</h2>
+      <p class="mt-2 text-ink-soft">These may be added as instructors join. They are not yet offered.</p>
+      <ul class="mt-5 flex flex-wrap gap-2">{plannedInstruments.map((p) => <li class="rounded-full bg-white px-4 py-2 text-sm ring-1 ring-sand">{p}</li>)}</ul>
+    </div>
+  </section>
+  <CtaInvitation eyebrow="Still deciding?" title="Try a sample lesson path." body="Browse sample lessons by age, level and format to see how learning could look for you." photo="guitarMentor">
+    <ButtonLink href="/lessons" size="lg" arrow>Browse sample lessons</ButtonLink>
+  </CtaInvitation>
+</Layout>

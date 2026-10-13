@@ -1,0 +1,8 @@
+/** Names supported by the shared decorative line-icon component. */
+export type IconName =
+  | 'pin' | 'music' | 'church' | 'users' | 'check' | 'arrow' | 'arrow-left'
+  | 'play' | 'phone' | 'piano' | 'guitar' | 'drums' | 'mic' | 'verified'
+  | 'calendar' | 'ticket' | 'video' | 'light' | 'sliders' | 'school' | 'heart'
+  | 'hand' | 'mail' | 'clock' | 'shield' | 'plus' | 'minus' | 'chevron-down'
+  | 'chevron-left' | 'chevron-right' | 'x' | 'menu' | 'qr' | 'upload' | 'star'
+  | 'headphones' | 'building' | 'book' | 'repeat' | 'info' | 'speaker' | 'external';
