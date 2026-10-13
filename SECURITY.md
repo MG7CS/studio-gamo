@@ -16,8 +16,10 @@
 - Stripe Connect is not blanket escrow. Select a Stripe-supported charge and payout model after verification of legal entity, geographic availability, connected account obligations and current Stripe docs.
 - PCI scope minimization: use Stripe-hosted/payment element surfaces; never store PAN/CVV.
 - Verify and deduplicate Stripe webhooks; treat Stripe event states as authoritative, not browser success redirects.
-- Explicit ledgers for customer payments, refunds, commissions, standby retainers, performance payouts and disputes. Money in integer minor units, currency recorded; reconciliation required.
+- Explicit ledgers for customer payments, refunds, administrative allocations, contributions, sponsorships, standby retainers, musician/instructor payouts, organizer proceeds and disputes. Money in integer minor units, currency recorded; reconciliation required. Categories follow [docs/GAMO_NONPROFIT_MODEL.md §5.3](docs/GAMO_NONPROFIT_MODEL.md#53-money-categories-the-platform-must-distinguish).
+- Musician and instructor pay must never be silently reduced or netted against Gamo allocations; any deduction requires an approved policy, documented consent and legal review.
 - Never invoke production charges, send live invoices, start external payouts, or set up live connected accounts without explicit owner approval.
+- **Donation, sponsorship and membership payment processing is disabled** until nonprofit formation, tax-exempt recognition (or counsel-approved interim approach) and counsel-reviewed acknowledgment language exist.
 
 ## Operational reliability
 
@@ -38,6 +40,23 @@
 - Music/lyrics/chord charts may be licensed; avoid public rehosting; enforce access and takedown path.
 - Treat all public example reviews, gig availability, profiles, clients and event listings as demo unless sourced and approved.
 - Terms, privacy policy, waivers, refund policy and independent-contractor agreements are legal drafts until counsel review; no fake 'approved' status.
+
+## Nonprofit status and fundraising claims
+
+- Gamo Studios is a **proposed** nonprofit. Never state or imply 501(c)(3) recognition, IRS approval, tax-deductibility, state charitable registration, an EIN or any registration number until confirmed by the owner with evidence.
+- Never name churches, sponsors, foundations, donors or board members as committed unless a signed agreement or documented consent exists.
+- Do not describe mandatory fees or deductions as donations. Payments where the payer receives substantial goods or services are not presented as charitable gifts.
+- Do not assume program fees, ticketing fees, promotion or production services are exempt-purpose income; flag for accountant/tax review.
+- Executive compensation and related-party transactions require independent board approval and conflict-of-interest documentation; agents never implement compensation logic that bypasses this.
+
+## Events trust
+
+- Ticket sales only for organizers with recorded authorization; verified-organizer badges only after a staff verification decision.
+- Gamo Live accepts Christian events per the approved content policy; moderation decisions are audited.
+
+## Safeguarding
+
+- Academy and youth programs involving minors require an approved safeguarding policy, instructor screening, guardian consent, supervised/limited messaging and incident reporting before any real booking. Demo states must never display minors' data or imply screening has occurred.
 
 ## Engineering requirements
 

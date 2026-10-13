@@ -5,6 +5,8 @@ This document outlines the phased backend integration strategy to transition the
 
 **Objective:** Wire up the UI prototypes with Cloudflare D1 persistence, secure user sessions (Lucia v3), external service adapters (Stripe / Resend test mode), and inter-application communication, maintaining strict adherence to architectural boundaries and security constraints.
 
+**Organizational context:** these phases build infrastructure for a proposed Christian nonprofit ([GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md)). No fee, contribution amount or tier is hardcoded; all are configuration set by approved policy. Musician and instructor pay are always recorded separately from any Gamo allocation.
+
 ## Phase 1: Authentication & Shared Core Services
 1. **Database Schema Finalization (`packages/db`)**
    - Solidify Drizzle schema for `User`, `Role`, `Session`, `Gig`, `Application`, `Ticket`, `Class`, etc.
@@ -22,7 +24,7 @@ This document outlines the phased backend integration strategy to transition the
    - Implement the Identity capture sandbox component (simulate verification state).
 2. **Church Gig Wizard (`apps/worship/src/pages/hire`)**
    - Persist church posting configurations to D1.
-   - Implement the Stripe test checkout session for reserving gig requests.
+   - Implement the Stripe test checkout session for reserving gig requests, with musician agreed pay and any Gamo administrative allocation as separate line items (placeholder amounts until approved).
 3. **Admin Queue & Dispatch (`apps/worship/src/pages/admin`)**
    - Populate the admin radar with real D1 `Application` and `Gig` entries.
    - Implement approval/rejection mutations and assign confirmed musicians.
@@ -51,13 +53,18 @@ This document outlines the phased backend integration strategy to transition the
    - Organizer event submission persisted to D1; admin moderation states (draft, submitted, approved, rejected, published).
    - Free-event registration records and attendee "my tickets".
 
-## Phase 4b: Promotion, Placements & Church Partners (separately approved, after Phase 4)
-Ordered per ROADMAP planning categories 5–7. See `docs/GAMO_LIVE_AND_PARTNERS.md`.
-1. **Managed campaign intake** — organizer selects promotion services (audience, location, duration, budget); admin campaign queue and status; manual reporting entry. No ad-platform APIs.
-2. **Placements** — admin scheduler for homepage/featured slots with `sponsored | editorial | gamo_service` kinds, date windows and region; homepage reads placements instead of static slides.
-3. **Ledger separation** — `media_spend`, `service_fee`, `ticket_proceeds` categories with tests proving they never mix.
-4. **Church Partners** — membership records, credits and fee-discount application (only after pricing approval); tests proving discounts never reduce musician pay and never touch vetting/ranking data.
-5. **Later** — personalization, geo relevance, automated campaigns and analytics integrations, each with explicit approval.
+## Phase 4b: Promotion, Placements, Church Partnerships & Stewardship (separately approved, after Phase 4)
+Ordered per ROADMAP priorities 7–8. See `docs/GAMO_NONPROFIT_MODEL.md` and `docs/GAMO_LIVE_AND_PARTNERS.md`.
+1. **Organizer verification** — verification states and recorded ticketing authorization; unverified organizers cannot sell tickets.
+2. **Optional promotion requests** — staff-managed intake and status; manual reporting entry. No ad-platform APIs.
+3. **Placements** — admin scheduler for homepage/featured slots with `sponsored | editorial | gamo_program` kinds, date windows and region; homepage reads placements instead of static content (carousel only if approved).
+4. **Nonprofit ledger** — `charitable_contribution`, `sponsorship`, `program_service_receipt`, `third_party_payable`, `processing_cost`, refund/dispute categories with `program` and `fund_id`; tests proving categories never mix and that musician/instructor pay is never netted against Gamo allocations.
+5. **Church partnerships** — participation records (hosting, sponsorship, events, resources) without tiers or prices until approved; tests proving partnership status never touches vetting/ranking data.
+6. **Board reporting** — program-level and restricted/unrestricted fund reports from demo data.
+7. **Later** — personalization, geo relevance and analytics integrations, each with explicit approval.
+
+## Phase 4c: Donations, Sponsorships & Grants Infrastructure (blocked)
+Blocked until nonprofit formation, tax-exempt recognition (or counsel-approved interim approach), acknowledgment language, gift acceptance and restricted-fund policies exist (`docs/NONPROFIT_TRANSITION_CHECKLIST.md`). Until then: interest/contact forms only, no payment capture, no tax-deductibility language.
 
 ## Phase 5: Production & Operations
 1. **Production Inquiries (`apps/production`)**

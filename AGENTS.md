@@ -2,17 +2,34 @@
 
 You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Treat this file as persistent project instructions. Follow `SECURITY.md` before every external integration.
 
+## Organizational mission (permanent — read first)
+
+**We are building a Christian nonprofit organization and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are interconnected programs serving one religious and educational mission, not independent profit centers. The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
+
+- Evaluate success by religious and educational impact, program accessibility, service reliability, musician and instructor fairness, community trust, church collaboration, responsible stewardship, financial sustainability and long-term mission effectiveness.
+- **Do not**, without explicit founder/board authorization: introduce commercialization strategies, maximize or add fees, turn free/sponsored programs into paid services, deduct from musician or instructor pay, or let payment/sponsorship/partnership affect vetting, rankings or trust signals.
+- Describe Gamo Studios only as a **proposed/developing** nonprofit. Never claim 501(c)(3) status, IRS approval, tax-deductible contributions, registration numbers, committed board members, sponsors, donors or partner churches.
+- Gamo Live serves **Christian events nationwide**; never define eligibility by ethnicity or nationality.
+- Gamo Academy speaks first to students, parents and families. The approved headline is **"Learn to Play the Instrument You Love."**
+- Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
+- Do not enable donation, membership or sponsorship payment processing until the legal prerequisites in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) are met.
+- Avoid corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value") when describing the mission.
+
+Financial sustainability is important, but it is subordinate to the mission.
+
 ## Required reading order
 
-1. `README.md` — product and scope
-2. `ARCHITECTURE.md` — technical boundaries
-3. `DESIGN.md` — design system
-4. `SECURITY.md` — mandatory gates
-5. `ROADMAP.md` — milestone definitions
-6. `prompts/ANTIGRAVITY_MASTER_PROMPT.md` — kickoff intent
-7. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
-8. `design-reference/README.md` — reference materials.
-9. `docs/GAMO_LIVE_AND_PARTNERS.md` — Gamo Live two-sided model, Church Partners membership, dynamic homepage rules. Sponsored content must always be labeled, advertising must never affect musician vetting/rankings, and all prices/fees are proposals until approved.
+1. `docs/GAMO_NONPROFIT_MODEL.md` — **organizational source of truth** (purpose, programs, governance, sustainability, approval matrix)
+2. `README.md` — product and scope
+3. `ARCHITECTURE.md` — technical boundaries
+4. `DESIGN.md` — design system
+5. `SECURITY.md` — mandatory gates
+6. `ROADMAP.md` — mission-aligned milestone definitions
+7. `prompts/MASTER-PROMPT.md` — founder's nonprofit transformation instructions (2026-10-12)
+8. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
+9. `design-reference/README.md` — reference materials.
+10. `docs/GAMO_LIVE_AND_PARTNERS.md` — Gamo Live (Promote Event / Explore Events), church partnerships, dynamic homepage rules. Sponsored content must always be labeled, partnership or payment must never affect musician vetting/rankings, and all fees/contributions are proposals until approved.
+11. `docs/NONPROFIT_TRANSITION_CHECKLIST.md` — legal formation and governance dependencies (owner-only actions).
 
 ## Autonomy model & Active Priorities
 
@@ -73,7 +90,7 @@ This repository contains customized Antigravity agents configured to operate aut
 - **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Live, Production, and Admin domains using plausible demo states (no live backends during the design phase).
 - **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
 
-These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts.
+These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts. All three must apply the organizational mission rules above and the copy rules in `docs/GAMO_NONPROFIT_MODEL.md` §6–§7 to every screen they plan, build or review.
 
 ## Tool Usage
 - **MANDATORY**: For all Gamo Studios workspace agents, strictly prefer native Antigravity workspace file-reading and editing tools (e.g., `view_file`, `write_to_file`, `replace_file_content`) over external Filesystem MCP tools whenever equivalent native tools are available. Do not attempt to bypass workspace permissions.

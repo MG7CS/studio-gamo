@@ -1,5 +1,7 @@
 # Gamo Studios: Web Homepage Design Review
 
+> **Historical record (superseded).** This early review describes a pre-photography, pre-nonprofit version of the homepage (e.g. "Hire a Musician", verified badges on demo cards). Current composition rules: [HOMEPAGE_VISUAL_REVIEW.md](HOMEPAGE_VISUAL_REVIEW.md); current copy rules: [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md). Do not use this file as guidance.
+
 ## Scope
 Implementation of the global homepage (`apps/web/src/pages/index.astro`) according to the scoped constraints: design first, strict adherence to `design-reference`, and no functional integrations.
 

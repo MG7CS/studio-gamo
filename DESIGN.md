@@ -4,7 +4,7 @@
 
 Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, sculptural geometric layouts, and refined, layered application interfaces.
 
-The goal is to create the visual character of a sophisticated music brand while communicating the reliability and usability of a professional musician marketplace.
+The goal is to create the visual character of a sophisticated music brand while communicating the warmth, trustworthiness and reliability of a Christian nonprofit serving churches, musicians, students and families. The visual system is preserved through the nonprofit transition; only messaging changes (see [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)).
 
 ## Core Principles
 
@@ -34,7 +34,7 @@ The goal is to create the visual character of a sophisticated music brand while 
 
 ## Photography
 
-Use premium, believable photographs of professional musicians, predominantly African and African-diaspora church communities, worship services, music education, and concerts.
+Use premium, believable photographs of professional musicians, worship services, music education and Christian concerts. Our existing imagery centers African and African-diaspora church communities, which remain welcome and important; broaden the photography over time so it reflects the diverse Christian communities Gamo serves. Imagery must never imply that program or event eligibility depends on ethnicity or nationality.
 
 Favor natural expressions, realistic instruments, warm stage lighting, authentic environments, cinematic depth, and intentional editorial framing.
 
@@ -74,16 +74,20 @@ Review the rendered page against the approved reference for geometry, photograph
 
 ## Approved homepage narrative
 
-1. **Hero — Keep Worship Going (dynamic spotlight):** strong photo-led B2B/B2C split, two core paths, no invented stats. The first hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon, and supporting paragraph. Those latest changes take precedence over older mockups. "Keep Worship Going" stays as the permanent brand message; the hero will evolve into a rotating, editorially curated spotlight (featured events, church campaigns, lessons, musicians, Gamo services) **within the approved composition**. Rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion. Each slide is labeled *Sponsored*, *Featured* or *Gamo Service* (and *Example* during design).
-2. **Meet the Musicians (The Gamo Collection):** editorial artist gallery and demo audition cards; verified status only for actually verified members (sample names explicitly labeled). Never visually boost musicians based on advertising.
-3. **Your Sunday, Covered / How It Works:** pill selector switching between *For Churches* and *Join the Collection* journeys; primary/standby workflow; no absolute attendance guarantee.
-4. **Gamo Academy:** "Learn To Play The Instrument You Love"; instructor-and-student photos, private lessons and church-hosted clinics.
-5. **Gamo Live:** "Promote Your Events. Bring People Together." Pill selector: *Promote Events* (organizers — advertising + ticketing, CTA "Promote an Event") and *Explore Events* (attendees, CTA "Explore Events"). Cinematic concert presentation and *demo* event previews until events are real.
-6. **Final CTA:** audience-specific calls to action; testimonials only once consented real statements exist. A Church Partners entry point may be added once the membership model is approved.
-7. **Footer:** paths to each vertical, account access, contact, legal pages, social links once verified.
+The homepage introduces Gamo Studios as a **unified Christian music and community organization** and shows how its four programs work together. It must not read as a service that only supplies musicians to churches. Copy rules: [docs/GAMO_NONPROFIT_MODEL.md §6](docs/GAMO_NONPROFIT_MODEL.md#6-public-website-and-messaging).
+
+1. **Hero — Keep Worship Going:** strong photo-led composition, two core paths, no invented stats. The hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon; those changes take precedence over older mockups. Supporting copy now introduces the mission across programs. "Keep Worship Going" stays as the permanent brand message. A future dynamic spotlight (mission, sponsored programs, concerts, events, Academy, worship opportunities, church partnerships, nonprofit initiatives) may rotate **within the approved composition** — **not implemented without explicit approval**. If approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
+2. **Meet the Musicians (The Gamo Collection):** musicians presented as skilled people who serve — preparation, trust, contribution and fair pay — never as inventory. Verified status only for actually verified members (sample names explicitly labeled). Never visually boost musicians based on payment, sponsorship or partnership.
+3. **How It Works:** pill selector switching between *For Churches* and *Join the Collection*; framed as a community-supporting coordination process; primary/standby workflow; no absolute attendance guarantee.
+4. **Gamo Academy:** headline exactly **"Learn to Play the Instrument You Love."** Speaks first to students, parents and families; church-hosted and sponsored classes as a secondary pathway.
+5. **Gamo Live:** a trusted home for **Christian events** (no ethnic exclusivity). Pill selector: *Promote Event* (churches, ministries, artists, organizers; CTA "Promote an Event") and *Explore Events* (attendees; CTA "Explore Events"). Highlights free gatherings, concerts, recurring religious activities. *Sample* event previews until events are real.
+6. **Final CTA:** "Get involved" invitation to churches, musicians, students, families and supporters; testimonials only once consented real statements exist.
+7. **Footer:** Our Mission · Gamo Worship · Gamo Academy · Gamo Live · Gamo Production · Church Partnerships · Opportunities to Support · contact and legal, with the approved legal-status statement. Social links once verified.
+
+**Planned sections requiring design approval (not built):** a *Church Partnerships* homepage section and a *Support Our Mission* section. Propose compositions through the design-lead before implementation; see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md).
 
 ### Sponsored content rules
 - Sponsored placements use a visible, consistent "Sponsored" label (not color alone) and must remain visually distinct from editorial picks.
-- Sponsored density is capped so the homepage still reads as an art-directed showcase, not an ad wall.
+- Sponsored density is capped so the homepage still reads as an art-directed mission showcase, not an ad wall.
 - Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
 

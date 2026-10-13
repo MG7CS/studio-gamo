@@ -1,46 +1,51 @@
 # Gamo Studios
 
-**A trusted music, worship staffing, education, live events, and production platform.**
+**A proposed Christian nonprofit strengthening worship and community through musical talent, music education, Christian events and shared technical resources.**
 
-> Product name: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudios.com` · Initial service area: Phoenix metropolitan area, Arizona.
+> Organization: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudios.com` · Initial service area: Phoenix metropolitan area, Arizona (Gamo Live events: nationwide Christian events).
 
-## Mission
+> [!IMPORTANT]
+> Gamo Studios is a **developing** nonprofit. It is not yet incorporated as a nonprofit corporation and has not received 501(c)(3) recognition; contributions are not tax-deductible. The authoritative organizational reference is **[docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)**. Formation work is tracked in [docs/NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md).
 
-Make worship staffing dependable. Help churches find qualified musicians, give musicians reliable opportunities, expand access to music education, enable Christian live events, and support audio/visual production.
+## Mission (proposed working statement)
 
-**Differentiator:** a vetted local musician roster with paid standby understudies and a practical dispatch workflow. This is not a generic gig board or a chatbot.
+**Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, expanding access to music education, and helping people discover and participate in Christian events.**
 
-**Ecosystem showcase:** the global homepage is a continuously refreshed, editorially curated showcase of events, lessons, musicians and Gamo services. "Keep Worship Going" remains the permanent brand message. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
+Our purpose is religious and educational service, not maximizing financial returns. We are building a Christian nonprofit and its supporting software infrastructure — not a commercial startup.
 
-## Applications
+**Distinctive strength:** a vetted local musician network with paid standby musicians and a practical coordination workflow, so churches can keep worship going. This is not a generic gig board or a chatbot.
 
-| Host | Purpose | Initial priority |
+**Homepage:** a continuously refreshed window into the mission — worship coverage, music education, Christian events, production support and church partnerships. "Keep Worship Going" remains the permanent brand message. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
+
+## Programs and applications
+
+The applications are **connected programs of one nonprofit mission**, not independent profit centers.
+
+| Host | Program purpose | Initial priority |
 | --- | --- | --- |
-| `gamostudios.com` | Global brand, dynamic ecosystem showcase, Church Partners discovery, account access, legal pages, routing | P0 |
-| `worship.gamostudios.com` | Applications, church hiring, gigs, musician standby, dispatch | P0 |
-| `admin.gamostudios.com` | Private staff vetting, decisions, bookings, live incidents, event moderation, campaigns, placements, memberships | P0 |
-| `academy.gamostudios.com` | Instructors, lessons, church-hosted clinics | P1 |
-| `live.gamostudios.com` | Two-sided events platform: organizers promote events (managed advertising) and sell tickets/registrations; attendees discover and attend | P2 |
-| `production.gamostudios.com` | A/V services, portfolio, consultation, optional promotional creative & event marketing | P2 |
+| `gamostudios.com` | Organization hub: mission, programs, church partnerships, support pathways, account access, legal pages | P0 |
+| `worship.gamostudios.com` | **Gamo Worship** — musician applications and auditions, church requests, recurring and Sunday coverage, standby, coordination | P0 |
+| `admin.gamostudios.com` | Governance and staff operations: vetting, scheduling, event moderation, program administration, financial accountability, reporting | P0 |
+| `academy.gamostudios.com` | **Gamo Academy** — instrument lessons for children, teens, adults and families; church-hosted and sponsored classes | P1 |
+| `live.gamostudios.com` | **Gamo Live** — Christian events nationwide: *Promote Event* (organizers) and *Explore Events* (attendees); free registration and authorized ticketing | P2 |
+| `production.gamostudios.com` | **Gamo Production** — worship audio, livestreaming, lighting, technical training and event creative for churches and ministries | P2 |
 
 These are product domains, not a requirement to deploy six separate Workers immediately. All share the same visual identity and governed identity/access model.
 
-## Business model (proposed — no prices finalized)
+## Sustainability (proposed — no fees, contributions or prices approved)
 
-- **Worship / Academy / Production:** service and platform fees.
-- **Event promotion (Gamo Live):** managed campaign fees, advertising packages, optional creative; media budgets kept separate from Gamo fees.
-- **Ticketing (Gamo Live):** transparent platform fees on paid tickets via Stripe Connect; free listings/registrations under defined policy.
-- **Gamo Church Partners:** recurring church membership with advertising credits, featured placements and preferential pricing across Gamo services. Sponsored content is always labeled; advertising never affects musician vetting or rankings; booking discounts come from Gamo fees, never musician pay.
+Gamo aims for **financial sustainability in service of the mission**. Potential sources include donations, church contributions, supporting memberships, program sponsorships, grants, in-kind gifts, Academy cost-sharing, modest administrative allocations on facilitated musician engagements, ticketing/registration administration fees and production cost recovery. Musicians' agreed pay is always kept separate from any Gamo allocation, and partnership or payment never influences vetting or rankings. Full detail: [docs/GAMO_NONPROFIT_MODEL.md §5](docs/GAMO_NONPROFIT_MODEL.md#5-organizational-sustainability).
 
 ## Audiences
 
-1. Churches and worship directors looking for planned and emergency staffing.
-2. Auditioned musicians seeking primary or paid standby opportunities.
-3. Students, families, and partner church facilities seeking music education.
-4. Event organizers (churches, gospel artists, choirs, promoters) seeking promotion and ticketing.
-5. Event attendees discovering concerts, worship nights and community events.
-6. Churches seeking A/V and production services, and churches joining Gamo Church Partners.
-7. Authorized internal staff.
+1. Churches and ministries seeking dependable worship musicians, including emergency coverage.
+2. Musicians seeking to serve, grow and be fairly paid as lead or standby musicians.
+3. Students, parents and families seeking instrument lessons (primary Academy audience).
+4. Christian artists and event organizers sharing events with the community.
+5. Individuals and families discovering Christian events.
+6. Churches seeking technical support, and churches interested in partnering to support shared programs.
+7. Donors, sponsors, foundations and community partners (support pathways planned; no donation processing yet).
+8. Authorized internal staff and the governing board.
 
 ## Experience principles
 
@@ -65,12 +70,13 @@ These are product domains, not a requirement to deploy six separate Workers imme
 
 Read in this order:
 
-1. [AGENTS.md](AGENTS.md) — mandatory agent operating instructions.
-2. [ARCHITECTURE.md](ARCHITECTURE.md) — app boundaries, data, services, integrations.
-3. [DESIGN.md](DESIGN.md) — visual direction, components, responsive rules.
-4. [SECURITY.md](SECURITY.md) — trust, privacy, compliance and hard gates.
-5. [ROADMAP.md](ROADMAP.md) — milestones, evidence and acceptance criteria.
-6. [prompts/ANTIGRAVITY_MASTER_PROMPT.md](prompts/ANTIGRAVITY_MASTER_PROMPT.md) — execution kickoff.
+1. [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md) — **organizational purpose, programs, governance, sustainability (authoritative)**.
+2. [AGENTS.md](AGENTS.md) — mandatory agent operating instructions.
+3. [ARCHITECTURE.md](ARCHITECTURE.md) — app boundaries, data, services, integrations.
+4. [DESIGN.md](DESIGN.md) — visual direction, components, responsive rules.
+5. [SECURITY.md](SECURITY.md) — trust, privacy, compliance and hard gates.
+6. [ROADMAP.md](ROADMAP.md) — mission-aligned milestones, evidence and acceptance criteria.
+7. [prompts/MASTER-PROMPT.md](prompts/MASTER-PROMPT.md) — founder's nonprofit transformation instructions (2026-10-12).
 
 ## Getting started
 
@@ -87,7 +93,9 @@ Local configuration goes in `.dev.vars` or other current Wrangler-compatible loc
 
 ## Non-goals for the first production milestone
 
-- A nationwide, fully launched ticketing and academy marketplace.
+- A nationwide, fully launched ticketing and Academy platform.
+- Donation, sponsorship or membership payment processing before nonprofit formation, recognition and counsel-reviewed acknowledgments.
+- Any public claim of 501(c)(3) status or tax-deductibility before it is confirmed.
 - Live background-check vendor integration without a contract and review.
 - Unconditional 100% staffing coverage guarantees.
 - Real payment capture or payouts without approved Stripe configuration and legal review.
@@ -95,4 +103,4 @@ Local configuration goes in `.dev.vars` or other current Wrangler-compatible loc
 
 ## Ownership of decisions
 
-Product requirements in this repository are approved direction; any feature marked *proposed*, especially rates, guarantees, compliance paths or provider choices, must not silently become a public contractual claim. If blocked by an external service, implement a safe demonstrable local adapter, record the blocker and continue elsewhere.
+Product requirements in this repository are approved direction; any feature marked *proposed*, especially fees, contributions, guarantees, compliance paths or provider choices, must not silently become a public contractual claim. Decisions requiring board, legal, tax or founder approval are listed in [docs/GAMO_NONPROFIT_MODEL.md §8](docs/GAMO_NONPROFIT_MODEL.md#8-decisions-requiring-approval). If blocked by an external service, implement a safe demonstrable local adapter, record the blocker and continue elsewhere.
