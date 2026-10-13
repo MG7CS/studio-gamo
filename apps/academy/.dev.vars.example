@@ -1,0 +1,13 @@
+# Gamo Academy (apps/academy) Local Worker Variables & Secrets Example
+# Copy to .dev.vars for local testing. NEVER commit real credentials.
+
+ENVIRONMENT=local
+PUBLIC_ROOT_DOMAIN=gamostudio.org
+
+# Resend Email Integration (Cloudflare Worker Secret)
+# RESEND_API_KEY=re_test_xxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=Gamo Academy <academy@gamostudio.org>
+
+# Demo Mode Workspace Controls
+ALLOW_PUBLIC_DEMO_WORKSPACES=true
+# DEMO_ACCESS_KEY=gamo_preview_secret_token

@@ -1,8 +1,33 @@
-name = "gamo-web"
-compatibility_date = "2024-04-05"
+name = "gamo-admin"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
-[[d1_databases]]
-binding = "DB"
-database_name = "gamo_local_db"
-database_id = "00000000-0000-0000-0000-000000000000"
-migrations_dir = "../../packages/db/migrations"
+# Admin is strictly protected and never published openly on workers.dev
+workers_dev = false
+
+# Production environment for admin.gamostudio.org (Cloudflare Access / Zero Trust)
+[env.production]
+name = "gamo-admin"
+routes = [
+  { pattern = "admin.gamostudio.org/*", zone_name = "gamostudio.org" }
+]
+workers_dev = false
+[env.production.vars]
+ENVIRONMENT = "production"
+REQUIRE_ADMIN_AUTH = "true"
+PUBLIC_ROOT_DOMAIN = "gamostudio.org"
+PUBLIC_SITE_URL_WEB = "https://gamostudio.org"
+PUBLIC_SITE_URL_WORSHIP = "https://worship.gamostudio.org"
+PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
+PUBLIC_SITE_URL_LIVE = "https://live.gamostudio.org"
+PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
+PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
+
+# Preview environment for protected staging
+[env.preview]
+name = "gamo-admin-preview"
+workers_dev = false
+[env.preview.vars]
+ENVIRONMENT = "preview"
+REQUIRE_ADMIN_AUTH = "true"
+PUBLIC_ROOT_DOMAIN = "gamostudio.org"

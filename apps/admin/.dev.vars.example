@@ -1,0 +1,16 @@
+# Gamo Admin (apps/admin) Local Worker Variables & Secrets Example
+# Copy to .dev.vars for local testing. NEVER commit real credentials.
+
+ENVIRONMENT=local
+PUBLIC_ROOT_DOMAIN=gamostudio.org
+REQUIRE_ADMIN_AUTH=false
+
+# Admin Protection Secrets (Worker Secrets)
+# For local testing, configure an access token or basic auth credentials:
+# ADMIN_ACCESS_TOKEN=local_staff_secret_token
+# ADMIN_BASIC_AUTH_USER=admin
+# ADMIN_BASIC_AUTH_PASS=local_development_password
+
+# Cloudflare Zero Trust / Access (Used in production)
+# CF_ACCESS_TEAM_NAME=gamostudios
+# CF_ACCESS_AUD=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

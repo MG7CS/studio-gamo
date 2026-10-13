@@ -2,7 +2,7 @@
 
 **A proposed Christian nonprofit strengthening worship and community through musical talent, music education, Christian events and shared technical resources.**
 
-> Organization: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudios.com` · Initial service area: Phoenix metropolitan area, Arizona (Gamo Live events: nationwide Christian events).
+> Organization: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudio.org` · Initial service area: Phoenix metropolitan area, Arizona (Gamo Live events: nationwide Christian events).
 
 > [!IMPORTANT]
 > Gamo Studios is a **developing** nonprofit. It is not yet incorporated as a nonprofit corporation and has not received 501(c)(3) recognition; contributions are not tax-deductible. The authoritative organizational reference is **[docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)**. Formation work is tracked in [docs/NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md).
@@ -23,14 +23,14 @@ The applications are **connected programs of one nonprofit mission**, not indepe
 
 | Host | Program purpose | Initial priority |
 | --- | --- | --- |
-| `gamostudios.com` | Organization hub: mission, programs, church partnerships, support pathways, account access, legal pages | P0 |
-| `worship.gamostudios.com` | **Gamo Worship** — musician applications and auditions, church requests, recurring and Sunday coverage, standby, coordination | P0 |
-| `admin.gamostudios.com` | Governance and staff operations: vetting, scheduling, event moderation, program administration, financial accountability, reporting | P0 |
-| `academy.gamostudios.com` | **Gamo Academy** — instrument lessons for children, teens, adults and families; church-hosted and sponsored classes | P1 |
-| `live.gamostudios.com` | **Gamo Live** — Christian events nationwide: *Promote Event* (organizers) and *Explore Events* (attendees); free registration and authorized ticketing | P2 |
-| `production.gamostudios.com` | **Gamo Production** — worship audio, livestreaming, lighting, technical training and event creative for churches and ministries | P2 |
+| `gamostudio.org` | Organization hub: mission, programs, church partnerships, support pathways, account access, legal pages | P0 |
+| `worship.gamostudio.org` | **Gamo Worship** — musician applications and auditions, church requests, recurring and Sunday coverage, standby, coordination | P0 |
+| `admin.gamostudio.org` | Governance and staff operations: vetting, scheduling, event moderation, program administration, financial accountability, reporting | P0 |
+| `academy.gamostudio.org` | **Gamo Academy** — instrument lessons for children, teens, adults and families; church-hosted and sponsored classes | P1 |
+| `live.gamostudio.org` | **Gamo Live** — Christian events nationwide: *Promote Event* (organizers) and *Explore Events* (attendees); free registration and authorized ticketing | P2 |
+| `production.gamostudio.org` | **Gamo Production** — worship audio, livestreaming, lighting, technical training and event creative for churches and ministries | P2 |
 
-These are product domains, not a requirement to deploy six separate Workers immediately. All share the same visual identity and governed identity/access model.
+These are product domains deployed as six Cloudflare Workers under `gamostudio.org`. All share the same visual identity and governed identity/access model.
 
 ## Sustainability (proposed — no fees, contributions or prices approved)
 

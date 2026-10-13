@@ -1,0 +1,27 @@
+name = "gamo-academy"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Production environment for academy.gamostudio.org
+[env.production]
+name = "gamo-academy"
+routes = [
+  { pattern = "academy.gamostudio.org/*", zone_name = "gamostudio.org" }
+]
+[env.production.vars]
+ENVIRONMENT = "production"
+PUBLIC_ROOT_DOMAIN = "gamostudio.org"
+PUBLIC_SITE_URL_WEB = "https://gamostudio.org"
+PUBLIC_SITE_URL_WORSHIP = "https://worship.gamostudio.org"
+PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
+PUBLIC_SITE_URL_LIVE = "https://live.gamostudio.org"
+PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
+PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
+
+# Preview environment for workers.dev
+[env.preview]
+name = "gamo-academy-preview"
+workers_dev = true
+[env.preview.vars]
+ENVIRONMENT = "preview"
+PUBLIC_ROOT_DOMAIN = "gamostudio.workers.dev"
