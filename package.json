@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm --filter web dev & pnpm --filter worship dev",
+    "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm --filter \"./apps/**\" exec tsc --noEmit",
     "lint": "echo \"Linting not set up yet\"",

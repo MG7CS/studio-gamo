@@ -1,44 +1,111 @@
 ---
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 
-const steps = [
+interface Step { number: string; title: string; description: string }
+interface Audience {
+  id: 'churches' | 'musicians';
+  label: string;
+  heading: string;
+  accent: string;
+  steps: Step[];
+}
+
+const audiences: Audience[] = [
   {
-    number: '01', symbol: 'church' as const, title: 'Post Your Need',
-    description: 'Tell us the date, instruments, and worship schedule.',
+    id: 'churches',
+    label: 'For Churches',
+    heading: 'From booking to backup,',
+    accent: 'built for peace of mind.',
+    steps: [
+      { number: '01', title: 'Post Your Need', description: 'Tell us the date, instruments, and worship schedule.' },
+      { number: '02', title: 'Get Matched', description: 'Discover musicians for your style and location.' },
+      { number: '03', title: 'Primary & Standby', description: 'See the lead musician and the available backup.' },
+      { number: '04', title: 'Worship Continues', description: 'Keep the focus on music and your congregation.' },
+    ],
   },
   {
-    number: '02', symbol: 'users' as const, title: 'Get Matched',
-    description: 'Discover musicians for your style and location.',
-  },
-  {
-    number: '03', symbol: 'phone' as const, title: 'Primary & Standby',
-    description: 'See the lead musician and the available backup.',
-  },
-  {
-    number: '04', symbol: 'music' as const, title: 'Worship Continues',
-    description: 'Keep the focus on music and your congregation.',
+    id: 'musicians',
+    label: 'Join the Collection',
+    heading: 'From audition to Sunday,',
+    accent: 'join the Gamo Collection.',
+    steps: [
+      { number: '01', title: 'Apply', description: 'Share your instruments, experience, and availability.' },
+      { number: '02', title: 'Audition & Verify', description: 'Submit a short audition and complete our vetting.' },
+      { number: '03', title: 'Get Requests', description: 'Receive primary and paid standby requests nearby.' },
+      { number: '04', title: 'Serve & Get Paid', description: 'Lead worship with confidence and get paid reliably.' },
+    ],
   },
 ];
 ---
-<section id="coverage" aria-labelledby="how-it-works-title" class="relative overflow-hidden bg-[#1D2323]">
+<section id="coverage" aria-labelledby="how-it-works-title" class="relative overflow-hidden bg-[#1D2323]" data-how-it-works>
   <!-- Process strip continues on the dark band so Coverage reads as one section. -->
   <div class="relative mx-auto grid max-w-[1536px] gap-10 px-6 pt-20 pb-16 text-white sm:px-12 lg:pt-24 lg:pb-24 lg:grid-cols-[330px_minmax(0,1fr)] lg:gap-8 lg:px-[4.5%]">
     <div class="lg:pt-4">
       <SectionEyebrow label="How It Works" theme="dark" />
-      <h3 id="how-it-works-title" class="mt-7 max-w-[360px] section-subheading text-white">
-        From booking to backup, <span class="text-[#D4865B]">built for peace of mind.</span>
-      </h3>
-    </div>
-    <div class="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 pt-5 pb-3 sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0 [&>*]:w-[78%] [&>*]:shrink-0 [&>*]:snap-start sm:[&>*]:w-auto sm:grid-cols-2 lg:grid-cols-4">
-      {steps.map((step) => (
-        <article data-reveal class="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.04] p-5 hover:-translate-y-1 lg:p-6">
-          <span class="text-4xl font-bold tracking-tight text-[#D7AD86]">{step.number}</span>
-          <div class="mt-6">
-            <h4 class="mb-2 text-lg font-bold text-white">{step.title}</h4>
-            <p class="text-sm leading-relaxed text-[#F4EDE3]/70">{step.description}</p>
-          </div>
-        </article>
+      <div role="tablist" aria-label="Choose who this is for" class="mt-6 inline-flex rounded-full border border-white/15 bg-white/[.04] p-1">
+        {audiences.map((a, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`hiw-tab-${a.id}`}
+            aria-controls={`hiw-panel-${a.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            data-hiw-tab={a.id}
+            class="rounded-full px-4 py-2 text-sm font-semibold text-[#F4EDE3]/70 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D7AD86] aria-selected:bg-[#B65B35] aria-selected:text-white"
+          >{a.label}</button>
+        ))}
+      </div>
+      {audiences.map((a, i) => (
+        <h3 id={i === 0 ? 'how-it-works-title' : undefined} data-hiw-heading={a.id} hidden={i !== 0} class="mt-7 max-w-[360px] section-subheading text-white">
+          {a.heading} <span class="text-[#D4865B]">{a.accent}</span>
+        </h3>
       ))}
     </div>
+    {audiences.map((a, i) => (
+      <div
+        role="tabpanel"
+        id={`hiw-panel-${a.id}`}
+        aria-labelledby={`hiw-tab-${a.id}`}
+        data-hiw-panel={a.id}
+        hidden={i !== 0}
+        class="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto px-6 pt-5 pb-3 sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0 [&>*]:w-[78%] [&>*]:shrink-0 [&>*]:snap-start sm:[&>*]:w-auto sm:grid-cols-2 lg:grid-cols-4 [&[hidden]]:hidden"
+      >
+        {a.steps.map((step) => (
+          <article class="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[.04] p-5 transition-transform hover:-translate-y-1 lg:p-6">
+            <span class="text-4xl font-bold tracking-tight text-[#D7AD86]">{step.number}</span>
+            <div class="mt-6">
+              <h4 class="mb-2 text-lg font-bold text-white">{step.title}</h4>
+              <p class="text-sm leading-relaxed text-[#F4EDE3]/70">{step.description}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    ))}
   </div>
 </section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-how-it-works]').forEach((root) => {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-hiw-tab]'));
+    const select = (id: string, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.hiwTab === id;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      root.querySelectorAll<HTMLElement>('[data-hiw-panel]').forEach((p) => (p.hidden = p.dataset.hiwPanel !== id));
+      root.querySelectorAll<HTMLElement>('[data-hiw-heading]').forEach((h) => (h.hidden = h.dataset.hiwHeading !== id));
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab.dataset.hiwTab!));
+      tab.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        select(next.dataset.hiwTab!, true);
+      });
+    });
+  });
+</script>

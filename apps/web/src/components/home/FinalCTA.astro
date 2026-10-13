@@ -3,18 +3,18 @@ import Icon from '../editorial/Icon.astro';
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 ---
-<section id="join" aria-labelledby="join-title" class="relative isolate overflow-hidden bg-[#A84F2F] text-[#FFF9F2]">
+<section id="join" aria-labelledby="join-title" class="relative isolate flex min-h-[100svh] flex-col justify-center overflow-hidden bg-[#A84F2F] pt-8 text-[#FFF9F2] sm:block sm:min-h-0 sm:pt-0">
   <!-- Image and warm color block share a continuous sculpted boundary. -->
-  <div class="absolute inset-y-0 right-0 w-full sm:w-[65%] lg:w-[64%]">
+  <div class="relative mx-5 h-[32svh] min-h-[160px] [@media(max-height:720px)]:h-[25svh] overflow-hidden rounded-[28px] sm:absolute sm:inset-y-0 sm:right-0 sm:mx-0 sm:h-auto sm:min-h-0 sm:w-[65%] sm:rounded-none lg:w-[64%]">
     <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="(min-width: 1024px) 65vw, 100vw" alt="Musicians of all ages rehearsing together in a church" class="h-full w-full object-cover object-[60%_center] sepia-[.25] saturate-[1.1]" />
-    <div class="absolute inset-0 bg-gradient-to-r from-[#A84F2F]/90 via-transparent to-black/15"></div>
+    <div class="absolute inset-0 hidden sm:block bg-gradient-to-r from-[#A84F2F]/90 via-transparent to-black/15"></div>
   </div>
-  <div class="cta-cut absolute inset-y-0 left-0 w-full bg-[#A84F2F]/85 sm:w-[70%] sm:bg-[#A84F2F] lg:w-[52%]" aria-hidden="true"></div>
+  <div class="cta-cut absolute inset-y-0 left-0 hidden w-full sm:block sm:w-[70%] sm:bg-[#A84F2F] lg:w-[52%]" aria-hidden="true"></div>
 
-  <div class="relative z-10 mx-auto flex min-h-[510px] max-w-[1536px] items-center px-6 py-20 sm:px-12 lg:px-[4.5%]">
+  <div class="relative z-10 mx-auto flex max-w-[1536px] items-center px-6 pt-6 pb-8 sm:min-h-[510px] sm:py-20 sm:px-12 lg:px-[4.5%]">
     <div class="max-w-[640px]">
       <SectionEyebrow label="Ready to Get Started?" theme="dark" />
-      <h2 id="join-title" class="mt-7 text-[clamp(3.3rem,5.3vw,5.7rem)] font-bold leading-[1.02] tracking-[-.03em]">
+      <h2 id="join-title" class="mt-4 sm:mt-7 text-[clamp(2.25rem,9vw,2.75rem)] sm:text-[clamp(3.3rem,5.3vw,5.7rem)] font-bold leading-[1.02] tracking-[-.03em]">
         Find Your Place <span class="block text-[#F5D4BD]">in Worship.</span>
       </h2>
       <p class="mt-6 max-w-[515px] text-lg leading-relaxed text-[#FFF9F2]/90">

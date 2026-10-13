@@ -1,21 +1,19 @@
 ---
 import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astro';
-import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 import Icon from '../editorial/Icon.astro';
 import WorshipTeamCard from '../editorial/WorshipTeamCard.astro';
 ---
-<section aria-labelledby="hero-title" class="relative flex flex-col overflow-hidden bg-[#1D2323] pt-24 pb-12 text-[#F4EDE3] sm:pt-28 lg:block lg:h-[100svh] lg:max-h-[880px] lg:min-h-[620px] lg:py-0">
+<section aria-labelledby="hero-title" class="relative flex flex-col overflow-hidden bg-[#1D2323] pt-20 pb-8 text-[#F4EDE3] max-lg:min-h-[100svh] max-lg:justify-center sm:pt-24 lg:block lg:h-[100svh] lg:max-h-[880px] lg:min-h-[620px] lg:py-0">
   <!-- Full-height photograph with sculptural boundary; bleeds to the right viewport edge on wide screens. -->
-  <div class="hero-photo relative order-2 mx-5 mt-8 h-[clamp(260px,68vw,420px)] overflow-hidden rounded-[30px] bg-[#111616] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-full lg:w-[calc(50%+min(14vw,215px))] lg:rounded-none">
+  <div class="hero-photo relative order-1 mx-5 h-[32svh] min-h-[160px] [@media(max-height:720px)]:h-[25svh] overflow-hidden rounded-[30px] bg-[#111616] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-full lg:w-[calc(50%+min(14vw,215px))] lg:rounded-none">
     <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 64vw, 100vw" alt="Keyboardist playing during a worship service" class="h-full w-full object-cover object-[55%_center]" loading="eager" decoding="sync" fetchpriority="high" />
     <div class="absolute inset-0 bg-gradient-to-l from-[#1D2323]/45 via-transparent to-transparent"></div>
   </div>
 
   <div class="contents lg:relative lg:mx-auto lg:block lg:h-full lg:max-w-[1536px]">
     <!-- Editorial copy: vertically centred in the space below the floating header. -->
-    <div class="relative z-10 order-1 px-6 sm:px-12 lg:absolute lg:inset-y-0 lg:left-0 lg:flex lg:w-[46%] lg:flex-col lg:justify-center lg:px-[4.5%] lg:pt-24 lg:pb-10">
-      <SectionEyebrow label="Gamo Studios" theme="dark" />
-      <h1 id="hero-title" class="mt-5 text-[clamp(2.9rem,10vw,4rem)] font-bold leading-[.95] tracking-[-.03em] lg:mt-6 lg:text-[clamp(3.25rem,min(5.6vw,10.5svh),5.75rem)]">
+    <div class="relative z-10 order-2 mt-6 px-6 sm:px-12 lg:mt-0 lg:absolute lg:inset-y-0 lg:left-0 lg:flex lg:w-[46%] lg:flex-col lg:justify-center lg:px-[4.5%] lg:pt-24 lg:pb-10">
+      <h1 id="hero-title" class="text-[clamp(2.9rem,10vw,4rem)] font-bold leading-[.95] tracking-[-.03em] lg:text-[clamp(3.25rem,min(5.6vw,10.5svh),5.75rem)]">
         Keep Worship <span class="block text-[#D7AD86]">Going.</span>
       </h1>
       <p class="mt-5 max-w-[24rem] text-base leading-relaxed text-[#F4EDE3]/75 sm:text-lg lg:mt-6 lg:text-[clamp(1.0625rem,2.2svh,1.25rem)]">
@@ -23,12 +21,12 @@ import WorshipTeamCard from '../editorial/WorshipTeamCard.astro';
       </p>
       <div class="mt-7 flex flex-wrap gap-3 lg:mt-8">
         <a href="/worship/hire" class="inline-flex items-center gap-8 rounded-full bg-[#B65B35] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[#8F432A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">Find a Musician <Icon name="arrow" class="h-5 w-5" /></a>
-        <a href="/worship/apply" class="inline-flex items-center gap-8 rounded-full border border-[#F4EDE3]/60 px-7 py-4 text-base font-semibold text-[#F4EDE3] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">Join the Roster <Icon name="arrow" class="h-5 w-5" /></a>
+        <a href="/worship/apply" class="inline-flex items-center gap-8 rounded-full border border-[#F4EDE3]/60 px-7 py-4 text-base font-semibold text-[#F4EDE3] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D7AD86]">Join the Collection <Icon name="arrow" class="h-5 w-5" /></a>
       </div>
     </div>
 
     <!-- Sample team lineup panel (demo content) -->
-    <WorshipTeamCard class="relative z-20 order-3 mx-9 -mt-20 max-w-sm sm:mx-16 lg:absolute lg:bottom-[7%] lg:right-[4%] lg:mx-0 lg:mt-0 lg:w-[320px]" />
+    <WorshipTeamCard class="relative z-20 order-3 hidden lg:block sm:mx-16 lg:absolute lg:bottom-[7%] lg:right-[4%] lg:mx-0 lg:mt-0 lg:w-[320px]" />
   </div>
 </section>
 

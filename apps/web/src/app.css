@@ -6,6 +6,9 @@
   line-height: 1.03;
   letter-spacing: -0.03em;
   font-weight: 700;
+  @media (max-width: 1023px) {
+    font-size: clamp(2.125rem, 9vw, 2.75rem);
+  }
 }
 @utility section-subheading {
   font-size: clamp(2rem, 2.8vw, 3rem);
