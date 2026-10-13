@@ -34,13 +34,28 @@ Build a coherent **working local ecosystem**, not only static landing pages. Aut
 
 **Exit:** end-to-end testable demo lesson/clinic booking with permission separation.
 
-## Milestone 3 — Live functioning module
+## Milestone 3 — Live functioning module (two-sided)
 
 - [ ] Events/tiers/inventory, event pages, organizer demo and local seat reservation authority.
+- [ ] Free-event registration flow and attendee "my tickets".
+- [ ] Organizer event submission and admin moderation/approval (local, demo data).
 - [ ] Stripe test checkout integration when credentials provided; ticket generation, signed/opaque QR and scanner.
 - [ ] Simultaneous seat hold and double-entry tests, timeout expiry and refund status transitions.
+- [ ] *(Later, separately approved)* managed promotion intake, campaign status and reporting; Church Partners membership. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
 
 **Exit:** two simulated buyers cannot secure the same seat; verified demo ticket scans only once.
+
+## Ecosystem planning categories (Gamo Live, Partners, dynamic homepage)
+
+Planning categories, in order. **They are not permission to begin all seven**; each requires the preceding category to be approved.
+
+1. **UI/UX design and approval** — dynamic hero concept, Live Promote/Explore journeys, Partners pages, admin campaign screens. *(Current phase.)*
+2. **Frontend screen implementation** — responsive screens with labeled example data, no backends.
+3. **Event publishing and discovery functionality** — submission, moderation, discovery, D1 persistence.
+4. **Ticketing and registration functionality** — free registration, Stripe Connect test-mode checkout, QR tickets.
+5. **Advertising campaign management** — managed intake, staff workflow, placement scheduling, reporting (manual social campaigns; no ad APIs).
+6. **Church membership and discount integration** — Partners subscriptions, credits, fee discounts (pricing must be approved first).
+7. **Advanced automation, personalization and analytics** — promotion engine, geo relevance, ad-platform integrations (each needs approval).
 
 ## Milestone 4 — Production services and cross-app polish
 

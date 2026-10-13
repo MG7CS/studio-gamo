@@ -74,11 +74,16 @@ Review the rendered page against the approved reference for geometry, photograph
 
 ## Approved homepage narrative
 
-1. **Hero — Keep Worship Going:** strong photo-led B2B/B2C split, two core paths, no invented stats. The first hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon, and supporting paragraph. Those latest changes take precedence over older mockups.
-2. **Meet the Musicians:** editorial artist gallery and demo audition cards; verified status only for actually verified roster members (sample names explicitly labeled).
-3. **Your Sunday, Covered:** primary/standby workflow, booking steps and failover logic explained visually; no absolute attendance guarantee.
-4. **Gamo Academy:** instructor-and-student photos, private lessons and church-hosted clinics.
-5. **Gamo Live:** cinematic concert presentation and *demo* event preview until events are real.
-6. **Final CTA:** audience-specific calls to action; testimonials only once consented real statements exist.
+1. **Hero — Keep Worship Going (dynamic spotlight):** strong photo-led B2B/B2C split, two core paths, no invented stats. The first hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon, and supporting paragraph. Those latest changes take precedence over older mockups. "Keep Worship Going" stays as the permanent brand message; the hero will evolve into a rotating, editorially curated spotlight (featured events, church campaigns, lessons, musicians, Gamo services) **within the approved composition**. Rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion. Each slide is labeled *Sponsored*, *Featured* or *Gamo Service* (and *Example* during design).
+2. **Meet the Musicians (The Gamo Collection):** editorial artist gallery and demo audition cards; verified status only for actually verified members (sample names explicitly labeled). Never visually boost musicians based on advertising.
+3. **Your Sunday, Covered / How It Works:** pill selector switching between *For Churches* and *Join the Collection* journeys; primary/standby workflow; no absolute attendance guarantee.
+4. **Gamo Academy:** "Learn To Play The Instrument You Love"; instructor-and-student photos, private lessons and church-hosted clinics.
+5. **Gamo Live:** "Promote Your Events. Bring People Together." Pill selector: *Promote Events* (organizers — advertising + ticketing, CTA "Promote an Event") and *Explore Events* (attendees, CTA "Explore Events"). Cinematic concert presentation and *demo* event previews until events are real.
+6. **Final CTA:** audience-specific calls to action; testimonials only once consented real statements exist. A Church Partners entry point may be added once the membership model is approved.
 7. **Footer:** paths to each vertical, account access, contact, legal pages, social links once verified.
+
+### Sponsored content rules
+- Sponsored placements use a visible, consistent "Sponsored" label (not color alone) and must remain visually distinct from editorial picks.
+- Sponsored density is capped so the homepage still reads as an art-directed showcase, not an ad wall.
+- Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
 

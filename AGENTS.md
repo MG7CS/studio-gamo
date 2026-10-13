@@ -12,6 +12,7 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 6. `prompts/ANTIGRAVITY_MASTER_PROMPT.md` — kickoff intent
 7. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
 8. `design-reference/README.md` — reference materials.
+9. `docs/GAMO_LIVE_AND_PARTNERS.md` — Gamo Live two-sided model, Church Partners membership, dynamic homepage rules. Sponsored content must always be labeled, advertising must never affect musician vetting/rankings, and all prices/fees are proposals until approved.
 
 ## Autonomy model & Active Priorities
 
