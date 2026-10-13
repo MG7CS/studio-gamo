@@ -1,0 +1,30 @@
+---
+/**
+ * Status / trust label. Use the semantic `kind` so trust states stay visually consistent:
+ * sample (demo content), verified, free, paid, external, canceled, rescheduled, pending, proposal, info.
+ * Never render `verified` for fictional organizers — use `sample` instead.
+ */
+import Icon, { type IconName } from './Icon.astro';
+interface Props {
+  kind?: 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'canceled' | 'rescheduled' | 'pending' | 'proposal' | 'info' | 'success';
+  class?: string;
+}
+const { kind = 'info', class: className } = Astro.props;
+const styles: Record<string, [string, IconName | null]> = {
+  sample: ['bg-gold/25 text-[#6B4426] ring-gold/50', 'info'],
+  verified: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'verified'],
+  free: ['bg-sky-50 text-sky-800 ring-sky-200', null],
+  paid: ['bg-charcoal/5 text-charcoal ring-charcoal/15', 'ticket'],
+  external: ['bg-white text-charcoal ring-charcoal/15', 'external'],
+  canceled: ['bg-red-50 text-red-800 ring-red-200', 'x'],
+  rescheduled: ['bg-amber-50 text-amber-900 ring-amber-200', 'calendar'],
+  pending: ['bg-amber-50 text-amber-900 ring-amber-200', 'clock'],
+  proposal: ['bg-cream text-terracotta-dark ring-terracotta/30', null],
+  info: ['bg-white/80 text-charcoal ring-charcoal/10', null],
+  success: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'check'],
+};
+const [cls, icon] = styles[kind];
+---
+<span class:list={['inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset', cls, className]}>
+  {icon && <Icon name={icon} class="h-3.5 w-3.5" strokeWidth={2} />}<slot />
+</span>

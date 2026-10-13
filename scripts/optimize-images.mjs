@@ -104,8 +104,68 @@ async function run() {
     };
   }
   
+  await optimizeBrandRefresh(cache);
+
   fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
   printReport(cache);
+}
+
+/* ------------------------------------------------------------------
+ * 2026 brand refresh pass.
+ * Source:  assets/images/2026-brand-refresh/<category>/<name>.png (kept intact)
+ * Output:  /images/optimized/<category>-<name>-<w>w.{avif,webp} in every public app
+ * Manifest: packages/ui/src/lib/image-manifest.json (stems, widths, intrinsic size)
+ * No full-resolution "original" variants are shipped for this set.
+ * ------------------------------------------------------------------ */
+const BRAND_DIR = path.join(__dirname, '../assets/images/2026-brand-refresh');
+const BRAND_WIDTHS = [480, 800, 1200, 1600];
+const BRAND_FORMATS = [
+  { ext: 'webp', format: 'webp', options: { quality: 80, effort: 6 } },
+  { ext: 'avif', format: 'avif', options: { quality: 55, effort: 5 } }
+];
+const APP_PUBLIC_DIRS = ['web', 'worship', 'academy', 'live', 'production']
+  .map((app) => path.join(__dirname, `../apps/${app}/public/images/optimized`));
+const MANIFEST_FILE = path.join(__dirname, '../packages/ui/src/lib/image-manifest.json');
+
+async function optimizeBrandRefresh(cache) {
+  if (!fs.existsSync(BRAND_DIR)) return;
+  const manifest = {};
+  const categories = fs.readdirSync(BRAND_DIR, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
+  for (const dir of APP_PUBLIC_DIRS) fs.mkdirSync(dir, { recursive: true });
+
+  for (const category of categories) {
+    const files = fs.readdirSync(path.join(BRAND_DIR, category)).filter((f) => /\.(png|jpe?g|webp)$/i.test(f)).sort();
+    for (const file of files) {
+      const key = `2026-brand-refresh/${category}/${file}`;
+      const fileBuffer = fs.readFileSync(path.join(BRAND_DIR, category, file));
+      const hash = crypto.createHash('md5').update(fileBuffer).digest('hex');
+      const stem = `${category}-${path.parse(file).name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const image = sharp(fileBuffer);
+      const metadata = await image.metadata();
+      let widths = BRAND_WIDTHS.filter((w) => w <= metadata.width);
+      if (metadata.width < 1600) widths.push(metadata.width); // largest = intrinsic, never upscaled
+      widths = [...new Set(widths)].sort((a, b) => a - b);
+      manifest[stem] = { source: key, width: metadata.width, height: metadata.height, widths };
+
+      const allPresent = widths.every((w) => APP_PUBLIC_DIRS.every((d) => BRAND_FORMATS.every((f) => fs.existsSync(path.join(d, `${stem}-${w}w.${f.ext}`)))));
+      if (cache[key] && cache[key].hash === hash && allPresent) continue;
+
+      console.log(`Optimizing (brand refresh): ${key} -> ${stem}`);
+      const variants = [];
+      for (const width of widths) {
+        for (const fmt of BRAND_FORMATS) {
+          const outName = `${stem}-${width}w.${fmt.ext}`;
+          const primary = path.join(APP_PUBLIC_DIRS[0], outName);
+          await image.clone().rotate().resize({ width, withoutEnlargement: true })[fmt.format](fmt.options).toFile(primary);
+          for (const dir of APP_PUBLIC_DIRS.slice(1)) fs.copyFileSync(primary, path.join(dir, outName));
+          variants.push({ name: outName, size: fs.statSync(primary).size, width, format: fmt.ext });
+        }
+      }
+      cache[key] = { hash, originalSize: fileBuffer.length, variants };
+    }
+  }
+  fs.mkdirSync(path.dirname(MANIFEST_FILE), { recursive: true });
+  fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2) + '\n');
 }
 
 function printReport(cache) {

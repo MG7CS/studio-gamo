@@ -514,5 +514,785 @@
         "format": "avif"
       }
     ]
+  },
+  "2026-brand-refresh/academy/boy-learning-acoustic-guitar.png": {
+    "hash": "a9b4bc4b8ecb81671886e2754e4941ab",
+    "originalSize": 2168596,
+    "variants": [
+      {
+        "name": "academy-boy-learning-acoustic-guitar-480w.webp",
+        "size": 36434,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "academy-boy-learning-acoustic-guitar-480w.avif",
+        "size": 22773,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "academy-boy-learning-acoustic-guitar-800w.webp",
+        "size": 75002,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "academy-boy-learning-acoustic-guitar-800w.avif",
+        "size": 47254,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "academy-boy-learning-acoustic-guitar-1122w.webp",
+        "size": 117464,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "academy-boy-learning-acoustic-guitar-1122w.avif",
+        "size": 76128,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/academy/girl-practicing-acoustic-guitar.png": {
+    "hash": "47b00d559e84bbebd184145d05e7e2c0",
+    "originalSize": 2240655,
+    "variants": [
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-480w.webp",
+        "size": 41856,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-480w.avif",
+        "size": 26137,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-800w.webp",
+        "size": 85830,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-800w.avif",
+        "size": 53528,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-1122w.webp",
+        "size": 134138,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "academy-girl-practicing-acoustic-guitar-1122w.avif",
+        "size": 83901,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/academy/young-pianist-bright-classroom.png": {
+    "hash": "b5a22934d34ccbfbf527d2995c7ec6fe",
+    "originalSize": 2086199,
+    "variants": [
+      {
+        "name": "academy-young-pianist-bright-classroom-480w.webp",
+        "size": 29824,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "academy-young-pianist-bright-classroom-480w.avif",
+        "size": 19880,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "academy-young-pianist-bright-classroom-800w.webp",
+        "size": 58434,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "academy-young-pianist-bright-classroom-800w.avif",
+        "size": 39174,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "academy-young-pianist-bright-classroom-1122w.webp",
+        "size": 88834,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "academy-young-pianist-bright-classroom-1122w.avif",
+        "size": 60203,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/churches/modern-church-exterior-daylight.png": {
+    "hash": "30341e5bf01508c9dac46fc236e76fc1",
+    "originalSize": 2587226,
+    "variants": [
+      {
+        "name": "churches-modern-church-exterior-daylight-480w.webp",
+        "size": 38678,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-480w.avif",
+        "size": 23316,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-800w.webp",
+        "size": 92422,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-800w.avif",
+        "size": 54514,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-1200w.webp",
+        "size": 173308,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-1200w.avif",
+        "size": 102506,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-1448w.webp",
+        "size": 224232,
+        "width": 1448,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-daylight-1448w.avif",
+        "size": 133004,
+        "width": 1448,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/churches/modern-church-exterior-golden-hour.png": {
+    "hash": "56a17c599ed629e07aa335d1d95ab334",
+    "originalSize": 2077765,
+    "variants": [
+      {
+        "name": "churches-modern-church-exterior-golden-hour-480w.webp",
+        "size": 42134,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-golden-hour-480w.avif",
+        "size": 26664,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "churches-modern-church-exterior-golden-hour-800w.webp",
+        "size": 86818,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-golden-hour-800w.avif",
+        "size": 56473,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "churches-modern-church-exterior-golden-hour-1122w.webp",
+        "size": 131852,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "churches-modern-church-exterior-golden-hour-1122w.avif",
+        "size": 88614,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/churches/white-chapel-steeple-spring.png": {
+    "hash": "aeb7026e082a93fcfa38d749eb1c2739",
+    "originalSize": 2406001,
+    "variants": [
+      {
+        "name": "churches-white-chapel-steeple-spring-480w.webp",
+        "size": 35132,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-480w.avif",
+        "size": 22419,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-800w.webp",
+        "size": 78130,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-800w.avif",
+        "size": 48622,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-1200w.webp",
+        "size": 142670,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-1200w.avif",
+        "size": 87134,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-1448w.webp",
+        "size": 183386,
+        "width": 1448,
+        "format": "webp"
+      },
+      {
+        "name": "churches-white-chapel-steeple-spring-1448w.avif",
+        "size": 111946,
+        "width": 1448,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/community/guitar-mentor-with-student.png": {
+    "hash": "c6d85a4e058fa11e0b85c19d677a9ee8",
+    "originalSize": 2157010,
+    "variants": [
+      {
+        "name": "community-guitar-mentor-with-student-480w.webp",
+        "size": 25484,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-480w.avif",
+        "size": 16205,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-800w.webp",
+        "size": 50116,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-800w.avif",
+        "size": 32561,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-1200w.webp",
+        "size": 82744,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-1200w.avif",
+        "size": 54995,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-1536w.webp",
+        "size": 113500,
+        "width": 1536,
+        "format": "webp"
+      },
+      {
+        "name": "community-guitar-mentor-with-student-1536w.avif",
+        "size": 74610,
+        "width": 1536,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/community/sunlit-sanctuary-congregation.png": {
+    "hash": "9015b5a5a5d134c1ad0fd61358aaa97b",
+    "originalSize": 1882562,
+    "variants": [
+      {
+        "name": "community-sunlit-sanctuary-congregation-480w.webp",
+        "size": 22228,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-480w.avif",
+        "size": 14557,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-800w.webp",
+        "size": 41288,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-800w.avif",
+        "size": 28075,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-1200w.webp",
+        "size": 65676,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-1200w.avif",
+        "size": 45570,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-1448w.webp",
+        "size": 81106,
+        "width": 1448,
+        "format": "webp"
+      },
+      {
+        "name": "community-sunlit-sanctuary-congregation-1448w.avif",
+        "size": 56678,
+        "width": 1448,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/live/gospel-vocalists-concert-stage.png": {
+    "hash": "10d55d834fe8b0cc06d4a66a2bed42ef",
+    "originalSize": 1895291,
+    "variants": [
+      {
+        "name": "live-gospel-vocalists-concert-stage-480w.webp",
+        "size": 27594,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-480w.avif",
+        "size": 17978,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-800w.webp",
+        "size": 51350,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-800w.avif",
+        "size": 33695,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-1200w.webp",
+        "size": 82828,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-1200w.avif",
+        "size": 54549,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-1254w.webp",
+        "size": 87658,
+        "width": 1254,
+        "format": "webp"
+      },
+      {
+        "name": "live-gospel-vocalists-concert-stage-1254w.avif",
+        "size": 57367,
+        "width": 1254,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/live/worship-concert-crowd-wide.png": {
+    "hash": "01d66107c8883767e87b30e41a7f5dc9",
+    "originalSize": 1816003,
+    "variants": [
+      {
+        "name": "live-worship-concert-crowd-wide-480w.webp",
+        "size": 18432,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-480w.avif",
+        "size": 12552,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-800w.webp",
+        "size": 34960,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-800w.avif",
+        "size": 24648,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-1200w.webp",
+        "size": 57736,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-1200w.avif",
+        "size": 39520,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-1600w.webp",
+        "size": 80398,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-concert-crowd-wide-1600w.avif",
+        "size": 56060,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/live/worship-night-hands-raised.png": {
+    "hash": "4e2bb5c95cefaf478cc08b7674e7d95b",
+    "originalSize": 1835402,
+    "variants": [
+      {
+        "name": "live-worship-night-hands-raised-480w.webp",
+        "size": 25002,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-night-hands-raised-480w.avif",
+        "size": 16913,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-night-hands-raised-800w.webp",
+        "size": 46654,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-night-hands-raised-800w.avif",
+        "size": 31827,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-night-hands-raised-1200w.webp",
+        "size": 75230,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-night-hands-raised-1200w.avif",
+        "size": 51004,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "live-worship-night-hands-raised-1254w.webp",
+        "size": 79666,
+        "width": 1254,
+        "format": "webp"
+      },
+      {
+        "name": "live-worship-night-hands-raised-1254w.avif",
+        "size": 53472,
+        "width": 1254,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/production/sound-engineer-mixing-console.png": {
+    "hash": "f7c4e751483f00789b6a4dc1b983a0bf",
+    "originalSize": 1901373,
+    "variants": [
+      {
+        "name": "production-sound-engineer-mixing-console-480w.webp",
+        "size": 29936,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-480w.avif",
+        "size": 19251,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-800w.webp",
+        "size": 57582,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-800w.avif",
+        "size": 36745,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-1200w.webp",
+        "size": 93924,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-1200w.avif",
+        "size": 59715,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-1254w.webp",
+        "size": 99224,
+        "width": 1254,
+        "format": "webp"
+      },
+      {
+        "name": "production-sound-engineer-mixing-console-1254w.avif",
+        "size": 63086,
+        "width": 1254,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/worship/acoustic-worship-leader-stage-alt.png": {
+    "hash": "e01bfca285d1e22c88a34bcfbc9c9442",
+    "originalSize": 1886716,
+    "variants": [
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-480w.webp",
+        "size": 25524,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-480w.avif",
+        "size": 16953,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-800w.webp",
+        "size": 49102,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-800w.avif",
+        "size": 32252,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-1122w.webp",
+        "size": 73140,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-alt-1122w.avif",
+        "size": 48943,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/worship/acoustic-worship-leader-stage.png": {
+    "hash": "9324130d999bae03927794cde4360761",
+    "originalSize": 1945754,
+    "variants": [
+      {
+        "name": "worship-acoustic-worship-leader-stage-480w.webp",
+        "size": 29678,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-480w.avif",
+        "size": 19743,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-800w.webp",
+        "size": 59456,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-800w.avif",
+        "size": 38745,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-1122w.webp",
+        "size": 92794,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "worship-acoustic-worship-leader-stage-1122w.avif",
+        "size": 60792,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/worship/gospel-worship-leader-golden-light.png": {
+    "hash": "d5a97faf8297e01a4f3d1ce6ad5a7250",
+    "originalSize": 2016983,
+    "variants": [
+      {
+        "name": "worship-gospel-worship-leader-golden-light-480w.webp",
+        "size": 32972,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "worship-gospel-worship-leader-golden-light-480w.avif",
+        "size": 21257,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "worship-gospel-worship-leader-golden-light-800w.webp",
+        "size": 65540,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "worship-gospel-worship-leader-golden-light-800w.avif",
+        "size": 42195,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "worship-gospel-worship-leader-golden-light-1122w.webp",
+        "size": 101086,
+        "width": 1122,
+        "format": "webp"
+      },
+      {
+        "name": "worship-gospel-worship-leader-golden-light-1122w.avif",
+        "size": 64203,
+        "width": 1122,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/worship/worship-band-sanctuary.png": {
+    "hash": "3231d565a0620a3bc28c94744b3350c3",
+    "originalSize": 2153456,
+    "variants": [
+      {
+        "name": "worship-worship-band-sanctuary-480w.webp",
+        "size": 37884,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-480w.avif",
+        "size": 24310,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-800w.webp",
+        "size": 75708,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-800w.avif",
+        "size": 48025,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-1200w.webp",
+        "size": 123210,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-1200w.avif",
+        "size": 80794,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-1254w.webp",
+        "size": 132136,
+        "width": 1254,
+        "format": "webp"
+      },
+      {
+        "name": "worship-worship-band-sanctuary-1254w.avif",
+        "size": 85355,
+        "width": 1254,
+        "format": "avif"
+      }
+    ]
   }
 }

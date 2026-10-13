@@ -1,23 +1,17 @@
 ---
+/** Gamo Live layout: shared document shell + app stylesheet. Pages pass a page title. */
 import '../app.css';
+import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  headerTheme?: 'light' | 'dark';
+  bodyClass?: string;
+  chrome?: boolean;
+}
+const { title, description, headerTheme = 'dark', bodyClass = 'bg-cream text-charcoal', chrome = true } = Astro.props;
 ---
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" href="/favicon.ico" sizes="48x48" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-		<meta name="generator" content={Astro.generator} />
-		<title>Gamo Studios ${app}</title>
-	</head>
-	<body class="font-sans antialiased text-[#1D2323] bg-[#F4EDE3]">
-		<slot />
-	</body>
-</html>
+<BaseLayout title={title ? `${title} | Gamo Live` : 'Gamo Live | Gamo Studios'} description={description} current="live" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
+  <slot />
+</BaseLayout>

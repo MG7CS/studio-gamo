@@ -1,0 +1,93 @@
+---
+/**
+ * Organization-wide footer shared by every public app.
+ * Legal status line must stay in sync with docs/GAMO_NONPROFIT_MODEL.md §2.1.
+ * Do not claim 501(c)(3) status or tax-deductibility until confirmed.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { siteUrl } from '../lib/sites';
+
+const columns = [
+  {
+    title: 'Programs',
+    links: [
+      { label: 'Gamo Worship', url: siteUrl('worship') },
+      { label: 'Gamo Academy', url: siteUrl('academy') },
+      { label: 'Gamo Live', url: siteUrl('live') },
+      { label: 'Gamo Production', url: siteUrl('production') },
+    ],
+  },
+  {
+    title: 'Get Involved',
+    links: [
+      { label: 'Ways to Participate', url: siteUrl('web', '/get-involved') },
+      { label: 'Request a Musician', url: siteUrl('worship', '/hire') },
+      { label: 'Join the Musician Collection', url: siteUrl('worship', '/apply') },
+      { label: 'Find a Lesson', url: siteUrl('academy', '/lessons') },
+      { label: 'Promote an Event', url: siteUrl('live', '/promote') },
+      { label: 'Partnerships', url: siteUrl('web', '/partners') },
+    ],
+  },
+  {
+    title: 'Organization',
+    links: [
+      { label: 'Our Mission', url: siteUrl('web', '/mission') },
+      { label: 'Support Our Mission', url: siteUrl('web', '/support') },
+      { label: 'FAQ', url: siteUrl('web', '/faq') },
+      { label: 'Contact', url: siteUrl('web', '/contact') },
+      { label: 'Nonprofit Status', url: '#status' },
+    ],
+  },
+];
+// Placeholder social destinations; no real accounts are linked during the design phase.
+const socials = [
+  { label: 'Instagram', path: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm5.5-1.5h.01' },
+  { label: 'YouTube', path: 'M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Zm7 1.5v5l4.5-2.5L10 9.5Z' },
+  { label: 'Facebook', path: 'M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v7h4v-7h3l1-4h-4V8.5c0-.3.2-.5.5-.5Z' },
+];
+---
+<footer data-surface="dark" class="relative isolate overflow-hidden bg-[#171E20] text-cream">
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] bg-gradient-to-t from-terracotta/10 to-transparent" aria-hidden="true"></div>
+  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-20 pb-14 sm:px-12 lg:px-[4.5%]">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.65fr_1fr_1fr_1fr_1.4fr] lg:gap-8">
+      <div class="col-span-2 lg:col-span-1">
+        <a href={siteUrl('web')} class="inline-flex items-center" aria-label="Gamo Studios homepage"><Logo width="210" height="45" /></a>
+        <p class="mt-5 max-w-[300px] text-base leading-relaxed text-[#D8D4D0]">
+          A developing Christian nonprofit strengthening worship and community through musicians, music education, Christian events and technical support.
+        </p>
+        <ul class="mt-7 flex gap-3" aria-label="Social media (coming soon)">
+          {socials.map((s) => (
+            <li><span title={`${s.label} (coming soon)`} class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d={s.path} /></svg><span class="sr-only">{s.label} (coming soon)</span></span></li>
+          ))}
+        </ul>
+      </div>
+      {columns.map((col) => (
+        <nav aria-label={col.title}>
+          <h2 class="mb-5 text-base font-semibold text-white">{col.title}</h2>
+          <ul class="space-y-3">{col.links.map((l) => <li><a href={l.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{l.label}</a></li>)}</ul>
+        </nav>
+      ))}
+      <div class="col-span-2 lg:col-span-1">
+        <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
+        <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">Updates on programs, upcoming events and ways to get involved.</p>
+        <!-- Visual preview only: no newsletter service exists during the design phase. -->
+        <div class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5" aria-hidden="true">
+          <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/60">Your email address</span>
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta"><Icon name="arrow" class="h-5 w-5" /></span>
+        </div>
+        <p class="mt-2 text-xs text-gold">Newsletter sign-up coming soon</p>
+      </div>
+    </div>
+    <p id="status" class="mt-16 max-w-3xl text-xs leading-relaxed text-[#D8D4D0]/80">
+      Gamo Studios is a developing Christian nonprofit initiative. Nonprofit incorporation and federal tax-exempt recognition are pending, and contributions are not currently tax-deductible.
+    </p>
+    <div class="mt-6 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
+      <p>© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>
+      <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
+        <a href={siteUrl('web', '/legal')} class="hover:text-white">Legal &amp; Privacy</a>
+        <a href={siteUrl('web', '/contact')} class="hover:text-white">Contact</a>
+      </nav>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,36 @@
+---
+/**
+ * Labeled form control for design-phase forms. Renders input | textarea | select.
+ * Forms using it must not submit to a backend yet — pair with <DemoNotice>.
+ */
+interface Props {
+  label: string;
+  name: string;
+  type?: 'text' | 'email' | 'tel' | 'date' | 'time' | 'number' | 'url' | 'textarea' | 'select';
+  options?: string[];
+  placeholder?: string;
+  hint?: string;
+  required?: boolean;
+  value?: string;
+  rows?: number;
+  class?: string;
+  autocomplete?: string;
+}
+const { label, name, type = 'text', options = [], placeholder, hint, required = false, value, rows = 4, class: className, autocomplete } = Astro.props;
+const id = `f-${name}`;
+const base = 'mt-2 block w-full rounded-2xl border border-sand bg-white px-4 py-3 text-base text-charcoal placeholder:text-charcoal/40 transition-colors focus:border-terracotta';
+---
+<div class={className}>
+  <label for={id} class="text-sm font-semibold text-charcoal">{label}{required && <span class="text-terracotta" aria-hidden="true"> *</span>}</label>
+  {type === 'textarea' ? (
+    <textarea id={id} name={name} rows={rows} placeholder={placeholder} required={required} class={base} aria-describedby={hint ? `${id}-hint` : undefined}>{value}</textarea>
+  ) : type === 'select' ? (
+    <select id={id} name={name} required={required} class={base} aria-describedby={hint ? `${id}-hint` : undefined}>
+      <option value="">{placeholder ?? 'Select an option'}</option>
+      {options.map((o) => <option selected={o === value}>{o}</option>)}
+    </select>
+  ) : (
+    <input id={id} name={name} type={type} placeholder={placeholder} required={required} value={value} autocomplete={autocomplete} class={base} aria-describedby={hint ? `${id}-hint` : undefined} />
+  )}
+  {hint && <p id={`${id}-hint`} class="mt-1.5 text-sm text-ink-soft">{hint}</p>}
+</div>

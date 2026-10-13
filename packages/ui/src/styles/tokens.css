@@ -1,0 +1,105 @@
+/*
+ * Gamo Studios shared design tokens — Bright Cinematic Editorial (2026).
+ * Import from every app stylesheet AFTER `@import "tailwindcss";`:
+ *   @import "@studio-gamo/ui/styles/tokens.css";
+ */
+@source "../components";
+
+@theme {
+  --color-cream: #F4EDE3;
+  --color-ivory: #FBF7F1;
+  --color-charcoal: #1D2323;
+  --color-night: #141A1B;
+  --color-terracotta: #B65B35;
+  --color-terracotta-dark: #8F432A;
+  --color-sand: #DED6CC;
+  --color-gold: #D7AD86;
+  --color-ink-soft: #4E5655;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Editorial type scale */
+@utility display-xl {
+  font-size: clamp(3rem, 7.2vw, 7rem);
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+@utility display-lg {
+  font-size: clamp(2.6rem, 5.4vw, 5.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+@utility section-heading {
+  font-size: clamp(2.75rem, 4vw, 4.25rem);
+  line-height: 1.03;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  @media (max-width: 1023px) {
+    font-size: clamp(2.125rem, 9vw, 2.75rem);
+  }
+}
+@utility section-subheading {
+  font-size: clamp(2rem, 2.8vw, 3rem);
+  line-height: 1.07;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+@utility eyebrow {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Sculptural photo masks */
+@utility mask-arch { border-radius: 999px 999px 32px 32px; }
+@utility mask-arch-sm { border-radius: 400px 400px 24px 24px; }
+@utility mask-leaf { border-radius: 48px 220px 48px 220px; }
+@utility mask-leaf-alt { border-radius: 220px 48px 220px 48px; }
+@utility mask-pebble { border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%; }
+@utility shadow-float { box-shadow: 0 24px 60px -24px rgb(29 35 35 / 0.35), 0 2px 6px rgb(29 35 35 / 0.06); }
+
+/* Horizontal collections */
+@utility scroll-rail {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  &::-webkit-scrollbar { display: none; }
+  & > * { scroll-snap-align: start; flex-shrink: 0; }
+}
+
+/* Scroll reveal: only active when JS marks <html class="js">; never hides content without JS. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  html.js [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+
+/* Visible keyboard focus: terracotta on light surfaces, cream on dark ones ([data-surface="dark"]). */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="tab"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #b65b35;
+  outline-offset: 3px;
+}
+[data-surface="dark"] :focus-visible { outline-color: #f4ede3; }
+
+html { scroll-padding-top: 6rem; }
