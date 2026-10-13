@@ -284,3 +284,37 @@
     - `packages/domain/src/services/payments.test.ts`
   - **Results**: 39 tests across 8 suites, 39 passed, 0 failed.
   - **Full Monorepo Build**: `pnpm build` completed with exit code 0 across all 6 applications (`web`, `worship`, `academy`, `live`, `production`, `admin`).
+
+## 2026-10-13 — OpenAPI-first foundation and backend contract reconciliation
+
+**Authorized scope:** user requested authoritative contract adoption before the independent backend security/reliability audit, with commit/push to main. No production deployment, remote D1 mutation, secrets, real email, payment, payout or unrestricted access was enabled.
+
+**Baseline:** clean `main`, HEAD `cb97c37`, four commits ahead of `origin/main` (`fc32b71`, `2ad0aed`, `07bb316`, `cb97c37`). Remote main fetched successfully before final commit. No user changes were overwritten.
+
+**Completed foundation:** discovered 10 route files / 12 HTTP method-path operations; all 12 specified in multi-file OpenAPI 3.1.1 and exercised in initial HTTP contract tests. Six-app topology and existing URLs preserved. Added Redocly lint/bundle/local reference, deterministic public/internal bundles, openapi-typescript declarations, public openapi-fetch factory, generated Ajv standalone Worker validators, root/Make commands and GitHub Actions contract gate. Generation verification writes only temporary artifacts. Public bundle/reference excludes admin operations, identity creation demo and Worship redirect demos. Documentation and source coverage are checked; no planned API was fabricated.
+
+**Reconciled:** local-only email session issuance, tenant membership enforcement on proposals (forged demo-header regression), approved-only public detail, strict body/query/media validation including RFC3339 offsets, no fabricated checkout pricing or coercion, paid/external/cross-event-tier denial for free registration, generic unexpected errors, signed-live-event denial and removal of unapproved 5%/estimated fee deductions. Isolated node:sqlite to test-only `@gamo/db/testing`; missing DB binding is an explicit failure. Final webhook exception boundary also handles DB/claim errors as documented 500 JSON.
+
+**Limitations/findings:** registration privacy/user binding/capacity/concurrent retries; Access-subject-to-D1 mapping and per-operation staff RBAC; revision_requested maps to rejected; no client idempotency; claim-before-effects webhook retry/concurrency and accounting/ticket/refund gaps; missing rate limits/CSRF; unbounded moderation queue; real provider/Cloudflare verification; schema/migration drift and domain-only safeguarding/dispatch gaps. These are documented reconciliation findings, **not** completion of the independent security/reliability audit. Worship routes remain redirect-only demos. Thirty-four historical future endpoint candidates and conceptual media upload workflow remain outside executable OpenAPI paths; specified-but-unimplemented count is zero.
+
+**Exact successful verification:**
+
+| Command | Result |
+| --- | --- |
+| `pnpm exec redocly lint openapi/root.yaml` / `pnpm api:lint` | Valid syntax/references; 2 intentional redirect-only Worship 2xx warnings |
+| `node scripts/api/generate.mjs` | Redocly public/internal bundles, TypeScript declarations and standalone validators generated |
+| `node scripts/api/generate.mjs --check` | Byte-identical generated outputs; no tracked artifact rewrite |
+| `pnpm api:docs` | Public 183 KiB and internal 240 KiB local Redocly HTML generated; no publication |
+| `node scripts/api/check.mjs` | 12 source/contract operations match; internal filtering and credential-pattern scans pass |
+| `pnpm api:test` / final `make api-check` | 9 grouped contract tests pass; 12/12 operations tested over loopback HTTP with isolated migrated SQLite/D1 adapter, foreign keys and blocked outbound fetch; includes sandbox zero-allocation regression |
+| `pnpm test` | Existing 39 tests pass, 0 failures |
+| `pnpm typecheck` | All six app TypeScript checks and shared api-contracts package pass |
+| `pnpm build` | All six Cloudflare Astro application builds pass |
+| `pnpm api:compatibility cb97c37` | Initial adoption baseline (no prior contract) |
+| `git diff --check` | Pass |
+
+**Environment issues resolved:** existing pnpm store needed the approved `/Users/gamo/Library/pnpm/store/v11` path during installation. openapi-typescript failed with the TypeScript 7 compiler API; pinned TypeScript 5.9.3, then all checks passed. Ajv standalone emitted CommonJS helper requires; generation now transforms them to static pure-JS ESM imports and tests/builds pass. Initial test runner/template selection failure was corrected; final tests exercise actual handlers/middleware. Local loopback/tsx IPC and Cloudflare build debug listeners were sandbox-denied; reran with tool approval. No fictitious results or screenshot substitutes were used.
+
+**Artifacts/evidence:** `openapi/bundled/{public,internal}.json`, `packages/api-contracts/src/{public,internal}.d.ts`, `packages/api-contracts/src/validators.js`, local `docs/api-reference/{public,internal}.html` (ignored by Git; reproduce with make api-docs), `scripts/api/contract.test.ts`, `.github/workflows/api-contract.yml`, `docs/OPENAPI_ARCHITECTURE.md`, corrected `docs/API_INVENTORY.md`, compatibility release note. Local execution logs: `/tmp/gamo-openapi-{check,backend-tests,types,build}.log`. Tests use loopback ephemeral ports; configured app origins remain Web 4321, Worship 4322, Academy 4323, Live 4324, Production 4325 and Admin 4326. No UI screens changed or browser screenshots produced; these tests verify HTTP handlers, not Astro routing, Cloudflare D1 concurrency or real providers.
+
+**Owner actions / production gate:** approve verified identity and staff mapping design, registration pass privacy/access and serialization, financial/accounting/refund/idempotency policies, operational pagination, and legal/safeguarding prerequisites. Configure real sandbox provider and Cloudflare resources only under explicit later authorization. The next phase may independently audit the recorded security/reliability concerns; it was not started here.

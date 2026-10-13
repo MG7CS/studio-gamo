@@ -1,0 +1,27 @@
+type: object
+additionalProperties: true
+properties:
+  id:
+    type: string
+  object:
+    const: event
+  type:
+    type: string
+  created:
+    type: integer
+  livemode:
+    const: false
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      object:
+        type: object
+        additionalProperties: true
+    required:
+      - object
+required:
+  - id
+  - type
+  - data
+  - livemode

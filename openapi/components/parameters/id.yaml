@@ -1,0 +1,8 @@
+name: id
+in: path
+required: true
+description: Event identifier; public detail additionally accepts a slug.
+schema:
+  type: string
+  minLength: 1
+  description: Opaque case-sensitive resource identifier; never parse for authority.

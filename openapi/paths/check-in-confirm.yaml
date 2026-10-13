@@ -1,0 +1,26 @@
+servers:
+  - url: http://127.0.0.1:4322
+    description: Local worship application
+post:
+  operationId: demoCheckinConfirm
+  tags:
+    - Worship
+  summary: Demo check-in redirect
+  description: Local UI demo. Ignores input, no persistence, authentication,
+    authorization, or dispatch. Production functionality deferred.
+  security: []
+  x-application: worship
+  x-status: demo-stub
+  x-authorization: Public
+  x-idempotency: Unsupported; client keys are ignored.
+  x-source: apps/worship/src/pages/api/check-in/confirm.ts
+  parameters: []
+  responses:
+    "303":
+      description: Demo redirect; no API JSON body.
+      headers:
+        Location:
+          description: Demo destination
+          schema:
+            type: string
+            const: /check-in/success

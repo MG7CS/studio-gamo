@@ -224,3 +224,7 @@ make deploy-all
 - [ ] **Admin Security**: Navigating to `https://admin.gamostudio.org/` prompts for Cloudflare Access authentication or returns `401 Unauthorized`.
 - [ ] **Demo Notices**: Demo banners remain visible on all preview states.
 - [ ] **Payment Inactivity**: No real payment credentials exist in production secrets.
+
+## OpenAPI reconciliation note — 2026-10-13
+
+Use [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md) and [API_INVENTORY.md](API_INVENTORY.md) for actual runtime behavior. Admin verifies RS256 Cloudflare Access assertions; emergency alternatives are disabled by default in production. Access identity-to-D1 mapping and operation-level staff permission checks are still incomplete. No deployment or production binding mutation is part of contract adoption. Never publish `openapi/bundled/internal.json` or `docs/api-reference/internal.html`. Require real provider sandbox and Cloudflare runtime verification plus the independent audit before production readiness claims.

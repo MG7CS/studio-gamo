@@ -1,1 +1,17 @@
-{"name":"@gamo/db","version":"0.0.0","private":true,"type":"module","main":"index.ts","dependencies":{"drizzle-orm":"^0.45.4"},"devDependencies":{"drizzle-kit":"^0.31.11"}}
+{
+  "name": "@gamo/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "drizzle-orm": "^0.45.4"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./testing": "./testing.ts"
+  }
+}

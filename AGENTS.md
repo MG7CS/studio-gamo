@@ -112,3 +112,9 @@ These custom agents are located in `.agents/agents/` and can be delegated tasks 
 - Maintain clear typed interfaces (Props) for all components.
 - Component extraction should improve clarity, independent testing, and reuse.
 - All specialized agents (`frontend-builder`, `design-lead`, `ui-reviewer`) must adhere to this architecture.
+
+## Permanent OpenAPI-first HTTP contract rule
+
+`openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning six applications; no seventh API application by default.
+
+Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Demo session issuance is explicitly local-only. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.

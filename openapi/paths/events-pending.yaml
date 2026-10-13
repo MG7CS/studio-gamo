@@ -1,0 +1,42 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: listPendingEvents
+  tags:
+    - Administration
+  summary: List moderation queue
+  description: Internal only. All pending events ordered createdAt descending.
+    Unbounded legacy queue, no pagination. Middleware 401 uses text/html.
+  security:
+    - CloudflareAccess: []
+    - EmergencyBearer: []
+    - EmergencyKey: []
+    - EmergencyBasic: []
+  x-application: admin
+  x-status: implemented
+  x-authorization: Verified Access identity or explicit emergency credential at
+    middleware. Domain staff role lookup not implemented.
+  x-idempotency: Unsupported; client keys are ignored.
+  x-source: apps/admin/src/pages/api/events/pending.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/administration/PendingResponse.yaml
+    "401":
+      description: Middleware denies access
+      content:
+        text/html:
+          schema:
+            type: string
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  x-internal: true

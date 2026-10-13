@@ -1,0 +1,1420 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Gamo Studios HTTP API — local foundation",
+    "version": "0.1.0",
+    "description": "Authoritative contract for a developing Christian nonprofit. Existing routes only; demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
+    "license": {
+      "name": "Private repository; no public API license"
+    }
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4324",
+      "description": "Local Gamo Live; each path specifies its owning application."
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "Identity and Accounts",
+      "description": "Identity and Accounts domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Organizations and Memberships",
+      "description": "Organizations and Memberships domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Worship",
+      "description": "Worship domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Academy",
+      "description": "Academy domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Live",
+      "description": "Live domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Production",
+      "description": "Production domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Partnerships",
+      "description": "Partnerships domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Media",
+      "description": "Media domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Administration",
+      "description": "Administration domain. No endpoint existence implied by tag."
+    },
+    {
+      "name": "Payments",
+      "description": "Payments domain. No endpoint existence implied by tag."
+    }
+  ],
+  "paths": {
+    "/api/auth/session": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "delete": {
+        "operationId": "revokeSession",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Revoke current session",
+        "description": "Revoke current session",
+        "security": [],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Revocation is repeatable, including absent or invalid cookies.",
+        "x-source": "apps/web/src/pages/api/auth/session.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "listEvents",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Discover approved Christian events",
+        "description": "At most 50 results ordered by startsAt then id ascending. meta.total is returned row count, not all matching rows. No cursor or client limit yet. Unknown query fields are rejected.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Unsupported; client keys are ignored.",
+        "x-source": "apps/live/src/pages/api/events/index.ts",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Exact category filter.",
+            "schema": {
+              "$ref": "#/components/schemas/category"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Exact city filter.",
+            "schema": {
+              "$ref": "#/components/schemas/city"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "proposeEvent",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Submit event for review",
+        "description": "Submit event for review",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Active owner/admin membership of organizationId, or superadmin. Session verification required; no demo header bypass.",
+        "x-idempotency": "Unsupported; client keys are ignored.",
+        "x-source": "apps/live/src/pages/api/events/index.ts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEventResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEvent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "getEvent",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Read approved event",
+        "description": "Read approved event",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Unsupported; client keys are ignored.",
+        "x-source": "apps/live/src/pages/api/events/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/events/{id}/register": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "registerAttendee",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Register for a free event",
+        "description": "Sequential duplicate email/event requests return 200 with existing pass. Public registration; userId is legacy untrusted input and a known reconciliation finding. Capacity serialization and duplicate pass disclosure need policy/technical resolution.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Natural key: event ID plus lowercase trimmed email. Sequential retries only; concurrent replay behavior incomplete.",
+        "x-source": "apps/live/src/pages/api/events/[id]/register.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAttendee"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checkout/session": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "createTestCheckout",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Create sandbox checkout",
+        "description": "Sandbox only. Event must exist and be approved, paid, with a valid server-priced tier. No inventory reservation, organizer authorization or client idempotency yet; not production ready.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Unsupported; client keys are ignored.",
+        "x-source": "apps/live/src/pages/api/checkout/session.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/SimpleError"
+          },
+          "404": {
+            "$ref": "#/components/responses/SimpleError"
+          },
+          "409": {
+            "$ref": "#/components/responses/SimpleError"
+          },
+          "500": {
+            "$ref": "#/components/responses/SimpleError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhook/stripe": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "receiveStripeWebhook",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Receive signed test Stripe event",
+        "description": "Signature verified on raw body; livemode=true rejected. Durable event-ID deduplication exists but claim-before-processing and partial writes are unresolved. No real ticket fulfillment, refund reversal or reservation release.",
+        "security": [
+          {
+            "StripeSignature": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Stripe event ID in D1; failure retry and concurrent claim correctness remain blockers.",
+        "x-source": "apps/live/src/pages/api/webhook/stripe.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/SimpleError"
+          },
+          "500": {
+            "$ref": "#/components/responses/SimpleError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeEvent"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Identifier": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Opaque case-sensitive resource identifier; never parse for authority."
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "ListMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "total"
+        ]
+      },
+      "LegacyError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "message",
+                    "code"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "SimpleError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "LogoutResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "TierInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 100
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Tier": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "priceCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reservedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "name",
+          "priceCents",
+          "capacity",
+          "reservedCount",
+          "note"
+        ]
+      },
+      "CreateEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "organizationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 150
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "concert",
+              "worship",
+              "bible",
+              "conference",
+              "youth"
+            ]
+          },
+          "tagline": {
+            "type": "string",
+            "maxLength": 250
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20
+          },
+          "venueName": {
+            "type": "string",
+            "minLength": 2
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "startsAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "endsAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "America/Phoenix",
+            "description": "IANA timezone; validated by Intl.DateTimeFormat."
+          },
+          "admissionType": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid",
+              "external"
+            ],
+            "default": "free"
+          },
+          "photoKey": {
+            "type": "string"
+          },
+          "externalUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "const": ""
+              }
+            ]
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TierInput"
+            }
+          }
+        },
+        "required": [
+          "organizationId",
+          "title",
+          "category",
+          "description",
+          "venueName",
+          "city",
+          "state",
+          "startsAt"
+        ]
+      },
+      "RegisterAttendee": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attendeeName": {
+            "type": "string",
+            "minLength": 2
+          },
+          "attendeeEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1
+          },
+          "tierId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "userId": {
+            "$ref": "#/components/schemas/Identifier"
+          }
+        },
+        "required": [
+          "attendeeName",
+          "attendeeEmail"
+        ]
+      },
+      "CheckoutInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "tierIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 1
+          },
+          "customerEmail": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mock": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "sessionId",
+          "url"
+        ]
+      },
+      "StripeEvent": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "const": "event"
+          },
+          "type": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer"
+          },
+          "livemode": {
+            "const": false
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "object": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "object"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "data",
+          "livemode"
+        ]
+      },
+      "WebhookResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "const": true
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "deduplicated": {
+            "const": true
+          }
+        },
+        "required": [
+          "received",
+          "eventId"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "organizerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "concert",
+              "worship",
+              "bible",
+              "conference",
+              "youth"
+            ]
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "venueName": {
+            "type": "string"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "startsAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "endsAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "admissionType": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid",
+              "external"
+            ]
+          },
+          "photoKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending_review",
+              "approved",
+              "rejected",
+              "canceled"
+            ]
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "organizerId",
+          "title",
+          "slug",
+          "category",
+          "tagline",
+          "description",
+          "venueName",
+          "address",
+          "city",
+          "state",
+          "startsAt",
+          "endsAt",
+          "timezone",
+          "admissionType",
+          "photoKey",
+          "externalUrl",
+          "status",
+          "createdAt"
+        ]
+      },
+      "EventDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "organizerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "concert",
+              "worship",
+              "bible",
+              "conference",
+              "youth"
+            ]
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "venueName": {
+            "type": "string"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "startsAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "endsAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "admissionType": {
+            "type": "string",
+            "enum": [
+              "free",
+              "paid",
+              "external"
+            ]
+          },
+          "photoKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "pending_review",
+              "approved",
+              "rejected",
+              "canceled"
+            ]
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "organizerName": {
+            "type": "string"
+          },
+          "organizerKind": {
+            "type": "string"
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tier"
+            }
+          },
+          "totalRegistered": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "organizerId",
+          "title",
+          "slug",
+          "category",
+          "tagline",
+          "description",
+          "venueName",
+          "address",
+          "city",
+          "state",
+          "startsAt",
+          "endsAt",
+          "timezone",
+          "admissionType",
+          "photoKey",
+          "externalUrl",
+          "status",
+          "createdAt",
+          "organizerName",
+          "organizerKind",
+          "tiers",
+          "totalRegistered"
+        ]
+      },
+      "EventListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventDetails"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ListMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ]
+      },
+      "EventResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventDetails"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateEventResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "event": {
+                "$ref": "#/components/schemas/Event"
+              },
+              "tiers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Tier"
+                }
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "event",
+              "tiers",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "Registration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "tierId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attendeeName": {
+            "type": "string"
+          },
+          "attendeeEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "qrToken": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "checkedInAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "tierId",
+          "userId",
+          "attendeeName",
+          "attendeeEmail",
+          "quantity",
+          "qrToken",
+          "status",
+          "checkedInAt",
+          "createdAt"
+        ]
+      },
+      "RegistrationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "registration": {
+                "$ref": "#/components/schemas/Registration"
+              },
+              "isDuplicate": {
+                "type": "boolean"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "registration",
+              "isDuplicate",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "category": {
+        "type": "string",
+        "enum": [
+          "concert",
+          "worship",
+          "bible",
+          "conference",
+          "youth"
+        ]
+      },
+      "city": {
+        "type": "string",
+        "minLength": 2
+      }
+    },
+    "securitySchemes": {
+      "BrowserSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__session",
+        "description": "HMAC signed session ID verified against D1. Not proof of identity at session issuance."
+      },
+      "StripeSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Stripe-Signature",
+        "description": "HMAC SHA256 over timestamp and exact raw request body. Replay tolerance enforced. Test events only."
+      }
+    },
+    "responses": {
+      "LegacyError": {
+        "description": "Documented API failure. Internal details are suppressed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LegacyError"
+            }
+          }
+        }
+      },
+      "SimpleError": {
+        "description": "Documented API failure. Internal details are suppressed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/SimpleError"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Event identifier; public detail additionally accepts a slug.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque case-sensitive resource identifier; never parse for authority."
+        }
+      }
+    }
+  }
+}

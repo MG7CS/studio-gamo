@@ -1,0 +1,48 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: registerAttendee
+  tags:
+    - Live
+  summary: Register for a free event
+  description: Sequential duplicate email/event requests return 200 with existing
+    pass. Public registration; userId is legacy untrusted input and a known
+    reconciliation finding. Capacity serialization and duplicate pass disclosure
+    need policy/technical resolution.
+  security: []
+  x-application: live
+  x-status: implemented
+  x-authorization: Public
+  x-idempotency: "Natural key: event ID plus lowercase trimmed email. Sequential
+    retries only; concurrent replay behavior incomplete."
+  x-source: apps/live/src/pages/api/events/[id]/register.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/RegistrationResponse.yaml
+    "201":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/RegistrationResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "404":
+      $ref: ../components/responses/LegacyError.yaml
+    "409":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/live/RegisterAttendee.yaml

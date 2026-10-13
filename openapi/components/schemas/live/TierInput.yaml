@@ -1,0 +1,18 @@
+type: object
+additionalProperties: false
+properties:
+  name:
+    type: string
+    minLength: 1
+  priceCents:
+    type: integer
+    minimum: 0
+    default: 0
+  capacity:
+    type: integer
+    minimum: 1
+    default: 100
+  note:
+    type: string
+required:
+  - name

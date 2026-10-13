@@ -1,0 +1,5 @@
+description: Documented API failure. Internal details are suppressed.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/shared/LegacyError.yaml

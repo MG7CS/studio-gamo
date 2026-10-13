@@ -81,3 +81,7 @@ Blocked until nonprofit formation, tax-exempt recognition (or counsel-approved i
 
 ## Approval Request
 This plan requires owner approval to proceed. Once approved, the autonomous execution will resume, starting with Phase 1 (Database and Authentication integration) and proceeding through the remaining phases locally.
+
+## Evidence correction after contract adoption — 2026-10-13
+
+The completion labels above describe local service foundations. They do not prove verified user identity, staff mapping/RBAC, browser-to-Worker integration, capacity-safe registration or full financial fulfillment. See the authoritative [API_INVENTORY.md](API_INVENTORY.md) and [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md). Complete contract foundation/reconciliation before the independent security and reliability audit, then resolve the recorded blockers before opening persistent workflows to real users.

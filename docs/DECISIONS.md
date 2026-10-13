@@ -54,3 +54,7 @@
 - **Demo identity:** one fixed fictional persona, a persistent demo banner, `noindex` on every dashboard and a switcher that only changes the page viewed. No impersonation path to a real user exists.
 - **One account, many roles:** personal account · active role · active organization · program workspace · permission level are distinct concepts. Future server-side boundaries: [DASHBOARD_ARCHITECTURE.md](DASHBOARD_ARCHITECTURE.md).
 - **Consolidation:** Live organizer pages merged into `/organizer/*`; Academy `/dashboard` → `/family`; Live `/my-tickets` → `/me/tickets`; Worship `/church/roster` → `/church/musicians`; Worship `/admin` prototypes → `apps/admin` (port 4326).
+
+### 2026-10-13 — OpenAPI-first HTTP contracts
+
+Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooling, generated `@gamo/api-contracts` types/openapi-fetch client, and build-time Ajv standalone validators. Keep six domain-owned Astro applications and existing `/api` URLs/legacy envelopes. Generate filtered public and restricted internal references; publish neither automatically. Prefer a focused OpenAPI JSON Schema HTTP runner with isolated SQLite and provider mocks for initial coverage; Cloudflare concurrency and actual provider sandbox tests remain separate requirements. Pin TypeScript 5.9.3 because openapi-typescript depends on its compiler API. Production Node SQLite imports are removed. See `docs/OPENAPI_ARCHITECTURE.md` for compatibility, security and idempotency policies.

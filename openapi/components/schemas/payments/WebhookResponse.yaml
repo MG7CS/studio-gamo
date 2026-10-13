@@ -1,0 +1,14 @@
+type: object
+additionalProperties: false
+properties:
+  received:
+    const: true
+  eventId:
+    type: string
+  type:
+    type: string
+  deduplicated:
+    const: true
+required:
+  - received
+  - eventId

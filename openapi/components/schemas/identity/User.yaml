@@ -1,0 +1,27 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  email:
+    type: string
+    format: email
+  displayName:
+    anyOf:
+      - type: string
+      - type: "null"
+  verifiedEmailAt:
+    anyOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: "null"
+  status:
+    type: string
+  createdAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - id
+  - email
+  - displayName
+  - verifiedEmailAt
+  - status
+  - createdAt

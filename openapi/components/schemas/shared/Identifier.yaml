@@ -1,0 +1,3 @@
+type: string
+minLength: 1
+description: Opaque case-sensitive resource identifier; never parse for authority.

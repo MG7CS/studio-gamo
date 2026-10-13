@@ -1,0 +1,17 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  sessionId:
+    type: string
+  url:
+    anyOf:
+      - type: string
+      - type: "null"
+  mock:
+    type: boolean
+required:
+  - success
+  - sessionId
+  - url

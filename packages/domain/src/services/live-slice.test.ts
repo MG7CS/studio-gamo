@@ -1,3 +1,4 @@
+import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
 /**
  * End-to-End Functional Slice Test: Gamo Live Event Lifecycle & Attendee Registration
  *
@@ -18,7 +19,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createInMemoryD1, applyMigrations, createDb, type GamoDatabase } from '@gamo/db';
+import { createDb, type GamoDatabase } from '@gamo/db';
 import { LiveService } from './live.ts';
 import { AdminService } from './admin.ts';
 import { IdentityService } from './identity.ts';

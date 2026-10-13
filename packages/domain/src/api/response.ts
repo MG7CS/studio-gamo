@@ -9,6 +9,7 @@
 
 import { ZodError } from 'zod';
 import { AuthError } from '@gamo/auth';
+import { ContractValidationError } from '@gamo/api-contracts/runtime';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -77,6 +78,9 @@ export function errorResponse(
  * Safely maps Zod errors to 400, AuthErrors to 401/403, and unexpected errors to 500.
  */
 export function handleApiError(err: unknown): Response {
+  if (err instanceof ContractValidationError) {
+    return errorResponse(err.code, err.message, err.status);
+  }
   if (err instanceof ZodError) {
     const formattedIssues = err.issues.map((issue) => ({
       field: issue.path.join('.'),
@@ -100,7 +104,7 @@ export function handleApiError(err: unknown): Response {
     if (err.message.includes('NOT_FOUND') || err.message.toLowerCase().includes('not found')) {
       return errorResponse('NOT_FOUND', err.message, 404);
     }
-    if (err.message.includes('ALREADY_EXISTS') || err.message.includes('duplicate')) {
+    if (err.message.includes('CONFLICT') || err.message.includes('ALREADY_EXISTS') || err.message.includes('duplicate')) {
       return errorResponse('CONFLICT', err.message, 409);
     }
     if (err.message.includes('Access denied') || err.message.includes('forbidden')) {
@@ -108,7 +112,7 @@ export function handleApiError(err: unknown): Response {
     }
 
     console.error('[API Route Internal Error]', err);
-    return errorResponse('INTERNAL_ERROR', err.message, 500);
+    return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500);
   }
 
   console.error('[API Route Unknown Error]', err);

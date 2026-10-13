@@ -1,3 +1,4 @@
+import { readContract, validateContract, ContractValidationError } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import {
@@ -7,7 +8,7 @@ import {
   handleApiError,
   errorResponse,
 } from '@gamo/domain';
-import { resolveAuth } from '@gamo/auth';
+import { requireOrgAccess } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -21,8 +22,8 @@ export const GET: APIRoute = async (context) => {
     const liveService = new LiveService(db);
 
     const url = new URL(context.request.url);
-    const category = url.searchParams.get('category') || undefined;
-    const city = url.searchParams.get('city') || undefined;
+    if (new Set(url.searchParams.keys()).size !== [...url.searchParams.keys()].length) throw new ContractValidationError();
+    const { category, city } = validateContract('EventFilters', Object.fromEntries(url.searchParams));
 
     const events = await liveService.listDiscoverableEvents({
       category,
@@ -50,20 +51,10 @@ export const POST: APIRoute = async (context) => {
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 
-    const body = await context.request.json().catch(() => ({}));
+    const body = await readContract(context.request, 'CreateEvent');
     const validated = createEventSchema.parse(body);
 
-    // Verify authenticated session or authorized organizer in development
-    const auth = await resolveAuth(context.request, db, runtimeEnv.SESSION_SECRET);
-    const isDev = Boolean(import.meta.env?.DEV);
-
-    if (!auth && !isDev && !context.request.headers.get('x-demo-organizer')) {
-      return errorResponse(
-        'UNAUTHENTICATED',
-        'Authentication required to propose Christian gatherings on Gamo Live.',
-        401
-      );
-    }
+    await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], runtimeEnv.SESSION_SECRET);
 
     const { event, tiers } = await liveService.createEvent(validated.organizationId, validated);
 

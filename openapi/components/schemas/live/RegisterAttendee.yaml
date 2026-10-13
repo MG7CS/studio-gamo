@@ -1,0 +1,21 @@
+type: object
+additionalProperties: false
+properties:
+  attendeeName:
+    type: string
+    minLength: 2
+  attendeeEmail:
+    type: string
+    format: email
+  quantity:
+    type: integer
+    minimum: 1
+    maximum: 10
+    default: 1
+  tierId:
+    $ref: ../shared/Identifier.yaml
+  userId:
+    $ref: ../shared/Identifier.yaml
+required:
+  - attendeeName
+  - attendeeEmail

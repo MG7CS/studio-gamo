@@ -1,0 +1,22 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      registration:
+        $ref: ../live/Registration.yaml
+      isDuplicate:
+        type: boolean
+      message:
+        type: string
+    required:
+      - registration
+      - isDuplicate
+      - message
+required:
+  - success
+  - data

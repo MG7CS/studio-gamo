@@ -1,0 +1,130 @@
+openapi: 3.1.1
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Gamo Studios HTTP API — local foundation
+  version: 0.1.0
+  description: Authoritative contract for a developing Christian nonprofit.
+    Existing routes only; demo/incomplete operations are explicitly labeled.
+    Internal operations must not be published. No production readiness or
+    payment authorization implied.
+  license:
+    name: Private repository; no public API license
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local Gamo Live; each path specifies its owning application.
+security: []
+tags:
+  - name: Identity and Accounts
+    description: Identity and Accounts domain. No endpoint existence implied by tag.
+  - name: Organizations and Memberships
+    description: Organizations and Memberships domain. No endpoint existence implied by tag.
+  - name: Worship
+    description: Worship domain. No endpoint existence implied by tag.
+  - name: Academy
+    description: Academy domain. No endpoint existence implied by tag.
+  - name: Live
+    description: Live domain. No endpoint existence implied by tag.
+  - name: Production
+    description: Production domain. No endpoint existence implied by tag.
+  - name: Partnerships
+    description: Partnerships domain. No endpoint existence implied by tag.
+  - name: Media
+    description: Media domain. No endpoint existence implied by tag.
+  - name: Administration
+    description: Administration domain. No endpoint existence implied by tag.
+  - name: Payments
+    description: Payments domain. No endpoint existence implied by tag.
+paths:
+  /api/auth/session:
+    $ref: paths/auth-session.yaml
+  /api/events:
+    $ref: paths/events.yaml
+  /api/events/{id}:
+    $ref: paths/events-id.yaml
+  /api/events/{id}/register:
+    $ref: paths/events-id-register.yaml
+  /api/checkout/session:
+    $ref: paths/checkout-session.yaml
+  /api/webhook/stripe:
+    $ref: paths/webhook-stripe.yaml
+  /api/check-in/confirm:
+    $ref: paths/check-in-confirm.yaml
+  /api/check-in/fail:
+    $ref: paths/check-in-fail.yaml
+  /api/events/pending:
+    $ref: paths/events-pending.yaml
+  /api/events/{id}/review:
+    $ref: paths/events-id-review.yaml
+components:
+  schemas:
+    Identifier:
+      $ref: components/schemas/shared/Identifier.yaml
+    Timestamp:
+      $ref: components/schemas/shared/Timestamp.yaml
+    ListMeta:
+      $ref: components/schemas/shared/ListMeta.yaml
+    LegacyError:
+      $ref: components/schemas/shared/LegacyError.yaml
+    SimpleError:
+      $ref: components/schemas/shared/SimpleError.yaml
+    Problem:
+      $ref: components/schemas/shared/Problem.yaml
+    User:
+      $ref: components/schemas/identity/User.yaml
+    SessionInput:
+      $ref: components/schemas/identity/SessionInput.yaml
+    SessionResponse:
+      $ref: components/schemas/identity/SessionResponse.yaml
+    LogoutResponse:
+      $ref: components/schemas/identity/LogoutResponse.yaml
+    TierInput:
+      $ref: components/schemas/live/TierInput.yaml
+    Tier:
+      $ref: components/schemas/live/Tier.yaml
+    CreateEvent:
+      $ref: components/schemas/live/CreateEvent.yaml
+    RegisterAttendee:
+      $ref: components/schemas/live/RegisterAttendee.yaml
+    ReviewDecision:
+      $ref: components/schemas/administration/ReviewDecision.yaml
+    CheckoutInput:
+      $ref: components/schemas/payments/CheckoutInput.yaml
+    CheckoutResponse:
+      $ref: components/schemas/payments/CheckoutResponse.yaml
+    StripeEvent:
+      $ref: components/schemas/payments/StripeEvent.yaml
+    WebhookResponse:
+      $ref: components/schemas/payments/WebhookResponse.yaml
+    Event:
+      $ref: components/schemas/live/Event.yaml
+    EventDetails:
+      $ref: components/schemas/live/EventDetails.yaml
+    EventListResponse:
+      $ref: components/schemas/live/EventListResponse.yaml
+    EventResponse:
+      $ref: components/schemas/live/EventResponse.yaml
+    CreateEventResponse:
+      $ref: components/schemas/live/CreateEventResponse.yaml
+    Registration:
+      $ref: components/schemas/live/Registration.yaml
+    RegistrationResponse:
+      $ref: components/schemas/live/RegistrationResponse.yaml
+    PendingResponse:
+      $ref: components/schemas/administration/PendingResponse.yaml
+    ReviewResponse:
+      $ref: components/schemas/administration/ReviewResponse.yaml
+    EventFilters:
+      $ref: components/schemas/live/EventFilters.yaml
+  securitySchemes:
+    BrowserSession:
+      $ref: components/security/BrowserSession.yaml
+    CloudflareAccess:
+      $ref: components/security/CloudflareAccess.yaml
+    StripeSignature:
+      $ref: components/security/StripeSignature.yaml
+    EmergencyBearer:
+      $ref: components/security/EmergencyBearer.yaml
+    EmergencyKey:
+      $ref: components/security/EmergencyKey.yaml
+    EmergencyBasic:
+      $ref: components/security/EmergencyBasic.yaml

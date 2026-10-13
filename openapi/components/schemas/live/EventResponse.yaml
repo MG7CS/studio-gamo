@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    $ref: ../live/EventDetails.yaml
+required:
+  - success
+  - data

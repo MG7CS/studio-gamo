@@ -236,3 +236,11 @@ The first vertical slice connects real D1 persistence across the Gamo Live lifec
    - Records attendee registration in D1.
    - Sends transactional confirmation email via Resend client (with safe mock fallback).
 5. **Dashboard Analytics**: Organizer dashboard queries live D1 counts for registration totals and capacity.
+
+## Contract reconciliation correction — 2026-10-13
+
+[OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md) and [API_INVENTORY.md](API_INVENTORY.md) supersede inaccurate completion claims in §§4–8 above. `openapi/root.yaml` is authoritative for HTTP routes, authentication, payloads and responses. Actual Live routes use `/api/events`; actual admin routes use `/api/events/...` on the admin origin, not `/api/live` or `/api/admin` prefixes. Twelve existing method/path operations are specified and initially tested over loopback HTTP.
+
+The previous architecture lists intent as though implemented: no client Idempotency-Key handling, no verified email login, no universal per-route role enforcement, no atomically reserved inventory, no ticket fulfillment/refund reversal or failed webhook retry state machine. R2 upload-ticket and confirm are service/workflow concepts without HTTP routes. KV caching/rate limiting is proposed, not enforced. `musician_auditions`, check-in lat/lng and some constraints/indexes described above are not in the actual migrated schema; consult tracked SQL and Drizzle, and reconcile with explicit future migrations. Financial amounts remain integer minor units; unapproved webhook deductions are removed. Production and fundraising gates are unchanged.
+
+Runtime input checks use OpenAPI-derived standalone validators and existing Zod domain transformations. Generated clients live in `@gamo/api-contracts`. Node SQLite is test-only; Worker DB binding failure is explicit. Public and internal references are generated separately; neither is published by this work. Domain/HTTP tests do not substitute for independent security/reliability review, Cloudflare runtime verification or real provider sandbox evidence.

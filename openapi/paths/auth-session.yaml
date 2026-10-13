@@ -1,0 +1,59 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local web application
+post:
+  operationId: createDemoSession
+  tags:
+    - Identity and Accounts
+  summary: Create a local demo session
+  description: Email-only provisioning is NOT identity verification. Explicit
+    local demo environment only; production returns 403. Credential or
+    magic-link flow deferred.
+  security: []
+  x-application: web
+  x-status: local-demo-only
+  x-authorization: Public
+  x-idempotency: Unsupported; client keys are ignored.
+  x-source: apps/web/src/pages/api/auth/session.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/identity/SessionResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/identity/SessionInput.yaml
+delete:
+  operationId: revokeSession
+  tags:
+    - Identity and Accounts
+  summary: Revoke current session
+  description: Revoke current session
+  security: []
+  x-application: web
+  x-status: implemented
+  x-authorization: Public
+  x-idempotency: Revocation is repeatable, including absent or invalid cookies.
+  x-source: apps/web/src/pages/api/auth/session.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/identity/LogoutResponse.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
