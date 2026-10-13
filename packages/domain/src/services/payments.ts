@@ -52,24 +52,11 @@ export class PaymentService {
     eventId: string,
     eventType: string
   ): Promise<{ isDuplicate: boolean }> {
-    const [existing] = await this.db
-      .select()
-      .from(stripeWebhookEvents)
-      .where(eq(stripeWebhookEvents.id, eventId))
-      .limit(1);
-
-    if (existing) {
-      return { isDuplicate: true };
-    }
-
-    await this.db.insert(stripeWebhookEvents).values({
-      id: eventId,
-      eventType,
-      processedAt: new Date(),
-      status: 'processed',
-    });
-
-    return { isDuplicate: false };
+    // Only used to acknowledge ignored events; financial fulfillment remains disabled.
+    const inserted = await this.db.insert(stripeWebhookEvents).values({
+      id: eventId, eventType, processedAt: new Date(), status: 'ignored',
+    }).onConflictDoNothing().returning({id: stripeWebhookEvents.id});
+    return {isDuplicate: inserted.length === 0};
   }
 
   /**

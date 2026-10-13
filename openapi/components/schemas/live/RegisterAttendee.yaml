@@ -14,8 +14,6 @@ properties:
     default: 1
   tierId:
     $ref: ../shared/Identifier.yaml
-  userId:
-    $ref: ../shared/Identifier.yaml
 required:
   - attendeeName
   - attendeeEmail

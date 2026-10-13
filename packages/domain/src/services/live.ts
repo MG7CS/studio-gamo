@@ -68,6 +68,7 @@ export class LiveService {
     organizerOrgId: string,
     input: CreateEventInput
   ): Promise<{ event: LiveEvent; tiers: TicketTier[] }> {
+    if (!Number.isFinite(input.startsAt.getTime()) || input.startsAt <= new Date() || (input.endsAt && input.endsAt <= input.startsAt)) throw new Error('CONFLICT: Invalid event schedule.');
     // 1. Ensure organizer profile exists for this organization
     let [organizer] = await this.db
       .select()
@@ -279,6 +280,7 @@ export class LiveService {
       throw new Error('CONFLICT: Event is not open for registration.');
     }
 
+    if (event.startsAt <= new Date()) throw new Error('CONFLICT: Registration has closed.');
     if (event.admissionType !== 'free') throw new Error('CONFLICT: Free registration is unavailable for this event.');
 
     // 2. Check for duplicate registration by email
@@ -320,28 +322,22 @@ export class LiveService {
     const regId = `reg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const qrToken = generateQrToken(eventId);
 
-    // 4. Record registration
-    await this.db.insert(eventRegistrations).values({
-      id: regId,
-      eventId,
-      tierId: tierId || null,
-      userId: input.userId || null,
-      attendeeName: input.attendeeName.trim(),
-      attendeeEmail: input.attendeeEmail.toLowerCase().trim(),
-      quantity: input.quantity,
-      qrToken,
-      status: 'confirmed',
-      createdAt: new Date(),
-    });
-
-    // 5. Increment reserved count on tier if present
-    if (tierId) {
-      await this.db
-        .update(ticketTiers)
-        .set({
-          reservedCount: sql`${ticketTiers.reservedCount} + ${input.quantity}`,
-        })
-        .where(eq(ticketTiers.id, tierId));
+    // The insert trigger reserves inventory and queues notification in the same transaction.
+    try {
+      await this.db.insert(eventRegistrations).values({
+        id: regId, eventId, tierId: tierId || null, userId: null,
+        attendeeName: input.attendeeName.trim(), attendeeEmail: input.attendeeEmail.toLowerCase().trim(),
+        quantity: input.quantity, qrToken, status: 'confirmed', createdAt: new Date(),
+      });
+    } catch (error) {
+      // A racing duplicate may win the unique key. Never repeat its side effects.
+      const [duplicate] = await this.db.select().from(eventRegistrations).where(and(
+        eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attendeeEmail, input.attendeeEmail.toLowerCase().trim())
+      )).limit(1);
+      if (duplicate) return { registration: duplicate, event, isDuplicate: true };
+      const cause = String((error as Error)?.cause ?? error);
+      if (cause.includes('REGISTRATION_')) throw new Error('CONFLICT: Registration unavailable.');
+      throw error;
     }
 
     const [createdReg] = await this.db

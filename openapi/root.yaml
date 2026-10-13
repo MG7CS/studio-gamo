@@ -2,11 +2,12 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 0.1.0
-  description: Authoritative contract for a developing Christian nonprofit.
-    Existing routes only; demo/incomplete operations are explicitly labeled.
-    Internal operations must not be published. No production readiness or
-    payment authorization implied.
+  version: 1.2.0
+  description: Authoritative contract for Gamo Studios, a Christian
+    mission-driven organization whose final legal incorporation structure and
+    tax status remain undecided. Demo/incomplete operations are explicitly
+    labeled. Internal operations must not be published. No production readiness
+    or payment authorization implied.
   license:
     name: Private repository; no public API license
 servers:
@@ -37,6 +38,14 @@ tags:
 paths:
   /api/auth/session:
     $ref: paths/auth-session.yaml
+  /api/auth/challenge:
+    $ref: paths/auth-challenge.yaml
+  /api/auth/verify:
+    $ref: paths/auth-verify.yaml
+  /api/auth/me:
+    $ref: paths/auth-me.yaml
+  /api/organizations:
+    $ref: paths/organizations.yaml
   /api/events:
     $ref: paths/events.yaml
   /api/events/{id}:
@@ -55,6 +64,8 @@ paths:
     $ref: paths/events-pending.yaml
   /api/events/{id}/review:
     $ref: paths/events-id-review.yaml
+  /api/staff/provision:
+    $ref: paths/staff-provision.yaml
 components:
   schemas:
     Identifier:
@@ -77,6 +88,22 @@ components:
       $ref: components/schemas/identity/SessionResponse.yaml
     LogoutResponse:
       $ref: components/schemas/identity/LogoutResponse.yaml
+    AuthChallengeInput:
+      $ref: components/schemas/identity/AuthChallengeInput.yaml
+    AuthChallengeResponse:
+      $ref: components/schemas/identity/AuthChallengeResponse.yaml
+    AuthVerifyInput:
+      $ref: components/schemas/identity/AuthVerifyInput.yaml
+    OrganizationMembershipSummary:
+      $ref: components/schemas/identity/OrganizationMembershipSummary.yaml
+    AuthMeResponse:
+      $ref: components/schemas/identity/AuthMeResponse.yaml
+    Organization:
+      $ref: components/schemas/organizations/Organization.yaml
+    CreateOrganizationInput:
+      $ref: components/schemas/organizations/CreateOrganizationInput.yaml
+    CreateOrganizationResponse:
+      $ref: components/schemas/organizations/CreateOrganizationResponse.yaml
     TierInput:
       $ref: components/schemas/live/TierInput.yaml
     Tier:
@@ -87,6 +114,10 @@ components:
       $ref: components/schemas/live/RegisterAttendee.yaml
     ReviewDecision:
       $ref: components/schemas/administration/ReviewDecision.yaml
+    ProvisionStaffInput:
+      $ref: components/schemas/administration/ProvisionStaffInput.yaml
+    ProvisionStaffResponse:
+      $ref: components/schemas/administration/ProvisionStaffResponse.yaml
     CheckoutInput:
       $ref: components/schemas/payments/CheckoutInput.yaml
     CheckoutResponse:

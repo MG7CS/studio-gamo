@@ -16,6 +16,7 @@ import {
   roles,
   organizations,
   organizationMembers,
+  externalIdentities,
   type GamoDatabase,
 } from '@gamo/db';
 
@@ -23,7 +24,9 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  verifiedEmailAt: Date | null;
   status: string;
+  createdAt: Date;
 }
 
 export interface OrgMembership {
@@ -31,6 +34,8 @@ export interface OrgMembership {
   role: string;
   orgName: string;
   orgSlug: string;
+  orgType: string;
+  status: string;
 }
 
 export interface SessionData {
@@ -56,12 +61,13 @@ export interface CookieOptions {
 
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const DEFAULT_COOKIE_NAME = '__session';
-const FALLBACK_SECRET = 'gamo_studios_development_signing_secret_do_not_use_in_prod_32';
+
 
 /**
  * Signs a payload with HMAC-SHA256 using Web Crypto API.
  */
-export async function signValue(value: string, secret: string): Promise<string> {
+export async function signValue(value: string, secret?: string): Promise<string> {
+  if (!secret || secret.length < 32) throw new Error('Session signing secret unavailable.');
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
@@ -83,7 +89,7 @@ export async function signValue(value: string, secret: string): Promise<string> 
 /**
  * Constant-time comparison to prevent timing attacks.
  */
-function constantTimeCompare(a: string, b: string): boolean {
+export function constantTimeCompare(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) {
@@ -95,7 +101,7 @@ function constantTimeCompare(a: string, b: string): boolean {
 /**
  * Verifies an HMAC-SHA256 signed value and returns the original value if valid.
  */
-export async function verifySignedValue(signedValue: string, secret: string): Promise<string | null> {
+export async function verifySignedValue(signedValue: string, secret?: string): Promise<string | null> {
   const lastDot = signedValue.lastIndexOf('.');
   if (lastDot === -1) return null;
 
@@ -126,9 +132,10 @@ export function generateSessionId(): string {
 export async function createSession(
   db: GamoDatabase,
   userId: string,
-  secret: string = FALLBACK_SECRET,
+  secret?: string,
   options?: SessionOptions
 ): Promise<{ sessionId: string; cookieValue: string; expiresAt: Date }> {
+  if (!secret || secret.length < 32) throw new Error('Session signing secret unavailable.');
   const sessionId = generateSessionId();
   const ttl = options?.ttlSeconds ?? DEFAULT_TTL_SECONDS;
   const expiresAt = new Date(Date.now() + ttl * 1000);
@@ -152,7 +159,7 @@ export async function createSession(
 export async function validateSession(
   db: GamoDatabase,
   cookieValue: string | undefined | null,
-  secret: string = FALLBACK_SECRET
+  secret?: string
 ): Promise<SessionData | null> {
   if (!cookieValue) return null;
 
@@ -192,7 +199,7 @@ export async function validateSession(
     })
     .from(userRoles)
     .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(eq(userRoles.userId, userRecord.id));
+    .where(and(eq(userRoles.userId, userRecord.id), isNull(userRoles.scopeType), isNull(userRoles.scopeId)));
 
   const roleCodes = userRoleRows.map((r) => r.code);
 
@@ -203,13 +210,16 @@ export async function validateSession(
       role: organizationMembers.role,
       orgName: organizations.name,
       orgSlug: organizations.slug,
+      orgType: organizations.type,
+      status: organizationMembers.status,
     })
     .from(organizationMembers)
     .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
     .where(
       and(
         eq(organizationMembers.userId, userRecord.id),
-        eq(organizationMembers.status, 'active')
+        eq(organizationMembers.status, 'active'),
+        eq(organizations.status, 'active')
       )
     );
 
@@ -218,7 +228,9 @@ export async function validateSession(
       id: userRecord.id,
       email: userRecord.email,
       displayName: userRecord.displayName,
+      verifiedEmailAt: userRecord.verifiedEmailAt ?? null,
       status: userRecord.status,
+      createdAt: userRecord.createdAt,
     },
     roles: roleCodes,
     memberships: memberRows,
@@ -308,7 +320,7 @@ export function extractSessionCookie(request: Request): string | null {
   for (const cookie of cookies) {
     const [name, ...val] = cookie.trim().split('=');
     if (name === DEFAULT_COOKIE_NAME) {
-      return decodeURIComponent(val.join('='));
+      try { return decodeURIComponent(val.join('=')); } catch { return null; }
     }
   }
   return null;
@@ -349,8 +361,7 @@ export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
   if (!auth) return false;
   return (
     auth.roles.includes('superadmin') ||
-    auth.roles.includes('staff_reviewer') ||
-    auth.roles.includes('finance_manager')
+    auth.roles.includes('staff_reviewer')
   );
 }
 
@@ -392,9 +403,25 @@ export async function requireAuth(
   db: GamoDatabase,
   secret?: string
 ): Promise<SessionData> {
+  requireSameOrigin(request);
   const auth = await resolveAuth(request, db, secret);
   if (!auth) {
     throw new AuthError('UNAUTHENTICATED', 'Authentication required for this operation.', 401);
+  }
+  return auth;
+}
+
+/**
+ * Enforces authenticated session with verified email; throws AuthError(FORBIDDEN, 403) if email is unverified.
+ */
+export async function requireVerifiedAuth(
+  request: Request,
+  db: GamoDatabase,
+  secret?: string
+): Promise<SessionData> {
+  const auth = await requireAuth(request, db, secret);
+  if (!auth.user.verifiedEmailAt) {
+    throw new AuthError('FORBIDDEN', 'Verified email address required for this operation.', 403);
   }
   return auth;
 }
@@ -412,6 +439,70 @@ export async function requireStaff(
     throw new AuthError('FORBIDDEN', 'Administrative or staff permissions required.', 403);
   }
   return auth;
+}
+
+/**
+ * Enforces superadmin access.
+ */
+export async function requireSuperadmin(
+  request: Request,
+  db: GamoDatabase,
+  secret?: string
+): Promise<SessionData> {
+  const auth = await requireStaff(request, db, secret);
+  if (!auth.roles.includes('superadmin')) {
+    throw new AuthError('FORBIDDEN', 'Superadmin permissions required.', 403);
+  }
+  return auth;
+}
+
+/**
+ * Verifies that Cloudflare Access boundary claims (email and immutable sub) match the D1 staff session user.
+ */
+export async function verifyStaffBoundaryIdentity(
+  db: GamoDatabase,
+  auth: SessionData,
+  locals: Record<string, any> | undefined
+): Promise<void> {
+  const accessEmail = locals?.staffEmail;
+  if (accessEmail && accessEmail.toLowerCase() !== auth.user.email.toLowerCase()) {
+    throw new AuthError('FORBIDDEN', 'Staff identities do not match.', 403);
+  }
+
+  const accessSubject = locals?.staffSubject;
+  if (accessSubject) {
+    // 1. Check if this user has a provisioned cloudflare_access identity
+    const [userBinding] = await db
+      .select()
+      .from(externalIdentities)
+      .where(
+        and(
+          eq(externalIdentities.userId, auth.user.id),
+          eq(externalIdentities.provider, 'cloudflare_access')
+        )
+      )
+      .limit(1);
+
+    if (userBinding && userBinding.providerSubject !== accessSubject) {
+      throw new AuthError('FORBIDDEN', 'Staff Access subject does not match provisioned identity.', 403);
+    }
+
+    // 2. Check if this accessSubject is already bound to a different user
+    const [subjectBinding] = await db
+      .select()
+      .from(externalIdentities)
+      .where(
+        and(
+          eq(externalIdentities.provider, 'cloudflare_access'),
+          eq(externalIdentities.providerSubject, accessSubject)
+        )
+      )
+      .limit(1);
+
+    if (subjectBinding && subjectBinding.userId !== auth.user.id) {
+      throw new AuthError('FORBIDDEN', 'Staff Access subject is bound to a different user.', 403);
+    }
+  }
 }
 
 /**
@@ -433,4 +524,13 @@ export async function requireOrgAccess(
     );
   }
   return auth;
+}
+
+/** Reject browser cross-origin mutations, including sibling subdomains. */
+export function requireSameOrigin(request: Request): void {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return;
+  const origin = request.headers.get('origin');
+  if ((origin && origin !== new URL(request.url).origin) || request.headers.get('sec-fetch-site') === 'cross-site') {
+    throw new AuthError('FORBIDDEN', 'Cross-origin mutation denied.', 403);
+  }
 }

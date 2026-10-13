@@ -2,8 +2,8 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "0.1.0",
-    "description": "Authoritative contract for a developing Christian nonprofit. Existing routes only; demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
+    "version": "1.2.0",
+    "description": "Authoritative contract for Gamo Studios, a Christian mission-driven organization whose final legal incorporation structure and tax status remain undecided. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
     }
@@ -93,6 +93,232 @@
           },
           "500": {
             "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/auth/challenge": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "requestAuthChallenge",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Issue an email verification challenge",
+        "description": "Generates a time-bounded 6-digit verification code (hashed with SHA-256 in D1 auth_challenges) and dispatches it via email. Enforces per-email rate limiting.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Public (same-origin enforced)",
+        "x-idempotency": "Rate-limited per email (maximum 5 challenges per 15 minutes).",
+        "x-source": "apps/web/src/pages/api/auth/challenge.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthChallengeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthChallengeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "verifyAuthChallenge",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Verify email challenge code and establish authenticated session",
+        "description": "Verifies the 6-digit challenge code against D1 auth_challenges, enforces expiry and attempt lockout, sets users.verified_email_at, revokes any presented prior session cookie, and issues a new host-only HttpOnly __session cookie.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Public (same-origin enforced; valid unconsumed challenge code required)",
+        "x-idempotency": "Single-use challenge code; replay after consumption returns 401.",
+        "x-source": "apps/web/src/pages/api/auth/verify.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerifyInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "get": {
+        "operationId": "getCurrentIdentity",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Inspect current authenticated user, roles, and organization memberships",
+        "description": "Validates the active D1 session cookie and returns the authenticated user profile, global system roles, and active organization memberships.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Active D1 session required.",
+        "x-idempotency": "Read-only.",
+        "x-source": "apps/web/src/pages/api/auth/me.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthMeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/organizations": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "createOrganization",
+        "tags": [
+          "Organizations and Memberships"
+        ],
+        "summary": "Onboard a church, ministry, academy partner, or sponsor organization",
+        "description": "Requires an authenticated session with a verified email address. Creates the organization, assigns the caller as active owner in organization_members, initializes an unverified organizer_profiles record, and records an audit log entry.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Active D1 session with verified email required.",
+        "x-idempotency": "Organization slug is globally unique; duplicate slug returns 409.",
+        "x-source": "apps/web/src/pages/api/organizations/index.ts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOrganizationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationInput"
+              }
+            }
           }
         }
       }
@@ -269,12 +495,12 @@
           "Live"
         ],
         "summary": "Register for a free event",
-        "description": "Sequential duplicate email/event requests return 200 with existing pass. Public registration; userId is legacy untrusted input and a known reconciliation finding. Capacity serialization and duplicate pass disclosure need policy/technical resolution.",
+        "description": "Public free registration. Never returns admission tokens or attendee records. Database enforces capacity and duplicate email/event uniqueness; confirmation is queued durably.",
         "security": [],
         "x-application": "live",
         "x-status": "implemented",
         "x-authorization": "Public",
-        "x-idempotency": "Natural key: event ID plus lowercase trimmed email. Sequential retries only; concurrent replay behavior incomplete.",
+        "x-idempotency": "Normalized email plus event; duplicate response contains no pass or personal data.",
         "x-source": "apps/live/src/pages/api/events/[id]/register.ts",
         "parameters": [
           {
@@ -340,7 +566,7 @@
           "Payments"
         ],
         "summary": "Create sandbox checkout",
-        "description": "Sandbox only. Event must exist and be approved, paid, with a valid server-priced tier. No inventory reservation, organizer authorization or client idempotency yet; not production ready.",
+        "description": "Checkout disabled until authoritative order, inventory, organizer permission and fulfillment are implemented. Valid requests return 503.",
         "security": [],
         "x-application": "live",
         "x-status": "implemented",
@@ -370,6 +596,9 @@
           },
           "500": {
             "$ref": "#/components/responses/SimpleError"
+          },
+          "503": {
+            "$ref": "#/components/responses/SimpleError"
           }
         },
         "requestBody": {
@@ -397,7 +626,7 @@
           "Payments"
         ],
         "summary": "Receive signed test Stripe event",
-        "description": "Signature verified on raw body; livemode=true rejected. Durable event-ID deduplication exists but claim-before-processing and partial writes are unresolved. No real ticket fulfillment, refund reversal or reservation release.",
+        "description": "Raw signature and sandbox verified. Financial events return 503 without marking processed; unsupported events safely deduplicated. No ticket or refund fulfillment.",
         "security": [
           {
             "StripeSignature": []
@@ -424,6 +653,9 @@
             "$ref": "#/components/responses/SimpleError"
           },
           "500": {
+            "$ref": "#/components/responses/SimpleError"
+          },
+          "503": {
             "$ref": "#/components/responses/SimpleError"
           }
         },
@@ -528,6 +760,86 @@
           "error"
         ]
       },
+      "User": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verifiedEmailAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "verifiedEmailAt",
+          "status",
+          "createdAt"
+        ]
+      },
+      "SessionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/User"
+              },
+              "sessionId": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "user",
+              "sessionId",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
       "LogoutResponse": {
         "type": "object",
         "additionalProperties": false,
@@ -544,6 +856,305 @@
               }
             },
             "required": [
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AuthChallengeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "login"
+            ],
+            "default": "login"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "AuthChallengeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "challengeId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "deliveryStatus": {
+                "type": "string",
+                "enum": [
+                  "sent",
+                  "simulated"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "challengeId",
+              "expiresAt",
+              "deliveryStatus",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AuthVerifyInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "minLength": 6,
+            "maxLength": 6
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ]
+      },
+      "OrganizationMembershipSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "organizationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "organizationSlug": {
+            "type": "string"
+          },
+          "organizationType": {
+            "type": "string",
+            "enum": [
+              "church",
+              "ministry",
+              "school",
+              "sponsor",
+              "other"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "coordinator",
+              "member"
+            ]
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "organizationId",
+          "organizationName",
+          "organizationSlug",
+          "organizationType",
+          "role",
+          "status"
+        ]
+      },
+      "AuthMeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "user": {
+                "$ref": "#/components/schemas/User"
+              },
+              "sessionId": {
+                "type": "string"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "memberships": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrganizationMembershipSummary"
+                }
+              }
+            },
+            "required": [
+              "user",
+              "sessionId",
+              "roles",
+              "memberships"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "Organization": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "church",
+              "ministry",
+              "school",
+              "sponsor",
+              "other"
+            ]
+          },
+          "verifiedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "type",
+          "verifiedAt",
+          "status",
+          "createdAt"
+        ]
+      },
+      "CreateOrganizationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "church",
+              "ministry",
+              "school",
+              "sponsor",
+              "other"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "type"
+        ]
+      },
+      "CreateOrganizationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "organization": {
+                "$ref": "#/components/schemas/Organization"
+              },
+              "membershipRole": {
+                "type": "string",
+                "const": "owner"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "organization",
+              "membershipRole",
               "message"
             ]
           }
@@ -742,9 +1353,6 @@
             "default": 1
           },
           "tierId": {
-            "$ref": "#/components/schemas/Identifier"
-          },
-          "userId": {
             "$ref": "#/components/schemas/Identifier"
           }
         },
@@ -981,6 +1589,7 @@
               "pending_review",
               "approved",
               "rejected",
+              "revision_requested",
               "canceled"
             ]
           },
@@ -1243,82 +1852,6 @@
           "data"
         ]
       },
-      "Registration": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Identifier"
-          },
-          "eventId": {
-            "$ref": "#/components/schemas/Identifier"
-          },
-          "tierId": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Identifier"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "userId": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Identifier"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "attendeeName": {
-            "type": "string"
-          },
-          "attendeeEmail": {
-            "type": "string",
-            "format": "email"
-          },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10
-          },
-          "qrToken": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "checkedInAt": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Timestamp"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/Timestamp"
-          }
-        },
-        "required": [
-          "id",
-          "eventId",
-          "tierId",
-          "userId",
-          "attendeeName",
-          "attendeeEmail",
-          "quantity",
-          "qrToken",
-          "status",
-          "checkedInAt",
-          "createdAt"
-        ]
-      },
       "RegistrationResponse": {
         "type": "object",
         "additionalProperties": false,
@@ -1330,9 +1863,6 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "registration": {
-                "$ref": "#/components/schemas/Registration"
-              },
               "isDuplicate": {
                 "type": "boolean"
               },
@@ -1341,7 +1871,6 @@
               }
             },
             "required": [
-              "registration",
               "isDuplicate",
               "message"
             ]

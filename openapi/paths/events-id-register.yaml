@@ -6,16 +6,15 @@ post:
   tags:
     - Live
   summary: Register for a free event
-  description: Sequential duplicate email/event requests return 200 with existing
-    pass. Public registration; userId is legacy untrusted input and a known
-    reconciliation finding. Capacity serialization and duplicate pass disclosure
-    need policy/technical resolution.
+  description: Public free registration. Never returns admission tokens or
+    attendee records. Database enforces capacity and duplicate email/event
+    uniqueness; confirmation is queued durably.
   security: []
   x-application: live
   x-status: implemented
   x-authorization: Public
-  x-idempotency: "Natural key: event ID plus lowercase trimmed email. Sequential
-    retries only; concurrent replay behavior incomplete."
+  x-idempotency: Normalized email plus event; duplicate response contains no pass
+    or personal data.
   x-source: apps/live/src/pages/api/events/[id]/register.ts
   parameters:
     - $ref: ../components/parameters/id.yaml

@@ -23,7 +23,7 @@ import { createDb, type GamoDatabase } from '@gamo/db';
 import { LiveService } from './live.ts';
 import { AdminService } from './admin.ts';
 import { IdentityService } from './identity.ts';
-import { createResendClient } from '@studio-gamo/integrations';
+import { NotificationService } from './notifications.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +32,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
   let liveService: LiveService;
   let adminService: AdminService;
   let identityService: IdentityService;
+  let notificationService: NotificationService;
   let organizerOrgId: string;
   let staffUserId: string;
 
@@ -44,19 +45,25 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     const sql0 = readFileSync(resolve(migrationDir, '0000_cooing_lilandra.sql'), 'utf-8');
     const sql1 = readFileSync(resolve(migrationDir, '0001_perpetual_caretaker.sql'), 'utf-8');
     const sql2 = readFileSync(resolve(migrationDir, '0002_complete_backend_foundation.sql'), 'utf-8');
-
-    await applyMigrations(d1, [sql0, sql1, sql2]);
+    const sql3 = readFileSync(resolve(migrationDir, '0003_registration_integrity.sql'), 'utf-8');
+    const sql4 = readFileSync(resolve(migrationDir, '0004_verified_auth_and_outbox.sql'), 'utf-8');
+    await applyMigrations(d1, [sql0, sql1, sql2, sql3, sql4]);
 
     db = createDb(d1);
     liveService = new LiveService(db);
     adminService = new AdminService(db);
     identityService = new IdentityService(db);
+    notificationService = new NotificationService(db);
 
-    // 3. Seed test organizer user & organization
-    const organizerUser = await identityService.findOrCreateUser(
+    // 3. Issue and verify email challenge for organizer user, then onboard organization
+    const challenge = await identityService.issueEmailChallenge('organizer@riversidefellowship.org');
+    const organizerUser = await identityService.verifyEmailChallenge(
       'organizer@riversidefellowship.org',
-      'Pastor David'
+      challenge.code,
+      { displayName: 'Pastor David' }
     );
+    assert.ok(organizerUser.verifiedEmailAt instanceof Date);
+
     const org = await identityService.createOrganization(
       'Riverside Fellowship',
       'riverside-fellowship',
@@ -65,13 +72,16 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     );
     organizerOrgId = org.id;
 
-    // 4. Seed staff reviewer user
-    const staffUser = await identityService.findOrCreateUser(
-      'jordan.avery@gamostudio.org',
-      'Jordan Avery'
-    );
-    await identityService.assignSystemRole(staffUser.id, 'staff_reviewer');
-    staffUserId = staffUser.id;
+    // 4. Provision staff reviewer identity with immutable Cloudflare Access sub
+    const superAdmin = await identityService.findOrCreateUser('super@gamostudio.org', 'Super Admin');
+    await identityService.assignSystemRole(superAdmin.id, 'superadmin');
+    const provisioned = await identityService.provisionStaffIdentity(superAdmin.id, {
+      email: 'jordan.avery@gamostudio.org',
+      displayName: 'Jordan Avery',
+      role: 'staff_reviewer',
+      accessSubject: 'cf-sub-jordan-avery-1',
+    });
+    staffUserId = provisioned.user.id;
   });
 
   test('Step 1 & 2: Organizer creates a Christian event in pending_review status', async () => {
@@ -144,7 +154,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(publicEvents[0].title, 'Community Worship Night & Fellowship');
   });
 
-  test('Step 6 & 7: Attendee registers for the free event with QR token', async () => {
+  test('Step 6 & 7: Attendee registers for the free event with QR token and durable notification outbox processing', async () => {
     const [event] = await liveService.listDiscoverableEvents();
     assert.ok(event);
 
@@ -160,15 +170,11 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(regResult.registration.quantity, 2);
     assert.equal(regResult.registration.status, 'confirmed');
 
-    // Test Resend notification client integration
-    const resend = createResendClient(); // mock mode in test
-    const emailResult = await resend.send({
-      to: regResult.registration.attendeeEmail,
-      subject: `Your Registration: ${event.title}`,
-      text: `Your QR Token: ${regResult.registration.qrToken}`,
-    });
-    assert.equal(emailResult.success, true);
-    assert.equal(emailResult.mock, true);
+    // Process durable notification_jobs outbox row created by the registration trigger
+    const jobOutcome = await notificationService.processRegistrationJob(regResult.registration.id);
+    assert.ok(jobOutcome);
+    assert.equal(jobOutcome.status, 'sent');
+    assert.equal(jobOutcome.attempts, 1);
   });
 
   test('Step 8: Duplicate registration for the same attendee email is prevented', async () => {

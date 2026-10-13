@@ -36,7 +36,8 @@ describe('PaymentService & Durable D1 Webhook Idempotency', () => {
     const sql1 = readFileSync(resolve(migrationDir, '0001_perpetual_caretaker.sql'), 'utf-8');
     const sql2 = readFileSync(resolve(migrationDir, '0002_complete_backend_foundation.sql'), 'utf-8');
 
-    await applyMigrations(d1, [sql0, sql1, sql2]);
+    const sql3 = readFileSync(resolve(migrationDir, '0003_registration_integrity.sql'), 'utf-8');
+    await applyMigrations(d1, [sql0, sql1, sql2, sql3]);
 
     db = createDb(d1);
     paymentService = new PaymentService(db);
@@ -57,7 +58,7 @@ describe('PaymentService & Durable D1 Webhook Idempotency', () => {
       .where(eq(stripeWebhookEvents.id, eventId));
     assert.ok(stored !== undefined);
     assert.equal(stored.eventType, eventType);
-    assert.equal(stored.status, 'processed');
+    assert.equal(stored.status, 'ignored');
 
     // 2. Duplicate retry with same event ID
     const duplicateDelivery = await paymentService.recordWebhookEventIdempotent(eventId, eventType);

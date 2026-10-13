@@ -101,20 +101,23 @@ export function handleApiError(err: unknown): Response {
   }
 
   if (err instanceof Error) {
+    if (err.message.includes('RATE_LIMITED') || err.message.includes('TOO_MANY_REQUESTS')) {
+      return errorResponse('RATE_LIMITED', 'Too many requests. Please wait before trying again.', 429);
+    }
     if (err.message.includes('NOT_FOUND') || err.message.toLowerCase().includes('not found')) {
-      return errorResponse('NOT_FOUND', err.message, 404);
+      return errorResponse('NOT_FOUND', 'Resource not found.', 404);
     }
     if (err.message.includes('CONFLICT') || err.message.includes('ALREADY_EXISTS') || err.message.includes('duplicate')) {
-      return errorResponse('CONFLICT', err.message, 409);
+      return errorResponse('CONFLICT', 'The operation conflicts with the current resource state.', 409);
     }
     if (err.message.includes('Access denied') || err.message.includes('forbidden')) {
-      return errorResponse('FORBIDDEN', err.message, 403);
+      return errorResponse('FORBIDDEN', 'Operation forbidden.', 403);
     }
 
-    console.error('[API Route Internal Error]', err);
+    console.error('[API Route Internal Error]');
     return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500);
   }
 
-  console.error('[API Route Unknown Error]', err);
+  console.error('[API Route Unknown Error]');
   return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500);
 }

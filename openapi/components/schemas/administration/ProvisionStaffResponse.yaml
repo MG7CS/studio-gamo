@@ -1,0 +1,33 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      user:
+        $ref: ../identity/User.yaml
+      role:
+        type: string
+        enum:
+          - staff_reviewer
+          - finance_manager
+          - superadmin
+      provider:
+        type: string
+        const: cloudflare_access
+      accessSubject:
+        type: string
+      message:
+        type: string
+    required:
+      - user
+      - role
+      - provider
+      - accessSubject
+      - message
+required:
+  - success
+  - data

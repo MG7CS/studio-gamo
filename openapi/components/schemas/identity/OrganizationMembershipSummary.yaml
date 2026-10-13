@@ -1,0 +1,33 @@
+type: object
+additionalProperties: false
+properties:
+  organizationId:
+    $ref: ../shared/Identifier.yaml
+  organizationName:
+    type: string
+  organizationSlug:
+    type: string
+  organizationType:
+    type: string
+    enum:
+      - church
+      - ministry
+      - school
+      - sponsor
+      - other
+  role:
+    type: string
+    enum:
+      - owner
+      - admin
+      - coordinator
+      - member
+  status:
+    type: string
+required:
+  - organizationId
+  - organizationName
+  - organizationSlug
+  - organizationType
+  - role
+  - status

@@ -24,7 +24,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     isProd;
 
   // 1. In local dev mode without explicit auth requirement, permit testing
-  if (isDev && !requireAuth) {
+  if (isDev && !requireAuth && !new URL(context.request.url).pathname.startsWith('/api/')) {
     return next();
   }
 
@@ -92,14 +92,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
         // Invalid base64, fall through to 401
       }
     }
-  }
-
-  // 4. If local dev and no secrets are configured, allow dev inspection with notice
-  if (isDev) {
-    console.warn(
-      '[Gamo Admin Security] DEV MODE: Running without configured Cloudflare Access credentials.'
-    );
-    return next();
   }
 
   // 6. Access denied: return 401 Unauthorized with meaningful challenge

@@ -6,10 +6,9 @@ post:
   tags:
     - Payments
   summary: Receive signed test Stripe event
-  description: Signature verified on raw body; livemode=true rejected. Durable
-    event-ID deduplication exists but claim-before-processing and partial writes
-    are unresolved. No real ticket fulfillment, refund reversal or reservation
-    release.
+  description: Raw signature and sandbox verified. Financial events return 503
+    without marking processed; unsupported events safely deduplicated. No ticket
+    or refund fulfillment.
   security:
     - StripeSignature: []
   x-application: live
@@ -29,6 +28,8 @@ post:
     "400":
       $ref: ../components/responses/SimpleError.yaml
     "500":
+      $ref: ../components/responses/SimpleError.yaml
+    "503":
       $ref: ../components/responses/SimpleError.yaml
   requestBody:
     required: true

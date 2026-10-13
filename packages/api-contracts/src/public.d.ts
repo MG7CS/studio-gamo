@@ -20,6 +20,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue an email verification challenge
+         * @description Generates a time-bounded 6-digit verification code (hashed with SHA-256 in D1 auth_challenges) and dispatches it via email. Enforces per-email rate limiting.
+         */
+        post: operations["requestAuthChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify email challenge code and establish authenticated session
+         * @description Verifies the 6-digit challenge code against D1 auth_challenges, enforces expiry and attempt lockout, sets users.verified_email_at, revokes any presented prior session cookie, and issues a new host-only HttpOnly __session cookie.
+         */
+        post: operations["verifyAuthChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect current authenticated user, roles, and organization memberships
+         * @description Validates the active D1 session cookie and returns the authenticated user profile, global system roles, and active organization memberships.
+         */
+        get: operations["getCurrentIdentity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Onboard a church, ministry, academy partner, or sponsor organization
+         * @description Requires an authenticated session with a verified email address. Creates the organization, assigns the caller as active owner in organization_members, initializes an unverified organizer_profiles record, and records an audit log entry.
+         */
+        post: operations["createOrganization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -75,7 +155,7 @@ export interface paths {
         put?: never;
         /**
          * Register for a free event
-         * @description Sequential duplicate email/event requests return 200 with existing pass. Public registration; userId is legacy untrusted input and a known reconciliation finding. Capacity serialization and duplicate pass disclosure need policy/technical resolution.
+         * @description Public free registration. Never returns admission tokens or attendee records. Database enforces capacity and duplicate email/event uniqueness; confirmation is queued durably.
          */
         post: operations["registerAttendee"];
         delete?: never;
@@ -95,7 +175,7 @@ export interface paths {
         put?: never;
         /**
          * Create sandbox checkout
-         * @description Sandbox only. Event must exist and be approved, paid, with a valid server-priced tier. No inventory reservation, organizer authorization or client idempotency yet; not production ready.
+         * @description Checkout disabled until authoritative order, inventory, organizer permission and fulfillment are implemented. Valid requests return 503.
          */
         post: operations["createTestCheckout"];
         delete?: never;
@@ -115,7 +195,7 @@ export interface paths {
         put?: never;
         /**
          * Receive signed test Stripe event
-         * @description Signature verified on raw body; livemode=true rejected. Durable event-ID deduplication exists but claim-before-processing and partial writes are unresolved. No real ticket fulfillment, refund reversal or reservation release.
+         * @description Raw signature and sandbox verified. Financial events return 503 without marking processed; unsupported events safely deduplicated. No ticket or refund fulfillment.
          */
         post: operations["receiveStripeWebhook"];
         delete?: never;
@@ -151,10 +231,101 @@ export interface components {
         SimpleError: {
             error: string;
         };
+        User: {
+            id: components["schemas"]["Identifier"];
+            /** Format: email */
+            email: string;
+            displayName: string | null;
+            verifiedEmailAt: components["schemas"]["Timestamp"] | null;
+            status: string;
+            createdAt: components["schemas"]["Timestamp"];
+        };
+        SessionResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                user: components["schemas"]["User"];
+                sessionId: string;
+                message: string;
+            };
+        };
         LogoutResponse: {
             /** @constant */
             success: true;
             data: {
+                message: string;
+            };
+        };
+        AuthChallengeInput: {
+            /** Format: email */
+            email: string;
+            displayName?: string;
+            /**
+             * @default login
+             * @enum {string}
+             */
+            purpose: "login";
+        };
+        AuthChallengeResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                challengeId: components["schemas"]["Identifier"];
+                expiresAt: components["schemas"]["Timestamp"];
+                /** @enum {string} */
+                deliveryStatus: "sent" | "simulated";
+                message: string;
+            };
+        };
+        AuthVerifyInput: {
+            /** Format: email */
+            email: string;
+            code: string;
+            displayName?: string;
+        };
+        OrganizationMembershipSummary: {
+            organizationId: components["schemas"]["Identifier"];
+            organizationName: string;
+            organizationSlug: string;
+            /** @enum {string} */
+            organizationType: "church" | "ministry" | "school" | "sponsor" | "other";
+            /** @enum {string} */
+            role: "owner" | "admin" | "coordinator" | "member";
+            status: string;
+        };
+        AuthMeResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                user: components["schemas"]["User"];
+                sessionId: string;
+                roles: string[];
+                memberships: components["schemas"]["OrganizationMembershipSummary"][];
+            };
+        };
+        Organization: {
+            id: components["schemas"]["Identifier"];
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            type: "church" | "ministry" | "school" | "sponsor" | "other";
+            verifiedAt: components["schemas"]["Timestamp"] | null;
+            status: string;
+            createdAt: components["schemas"]["Timestamp"];
+        };
+        CreateOrganizationInput: {
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            type: "church" | "ministry" | "school" | "sponsor" | "other";
+        };
+        CreateOrganizationResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                organization: components["schemas"]["Organization"];
+                /** @constant */
+                membershipRole: "owner";
                 message: string;
             };
         };
@@ -209,7 +380,6 @@ export interface components {
             /** @default 1 */
             quantity: number;
             tierId?: components["schemas"]["Identifier"];
-            userId?: components["schemas"]["Identifier"];
         };
         CheckoutInput: {
             eventId: components["schemas"]["Identifier"];
@@ -272,7 +442,7 @@ export interface components {
             photoKey: string | null;
             externalUrl: string | null;
             /** @enum {string} */
-            status: "draft" | "pending_review" | "approved" | "rejected" | "canceled";
+            status: "draft" | "pending_review" | "approved" | "rejected" | "revision_requested" | "canceled";
             createdAt: components["schemas"]["Timestamp"];
         };
         EventDetails: {
@@ -323,25 +493,10 @@ export interface components {
                 message: string;
             };
         };
-        Registration: {
-            id: components["schemas"]["Identifier"];
-            eventId: components["schemas"]["Identifier"];
-            tierId: components["schemas"]["Identifier"] | null;
-            userId: components["schemas"]["Identifier"] | null;
-            attendeeName: string;
-            /** Format: email */
-            attendeeEmail: string;
-            quantity: number;
-            qrToken: string;
-            status: string;
-            checkedInAt: components["schemas"]["Timestamp"] | null;
-            createdAt: components["schemas"]["Timestamp"];
-        };
         RegistrationResponse: {
             /** @constant */
             success: true;
             data: {
-                registration: components["schemas"]["Registration"];
                 isDuplicate: boolean;
                 message: string;
             };
@@ -398,6 +553,114 @@ export interface operations {
                     "application/json": components["schemas"]["LogoutResponse"];
                 };
             };
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    requestAuthChallenge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthChallengeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthChallengeResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    verifyAuthChallenge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthVerifyInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    getCurrentIdentity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthMeResponse"];
+                };
+            };
+            401: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    createOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrganizationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateOrganizationResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };
@@ -548,6 +811,7 @@ export interface operations {
             404: components["responses"]["SimpleError"];
             409: components["responses"]["SimpleError"];
             500: components["responses"]["SimpleError"];
+            503: components["responses"]["SimpleError"];
         };
     };
     receiveStripeWebhook: {
@@ -574,6 +838,7 @@ export interface operations {
             };
             400: components["responses"]["SimpleError"];
             500: components["responses"]["SimpleError"];
+            503: components["responses"]["SimpleError"];
         };
     };
 }

@@ -1,0 +1,39 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local web application
+post:
+  operationId: requestAuthChallenge
+  tags:
+    - Identity and Accounts
+  summary: Issue an email verification challenge
+  description: Generates a time-bounded 6-digit verification code (hashed with
+    SHA-256 in D1 auth_challenges) and dispatches it via email. Enforces
+    per-email rate limiting.
+  security: []
+  x-application: web
+  x-status: implemented
+  x-authorization: Public (same-origin enforced)
+  x-idempotency: Rate-limited per email (maximum 5 challenges per 15 minutes).
+  x-source: apps/web/src/pages/api/auth/challenge.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/identity/AuthChallengeResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
+    "429":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/identity/AuthChallengeInput.yaml

@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
  */
 export function createInMemoryD1(): any {
   const sqlite = new DatabaseSync(':memory:');
+  sqlite.exec('PRAGMA foreign_keys=ON');
 
   const createStatement = (query: string) => {
     let boundParams: any[] = [];
@@ -54,10 +55,12 @@ export function createInMemoryD1(): any {
     },
     async batch(statements: any[]) {
       const results = [];
-      for (const s of statements) {
-        results.push(await s.all());
-      }
-      return results;
+      sqlite.exec('BEGIN');
+      try {
+        for (const s of statements) results.push(await s.all());
+        sqlite.exec('COMMIT');
+        return results;
+      } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
     },
     async exec(query: string) {
       sqlite.exec(query);

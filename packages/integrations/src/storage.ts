@@ -219,7 +219,18 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         );
       }
 
-      // 3. Sensitive Identity Documentation Safeguarding Rule
+      // 3. Sensitive Identity & Student Documentation Prohibition Rule
+      if (
+        /(identity_document|government_id|student_document|minor_record)/i.test(request.scope) ||
+        /(passport|driver[_-]?licen[sc]e|ssn|social[_-]?security|birth[_-]?certificate|student[_-]?id|minor[_-]?record)/i.test(
+          request.filename
+        )
+      ) {
+        throw new Error(
+          'SENSITIVE_DOCUMENT_PROHIBITED: Collection of personal identity documents or sensitive student/minor records is prohibited.'
+        );
+      }
+
       if (request.scope === 'restricted_verification' && !request.organizationId) {
         throw new Error(
           'Verification material must be explicitly associated with an organization.'
@@ -292,16 +303,68 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         scope: StorageScope;
         accessPolicy: AccessPolicy;
         ownerUserId: string;
+        allowOverwrite?: boolean;
       }
     ): Promise<StorageObjectMetadata> {
-      const byteLength =
-        data instanceof ArrayBuffer
-          ? data.byteLength
-          : data instanceof Uint8Array
-            ? data.length
+      const policy = SCOPE_POLICIES[metadata.scope];
+      if (!policy) {
+        throw new Error(`Unsupported storage scope: ${metadata.scope}`);
+      }
+      if (!policy.allowedMimeTypes.includes(metadata.contentType.toLowerCase())) {
+        throw new Error(`Invalid content type "${metadata.contentType}" for scope "${metadata.scope}".`);
+      }
+      if (!key.startsWith(`${metadata.scope}/${metadata.ownerUserId}/`) || key.includes('..')) {
+        throw new Error('Invalid storage key scope or owner prefix.');
+      }
+      if (
+        /(identity_document|government_id|student_document|minor_record)/i.test(metadata.scope) ||
+        /(passport|driver[_-]?licen[sc]e|ssn|social[_-]?security|birth[_-]?certificate|student[_-]?id|minor[_-]?record)/i.test(
+          key
+        )
+      ) {
+        throw new Error(
+          'SENSITIVE_DOCUMENT_PROHIBITED: Storage of personal identity documents or sensitive student/minor records is prohibited.'
+        );
+      }
+
+      const buf =
+        data instanceof Uint8Array
+          ? data
+          : data instanceof ArrayBuffer
+            ? new Uint8Array(data)
             : typeof data === 'string'
-              ? new TextEncoder().encode(data).length
-              : 0;
+              ? new TextEncoder().encode(data)
+              : null;
+
+      const byteLength = buf ? buf.byteLength : 0;
+      if (byteLength > policy.maxByteSize) {
+        throw new Error(`Object exceeds maximum allowed byte size for scope "${metadata.scope}".`);
+      }
+
+      if (buf && buf.byteLength > 0) {
+        const head = new TextDecoder('utf-8', { fatal: false }).decode(buf.subarray(0, 64)).trimStart().toLowerCase();
+        const isExecutableSign =
+          (buf.byteLength >= 2 && buf[0] === 0x4d && buf[1] === 0x5a) || // MZ (PE)
+          (buf.byteLength >= 4 && buf[0] === 0x7f && buf[1] === 0x45 && buf[2] === 0x4c && buf[3] === 0x46) || // ELF
+          head.startsWith('#!');
+        const isHtmlOrScript =
+          head.startsWith('<!doctype html') ||
+          head.startsWith('<html') ||
+          head.startsWith('<script') ||
+          (metadata.contentType.toLowerCase() !== 'image/svg+xml' && head.startsWith('<svg'));
+        if (isExecutableSign || isHtmlOrScript) {
+          throw new Error('MIME spoofing or executable payload rejected.');
+        }
+      }
+
+      if (!metadata.allowOverwrite) {
+        if (r2BucketBinding && typeof r2BucketBinding.get === 'function') {
+          const existing = await r2BucketBinding.get(key);
+          if (existing) throw new Error('Overwrite denied: object key already exists.');
+        } else if (memoryStore.has(key)) {
+          throw new Error('Overwrite denied: object key already exists.');
+        }
+      }
 
       if (r2BucketBinding && typeof r2BucketBinding.put === 'function') {
         await r2BucketBinding.put(key, data, {
@@ -314,19 +377,9 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
           },
         });
       } else {
-        // Fallback to memory store for test/mock
-        const buf =
-          data instanceof Uint8Array
-            ? data
-            : data instanceof ArrayBuffer
-              ? new Uint8Array(data)
-              : typeof data === 'string'
-                ? new TextEncoder().encode(data)
-                : new Uint8Array();
-
         memoryStore.set(key, {
-          data: buf,
-          size: buf.length,
+          data: buf ?? new Uint8Array(),
+          size: byteLength,
           metadata: {
             contentType: metadata.contentType,
             scope: metadata.scope,
@@ -385,7 +438,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         return record;
       }
 
-      if (callerAuth?.isStaff) {
+      if (callerAuth?.isStaff && accessPolicy === 'private' && record.metadata.scope !== 'educational_resource') {
         return record; // Staff can review all private & audition assets
       }
 

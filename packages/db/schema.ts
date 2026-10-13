@@ -64,6 +64,36 @@ export const organizationMembers = sqliteTable('organization_members', {
   index('org_member_user_idx').on(t.userId),
 ]);
 
+export const authChallenges = sqliteTable('auth_challenges', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  codeHash: text('code_hash').notNull(),
+  purpose: text('purpose').notNull().default('signin'), // 'signin' | 'verify_email'
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  consumedAt: integer('consumed_at', { mode: 'timestamp' }),
+  ipHash: text('ip_hash'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('auth_challenges_email_idx').on(t.email, t.createdAt),
+  index('auth_challenges_expires_idx').on(t.expiresAt),
+]);
+
+export const externalIdentities = sqliteTable('external_identities', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  provider: text('provider').notNull(), // 'cloudflare_access' | 'email_otp'
+  providerSubject: text('provider_subject').notNull(),
+  providerEmail: text('provider_email').notNull(),
+  provisionedByUserId: text('provisioned_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  verifiedAt: integer('verified_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  uniqueIndex('ext_id_provider_sub_unique').on(t.provider, t.providerSubject),
+  uniqueIndex('ext_id_user_provider_unique').on(t.userId, t.provider),
+  index('ext_id_user_idx').on(t.userId),
+]);
+
 // ============================================================================
 // 2. GAMO WORSHIP (Musicians, Churches, Gigs, Standby, Check-ins)
 // ============================================================================
@@ -439,3 +469,16 @@ export const moderationReviews = sqliteTable('moderation_reviews', {
   index('mod_reviewer_idx').on(t.reviewerUserId),
   index('mod_target_idx').on(t.targetType, t.targetId),
 ]);
+
+// Registration counters, immutable fields and outbox insertion are enforced by SQL triggers in migration 0003.
+export const notificationJobs = sqliteTable('notification_jobs', {
+  id: text('id').primaryKey(),
+  registrationId: text('registration_id').notNull().unique().references(() => eventRegistrations.id, {onDelete: 'cascade'}),
+  status: text('status').notNull().default('pending'),
+  attempts: integer('attempts').notNull().default(0),
+  createdAt: integer('created_at', {mode:'timestamp'}).notNull(),
+  nextAttemptAt: integer('next_attempt_at', {mode:'timestamp'}).notNull(),
+  sentAt: integer('sent_at', {mode:'timestamp'}),
+  lastError: text('last_error'),
+  providerMessageId: text('provider_message_id'),
+});

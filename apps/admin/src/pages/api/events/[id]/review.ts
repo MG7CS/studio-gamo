@@ -1,3 +1,4 @@
+import { requireStaff, verifyStaffBoundaryIdentity } from '@gamo/auth';
 import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
@@ -29,15 +30,14 @@ export const POST: APIRoute = async (context) => {
 
     const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
     const db = getDb(runtimeEnv.DB);
+    const auth = await requireStaff(context.request, db, runtimeEnv.SESSION_SECRET);
+    await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);
     const adminService = new AdminService(db);
 
     const body = await readContract(context.request, 'ReviewDecision');
     const validated = reviewDecisionSchema.parse(body);
 
-    const reviewerUserId =
-      (context.locals as Record<string, any>)?.staffSubject ||
-      (context.locals as Record<string, any>)?.user?.id ||
-      'staff_reviewer_demo';
+    const reviewerUserId = auth.user.id;
 
     const { event, reviewId } = await adminService.reviewEvent(
       reviewerUserId,

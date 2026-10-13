@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local web application
+post:
+  operationId: createOrganization
+  tags:
+    - Organizations and Memberships
+  summary: Onboard a church, ministry, academy partner, or sponsor organization
+  description: Requires an authenticated session with a verified email address.
+    Creates the organization, assigns the caller as active owner in
+    organization_members, initializes an unverified organizer_profiles record,
+    and records an audit log entry.
+  security:
+    - BrowserSession: []
+  x-application: web
+  x-status: implemented
+  x-authorization: Active D1 session with verified email required.
+  x-idempotency: Organization slug is globally unique; duplicate slug returns 409.
+  x-source: apps/web/src/pages/api/organizations/index.ts
+  parameters: []
+  responses:
+    "201":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/organizations/CreateOrganizationResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "401":
+      $ref: ../components/responses/LegacyError.yaml
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
+    "409":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/organizations/CreateOrganizationInput.yaml
