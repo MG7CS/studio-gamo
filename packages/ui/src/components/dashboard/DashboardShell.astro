@@ -11,11 +11,12 @@ import DemoModeBanner from './DemoModeBanner.astro';
 import DashNav from './DashNav.astro';
 import WorkspaceSwitcher from './WorkspaceSwitcher.astro';
 import AccountMenu from './AccountMenu.astro';
-import { DEMO_PERSONA, screenHref, shortNavLabel, type Workspace } from '../../lib/dashboard';
+import { DEMO_PERSONA, screenHref, shortNavLabel, type ViewerPersona, type Workspace } from '../../lib/dashboard';
 import { siteUrl } from '../../lib/sites';
 
-interface Props { workspace: Workspace; current: string; title: string }
-const { workspace, current, title } = Astro.props;
+interface Props { workspace: Workspace; current: string; title: string; viewer?: ViewerPersona }
+const { workspace, current, title, viewer = DEMO_PERSONA } = Astro.props;
+const activeOrg = viewer.organization || workspace.organization;
 const flat = workspace.nav.flatMap((g) => g.items);
 const tabs = flat.slice(0, 4);
 const isMoreActive = !tabs.some((t) => t.slug === current);
@@ -37,7 +38,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
   </head>
   <body class="dash bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
     <a href="#dash-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
-    <DemoModeBanner staff={workspace.staff} />
+    <DemoModeBanner staff={workspace.staff} viewer={viewer} />
     <div class="lg:grid lg:min-h-[calc(100vh-36px)] lg:grid-cols-[256px_minmax(0,1fr)]">
       <aside class="hidden bg-charcoal text-cream lg:flex lg:flex-col" data-surface="dark">
         <div class="sticky top-0 flex max-h-screen flex-col overflow-y-auto">
@@ -48,8 +49,9 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
           </div>
           <div class="flex-1 px-3 py-5"><DashNav workspace={workspace} current={current} /></div>
           <div class="border-t border-white/10 px-5 py-4 text-[12px] text-cream/60">
+            <p class="truncate"><span class="text-cream/90">Account:</span> {viewer.name}</p>
             <p><span class="text-cream/90">Role:</span> {workspace.role}</p>
-            {workspace.organization && <p><span class="text-cream/90">Organization:</span> {workspace.organization}</p>}
+            {activeOrg && <p class="truncate"><span class="text-cream/90">Organization:</span> {activeOrg}</p>}
             <p><span class="text-cream/90">Permission:</span> {workspace.permission}</p>
           </div>
         </div>
@@ -68,7 +70,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
               </label>
             </form>
             <a href={notifHref} class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0" aria-label="Notifications (3 sample)"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
-            <AccountMenu />
+            <AccountMenu viewer={viewer} />
           </div>
         </header>
 
@@ -91,10 +93,10 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
 
       <div class="border-b border-white/10 bg-white/5 px-4 py-3">
         <div class="flex items-center gap-2.5">
-          <span class="grid h-9 w-9 place-items-center rounded-full bg-gold text-[12px] font-bold text-charcoal">{DEMO_PERSONA.initials}</span>
+          <span class="grid h-9 w-9 place-items-center rounded-full bg-gold text-[12px] font-bold text-charcoal">{viewer.initials}</span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-[13px] font-semibold text-cream">{DEMO_PERSONA.name}</p>
-            <p class="truncate text-[11px] text-cream/65">{workspace.role}{workspace.organization ? ` · ${workspace.organization}` : ''}</p>
+            <p class="truncate text-[13px] font-semibold text-cream">{viewer.name}</p>
+            <p class="truncate text-[11px] text-cream/65">{workspace.role}{activeOrg ? ` · ${activeOrg}` : ''}</p>
           </div>
         </div>
       </div>
@@ -112,9 +114,16 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
             <Icon name="bell" class="h-4 w-4 text-cream/60" />Alerts
           </a>
         </div>
-        <a href={siteUrl('web', '/account/signed-out')} class="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream">
-          <Icon name="logout" class="h-4 w-4 text-cream/60" />Exit demo (Sign out)
-        </a>
+        {viewer.authenticated ? (
+          <a href={siteUrl('web', '/account/signed-out')} class="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream">
+            <Icon name="logout" class="h-4 w-4 text-cream/60" />Sign out ({viewer.email})
+          </a>
+        ) : (
+          <div class="grid grid-cols-2 gap-2">
+            <a href={siteUrl('web', '/account/signin')} class="flex items-center justify-center rounded-xl bg-gold px-3 py-2 text-[12px] font-semibold text-charcoal hover:bg-gold/90">Sign in</a>
+            <a href={siteUrl('web', '/account/signup')} class="flex items-center justify-center rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10">Create account</a>
+          </div>
+        )}
       </div>
     </dialog>
 

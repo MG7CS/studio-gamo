@@ -431,3 +431,17 @@
 - Verification: `DASHBOARD_URL=http://127.0.0.1:4322 node scripts/verify-dashboard-navigation.mjs` passed all 10 viewport/route checks (`390`, `768`, `1024`, `1440`, `1920` across `/church` and `/musician`) with zero horizontal overflow and zero console/page errors; `pnpm test` passed all 39 tests.
 - Evidence: `docs/screenshots/dashboard-navigation/church-musicians-390-viewport.png`, `docs/screenshots/dashboard-navigation/church-musicians-390-full.png`, `docs/screenshots/dashboard-navigation/church-overview-390-full.png`, `docs/screenshots/dashboard-navigation/church-musicians-1440.png`.
 - Authorized push and deployment (`f196bd3`): `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` succeeded. Cloudflare versions: web `d5ef2d6b-ba59-48ca-9df8-4f0de481cd02`; Worship `570b500a-535a-4339-9aad-bff9c46a848c`; Academy `9628c469-0d07-4039-9b3d-85c3a11adbc8`; Live `119d46e9-093d-42f3-aff3-1abc8a04f8ad`; Production `ff253347-bed4-4975-836a-842e82a869d9`. Verified HTTP 200 on `https://worship.gamostudio.org/church/musicians` and all workspace routes.
+
+## 2026-10-14 — Account Creation, Cross-App Session Sharing & Hybrid Sample Data Mode
+
+- Enabled full passwordless OTP account creation on `/account/signup` alongside `/account/signin` via `VerifiedAuthPanel.astro`, with direct launchers to all Gamo workspaces (`Personal Account Hub`, `Gamo Worship`, `Gamo Academy`, `Gamo Live`, `Gamo Production`) and inline organization onboarding.
+- Updated `POST /api/auth/verify` and `DELETE /api/auth/session` to scope `__session` cookies to `Domain=.gamostudio.org` when `PUBLIC_ROOT_DOMAIN === 'gamostudio.org'` in production so sessions authenticate seamlessly across all `*.gamostudio.org` subdomains while remaining host-only on `localhost` / `127.0.0.1`.
+- Added `packages/ui/src/lib/session-viewer.ts` and updated `WorkspaceScreen.astro`, `DashboardShell.astro`, `AccountMenu.astro`, `DemoModeBanner.astro`, and `AuthLayout.astro` to resolve the signed-in user's identity and organization from D1/cookies while keeping all interactive test sample data active across every workspace for all accounts.
+- Verification:
+  - `DASHBOARD_URL=http://127.0.0.1:4322 node scripts/verify-dashboard-navigation.mjs` (10/10 pass)
+  - `pnpm test` (39/39 pass)
+  - `pnpm api:check` (17/17 operations + 10/10 contract tests pass)
+  - `pnpm exec tsx --test scripts/audit/security.test.ts` (15/15 pass)
+  - `node scripts/audit/browser-e2e.test.mjs` (`PLAYWRIGHT_BROWSER_E2E_WORKERD_D1_OK`)
+  - End-to-end Playwright signup, organization creation, and cross-app workspace verification captured in `docs/screenshots/dashboard-navigation/auth-signup-step1-390.png`, `docs/screenshots/dashboard-navigation/auth-signup-authenticated-390.png`, and `docs/screenshots/dashboard-navigation/worship-assigned-authenticated-390.png`.
+

@@ -8,5 +8,17 @@ import { siteUrl } from '@studio-gamo/ui/lib/sites';
 ---
 <section class="grid min-h-screen lg:grid-cols-2">
   <div class="relative hidden overflow-hidden bg-charcoal lg:block"><Photo name="worshipLeaderGolden" sizes="50vw" priority /><div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-charcoal p-12 pt-48 text-cream"><p class="eyebrow text-gold">One organization. Many ways to participate.</p><p class="mt-5 section-heading">Your next chapter<br />starts with music.</p></div></div>
-  <div class="flex flex-col justify-center px-6 py-10 sm:px-12 lg:px-14"><a href="/" class="mb-8 inline-flex self-start" aria-label="Gamo Studios home"><Logo width="180" height="36" /></a><p class="eyebrow text-terracotta">Account entry preview</p><h1 class="display-lg mt-5">Welcome<br /><span class="text-terracotta">to Gamo.</span></h1><p class="mt-6 text-lg leading-relaxed text-ink-soft">Sign-in is being developed. For now, explore a sample workspace without creating an account or entering a password.</p><DemoNotice class="mt-7" title="Authentication not connected">These public sample workspaces contain fictional data. They do not give access to private accounts.</DemoNotice><div class="mt-8 grid gap-3 sm:grid-cols-2">{paths.map((p) => <ButtonLink href={siteUrl(p.href, p.path)} variant="secondary" arrow>{p.label}</ButtonLink>)}</div><a href="/get-involved" class="mt-9 text-sm font-semibold text-terracotta underline">Find another way to get involved</a></div>
+  <div class="flex flex-col justify-center px-6 py-10 sm:px-12 lg:px-14">
+    <a href="/" class="mb-8 inline-flex self-start" aria-label="Gamo Studios home"><Logo width="180" height="36" /></a>
+    <p class="eyebrow text-terracotta">Gamo Studios Accounts</p>
+    <h1 class="display-lg mt-5">Welcome<br /><span class="text-terracotta">to Gamo.</span></h1>
+    <p class="mt-6 text-lg leading-relaxed text-ink-soft">Sign in or create a personal Gamo Studios account to use all four programs, or jump straight into a sample workspace.</p>
+    <div class="mt-7 flex flex-wrap gap-3">
+      <ButtonLink href="/account/signin" variant="primary" arrow>Sign in to your account</ButtonLink>
+      <ButtonLink href="/account/signup" variant="secondary" arrow>Create an account</ButtonLink>
+    </div>
+    <DemoNotice class="mt-7" title="Sample workspace data stays active">Whether you sign in with your own account or browse as a guest, interactive test sample data remains available across all workspaces.</DemoNotice>
+    <div class="mt-6 grid gap-3 sm:grid-cols-2">{paths.map((p) => <ButtonLink href={siteUrl(p.href, p.path)} variant="secondary" arrow>{p.label}</ButtonLink>)}</div>
+    <a href="/get-involved" class="mt-9 text-sm font-semibold text-terracotta underline">Find another way to get involved</a>
+  </div>
 </section>

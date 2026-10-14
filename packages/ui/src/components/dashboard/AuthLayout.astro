@@ -6,9 +6,20 @@
  */
 import Logo from '../Logo.astro';
 import DemoModeBanner from './DemoModeBanner.astro';
+import { resolveWorkspaceViewer } from '../../lib/session-viewer';
 import { siteUrl } from '../../lib/sites';
 interface Props { title: string; heading: string; intro?: string; wide?: boolean }
 const { title, heading, intro, wide = false } = Astro.props;
+let runtimeEnv: Record<string, any> = {};
+try {
+  const cf = await import(/* @vite-ignore */ 'cloudflare:workers');
+  if (cf && typeof cf.env === 'object' && cf.env !== null) {
+    runtimeEnv = cf.env as Record<string, any>;
+  }
+} catch {
+  // Not in workerd
+}
+const viewer = await resolveWorkspaceViewer(Astro.request, runtimeEnv);
 ---
 <!doctype html>
 <html lang="en">
@@ -21,11 +32,11 @@ const { title, heading, intro, wide = false } = Astro.props;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>{`${title} (demo) | Gamo Studios`}</title>
+    <title>{`${title} | Gamo Studios`}</title>
   </head>
   <body class="dash min-h-screen bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
     <a href="#auth-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
-    <DemoModeBanner />
+    <DemoModeBanner viewer={viewer} />
     <main id="auth-main" class="flex justify-center px-4 py-10 sm:py-16">
       <div class:list={['w-full', wide ? 'max-w-[640px]' : 'max-w-[440px]']}>
         <a href={siteUrl('web', '/')} class="mx-auto mb-8 block w-fit" aria-label="Gamo Studios home"><Logo width={150} height={28} /></a>

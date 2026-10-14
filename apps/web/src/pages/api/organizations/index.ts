@@ -22,7 +22,10 @@ export const POST: APIRoute = async (context) => {
     const signingSecret =
       runtimeEnv.SESSION_SECRET ||
       import.meta.env?.SESSION_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET;
+      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET ||
+      (runtimeEnv.ENVIRONMENT === 'local'
+        ? 'gamo_local_dev_fallback_secret_min_32_bytes_change_in_prod'
+        : undefined);
 
     const auth = await requireVerifiedAuth(context.request, db, signingSecret);
 
