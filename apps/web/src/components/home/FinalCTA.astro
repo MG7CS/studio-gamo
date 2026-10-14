@@ -4,6 +4,7 @@ import ResponsivePicture from '@studio-gamo/ui/components/ResponsivePicture.astr
 import SectionEyebrow from '../editorial/SectionEyebrow.astro';
 ---
 <section id="join" aria-labelledby="join-title" class="relative isolate flex flex-col justify-center overflow-hidden bg-[#A84F2F] pt-8 text-[#FFF9F2] sm:block sm:min-h-0 sm:pt-0">
+  <div class="contents sm:relative sm:mx-auto sm:block sm:max-w-[1536px]">
   <!-- Image and warm color block share a continuous sculpted boundary. -->
   <div class="relative mx-5 h-[32svh] min-h-[160px] [@media(max-width:639px)_and_(max-height:720px)]:h-[25svh] overflow-hidden rounded-[28px] sm:absolute sm:inset-y-0 sm:right-0 sm:mx-0 sm:h-auto sm:min-h-0 sm:w-[65%] sm:rounded-none lg:w-[64%]">
     <ResponsivePicture stem="photo-oct-12-2026-at-10-50-31-am-8" widths={[480,768,1200]} sizes="(min-width: 1024px) 65vw, 100vw" alt="Musicians of all ages rehearsing together in a church" class="h-full w-full object-cover object-[60%_center] sepia-[.25] saturate-[1.1]" />
@@ -25,6 +26,7 @@ import SectionEyebrow from '../editorial/SectionEyebrow.astro';
         <a href="/partners" class="inline-flex items-center gap-6 rounded-full border border-white/80 bg-transparent px-7 py-4 font-semibold text-white transition-colors hover:bg-white/15">Partner With Us <Icon name="arrow" class="h-5 w-5" /></a>
       </div>
     </div>
+  </div>
   </div>
 </section>
 <style>

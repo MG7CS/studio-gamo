@@ -408,3 +408,10 @@
 - Evidence: `docs/screenshots/zoom-layout/results.json`; full-page and viewport PNGs in the same directory. Inspected corrected homepage desktop/full-page, Worship mobile/full-page, Academy mobile and Production mobile captures. Browser skill was read; its Node browser connection was unavailable, so local installed Playwright captured actual running pages.
 - Local review URLs: http://127.0.0.1:4321/ ; http://127.0.0.1:4322/ ; http://127.0.0.1:4332/ ; http://127.0.0.1:4324/promote ; http://127.0.0.1:4325/ .
 - Limits: this is targeted responsive regression coverage, not complete UX sign-off. Native browser zoom controls, text-only zoom, Safari/Firefox and all operational UI states have not been reverified in this pass. Normal scrolling at increased zoom is expected; actions are not forced above the fold. No deployment or remote push.
+
+## 2026-10-13 — Zoom-out photo alignment follow-up
+
+- User screenshots exposed two remaining viewport-wide photo anchors: homepage hero and final Get Involved CTA. Both now keep imagery and sculptural overlays inside a centered 1536px composition, matching the other homepage sections while section background colors remain full width.
+- Added `scripts/verify-zoom-out.mjs`. `node scripts/verify-zoom-out.mjs` passed six widths: 390, 1280, 1536, 1920, 2880, 5760 CSS pixels, checking no horizontal overflow and bounded desktop image edges/heights. These are zoom-equivalent wide viewports, not native Chrome zoom control tests.
+- Captured actual full-page screenshots in `docs/screenshots/zoom-out/`; inspected mobile and 5760px evidence. Results: `docs/screenshots/zoom-out/results.json`. Review URL: http://127.0.0.1:4321/ .
+- `pnpm --filter apps-web run build` completed successfully (exit 0); Wrangler reported a sandbox-denied diagnostic log write. `git diff --check` passed. No external integration, deployment or remote push.
