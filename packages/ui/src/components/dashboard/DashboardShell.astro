@@ -36,12 +36,11 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>{`${title} · ${workspace.name} (demo) | ${workspace.program}`}</title>
+    <title>{`${title} · ${workspace.name} | ${workspace.program}`}</title>
   </head>
   <body class="dash bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
     <a href="#dash-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
-    <DemoModeBanner staff={workspace.staff} viewer={viewer} />
-    <div class="lg:grid lg:min-h-[calc(100vh-36px)] lg:grid-cols-[256px_minmax(0,1fr)]">
+    <div class="lg:grid lg:min-h-screen lg:grid-cols-[256px_minmax(0,1fr)]">
       <aside class="hidden bg-charcoal text-cream lg:flex lg:flex-col" data-surface="dark">
         <div class="sticky top-0 flex max-h-screen flex-col overflow-y-auto">
           <div class="border-b border-white/10 px-5 py-5">
@@ -68,10 +67,10 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
             <form role="search" class="ml-auto hidden max-w-sm flex-1 md:block" data-dash-search onsubmit="return false">
               <label class="relative block"><span class="sr-only">Search this workspace</span>
                 <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
-                <input type="search" placeholder="Search this page (demo)" class="h-10 w-full rounded-xl border border-sand bg-white pl-9 pr-3 text-[14px] placeholder:text-ink-soft/70" data-dash-search-input />
+                <input type="search" placeholder="Search this workspace" class="h-10 w-full rounded-xl border border-sand bg-white pl-9 pr-3 text-[14px] placeholder:text-ink-soft/70" data-dash-search-input />
               </label>
             </form>
-            <a href={notifHref} class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0" aria-label="Notifications (3 sample)"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
+            <a href={notifHref} class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0" aria-label="Notifications"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
             <AccountMenu viewer={viewer} staff={workspace.staff} />
           </div>
         </header>

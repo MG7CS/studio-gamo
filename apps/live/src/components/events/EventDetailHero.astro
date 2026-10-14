@@ -18,18 +18,18 @@ const org = getOrganizer(e.organizer);
       <h1 class="display-lg event-detail-title mt-3 text-balance">{e.title}</h1>
       <p class="mt-4 text-lg text-ink-soft">{e.tagline}</p>
       <EventPills event={e} class="mt-5" />
-      {e.status === 'canceled' && <p class="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">This sample event has been canceled by the organizer. Registration and tickets are closed.</p>}
-      {e.status === 'rescheduled' && <p class="mt-5 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200"><strong>New date:</strong> {d.long}, {e.time}. Existing registrations would carry over automatically.</p>}
+      {e.status === 'canceled' && <p class="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">This event has been canceled by the organizer. Registration and tickets are closed.</p>}
+      {e.status === 'rescheduled' && <p class="mt-5 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200"><strong>New date:</strong> {d.long}, {e.time}. Existing registrations carry over automatically.</p>}
       <dl class="mt-5 grid gap-3 sm:grid-cols-2">
         <div class="flex gap-3"><Icon name="calendar" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">When</dt><dd class="font-medium">{d.long}<br />{e.time}{e.recurring && ` · ${e.recurring}`}</dd></div></div>
         <div class="flex gap-3"><Icon name="pin" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Where</dt><dd class="font-medium">{e.venue}<br />{e.city}, {e.state}</dd></div></div>
-        <div class="flex gap-3"><Icon name="users" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Organizer</dt><dd class="font-medium"><a href={`/organizers/${org.slug}`} class="underline-offset-4 hover:underline">{org.name}</a> <span class="text-ink-soft">(sample)</span></dd></div></div>
+        <div class="flex gap-3"><Icon name="users" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Organizer</dt><dd class="font-medium"><a href={`/organizers/${org.slug}`} class="underline-offset-4 hover:underline">{org.name}</a></dd></div></div>
         <div class="flex gap-3"><Icon name="ticket" class="mt-0.5 h-5 w-5 text-terracotta" /><div><dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Admission</dt><dd class="font-medium">{fromPrice(e)}{e.externalSource && ` · via ${e.externalSource}`}</dd></div></div>
       </dl>
       <div class="mt-6 flex flex-wrap gap-3">
         {e.status === 'canceled' ? <span class="rounded-full bg-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal/50" aria-disabled="true">Registration closed</span>
           : e.ticketing === 'external' ? <ButtonLink href={`/events/${e.id}/tickets`} arrow>External ticket info</ButtonLink>
-          : <ButtonLink href={`/events/${e.id}/tickets`} arrow>{e.ticketing === 'free' ? 'Registration preview' : 'Ticketing preview'}</ButtonLink>}
+          : <ButtonLink href={`/events/${e.id}/tickets`} arrow>{e.ticketing === 'free' ? 'Register' : 'Get tickets'}</ButtonLink>}
         <ButtonLink href={`/organizers/${org.slug}`} variant="secondary">Organizer profile</ButtonLink>
       </div>
     </div>

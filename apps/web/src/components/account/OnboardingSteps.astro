@@ -24,7 +24,7 @@ const btn = 'inline-flex min-h-10 items-center rounded-lg px-4 text-[14px] font-
     <fieldset data-step={total - 1} hidden>
       <legend class="mb-4 text-[16px] font-semibold">Step {total} of {total} · Review</legend>
       <dl data-review class="divide-y divide-sand rounded-lg border border-sand text-[14px]"></dl>
-      <p class="mt-3 text-[12px] text-ink-soft">Finishing opens the demo account hub. Nothing is saved.</p>
+      <p class="mt-3 text-[12px] text-ink-soft">Finishing opens your account hub.</p>
     </fieldset>
     <div class="mt-6 flex items-center justify-between gap-3">
       <button type="button" data-back class:list={[btn, 'border border-sand bg-white hover:border-charcoal/30']} disabled>Back</button>
@@ -48,7 +48,7 @@ const btn = 'inline-flex min-h-10 items-center rounded-lg px-4 text-[14px] font-
         if (i === cur) d.setAttribute('aria-current', 'step'); else d.removeAttribute('aria-current');
       });
       back.disabled = cur === 0;
-      next.textContent = cur === steps.length - 1 ? 'Finish (demo)' : 'Next';
+      next.textContent = cur === steps.length - 1 ? 'Finish setup' : 'Next';
       if (cur === steps.length - 1) {
         review.replaceChildren();
         steps.slice(0, -1).forEach((s) => s.querySelectorAll<HTMLInputElement>('input, select').forEach((el) => {

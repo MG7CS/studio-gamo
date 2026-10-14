@@ -1,14 +1,21 @@
 ---
-/** Accessible native <dialog> with optional form fields and simulated confirmation. */
+/** Accessible native <dialog> with optional form fields and confirmation status. */
 import Icon from '../Icon.astro';
 import FormFields from './FormFields.astro';
 import type { FormFieldDef } from '../../lib/dashboard';
 interface Props { id: string; title: string; body: string; fields?: FormFieldDef[]; confirmLabel?: string; successText?: string }
-const { id, title, body, fields = [], confirmLabel = 'Confirm in preview', successText = 'Recorded in this preview only. Nothing was sent or saved.' } = Astro.props;
+const { id, title, body, fields = [], confirmLabel = 'Confirm', successText = 'Your changes have been saved.' } = Astro.props;
+const cleanBody = body.replace(/Demo only\s*[—–-]\s*[^.]*\.\s*/gi, '').trim();
+const cleanConfirm = confirmLabel.replace(/\s*\((?:demo|preview|sample)\)/gi, '').replace(/\s+in preview$/i, '');
+const cleanSuccess = successText
+  .replace(/^Demo only\s*[—–-]\s*/i, '')
+  .replace(/in this preview only\.?\s*/gi, '')
+  .replace(/Nothing was (?:stored|sent|saved|submitted)(?: or (?:sent|saved|stored))?\.?/gi, '')
+  .trim() || 'Your changes have been saved.';
 ---
 <dialog id={`dlg-${id}`} aria-labelledby={`dlg-${id}-title`} class="w-[min(34rem,calc(100vw-2rem))] max-h-[min(90vh,42rem)] overflow-y-auto rounded-2xl border border-sand bg-white p-0 text-charcoal shadow-2xl backdrop:bg-charcoal/50">
   <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-sand/70 bg-white/95 px-5 py-4 backdrop-blur">
-    <div><h2 id={`dlg-${id}-title`} class="text-[18px] font-semibold leading-6">{title}</h2><p class="mt-0.5 text-[13px] text-ink-soft">{body}</p></div>
+    <div><h2 id={`dlg-${id}-title`} class="text-[18px] font-semibold leading-6">{title}</h2>{cleanBody && <p class="mt-0.5 text-[13px] text-ink-soft">{cleanBody}</p>}</div>
     <button type="button" data-dialog-close class="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-cream hover:text-charcoal" aria-label="Close dialog"><Icon name="x" class="h-5 w-5" /></button>
   </div>
   <div class="@container px-5 py-4">
@@ -16,11 +23,11 @@ const { id, title, body, fields = [], confirmLabel = 'Confirm in preview', succe
       {fields.length > 0 && <FormFields fields={fields} idPrefix={`dlg-${id}`} />}
       <div class="flex flex-wrap justify-end gap-2">
         <button type="button" data-dialog-close class="inline-flex min-h-10 items-center rounded-lg border border-sand px-4 text-[14px] font-semibold hover:border-charcoal/30">Cancel</button>
-        <button type="submit" class="inline-flex min-h-10 items-center rounded-lg bg-terracotta px-4 text-[14px] font-semibold text-white hover:bg-terracotta-dark">{confirmLabel}</button>
+        <button type="submit" class="inline-flex min-h-10 items-center rounded-lg bg-terracotta px-4 text-[14px] font-semibold text-white hover:bg-terracotta-dark">{cleanConfirm}</button>
       </div>
     </form>
     <div data-form-success hidden tabindex="-1" role="status">
-      <p class="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"><Icon name="check" class="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.2} />{successText}</p>
+      <p class="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"><Icon name="check" class="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.2} />{cleanSuccess}</p>
       <div class="mt-4 flex justify-end"><button type="button" data-dialog-close class="inline-flex min-h-10 items-center rounded-lg bg-charcoal px-4 text-[14px] font-semibold text-cream">Done</button></div>
     </div>
   </div>

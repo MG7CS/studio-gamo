@@ -123,8 +123,8 @@ export const assessmentSteps = [
 ];
 
 export const productionFaq = [
-  { q: 'Is Gamo Production available now?', a: 'Not yet. Gamo Production is a proposed program of Gamo Studios, a developing Christian nonprofit. These pages are a design preview; no consultations, assessments or training sessions are being scheduled yet.' },
-  { q: 'Will there be a cost?', a: 'Any fees or suggested contributions are proposals that have not been approved. The intention is for support to remain accessible to small and under-resourced congregations.' },
-  { q: 'Do you sell equipment?', a: 'No. Guidance is meant to be independent and stewardship-minded. Recommendations should never depend on any vendor relationship.' },
-  { q: 'Can small churches take part?', a: 'Yes — small congregations with volunteer teams are a central focus of this proposed program.' },
+  { q: 'How does a church get started with Gamo Production?', a: 'Start with our five-step church needs assessment or submit a consultation request so our team can review your current setup, room, and volunteer goals.' },
+  { q: 'How are contributions structured?', a: 'Any fees or suggested contributions remain proposals until approved, and support is designed to remain accessible to small and under-resourced congregations.' },
+  { q: 'Do you sell equipment?', a: 'No. Guidance is independent and stewardship-minded. Recommendations never depend on vendor relationships.' },
+  { q: 'Can small churches take part?', a: 'Yes — small congregations with volunteer teams are a central focus of Gamo Production.' },
 ];

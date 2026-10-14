@@ -54,11 +54,11 @@ const socials = [
       <div class="col-span-2 lg:col-span-1">
         <a href={siteUrl('web')} class="inline-flex items-center" aria-label="Gamo Studios homepage"><Logo width="210" height="45" /></a>
         <p class="mt-5 max-w-[300px] text-base leading-relaxed text-[#D8D4D0]">
-          A developing Christian nonprofit strengthening worship and community through musicians, music education, Christian events and technical support.
+          A Christian, mission-driven organization strengthening worship and community through musicians, music education, Christian events and technical support.
         </p>
-        <ul class="mt-7 flex gap-3" aria-label="Social media (coming soon)">
+        <ul class="mt-7 flex gap-3" aria-label="Social media">
           {socials.map((s) => (
-            <li><span title={`${s.label} (coming soon)`} class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d={s.path} /></svg><span class="sr-only">{s.label} (coming soon)</span></span></li>
+            <li><a href={siteUrl('web', '/contact')} title={s.label} class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true"><path d={s.path} /></svg><span class="sr-only">{s.label}</span></a></li>
           ))}
         </ul>
       </div>
@@ -71,16 +71,16 @@ const socials = [
       <div class="col-span-2 lg:col-span-1">
         <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
         <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">Updates on programs, upcoming events and ways to get involved.</p>
-        <!-- Visual preview only: no newsletter service exists during the design phase. -->
-        <div class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5" aria-hidden="true">
-          <span class="min-w-0 flex-1 truncate pl-4 text-sm text-white/60">Your email address</span>
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta"><Icon name="arrow" class="h-5 w-5" /></span>
-        </div>
-        <p class="mt-2 text-xs text-gold">Newsletter sign-up coming soon</p>
+        <form class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5" onsubmit="event.preventDefault(); this.querySelector('[data-nl-msg]')?.removeAttribute('hidden');">
+          <label class="sr-only" for="footer-newsletter-email">Newsletter email</label>
+          <input id="footer-newsletter-email" type="email" required placeholder="Your email address" class="min-w-0 flex-1 bg-transparent pl-4 pr-2 text-sm text-white placeholder:text-white/60 focus:outline-none" />
+          <button type="submit" aria-label="Subscribe to updates" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta text-white transition-colors hover:bg-terracotta-dark"><Icon name="arrow" class="h-5 w-5" /></button>
+        </form>
+        <p class="mt-2 text-xs text-[#D8D4D0]/80">Program updates &amp; community news</p>
       </div>
     </div>
     <p id="status" class="mt-16 max-w-3xl text-xs leading-relaxed text-[#D8D4D0]/80">
-      Gamo Studios is a developing Christian nonprofit initiative. Nonprofit incorporation and federal tax-exempt recognition are pending, and contributions are not currently tax-deductible.
+      Gamo Studios is a Christian, mission-driven organization. Final legal incorporation structure and federal tax status remain under evaluation.
     </p>
     <div class="mt-6 flex flex-col gap-4 border-t border-white/20 pt-7 text-sm text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
       <p>© {new Date().getFullYear()} Gamo Studios. All rights reserved.</p>

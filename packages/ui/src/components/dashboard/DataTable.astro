@@ -15,7 +15,7 @@ interface Props {
   emptyText?: string;
   caption?: string;
 }
-const { columns, rows, filter = false, filterOptions = [], filterKey, emptyText = 'No sample records match.', caption = 'Sample records' } = Astro.props;
+const { columns, rows, filter = false, filterOptions = [], filterKey, emptyText = 'No matching records found.', caption = 'Records' } = Astro.props;
 const text = (c: Cell | undefined) => (c === undefined ? '' : typeof c === 'string' ? c : c.badge);
 const primary = columns.find((c) => c.primary) ?? columns[0];
 const rest = columns.filter((c) => c !== primary);
@@ -63,7 +63,7 @@ const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
     ))}
     <li data-table-empty hidden class="py-6 text-center text-ink-soft">{emptyText}</li>
   </ul>
-  {filter && <p class="mt-3 text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} sample records</p>}
+  {filter && <p class="mt-3 text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} records</p>}
 </div>
 <style>
   .chip {

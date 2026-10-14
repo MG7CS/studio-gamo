@@ -26,7 +26,7 @@ const panels = await Promise.all(steps.map((_, i) => Astro.slots.render(`step-${
       </fieldset>
     ))}
     <div data-done hidden class="py-6 text-center" tabindex="-1">
-      <p class="eyebrow text-terracotta">Preview complete</p>
+      <p class="eyebrow text-terracotta">Submitted</p>
       <h2 class="section-subheading mt-3">{doneTitle}</h2>
       <p class="mx-auto mt-3 max-w-lg text-ink-soft">{doneBody}</p>
     </div>
@@ -35,7 +35,6 @@ const panels = await Promise.all(steps.map((_, i) => Astro.slots.render(`step-${
       <button type="button" data-next class="rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white hover:bg-terracotta-dark">Next</button>
     </div>
   </form>
-  <DemoNotice class="mt-6">This form is a design preview. Nothing you enter is saved, sent or charged.</DemoNotice>
 </div>
 
 <script>
@@ -50,7 +49,7 @@ const panels = await Promise.all(steps.map((_, i) => Astro.slots.render(`step-${
       steps.forEach((s, i) => (s.hidden = i !== cur));
       bars.forEach((b, i) => b.classList.toggle('bg-terracotta', i <= cur));
       back.disabled = cur === 0;
-      next.textContent = cur === steps.length - 1 ? 'Finish preview' : 'Next';
+      next.textContent = cur === steps.length - 1 ? 'Submit' : 'Next';
     };
     next.addEventListener('click', () => {
       const controls = steps[cur].querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input,select,textarea');

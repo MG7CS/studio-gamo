@@ -10,7 +10,7 @@ const list = events.filter((e) => e.id !== current.id).sort((a, b) => Number(b.c
 <section class="bg-cream px-4 py-16 sm:px-8 lg:py-20" aria-labelledby="related-title">
   <div class="mx-auto max-w-[1320px]">
     <h2 id="related-title" class="section-subheading">{title}</h2>
-    <ContentRail label="Related sample events" class="mt-8">
+    <ContentRail label="Related events" class="mt-8">
       {list.map((e) => <div class="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[23.5%]"><EventCard event={e} /></div>)}
     </ContentRail>
   </div>

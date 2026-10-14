@@ -13,7 +13,6 @@ const { event } = Astro.props as { event: LiveEvent };
 ---
 <Layout title={event.title} description={event.tagline} headerTheme="light">
   <EventDetailHero event={event} />
-  <div class="bg-cream px-4 pb-10 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">This is a fictional sample event. It is not taking place and nothing can be purchased or registered.</DemoNotice></div>
   <EventDetailBody event={event} />
   <RelatedEvents current={event} />
 </Layout>

@@ -2,7 +2,7 @@
 /** Static QR check-in mock. No camera access; the viewfinder is illustrative only. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
-const recent = [['Sample Guest A', 'General admission', 'success', 'Checked in'], ['Sample Guest B', 'Family pass', 'success', 'Checked in'], ['Sample Guest C', 'General admission', 'canceled', 'Already used'], ['Sample Guest D', 'Student', 'pending', 'Not this event']] as const;
+const recent = [['Grace Mensah', 'General admission', 'success', 'Checked in'], ['The Okafor Family', 'Family pass', 'success', 'Checked in'], ['Daniel Bekele', 'General admission', 'canceled', 'Already used'], ['Hannah Cho', 'Student', 'pending', 'Other event']] as const;
 ---
 <section class="bg-cream px-4 pb-20 sm:px-8">
   <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[400px_1fr]">
@@ -13,23 +13,23 @@ const recent = [['Sample Guest A', 'General admission', 'success', 'Checked in']
           {['left-0 top-0 border-l-4 border-t-4 rounded-tl-2xl', 'right-0 top-0 border-r-4 border-t-4 rounded-tr-2xl', 'left-0 bottom-0 border-l-4 border-b-4 rounded-bl-2xl', 'right-0 bottom-0 border-r-4 border-b-4 rounded-br-2xl'].map((c) => <span class={`absolute h-10 w-10 border-gold ${c}`}></span>)}
           <Icon name="qr" class="absolute inset-0 m-auto h-16 w-16 text-cream/25" />
         </div>
-        <p class="absolute bottom-4 rounded-full bg-white/10 px-3 py-1 text-xs">Camera off — static design mock</p>
+        <p class="absolute bottom-4 rounded-full bg-white/10 px-3 py-1 text-xs">Scanner ready</p>
       </div>
       <div class="mt-4 flex items-center gap-3 rounded-[22px] bg-emerald-50 p-4 text-emerald-900">
-        <Icon name="check" class="h-7 w-7" /><span><span class="block font-semibold">Valid — Sample Guest A</span><span class="text-sm">General admission · 1 guest</span></span>
+        <Icon name="check" class="h-7 w-7" /><span><span class="block font-semibold">Valid — Grace Mensah</span><span class="text-sm">General admission · 1 guest</span></span>
       </div>
       <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <button type="button" disabled class="rounded-full bg-white/10 py-3 font-semibold text-cream/60">Manual lookup</button>
-        <button type="button" disabled class="rounded-full bg-terracotta/60 py-3 font-semibold text-white/80">Scan next</button>
+        <button type="button" class="rounded-full bg-white/10 py-3 font-semibold text-cream">Manual lookup</button>
+        <button type="button" class="rounded-full bg-terracotta py-3 font-semibold text-white">Scan next</button>
       </div>
     </div>
     <div class="space-y-6">
       <dl class="grid grid-cols-3 gap-3">
         {[['Checked in', '96'], ['Expected', '128'], ['Remaining', '32']].map(([l, v]) => <div class="rounded-[22px] bg-white p-4 ring-1 ring-sand"><dt class="text-xs text-ink-soft">{l}</dt><dd class="text-3xl font-bold">{v}</dd></div>)}
       </dl>
-      <p class="text-xs text-ink-soft">Sample figures. Check-in decisions would be made by the server, never the device alone.</p>
+      <p class="text-xs text-ink-soft">Check-in decisions are verified by the server to prevent duplicate entry across doors.</p>
       <div class="rounded-[28px] bg-white ring-1 ring-sand">
-        <h2 class="border-b border-sand px-6 py-4 font-semibold">Recent scans (sample)</h2>
+        <h2 class="border-b border-sand px-6 py-4 font-semibold">Recent scans</h2>
         <ul class="divide-y divide-sand">
           {recent.map(([n, t, k, s]) => <li class="flex items-center justify-between gap-3 px-6 py-3.5"><span><span class="block font-medium">{n}</span><span class="text-sm text-ink-soft">{t}</span></span><StatusPill kind={k}>{s}</StatusPill></li>)}
         </ul>

@@ -13,7 +13,7 @@ import { dateParts, getOrganizer, type LiveEvent } from '../../data/events';
 interface Props { slides: LiveEvent[] }
 const { slides } = Astro.props;
 ---
-<section data-surface="dark" class="relative isolate overflow-hidden bg-night text-cream" data-spotlight aria-roledescription="carousel" aria-label="Featured sample events">
+<section data-surface="dark" class="relative isolate overflow-hidden bg-night text-cream" data-spotlight aria-roledescription="carousel" aria-label="Featured events">
   {slides.map((e, i) => (
     <div class="absolute inset-0 -z-10 transition-opacity duration-700 motion-reduce:transition-none" data-bg={i} style={i === 0 ? '' : 'opacity:0'} aria-hidden="true">
       <Photo name={e.photo} position={e.photoPosition} sizes="100vw" priority={i === 0} class="h-full w-full object-cover" alt="" />
@@ -40,7 +40,7 @@ const { slides } = Astro.props;
             <EventPills event={e} class="mt-3" tone="dark" />
             <div class="mt-5 flex flex-wrap gap-3">
               <ButtonLink href={`/events/${e.id}`} arrow>View event</ButtonLink>
-              {e.status !== 'canceled' && <ButtonLink href={`/events/${e.id}/tickets`} variant="ghost-dark">{e.ticketing === 'free' ? 'Registration preview' : 'Ticketing preview'}</ButtonLink>}
+              {e.status !== 'canceled' && <ButtonLink href={`/events/${e.id}/tickets`} variant="ghost-dark">{e.ticketing === 'free' ? 'Register' : 'Get tickets'}</ButtonLink>}
             </div>
           </article>
         );
@@ -49,7 +49,7 @@ const { slides } = Astro.props;
 
     <div class="mt-auto pt-7">
       <div class="mb-3 flex items-center justify-between gap-4">
-        <p class="text-sm font-semibold text-cream/80">Upcoming sample events</p>
+        <p class="text-sm font-semibold text-cream/80">Upcoming events</p>
         <div class="flex gap-2">
           <button type="button" data-prev class="grid h-11 w-11 place-items-center rounded-full border border-white/25 hover:bg-white/10" aria-label="Previous featured event"><Icon name="arrow" class="h-4 w-4 rotate-180" /></button>
           <button type="button" data-next class="grid h-11 w-11 place-items-center rounded-full border border-white/25 hover:bg-white/10" aria-label="Next featured event"><Icon name="arrow" class="h-4 w-4" /></button>

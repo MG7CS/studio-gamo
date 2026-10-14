@@ -6,10 +6,8 @@ import LessonCard from '../../components/shared/LessonCard.astro';
 import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
 import { lessons } from '../../data/lessons';
 ---
-<Layout title="Discover lessons" description="Browse sample Gamo Academy lessons by instrument, age, level and format.">
-  <PageHero eyebrow="Lesson discovery" title="Find a lesson" accent="that fits your week." lede="Filter sample lessons by instrument, age, level and format. Listings and tuition shown are proposals for design review." crumbs={[{ label: 'Lessons', href: '/lessons' }]}>
-    <DemoNotice class="mt-6 max-w-2xl">All lessons, instructors and tuition amounts are samples. Nothing can be booked or paid yet.</DemoNotice>
-  </PageHero>
+<Layout title="Discover lessons" description="Browse Gamo Academy lessons by instrument, age, level and format.">
+  <PageHero eyebrow="Lesson discovery" title="Find a lesson" accent="that fits your week." lede="Filter lessons by instrument, age, level and format." crumbs={[{ label: 'Lessons', href: '/lessons' }]} />
   <section class="px-4 pb-16 sm:px-8 lg:pb-24">
     <div class="mx-auto max-w-[1320px]">
       <LessonFilters />

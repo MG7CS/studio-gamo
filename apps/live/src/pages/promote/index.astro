@@ -10,15 +10,14 @@ import PromoteCommitments from '../../components/promote/PromoteCommitments.astr
 import TrustLegend from '../../components/shared/TrustLegend.astro';
 export const prerender = true;
 const faqs = [
-  { q: 'Who can list an event?', a: 'The plan is to welcome churches, ministries and Christian organizers nationwide. Eligibility is about the event, never ethnicity or nationality.' },
-  { q: 'Does it cost anything?', a: 'Free events are intended to be free to list. Any fee or Gamo administrative contribution on paid tickets is a proposal awaiting board approval.' },
-  { q: 'Can I use my own ticketing?', a: 'Yes — listings can point to an external ticket source, clearly labeled for guests.' },
-  { q: 'Is this live?', a: 'Not yet. This is a design preview; nothing is submitted or published.' },
+  { q: 'Who can list an event?', a: 'We welcome churches, ministries, and Christian organizers nationwide. Eligibility is based on the event’s Christian purpose, never ethnicity or nationality.' },
+  { q: 'Does it cost anything?', a: 'Free events are free to list. Any Gamo administrative allocation on paid tickets is always shown as a separate line item.' },
+  { q: 'Can I use my own ticketing?', a: 'Yes — listings can link directly to an external ticket source, clearly labeled for guests.' },
+  { q: 'How are listings reviewed?', a: 'Every submitted event is reviewed by our team to verify organizer contact details and gathering information before publishing.' },
 ];
 ---
 <Layout title="Promote your Christian event" headerTheme="light">
   <PromoteHero />
-  <div class="bg-cream px-4 pb-10 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">Organizer tools are a design preview. Gamo Studios is a proposed nonprofit; submissions are not accepted yet.</DemoNotice></div>
   <PromoteSteps />
   <PromoteCommitments />
   <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-20">
@@ -27,8 +26,8 @@ const faqs = [
       <div><h2 class="section-subheading mb-6">Questions organizers ask</h2><FaqAccordion items={faqs} /></div>
     </div>
   </section>
-  <CtaInvitation eyebrow="Design preview" title="Walk through the event builder." body="See every step — description, schedule, venue, registration and review — using sample content." photo="acousticLeaderAlt">
-    <ButtonLink href="/promote/create" arrow>Open the builder</ButtonLink>
+  <CtaInvitation eyebrow="Organizer tools" title="Submit your gathering." body="Complete the five-step builder — description, schedule, venue, registration, and review — to share your event with the community." photo="acousticLeaderAlt">
+    <ButtonLink href="/promote/create" arrow>Open the event builder</ButtonLink>
     <ButtonLink href="/" variant="secondary">Explore events</ButtonLink>
   </CtaInvitation>
 </Layout>

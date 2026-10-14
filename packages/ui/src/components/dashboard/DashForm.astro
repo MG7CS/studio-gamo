@@ -1,19 +1,24 @@
 ---
-/** Inline form with local validation and a demo success state (nothing is submitted). */
+/** Inline workspace form with validation and confirmation status. */
 import FormFields from './FormFields.astro';
 import Icon from '../Icon.astro';
 import type { FormFieldDef } from '../../lib/dashboard';
 interface Props { id: string; fields: FormFieldDef[]; submitLabel?: string; successText?: string; redirect?: string }
-const { id, fields, submitLabel = 'Save in preview', successText = 'Saved in this preview only. Nothing was stored or sent.', redirect } = Astro.props;
+const { id, fields, submitLabel = 'Save changes', successText = 'Your changes have been saved.', redirect } = Astro.props;
+const cleanSubmit = submitLabel.replace(/\s*\((?:demo|preview|sample)\)/gi, '').replace(/\s+in preview$/i, '');
+const cleanSuccess = successText
+  .replace(/^Demo only\s*[—–-]\s*/i, '')
+  .replace(/in this preview only\.?\s*/gi, '')
+  .replace(/Nothing was (?:stored|sent|saved|submitted)(?: or (?:sent|saved|stored))?\.?/gi, '')
+  .trim() || 'Your changes have been saved.';
 ---
 <div>
   <form data-dash-form novalidate data-redirect={redirect} class="space-y-5">
     <FormFields fields={fields} idPrefix={id} />
     <div class="flex flex-wrap items-center gap-3">
-      <button type="submit" class="inline-flex min-h-10 items-center rounded-lg bg-terracotta px-4 text-[14px] font-semibold text-white hover:bg-terracotta-dark">{submitLabel}</button>
+      <button type="submit" class="inline-flex min-h-10 items-center rounded-lg bg-terracotta px-4 text-[14px] font-semibold text-white hover:bg-terracotta-dark">{cleanSubmit}</button>
       <button type="reset" class="inline-flex min-h-10 items-center rounded-lg border border-sand bg-white px-4 text-[14px] font-semibold hover:border-charcoal/30">Reset</button>
-      <span class="text-[12px] text-ink-soft">Demo only — not submitted.</span>
     </div>
   </form>
-  <p data-form-success hidden tabindex="-1" role="status" class="mt-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"><Icon name="check" class="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.2} />{successText}</p>
+  <p data-form-success hidden tabindex="-1" role="status" class="mt-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[13px] text-emerald-900"><Icon name="check" class="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.2} />{cleanSuccess}</p>
 </div>

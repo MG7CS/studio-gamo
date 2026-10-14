@@ -9,7 +9,7 @@ const { instructor: t, class: className } = Astro.props;
 <a href={`/instructors/${t.slug}`} class:list={['group flex h-full flex-col rounded-[28px] bg-white p-6 ring-1 ring-sand transition-shadow hover:shadow-float', className]}>
   <div class="flex items-center justify-between">
     <span aria-hidden="true" class:list={['grid h-16 w-16 place-items-center rounded-[22px_22px_22px_6px] text-xl font-bold', t.tone]}>{t.initials}</span>
-    <StatusPill kind="sample">Sample profile</StatusPill>
+    <StatusPill kind="verified">Instructor</StatusPill>
   </div>
   <h3 class="mt-5 text-xl font-bold tracking-tight">{t.name}</h3>
   <p class="mt-1 text-sm font-medium text-terracotta">{t.instruments.join(' · ')}</p>

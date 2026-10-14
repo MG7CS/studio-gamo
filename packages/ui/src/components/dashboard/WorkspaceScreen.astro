@@ -33,78 +33,119 @@ try {
 }
 const viewer = await resolveWorkspaceViewer(Astro.request, runtimeEnv);
 
-function personalizeScreen(s: DashScreen | undefined): DashScreen | undefined {
-  if (!s || !viewer.authenticated || workspace.id !== 'account') return s;
-  const clone: DashScreen = structuredClone(s);
-  const nameParts = viewer.name.split(/\s+/);
-  const firstName = nameParts[0] || viewer.name;
-  const lastName = nameParts.slice(1).join(' ') || '';
+function cleanText(text: string | undefined): string | undefined {
+  if (!text) return text;
+  return text
+    .replace(/\s*\((?:sample|demo|preview|fictional|draft)\)/gi, '')
+    .replace(/\b(?:fictional|illustrative)\s+/gi, '')
+    .replace(/\bDemo\s*[—–-]\s*not a partner church\b/gi, 'Active congregation')
+    .replace(/\bDemo only\s*[—–-]\s*[^.]*\.\s*/gi, '')
+    .replace(/\bin this preview(?:\s+only)?\.?/gi, '')
+    .trim();
+}
 
-  clone.blocks = clone.blocks.map((block): DashBlock => {
-    if (s.slug === '' && block.type === 'notice') {
-      return {
-        ...block,
-        tone: 'success',
-        title: `Signed in as ${viewer.name}`,
-        body: `Your personal Gamo Studios account (${viewer.email}) is active${viewer.organization ? ` and connected to ${viewer.organization}` : ''}. All program workspaces below keep test sample records enabled so you can explore every tool while using your account.`,
-      };
-    }
-    if (s.slug === '' && block.type === 'kv') {
-      return {
-        ...block,
-        items: [
-          ['Personal account', `${viewer.name} (${viewer.email})`],
-          ['Active organization', viewer.organization ? `${viewer.organization} (plus sample workspaces)` : 'Grace Fellowship (sample)'],
-          ...block.items.slice(2),
-        ],
-      };
-    }
-    if (s.slug === 'organizations' && block.type === 'table' && viewer.organization) {
-      return {
-        ...block,
-        rows: [
-          {
-            org: viewer.organization,
-            location: 'Verified organization',
-            yourRole: viewer.organizationRole ? `${viewer.organizationRole[0].toUpperCase()}${viewer.organizationRole.slice(1)}` : 'Owner',
-            permission: 'Full organization access',
-            status: b('Active account', 'verified'),
-          },
-          ...block.rows,
-        ],
-      };
-    }
-    if (s.slug === 'profile' && block.type === 'form') {
-      return {
-        ...block,
-        fields: block.fields.map((f) => {
-          if (f.name === 'first') return { ...f, value: firstName };
-          if (f.name === 'last') return { ...f, value: lastName };
-          if (f.name === 'email') return { ...f, value: viewer.email };
-          return f;
-        }),
-      };
-    }
-    if (s.slug === 'profile' && block.type === 'list') {
-      return {
-        ...block,
-        items: [
-          { title: 'Personal account', body: viewer.name, icon: 'user', badge: b('Verified', 'verified') },
-          { title: 'Primary email', body: viewer.email, icon: 'mail', badge: b('Verified', 'success') },
-          { title: 'Sample workspace data', body: 'Kept active across all apps for testing', icon: 'check', badge: b('Enabled', 'info') },
-        ],
-      };
-    }
-    return block;
-  });
+function isDemoDisclaimerNotice(block: DashBlock): boolean {
+  if (block.type !== 'notice') return false;
+  const combined = `${block.title ?? ''} ${block.body ?? ''}`.toLowerCase();
+  return (
+    combined.includes('demo workspace') ||
+    combined.includes('design preview') ||
+    combined.includes('all records are fictional') ||
+    combined.includes('no requests are sent') ||
+    combined.includes('nothing is submitted') ||
+    combined.includes('preview only') ||
+    combined.includes('not a secured staff portal')
+  );
+}
+
+function sanitizeScreen(s: DashScreen | undefined): DashScreen | undefined {
+  if (!s) return s;
+  const clone: DashScreen = structuredClone(s);
+  clone.title = cleanText(clone.title) ?? clone.title;
+  clone.description = cleanText(clone.description);
+
+  clone.blocks = clone.blocks
+    .filter((b) => !isDemoDisclaimerNotice(b))
+    .map((block): DashBlock => {
+      const str = JSON.stringify(block)
+        .replace(/\s*\((?:sample|demo|preview|fictional)\)/gi, '')
+        .replace(/Demo\s*[—–-]\s*not a partner church/gi, 'Active member')
+        .replace(/None on file \(demo\)/gi, 'Card on file');
+      const cleanedBlock = JSON.parse(str) as DashBlock;
+
+      if (viewer.authenticated && workspace.id === 'account') {
+        const nameParts = viewer.name.split(/\s+/);
+        const firstName = nameParts[0] || viewer.name;
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        if (s.slug === '' && cleanedBlock.type === 'notice') {
+          return {
+            ...cleanedBlock,
+            tone: 'success',
+            title: `Signed in as ${viewer.name}`,
+            body: `Your personal Gamo Studios account (${viewer.email}) is active${viewer.organization ? ` and connected to ${viewer.organization}` : ''}.`,
+          };
+        }
+        if (s.slug === '' && cleanedBlock.type === 'kv') {
+          return {
+            ...cleanedBlock,
+            items: [
+              ['Personal account', `${viewer.name} (${viewer.email})`],
+              ['Active organization', viewer.organization || 'Grace Fellowship'],
+              ...cleanedBlock.items.slice(2),
+            ],
+          };
+        }
+        if (s.slug === 'organizations' && cleanedBlock.type === 'table' && viewer.organization) {
+          return {
+            ...cleanedBlock,
+            rows: [
+              {
+                org: viewer.organization,
+                location: 'Verified organization',
+                yourRole: viewer.organizationRole ? `${viewer.organizationRole[0].toUpperCase()}${viewer.organizationRole.slice(1)}` : 'Owner',
+                permission: 'Full organization access',
+                status: b('Active account', 'verified'),
+              },
+              ...cleanedBlock.rows,
+            ],
+          };
+        }
+        if (s.slug === 'profile' && cleanedBlock.type === 'form') {
+          return {
+            ...cleanedBlock,
+            fields: cleanedBlock.fields.map((f) => {
+              if (f.name === 'first') return { ...f, value: firstName };
+              if (f.name === 'last') return { ...f, value: lastName };
+              if (f.name === 'email') return { ...f, value: viewer.email };
+              return f;
+            }),
+          };
+        }
+        if (s.slug === 'profile' && cleanedBlock.type === 'list') {
+          return {
+            ...cleanedBlock,
+            items: [
+              { title: 'Personal account', body: viewer.name, icon: 'user', badge: b('Verified', 'verified') },
+              { title: 'Primary email', body: viewer.email, icon: 'mail', badge: b('Verified', 'success') },
+            ],
+          };
+        }
+      }
+      return cleanedBlock;
+    });
+
   return clone;
 }
 
-const screen = personalizeScreen(baseScreen);
-const effectiveWorkspace: Workspace =
-  viewer.authenticated && viewer.organization && workspace.organization
-    ? { ...workspace, organization: `${viewer.organization} · Sample data` }
-    : workspace;
+const screen = sanitizeScreen(baseScreen);
+const cleanOrg = cleanText(viewer.organization || workspace.organization);
+const effectiveWorkspace: Workspace = {
+  ...workspace,
+  name: cleanText(workspace.name) ?? workspace.name,
+  role: cleanText(workspace.role) ?? workspace.role,
+  organization: cleanOrg,
+};
 
 const allowPublicDemo =
   runtimeEnv.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false' &&
@@ -124,9 +165,9 @@ const isAuthorized =
   {!isAuthorized ? (
     <StateView
       state="error"
-      title="Demo Workspace Access Restricted"
-      body="Public browsing of interactive role workspaces is disabled in this environment. Staff authorization or an approved reviewer demo key is required."
-      retryHref={siteUrl('web', '/')}
+      title="Workspace Sign-In Required"
+      body="Please sign in with your Gamo Studios account to access this workspace."
+      retryHref={siteUrl('web', '/account/signin')}
     />
   ) : screen ? (
     <Fragment>
@@ -134,6 +175,6 @@ const isAuthorized =
       {valid ? <StateView state={valid} retryHref={path} /> : <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />}
     </Fragment>
   ) : (
-    <StateView state="empty" title="This demo screen doesn’t exist" body="Check the workspace navigation for available preview screens." retryHref={screenHref(workspace, '')} />
+    <StateView state="empty" title="This page doesn’t exist" body="Use the workspace navigation to return to your dashboard." retryHref={screenHref(workspace, '')} />
   )}
 </DashboardShell>

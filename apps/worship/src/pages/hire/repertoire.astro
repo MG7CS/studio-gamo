@@ -10,13 +10,13 @@ const sample = [['Goodness of God', 'A'], ['Way Maker', 'E'], ['Great Is Thy Fai
   <FlowShell eyebrow="For churches · Repertoire" title="Help musicians" accent="arrive prepared." lede="Share the set list, keys and any charts or reference recordings. Primary and standby musicians would receive the same materials." steps={hireSteps} current={1} photo="worshipLeaderGolden">
     <DemoForm next="/hire/schedule" back="/hire">
       <div class="overflow-hidden rounded-3xl border border-sand bg-white">
-        <div class="flex items-center justify-between border-b border-sand px-5 py-3 text-sm"><span class="font-semibold">Sample set list</span><span class="text-ink-soft">Key</span></div>
+        <div class="flex items-center justify-between border-b border-sand px-5 py-3 text-sm"><span class="font-semibold">Example set list</span><span class="text-ink-soft">Key</span></div>
         <ol class="divide-y divide-sand">
           {sample.map(([s, k], i) => <li class="flex items-center gap-4 px-5 py-3"><span class="w-5 text-sm text-ink-soft">{i + 1}</span><span class="flex-1">{s}</span><span class="rounded-full bg-cream px-3 py-1 text-sm font-semibold">{k}</span></li>)}
         </ol>
       </div>
       <FormField label="Your set list (song — key)" name="setlist" type="textarea" rows={5} placeholder="One song per line" />
-      <FormField label="Charts or recordings (link)" name="charts" type="url" placeholder="https://" hint="Shared folders are fine. Nothing is uploaded in this preview." />
+      <FormField label="Charts or recordings (link)" name="charts" type="url" placeholder="https://" hint="Shared folders or cloud links are welcome." />
       <FormField label="Notes for musicians" name="notes" type="textarea" hint="Transitions, communion moments, a special song…" />
     </DemoForm>
   </FlowShell>

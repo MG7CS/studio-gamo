@@ -9,7 +9,7 @@ const dates = [...new Set(events.map((e) => e.date))].sort().slice(0, 10);
     <div class="min-w-0">
       <p class="eyebrow text-terracotta">Browse by location</p>
       <h2 id="browse-title" class="section-heading mt-3 text-balance">Christian events, <span class="text-terracotta">nationwide.</span></h2>
-      <p class="mt-4 max-w-md text-ink-soft">Choose a city to see sample listings. No map tracking — just simple places.</p>
+      <p class="mt-4 max-w-md text-ink-soft">Choose a city to explore upcoming gatherings. No map tracking — just simple places.</p>
       <ul class="mt-8 flex flex-wrap gap-2">
         {cities.map((c) => (
           <li><a href={`/events?city=${encodeURIComponent(c)}`} class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-sm font-medium ring-1 ring-sand transition hover:ring-terracotta"><Icon name="pin" class="h-4 w-4 text-terracotta" />{c}</a></li>
@@ -19,7 +19,7 @@ const dates = [...new Set(events.map((e) => e.date))].sort().slice(0, 10);
     <div class="min-w-0">
       <p class="eyebrow text-terracotta">Browse by date</p>
       <h3 class="section-subheading mt-3">Pick a day.</h3>
-      <ol class="scroll-rail mt-8 flex snap-x gap-3 overflow-x-auto pb-3" aria-label="Dates with sample events">
+      <ol class="scroll-rail mt-8 flex snap-x gap-3 overflow-x-auto pb-3" aria-label="Upcoming event dates">
         {dates.map((iso, i) => {
           const d = dateParts(iso); const n = events.filter((e) => e.date === iso).length;
           return (

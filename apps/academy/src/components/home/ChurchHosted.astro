@@ -5,23 +5,23 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const roles: EditorialFeaturePoint[] = [
   { icon: 'church', title: 'A church provides', body: 'A welcoming room, a schedule window and an invitation to its neighbourhood.' },
-  { icon: 'shield', title: 'Gamo Academy provides', body: 'Reviewed instructors, curriculum and family communication (planned).' },
+  { icon: 'shield', title: 'Gamo Academy provides', body: 'Reviewed instructors, curriculum and family communication.' },
   { icon: 'users', title: 'Students receive', body: 'Quality lessons close to home, open to the wider community.' },
 ];
 ---
 <EditorialFeatureCard
   eyebrow="Church-hosted lessons"
-  pillText="Planned hosting model"
+  pillText="Community hosting model"
   pillKind="proposal"
   title="Lessons in the heart"
   accent="of the neighbourhood."
-  body="Churches may apply to host Gamo Academy lessons for their members and the wider community. Hosting is planned — applications are a design preview."
+  body="Churches can apply to host Gamo Academy lessons for their members and the wider community."
   points={roles}
   photo="churchModernDay"
   photoPosition="50% 40%"
-  caption="Local congregation classrooms · Sample hosting preview"
+  caption="Local congregation classrooms · Community hosting"
   tone="ivory"
   reverse={true}
 >
-  <ButtonLink href="/host-apply" arrow>Preview the hosting application</ButtonLink>
+  <ButtonLink href="/host-apply" arrow>Apply to host lessons</ButtonLink>
 </EditorialFeatureCard>
