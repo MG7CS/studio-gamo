@@ -1,24 +1,27 @@
 ---
-/** Joining the musician collection: wide photo band with overlapping invitation panel. */
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+/** Joining the musician collection: shared rounded-edge EditorialFeatureCard with arch photo. */
+import EditorialFeatureCard, { type EditorialFeaturePoint } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-const values = ['Faith and character first', 'Prepared, punctual, teachable', 'Transparent, fair pay on its own line', 'Choose the services you accept'];
+
+const values: EditorialFeaturePoint[] = [
+  { icon: 'heart', title: 'Faith and character first', body: 'Every musician is reviewed for musical readiness, humility, and care for the local church.' },
+  { icon: 'shield', title: 'Prepared, punctual, teachable', body: 'Clear chord charts, rehearsal expectations, and reliable communication with worship leaders.' },
+  { icon: 'music', title: 'Transparent, fair pay on its own line', body: 'Musician compensation and any proposed Gamo administrative allocation are always shown separately.' },
+];
 ---
-<section class="bg-cream section-space" aria-labelledby="join-title">
-  <div class="mx-auto max-w-7xl px-5 sm:px-8">
-    <div class="relative">
-      <div class="aspect-[4/3] overflow-hidden rounded-[2.5rem] sm:aspect-[16/7] lg:rounded-[3.5rem]">
-        <Photo name="guitarMentor" sizes="(min-width:1280px) 1200px, 100vw" position="50% 35%" />
-      </div>
-      <div class="relative -mt-16 mx-3 rounded-[2rem] bg-white p-7 shadow-float sm:mx-8 lg:absolute lg:-bottom-12 lg:right-10 lg:mx-0 lg:mt-0 lg:w-[30rem] lg:p-10" data-reveal>
-        <p class="eyebrow text-terracotta">The musician collection</p>
-        <h2 id="join-title" class="section-heading mt-3 text-charcoal">Serve with your gift.</h2>
-        <ul class="mt-5 space-y-2 text-ink-soft">{values.map((v) => <li class="flex gap-3"><span class="text-terracotta">—</span>{v}</li>)}</ul>
-        <div class="mt-7 flex flex-wrap gap-3">
-          <ButtonLink href="/apply" arrow>Start an application</ButtonLink>
-          <ButtonLink href="/opportunities" variant="secondary">Sample opportunities</ButtonLink>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<EditorialFeatureCard
+  eyebrow="The musician collection"
+  pillText="Sample musician network"
+  pillKind="sample"
+  title="Serve local congregations"
+  accent="with your gift."
+  body="Join a reviewed community of Christian instrumentalists and vocalists helping churches cover Sunday services, special gatherings, and seasons of transition."
+  points={values}
+  photo="guitarMentor"
+  photoPosition="50% 35%"
+  caption="Choose the services and schedules you accept"
+  tone="sand"
+>
+  <ButtonLink href="/apply" arrow>Start an application</ButtonLink>
+  <ButtonLink href="/opportunities" variant="secondary">Sample opportunities</ButtonLink>
+</EditorialFeatureCard>

@@ -10,7 +10,7 @@ interface Props {
   bodyClass?: string;
   chrome?: boolean;
 }
-const { title, description, headerTheme = 'dark', bodyClass = 'bg-cream text-charcoal', chrome = true } = Astro.props;
+const { title, description, headerTheme = 'light', bodyClass = 'bg-cream text-charcoal', chrome = true } = Astro.props;
 ---
 <BaseLayout title={title ? `${title} | Gamo Production` : 'Gamo Production | Gamo Studios'} description={description} current="production" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
   <slot />

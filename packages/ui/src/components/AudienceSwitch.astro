@@ -9,32 +9,41 @@ interface Props {
   label: string;
   options: { id: string; label: string }[];
   tone?: 'light' | 'dark';
+  align?: 'left' | 'center';
   class?: string;
 }
-const { id, label, options, tone = 'light', class: className } = Astro.props;
+const { id, label, options, tone = 'light', align = 'left', class: className } = Astro.props;
 const slotHtml = await Promise.all(options.map((o) => Astro.slots.render(o.id)));
+const hasHeadingSlot = Astro.slots.has('heading');
 ---
 <div class:list={['audience-switch', className]} data-audience-switch={id}>
-  <div role="tablist" aria-label={label} class:list={['inline-flex rounded-full p-1.5', tone === 'dark' ? 'bg-white/10' : 'border border-sand bg-white/80']}>
-    {options.map((o, i) => (
-      <button
-        type="button"
-        role="tab"
-        id={`${id}-tab-${o.id}`}
-        aria-controls={`${id}-panel-${o.id}`}
-        aria-selected={i === 0 ? 'true' : 'false'}
-        tabindex={i === 0 ? 0 : -1}
-        class:list={[
-          'rounded-full px-5 py-2.5 text-sm font-semibold transition-colors sm:px-6',
-          tone === 'dark'
-            ? 'text-cream/75 aria-selected:bg-cream aria-selected:text-charcoal'
-            : 'text-charcoal/70 aria-selected:bg-charcoal aria-selected:text-cream',
-        ]}
-      >{o.label}</button>
-    ))}
+  <div class:list={[align === 'center' && 'flex justify-center']}>
+    <div role="tablist" aria-label={label} class:list={['inline-flex flex-wrap justify-center rounded-full p-1.5 shadow-sm', tone === 'dark' ? 'bg-white/10' : 'border border-sand bg-white/95']}>
+      {options.map((o, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`${id}-tab-${o.id}`}
+          aria-controls={`${id}-panel-${o.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          class:list={[
+            'rounded-full px-5 py-2.5 text-sm font-semibold transition-colors sm:px-6',
+            tone === 'dark'
+              ? 'text-cream/75 aria-selected:bg-cream aria-selected:text-charcoal'
+              : 'text-charcoal/75 aria-selected:bg-charcoal aria-selected:text-cream',
+          ]}
+        >{o.label}</button>
+      ))}
+    </div>
   </div>
+  {hasHeadingSlot && (
+    <div class="mt-5">
+      <slot name="heading" />
+    </div>
+  )}
   {options.map((o, i) => (
-    <div role="tabpanel" id={`${id}-panel-${o.id}`} aria-labelledby={`${id}-tab-${o.id}`} tabindex="0" class="mt-8 focus-visible:outline-none" data-initial-hidden={i === 0 ? undefined : ''}>
+    <div role="tabpanel" id={`${id}-panel-${o.id}`} aria-labelledby={`${id}-tab-${o.id}`} tabindex="0" class="mt-8 focus-visible:outline-none sm:mt-10" data-initial-hidden={i === 0 ? undefined : ''}>
       <Fragment set:html={slotHtml[i]} />
     </div>
   ))}
