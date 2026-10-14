@@ -1,0 +1,188 @@
+---
+/**
+ * Shared rounded-edge editorial feature card section with a sculptural bottom-anchored
+ * arch photo (`mask-arch`), structured icon highlights, and action buttons.
+ *
+ * Used across Academy, Worship, and the global Gamo Studios pages for visual continuity.
+ */
+import Photo from './Photo.astro';
+import StatusPill from './StatusPill.astro';
+import Icon from './Icon.astro';
+import type { PhotoKey } from '../lib/images';
+import type { IconName } from '../lib/icons';
+
+export interface EditorialFeaturePoint {
+  icon: IconName;
+  title: string;
+  body: string;
+}
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  pillText?: string;
+  pillKind?: 'sample' | 'proposal' | 'verified';
+  title: string;
+  accent?: string;
+  body: string;
+  points?: EditorialFeaturePoint[];
+  photo: PhotoKey;
+  photoPosition?: string;
+  caption?: string;
+  tone?: 'sand' | 'ivory' | 'dark';
+  reverse?: boolean;
+  sectionClass?: string;
+}
+
+const {
+  id,
+  eyebrow,
+  pillText,
+  pillKind = 'proposal',
+  title,
+  accent,
+  body,
+  points = [],
+  photo,
+  photoPosition = '50% 30%',
+  caption,
+  tone = 'sand',
+  reverse = false,
+  sectionClass = '',
+} = Astro.props;
+
+const dark = tone === 'dark';
+const cardSurface = {
+  sand: 'bg-[#EFE2D3] text-charcoal ring-1 ring-sand/90',
+  ivory: 'bg-ivory text-charcoal ring-1 ring-sand',
+  dark: 'bg-night text-cream ring-1 ring-white/10',
+}[tone];
+
+const pointSurface = {
+  sand: 'bg-white/75 ring-1 ring-sand/70',
+  ivory: 'bg-white ring-1 ring-sand/80',
+  dark: 'bg-white/5 ring-1 ring-white/10',
+}[tone];
+
+const iconBadgeSurface = {
+  sand: 'bg-cream text-terracotta',
+  ivory: 'bg-cream text-terracotta',
+  dark: 'bg-white/10 text-gold',
+}[tone];
+---
+
+<section
+  id={id}
+  data-surface={dark ? 'dark' : undefined}
+  class:list={['px-4 section-space sm:px-8', sectionClass]}
+  data-reveal
+>
+  <div
+    class:list={[
+      'mx-auto grid max-w-[1320px] overflow-hidden rounded-[40px] shadow-[0_24px_60px_-28px_rgba(29,35,35,0.18)] lg:grid-cols-12',
+      cardSurface,
+    ]}
+  >
+    <div
+      class:list={[
+        'flex flex-col justify-center p-7 sm:p-12 lg:col-span-7 lg:p-14 xl:p-16',
+        reverse && 'lg:order-2',
+      ]}
+    >
+      <div class="flex flex-wrap items-center gap-3">
+        {pillText && <StatusPill kind={pillKind}>{pillText}</StatusPill>}
+        {eyebrow && (
+          <p class:list={['eyebrow', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>
+        )}
+      </div>
+
+      <h2 class="section-heading mt-4 text-balance">
+        {title}{' '}
+        {accent && (
+          <span class:list={[dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>
+        )}
+      </h2>
+
+      <p
+        class:list={[
+          'mt-4 max-w-xl text-base leading-relaxed sm:text-lg',
+          dark ? 'text-cream/75' : 'text-ink-soft',
+        ]}
+      >
+        {body}
+      </p>
+
+      {points.length > 0 && (
+        <ul class="mt-7 grid gap-3">
+          {points.map((pt) => (
+            <li
+              class:list={[
+                'flex items-start gap-3.5 rounded-2xl p-3.5 sm:p-4',
+                pointSurface,
+              ]}
+            >
+              <span
+                class:list={[
+                  'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
+                  iconBadgeSurface,
+                ]}
+              >
+                <Icon name={pt.icon} class="h-5 w-5" />
+              </span>
+              <div class="min-w-0">
+                <p class="font-bold leading-snug">{pt.title}</p>
+                <p
+                  class:list={[
+                    'mt-0.5 text-sm leading-relaxed',
+                    dark ? 'text-cream/70' : 'text-ink-soft',
+                  ]}
+                >
+                  {pt.body}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <slot />
+      </div>
+    </div>
+
+    <div
+      class:list={[
+        'relative min-h-[340px] sm:min-h-[420px] lg:col-span-5 lg:min-h-[520px]',
+        reverse && 'lg:order-1',
+      ]}
+    >
+      <div
+        class:list={[
+          'mask-arch absolute inset-x-6 bottom-0 top-6 overflow-hidden shadow-float sm:inset-x-10 sm:top-10 lg:inset-x-10 lg:top-12',
+          dark ? 'ring-1 ring-white/15' : 'ring-1 ring-charcoal/10',
+        ]}
+      >
+        <Photo
+          name={photo}
+          sizes="(min-width:1024px) 36vw, 90vw"
+          position={photoPosition}
+          class="h-full w-full object-cover"
+        />
+      </div>
+
+      {caption && (
+        <div
+          class:list={[
+            'absolute bottom-4 rounded-2xl px-4 py-2.5 text-xs font-semibold shadow-float backdrop-blur-md sm:bottom-6',
+            reverse ? 'left-8 sm:left-12' : 'right-8 sm:right-12',
+            dark
+              ? 'border border-white/15 bg-charcoal/90 text-cream'
+              : 'border border-sand bg-white/95 text-charcoal',
+          ]}
+        >
+          {caption}
+        </div>
+      )}
+    </div>
+  </div>
+</section>

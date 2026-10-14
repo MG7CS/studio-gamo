@@ -1,46 +1,49 @@
 ---
-/** Section 2: learning by age & experience — audience tabs with a level ladder. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Section 2: learning by age & experience — audience pill selector on top of the section heading. */
 import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+
 const groups: { id: string; label: string; photo: PhotoKey; title: string; body: string; points: string[] }[] = [
   { id: 'kids', label: 'Kids (6–12)', photo: 'youngPianist', title: 'Playful, patient first steps', body: 'Short lessons, lots of encouragement and practice plans that parents can follow at home.', points: ['30-minute lessons', 'Games for rhythm and reading', 'Progress notes for families'] },
   { id: 'teens', label: 'Teens (13–17)', photo: 'girlGuitar', title: 'Real songs, real confidence', body: 'Teens learn the music they actually want to play, with chances to play together in small groups.', points: ['Songs they choose', 'Group sessions with peers', 'Technique that lasts'] },
   { id: 'adults', label: 'Adults', photo: 'guitarMentor', title: 'It is never too late to start', body: 'Whether you are a first-timer or returning after years away, lessons fit around work and family life.', points: ['Evening and online options', 'Beginner-friendly pacing', 'Goals you set'] },
 ];
-const levels = [
-  { name: 'Beginner', text: 'No experience needed. Learn the basics and your first songs.' },
-  { name: 'Developing', text: 'Build technique, reading and steady practice habits.' },
-  { name: 'Advancing', text: 'Refine skills, play with others and prepare to serve or perform.' },
-];
 ---
 <section class="bg-ivory px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto max-w-[1320px]">
-    <EditorialHeading eyebrow="For every age & stage" title="Lessons shaped around" accent="the learner." align="center" class="mx-auto max-w-3xl" />
-    <AudienceSwitch id="ages" label="Choose a learner group" options={groups.map(({ id, label }) => ({ id, label }))} class="mt-10">
+    <AudienceSwitch
+      id="ages"
+      label="Choose a learner group"
+      align="center"
+      options={groups.map(({ id, label }) => ({ id, label }))}
+    >
+      <div slot="heading" class="mx-auto max-w-3xl text-center">
+        <h2 class="section-heading text-balance text-charcoal">
+          Lessons for Every <span class="text-terracotta">Age &amp; Stage</span>
+        </h2>
+      </div>
       {groups.map((g) => (
-        <div slot={g.id} class="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div slot={g.id} class="grid items-center gap-8 rounded-[36px] bg-white p-6 shadow-sm ring-1 ring-sand/80 sm:p-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
           <div class="mask-leaf-alt relative aspect-[4/3] overflow-hidden lg:aspect-[5/4]">
             <Photo name={g.photo} sizes="(min-width:1024px) 40vw, 100vw" class="h-full w-full object-cover" />
           </div>
           <div>
-            <h3 class="section-subheading">{g.title}</h3>
+            <span class="inline-flex items-center rounded-full bg-cream px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-terracotta">
+              {g.label}
+            </span>
+            <h3 class="section-subheading mt-3 text-charcoal">{g.title}</h3>
             <p class="mt-4 text-lg leading-relaxed text-ink-soft">{g.body}</p>
-            <ul class="mt-6 flex flex-wrap gap-2">{g.points.map((p) => <li class="rounded-full bg-white px-4 py-2 text-sm font-medium ring-1 ring-sand">{p}</li>)}</ul>
+            <ul class="mt-6 flex flex-wrap gap-2.5">
+              {g.points.map((p) => (
+                <li class="rounded-full bg-ivory px-4 py-2 text-sm font-medium text-charcoal ring-1 ring-sand">
+                  {p}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       ))}
     </AudienceSwitch>
-    <ol class="mt-14 grid gap-4 md:grid-cols-3">
-      {levels.map((l, i) => (
-        <li class:list={['relative rounded-[28px] bg-white p-6 ring-1 ring-sand', ['', 'md:mt-5', 'md:mt-10'][i]]}>
-          <span class="text-sm font-semibold text-terracotta">Level {i + 1}</span>
-          <p class="mt-1 text-2xl font-bold">{l.name}</p>
-          <p class="mt-2 text-sm leading-relaxed text-ink-soft">{l.text}</p>
-          <div class="mt-4 flex gap-1" aria-hidden="true">{[0, 1, 2].map((d) => <span class:list={['h-1.5 flex-1 rounded-full', d <= i ? 'bg-terracotta' : 'bg-cream']}></span>)}</div>
-        </li>
-      ))}
-    </ol>
   </div>
 </section>
