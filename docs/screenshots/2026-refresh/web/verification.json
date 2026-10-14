@@ -3,7 +3,7 @@
     {
       "route": "/",
       "width": 390,
-      "title": "Gamo Studios | Keep Worship Going",
+      "title": "Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry",
       "status": "passed"
     },
     {
@@ -75,7 +75,7 @@
     {
       "route": "/",
       "width": 768,
-      "title": "Gamo Studios | Keep Worship Going",
+      "title": "Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry",
       "status": "passed"
     },
     {
@@ -147,7 +147,7 @@
     {
       "route": "/",
       "width": 1024,
-      "title": "Gamo Studios | Keep Worship Going",
+      "title": "Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry",
       "status": "passed"
     },
     {
@@ -219,7 +219,7 @@
     {
       "route": "/",
       "width": 1440,
-      "title": "Gamo Studios | Keep Worship Going",
+      "title": "Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry",
       "status": "passed"
     },
     {
@@ -291,7 +291,7 @@
     {
       "route": "/",
       "width": 1920,
-      "title": "Gamo Studios | Keep Worship Going",
+      "title": "Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry",
       "status": "passed"
     },
     {
@@ -361,7 +361,7 @@
       "status": "passed"
     }
   ],
-  "linksChecked": 55,
+  "linksChecked": 73,
   "interactions": [
     "empty fields",
     "invalid email",

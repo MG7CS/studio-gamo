@@ -323,3 +323,48 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
   f.d1.sqlite.close();
  }
 });
+test('Admin password gateway provisions gasanamoise7@gmail.com with temporary password GamoStudios.Com, enforces lockout, and supports password rotation',async()=>{
+ const {onRequest}=await import('../../apps/admin/src/middleware.ts');
+ const {GET:pending}=await import('../../apps/admin/src/pages/api/events/pending.ts');
+ const {authenticateAdminPassword,changeAdminPassword,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD}=await import('../../apps/admin/src/lib/admin-password-auth.ts');
+ const f=await fixture();
+ try{
+  const env={DB:f.d1,ENVIRONMENT:'production',REQUIRE_ADMIN_AUTH:'true',SESSION_SECRET:secret};
+  // 1. Initial login with temporary password succeeds and flags mustChangePassword=true
+  const initial=await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD);
+  assert.equal(initial.ok,true);
+  assert.equal(initial.mustChangePassword,true);
+  // 2.Middleware POST /__admin_auth/login issues __session + __admin_gate cookies and redirects to /security?welcome=1
+  const loginForm=new URLSearchParams({email:BOOTSTRAP_ADMIN_EMAIL,password:BOOTSTRAP_ADMIN_TEMP_PASSWORD});
+  const loginReq=new Request('https://admin.gamostudio.org/__admin_auth/login',{method:'POST',headers:{origin:'https://admin.gamostudio.org','content-type':'application/x-www-form-urlencoded'},body:loginForm});
+  const loginRes=await onRequest({request:loginReq,params:{},locals:{runtime:{env}}} as any,async()=>new Response('ok'));
+  assert.equal(loginRes.status,303);
+  assert.equal(loginRes.headers.get('location'),'/security?welcome=1');
+  const setCookies=loginRes.headers.getSetCookie ? loginRes.headers.getSetCookie() : [loginRes.headers.get('set-cookie')||''].filter(Boolean);
+  const cookieHeader=setCookies.map(c=>c.split(';')[0]).join('; ');
+  assert.match(cookieHeader,/__session=/);
+  assert.match(cookieHeader,/__admin_gate=/);
+  // 3. Authenticated request with __session + __admin_gate accesses Admin API & UI
+  const apiReq=new Request('https://admin.gamostudio.org/api/events/pending',{headers:{cookie:cookieHeader}});
+  const apiCtx:any={request:apiReq,params:{},locals:{runtime:{env}}};
+  const apiRes=await onRequest(apiCtx,()=>pending(apiCtx));
+  assert.equal(apiRes.status,200);
+  // 4. Changing password updates hash and disables temporary password
+  const changed=await changeAdminPassword(f.db,initial.userId!,BOOTSTRAP_ADMIN_TEMP_PASSWORD,'NewStrongAdminPass2026!');
+  assert.equal(changed.ok,true);
+  assert.equal((await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD)).ok,false);
+  const afterChange=await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,'NewStrongAdminPass2026!');
+  assert.equal(afterChange.ok,true);
+  assert.equal(afterChange.mustChangePassword,false);
+  // 5. 5 failed attempts lock out the account even if the right password is provided afterward
+  for(let i=0;i<5;i++){
+   assert.equal((await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,'wrong-pass')).ok,false);
+  }
+  const locked=await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,'NewStrongAdminPass2026!');
+  assert.equal(locked.ok,false);
+  assert.match(locked.error||'',/Too many failed sign-in attempts/);
+ }finally{
+  f.d1.sqlite.close();
+ }
+});
+

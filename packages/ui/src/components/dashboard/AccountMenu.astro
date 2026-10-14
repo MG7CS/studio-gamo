@@ -3,15 +3,17 @@
 import Icon from '../Icon.astro';
 import { DEMO_PERSONA, type ViewerPersona } from '../../lib/dashboard';
 import { siteUrl } from '../../lib/sites';
-interface Props { viewer?: ViewerPersona }
-const { viewer = DEMO_PERSONA } = Astro.props;
+interface Props { viewer?: ViewerPersona; staff?: boolean }
+const { viewer = DEMO_PERSONA, staff = false } = Astro.props;
 const isAuth = Boolean(viewer?.authenticated);
-const links: [string, string, 'user' | 'settings' | 'bell' | 'users' | 'logout'][] = [
+const links: [string, string, 'user' | 'settings' | 'bell' | 'users' | 'lock' | 'logout'][] = [
+  ...(staff ? ([['Admin password & security', '/security', 'lock']] as [string, string, 'lock'][]) : []),
   ['Profile', siteUrl('web', '/account/profile'), 'user'],
   ['Roles & organizations', siteUrl('web', '/account/roles'), 'users'],
   ['Notifications', siteUrl('web', '/account/notifications'), 'bell'],
   ['Account settings', siteUrl('web', '/account/settings'), 'settings'],
 ];
+const signOutHref = staff ? '/__admin_auth/logout' : siteUrl('web', '/account/signed-out');
 ---
 <details class="dash-menu relative" data-dash-menu>
   <summary class="flex h-10 cursor-pointer list-none items-center gap-2 rounded-full pl-1 pr-2 hover:bg-white [&::-webkit-details-marker]:hidden">
@@ -35,7 +37,7 @@ const links: [string, string, 'user' | 'settings' | 'bell' | 'users' | 'logout']
     <ul class="border-t border-sand/70 pt-1">
       {links.map(([label, href, icon]) => <li><a href={href} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] hover:bg-cream"><Icon name={icon} class="h-4 w-4 text-ink-soft" />{label}</a></li>)}
       <li class="mt-1 border-t border-sand/70 pt-1">
-        <a href={siteUrl('web', '/account/signed-out')} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] hover:bg-cream">
+        <a href={signOutHref} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[13px] hover:bg-cream">
           <Icon name="logout" class="h-4 w-4 text-ink-soft" />{isAuth ? 'Sign out of account' : 'Exit demo (sign-out preview)'}
         </a>
       </li>

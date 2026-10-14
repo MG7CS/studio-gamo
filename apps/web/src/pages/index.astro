@@ -1,20 +1,34 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import HeroSection from '../components/home/HeroSection.astro';
-import MusiciansSection from '../components/home/MusiciansSection.astro';
-import WorshipCoverageSection from '../components/home/WorshipCoverageSection.astro';
-import AcademySection from '../components/home/AcademySection.astro';
-import LiveSection from '../components/home/LiveSection.astro';
-import UpcomingEventsSection from '../components/home/UpcomingEventsSection.astro';
-import FinalCTA from '../components/home/FinalCTA.astro';
+import HomeEditorialHero from '../components/home/HomeEditorialHero.astro';
+import HomeProgramsBento from '../components/home/HomeProgramsBento.astro';
+import HomeWorshipSpotlight from '../components/home/HomeWorshipSpotlight.astro';
+import HomeAcademySpotlight from '../components/home/HomeAcademySpotlight.astro';
+import HomeLiveSpotlight from '../components/home/HomeLiveSpotlight.astro';
+import HomeProductionSpotlight from '../components/home/HomeProductionSpotlight.astro';
+import HomeCommunityPaths from '../components/home/HomeCommunityPaths.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
-<SiteLayout title="Gamo Studios | Keep Worship Going" headerTheme="dark" bodyClass="bg-[#1D2323] text-charcoal">
-  <HeroSection />
-  <MusiciansSection />
-  <WorshipCoverageSection />
-  <AcademySection />
-  <LiveSection />
-  <UpcomingEventsSection />
-  <FinalCTA />
+<SiteLayout
+  title="Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry"
+  description="Gamo Studios is a Christian, mission-driven organization connecting Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production to serve churches, musicians, students, and families."
+>
+  <HomeEditorialHero />
+  <HomeProgramsBento />
+  <HomeWorshipSpotlight />
+  <HomeAcademySpotlight />
+  <HomeLiveSpotlight />
+  <HomeProductionSpotlight />
+  <HomeCommunityPaths />
+  <CtaInvitation
+    eyebrow="Join the mission"
+    title="Ready to take your first step with Gamo Studios?"
+    body="Create your account to explore workspaces across Worship, Academy, Live, and Production, or learn how your church or community can partner with us."
+    photo="chapelSpring"
+  >
+    <ButtonLink href="/account/signup" arrow>Create your account</ButtonLink>
+    <ButtonLink href="/partners" variant="secondary">Explore church partnerships</ButtonLink>
+  </CtaInvitation>
 </SiteLayout>
