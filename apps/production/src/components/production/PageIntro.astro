@@ -22,7 +22,7 @@ const { eyebrow, title, accent, lede, photo, crumb } = Astro.props;
       <slot />
     </div>
     {photo && (
-      <div class="lg:col-span-6">
+      <div class="order-first lg:order-none lg:col-span-6">
         <div class="mx-auto aspect-[16/10] max-w-[520px] overflow-hidden rounded-[2.5rem] rounded-tr-[7rem] shadow-float lg:aspect-[5/4]">
           <Photo name={photo} priority sizes="(min-width:1024px) 38vw, 100vw" class="h-full w-full object-cover" />
         </div>

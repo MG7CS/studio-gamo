@@ -13,7 +13,7 @@ const { eyebrow, title, accent, body, photo, inset, variant = 'community' } = As
       <div class="mt-7 flex flex-wrap gap-3"><slot /></div>
       <p class="mt-6 text-xs tracking-wide text-ink-soft">Developing Christian nonprofit · Programs in preparation</p>
     </div>
-    <div class:list={['hero-composition relative mx-auto w-full max-w-[680px]', variant]}>
+    <div class:list={['order-first lg:order-none hero-composition relative mx-auto w-full max-w-[680px]', variant]}>
       <div class="hero-main relative overflow-hidden bg-sand">
         <Photo name={photo} sizes="(min-width:1024px) 48vw, 100vw" priority />
       </div>

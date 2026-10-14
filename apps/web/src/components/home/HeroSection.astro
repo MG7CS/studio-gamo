@@ -6,7 +6,7 @@ import WorshipTeamCard from '../editorial/WorshipTeamCard.astro';
 ---
 <section aria-labelledby="hero-title" class="relative flex flex-col overflow-hidden bg-[#1D2323] pt-20 pb-8 text-[#F4EDE3] sm:pt-24 lg:block lg:min-h-[min(90svh,780px)] lg:py-0">
   <!-- Full-height photograph with sculptural boundary; bleeds to the right viewport edge on wide screens. -->
-  <div class="hero-photo relative order-1 mx-5 h-[32svh] min-h-[160px] [@media(max-height:720px)]:h-[25svh] overflow-hidden rounded-[30px] bg-[#111616] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-full lg:w-[calc(50%+min(14vw,215px))] lg:rounded-none">
+  <div class="hero-photo relative order-1 mx-5 h-[32svh] min-h-[160px] [@media(max-width:1023px)_and_(max-height:720px)]:h-[25svh] overflow-hidden rounded-[30px] bg-[#111616] sm:mx-10 lg:absolute lg:inset-y-0 lg:right-0 lg:mx-0 lg:mt-0 lg:h-auto lg:w-[calc(50%+min(14vw,215px))] lg:rounded-none">
     <ResponsivePicture stem="photo-oct-12-2026-at-10-50-25-am-1" widths={[480,768,1200,1600]} sizes="(min-width: 1024px) 64vw, 100vw" alt="Keyboardist playing during a worship service" class="h-full w-full object-cover object-[55%_center]" loading="eager" decoding="sync" fetchpriority="high" />
     <div class="absolute inset-0 bg-gradient-to-l from-[#1D2323]/45 via-transparent to-transparent"></div>
   </div>
