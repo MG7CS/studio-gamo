@@ -99,3 +99,11 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 - Sponsored density is capped so the homepage still reads as an art-directed mission showcase, not an ad wall.
 - Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
 
+
+## Responsive edge cases (2026-10-13)
+
+- Public split-photo heroes show the photo composition before the copy below the desktop breakpoint. Preserve desktop composition and keep interactive reading/focus order meaningful. Text-only forms and operational screens do not need decorative hero images.
+- Short-height adjustments must also constrain width when intended only for mobile. Browser zoom and landscape windows can have desktop width and short height simultaneously.
+- Allow normal vertical scrolling at increased zoom; do not shrink text or hide actions to force everything above the fold.
+- Review image coverage, clipping, header collisions, and image/copy ordering in addition to document overflow. Check 320px mobile, landscape, and reduced CSS viewports corresponding to 110–400% zoom. A viewport simulation verifies reflow, not native browser zoom controls or text-only zoom.
+- Regression command: `ACADEMY_PORT=4332 node scripts/verify-zoom-layout.mjs` (omit the override when Academy uses 4323). Captures and geometry results: `docs/screenshots/zoom-layout/`.

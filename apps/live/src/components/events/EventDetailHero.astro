@@ -33,7 +33,7 @@ const org = getOrganizer(e.organizer);
         <ButtonLink href={`/organizers/${org.slug}`} variant="secondary">Organizer profile</ButtonLink>
       </div>
     </div>
-    <div class="relative">
+    <div class="order-first lg:order-none relative">
       <div class="aspect-[4/5] overflow-hidden rounded-[32px_220px_32px_32px] bg-night sm:aspect-[5/4] lg:aspect-[5/4]">
         <Photo name={e.photo} position={e.photoPosition} sizes="(min-width:1024px) 50vw, 100vw" priority class="h-full w-full object-cover" alt="" />
       </div>

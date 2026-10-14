@@ -273,3 +273,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 
 Mobile menu/Escape, active navigation, keyboard focus, reduced motion, audience switches, FAQs, local filters/no results, manual carousel, wizard Back/Next, required/malformed input, disabled unavailable transaction states, pending review and preview summaries, local dashboard state switching (?state=loading|empty|error|success), dialog open/close with focus trapping, tab bar navigation, drawer menus, responsive table card stacking. No-JavaScript form fallbacks prevent sending details. Persistent server failures and live authorization belong to future functionality.
 
+
+### 2026-10-13 responsive correction review
+
+Homepage photo collapse at short desktop heights corrected; mobile split-photo heroes now lead with imagery across organization/Worship/Academy/Production and Live promotion/event details. 120 targeted route/viewport checks passed; evidence in `docs/screenshots/zoom-layout/results.json`. This does not promote all screens to Reviewed: native zoom, text-only zoom and cross-browser sign-off remain outstanding. See `BUILD_LOG.md` for routes, commands and screenshot evidence.

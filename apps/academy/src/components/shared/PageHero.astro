@@ -32,7 +32,7 @@ const { eyebrow, title, accent, lede, photo, photoPosition, mask = 'mask-arch', 
       <slot />
     </div>
     {photo && (
-      <div class:list={['relative mx-auto aspect-[4/5] w-full max-w-[280px] overflow-hidden shadow-float sm:max-w-[320px] lg:max-w-[360px]', mask]}>
+      <div class:list={['order-first lg:order-none relative mx-auto aspect-[4/5] w-full max-w-[280px] overflow-hidden shadow-float sm:max-w-[320px] lg:max-w-[360px]', mask]}>
         <Photo name={photo} priority position={photoPosition} sizes="(min-width:1024px) 30vw, 90vw" class="h-full w-full object-cover" />
       </div>
     )}
