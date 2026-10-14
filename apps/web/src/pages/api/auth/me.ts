@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import { requireAuth } from '@gamo/auth';
-import { jsonResponse, handleApiError } from '@gamo/domain';
+import { jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -10,7 +10,7 @@ export const prerender = false;
  */
 export const GET: APIRoute = async (context) => {
   try {
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const signingSecret =
       runtimeEnv.SESSION_SECRET ||

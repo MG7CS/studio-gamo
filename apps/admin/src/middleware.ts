@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro/middleware';
+import { getRuntimeEnv } from '@gamo/domain';
 import { verifyCloudflareAccessJwt } from './lib/cf-access';
 
 /**
@@ -15,7 +16,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const isDev = Boolean(import.meta.env?.DEV);
 
   // Runtime environment variables (from Cloudflare Workers bindings or process)
-  const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+  const runtimeEnv = await getRuntimeEnv(context);
   const isProd = !isDev || runtimeEnv.ENVIRONMENT === 'production' || import.meta.env?.PROD;
 
   const requireAuth =

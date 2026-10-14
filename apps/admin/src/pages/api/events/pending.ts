@@ -1,7 +1,7 @@
 import { requireStaff, verifyStaffBoundaryIdentity } from '@gamo/auth';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import { AdminService, jsonResponse, handleApiError } from '@gamo/domain';
+import { AdminService, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -11,7 +11,7 @@ export const prerender = false;
  */
 export const GET: APIRoute = async (context) => {
   try {
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const auth = await requireStaff(context.request, db, runtimeEnv.SESSION_SECRET);
     await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);

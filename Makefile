@@ -97,51 +97,62 @@ status:
 
 # Cloudflare Preview Targets
 preview-web:
-	@echo "Deploying apps/web to preview (workers.dev)..."
-	@pnpm --filter apps-web exec wrangler deploy
+	@echo "Building and deploying apps/web to preview (workers.dev)..."
+	@CLOUDFLARE_ENV=preview pnpm --filter apps-web build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler deploy
 
 preview-worship:
-	@echo "Deploying apps/worship to preview (workers.dev)..."
-	@pnpm --filter apps-worship exec wrangler deploy
+	@echo "Building and deploying apps/worship to preview (workers.dev)..."
+	@CLOUDFLARE_ENV=preview pnpm --filter apps-worship build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-worship exec wrangler deploy
 
 preview-academy:
-	@echo "Deploying apps/academy to preview (workers.dev)..."
-	@pnpm --filter apps-academy exec wrangler deploy
+	@echo "Building and deploying apps/academy to preview (workers.dev)..."
+	@CLOUDFLARE_ENV=preview pnpm --filter apps-academy build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-academy exec wrangler deploy
 
 preview-live:
-	@echo "Deploying apps/live to preview (workers.dev)..."
-	@pnpm --filter apps-live exec wrangler deploy
+	@echo "Building and deploying apps/live to preview (workers.dev)..."
+	@CLOUDFLARE_ENV=preview pnpm --filter apps-live build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-live exec wrangler deploy
 
 preview-production:
-	@echo "Deploying apps/production to preview (workers.dev)..."
-	@pnpm --filter apps-production exec wrangler deploy
+	@echo "Building and deploying apps/production to preview (workers.dev)..."
+	@CLOUDFLARE_ENV=preview pnpm --filter apps-production build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-production exec wrangler deploy
 
 preview-all: preview-web preview-worship preview-academy preview-live preview-production
 
 # Cloudflare Production Targets
 deploy-web:
-	@echo "Deploying apps/web to production (gamostudio.org)..."
-	@pnpm --filter apps-web exec wrangler deploy --env production
+	@echo "Building and deploying apps/web to production (gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-web build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler deploy
 
 deploy-worship:
-	@echo "Deploying apps/worship to production (worship.gamostudio.org)..."
-	@pnpm --filter apps-worship exec wrangler deploy --env production
+	@echo "Building and deploying apps/worship to production (worship.gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-worship build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-worship exec wrangler deploy
 
 deploy-academy:
-	@echo "Deploying apps/academy to production (academy.gamostudio.org)..."
-	@pnpm --filter apps-academy exec wrangler deploy --env production
+	@echo "Building and deploying apps/academy to production (academy.gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-academy build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-academy exec wrangler deploy
 
 deploy-live:
-	@echo "Deploying apps/live to production (live.gamostudio.org)..."
-	@pnpm --filter apps-live exec wrangler deploy --env production
+	@echo "Building and deploying apps/live to production (live.gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-live build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-live exec wrangler deploy
 
 deploy-production:
-	@echo "Deploying apps/production to production (production.gamostudio.org)..."
-	@pnpm --filter apps-production exec wrangler deploy --env production
+	@echo "Building and deploying apps/production to production (production.gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-production build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-production exec wrangler deploy
 
 deploy-admin:
-	@echo "Deploying apps/admin to production (admin.gamostudio.org)..."
-	@pnpm --filter apps-admin exec wrangler deploy --env production
+	@echo "Building and deploying apps/admin to production (admin.gamostudio.org)..."
+	@CLOUDFLARE_ENV=production pnpm --filter apps-admin build
+	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-admin exec wrangler deploy
 
 deploy-all: deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin
 

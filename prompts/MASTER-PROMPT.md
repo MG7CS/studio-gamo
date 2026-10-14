@@ -115,7 +115,7 @@ They now operate as connected programs of the same nonprofit mission.
 
 ## 3.1 Gamo Worship
 
-**Domain:** `worship.gamostudios.com`
+**Domain:** `worship.gamostudio.org`
 
 **Purpose:** Help churches maintain dependable worship music through connections with qualified, vetted musicians.
 
@@ -170,7 +170,7 @@ However, replace unqualified promises of guaranteed attendance or zero-failure r
 
 ## 3.2 Gamo Academy
 
-**Domain:** `academy.gamostudios.com`
+**Domain:** `academy.gamostudio.org`
 
 **Purpose:** Expand access to high-quality instrument instruction, particularly for children, teenagers, families, aspiring musicians, and church communities.
 
@@ -241,7 +241,7 @@ Church-hosted classes and sponsorship opportunities remain a secondary instituti
 
 ## 3.3 Gamo Live
 
-**Domain:** `live.gamostudios.com`
+**Domain:** `live.gamostudio.org`
 
 **Purpose:** Become a trusted destination for discovering, attending, organizing, and supporting Christian events.
 
@@ -333,7 +333,7 @@ Paid placement must be distinguishable from editorial recommendations.
 
 ## 3.4 Gamo Production
 
-**Domain:** `production.gamostudios.com`
+**Domain:** `production.gamostudio.org`
 
 **Purpose:** Strengthen churches' technical capacity for worship services, educational programs, and Christian events.
 
@@ -609,12 +609,12 @@ Use:
 
 Keep the application structure:
 
-- `gamostudios.com`
-- `worship.gamostudios.com`
-- `academy.gamostudios.com`
-- `live.gamostudios.com`
-- `production.gamostudios.com`
-- `admin.gamostudios.com`
+- `gamostudio.org`
+- `worship.gamostudio.org`
+- `academy.gamostudio.org`
+- `live.gamostudio.org`
+- `production.gamostudio.org`
+- `admin.gamostudio.org`
 
 The root website is the organization-wide hub.
 

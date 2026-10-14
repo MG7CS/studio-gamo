@@ -366,3 +366,26 @@
   - `pnpm build`: **Pass (6/6 Astro Cloudflare SSR builds, exit 0)**
   - `pnpm audit`: **Pass (0 vulnerabilities found, exit 0)**
 - **Release Recommendation**: **NO-GO for public production deployment** until live Resend credentials/domain verification, paid ticketing order/hold/webhook fulfillment, R2 HTTP upload/quarantine promotion, edge rate limiting, and legal/governance prerequisites in [`docs/BACKEND_RELEASE_READINESS.md`](BACKEND_RELEASE_READINESS.md) pass a separate release-readiness review.
+
+## 2026-10-13 — `gamostudio.org` Canonical Domain Standardization & Live Cloudflare Custom Domain Deployment
+
+- **Authorized Scope**: Ensure the entire repository uses `gamostudio.org` (never `.com` or `gamostudios.org`), diagnose why `gamostudio.org` was not resolving, and deploy all six applications live on `gamostudio.org` and its subdomains while preserving all security and financial protective gates.
+- **Root Cause of `gamostudio.org` Not Resolving**:
+  - In the `gamostudio.org` Cloudflare zone (`5dd92c18b4c722d5d15d66bda4f94979`) under account `gamostudios` (`ebae7bded6ab45950aeba1d6cf51eb7f`), DNS previously had only `MX`/`TXT` email records and zero `A`/`AAAA`/`CNAME` records, and the 6 Workers had only `*.gamostudio.workers.dev` preview URLs with `"domains": []` and `"routes": []`.
+  - Furthermore, `@astrojs/cloudflare` v13+ flattens the active Wrangler environment at `astro build` time via `CLOUDFLARE_ENV=production` and throws on `Astro.locals.runtime.env` at edge runtime in favor of `import('cloudflare:workers')`.
+- **Key Changes Implemented**:
+  1. Replaced remaining `.com` / `gamostudios.org` references with `gamostudio.org` in [`docs/GAMO_NONPROFIT_MODEL.md`](GAMO_NONPROFIT_MODEL.md), [`docs/GAMO_LIVE_AND_PARTNERS.md`](GAMO_LIVE_AND_PARTNERS.md), [`prompts/MASTER-PROMPT.md`](../prompts/MASTER-PROMPT.md), and [`scripts/audit/browser-e2e.test.mjs`](../scripts/audit/browser-e2e.test.mjs).
+  2. Provisioned production D1 database `gamo-db-production` (`d6db9fe7-77c0-4a50-836e-3d1924f00b53`, all 5 migrations `0000`–`0004` applied) and R2 bucket `gamo-media-production` in account `ebae7bded6ab45950aeba1d6cf51eb7f`, and configured `custom_domain = true` in `[env.production]` across all 6 `wrangler.toml` files so Cloudflare automatically provisions proxied DNS records and Universal SSL certificates on `gamostudio.org`.
+  3. Added [`getRuntimeEnv`](../packages/domain/src/api/response.ts) in `@gamo/domain` (and updated all API routes, SSR pages, and `apps/admin/src/middleware.ts`) to resolve Worker bindings via `cloudflare:workers` on Astro v6 while preserving Node.js test harness compatibility.
+  4. Provisioned a cryptographically random `SESSION_SECRET` secret across all 6 Workers via `wrangler secret put SESSION_SECRET`.
+- **Live Edge Verification (`gamostudio.org`)**:
+  - `https://gamostudio.org/` -> **HTTP 200**
+  - `https://www.gamostudio.org/` -> **HTTP 200**
+  - `https://worship.gamostudio.org/` -> **HTTP 200**
+  - `https://academy.gamostudio.org/` -> **HTTP 200**
+  - `https://live.gamostudio.org/` -> **HTTP 200**
+  - `https://production.gamostudio.org/` -> **HTTP 200**
+  - `https://admin.gamostudio.org/` -> **HTTP 401 Unauthorized** (`Gamo Studios · Operations Gateway`)
+  - `GET https://www.gamostudio.org/api/auth/me` -> **HTTP 401** (`UNAUTHENTICATED`)
+  - `GET https://live.gamostudio.org/api/events` -> **HTTP 200** (`{"success":true,"data":[],"meta":{"total":0}}`, live D1 query)
+  - `POST https://www.gamostudio.org/api/auth/session` -> **HTTP 403** (`FORBIDDEN` — demo session creation blocked in production)

@@ -118,12 +118,12 @@ The four applications are **connected programs of one nonprofit mission**, not i
 
 | Program | Domain | Purpose |
 | --- | --- | --- |
-| Organization hub | `gamostudios.com` | Mission, programs, church partnerships, support pathways, account access, legal |
-| **Gamo Worship** | `worship.gamostudios.com` | Dependable worship music through connections with qualified, vetted musicians |
-| **Gamo Academy** | `academy.gamostudios.com` | Accessible instrument instruction for children, teens, adults and families |
-| **Gamo Live** | `live.gamostudios.com` | Trusted discovery, attendance, organizing and support of **Christian events** |
-| **Gamo Production** | `production.gamostudios.com` | Technical capacity for worship, education and Christian events |
-| Administration | `admin.gamostudios.com` | Governance, staff operations, program administration, financial accountability, reporting |
+| Organization hub | `gamostudio.org` | Mission, programs, church partnerships, support pathways, account access, legal |
+| **Gamo Worship** | `worship.gamostudio.org` | Dependable worship music through connections with qualified, vetted musicians |
+| **Gamo Academy** | `academy.gamostudio.org` | Accessible instrument instruction for children, teens, adults and families |
+| **Gamo Live** | `live.gamostudio.org` | Trusted discovery, attendance, organizing and support of **Christian events** |
+| **Gamo Production** | `production.gamostudio.org` | Technical capacity for worship, education and Christian events |
+| Administration | `admin.gamostudio.org` | Governance, staff operations, program administration, financial accountability, reporting |
 
 ### 3.1 Gamo Worship
 

@@ -8,6 +8,7 @@ import {
   jsonResponse,
   errorResponse,
   handleApiError,
+  getRuntimeEnv,
 } from '@gamo/domain';
 
 export const prerender = false;
@@ -29,7 +30,7 @@ export const POST: APIRoute = async (context) => {
       return errorResponse('BAD_REQUEST', 'Event identifier is required.', 400);
     }
 
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 

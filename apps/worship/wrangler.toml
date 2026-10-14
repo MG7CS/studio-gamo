@@ -26,8 +26,12 @@ binding = "MEDIA_BUCKET"
 bucket_name = "gamo-media-local"
 
 [[kv_namespaces]]
+binding = "SESSION"
+id = "7d35f3e994d04c00a8a404a552978674"
+
+[[kv_namespaces]]
 binding = "SESSION_KV"
-id = "de792489e02a45319586bb31c49b8508"
+id = "7d35f3e994d04c00a8a404a552978674"
 
 # Preview environment (isolated preview D1 & R2 in account gamostudios)
 [env.preview]
@@ -55,14 +59,18 @@ binding = "MEDIA_BUCKET"
 bucket_name = "gamo-media-preview"
 
 [[env.preview.kv_namespaces]]
-binding = "SESSION_KV"
-id = "de792489e02a45319586bb31c49b8508"
+binding = "SESSION"
+id = "7d35f3e994d04c00a8a404a552978674"
 
-# Production environment for worship.gamostudio.org (isolated, not yet provisioned/deployed)
+[[env.preview.kv_namespaces]]
+binding = "SESSION_KV"
+id = "7d35f3e994d04c00a8a404a552978674"
+
+# Production environment for worship.gamostudio.org
 [env.production]
 name = "gamo-worship"
 routes = [
-  { pattern = "worship.gamostudio.org/*", zone_name = "gamostudio.org" }
+  { pattern = "worship.gamostudio.org", custom_domain = true }
 ]
 [env.production.vars]
 ENVIRONMENT = "production"
@@ -78,9 +86,17 @@ PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "gamo-db-production"
-database_id = "00000000-0000-0000-0000-000000000002"
+database_id = "d6db9fe7-77c0-4a50-836e-3d1924f00b53"
 migrations_dir = "../../packages/db/migrations"
 
 [[env.production.r2_buckets]]
 binding = "MEDIA_BUCKET"
 bucket_name = "gamo-media-production"
+
+[[env.production.kv_namespaces]]
+binding = "SESSION"
+id = "7d35f3e994d04c00a8a404a552978674"
+
+[[env.production.kv_namespaces]]
+binding = "SESSION_KV"
+id = "7d35f3e994d04c00a8a404a552978674"

@@ -61,33 +61,25 @@ Public applications (`apps/web`, `apps/worship`, `apps/academy`, etc.) render in
 
 Before deploying the complete production stack, provision the following resources in the `gamostudios` account:
 
-### 3.1 D1 Database (Relational Data & SQLite Engine)
+### 3.1 D1 Database & R2 Storage (Provisioned)
 
-When the functionality phase begins and persistent database queries are enabled:
+Isolated preview and production resources are provisioned in the `gamostudios` account (`ebae7bded6ab45950aeba1d6cf51eb7f`):
+
+- **Production D1 (`gamo-db-production`)**: `d6db9fe7-77c0-4a50-836e-3d1924f00b53` (migrations `0000`–`0004` applied)
+- **Production R2 (`gamo-media-production`)**: Bound as `MEDIA_BUCKET`
+- **Preview D1 (`gamo-db-preview`)**: `d7e12797-cc6c-4fa3-91c7-c192863e4812` (migrations `0000`–`0004` applied)
+- **Preview R2 (`gamo-media-preview`)**: Bound as `MEDIA_BUCKET`
+
+To apply future migrations to production:
 
 ```bash
-# 1. Create the production D1 database
-pnpm --filter apps-web exec wrangler d1 create gamo-production-db
-
-# 2. Note the generated database_id (UUID)
-# 3. Apply initial migrations
-pnpm --filter apps-web exec wrangler d1 migrations apply gamo-production-db --remote
+CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-production --env production --remote
 ```
 
 ### 3.2 KV Namespaces (Sessions & Caching)
 
-The global web app has already provisioned its session KV namespace:
-- `gamo-web-session`: `7d35f3e994d04c00a8a404a552978674`
-
-To create dedicated session KV namespaces for sibling apps if desired:
-
-```bash
-pnpm --filter apps-worship exec wrangler kv namespace create "gamo-worship-session"
-pnpm --filter apps-academy exec wrangler kv namespace create "gamo-academy-session"
-pnpm --filter apps-live exec wrangler kv namespace create "gamo-live-session"
-pnpm --filter apps-production exec wrangler kv namespace create "gamo-production-session"
-pnpm --filter apps-admin exec wrangler kv namespace create "gamo-admin-session"
-```
+All six applications bind the session KV namespace:
+- `SESSION` / `SESSION_KV`: `7d35f3e994d04c00a8a404a552978674`
 
 ---
 
@@ -111,8 +103,8 @@ Public variables (configured in `wrangler.toml` or `.dev.vars`):
 ### 4.2 Stripe Integration (Test Mode Only)
 
 > [!IMPORTANT]
-> **Nonprofit Governance Gate:**  
-> Per `docs/GAMO_NONPROFIT_MODEL.md` and `docs/NONPROFIT_TRANSITION_CHECKLIST.md`, live transactions (donations, memberships, event payments) are strictly prohibited until 501(c)(3) legal transition prerequisites are finalized.  
+> **Legal & Governance Gate:**  
+> Per `docs/GAMO_NONPROFIT_MODEL.md` and `docs/NONPROFIT_TRANSITION_CHECKLIST.md`, live transactions (donations, memberships, event payments) are strictly prohibited until legal formation and governance prerequisites are finalized.  
 > Only Stripe Test Mode keys (`sk_test_...` and `pk_test_...`) are authorized. The integration adapter actively rejects live keys (`sk_live_`).
 
 ```bash
@@ -127,42 +119,43 @@ pnpm --filter apps-live exec wrangler secret put STRIPE_WEBHOOK_SECRET --env pro
 Public variable:
 - `PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."`
 
-### 4.3 Admin Protection Secrets
+### 4.3 Session & Admin Protection Secrets
 
 ```bash
+pnpm --filter apps-web exec wrangler secret put SESSION_SECRET --env production
+# Prompt: Enter a cryptographically strong 32+ character secret
+
 pnpm --filter apps-admin exec wrangler secret put ADMIN_ACCESS_TOKEN --env production
 # Prompt: Enter a cryptographically strong 32+ character passphrase
-
-pnpm --filter apps-admin exec wrangler secret put ADMIN_BASIC_AUTH_PASS --env production
-# Prompt: Enter an administrative password for emergency Basic Auth
 ```
 
 ---
 
 ## 5. DNS & Custom Domain Routing
 
-The zone `gamostudio.org` is active on Cloudflare nameservers (`cullen.ns.cloudflare.com`, `nina.ns.cloudflare.com`).
+The zone `gamostudio.org` (`5dd92c18b4c722d5d15d66bda4f94979`) is active on Cloudflare nameservers (`cullen.ns.cloudflare.com`, `nina.ns.cloudflare.com`).
 
-### 5.1 Cloudflare Custom Domain vs Worker Routes
+### 5.1 Cloudflare Worker Custom Domains
 
-In `wrangler.toml`, each worker defines its custom routes under `[env.production]`:
+In `wrangler.toml`, each worker defines its custom domains under `[env.production]` with `custom_domain = true`:
 
-- `gamostudio.org/*` and `www.gamostudio.org/*` → `gamo-web`
-- `worship.gamostudio.org/*` → `gamo-worship`
-- `academy.gamostudio.org/*` → `gamo-academy`
-- `live.gamostudio.org/*` → `gamo-live`
-- `production.gamostudio.org/*` → `gamo-production`
-- `admin.gamostudio.org/*` → `gamo-admin`
+- `gamostudio.org` and `www.gamostudio.org` → `gamo-web`
+- `worship.gamostudio.org` → `gamo-worship`
+- `academy.gamostudio.org` → `gamo-academy`
+- `live.gamostudio.org` → `gamo-live`
+- `production.gamostudio.org` → `gamo-production`
+- `admin.gamostudio.org` → `gamo-admin`
 
-### 5.2 Enabling Routes on Custom Domains
+### 5.2 Building & Deploying with `@astrojs/cloudflare`
 
-When deploying with `--env production`, Wrangler automatically associates the worker with the route in the `gamostudio.org` zone.
+Because `@astrojs/cloudflare` flattens the active Wrangler environment into `dist/server/wrangler.json` at build time, always set `CLOUDFLARE_ENV=production` during `astro build` (which `make deploy-*` handles automatically):
 
-Alternatively, custom domains can be attached directly via the Cloudflare dashboard:
-1. Navigate to **Workers & Pages** → Select Worker (e.g. `gamo-web`).
-2. Go to **Settings** → **Domains & Routes** → **Add Custom Domain**.
-3. Enter `gamostudio.org` and `www.gamostudio.org`.
-4. Cloudflare manages the DNS CNAME and Universal SSL certificates automatically.
+```bash
+CLOUDFLARE_ENV=production pnpm --filter apps-web build
+CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler deploy
+```
+
+With `custom_domain = true`, Cloudflare automatically creates the proxied DNS records and Universal SSL certificates in the `gamostudio.org` zone upon deployment.
 
 ---
 

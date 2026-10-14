@@ -14,6 +14,7 @@ import {
   authVerifySchema,
   jsonResponse,
   handleApiError,
+  getRuntimeEnv,
 } from '@gamo/domain';
 
 export const prerender = false;
@@ -31,7 +32,7 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   try {
     requireSameOrigin(context.request);
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const identityService = new IdentityService(db);
 
