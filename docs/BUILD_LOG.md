@@ -389,3 +389,11 @@
   - `GET https://www.gamostudio.org/api/auth/me` -> **HTTP 401** (`UNAUTHENTICATED`)
   - `GET https://live.gamostudio.org/api/events` -> **HTTP 200** (`{"success":true,"data":[],"meta":{"total":0}}`, live D1 query)
   - `POST https://www.gamostudio.org/api/auth/session` -> **HTTP 403** (`FORBIDDEN` — demo session creation blocked in production)
+
+## 2026-10-13 — Dashboard navigation overlap repair
+
+- Fixed the shared dashboard mobile dialog: unconditional flex display revealed the closed drawer on top of desktop content. Closed drawers are now explicitly hidden; flex applies only when open.
+- Desktop retains its reserved 256px sidebar column with a shrink-safe content track. Mobile/tablet drawer uses dynamic viewport height, scrollable navigation, background scroll locking, expanded state, keyboard focus wrapping, Escape/close/backdrop dismissal, link dismissal, and automatic closure/focus recovery when resizing to desktop.
+- Verified `node scripts/verify-dashboard-navigation.mjs`: church and musician dashboards at 390, 768, 1024, 1440 and 1920px (10 passing route/viewport checks), including mobile interactions and resize recovery; no page errors. `pnpm --filter apps-worship exec tsc --noEmit` and `git diff --check` passed.
+- Preview: http://127.0.0.1:4331/church and http://127.0.0.1:4331/musician. Browser screenshots: `docs/screenshots/dashboard-navigation/` (full-page layouts and open drawers); desktop church and mobile drawer visually inspected.
+- Shared fix applies to all DashboardShell consumers; browser verification in this task covers Worship. No deployment or backend changes. Production remains unchanged pending an authorized release.

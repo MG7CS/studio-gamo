@@ -37,7 +37,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
   <body class="dash bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">
     <a href="#dash-main" class="sr-only z-[60] rounded bg-charcoal px-3 py-2 text-cream focus:not-sr-only focus:fixed focus:left-3 focus:top-3">Skip to content</a>
     <DemoModeBanner staff={workspace.staff} />
-    <div class="lg:grid lg:min-h-[calc(100vh-36px)] lg:grid-cols-[256px_1fr]">
+    <div class="lg:grid lg:min-h-[calc(100vh-36px)] lg:grid-cols-[256px_minmax(0,1fr)]">
       <aside class="hidden bg-charcoal text-cream lg:flex lg:flex-col" data-surface="dark">
         <div class="sticky top-0 flex max-h-screen flex-col overflow-y-auto">
           <div class="border-b border-white/10 px-5 py-5">
@@ -57,7 +57,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
       <div class="min-w-0 pb-20 lg:pb-0">
         <header class="sticky top-0 z-40 border-b border-sand bg-ivory/95 backdrop-blur">
           <div class="flex h-14 items-center gap-2 px-3 sm:px-5 lg:h-16 lg:px-8">
-            <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white lg:hidden" data-drawer-open aria-controls="dash-drawer" aria-label="Open workspace menu"><Icon name="menu" class="h-5 w-5" /></button>
+            <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white lg:hidden" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" aria-label="Open workspace menu"><Icon name="menu" class="h-5 w-5" /></button>
             <a href={siteUrl('web', '/')} class="text-charcoal lg:hidden" aria-label="Gamo Studios home"><Logo width={104} height={20} /></a>
             <div class="hidden min-w-0 md:block"><WorkspaceSwitcher currentId={workspace.id} /></div>
             <form role="search" class="ml-auto hidden max-w-sm flex-1 md:block" data-dash-search onsubmit="return false">
@@ -72,13 +72,13 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
           <div class="border-t border-sand px-3 py-2 md:hidden"><WorkspaceSwitcher currentId={workspace.id} /></div>
         </header>
 
-        <main id="dash-main" class="mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main id="dash-main" tabindex="-1" class="mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <slot />
         </main>
       </div>
     </div>
 
-    <dialog id="dash-drawer" class="fixed inset-y-0 left-0 m-0 flex h-full max-h-none w-[min(21rem,88vw)] max-w-none flex-col bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
+    <dialog id="dash-drawer" class="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-[min(21rem,88vw)] max-w-none flex-col open:flex bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
       <div class="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p>
@@ -102,7 +102,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
         )}
       </div>
 
-      <div class="flex-1 overflow-y-auto px-3 py-4">
+      <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
         <DashNav workspace={workspace} current={current} />
       </div>
 
@@ -127,7 +127,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
           <Icon name={t.icon} class="h-5 w-5" strokeWidth={1.8} /><span class="max-w-full truncate">{t.label}</span>
         </a>
       ))}
-      <button type="button" data-drawer-open aria-controls="dash-drawer" class="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-soft"><Icon name="grid" class="h-5 w-5" strokeWidth={1.8} />More</button>
+      <button type="button" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" class="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-soft"><Icon name="grid" class="h-5 w-5" strokeWidth={1.8} />More</button>
     </nav>
 
     <script>
@@ -136,3 +136,9 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
     </script>
   </body>
 </html>
+
+<style>
+  /* Author display utilities must never reveal a closed native dialog. */
+  #dash-drawer:not([open]) { display: none; }
+  :global(html:has(#dash-drawer[open])) { overflow: hidden; }
+</style>
