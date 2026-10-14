@@ -16,9 +16,41 @@ export function initDashboard(): void {
 
   // Dialogs: drawer + block dialogs. Native <dialog> provides focus trapping and Escape.
   const drawer = document.getElementById('dash-drawer') as HTMLDialogElement | null;
-  $$('[data-drawer-open]').forEach((btn) => btn.addEventListener('click', () => drawer?.showModal()));
+  const drawerButtons = $$('[data-drawer-open]');
+  const desktop = window.matchMedia('(min-width: 64rem)');
+  drawerButtons.forEach((btn) => btn.addEventListener('click', () => {
+    if (!drawer || desktop.matches) return;
+    drawer.showModal();
+    drawerButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+  }));
+  drawer?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const controls = $$<HTMLElement>('a[href], button, input, select, textarea, [tabindex="0"]', drawer)
+      .filter((element) => element.getClientRects().length && !element.matches(':disabled'));
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  });
+  drawer?.addEventListener('close', () => {
+    drawerButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+    if (desktop.matches) document.getElementById('dash-main')?.focus({ preventScroll: true });
+  });
+  desktop.addEventListener('change', () => {
+    if (desktop.matches && drawer?.open) drawer.close();
+  });
+  drawer?.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('a[href]')) drawer.close();
+  });
   $$('[data-drawer-close]').forEach((btn) => btn.addEventListener('click', () => drawer?.close()));
-  $$<HTMLDialogElement>('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+  $$<HTMLDialogElement>('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target !== d) return;
+    const rect = d.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX >= rect.right || e.clientY < rect.top || e.clientY >= rect.bottom) d.close(); }));
   $$('[data-dialog-open]').forEach((btn) => btn.addEventListener('click', () => {
     const d = document.getElementById(`dlg-${btn.dataset.dialogOpen}`) as HTMLDialogElement | null;
     if (!d) return;
