@@ -94,6 +94,16 @@ export const externalIdentities = sqliteTable('external_identities', {
   index('ext_id_user_idx').on(t.userId),
 ]);
 
+export const adminCredentials = sqliteTable('admin_credentials', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  passwordHash: text('password_hash').notNull(),
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).notNull().default(true),
+  failedAttempts: integer('failed_attempts').notNull().default(0),
+  lockedUntil: integer('locked_until', { mode: 'timestamp' }),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
 // ============================================================================
 // 2. GAMO WORSHIP (Musicians, Churches, Gigs, Standby, Check-ins)
 // ============================================================================

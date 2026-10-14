@@ -1,0 +1,142 @@
+---
+/**
+ * Gamo Live dark editorial section ("Christian events nationwide") matching the dark
+ * contrast sections on /mission and /partners.
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+
+interface SampleEvent {
+  title: string;
+  category: string;
+  location: string;
+  dateLabel: string;
+  admission: string;
+  photo: PhotoKey;
+  href: string;
+  shape: string;
+}
+
+const sampleEvents: SampleEvent[] = [
+  {
+    title: 'Desert Valley Night of Worship & Prayer',
+    category: 'Worship gathering',
+    location: 'Phoenix, AZ · Sample venue',
+    dateLabel: 'Fri · Nov 14 · 7:00 PM',
+    admission: 'Free RSVP (sample)',
+    photo: 'worshipNight',
+    href: siteUrl('live', '/events'),
+    shape: 'rounded-[24px] rounded-tl-[72px]',
+  },
+  {
+    title: 'Voices of Grace Gospel Choir Evening',
+    category: 'Gospel concert',
+    location: 'Atlanta, GA · Sample hall',
+    dateLabel: 'Sat · Nov 22 · 6:30 PM',
+    admission: 'Ticketed preview (sample)',
+    photo: 'gospelVocalists',
+    href: siteUrl('live', '/events'),
+    shape: 'rounded-[24px] rounded-tr-[72px]',
+  },
+  {
+    title: 'NextGen Youth & Young Adults Summit',
+    category: 'Conference & youth',
+    location: 'Dallas, TX · Sample center',
+    dateLabel: 'Sat · Dec 06 · 9:30 AM',
+    admission: 'Community registration (sample)',
+    photo: 'concertCrowdWide',
+    href: siteUrl('live', '/events'),
+    shape: 'rounded-[24px] rounded-br-[72px]',
+  },
+];
+---
+
+<section
+  id="live"
+  data-surface="dark"
+  aria-labelledby="home-live-title"
+  class="bg-night px-5 section-space text-cream sm:px-8"
+>
+  <div class="mx-auto max-w-[1320px]">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div class="max-w-2xl">
+        <p class="eyebrow text-gold">03 · Gamo Live · Christian events nationwide</p>
+        <h2 id="home-live-title" class="section-heading mt-4 text-balance text-cream">
+          Gatherings worth sharing. <span class="text-gold">Discoverable nationwide.</span>
+        </h2>
+        <p class="mt-4 text-base leading-relaxed text-cream/75 sm:text-lg">
+          Worship nights, gospel concerts, conferences, youth gatherings, and recurring Bible
+          studies deserve a trusted home where communities can find them and organizers can manage
+          free or ticketed registration with clarity.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <ButtonLink href={siteUrl('live')} arrow>Explore sample events</ButtonLink>
+        <ButtonLink href={siteUrl('live', '/promote')} variant="ghost-dark">
+          Promote a Christian event
+        </ButtonLink>
+      </div>
+    </div>
+
+    <div class="mt-12 grid gap-6 lg:grid-cols-3">
+      {sampleEvents.map((ev) => (
+        <article
+          data-reveal
+          class="group flex flex-col overflow-hidden rounded-[30px] bg-charcoal/90 p-3.5 ring-1 ring-white/10 transition hover:-translate-y-1"
+        >
+          <div class:list={['relative aspect-[16/10] overflow-hidden bg-charcoal', ev.shape]}>
+            <Photo
+              name={ev.photo}
+              sizes="(min-width:1024px) 30vw, 92vw"
+              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+            <div class="absolute left-3 top-3">
+              <StatusPill kind="sample">Sample event</StatusPill>
+            </div>
+          </div>
+
+          <div class="flex flex-1 flex-col justify-between p-4 sm:p-5">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-gold">{ev.category}</p>
+              <h3 class="mt-2 text-xl font-bold tracking-tight text-cream">{ev.title}</h3>
+              <p class="mt-2 flex items-center gap-2 text-sm text-cream/70">
+                <Icon name="calendar" class="h-4 w-4 shrink-0 text-gold" />
+                <span>{ev.dateLabel}</span>
+              </p>
+              <p class="mt-1 flex items-center gap-2 text-sm text-cream/70">
+                <Icon name="pin" class="h-4 w-4 shrink-0 text-gold" />
+                <span>{ev.location}</span>
+              </p>
+            </div>
+
+            <div class="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+              <span class="text-xs font-medium text-cream/75">{ev.admission}</span>
+              <a
+                href={ev.href}
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline"
+              >
+                Preview listing <Icon name="arrow" class="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-cream/75 sm:text-sm">
+      <p>
+        <strong class="font-semibold text-cream">Moderation &amp; trust principle:</strong> Every
+        submitted event is reviewed before publishing. Any future sponsored placement is clearly
+        labeled and never alters organizer verification.
+      </p>
+      <a href={siteUrl('live', '/promote/create')} class="font-semibold text-gold hover:underline">
+        Preview organizer submission flow →
+      </a>
+    </div>
+  </div>
+</section>

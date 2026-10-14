@@ -442,6 +442,13 @@
   - `pnpm test` (39/39 pass)
   - `pnpm api:check` (17/17 operations + 10/10 contract tests pass)
   - `pnpm exec tsx --test scripts/audit/security.test.ts` (15/15 pass)
-  - `node scripts/audit/browser-e2e.test.mjs` (`PLAYWRIGHT_BROWSER_E2E_WORKERD_D1_OK`)
   - End-to-end Playwright signup, organization creation, and cross-app workspace verification captured in `docs/screenshots/dashboard-navigation/auth-signup-step1-390.png`, `docs/screenshots/dashboard-navigation/auth-signup-authenticated-390.png`, and `docs/screenshots/dashboard-navigation/worship-assigned-authenticated-390.png`.
 
+## 2026-10-14 — Admin Gateway Password Login (`gasanamoise7@gmail.com`) & Cohesive Global Homepage Draft
+
+- Added `packages/db/migrations/0005_admin_password_credentials.sql`, `adminCredentials` in `packages/db/schema.ts`, and PBKDF2-HMAC-SHA256 administrator password authentication + self-service password rotation in `packages/auth/index.ts`, `apps/admin/src/middleware.ts`, and `apps/admin/src/pages/security.astro`:
+  - Idempotently provisions `gasanamoise7@gmail.com` with `superadmin` role and temporary password `GamoStudios.Com` (`mustChangePassword: true`), 5-attempt lockout protection, and `/security` password rotation inside `apps/admin`.
+- Rebuilt `apps/web/src/pages/index.astro` from the ground up using modular Level-3 components (`HomeEditorialHero.astro`, `HomeProgramsBento.astro`, `HomeWorshipSpotlight.astro`, `HomeAcademySpotlight.astro`, `HomeLiveSpotlight.astro`, `HomeProductionSpotlight.astro`, `HomeCommunityPaths.astro`, and `CtaInvitation.astro`) to match the bright editorial design language of `/mission`, `/partners`, `/get-involved`, Worship, Academy, Live, and Production.
+- Verification:
+  - `node scripts/verify-public-ui.mjs`: passed 60 responsive route checks (`390`, `768`, `1024`, `1440`, `1920`) and 8 interaction checks; 73 links inspected (`docs/screenshots/2026-refresh/web/home-1440.png`, `docs/screenshots/2026-refresh/web/home-390.png`).
+  - `pnpm exec tsx --test scripts/audit/security.test.ts` (16/16 pass), `pnpm test` (39/39 pass), `pnpm api:check` (10/10 pass), `pnpm typecheck` (pass).

@@ -1,0 +1,138 @@
+---
+/**
+ * Gamo Worship spotlight section matching the sculptural split + floating card pattern
+ * used on the Worship and Production public pages.
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+const coverageSteps = [
+  {
+    day: 'Tue',
+    text: 'Set list, keys, and call times shared with primary and standby musicians',
+    done: true,
+  },
+  {
+    day: 'Thu',
+    text: 'Primary musician confirms rehearsal and Sunday schedule',
+    done: true,
+  },
+  {
+    day: 'Sat',
+    text: 'Standby musician remains prepared with the same charts where local coverage allows',
+    done: true,
+  },
+  {
+    day: 'Sun',
+    text: 'Arrival check-in recorded; musician pay kept as its own transparent line item',
+    done: false,
+  },
+];
+
+const pillars = [
+  {
+    icon: 'verified' as const,
+    title: 'Thoughtful vetting, never pay-to-rank',
+    body: 'Musicians are reviewed for preparation, skill, and ministry character. Sponsorships or contributions never affect vetting or placement.',
+  },
+  {
+    icon: 'shield' as const,
+    title: 'Primary & standby preparation',
+    body: 'When unexpected illness happens, we work to pair services with standby coverage where local musician availability allows.',
+  },
+  {
+    icon: 'heart' as const,
+    title: 'Fair, transparent musician pay',
+    body: 'Musician compensation and any proposed administrative allocation are always displayed as separate line items.',
+  },
+];
+---
+
+<section
+  id="worship"
+  aria-labelledby="home-worship-title"
+  class="bg-cream px-5 section-space sm:px-8"
+>
+  <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-12 lg:gap-16">
+    <div class="lg:col-span-6">
+      <EditorialHeading
+        id="home-worship-title"
+        eyebrow="01 · Gamo Worship"
+        title="Every Sunday is shared work."
+        accent="We help it hold together."
+        lede="Many congregations struggle to keep worship teams staffed week to week, while skilled Christian musicians look for respectful, well-prepared ways to serve."
+      />
+
+      <dl class="mt-9 space-y-6">
+        {pillars.map((p) => (
+          <div data-reveal class="flex gap-4">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-ivory text-terracotta ring-1 ring-sand">
+              <Icon name={p.icon} class="h-5 w-5" />
+            </span>
+            <div>
+              <dt class="text-lg font-bold tracking-tight text-charcoal">{p.title}</dt>
+              <dd class="mt-1 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+
+      <div class="mt-9 flex flex-wrap gap-3">
+        <ButtonLink href={siteUrl('worship', '/hire')} arrow>Preview a church request</ButtonLink>
+        <ButtonLink href={siteUrl('worship', '/apply')} variant="secondary">
+          Preview musician application
+        </ButtonLink>
+      </div>
+    </div>
+
+    <div class="relative lg:col-span-6">
+      <div class="aspect-[4/3] overflow-hidden rounded-[2.5rem] rounded-tl-[9rem] bg-sand shadow-float">
+        <Photo
+          name="acousticLeader"
+          sizes="(min-width:1024px) 46vw, 94vw"
+          position="45% 25%"
+          class="h-full w-full object-cover"
+        />
+      </div>
+
+      <aside
+        data-reveal
+        class="relative -mt-14 ml-auto w-[94%] rounded-3xl border border-sand bg-white p-5 shadow-float sm:w-[23rem] sm:p-6 lg:absolute lg:-bottom-10 lg:-left-6 lg:mt-0"
+        aria-label="Sample Sunday coverage plan"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-terracotta">
+              Sunday service roster
+            </p>
+            <p class="mt-0.5 font-bold text-charcoal">Cornerstone Chapel · 9:00 AM</p>
+          </div>
+          <StatusPill kind="sample">Sample</StatusPill>
+        </div>
+
+        <ol class="mt-4 space-y-2.5 border-t border-sand/80 pt-3.5">
+          {coverageSteps.map((step) => (
+            <li class="flex items-start gap-2.5 text-xs sm:text-sm">
+              <span
+                class:list={[
+                  'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full',
+                  step.done ? 'bg-terracotta text-white' : 'border border-sand bg-cream',
+                ]}
+              >
+                {step.done && <Icon name="check" class="h-3 w-3" />}
+              </span>
+              <span>
+                <strong class="font-semibold text-charcoal">{step.day}:</strong>{' '}
+                <span class="text-ink-soft">{step.text}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    </div>
+  </div>
+</section>

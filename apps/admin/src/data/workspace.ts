@@ -28,6 +28,7 @@ export const adminWorkspace: Workspace = {
         { slug: 'programs', label: 'Program overview', icon: 'grid' },
         { slug: 'people', label: 'Users & organizations', icon: 'users', badge: '14' },
         { slug: 'staff-roles', label: 'Staff roles & permissions', icon: 'lock' },
+        { slug: 'security', label: 'Password & security', icon: 'shield' },
         { slug: 'activity', label: 'Operational activity', icon: 'clipboard' },
       ],
     },

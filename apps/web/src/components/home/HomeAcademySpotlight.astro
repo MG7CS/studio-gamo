@@ -1,0 +1,106 @@
+---
+/**
+ * Gamo Academy spotlight section using the approved headline
+ * "Learn to Play the Instrument You Love." and the warm editorial layout of apps/academy.
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
+const instruments: { name: string; age: string; slug: string; icon: IconName }[] = [
+  { name: 'Piano & Keys', age: 'Ages 6 to adult', slug: 'piano', icon: 'piano' },
+  { name: 'Acoustic & Electric Guitar', age: 'Ages 7 to adult', slug: 'guitar', icon: 'guitar' },
+  { name: 'Voice & Worship Vocals', age: 'Ages 8 to adult', slug: 'vocals', icon: 'mic' },
+  { name: 'Drums & Rhythm', age: 'Ages 7 to adult', slug: 'drums', icon: 'drums' },
+  { name: 'Bass Guitar', age: 'Ages 9 to adult', slug: 'bass', icon: 'music' },
+  { name: 'Ensemble & Group Labs', age: 'Youth & families', slug: 'piano', icon: 'users' },
+];
+---
+
+<section
+  id="academy"
+  aria-labelledby="home-academy-title"
+  class="bg-ivory px-5 section-space sm:px-8"
+>
+  <div class="mx-auto max-w-[1320px]">
+    <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="relative mx-auto w-full max-w-[540px] lg:col-span-5">
+        <div class="mask-arch aspect-[4/5] overflow-hidden bg-sand shadow-float">
+          <Photo
+            name="guitarMentor"
+            sizes="(min-width:1024px) 38vw, 90vw"
+            position="55% 40%"
+            class="h-full w-full object-cover"
+          />
+        </div>
+        <div class="mask-pebble absolute -bottom-5 right-0 aspect-square w-[40%] overflow-hidden border-[6px] border-ivory bg-sand shadow-float sm:-right-5">
+          <Photo
+            name="youngPianist"
+            sizes="(min-width:1024px) 15vw, 36vw"
+            class="h-full w-full object-cover"
+          />
+        </div>
+      </div>
+
+      <div class="lg:col-span-7">
+        <p class="eyebrow text-terracotta">02 · Gamo Academy · For students, parents &amp; families</p>
+        <h2
+          id="home-academy-title"
+          class="section-heading mt-4 text-balance text-charcoal"
+        >
+          Learn to Play the <span class="text-terracotta">Instrument You Love.</span>
+        </h2>
+        <p class="mt-5 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
+          Learning an instrument can shape a young person or adult for life. Gamo Academy is being
+          designed to connect families with patient, screened instructors for private lessons,
+          small-group cohorts, and proposed church-hosted music classrooms.
+        </p>
+
+        <ul class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {instruments.map((inst) => (
+            <li>
+              <a
+                href={siteUrl('academy', `/instruments/${inst.slug}`)}
+                class="group flex items-center gap-3 rounded-2xl bg-white p-3.5 ring-1 ring-sand transition hover:-translate-y-0.5 hover:shadow-float"
+              >
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cream text-terracotta transition group-hover:bg-terracotta group-hover:text-white">
+                  <Icon name={inst.icon} class="h-5 w-5" />
+                </span>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-charcoal">{inst.name}</p>
+                  <p class="truncate text-xs text-ink-soft">{inst.age}</p>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div class="mt-8 rounded-3xl bg-[#EFE2D3] p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm font-bold text-charcoal">
+              Music education should not depend solely on a family's budget.
+            </p>
+            <StatusPill kind="proposal">Planned · proposal</StatusPill>
+          </div>
+          <p class="mt-2 text-sm leading-relaxed text-ink-soft">
+            We are planning church-hosted cohorts and scholarship-supported seats so more students
+            can begin lessons close to home. All tuition and sponsorship structures remain proposals
+            pending program launch.
+          </p>
+        </div>
+
+        <div class="mt-7 flex flex-wrap gap-3">
+          <ButtonLink href={siteUrl('academy', '/instruments')} arrow>
+            Choose an instrument
+          </ButtonLink>
+          <ButtonLink href={siteUrl('academy', '/sponsored')} variant="secondary">
+            Explore planned scholarship cohorts
+          </ButtonLink>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

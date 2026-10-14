@@ -1,0 +1,189 @@
+---
+/**
+ * Asymmetric four-program bento showcase matching /mission FourPrograms and ProgramCollection.
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
+interface ProgramCard {
+  name: string;
+  tag: string;
+  title: string;
+  summary: string;
+  points: string[];
+  href: string;
+  cta: string;
+  photo: PhotoKey;
+  photoPosition?: string;
+  icon: IconName;
+  wrap: string;
+  mediaShape: string;
+  surfaceClass: string;
+  dark?: boolean;
+}
+
+const programCards: ProgramCard[] = [
+  {
+    name: 'Gamo Worship',
+    tag: 'Churches & musicians',
+    title: 'Dependable worship coverage, grounded in preparation and fairness.',
+    summary:
+      'Connecting churches with vetted worship musicians for Sunday services and special gatherings — with shared rehearsal charts, standby backup where local availability allows, and musician pay always kept on its own line item.',
+    points: [
+      'Auditioned vocalists, keys, guitar, bass & drums',
+      'Musician pay and administrative allocation separated',
+    ],
+    href: siteUrl('worship'),
+    cta: 'Explore Gamo Worship',
+    photo: 'worshipBand',
+    photoPosition: '55% 35%',
+    icon: 'music',
+    wrap: 'lg:col-span-7 lg:row-span-2',
+    mediaShape: 'aspect-[16/10] lg:aspect-auto lg:flex-1 lg:min-h-[340px] rounded-[28px] rounded-tl-[120px]',
+    surfaceClass: 'bg-white ring-1 ring-sand',
+  },
+  {
+    name: 'Gamo Academy',
+    tag: 'Students & families',
+    title: 'Learn to Play the Instrument You Love.',
+    summary:
+      'Friendly, patient lessons in guitar, piano, vocals, bass, and drums — designed for children, teens, and adults, with church-hosted and sponsored cohorts in planning.',
+    points: ['Private & small-group lessons', 'Planned church-hosted & scholarship pathways'],
+    href: siteUrl('academy'),
+    cta: 'Explore Gamo Academy',
+    photo: 'girlGuitar',
+    photoPosition: '50% 28%',
+    icon: 'school',
+    wrap: 'lg:col-span-5',
+    mediaShape: 'aspect-[16/9] rounded-[28px] rounded-tr-[100px]',
+    surfaceClass: 'bg-[#F3E4D6] ring-1 ring-sand/80',
+  },
+  {
+    name: 'Gamo Live',
+    tag: 'Christian events nationwide',
+    title: 'Discover worship nights, gospel concerts, and community gatherings.',
+    summary:
+      'A trusted place to find and share Christian events across the country — with clear moderation, free or ticketed registration, and sponsored listings always labeled.',
+    points: ['Open to Christian events nationwide', 'Free RSVP & ticketed event tools'],
+    href: siteUrl('live'),
+    cta: 'Explore Gamo Live',
+    photo: 'worshipNight',
+    photoPosition: '50% 40%',
+    icon: 'calendar',
+    wrap: 'lg:col-span-5',
+    mediaShape: 'aspect-[16/9] rounded-[28px]',
+    surfaceClass: 'bg-night text-cream',
+    dark: true,
+  },
+  {
+    name: 'Gamo Production',
+    tag: 'Technical ministry',
+    title: 'Sound, livestreaming, and lighting guidance that helps the message come through.',
+    summary:
+      'Practical production support and hands-on volunteer training for churches — helping sanctuary audio, broadcast mixes, and visual cues serve worship without distraction.',
+    points: ['Sanctuary audio & livestream consultations', 'Side-by-side church volunteer training'],
+    href: siteUrl('production'),
+    cta: 'Explore Gamo Production',
+    photo: 'soundEngineer',
+    photoPosition: '40% 40%',
+    icon: 'video',
+    wrap: 'lg:col-span-12',
+    mediaShape: 'aspect-[16/9] sm:aspect-[21/9] lg:aspect-[16/10] rounded-[28px] rounded-br-[120px]',
+    surfaceClass: 'bg-white ring-1 ring-sand',
+  },
+];
+---
+
+<section
+  id="programs"
+  aria-labelledby="home-programs-title"
+  class="scroll-mt-24 bg-ivory px-5 section-space sm:px-8"
+>
+  <div class="mx-auto max-w-[1320px]">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <EditorialHeading
+        id="home-programs-title"
+        eyebrow="One mission · four programs"
+        title="Four connected ways"
+        accent="we serve together."
+        lede="Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production are interconnected programs serving one religious and educational mission — never separate commercial silos."
+      />
+      <ButtonLink href="/mission" variant="secondary" arrow>Read our full mission</ButtonLink>
+    </div>
+
+    <div class="mt-12 grid gap-6 lg:grid-cols-12">
+      {programCards.map((p, idx) => {
+        const isWide = idx === 3;
+        return (
+          <article
+            data-reveal
+            data-surface={p.dark ? 'dark' : undefined}
+            class:list={[
+              'group flex flex-col overflow-hidden rounded-[34px] p-3.5 sm:p-4 transition-transform duration-300 hover:-translate-y-1',
+              p.wrap,
+              p.surfaceClass,
+              isWide && 'lg:grid lg:grid-cols-12 lg:items-center lg:gap-8',
+            ]}
+          >
+            <div class:list={['relative overflow-hidden bg-sand', p.mediaShape, isWide && 'lg:col-span-6']}>
+              <Photo
+                name={p.photo}
+                position={p.photoPosition}
+                sizes="(min-width:1024px) 52vw, 94vw"
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+            </div>
+
+            <div class:list={['flex flex-col justify-between p-4 sm:p-6', isWide && 'lg:col-span-6']}>
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <span
+                    class:list={[
+                      'inline-flex h-9 w-9 items-center justify-center rounded-full',
+                      p.dark ? 'bg-white/10 text-gold' : 'bg-cream text-terracotta',
+                    ]}
+                  >
+                    <Icon name={p.icon} class="h-4 w-4" />
+                  </span>
+                  <p class:list={['eyebrow', p.dark ? 'text-gold' : 'text-terracotta']}>
+                    {p.name} · {p.tag}
+                  </p>
+                </div>
+
+                <h3 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{p.title}</h3>
+                <p class:list={['mt-3 leading-relaxed', p.dark ? 'text-cream/75' : 'text-ink-soft']}>
+                  {p.summary}
+                </p>
+
+                <ul class="mt-5 grid gap-2 sm:grid-cols-2">
+                  {p.points.map((pt) => (
+                    <li
+                      class:list={[
+                        'flex items-start gap-2 text-sm',
+                        p.dark ? 'text-cream/85' : 'text-charcoal',
+                      ]}
+                    >
+                      <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="mt-6 pt-2">
+                <ButtonLink href={p.href} variant={p.dark ? 'ghost-dark' : 'secondary'} arrow>
+                  {p.cta}
+                </ButtonLink>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </div>
+</section>

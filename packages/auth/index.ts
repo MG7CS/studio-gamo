@@ -17,6 +17,7 @@ import {
   organizations,
   organizationMembers,
   externalIdentities,
+  adminCredentials,
   type GamoDatabase,
 } from '@gamo/db';
 
@@ -534,3 +535,405 @@ export function requireSameOrigin(request: Request): void {
     throw new AuthError('FORBIDDEN', 'Cross-origin mutation denied.', 403);
   }
 }
+
+// ============================================================================
+// ADMIN GATEWAY PASSWORD AUTHENTICATION & ROTATION
+// ============================================================================
+
+export const BOOTSTRAP_ADMIN_EMAIL = 'gasanamoise7@gmail.com';
+export const BOOTSTRAP_ADMIN_NAME = 'Moise Gasana';
+export const BOOTSTRAP_ADMIN_TEMP_PASSWORD = 'GamoStudios.Com';
+
+const PBKDF2_ITERATIONS = 100_000;
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+const ADMIN_GATE_COOKIE_NAME = '__admin_gate';
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  const clean = hex.trim();
+  const out = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+  }
+  return out;
+}
+
+/**
+ * Hashes a password with Web Crypto PBKDF2-HMAC-SHA256.
+ * Format: pbkdf2_sha256$<iterations>$<salt_hex>$<hash_hex>
+ */
+export async function hashAdminPassword(
+  password: string,
+  saltBytes?: Uint8Array,
+  iterations: number = PBKDF2_ITERATIONS
+): Promise<string> {
+  const salt = saltBytes ?? crypto.getRandomValues(new Uint8Array(16));
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(password),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt as unknown as BufferSource,
+      iterations,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    256
+  );
+  const hashHex = bytesToHex(new Uint8Array(derivedBits));
+  return `pbkdf2_sha256$${iterations}$${bytesToHex(salt)}$${hashHex}`;
+}
+
+/**
+ * Verifies a plaintext password against a stored PBKDF2-HMAC-SHA256 hash.
+ */
+export async function verifyAdminPassword(password: string, storedHash: string): Promise<boolean> {
+  const parts = storedHash.split('$');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2_sha256') {
+    return false;
+  }
+  const iterations = parseInt(parts[1], 10);
+  if (!Number.isFinite(iterations) || iterations < 1000 || iterations > 500_000) {
+    return false;
+  }
+  const salt = hexToBytes(parts[2]);
+  const computed = await hashAdminPassword(password, salt, iterations);
+  return constantTimeCompare(computed, storedHash);
+}
+
+/**
+ * Ensures the bootstrap superadmin account (`gasanamoise7@gmail.com`) and its initial
+ * temporary password credential (`GamoStudios.Com`) exist in D1.
+ * Never overwrites an existing credential once created or changed.
+ */
+export async function ensureBootstrapAdminAccount(db: GamoDatabase): Promise<{ userId: string }> {
+  const cleanEmail = BOOTSTRAP_ADMIN_EMAIL.toLowerCase();
+  const now = new Date();
+
+  let [user] = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
+  if (!user) {
+    const id = `usr_admin_${crypto.randomUUID().slice(0, 12)}`;
+    await db.insert(users).values({
+      id,
+      email: cleanEmail,
+      displayName: BOOTSTRAP_ADMIN_NAME,
+      verifiedEmailAt: now,
+      status: 'active',
+      createdAt: now,
+    });
+    const [created] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    user = created;
+  } else if (!user.verifiedEmailAt || user.status !== 'active') {
+    await db
+      .update(users)
+      .set({
+        verifiedEmailAt: user.verifiedEmailAt ?? now,
+        displayName: user.displayName || BOOTSTRAP_ADMIN_NAME,
+        status: 'active',
+      })
+      .where(eq(users.id, user.id));
+  }
+
+  let [superRole] = await db.select().from(roles).where(eq(roles.code, 'superadmin')).limit(1);
+  if (!superRole) {
+    await db.insert(roles).values({
+      id: 'role_superadmin',
+      code: 'superadmin',
+      description: 'Global system administrator',
+    });
+    const [createdRole] = await db.select().from(roles).where(eq(roles.code, 'superadmin')).limit(1);
+    superRole = createdRole;
+  }
+
+  const [existingUserRole] = await db
+    .select()
+    .from(userRoles)
+    .where(
+      and(
+        eq(userRoles.userId, user.id),
+        eq(userRoles.roleId, superRole.id),
+        isNull(userRoles.scopeType),
+        isNull(userRoles.scopeId)
+      )
+    )
+    .limit(1);
+
+  if (!existingUserRole) {
+    await db.insert(userRoles).values({
+      id: `ur_super_${user.id}`,
+      userId: user.id,
+      roleId: superRole.id,
+      scopeType: null,
+      scopeId: null,
+      createdAt: now,
+    });
+  }
+
+  const [cred] = await db
+    .select()
+    .from(adminCredentials)
+    .where(eq(adminCredentials.userId, user.id))
+    .limit(1);
+
+  if (!cred) {
+    const initialHash = await hashAdminPassword(BOOTSTRAP_ADMIN_TEMP_PASSWORD);
+    await db.insert(adminCredentials).values({
+      userId: user.id,
+      passwordHash: initialHash,
+      mustChangePassword: true,
+      failedAttempts: 0,
+      lockedUntil: null,
+      updatedAt: now,
+      createdAt: now,
+    });
+  }
+
+  return { userId: user.id };
+}
+
+export interface AdminAuthResult {
+  ok: boolean;
+  userId?: string;
+  email?: string;
+  mustChangePassword?: boolean;
+  error?: string;
+}
+
+/**
+ * Verifies an admin email and password against D1 `admin_credentials` with brute-force lockout protection.
+ */
+export async function authenticateAdminPassword(
+  db: GamoDatabase,
+  emailInput: string,
+  passwordInput: string
+): Promise<AdminAuthResult> {
+  await ensureBootstrapAdminAccount(db);
+
+  const cleanEmail = emailInput.trim().toLowerCase();
+  const password = passwordInput;
+
+  if (!cleanEmail || !password) {
+    return { ok: false, error: 'Please enter both your email address and password.' };
+  }
+
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.email, cleanEmail), eq(users.status, 'active')))
+    .limit(1);
+
+  if (!user) {
+    return { ok: false, error: 'Invalid admin email or password.' };
+  }
+
+  const [cred] = await db
+    .select()
+    .from(adminCredentials)
+    .where(eq(adminCredentials.userId, user.id))
+    .limit(1);
+
+  if (!cred) {
+    return { ok: false, error: 'Invalid admin email or password.' };
+  }
+
+  const now = new Date();
+  if (cred.lockedUntil && cred.lockedUntil.getTime() > now.getTime()) {
+    const minutesLeft = Math.max(1, Math.ceil((cred.lockedUntil.getTime() - now.getTime()) / 60_000));
+    return {
+      ok: false,
+      error: `Too many failed sign-in attempts. Please wait ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'} and try again.`,
+    };
+  }
+
+  const valid = await verifyAdminPassword(password, cred.passwordHash);
+  if (!valid) {
+    const nextAttempts = (cred.failedAttempts || 0) + 1;
+    const lockedUntil =
+      nextAttempts >= MAX_FAILED_ATTEMPTS ? new Date(now.getTime() + LOCKOUT_MS) : null;
+    await db
+      .update(adminCredentials)
+      .set({
+        failedAttempts: nextAttempts,
+        lockedUntil,
+        updatedAt: now,
+      })
+      .where(eq(adminCredentials.userId, user.id));
+
+    return { ok: false, error: 'Invalid admin email or password.' };
+  }
+
+  await db
+    .update(adminCredentials)
+    .set({
+      failedAttempts: 0,
+      lockedUntil: null,
+      updatedAt: now,
+    })
+    .where(eq(adminCredentials.userId, user.id));
+
+  return {
+    ok: true,
+    userId: user.id,
+    email: user.email,
+    mustChangePassword: Boolean(cred.mustChangePassword),
+  };
+}
+
+/**
+ * Updates the admin user's password after verifying their current password.
+ */
+export async function changeAdminPassword(
+  db: GamoDatabase,
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ ok: boolean; error?: string }> {
+  await ensureBootstrapAdminAccount(db);
+
+  if (!currentPassword) {
+    return { ok: false, error: 'Please enter your current password.' };
+  }
+  if (!newPassword || newPassword.length < 8) {
+    return { ok: false, error: 'New password must be at least 8 characters long.' };
+  }
+  if (newPassword.length > 128) {
+    return { ok: false, error: 'New password must be 128 characters or fewer.' };
+  }
+
+  const [cred] = await db
+    .select()
+    .from(adminCredentials)
+    .where(eq(adminCredentials.userId, userId))
+    .limit(1);
+
+  if (!cred) {
+    return { ok: false, error: 'Admin password credential record not found.' };
+  }
+
+  const validCurrent = await verifyAdminPassword(currentPassword, cred.passwordHash);
+  if (!validCurrent) {
+    return { ok: false, error: 'Your current password is incorrect.' };
+  }
+
+  const newHash = await hashAdminPassword(newPassword);
+  const now = new Date();
+
+  await db
+    .update(adminCredentials)
+    .set({
+      passwordHash: newHash,
+      mustChangePassword: false,
+      failedAttempts: 0,
+      lockedUntil: null,
+      updatedAt: now,
+    })
+    .where(eq(adminCredentials.userId, userId));
+
+  return { ok: true };
+}
+
+/**
+ * Fetches the admin credential metadata for display on the Admin Security page.
+ */
+export async function getAdminCredentialStatus(
+  db: GamoDatabase,
+  userId: string
+): Promise<{ mustChangePassword: boolean; updatedAt: Date | null } | null> {
+  await ensureBootstrapAdminAccount(db);
+  const [cred] = await db
+    .select()
+    .from(adminCredentials)
+    .where(eq(adminCredentials.userId, userId))
+    .limit(1);
+  if (!cred) return null;
+  return {
+    mustChangePassword: Boolean(cred.mustChangePassword),
+    updatedAt: cred.updatedAt ?? null,
+  };
+}
+
+/**
+ * Builds the signed `__admin_gate` cookie proving the user authenticated at the Admin Gateway.
+ */
+export async function buildAdminGateCookie(
+  sessionId: string,
+  userId: string,
+  expiresAt: Date,
+  secret: string,
+  options?: CookieOptions
+): Promise<string> {
+  const payload = `${sessionId}:${userId}`;
+  const signed = await signValue(payload, secret);
+  const parts = [
+    `${ADMIN_GATE_COOKIE_NAME}=${encodeURIComponent(signed)}`,
+    `Expires=${expiresAt.toUTCString()}`,
+    `Path=${options?.path || '/'}`,
+    `SameSite=${options?.sameSite || 'Lax'}`,
+    'HttpOnly',
+  ];
+  if (options?.secure !== false) {
+    parts.push('Secure');
+  }
+  if (options?.domain) {
+    parts.push(`Domain=${options.domain}`);
+  }
+  return parts.join('; ');
+}
+
+export function buildClearAdminGateCookie(options?: CookieOptions): string {
+  const parts = [
+    `${ADMIN_GATE_COOKIE_NAME}=`,
+    'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+    `Path=${options?.path || '/'}`,
+    `SameSite=${options?.sameSite || 'Lax'}`,
+    'HttpOnly',
+  ];
+  if (options?.secure !== false) {
+    parts.push('Secure');
+  }
+  if (options?.domain) {
+    parts.push(`Domain=${options.domain}`);
+  }
+  return parts.join('; ');
+}
+
+export async function verifyAdminGateCookie(
+  request: Request,
+  expectedSessionId: string,
+  expectedUserId: string,
+  secret?: string
+): Promise<boolean> {
+  if (!secret || secret.length < 32) return false;
+  const cookieHeader = request.headers.get('cookie');
+  if (!cookieHeader) return false;
+
+  let rawGate: string | null = null;
+  for (const part of cookieHeader.split(';')) {
+    const [name, ...val] = part.trim().split('=');
+    if (name === ADMIN_GATE_COOKIE_NAME) {
+      try {
+        rawGate = decodeURIComponent(val.join('='));
+      } catch {
+        return false;
+      }
+      break;
+    }
+  }
+  if (!rawGate) return false;
+
+  const verified = await verifySignedValue(rawGate, secret);
+  if (!verified) return false;
+
+  return constantTimeCompare(verified, `${expectedSessionId}:${expectedUserId}`);
+}
+
