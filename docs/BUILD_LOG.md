@@ -415,3 +415,9 @@
 - Added `scripts/verify-zoom-out.mjs`. `node scripts/verify-zoom-out.mjs` passed six widths: 390, 1280, 1536, 1920, 2880, 5760 CSS pixels, checking no horizontal overflow and bounded desktop image edges/heights. These are zoom-equivalent wide viewports, not native Chrome zoom control tests.
 - Captured actual full-page screenshots in `docs/screenshots/zoom-out/`; inspected mobile and 5760px evidence. Results: `docs/screenshots/zoom-out/results.json`. Review URL: http://127.0.0.1:4321/ .
 - `pnpm --filter apps-web run build` completed successfully (exit 0); Wrangler reported a sandbox-denied diagnostic log write. `git diff --check` passed. No external integration, deployment or remote push.
+
+## 2026-10-13 — Authorized public UI deployment
+
+- Owner requested push and deployment. Pushed `main` through `691715b` to `origin/main`, then ran `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` successfully. Production builds used the existing configured domains and resource bindings. No migrations, secret changes or Admin deployment.
+- Cloudflare versions: web `5d980dc6-d036-455d-98e0-5ca0969532d8`; Worship `b8cde1b8-7a8a-463f-8248-f2e48faae03a`; Academy `3211b3f5-71d7-4632-b1bb-ac95e8b0c5c5`; Live `b06e06ba-cfb6-4c9b-a6ef-1ae5d2c18733`; Production `b543804f-7578-402a-990e-9e6a469eb06c`.
+- Read-only live HTTP checks returned 200 for apex, www, Worship, Academy, Live homepage and `/promote`, and Production. Confirmed corrected hero-container markup on apex/www and image-first markup on affected program landing pages. Local browser evidence is recorded above; this deployment does not certify outstanding backend readiness gates.
