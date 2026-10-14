@@ -6,14 +6,35 @@ interface Props { items: { label: string; value: string; hint?: string; icon?: I
 const { items } = Astro.props;
 ---
 <ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary (sample figures)">
-  {items.map((s) => (
-    <li class="rounded-2xl border border-sand bg-white p-4 shadow-[0_1px_2px_rgb(29_35_35/0.04)]" data-search-item>
-      <div class="flex items-center justify-between gap-2">
-        <p class="text-[12px] font-medium text-ink-soft sm:text-[13px]">{s.label}</p>
-        {s.icon && <Icon name={s.icon} class="h-4 w-4 text-terracotta-dark" strokeWidth={1.8} />}
-      </div>
-      <p class="mt-2 truncate text-[22px] font-semibold leading-tight tracking-[-0.02em] sm:text-[26px]" title={s.value}>{s.value}</p>
-      {s.hint && <p class="mt-2 text-[12px] text-ink-soft">{s.hint}</p>}
-    </li>
-  ))}
+  {items.map((s, idx) => {
+    const featured = idx === 0;
+    return (
+      <li
+        class:list={[
+          'rounded-[24px] border p-4 transition-colors',
+          featured
+            ? 'border-[#DFC3A0] bg-[#F3E1C7] text-charcoal shadow-[0_6px_20px_-8px_rgb(29_35_35/0.12)]'
+            : 'border-sand/80 bg-white shadow-[0_2px_8px_-2px_rgb(29_35_35/0.05)]',
+        ]}
+        data-search-item
+      >
+        <div class="flex items-center justify-between gap-2">
+          <p class:list={['text-[12px] font-semibold leading-4 sm:text-[13px]', featured ? 'text-[#5A3A1E]' : 'text-ink-soft']}>{s.label}</p>
+          {s.icon && (
+            <span class:list={['grid h-7 w-7 shrink-0 place-items-center rounded-full', featured ? 'bg-charcoal/10 text-charcoal' : 'bg-cream text-terracotta-dark']}>
+              <Icon name={s.icon} class="h-3.5 w-3.5" strokeWidth={2} />
+            </span>
+          )}
+        </div>
+        <p class="mt-2.5 truncate text-[24px] font-bold leading-none tracking-[-0.03em] sm:text-[28px]" title={s.value}>{s.value}</p>
+        {s.hint && (
+          <p class="mt-2.5">
+            <span class:list={['inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-semibold', featured ? 'bg-charcoal/10 text-[#4A2F17]' : 'bg-ivory text-ink-soft ring-1 ring-sand/70']}>
+              {s.hint}
+            </span>
+          </p>
+        )}
+      </li>
+    );
+  })}
 </ul>

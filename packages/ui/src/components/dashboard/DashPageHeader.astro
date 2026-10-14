@@ -6,39 +6,47 @@ interface Props { workspace: Workspace; title: string; description?: string; act
 const { workspace, title, description, actions = [], path, state } = Astro.props;
 const states = ['', 'loading', 'empty', 'error', 'success'];
 ---
-<div class="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
-  <div class="min-w-0">
-    <nav aria-label="Breadcrumb" class="mb-1 text-[12px] font-medium text-ink-soft">
-      <ol class="flex flex-wrap items-center gap-1.5">
-        <li>
-          <a href={workspace.basePath || '/'} class="hover:text-charcoal hover:underline">{workspace.name}</a>
-        </li>
-        <li class="flex items-center gap-1.5 text-ink-soft/50" aria-hidden="true">/</li>
-        <li class="font-semibold text-charcoal">
-          <span aria-current="page">{title}</span>
-        </li>
-        {workspace.organization && (
-          <li class="hidden items-center gap-1.5 text-ink-soft/75 sm:inline-flex">
-            <span aria-hidden="true">·</span>
-            <span>{workspace.organization}</span>
+<div class="mb-5 flex flex-col gap-3 sm:mb-6 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
+  <div class="min-w-0 flex-1">
+    <div class="mb-1.5 flex items-center justify-between gap-2">
+      <nav aria-label="Breadcrumb" class="min-w-0 text-[12px] font-medium text-ink-soft">
+        <ol class="flex items-center gap-1.5 truncate">
+          <li class:list={[workspace.organization ? 'hidden sm:inline-flex' : 'truncate']}>
+            <a href={workspace.basePath || '/'} class="font-semibold text-terracotta-dark hover:text-charcoal hover:underline sm:font-medium sm:text-ink-soft">{workspace.name}</a>
           </li>
-        )}
-      </ol>
-    </nav>
-    <h1 class="mt-1 text-[26px] font-semibold leading-tight tracking-[-0.02em] sm:text-[30px]">{title}</h1>
-    {description && <p class="mt-1.5 max-w-2xl text-[14px] text-ink-soft sm:text-[15px]">{description}</p>}
+          <li class="hidden items-center gap-1.5 text-ink-soft/50 sm:inline-flex" aria-hidden="true">/</li>
+          <li class="hidden truncate font-semibold text-charcoal sm:inline-flex">
+            <span aria-current="page">{title}</span>
+          </li>
+          {workspace.organization && (
+            <li class="inline-flex min-w-0 items-center gap-1.5 text-ink-soft">
+              <span class="hidden sm:inline" aria-hidden="true">·</span>
+              <span class="truncate font-medium text-ink-soft">{workspace.organization}</span>
+            </li>
+          )}
+        </ol>
+      </nav>
+      <details class="dash-menu relative shrink-0 lg:hidden" data-dash-menu>
+        <summary class="inline-flex min-h-7 cursor-pointer list-none items-center gap-1 rounded-full border border-dashed border-charcoal/20 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-ink-soft hover:bg-white [&::-webkit-details-marker]:hidden">Preview state<Icon name="chevron-down" class="h-3.5 w-3.5" /></summary>
+        <ul class="absolute right-0 z-30 mt-1.5 w-44 rounded-2xl border border-sand bg-white p-1.5 shadow-xl">
+          {states.map((s) => <li><a href={s ? `${path}?state=${s}` : path} aria-current={(state ?? '') === s ? 'true' : undefined} class:list={['block rounded-xl px-2.5 py-1.5 text-[13px] capitalize hover:bg-cream', (state ?? '') === s && 'bg-cream font-semibold']}>{s || 'Populated (default)'}</a></li>)}
+        </ul>
+      </details>
+    </div>
+    <h1 class="mt-0.5 text-[24px] font-bold leading-tight tracking-[-0.025em] sm:text-[30px]">{title}</h1>
+    {description && <p class="mt-1 max-w-2xl text-[13px] leading-5 text-ink-soft sm:text-[15px] sm:leading-6">{description}</p>}
   </div>
   <div class="flex flex-wrap items-center gap-2">
     {actions.map((a) => {
-      const cls = ['inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-[14px] font-semibold transition-colors', (a.variant ?? 'primary') === 'primary' ? 'bg-terracotta text-white hover:bg-terracotta-dark' : 'border border-sand bg-white hover:border-charcoal/30'];
+      const cls = ['inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[13px] font-semibold transition-colors sm:rounded-xl sm:text-[14px]', (a.variant ?? 'primary') === 'primary' ? 'bg-terracotta text-white shadow-2xs hover:bg-terracotta-dark' : 'border border-sand bg-white hover:border-charcoal/30'];
       return a.dialog
         ? <button type="button" data-dialog-open={a.dialog} class:list={cls}>{a.icon && <Icon name={a.icon} class="h-4 w-4" strokeWidth={2} />}{a.label}</button>
         : <a href={a.href} class:list={cls}>{a.icon && <Icon name={a.icon} class="h-4 w-4" strokeWidth={2} />}{a.label}</a>;
     })}
-    <details class="dash-menu relative" data-dash-menu>
-      <summary class="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-lg border border-dashed border-charcoal/25 px-3 text-[13px] text-ink-soft hover:bg-white [&::-webkit-details-marker]:hidden">Preview state<Icon name="chevron-down" class="h-4 w-4" /></summary>
-      <ul class="absolute right-0 z-30 mt-2 w-44 rounded-xl border border-sand bg-white p-1.5 shadow-xl lg:right-0">
-        {states.map((s) => <li><a href={s ? `${path}?state=${s}` : path} aria-current={(state ?? '') === s ? 'true' : undefined} class:list={['block rounded-lg px-2.5 py-1.5 text-[13px] capitalize hover:bg-cream', (state ?? '') === s && 'bg-cream font-semibold']}>{s || 'Populated (default)'}</a></li>)}
+    <details class="dash-menu relative hidden lg:block" data-dash-menu>
+      <summary class="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-xl border border-dashed border-charcoal/25 px-3 text-[13px] text-ink-soft hover:bg-white [&::-webkit-details-marker]:hidden">Preview state<Icon name="chevron-down" class="h-4 w-4" /></summary>
+      <ul class="absolute right-0 z-30 mt-2 w-44 rounded-2xl border border-sand bg-white p-1.5 shadow-xl lg:right-0">
+        {states.map((s) => <li><a href={s ? `${path}?state=${s}` : path} aria-current={(state ?? '') === s ? 'true' : undefined} class:list={['block rounded-xl px-2.5 py-1.5 text-[13px] capitalize hover:bg-cream', (state ?? '') === s && 'bg-cream font-semibold']}>{s || 'Populated (default)'}</a></li>)}
       </ul>
     </details>
   </div>

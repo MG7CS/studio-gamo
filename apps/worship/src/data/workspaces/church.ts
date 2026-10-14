@@ -21,15 +21,15 @@ export const churchWorkspace: Workspace = {
   permission: 'Admin · requests, team & records',
   nav: [
     { items: [
-      { slug: '', label: 'Overview', icon: 'home' },
-      { slug: 'request', label: 'Request a musician', icon: 'plus' },
-      { slug: 'requests', label: 'Active requests', icon: 'list', badge: '3' },
+      { slug: '', label: 'Overview', shortLabel: 'Overview', icon: 'home' },
+      { slug: 'services', label: 'Upcoming services', shortLabel: 'Services', icon: 'calendar' },
+      { slug: 'musicians', label: 'Assigned musicians', shortLabel: 'Musicians', icon: 'users' },
+      { slug: 'request', label: 'Request a musician', shortLabel: 'Request', icon: 'plus' },
     ] },
-    { label: 'Services', items: [
-      { slug: 'services', label: 'Upcoming services', icon: 'calendar' },
-      { slug: 'musicians', label: 'Assigned musicians', icon: 'users' },
-      { slug: 'standby', label: 'Standby coverage', icon: 'shield' },
-      { slug: 'recurring', label: 'Recurring scheduling', icon: 'repeat' },
+    { label: 'Scheduling & Coverage', items: [
+      { slug: 'requests', label: 'Active requests', shortLabel: 'Requests', icon: 'list', badge: '3' },
+      { slug: 'standby', label: 'Standby coverage', shortLabel: 'Standby', icon: 'shield' },
+      { slug: 'recurring', label: 'Recurring scheduling', shortLabel: 'Recurring', icon: 'repeat' },
     ] },
     { label: 'Records', items: [
       { slug: 'history', label: 'Request history', icon: 'clipboard' },
@@ -141,8 +141,15 @@ export const churchWorkspace: Workspace = {
       aliases: ['roster'],
       title: 'Assigned musicians',
       description: 'Musicians assigned to your upcoming services. Approval reflects the program office review (sample).',
+      actions: [{ label: 'Request a musician', href: `${P}/request`, icon: 'plus' }, { label: 'Standby coverage', href: `${P}/standby`, variant: 'secondary' }],
       blocks: [
-        { type: 'cards', span: 3, items: [
+        { type: 'stats', items: [
+          { label: 'Assigned roster', value: '5', hint: 'Approved (sample)', icon: 'users' },
+          { label: 'Awaiting reply', value: '1', hint: 'Oct 25 bass', icon: 'clock' },
+          { label: 'Next service', value: 'Oct 18', hint: 'Keys & drums set', icon: 'calendar' },
+          { label: 'Standby ready', value: '4 of 6', hint: 'Services covered', icon: 'shield' },
+        ] },
+        { type: 'cards', span: 3, title: 'Upcoming roster', action: { label: 'All services', href: `${P}/services` }, items: [
           { title: 'Jordan A. (sample)', meta: 'Keys · vocals', body: 'Oct 18 primary · Nov 8 primary', badge: b('Approved (sample)', 'sample'), icon: 'piano' },
           { title: 'Mateo S. (sample)', meta: 'Keys / piano', body: 'Oct 25 primary', badge: b('Approved (sample)', 'sample'), icon: 'piano' },
           { title: 'Marcus T. (sample)', meta: 'Drums', body: 'Oct 18 primary', badge: b('Approved (sample)', 'sample'), icon: 'drums' },

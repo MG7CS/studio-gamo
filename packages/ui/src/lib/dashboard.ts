@@ -59,8 +59,28 @@ export interface DashScreen {
   aliases?: string[];
 }
 
-export interface NavItem { slug: string; label: string; icon: IconName; badge?: string }
+export interface NavItem { slug: string; label: string; shortLabel?: string; icon: IconName; badge?: string }
 export interface NavGroup { label?: string; items: NavItem[] }
+
+export function shortNavLabel(item: Pick<NavItem, 'label' | 'shortLabel'>): string {
+  if (item.shortLabel) return item.shortLabel;
+  const map: Record<string, string> = {
+    'Overview': 'Overview',
+    'Request a musician': 'Request',
+    'Active requests': 'Requests',
+    'Upcoming services': 'Services',
+    'Assigned musicians': 'Musicians',
+    'Standby coverage': 'Standby',
+    'Recurring scheduling': 'Recurring',
+    'Open opportunities': 'Openings',
+    'My schedule': 'Schedule',
+    'Service details': 'Service',
+    'Availability': 'Dates',
+  };
+  if (map[item.label]) return map[item.label];
+  const words = item.label.split(/\s+/);
+  return words.length > 1 && words[0].length <= 3 ? words[1] : words[0];
+}
 
 export interface Workspace {
   id: string;

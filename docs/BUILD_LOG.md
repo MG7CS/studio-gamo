@@ -421,3 +421,12 @@
 - Owner requested push and deployment. Pushed `main` through `691715b` to `origin/main`, then ran `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` successfully. Production builds used the existing configured domains and resource bindings. No migrations, secret changes or Admin deployment.
 - Cloudflare versions: web `5d980dc6-d036-455d-98e0-5ca0969532d8`; Worship `b8cde1b8-7a8a-463f-8248-f2e48faae03a`; Academy `3211b3f5-71d7-4632-b1bb-ac95e8b0c5c5`; Live `b06e06ba-cfb6-4c9b-a6ef-1ae5d2c18733`; Production `b543804f-7578-402a-990e-9e6a469eb06c`.
 - Read-only live HTTP checks returned 200 for apex, www, Worship, Academy, Live homepage and `/promote`, and Production. Confirmed corrected hero-container markup on apex/www and image-first markup on affected program landing pages. Local browser evidence is recorded above; this deployment does not certify outstanding backend readiness gates.
+
+## 2026-10-13 — Mobile workspace & Assigned musicians redesign
+
+- Redesigned mobile workspace shell (`packages/ui/src/components/dashboard/DashboardShell.astro`, `WorkspaceSwitcher.astro`, `DashPageHeader.astro`) and block cards (`StatGrid.astro`, `CardGrid.astro`, `Panel.astro`, `Agenda.astro`, `QuickActions.astro`, `StatusPill.astro`) for effortless mobile scanning:
+  - Consolidated the sticky mobile header into a single row with a compact pill `WorkspaceSwitcher` (eliminating the stacked second header bar on mobile).
+  - Replaced the full-width bottom tab bar (which truncated long labels) with a floating dark charcoal pill dock (`rounded-[28px]`) using concise 1-word labels (`shortNavLabel`) and a highlighted active pill.
+  - Promoted `Assigned musicians` (`/church/musicians`) to the primary 4-item mobile dock in `apps/worship/src/data/workspaces/church.ts` and added at-a-glance coverage summary cards above compact 2-line horizontal musician row cards on mobile.
+- Verification: `DASHBOARD_URL=http://127.0.0.1:4322 node scripts/verify-dashboard-navigation.mjs` passed all 10 viewport/route checks (`390`, `768`, `1024`, `1440`, `1920` across `/church` and `/musician`) with zero horizontal overflow and zero console/page errors; `pnpm test` passed all 39 tests.
+- Evidence: `docs/screenshots/dashboard-navigation/church-musicians-390-viewport.png`, `docs/screenshots/dashboard-navigation/church-musicians-390-full.png`, `docs/screenshots/dashboard-navigation/church-overview-390-full.png`, `docs/screenshots/dashboard-navigation/church-musicians-1440.png`.

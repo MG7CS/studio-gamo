@@ -11,13 +11,14 @@ import DemoModeBanner from './DemoModeBanner.astro';
 import DashNav from './DashNav.astro';
 import WorkspaceSwitcher from './WorkspaceSwitcher.astro';
 import AccountMenu from './AccountMenu.astro';
-import { DEMO_PERSONA, screenHref, type Workspace } from '../../lib/dashboard';
+import { DEMO_PERSONA, screenHref, shortNavLabel, type Workspace } from '../../lib/dashboard';
 import { siteUrl } from '../../lib/sites';
 
 interface Props { workspace: Workspace; current: string; title: string }
 const { workspace, current, title } = Astro.props;
 const flat = workspace.nav.flatMap((g) => g.items);
 const tabs = flat.slice(0, 4);
+const isMoreActive = !tabs.some((t) => t.slug === current);
 const notifSlug = flat.find((i) => i.slug === 'notifications');
 const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('web', '/account/notifications');
 ---
@@ -54,52 +55,48 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
         </div>
       </aside>
 
-      <div class="min-w-0 pb-20 lg:pb-0">
-        <header class="sticky top-0 z-40 border-b border-sand bg-ivory/95 backdrop-blur">
+      <div class="min-w-0 pb-28 lg:pb-0">
+        <header class="sticky top-0 z-30 border-b border-sand/70 bg-ivory/95 backdrop-blur-md">
           <div class="flex h-14 items-center gap-2 px-3 sm:px-5 lg:h-16 lg:px-8">
-            <button type="button" class="grid h-10 w-10 place-items-center rounded-lg hover:bg-white lg:hidden" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" aria-label="Open workspace menu"><Icon name="menu" class="h-5 w-5" /></button>
-            <a href={siteUrl('web', '/')} class="text-charcoal lg:hidden" aria-label="Gamo Studios home"><Logo width={104} height={20} /></a>
-            <div class="hidden min-w-0 md:block"><WorkspaceSwitcher currentId={workspace.id} /></div>
+            <button type="button" class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white text-charcoal shadow-2xs transition-colors hover:bg-cream lg:hidden" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" aria-label="Open workspace menu"><Icon name="menu" class="h-5 w-5" /></button>
+            <a href={siteUrl('web', '/')} class="hidden text-charcoal sm:block lg:hidden" aria-label="Gamo Studios home"><Logo width={104} height={20} /></a>
+            <div class="min-w-0"><WorkspaceSwitcher currentId={workspace.id} /></div>
             <form role="search" class="ml-auto hidden max-w-sm flex-1 md:block" data-dash-search onsubmit="return false">
               <label class="relative block"><span class="sr-only">Search this workspace</span>
                 <Icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
-                <input type="search" placeholder="Search this page (demo)" class="h-10 w-full rounded-lg border border-sand bg-white pl-9 pr-3 text-[14px] placeholder:text-ink-soft/70" data-dash-search-input />
+                <input type="search" placeholder="Search this page (demo)" class="h-10 w-full rounded-xl border border-sand bg-white pl-9 pr-3 text-[14px] placeholder:text-ink-soft/70" data-dash-search-input />
               </label>
             </form>
-            <a href={notifHref} class="relative ml-auto grid h-10 w-10 place-items-center rounded-lg hover:bg-white md:ml-0" aria-label="Notifications (3 sample)"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
+            <a href={notifHref} class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0" aria-label="Notifications (3 sample)"><Icon name="bell" class="h-5 w-5" /><span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta" aria-hidden="true"></span></a>
             <AccountMenu />
           </div>
-          <div class="border-t border-sand px-3 py-2 md:hidden"><WorkspaceSwitcher currentId={workspace.id} /></div>
         </header>
 
-        <main id="dash-main" tabindex="-1" class="mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main id="dash-main" tabindex="-1" class="mx-auto w-full max-w-[1320px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
           <slot />
         </main>
       </div>
     </div>
 
-    <dialog id="dash-drawer" class="fixed inset-y-0 left-0 m-0 h-dvh max-h-none w-[min(21rem,88vw)] max-w-none flex-col open:flex bg-charcoal p-0 text-cream backdrop:bg-charcoal/50" data-surface="dark" aria-label={`${workspace.name} menu`}>
+    <dialog id="dash-drawer" class="fixed inset-y-0 left-0 z-50 m-0 h-dvh max-h-none w-[min(21rem,88vw)] max-w-none flex-col rounded-r-3xl border-0 bg-charcoal p-0 text-cream shadow-2xl open:flex backdrop:bg-charcoal/55 backdrop:backdrop-blur-xs" data-surface="dark" aria-label={`${workspace.name} menu`}>
       <div class="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program}</p>
-          <p class="text-[14px] font-medium text-cream">{workspace.name}</p>
+          <a href={siteUrl('web', '/')} class="mb-1 inline-block text-cream/90 hover:text-cream" aria-label="Gamo Studios home"><Logo width={108} height={20} /></a>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">{workspace.program} · {workspace.name}</p>
         </div>
-        <button type="button" class="grid h-10 w-10 place-items-center rounded-lg text-cream/70 hover:bg-white/10 hover:text-cream" data-drawer-close aria-label="Close menu">
+        <button type="button" class="grid h-10 w-10 place-items-center rounded-full bg-white/5 text-cream/80 hover:bg-white/10 hover:text-cream" data-drawer-close aria-label="Close menu">
           <Icon name="x" class="h-5 w-5" />
         </button>
       </div>
 
       <div class="border-b border-white/10 bg-white/5 px-4 py-3">
         <div class="flex items-center gap-2.5">
-          <span class="grid h-8 w-8 place-items-center rounded-full bg-cream text-[12px] font-semibold text-charcoal">{DEMO_PERSONA.initials}</span>
+          <span class="grid h-9 w-9 place-items-center rounded-full bg-gold text-[12px] font-bold text-charcoal">{DEMO_PERSONA.initials}</span>
           <div class="min-w-0 flex-1">
             <p class="truncate text-[13px] font-semibold text-cream">{DEMO_PERSONA.name}</p>
-            <p class="truncate text-[11px] text-cream/60">{workspace.role}</p>
+            <p class="truncate text-[11px] text-cream/65">{workspace.role}{workspace.organization ? ` · ${workspace.organization}` : ''}</p>
           </div>
         </div>
-        {workspace.organization && (
-          <p class="mt-1.5 truncate text-[11px] text-gold/80"><span class="text-cream/50">Org:</span> {workspace.organization}</p>
-        )}
       </div>
 
       <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4">
@@ -108,26 +105,33 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : siteUrl('
 
       <div class="border-t border-white/10 bg-white/5 p-3 text-[12px]">
         <div class="mb-2 grid grid-cols-2 gap-2">
-          <a href={siteUrl('web', '/account/profile')} class="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
+          <a href={siteUrl('web', '/account/profile')} class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
             <Icon name="user" class="h-4 w-4 text-cream/60" />Profile
           </a>
-          <a href={notifHref} class="flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
+          <a href={notifHref} class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10">
             <Icon name="bell" class="h-4 w-4 text-cream/60" />Alerts
           </a>
         </div>
-        <a href={siteUrl('web', '/account/signed-out')} class="flex items-center justify-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream">
+        <a href={siteUrl('web', '/account/signed-out')} class="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream">
           <Icon name="logout" class="h-4 w-4 text-cream/60" />Exit demo (Sign out)
         </a>
       </div>
     </dialog>
 
-    <nav aria-label="Quick navigation" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-sand bg-white lg:hidden">
-      {tabs.map((t) => (
-        <a href={screenHref(workspace, t.slug)} aria-current={t.slug === current ? 'page' : undefined} class:list={['flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium', t.slug === current ? 'text-terracotta-dark' : 'text-ink-soft']}>
-          <Icon name={t.icon} class="h-5 w-5" strokeWidth={1.8} /><span class="max-w-full truncate">{t.label}</span>
-        </a>
-      ))}
-      <button type="button" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" class="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink-soft"><Icon name="grid" class="h-5 w-5" strokeWidth={1.8} />More</button>
+    <nav aria-label="Quick navigation" data-surface="dark" class="fixed inset-x-3 bottom-3 z-40 mx-auto grid max-w-md grid-cols-5 items-center gap-1 rounded-[28px] bg-charcoal/95 p-1.5 text-cream shadow-float ring-1 ring-white/10 backdrop-blur-md lg:hidden">
+      {tabs.map((t) => {
+        const active = t.slug === current;
+        return (
+          <a href={screenHref(workspace, t.slug)} aria-current={active ? 'page' : undefined} class:list={['flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[22px] px-1 py-1.5 text-[10px] font-semibold tracking-[-0.01em] transition-colors', active ? 'bg-gold text-charcoal shadow-xs' : 'text-cream/70 hover:bg-white/10 hover:text-cream']}>
+            <Icon name={t.icon} class="h-[19px] w-[19px]" strokeWidth={active ? 2.1 : 1.8} />
+            <span class="max-w-full truncate leading-tight">{shortNavLabel(t)}</span>
+          </a>
+        );
+      })}
+      <button type="button" data-drawer-open aria-controls="dash-drawer" aria-expanded="false" aria-haspopup="dialog" class:list={['flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[22px] px-1 py-1.5 text-[10px] font-semibold tracking-[-0.01em] transition-colors', isMoreActive ? 'bg-white/15 text-gold' : 'text-cream/70 hover:bg-white/10 hover:text-cream']}>
+        <Icon name="grid" class="h-[19px] w-[19px]" strokeWidth={1.8} />
+        <span class="leading-tight">More</span>
+      </button>
     </nav>
 
     <script>
