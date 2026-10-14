@@ -10,7 +10,7 @@ import {
   extractSessionCookie,
   verifySignedValue,
 } from '@gamo/auth';
-import { IdentityService, jsonResponse, errorResponse, handleApiError } from '@gamo/domain';
+import { IdentityService, jsonResponse, errorResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -20,7 +20,7 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   try {
     requireSameOrigin(context.request);
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     if (runtimeEnv.ENVIRONMENT !== 'local' || runtimeEnv.ALLOW_DEMO_SESSION !== 'true' || !['localhost', '127.0.0.1', '[::1]'].includes(new URL(context.request.url).hostname)) {
       return errorResponse('FORBIDDEN', 'Demo session creation is disabled. Verified identity login is not implemented.', 403);
     }
@@ -81,7 +81,7 @@ export const POST: APIRoute = async (context) => {
 export const DELETE: APIRoute = async (context) => {
   try {
     requireSameOrigin(context.request);
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
 
     const signingSecret =

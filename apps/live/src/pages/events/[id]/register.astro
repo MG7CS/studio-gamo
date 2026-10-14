@@ -5,7 +5,7 @@ import TicketSelector from '../../../components/tickets/TicketSelector.astro';
 import FreeRegistrationForm from '../../../components/tickets/FreeRegistrationForm.astro';
 import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
 import { getDb } from '@gamo/db';
-import { LiveService } from '@gamo/domain';
+import { LiveService, getRuntimeEnv } from '@gamo/domain';
 import { events, type LiveEvent } from '../../../data/events';
 
 export const prerender = false;
@@ -13,7 +13,7 @@ export const prerender = false;
 const id = Astro.params.id ?? '';
 let event: LiveEvent | undefined = events.find((e) => e.id === id);
 
-const runtimeEnv = (Astro.locals as Record<string, any>)?.runtime?.env;
+const runtimeEnv = await getRuntimeEnv(Astro);
 if (!event && runtimeEnv?.DB) {
   const db = getDb(runtimeEnv.DB);
   const service = new LiveService(db);

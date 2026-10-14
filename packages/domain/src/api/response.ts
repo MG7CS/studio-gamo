@@ -121,3 +121,33 @@ export function handleApiError(err: unknown): Response {
   console.error('[API Route Unknown Error]');
   return errorResponse('INTERNAL_ERROR', 'An unexpected error occurred.', 500);
 }
+
+/**
+ * Safely resolves the Cloudflare Worker runtime environment (`env`) across:
+ * 1. Node.js contract/security test harnesses that pass `{ locals: { runtime: { env } } }` as a plain data property.
+ * 2. Astro v6 on Cloudflare Workers (`workerd`), where `Astro.locals.runtime` is a deprecated throwing getter and bindings live in `cloudflare:workers`.
+ */
+export async function getRuntimeEnv(context?: { locals?: unknown }): Promise<Record<string, any>> {
+  const locals = context?.locals as Record<string, any> | undefined;
+  if (locals && typeof locals === 'object') {
+    try {
+      const env = locals.runtime?.env;
+      if (env && typeof env === 'object') {
+        return env as Record<string, any>;
+      }
+    } catch {
+      // Astro v6 Cloudflare adapter throws on locals.runtime.env; fall through to cloudflare:workers
+    }
+  }
+  try {
+    const modName = 'cloudflare:workers';
+    const cf = await import(/* @vite-ignore */ modName);
+    if (cf && typeof cf.env === 'object' && cf.env !== null) {
+      return cf.env as Record<string, any>;
+    }
+  } catch {
+    // Not running inside workerd/Cloudflare runtime
+  }
+  return {};
+}
+

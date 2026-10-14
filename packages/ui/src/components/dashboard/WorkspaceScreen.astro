@@ -21,7 +21,15 @@ const valid = ['loading', 'empty', 'error', 'success'].includes(state)
   : undefined;
 const path = screen ? screenHref(workspace, screen.slug) : Astro.url.pathname;
 
-const runtimeEnv = (Astro.locals as Record<string, any>)?.runtime?.env ?? {};
+let runtimeEnv: Record<string, any> = {};
+try {
+  const cf = await import(/* @vite-ignore */ 'cloudflare:workers');
+  if (cf && typeof cf.env === 'object' && cf.env !== null) {
+    runtimeEnv = cf.env as Record<string, any>;
+  }
+} catch {
+  // Not in workerd
+}
 const allowPublicDemo =
   runtimeEnv.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false' &&
   import.meta.env?.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false';

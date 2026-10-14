@@ -142,17 +142,17 @@ try {
   await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'root@gamostudios.org', displayName: 'Root Superadmin' }),
+    body: JSON.stringify({ email: 'root@gamostudio.org', displayName: 'Root Superadmin' }),
   });
-  const superCodeHash = await hashOtp('root@gamostudios.org', '111222');
+  const superCodeHash = await hashOtp('root@gamostudio.org', '111222');
   await db
-    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'root@gamostudios.org'")
+    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'root@gamostudio.org'")
     .bind(superCodeHash)
     .run();
   const superVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'root@gamostudios.org', code: '111222', displayName: 'Root Superadmin' }),
+    body: JSON.stringify({ email: 'root@gamostudio.org', code: '111222', displayName: 'Root Superadmin' }),
   });
   const superCookie = superVerify.headers.get('set-cookie').split(';')[0];
   const superBody = await superVerify.json();
@@ -164,7 +164,7 @@ try {
       .bind(superUserId),
     db
       .prepare(
-        "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudios.org', unixepoch(), unixepoch())"
+        "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudio.org', unixepoch(), unixepoch())"
       )
       .bind(superUserId),
   ]);
@@ -174,11 +174,11 @@ try {
     headers: {
       'content-type': 'application/json',
       cookie: superCookie,
-      'cf-access-authenticated-user-email': 'root@gamostudios.org',
+      'cf-access-authenticated-user-email': 'root@gamostudio.org',
       'cf-access-authenticated-user-id': 'cf-access-sub-super-e2e',
     },
     body: JSON.stringify({
-      email: 'reviewer-e2e@gamostudios.org',
+      email: 'reviewer-e2e@gamostudio.org',
       displayName: 'E2E Staff Reviewer',
       role: 'staff_reviewer',
       accessSubject: 'cf-access-sub-browser-e2e',
@@ -189,17 +189,17 @@ try {
   await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'reviewer-e2e@gamostudios.org' }),
+    body: JSON.stringify({ email: 'reviewer-e2e@gamostudio.org' }),
   });
-  const staffCodeHash = await hashOtp('reviewer-e2e@gamostudios.org', '333444');
+  const staffCodeHash = await hashOtp('reviewer-e2e@gamostudio.org', '333444');
   await db
-    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'reviewer-e2e@gamostudios.org'")
+    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'reviewer-e2e@gamostudio.org'")
     .bind(staffCodeHash)
     .run();
   const staffVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'reviewer-e2e@gamostudios.org', code: '333444' }),
+    body: JSON.stringify({ email: 'reviewer-e2e@gamostudio.org', code: '333444' }),
   });
   const staffCookie = staffVerify.headers.get('set-cookie').split(';')[0];
 
@@ -208,7 +208,7 @@ try {
     headers: {
       'content-type': 'application/json',
       cookie: staffCookie,
-      'cf-access-authenticated-user-email': 'reviewer-e2e@gamostudios.org',
+      'cf-access-authenticated-user-email': 'reviewer-e2e@gamostudio.org',
       'cf-access-authenticated-user-id': 'cf-access-sub-browser-e2e',
     },
     body: JSON.stringify({ decision: 'approved', notes: 'Approved for browser E2E test' }),

@@ -5,7 +5,7 @@ import {
   type StripeWebhookEvent,
 } from '@studio-gamo/integrations';
 import { getDb } from '@gamo/db';
-import { PaymentService, AdminService } from '@gamo/domain';
+import { PaymentService, AdminService, getRuntimeEnv } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -25,7 +25,7 @@ export const prerender = false;
  */
 export const POST: APIRoute = async (context) => {
   try {
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const webhookSecret =
       runtimeEnv.STRIPE_WEBHOOK_SECRET ||
       import.meta.env?.STRIPE_WEBHOOK_SECRET ||

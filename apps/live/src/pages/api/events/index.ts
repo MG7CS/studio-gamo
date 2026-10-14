@@ -7,6 +7,7 @@ import {
   jsonResponse,
   handleApiError,
   errorResponse,
+  getRuntimeEnv,
 } from '@gamo/domain';
 import { requireOrgAccess } from '@gamo/auth';
 
@@ -17,7 +18,7 @@ export const prerender = false;
  */
 export const GET: APIRoute = async (context) => {
   try {
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 
@@ -47,7 +48,7 @@ export const GET: APIRoute = async (context) => {
  */
 export const POST: APIRoute = async (context) => {
   try {
-    const runtimeEnv = (context.locals as Record<string, any>)?.runtime?.env ?? {};
+    const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 

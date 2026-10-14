@@ -47,7 +47,7 @@ Accessible tablist with two entry points:
 |---|---|---|
 | Audience | Churches, ministries, artists, organizers | Individuals, families, communities |
 | Message | Share your Christian event with the community, with optional registration and ticketing. | Find worship nights, concerts, conferences, Bible studies and free gatherings. |
-| Primary CTA | Promote an Event → `live.gamostudios.com/promote` (screen planned) | Explore Events → `live.gamostudios.com/` |
+| Primary CTA | Promote an Event → `live.gamostudio.org/promote` (screen planned) | Explore Events → `live.gamostudio.org/` |
 | Journey | Promote landing → submit event → organizer verification → staff review → published → reports | Discover → event detail → register / checkout → ticket |
 
 The Cinematic Editorial Interface is preserved; the pill must not turn the section into a generic SaaS layout.
@@ -126,10 +126,10 @@ Redefined per [GAMO_NONPROFIT_MODEL.md §4](GAMO_NONPROFIT_MODEL.md#4-church-par
 
 | App | Future functionality |
 |---|---|
-| `gamostudios.com` | Mission and program overview; church partnerships and support pathways (no payments until approved); placement-driven spotlight (future) |
-| `live.gamostudios.com` | Organizer submission and verification; publishing and discovery; free registration and authorized ticketing; optional promotion requests; ticket management; reports |
-| `admin.gamostudios.com` | Event moderation; organizer verification; promotion intake; placement scheduling; ticketing oversight; partnership and contribution records |
-| `production.gamostudios.com` | Optional event creative and production support |
+| `gamostudio.org` | Mission and program overview; church partnerships and support pathways (no payments until approved); placement-driven spotlight (future) |
+| `live.gamostudio.org` | Organizer submission and verification; publishing and discovery; free registration and authorized ticketing; optional promotion requests; ticket management; reports |
+| `admin.gamostudio.org` | Event moderation; organizer verification; promotion intake; placement scheduling; ticketing oversight; partnership and contribution records |
+| `production.gamostudio.org` | Optional event creative and production support |
 | `worship` / `academy` | Show sponsorship-supported options (e.g. sponsored lessons); never alter vetting by partner status |
 
 Stack is unchanged: Astro, Cloudflare (Workers/D1/R2/DO/Queues), Stripe Connect, Resend. No new providers without approval.
