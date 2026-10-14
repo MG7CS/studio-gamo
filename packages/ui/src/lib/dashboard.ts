@@ -97,12 +97,36 @@ export interface Workspace {
   staff?: boolean;
 }
 
-/** Fixed fictional identity used by every demo workspace. Not a real user; cannot be changed to one. */
-export const DEMO_PERSONA = {
+export interface ViewerPersona {
+  name: string;
+  initials: string;
+  email: string;
+  note: string;
+  authenticated?: boolean;
+  organization?: string;
+  organizationRole?: string;
+}
+
+export function initialsFromName(name: string, fallbackEmail?: string): string {
+  const cleaned = (name || '').trim();
+  if (cleaned) {
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return cleaned.slice(0, 2).toUpperCase();
+  }
+  const emailPrefix = (fallbackEmail || '').split('@')[0] || 'GS';
+  return emailPrefix.slice(0, 2).toUpperCase();
+}
+
+/** Default fictional identity used by demo workspaces when no user is signed in. */
+export const DEMO_PERSONA: ViewerPersona = {
   name: 'Jordan Avery',
   initials: 'JA',
   email: 'jordan.avery@example.org',
   note: 'Fictional demo persona',
+  authenticated: false,
 };
 
 export interface WorkspaceLink { id: string; program: string; label: string; role: string; organization?: string; href: string; staff?: boolean }

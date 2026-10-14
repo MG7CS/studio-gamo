@@ -51,12 +51,17 @@ export const POST: APIRoute = async (context) => {
       expiresAt,
     });
 
+    const isLocalSimulated =
+      runtimeEnv.ENVIRONMENT === 'local' && delivery.deliveryStatus === 'simulated';
+
     return jsonResponse(
       {
         challengeId,
         expiresAt: expiresAt.toISOString(),
         deliveryStatus: delivery.deliveryStatus,
-        message: 'Verification code dispatched to your email address.',
+        message: isLocalSimulated
+          ? `Verification code dispatched to your email address. Local test code: ${code}`
+          : 'Verification code dispatched to your email address.',
       },
       200
     );

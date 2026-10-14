@@ -41,7 +41,10 @@ export const POST: APIRoute = async (context) => {
     const signingSecret =
       runtimeEnv.SESSION_SECRET ||
       import.meta.env?.SESSION_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET;
+      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET ||
+      (runtimeEnv.ENVIRONMENT === 'local'
+        ? 'gamo_local_dev_fallback_secret_min_32_bytes_change_in_prod'
+        : undefined);
 
     const { sessionId, cookieValue, expiresAt } = await createSession(
       db,
@@ -87,7 +90,10 @@ export const DELETE: APIRoute = async (context) => {
     const signingSecret =
       runtimeEnv.SESSION_SECRET ||
       import.meta.env?.SESSION_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET;
+      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET ||
+      (runtimeEnv.ENVIRONMENT === 'local'
+        ? 'gamo_local_dev_fallback_secret_min_32_bytes_change_in_prod'
+        : undefined);
 
     const rawCookie = extractSessionCookie(context.request);
     if (rawCookie) {
@@ -98,7 +104,12 @@ export const DELETE: APIRoute = async (context) => {
     }
 
     const isProd = import.meta.env?.PROD || runtimeEnv.ENVIRONMENT === 'production';
-    const clearCookieHeader = buildClearSessionCookie({ secure: isProd });
+    const rootDomain = runtimeEnv.PUBLIC_ROOT_DOMAIN || import.meta.env?.PUBLIC_ROOT_DOMAIN;
+    const cookieDomain = isProd && rootDomain === 'gamostudio.org' ? '.gamostudio.org' : undefined;
+    const clearCookieHeader = buildClearSessionCookie({
+      domain: cookieDomain,
+      secure: isProd,
+    });
 
     const res = jsonResponse({ message: 'Session revoked successfully.' });
     res.headers.set('Set-Cookie', clearCookieHeader);

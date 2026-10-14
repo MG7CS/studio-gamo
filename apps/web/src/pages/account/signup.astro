@@ -1,6 +1,9 @@
 ---
 import '../../app.css';
 import AuthPage from '../../components/account/AuthPage.astro';
+import VerifiedAuthPanel from '../../components/account/VerifiedAuthPanel.astro';
 import { authScreens } from '../../data/account-entry';
 ---
-<AuthPage screen={authScreens.signup} />
+<AuthPage screen={authScreens.signup}>
+  <VerifiedAuthPanel mode="signup" />
+</AuthPage>

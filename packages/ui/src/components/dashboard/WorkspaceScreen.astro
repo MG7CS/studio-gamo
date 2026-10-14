@@ -8,18 +8,19 @@ import DashboardShell from './DashboardShell.astro';
 import DashPageHeader from './DashPageHeader.astro';
 import DashBlocks from './DashBlocks.astro';
 import StateView from './StateView.astro';
-import { findScreen, screenHref, type Workspace } from '../../lib/dashboard';
+import { b, findScreen, screenHref, type DashBlock, type DashScreen, type Workspace } from '../../lib/dashboard';
+import { resolveWorkspaceViewer } from '../../lib/session-viewer';
 import { siteUrl } from '../../lib/sites';
 
 interface Props { workspace: Workspace; slug?: string }
 const { workspace, slug } = Astro.props;
-const screen = findScreen(workspace, slug);
-if (!screen) Astro.response.status = 404;
+const baseScreen = findScreen(workspace, slug);
+if (!baseScreen) Astro.response.status = 404;
 const state = Astro.url.searchParams.get('state') ?? '';
 const valid = ['loading', 'empty', 'error', 'success'].includes(state)
   ? (state as 'loading' | 'empty' | 'error' | 'success')
   : undefined;
-const path = screen ? screenHref(workspace, screen.slug) : Astro.url.pathname;
+const path = baseScreen ? screenHref(workspace, baseScreen.slug) : Astro.url.pathname;
 
 let runtimeEnv: Record<string, any> = {};
 try {
@@ -30,6 +31,81 @@ try {
 } catch {
   // Not in workerd
 }
+const viewer = await resolveWorkspaceViewer(Astro.request, runtimeEnv);
+
+function personalizeScreen(s: DashScreen | undefined): DashScreen | undefined {
+  if (!s || !viewer.authenticated || workspace.id !== 'account') return s;
+  const clone: DashScreen = structuredClone(s);
+  const nameParts = viewer.name.split(/\s+/);
+  const firstName = nameParts[0] || viewer.name;
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  clone.blocks = clone.blocks.map((block): DashBlock => {
+    if (s.slug === '' && block.type === 'notice') {
+      return {
+        ...block,
+        tone: 'success',
+        title: `Signed in as ${viewer.name}`,
+        body: `Your personal Gamo Studios account (${viewer.email}) is active${viewer.organization ? ` and connected to ${viewer.organization}` : ''}. All program workspaces below keep test sample records enabled so you can explore every tool while using your account.`,
+      };
+    }
+    if (s.slug === '' && block.type === 'kv') {
+      return {
+        ...block,
+        items: [
+          ['Personal account', `${viewer.name} (${viewer.email})`],
+          ['Active organization', viewer.organization ? `${viewer.organization} (plus sample workspaces)` : 'Grace Fellowship (sample)'],
+          ...block.items.slice(2),
+        ],
+      };
+    }
+    if (s.slug === 'organizations' && block.type === 'table' && viewer.organization) {
+      return {
+        ...block,
+        rows: [
+          {
+            org: viewer.organization,
+            location: 'Verified organization',
+            yourRole: viewer.organizationRole ? `${viewer.organizationRole[0].toUpperCase()}${viewer.organizationRole.slice(1)}` : 'Owner',
+            permission: 'Full organization access',
+            status: b('Active account', 'verified'),
+          },
+          ...block.rows,
+        ],
+      };
+    }
+    if (s.slug === 'profile' && block.type === 'form') {
+      return {
+        ...block,
+        fields: block.fields.map((f) => {
+          if (f.name === 'first') return { ...f, value: firstName };
+          if (f.name === 'last') return { ...f, value: lastName };
+          if (f.name === 'email') return { ...f, value: viewer.email };
+          return f;
+        }),
+      };
+    }
+    if (s.slug === 'profile' && block.type === 'list') {
+      return {
+        ...block,
+        items: [
+          { title: 'Personal account', body: viewer.name, icon: 'user', badge: b('Verified', 'verified') },
+          { title: 'Primary email', body: viewer.email, icon: 'mail', badge: b('Verified', 'success') },
+          { title: 'Sample workspace data', body: 'Kept active across all apps for testing', icon: 'check', badge: b('Enabled', 'info') },
+        ],
+      };
+    }
+    return block;
+  });
+  return clone;
+}
+
+const screen = personalizeScreen(baseScreen);
+const effectiveWorkspace: Workspace =
+  viewer.authenticated && viewer.organization && workspace.organization
+    ? { ...workspace, organization: `${viewer.organization} · Sample data` }
+    : workspace;
+
 const allowPublicDemo =
   runtimeEnv.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false' &&
   import.meta.env?.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false';
@@ -42,9 +118,9 @@ if (queryKey && requiredDemoKey && queryKey === requiredDemoKey) {
 }
 
 const isAuthorized =
-  allowPublicDemo || !requiredDemoKey || cookieKey === requiredDemoKey || queryKey === requiredDemoKey;
+  viewer.authenticated || allowPublicDemo || !requiredDemoKey || cookieKey === requiredDemoKey || queryKey === requiredDemoKey;
 ---
-<DashboardShell workspace={workspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'}>
+<DashboardShell workspace={effectiveWorkspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'} viewer={viewer}>
   {!isAuthorized ? (
     <StateView
       state="error"
@@ -54,7 +130,7 @@ const isAuthorized =
     />
   ) : screen ? (
     <Fragment>
-      <DashPageHeader workspace={workspace} title={screen.title} description={screen.description} actions={screen.actions} path={path} state={valid} />
+      <DashPageHeader workspace={effectiveWorkspace} title={screen.title} description={screen.description} actions={screen.actions} path={path} state={valid} />
       {valid ? <StateView state={valid} retryHref={path} /> : <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />}
     </Fragment>
   ) : (

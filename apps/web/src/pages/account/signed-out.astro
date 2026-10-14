@@ -3,4 +3,11 @@ import '../../app.css';
 import AuthPage from '../../components/account/AuthPage.astro';
 import { authScreens } from '../../data/account-entry';
 ---
-<AuthPage screen={authScreens.signedOut} />
+<AuthPage screen={authScreens.signedOut}>
+  <script>
+    const isGamostudio = window.location.hostname.endsWith('gamostudio.org');
+    const domainPart = isGamostudio ? '; domain=.gamostudio.org' : '';
+    document.cookie = `gamo_profile_hint=; path=/; max-age=0; SameSite=Lax${domainPart}`;
+    fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
+  </script>
+</AuthPage>

@@ -47,7 +47,10 @@ export const POST: APIRoute = async (context) => {
     const signingSecret =
       runtimeEnv.SESSION_SECRET ||
       import.meta.env?.SESSION_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET;
+      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET ||
+      (runtimeEnv.ENVIRONMENT === 'local'
+        ? 'gamo_local_dev_fallback_secret_min_32_bytes_change_in_prod'
+        : undefined);
 
     const { sessionId, cookieValue, expiresAt } = await createSession(
       db,
@@ -65,7 +68,10 @@ export const POST: APIRoute = async (context) => {
     }
 
     const isProd = import.meta.env?.PROD || runtimeEnv.ENVIRONMENT === 'production';
+    const rootDomain = runtimeEnv.PUBLIC_ROOT_DOMAIN || import.meta.env?.PUBLIC_ROOT_DOMAIN;
+    const cookieDomain = isProd && rootDomain === 'gamostudio.org' ? '.gamostudio.org' : undefined;
     const cookieHeader = buildSessionCookie(cookieValue, expiresAt, {
+      domain: cookieDomain,
       secure: isProd,
       sameSite: 'Lax',
     });
