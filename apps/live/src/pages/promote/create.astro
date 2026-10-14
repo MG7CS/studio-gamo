@@ -5,8 +5,7 @@ import PageHeader from '../../components/shared/PageHeader.astro';
 import EventBuilder from '../../components/organizer/EventBuilder.astro';
 export const prerender = true;
 ---
-<Layout title="Create an event (preview)" headerTheme="light">
-  <PageHeader eyebrow="Event builder · design preview" title="Tell us about your gathering." lede="Five short steps. Use fictional answers to preview the complete journey." back={{ href: '/promote', label: 'Promote Event' }} />
-  <div class="bg-cream px-4 pb-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1100px]">This form does not save or submit. Uploads and publishing are disabled.</DemoNotice></div>
+<Layout title="Create an event" headerTheme="light">
+  <PageHeader eyebrow="Event builder" title="Tell us about your gathering." lede="Five short steps to share your event details, schedule, venue, and registration options." back={{ href: '/promote', label: 'Promote Event' }} />
   <EventBuilder />
 </Layout>

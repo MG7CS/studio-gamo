@@ -10,12 +10,11 @@ const event = getEvent(Astro.url.searchParams.get('event') || '') || getEvent('h
 const quantities = event.tiers.map((_, i) => { const raw = Number(Astro.url.searchParams.get(`q${i}`)); return Number.isInteger(raw) && raw >= 0 && raw <= 10 ? raw : 0; });
 if (!quantities.some(Boolean)) quantities[0] = 1;
 ---
-<Layout title="Checkout preview" headerTheme="light">
-  <PageHeader eyebrow="Preview — no payment" title="Checkout preview" back={{ href: `/events/${event.id}/tickets`, label: 'Back to tickets' }} />
+<Layout title="Checkout" headerTheme="light">
+  <PageHeader eyebrow="Registration & checkout" title="Complete your registration" back={{ href: `/events/${event.id}/tickets`, label: 'Back to tickets' }} />
   <div class="bg-cream px-4 pb-8 sm:px-8">
     <div class="mx-auto max-w-[1100px] space-y-6">
-      <StepIndicator steps={[{ label: 'Select', href: `/events/${event.id}/tickets` }, { label: 'Checkout preview' }, { label: 'Sample ticket' }]} current={1} />
-      <DemoNotice title="Preview — no payment">Nothing is charged, reserved or emailed. Payment processing is not enabled.</DemoNotice>
+      <StepIndicator steps={[{ label: 'Select', href: `/events/${event.id}/tickets` }, { label: 'Checkout' }, { label: 'Digital pass' }]} current={1} />
     </div>
   </div>
   <CheckoutPreview event={event} quantities={quantities} />

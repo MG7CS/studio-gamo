@@ -21,10 +21,10 @@ const programs = [...new Set(dir.map((w) => w.program))];
       <span class="hidden truncate text-[11px] leading-4 text-ink-soft sm:block">{current.role}{current.organization ? ` · ${current.organization}` : ''}</span>
     </span>
     <Icon name="chevron-down" class="h-4 w-4 shrink-0 text-ink-soft" />
-    <span class="sr-only">Switch demo workspace</span>
+    <span class="sr-only">Switch workspace</span>
   </summary>
   <div class:list={['absolute z-50 mt-2 max-h-[70vh] w-[min(22rem,calc(100vw-1.5rem))] overflow-y-auto rounded-2xl border border-sand bg-white p-2.5 shadow-xl', align === 'right' ? 'right-0' : 'left-0']}>
-    <p class="px-2 pb-2 pt-1 text-[12px] text-ink-soft"><strong class="text-charcoal">Demo switcher.</strong> Preview other roles held by the same fictional account. No sign-in or permission change occurs.</p>
+    <p class="px-2 pb-2 pt-1 text-[12px] text-ink-soft"><strong class="text-charcoal">Switch workspace.</strong> Move between your personal account and program workspaces.</p>
     {programs.map((program) => (
       <div class="border-t border-sand/70 py-1.5">
         <p class="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-soft">{program}</p>

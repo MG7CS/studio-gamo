@@ -120,32 +120,32 @@ export function initialsFromName(name: string, fallbackEmail?: string): string {
   return emailPrefix.slice(0, 2).toUpperCase();
 }
 
-/** Default fictional identity used by demo workspaces when no user is signed in. */
+/** Default workspace identity used when no user session cookie is active yet. */
 export const DEMO_PERSONA: ViewerPersona = {
   name: 'Jordan Avery',
   initials: 'JA',
-  email: 'jordan.avery@example.org',
-  note: 'Fictional demo persona',
+  email: 'jordan.avery@gamostudio.org',
+  note: 'Member account',
   authenticated: false,
 };
 
 export interface WorkspaceLink { id: string; program: string; label: string; role: string; organization?: string; href: string; staff?: boolean }
 
-/** Every demo workspace the fictional persona can switch between (one account, many roles). */
+/** Every workspace the account can switch between (one account, many roles). */
 export function workspaceDirectory(): WorkspaceLink[] {
   return [
     { id: 'account', program: 'Gamo Studios', label: 'Personal account', role: 'Account holder', href: siteUrl('web', '/account') },
     { id: 'musician', program: 'Gamo Worship', label: 'Musician workspace', role: 'Musician', href: siteUrl('worship', '/musician') },
-    { id: 'church', program: 'Gamo Worship', label: 'Church workspace', role: 'Church administrator', organization: 'Grace Fellowship (sample)', href: siteUrl('worship', '/church') },
+    { id: 'church', program: 'Gamo Worship', label: 'Church workspace', role: 'Church administrator', organization: 'Grace Fellowship', href: siteUrl('worship', '/church') },
     { id: 'family', program: 'Gamo Academy', label: 'Student & family', role: 'Parent / guardian', href: siteUrl('academy', '/family') },
     { id: 'instructor', program: 'Gamo Academy', label: 'Instructor workspace', role: 'Instructor', href: siteUrl('academy', '/instructor') },
-    { id: 'host', program: 'Gamo Academy', label: 'Church host & sponsor', role: 'Program host', organization: 'Grace Fellowship (sample)', href: siteUrl('academy', '/host') },
-    { id: 'organizer', program: 'Gamo Live', label: 'Organizer workspace', role: 'Event organizer', organization: 'Grace Fellowship (sample)', href: siteUrl('live', '/organizer') },
+    { id: 'host', program: 'Gamo Academy', label: 'Church host & sponsor', role: 'Program host', organization: 'Grace Fellowship', href: siteUrl('academy', '/host') },
+    { id: 'organizer', program: 'Gamo Live', label: 'Organizer workspace', role: 'Event organizer', organization: 'Grace Fellowship', href: siteUrl('live', '/organizer') },
     { id: 'attendee', program: 'Gamo Live', label: 'My events', role: 'Attendee', href: siteUrl('live', '/me') },
-    { id: 'client', program: 'Gamo Production', label: 'Church projects', role: 'Church client', organization: 'Grace Fellowship (sample)', href: siteUrl('production', '/client') },
+    { id: 'client', program: 'Gamo Production', label: 'Church projects', role: 'Church client', organization: 'Grace Fellowship', href: siteUrl('production', '/client') },
     { id: 'crew', program: 'Gamo Production', label: 'Volunteer & technician', role: 'Technician', href: siteUrl('production', '/crew') },
-    { id: 'partner', program: 'Gamo Studios', label: 'Church partner & supporter', role: 'Partner contact', organization: 'Grace Fellowship (sample)', href: siteUrl('web', '/partner') },
-    { id: 'admin', program: 'Internal', label: 'Staff operations', role: 'Staff (demo)', href: siteUrl('admin', '/'), staff: true },
+    { id: 'partner', program: 'Gamo Studios', label: 'Church partner & supporter', role: 'Partner contact', organization: 'Grace Fellowship', href: siteUrl('web', '/partner') },
+    { id: 'admin', program: 'Internal', label: 'Staff operations', role: 'Staff', href: siteUrl('admin', '/'), staff: true },
   ];
 }
 

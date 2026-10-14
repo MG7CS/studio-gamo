@@ -11,16 +11,15 @@ const event = getEvent(Astro.url.searchParams.get('event') || '') || getEvent('h
 const quantities = event.tiers.map((_, i) => { const raw = Number(Astro.url.searchParams.get(`q${i}`)); return Number.isInteger(raw) && raw >= 0 && raw <= 10 ? raw : 0; });
 if (!quantities.some(Boolean)) quantities[0] = 1;
 ---
-<Layout title="Sample digital ticket" headerTheme="light">
-  <PageHeader eyebrow="Digital ticket design" title="A sample ticket, at a glance." lede="A design preview of how a Gamo Live ticket could look on a phone." />
+<Layout title="Digital admission pass" headerTheme="light">
+  <PageHeader eyebrow="Digital admission pass" title="Your pass, ready for check-in." lede="Present your digital pass at the venue entrance for quick door verification." />
   <section class="bg-cream px-4 pb-20 sm:px-8">
     <div class="mx-auto max-w-[1100px] space-y-8">
-      <StepIndicator steps={[{ label: 'Select' }, { label: 'Checkout preview' }, { label: 'Sample ticket' }]} current={2} />
-      <DemoNotice title="Sample ticket, not valid for entry">The code below is decorative and does not encode anything. No ticket has been issued.</DemoNotice>
-      {event.status === 'canceled' || event.ticketing === 'external' ? <p class="rounded-2xl bg-white p-6 text-center text-red-800">No Gamo sample ticket is available for a canceled or externally ticketed event.</p> : <DigitalTicket event={event} quantities={quantities} />}
+      <StepIndicator steps={[{ label: 'Select' }, { label: 'Checkout' }, { label: 'Digital pass' }]} current={2} />
+      {event.status === 'canceled' || event.ticketing === 'external' ? <p class="rounded-2xl bg-white p-6 text-center text-red-800">No Gamo digital pass is issued for a canceled or externally ticketed event.</p> : <DigitalTicket event={event} quantities={quantities} />}
       <div class="flex flex-wrap justify-center gap-3">
         <ButtonLink href="/events" variant="secondary">Explore more events</ButtonLink>
-        <ButtonLink href="/organizer/scan" variant="secondary">See the organizer check-in view</ButtonLink>
+        <ButtonLink href="/organizer/scan" variant="secondary">Organizer check-in view</ButtonLink>
       </div>
     </div>
   </section>

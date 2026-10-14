@@ -13,7 +13,6 @@ const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
   <PageHeader eyebrow="Event discovery" title="Find a gathering" accent="worth showing up for." lede="Search gospel concerts, worship nights, Bible studies, conferences and family events across the country.">
     <AudienceSelector current="explore" tone="light" />
   </PageHeader>
-  <div class="bg-cream px-4 pb-6 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">Filters run locally over fictional sample events. No location data is collected.</DemoNotice></div>
   <EventFilterGrid events={sorted} />
   <section class="bg-cream px-4 pb-20 sm:px-8"><TrustLegend class="mx-auto max-w-[1320px]" /></section>
 </Layout>

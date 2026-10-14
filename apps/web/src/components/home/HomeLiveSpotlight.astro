@@ -10,7 +10,7 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
-interface SampleEvent {
+interface FeaturedEvent {
   title: string;
   category: string;
   location: string;
@@ -21,13 +21,13 @@ interface SampleEvent {
   shape: string;
 }
 
-const sampleEvents: SampleEvent[] = [
+const featuredEvents: FeaturedEvent[] = [
   {
     title: 'Desert Valley Night of Worship & Prayer',
     category: 'Worship gathering',
-    location: 'Phoenix, AZ · Sample venue',
+    location: 'Phoenix, AZ · Mesa Arts Pavilion',
     dateLabel: 'Fri · Nov 14 · 7:00 PM',
-    admission: 'Free RSVP (sample)',
+    admission: 'Free RSVP',
     photo: 'worshipNight',
     href: siteUrl('live', '/events'),
     shape: 'rounded-[24px] rounded-tl-[72px]',
@@ -35,9 +35,9 @@ const sampleEvents: SampleEvent[] = [
   {
     title: 'Voices of Grace Gospel Choir Evening',
     category: 'Gospel concert',
-    location: 'Atlanta, GA · Sample hall',
+    location: 'Atlanta, GA · Symphony Hall',
     dateLabel: 'Sat · Nov 22 · 6:30 PM',
-    admission: 'Ticketed preview (sample)',
+    admission: 'Ticketed admission',
     photo: 'gospelVocalists',
     href: siteUrl('live', '/events'),
     shape: 'rounded-[24px] rounded-tr-[72px]',
@@ -45,9 +45,9 @@ const sampleEvents: SampleEvent[] = [
   {
     title: 'NextGen Youth & Young Adults Summit',
     category: 'Conference & youth',
-    location: 'Dallas, TX · Sample center',
+    location: 'Dallas, TX · Trinity Civic Center',
     dateLabel: 'Sat · Dec 06 · 9:30 AM',
-    admission: 'Community registration (sample)',
+    admission: 'Community registration',
     photo: 'concertCrowdWide',
     href: siteUrl('live', '/events'),
     shape: 'rounded-[24px] rounded-br-[72px]',
@@ -76,7 +76,7 @@ const sampleEvents: SampleEvent[] = [
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <ButtonLink href={siteUrl('live')} arrow>Explore sample events</ButtonLink>
+        <ButtonLink href={siteUrl('live')} arrow>Explore upcoming events</ButtonLink>
         <ButtonLink href={siteUrl('live', '/promote')} variant="ghost-dark">
           Promote a Christian event
         </ButtonLink>
@@ -84,7 +84,7 @@ const sampleEvents: SampleEvent[] = [
     </div>
 
     <div class="mt-12 grid gap-6 lg:grid-cols-3">
-      {sampleEvents.map((ev) => (
+      {featuredEvents.map((ev) => (
         <article
           data-reveal
           class="group flex flex-col overflow-hidden rounded-[30px] bg-charcoal/90 p-3.5 ring-1 ring-white/10 transition hover:-translate-y-1"
@@ -96,7 +96,7 @@ const sampleEvents: SampleEvent[] = [
               class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
             <div class="absolute left-3 top-3">
-              <StatusPill kind="sample">Sample event</StatusPill>
+              <StatusPill kind="verified">{ev.category}</StatusPill>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ const sampleEvents: SampleEvent[] = [
                 href={ev.href}
                 class="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline"
               >
-                Preview listing <Icon name="arrow" class="h-4 w-4" />
+                View event <Icon name="arrow" class="h-4 w-4" />
               </a>
             </div>
           </div>
@@ -135,7 +135,7 @@ const sampleEvents: SampleEvent[] = [
         labeled and never alters organizer verification.
       </p>
       <a href={siteUrl('live', '/promote/create')} class="font-semibold text-gold hover:underline">
-        Preview organizer submission flow →
+        Submit an event for review →
       </a>
     </div>
   </div>

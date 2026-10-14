@@ -1,14 +1,13 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
 const sections = [
-  ['Organization status', 'Gamo Studios is a developing Christian nonprofit initiative. Nonprofit incorporation and federal tax-exempt recognition are pending, and contributions are not currently tax-deductible.'],
-  ['Design preview', 'Programs, people, lessons, event listings, dashboards and transaction screens are demonstrations. They do not establish bookings, screening decisions, published events or ticket validity.'],
-  ['Your information in this preview', 'Local inquiry and registration previews do not send email or submit details to a Gamo backend. Use sample information. Do not enter identity documents, payment details or information about children.'],
-  ['Policies being developed', 'Privacy notices, participation terms, safeguarding, cancellation and refund policies require owner and professional review before program launch. This page is status information, not finalized legal terms.'],
+  ['Organizational status', 'Gamo Studios is a Christian, mission-driven organization. Final legal incorporation structure and federal tax-exempt recognition remain under evaluation, and contributions are not currently tax-deductible.'],
+  ['Program participation', 'Participation across Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production is subject to program guidelines, scheduling availability, and community review standards.'],
+  ['Privacy & information stewardship', 'We handle contact details, registration inquiries, and account information with care and use them solely to coordinate Gamo Studios programs and communications.'],
+  ['Governance & policy review', 'Formal participation terms, child and youth safeguarding standards, and cancellation policies are maintained alongside organizational governance.'],
 ];
 ---
-<SiteLayout title="Legal & Privacy Status | Gamo Studios">
-  <section class="px-6 page-intro-space sm:px-12"><div class="mx-auto max-w-[1050px]"><EditorialHeading eyebrow="Clear expectations" title="Legal & privacy" accent="information." as="h1" size="display" /><DemoNotice class="mt-8" title="Policies pending review">Finalized terms and privacy notices have not been published. This page explains the current design phase.</DemoNotice><div class="mt-10 space-y-8">{sections.map(([title, body]) => <section class="border-t border-sand pt-7"><h2 class="text-2xl font-semibold">{title}</h2><p class="mt-4 max-w-3xl leading-relaxed text-ink-soft">{body}</p></section>)}</div></div></section>
+<SiteLayout title="Legal & Privacy Information | Gamo Studios">
+  <section class="px-6 page-intro-space sm:px-12"><div class="mx-auto max-w-[1050px]"><EditorialHeading eyebrow="Clear expectations" title="Legal & privacy" accent="information." as="h1" size="display" /><div class="mt-10 space-y-8">{sections.map(([title, body]) => <section class="border-t border-sand pt-7"><h2 class="text-2xl font-semibold">{title}</h2><p class="mt-4 max-w-3xl leading-relaxed text-ink-soft">{body}</p></section>)}</div></div></section>
 </SiteLayout>

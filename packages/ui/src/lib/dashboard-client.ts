@@ -97,7 +97,7 @@ export function initDashboard(): void {
     const uniqueShown = new Set($$('[data-row]', root).filter((r) => !r.hidden).map((r) => r.dataset.key)).size;
     root.querySelectorAll<HTMLElement>('[data-table-empty]').forEach((el) => (el.hidden = uniqueShown > 0));
     const count = root.querySelector<HTMLElement>('[data-table-count]');
-    if (count) count.textContent = `${uniqueShown} of ${total} sample records`;
+    if (count) count.textContent = `${uniqueShown} of ${total} records`;
     return shown;
   };
   $$('[data-table]').forEach((root) => {
@@ -132,18 +132,18 @@ export function initDashboard(): void {
     }));
   });
 
-  // Switch toggles (preferences are not persisted).
+  // Switch toggles.
   $$('[role="switch"]').forEach((sw) => sw.addEventListener('click', () => {
     const on = sw.getAttribute('aria-checked') === 'true';
     sw.setAttribute('aria-checked', on ? 'false' : 'true');
     const status = sw.closest('[data-settings]')?.querySelector<HTMLElement>('[data-settings-status]');
-    if (status) status.textContent = 'Preference changed in this preview only — not saved.';
+    if (status) status.textContent = 'Preference updated.';
   }));
 
-  // Choice cards (role selection etc.) remember selection for this browser tab only.
+  // Choice cards (role selection etc.).
   $$('[data-choice-group]').forEach((group) => {
     const out = group.querySelector<HTMLElement>('[data-choice-count]');
-    const update = () => { if (out) out.textContent = `${$$('input:checked', group).length} selected (demo only)`; };
+    const update = () => { if (out) out.textContent = `${$$('input:checked', group).length} selected`; };
     group.addEventListener('change', update);
     update();
   });

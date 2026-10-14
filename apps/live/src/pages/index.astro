@@ -18,9 +18,8 @@ import { events, eventsBy } from '../data/events';
 const byDate = [...events].sort((a, b) => a.date.localeCompare(b.date));
 const featured = eventsBy((e) => !!e.featured);
 ---
-<Layout title="Explore Christian events nationwide" description="Discover gospel concerts, worship gatherings, Bible studies, conferences and family events — a Gamo Studios design preview.">
+<Layout title="Explore Christian events nationwide" description="Discover gospel concerts, worship gatherings, Bible studies, conferences and family events across Gamo Live.">
   <EventSpotlightHero slides={featured} />
-  <div class="bg-cream px-4 pt-8 sm:px-8"><DemoNotice class="mx-auto max-w-[1320px]">All events, organizers and dates on Gamo Live are fictional samples. Nothing is on sale, registered or published.</DemoNotice></div>
   <NearbyRail events={byDate.filter((e) => e.status !== 'canceled').slice(0, 7)} />
   <BrowsePlaceDate />
   <GospelConcerts events={eventsBy((e) => e.category === 'concert')} />
@@ -29,8 +28,8 @@ const featured = eventsBy((e) => !!e.featured);
   <FreeAndTicketed free={eventsBy((e) => e.ticketing === 'free').slice(0, 5)} ticketed={eventsBy((e) => e.ticketing !== 'free').slice(0, 5)} />
   <FeaturedOrganizers />
   <section class="bg-cream px-4 pb-4 sm:px-8"><TrustLegend class="mx-auto max-w-[1320px]" /></section>
-  <CtaInvitation eyebrow="For churches & ministries" title="Hosting a Christian event?" body="Preview how organizers will submit events, choose free or ticketed registration and manage check-in. Listings would be reviewed before publishing." photo="worshipBand">
+  <CtaInvitation eyebrow="For churches & ministries" title="Hosting a Christian event?" body="Submit your gathering, choose free or ticketed registration, and manage door check-in. Every listing is reviewed before publishing." photo="worshipBand">
     <ButtonLink href="/promote" arrow>Promote an event</ButtonLink>
-    <ButtonLink href="/promote/create" variant="secondary">Preview the submission flow</ButtonLink>
+    <ButtonLink href="/promote/create" variant="secondary">Create an event</ButtonLink>
   </CtaInvitation>
 </Layout>

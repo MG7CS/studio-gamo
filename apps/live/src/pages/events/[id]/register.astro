@@ -62,13 +62,8 @@ if (!event) {
 }
 ---
 
-<Layout title="Free registration preview" headerTheme="light">
-  <PageHeader eyebrow="Free registration · demo" title={event.title} />
-  <div class="px-4 pb-8 sm:px-8">
-    <DemoNotice class="mx-auto max-w-[1100px]">
-      Sample event preview with local/sandbox free-registration vertical slice below.
-    </DemoNotice>
-  </div>
+<Layout title="Free registration" headerTheme="light">
+  <PageHeader eyebrow="Free registration" title={event.title} />
   <TicketSelector event={event} />
   <FreeRegistrationForm eventId={event.id} eventTitle={event.title} />
 </Layout>

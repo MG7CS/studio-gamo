@@ -6,10 +6,9 @@ interface Props { event: LiveEvent; class?: string; showSample?: boolean; tone?:
 const { event: e, class: className, showSample = true, tone = 'light' } = Astro.props;
 ---
 <div class:list={['flex flex-wrap items-center gap-1.5', className]}>
-  {showSample && <StatusPill kind="sample" tone={tone}>Sample event</StatusPill>}
   {e.status === 'canceled' && <StatusPill kind="canceled">Canceled</StatusPill>}
   {e.status === 'rescheduled' && <StatusPill kind="rescheduled">Rescheduled</StatusPill>}
   {e.ticketing === 'free' && <StatusPill kind="free">Free</StatusPill>}
-  {e.ticketing === 'preview' && <StatusPill kind="paid" tone={tone}>Gamo ticketing preview</StatusPill>}
+  {e.ticketing === 'preview' && <StatusPill kind="paid" tone={tone}>Gamo ticketing</StatusPill>}
   {e.ticketing === 'external' && <StatusPill kind="external">External tickets</StatusPill>}
 </div>

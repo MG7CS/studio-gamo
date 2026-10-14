@@ -4,11 +4,11 @@ import PageHero from '../components/shared/PageHero.astro';
 import DemoStepForm from '../components/forms/DemoStepForm.astro';
 import FormField from '@studio-gamo/ui/components/FormField.astro';
 ---
-<Layout title="Host lessons at your church (preview)" description="Preview the planned Gamo Academy church-hosting application.">
-  <PageHero eyebrow="Church-hosting application" title="Open your doors" accent="to young musicians." lede="Churches may one day host Gamo Academy lessons for their members and neighbours. This application is a design preview; hosting is not open yet." photo="chapelSpring" mask="mask-leaf-alt" crumbs={[{ label: 'Host lessons', href: '/host-apply' }]} />
+<Layout title="Host lessons at your church" description="Apply to host Gamo Academy music lessons at your church.">
+  <PageHero eyebrow="Church-hosting application" title="Open your doors" accent="to young musicians." lede="Churches can host Gamo Academy lessons for their members and neighbours." photo="chapelSpring" mask="mask-leaf-alt" crumbs={[{ label: 'Host lessons', href: '/host-apply' }]} />
   <section class="px-4 pb-20 sm:px-8">
     <div class="mx-auto max-w-3xl">
-      <DemoStepForm id="host" steps={['Church', 'Space', 'Community', 'Review']} doneTitle="Preview complete — nothing was sent" doneBody="When hosting opens, a Gamo Academy coordinator would follow up to talk through space, safeguarding and scheduling.">
+      <DemoStepForm id="host" steps={['Church', 'Space', 'Community', 'Review']} doneTitle="Application received" doneBody="A Gamo Academy coordinator will follow up to talk through classroom space, safeguarding, and scheduling.">
         <Fragment slot="step-0">
           <FormField label="Church name" name="church" />
           <div class="grid gap-5 sm:grid-cols-2">

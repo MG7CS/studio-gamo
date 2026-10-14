@@ -9,7 +9,7 @@ import { registrationSteps } from '../../data/registration';
 const learners = [
   {
     initial: 'A',
-    name: 'Ava (sample)',
+    name: 'Ava Tesfaye',
     ageGroup: 'Child · Age 9',
     instrument: 'Piano & Keys',
     level: 'Complete beginner',
@@ -17,7 +17,7 @@ const learners = [
   },
   {
     initial: 'J',
-    name: 'Jonah (sample)',
+    name: 'Jonah Tesfaye',
     ageGroup: 'Teen · Age 14',
     instrument: 'Drums & Rhythm',
     level: 'Developing',
@@ -46,12 +46,12 @@ const learners = [
 
       <ol class="mt-8 space-y-3">
         {registrationSteps.map((s, i) => {
-          const isPreviewed = i === 1;
+          const isHighlighted = i === 1;
           return (
             <li
               class:list={[
                 'flex items-center justify-between gap-4 rounded-2xl p-4 transition-colors',
-                isPreviewed
+                isHighlighted
                   ? 'bg-white shadow-sm ring-2 ring-terracotta/45'
                   : 'bg-ivory/90 ring-1 ring-sand',
               ]}
@@ -60,7 +60,7 @@ const learners = [
                 <span
                   class:list={[
                     'grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-bold',
-                    isPreviewed ? 'bg-terracotta text-white' : 'bg-cream text-terracotta ring-1 ring-sand',
+                    isHighlighted ? 'bg-terracotta text-white' : 'bg-cream text-terracotta ring-1 ring-sand',
                   ]}
                 >
                   {i + 1}
@@ -70,9 +70,9 @@ const learners = [
                   <p class="text-sm text-ink-soft">{s.hint}</p>
                 </div>
               </div>
-              {isPreviewed && (
+              {isHighlighted && (
                 <span class="hidden shrink-0 rounded-full bg-cream px-3 py-1 text-xs font-semibold text-terracotta sm:inline-flex">
-                  Shown in preview →
+                  Shown on right →
                 </span>
               )}
             </li>
@@ -81,7 +81,7 @@ const learners = [
       </ol>
 
       <div class="mt-8 flex flex-wrap items-center gap-3">
-        <ButtonLink href="/register" arrow>Try the interactive sign-up preview</ButtonLink>
+        <ButtonLink href="/register" arrow>Start family registration</ButtonLink>
         <ButtonLink href="/instruments" variant="secondary">Explore instruments</ButtonLink>
       </div>
     </div>
@@ -89,7 +89,7 @@ const learners = [
     <div class="mx-auto w-full max-w-xl rounded-[40px] bg-[#EFE2D3] p-4 shadow-[0_24px_60px_-28px_rgba(29,35,35,0.2)] ring-1 ring-sand sm:p-6">
       <div
         class="rounded-[30px] bg-white p-6 text-charcoal shadow-float ring-1 ring-sand/80 sm:p-8"
-        aria-label="Sample family registration preview"
+        aria-label="Family registration step overview"
       >
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
@@ -98,7 +98,7 @@ const learners = [
             </span>
             <span class="text-xs font-semibold text-ink-soft">Learners &amp; Instruments</span>
           </div>
-          <StatusPill kind="sample">Sample preview</StatusPill>
+          <StatusPill kind="verified">Family profile</StatusPill>
         </div>
 
         <div class="mt-3 grid grid-cols-5 gap-1.5" aria-hidden="true">
@@ -118,7 +118,7 @@ const learners = [
               Step 1 completed · Household contact
             </p>
             <p class="truncate text-sm font-bold text-charcoal">
-              Hannah Tesfaye (sample parent) · <span class="font-normal text-ink-soft">hannah@example.org</span>
+              Hannah Tesfaye · <span class="font-normal text-ink-soft">hannah@example.org</span>
             </p>
           </div>
           <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-charcoal ring-1 ring-sand">

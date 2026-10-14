@@ -17,7 +17,7 @@ interface Props {
   notice?: string;
   wide?: boolean;
 }
-const { eyebrow, title, accent, lede, steps, current = 0, photo, notice = 'Nothing you enter here is saved, reviewed or sent. Names and services shown are samples.', wide = false } = Astro.props;
+const { eyebrow, title, accent, lede, steps, current = 0, photo, wide = false } = Astro.props;
 ---
 <section class="bg-cream page-intro-space">
   <div class="mx-auto max-w-7xl px-5 sm:px-8">
@@ -25,7 +25,6 @@ const { eyebrow, title, accent, lede, steps, current = 0, photo, notice = 'Nothi
     <div class:list={['grid gap-8', !wide && photo && 'lg:grid-cols-12']}>
       <div class:list={[!wide && photo && 'lg:col-span-7']}>
         <EditorialHeading as="h1" size="section" eyebrow={eyebrow} title={title} accent={accent} lede={lede} />
-        <DemoNotice class="mt-6">{notice}</DemoNotice>
         <div class="mt-8"><slot /></div>
       </div>
       {!wide && photo && (

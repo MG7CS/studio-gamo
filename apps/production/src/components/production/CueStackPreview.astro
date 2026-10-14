@@ -8,8 +8,8 @@ const cues = [
   { n: '3', label: 'Sermon · pulpit focus', on: false },
 ];
 ---
-<figure class:list={['w-full max-w-xs rounded-3xl border border-sand bg-white p-5 text-charcoal shadow-float', className]} aria-label="Illustrative lighting cue preview">
-  <figcaption class="flex items-center justify-between text-sm font-semibold">Service cues <span class="rounded-full bg-gold/25 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#6B4426]">Sample</span></figcaption>
+<figure class:list={['w-full max-w-xs rounded-3xl border border-sand bg-white p-5 text-charcoal shadow-float', className]} aria-label="Lighting cue list">
+  <figcaption class="flex items-center justify-between text-sm font-semibold">Service cues <span class="rounded-full bg-gold/25 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#6B4426]">Sunday</span></figcaption>
   <ul class="mt-4 space-y-2 text-sm">
     {cues.map((c) => (
       <li class:list={['flex items-center gap-3 rounded-xl px-3 py-2', c.on ? 'bg-terracotta text-white' : 'bg-cream text-ink-soft']}>

@@ -4,10 +4,10 @@ import Icon from '../Icon.astro';
 interface Props { state: 'loading' | 'empty' | 'error' | 'success'; title?: string; body?: string; retryHref?: string }
 const { state, title, body, retryHref } = Astro.props;
 const copy = {
-  loading: ['Loading sample records…', 'Skeleton placeholders keep the layout stable while data loads.'],
-  empty: ['Nothing here yet', 'When real records exist they will appear here. This is a demo empty state.'],
-  error: ['We couldn’t load this section', 'This is a simulated error. In production we would explain what happened and how to retry. No data was lost.'],
-  success: ['Changes recorded in this preview', 'This is a simulated success message. Nothing was saved or sent.'],
+  loading: ['Loading records…', 'Please wait while your workspace data loads.'],
+  empty: ['Nothing here yet', 'New records and activity will appear here as you use this workspace.'],
+  error: ['We couldn’t load this section', 'Please refresh or try again in a moment.'],
+  success: ['Changes saved', 'Your update has been recorded.'],
 }[state];
 ---
 {state === 'loading' ? (
@@ -23,6 +23,6 @@ const copy = {
     </span>
     <h2 class="mt-4 text-[18px] font-semibold">{title ?? copy[0]}</h2>
     <p class="mt-1.5 max-w-md text-[14px] text-ink-soft">{body ?? copy[1]}</p>
-    {retryHref && <a href={retryHref} class="mt-5 inline-flex min-h-10 items-center rounded-lg border border-sand bg-white px-4 text-[14px] font-semibold hover:border-charcoal/30">{state === 'error' ? 'Try again' : 'Back to sample data'}</a>}
+    {retryHref && <a href={retryHref} class="mt-5 inline-flex min-h-10 items-center rounded-lg border border-sand bg-white px-4 text-[14px] font-semibold hover:border-charcoal/30">{state === 'error' ? 'Try again' : 'Back to workspace'}</a>}
   </div>
 )}

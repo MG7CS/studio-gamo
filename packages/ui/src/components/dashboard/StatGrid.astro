@@ -5,7 +5,7 @@ import type { IconName } from '../../lib/icons';
 interface Props { items: { label: string; value: string; hint?: string; icon?: IconName }[] }
 const { items } = Astro.props;
 ---
-<ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary (sample figures)">
+<ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary metrics">
   {items.map((s, idx) => {
     const featured = idx === 0;
     return (

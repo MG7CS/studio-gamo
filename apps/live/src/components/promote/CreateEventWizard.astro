@@ -24,8 +24,8 @@ const radio = 'flex cursor-pointer items-start gap-3 rounded-2xl bg-cream p-4 ri
         <legend class="section-subheading mb-2">Description &amp; media</legend>
         <FormField label="Event title" name="title" value="Saturday Night Worship" />
         <FormField label="Event type" name="type" type="select" options={['Worship gathering', 'Gospel concert', 'Bible study', 'Christian conference', 'Youth & family']} />
-        <FormField label="Description" name="desc" type="textarea" value="An open, unhurried night of praise and prayer. (Sample text)" />
-        <div class="rounded-2xl border-2 border-dashed border-sand p-8 text-center text-ink-soft"><Icon name="upload" class="mx-auto h-7 w-7 text-terracotta" /><p class="mt-2 text-sm">Cover photo upload — disabled in design preview</p></div>
+        <FormField label="Description" name="desc" type="textarea" value="An open, unhurried night of praise and prayer." />
+        <div class="rounded-2xl border-2 border-dashed border-sand p-8 text-center text-ink-soft"><Icon name="upload" class="mx-auto h-7 w-7 text-terracotta" /><p class="mt-2 text-sm">Cover photo upload (JPG or PNG, 16:9 recommended)</p></div>
       </fieldset>
       <fieldset id="step-2" data-step class="space-y-5">
         <legend class="section-subheading mb-2">Schedule &amp; recurrence</legend>
@@ -37,21 +37,21 @@ const radio = 'flex cursor-pointer items-start gap-3 rounded-2xl bg-cream p-4 ri
       </fieldset>
       <fieldset id="step-3" data-step class="space-y-5">
         <legend class="section-subheading mb-2">Venue &amp; location</legend>
-        <FormField label="Venue name" name="venue" value="Sample Community Church" />
+        <FormField label="Venue name" name="venue" value="Trinity Community Church" />
         <div class="grid gap-4 sm:grid-cols-[2fr_1fr]"><FormField label="City" name="city" value="Dallas" /><FormField label="State" name="state" value="TX" /></div>
         <FormField label="Accessibility & parking notes" name="access" type="textarea" rows={3} hint="Step-free entry, parking, childcare — helps every guest plan." />
       </fieldset>
       <fieldset id="step-4" data-step class="space-y-5">
         <legend class="section-subheading mb-2">Registration &amp; tickets</legend>
         <div class="grid gap-3 sm:grid-cols-2">
-          {[['Free — no registration', 'Guests just show up.'], ['Free with registration', 'Plan seating and send reminders.'], ['Gamo ticketing (preview)', 'Paid tiers and door check-in.'], ['External tickets', 'Link to your own ticket page.']].map(([t, b], i) => (
+          {[['Free — no registration', 'Guests just show up.'], ['Free with registration', 'Plan seating and send reminders.'], ['Gamo ticketing', 'Paid tiers and door check-in.'], ['External tickets', 'Link to your own ticket page.']].map(([t, b], i) => (
             <label class={radio}><input type="radio" name="reg" checked={i === 1} class="mt-1 accent-[#B65B35]" /><span><span class="block font-semibold">{t}</span><span class="text-sm text-ink-soft">{b}</span></span></label>
           ))}
         </div>
         <div class="rounded-2xl bg-cream p-5">
           <p class="font-semibold">Ticket tiers (paid events)</p>
           <div class="mt-3 grid gap-3 sm:grid-cols-[2fr_1fr_1fr]"><FormField label="Tier name" name="tier" value="General admission" /><FormField label="Price (USD)" name="price" type="number" value="0" /><FormField label="Capacity" name="cap" type="number" value="250" /></div>
-          <p class="mt-3 text-xs text-ink-soft">Any Gamo administrative contribution is a proposal and would always be shown separately from the ticket price.</p>
+          <p class="mt-3 text-xs text-ink-soft">Any Gamo administrative allocation is always shown separately from the ticket price.</p>
         </div>
       </fieldset>
       <fieldset id="step-5" data-step><legend class="section-subheading mb-4">Review</legend><CreateReviewStep /></fieldset>

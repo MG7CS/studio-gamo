@@ -16,7 +16,7 @@ const stages = [
 <section class="bg-cream px-4 pb-20 sm:px-8">
   <div class="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[1.3fr_1fr]">
     <div class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
-      <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-2xl font-semibold tracking-tight">{ev.title}</h2><StatusPill kind="pending">Under review · sample</StatusPill></div>
+      <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-2xl font-semibold tracking-tight">{ev.title}</h2><StatusPill kind="pending">Under review</StatusPill></div>
       <ol class="mt-8 space-y-0">
         {stages.map((s, i) => (
           <li class="relative flex gap-4 pb-8 last:pb-0">
@@ -28,12 +28,12 @@ const stages = [
           </li>
         ))}
       </ol>
-      <div class="mt-8 rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200"><strong>Reviewer note (sample):</strong> Please add accessibility details for the venue entrance.</div>
+      <div class="mt-8 rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200"><strong>Reviewer note:</strong> Please add accessibility details for the venue entrance.</div>
     </div>
     <aside>
-      <p class="eyebrow mb-4 text-terracotta">Event preview</p>
+      <p class="eyebrow mb-4 text-terracotta">Listing card</p>
       <EventCard event={ev} />
-      <p class="mt-4 text-sm text-ink-soft">Publishing status: <strong>Not published</strong>. Guests cannot see this listing until it is approved.</p>
+      <p class="mt-4 text-sm text-ink-soft">Publishing status: <strong>Pending approval</strong>. Guests will see this listing once review is complete.</p>
     </aside>
   </div>
 </section>

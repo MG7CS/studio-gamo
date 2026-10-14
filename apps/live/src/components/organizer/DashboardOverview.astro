@@ -13,7 +13,7 @@ const actions = [['plus', 'Create event', '/promote/create'], ['qr', 'Check in g
     <dl class="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {stats.map(([l, v], i) => (
         <div class:list={['rounded-[24px] p-5', i === 0 ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand']}>
-          <dt class="text-sm opacity-70">{l}</dt><dd class="mt-2 text-4xl font-bold tracking-tight">{v}</dd><dd class="mt-1 text-xs opacity-60">Sample figure</dd>
+          <dt class="text-sm opacity-70">{l}</dt><dd class="mt-2 text-4xl font-bold tracking-tight">{v}</dd>
         </div>
       ))}
     </dl>
@@ -26,10 +26,10 @@ const actions = [['plus', 'Create event', '/promote/create'], ['qr', 'Check in g
               <span class="w-14 shrink-0 text-center leading-none"><span class="block text-[11px] font-semibold uppercase text-terracotta">{d.month}</span><span class="block text-2xl font-bold">{d.day}</span></span>
               <span class="min-w-0 flex-1"><a href={`/events/${e.id}`} class="font-semibold hover:text-terracotta">{e.title}</a><span class="block text-sm text-ink-soft">{e.city}, {e.state} · {e.time}</span></span>
               <span class="flex flex-wrap gap-1.5">
-                {e.status === 'canceled' ? <StatusPill kind="canceled">Canceled</StatusPill> : pub(e.id) === 'review' ? <StatusPill kind="pending">In review</StatusPill> : <StatusPill kind="success">Published (sample)</StatusPill>}
+                {e.status === 'canceled' ? <StatusPill kind="canceled">Canceled</StatusPill> : pub(e.id) === 'review' ? <StatusPill kind="pending">In review</StatusPill> : <StatusPill kind="success">Published</StatusPill>}
                 <StatusPill kind={e.ticketing === 'free' ? 'free' : e.ticketing === 'external' ? 'external' : 'paid'}>{e.ticketing === 'free' ? 'Free' : e.ticketing === 'external' ? 'External' : 'Tickets'}</StatusPill>
               </span>
-              <a href="/organizer/manage" class="text-sm font-semibold text-terracotta">Manage sample</a>
+              <a href="/organizer/manage" class="text-sm font-semibold text-terracotta">Manage</a>
             </li>
           ); })}
         </ul>

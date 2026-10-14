@@ -13,10 +13,10 @@ import { events, organizers } from '../../data/events';
         <article class:list={['group relative rounded-[28px] bg-white p-3 ring-1 ring-sand', i % 2 === 1 && 'lg:translate-y-8']}>
           <div class="aspect-[4/3] overflow-hidden rounded-[22px]"><Photo name={o.photo} sizes="(min-width:1024px) 22vw, (min-width:640px) 45vw, 100vw" class="h-full w-full object-cover" alt="" /></div>
           <div class="p-3">
-            <StatusPill kind="sample">Sample organizer</StatusPill>
+            <StatusPill kind="info">{o.kind}</StatusPill>
             <h3 class="mt-3 text-lg font-semibold"><a href={`/organizers/${o.slug}`} class="after:absolute after:inset-0">{o.name}</a></h3>
             <p class="text-sm text-ink-soft">{o.kind} · {o.city}</p>
-            <p class="mt-3 text-sm font-medium text-terracotta">{events.filter((e) => e.organizer === o.slug).length} upcoming sample events</p>
+            <p class="mt-3 text-sm font-medium text-terracotta">{events.filter((e) => e.organizer === o.slug).length} upcoming events</p>
           </div>
         </article>
       ))}

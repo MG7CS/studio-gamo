@@ -14,13 +14,13 @@ const closed = e.status === 'canceled';
     <div class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-2xl font-semibold tracking-tight">{e.ticketing === 'free' ? 'Choose registration' : 'Choose tickets'}</h2>
-        <StatusPill kind={e.ticketing === 'external' ? 'external' : e.ticketing === 'free' ? 'free' : 'paid'}>{e.ticketing === 'external' ? 'External tickets' : e.ticketing === 'free' ? 'Free' : 'Gamo ticketing preview'}</StatusPill>
+        <StatusPill kind={e.ticketing === 'external' ? 'external' : e.ticketing === 'free' ? 'free' : 'paid'}>{e.ticketing === 'external' ? 'External tickets' : e.ticketing === 'free' ? 'Free' : 'Gamo ticketing'}</StatusPill>
       </div>
-      {closed && <p class="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">This sample event is canceled. Ticket selection is disabled.</p>}
+      {closed && <p class="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">This event is canceled. Ticket selection is disabled.</p>}
       {e.ticketing === 'external' ? (
         <div class="mt-6 rounded-2xl bg-cream p-5">
           <p class="flex items-center gap-2 font-semibold"><Icon name="external" class="h-5 w-5 text-terracotta" />Sold by {e.externalSource}</p>
-          <p class="mt-2 text-sm text-ink-soft">Gamo Live would link to the organizer’s ticketing page. Gamo does not process or guarantee external purchases. No link is active in this preview.</p>
+          <p class="mt-2 text-sm text-ink-soft">Tickets are sold directly through the organizer’s ticketing page. Gamo Live does not process external ticket purchases.</p>
         </div>
       ) : (
         <ul class="mt-6 divide-y divide-sand">
@@ -38,15 +38,15 @@ const closed = e.status === 'canceled';
       )}
     </div>
     <aside class="h-fit rounded-[28px] bg-charcoal p-6 text-cream sm:p-8" data-surface="dark">
-      <p class="eyebrow text-gold">Summary · Sample</p>
+      <p class="eyebrow text-gold">Order summary</p>
       <p class="mt-3 text-lg font-semibold">{e.title}</p>
       <p class="text-sm text-cream/70">{d.long} · {e.time}<br />{e.venue}, {e.city}, {e.state}</p>
       <dl class="mt-6 space-y-2 border-t border-white/15 pt-5 text-sm">
         <div class="flex justify-between"><dt>Tickets</dt><dd data-count>—</dd></div>
-        <div class="flex justify-between text-base font-semibold"><dt>Illustrative total</dt><dd data-total aria-live="polite">—</dd></div>
+        <div class="flex justify-between text-base font-semibold"><dt>Total</dt><dd data-total aria-live="polite">—</dd></div>
       </dl>
-      <p class="mt-3 text-xs text-cream/60">Any Gamo administrative contribution is a proposal and would appear as its own line item.</p>
-      {!closed && e.ticketing !== 'external' && <div data-checkout><ButtonLink href={`/checkout?event=${e.id}`} arrow class="mt-6 w-full justify-center">Continue to checkout preview</ButtonLink><p data-zero hidden class="mt-4 text-sm text-gold">Choose at least one sample ticket to continue.</p></div>}
+      <p class="mt-3 text-xs text-cream/60">Any Gamo administrative allocation appears as a separate line item.</p>
+      {!closed && e.ticketing !== 'external' && <div data-checkout><ButtonLink href={`/checkout?event=${e.id}`} arrow class="mt-6 w-full justify-center">Continue to checkout</ButtonLink><p data-zero hidden class="mt-4 text-sm text-gold">Choose at least one ticket to continue.</p></div>}
     </aside>
   </div>
 </section>

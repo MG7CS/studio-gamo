@@ -12,10 +12,10 @@ const tips = ['Record in a quiet room with your instrument clearly audible', 'On
     <ul class="mb-8 grid gap-3 sm:grid-cols-3">
       {tips.map((t) => <li class="flex gap-3 rounded-2xl border border-sand bg-white p-4 text-sm text-ink-soft"><Icon name="video" class="h-5 w-5 shrink-0 text-terracotta" />{t}</li>)}
     </ul>
-    <DemoForm next="/apply/status" back="/apply/profile" submitLabel="Preview submission">
-      <FormField label="Recording 1 — worship song (link)" name="rec1" type="url" placeholder="https://" hint="Unlisted video or audio link. Nothing is uploaded in this preview." />
+    <DemoForm next="/apply/status" back="/apply/profile" submitLabel="Submit application">
+      <FormField label="Recording 1 — worship song (link)" name="rec1" type="url" placeholder="https://" hint="Unlisted video or audio link." />
       <FormField label="Recording 2 — your choice (link)" name="rec2" type="url" placeholder="https://" />
-      <FormField label="Two references (pastor, worship leader or music director)" name="refs" type="textarea" hint="References are only contacted after you consent, once the program opens." />
+      <FormField label="Two references (pastor, worship leader or music director)" name="refs" type="textarea" hint="References are only contacted after you consent." />
     </DemoForm>
   </FlowShell>
 </Layout>

@@ -1,28 +1,8 @@
 ---
 /**
- * Top workspace disclosure banner.
- * Shows authenticated account identity when signed in (while noting sample data remains active),
- * or the fictional demo persona with Sign in / Create account links when browsing anonymously.
+ * Workspace top banner (retired for pilot launch — no demo mode banner is shown).
  */
-import Icon from '../Icon.astro';
-import { DEMO_PERSONA, type ViewerPersona } from '../../lib/dashboard';
-import { siteUrl } from '../../lib/sites';
+import type { ViewerPersona } from '../../lib/dashboard';
 interface Props { staff?: boolean; viewer?: ViewerPersona }
-const { staff = false, viewer = DEMO_PERSONA } = Astro.props;
-const isAuth = Boolean(viewer?.authenticated);
 ---
-<div role="note" data-demo-banner class:list={['flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-[12px] font-semibold leading-5', staff ? 'bg-[#5C2A1A] text-cream' : isAuth ? 'bg-charcoal text-cream' : 'bg-gold text-[#3E2614]']}>
-  {isAuth ? (
-    <>
-      <span class="inline-flex items-center gap-1.5 uppercase tracking-[0.14em] text-gold"><Icon name="check" class="h-3.5 w-3.5" strokeWidth={2.2} />Account active · Sample data</span>
-      <span class="font-medium sm:hidden">Signed in as {viewer.name} · sample records enabled</span>
-      <span class="hidden font-medium sm:inline">Signed in as {viewer.name} ({viewer.email}){viewer.organization ? ` · ${viewer.organization}` : ''} · test sample data remains active across all workspaces</span>
-    </>
-  ) : (
-    <>
-      <span class="inline-flex items-center gap-1.5 uppercase tracking-[0.14em]"><Icon name="info" class="h-3.5 w-3.5" strokeWidth={2.2} />Demo mode</span>
-      <span class="font-medium sm:hidden">Not signed in · sample data · <a href={siteUrl('web', '/account/signin')} class="underline">Sign in</a> · <a href={siteUrl('web', '/account/signup')} class="underline">Create account</a></span>
-      <span class="hidden font-medium sm:inline">Not signed in · {viewer.name} is a {viewer.note.toLowerCase()} · all records are samples{staff ? ' · not a secured staff portal' : ''} · <a href={siteUrl('web', '/account/signin')} class="underline hover:opacity-80">Sign in</a> or <a href={siteUrl('web', '/account/signup')} class="underline hover:opacity-80">Create account</a></span>
-    </>
-  )}
-</div>
+

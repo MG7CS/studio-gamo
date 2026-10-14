@@ -44,7 +44,7 @@ const href = `/events/${e.id}`;
     <h3 class="mt-3 text-lg font-semibold leading-snug"><a href={href} class="after:absolute after:inset-0">{e.title}</a></h3>
     <p class="mt-1 text-sm text-ink-soft">{categoryLabels[e.category]} · {e.city}, {e.state}</p>
     {e.recurring && <p class="mt-2 flex items-center gap-1.5 text-sm"><Icon name="repeat" class="h-4 w-4 text-terracotta" />{e.recurring}</p>}
-    <p class="mt-auto pt-4 text-xs text-ink-soft">Hosted by {org.name} (sample)</p>
+    <p class="mt-auto pt-4 text-xs text-ink-soft">Hosted by {org.name}</p>
     <EventPills event={e} class="mt-3" />
   </article>
 )}

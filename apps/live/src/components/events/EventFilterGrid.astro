@@ -32,11 +32,11 @@ const select = 'mt-1.5 block w-full rounded-2xl border border-sand bg-white px-4
         <input name="date" type="date" class={select}/>
       </label>
       <label class="text-xs font-semibold uppercase tracking-wider text-ink-soft">When
-        <select name="when" class={select}><option value="">Any time</option><option value="weekend">This weekend (sample week)</option><option value="month">Next 30 days (sample month)</option><option value="recurring">Recurring gatherings</option></select>
+        <select name="when" class={select}><option value="">Any time</option><option value="weekend">This weekend</option><option value="month">Next 30 days</option><option value="recurring">Recurring gatherings</option></select>
       </label>
       <button type="reset" class="rounded-full px-5 py-3 text-sm font-semibold text-terracotta hover:bg-cream">Clear</button>
     </form>
-    <p class="mt-6 text-sm text-ink-soft" aria-live="polite"><span data-count>{events.length}</span> sample events · <span data-extra></span></p>
+    <p class="mt-6 text-sm text-ink-soft" aria-live="polite"><span data-count>{events.length}</span> events · <span data-extra></span></p>
     <ul class="mt-6 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
       {events.map((e) => (
         <li data-card data-city={`${e.city}, ${e.state}`} data-category={e.category} data-price={e.ticketing === 'free' ? 'free' : 'paid'} data-organizer={e.organizer} data-date={e.date} data-recurring={e.recurring ? '1' : ''} data-text={`${e.title} ${e.city} ${e.organizer}`.toLowerCase()}>
@@ -44,7 +44,7 @@ const select = 'mt-1.5 block w-full rounded-2xl border border-sand bg-white px-4
         </li>
       ))}
     </ul>
-    <p data-empty hidden class="mt-10 rounded-[24px] bg-white p-8 text-center text-ink-soft ring-1 ring-sand">No sample events match these filters.</p>
+    <p data-empty hidden class="mt-10 rounded-[24px] bg-white p-8 text-center text-ink-soft ring-1 ring-sand">No events match these filters.</p>
   </div>
 </section>
 <script>
@@ -53,15 +53,15 @@ const select = 'mt-1.5 block w-full rounded-2xl border border-sand bg-white px-4
     const cards = [...root.querySelectorAll<HTMLElement>('[data-card]')];
     const params = new URL(location.href).searchParams;
     for (const k of ['city', 'category', 'price', 'organizer', 'date', 'when']) { const v = params.get(k); const el = form.elements.namedItem(k) as HTMLSelectElement; if (v && el) el.value = v; }
-    const previewDate = new Date('2026-10-12T12:00:00Z');
+    const referenceDate = new Date('2026-10-12T12:00:00Z');
     const extra = root.querySelector('[data-extra]')!;
-    extra.textContent = 'Demo filters — date presets use October 12, 2026';
+    extra.textContent = 'Nationwide directory';
     const apply = () => {
       const f = new FormData(form); const q = String(f.get('q') || '').toLowerCase();
       const date = String(f.get('date') || ''); const when = String(f.get('when') || '');
       let n = 0;
       cards.forEach((c) => {
-        const d = c.dataset; const eventDate = new Date(`${d.date}T12:00:00Z`); const days = (eventDate.getTime() - previewDate.getTime()) / 86400000;
+        const d = c.dataset; const eventDate = new Date(`${d.date}T12:00:00Z`); const days = (eventDate.getTime() - referenceDate.getTime()) / 86400000;
         const weekend = (eventDate.getUTCDay() === 6 || eventDate.getUTCDay() === 0) && days >= 0 && days <= 6;
         const ok = (!q || d.text!.includes(q)) && (!f.get('city') || d.city === f.get('city')) && (!f.get('category') || d.category === f.get('category'))
           && (!f.get('price') || d.price === f.get('price')) && (!f.get('organizer') || d.organizer === f.get('organizer')) && (!date || d.date === date) && (when !== 'recurring' || d.recurring === '1') && (when !== 'weekend' || weekend) && (when !== 'month' || (days >= 0 && days <= 30));
@@ -71,7 +71,7 @@ const select = 'mt-1.5 block w-full rounded-2xl border border-sand bg-white px-4
       (root.querySelector('[data-empty]') as HTMLElement).hidden = n > 0;
     };
     form.addEventListener('input', apply);
-    form.addEventListener('reset', () => { extra.textContent = 'Demo filters — date presets use October 12, 2026'; history.replaceState(null, '', location.pathname); setTimeout(apply); });
+    form.addEventListener('reset', () => { extra.textContent = 'Nationwide directory'; history.replaceState(null, '', location.pathname); setTimeout(apply); });
     apply();
   });
 </script>

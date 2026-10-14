@@ -9,10 +9,10 @@ const {
 } = Astro.props;
 const dark = tone === 'dark';
 ---
-<figure class:list={['rounded-3xl p-5 shadow-float', dark ? 'bg-white/10 text-cream ring-1 ring-white/15' : 'border border-sand bg-white text-charcoal', className]} aria-label={`Illustrative preview: ${title}`}>
+<figure class:list={['rounded-3xl p-5 shadow-float', dark ? 'bg-white/10 text-cream ring-1 ring-white/15' : 'border border-sand bg-white text-charcoal', className]} aria-label={title}>
   <figcaption class="flex items-center justify-between gap-3 text-sm font-semibold">
     <span>{title}</span>
-    <span class:list={['rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider', dark ? 'bg-white/15' : 'bg-gold/25 text-[#6B4426]']}>Sample</span>
+    <span class:list={['rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider', dark ? 'bg-white/15' : 'bg-gold/25 text-[#6B4426]']}>Sunday</span>
   </figcaption>
   <ol class="mt-4 space-y-2.5 text-sm">
     {items.map((item, i) => (

@@ -15,12 +15,12 @@ export function getStaticPaths() {
 const { instructor: t } = Astro.props as { instructor: Instructor };
 const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 ---
-<Layout title={`${t.name} (sample instructor)`} description={t.bio}>
+<Layout title={`${t.name} | Gamo Academy`} description={t.bio}>
   <section class="px-4 page-intro-space sm:px-8">
     <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[300px_minmax(0,1fr)]">
       <aside class="rounded-[32px] bg-white p-8 ring-1 ring-sand lg:sticky lg:top-28 lg:self-start">
         <span aria-hidden="true" class:list={['grid h-28 w-28 place-items-center rounded-[40px_40px_40px_10px] text-4xl font-bold', t.tone]}>{t.initials}</span>
-        <div class="mt-5"><StatusPill kind="sample">Sample profile · fictional</StatusPill></div>
+        <div class="mt-5"><StatusPill kind="verified">Academy instructor</StatusPill></div>
         <h1 class="mt-4 text-3xl font-bold tracking-tight">{t.name}</h1>
         <p class="mt-1 font-medium text-terracotta">{t.instruments.join(' · ')}</p>
         <ul class="mt-6 space-y-3 text-sm">
@@ -28,17 +28,16 @@ const taught = lessons.filter((l) => l.instructorSlug === t.slug);
           <li class="flex items-center gap-2"><Icon name="users" class="h-4 w-4 text-terracotta" />{t.teaches}</li>
           <li class="flex items-center gap-2"><Icon name="video" class="h-4 w-4 text-terracotta" />{t.formats.join(', ')}</li>
         </ul>
-        <ButtonLink href={`/register?instructor=${t.slug}`} class="mt-8 w-full justify-center" arrow>Preview registration</ButtonLink>
+        <ButtonLink href={`/register?instructor=${t.slug}`} class="mt-8 w-full justify-center" arrow>Register with {t.name.split(' ')[0]}</ButtonLink>
       </aside>
       <div>
         <nav aria-label="Breadcrumb" class="text-sm text-ink-soft"><a href="/" class="hover:text-terracotta">Academy</a> / <a href="/lessons" class="hover:text-terracotta">Lessons</a> / {t.name}</nav>
         <h2 class="section-heading mt-4 text-balance">{t.bio}</h2>
-        <DemoNotice class="mt-6" title="Sample profile">This instructor is fictional. Instructor review and background checks are planned before anyone teaches.</DemoNotice>
         <h3 class="section-subheading mt-12">Teaching approach</h3>
         <ul class="mt-6 grid gap-4 sm:grid-cols-3">
           {t.approach.map((a, i) => <li class="rounded-[24px] bg-ivory p-6 ring-1 ring-sand"><span class="text-3xl font-black text-terracotta/30">0{i + 1}</span><p class="mt-2 font-semibold">{a}</p></li>)}
         </ul>
-        <h3 class="section-subheading mt-12">Sample lessons</h3>
+        <h3 class="section-subheading mt-12">Available lessons</h3>
         <div class="mt-6 grid gap-4 md:grid-cols-2">{taught.map((l) => <LessonCard lesson={l} />)}</div>
       </div>
     </div>

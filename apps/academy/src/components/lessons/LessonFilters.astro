@@ -8,7 +8,7 @@ const groups = [
   { name: 'format', label: 'Format', options: (['Private', 'Group', 'Church-hosted'] as const).map((a) => [a, a] as const) },
 ];
 ---
-<form id="lesson-filters" class="rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-6" aria-label="Filter sample lessons">
+<form id="lesson-filters" class="rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-6" aria-label="Filter lessons">
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     {groups.map((g) => (
       <label class="block text-sm font-semibold">{g.label}
@@ -20,11 +20,11 @@ const groups = [
     ))}
   </div>
   <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-    <p aria-live="polite"><span id="lesson-count">0</span> sample lessons shown</p>
+    <p aria-live="polite"><span id="lesson-count">0</span> lessons shown</p>
     <button type="reset" class="font-semibold text-terracotta underline-offset-4 hover:underline">Clear filters</button>
   </div>
 </form>
-<p id="lesson-empty" hidden class="mt-6 rounded-[28px] border border-dashed border-sand p-8 text-center text-ink-soft">No sample lessons match these filters yet. Try clearing one.</p>
+<p id="lesson-empty" hidden class="mt-6 rounded-[28px] border border-dashed border-sand p-8 text-center text-ink-soft">No lessons match these filters yet. Try clearing one.</p>
 
 <script>
   const form = document.getElementById('lesson-filters') as HTMLFormElement | null;

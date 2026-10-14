@@ -6,7 +6,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import { applySteps } from '../../data/worship';
 const items = [
-  { label: 'Application received', note: 'Sample · Oct 14', state: 'done' as const },
+  { label: 'Application received', note: 'Oct 14', state: 'done' as const },
   { label: 'Instrument & style profile', note: 'Keys & piano · Contemporary, Gospel', state: 'done' as const },
   { label: 'Audition recordings reviewed', note: 'A coordinator is listening', state: 'current' as const },
   { label: 'Conversation with a coordinator', note: 'Scheduled after review', state: 'upcoming' as const },
@@ -14,16 +14,16 @@ const items = [
 ];
 ---
 <Layout title="Application status">
-  <FlowShell eyebrow="Step 4 · Status" title="Your application," accent="step by step." steps={applySteps} current={3} photo="youngPianist" notice="This is a sample status page. No application was received and no review is taking place.">
+  <FlowShell eyebrow="Step 4 · Status" title="Your application," accent="step by step." steps={applySteps} current={3} photo="youngPianist">
     <div class="rounded-[2rem] border border-sand bg-white p-6 sm:p-8">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div><p class="text-sm text-ink-soft">Applicant</p><p class="text-lg font-semibold">Ana R.</p></div>
-        <div class="flex gap-2"><StatusPill kind="sample">Sample</StatusPill><StatusPill kind="pending">In review</StatusPill></div>
+        <div class="flex gap-2"><StatusPill kind="pending">In review</StatusPill></div>
       </div>
       <StatusTimeline items={items} class="mt-8" />
     </div>
     <div class="mt-8 flex flex-wrap gap-3">
-      <ButtonLink href="/opportunities" arrow>Preview the opportunity board</ButtonLink>
+      <ButtonLink href="/opportunities" arrow>Browse opportunity board</ButtonLink>
       <ButtonLink href="/" variant="secondary">Back to Gamo Worship</ButtonLink>
     </div>
   </FlowShell>

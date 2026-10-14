@@ -12,8 +12,7 @@ const chip = 'flex cursor-pointer items-center gap-3 rounded-2xl border border-s
 ---
 <section class="bg-ivory py-12 md:py-20" aria-label="Needs assessment">
   <div class="mx-auto max-w-4xl px-5 md:px-8">
-    <DemoNotice>This assessment is a local preview. Answers stay in your browser tab and are never saved or sent.</DemoNotice>
-    <ol class="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label="Assessment progress" data-progress>
+    <ol class="flex gap-2 overflow-x-auto pb-2" aria-label="Assessment progress" data-progress>
       {assessmentSteps.map((s, i) => (
         <li class="flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-medium text-ink-soft ring-1 ring-sand data-[state=current]:bg-charcoal data-[state=current]:text-cream data-[state=done]:text-terracotta" data-state={i === 0 ? 'current' : 'todo'}>
           <span class="grid h-5 w-5 place-items-center rounded-full bg-cream text-[10px] text-charcoal">{i + 1}</span>{s.label}
@@ -56,10 +55,10 @@ const chip = 'flex cursor-pointer items-center gap-3 rounded-2xl border border-s
       </fieldset>
       <fieldset data-step="4" class="space-y-4">
         <legend class="section-subheading text-charcoal">Review</legend>
-        <p class="text-ink-soft">Review your answers below. Use Back to make changes. Nothing has been saved or sent; these answers will not transfer to the consultation preview.</p>
+        <p class="text-ink-soft">Review your assessment summary below. Use Back to make changes, or continue to request a follow-up consultation with our technical ministry team.</p>
         <dl data-review class="space-y-4 rounded-2xl bg-cream p-5"></dl>
         <noscript><p class="text-sm text-ink-soft">JavaScript enables the step-by-step review. You can still review and edit every answer above.</p></noscript>
-        <a href="/consultation" class="inline-flex items-center gap-2 font-medium text-terracotta underline-offset-4 hover:underline">Continue to consultation preview <Icon name="arrow" class="h-4 w-4" /></a>
+        <a href="/consultation" class="inline-flex items-center gap-2 font-medium text-terracotta underline-offset-4 hover:underline">Continue to consultation request <Icon name="arrow" class="h-4 w-4" /></a>
       </fieldset>
       <div class="mt-10 flex items-center justify-between gap-4 border-t border-sand pt-6" data-nav hidden>
         <button type="button" data-prev class="inline-flex items-center gap-2 rounded-full border border-sand px-5 py-3 text-sm font-medium text-charcoal disabled:opacity-40"><Icon name="arrow-left" class="h-4 w-4" />Back</button>

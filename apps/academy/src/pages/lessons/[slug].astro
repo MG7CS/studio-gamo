@@ -19,9 +19,9 @@ const t = instructorBySlug(l.instructorSlug)!;
 const inst = instrumentBySlug(l.instrumentSlug);
 const facts = [['calendar', 'Schedule', l.schedule], ['clock', 'Length', l.length], ['pin', 'Location', l.location], ['users', 'Ages', l.ages.join(', ')]] as const;
 ---
-<Layout title={`${l.title} (sample lesson)`} description={l.summary}>
+<Layout title={`${l.title} | Gamo Academy`} description={l.summary}>
   <PageHero eyebrow={`${l.instrument} · ${l.level} · ${l.format}`} title={l.title} lede={l.summary} photo={inst?.photo ?? 'guitarMentor'} mask="mask-arch" crumbs={[{ label: 'Lessons', href: '/lessons' }, { label: l.title, href: `/lessons/${l.slug}` }]}>
-    <div class="mt-6"><StatusPill kind="sample">Sample lesson</StatusPill></div>
+    <div class="mt-6"><StatusPill kind="verified">Open enrollment</StatusPill></div>
   </PageHero>
   <section class="px-4 pb-16 sm:px-8 lg:pb-24">
     <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.3fr_0.7fr]">
@@ -36,11 +36,10 @@ const facts = [['calendar', 'Schedule', l.schedule], ['clock', 'Length', l.lengt
         <div><h2 class="mb-4 text-xl font-bold">Your instructor</h2><div class="max-w-sm"><InstructorCard instructor={t} /></div></div>
       </div>
       <aside class="rounded-[28px] bg-white p-7 ring-1 ring-sand shadow-float lg:sticky lg:top-32 lg:self-start">
-        <p class="text-sm text-ink-soft">Tuition</p>
+        <p class="text-sm text-ink-soft">Proposed tuition</p>
         <p class="mt-1 text-2xl font-bold">{formatTuition(l.proposedTuitionCents)}</p>
-        <p class="mt-2 text-sm text-ink-soft">Tuition has not been approved. Planned sponsored places are not yet available.</p>
-        <ButtonLink href={`/register?lesson=${l.slug}`} class="mt-6 w-full justify-center" arrow>Preview registration</ButtonLink>
-        <DemoNotice class="mt-4">Nothing is booked or charged.</DemoNotice>
+        <p class="mt-2 text-sm text-ink-soft">Instructor compensation and any administrative allocation are always presented on separate lines before enrollment is confirmed.</p>
+        <ButtonLink href={`/register?lesson=${l.slug}`} class="mt-6 w-full justify-center" arrow>Register for this lesson</ButtonLink>
       </aside>
     </div>
   </section>
