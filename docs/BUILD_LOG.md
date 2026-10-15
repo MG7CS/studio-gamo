@@ -498,6 +498,15 @@
 
 - **Decision Recorded**: Retained **Gamo Live** as the working and customer-facing software name across `apps/live`; paused the alternative standalone brand search; recorded trademark clearance as pending legal consultation and domain selection as deferred while keeping the configurable brand layer (`PLATFORM_BRAND`, `getPlatformBrandConfig`, `resolvePlatformBrandConfig`) intact for future rebranding.
 - **Configuration & Test Updates**:
-  - Updated `apps/live/wrangler.toml` (`[vars]`, `[env.preview.vars]`, `[env.production.vars]`) to set `PLATFORM_BRAND = "Gamo Live"` explicitly while preserving existing domain settings and fallback sanitization in `@gamo/domain` and `@studio-gamo/ui`.
+  - Updated `apps/live/wrangler.toml` (`[vars]`, `[env.preview.vars]`, `[env.production.vars]`) to set `PLATFORM_BRAND = "Gamo Live"`, `PLATFORM_IS_LIVE_DOMAIN = "false"`, and `PLATFORM_SUPPORT_EMAIL = "support@live.gamostudios.local"` explicitly while preserving existing domain settings and fallback sanitization in `@gamo/domain` and `@studio-gamo/ui`.
   - Updated Step 10 in `packages/domain/src/services/live-slice.test.ts` to assert **Gamo Live** retention and placeholder sanitization without introducing alternative brand names.
   - Updated `docs/DECISIONS.md` and `docs/GAMO_LIVE_AND_PARTNERS.md` with the six naming status attributes.
+- **Authorized Push, Remote D1 Migration & Production Deployment**:
+  - Formatted triggers in `packages/db/migrations/0006_live_standalone_platform.sql` with single-line `BEGIN SELECT RAISE(...); END;` statements for Wrangler's remote D1 SQL splitter and applied migrations `0005_admin_password_credentials.sql` and `0006_live_standalone_platform.sql` (56 commands) to both `gamo-db-preview` (`d7e12797-cc6c-4fa3-91c7-c192863e4812`) and `gamo-db-production` (`d6db9fe7-77c0-4a50-836e-3d1924f00b53`).
+  - Deployed all six applications via `make deploy-all`:
+    - `gamo-web` (`gamostudio.org`, `www.gamostudio.org`): Version `046e8f48-47c8-448e-935f-210745dab1f6` (HTTP 200)
+    - `gamo-worship` (`worship.gamostudio.org`): Version `b12e8b99-e485-4b90-90aa-13637ceaf516` (HTTP 200)
+    - `gamo-academy` (`academy.gamostudio.org`): Version `8e346493-d7ab-4ef2-98d3-0ecce756d024` (HTTP 200)
+    - `gamo-live` (`live.gamostudio.org`): Version `bdc324e8-9072-4bec-8bff-d8e365aefc76` (HTTP 200 on `/`, `/artist`, `/agent`, `/api/artists`)
+    - `gamo-production` (`production.gamostudio.org`): Version `e04ce2c2-db6f-422d-9cc0-1ca7c35f2ef4` (HTTP 200)
+    - `gamo-admin` (`admin.gamostudio.org`): Version `a3b3cc44-781d-45ef-8f35-e295bbfdab62` (HTTP 302 login gate)
