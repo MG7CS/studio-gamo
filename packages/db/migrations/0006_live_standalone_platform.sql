@@ -60,36 +60,26 @@ CREATE INDEX `rep_auth_rep_idx` ON `representation_authorizations` (`representat
 
 CREATE TRIGGER `rep_auth_exclusive_conflict_insert`
 BEFORE INSERT ON `representation_authorizations`
-WHEN NEW.`status` = 'active'
-BEGIN
-  SELECT CASE
-    WHEN EXISTS (
-      SELECT 1 FROM `representation_authorizations` existing
-      WHERE existing.`artist_id` = NEW.`artist_id`
-        AND existing.`status` = 'active'
-        AND (existing.`exclusivity` = 'exclusive' OR NEW.`exclusivity` = 'exclusive')
-        AND (existing.`territory` = NEW.`territory` OR existing.`territory` = 'US' OR NEW.`territory` = 'US')
-    )
-    THEN RAISE(ABORT, 'REP_EXCLUSIVE_CONFLICT')
-  END;
-END;
+WHEN NEW.`status` = 'active' AND EXISTS (
+  SELECT 1 FROM `representation_authorizations` existing
+  WHERE existing.`artist_id` = NEW.`artist_id`
+    AND existing.`status` = 'active'
+    AND (existing.`exclusivity` = 'exclusive' OR NEW.`exclusivity` = 'exclusive')
+    AND (existing.`territory` = NEW.`territory` OR existing.`territory` = 'US' OR NEW.`territory` = 'US')
+)
+BEGIN SELECT RAISE(ABORT, 'REP_EXCLUSIVE_CONFLICT'); END;
 
 CREATE TRIGGER `rep_auth_exclusive_conflict_update`
 BEFORE UPDATE ON `representation_authorizations`
-WHEN NEW.`status` = 'active'
-BEGIN
-  SELECT CASE
-    WHEN EXISTS (
-      SELECT 1 FROM `representation_authorizations` existing
-      WHERE existing.`artist_id` = NEW.`artist_id`
-        AND existing.`id` != NEW.`id`
-        AND existing.`status` = 'active'
-        AND (existing.`exclusivity` = 'exclusive' OR NEW.`exclusivity` = 'exclusive')
-        AND (existing.`territory` = NEW.`territory` OR existing.`territory` = 'US' OR NEW.`territory` = 'US')
-    )
-    THEN RAISE(ABORT, 'REP_EXCLUSIVE_CONFLICT')
-  END;
-END;
+WHEN NEW.`status` = 'active' AND EXISTS (
+  SELECT 1 FROM `representation_authorizations` existing
+  WHERE existing.`artist_id` = NEW.`artist_id`
+    AND existing.`id` != NEW.`id`
+    AND existing.`status` = 'active'
+    AND (existing.`exclusivity` = 'exclusive' OR NEW.`exclusivity` = 'exclusive')
+    AND (existing.`territory` = NEW.`territory` OR existing.`territory` = 'US' OR NEW.`territory` = 'US')
+)
+BEGIN SELECT RAISE(ABORT, 'REP_EXCLUSIVE_CONFLICT'); END;
 
 -- 4. Booking Inquiries
 CREATE TABLE `booking_inquiries` (
@@ -136,9 +126,7 @@ CREATE INDEX `booking_offers_inquiry_idx` ON `booking_offers` (`inquiry_id`);
 CREATE TRIGGER `booking_offer_immutable_accepted`
 BEFORE UPDATE ON `booking_offers`
 WHEN OLD.`status` = 'accepted'
-BEGIN
-  SELECT RAISE(ABORT, 'BOOKING_OFFER_IMMUTABLE');
-END;
+BEGIN SELECT RAISE(ABORT, 'BOOKING_OFFER_IMMUTABLE'); END;
 
 -- 6. Confirmed Performance Engagements (Deposits disabled until policy gate approved)
 CREATE TABLE `performance_engagements` (
@@ -164,16 +152,12 @@ CREATE INDEX `engagements_event_idx` ON `performance_engagements` (`event_id`);
 CREATE TRIGGER `engagement_deposit_gate_insert`
 BEFORE INSERT ON `performance_engagements`
 WHEN NEW.`deposit_collection_status` != 'disabled_pending_policy'
-BEGIN
-  SELECT RAISE(ABORT, 'DEPOSIT_COLLECTION_DISABLED');
-END;
+BEGIN SELECT RAISE(ABORT, 'DEPOSIT_COLLECTION_DISABLED'); END;
 
 CREATE TRIGGER `engagement_deposit_gate_update`
 BEFORE UPDATE ON `performance_engagements`
 WHEN NEW.`deposit_collection_status` != 'disabled_pending_policy'
-BEGIN
-  SELECT RAISE(ABORT, 'DEPOSIT_COLLECTION_DISABLED');
-END;
+BEGIN SELECT RAISE(ABORT, 'DEPOSIT_COLLECTION_DISABLED'); END;
 
 -- 7. Event Organizations (Many-to-Many Co-Organizers, Venues, Promoters, Sponsors)
 CREATE TABLE `event_organizations` (
@@ -236,17 +220,13 @@ CREATE TRIGGER `event_performer_minor_safeguarding_insert`
 BEFORE INSERT ON `event_performers`
 WHEN NEW.`is_minor_showcase` = 1
   AND (NEW.`guardian_consent_verified` != 1 OR NEW.`guardian_user_id` IS NULL OR NEW.`safeguarding_cleared` != 1)
-BEGIN
-  SELECT RAISE(ABORT, 'MINOR_SAFEGUARDING_REQUIRED');
-END;
+BEGIN SELECT RAISE(ABORT, 'MINOR_SAFEGUARDING_REQUIRED'); END;
 
 CREATE TRIGGER `event_performer_minor_safeguarding_update`
 BEFORE UPDATE ON `event_performers`
 WHEN NEW.`is_minor_showcase` = 1
   AND (NEW.`guardian_consent_verified` != 1 OR NEW.`guardian_user_id` IS NULL OR NEW.`safeguarding_cleared` != 1)
-BEGIN
-  SELECT RAISE(ABORT, 'MINOR_SAFEGUARDING_REQUIRED');
-END;
+BEGIN SELECT RAISE(ABORT, 'MINOR_SAFEGUARDING_REQUIRED'); END;
 
 -- 10. Ticket Holds (Expiring Inventory Holds for Atomic Reservation)
 CREATE TABLE `ticket_holds` (
