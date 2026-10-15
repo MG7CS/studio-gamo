@@ -1,3 +1,4 @@
+export * from './brand.ts';
 export * from './api/response.ts';
 export * from './api/validation.ts';
 export * from './services/identity.ts';

@@ -110,7 +110,10 @@ export function handleApiError(err: unknown): Response {
     if (err.message.includes('CONFLICT') || err.message.includes('ALREADY_EXISTS') || err.message.includes('duplicate')) {
       return errorResponse('CONFLICT', 'The operation conflicts with the current resource state.', 409);
     }
-    if (err.message.includes('Access denied') || err.message.includes('forbidden')) {
+    if (err.message.includes('INVALID_CHALLENGE_CODE') || err.message.includes('UNAUTHORIZED')) {
+      return errorResponse('UNAUTHENTICATED', 'Verification or authentication failed.', 401);
+    }
+    if (err.message.includes('Access denied') || err.message.toLowerCase().includes('forbidden')) {
       return errorResponse('FORBIDDEN', 'Operation forbidden.', 403);
     }
 

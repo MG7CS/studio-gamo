@@ -14,6 +14,7 @@ import {
   type GamoDatabase,
 } from '@gamo/db';
 import { createResendClient, type ResendConfig } from '@studio-gamo/integrations/resend';
+import { getPlatformBrandConfig } from '../brand.ts';
 
 const MAX_NOTIFICATION_ATTEMPTS = 5;
 
@@ -199,30 +200,38 @@ export class NotificationService {
     const safeQrToken = escapeHtml(registration.qrToken);
     const formattedDate = escapeHtml(event.startsAt.toUTCString());
 
+    const brand = getPlatformBrandConfig();
+    const safeBrandName = escapeHtml(brand.displayName);
+    const safePassHeader = escapeHtml(brand.ticketPassHeader);
+    const safeDisclosure = escapeHtml(brand.operatorDisclosure);
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <body style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background:#F4EDE3; color:#1A1A18; padding:24px;">
   <div style="max-width:560px; margin:0 auto; background:#FFFFFF; border:1px solid #E2DCD3; border-radius:12px; padding:28px;">
-    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F432A; font-weight:600; margin:0 0 8px;">Gamo Live · Free Registration Confirmed</p>
+    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F432A; font-weight:600; margin:0 0 8px;">${safePassHeader}</p>
     <h1 style="font-size:22px; margin:0 0 12px;">${safeEventTitle}</h1>
     <p style="font-size:15px; line-height:1.5; color:#3D3B38; margin:0 0 16px;">
-      Hello ${safeAttendeeName}, your free registration (${registration.quantity} ${registration.quantity === 1 ? 'guest' : 'guests'}) is confirmed.
+      Hello ${safeAttendeeName}, your registration (${registration.quantity} ${registration.quantity === 1 ? 'guest' : 'guests'}) is confirmed.
     </p>
     <div style="background:#F8F5F0; border:1px solid #E2DCD3; border-radius:8px; padding:16px; margin:0 0 18px; font-size:14px; line-height:1.6;">
       <div><strong>Venue:</strong> ${safeVenue} (${safeCity}, ${safeState})</div>
       <div><strong>Starts:</strong> ${formattedDate}</div>
       <div><strong>Admission Pass Token:</strong> <code>${safeQrToken}</code></div>
     </div>
+    <p style="font-size:11px; line-height:1.5; color:#6E6A64; margin:0;">${safeDisclosure}</p>
   </div>
 </body>
 </html>`;
 
     const text = [
-      `Gamo Live Registration Confirmed: ${event.title}`,
+      `${brand.displayName} Registration Confirmed: ${event.title}`,
       `Attendee: ${registration.attendeeName} (${registration.quantity})`,
       `Venue: ${event.venueName}, ${event.city}, ${event.state}`,
       `Starts: ${event.startsAt.toUTCString()}`,
       `Admission Pass Token: ${registration.qrToken}`,
+      ``,
+      brand.operatorDisclosure,
     ].join('\n');
 
     const nextAttempts = job.attempts + 1;

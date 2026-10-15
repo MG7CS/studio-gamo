@@ -62,6 +62,13 @@ export function initDashboard(): void {
 
   // Local form validation + demo success state.
   $$<HTMLFormElement>('form[data-dash-form]').forEach((form) => {
+    const interestCount = form.querySelector<HTMLElement>('[data-interest-count]');
+    if (interestCount) {
+      form.addEventListener('change', () => {
+        const checked = $$<HTMLInputElement>('input[type="checkbox"]:checked', form).length;
+        interestCount.textContent = `${checked} outreach interests selected.`;
+      });
+    }
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       let firstInvalid: HTMLElement | null = null;

@@ -24,11 +24,28 @@ export const GET: APIRoute = async (context) => {
 
     const url = new URL(context.request.url);
     if (new Set(url.searchParams.keys()).size !== [...url.searchParams.keys()].length) throw new ContractValidationError();
-    const { category, city } = validateContract('EventFilters', Object.fromEntries(url.searchParams));
+    const { category, city, artist, venue, dateFrom } = validateContract(
+      'EventFilters',
+      Object.fromEntries(url.searchParams)
+    ) as {
+      category?: string;
+      city?: string;
+      artist?: string;
+      venue?: string;
+      dateFrom?: string;
+    };
+
+    const parsedDateFrom = dateFrom ? new Date(dateFrom) : undefined;
+    if (parsedDateFrom && !Number.isFinite(parsedDateFrom.getTime())) {
+      throw new ContractValidationError();
+    }
 
     const events = await liveService.listDiscoverableEvents({
       category,
       city,
+      artist,
+      venue,
+      dateFrom: parsedDateFrom,
     });
 
     return jsonResponse(events, 200, { total: events.length });

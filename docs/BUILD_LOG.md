@@ -452,3 +452,44 @@
 - Verification:
   - `node scripts/verify-public-ui.mjs`: passed 60 responsive route checks (`390`, `768`, `1024`, `1440`, `1920`) and 8 interaction checks; 73 links inspected (`docs/screenshots/2026-refresh/web/home-1440.png`, `docs/screenshots/2026-refresh/web/home-390.png`).
   - `pnpm exec tsx --test scripts/audit/security.test.ts` (16/16 pass), `pnpm test` (39/39 pass), `pnpm api:check` (10/10 pass), `pnpm typecheck` (pass).
+
+## 2026-10-14 — Gamo Live Standalone Consumer Platform Evolution (`PLATFORM_BRAND`, Migration `0006`, OpenAPI `v1.3.0` & Role Workspaces)
+
+- **Authorized Scope**: Evolve `apps/live` into a standalone-feeling, mainstream-quality Christian event and live-performance platform across four connected workflows — (1) Discover & Attend (no required attendee dashboard/account, strong-verification self-service order recovery), (2) Organize & Promote (multi-organization/multi-role event teams with granular permissions), (3) Represent & Book Talent (artists, authorized agents/managers, multi-artist rosters, booking inquiries/offers, immutable engagements), and (4) Produce Events (linked Gamo Production requests without duplicating identity or event records) — while preserving the monorepo and OpenAPI-first architecture.
+- **Brand Architecture (`PLATFORM_BRAND`)**:
+  - Implemented `packages/domain/src/brand.ts` and `packages/ui/src/lib/brand.ts` (`getPlatformBrandConfig`, `resolvePlatformBrandConfig`) with `PLATFORM_BRAND` environment configuration in `apps/live/wrangler.toml`.
+  - Sanitizes literal `"PLATFORM_BRAND"` or empty strings so customer-facing copy defaults cleanly to `"Gamo Live"` (with `isPlaceholderDomain: true` unless `PLATFORM_IS_LIVE_DOMAIN === 'true'`).
+  - Added standalone consumer chrome (`apps/live/src/components/LiveHeader.astro`, `apps/live/src/components/LiveFooter.astro`, and `apps/live/src/layouts/Layout.astro`) with accurate legal-structure-neutral operator and payment disclosures in footer/transactional contexts (no 501(c)(3), tax-deductible, or escrow/fiduciary claims).
+- **Relational Data Model & SQLite Integrity Triggers (`0006_live_standalone_platform.sql`, `packages/db/schema.ts`)**:
+  - Added 15 new tables: `artist_profiles`, `artist_representatives`, `representation_authorizations`, `booking_inquiries`, `booking_offers`, `performance_engagements`, `event_organizations`, `event_team_members`, `event_performers`, `ticket_holds`, `ticket_orders`, `tickets`, `ticket_scans`, `refund_records`, and `settlement_records`, plus additive `production_requests.event_id`.
+  - Added 6 SQLite triggers enforcing:
+    1. Exclusive representation conflict prevention (`EXCLUSIVE_REPRESENTATION_CONFLICT`).
+    2. Immutability of accepted booking offers (`BOOKING_OFFER_IMMUTABLE`).
+    3. Deposit collection fail-closed gate (`DEPOSIT_COLLECTION_DISABLED`).
+    4. Academy youth performer guardian consent + safeguarding verification (`MINOR_SAFEGUARDING_REQUIRED`).
+- **Granular Event & Representation RBAC (`packages/auth/index.ts`)**:
+  - Added `hasEventPermission`, `requireEventPermission`, and `hasRepresentationAuthority` enforcing strict separation between `content_manage`, `publish_event`, `lineup_manage`, `booking_negotiate`, `ticketing_manage`, `checkin_scan`, `refund_approve`, `settlement_view`, and `production_coordinate` (e.g., `ticketing_admin` or `event_owner` can publish events without automatically receiving `refund_approve` or `settlement_view` authority).
+- **OpenAPI 3.1.1 Contract (`v1.3.0`) & API Endpoints (`apps/live/src/pages/api/*`)**:
+  - Expanded `openapi/root.yaml` from 17 to 30 operations across 26 route files and regenerated `openapi/bundled/{public,internal}.json`, `packages/api-contracts/src/{public,internal}.d.ts`, `packages/api-contracts/src/validators.js`, and local Redocly HTML references (`docs/api-reference/{public,internal}.html`).
+  - Implemented 11 new route files in `apps/live`:
+    - `GET/POST /api/artists`
+    - `POST /api/artists/[id]/representations`, `PATCH /api/artists/[id]/representations/[authId]`
+    - `GET/POST /api/bookings/inquiries`
+    - `POST /api/bookings/inquiries/[id]/offers`
+    - `POST /api/bookings/inquiries/[id]/confirm`
+    - `GET/POST /api/events/[id]/team`
+    - `POST /api/events/[id]/holds`
+    - `POST /api/events/[id]/checkin`
+    - `POST /api/orders/lookup` (requires matching purchaser email + `orderNumber` or `verificationCode` + `ticketQrToken`, rate-limited and audited)
+    - `POST /api/orders/[id]/refunds`
+    - `GET /api/events/[id]/production`, `POST /api/events/[id]/production`
+- **Role-Appropriate Workspaces (`apps/live`)**:
+  - Added Artist Workspace (`/artist`, `/artist/bookings`, `/artist/representation`, `/artist/profile`, `/artist/financials`) and Agent & Manager Workspace (`/agent`, `/agent/roster`, `/agent/inquiries`, `/agent/engagements`, `/agent/commissions`).
+  - Expanded Organizer Workspace (`/organizer/bookings`, `/organizer/production`, `/organizer/team`) and converted `/my-tickets` (`/me/tickets`) into a Verified Self-Service Order & Pass Lookup portal without requiring a casual attendee account.
+- **Verification Evidence**:
+  - `pnpm api:check`: **Pass (Redocly lint 0 errors, bundle/type/validator check clean, `scripts/api/contract.test.ts` 11/11 tests, 30/30 operations verified over loopback HTTP)**
+  - `pnpm exec tsx --test scripts/audit/security.test.ts`: **Pass (16/16 adversarial security tests)**
+  - `pnpm test`: **Pass (41/41 unit & vertical-slice tests across 8 suites, including `PLATFORM_BRAND` sanitization, `MINOR_SAFEGUARDING_REQUIRED`, `BOOKING_OFFER_IMMUTABLE`, `DEPOSIT_COLLECTION_DISABLED`, and `reconcileEventSettlement`)**
+  - `pnpm typecheck`: **Pass (6/6 apps + `@gamo/api-contracts`)**
+  - `node apps/live/scripts/verify-ui.mjs`: **Pass (170 responsive route checks across 34 routes × 5 widths `390, 768, 1024, 1440, 1920`, all local links HTTP 200, all interactive checks pass, 0 console/page errors)**
+  - Screenshots captured in `docs/screenshots/2026-refresh/live-resume/` (`home`, `artist`, `agent`, `my-tickets`, `organizer`, `organizer-scan`, `promote-create`, `events-harvest-night-of-gospel`, `checkout`, `ticket` at 390px and 1440px).

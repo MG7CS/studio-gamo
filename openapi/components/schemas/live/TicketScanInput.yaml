@@ -1,0 +1,15 @@
+type: object
+additionalProperties: false
+properties:
+  eventId:
+    $ref: ../shared/Identifier.yaml
+  qrToken:
+    type: string
+    minLength: 6
+    maxLength: 200
+  gateLabel:
+    type: string
+    maxLength: 80
+required:
+  - eventId
+  - qrToken

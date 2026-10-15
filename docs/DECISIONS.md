@@ -66,3 +66,28 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Sensitive Document Prohibition**: The platform does not collect sensitive student records or government identity documents.
 - **Cloudflare Environment Isolation**: Isolated `local`, `preview` (account `gamostudios` `ebae7bded6ab45950aeba1d6cf51eb7f`: `gamo-db-preview` and `gamo-media-preview`), and `production` configurations across all six `wrangler.toml` files without deploying to or modifying production domains.
 - **Verified Authentication, Org Onboarding & Staff Identity Provisioning**: Cryptographic email OTP challenge-response (`auth_challenges`, SHA-256 hashed single-use codes, attempt caps, expiry, rate limiting), verified-email organization onboarding (`POST /api/organizations`), and superadmin staff provisioning binding immutable Cloudflare Access `sub` identifiers (`external_identities`) to D1 users.
+
+## 2026-10-14 — Standalone Gamo Live Consumer Platform Evolution (`PLATFORM_BRAND`)
+
+- **Configurable Consumer Brand Architecture (`PLATFORM_BRAND`)**:
+  - `PLATFORM_BRAND` is the configurable public-facing software brand placeholder resolved via `getPlatformBrandConfig(env)` in `@gamo/domain` and `@studio-gamo/ui`.
+  - Sanitization guarantees that literal `"PLATFORM_BRAND"` never renders as customer-facing copy (falling back to `"Gamo Live"` until a founder-approved name is configured) and placeholder domains remain marked `isPlaceholderDomain: true` until `PLATFORM_IS_LIVE_DOMAIN="true"`.
+  - **Gamo Live** is the internal operating division; **Gamo Studios** is the parent Christian, mission-driven organization. Parent branding is not imposed on every public screen (`LiveHeader.astro` / `LiveFooter.astro` replace the global Gamo Studios cross-program chrome on `apps/live`), while accurate legal-structure-neutral operator and non-escrow payment disclosures are shown in legal, payment, privacy, and transactional footer contexts.
+- **No Mandatory Attendee Account / Dashboard**:
+  - Public discovery (`GET /api/events` with `category`, `city`, `artist`, `venue`, `dateFrom` filters), free registration, and ticket checkout operate without requiring a casual attendee account.
+  - Self-service ticket/order/receipt lookup (`POST /api/tickets/lookup` and `/my-tickets` → `/me/tickets`) requires strong inbox verification via a 6-digit email challenge code (`auth_challenges`), preventing email-only or phone-only enumeration.
+- **One Identity, Role-Scoped Workspaces & Granular Event Permissions**:
+  - Added `event_organizations` (many-to-many co-organizers, venues, promoters, sponsors) and `event_team_members` (`0006_live_standalone_platform.sql`) with distinct roles (`event_owner`, `lead_promoter`, `host_venue`, `co_organizer`, `booking_agent`, `production_coordinator`, `ticketing_admin`, `finance_contact`, `door_scanner`) and 7 boolean permission flags enforced server-side via `hasEventPermission` / `requireEventPermission`.
+  - Publishing or editing event content (`can_edit_content`) never implies authority to approve refunds (`can_approve_refunds`) or access settlement accounts (`can_view_settlement`).
+- **Artists, Authorized Representatives & Immutable Booking Engagements**:
+  - Added `artist_profiles`, `artist_representatives`, `representation_authorizations`, `booking_inquiries`, `booking_offers`, and `performance_engagements`.
+  - SQLite triggers (`rep_auth_exclusive_conflict_insert/update`) reject conflicting active exclusive representation in overlapping territories (`409 Conflict`).
+  - Revoking representation (`POST /api/representations/{id}/revoke`) immediately blocks future negotiation authority while preserving prior signed engagements and audit history.
+  - Accepted booking offers are locked against mutation by SQLite trigger `booking_offer_immutable_accepted`, and `performance_engagements` enforce `deposit_collection_status = 'disabled_pending_policy'` via triggers `engagement_deposit_gate_insert/update` until legal terms, financial authority, and refund policies are approved.
+  - Artist compensation (`artist_fee_cents`), agent commission (`agent_commission_cents`), travel stipends, and platform administrative allocations (`platform_admin_allocation_cents`) are always stored and reported as separate line items.
+- **Atomic Ticket Holds, Sandbox Webhook Fulfillment, Replay-Protected Scans & Linked Production**:
+  - Added `ticket_holds`, `ticket_orders`, `tickets`, `ticket_scans`, `refund_records`, and `settlement_records`.
+  - Unverified organizers remain fail-closed (`503`) on `POST /api/checkout/session`. Verified organizers with `ticketing_authorized_at` create expiring inventory holds (`ticket_holds`) and pending orders (`ticket_orders`) fulfilled idempotently only via signed Stripe sandbox webhooks (`POST /api/webhook/stripe`, `livemode: false`), never via browser redirects.
+  - Door check-in (`POST /api/tickets/scan`) verifies SHA-256 QR token hashes, blocks replay (`already_scanned`), and records `ticket_scans` audit rows.
+  - Academy youth showcase performers on `event_performers` require verified guardian consent (`guardian_consent_verified = 1`, `guardian_user_id IS NOT NULL`, `safeguarding_cleared = 1`), enforced by SQLite triggers `event_performer_minor_safeguarding_insert/update`.
+  - Organizers coordinate sound, lighting, livestreaming, stage setup, AV, and crew via `POST/GET /api/events/{id}/production-requests` (`production_requests.event_id`), exposing only technical/schedule context to Gamo Production.

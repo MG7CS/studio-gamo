@@ -1,5 +1,22 @@
 # API compatibility decisions
 
+## 1.3.0
+
+Base: 1d17ee6
+Base: 6103121
+Base: HEAD
+
+Additive standalone Gamo Live consumer platform contracts in `1.3.0`:
+- `GET /api/events` (`EventFilters`): Added optional `artist`, `venue`, and `dateFrom` query filters while keeping existing `category` and `city` filters backward-compatible.
+- `POST /api/events/{id}/team` (`apps/live`): Assigns role-scoped event team permissions (`event_team_members`). Enforces separation between publishing/content authority and refund/settlement authority.
+- `POST /api/tickets/lookup` (`apps/live`): Verified self-service order, receipt, and QR pass lookup requiring both `email` and a verified 6-digit email challenge code (`verificationCode`).
+- `POST /api/tickets/scan` (`apps/live`): Door admission QR check-in endpoint requiring `scan_tickets` permission, enforcing replay protection (`409 REPLAY_BLOCKED`), and recording scan audit records (`ticket_scans`).
+- `GET /api/artists` and `POST /api/artists` (`apps/live`): Public artist directory and verified artist profile creation (`artist_profiles`) with optional `musicianProfileId` link that keeps Gamo Worship rankings separate.
+- `POST /api/artists/{id}/representatives` and `POST /api/representations/{id}/revoke` (`apps/live`): Scoped artist representation authorizations (`representation_authorizations`) with conflict detection for active exclusive representation (`409 REP_EXCLUSIVE_CONFLICT`) and audit-preserving revocation.
+- `POST /api/bookings/inquiries`, `POST /api/bookings/inquiries/{id}/offers`, and `POST /api/bookings/offers/{id}/accept` (`apps/live`): End-to-end artist booking inquiry, counteroffer negotiation, and immutable engagement confirmation (`performance_engagements`) separating artist fee, agent commission, and platform administrative allocation while keeping deposits disabled pending policy approval.
+- `POST /api/checkout/session`, `POST /api/webhook/stripe`, and `POST /api/orders/{id}/refund` (`apps/live`): Extended `CheckoutInput`, `CheckoutResponse`, and `WebhookResponse` with optional order/hold fields. Unverified organizers and unbacked webhook events continue to fail closed (`503`), while verified, ticketing-authorized organizers support atomic expiring `ticket_holds`, `ticket_orders`, idempotent sandbox webhook fulfillment (`tickets`, `settlement_records`), and permission-scoped refunds (`refund_records`).
+- `GET /api/events/{id}/production-requests` and `POST /api/events/{id}/production-requests` (`apps/live`): Links Gamo Production requests (`production_requests.event_id`) directly to an event without duplicating event identity or exposing financial/attendee records.
+
 ## 1.2.0
 
 Base: 6103121

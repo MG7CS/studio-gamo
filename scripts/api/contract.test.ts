@@ -34,6 +34,7 @@ before(async()=>{
   await applyMigrations(d1,readdirSync('packages/db/migrations').filter(x=>x.endsWith('.sql')).sort().map(x=>readFileSync(`packages/db/migrations/${x}`,'utf8')));
   d1.sqlite.exec('PRAGMA foreign_keys=ON');
   const owner=await services.identity.findOrCreateUser('owner@example.invalid','Sample owner');
+  d1.sqlite.prepare('UPDATE users SET verified_email_at = ? WHERE id = ?').run(Math.floor(Date.now()/1000),owner.id);
   const other=await services.identity.findOrCreateUser('other@example.invalid');
   // Explicit internal demo reviewer matches existing fallback; does not claim Access-to-D1 identity mapping.
   d1.sqlite.prepare('INSERT INTO users (id,email,status,created_at) VALUES (?,?,?,?)').run('staff_reviewer_demo','reviewer@example.invalid','active',Math.floor(Date.now()/1000));
@@ -67,7 +68,7 @@ before(async()=>{
     origins[app]=`http://127.0.0.1:${(server.address() as any).port}`;
   }
 });
-after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size}/17 operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
+after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size}/30 operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
 async function call(app:string,method:string,path:string,expected:number,body?:unknown,headers:Record<string,string>={}){
   const response=await fetch(origins[app]+path,{method,redirect:'manual',headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...headers},...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
   const text=await response.text();assert.equal(response.status,expected,text);
@@ -202,6 +203,142 @@ test('sandbox completion never applies unapproved allocations or estimated fees'
   const rows=d1.sqlite.prepare('SELECT category,amount_cents FROM ledger_entries WHERE source_id=?').all(eventId);
   assert.deepEqual(rows.map((row:any)=>({...row})),[]);
 });
+test('standalone Live platform workflows: teams, verified ticket lookup, QR scan replay protection, artists, agents, bookings, paid sandbox fulfillment, refunds, and linked production',async()=>{
+  const nowSec=Math.floor(Date.now()/1000);
+  const coOrgUser=await services.identity.findOrCreateUser('coorg@example.invalid','Co-Organizer');
+  const artistUser=await services.identity.findOrCreateUser('artist@example.invalid','Sample Artist');
+  const agentUser=await services.identity.findOrCreateUser('agent@example.invalid','Sample Agent');
+  const agent2User=await services.identity.findOrCreateUser('agent2@example.invalid','Second Agent');
+  for(const u of [coOrgUser,artistUser,agentUser,agent2User]){
+    d1.sqlite.prepare('UPDATE users SET verified_email_at = ? WHERE id = ?').run(nowSec,u.id);
+  }
+  const coOrgCookie=`__session=${encodeURIComponent((await createSession(db,coOrgUser.id,secret)).cookieValue)}`;
+  const artistCookie=`__session=${encodeURIComponent((await createSession(db,artistUser.id,secret)).cookieValue)}`;
+  const agentCookie=`__session=${encodeURIComponent((await createSession(db,agentUser.id,secret)).cookieValue)}`;
+
+  // 1. Event team assignment & strict separation of publishing vs financial/refund authority
+  await call('live','POST',`/api/events/${eventId}/team`,201,{userId:coOrgUser.id,role:'co_organizer'},{cookie});
+  // Co-organizer has edit_content but CANNOT grant finance_contact / refund approval authority
+  await call('live','POST',`/api/events/${eventId}/team`,403,{userId:agentUser.id,role:'finance_contact',canApproveRefunds:true},{cookie:coOrgCookie});
+
+  // 2. Verified self-service ticket lookup (email alone is insufficient; wrong code -> 401)
+  await call('live','POST','/api/tickets/lookup',401,{email:'sample@example.invalid',verificationCode:'000000'});
+  const lookupChal=await services.identity.issueEmailChallenge('sample@example.invalid');
+  const lookedUp=await call('live','POST','/api/tickets/lookup',200,{email:'sample@example.invalid',verificationCode:lookupChal.code});
+  assert.equal(lookedUp.body.data.registrations.length,1);
+  assert.equal(lookedUp.body.data.tickets.length,1);
+  const freeQrToken=lookedUp.body.data.tickets[0].qrToken;
+
+  // 3. Door QR pass scan & replay protection
+  await call('live','POST','/api/tickets/scan',200,{eventId,qrToken:freeQrToken,gateLabel:'Main Gate'},{cookie});
+  await call('live','POST','/api/tickets/scan',409,{eventId,qrToken:freeQrToken,gateLabel:'Main Gate'},{cookie});
+
+  // 4. Artist profile, representative authorization, exclusive conflict detection, and revocation
+  const createdArtist=await call('live','POST','/api/artists',201,{stageName:'Selah Collective',genre:'worship',allowSelfBooking:true},{cookie:artistCookie});
+  const artistId=createdArtist.body.data.id;
+  const artistList=await call('live','GET','/api/artists',200);
+  assert.ok(artistList.body.data.some((a:any)=>a.id===artistId));
+
+  const repAuth1=await call('live','POST',`/api/artists/${artistId}/representatives`,201,{
+    representativeUserId:agentUser.id,
+    agencyName:'Covenant Booking Agency',
+    roleKind:'booking_agent',
+    contactEmail:'agent@example.invalid',
+    scope:'booking_and_negotiation',
+    exclusivity:'exclusive',
+    territory:'US',
+    canViewFinancials:false,
+    commissionRateBps:1000
+  },{cookie:artistCookie});
+  const repAuthId=repAuth1.body.data.id;
+
+  // Conflicting exclusive representation on the same artist/territory must fail with 409
+  await call('live','POST',`/api/artists/${artistId}/representatives`,409,{
+    representativeUserId:agent2User.id,
+    agencyName:'Second Agency',
+    roleKind:'manager',
+    contactEmail:'agent2@example.invalid',
+    scope:'full_management',
+    exclusivity:'exclusive',
+    territory:'US'
+  },{cookie:artistCookie});
+
+  // 5. Booking inquiry, agent counteroffer, and organizer acceptance creating confirmed engagement
+  const inqRes=await call('live','POST','/api/bookings/inquiries',201,{
+    organizationId:orgId,
+    eventId,
+    artistId,
+    proposedStartsAt:'2026-12-15T18:00:00+00:00',
+    venueName:'Sample venue',
+    city:'Phoenix',
+    state:'AZ',
+    performanceScope:'60-minute worship set',
+    proposedArtistFeeCents:150000,
+    agentCommissionCents:15000,
+    platformAdminAllocationCents:0
+  },{cookie});
+  const inquiryId=inqRes.body.data.inquiry.id;
+
+  // Authorized agent submits counteroffer
+  const counterOffer=await call('live','POST',`/api/bookings/inquiries/${inquiryId}/offers`,201,{
+    artistFeeCents:180000,
+    agentCommissionCents:18000,
+    platformAdminAllocationCents:0,
+    travelStipendCents:25000,
+    performanceMinutes:75,
+    termsSummary:'75-minute headline set plus travel stipend'
+  },{cookie:agentCookie});
+  const counterOfferId=counterOffer.body.data.id;
+
+  // Agent cannot accept their own counteroffer (403)
+  await call('live','POST',`/api/bookings/offers/${counterOfferId}/accept`,403,undefined,{cookie:agentCookie});
+  // Organizer accepts the agent's counteroffer (200)
+  const accepted=await call('live','POST',`/api/bookings/offers/${counterOfferId}/accept`,200,undefined,{cookie});
+  assert.equal(accepted.body.data.engagement.depositCollectionStatus,'disabled_pending_policy');
+
+  // Revoke representation and verify revoked agent can no longer negotiate on new inquiries
+  const revoked=await call('live','POST',`/api/representations/${repAuthId}/revoke`,200,{reason:'Representation term concluded'},{cookie:artistCookie});
+  assert.equal(revoked.body.data.status,'revoked');
+
+  // 6. Verified organizer paid ticket checkout, webhook fulfillment, and permission-scoped refund
+  d1.sqlite.prepare('UPDATE organizer_profiles SET verification_status = ?, ticketing_authorized_at = ? WHERE organization_id = ?').run('verified',nowSec,orgId);
+  const paidEvent=await services.live.createEvent(orgId,createEventSchema.parse({...input,title:'Verified Paid Concert',admissionType:'paid',tiers:[{name:'Reserved Seating',priceCents:3000,capacity:20}]}));
+  await services.admin.reviewEvent('staff_reviewer_demo',paidEvent.event.id,{decision:'approved'});
+
+  const paidCheckout=await call('live','POST','/api/checkout/session',200,{
+    eventId:paidEvent.event.id,
+    tierIndex:0,
+    quantity:2,
+    customerEmail:'buyer@example.invalid',
+    customerName:'Ticket Buyer'
+  });
+  assert.ok(paidCheckout.body.orderId);
+  const paidOrderId=paidCheckout.body.orderId;
+
+  // Fulfill via signed sandbox webhook
+  const fulfilled=await signed({
+    id:'evt_paid_order_fulfilled_1',
+    type:'checkout.session.completed',
+    livemode:false,
+    data:{object:{id:paidCheckout.body.sessionId,payment_status:'paid',amount_total:6000,currency:'usd',metadata:{orderId:paidOrderId,eventId:paidEvent.event.id}}}
+  },200);
+  assert.equal(fulfilled.body.ticketsIssued,2);
+
+  // Co-organizer without approve_refunds cannot refund (403); primary owner can refund (200)
+  await call('live','POST',`/api/events/${paidEvent.event.id}/team`,201,{userId:coOrgUser.id,role:'co_organizer'},{cookie});
+  await call('live','POST',`/api/orders/${paidOrderId}/refund`,403,{reason:'Unauthorized refund attempt'},{cookie:coOrgCookie});
+  const refunded=await call('live','POST',`/api/orders/${paidOrderId}/refund`,200,{reason:'Attendee requested full refund'},{cookie});
+  assert.equal(refunded.body.data.ticketsVoided,2);
+
+  // 7. Linked Gamo Production requests
+  const prodReq=await call('live','POST',`/api/events/${eventId}/production-requests`,201,{
+    category:'audio',
+    scopeSummary:'FOH line array and monitor console for 450-seat sanctuary'
+  },{cookie});
+  assert.equal(prodReq.body.data.eventId,eventId);
+  const prodList=await call('live','GET',`/api/events/${eventId}/production-requests`,200,undefined,{cookie});
+  assert.equal(prodList.body.data.length,1);
+});
 test('Worship operations remain explicitly documented redirect stubs',async()=>{
   await call('worship','POST','/api/check-in/confirm',303);
   await call('worship','POST','/api/check-in/fail',303);
@@ -219,5 +356,5 @@ test('legacy list cap, stable ordering and response schema negative controls',as
   assert.throws(()=>validateContract('CheckoutInput',{eventId,quantity:null}));
   const response=handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
-  assert.equal(covered.size,17);
+  assert.equal(covered.size,30);
 });

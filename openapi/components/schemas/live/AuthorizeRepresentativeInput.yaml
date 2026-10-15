@@ -1,0 +1,43 @@
+type: object
+additionalProperties: false
+properties:
+  representativeUserId:
+    $ref: ../shared/Identifier.yaml
+  agencyName:
+    type: string
+    minLength: 2
+    maxLength: 120
+  roleKind:
+    type: string
+    enum:
+      - booking_agent
+      - manager
+      - ministry_coordinator
+  contactEmail:
+    type: string
+    format: email
+  scope:
+    type: string
+    enum:
+      - booking_only
+      - booking_and_negotiation
+      - full_management
+  exclusivity:
+    type: string
+    enum:
+      - non_exclusive
+      - exclusive
+  territory:
+    type: string
+    minLength: 2
+    maxLength: 40
+  canViewFinancials:
+    type: boolean
+  commissionRateBps:
+    type: integer
+    minimum: 0
+    maximum: 5000
+required:
+  - representativeUserId
+  - agencyName
+  - contactEmail

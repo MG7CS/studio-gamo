@@ -1,0 +1,29 @@
+type: object
+additionalProperties: false
+properties:
+  stageName:
+    type: string
+    minLength: 2
+    maxLength: 120
+  genre:
+    type: string
+    minLength: 2
+    maxLength: 60
+  bio:
+    type: string
+    maxLength: 2000
+  homeCity:
+    type: string
+    maxLength: 80
+  homeState:
+    type: string
+    maxLength: 40
+  repertoireSummary:
+    type: string
+    maxLength: 1000
+  allowSelfBooking:
+    type: boolean
+  musicianProfileId:
+    type: string
+required:
+  - stageName

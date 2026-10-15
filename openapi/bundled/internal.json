@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Authoritative contract for Gamo Studios, a Christian mission-driven organization whose final legal incorporation structure and tax status remain undecided. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
@@ -405,6 +405,30 @@
             "schema": {
               "$ref": "#/components/schemas/city"
             }
+          },
+          {
+            "name": "artist",
+            "in": "query",
+            "description": "Performer or artist name substring filter.",
+            "schema": {
+              "$ref": "#/components/schemas/artist"
+            }
+          },
+          {
+            "name": "venue",
+            "in": "query",
+            "description": "Venue name substring filter.",
+            "schema": {
+              "$ref": "#/components/schemas/venue"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Minimum event start date (ISO 8601 date or timestamp).",
+            "schema": {
+              "$ref": "#/components/schemas/dateFrom"
+            }
           }
         ],
         "responses": {
@@ -593,6 +617,810 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterAttendee"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}/team": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "assignEventTeamMember",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Assign role-scoped event team member",
+        "description": "Grants or updates granular per-event permissions. Content/publishing roles cannot grant refund approval or settlement access unless the actor is primary organization owner or superadmin.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with event owner/admin or edit_content permission.",
+        "x-idempotency": "Upserts on (eventId, userId, role).",
+        "x-source": "apps/live/src/pages/api/events/[id]/team.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignEventTeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignEventTeamInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}/production-requests": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "listEventProductionRequests",
+        "tags": [
+          "Production"
+        ],
+        "summary": "List production requests linked to an event",
+        "description": "Returns permission-scoped production service records for the event without exposing financial settlements or attendee personal data.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with coordinate_production or edit_content permission on the event.",
+        "x-idempotency": "Read-only",
+        "x-source": "apps/live/src/pages/api/events/[id]/production-requests.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventProductionRequestListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createEventProductionRequest",
+        "tags": [
+          "Production"
+        ],
+        "summary": "Request Gamo Production support for an event",
+        "description": "Creates a linked Gamo Production request directly from the event context without duplicating event identity or requiring unrelated logins.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with coordinate_production permission on the event.",
+        "x-idempotency": "Creates linked production request.",
+        "x-source": "apps/live/src/pages/api/events/[id]/production-requests.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventProductionRequestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventProductionRequestInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/lookup": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "lookupVerifiedTickets",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Self-service verified ticket and order lookup",
+        "description": "Returns attendee registrations, orders, receipts, and QR passes only after verifying a 6-digit email challenge code. Knowing an email address alone is insufficient.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public with mandatory verified email challenge code.",
+        "x-idempotency": "One-time challenge code consumption.",
+        "x-source": "apps/live/src/pages/api/tickets/lookup.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLookupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketLookupInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/scan": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "scanTicketPass",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Validate and check in QR admission pass",
+        "description": "Verifies tamper-resistant QR ticket or registration pass, prevents replay admission, and records scan audit trail.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with scan_tickets permission on eventId.",
+        "x-idempotency": "Rejects duplicate scan with 409 REPLAY_BLOCKED.",
+        "x-source": "apps/live/src/pages/api/tickets/scan.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketScanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketScanInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artists": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "listArtists",
+        "tags": [
+          "Live"
+        ],
+        "summary": "List verified live performance artists",
+        "description": "Lists verified artist profiles for concert and event discovery.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public",
+        "x-idempotency": "Read-only",
+        "x-source": "apps/live/src/pages/api/artists/index.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createArtistProfile",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Create or onboard artist profile",
+        "description": "Creates a live performance artist profile for the authenticated user without coupling Gamo Worship rankings.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified user session.",
+        "x-idempotency": "One artist profile per user/slug.",
+        "x-source": "apps/live/src/pages/api/artists/index.ts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtistProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtistInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artists/{id}/representatives": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "authorizeRepresentative",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Authorize booking agent or manager for an artist",
+        "description": "Records scoped representation authorization with conflict detection for exclusive representation.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified artist owner or superadmin.",
+        "x-idempotency": "Rejects conflicting exclusive representation with 409.",
+        "x-source": "apps/live/src/pages/api/artists/[id]/representatives.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizeRepresentativeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/representations/{id}/revoke": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "revokeRepresentation",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Revoke artist representation authorization",
+        "description": "Revokes an active representation authorization, blocking future booking/negotiation/financial access while preserving existing confirmed engagements and audit history.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified artist owner, representative owner, or superadmin.",
+        "x-idempotency": "Idempotent revocation.",
+        "x-source": "apps/live/src/pages/api/representations/[id]/revoke.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepresentationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeRepresentationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/inquiries": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "createBookingInquiry",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Send artist booking inquiry",
+        "description": "Verified organizer sends a booking inquiry and initial proposed terms to an artist or authorized representative.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with organization owner/admin or event negotiate_booking permission.",
+        "x-idempotency": "Creates distinct inquiry record.",
+        "x-source": "apps/live/src/pages/api/bookings/inquiries/index.ts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingInquiryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingInquiryInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/inquiries/{id}/offers": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "proposeBookingOffer",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Submit booking offer or counteroffer",
+        "description": "Authorized organizer, artist, or active representative submits a booking offer or counteroffer with separate artist fee, agent commission, and platform allocation line items.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified organizer negotiator, artist (when allowSelfBooking), or active unrevoked representative with negotiation scope.",
+        "x-idempotency": "Appends immutable offer revision.",
+        "x-source": "apps/live/src/pages/api/bookings/inquiries/[id]/offers.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingOfferResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposeBookingOfferInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/offers/{id}/accept": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "acceptBookingOffer",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Confirm booking offer and create engagement",
+        "description": "Authorized counterparty accepts a proposed offer, locking terms as immutable and creating a confirmed performance engagement with deposits disabled pending policy approval.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Authorized counterparty (artist/representative for organizer offers, or organizer negotiator for artist/representative counteroffers).",
+        "x-idempotency": "Rejects duplicate acceptance with 409.",
+        "x-source": "apps/live/src/pages/api/bookings/offers/[id]/accept.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingAcceptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/orders/{id}/refund": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "processOrderRefund",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Approve and process ticket order refund",
+        "description": "Requires explicit approve_refunds authority on the order's event (publishing/content authority alone is insufficient). Voids issued tickets, releases reserved capacity, and records refund ledger entry.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with approve_refunds permission on the event.",
+        "x-idempotency": "Rejects duplicate full refund with 409.",
+        "x-source": "apps/live/src/pages/api/orders/[id]/refund.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderRefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRefundInput"
               }
             }
           }
@@ -1955,6 +2783,16 @@
           "customerEmail": {
             "type": "string",
             "format": "email"
+          },
+          "customerName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 120
           }
         },
         "required": [
@@ -1983,6 +2821,15 @@
           },
           "mock": {
             "type": "boolean"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "holdExpiresAt": {
+            "type": "string"
           }
         },
         "required": [
@@ -2046,6 +2893,12 @@
           },
           "deduplicated": {
             "const": true
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "ticketsIssued": {
+            "type": "integer"
           }
         },
         "required": [
@@ -2620,8 +3473,902 @@
           "city": {
             "type": "string",
             "minLength": 2
+          },
+          "artist": {
+            "type": "string",
+            "minLength": 2
+          },
+          "venue": {
+            "type": "string",
+            "minLength": 2
+          },
+          "dateFrom": {
+            "type": "string",
+            "minLength": 8
           }
         }
+      },
+      "AssignEventTeamInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "organizationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "event_owner",
+              "lead_promoter",
+              "host_venue",
+              "co_organizer",
+              "booking_agent",
+              "production_coordinator",
+              "ticketing_admin",
+              "finance_contact",
+              "door_scanner"
+            ]
+          },
+          "canEditContent": {
+            "type": "boolean"
+          },
+          "canManageTicketing": {
+            "type": "boolean"
+          },
+          "canApproveRefunds": {
+            "type": "boolean"
+          },
+          "canViewSettlement": {
+            "type": "boolean"
+          },
+          "canNegotiateBooking": {
+            "type": "boolean"
+          },
+          "canCoordinateProduction": {
+            "type": "boolean"
+          },
+          "canScanTickets": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "userId",
+          "role"
+        ]
+      },
+      "AssignEventTeamResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "canEditContent": {
+                "type": "boolean"
+              },
+              "canManageTicketing": {
+                "type": "boolean"
+              },
+              "canApproveRefunds": {
+                "type": "boolean"
+              },
+              "canViewSettlement": {
+                "type": "boolean"
+              },
+              "canNegotiateBooking": {
+                "type": "boolean"
+              },
+              "canCoordinateProduction": {
+                "type": "boolean"
+              },
+              "canScanTickets": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "eventId",
+              "userId",
+              "role"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "TicketLookupInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "verificationCode": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          }
+        },
+        "required": [
+          "email",
+          "verificationCode"
+        ]
+      },
+      "TicketLookupResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "registrations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "orders": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "tickets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "operatorDisclosure": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "email",
+              "registrations",
+              "orders",
+              "tickets"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "TicketScanInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "qrToken": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 200
+          },
+          "gateLabel": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "eventId",
+          "qrToken"
+        ]
+      },
+      "TicketScanResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "scanId": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "admitted"
+                ]
+              },
+              "holderName": {
+                "type": "string"
+              },
+              "checkedInAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "scanId",
+              "eventId",
+              "outcome",
+              "holderName",
+              "checkedInAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateArtistInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "stageName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "genre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "homeCity": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "homeState": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "repertoireSummary": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "allowSelfBooking": {
+            "type": "boolean"
+          },
+          "musicianProfileId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stageName"
+        ]
+      },
+      "ArtistProfileResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "stageName": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "genre": {
+                "type": "string"
+              },
+              "verificationStatus": {
+                "type": "string"
+              },
+              "allowSelfBooking": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "stageName",
+              "slug"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ArtistListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ListMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ]
+      },
+      "AuthorizeRepresentativeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "representativeUserId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "agencyName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "roleKind": {
+            "type": "string",
+            "enum": [
+              "booking_agent",
+              "manager",
+              "ministry_coordinator"
+            ]
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "booking_only",
+              "booking_and_negotiation",
+              "full_management"
+            ]
+          },
+          "exclusivity": {
+            "type": "string",
+            "enum": [
+              "non_exclusive",
+              "exclusive"
+            ]
+          },
+          "territory": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "canViewFinancials": {
+            "type": "boolean"
+          },
+          "commissionRateBps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000
+          }
+        },
+        "required": [
+          "representativeUserId",
+          "agencyName",
+          "contactEmail"
+        ]
+      },
+      "RepresentationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "artistId": {
+                "type": "string"
+              },
+              "representativeId": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "exclusivity": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "canViewFinancials": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "artistId",
+              "representativeId",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "RevokeRepresentationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "CreateBookingInquiryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "organizationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "artistId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "proposedStartsAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "venueName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40
+          },
+          "performanceScope": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 1000
+          },
+          "proposedArtistFeeCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "agentCommissionCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "platformAdminAllocationCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "termsSummary": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "organizationId",
+          "artistId",
+          "proposedStartsAt",
+          "venueName",
+          "city",
+          "state",
+          "performanceScope",
+          "proposedArtistFeeCents"
+        ]
+      },
+      "BookingInquiryResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "inquiry": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "initialOffer": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "inquiry",
+              "initialOffer"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ProposeBookingOfferInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "artistFeeCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "agentCommissionCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "platformAdminAllocationCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "travelStipendCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "performanceMinutes": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 480
+          },
+          "termsSummary": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "artistFeeCents",
+          "termsSummary"
+        ]
+      },
+      "BookingOfferResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "inquiryId": {
+                "type": "string"
+              },
+              "offeredByRole": {
+                "type": "string"
+              },
+              "artistFeeCents": {
+                "type": "integer"
+              },
+              "agentCommissionCents": {
+                "type": "integer"
+              },
+              "platformAdminAllocationCents": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "inquiryId",
+              "offeredByRole",
+              "artistFeeCents",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "BookingAcceptResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "offer": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "engagement": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "offer",
+              "engagement"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "OrderRefundInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "OrderRefundResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "refundId": {
+                "type": "string"
+              },
+              "orderId": {
+                "type": "string"
+              },
+              "amountCents": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              },
+              "ticketsVoided": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "refundId",
+              "orderId",
+              "amountCents",
+              "status",
+              "ticketsVoided"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateEventProductionRequestInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "audio",
+              "livestream",
+              "lighting",
+              "acoustic",
+              "training"
+            ]
+          },
+          "scopeSummary": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "category",
+          "scopeSummary"
+        ]
+      },
+      "EventProductionRequestResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "scopeSummary": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "venueName": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "startsAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "eventId",
+              "category",
+              "scopeSummary",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "EventProductionRequestListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "eventId": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "scopeSummary": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "venueName": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "startsAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "eventId",
+                "category",
+                "scopeSummary",
+                "status"
+              ]
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ListMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "meta"
+        ]
       },
       "category": {
         "type": "string",
@@ -2636,6 +4383,18 @@
       "city": {
         "type": "string",
         "minLength": 2
+      },
+      "artist": {
+        "type": "string",
+        "minLength": 2
+      },
+      "venue": {
+        "type": "string",
+        "minLength": 2
+      },
+      "dateFrom": {
+        "type": "string",
+        "minLength": 8
       }
     },
     "securitySchemes": {

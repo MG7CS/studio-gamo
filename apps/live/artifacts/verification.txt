@@ -11,6 +11,15 @@
 390 /organizer/promotion: OK
 390 /organizer/report: OK
 390 /organizer/scan: OK
+390 /organizer/bookings: OK
+390 /organizer/production: OK
+390 /organizer/team: OK
+390 /artist: OK
+390 /artist/bookings: OK
+390 /artist/representation: OK
+390 /agent: OK
+390 /agent/roster: OK
+390 /agent/inquiries: OK
 390 /my-tickets: OK
 390 /organizers/riverside-fellowship: OK
 390 /organizers/cornerstone-youth: OK
@@ -36,6 +45,15 @@
 768 /organizer/promotion: OK
 768 /organizer/report: OK
 768 /organizer/scan: OK
+768 /organizer/bookings: OK
+768 /organizer/production: OK
+768 /organizer/team: OK
+768 /artist: OK
+768 /artist/bookings: OK
+768 /artist/representation: OK
+768 /agent: OK
+768 /agent/roster: OK
+768 /agent/inquiries: OK
 768 /my-tickets: OK
 768 /organizers/riverside-fellowship: OK
 768 /organizers/cornerstone-youth: OK
@@ -61,6 +79,15 @@
 1024 /organizer/promotion: OK
 1024 /organizer/report: OK
 1024 /organizer/scan: OK
+1024 /organizer/bookings: OK
+1024 /organizer/production: OK
+1024 /organizer/team: OK
+1024 /artist: OK
+1024 /artist/bookings: OK
+1024 /artist/representation: OK
+1024 /agent: OK
+1024 /agent/roster: OK
+1024 /agent/inquiries: OK
 1024 /my-tickets: OK
 1024 /organizers/riverside-fellowship: OK
 1024 /organizers/cornerstone-youth: OK
@@ -86,6 +113,15 @@
 1440 /organizer/promotion: OK
 1440 /organizer/report: OK
 1440 /organizer/scan: OK
+1440 /organizer/bookings: OK
+1440 /organizer/production: OK
+1440 /organizer/team: OK
+1440 /artist: OK
+1440 /artist/bookings: OK
+1440 /artist/representation: OK
+1440 /agent: OK
+1440 /agent/roster: OK
+1440 /agent/inquiries: OK
 1440 /my-tickets: OK
 1440 /organizers/riverside-fellowship: OK
 1440 /organizers/cornerstone-youth: OK
@@ -111,6 +147,15 @@
 1920 /organizer/promotion: OK
 1920 /organizer/report: OK
 1920 /organizer/scan: OK
+1920 /organizer/bookings: OK
+1920 /organizer/production: OK
+1920 /organizer/team: OK
+1920 /artist: OK
+1920 /artist/bookings: OK
+1920 /artist/representation: OK
+1920 /agent: OK
+1920 /agent/roster: OK
+1920 /agent/inquiries: OK
 1920 /my-tickets: OK
 1920 /organizers/riverside-fellowship: OK
 1920 /organizers/cornerstone-youth: OK
@@ -123,4 +168,4 @@
 1920 /events/rise-leadership-conference/tickets: OK
 1920 /checkout: OK
 1920 /ticket: OK
-Interactions: spotlight, date reset, empty filters, wizard validation and safe review, quantity/event continuity, zero quantity, canceled ticket block, scanner valid/duplicate/invalid, promotion checkbox: OK
+Interactions: spotlight, date reset, empty filters, wizard validation and safe review, quantity/event continuity, zero quantity, canceled ticket block, scanner valid/duplicate/invalid, artist/agent/self-service workspaces: OK

@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 1.2.0
+  version: 1.3.0
   description: Authoritative contract for Gamo Studios, a Christian
     mission-driven organization whose final legal incorporation structure and
     tax status remain undecided. Demo/incomplete operations are explicitly
@@ -52,6 +52,28 @@ paths:
     $ref: paths/events-id.yaml
   /api/events/{id}/register:
     $ref: paths/events-id-register.yaml
+  /api/events/{id}/team:
+    $ref: paths/events-id-team.yaml
+  /api/events/{id}/production-requests:
+    $ref: paths/events-id-production-requests.yaml
+  /api/tickets/lookup:
+    $ref: paths/tickets-lookup.yaml
+  /api/tickets/scan:
+    $ref: paths/tickets-scan.yaml
+  /api/artists:
+    $ref: paths/artists.yaml
+  /api/artists/{id}/representatives:
+    $ref: paths/artists-id-representatives.yaml
+  /api/representations/{id}/revoke:
+    $ref: paths/representations-id-revoke.yaml
+  /api/bookings/inquiries:
+    $ref: paths/bookings-inquiries.yaml
+  /api/bookings/inquiries/{id}/offers:
+    $ref: paths/bookings-inquiries-id-offers.yaml
+  /api/bookings/offers/{id}/accept:
+    $ref: paths/bookings-offers-id-accept.yaml
+  /api/orders/{id}/refund:
+    $ref: paths/orders-id-refund.yaml
   /api/checkout/session:
     $ref: paths/checkout-session.yaml
   /api/webhook/stripe:
@@ -146,6 +168,50 @@ components:
       $ref: components/schemas/administration/ReviewResponse.yaml
     EventFilters:
       $ref: components/schemas/live/EventFilters.yaml
+    AssignEventTeamInput:
+      $ref: components/schemas/live/AssignEventTeamInput.yaml
+    AssignEventTeamResponse:
+      $ref: components/schemas/live/AssignEventTeamResponse.yaml
+    TicketLookupInput:
+      $ref: components/schemas/live/TicketLookupInput.yaml
+    TicketLookupResponse:
+      $ref: components/schemas/live/TicketLookupResponse.yaml
+    TicketScanInput:
+      $ref: components/schemas/live/TicketScanInput.yaml
+    TicketScanResponse:
+      $ref: components/schemas/live/TicketScanResponse.yaml
+    CreateArtistInput:
+      $ref: components/schemas/live/CreateArtistInput.yaml
+    ArtistProfileResponse:
+      $ref: components/schemas/live/ArtistProfileResponse.yaml
+    ArtistListResponse:
+      $ref: components/schemas/live/ArtistListResponse.yaml
+    AuthorizeRepresentativeInput:
+      $ref: components/schemas/live/AuthorizeRepresentativeInput.yaml
+    RepresentationResponse:
+      $ref: components/schemas/live/RepresentationResponse.yaml
+    RevokeRepresentationInput:
+      $ref: components/schemas/live/RevokeRepresentationInput.yaml
+    CreateBookingInquiryInput:
+      $ref: components/schemas/live/CreateBookingInquiryInput.yaml
+    BookingInquiryResponse:
+      $ref: components/schemas/live/BookingInquiryResponse.yaml
+    ProposeBookingOfferInput:
+      $ref: components/schemas/live/ProposeBookingOfferInput.yaml
+    BookingOfferResponse:
+      $ref: components/schemas/live/BookingOfferResponse.yaml
+    BookingAcceptResponse:
+      $ref: components/schemas/live/BookingAcceptResponse.yaml
+    OrderRefundInput:
+      $ref: components/schemas/live/OrderRefundInput.yaml
+    OrderRefundResponse:
+      $ref: components/schemas/live/OrderRefundResponse.yaml
+    CreateEventProductionRequestInput:
+      $ref: components/schemas/live/CreateEventProductionRequestInput.yaml
+    EventProductionRequestResponse:
+      $ref: components/schemas/live/EventProductionRequestResponse.yaml
+    EventProductionRequestListResponse:
+      $ref: components/schemas/live/EventProductionRequestListResponse.yaml
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml

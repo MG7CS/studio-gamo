@@ -16,7 +16,7 @@ import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
 
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDb, type GamoDatabase } from '@gamo/db';
@@ -24,10 +24,12 @@ import { LiveService } from './live.ts';
 import { AdminService } from './admin.ts';
 import { IdentityService } from './identity.ts';
 import { NotificationService } from './notifications.ts';
+import { getPlatformBrandConfig } from '../brand.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
+  let d1: any;
   let db: GamoDatabase;
   let liveService: LiveService;
   let adminService: AdminService;
@@ -38,16 +40,15 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
 
   before(async () => {
     // 1. Initialize isolated in-memory D1 database
-    const d1 = createInMemoryD1();
+    d1 = createInMemoryD1();
 
     // 2. Read and apply all migrations in order
     const migrationDir = resolve(__dirname, '../../../db/migrations');
-    const sql0 = readFileSync(resolve(migrationDir, '0000_cooing_lilandra.sql'), 'utf-8');
-    const sql1 = readFileSync(resolve(migrationDir, '0001_perpetual_caretaker.sql'), 'utf-8');
-    const sql2 = readFileSync(resolve(migrationDir, '0002_complete_backend_foundation.sql'), 'utf-8');
-    const sql3 = readFileSync(resolve(migrationDir, '0003_registration_integrity.sql'), 'utf-8');
-    const sql4 = readFileSync(resolve(migrationDir, '0004_verified_auth_and_outbox.sql'), 'utf-8');
-    await applyMigrations(d1, [sql0, sql1, sql2, sql3, sql4]);
+    const sqlFiles = readdirSync(migrationDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort()
+      .map((f) => readFileSync(resolve(migrationDir, f), 'utf-8'));
+    await applyMigrations(d1, sqlFiles);
 
     db = createDb(d1);
     liveService = new LiveService(db);
@@ -199,5 +200,98 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     // 2 tickets reserved in Step 6
     assert.equal(dashboard.totalRegistrations, 2);
     assert.equal(dashboard.events[0].registrationCount, 2);
+  });
+
+  test('Step 10: Configurable PLATFORM_BRAND placeholder never renders literally and maintains legal-structure-neutral disclosures', () => {
+    const defaultBrand = getPlatformBrandConfig({ PLATFORM_BRAND: 'PLATFORM_BRAND' });
+    assert.notEqual(defaultBrand.displayName, 'PLATFORM_BRAND');
+    assert.equal(defaultBrand.displayName, 'Gamo Live');
+    assert.equal(defaultBrand.isPlaceholderDomain, true);
+    assert.match(defaultBrand.operatorDisclosure, /final legal incorporation and federal tax status remain under evaluation/i);
+    assert.match(defaultBrand.paymentDisclosure, /not a bank, escrow agent, or fiduciary/i);
+
+    const customBrand = getPlatformBrandConfig({
+      PLATFORM_BRAND: 'Koinonia Live',
+      PLATFORM_PRIMARY_DOMAIN: 'koinonialive.example.org',
+      PLATFORM_IS_LIVE_DOMAIN: 'false',
+    });
+    assert.equal(customBrand.displayName, 'Koinonia Live');
+    assert.equal(customBrand.isPlaceholderDomain, true);
+  });
+
+  test('Step 11: SQLite triggers enforce Academy minor safeguarding, accepted offer immutability, deposit collection gates, and settlement reconciliation', async () => {
+    const [event] = await liveService.listDiscoverableEvents();
+    assert.ok(event);
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    // 1. Minor showcase without guardian consent or safeguarding clearance is blocked by trigger
+    assert.throws(() => {
+      d1.sqlite
+        .prepare(
+          `INSERT INTO event_performers (id, event_id, display_name, billing_order, role_label, is_minor_showcase, guardian_consent_verified, safeguarding_cleared, status, created_at)
+           VALUES ('perf_minor_fail', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 0, 0, 'confirmed', ?)`
+        )
+        .run(event.id, nowSec);
+    }, /MINOR_SAFEGUARDING_REQUIRED/);
+
+    // 2. Minor showcase with verified guardian consent, guardian_user_id, and safeguarding clearance succeeds
+    d1.sqlite
+      .prepare(
+        `INSERT INTO event_performers (id, event_id, display_name, billing_order, role_label, is_minor_showcase, guardian_consent_verified, guardian_user_id, safeguarding_cleared, status, created_at)
+         VALUES ('perf_minor_ok', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 1, ?, 1, 'confirmed', ?)`
+      )
+      .run(event.id, staffUserId, nowSec);
+
+    // 3. Booking offer immutability once accepted & deposit collection gate on engagements
+    const artist = await liveService.createArtistProfile(staffUserId, {
+      stageName: 'Grace Collective',
+      genre: 'worship',
+      allowSelfBooking: true,
+    });
+    const inq = await liveService.createBookingInquiry(staffUserId, {
+      organizationId: organizerOrgId,
+      eventId: event.id,
+      artistId: artist.id,
+      proposedStartsAt: new Date('2026-12-20T19:00:00Z'),
+      venueName: event.venueName,
+      city: event.city,
+      state: event.state,
+      performanceScope: '60-minute worship set',
+      proposedArtistFeeCents: 100000,
+      agentCommissionCents: 10000,
+      platformAdminAllocationCents: 0,
+    });
+    const accepted = await liveService.acceptBookingOffer(
+      inq.initialOffer.id,
+      staffUserId,
+      'artist'
+    );
+    assert.equal(accepted.engagement.depositCollectionStatus, 'disabled_pending_policy');
+
+    // Attempting to mutate an accepted booking offer is blocked by SQLite trigger
+    assert.throws(() => {
+      d1.sqlite
+        .prepare(`UPDATE booking_offers SET artist_fee_cents = 50000 WHERE id = ?`)
+        .run(inq.initialOffer.id);
+    }, /BOOKING_OFFER_IMMUTABLE/);
+
+    // Attempting to enable deposit collection on engagement before policy gate is blocked by SQLite trigger
+    assert.throws(() => {
+      d1.sqlite
+        .prepare(`UPDATE performance_engagements SET deposit_collection_status = 'enabled' WHERE id = ?`)
+        .run(accepted.engagement.id);
+    }, /DEPOSIT_COLLECTION_DISABLED/);
+
+    // 4. Reconcile event settlement with separate financial line items
+    const settlementId = await liveService.reconcileEventSettlement(event.id);
+    assert.ok(settlementId && settlementId.startsWith('stl_'));
+    const settlementRow = d1.sqlite
+      .prepare(`SELECT * FROM settlement_records WHERE id = ?`)
+      .get(settlementId) as Record<string, any>;
+    assert.equal(settlementRow.event_id, event.id);
+    assert.equal(settlementRow.performer_payables_cents, 100000);
+    assert.equal(settlementRow.agent_commissions_cents, 10000);
+    assert.equal(settlementRow.platform_admin_allocation_cents, 0);
+    assert.equal(settlementRow.status, 'reconciled');
   });
 });

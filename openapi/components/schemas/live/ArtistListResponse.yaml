@@ -1,0 +1,16 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+  meta:
+    $ref: ../shared/ListMeta.yaml
+required:
+  - success
+  - data
+  - meta

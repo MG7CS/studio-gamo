@@ -18,6 +18,12 @@ import {
   organizationMembers,
   externalIdentities,
   adminCredentials,
+  events,
+  organizerProfiles,
+  eventTeamMembers,
+  artistProfiles,
+  artistRepresentatives,
+  representationAuthorizations,
   type GamoDatabase,
 } from '@gamo/db';
 
@@ -937,3 +943,195 @@ export async function verifyAdminGateCookie(
   return constantTimeCompare(verified, `${expectedSessionId}:${expectedUserId}`);
 }
 
+// ============================================================================
+// GAMO LIVE GRANULAR EVENT & REPRESENTATION AUTHORIZATION
+// ============================================================================
+
+export type EventPermission =
+  | 'edit_content'
+  | 'manage_ticketing'
+  | 'approve_refunds'
+  | 'view_settlement'
+  | 'negotiate_booking'
+  | 'coordinate_production'
+  | 'scan_tickets';
+
+/**
+ * Evaluates granular per-event permission strictly from D1 records.
+ * Role or organization switches in UI state never confer authority by themselves.
+ * Publishing/content authority ('edit_content') never implies authority to approve refunds or view settlement details.
+ */
+export async function hasEventPermission(
+  db: GamoDatabase,
+  auth: SessionData | null | undefined,
+  eventId: string,
+  permission: EventPermission
+): Promise<boolean> {
+  if (!auth || !auth.user.verifiedEmailAt) return false;
+  if (auth.roles.includes('superadmin')) return true;
+
+  // 1. Check explicit per-event team member grant first
+  const teamRows = await db
+    .select()
+    .from(eventTeamMembers)
+    .where(
+      and(
+        eq(eventTeamMembers.eventId, eventId),
+        eq(eventTeamMembers.userId, auth.user.id),
+        eq(eventTeamMembers.status, 'active')
+      )
+    );
+
+  for (const member of teamRows) {
+    if (permission === 'edit_content' && member.canEditContent) return true;
+    if (permission === 'manage_ticketing' && member.canManageTicketing) return true;
+    if (permission === 'approve_refunds' && member.canApproveRefunds) return true;
+    if (permission === 'view_settlement' && member.canViewSettlement) return true;
+    if (permission === 'negotiate_booking' && member.canNegotiateBooking) return true;
+    if (permission === 'coordinate_production' && member.canCoordinateProduction) return true;
+    if (permission === 'scan_tickets' && member.canScanTickets) return true;
+  }
+
+  // 2. Check primary organizer organization ownership
+  const [eventRow] = await db
+    .select({
+      organizerOrgId: organizerProfiles.organizationId,
+    })
+    .from(events)
+    .innerJoin(organizerProfiles, eq(events.organizerId, organizerProfiles.id))
+    .where(eq(events.id, eventId))
+    .limit(1);
+
+  if (!eventRow) return false;
+
+  // Financial/refund actions require 'owner' in primary organization (or explicit team grant above)
+  if (permission === 'approve_refunds' || permission === 'view_settlement') {
+    return hasOrgRole(auth, eventRow.organizerOrgId, ['owner']);
+  }
+
+  return hasOrgRole(auth, eventRow.organizerOrgId, ['owner', 'admin']);
+}
+
+export async function requireEventPermission(
+  db: GamoDatabase,
+  auth: SessionData,
+  eventId: string,
+  permission: EventPermission
+): Promise<void> {
+  const allowed = await hasEventPermission(db, auth, eventId, permission);
+  if (!allowed) {
+    throw new AuthError(
+      'FORBIDDEN',
+      `You do not have '${permission}' permission for this event.`,
+      403
+    );
+  }
+}
+
+export type RepresentationCapability = 'booking' | 'negotiation' | 'financials';
+
+/**
+ * Verifies whether an authenticated user is authorized to act for an artist
+ * either as the verified artist directly or as an active, unrevoked representative
+ * within effective dates and explicit scope.
+ */
+export async function hasRepresentationAuthority(
+  db: GamoDatabase,
+  auth: SessionData | null | undefined,
+  artistId: string,
+  capability: RepresentationCapability,
+  now: Date = new Date()
+): Promise<{
+  authorized: boolean;
+  actorKind: 'artist' | 'representative' | null;
+  representativeId?: string;
+  authorizationId?: string;
+}> {
+  if (!auth || !auth.user.verifiedEmailAt) {
+    return { authorized: false, actorKind: null };
+  }
+
+  const [artist] = await db
+    .select()
+    .from(artistProfiles)
+    .where(eq(artistProfiles.id, artistId))
+    .limit(1);
+
+  if (!artist) {
+    return { authorized: false, actorKind: null };
+  }
+
+  // Direct artist authority
+  if (artist.userId === auth.user.id) {
+    if ((capability === 'booking' || capability === 'negotiation') && !artist.allowSelfBooking) {
+      return { authorized: false, actorKind: null };
+    }
+    return { authorized: true, actorKind: 'artist' };
+  }
+
+  // Representative authority requires an active, unrevoked authorization within effective dates
+  const reps = await db
+    .select()
+    .from(artistRepresentatives)
+    .where(eq(artistRepresentatives.userId, auth.user.id));
+
+  for (const rep of reps) {
+    const authRows = await db
+      .select()
+      .from(representationAuthorizations)
+      .where(
+        and(
+          eq(representationAuthorizations.artistId, artistId),
+          eq(representationAuthorizations.representativeId, rep.id),
+          eq(representationAuthorizations.status, 'active'),
+          isNull(representationAuthorizations.revokedAt)
+        )
+      );
+
+    for (const row of authRows) {
+      if (row.effectiveFrom.getTime() > now.getTime()) continue;
+      if (row.effectiveUntil && row.effectiveUntil.getTime() <= now.getTime()) continue;
+
+      if (capability === 'financials') {
+        if (row.canViewFinancials) {
+          return {
+            authorized: true,
+            actorKind: 'representative',
+            representativeId: rep.id,
+            authorizationId: row.id,
+          };
+        }
+        continue;
+      }
+
+      if (capability === 'negotiation') {
+        if (row.scope === 'booking_and_negotiation' || row.scope === 'full_management') {
+          return {
+            authorized: true,
+            actorKind: 'representative',
+            representativeId: rep.id,
+            authorizationId: row.id,
+          };
+        }
+        continue;
+      }
+
+      if (capability === 'booking') {
+        if (
+          row.scope === 'booking_only' ||
+          row.scope === 'booking_and_negotiation' ||
+          row.scope === 'full_management'
+        ) {
+          return {
+            authorized: true,
+            actorKind: 'representative',
+            representativeId: rep.id,
+            authorizationId: row.id,
+          };
+        }
+      }
+    }
+  }
+
+  return { authorized: false, actorKind: null };
+}

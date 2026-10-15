@@ -9,6 +9,10 @@ properties:
     type: string
   deduplicated:
     const: true
+  orderId:
+    type: string
+  ticketsIssued:
+    type: integer
 required:
   - received
   - eventId

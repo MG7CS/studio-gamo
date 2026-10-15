@@ -1,0 +1,28 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: true
+    properties:
+      refundId:
+        type: string
+      orderId:
+        type: string
+      amountCents:
+        type: integer
+      status:
+        type: string
+      ticketsVoided:
+        type: integer
+    required:
+      - refundId
+      - orderId
+      - amountCents
+      - status
+      - ticketsVoided
+required:
+  - success
+  - data

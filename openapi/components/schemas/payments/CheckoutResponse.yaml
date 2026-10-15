@@ -11,6 +11,12 @@ properties:
       - type: "null"
   mock:
     type: boolean
+  orderId:
+    type: string
+  orderNumber:
+    type: string
+  holdExpiresAt:
+    type: string
 required:
   - success
   - sessionId

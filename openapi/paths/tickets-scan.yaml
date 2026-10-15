@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: scanTicketPass
+  tags:
+    - Live
+  summary: Validate and check in QR admission pass
+  description: Verifies tamper-resistant QR ticket or registration pass, prevents
+    replay admission, and records scan audit trail.
+  security:
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: Verified session with scan_tickets permission on eventId.
+  x-idempotency: Rejects duplicate scan with 409 REPLAY_BLOCKED.
+  x-source: apps/live/src/pages/api/tickets/scan.ts
+  parameters: []
+  responses:
+    "200":
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/TicketScanResponse.yaml
+    "400":
+      $ref: ../components/responses/LegacyError.yaml
+    "401":
+      $ref: ../components/responses/LegacyError.yaml
+    "403":
+      $ref: ../components/responses/LegacyError.yaml
+    "404":
+      $ref: ../components/responses/LegacyError.yaml
+    "409":
+      $ref: ../components/responses/LegacyError.yaml
+    "500":
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/live/TicketScanInput.yaml

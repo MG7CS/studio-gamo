@@ -1,7 +1,10 @@
 ---
-/** Gamo Live layout: shared document shell + app stylesheet. Pages pass a page title. */
+/** Standalone consumer event platform layout using configurable PLATFORM_BRAND. */
 import '../app.css';
 import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
+import { resolvePlatformBrandConfig } from '@studio-gamo/ui/lib/brand';
+import LiveHeader from '../components/LiveHeader.astro';
+import LiveFooter from '../components/LiveFooter.astro';
 
 interface Props {
   title?: string;
@@ -10,8 +13,27 @@ interface Props {
   bodyClass?: string;
   chrome?: boolean;
 }
-const { title, description, headerTheme = 'light', bodyClass = 'bg-cream text-charcoal', chrome = true } = Astro.props;
+const {
+  title,
+  description,
+  headerTheme = 'light',
+  bodyClass = 'bg-cream text-charcoal',
+  chrome = true,
+} = Astro.props;
+
+const brand = await resolvePlatformBrandConfig(Astro.locals);
+const pageTitle = title ? `${title} | ${brand.displayName}` : `${brand.displayName} · ${brand.tagline}`;
+const pageDescription = description || brand.socialMetadata.defaultDescription;
 ---
-<BaseLayout title={title ? `${title} | Gamo Live` : 'Gamo Live | Gamo Studios'} description={description} current="live" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  current="live"
+  headerTheme={headerTheme}
+  bodyClass={bodyClass}
+  chrome={chrome}
+>
+  <LiveHeader slot="header" />
   <slot />
+  <LiveFooter slot="footer" />
 </BaseLayout>
