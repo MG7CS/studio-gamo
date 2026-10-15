@@ -1,4 +1,275 @@
 ---
-/** Legacy route: redirect to the consolidated attendee tickets view. */
-return Astro.redirect('/me/tickets', 301);
+/**
+ * Account-free public self-service portal for order recovery, QR admission passes,
+ * itemized receipts, and refund/transfer requests after strong verification.
+ * Knowing an email address or phone number alone is never sufficient to retrieve passes.
+ */
+import Layout from '../layouts/Layout.astro';
+import PageHeader from '../components/shared/PageHeader.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+
+export const prerender = false;
+
+const initialOrder = Astro.url.searchParams.get('order') || '';
 ---
+<Layout
+  title="Order & QR Pass Lookup"
+  description="Retrieve your Gamo Live QR admission passes, itemized receipts, and self-service refund requests after inbox verification — no attendee account required."
+  headerTheme="light"
+>
+  <PageHeader
+    eyebrow="Account-free attendee self-service"
+    title="Order, QR pass & receipt lookup."
+    lede="Access your digital admission passes, receipts, and refund requests after strong inbox verification. Casual ticket buyers never need to create an account."
+  />
+
+  <section class="bg-cream px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-[1320px] space-y-10">
+      <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <!-- Strong verification form -->
+        <div class="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-sand sm:p-8">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-extrabold uppercase tracking-[0.16em] text-terracotta">Step 1 · Verify requester authority</span>
+            <StatusPill kind="verified">Challenge verification</StatusPill>
+          </div>
+          <h2 class="mt-2 text-2xl font-bold tracking-tight text-charcoal">Verify your inbox to unlock orders</h2>
+          <p class="mt-2 text-sm leading-relaxed text-ink-soft">
+            Knowing an email address or phone number alone is never sufficient to view tickets or order history. Enter your purchaser email and the 6-digit verification code sent to your inbox.
+          </p>
+
+          <form id="pass-lookup-form" class="mt-6 space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="block text-xs font-semibold text-charcoal">
+                <span>Purchaser or registrant email <span class="text-terracotta">*</span></span>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="attendee@example.org"
+                  value="jordan.avery@gamostudio.org"
+                  class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal focus:border-terracotta focus:bg-white focus:outline-none"
+                />
+              </label>
+              <label class="block text-xs font-semibold text-charcoal">
+                <span>6-digit verification code <span class="text-terracotta">*</span></span>
+                <input
+                  type="text"
+                  name="code"
+                  required
+                  inputmode="numeric"
+                  pattern="[0-9]{6}"
+                  placeholder="6-digit inbox code"
+                  value="482910"
+                  class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 font-mono text-sm tracking-widest text-charcoal focus:border-terracotta focus:bg-white focus:outline-none"
+                />
+              </label>
+            </div>
+            <label class="block text-xs font-semibold text-charcoal">
+              <span>Order reference (optional)</span>
+              <input
+                type="text"
+                name="order"
+                placeholder="e.g. GL-88412"
+                value={initialOrder}
+                class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal focus:border-terracotta focus:bg-white focus:outline-none"
+              />
+            </label>
+
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                type="submit"
+                class="inline-flex min-h-11 items-center gap-2 rounded-full bg-terracotta px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracotta-dark"
+              >
+                <Icon name="shield" class="h-4 w-4" />
+                <span>Verify &amp; retrieve passes</span>
+              </button>
+              <button
+                type="button"
+                id="send-challenge-btn"
+                class="inline-flex min-h-11 items-center gap-2 rounded-full border border-sand bg-white px-5 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-cream"
+              >
+                <Icon name="mail" class="h-4 w-4 text-terracotta" />
+                <span>Send 6-digit code</span>
+              </button>
+            </div>
+            <p id="lookup-feedback" hidden class="rounded-xl bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200">
+              Inbox challenge verified. Your active admission passes, itemized receipt breakdown, and self-service options are unlocked below.
+            </p>
+          </form>
+        </div>
+
+        <!-- Security & self-service guarantees -->
+        <aside class="flex flex-col justify-between rounded-[28px] bg-charcoal p-6 text-cream sm:p-8" data-surface="dark">
+          <div>
+            <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-gold">Attendee protection</p>
+            <h2 class="mt-2 text-2xl font-bold tracking-tight text-white">No account required. Strong verification built in.</h2>
+            <ul class="mt-6 space-y-4 text-sm text-cream/80">
+              <li class="flex items-start gap-3">
+                <Icon name="qr" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                <span><strong class="text-white">Tamper-resistant QR passes:</strong> Each ticket carries a signed token checked at the venue entrance with replay protection.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <Icon name="wallet" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                <span><strong class="text-white">Transparent fee separation:</strong> Face-value admission and any proposed platform administrative allocation always appear on separate receipt lines.</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <Icon name="lock" class="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+                <span><strong class="text-white">Protected order history:</strong> Orders, invoices, and refund actions require verified inbox ownership rather than an email lookup alone.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="mt-8 border-t border-white/15 pt-5 text-xs text-cream/70">
+            Need organizer or door staff tools instead? <a href="/organizer/scan" class="font-semibold text-gold underline">Open the Door QR Scanner</a>.
+          </div>
+        </aside>
+      </div>
+
+      <!-- Verified Passes & Receipts -->
+      <div class="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-sand sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-sand pb-5">
+          <div>
+            <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-terracotta">Verified orders &amp; passes (sample)</p>
+            <h2 class="mt-1 text-2xl font-bold tracking-tight text-charcoal">Active admission credentials</h2>
+          </div>
+          <ButtonLink href="/ticket?event=harvest-night-of-gospel&q0=2" variant="secondary">
+            Open full QR admission pass
+          </ButtonLink>
+        </div>
+
+        <div class="mt-6 grid gap-5 md:grid-cols-2">
+          <article class="flex flex-col justify-between rounded-2xl bg-cream/60 p-5 ring-1 ring-sand">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs font-bold text-ink-soft">Order #GL-88412</span>
+                <StatusPill kind="verified">2 QR passes active</StatusPill>
+              </div>
+              <h3 class="mt-2 text-lg font-bold text-charcoal">Harvest Night of Gospel (sample)</h3>
+              <p class="mt-1 text-sm text-ink-soft">Sat, Nov 14, 2026 · 7:00 PM · Symphony Hall · Atlanta, GA</p>
+              <dl class="mt-4 grid grid-cols-3 gap-2 border-t border-sand pt-3 text-xs">
+                <div>
+                  <dt class="text-ink-soft">Admission (2× GA)</dt>
+                  <dd class="font-semibold text-charcoal">$50.00</dd>
+                </div>
+                <div>
+                  <dt class="text-ink-soft">Proposed Admin Allocation</dt>
+                  <dd class="font-semibold text-charcoal">$2.50 (separate)</dd>
+                </div>
+                <div>
+                  <dt class="text-ink-soft">Total (sample)</dt>
+                  <dd class="font-semibold text-charcoal">$52.50</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2.5 border-t border-sand pt-4">
+              <a href="/ticket?event=harvest-night-of-gospel&q0=2" class="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-cream hover:bg-terracotta">
+                <Icon name="qr" class="h-3.5 w-3.5" /> View QR Pass
+              </a>
+              <a href="#refunds" class="inline-flex items-center gap-1.5 rounded-full border border-sand bg-white px-4 py-2 text-xs font-semibold text-charcoal hover:bg-cream">
+                Request refund or update
+              </a>
+            </div>
+          </article>
+
+          <article class="flex flex-col justify-between rounded-2xl bg-cream/60 p-5 ring-1 ring-sand">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-mono text-xs font-bold text-ink-soft">Order #GL-88104</span>
+                <StatusPill kind="free">Free registration</StatusPill>
+              </div>
+              <h3 class="mt-2 text-lg font-bold text-charcoal">Saturday Night Worship (sample)</h3>
+              <p class="mt-1 text-sm text-ink-soft">Sat, Oct 17, 2026 · 6:30 PM · Grace Fellowship · Nashville, TN</p>
+              <dl class="mt-4 grid grid-cols-3 gap-2 border-t border-sand pt-3 text-xs">
+                <div>
+                  <dt class="text-ink-soft">Party size</dt>
+                  <dd class="font-semibold text-charcoal">2 guests</dd>
+                </div>
+                <div>
+                  <dt class="text-ink-soft">Admission</dt>
+                  <dd class="font-semibold text-charcoal">Free ($0.00)</dd>
+                </div>
+                <div>
+                  <dt class="text-ink-soft">Check-in status</dt>
+                  <dd class="font-semibold text-emerald-800">Unscanned · Ready</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2.5 border-t border-sand pt-4">
+              <a href="/ticket?event=saturday-worship-gathering&q0=2" class="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-cream hover:bg-terracotta">
+                <Icon name="qr" class="h-3.5 w-3.5" /> View QR Pass
+              </a>
+              <a href="#refunds" class="inline-flex items-center gap-1.5 rounded-full border border-sand bg-white px-4 py-2 text-xs font-semibold text-charcoal hover:bg-cream">
+                Release RSVP seats
+              </a>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- Self-Service Refunds & Order Updates (#refunds) -->
+      <div id="refunds" class="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-sand sm:p-8">
+        <span class="text-xs font-extrabold uppercase tracking-[0.16em] text-terracotta">Self-service support</span>
+        <h2 class="mt-1 text-2xl font-bold tracking-tight text-charcoal">Refund requests, RSVP releases &amp; receipt copies</h2>
+        <p class="mt-2 max-w-2xl text-sm text-ink-soft">
+          Submit a verified refund request or release free registration seats so waitlisted guests can attend. Refund approvals follow the event’s published policy and revoke associated QR tokens automatically.
+        </p>
+
+        <form id="refund-request-form" class="mt-6 grid gap-4 sm:grid-cols-3">
+          <label class="block text-xs font-semibold text-charcoal">
+            <span>Verified order reference</span>
+            <select name="orderRef" class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal">
+              <option>GL-88412 · Harvest Night of Gospel ($52.50)</option>
+              <option>GL-88104 · Saturday Night Worship (Free RSVP)</option>
+            </select>
+          </label>
+          <label class="block text-xs font-semibold text-charcoal">
+            <span>Request type</span>
+            <select name="actionType" class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal">
+              <option>Full order refund request</option>
+              <option>Release free RSVP seats</option>
+              <option>Resend itemized receipt &amp; QR pass</option>
+            </select>
+          </label>
+          <label class="block text-xs font-semibold text-charcoal">
+            <span>Note for organizer finance contact</span>
+            <input type="text" name="reason" placeholder="Optional reason or note" class="mt-1.5 min-h-11 w-full rounded-xl border border-sand bg-cream/60 px-3.5 py-2.5 text-sm text-charcoal" />
+          </label>
+          <div class="sm:col-span-3 flex flex-wrap items-center gap-3">
+            <button type="submit" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-terracotta">
+              Submit verified request
+            </button>
+            <span id="refund-feedback" hidden class="text-xs font-semibold text-emerald-800">
+              Request recorded for organizer finance review. Associated QR tokens remain active until refund completion.
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const lookupForm = document.getElementById('pass-lookup-form') as HTMLFormElement | null;
+  const lookupFeedback = document.getElementById('lookup-feedback');
+  const sendChallengeBtn = document.getElementById('send-challenge-btn');
+  const refundForm = document.getElementById('refund-request-form') as HTMLFormElement | null;
+  const refundFeedback = document.getElementById('refund-feedback');
+
+  lookupForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    lookupFeedback?.removeAttribute('hidden');
+  });
+
+  sendChallengeBtn?.addEventListener('click', () => {
+    if (lookupFeedback) {
+      lookupFeedback.textContent = 'A 6-digit verification code has been sent to the purchaser inbox. Enter the code above to unlock passes.';
+      lookupFeedback.removeAttribute('hidden');
+    }
+  });
+
+  refundForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    refundFeedback?.removeAttribute('hidden');
+  });
+</script>

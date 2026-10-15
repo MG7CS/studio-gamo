@@ -1,0 +1,101 @@
+---
+/**
+ * Connected ecosystem pillars on the Gamo Live public homepage:
+ * 1. Discover & Attend
+ * 2. Organize & Promote
+ * 3. Represent & Book Talent
+ * 4. Produce Events
+ */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+
+const pillars = [
+  {
+    number: '01',
+    title: 'Discover & Attend',
+    eyebrow: 'Attendees & Guests',
+    body: 'Browse Christian concerts, worship nights, conferences, and community gatherings nationwide. Reserve free entry or purchase tickets with tamper-resistant QR credentials — no casual attendee account required.',
+    icon: 'ticket' as const,
+    links: [
+      { label: 'Browse all events', href: '/events' },
+      { label: 'Order & QR pass lookup', href: '/my-tickets' },
+    ],
+  },
+  {
+    number: '02',
+    title: 'Organize & Promote',
+    eyebrow: 'Churches, Ministries & Promoters',
+    body: 'Publish moderated event listings, manage multi-role event teams with scoped permissions, configure ticket tiers, and run offline-capable QR door check-in.',
+    icon: 'calendar' as const,
+    links: [
+      { label: 'Promote an event', href: '/promote' },
+      { label: 'Organizer workspace', href: '/organizer' },
+    ],
+  },
+  {
+    number: '03',
+    title: 'Represent & Book Talent',
+    eyebrow: 'Artists, Agents & Managers',
+    body: 'Manage artist profiles, availability, and confirmed engagements, or represent multiple artists under explicit, revocable authorization with structured offer and counteroffer history.',
+    icon: 'music' as const,
+    links: [
+      { label: 'Artist workspace', href: '/artist' },
+      { label: 'Agent & manager roster', href: '/agent' },
+    ],
+  },
+  {
+    number: '04',
+    title: 'Produce Events',
+    eyebrow: 'Technical & Stage Production',
+    body: 'Coordinate stage plots, input lists, audio/lighting/livestream riders, and request Gamo Production support without duplicating identity or losing event context.',
+    icon: 'sliders' as const,
+    links: [
+      { label: 'Event production coordination', href: '/organizer/production' },
+      { label: 'Door scanner & operations', href: '/organizer/scan' },
+    ],
+  },
+];
+---
+<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="ecosystem-pillars-title">
+  <div class="mx-auto max-w-[1320px]">
+    <EditorialHeading
+      id="ecosystem-pillars-title"
+      eyebrow="One connected platform"
+      title="Built for every role in the room."
+      lede="Gamo Live connects attendees, event organizers, performing artists, authorized booking agents, and production teams under one coherent experience."
+    />
+
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {pillars.map((pillar) => (
+        <article class="flex flex-col justify-between rounded-[28px] bg-white p-6 ring-1 ring-sand transition-shadow hover:shadow-float">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-[0.16em] text-terracotta">
+                {pillar.number} · {pillar.eyebrow}
+              </span>
+              <span class="grid h-10 w-10 place-items-center rounded-2xl bg-cream text-charcoal">
+                <Icon name={pillar.icon} class="h-5 w-5 text-terracotta" />
+              </span>
+            </div>
+            <h3 class="mt-4 text-xl font-bold tracking-tight text-charcoal">{pillar.title}</h3>
+            <p class="mt-2.5 text-sm leading-relaxed text-ink-soft">{pillar.body}</p>
+          </div>
+
+          <ul class="mt-6 space-y-2 border-t border-sand pt-4">
+            {pillar.links.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-charcoal transition-colors hover:text-terracotta"
+                >
+                  <span>{link.label}</span>
+                  <Icon name="arrow" class="h-3.5 w-3.5 text-terracotta" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

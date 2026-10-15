@@ -9,9 +9,29 @@ const cls = 'flex min-h-12 w-full items-center gap-3 rounded-[20px] border borde
 <ul class="grid gap-2.5 @lg:grid-cols-2">
   {items.map((a) => (
     <li data-search-item>
-      {a.dialog
-        ? <button type="button" data-dialog-open={a.dialog} class={cls}><span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-terracotta-dark"><Icon name={a.icon ?? 'plus'} class="h-4 w-4" strokeWidth={2} /></span><span class="flex-1">{a.label}</span></button>
-        : <a href={a.href} class={cls}><span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-terracotta-dark"><Icon name={a.icon ?? 'arrow'} class="h-4 w-4" strokeWidth={2} /></span><span class="flex-1">{a.label}</span><Icon name="chevron-right" class="h-4 w-4 text-ink-soft" /></a>}
+      {a.exportReport ? (
+        <button type="button" data-export-report={a.exportReport} class={cls}>
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-terracotta-dark">
+            <Icon name={a.icon ?? 'download'} class="h-4 w-4" strokeWidth={2} />
+          </span>
+          <span class="flex-1">{a.label}</span>
+        </button>
+      ) : a.dialog ? (
+        <button type="button" data-dialog-open={a.dialog} class={cls}>
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-terracotta-dark">
+            <Icon name={a.icon ?? 'plus'} class="h-4 w-4" strokeWidth={2} />
+          </span>
+          <span class="flex-1">{a.label}</span>
+        </button>
+      ) : (
+        <a href={a.href} class={cls}>
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cream text-terracotta-dark">
+            <Icon name={a.icon ?? 'arrow'} class="h-4 w-4" strokeWidth={2} />
+          </span>
+          <span class="flex-1">{a.label}</span>
+          <Icon name="chevron-right" class="h-4 w-4 text-ink-soft" />
+        </a>
+      )}
     </li>
   ))}
 </ul>

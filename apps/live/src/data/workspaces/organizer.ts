@@ -121,7 +121,10 @@ export const organizerWorkspace: Workspace = {
       slug: 'registrations',
       title: 'Registrations',
       description: 'Headcounts for planning. Attendee contact details stay private and are not shown in this preview.',
-      actions: [{ label: 'Export (disabled)', variant: 'secondary', icon: 'file' }],
+      actions: [
+        { label: 'Export registrations (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
         { type: 'stats', items: [
           { label: 'Saturday Night Worship', value: '86', hint: 'of 150 seats', icon: 'users' },
@@ -298,15 +301,49 @@ export const organizerWorkspace: Workspace = {
     },
     {
       slug: 'reports',
-      title: 'Reports',
-      description: 'Participation over the fall season, for planning and stewardship.',
+      title: 'Reports & attendance analytics',
+      description: 'Participation trends, door check-in rates, and stewardship reporting across your gatherings.',
+      actions: [
+        { label: 'Export report (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
         { type: 'stats', items: [
-          { label: 'Gatherings held (Sep–Oct)', value: '11', icon: 'calendar' },
-          { label: 'Total check-ins', value: '683', icon: 'check' },
+          { label: 'Gatherings held (Sep–Oct)', value: '11', delta: '+3 vs prior period', deltaTone: 'up', icon: 'calendar' },
+          { label: 'Total check-ins', value: '683', delta: '86.4% show rate', deltaTone: 'up', icon: 'check' },
           { label: 'First-time attendees', value: '74', hint: 'Self-reported', icon: 'heart' },
-          { label: 'Volunteer shifts', value: '38', icon: 'hand' },
+          { label: 'Volunteer shifts', value: '38', delta: '100% staffed', deltaTone: 'up', icon: 'hand' },
         ] },
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Registration vs. door check-in attendance trend',
+          description: 'Comparison of advance registrations against verified QR check-ins across recent gatherings.',
+          variant: 'bar',
+          exportFilename: 'gamo-live-organizer-attendance-trend',
+          series: [
+            {
+              label: 'Advance registrations',
+              color: 'charcoal',
+              points: [
+                { label: 'Sep 5 Worship', value: 110 },
+                { label: 'Sep 19 Worship', value: 120 },
+                { label: 'Oct 3 Worship', value: 131 },
+                { label: 'Oct 17 Worship', value: 150 },
+              ],
+            },
+            {
+              label: 'Verified door check-ins',
+              color: 'terracotta',
+              points: [
+                { label: 'Sep 5 Worship', value: 92 },
+                { label: 'Sep 19 Worship', value: 97 },
+                { label: 'Oct 3 Worship', value: 112 },
+                { label: 'Oct 17 Worship', value: 128 },
+              ],
+            },
+          ],
+        },
         { type: 'table', span: 2, title: 'By event (sample)', columns: [{ key: 'event', label: 'Event', primary: true }, { key: 'held', label: 'Held' }, { key: 'avg', label: 'Avg. attendance' }, { key: 'trend', label: 'Trend' }], rows: [
           { event: 'Saturday Night Worship', held: '4', avg: '104', trend: 'Steady' },
           { event: 'Bible Study: Psalms', held: '7', avg: '32', trend: 'Growing' },

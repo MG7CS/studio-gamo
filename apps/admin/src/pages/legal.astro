@@ -1,67 +1,144 @@
 ---
+/**
+ * Admin legal & governance document registry (/legal).
+ * Tracks versioned legal drafts, counsel review gates, and publication locks.
+ */
 import '../app.css';
 import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
 import DashPageHeader from '@studio-gamo/ui/components/dashboard/DashPageHeader.astro';
-import Panel from '@studio-gamo/ui/components/dashboard/Panel.astro';
-import InlineNotice from '@studio-gamo/ui/components/dashboard/InlineNotice.astro';
+import DashBlocks from '@studio-gamo/ui/components/dashboard/DashBlocks.astro';
+import { b, type DashBlock } from '@studio-gamo/ui/lib/dashboard';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { adminWorkspace } from '../data/workspace';
----
 
-<DashboardShell workspace={adminWorkspace} current="nonprofit/governance" title="Legal documents (drafts)">
+const blocks: DashBlock[] = [
+  {
+    type: 'notice',
+    tone: 'warning',
+    title: 'Drafts pending legal counsel approval — Do not publish as finalized',
+    body: 'Every legal and governance document below is a working draft prepared for review by qualified legal counsel and the founder/board. None of these documents constitute finalized legal agreements until formally adopted.',
+  },
+  {
+    type: 'stats',
+    span: 3,
+    items: [
+      { label: 'Tracked legal documents', value: '8', delta: 'v0.1 – v0.3 drafts', deltaTone: 'neutral', icon: 'file' },
+      { label: 'Mandatory child-safety gate', value: 'Enforced', delta: 'Required before Academy launch', deltaTone: 'up', icon: 'shield' },
+      { label: 'Public legal disclosure', value: 'Draft-labeled', delta: 'gamostudio.org/legal', deltaTone: 'up', icon: 'check' },
+      { label: 'Counsel sign-off gate', value: 'Pending owner', delta: 'Tracked in checklist', deltaTone: 'neutral', icon: 'lock' },
+    ],
+  },
+  {
+    type: 'table',
+    span: 3,
+    title: 'Legal & governance document control registry',
+    filter: true,
+    filterKey: 'status',
+    filterOptions: ['Counsel review', 'Board review', 'Draft prepared'],
+    exportable: true,
+    exportFilename: 'gamo-legal-document-registry',
+    rowAction: { label: 'Control doc', dialog: 'legal-doc-dialog', icon: 'sliders' },
+    columns: [
+      { key: 'title', label: 'Document title', primary: true },
+      { key: 'scope', label: 'Program / Scope' },
+      { key: 'version', label: 'Version' },
+      { key: 'gate', label: 'Release gate dependency' },
+      { key: 'status', label: 'Review status' },
+    ],
+    rows: [
+      {
+        title: 'Terms of Service',
+        scope: 'All Gamo Studios sites & workspaces',
+        version: 'v0.2-draft',
+        gate: 'Public account & workspace launch',
+        status: b('Counsel review', 'pending'),
+      },
+      {
+        title: 'Privacy Policy & Minor Data Redaction Standard',
+        scope: 'All sites · Strict minor protection',
+        version: 'v0.2-draft',
+        gate: 'All user & family data collection',
+        status: b('Counsel review', 'pending'),
+      },
+      {
+        title: 'Child-Safety & Adult Safeguarding Policy',
+        scope: 'Gamo Academy (instructors, hosts & families)',
+        version: 'v0.3-draft',
+        gate: 'Mandatory before any youth class begins',
+        status: b('Board review', 'info'),
+      },
+      {
+        title: 'Musician Placement & Independent Contractor Agreement',
+        scope: 'Gamo Worship (100% pass-through stipend terms)',
+        version: 'v0.2-draft',
+        gate: 'Live church placement disbursements',
+        status: b('Counsel review', 'pending'),
+      },
+      {
+        title: 'Church & Ministry Collaboration Agreement',
+        scope: 'Gamo Worship, Gamo Academy & Gamo Production',
+        version: 'v0.1-draft',
+        gate: 'Formal host & church collaboration onboarding',
+        status: b('Draft prepared', 'proposal'),
+      },
+      {
+        title: 'Gamo Live Organizer, Ticketing & Refund Policy',
+        scope: 'Gamo Live (events, holds, cancellations & refunds)',
+        version: 'v0.3-draft',
+        gate: 'Paid ticket checkout gate (/api/checkout/session)',
+        status: b('Counsel review', 'pending'),
+      },
+      {
+        title: 'Artist Booking & Agent Representation Mandate Terms',
+        scope: 'Gamo Live (offers, counteroffers & agent authority)',
+        version: 'v0.2-draft',
+        gate: 'Artist booking deposit & escrow gate',
+        status: b('Counsel review', 'pending'),
+      },
+      {
+        title: 'Governance Charter & Conflict-of-Interest Policy',
+        scope: 'Gamo Studios Organization & Board',
+        version: 'v0.2-draft',
+        gate: 'Final entity incorporation & tax filing',
+        status: b('Board review', 'info'),
+      },
+    ],
+  },
+  {
+    type: 'dialog',
+    id: 'legal-doc-dialog',
+    title: 'Update legal document review state',
+    body: 'Record a version control or legal counsel review update. Documents remain draft-labeled until formal owner and counsel sign-off.',
+    fields: [
+      { name: 'subject', label: 'Document', type: 'text', value: 'Terms of Service', required: true },
+      {
+        name: 'reviewState',
+        label: 'Updated review status',
+        type: 'select',
+        options: [
+          'Maintain draft lock — awaiting legal counsel sign-off',
+          'Advance to founder & board review',
+          'Record counsel redline revision note',
+        ],
+        required: true,
+      },
+      { name: 'notes', label: 'Counsel / governance notes', type: 'textarea', required: true },
+    ],
+    confirmLabel: 'Record document update',
+    successText: 'Legal document control note recorded in the governance log.',
+  },
+];
+---
+<DashboardShell workspace={adminWorkspace} current="legal" title="Legal & governance documents">
   <DashPageHeader
     workspace={adminWorkspace}
-    title="Legal Document Management"
-    description="Sample document inventory. All policies and agreements are drafts pending counsel review; nothing here has been published or adopted."
+    title="Legal & Governance Document Registry"
+    description="Versioned legal drafts, safeguarding policies, and counsel review gates across Gamo Studios."
     path="/legal"
+    actions={[
+      { label: 'Export registry (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
+      { label: 'View public legal page', href: siteUrl('web', '/legal'), icon: 'external', variant: 'secondary' },
+    ]}
   />
-
-  <div class="space-y-6">
-    <InlineNotice
-      tone="warning"
-      title="Drafts pending counsel review"
-      body="The documents below represent governance drafts for the proposed nonprofit transition. None are finalized or legally operative."
-    />
-
-    <Panel title="Draft policy & agreement register">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-[14px]">
-          <caption class="sr-only">Draft legal documents</caption>
-          <thead>
-            <tr class="border-b border-sand text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
-              <th scope="col" class="py-3 px-4">Document Name</th>
-              <th scope="col" class="py-3 px-4">Status</th>
-              <th scope="col" class="py-3 px-4">Last Updated</th>
-              <th scope="col" class="py-3 px-4">Program Area</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-sand/60">
-            <tr class="hover:bg-ivory">
-              <th scope="row" class="py-3 px-4 font-semibold">Musician Contractor Agreement</th>
-              <td class="py-3 px-4"><span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">Draft — pending review</span></td>
-              <td class="py-3 px-4 text-ink-soft">Oct 10, 2026</td>
-              <td class="py-3 px-4">Gamo Worship</td>
-            </tr>
-            <tr class="hover:bg-ivory">
-              <th scope="row" class="py-3 px-4 font-semibold">Church Service Agreement</th>
-              <td class="py-3 px-4"><span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">Draft</span></td>
-              <td class="py-3 px-4 text-ink-soft">Oct 11, 2026</td>
-              <td class="py-3 px-4">Church Partnerships</td>
-            </tr>
-            <tr class="hover:bg-ivory">
-              <th scope="row" class="py-3 px-4 font-semibold">Event Ticket Terms of Sale</th>
-              <td class="py-3 px-4"><span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">Draft — pending review</span></td>
-              <td class="py-3 px-4 text-ink-soft">Sep 28, 2026</td>
-              <td class="py-3 px-4">Gamo Live</td>
-            </tr>
-            <tr class="hover:bg-ivory">
-              <th scope="row" class="py-3 px-4 font-semibold">Academy Waiver of Liability</th>
-              <td class="py-3 px-4"><span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200">Draft — pending review</span></td>
-              <td class="py-3 px-4 text-ink-soft">Sep 15, 2026</td>
-              <td class="py-3 px-4">Gamo Academy</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </Panel>
-  </div>
+  <DashBlocks blocks={blocks} idPrefix="admin-legal" />
 </DashboardShell>

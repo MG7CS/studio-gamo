@@ -15,7 +15,11 @@ const cleanSuccess = successText
 ---
 <dialog id={`dlg-${id}`} aria-labelledby={`dlg-${id}-title`} class="w-[min(34rem,calc(100vw-2rem))] max-h-[min(90vh,42rem)] overflow-y-auto rounded-2xl border border-sand bg-white p-0 text-charcoal shadow-2xl backdrop:bg-charcoal/50">
   <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-sand/70 bg-white/95 px-5 py-4 backdrop-blur">
-    <div><h2 id={`dlg-${id}-title`} class="text-[18px] font-semibold leading-6">{title}</h2>{cleanBody && <p class="mt-0.5 text-[13px] text-ink-soft">{cleanBody}</p>}</div>
+    <div>
+      <h2 id={`dlg-${id}-title`} class="text-[18px] font-semibold leading-6">{title}</h2>
+      {cleanBody && <p class="mt-0.5 text-[13px] text-ink-soft">{cleanBody}</p>}
+      <p data-dialog-subject-badge hidden class="mt-1.5 inline-flex items-center gap-1 rounded-full bg-cream px-2.5 py-0.5 text-[12px] font-semibold text-terracotta-dark"></p>
+    </div>
     <button type="button" data-dialog-close class="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink-soft hover:bg-cream hover:text-charcoal" aria-label="Close dialog"><Icon name="x" class="h-5 w-5" /></button>
   </div>
   <div class="@container px-5 py-4">

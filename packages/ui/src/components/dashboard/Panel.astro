@@ -13,9 +13,11 @@ const H = headingLevel;
         {title && <H class="text-[17px] font-bold leading-6 tracking-[-0.015em] sm:text-[19px]">{title}</H>}
         {description && <p class="mt-0.5 text-[12px] text-ink-soft sm:text-[13px]">{description}</p>}
       </div>
-      {action && (action.dialog
-        ? <button type="button" data-dialog-open={action.dialog} class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]">{action.icon && <Icon name={action.icon} class="h-3.5 w-3.5" />}{action.label}</button>
-        : <a href={action.href} class="inline-flex min-h-9 items-center gap-1 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]">{action.label}<Icon name={action.icon ?? 'chevron-right'} class="h-3.5 w-3.5" /></a>)}
+      {action && (action.exportReport
+        ? <button type="button" data-export-report={action.exportReport} class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]">{action.icon && <Icon name={action.icon} class="h-3.5 w-3.5" />}{action.label}</button>
+        : action.dialog
+          ? <button type="button" data-dialog-open={action.dialog} class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]">{action.icon && <Icon name={action.icon} class="h-3.5 w-3.5" />}{action.label}</button>
+          : <a href={action.href} class="inline-flex min-h-9 items-center gap-1 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]">{action.label}<Icon name={action.icon ?? 'chevron-right'} class="h-3.5 w-3.5" /></a>)}
     </header>
   )}
   <div class:list={['@container', padded && 'p-3.5 sm:p-5']}><slot /></div>

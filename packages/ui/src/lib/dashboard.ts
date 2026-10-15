@@ -16,13 +16,62 @@ export type Tone = 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'cance
 export interface BadgeValue { badge: string; tone?: Tone }
 export type Cell = string | BadgeValue;
 
-export interface DashAction { label: string; href?: string; icon?: IconName; variant?: 'primary' | 'secondary'; /** id of a `dialog` block to open. */ dialog?: string }
+export interface DashAction {
+  label: string;
+  href?: string;
+  icon?: IconName;
+  variant?: 'primary' | 'secondary';
+  /** id of a `dialog` block to open. */
+  dialog?: string;
+  /** Trigger client-side page report export ('csv' | 'json' | 'print'). */
+  exportReport?: 'csv' | 'json' | 'print';
+}
+
+export interface ChartPoint {
+  label: string;
+  value: number;
+  displayValue?: string;
+  note?: string;
+}
+
+export interface ChartSeries {
+  label: string;
+  color?: 'terracotta' | 'charcoal' | 'gold' | 'sage' | 'sand';
+  points: ChartPoint[];
+}
+
+export interface ChartSummaryMetric {
+  label: string;
+  value: string;
+  delta?: string;
+  tone?: 'up' | 'down' | 'neutral';
+}
 
 interface BlockBase { id?: string; title?: string; description?: string; span?: 1 | 2 | 3; action?: DashAction }
 
 export type DashBlock =
-  | (BlockBase & { type: 'stats'; items: { label: string; value: string; hint?: string; icon?: IconName }[] })
-  | (BlockBase & { type: 'table'; columns: { key: string; label: string; primary?: boolean }[]; rows: Record<string, Cell>[]; filter?: boolean; filterOptions?: string[]; filterKey?: string; emptyText?: string })
+  | (BlockBase & { type: 'stats'; items: { label: string; value: string; hint?: string; delta?: string; deltaTone?: 'up' | 'down' | 'neutral'; icon?: IconName }[] })
+  | (BlockBase & {
+      type: 'table';
+      columns: { key: string; label: string; primary?: boolean }[];
+      rows: Record<string, Cell>[];
+      filter?: boolean;
+      filterOptions?: string[];
+      filterKey?: string;
+      emptyText?: string;
+      exportable?: boolean;
+      exportFilename?: string;
+      rowAction?: { label: string; dialog: string; icon?: IconName };
+    })
+  | (BlockBase & {
+      type: 'chart';
+      variant?: 'bar' | 'trend' | 'stacked' | 'distribution';
+      unit?: string;
+      summary?: ChartSummaryMetric[];
+      series: ChartSeries[];
+      footnote?: string;
+      exportFilename?: string;
+    })
   | (BlockBase & { type: 'list'; items: { title: string; meta?: string; body?: string; badge?: BadgeValue; href?: string; icon?: IconName }[] })
   | (BlockBase & { type: 'agenda'; items: { date: string; time?: string; title: string; meta?: string; badge?: BadgeValue; href?: string }[] })
   | (BlockBase & { type: 'calendar'; month: string; /** weekday index (0=Sun) of day 1 */ startDay: number; days: number; events: { day: number; label: string; tone?: Tone }[]; selectable?: boolean })

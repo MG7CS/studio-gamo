@@ -208,10 +208,45 @@ export const musicianWorkspace: Workspace = {
     },
     {
       slug: 'statements',
-      title: 'Payment statements',
-      description: 'Demonstration statements. No payments or payouts are connected.',
+      title: 'Payment statements & earnings analytics',
+      description: '100% pass-through musician stipends and standby window records.',
+      actions: [
+        { label: 'Export statements (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
         { type: 'notice', tone: 'warning', body: 'These statements are illustrative only. No payout account is connected and no money has moved.' },
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Monthly service stipends & standby compensation',
+          description: '100% of church musician stipends are paid to you without platform deductions.',
+          variant: 'bar',
+          unit: '$',
+          exportFilename: 'gamo-worship-musician-earnings',
+          series: [
+            {
+              label: 'Primary service stipends',
+              color: 'terracotta',
+              points: [
+                { label: 'Jul 2026', value: 360 },
+                { label: 'Aug 2026', value: 380 },
+                { label: 'Sep 2026', value: 380 },
+                { label: 'Oct 2026', value: 400 },
+              ],
+            },
+            {
+              label: 'Standby hold stipends',
+              color: 'gold',
+              points: [
+                { label: 'Jul 2026', value: 60 },
+                { label: 'Aug 2026', value: 0 },
+                { label: 'Sep 2026', value: 60 },
+                { label: 'Oct 2026', value: 60 },
+              ],
+            },
+          ],
+        },
         { type: 'statement', span: 2, title: 'September 2026 (sample)', lines: [
           { label: 'Sep 6 · Grace Fellowship (sample)', amount: '$200.00', note: 'Primary · keys' },
           { label: 'Sep 13 · Hillside Baptist (sample)', amount: '$180.00', note: 'Standby activated · full service pay' },

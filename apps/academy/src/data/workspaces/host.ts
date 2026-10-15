@@ -99,11 +99,51 @@ export const hostWorkspace: Workspace = {
       slug: 'enrollment',
       title: 'Enrollment summary',
       description: 'Aggregate counts only — no individual learner details.',
+      actions: [
+        { label: 'Export Enrollment CSV', exportReport: 'csv', icon: 'download', variant: 'secondary' },
+      ],
       blocks: [
         { type: 'stats', items: [
-          { label: 'Total enrolled', value: '12', icon: 'users' }, { label: 'Seats open', value: '4', icon: 'plus' }, { label: 'Waitlist', value: '3', icon: 'list' }, { label: 'Avg. attendance', value: '91%', icon: 'check' },
+          { label: 'Total enrolled', value: '12', delta: '+4 vs Fall start', deltaTone: 'up', icon: 'users' },
+          { label: 'Seats open', value: '4', icon: 'plus' },
+          { label: 'Waitlist', value: '3', icon: 'list' },
+          { label: 'Avg. attendance', value: '91%', delta: '+2%', deltaTone: 'up', icon: 'check' },
         ] },
-        { type: 'table', span: 3, columns: [{ key: 'p', label: 'Program', primary: true }, { key: 'cap', label: 'Capacity' }, { key: 'en', label: 'Enrolled' }, { key: 'sp', label: 'Sponsored seats' }, { key: 'att', label: 'Attendance' }], rows: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Hosted Program Capacity, Enrollment & Sponsored Seats',
+          description: 'Aggregate learner seat utilization across hosted classes at Grace Fellowship',
+          variant: 'bar',
+          exportFilename: 'academy-host-enrollment',
+          series: [
+            {
+              label: 'Room Capacity',
+              color: 'charcoal',
+              points: [
+                { label: 'Piano Group B', value: 6 },
+                { label: 'Youth Guitar Circle', value: 10 },
+              ],
+            },
+            {
+              label: 'Enrolled Learners',
+              color: 'terracotta',
+              points: [
+                { label: 'Piano Group B', value: 4 },
+                { label: 'Youth Guitar Circle', value: 8 },
+              ],
+            },
+            {
+              label: 'Sponsored Seats',
+              color: 'sage',
+              points: [
+                { label: 'Piano Group B', value: 2 },
+                { label: 'Youth Guitar Circle', value: 4 },
+              ],
+            },
+          ],
+        },
+        { type: 'table', span: 3, exportable: true, exportFilename: 'academy-host-enrollment-table', columns: [{ key: 'p', label: 'Program', primary: true }, { key: 'cap', label: 'Capacity' }, { key: 'en', label: 'Enrolled' }, { key: 'sp', label: 'Sponsored seats' }, { key: 'att', label: 'Attendance' }], rows: [
           { p: 'Piano Group B', cap: '6', en: '4', sp: '2', att: '92%' },
           { p: 'Youth Guitar Circle', cap: '10', en: '8', sp: '4', att: '90%' },
         ] },
@@ -114,7 +154,7 @@ export const hostWorkspace: Workspace = {
       slug: 'sponsorship',
       title: 'Sponsorship commitments',
       blocks: [
-        { type: 'notice', tone: 'warning', title: 'Preview only', body: 'Figures are proposed or pledged in preview — not real donations. No payments are processed, and Gamo Studios is a proposed nonprofit; no tax-deductibility is claimed.' },
+        { type: 'notice', tone: 'warning', title: 'Preview only', body: 'Figures are proposed or pledged in preview — not real donations. No payments are processed. Gamo Studios is a Christian, mission-driven organization whose final legal incorporation and tax status remain under evaluation; no tax-deductibility is claimed.' },
         { type: 'statement', span: 2, title: 'Fall 2026 seat sponsorship (proposed)', lines: [
           { label: '6 sponsored seats × 10 weeks', amount: '$1,200.00', note: 'Pledged in preview' },
           { label: 'Instruments on loan (3 keyboards)', amount: 'In kind', note: 'Proposed' },
@@ -125,7 +165,42 @@ export const hostWorkspace: Workspace = {
     {
       slug: 'outcomes',
       title: 'Outcomes & reporting',
+      actions: [
+        { label: 'Export Outcomes CSV', exportReport: 'csv', icon: 'download', variant: 'secondary' },
+        { label: 'Export JSON', exportReport: 'json', icon: 'download', variant: 'secondary' },
+      ],
       blocks: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Weekly Hosted Attendance & Curriculum Milestone Trend (%)',
+          description: 'Aggregate attendance and song-readiness across hosted cohorts',
+          variant: 'trend',
+          unit: '%',
+          exportFilename: 'academy-host-outcomes-trend',
+          series: [
+            {
+              label: 'Session Attendance (%)',
+              color: 'sage',
+              points: [
+                { label: 'Week 1', value: 92 },
+                { label: 'Week 2', value: 90 },
+                { label: 'Week 3', value: 91 },
+                { label: 'Week 4', value: 92 },
+              ],
+            },
+            {
+              label: 'Curriculum Milestone Completion (%)',
+              color: 'terracotta',
+              points: [
+                { label: 'Week 1', value: 25 },
+                { label: 'Week 2', value: 48 },
+                { label: 'Week 3', value: 70 },
+                { label: 'Week 4', value: 92 },
+              ],
+            },
+          ],
+        },
         { type: 'progress', span: 2, title: 'Program goals (aggregate, sample)', items: [
           { label: 'Learners completing week 4', value: 92 }, { label: 'Learners playing a first worship song', value: 40 }, { label: 'Families attending recital (planned)', value: 0, note: 'December' },
         ] },

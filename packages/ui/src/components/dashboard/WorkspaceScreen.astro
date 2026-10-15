@@ -31,7 +31,7 @@ try {
 } catch {
   // Not in workerd
 }
-const viewer = await resolveWorkspaceViewer(Astro.request, runtimeEnv);
+const viewer = await resolveWorkspaceViewer(Astro as any, runtimeEnv);
 
 function cleanText(text: string | undefined): string | undefined {
   if (!text) return text;

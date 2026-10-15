@@ -1,95 +1,112 @@
 /**
- * Gamo Studios — Internal Staff Operations workspace (design-first demo).
- * Staff command center and operational queues across all five programs and nonprofit administration.
- * All records are fictional samples. No real staff authentication or database writes exist.
+ * Gamo Studios staff operations & analytics workspace (`apps/admin`).
+ * Composes per-domain screen definitions into one unified administrative workspace.
  */
 import type { Workspace } from '@studio-gamo/ui/lib/dashboard';
-import { organizationScreens } from './admin/organization';
-import { worshipScreens } from './admin/worship';
 import { academyScreens } from './admin/academy';
+import { analyticsScreens } from './admin/analytics';
 import { liveScreens } from './admin/live';
-import { productionScreens } from './admin/production';
 import { nonprofitScreens } from './admin/nonprofit';
+import { organizationScreens } from './admin/organization';
+import { productionScreens } from './admin/production';
+import { worshipScreens } from './admin/worship';
 
 export const adminWorkspace: Workspace = {
   id: 'admin',
   site: 'admin',
   basePath: '',
-  program: 'Internal',
-  name: 'Staff operations',
-  role: 'Operations lead (demo)',
-  permission: 'All programs (demo — no real permissions)',
+  program: 'Internal Operations',
+  name: 'Gamo Studios Operations',
+  role: 'Operations & Analytics Administrator',
+  organization: 'Gamo Studios',
+  permission: 'Full administrative control · Zero Trust & D1 audited',
   staff: true,
   nav: [
     {
-      label: 'Organization Operations',
+      label: 'Command & Control',
       items: [
-        { slug: '', label: 'Command center', icon: 'home' },
-        { slug: 'programs', label: 'Program overview', icon: 'grid' },
-        { slug: 'people', label: 'Users & organizations', icon: 'users', badge: '14' },
-        { slug: 'staff-roles', label: 'Staff roles & permissions', icon: 'lock' },
-        { slug: 'security', label: 'Password & security', icon: 'shield' },
-        { slug: 'activity', label: 'Operational activity', icon: 'clipboard' },
+        { slug: '', label: 'Command center', shortLabel: 'Command', icon: 'home', badge: '26' },
+        { slug: 'controls', label: 'System controls & gates', shortLabel: 'Controls', icon: 'sliders' },
+        { slug: 'reviews', label: 'Unified review queue', shortLabel: 'Reviews', icon: 'clipboard', badge: '6' },
+        { slug: 'users', label: 'Users & accounts', shortLabel: 'Users', icon: 'users' },
+        { slug: 'organizations', label: 'Organizations & ministries', shortLabel: 'Orgs', icon: 'building' },
+        { slug: 'roles', label: 'Roles & permissions', shortLabel: 'Roles', icon: 'shield' },
+        { slug: 'audit', label: 'Security audit log', shortLabel: 'Audit', icon: 'list' },
+        { slug: 'notifications', label: 'Email outbox & alerts', shortLabel: 'Outbox', icon: 'bell' },
+        { slug: 'security', label: 'Password & security', shortLabel: 'Security', icon: 'lock' },
       ],
     },
     {
-      label: 'Worship Operations',
+      label: 'Analytics & Reporting',
       items: [
-        { slug: 'worship/applications', label: 'Musician applications', icon: 'music', badge: '4' },
-        { slug: 'worship/review', label: 'Audition & review queue', icon: 'verified' },
-        { slug: 'worship/requests', label: 'Church requests', icon: 'church', badge: '2' },
-        { slug: 'worship/placement', label: 'Musician placement', icon: 'swap' },
-        { slug: 'worship/standby', label: 'Standby coordination', icon: 'shield' },
-        { slug: 'worship/dispatch', label: 'Incident & dispatch', icon: 'alert' },
+        { slug: 'analytics', label: 'Executive analytics', shortLabel: 'Analytics', icon: 'chart' },
+        { slug: 'analytics/programs', label: 'Program & cohort graphs', shortLabel: 'Cohorts', icon: 'grid' },
+        { slug: 'analytics/financials', label: 'Financial & ledger analysis', shortLabel: 'Financials', icon: 'wallet' },
+        { slug: 'analytics/trust', label: 'Trust & safeguarding metrics', shortLabel: 'Trust', icon: 'verified' },
+        { slug: 'analytics/exports', label: 'Data exports & reports', shortLabel: 'Exports', icon: 'download' },
       ],
     },
     {
-      label: 'Academy Operations',
+      label: 'Gamo Worship',
       items: [
-        { slug: 'academy/instructors', label: 'Instructors', icon: 'user', badge: '2' },
-        { slug: 'academy/enrollments', label: 'Students & enrollments', icon: 'users' },
-        { slug: 'academy/classes', label: 'Classes & schedules', icon: 'school' },
-        { slug: 'academy/hosted', label: 'Church-hosted programs', icon: 'building', badge: '1' },
-        { slug: 'academy/sponsorships', label: 'Sponsorship administration', icon: 'heart' },
+        { slug: 'worship/applications', label: 'Musician applications', icon: 'user', badge: '4' },
+        { slug: 'worship/review', label: 'Identity & audition review', icon: 'verified' },
+        { slug: 'worship/requests', label: 'Church service requests', icon: 'church', badge: '2' },
+        { slug: 'worship/placement', label: 'Musician placement', icon: 'music' },
+        { slug: 'worship/standby', label: 'Standby coverage', icon: 'shield', badge: '2' },
+        { slug: 'worship/dispatch', label: 'Sunday check-in & dispatch', icon: 'bell' },
+      ],
+    },
+    {
+      label: 'Gamo Academy',
+      items: [
+        { slug: 'academy/instructors', label: 'Instructor applications', icon: 'school', badge: '3' },
+        { slug: 'academy/enrollments', label: 'Student enrollments', icon: 'users' },
+        { slug: 'academy/classes', label: 'Classes & schedules', icon: 'calendar' },
+        { slug: 'academy/hosted', label: 'Church-hosted campuses', icon: 'church' },
+        { slug: 'academy/sponsorships', label: 'Student sponsorships', icon: 'heart' },
         { slug: 'academy/safeguarding', label: 'Safeguarding & screening', icon: 'shield' },
       ],
     },
     {
-      label: 'Live Operations',
+      label: 'Gamo Live',
       items: [
         { slug: 'live/submissions', label: 'Event submissions', icon: 'ticket', badge: '3' },
-        { slug: 'live/organizers', label: 'Organizer verification', icon: 'verified', badge: '1' },
-        { slug: 'live/moderation', label: 'Event moderation', icon: 'search' },
-        { slug: 'live/ticketing', label: 'Ticketing oversight', icon: 'ticket' },
-        { slug: 'live/refunds', label: 'Cancellations & refunds', icon: 'wallet' },
-        { slug: 'live/reports', label: 'Event reports', icon: 'chart' },
-        { slug: 'live/scanning', label: 'Scanning support', icon: 'qr' },
+        { slug: 'live/organizers', label: 'Organizers & event teams', icon: 'verified' },
+        { slug: 'live/artists', label: 'Artists & performers', icon: 'mic', badge: '2' },
+        { slug: 'live/agents', label: 'Agents & mandates', icon: 'users' },
+        { slug: 'live/bookings', label: 'Talent bookings & offers', icon: 'calendar' },
+        { slug: 'live/sponsored', label: 'Sponsored placements', icon: 'star' },
+        { slug: 'live/tickets', label: 'Ticketing, scans & refunds', icon: 'qr' },
+        { slug: 'live/policies', label: 'Safety & lookup policies', icon: 'file' },
       ],
     },
     {
-      label: 'Production Operations',
+      label: 'Gamo Production',
       items: [
-        { slug: 'production/requests', label: 'Church requests', icon: 'clipboard', badge: '1' },
-        { slug: 'production/projects', label: 'Project tracking', icon: 'wrench' },
-        { slug: 'production/training', label: 'Training programs', icon: 'school' },
-        { slug: 'production/personnel', label: 'Technical personnel', icon: 'users' },
+        { slug: 'production/requests', label: 'Tech & event requests', icon: 'speaker', badge: '2' },
+        { slug: 'production/projects', label: 'Active projects', icon: 'wrench' },
+        { slug: 'production/training', label: 'Volunteer training clinics', icon: 'school' },
+        { slug: 'production/personnel', label: 'Engineers & crew', icon: 'users' },
       ],
     },
     {
-      label: 'Nonprofit Administration',
+      label: 'Governance & Stewardship',
       items: [
-        { slug: 'nonprofit/partnerships', label: 'Church partnerships', icon: 'church' },
-        { slug: 'nonprofit/sponsorships', label: 'Sponsorships & grants', icon: 'heart' },
-        { slug: 'nonprofit/funding', label: 'Contributions & funding', icon: 'wallet' },
-        { slug: 'nonprofit/budgets', label: 'Program budgets', icon: 'file' },
+        { slug: 'nonprofit/partnerships', label: 'Church collaborations', icon: 'church' },
+        { slug: 'nonprofit/sponsorships', label: 'Program sponsorships', icon: 'heart' },
+        { slug: 'nonprofit/funding', label: 'Funding & sustainability', icon: 'wallet' },
+        { slug: 'nonprofit/budgets', label: 'Operating budgets (draft)', icon: 'file' },
         { slug: 'nonprofit/stewardship', label: 'Stewardship reports', icon: 'book' },
-        { slug: 'nonprofit/reconciliation', label: 'Financial reconciliation', icon: 'chart' },
-        { slug: 'nonprofit/governance', label: 'Governance & compliance', icon: 'shield' },
+        { slug: 'nonprofit/reconciliation', label: 'Fund reconciliation', icon: 'check' },
+        { slug: 'nonprofit/governance', label: 'Legal transition checklist', icon: 'shield' },
+        { slug: 'legal', label: 'Legal document registry', icon: 'file' },
       ],
     },
   ],
   screens: [
     ...organizationScreens,
+    ...analyticsScreens,
     ...worshipScreens,
     ...academyScreens,
     ...liveScreens,

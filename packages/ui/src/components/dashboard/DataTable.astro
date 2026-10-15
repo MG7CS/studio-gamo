@@ -1,11 +1,12 @@
 ---
 /**
  * Responsive data table: semantic <table> from md up, stacked cards on mobile.
- * Optional local search + single-select filter chips (no server requests).
+ * Supports local search, single-select filter chips, row control triggers, and CSV/JSON export.
  */
 import Icon from '../Icon.astro';
 import CellValue from './CellValue.astro';
 import type { Cell } from '../../lib/dashboard';
+import type { IconName } from '../../lib/icons';
 interface Props {
   columns: { key: string; label: string; primary?: boolean }[];
   rows: Record<string, Cell>[];
@@ -14,24 +15,87 @@ interface Props {
   filterKey?: string;
   emptyText?: string;
   caption?: string;
+  exportable?: boolean;
+  exportFilename?: string;
+  rowAction?: { label: string; dialog: string; icon?: IconName };
 }
-const { columns, rows, filter = false, filterOptions = [], filterKey, emptyText = 'No matching records found.', caption = 'Records' } = Astro.props;
+const {
+  columns,
+  rows,
+  filter = false,
+  filterOptions = [],
+  filterKey,
+  emptyText = 'No matching records found.',
+  caption = 'Records',
+  exportable = true,
+  exportFilename,
+  rowAction,
+} = Astro.props;
 const text = (c: Cell | undefined) => (c === undefined ? '' : typeof c === 'string' ? c : c.badge);
 const primary = columns.find((c) => c.primary) ?? columns[0];
 const rest = columns.filter((c) => c !== primary);
 const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
+const showSearch = filter || rows.length >= 3;
+const showToolbar = showSearch || filterOptions.length > 0 || (exportable && rows.length > 0);
+const sluggedFilename =
+  exportFilename ||
+  caption
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') ||
+  'gamo-records';
+const serializedRows = rows.map((r) => {
+  const obj: Record<string, string> = {};
+  for (const col of columns) {
+    obj[col.key] = text(r[col.key]);
+  }
+  return obj;
+});
+const tablePayload = JSON.stringify({
+  caption,
+  filename: sluggedFilename,
+  columns: columns.map((c) => ({ key: c.key, label: c.label })),
+  rows: serializedRows,
+});
 ---
-<div data-table>
-  {filter && (
-    <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <label class="relative block sm:w-72"><span class="sr-only">Filter {caption.toLowerCase()}</span>
-        <Icon name="filter" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
-        <input type="search" data-table-filter placeholder="Filter records" class="h-10 w-full rounded-lg border border-sand bg-ivory pl-9 pr-3 text-[14px]" />
-      </label>
-      {filterOptions.length > 0 && (
-        <div class="flex flex-wrap gap-1.5" role="group" aria-label="Status filter">
-          <button type="button" data-table-chip data-value="" aria-pressed="true" class="chip">All</button>
-          {filterOptions.map((o) => <button type="button" data-table-chip data-value={o} aria-pressed="false" class="chip">{o}</button>)}
+<div data-table data-table-payload={tablePayload}>
+  {showToolbar && (
+    <div class="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap items-center gap-2">
+        {showSearch && (
+          <label class="relative block w-full sm:w-64">
+            <span class="sr-only">Filter {caption.toLowerCase()}</span>
+            <Icon name="filter" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+            <input type="search" data-table-filter placeholder="Filter records..." class="h-9 w-full rounded-lg border border-sand bg-ivory pl-9 pr-3 text-[13px]" />
+          </label>
+        )}
+        {filterOptions.length > 0 && (
+          <div class="flex flex-wrap gap-1.5" role="group" aria-label="Status filter">
+            <button type="button" data-table-chip data-value="" aria-pressed="true" class="chip">All</button>
+            {filterOptions.map((o) => <button type="button" data-table-chip data-value={o} aria-pressed="false" class="chip">{o}</button>)}
+          </div>
+        )}
+      </div>
+      {exportable && rows.length > 0 && (
+        <div class="flex items-center gap-1.5 self-end lg:self-auto">
+          <button
+            type="button"
+            data-table-export="csv"
+            class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+            aria-label={`Export ${caption} as CSV`}
+          >
+            <Icon name="download" class="h-3.5 w-3.5 text-terracotta-dark" />
+            <span>Export CSV</span>
+          </button>
+          <button
+            type="button"
+            data-table-export="json"
+            class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+            aria-label={`Export ${caption} as JSON`}
+          >
+            <Icon name="file" class="h-3.5 w-3.5 text-ink-soft" />
+            <span>JSON</span>
+          </button>
         </div>
       )}
     </div>
@@ -39,23 +103,54 @@ const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
   <div class="hidden overflow-x-auto md:block">
     <table class="w-full border-collapse text-left text-[14px]">
       <caption class="sr-only">{caption}</caption>
-      <thead><tr class="border-b border-sand text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{columns.map((c) => <th scope="col" class="whitespace-nowrap px-3 py-2.5 first:pl-0 last:pr-0">{c.label}</th>)}</tr></thead>
+      <thead>
+        <tr class="border-b border-sand text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
+          {columns.map((c) => <th scope="col" class="whitespace-nowrap px-3 py-2.5 first:pl-0 last:pr-0">{c.label}</th>)}
+          {rowAction && <th scope="col" class="whitespace-nowrap px-3 py-2.5 text-right last:pr-0">Control</th>}
+        </tr>
+      </thead>
       <tbody>
         {rows.map((r, i) => (
           <tr data-row data-key={i} data-filter={fval(r)} class="border-b border-sand/60 last:border-0 hover:bg-ivory">
             {columns.map((c) => c === primary
               ? <th scope="row" class="px-3 py-3 font-semibold first:pl-0"><CellValue value={r[c.key]} /></th>
               : <td class="px-3 py-3 align-middle text-charcoal/85 last:pr-0"><CellValue value={r[c.key]} /></td>)}
+            {rowAction && (
+              <td class="px-3 py-3 text-right align-middle last:pr-0">
+                <button
+                  type="button"
+                  data-dialog-open={rowAction.dialog}
+                  data-dialog-subject={text(r[primary.key])}
+                  class="inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-sand bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark transition-colors hover:border-charcoal hover:bg-cream"
+                >
+                  {rowAction.icon && <Icon name={rowAction.icon} class="h-3.5 w-3.5" />}
+                  <span>{rowAction.label}</span>
+                </button>
+              </td>
+            )}
           </tr>
         ))}
-        <tr data-table-empty hidden><td colspan={columns.length} class="py-8 text-center text-ink-soft">{emptyText}</td></tr>
+        <tr data-table-empty hidden><td colspan={columns.length + (rowAction ? 1 : 0)} class="py-8 text-center text-ink-soft">{emptyText}</td></tr>
       </tbody>
     </table>
   </div>
   <ul class="space-y-2 md:hidden" aria-label={caption}>
     {rows.map((r, i) => (
       <li data-row data-key={i} data-filter={fval(r)} class="rounded-xl border border-sand/80 bg-ivory p-3.5">
-        <p class="text-[15px] font-semibold"><CellValue value={r[primary.key]} /></p>
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-[15px] font-semibold"><CellValue value={r[primary.key]} /></p>
+          {rowAction && (
+            <button
+              type="button"
+              data-dialog-open={rowAction.dialog}
+              data-dialog-subject={text(r[primary.key])}
+              class="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-terracotta-dark"
+            >
+              {rowAction.icon && <Icon name={rowAction.icon} class="h-3 w-3" />}
+              <span>{rowAction.label}</span>
+            </button>
+          )}
+        </div>
         <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           {rest.map((c) => <div class="min-w-0"><dt class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{c.label}</dt><dd class="mt-0.5 break-words text-[13px]"><CellValue value={r[c.key]} /></dd></div>)}
         </dl>
@@ -63,17 +158,20 @@ const fval = (r: Record<string, Cell>) => (filterKey ? text(r[filterKey]) : '');
     ))}
     <li data-table-empty hidden class="py-6 text-center text-ink-soft">{emptyText}</li>
   </ul>
-  {filter && <p class="mt-3 text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} records</p>}
+  <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+    <p class="text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} records</p>
+    <p class="text-[12px] font-medium text-terracotta-dark" data-table-export-status aria-live="polite" hidden></p>
+  </div>
 </div>
 <style>
   .chip {
-    min-height: 2.5rem;
+    min-height: 2.25rem;
     border-radius: 999px;
     border: 1px solid var(--color-sand);
     background: white;
-    padding: 0 1rem;
-    font-size: 13px;
-    font-weight: 500;
+    padding: 0 0.85rem;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }

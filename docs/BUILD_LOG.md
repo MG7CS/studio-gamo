@@ -510,3 +510,35 @@
     - `gamo-live` (`live.gamostudio.org`): Version `bdc324e8-9072-4bec-8bff-d8e365aefc76` (HTTP 200 on `/`, `/artist`, `/agent`, `/api/artists`)
     - `gamo-production` (`production.gamostudio.org`): Version `e04ce2c2-db6f-422d-9cc0-1ca7c35f2ef4` (HTTP 200)
     - `gamo-admin` (`admin.gamostudio.org`): Version `a3b3cc44-781d-45ef-8f35-e295bbfdab62` (HTTP 302 login gate)
+
+## 2026-10-14 — Admin Command Center Modernization, Analytics/Reporting/Exports & Public Pages Polish
+
+- **Objective**: Modernize `apps/admin` into a full operational command center where administrators can control every program and entity (`Worship`, `Academy`, `Live`, `Production`, `Governance & Stewardship`, `System Controls & Safety Gates`, `Users`, `Organizations`, `Roles`, `Legal`), introduce interactive analytics graphs (`trend`, `bar`, `stacked`, `distribution`) with Graph/Table view toggles and 1-click CSV/JSON export across Admin and role dashboards (`organizer`, `artist`, `agent`, `church`, `musician`, `host`, `instructor`, `partner`, `client`), and polish public pages (`apps/live`, `apps/web`, shared footer).
+- **Shared Dashboard Engine (`@studio-gamo/ui`)**:
+  - Added `'download'` icon (`packages/ui/src/lib/icons.ts`, `packages/ui/src/components/Icon.astro`).
+  - Extended `packages/ui/src/lib/dashboard.ts` with `chart` block type (`ChartPoint`, `ChartSeries`, `ChartSummaryMetric`), `exportReport?: 'csv' | 'json' | 'print'` on `DashAction`, `delta` and `deltaTone` on `stats` items, and `exportable`, `exportFilename`, and `rowAction` on `table` blocks.
+  - Built `packages/ui/src/components/dashboard/AnalyticsChart.astro` supporting responsive SVG/CSS `trend`, `bar`, `stacked`, and `distribution` visualizations, interactive Graph / Data-table view toggle (`[data-chart-view]`), summary metric callouts, and 1-click CSV & JSON export (`[data-chart-export]`).
+  - Upgraded `DataTable.astro`, `StatGrid.astro`, `DashBlocks.astro`, `DashDialog.astro`, `DashPageHeader.astro`, `QuickActions.astro`, `Panel.astro`, `WorkspaceScreen.astro`, `session-viewer.ts`, and `dashboard-client.ts` to support per-row operational control actions (`rowAction` prefilling `DashDialog` with the selected row's subject), table-level CSV/JSON exports, and full-page report CSV/JSON downloads (`[data-export-report]`).
+- **Admin Command Center & Deep Analytics Hub (`apps/admin`)**:
+  - Created `apps/admin/src/data/admin/analytics.ts` with 5 deep-dive Admin Analytics & Reporting screens:
+    1. `analytics` — Executive Analytics Hub (34-screen telemetry, 6-month cross-program volume trend, program share distribution, and exportable 6-month master ledger).
+    2. `analytics/programs` — Program Velocity & Utilization (`Worship`, `Academy`, `Live`, `Production`).
+    3. `analytics/financials` — Financial & Settlement Ledger Analytics (strictly separating musician/instructor/artist/organizer pay from proposed Gamo administrative allocations, with zero unapproved deductions).
+    4. `analytics/trust` — Trust, Vetting & Safeguarding Telemetry (Academy youth safeguarding verification, audition rubric distribution, QR scan replay blocks, and role audit metrics).
+    5. `analytics/exports` — Data Exports & Scheduled Reports (10 canonical dataset schemas with 1-click CSV/JSON generation and custom query builder).
+  - Expanded `apps/admin/src/data/admin/live.ts` from 4 to 8 operational control screens (`live/submissions`, `live/organizers`, `live/artists`, `live/agents`, `live/bookings`, `live/sponsored`, `live/tickets`, `live/policies`) so administrators can verify/control artists, audit agent representation scopes & exclusive-conflict triggers, inspect booking negotiations/engagements, and govern ticket orders, holds, QR admission scans, and finance-scoped refunds.
+  - Added System Controls & Safety Gates (`/controls`) in `apps/admin/src/data/admin/organization.ts`, modernized `apps/admin/src/pages/legal.astro` into a full interactive Legal, Operator Disclosures & Gate Readiness workspace, and upgraded all `worship.ts`, `academy.ts`, `production.ts`, and `nonprofit.ts` screens with charts, interactive `rowAction` controls, and CSV/JSON exports (34 total screens in `apps/admin`).
+- **Role Dashboards Upgraded with Analytics & Exports**:
+  - Added `chart` blocks, stat delta indicators, and CSV/JSON exports to `organizer.ts`, `artist.ts`, and `agent.ts` (`apps/live`), `church.ts` and `musician.ts` (`apps/worship`), `host.ts` and `instructor.ts` (`apps/academy`), `partner.ts` (`apps/web`), and `client.ts` (`apps/production`).
+- **Public Pages Polish**:
+  - Created `apps/live/src/components/explore/LiveEcosystemPillars.astro` and integrated it into `apps/live/src/pages/index.astro` to showcase the 4 connected Gamo Live workflows (`Discover & Attend`, `Organize & Promote`, `Represent & Book Talent`, `Produce Events`).
+  - Replaced the redirect in `apps/live/src/pages/my-tickets.astro` with a dedicated, account-free public **Self-Service Order, QR Pass & Refund Lookup** portal wired to `POST /api/orders/lookup`.
+  - Updated `packages/ui/src/components/SiteFooter.astro` (`Organizational Status` column) and `apps/web/src/pages/legal.astro` with clear Gamo Live brand retention & trademark pending disclosures and self-service order lookup links.
+- **Verification**:
+  - `pnpm exec tsx --test scripts/audit/admin-analytics-workspaces.test.ts`: **Pass (4/4 tests verifying all 34 Admin screens, all 5 Analytics screens, all 8 Live Admin screens, and all 9 role workspaces)**
+  - `pnpm typecheck`: **Pass (0 errors across all 6 apps and packages)**
+  - `pnpm test`: **Pass (41/41 tests across 8 suites)**
+  - `pnpm api:check` & `pnpm exec tsx --test scripts/audit/security.test.ts`: **Pass (30/30 OpenAPI operations, 11/11 contract tests, 16/16 security tests)**
+  - `pnpm build`: **Pass (6/6 apps built cleanly)**
+  - Playwright browser verification across 13 Admin routes and 11 Live routes: **HTTP 200, 0px horizontal overflow, 0 console errors**, with screenshots saved to `docs/screenshots/admin-command-center-1440.png`, `docs/screenshots/admin-analytics-1440.png`, `docs/screenshots/admin-live-artists-1440.png`, and `docs/screenshots/live-my-tickets-1440.png`.
+

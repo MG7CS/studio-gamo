@@ -7,4 +7,4 @@ export type IconName =
   | 'chevron-left' | 'chevron-right' | 'x' | 'menu' | 'qr' | 'upload' | 'star'
   | 'headphones' | 'building' | 'book' | 'repeat' | 'info' | 'speaker' | 'external'
   | 'bell' | 'search' | 'settings' | 'home' | 'grid' | 'file' | 'wallet' | 'list'
-  | 'user' | 'logout' | 'lock' | 'alert' | 'chart' | 'clipboard' | 'wrench' | 'message' | 'filter' | 'swap';
+  | 'user' | 'logout' | 'lock' | 'alert' | 'chart' | 'clipboard' | 'wrench' | 'message' | 'filter' | 'swap' | 'download';

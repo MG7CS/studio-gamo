@@ -245,7 +245,40 @@ export const agentWorkspace: Workspace = {
       title: 'Scoped commissions & financial records',
       description:
         'Commission obligations and artist payables for authorizations that explicitly grant financial visibility.',
+      actions: [
+        { label: 'Export roster ledger (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Represented roster booking volume & commission separation',
+          description: 'Tracked artist honorariums vs. authorized agency commissions across active mandates.',
+          variant: 'bar',
+          unit: '$',
+          exportFilename: 'gamo-live-agent-commissions',
+          series: [
+            {
+              label: 'Artist honorarium (payable to artist)',
+              color: 'charcoal',
+              points: [
+                { label: 'Grace Collective (Nov 14)', value: 1800 },
+                { label: 'Grace Collective (Dec 5)', value: 1500 },
+                { label: 'Zion Brass & Choir (Dec 13)', value: 2200 },
+              ],
+            },
+            {
+              label: 'Authorized agency commission (10%)',
+              color: 'terracotta',
+              points: [
+                { label: 'Grace Collective (Nov 14)', value: 180 },
+                { label: 'Grace Collective (Dec 5)', value: 150 },
+                { label: 'Zion Brass & Choir (Dec 13)', value: 220 },
+              ],
+            },
+          ],
+        },
         {
           type: 'statement',
           span: 2,

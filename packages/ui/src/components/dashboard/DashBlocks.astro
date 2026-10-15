@@ -17,11 +17,12 @@ import CardGrid from './CardGrid.astro';
 import Statement from './Statement.astro';
 import StateView from './StateView.astro';
 import DashDialog from './DashDialog.astro';
+import AnalyticsChart from './AnalyticsChart.astro';
 import type { DashBlock } from '../../lib/dashboard';
 interface Props { blocks: DashBlock[]; idPrefix?: string }
 const { blocks, idPrefix = 'blk' } = Astro.props;
 const spanCls = (b: DashBlock) => {
-  const s = b.span ?? (['stats', 'notice', 'table', 'cards'].includes(b.type) ? 3 : 1);
+  const s = b.span ?? (['stats', 'notice', 'table', 'cards', 'chart'].includes(b.type) ? 3 : 1);
   return s === 3 ? 'lg:col-span-3' : s === 2 ? 'lg:col-span-2' : 'lg:col-span-1';
 };
 ---
@@ -34,7 +35,8 @@ const spanCls = (b: DashBlock) => {
     if (b.type === 'empty') return <div class={cls}><StateView state="empty" title={b.title} body={b.body} /></div>;
     return (
       <Panel title={b.title} description={b.description} action={b.action} class={cls}>
-        {b.type === 'table' && <DataTable columns={b.columns} rows={b.rows} filter={b.filter} filterOptions={b.filterOptions} filterKey={b.filterKey} emptyText={b.emptyText} caption={b.title} />}
+        {b.type === 'table' && <DataTable columns={b.columns} rows={b.rows} filter={b.filter} filterOptions={b.filterOptions} filterKey={b.filterKey} emptyText={b.emptyText} caption={b.title} exportable={b.exportable} exportFilename={b.exportFilename} rowAction={b.rowAction} />}
+        {b.type === 'chart' && <AnalyticsChart title={b.title} variant={b.variant} unit={b.unit} summary={b.summary} series={b.series} footnote={b.footnote} exportFilename={b.exportFilename} />}
         {b.type === 'list' && <ItemList items={b.items} />}
         {b.type === 'agenda' && <Agenda items={b.items} />}
         {b.type === 'calendar' && <MonthCalendar month={b.month} startDay={b.startDay} days={b.days} events={b.events} />}

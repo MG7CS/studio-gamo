@@ -170,8 +170,41 @@ export const clientWorkspace: Workspace = {
       slug: 'history',
       title: 'Service history',
       description: 'Past support provided to Grace Fellowship (sample).',
+      actions: [
+        { label: 'Export History CSV', exportReport: 'csv', icon: 'download', variant: 'secondary' },
+      ],
       blocks: [
-        { type: 'table', span: 3, title: 'History', columns: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Production Support Hours & Volunteer Training Sessions',
+          description: 'Cumulative technical advisory and training sessions delivered to Grace Fellowship',
+          variant: 'bar',
+          exportFilename: 'production-client-service-history',
+          series: [
+            {
+              label: 'Technical Advisory Hours',
+              color: 'terracotta',
+              points: [
+                { label: 'Jul 2026', value: 2 },
+                { label: 'Aug 2026', value: 3 },
+                { label: 'Sep 2026', value: 5 },
+                { label: 'Oct 2026', value: 6 },
+              ],
+            },
+            {
+              label: 'Volunteer Training Hours',
+              color: 'sage',
+              points: [
+                { label: 'Jul 2026', value: 4 },
+                { label: 'Aug 2026', value: 0 },
+                { label: 'Sep 2026', value: 2 },
+                { label: 'Oct 2026', value: 3 },
+              ],
+            },
+          ],
+        },
+        { type: 'table', span: 3, title: 'History', exportable: true, exportFilename: 'production-client-history-log', columns: [
           { key: 'date', label: 'Date', primary: true }, { key: 'service', label: 'Service' }, { key: 'team', label: 'Team' }, { key: 'outcome', label: 'Outcome' },
         ], rows: [
           { date: 'Oct 3, 2026', service: 'Sanctuary walkthrough', team: 'Dana K., Sam R. (sample)', outcome: b('Completed', 'success') },
