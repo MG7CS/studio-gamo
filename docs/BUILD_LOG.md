@@ -493,3 +493,11 @@
   - `pnpm typecheck`: **Pass (6/6 apps + `@gamo/api-contracts`)**
   - `node apps/live/scripts/verify-ui.mjs`: **Pass (170 responsive route checks across 34 routes × 5 widths `390, 768, 1024, 1440, 1920`, all local links HTTP 200, all interactive checks pass, 0 console/page errors)**
   - Screenshots captured in `docs/screenshots/2026-refresh/live-resume/` (`home`, `artist`, `agent`, `my-tickets`, `organizer`, `organizer-scan`, `promote-create`, `events-harvest-night-of-gospel`, `checkout`, `ticket` at 390px and 1440px).
+
+## 2026-10-14 — Gamo Live Software Name Retained (`PLATFORM_BRAND = "Gamo Live"`)
+
+- **Decision Recorded**: Retained **Gamo Live** as the working and customer-facing software name across `apps/live`; paused the alternative standalone brand search; recorded trademark clearance as pending legal consultation and domain selection as deferred while keeping the configurable brand layer (`PLATFORM_BRAND`, `getPlatformBrandConfig`, `resolvePlatformBrandConfig`) intact for future rebranding.
+- **Configuration & Test Updates**:
+  - Updated `apps/live/wrangler.toml` (`[vars]`, `[env.preview.vars]`, `[env.production.vars]`) to set `PLATFORM_BRAND = "Gamo Live"` explicitly while preserving existing domain settings and fallback sanitization in `@gamo/domain` and `@studio-gamo/ui`.
+  - Updated Step 10 in `packages/domain/src/services/live-slice.test.ts` to assert **Gamo Live** retention and placeholder sanitization without introducing alternative brand names.
+  - Updated `docs/DECISIONS.md` and `docs/GAMO_LIVE_AND_PARTNERS.md` with the six naming status attributes.

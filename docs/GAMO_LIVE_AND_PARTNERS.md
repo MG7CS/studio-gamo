@@ -15,6 +15,17 @@ The Gamo Studios homepage is a **continuously refreshed window into what is happ
 
 **Gamo Live** is a distinct program: a trusted home for discovering, attending, organizing and supporting **Christian events nationwide**. Eligibility is based on Christian purpose, not ethnicity or nationality.
 
+### Software Brand & Naming Status (2026-10-14 Decision)
+
+| Dimension | Current Status |
+|---|---|
+| **Working software name** | **Gamo Live** (used across all `apps/live` pages, navigation, dashboards, ticketing flows, artist/agent workspaces, and emails) |
+| **Naming status** | **Retained for now** (no alternative or experimental brand names in customer-facing UI) |
+| **Alternative brand search** | **Paused** |
+| **Trademark clearance** | **Pending legal consultation** (no claim of trademark registration or clearance; Gamo Live remains an operating division of Gamo Studios, not a separate legal entity) |
+| **Domain decision** | **Deferred** (existing development and deployment domain configuration retained) |
+| **Future rebranding** | **Supported by the existing configurable brand layer** (`PLATFORM_BRAND`, `getPlatformBrandConfig`, `resolvePlatformBrandConfig`) with **Gamo Live** as the effective default |
+
 ## 2. Gamo Live — two audiences
 
 ### A. Organizers — *Promote Event*

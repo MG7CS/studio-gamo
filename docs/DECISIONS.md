@@ -91,3 +91,13 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   - Door check-in (`POST /api/tickets/scan`) verifies SHA-256 QR token hashes, blocks replay (`already_scanned`), and records `ticket_scans` audit rows.
   - Academy youth showcase performers on `event_performers` require verified guardian consent (`guardian_consent_verified = 1`, `guardian_user_id IS NOT NULL`, `safeguarding_cleared = 1`), enforced by SQLite triggers `event_performer_minor_safeguarding_insert/update`.
   - Organizers coordinate sound, lighting, livestreaming, stage setup, AV, and crew via `POST/GET /api/events/{id}/production-requests` (`production_requests.event_id`), exposing only technical/schedule context to Gamo Production.
+
+## 2026-10-14 — Gamo Live Software Name Retained; Alternative Brand Search Paused
+
+- **Working software name**: **Gamo Live** across all `apps/live` public pages, navigation, dashboards, event listings, ticketing flows, artist and agent workspaces, transactional emails, and admission passes.
+- **Naming status**: **Retained for now** for the current development cycle. No alternative names, temporary naming experiments, or placeholder brands are shown in the customer experience.
+- **Alternative brand search**: **Paused**.
+- **Trademark clearance**: **Pending legal consultation**. Retaining Gamo Live as the working and customer-facing software name does not imply trademark registration, clearance, or legal approval.
+- **Domain decision**: **Deferred**. Existing development (`localhost:4324`), preview, and deployment (`live.gamostudio.org`) configurations remain unchanged; no new domain is registered, migrated, or activated.
+- **Future rebranding**: **Supported by the existing configurable brand layer** (`PLATFORM_BRAND` in `apps/live/wrangler.toml`, `getPlatformBrandConfig`, and `resolvePlatformBrandConfig` in `@gamo/domain` and `@studio-gamo/ui`), which sets **Gamo Live** as the effective default while preserving the ability to rebrand later without rebuilding routes or templates.
+- **Parent relationship & release gates preserved**: Gamo Live remains an operating program/division of Gamo Studios (legal-structure-neutral; not a separately incorporated entity), with shared authentication, cross-division integrations, and fail-closed live payment (`503`) and artist deposit (`disabled_pending_policy`) gates intact.
