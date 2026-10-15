@@ -168,6 +168,234 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}/team": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign role-scoped event team member
+         * @description Grants or updates granular per-event permissions. Content/publishing roles cannot grant refund approval or settlement access unless the actor is primary organization owner or superadmin.
+         */
+        post: operations["assignEventTeamMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/production-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List production requests linked to an event
+         * @description Returns permission-scoped production service records for the event without exposing financial settlements or attendee personal data.
+         */
+        get: operations["listEventProductionRequests"];
+        put?: never;
+        /**
+         * Request Gamo Production support for an event
+         * @description Creates a linked Gamo Production request directly from the event context without duplicating event identity or requiring unrelated logins.
+         */
+        post: operations["createEventProductionRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Self-service verified ticket and order lookup
+         * @description Returns attendee registrations, orders, receipts, and QR passes only after verifying a 6-digit email challenge code. Knowing an email address alone is insufficient.
+         */
+        post: operations["lookupVerifiedTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate and check in QR admission pass
+         * @description Verifies tamper-resistant QR ticket or registration pass, prevents replay admission, and records scan audit trail.
+         */
+        post: operations["scanTicketPass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/artists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List verified live performance artists
+         * @description Lists verified artist profiles for concert and event discovery.
+         */
+        get: operations["listArtists"];
+        put?: never;
+        /**
+         * Create or onboard artist profile
+         * @description Creates a live performance artist profile for the authenticated user without coupling Gamo Worship rankings.
+         */
+        post: operations["createArtistProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/artists/{id}/representatives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Authorize booking agent or manager for an artist
+         * @description Records scoped representation authorization with conflict detection for exclusive representation.
+         */
+        post: operations["authorizeRepresentative"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/representations/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke artist representation authorization
+         * @description Revokes an active representation authorization, blocking future booking/negotiation/financial access while preserving existing confirmed engagements and audit history.
+         */
+        post: operations["revokeRepresentation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookings/inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send artist booking inquiry
+         * @description Verified organizer sends a booking inquiry and initial proposed terms to an artist or authorized representative.
+         */
+        post: operations["createBookingInquiry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookings/inquiries/{id}/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit booking offer or counteroffer
+         * @description Authorized organizer, artist, or active representative submits a booking offer or counteroffer with separate artist fee, agent commission, and platform allocation line items.
+         */
+        post: operations["proposeBookingOffer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookings/offers/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm booking offer and create engagement
+         * @description Authorized counterparty accepts a proposed offer, locking terms as immutable and creating a confirmed performance engagement with deposits disabled pending policy approval.
+         */
+        post: operations["acceptBookingOffer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/{id}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve and process ticket order refund
+         * @description Requires explicit approve_refunds authority on the order's event (publishing/content authority alone is insufficient). Voids issued tickets, releases reserved capacity, and records refund ledger entry.
+         */
+        post: operations["processOrderRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/checkout/session": {
         parameters: {
             query?: never;
@@ -538,6 +766,8 @@ export interface components {
             quantity: number;
             /** Format: email */
             customerEmail?: string;
+            customerName?: string;
+            idempotencyKey?: string;
         };
         CheckoutResponse: {
             /** @constant */
@@ -545,6 +775,9 @@ export interface components {
             sessionId: string;
             url: string | null;
             mock?: boolean;
+            orderId?: string;
+            orderNumber?: string;
+            holdExpiresAt?: string;
         };
         StripeEvent: {
             id: string;
@@ -569,6 +802,8 @@ export interface components {
             type?: string;
             /** @constant */
             deduplicated?: true;
+            orderId?: string;
+            ticketsIssued?: number;
         };
         Event: {
             id: components["schemas"]["Identifier"];
@@ -687,10 +922,269 @@ export interface components {
             /** @enum {string} */
             category?: "concert" | "worship" | "bible" | "conference" | "youth";
             city?: string;
+            artist?: string;
+            venue?: string;
+            dateFrom?: string;
+        };
+        AssignEventTeamInput: {
+            userId: components["schemas"]["Identifier"];
+            organizationId?: components["schemas"]["Identifier"];
+            /** @enum {string} */
+            role: "event_owner" | "lead_promoter" | "host_venue" | "co_organizer" | "booking_agent" | "production_coordinator" | "ticketing_admin" | "finance_contact" | "door_scanner";
+            canEditContent?: boolean;
+            canManageTicketing?: boolean;
+            canApproveRefunds?: boolean;
+            canViewSettlement?: boolean;
+            canNegotiateBooking?: boolean;
+            canCoordinateProduction?: boolean;
+            canScanTickets?: boolean;
+        };
+        AssignEventTeamResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                eventId: string;
+                userId: string;
+                role: string;
+                canEditContent?: boolean;
+                canManageTicketing?: boolean;
+                canApproveRefunds?: boolean;
+                canViewSettlement?: boolean;
+                canNegotiateBooking?: boolean;
+                canCoordinateProduction?: boolean;
+                canScanTickets?: boolean;
+            };
+        };
+        TicketLookupInput: {
+            /** Format: email */
+            email: string;
+            verificationCode: string;
+        };
+        TicketLookupResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                email: string;
+                registrations: {
+                    [key: string]: unknown;
+                }[];
+                orders: {
+                    [key: string]: unknown;
+                }[];
+                tickets: {
+                    [key: string]: unknown;
+                }[];
+                operatorDisclosure?: string;
+            };
+        };
+        TicketScanInput: {
+            eventId: components["schemas"]["Identifier"];
+            qrToken: string;
+            gateLabel?: string;
+        };
+        TicketScanResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                scanId: string;
+                eventId: string;
+                /** @enum {string} */
+                outcome: "admitted";
+                holderName: string;
+                checkedInAt: string;
+            };
+        };
+        CreateArtistInput: {
+            stageName: string;
+            genre?: string;
+            bio?: string;
+            homeCity?: string;
+            homeState?: string;
+            repertoireSummary?: string;
+            allowSelfBooking?: boolean;
+            musicianProfileId?: string;
+        };
+        ArtistProfileResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                userId: string;
+                stageName: string;
+                slug: string;
+                genre?: string;
+                verificationStatus?: string;
+                allowSelfBooking?: boolean;
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        ArtistListResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                [key: string]: unknown;
+            }[];
+            meta: components["schemas"]["ListMeta"];
+        };
+        AuthorizeRepresentativeInput: {
+            representativeUserId: components["schemas"]["Identifier"];
+            agencyName: string;
+            /** @enum {string} */
+            roleKind?: "booking_agent" | "manager" | "ministry_coordinator";
+            /** Format: email */
+            contactEmail: string;
+            /** @enum {string} */
+            scope?: "booking_only" | "booking_and_negotiation" | "full_management";
+            /** @enum {string} */
+            exclusivity?: "non_exclusive" | "exclusive";
+            territory?: string;
+            canViewFinancials?: boolean;
+            commissionRateBps?: number;
+        };
+        RepresentationResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                artistId: string;
+                representativeId: string;
+                scope?: string;
+                exclusivity?: string;
+                status: string;
+                canViewFinancials?: boolean;
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        RevokeRepresentationInput: {
+            reason: string;
+        };
+        CreateBookingInquiryInput: {
+            organizationId: components["schemas"]["Identifier"];
+            eventId?: components["schemas"]["Identifier"];
+            artistId: components["schemas"]["Identifier"];
+            proposedStartsAt: components["schemas"]["Timestamp"];
+            venueName: string;
+            city: string;
+            state: string;
+            performanceScope: string;
+            proposedArtistFeeCents: number;
+            agentCommissionCents?: number;
+            platformAdminAllocationCents?: number;
+            termsSummary?: string;
+        };
+        BookingInquiryResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                inquiry: {
+                    [key: string]: unknown;
+                };
+                initialOffer: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        ProposeBookingOfferInput: {
+            artistFeeCents: number;
+            agentCommissionCents?: number;
+            platformAdminAllocationCents?: number;
+            travelStipendCents?: number;
+            performanceMinutes?: number;
+            termsSummary: string;
+        };
+        BookingOfferResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                inquiryId: string;
+                offeredByRole: string;
+                artistFeeCents: number;
+                agentCommissionCents?: number;
+                platformAdminAllocationCents?: number;
+                status: string;
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        BookingAcceptResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                offer: {
+                    [key: string]: unknown;
+                };
+                engagement: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        OrderRefundInput: {
+            reason: string;
+            amountCents?: number;
+        };
+        OrderRefundResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                refundId: string;
+                orderId: string;
+                amountCents: number;
+                status: string;
+                ticketsVoided: number;
+            } & {
+                [key: string]: unknown;
+            };
+        };
+        CreateEventProductionRequestInput: {
+            /** @enum {string} */
+            category: "audio" | "livestream" | "lighting" | "acoustic" | "training";
+            scopeSummary: string;
+        };
+        EventProductionRequestResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                eventId: string;
+                category: string;
+                scopeSummary: string;
+                status: string;
+                venueName?: string;
+                city?: string;
+                state?: string;
+                startsAt?: string;
+            };
+        };
+        EventProductionRequestListResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                eventId: string;
+                category: string;
+                scopeSummary: string;
+                status: string;
+                venueName?: string;
+                city?: string;
+                state?: string;
+                startsAt?: string;
+            }[];
+            meta: components["schemas"]["ListMeta"];
         };
         /** @enum {string} */
         category: "concert" | "worship" | "bible" | "conference" | "youth";
         city: string;
+        artist: string;
+        venue: string;
+        dateFrom: string;
     };
     responses: {
         /** @description Documented API failure. Internal details are suppressed. */
@@ -885,6 +1379,12 @@ export interface operations {
                 category?: components["schemas"]["category"];
                 /** @description Exact city filter. */
                 city?: components["schemas"]["city"];
+                /** @description Performer or artist name substring filter. */
+                artist?: components["schemas"]["artist"];
+                /** @description Venue name substring filter. */
+                venue?: components["schemas"]["venue"];
+                /** @description Minimum event start date (ISO 8601 date or timestamp). */
+                dateFrom?: components["schemas"]["dateFrom"];
             };
             header?: never;
             path?: never;
@@ -994,6 +1494,393 @@ export interface operations {
                 };
             };
             400: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    assignEventTeamMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignEventTeamInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignEventTeamResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    listEventProductionRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventProductionRequestListResponse"];
+                };
+            };
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    createEventProductionRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEventProductionRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventProductionRequestResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    lookupVerifiedTickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketLookupInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLookupResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    scanTicketPass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketScanInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketScanResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    listArtists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtistListResponse"];
+                };
+            };
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    createArtistProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtistInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtistProfileResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    authorizeRepresentative: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorizeRepresentativeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepresentationResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    revokeRepresentation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeRepresentationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepresentationResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    createBookingInquiry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBookingInquiryInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingInquiryResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    proposeBookingOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposeBookingOfferInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingOfferResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    acceptBookingOffer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingAcceptResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    processOrderRefund: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderRefundInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderRefundResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
             404: components["responses"]["LegacyError"];
             409: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];

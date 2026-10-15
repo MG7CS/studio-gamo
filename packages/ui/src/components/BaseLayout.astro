@@ -43,11 +43,11 @@ const {
     <slot name="head" />
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>
-    {chrome && <SiteHeader current={current} theme={headerTheme} />}
+    {chrome && (Astro.slots.has('header') ? <slot name="header" /> : <SiteHeader current={current} theme={headerTheme} />)}
     <main id="main-content" class="overflow-x-clip">
       <slot />
     </main>
-    {chrome && <SiteFooter />}
+    {chrome && (Astro.slots.has('footer') ? <slot name="footer" /> : <SiteFooter />)}
     <script>
       // Progressive enhancement: reveal elements as they scroll into view.
       document.documentElement.classList.add('js');

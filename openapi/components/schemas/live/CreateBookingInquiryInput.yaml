@@ -1,0 +1,49 @@
+type: object
+additionalProperties: false
+properties:
+  organizationId:
+    $ref: ../shared/Identifier.yaml
+  eventId:
+    $ref: ../shared/Identifier.yaml
+  artistId:
+    $ref: ../shared/Identifier.yaml
+  proposedStartsAt:
+    $ref: ../shared/Timestamp.yaml
+  venueName:
+    type: string
+    minLength: 2
+    maxLength: 160
+  city:
+    type: string
+    minLength: 2
+    maxLength: 80
+  state:
+    type: string
+    minLength: 2
+    maxLength: 40
+  performanceScope:
+    type: string
+    minLength: 4
+    maxLength: 1000
+  proposedArtistFeeCents:
+    type: integer
+    minimum: 0
+  agentCommissionCents:
+    type: integer
+    minimum: 0
+  platformAdminAllocationCents:
+    type: integer
+    minimum: 0
+  termsSummary:
+    type: string
+    minLength: 4
+    maxLength: 1000
+required:
+  - organizationId
+  - artistId
+  - proposedStartsAt
+  - venueName
+  - city
+  - state
+  - performanceScope
+  - proposedArtistFeeCents

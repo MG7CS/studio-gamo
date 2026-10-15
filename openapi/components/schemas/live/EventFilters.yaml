@@ -12,3 +12,12 @@ properties:
   city:
     type: string
     minLength: 2
+  artist:
+    type: string
+    minLength: 2
+  venue:
+    type: string
+    minLength: 2
+  dateFrom:
+    type: string
+    minLength: 8

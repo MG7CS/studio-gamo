@@ -1,0 +1,36 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      email:
+        type: string
+      registrations:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      orders:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      tickets:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      operatorDisclosure:
+        type: string
+    required:
+      - email
+      - registrations
+      - orders
+      - tickets
+required:
+  - success
+  - data

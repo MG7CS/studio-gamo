@@ -343,12 +343,15 @@ export const eventRegistrations = sqliteTable('event_registrations', {
 export const productionRequests = sqliteTable('production_requests', {
   id: text('id').primaryKey(),
   churchOrgId: text('church_org_id').references(() => organizations.id, { onDelete: 'set null' }),
+  eventId: text('event_id').references(() => events.id, { onDelete: 'set null' }),
   contactUserId: text('contact_user_id').notNull().references(() => users.id),
   category: text('category').notNull(), // 'audio' | 'livestream' | 'lighting' | 'acoustic' | 'training'
   scopeSummary: text('scope_summary').notNull(),
   status: text('status').notNull().default('submitted'), // 'submitted' | 'in_review' | 'scheduled' | 'in_progress' | 'completed' | 'archived'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-});
+}, (t) => [
+  index('production_requests_event_idx').on(t.eventId),
+]);
 
 export const productionProjects = sqliteTable('production_projects', {
   id: text('id').primaryKey(),
@@ -492,3 +495,299 @@ export const notificationJobs = sqliteTable('notification_jobs', {
   lastError: text('last_error'),
   providerMessageId: text('provider_message_id'),
 });
+
+// ============================================================================
+// 10. GAMO LIVE STANDALONE PLATFORM (Artists, Agents, Bookings, Multi-Role Teams, Orders, Passes)
+// ============================================================================
+
+export const artistProfiles = sqliteTable('artist_profiles', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  musicianProfileId: text('musician_profile_id').references(() => musicianProfiles.id, { onDelete: 'set null' }),
+  stageName: text('stage_name').notNull(),
+  slug: text('slug').notNull().unique(),
+  genre: text('genre').notNull().default('worship'),
+  bio: text('bio'),
+  homeCity: text('home_city'),
+  homeState: text('home_state'),
+  repertoireSummary: text('repertoire_summary'),
+  mediaLinksJson: text('media_links_json'),
+  availabilityStatus: text('availability_status').notNull().default('open'), // 'open' | 'limited' | 'unavailable'
+  verificationStatus: text('verification_status').notNull().default('pending'), // 'pending' | 'verified' | 'rejected' | 'suspended'
+  allowSelfBooking: integer('allow_self_booking', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('artist_user_idx').on(t.userId),
+  index('artist_verification_idx').on(t.verificationStatus),
+]);
+
+export const artistRepresentatives = sqliteTable('artist_representatives', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
+  agencyName: text('agency_name').notNull(),
+  roleKind: text('role_kind').notNull().default('booking_agent'), // 'booking_agent' | 'manager' | 'ministry_coordinator'
+  verificationStatus: text('verification_status').notNull().default('pending'), // 'pending' | 'verified' | 'rejected' | 'suspended'
+  contactEmail: text('contact_email').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('artist_rep_user_idx').on(t.userId),
+]);
+
+export const representationAuthorizations = sqliteTable('representation_authorizations', {
+  id: text('id').primaryKey(),
+  artistId: text('artist_id').notNull().references(() => artistProfiles.id, { onDelete: 'cascade' }),
+  representativeId: text('representative_id').notNull().references(() => artistRepresentatives.id, { onDelete: 'cascade' }),
+  scope: text('scope').notNull().default('booking_and_negotiation'), // 'booking_only' | 'booking_and_negotiation' | 'full_management'
+  exclusivity: text('exclusivity').notNull().default('non_exclusive'), // 'non_exclusive' | 'exclusive'
+  territory: text('territory').notNull().default('US'),
+  canViewFinancials: integer('can_view_financials', { mode: 'boolean' }).notNull().default(false),
+  commissionRateBps: integer('commission_rate_bps').notNull().default(0),
+  status: text('status').notNull().default('pending_artist_approval'), // 'pending_artist_approval' | 'active' | 'revoked' | 'expired'
+  approvedByUserId: text('approved_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  effectiveFrom: integer('effective_from', { mode: 'timestamp' }).notNull(),
+  effectiveUntil: integer('effective_until', { mode: 'timestamp' }),
+  revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+  revokedByUserId: text('revoked_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  revocationReason: text('revocation_reason'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('rep_auth_artist_idx').on(t.artistId, t.status),
+  index('rep_auth_rep_idx').on(t.representativeId, t.status),
+]);
+
+export const bookingInquiries = sqliteTable('booking_inquiries', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').references(() => events.id, { onDelete: 'set null' }),
+  organizerId: text('organizer_id').notNull().references(() => organizerProfiles.id, { onDelete: 'cascade' }),
+  artistId: text('artist_id').notNull().references(() => artistProfiles.id, { onDelete: 'cascade' }),
+  targetRepresentativeId: text('target_representative_id').references(() => artistRepresentatives.id, { onDelete: 'set null' }),
+  requestedByUserId: text('requested_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  proposedStartsAt: integer('proposed_starts_at', { mode: 'timestamp' }).notNull(),
+  proposedEndsAt: integer('proposed_ends_at', { mode: 'timestamp' }),
+  venueName: text('venue_name').notNull(),
+  city: text('city').notNull(),
+  state: text('state').notNull(),
+  performanceScope: text('performance_scope').notNull(),
+  proposedArtistFeeCents: integer('proposed_artist_fee_cents').notNull().default(0),
+  notes: text('notes'),
+  status: text('status').notNull().default('open'), // 'open' | 'negotiating' | 'accepted' | 'declined' | 'expired' | 'canceled'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('booking_inq_artist_idx').on(t.artistId, t.status),
+  index('booking_inq_organizer_idx').on(t.organizerId, t.status),
+  index('booking_inq_rep_idx').on(t.targetRepresentativeId, t.status),
+]);
+
+export const bookingOffers = sqliteTable('booking_offers', {
+  id: text('id').primaryKey(),
+  inquiryId: text('inquiry_id').notNull().references(() => bookingInquiries.id, { onDelete: 'cascade' }),
+  offeredByUserId: text('offered_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  offeredByRole: text('offered_by_role').notNull(), // 'organizer' | 'artist' | 'representative'
+  artistFeeCents: integer('artist_fee_cents').notNull(),
+  agentCommissionCents: integer('agent_commission_cents').notNull().default(0),
+  platformAdminAllocationCents: integer('platform_admin_allocation_cents').notNull().default(0),
+  travelStipendCents: integer('travel_stipend_cents').notNull().default(0),
+  performanceMinutes: integer('performance_minutes').notNull().default(60),
+  termsSummary: text('terms_summary').notNull(),
+  status: text('status').notNull().default('proposed'), // 'proposed' | 'countered' | 'accepted' | 'rejected' | 'withdrawn'
+  acceptedByUserId: text('accepted_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  acceptedAt: integer('accepted_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('booking_offers_inquiry_idx').on(t.inquiryId),
+]);
+
+export const performanceEngagements = sqliteTable('performance_engagements', {
+  id: text('id').primaryKey(),
+  inquiryId: text('inquiry_id').notNull().unique().references(() => bookingInquiries.id, { onDelete: 'cascade' }),
+  acceptedOfferId: text('accepted_offer_id').notNull().unique().references(() => bookingOffers.id, { onDelete: 'restrict' }),
+  eventId: text('event_id').references(() => events.id, { onDelete: 'set null' }),
+  organizerId: text('organizer_id').notNull().references(() => organizerProfiles.id, { onDelete: 'cascade' }),
+  artistId: text('artist_id').notNull().references(() => artistProfiles.id, { onDelete: 'cascade' }),
+  representativeId: text('representative_id').references(() => artistRepresentatives.id, { onDelete: 'set null' }),
+  authorizationId: text('authorization_id').references(() => representationAuthorizations.id, { onDelete: 'set null' }),
+  artistFeeCents: integer('artist_fee_cents').notNull(),
+  agentCommissionCents: integer('agent_commission_cents').notNull().default(0),
+  platformAdminAllocationCents: integer('platform_admin_allocation_cents').notNull().default(0),
+  depositCollectionStatus: text('deposit_collection_status').notNull().default('disabled_pending_policy'),
+  status: text('status').notNull().default('confirmed'), // 'confirmed' | 'completed' | 'disputed' | 'canceled'
+  confirmedAt: integer('confirmed_at', { mode: 'timestamp' }).notNull(),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+}, (t) => [
+  index('engagements_artist_idx').on(t.artistId, t.status),
+  index('engagements_event_idx').on(t.eventId),
+]);
+
+export const eventOrganizations = sqliteTable('event_organizations', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  participationRole: text('participation_role').notNull(), // 'owner' | 'lead_promoter' | 'host_venue' | 'co_organizer' | 'production_partner' | 'sponsor'
+  isSponsoredLabelRequired: integer('is_sponsored_label_required', { mode: 'boolean' }).notNull().default(false),
+  status: text('status').notNull().default('active'), // 'invited' | 'active' | 'revoked'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  uniqueIndex('event_org_role_unique').on(t.eventId, t.organizationId, t.participationRole),
+  index('event_org_event_idx').on(t.eventId),
+]);
+
+export const eventTeamMembers = sqliteTable('event_team_members', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
+  role: text('role').notNull(), // 'event_owner' | 'lead_promoter' | 'host_venue' | 'co_organizer' | 'booking_agent' | 'production_coordinator' | 'ticketing_admin' | 'finance_contact' | 'door_scanner'
+  canEditContent: integer('can_edit_content', { mode: 'boolean' }).notNull().default(false),
+  canManageTicketing: integer('can_manage_ticketing', { mode: 'boolean' }).notNull().default(false),
+  canApproveRefunds: integer('can_approve_refunds', { mode: 'boolean' }).notNull().default(false),
+  canViewSettlement: integer('can_view_settlement', { mode: 'boolean' }).notNull().default(false),
+  canNegotiateBooking: integer('can_negotiate_booking', { mode: 'boolean' }).notNull().default(false),
+  canCoordinateProduction: integer('can_coordinate_production', { mode: 'boolean' }).notNull().default(false),
+  canScanTickets: integer('can_scan_tickets', { mode: 'boolean' }).notNull().default(false),
+  grantedByUserId: text('granted_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  status: text('status').notNull().default('active'), // 'active' | 'revoked'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  uniqueIndex('event_team_user_role_unique').on(t.eventId, t.userId, t.role),
+  index('event_team_event_idx').on(t.eventId, t.status),
+  index('event_team_user_idx').on(t.userId, t.status),
+]);
+
+export const eventPerformers = sqliteTable('event_performers', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  artistId: text('artist_id').references(() => artistProfiles.id, { onDelete: 'set null' }),
+  instructorId: text('instructor_id').references(() => instructorProfiles.id, { onDelete: 'set null' }),
+  engagementId: text('engagement_id').references(() => performanceEngagements.id, { onDelete: 'set null' }),
+  displayName: text('display_name').notNull(),
+  billingOrder: integer('billing_order').notNull().default(1),
+  roleLabel: text('role_label').notNull().default('Headliner'),
+  setStartsAt: integer('set_starts_at', { mode: 'timestamp' }),
+  setDurationMinutes: integer('set_duration_minutes'),
+  isMinorShowcase: integer('is_minor_showcase', { mode: 'boolean' }).notNull().default(false),
+  guardianConsentVerified: integer('guardian_consent_verified', { mode: 'boolean' }).notNull().default(false),
+  guardianUserId: text('guardian_user_id').references(() => users.id, { onDelete: 'set null' }),
+  safeguardingCleared: integer('safeguarding_cleared', { mode: 'boolean' }).notNull().default(false),
+  status: text('status').notNull().default('confirmed'), // 'invited' | 'confirmed' | 'canceled'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('event_perf_event_idx').on(t.eventId, t.billingOrder),
+  index('event_perf_artist_idx').on(t.artistId),
+]);
+
+export const ticketHolds = sqliteTable('ticket_holds', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  tierId: text('tier_id').notNull().references(() => ticketTiers.id, { onDelete: 'cascade' }),
+  purchaserEmail: text('purchaser_email').notNull(),
+  quantity: integer('quantity').notNull(),
+  idempotencyKey: text('idempotency_key').notNull().unique(),
+  status: text('status').notNull().default('held'), // 'held' | 'converted' | 'expired' | 'released'
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('ticket_holds_event_tier_idx').on(t.eventId, t.tierId, t.status),
+  index('ticket_holds_expires_idx').on(t.expiresAt, t.status),
+]);
+
+export const ticketOrders = sqliteTable('ticket_orders', {
+  id: text('id').primaryKey(),
+  orderNumber: text('order_number').notNull().unique(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  tierId: text('tier_id').references(() => ticketTiers.id, { onDelete: 'set null' }),
+  holdId: text('hold_id').references(() => ticketHolds.id, { onDelete: 'set null' }),
+  purchaserUserId: text('purchaser_user_id').references(() => users.id, { onDelete: 'set null' }),
+  purchaserName: text('purchaser_name').notNull(),
+  purchaserEmail: text('purchaser_email').notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  orderKind: text('order_kind').notNull().default('free'), // 'free' | 'paid' | 'invitation'
+  subtotalCents: integer('subtotal_cents').notNull().default(0),
+  processingFeeCents: integer('processing_fee_cents').notNull().default(0),
+  platformAdminAllocationCents: integer('platform_admin_allocation_cents').notNull().default(0),
+  taxCents: integer('tax_cents').notNull().default(0),
+  totalCents: integer('total_cents').notNull().default(0),
+  organizerProceedsCents: integer('organizer_proceeds_cents').notNull().default(0),
+  currency: text('currency').notNull().default('usd'),
+  stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  idempotencyKey: text('idempotency_key').notNull().unique(),
+  status: text('status').notNull().default('pending_payment'), // 'pending_payment' | 'pending_approval' | 'confirmed' | 'refunded' | 'partially_refunded' | 'disputed' | 'canceled'
+  confirmedAt: integer('confirmed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('ticket_orders_event_idx').on(t.eventId, t.status),
+  index('ticket_orders_email_idx').on(t.purchaserEmail),
+  index('ticket_orders_session_idx').on(t.stripeCheckoutSessionId),
+]);
+
+export const tickets = sqliteTable('tickets', {
+  id: text('id').primaryKey(),
+  orderId: text('order_id').notNull().references(() => ticketOrders.id, { onDelete: 'cascade' }),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  tierId: text('tier_id').references(() => ticketTiers.id, { onDelete: 'set null' }),
+  registrationId: text('registration_id').references(() => eventRegistrations.id, { onDelete: 'set null' }),
+  holderName: text('holder_name').notNull(),
+  holderEmail: text('holder_email').notNull(),
+  qrToken: text('qr_token').notNull().unique(),
+  qrSignatureHash: text('qr_signature_hash').notNull(),
+  status: text('status').notNull().default('valid'), // 'valid' | 'checked_in' | 'refunded' | 'voided'
+  checkedInAt: integer('checked_in_at', { mode: 'timestamp' }),
+  checkedInByUserId: text('checked_in_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('tickets_order_idx').on(t.orderId),
+  index('tickets_event_idx').on(t.eventId, t.status),
+  index('tickets_email_idx').on(t.holderEmail),
+]);
+
+export const ticketScans = sqliteTable('ticket_scans', {
+  id: text('id').primaryKey(),
+  ticketId: text('ticket_id').references(() => tickets.id, { onDelete: 'set null' }),
+  registrationId: text('registration_id').references(() => eventRegistrations.id, { onDelete: 'set null' }),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  scannedByUserId: text('scanned_by_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  qrTokenHash: text('qr_token_hash').notNull(),
+  outcome: text('outcome').notNull(), // 'admitted' | 'replay_blocked' | 'invalid_token' | 'wrong_event' | 'refunded_or_void'
+  gateLabel: text('gate_label'),
+  notes: text('notes'),
+  scannedAt: integer('scanned_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('ticket_scans_event_idx').on(t.eventId, t.scannedAt),
+  index('ticket_scans_ticket_idx').on(t.ticketId),
+]);
+
+export const refundRecords = sqliteTable('refund_records', {
+  id: text('id').primaryKey(),
+  orderId: text('order_id').notNull().references(() => ticketOrders.id, { onDelete: 'cascade' }),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  requestedByEmail: text('requested_by_email').notNull(),
+  approvedByUserId: text('approved_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  amountCents: integer('amount_cents').notNull(),
+  reason: text('reason').notNull(),
+  stripeRefundId: text('stripe_refund_id'),
+  status: text('status').notNull().default('requested'), // 'requested' | 'approved' | 'processed' | 'rejected'
+  processedAt: integer('processed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('refund_records_order_idx').on(t.orderId),
+  index('refund_records_event_idx').on(t.eventId, t.status),
+]);
+
+export const settlementRecords = sqliteTable('settlement_records', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  organizerId: text('organizer_id').notNull().references(() => organizerProfiles.id, { onDelete: 'cascade' }),
+  grossReceiptsCents: integer('gross_receipts_cents').notNull().default(0),
+  refundsCents: integer('refunds_cents').notNull().default(0),
+  processingFeesCents: integer('processing_fees_cents').notNull().default(0),
+  platformAdminAllocationCents: integer('platform_admin_allocation_cents').notNull().default(0),
+  taxWithheldCents: integer('tax_withheld_cents').notNull().default(0),
+  performerPayablesCents: integer('performer_payables_cents').notNull().default(0),
+  agentCommissionsCents: integer('agent_commissions_cents').notNull().default(0),
+  netOrganizerProceedsCents: integer('net_organizer_proceeds_cents').notNull().default(0),
+  status: text('status').notNull().default('draft'), // 'draft' | 'reconciled' | 'disputed' | 'settled_sandbox'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('settlement_event_idx').on(t.eventId),
+]);

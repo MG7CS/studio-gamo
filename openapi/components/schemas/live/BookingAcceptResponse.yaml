@@ -1,0 +1,21 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: true
+    properties:
+      offer:
+        type: object
+        additionalProperties: true
+      engagement:
+        type: object
+        additionalProperties: true
+    required:
+      - offer
+      - engagement
+required:
+  - success
+  - data

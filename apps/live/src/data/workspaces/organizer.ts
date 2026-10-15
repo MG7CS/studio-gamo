@@ -28,10 +28,13 @@ export const organizerWorkspace: Workspace = {
     { label: 'Plan', items: [
       { slug: 'recurring', label: 'Recurring schedules', icon: 'repeat' },
       { slug: 'tickets', label: 'Tickets & inventory', icon: 'ticket' },
+      { slug: 'bookings', label: 'Artist bookings', icon: 'music' },
+      { slug: 'production', label: 'Production support', icon: 'sliders' },
       { slug: 'communications', label: 'Communications', icon: 'mail' },
       { slug: 'promotion', label: 'Promotion requests', icon: 'star' },
     ] },
     { label: 'Organization', items: [
+      { slug: 'team', label: 'Event teams & roles', icon: 'users' },
       { slug: 'reports', label: 'Reports', icon: 'chart' },
       { slug: 'verification', label: 'Organizer review', icon: 'shield' },
       { slug: 'payouts', label: 'Financial statements', icon: 'wallet' },
@@ -200,6 +203,12 @@ export const organizerWorkspace: Workspace = {
       actions: [{ label: 'Request promotion', dialog: 'request-promo', icon: 'star' }],
       blocks: [
         { type: 'notice', span: 3, tone: 'info', title: 'How placement works', body: 'Promoted listings are always labeled “Sponsored”. Sponsorship never changes search order, rankings, organizer review or musician vetting.' },
+        { type: 'form', span: 2, title: 'Outreach interests', description: 'Select optional outreach support for your gathering.', fields: [
+          { name: 'featured', label: 'Featured website placement (Sponsored label if funded)', type: 'checkbox' },
+          { name: 'creative', label: 'Creative production', type: 'checkbox' },
+          { name: 'outreach', label: 'Community outreach', type: 'checkbox' },
+          { name: 'partner', label: 'Partner communications', type: 'checkbox' },
+        ], submitLabel: 'Save outreach preferences' },
         { type: 'table', span: 3, title: 'Requests (sample)', columns: [{ key: 'event', label: 'Event', primary: true }, { key: 'placement', label: 'Placement' }, { key: 'dates', label: 'Dates' }, { key: 'contribution', label: 'Proposed contribution' }, { key: 'status', label: 'Status' }], rows: [
           { event: 'Harvest Night of Gospel', placement: 'Explore Events · Sponsored row', dates: 'Oct 26 – Nov 14', contribution: 'Proposal — not set', status: b('Proposal', 'proposal') },
           { event: 'Saturday Night Worship', placement: 'City page · Sponsored', dates: '—', contribution: '—', status: b('Draft', 'sample') },
@@ -208,6 +217,83 @@ export const organizerWorkspace: Workspace = {
           { name: 'event', label: 'Event', type: 'select', options: ['Harvest Night of Gospel (Nov 14)', 'Saturday Night Worship (Oct 17)'], required: true },
           { name: 'start', label: 'Start', type: 'date', half: true }, { name: 'end', label: 'End', type: 'date', half: true },
         ], confirmLabel: 'Submit request (demo)' },
+      ],
+    },
+    {
+      slug: 'bookings',
+      title: 'Artist bookings & event lineup',
+      description: 'Send inquiries to verified artists or their authorized representatives, negotiate offers, and confirm lineup schedules.',
+      actions: [{ label: 'Send booking inquiry', dialog: 'new-inquiry', icon: 'plus' }],
+      blocks: [
+        { type: 'notice', span: 3, tone: 'info', title: 'Direct & represented bookings', body: 'Booking offers track artist compensation, agent commissions, and platform administrative allocations as separate line items. Deposit collection remains disabled pending policy approval.' },
+        { type: 'table', span: 3, title: 'Event performers & booking inquiries', columns: [
+          { key: 'artist', label: 'Artist / performer', primary: true },
+          { key: 'rep', label: 'Representation' },
+          { key: 'event', label: 'Event' },
+          { key: 'fee', label: 'Artist fee' },
+          { key: 'safeguarding', label: 'Safeguarding' },
+          { key: 'status', label: 'Status' },
+        ], rows: [
+          { artist: 'Grace Collective', rep: 'Selah Talent Agency', event: 'Harvest Night of Gospel (Nov 14)', fee: '$1,800.00', safeguarding: 'Adult ensemble', status: b('Confirmed engagement', 'success') },
+          { artist: 'Zion Brass & Choir', rep: 'Selah Talent Agency', event: 'Advent Lessons & Carols (Dec 13)', fee: '$2,200.00', safeguarding: 'Adult ensemble', status: b('Offer negotiating', 'pending') },
+          { artist: 'Academy Youth Strings', rep: 'Gamo Academy showcase', event: 'Advent Lessons & Carols (Dec 13)', fee: '$0.00 (Recital)', safeguarding: 'Guardian consent + cleared', status: b('Safeguarding verified', 'verified') },
+        ] },
+        { type: 'dialog', id: 'new-inquiry', title: 'Send artist booking inquiry', body: 'Routes automatically to the artist or their active authorized representative.', fields: [
+          { name: 'artist', label: 'Artist', type: 'select', options: ['Grace Collective', 'Zion Brass & Choir', 'Naomi Brooks'], required: true },
+          { name: 'event', label: 'Event', type: 'select', options: ['Harvest Night of Gospel (Nov 14)', 'Advent Lessons & Carols (Dec 13)'], required: true },
+          { name: 'fee', label: 'Proposed artist fee (USD)', type: 'number', value: '1500', half: true, required: true },
+          { name: 'scope', label: 'Performance scope & set length', value: '60-minute headline worship set', half: true, required: true },
+        ], confirmLabel: 'Send inquiry' },
+      ],
+    },
+    {
+      slug: 'production',
+      title: 'Production coordination',
+      description: 'Link sound, lighting, livestreaming, stage setup, AV, and crew requests directly to your event without duplicating identity.',
+      actions: [{ label: 'Request production support', dialog: 'new-prod-req', icon: 'plus' }],
+      blocks: [
+        { type: 'notice', span: 3, tone: 'privacy', title: 'Scoped technical handoff', body: 'Production providers only receive the event schedule, venue, and technical scope necessary for their assignment — never purchaser lists or settlement ledgers.' },
+        { type: 'table', span: 3, title: 'Linked Gamo Production requests', columns: [
+          { key: 'event', label: 'Event', primary: true },
+          { key: 'category', label: 'Category' },
+          { key: 'scope', label: 'Technical scope summary' },
+          { key: 'status', label: 'Status' },
+        ], rows: [
+          { event: 'Harvest Night of Gospel (Nov 14)', category: 'Audio & FOH', scope: 'Line array + 32ch monitor desk for 440-seat hall', status: b('Assigned to crew', 'success') },
+          { event: 'Harvest Night of Gospel (Nov 14)', category: 'Livestream', scope: '3-camera broadcast mix & encoder handoff', status: b('Scoping', 'info') },
+          { event: 'Saturday Night Worship (Oct 17)', category: 'Lighting', scope: 'Warm stage wash & lyric projection check', status: b('Submitted', 'pending') },
+        ] },
+        { type: 'dialog', id: 'new-prod-req', title: 'Request Gamo Production support', body: 'Creates a linked Gamo Production record tied directly to this event.', fields: [
+          { name: 'event', label: 'Event', type: 'select', options: ['Harvest Night of Gospel (Nov 14)', 'Saturday Night Worship (Oct 17)'], required: true },
+          { name: 'category', label: 'Production category', type: 'select', options: ['audio', 'lighting', 'livestream', 'stage_setup', 'av', 'crew', 'full_production'], required: true },
+          { name: 'scopeSummary', label: 'Technical scope & stage requirements', type: 'textarea', required: true },
+        ], confirmLabel: 'Submit production request' },
+      ],
+    },
+    {
+      slug: 'team',
+      title: 'Event teams, roles & participating organizations',
+      description: 'Assign granular per-event roles across co-organizers, venues, promoters, agents, production coordinators, and finance contacts.',
+      actions: [{ label: 'Add team member', dialog: 'add-team-member', icon: 'plus' }],
+      blocks: [
+        { type: 'notice', span: 3, tone: 'warning', title: 'Separation of publishing and financial authority', body: 'Publishing or editing an event listing never implies authority to approve refunds or modify settlement accounts. Refund and settlement permissions require explicit finance_contact or event_owner authorization.' },
+        { type: 'table', span: 3, title: 'Assigned event team members', columns: [
+          { key: 'member', label: 'Team member & organization', primary: true },
+          { key: 'role', label: 'Event role' },
+          { key: 'content', label: 'Content & lineup' },
+          { key: 'ticketing', label: 'Ticketing & door' },
+          { key: 'finance', label: 'Refunds & settlement' },
+        ], rows: [
+          { member: 'Jordan Avery · Grace Fellowship', role: b('event_owner', 'verified'), content: 'Full edit', ticketing: 'Manage + scan', finance: 'Authorized' },
+          { member: 'Marcus Vance · New Hope Gatherings', role: b('co_organizer', 'info'), content: 'Edit content', ticketing: 'Door scan only', finance: 'No access' },
+          { member: 'Elena Rostova · Selah Talent Agency', role: b('booking_agent', 'info'), content: 'Lineup negotiation', ticketing: 'No access', finance: 'Scoped artist fee only' },
+          { member: 'Caleb Cho · Gamo Production', role: b('production_coordinator', 'info'), content: 'Technical schedule', ticketing: 'No access', finance: 'No access' },
+          { member: 'Hannah Lin · Grace Fellowship Finance', role: b('finance_contact', 'verified'), content: 'Read only', ticketing: 'Read only', finance: 'Refunds & settlement' },
+        ] },
+        { type: 'dialog', id: 'add-team-member', title: 'Assign event team role', body: 'Grants scoped operational permissions for this event without sharing logins.', fields: [
+          { name: 'email', label: 'Collaborator email', type: 'email', required: true },
+          { name: 'role', label: 'Distinct event role', type: 'select', options: ['co_organizer', 'lead_promoter', 'host_venue', 'booking_agent', 'production_coordinator', 'ticketing_admin', 'finance_contact', 'door_scanner'], required: true },
+        ], confirmLabel: 'Assign role' },
       ],
     },
     {
@@ -257,8 +343,9 @@ export const organizerWorkspace: Workspace = {
           { label: 'Gross ticket sales', amount: '$4,250.00', note: 'Hypothetical: 130 GA, 10 family, 15 student' },
           { label: 'Refunds', amount: '−$120.00', note: 'Hypothetical refunds, shown separately' },
           { label: 'Payment processing costs', amount: '−$142.80', note: 'Charged by the processor, not Gamo' },
+          { label: 'Performer payables & agent commissions', amount: '−$1,980.00', note: 'Tracked separately: $1,800 artist fee + $180 agency commission' },
           { label: 'Proposed Gamo administrative fee', amount: '−$0.00', note: 'Proposal — rate not yet approved' },
-        ], total: { label: 'Organizer proceeds (sample)', amount: '$3,987.20' }, footnote: 'Each line is separate so organizers can see exactly where every dollar goes.' },
+        ], total: { label: 'Organizer proceeds (sample)', amount: '$2,007.20' }, footnote: 'Each line is separate so organizers can see exactly where every dollar goes. The platform is not a bank, escrow agent, or fiduciary.' },
         { type: 'kv', title: 'Payout details', items: [['Payout account', 'Not connected'], ['Schedule', 'Not set'], ['Tax documents', 'Not collected in this phase']] },
         { type: 'table', span: 3, title: 'Statement history', columns: [{ key: 'period', label: 'Period', primary: true }, { key: 'events', label: 'Events' }, { key: 'proceeds', label: 'Organizer proceeds' }, { key: 'status', label: 'Status' }], rows: [], emptyText: 'No statements yet — ticketing is not authorized.' },
       ],

@@ -57,15 +57,24 @@ export const attendeeWorkspace: Workspace = {
     },
     {
       slug: 'tickets',
-      title: 'Tickets',
-      description: 'Sample ticket designs. Not valid for admission.',
+      title: 'Ticket & order lookup',
+      description: 'Access your QR admission passes, receipts, and refund requests after strong email verification — no attendee account required.',
       blocks: [
-        { type: 'notice', span: 3, tone: 'warning', title: 'Not valid for admission', body: 'These are design samples. Nothing was purchased and the codes cannot be scanned at any door.' },
+        { type: 'notice', span: 3, tone: 'privacy', title: 'Strong verification required — no casual attendee account needed', body: 'Knowing an email address or phone number alone is never sufficient to retrieve tickets or order history. Enter your purchaser email and the 6-digit verification code sent to your inbox to view QR passes, receipts, or request a refund.' },
+        { type: 'form', span: 2, title: 'Verified self-service lookup', description: 'Verify authority with your email challenge code to retrieve active passes and receipts.', fields: [
+          { name: 'email', label: 'Purchaser or registrant email', type: 'email', placeholder: 'attendee@example.org', half: true, required: true },
+          { name: 'code', label: '6-digit verification code', placeholder: '123456', half: true, required: true, hint: 'Issued via /api/auth/challenge to verify inbox ownership.' },
+          { name: 'orderNumber', label: 'Order reference (optional)', placeholder: 'GL-...' },
+        ], submitLabel: 'Verify & retrieve passes', successText: 'Verification confirmed. Your passes and receipts are shown below.' },
+        { type: 'kv', title: 'Self-service capabilities', items: [
+          ['Account required', 'No — guest lookup with verified challenge code'],
+          ['QR credentials', 'Unique, tamper-resistant tokens with replay protection'],
+          ['Receipts & refunds', 'Available immediately after inbox verification'],
+        ] },
         { type: 'cards', span: 3, title: 'Sample tickets', items: [
           { title: 'Harvest Night of Gospel (sample)', meta: 'Sat, Nov 14 · 7:00 PM · Atlanta, GA', body: 'General admission × 2 · sample design only', icon: 'ticket', badge: b('Not valid for admission', 'sample'), href: '/ticket' },
           { title: 'Saturday Night Worship (sample)', meta: 'Sat, Oct 17 · 6:30 PM', body: 'Free registration pass · party of 2', icon: 'qr', badge: b('Not valid for admission', 'sample'), href: '/ticket' },
         ] },
-        { type: 'kv', span: 3, title: 'About tickets', items: [['Purchases', 'None — ticketing is not connected'], ['Wallet passes', 'Not available in this preview'], ['Transfers', 'Disabled']] },
       ],
     },
     {

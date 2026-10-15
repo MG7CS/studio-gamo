@@ -1,0 +1,79 @@
+---
+import { resolvePlatformBrandConfig } from '@studio-gamo/ui/lib/brand';
+
+const brand = await resolvePlatformBrandConfig(Astro.locals);
+
+const columns = [
+  {
+    title: 'Discover & Attend',
+    links: [
+      { label: 'Browse All Events', url: '/events' },
+      { label: 'Featured Gatherings', url: '/events/harvest-night-of-gospel' },
+      { label: 'Order & QR Pass Lookup', url: '/my-tickets' },
+      { label: 'Self-Service Refunds & Receipts', url: '/my-tickets#refunds' },
+    ],
+  },
+  {
+    title: 'Organize & Promote',
+    links: [
+      { label: 'Promote an Event', url: '/promote' },
+      { label: 'Submit Event Listing', url: '/promote/create' },
+      { label: 'Organizer Workspace', url: '/organizer' },
+      { label: 'Door QR Scanner', url: '/organizer/scan' },
+    ],
+  },
+  {
+    title: 'Talent & Production',
+    links: [
+      { label: 'Artist Workspace', url: '/artist' },
+      { label: 'Agent & Manager Roster', url: '/agent' },
+      { label: 'Booking & Engagements', url: '/artist/bookings' },
+      { label: 'Event Production Support', url: '/organizer/production' },
+    ],
+  },
+];
+---
+<footer data-surface="dark" class="relative isolate overflow-hidden bg-[#171E20] text-cream">
+  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] bg-gradient-to-t from-terracotta/10 to-transparent" aria-hidden="true"></div>
+  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-16 pb-12 sm:px-12 lg:px-[4.5%]">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-8">
+      <div class="col-span-2 lg:col-span-1">
+        <a href="/" class="inline-flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-terracotta text-sm font-extrabold tracking-wider text-white">
+            {brand.logoMark}
+          </span>
+          <span class="text-xl font-extrabold tracking-tight text-white">{brand.displayName}</span>
+        </a>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-[#D8D4D0]">
+          {brand.tagline}. Discover gatherings, coordinate event teams, represent and book Christian artists, and manage live production in one connected platform.
+        </p>
+        <p class="mt-4 text-xs text-[#D8D4D0]/80">
+          Support: <a href={`mailto:${brand.supportEmail}`} class="underline hover:text-white">{brand.supportEmail}</a>
+        </p>
+      </div>
+      {columns.map((col) => (
+        <nav aria-label={col.title}>
+          <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">{col.title}</h2>
+          <ul class="space-y-2.5">
+            {col.links.map((l) => (
+              <li><a href={l.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{l.label}</a></li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div id="status" class="mt-12 space-y-2 border-t border-white/15 pt-6 text-xs leading-relaxed text-[#D8D4D0]/80">
+      <p>{brand.operatorDisclosure}</p>
+      <p>{brand.paymentDisclosure}</p>
+    </div>
+
+    <div class="mt-6 flex flex-col gap-4 border-t border-white/15 pt-6 text-xs text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
+      <p>© {new Date().getFullYear()} {brand.displayName} · Operated by {brand.operatingDivision} ({brand.parentOrganization}).</p>
+      <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
+        <a href="#status" class="hover:text-white">Operator &amp; Legal Disclosure</a>
+        <a href="/my-tickets" class="hover:text-white">Verified Order Recovery</a>
+      </nav>
+    </div>
+  </div>
+</footer>

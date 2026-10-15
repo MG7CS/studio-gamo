@@ -26,6 +26,21 @@ get:
       description: Exact city filter.
       schema:
         $ref: ../components/schemas/live/EventFilters.yaml#/properties/city
+    - name: artist
+      in: query
+      description: Performer or artist name substring filter.
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/artist
+    - name: venue
+      in: query
+      description: Venue name substring filter.
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/venue
+    - name: dateFrom
+      in: query
+      description: Minimum event start date (ISO 8601 date or timestamp).
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/dateFrom
   responses:
     "200":
       description: Successful response

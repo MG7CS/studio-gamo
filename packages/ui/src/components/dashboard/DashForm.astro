@@ -11,10 +11,12 @@ const cleanSuccess = successText
   .replace(/in this preview only\.?\s*/gi, '')
   .replace(/Nothing was (?:stored|sent|saved|submitted)(?: or (?:sent|saved|stored))?\.?/gi, '')
   .trim() || 'Your changes have been saved.';
+const hasCheckboxes = fields.some((f) => f.type === 'checkbox');
 ---
 <div>
   <form data-dash-form novalidate data-redirect={redirect} class="space-y-5">
     <FormFields fields={fields} idPrefix={id} />
+    {hasCheckboxes && <p data-interest-count aria-live="polite" class="text-[12px] text-ink-soft">0 outreach interests selected.</p>}
     <div class="flex flex-wrap items-center gap-3">
       <button type="submit" class="inline-flex min-h-10 items-center rounded-lg bg-terracotta px-4 text-[14px] font-semibold text-white hover:bg-terracotta-dark">{cleanSubmit}</button>
       <button type="reset" class="inline-flex min-h-10 items-center rounded-lg border border-sand bg-white px-4 text-[14px] font-semibold hover:border-charcoal/30">Reset</button>
