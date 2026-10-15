@@ -5,40 +5,10 @@
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
-
-const quickPaths = [
-  {
-    label: 'Gamo Worship',
-    detail: 'Vetted musicians & standby care',
-    href: siteUrl('worship'),
-    icon: 'music' as const,
-  },
-  {
-    label: 'Gamo Academy',
-    detail: 'Lessons for kids, teens & adults',
-    href: siteUrl('academy'),
-    icon: 'school' as const,
-  },
-  {
-    label: 'Gamo Live',
-    detail: 'Christian events nationwide',
-    href: siteUrl('live'),
-    icon: 'calendar' as const,
-  },
-  {
-    label: 'Gamo Production',
-    detail: 'Audio, video & technical ministry',
-    href: siteUrl('production'),
-    icon: 'video' as const,
-  },
-];
 ---
 
 <section
-  class="relative overflow-hidden bg-cream px-5 page-intro-space sm:px-8"
+  class="relative flex min-h-[100dvh] flex-col justify-center overflow-hidden bg-cream px-5 page-intro-space sm:px-8"
   aria-labelledby="home-hero-title"
 >
   <div
@@ -46,7 +16,7 @@ const quickPaths = [
     class="pointer-events-none absolute -right-28 top-16 h-[480px] w-[480px] rounded-full bg-ivory/80 blur-2xl"
   ></div>
 
-  <div class="relative mx-auto grid max-w-[1320px] items-center gap-10 lg:grid-cols-12 lg:gap-10">
+  <div class="relative mx-auto grid w-full max-w-[1320px] items-center gap-10 lg:grid-cols-12 lg:gap-10">
     <div class="lg:col-span-6">
       <p class="eyebrow text-terracotta">Christian, mission-driven organization</p>
       <h1
@@ -55,21 +25,12 @@ const quickPaths = [
       >
         Where Worship, Learning &amp; <span class="block text-terracotta">Community Meet.</span>
       </h1>
-      <p class="mt-6 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
-        Gamo Studios brings together four connected programs serving churches, musicians, students,
-        and families — preparing worship teams, teaching instruments, sharing Christian gatherings
-        nationwide, and supporting technical ministry.
-      </p>
 
       <div class="mt-7 flex flex-wrap items-center gap-3">
         <ButtonLink href="#programs" size="lg" arrow>Explore our programs</ButtonLink>
         <ButtonLink href="/get-started" size="lg" variant="secondary">Find where to begin</ButtonLink>
       </div>
 
-      <div class="mt-6 flex flex-wrap items-center gap-3 text-xs text-ink-soft">
-        <StatusPill kind="verified">Christian organization</StatusPill>
-        <span>Developing Christian organization · Final legal structure &amp; tax status under evaluation</span>
-      </div>
     </div>
 
     <div class="order-first relative mx-auto w-full max-w-[580px] lg:order-none lg:col-span-6">
@@ -105,10 +66,7 @@ const quickPaths = [
         class="relative z-10 -mt-10 ml-2 max-w-[20rem] rounded-3xl border border-sand bg-white/95 p-4 shadow-float backdrop-blur-xs sm:absolute sm:-bottom-5 sm:left-0 sm:mt-0 sm:p-5 lg:-left-4"
         aria-label="Mission overview card"
       >
-        <div class="flex items-center justify-between gap-2">
-          <p class="eyebrow text-terracotta">One shared mission</p>
-          <StatusPill kind="verified">4 Programs</StatusPill>
-        </div>
+        <p class="eyebrow whitespace-nowrap text-terracotta">One shared mission</p>
         <p class="mt-2 text-base font-bold tracking-tight text-charcoal">
           Worship · Learn · Gather · Serve
         </p>
@@ -119,31 +77,4 @@ const quickPaths = [
     </div>
   </div>
 
-  <nav
-    aria-label="Programs at a glance"
-    class="relative mx-auto mt-12 max-w-[1320px] pt-2 sm:mt-14"
-  >
-    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {quickPaths.map((item) => (
-        <li>
-          <a
-            href={item.href}
-            class="group flex items-center gap-3.5 rounded-2xl bg-ivory/90 p-3.5 ring-1 ring-sand transition hover:-translate-y-0.5 hover:bg-white hover:shadow-float"
-          >
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-cream text-terracotta transition group-hover:bg-terracotta group-hover:text-white">
-              <Icon name={item.icon} class="h-5 w-5" />
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-bold text-charcoal">{item.label}</p>
-              <p class="truncate text-xs text-ink-soft">{item.detail}</p>
-            </div>
-            <Icon
-              name="arrow"
-              class="h-4 w-4 shrink-0 text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:text-terracotta"
-            />
-          </a>
-        </li>
-      ))}
-    </ul>
-  </nav>
 </section>

@@ -4,8 +4,8 @@ import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 interface Props { eyebrow: string; title: string; accent: string; body: string; photo: PhotoKey; inset?: PhotoKey; variant?: 'community' | 'collage' | 'support'; }
 const { eyebrow, title, accent, body, photo, inset, variant = 'community' } = Astro.props;
 ---
-<section class:list={['organization-hero page-intro-space relative overflow-hidden', variant === 'support' ? 'bg-[#EAE0D2]' : 'bg-cream']} aria-labelledby="organization-title">
-  <div class="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 sm:px-12 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
+<section class:list={['organization-hero page-intro-space relative flex min-h-[100dvh] flex-col justify-center overflow-hidden', variant === 'support' ? 'bg-[#EAE0D2]' : 'bg-cream']} aria-labelledby="organization-title">
+  <div class="relative mx-auto grid w-full max-w-[1440px] items-center gap-10 px-6 sm:px-12 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
     <div class="relative z-10">
       <p class="eyebrow mb-5 text-terracotta">{eyebrow}</p>
       <h1 id="organization-title" class="display-xl max-w-[700px] text-balance">{title}<span class="block text-terracotta">{accent}</span></h1>
