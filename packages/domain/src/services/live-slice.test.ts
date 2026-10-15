@@ -202,21 +202,20 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(dashboard.events[0].registrationCount, 2);
   });
 
-  test('Step 10: Configurable PLATFORM_BRAND placeholder never renders literally and maintains legal-structure-neutral disclosures', () => {
-    const defaultBrand = getPlatformBrandConfig({ PLATFORM_BRAND: 'PLATFORM_BRAND' });
-    assert.notEqual(defaultBrand.displayName, 'PLATFORM_BRAND');
-    assert.equal(defaultBrand.displayName, 'Gamo Live');
-    assert.equal(defaultBrand.isPlaceholderDomain, true);
-    assert.match(defaultBrand.operatorDisclosure, /final legal incorporation and federal tax status remain under evaluation/i);
-    assert.match(defaultBrand.paymentDisclosure, /not a bank, escrow agent, or fiduciary/i);
+  test('Step 10: Gamo Live is retained as default software brand while preserving configurable PLATFORM_BRAND layer and legal disclosures', () => {
+    const retainedBrand = getPlatformBrandConfig({ PLATFORM_BRAND: 'Gamo Live' });
+    assert.equal(retainedBrand.displayName, 'Gamo Live');
+    assert.equal(retainedBrand.logoMark, 'GL');
+    assert.equal(retainedBrand.operatingDivision, 'Gamo Live');
+    assert.equal(retainedBrand.parentOrganization, 'Gamo Studios');
+    assert.equal(retainedBrand.isPlaceholderDomain, true);
+    assert.match(retainedBrand.operatorDisclosure, /final legal incorporation and federal tax status remain under evaluation/i);
+    assert.match(retainedBrand.paymentDisclosure, /not a bank, escrow agent, or fiduciary/i);
 
-    const customBrand = getPlatformBrandConfig({
-      PLATFORM_BRAND: 'Koinonia Live',
-      PLATFORM_PRIMARY_DOMAIN: 'koinonialive.example.org',
-      PLATFORM_IS_LIVE_DOMAIN: 'false',
-    });
-    assert.equal(customBrand.displayName, 'Koinonia Live');
-    assert.equal(customBrand.isPlaceholderDomain, true);
+    const placeholderFallback = getPlatformBrandConfig({ PLATFORM_BRAND: 'PLATFORM_BRAND' });
+    assert.notEqual(placeholderFallback.displayName, 'PLATFORM_BRAND');
+    assert.equal(placeholderFallback.displayName, 'Gamo Live');
+    assert.equal(placeholderFallback.isPlaceholderDomain, true);
   });
 
   test('Step 11: SQLite triggers enforce Academy minor safeguarding, accepted offer immutability, deposit collection gates, and settlement reconciliation', async () => {
