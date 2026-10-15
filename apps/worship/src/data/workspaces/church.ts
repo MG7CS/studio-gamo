@@ -259,9 +259,42 @@ export const churchWorkspace: Workspace = {
     },
     {
       slug: 'statements',
-      title: 'Statements',
-      description: 'Demo statements and administrative records. No payment has been processed.',
+      title: 'Statements & coverage analytics',
+      description: 'Service coverage history, musician pass-through stipends, and separate administrative allocations.',
+      actions: [
+        { label: 'Export statement (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Monthly musician stipends vs. proposed administrative allocation',
+          description: 'Musician compensation is passed through 100% and tracked separately from any proposed Gamo administrative allocation.',
+          variant: 'stacked',
+          unit: '$',
+          exportFilename: 'gamo-worship-church-statements',
+          series: [
+            {
+              label: 'Direct musician pay (100% pass-through)',
+              color: 'sage',
+              points: [
+                { label: 'August 2026', value: 360 },
+                { label: 'September 2026', value: 540 },
+                { label: 'October 2026', value: 720 },
+              ],
+            },
+            {
+              label: 'Proposed Gamo administrative allocation',
+              color: 'charcoal',
+              points: [
+                { label: 'August 2026', value: 20 },
+                { label: 'September 2026', value: 40 },
+                { label: 'October 2026', value: 60 },
+              ],
+            },
+          ],
+        },
         { type: 'statement', span: 2, title: 'October 2026 statement (sample)', lines: [
           { label: 'Musician pay — Oct 4 drums (standby activated)', amount: '$180.00', note: 'Paid to musician' },
           { label: 'Musician pay — Oct 11 keys', amount: '$180.00', note: 'Paid to musician' },
@@ -276,7 +309,7 @@ export const churchWorkspace: Workspace = {
           { period: 'September 2026', pay: '$540.00', alloc: '$40.00', state: b('Demo record', 'sample') },
           { period: 'August 2026', pay: '$360.00', alloc: '$20.00', state: b('Demo record', 'sample') },
         ] },
-        { type: 'actions', title: 'Related', items: [{ label: 'Learn about the nonprofit model', href: siteUrl('web', '/about'), icon: 'info' }] },
+        { type: 'actions', title: 'Related', items: [{ label: 'Learn about the organizational model', href: siteUrl('web', '/mission'), icon: 'info' }] },
       ],
     },
   ],

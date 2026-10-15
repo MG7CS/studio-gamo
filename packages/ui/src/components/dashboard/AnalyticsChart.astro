@@ -1,0 +1,381 @@
+---
+/**
+ * Accessible, container-responsive analytics & reporting graph component.
+ * Supports multi-series trend lines/areas, grouped bars, stacked bars, and horizontal distributions,
+ * with built-in tabular inspection and one-click CSV / JSON data export.
+ */
+import Icon from '../Icon.astro';
+import type { ChartSeries, ChartSummaryMetric } from '../../lib/dashboard';
+
+interface Props {
+  title?: string;
+  variant?: 'bar' | 'trend' | 'stacked' | 'distribution';
+  unit?: string;
+  summary?: ChartSummaryMetric[];
+  series: ChartSeries[];
+  footnote?: string;
+  exportFilename?: string;
+}
+
+const {
+  title = 'Analytics chart',
+  variant = 'bar',
+  unit = '',
+  summary = [],
+  series = [],
+  footnote,
+  exportFilename,
+} = Astro.props;
+
+const palette: Record<NonNullable<ChartSeries['color']>, { hex: string; fill: string; bg: string; text: string; ring: string }> = {
+  terracotta: { hex: '#A94A2E', fill: 'rgba(169, 74, 46, 0.14)', bg: 'bg-[#A94A2E]', text: 'text-[#A94A2E]', ring: 'ring-[#A94A2E]/30' },
+  charcoal: { hex: '#1D2323', fill: 'rgba(29, 35, 35, 0.10)', bg: 'bg-[#1D2323]', text: 'text-[#1D2323]', ring: 'ring-[#1D2323]/30' },
+  gold: { hex: '#C68B3E', fill: 'rgba(198, 139, 62, 0.16)', bg: 'bg-[#C68B3E]', text: 'text-[#8B5D1E]', ring: 'ring-[#C68B3E]/35' },
+  sage: { hex: '#2E6B4E', fill: 'rgba(46, 107, 78, 0.14)', bg: 'bg-[#2E6B4E]', text: 'text-[#2E6B4E]', ring: 'ring-[#2E6B4E]/30' },
+  sand: { hex: '#8C7355', fill: 'rgba(140, 115, 85, 0.14)', bg: 'bg-[#8C7355]', text: 'text-[#6A553D]', ring: 'ring-[#8C7355]/30' },
+};
+
+const colorKeys: NonNullable<ChartSeries['color']>[] = ['terracotta', 'charcoal', 'gold', 'sage', 'sand'];
+const normalizedSeries = series.map((s, idx) => ({
+  ...s,
+  colorKey: s.color ?? colorKeys[idx % colorKeys.length],
+  theme: palette[s.color ?? colorKeys[idx % colorKeys.length]],
+}));
+
+const labels = normalizedSeries[0]?.points.map((p) => p.label) ?? [];
+const allValues = normalizedSeries.flatMap((s) => s.points.map((p) => p.value));
+const stackedTotals = labels.map((_, pointIdx) =>
+  normalizedSeries.reduce((acc, s) => acc + (s.points[pointIdx]?.value ?? 0), 0)
+);
+const maxVal = Math.max(
+  1,
+  variant === 'stacked' ? Math.max(1, ...stackedTotals) : Math.max(1, ...allValues)
+);
+
+const formatValue = (v: number, displayValue?: string) => {
+  if (displayValue) return displayValue;
+  if (unit === '$') return `$${v.toLocaleString('en-US')}`;
+  if (unit === '%') return `${v}%`;
+  return unit ? `${v.toLocaleString('en-US')} ${unit}` : v.toLocaleString('en-US');
+};
+
+// Precompute SVG coordinates for 'trend' variant (viewBox 640 x 210)
+const svgW = 640;
+const svgH = 210;
+const padLeft = 44;
+const padRight = 20;
+const padTop = 18;
+const padBottom = 32;
+const plotW = svgW - padLeft - padRight;
+const plotH = svgH - padTop - padBottom;
+
+const trendPaths = normalizedSeries.map((s) => {
+  const count = Math.max(1, s.points.length);
+  const coords = s.points.map((pt, i) => {
+    const x = count === 1 ? padLeft + plotW / 2 : padLeft + (i / (count - 1)) * plotW;
+    const y = padTop + plotH - (Math.max(0, pt.value) / maxVal) * plotH;
+    return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, pt };
+  });
+  const lineD = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${c.y}`).join(' ');
+  const areaD = coords.length > 1
+    ? `${lineD} L${coords[coords.length - 1].x},${padTop + plotH} L${coords[0].x},${padTop + plotH} Z`
+    : '';
+  return { ...s, coords, lineD, areaD };
+});
+
+const sluggedFilename =
+  exportFilename ||
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') ||
+  'gamo-analytics';
+
+const exportPayload = JSON.stringify({
+  title,
+  variant,
+  unit,
+  filename: sluggedFilename,
+  labels,
+  series: normalizedSeries.map((s) => ({
+    label: s.label,
+    points: s.points.map((p) => ({
+      label: p.label,
+      value: p.value,
+      displayValue: formatValue(p.value, p.displayValue),
+      note: p.note ?? '',
+    })),
+  })),
+});
+---
+
+<div class="space-y-4" data-analytics-chart data-chart-payload={exportPayload}>
+  {summary.length > 0 && (
+    <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      {summary.map((m) => (
+        <div class="rounded-2xl border border-sand/70 bg-ivory/80 px-3.5 py-2.5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{m.label}</p>
+          <div class="mt-1 flex flex-wrap items-baseline justify-between gap-1.5">
+            <span class="text-[18px] font-bold tracking-[-0.02em] text-charcoal sm:text-[20px]">{m.value}</span>
+            {m.delta && (
+              <span
+                class:list={[
+                  'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                  m.tone === 'up'
+                    ? 'bg-[#E6F2EA] text-[#1F5A37]'
+                    : m.tone === 'down'
+                      ? 'bg-[#FBEAE5] text-[#8F3119]'
+                      : 'bg-cream text-charcoal/80',
+                ]}
+              >
+                {m.delta}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-sand/60 pb-2.5">
+    <div class="flex flex-wrap items-center gap-3" aria-label="Chart series legend">
+      {normalizedSeries.map((s, idx) => (
+        <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-charcoal/85" data-series-legend={idx}>
+          <span class:list={['h-2.5 w-2.5 rounded-full', s.theme.bg]} aria-hidden="true"></span>
+          <span>{s.label}</span>
+        </span>
+      ))}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-1.5">
+      <div class="inline-flex rounded-full border border-sand bg-ivory p-0.5 text-[11px] font-semibold" role="group" aria-label="Chart view mode">
+        <button type="button" data-chart-view="visual" aria-pressed="true" class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream">
+          Graph
+        </button>
+        <button type="button" data-chart-view="table" aria-pressed="false" class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream">
+          Data table
+        </button>
+      </div>
+      <button
+        type="button"
+        data-chart-export="csv"
+        class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+        aria-label={`Export ${title} as CSV`}
+      >
+        <Icon name="download" class="h-3.5 w-3.5 text-terracotta-dark" />
+        <span>CSV</span>
+      </button>
+      <button
+        type="button"
+        data-chart-export="json"
+        class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+        aria-label={`Export ${title} as JSON`}
+      >
+        <Icon name="file" class="h-3.5 w-3.5 text-ink-soft" />
+        <span>JSON</span>
+      </button>
+    </div>
+  </div>
+
+  <div data-chart-visual-pane>
+    {variant === 'trend' && (
+      <div class="rounded-2xl border border-sand/60 bg-ivory/50 p-3">
+        <svg
+          viewBox={`0 0 ${svgW} ${svgH}`}
+          class="h-52 w-full overflow-visible"
+          role="img"
+          aria-label={`${title} trend graph`}
+        >
+          {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+            const y = Math.round((padTop + plotH * (1 - ratio)) * 10) / 10;
+            const tickVal = Math.round(maxVal * ratio);
+            return (
+              <g>
+                <line
+                  x1={padLeft}
+                  y1={y}
+                  x2={svgW - padRight}
+                  y2={y}
+                  stroke="#E5DEC9"
+                  stroke-dasharray={ratio === 0 ? undefined : '3 3'}
+                  stroke-width="1"
+                />
+                <text x={padLeft - 8} y={y + 4} text-anchor="end" class="fill-[#6E6A63] text-[10px] font-medium">
+                  {unit === '$' ? `$${tickVal >= 1000 ? `${(tickVal / 1000).toFixed(tickVal % 1000 === 0 ? 0 : 1)}k` : tickVal}` : `${tickVal}${unit === '%' ? '%' : ''}`}
+                </text>
+              </g>
+            );
+          })}
+
+          {trendPaths.map((s, sIdx) => (
+            <g>
+              {sIdx === 0 && s.areaD && <path d={s.areaD} fill={s.theme.fill} />}
+              <path
+                d={s.lineD}
+                fill="none"
+                stroke={s.theme.hex}
+                stroke-width="2.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              {s.coords.map((c) => (
+                <g>
+                  <circle
+                    cx={c.x}
+                    cy={c.y}
+                    r="4.2"
+                    fill="#FFFFFF"
+                    stroke={s.theme.hex}
+                    stroke-width="2.4"
+                  >
+                    <title>{`${s.label} (${c.pt.label}): ${formatValue(c.pt.value, c.pt.displayValue)}${c.pt.note ? ` — ${c.pt.note}` : ''}`}</title>
+                  </circle>
+                </g>
+              ))}
+            </g>
+          ))}
+
+          {labels.map((lbl, i) => {
+            const count = Math.max(1, labels.length);
+            const x = count === 1 ? padLeft + plotW / 2 : padLeft + (i / (count - 1)) * plotW;
+            return (
+              <text x={x} y={svgH - 8} text-anchor="middle" class="fill-[#4E4B46] text-[10px] font-semibold">
+                {lbl}
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+    )}
+
+    {variant === 'bar' && (
+      <div class="rounded-2xl border border-sand/60 bg-ivory/50 p-3.5">
+        <div
+          class="grid items-end gap-3 pt-4"
+          style={`grid-template-columns: repeat(${Math.max(1, labels.length)}, minmax(0, 1fr)); min-height: 12.5rem;`}
+        >
+          {labels.map((lbl, pointIdx) => (
+            <div class="flex h-full flex-col items-center justify-end gap-2">
+              <div class="flex h-40 w-full items-end justify-center gap-1.5 border-b border-sand px-1">
+                {normalizedSeries.map((s) => {
+                  const pt = s.points[pointIdx];
+                  const val = pt?.value ?? 0;
+                  const pct = Math.max(6, Math.round((val / maxVal) * 100));
+                  return (
+                    <div class="group relative flex h-full flex-1 flex-col items-center justify-end">
+                      <span class="mb-1 hidden text-[10px] font-bold text-charcoal/80 sm:block">
+                        {formatValue(val, pt?.displayValue)}
+                      </span>
+                      <div
+                        class:list={['w-full max-w-9 rounded-t-lg transition-all group-hover:opacity-90', s.theme.bg]}
+                        style={`height: ${pct}%`}
+                        title={`${s.label} · ${lbl}: ${formatValue(val, pt?.displayValue)}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <span class="text-center text-[11px] font-semibold leading-tight text-charcoal/85">{lbl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {variant === 'stacked' && (
+      <div class="space-y-3 rounded-2xl border border-sand/60 bg-ivory/50 p-3.5">
+        {labels.map((lbl, pointIdx) => {
+          const rowTotal = Math.max(1, stackedTotals[pointIdx] ?? 1);
+          return (
+            <div class="space-y-1.5">
+              <div class="flex items-baseline justify-between gap-2 text-[12px]">
+                <span class="font-semibold text-charcoal">{lbl}</span>
+                <span class="font-bold text-charcoal/80">{formatValue(stackedTotals[pointIdx] ?? 0)} total</span>
+              </div>
+              <div class="flex h-4 w-full overflow-hidden rounded-full bg-sand/40 p-0.5">
+                {normalizedSeries.map((s) => {
+                  const pt = s.points[pointIdx];
+                  const val = pt?.value ?? 0;
+                  const widthPct = Math.max(0, Math.round((val / rowTotal) * 1000) / 10);
+                  return (
+                    <div
+                      class:list={['h-full first:rounded-l-full last:rounded-r-full transition-all', s.theme.bg]}
+                      style={`width: ${widthPct}%`}
+                      title={`${s.label} (${lbl}): ${formatValue(val, pt?.displayValue)} (${widthPct}%)`}
+                    />
+                  );
+                })}
+              </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-soft">
+                {normalizedSeries.map((s) => {
+                  const pt = s.points[pointIdx];
+                  const val = pt?.value ?? 0;
+                  return (
+                    <span>
+                      <strong class="text-charcoal/85">{s.label}:</strong> {formatValue(val, pt?.displayValue)}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {variant === 'distribution' && (
+      <div class="space-y-3 rounded-2xl border border-sand/60 bg-ivory/50 p-3.5">
+        {(normalizedSeries[0]?.points ?? []).map((pt) => {
+          const pct = Math.max(4, Math.min(100, Math.round((pt.value / maxVal) * 100)));
+          const theme = normalizedSeries[0]?.theme ?? palette.terracotta;
+          return (
+            <div class="space-y-1">
+              <div class="flex items-baseline justify-between gap-2 text-[13px]">
+                <span class="font-semibold text-charcoal">{pt.label}</span>
+                <span class="font-bold text-charcoal">{formatValue(pt.value, pt.displayValue)}</span>
+              </div>
+              <div class="h-2.5 overflow-hidden rounded-full bg-sand/45">
+                <div class:list={['h-full rounded-full', theme.bg]} style={`width: ${pct}%`} />
+              </div>
+              {pt.note && <p class="text-[11px] text-ink-soft">{pt.note}</p>}
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+
+  <div data-chart-table-pane hidden class="overflow-x-auto rounded-2xl border border-sand/70 bg-ivory/60 p-3">
+    <table class="w-full border-collapse text-left text-[13px]">
+      <thead>
+        <tr class="border-b border-sand text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
+          <th scope="col" class="py-2 pr-3">Period / Category</th>
+          {normalizedSeries.map((s) => (
+            <th scope="col" class="px-3 py-2">{s.label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {labels.map((lbl, idx) => (
+          <tr class="border-b border-sand/50 last:border-0">
+            <th scope="row" class="py-2 pr-3 font-semibold text-charcoal">{lbl}</th>
+            {normalizedSeries.map((s) => {
+              const pt = s.points[idx];
+              return (
+                <td class="px-3 py-2 text-charcoal/85">
+                  {pt ? formatValue(pt.value, pt.displayValue) : '—'}
+                  {pt?.note && <span class="ml-1 text-[11px] text-ink-soft">({pt.note})</span>}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    {footnote ? <p class="text-[12px] text-ink-soft">{footnote}</p> : <span />}
+    <p class="text-[12px] font-medium text-terracotta-dark" data-chart-export-status aria-live="polite" hidden></p>
+  </div>
+</div>

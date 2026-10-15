@@ -1,11 +1,20 @@
 ---
-/** Summary metric cards. Values are always sample figures in this phase. */
+/** Summary metric cards with optional period deltas and context hints. */
 import Icon from '../Icon.astro';
 import type { IconName } from '../../lib/icons';
-interface Props { items: { label: string; value: string; hint?: string; icon?: IconName }[] }
+interface Props {
+  items: {
+    label: string;
+    value: string;
+    hint?: string;
+    delta?: string;
+    deltaTone?: 'up' | 'down' | 'neutral';
+    icon?: IconName;
+  }[];
+}
 const { items } = Astro.props;
 ---
-<ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary metrics">
+<ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary metrics" data-stat-grid>
   {items.map((s, idx) => {
     const featured = idx === 0;
     return (
@@ -17,6 +26,9 @@ const { items } = Astro.props;
             : 'border-sand/80 bg-white shadow-[0_2px_8px_-2px_rgb(29_35_35/0.05)]',
         ]}
         data-search-item
+        data-stat-label={s.label}
+        data-stat-value={s.value}
+        data-stat-hint={s.hint ?? s.delta ?? ''}
       >
         <div class="flex items-center justify-between gap-2">
           <p class:list={['text-[12px] font-semibold leading-4 sm:text-[13px]', featured ? 'text-[#5A3A1E]' : 'text-ink-soft']}>{s.label}</p>
@@ -26,7 +38,23 @@ const { items } = Astro.props;
             </span>
           )}
         </div>
-        <p class="mt-2.5 truncate text-[24px] font-bold leading-none tracking-[-0.03em] sm:text-[28px]" title={s.value}>{s.value}</p>
+        <div class="mt-2.5 flex items-baseline justify-between gap-2">
+          <p class="truncate text-[24px] font-bold leading-none tracking-[-0.03em] sm:text-[28px]" title={s.value}>{s.value}</p>
+          {s.delta && (
+            <span
+              class:list={[
+                'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                s.deltaTone === 'up'
+                  ? 'bg-[#E6F2EA] text-[#1F5A37]'
+                  : s.deltaTone === 'down'
+                    ? 'bg-[#FBEAE5] text-[#8F3119]'
+                    : 'bg-charcoal/10 text-charcoal/85',
+              ]}
+            >
+              {s.delta}
+            </span>
+          )}
+        </div>
         {s.hint && (
           <p class="mt-2.5">
             <span class:list={['inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-semibold', featured ? 'bg-charcoal/10 text-[#4A2F17]' : 'bg-ivory text-ink-soft ring-1 ring-sand/70']}>

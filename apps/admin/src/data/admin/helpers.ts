@@ -1,31 +1,58 @@
-/** Small builders shared by the staff screens to keep each screen definition compact. */
+/** Small builders shared by the staff operations & analytics screens. */
 import type { BadgeValue, Cell, DashBlock } from '@studio-gamo/ui/lib/dashboard';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
 
 export type Col = [key: string, label: string];
 
-/** Filterable status queue table. First column is the primary column. */
-export function queue(title: string, cols: Col[], rows: Record<string, Cell>[], filterKey?: string, filterOptions?: string[]): DashBlock {
+/** Filterable, exportable operational queue table. First column is the primary column. */
+export function queue(
+  title: string,
+  cols: Col[],
+  rows: Record<string, Cell>[],
+  filterKey?: string,
+  filterOptions?: string[],
+  rowAction?: { label: string; dialog: string; icon?: IconName }
+): DashBlock {
   return {
-    type: 'table', span: 3, title, filter: Boolean(filterKey), filterKey, filterOptions,
+    type: 'table',
+    span: 3,
+    title,
+    filter: Boolean(filterKey) || rows.length >= 3,
+    filterKey,
+    filterOptions,
+    exportable: true,
+    rowAction,
     columns: cols.map(([key, label], i) => ({ key, label, primary: i === 0 })),
     rows,
   };
 }
 
-/** Standard staff decision dialog: approve / request info / decline, with a required reason. */
-export function decisionDialog(id: string, title: string, subject: string): DashBlock {
+/** Standard staff review & decision dialog with pre-populated record subject and audit reason. */
+export function decisionDialog(
+  id: string,
+  title: string,
+  subject: string,
+  options: string[] = ['Approve', 'Request more information', 'Hold for coordinator review', 'Decline']
+): DashBlock {
   return {
-    type: 'dialog', id, title,
-    body: `Record a decision for ${subject}. Decisions are not saved and nobody is notified in this preview.`,
+    type: 'dialog',
+    id,
+    title,
+    body: `Record an administrative decision for ${subject}. Every decision requires an audit reason.`,
     fields: [
-      { name: 'decision', label: 'Decision', type: 'select', options: ['Approve', 'Request more information', 'Decline'], required: true },
-      { name: 'reason', label: 'Reason (recorded in audit log)', type: 'textarea', required: true },
+      { name: 'subject', label: 'Target record', type: 'text', value: subject, required: true },
+      { name: 'decision', label: 'Administrative action', type: 'select', options, required: true },
+      { name: 'reason', label: 'Audit log reason & operational notes', type: 'textarea', required: true, placeholder: 'State the verification check or policy basis for this decision...' },
     ],
-    confirmLabel: 'Record decision (demo)',
-    successText: 'Decision captured in this preview only. No record changed and no one was contacted.',
+    confirmLabel: 'Record decision',
+    successText: 'Administrative decision recorded in the audit log.',
   };
 }
 
 export const privacy = (body: string): DashBlock => ({ type: 'notice', tone: 'privacy', body });
-export const fairness: DashBlock = { type: 'notice', tone: 'info', body: 'Payment, sponsorship or partnership never affects musician vetting, placement order or rankings.' };
+export const fairness: DashBlock = {
+  type: 'notice',
+  tone: 'info',
+  body: 'Payment, sponsorship or partnership never affects musician vetting, placement order, artist verification, or discovery rankings.',
+};
 export type { BadgeValue };

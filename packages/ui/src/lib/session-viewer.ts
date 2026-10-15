@@ -55,9 +55,46 @@ function parseCookies(cookieHeader: string | null): Record<string, string> {
  * falling back to DEMO_PERSONA while keeping all sample workspace data available.
  */
 export async function resolveWorkspaceViewer(
-  request: Request,
+  requestOrContext: Request | { request?: Request; locals?: Record<string, any> },
   runtimeEnv: Record<string, any> = {}
 ): Promise<ViewerPersona> {
+  const isReq = requestOrContext && typeof (requestOrContext as Request).headers?.get === 'function';
+  const request: Request | undefined = isReq
+    ? (requestOrContext as Request)
+    : (requestOrContext as { request?: Request })?.request;
+  const locals = !isReq ? (requestOrContext as { locals?: Record<string, any> })?.locals : undefined;
+
+  if (locals?.adminAuthSession?.user?.email) {
+    const email = String(locals.adminAuthSession.user.email);
+    const displayName = String(locals.adminAuthSession.user.displayName || email.split('@')[0]);
+    return {
+      name: displayName,
+      initials: initialsFromName(displayName, email),
+      email,
+      note: 'Verified Administrator',
+      authenticated: true,
+      organization: 'Gamo Studios Operations',
+      organizationRole: 'superadmin',
+    };
+  }
+  if (locals?.staffEmail) {
+    const email = String(locals.staffEmail);
+    const displayName = email.split('@')[0];
+    return {
+      name: displayName,
+      initials: initialsFromName(displayName, email),
+      email,
+      note: 'Verified Staff',
+      authenticated: true,
+      organization: 'Gamo Studios Operations',
+      organizationRole: 'staff',
+    };
+  }
+
+  if (!request || typeof request.headers?.get !== 'function') {
+    return DEMO_PERSONA;
+  }
+
   const cookies = parseCookies(request.headers.get('cookie'));
   const rawSession = cookies['__session'];
   const secret =

@@ -10,6 +10,7 @@ import GospelConcerts from '../components/explore/GospelConcerts.astro';
 import WorshipAndRecurring from '../components/explore/WorshipAndRecurring.astro';
 import ConferencesYouth from '../components/explore/ConferencesYouth.astro';
 import FreeAndTicketed from '../components/explore/FreeAndTicketed.astro';
+import LiveEcosystemPillars from '../components/explore/LiveEcosystemPillars.astro';
 import FeaturedOrganizers from '../components/explore/FeaturedOrganizers.astro';
 import TrustLegend from '../components/shared/TrustLegend.astro';
 export const prerender = true;
@@ -26,10 +27,11 @@ const featured = eventsBy((e) => !!e.featured);
   <WorshipAndRecurring worship={eventsBy((e) => e.category === 'worship')} recurring={eventsBy((e) => !!e.recurring)} />
   <ConferencesYouth conferences={eventsBy((e) => e.category === 'conference')} youth={eventsBy((e) => e.category === 'youth').slice(0, 3)} />
   <FreeAndTicketed free={eventsBy((e) => e.ticketing === 'free').slice(0, 5)} ticketed={eventsBy((e) => e.ticketing !== 'free').slice(0, 5)} />
+  <LiveEcosystemPillars />
   <FeaturedOrganizers />
   <section class="bg-cream px-4 pb-4 sm:px-8"><TrustLegend class="mx-auto max-w-[1320px]" /></section>
-  <CtaInvitation eyebrow="For churches & ministries" title="Hosting a Christian event?" body="Submit your gathering, choose free or ticketed registration, and manage door check-in. Every listing is reviewed before publishing." photo="worshipBand">
+  <CtaInvitation eyebrow="For churches, organizers & artists" title="Hosting or performing at a Christian event?" body="Submit your gathering, manage ticket tiers and door check-in, or coordinate artist bookings and event production. Every listing is reviewed before publishing." photo="worshipBand">
     <ButtonLink href="/promote" arrow>Promote an event</ButtonLink>
-    <ButtonLink href="/promote/create" variant="secondary">Create an event</ButtonLink>
+    <ButtonLink href="/artist" variant="secondary">Artist &amp; agent workspaces</ButtonLink>
   </CtaInvitation>
 </Layout>

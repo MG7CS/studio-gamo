@@ -172,14 +172,47 @@ export const instructorWorkspace: Workspace = {
     {
       slug: 'statements',
       title: 'Compensation statements',
+      actions: [
+        { label: 'Export Statements CSV', exportReport: 'csv', icon: 'download', variant: 'secondary' },
+        { label: 'Export JSON', exportReport: 'json', icon: 'download', variant: 'secondary' },
+      ],
       blocks: [
         { type: 'notice', tone: 'info', body: 'Sample statement. No payouts are connected. Any Gamo administrative allocation is a proposal pending board approval and is never deducted from instructor pay.' },
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Monthly Instructor Compensation vs Proposed Program Allocation ($)',
+          description: '100% of direct teaching compensation is paid to the instructor without deduction',
+          variant: 'stacked',
+          unit: '$',
+          exportFilename: 'instructor-compensation-statements',
+          series: [
+            {
+              label: 'Direct Instructor Pay ($)',
+              color: 'sage',
+              points: [
+                { label: 'Jul 2026', value: 420 },
+                { label: 'Aug 2026', value: 480 },
+                { label: 'Sep 2026', value: 600 },
+              ],
+            },
+            {
+              label: 'Proposed Program Allocation (Separate · $)',
+              color: 'gold',
+              points: [
+                { label: 'Jul 2026', value: 42 },
+                { label: 'Aug 2026', value: 48 },
+                { label: 'Sep 2026', value: 60 },
+              ],
+            },
+          ],
+        },
         { type: 'statement', span: 2, title: 'September 2026 (sample)', lines: [
           { label: 'Instructor pay — 14 lessons', amount: '$560.00', note: 'Paid to instructor' },
           { label: 'Instructor pay — curriculum prep', amount: '$40.00', note: 'Paid to instructor' },
           { label: 'Proposed Gamo administrative allocation', amount: '$60.00', note: 'Separate line · funded by program, not deducted · proposal' },
         ], total: { label: 'Instructor pay total', amount: '$600.00' }, footnote: 'Amounts are fictional and shown for design review only.' },
-        { type: 'table', title: 'Past statements', columns: [{ key: 'm', label: 'Month', primary: true }, { key: 'pay', label: 'Instructor pay' }, { key: 's', label: 'Status' }], rows: [
+        { type: 'table', title: 'Past statements', exportable: true, exportFilename: 'instructor-past-statements', columns: [{ key: 'm', label: 'Month', primary: true }, { key: 'pay', label: 'Instructor pay' }, { key: 's', label: 'Status' }], rows: [
           { m: 'Sep 2026', pay: '$600.00', s: b('Sample', 'sample') }, { m: 'Aug 2026', pay: '$480.00', s: b('Sample', 'sample') },
         ] },
       ],

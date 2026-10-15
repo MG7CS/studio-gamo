@@ -212,14 +212,56 @@ export const partnerWorkspace: Workspace = {
     },
     {
       slug: 'contributions',
-      title: 'Contribution records (demonstration)',
-      description: 'Sample stewardship statements. No funds have been collected or disbursed.',
+      title: 'Program support & stewardship statements',
+      description: 'Sample stewardship statements and program allocation breakdowns. No funds have been collected or disbursed.',
+      actions: [
+        { label: 'Export statement (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
         {
           type: 'notice',
           tone: 'warning',
-          title: 'Nonprofit status notice',
-          body: 'Gamo Studios is a developing Christian nonprofit. Federal tax-exempt recognition under section 501(c)(3) is pending and not yet finalized. Contributions are not currently tax-deductible. The records below are sample demonstration lines.',
+          title: 'Organizational structure & tax status notice',
+          body: 'Gamo Studios is a Christian, mission-driven organization whose final legal incorporation and tax status remain under evaluation. Contributions are not described as tax-deductible. The records below are illustrative lines.',
+        },
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Quarterly program support & collaboration impact',
+          description: 'Breakdown of direct musician/instructor program support vs. proposed administrative allocation.',
+          variant: 'stacked',
+          unit: '$',
+          exportFilename: 'gamo-partner-program-support',
+          series: [
+            {
+              label: 'Academy student scholarship seats',
+              color: 'sage',
+              points: [
+                { label: 'Q2 2026', value: 900 },
+                { label: 'Q3 2026', value: 1200 },
+                { label: 'Q4 2026', value: 1200 },
+              ],
+            },
+            {
+              label: 'Worship musician pass-through stipends',
+              color: 'terracotta',
+              points: [
+                { label: 'Q2 2026', value: 600 },
+                { label: 'Q3 2026', value: 800 },
+                { label: 'Q4 2026', value: 800 },
+              ],
+            },
+            {
+              label: 'Proposed administrative allocation',
+              color: 'charcoal',
+              points: [
+                { label: 'Q2 2026', value: 110 },
+                { label: 'Q3 2026', value: 150 },
+                { label: 'Q4 2026', value: 150 },
+              ],
+            },
+          ],
         },
         {
           type: 'statement',
@@ -239,22 +281,25 @@ export const partnerWorkspace: Workspace = {
           items: [
             ['Allocation policy', 'Separate line items for direct service and administration'],
             ['Audit readiness', 'Planned annual third-party independent review'],
-            ['Donor trust', 'Zero commission extraction from musician compensation'],
+            ['Musician fairness', 'Zero commission extraction from musician compensation'],
           ],
         },
       ],
     },
     {
       slug: 'reports',
-      title: 'Stewardship reports & documents',
-      description: 'Draft reports on program accessibility, educational reach, and community impact.',
+      title: 'Stewardship reports & impact analytics',
+      description: 'Reports on program accessibility, educational reach, and community impact.',
+      actions: [
+        { label: 'Export impact summary (CSV)', exportReport: 'csv', icon: 'download' },
+      ],
       blocks: [
         {
           type: 'cards',
           title: 'Available documents (drafts)',
           items: [
             { title: 'Q3 2026 Ministry Impact Overview', meta: 'Quarterly Review · PDF Preview', body: 'Detailed report on hours of worship served, students taught, and churches supported across Arizona.', icon: 'file' },
-            { title: 'Gamo Nonprofit Charter & Statement of Faith', meta: 'Foundational Document · PDF', body: 'Guiding Christian nonprofit constitution, biblical principles of stewardship, and governance structure.', icon: 'book' },
+            { title: 'Gamo Mission Charter & Statement of Faith', meta: 'Foundational Document · PDF', body: 'Guiding Christian mission principles, biblical stewardship commitments, and governance structure.', icon: 'book' },
             { title: 'Safeguarding & Student Welfare Manual', meta: 'Policy Draft · v2.1', body: 'Strict protocols for minor safety, instructor vetting, classroom transparency, and incident reporting.', icon: 'shield' },
           ],
         },

@@ -296,7 +296,40 @@ export const artistWorkspace: Workspace = {
       title: 'Scoped artist compensation & settlement records',
       description:
         'Track artist fees, agent commissions, and event settlement statuses. Personal banking details are never exposed to booking collaborators.',
+      actions: [
+        { label: 'Export compensation (CSV)', exportReport: 'csv', icon: 'download' },
+        { label: 'Export JSON', exportReport: 'json', variant: 'secondary', icon: 'file' },
+      ],
       blocks: [
+        {
+          type: 'chart',
+          span: 3,
+          title: 'Confirmed & negotiating engagement compensation breakdown',
+          description: 'Comparison of net artist honorarium vs. authorized agency commission across active engagements.',
+          variant: 'stacked',
+          unit: '$',
+          exportFilename: 'gamo-live-artist-compensation',
+          series: [
+            {
+              label: 'Net artist honorarium & travel',
+              color: 'sage',
+              points: [
+                { label: 'Harvest Night (Nov 14)', value: 1870 },
+                { label: 'Acoustic Praise (Dec 5)', value: 1600 },
+                { label: 'Advent Night (Dec 13)', value: 1200 },
+              ],
+            },
+            {
+              label: 'Authorized agent commission (separate)',
+              color: 'gold',
+              points: [
+                { label: 'Harvest Night (Nov 14)', value: 180 },
+                { label: 'Acoustic Praise (Dec 5)', value: 150 },
+                { label: 'Advent Night (Dec 13)', value: 0 },
+              ],
+            },
+          ],
+        },
         {
           type: 'statement',
           span: 2,

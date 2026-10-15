@@ -26,12 +26,16 @@ const { workspace, title, description, actions = [] } = Astro.props;
         </ol>
       </nav>
     </div>
-    <h1 class="mt-0.5 text-[24px] font-bold leading-tight tracking-[-0.025em] sm:text-[30px]">{title}</h1>
+    <h1 class="mt-0.5 text-[24px] font-bold leading-tight tracking-[-0.025em] sm:text-[30px]" data-page-title>{title}</h1>
     {description && <p class="mt-1 max-w-2xl text-[13px] leading-5 text-ink-soft sm:text-[15px] sm:leading-6">{description}</p>}
+    <p data-page-export-status hidden aria-live="polite" class="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#E6F2EA] px-3 py-1 text-[12px] font-semibold text-[#1F5A37]"></p>
   </div>
   <div class="flex flex-wrap items-center gap-2">
     {actions.map((a) => {
       const cls = ['inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-[13px] font-semibold transition-colors sm:rounded-xl sm:text-[14px]', (a.variant ?? 'primary') === 'primary' ? 'bg-terracotta text-white shadow-2xs hover:bg-terracotta-dark' : 'border border-sand bg-white hover:border-charcoal/30'];
+      if (a.exportReport) {
+        return <button type="button" data-export-report={a.exportReport} class:list={cls}>{a.icon && <Icon name={a.icon} class="h-4 w-4" strokeWidth={2} />}{a.label}</button>;
+      }
       return a.dialog
         ? <button type="button" data-dialog-open={a.dialog} class:list={cls}>{a.icon && <Icon name={a.icon} class="h-4 w-4" strokeWidth={2} />}{a.label}</button>
         : <a href={a.href} class:list={cls}>{a.icon && <Icon name={a.icon} class="h-4 w-4" strokeWidth={2} />}{a.label}</a>;
