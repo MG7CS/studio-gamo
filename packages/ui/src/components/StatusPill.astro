@@ -6,7 +6,7 @@
  */
 import Icon, { type IconName } from './Icon.astro';
 interface Props {
-  kind?: 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'canceled' | 'rescheduled' | 'pending' | 'proposal' | 'info' | 'success';
+  kind?: 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'canceled' | 'rescheduled' | 'past' | 'pending' | 'proposal' | 'info' | 'success';
   class?: string;
   tone?: 'light' | 'dark';
   size?: 'sm' | 'md';
@@ -20,13 +20,14 @@ const styles: Record<string, [string, IconName | null]> = {
   external: ['bg-white text-charcoal ring-charcoal/15', 'external'],
   canceled: ['bg-red-50 text-red-800 ring-red-200', 'x'],
   rescheduled: ['bg-amber-50 text-amber-900 ring-amber-200', 'calendar'],
+  past: ['bg-stone-200 text-stone-800 ring-stone-300', 'clock'],
   pending: ['bg-amber-50 text-amber-900 ring-amber-200', 'clock'],
   proposal: ['bg-cream text-terracotta-dark ring-terracotta/30', null],
   info: ['bg-white/80 text-charcoal ring-charcoal/10', null],
   success: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'check'],
 };
 const [cls, icon] = styles[kind];
-const toneClass = tone === 'dark' && (kind === 'sample' || kind === 'paid') ? 'bg-cream text-charcoal ring-cream/50' : cls;
+const toneClass = tone === 'dark' && (kind === 'sample' || kind === 'paid' || kind === 'past') ? 'bg-cream text-charcoal ring-cream/50' : cls;
 const sizeClass = size === 'sm' ? 'gap-1 px-2 py-0.5 text-[11px]' : 'gap-1.5 px-2.5 py-1 text-xs';
 ---
 <span class:list={['inline-flex items-center rounded-full font-semibold ring-1 ring-inset', sizeClass, toneClass, className]}>

@@ -1,6 +1,6 @@
 ---
 import type { LiveEventWithDetails } from '@gamo/domain';
-import { isLocalWeekendDate } from '@gamo/domain';
+import { isEventPast, isLocalWeekendDate } from '@gamo/domain';
 
 export interface Props {
   event: LiveEventWithDetails;
@@ -42,18 +42,24 @@ if (event.startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(event.startDateLocal)) {
   badgeDay = dt.toLocaleDateString('en-US', { day: '2-digit', timeZone: event.timezone || 'America/Phoenix' });
 }
 
+const isPast = typeof event.isPast === 'boolean' ? event.isPast : isEventPast(event);
+const isClosed = isPast || event.status === 'canceled';
 const isWeekend = isLocalWeekendDate(event.startDateLocal, event.startsAt, event.timezone);
 const isExternal = event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external';
 const providerName = event.externalTicketProvider || 'Official Site';
-const ctaLabel = isExternal
-  ? `Tickets at ${providerName}`
-  : event.admissionType === 'free'
-    ? 'Free RSVP'
-    : 'View Details';
+const ctaLabel = isPast
+  ? 'Past · Closed'
+  : isExternal
+    ? `Tickets at ${providerName}`
+    : event.admissionType === 'free'
+      ? 'Free RSVP'
+      : 'View Details';
 
-const disclosureText = isExternal
-  ? event.independentDisclosure || `Independent listing · Tickets sold by ${providerName}`
-  : `Hosted by ${event.organizerName || 'Verified Organizer'}`;
+const disclosureText = isPast
+  ? 'This event has already taken place and is closed.'
+  : isExternal
+    ? event.independentDisclosure || `Independent listing · Tickets sold by ${providerName}`
+    : `Hosted by ${event.organizerName || 'Verified Organizer'}`;
 
 const performerLine =
   event.performers && event.performers.length > 0
@@ -62,9 +68,10 @@ const performerLine =
 ---
 
 <article
-  class="group bg-white rounded-2xl border border-[#EAE2D6] overflow-hidden shadow-[0_2px_8px_rgba(25,24,23,0.04)] hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+  class={`group bg-white rounded-2xl border border-[#EAE2D6] overflow-hidden shadow-[0_2px_8px_rgba(25,24,23,0.04)] hover:shadow-xl transition-all duration-300 flex flex-col justify-between ${isClosed ? 'opacity-85' : ''}`}
   data-event-card
   data-event-slug={event.slug}
+  data-event-status={isPast ? 'past-closed' : event.status}
   data-category={event.category}
   data-metro={event.metroSlug || ''}
   data-start-date={event.startDateLocal || ''}
@@ -114,11 +121,16 @@ const performerLine =
         </svg>
       </button>
 
-      <!-- Category Pill (bottom-left) -->
+      <!-- Category & Past/Closed Pill (bottom-left/right) -->
       <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#14110F]/80 text-[#FBF7F1] backdrop-blur-sm capitalize">
           {event.category === 'worship' ? 'Worship Night' : event.category === 'concert' ? 'Concert' : event.category}
         </span>
+        {isPast && (
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#3D3833]/95 text-[#FBF7F1] border border-white/20 backdrop-blur-sm">
+            Past · Closed
+          </span>
+        )}
       </div>
     </div>
 
@@ -149,7 +161,11 @@ const performerLine =
 
   <!-- Card Footer: External CTA + Save Heart -->
   <div class="px-4 py-3 border-t border-[#F0EAE0] flex items-center justify-between gap-2 bg-white">
-    {isExternal && event.externalUrl ? (
+    {isClosed ? (
+      <span class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6E675F]" data-past-closed-badge>
+        <span>Past · Closed</span>
+      </span>
+    ) : isExternal && event.externalUrl ? (
       <a
         href={event.externalUrl}
         target="_blank"

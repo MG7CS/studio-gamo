@@ -266,7 +266,9 @@ try {
   const mktRes = await page.goto(`${webBaseUrl}/live`, { waitUntil: 'networkidle' });
   assert.equal(mktRes.status(), 200);
   const mktText = await page.locator('body').innerText();
-  assert.match(mktText, /Harvest Night of Gospel/i);
+  assert.doesNotMatch(mktText, /Harvest Night of Gospel/i);
+  assert.match(mktText, /CAIN Live and In Worship|Elevation Worship|CeCe Winans/i);
+  assert.match(mktText, /Past · Closed/i);
   assert.match(mktText, /Upcoming nearby/i);
   assert.match(mktText, /Built for every role in the room/i);
   assert.match(mktText, /Hosting or performing at a Christian event\?/i);

@@ -1,19 +1,19 @@
 ---
-/** Worship gatherings beside Bible studies & recurring activities on Gamo Live marketing page. */
+/** Worship gatherings beside regional & church fellowship events on Gamo Live marketing page. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import EventPills from './EventPills.astro';
 import EventCard from './EventCard.astro';
-import { dateParts, type LiveEvent } from '../../data/live-marketing';
-interface Props { worship: LiveEvent[]; recurring: LiveEvent[] }
+import { dateParts, type LiveEvent, type Organizer } from '../../data/live-marketing';
+interface Props { worship: LiveEvent[]; recurring: LiveEvent[]; organizers?: Organizer[] }
 const { worship, recurring } = Astro.props;
 ---
 <section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="worship-title">
   <div class="mx-auto max-w-[1320px]">
     <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-end">
-      <h2 id="worship-title" class="section-heading text-balance">Worship gatherings <span class="text-terracotta">&amp; weekly fellowship.</span></h2>
-      <p class="text-lg text-ink-soft">Nights of praise, seasonal services, and the Bible studies that meet every week.</p>
+      <h2 id="worship-title" class="section-heading text-balance">Worship gatherings <span class="text-terracotta">&amp; regional nights.</span></h2>
+      <p class="text-lg text-ink-soft">Nights of praise, seasonal worship tours, and church-hosted gatherings across the country.</p>
     </div>
     <div class="mt-12 grid gap-5 md:grid-cols-3">
       {worship.slice(0, 2).map((e, i) => {
@@ -22,20 +22,24 @@ const { worship, recurring } = Astro.props;
           <article class:list={['group relative overflow-hidden rounded-[28px] bg-night text-cream', i === 0 ? 'md:col-span-2 aspect-[4/3] md:aspect-auto md:min-h-[420px]' : 'aspect-[4/5] md:aspect-auto']}>
             <Photo name={e.photo} sizes={i === 0 ? '(min-width:768px) 60vw, 100vw' : '(min-width:768px) 30vw, 100vw'} class="absolute inset-0 h-full w-full object-cover" alt="" />
             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-night/90 to-transparent p-5 pt-20 sm:p-6 sm:pt-24">
-              <EventPills event={e} />
+              <EventPills event={e} tone="dark" />
               <h3 class="mt-3 text-xl font-semibold sm:text-2xl"><a href={siteUrl('live', e.productPath)} class="after:absolute after:inset-0">{e.title}</a></h3>
-              <p class="mt-1 text-sm text-cream/75">{d.weekday} {d.month} {d.day} · {e.city}, {e.state}</p>
+              <p class="mt-1 text-sm text-cream/75">{d.weekday} {d.month} {d.day} · {e.venue}, {e.city}, {e.state}</p>
             </div>
           </article>
         );
       })}
     </div>
-    <div class="mt-14 flex items-center gap-3">
-      <span class="grid h-10 w-10 place-items-center rounded-full bg-terracotta/10 text-terracotta"><Icon name="book" class="h-5 w-5" /></span>
-      <h3 class="text-xl font-semibold">Bible studies &amp; recurring activities</h3>
-    </div>
-    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {recurring.map((e) => <EventCard event={e} variant="compact" />)}
-    </div>
+    {recurring.length > 0 && (
+      <>
+        <div class="mt-14 flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-terracotta/10 text-terracotta"><Icon name="book" class="h-5 w-5" /></span>
+          <h3 class="text-xl font-semibold">More regional worship &amp; tour stops</h3>
+        </div>
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {recurring.map((e) => <EventCard event={e} variant="compact" />)}
+        </div>
+      </>
+    )}
   </div>
 </section>

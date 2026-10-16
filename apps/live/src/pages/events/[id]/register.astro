@@ -9,6 +9,7 @@ import {
   getRuntimeEnv,
   extractExternalDomain,
   resolveExternalCtaLabel,
+  isEventPast,
 } from '@gamo/domain';
 
 export const prerender = false;
@@ -40,6 +41,8 @@ if (event && !isExternal && event.admissionType !== 'free') {
   event = null;
 }
 
+const isPast = Boolean(event && (typeof event.isPast === 'boolean' ? event.isPast : isEventPast(event)));
+
 if (!event) {
   Astro.response.status = unavailable ? 503 : 404;
 }
@@ -56,22 +59,33 @@ const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
 
 <Layout
   title={
-    isExternal && event
-      ? `External Tickets — ${event.title}`
-      : 'Free event registration'
+    isPast && event
+      ? `Past Event (Closed) — ${event.title}`
+      : isExternal && event
+        ? `External Tickets — ${event.title}`
+        : 'Free event registration'
   }
 >
   <PageHeader
-    eyebrow={isExternal ? 'External Event Listing' : 'Free registration'}
+    eyebrow={isPast ? 'Past Event · Closed' : isExternal ? 'External Event Listing' : 'Free registration'}
     title={event?.title || 'Registration unavailable'}
     lede={
-      isExternal
-        ? `Published by ${event?.publishedByLabel || 'Gamo Live Listings'} · Independent event listing.`
-        : 'Use your own contact information. Your confirmation will explain the next steps.'
+      isPast
+        ? 'This event has already taken place. Registration and ticket actions are closed.'
+        : isExternal
+          ? `Published by ${event?.publishedByLabel || 'Gamo Live Listings'} · Independent event listing.`
+          : 'Use your own contact information. Your confirmation will explain the next steps.'
     }
   />
 
-  {event && isExternal ? (
+  {event && isPast ? (
+    <JourneyPanel
+      title="This event is in the past and registration is closed."
+      body="The scheduled date for this gathering has already passed. Browse upcoming events on Gamo Live."
+      href="/events"
+      label="Browse upcoming events"
+    />
+  ) : event && isExternal ? (
     <section class="py-10 bg-[#FBF7F1]">
       <div class="max-w-2xl mx-auto px-4 sm:px-6">
         <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 sm:p-8 shadow-sm">

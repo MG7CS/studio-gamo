@@ -1,17 +1,16 @@
 ---
 /**
  * Gamo Live Marketing Page on Gamo Studios (`apps/web/src/pages/live.astro` -> `/live`).
- * Reached via the Gamo Studios top navigation (`Live`), program cards, and footer.
- * Preserves the full promotional experience (`Harvest Night of Gospel` spotlight hero,
- * Upcoming nearby rail, Browse by location/date, Gospel concerts, Worship & weekly fellowship,
- * Conferences & youth, Free vs Ticketed, Ecosystem pillars, Featured organizers, Trust legend,
- * and Organizer/Artist CTA), while connecting all action links directly to the standalone
- * Gamo Live marketplace product (`siteUrl('live', ...)`).
+ * Loads real published Christian concerts and worship gatherings directly from the D1 `events`
+ * database via `LiveService`, and enforces the Past Event Closure Rule so any event whose
+ * date/time has passed is clearly marked `Past · Closed`.
  */
 import SiteLayout from '../layouts/SiteLayout.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { getDb } from '@gamo/db';
+import { LiveService, getRuntimeEnv } from '@gamo/domain';
 import EventSpotlightHero from '../components/live/EventSpotlightHero.astro';
 import NearbyRail from '../components/live/NearbyRail.astro';
 import BrowsePlaceDate from '../components/live/BrowsePlaceDate.astro';
@@ -22,36 +21,101 @@ import FreeAndTicketed from '../components/live/FreeAndTicketed.astro';
 import LiveEcosystemPillars from '../components/live/LiveEcosystemPillars.astro';
 import FeaturedOrganizers from '../components/live/FeaturedOrganizers.astro';
 import TrustLegend from '../components/live/TrustLegend.astro';
-import { events, eventsBy } from '../data/live-marketing';
+import {
+  buildOrganizersFromEvents,
+  buildVerifiedCatalogFallbackEvents,
+  mapDbEventsToMarketingEvents,
+  type LiveEvent,
+} from '../data/live-marketing';
 
-const byDate = [...events].sort((a, b) => a.date.localeCompare(b.date));
-const featured = eventsBy((e) => !!e.featured);
+export const prerender = false;
+
+const now = new Date();
+let liveEvents: LiveEvent[] = [];
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveService(getDb(env.DB));
+  await liveService.ensureVerifiedCatalogSeeded();
+  const dbEvents = await liveService.listDiscoverableEvents({ limit: 100 });
+  if (dbEvents.length > 0) {
+    liveEvents = mapDbEventsToMarketingEvents(dbEvents, now);
+  } else {
+    liveEvents = buildVerifiedCatalogFallbackEvents(now);
+  }
+} catch {
+  liveEvents = buildVerifiedCatalogFallbackEvents(now);
+}
+
+const organizers = buildOrganizersFromEvents(liveEvents);
+const upcomingEvents = liveEvents.filter((e) => !e.isPast && e.status !== 'canceled');
+const activeOrAll = upcomingEvents.length > 0 ? upcomingEvents : liveEvents;
+
+const featured = activeOrAll.filter((e) => e.featured).slice(0, 4);
+const spotlightSlides = featured.length > 0 ? featured : activeOrAll.slice(0, 4);
+
+const nearbyEvents = [
+  ...upcomingEvents.slice(0, 7),
+  ...liveEvents.filter((e) => e.isPast).slice(0, Math.max(0, 7 - upcomingEvents.length)),
+];
+
+const concertEvents = liveEvents.filter((e) => e.category === 'concert');
+const worshipEvents = liveEvents.filter((e) => e.category === 'worship');
+const secondaryWorshipOrRegional =
+  liveEvents.filter((e) => e.category !== 'concert').length >= 3
+    ? liveEvents.filter((e) => e.category !== 'concert').slice(0, 3)
+    : liveEvents.slice(4, 7);
+
+const conferenceOrArenaEvents =
+  liveEvents.filter((e) => e.category === 'conference').length > 0
+    ? liveEvents.filter((e) => e.category === 'conference')
+    : liveEvents.filter((e) => /arena|forum|center|theater|theatre/i.test(e.venue)).slice(0, 2);
+
+const youthOrChurchEvents =
+  liveEvents.filter((e) => e.category === 'youth').length > 0
+    ? liveEvents.filter((e) => e.category === 'youth').slice(0, 3)
+    : liveEvents.filter((e) => /church|chapel|worship|hall/i.test(e.venue)).slice(0, 3);
+
+const freeOrChurchEvents =
+  liveEvents.filter((e) => e.ticketing === 'free').length > 0
+    ? liveEvents.filter((e) => e.ticketing === 'free').slice(0, 5)
+    : liveEvents.filter((e) => e.category === 'worship' || /church/i.test(e.venue)).slice(0, 5);
+
+const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0, 5);
+
 const canonicalUrl = siteUrl('web', '/live');
 ---
 
 <SiteLayout
   title="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios"
-  description="Learn how Gamo Live connects Christian concertgoers, churches, event organizers, and artists nationwide — then explore upcoming events or list a gathering on the Gamo Live platform."
+  description="Explore verified Christian concerts, worship nights, and ministry gatherings from our live database across Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston, Seattle, and nationwide."
   current="live"
   headerTheme="dark"
 >
   <Fragment slot="head">
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:title" content="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios" />
-    <meta property="og:description" content="Learn how Gamo Live connects Christian concertgoers, churches, event organizers, and artists nationwide — then explore upcoming events or list a gathering on the Gamo Live platform." />
+    <meta property="og:description" content="Explore verified Christian concerts, worship nights, and ministry gatherings from our live database across Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston, Seattle, and nationwide." />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:type" content="website" />
   </Fragment>
 
-  <EventSpotlightHero slides={featured} />
-  <NearbyRail events={byDate.filter((e) => e.status !== 'canceled').slice(0, 7)} />
-  <BrowsePlaceDate />
-  <GospelConcerts events={eventsBy((e) => e.category === 'concert')} />
-  <WorshipAndRecurring worship={eventsBy((e) => e.category === 'worship')} recurring={eventsBy((e) => !!e.recurring)} />
-  <ConferencesYouth conferences={eventsBy((e) => e.category === 'conference')} youth={eventsBy((e) => e.category === 'youth').slice(0, 3)} />
-  <FreeAndTicketed free={eventsBy((e) => e.ticketing === 'free').slice(0, 5)} ticketed={eventsBy((e) => e.ticketing !== 'free').slice(0, 5)} />
+  <EventSpotlightHero slides={spotlightSlides} organizers={organizers} />
+  <NearbyRail events={nearbyEvents} />
+  <BrowsePlaceDate events={liveEvents} />
+  <GospelConcerts events={concertEvents.slice(0, 4)} />
+  <WorshipAndRecurring
+    worship={worshipEvents.length > 0 ? worshipEvents : concertEvents.slice(0, 2)}
+    recurring={secondaryWorshipOrRegional}
+    organizers={organizers}
+  />
+  <ConferencesYouth
+    conferences={conferenceOrArenaEvents.length > 0 ? conferenceOrArenaEvents : liveEvents.slice(0, 2)}
+    youth={youthOrChurchEvents.length > 0 ? youthOrChurchEvents : liveEvents.slice(2, 5)}
+  />
+  <FreeAndTicketed free={freeOrChurchEvents} ticketed={ticketedEvents} />
   <LiveEcosystemPillars />
-  <FeaturedOrganizers />
+  <FeaturedOrganizers events={liveEvents} organizers={organizers} />
   <section class="bg-cream px-4 pb-4 sm:px-8">
     <TrustLegend class="mx-auto max-w-[1320px]" />
   </section>

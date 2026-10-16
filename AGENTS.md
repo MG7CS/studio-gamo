@@ -157,4 +157,13 @@ Never interpret shared UI components or authentication infrastructure as permiss
 
 Any cross-product identity linking, enrollment, or integration must be explicitly designed and authorized.
 
+## Past Event Closure & Real Database Events Rule
+
+- All public Gamo Live surfaces (`gamostudio.org/live`, `live.gamostudio.org`, `/events`, `/events/<slug>`) must display **real approved/published events from the database (`events` table in D1 via `LiveService`)**, never hardcoded fictional sample events (such as `"Harvest Night of Gospel"`).
+- Any event whose scheduled date/time is already in the past (`isEventPast(event, now) === true`) must be treated as **past and closed** (`isPast = true`, `isClosed = true`, `lifecycleStatus = 'past'`):
+  - Display a clear **`Past · Closed`** (or **`Past Event · Closed`**) status badge on event cards, lists, and detail pages.
+  - Disable or replace active ticket purchase / free registration buttons on past events with a closed notice (`"Past · Closed"` / `"This event has already taken place. Ticket purchases and attendee registration are closed."`).
+  - Sort upcoming events ahead of past events in discovery feeds and featured hero carousels.
+
+
 
