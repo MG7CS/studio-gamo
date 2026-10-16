@@ -19,6 +19,14 @@ properties:
         type: array
         items:
           $ref: ./OrganizationMembershipSummary.yaml
+      products:
+        type: array
+        items:
+          type: string
+      product:
+        type:
+          - string
+          - "null"
     required:
       - user
       - sessionId

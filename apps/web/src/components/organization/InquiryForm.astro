@@ -1,42 +1,65 @@
 ---
-import FormField from '@studio-gamo/ui/components/FormField.astro';
-interface Props { partnership?: boolean; }
+interface Props { partnership?: boolean }
 const { partnership = false } = Astro.props;
+const auth = (Astro.locals as Record<string, any>).auth;
+const next = Astro.url.pathname + Astro.url.search;
 ---
-<div class="rounded-[28px] border border-sand bg-white p-6 sm:p-9">
-  <h2 class="text-2xl font-bold tracking-tight">{partnership ? 'Partnership inquiry' : 'Send us a message'}</h2>
-  <p class="mt-2 text-sm text-ink-soft">Share a few details below and our team will follow up with you directly.</p>
-  <form data-inquiry-form class="mt-7" method="post">
-    <fieldset disabled data-inquiry-fields class="space-y-5">
-      <legend class="sr-only">{partnership ? 'Partnership inquiry' : 'Contact details'}</legend>
-      <div class="grid gap-5 sm:grid-cols-2"><FormField label="Your name" name="name" required placeholder="Your full name" autocomplete="name" /><FormField label="Email address" name="email" type="email" required placeholder="you@example.com" autocomplete="email" /></div>
-      <FormField label="Church or organization (optional)" name="organization" placeholder="Church or organization name" autocomplete="organization" />
-      <FormField label={partnership ? 'How would you like to participate?' : 'What would you like to explore?'} name="interest" type="select" required options={['Worship support', 'Music education', 'Teaching', 'Christian events', 'Technical support', 'Hosting a program', 'Partnerships', 'Mission support', 'Volunteering', 'General inquiry']} />
-      <FormField label="Your idea or question" name="message" type="textarea" required placeholder="Tell us what you are exploring or how we can help." hint="Please do not include sensitive financial details or private identity documents." />
-      <button type="submit" class="inline-flex rounded-full bg-terracotta px-6 py-3 font-semibold text-white hover:bg-terracotta-dark">Send inquiry</button>
-    </fieldset>
-    <noscript><p class="mt-5 text-sm">JavaScript is required to validate and submit this inquiry form.</p></noscript>
-    <div data-inquiry-result hidden role="status" tabindex="-1" class="mt-6 rounded-2xl bg-cream p-5"><h3 class="text-lg font-semibold">Inquiry received</h3><p class="mt-2 text-sm leading-relaxed text-ink-soft">Thank you for reaching out. Your message has been recorded and our team will follow up with you shortly.</p><button data-inquiry-reset type="button" class="mt-4 text-sm font-semibold text-terracotta underline">Send another message</button></div>
-  </form>
-</div>
+<section class="rounded-[28px] border border-sand bg-white p-6 sm:p-10">
+  <h2 class="text-2xl font-semibold tracking-tight text-charcoal">{partnership ? 'Partnership inquiry' : 'Send an inquiry'}</h2>
+  <p class="mt-2.5 text-sm leading-relaxed text-ink-soft">Share how you would like to participate or partner with Gamo Studios. Inquiries are reviewed by our team and tracked in your account.</p>
+  {!auth ? (
+    <a href={`/account/signin?next=${encodeURIComponent(next)}`} class="mt-6 inline-flex rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white">
+      Verify your email to send an inquiry
+    </a>
+  ) : (
+    <form data-inquiry-form data-kind={partnership ? 'partnership' : 'general'} class="mt-7 space-y-5">
+      <label class="block text-sm font-medium text-charcoal">
+        Your name
+        <input name="name" required minlength="2" maxlength="120" autocomplete="name" value={auth.user.displayName || ''} class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm" />
+      </label>
+      <p class="text-xs text-ink-soft">Signed in as {auth.user.email}</p>
+      <label class="block text-sm font-medium text-charcoal">
+        Church or organization (optional)
+        <input name="organization" maxlength="160" autocomplete="organization" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm" />
+      </label>
+      <label class="block text-sm font-medium text-charcoal">
+        Area of interest
+        <select name="interest" required class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm">
+          {['Musician application', 'Church musician request', 'Lesson interest', 'Church-hosted lessons', 'Production consultation', 'Worship support', 'Music education', 'Teaching', 'Christian events', 'Technical support', 'Hosting a program', 'Partnerships', 'Mission support', 'Volunteering', 'General inquiry'].map((interest) => <option>{interest}</option>)}
+        </select>
+      </label>
+      <label class="block text-sm font-medium text-charcoal">
+        Your idea or question
+        <textarea name="message" required minlength="10" maxlength="4000" rows="5" aria-describedby="inquiry-privacy" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm"></textarea>
+      </label>
+      <p id="inquiry-privacy" class="text-xs text-ink-soft">Please avoid sharing sensitive personal or financial documents.</p>
+      <div class="flex flex-wrap items-center gap-5 pt-1">
+        <button type="submit" class="rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white disabled:opacity-50">Submit for review</button>
+        <a href="/account/inquiries" class="text-sm font-medium text-terracotta underline underline-offset-4">View your inquiries</a>
+      </div>
+      <p data-inquiry-result role="status" aria-live="polite" hidden class="rounded-xl bg-cream p-4 text-sm"></p>
+    </form>
+  )}
+</section>
 <script>
   document.querySelectorAll<HTMLFormElement>('[data-inquiry-form]').forEach((form) => {
-    const fields = form.querySelector<HTMLFieldSetElement>('[data-inquiry-fields]');
-    const result = form.querySelector<HTMLElement>('[data-inquiry-result]');
-    if (!fields || !result) return;
-    fields.disabled = false;
+    const result = form.querySelector<HTMLElement>('[data-inquiry-result]')!;
     const interest = new URLSearchParams(location.search).get('interest');
-    const select = form.querySelector<HTMLSelectElement>('[name="interest"]');
-    if (select && interest && [...select.options].some((o) => o.value === interest)) select.value = interest;
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (!form.reportValidity()) return;
-      result.hidden = false;
-      result.focus();
-    });
-    form.querySelector('[data-inquiry-reset]')?.addEventListener('click', () => {
-      form.reset(); result.hidden = true;
-      form.querySelector<HTMLInputElement>('[name="name"]')?.focus();
+    const select = form.querySelector<HTMLSelectElement>('select')!;
+    if (interest && [...select.options].some((option) => option.value === interest)) select.value = interest;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); if (!form.reportValidity()) return;
+      const button = form.querySelector<HTMLButtonElement>('[type="submit"]')!;
+      button.disabled = true; result.hidden = false; result.textContent = 'Saving your inquiry…';
+      try {
+        const fields = new FormData(form);
+        const response = await fetch('/api/participation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: form.dataset.kind, name: fields.get('name'), organization: fields.get('organization'), interest: fields.get('interest'), message: fields.get('message') }) });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error?.message || 'Your inquiry could not be saved. Please try again.');
+        result.textContent = `Inquiry saved. Reference ${body.data.inquiry.id}. Status: pending staff review. You can follow its progress in your account.`;
+        form.querySelector<HTMLTextAreaElement>('textarea')!.value = '';
+      } catch (error) { result.textContent = error instanceof Error ? error.message : 'Your inquiry could not be saved. Please try again.'; }
+      finally { button.disabled = false; }
     });
   });
 </script>

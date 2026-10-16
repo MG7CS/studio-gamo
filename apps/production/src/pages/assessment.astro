@@ -1,9 +1,5 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import PageIntro from '../components/production/PageIntro.astro';
-import AssessmentFlow from '../components/production/AssessmentFlow.astro';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Production consultation'), 303);
 ---
-<Layout title="Church Needs Assessment" description="Complete the Gamo Production church technical needs assessment." headerTheme="light">
-  <PageIntro eyebrow="Church needs assessment" title="Where is your team today?" lede="Five short steps about your church, current setup, priorities and volunteers." />
-  <AssessmentFlow />
-</Layout>

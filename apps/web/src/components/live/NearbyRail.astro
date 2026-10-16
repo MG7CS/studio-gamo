@@ -1,0 +1,22 @@
+---
+/** "Upcoming near you" rail on Gamo Live marketing page — links Browse all events to standalone marketplace /events. */
+import ContentRail from '@studio-gamo/ui/components/ContentRail.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import EventCard from './EventCard.astro';
+import type { LiveEvent } from '../../data/live-marketing';
+interface Props { events: LiveEvent[] }
+const { events } = Astro.props;
+---
+<section class="bg-cream px-4 section-space sm:px-8" aria-labelledby="nearby-title">
+  <div class="mx-auto max-w-[1320px]">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <EditorialHeading id="nearby-title" eyebrow="Upcoming nearby" title="This month, close to home." lede="Featured regional gatherings across partner churches and ministries." />
+      <ButtonLink href={siteUrl('live', '/events')} variant="secondary" arrow class="self-start lg:self-auto">Browse all events</ButtonLink>
+    </div>
+    <ContentRail label="Upcoming nearby events" class="mt-10">
+      {events.map((e) => <div class="w-[72%] shrink-0 snap-start sm:w-[44%] lg:w-[23.5%]"><EventCard event={e} /></div>)}
+    </ContentRail>
+  </div>
+</section>

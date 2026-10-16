@@ -1,6 +1,12 @@
 ---
-import '../../app.css';
-import AuthPage from '../../components/account/AuthPage.astro';
-import { authScreens } from '../../data/account-entry';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
 ---
-<AuthPage screen={authScreens.recover} />
+
+<SiteLayout
+  title="Recover Your Account — Gamo Studios"
+  description="Restore access to your Gamo Studios account using a 6-digit email verification code."
+  chrome={false}
+>
+  <GamoAuthExperience mode="recover" program="Gamo Studios" />
+</SiteLayout>

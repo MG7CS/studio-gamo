@@ -1,0 +1,24 @@
+---
+/**
+ * Deprecated legacy alias — delegates directly to the shared GamoAuthExperience component
+ * so no application ever renders the legacy standalone authentication layout.
+ */
+import GamoAuthExperience from '../auth/GamoAuthExperience.astro';
+import type { AuthScreenMode } from '../../lib/auth-flow-client';
+
+interface Props {
+  mode?: AuthScreenMode;
+  program?: string;
+  brandHref?: string;
+  brandLabel?: string;
+}
+
+const { mode = 'signin', program = 'Gamo Studios', brandHref = '/', brandLabel } = Astro.props;
+---
+
+<GamoAuthExperience
+  mode={mode}
+  program={program}
+  brandHref={brandHref}
+  brandLabel={brandLabel}
+/>

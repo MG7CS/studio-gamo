@@ -1,69 +1,122 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import PageHeader from '../../../components/shared/PageHeader.astro';
-import TicketSelector from '../../../components/tickets/TicketSelector.astro';
+import JourneyPanel from '../../../components/shared/JourneyPanel.astro';
 import FreeRegistrationForm from '../../../components/tickets/FreeRegistrationForm.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
 import { getDb } from '@gamo/db';
-import { LiveService, getRuntimeEnv } from '@gamo/domain';
-import { events, type LiveEvent } from '../../../data/events';
+import {
+  LiveService,
+  getRuntimeEnv,
+  extractExternalDomain,
+  resolveExternalCtaLabel,
+} from '@gamo/domain';
 
 export const prerender = false;
 
-const id = Astro.params.id ?? '';
-let event: LiveEvent | undefined = events.find((e) => e.id === id);
+let event: Awaited<ReturnType<LiveService['getEvent']>> = null;
+let unavailable = false;
 
-const runtimeEnv = await getRuntimeEnv(Astro);
-if (!event && runtimeEnv?.DB) {
-  const db = getDb(runtimeEnv.DB);
-  const service = new LiveService(db);
-  const dbEvent = await service.getEventById(id);
-  if (dbEvent) {
-    event = {
-      id: dbEvent.id,
-      sample: true,
-      title: dbEvent.title,
-      tagline: dbEvent.tagline ?? 'Christian community gathering',
-      category: 'worship',
-      date: dbEvent.startsAt.toISOString().slice(0, 10),
-      time: '7:00 PM',
-      city: dbEvent.city ?? 'Community',
-      state: dbEvent.state ?? 'US',
-      venue: dbEvent.venueName ?? 'Main Sanctuary',
-      organizer: 'grace-chapel',
-      photo: 'worshipNight',
-      ticketing: 'free',
-      status: 'scheduled',
-      tiers: [{ name: 'Free Registration', priceCents: 0, note: 'General admission' }],
-      description: dbEvent.description ?? 'Christian community gathering.',
-    };
-  }
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveService(getDb(env.DB));
+  await liveService.ensureVerifiedCatalogSeeded();
+  event = await liveService.getEvent(Astro.params.id || '');
+} catch {
+  unavailable = true;
+}
+
+if (event?.status !== 'approved') {
+  event = null;
+}
+
+const isExternal = Boolean(
+  event &&
+    (event.listingType === 'external_discovery' ||
+      event.externalOnly ||
+      event.admissionType === 'external')
+);
+
+if (event && !isExternal && event.admissionType !== 'free') {
+  event = null;
 }
 
 if (!event) {
-  event = {
-    id,
-    sample: true,
-    title: 'Community Worship Gathering',
-    tagline: 'Free registration slice',
-    category: 'worship',
-    date: '2026-11-15',
-    time: '7:00 PM',
-    city: 'Dallas',
-    state: 'TX',
-    venue: 'Main Sanctuary',
-    organizer: 'grace-chapel',
-    photo: 'worshipNight',
-    ticketing: 'free',
-    status: 'scheduled',
-    tiers: [{ name: 'Free Registration', priceCents: 0, note: 'General admission' }],
-    description: 'Free community gathering registration.',
-  };
+  Astro.response.status = unavailable ? 503 : 404;
 }
+
+const externalProviderLabel = event?.externalTicketProvider || 'the official event page';
+const externalCtaLabel = event
+  ? resolveExternalCtaLabel({
+      externalTicketProvider: event.externalTicketProvider,
+      externalDestinationKind: event.externalDestinationKind,
+    })
+  : 'View official event';
+const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
 ---
 
-<Layout title="Free registration" headerTheme="light">
-  <PageHeader eyebrow="Free registration" title={event.title} />
-  <TicketSelector event={event} />
-  <FreeRegistrationForm eventId={event.id} eventTitle={event.title} />
+<Layout
+  title={
+    isExternal && event
+      ? `External Tickets — ${event.title}`
+      : 'Free event registration'
+  }
+>
+  <PageHeader
+    eyebrow={isExternal ? 'External Event Listing' : 'Free registration'}
+    title={event?.title || 'Registration unavailable'}
+    lede={
+      isExternal
+        ? `Published by ${event?.publishedByLabel || 'Gamo Live Listings'} · Independent event listing.`
+        : 'Use your own contact information. Your confirmation will explain the next steps.'
+    }
+  />
+
+  {event && isExternal ? (
+    <section class="py-10 bg-[#FBF7F1]">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6">
+        <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 sm:p-8 shadow-sm">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#F5EFE6] text-[#B34B1E]">
+            External Ticketing & Registration Only
+          </span>
+          <h2 class="text-xl sm:text-2xl font-bold text-[#191817] mt-3">
+            Tickets and registration for {event.title} are handled on {externalProviderLabel}
+          </h2>
+          <p class="text-sm text-[#5C554D] mt-2 leading-relaxed">
+            This concert or worship gathering is an independent listing curated by{' '}
+            <strong>{event.publishedByLabel || 'Gamo Live Listings'}</strong>. Gamo Live does not issue tickets or collect RSVPs for this event. Please use the verified link below to continue to{' '}
+            <strong>{externalDomain || externalProviderLabel}</strong>.
+          </p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            {event.externalUrl && (
+              <a
+                href={event.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#B34B1E] hover:bg-[#993D16] text-white text-sm font-bold transition-colors"
+              >
+                <span>{externalCtaLabel}</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            <a
+              href={`/events/${event.slug}`}
+              class="inline-flex items-center px-5 py-3 rounded-full border border-[#D5CCC2] text-[#191817] hover:border-[#191817] text-sm font-semibold transition-colors"
+            >
+              Back to event details
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  ) : event ? (
+    <FreeRegistrationForm eventId={event.id} eventTitle={event.title} />
+  ) : (
+    <JourneyPanel
+      title="Registration is not available for this event."
+      body="Only approved events with free registration can accept a registration here."
+      href="/events"
+      label="Browse events"
+    />
+  )}
 </Layout>

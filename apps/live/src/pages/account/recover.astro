@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+---
+
+<Layout
+  title="Recover Your Gamo Live Account"
+  description="Restore access to your Gamo Live account using a 6-digit email verification code."
+  chrome={false}
+>
+  <GamoAuthExperience mode="recover" program="Gamo Live" />
+</Layout>

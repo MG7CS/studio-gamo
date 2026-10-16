@@ -1,0 +1,30 @@
+---
+import type { OrgMembership } from '@gamo/auth';
+interface Props { memberships: OrgMembership[]; }
+const { memberships } = Astro.props;
+---
+<section class="bg-cream px-5 pb-20"><form id="event-submission" class="mx-auto max-w-3xl space-y-6">
+<label>Organization<select name="organizationId" required>{memberships.map(m => <option value={m.organizationId}>{m.orgName}</option>)}</select></label>
+<label>Event title<input name="title" required minlength="3" maxlength="150" autocomplete="off" /></label>
+<label>Category<select name="category"><option value="worship">Worship gathering</option><option value="concert">Christian concert</option><option value="bible">Bible study</option><option value="conference">Conference</option><option value="youth">Youth & family</option></select></label>
+<label>About your event<textarea name="description" required minlength="20" maxlength="10000" rows="5"></textarea></label>
+<div class="grid gap-6 sm:grid-cols-2"><label>Venue name<input name="venueName" minlength="2" required /></label><label>Street address<input name="address" autocomplete="street-address" /></label><label>City<input name="city" required minlength="2" autocomplete="address-level2" /></label><label>State<input name="state" required minlength="2" maxlength="50" autocomplete="address-level1" /></label></div>
+<label>Start date and time with UTC offset<input name="startsAt" required placeholder="2027-03-20T19:00:00-07:00" aria-describedby="date-help" /><span id="date-help" class="text-sm font-normal text-ink-soft">Use YYYY-MM-DDTHH:MM:SS with the event’s UTC offset (for example −07:00 for Phoenix). This preserves the exact event time.</span></label>
+<label>Event time zone<input name="timezone" required placeholder="America/Phoenix" /><span class="text-sm font-normal text-ink-soft">Use an IANA time zone, such as America/New_York.</span></label>
+<label>Free registration capacity<input name="capacity" type="number" min="1" max="100000" step="1" required /><span class="text-sm font-normal text-ink-soft">This submission supports free registration. Paid ticketing remains unavailable.</span></label>
+<label class="flex items-start gap-3"><input type="checkbox" required class="!w-auto" /><span>I am authorized to submit this event on behalf of this organization.</span></label>
+<button type="submit" class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">Submit for review</button>
+<p id="event-feedback" role="status" aria-live="polite"></p><a id="event-saved-link" href="/workspaces" hidden class="font-semibold underline">View your submitted events</a>
+</form></section>
+<style>label{display:block;font-weight:600}input,select,textarea{display:block;width:100%;margin-top:.5rem;border:1px solid #d8cbbb;border-radius:.75rem;padding:.8rem;background:white;color:#1d2323}input:focus,select:focus,textarea:focus{outline:2px solid #b65b35;outline-offset:2px}</style>
+<script>
+const form=document.querySelector<HTMLFormElement>('#event-submission');
+form?.addEventListener('submit',async e=>{
+ e.preventDefault();const feedback=document.querySelector<HTMLElement>('#event-feedback')!;const button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+ const fd=new FormData(form);const data=Object.fromEntries(fd);const startsAt=String(data.startsAt);
+ if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/.test(startsAt)||!Number.isFinite(Date.parse(startsAt))){feedback.textContent='Enter a valid date and time including its UTC offset.';return;}
+ try{new Intl.DateTimeFormat('en',{timeZone:String(data.timezone)});}catch{feedback.textContent='Enter a valid IANA time zone.';return;}
+ button.disabled=true;feedback.textContent='Submitting your event…';
+ try{const {capacity,...fields}=data;const res=await fetch('/api/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...fields,admissionType:'free',tiers:[{name:'Free registration',priceCents:0,capacity:Number(capacity)}]})});const result=await res.json();if(!res.ok)throw new Error(result.error?.message||'Your event could not be submitted.');feedback.textContent=result.data.message;document.querySelector<HTMLElement>('#event-saved-link')!.hidden=false;button.textContent='Submitted';form.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea').forEach(el=>el.disabled=true);}catch(error){feedback.textContent=error instanceof Error?error.message:'Connection problem. Please try again.';button.disabled=false;}
+});
+</script>

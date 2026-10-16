@@ -1,23 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import FlowShell from '../../components/flow/FlowShell.astro';
-import DemoForm from '../../components/flow/DemoForm.astro';
-import ChipGroup from '../../components/flow/ChipGroup.astro';
-import FormField from '@studio-gamo/ui/components/FormField.astro';
-import { hireSteps, instruments, styles } from '../../data/worship';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Church musician request'), 303);
 ---
-<Layout title="Request musicians">
-  <FlowShell eyebrow="For churches · Request" title="Tell us about" accent="your service." lede="Describe the roles you need. A coordinator would review the request and propose vetted musicians — nothing is booked automatically." steps={hireSteps} current={0} photo="churchGoldenHour">
-    <DemoForm next="/hire/repertoire">
-      <div class="grid gap-6 sm:grid-cols-2">
-        <FormField label="Church name" name="church" required />
-        <FormField label="Contact name" name="contact" autocomplete="name" required />
-        <FormField label="Email" name="email" type="email" autocomplete="email" required />
-        <FormField label="City / area" name="city" />
-      </div>
-      <ChipGroup legend="Roles needed" name="roles" options={instruments.map((i) => i.name)} checked={['Keys & piano', 'Bass']} />
-      <FormField label="Style of worship" name="style" type="select" options={styles} />
-      <FormField label="Approximate congregation size" name="size" type="select" options={['Under 75', '75–200', '200–500', '500+']} />
-    </DemoForm>
-  </FlowShell>
-</Layout>

@@ -1,22 +1,4 @@
 ---
-import Layout from '../../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import StepIndicator from '@studio-gamo/ui/components/StepIndicator.astro';
-import PageHeader from '../../../components/shared/PageHeader.astro';
-import TicketSelector from '../../../components/tickets/TicketSelector.astro';
-import { events, type LiveEvent } from '../../../data/events';
-export const prerender = true;
-export function getStaticPaths() {
-  return events.map((event) => ({ params: { id: event.id }, props: { event } }));
-}
-const { event } = Astro.props as { event: LiveEvent };
+export const prerender = false;
+return Astro.redirect(`/events/${encodeURIComponent(Astro.params.id || '')}`);
 ---
-<Layout title={`Tickets · ${event.title}`} headerTheme="light">
-  <PageHeader eyebrow="Registration & ticketing" title={event.title} back={{ href: `/events/${event.id}`, label: 'Back to event' }} />
-  <div class="space-y-6 bg-cream px-4 pb-8 sm:px-8">
-    <div class="mx-auto max-w-[1100px] space-y-6">
-      <StepIndicator steps={[{ label: 'Select' }, { label: 'Checkout' }, { label: 'Digital pass' }]} current={0} />
-    </div>
-  </div>
-  <TicketSelector event={event} />
-</Layout>

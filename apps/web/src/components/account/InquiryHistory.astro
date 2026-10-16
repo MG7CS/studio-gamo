@@ -1,0 +1,12 @@
+---
+import { getDb } from '@gamo/db';
+import { ParticipationService, getRuntimeEnv } from '@gamo/domain';
+const auth = (Astro.locals as Record<string, any>).auth;
+let inquiries: Awaited<ReturnType<ParticipationService['list']>> = [];
+let failed = false;
+if (auth) { try { const env = await getRuntimeEnv(Astro); inquiries = await new ParticipationService(getDb(env.DB)).list(auth.user.id); } catch { failed = true; } }
+---
+<section class="mt-10 border-t border-sand pt-8">
+  <h2 class="text-2xl font-bold">Your inquiries</h2>
+  {failed ? <p class="mt-4">We could not load your inquiries. Please reload to try again.</p> : inquiries.length === 0 ? <p class="mt-4 text-ink-soft">You have not submitted any inquiries. <a href="/get-involved" class="font-semibold underline">Explore ways to participate.</a></p> : <ul class="mt-4 divide-y divide-sand">{inquiries.map((inquiry) => <li class="py-5"><div class="flex flex-wrap justify-between gap-3"><h3 class="font-semibold">{inquiry.interest} · {inquiry.kind === 'partnership' ? 'Partnership inquiry' : 'General inquiry'}</h3><span class="text-sm">{inquiry.status === 'pending' ? 'Pending staff review' : inquiry.status === 'reviewed' ? 'Reviewed' : 'Closed'}</span></div><p class="mt-3 whitespace-pre-wrap text-sm">{inquiry.message}</p>{inquiry.reviewNotes && <p class="mt-3 whitespace-pre-wrap rounded-xl bg-cream p-4 text-sm"><strong>Staff update: </strong>{inquiry.reviewNotes}</p>}<p class="mt-3 text-xs text-ink-soft">Submitted {new Date(inquiry.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' })} · {inquiry.id}</p></li>)}</ul>}
+</section>

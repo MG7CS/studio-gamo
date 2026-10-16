@@ -1,79 +1,135 @@
 ---
-import { resolvePlatformBrandConfig } from '@studio-gamo/ui/lib/brand';
+import { GAMO_LIVE_METROS } from '@gamo/domain';
 
-const brand = await resolvePlatformBrandConfig(Astro.locals);
-
-const columns = [
-  {
-    title: 'Discover & Attend',
-    links: [
-      { label: 'Browse All Events', url: '/events' },
-      { label: 'Featured Gatherings', url: '/events/harvest-night-of-gospel' },
-      { label: 'Order & QR Pass Lookup', url: '/my-tickets' },
-      { label: 'Self-Service Refunds & Receipts', url: '/my-tickets#refunds' },
-    ],
-  },
-  {
-    title: 'Organize & Promote',
-    links: [
-      { label: 'Promote an Event', url: '/promote' },
-      { label: 'Submit Event Listing', url: '/promote/create' },
-      { label: 'Organizer Workspace', url: '/organizer' },
-      { label: 'Door QR Scanner', url: '/organizer/scan' },
-    ],
-  },
-  {
-    title: 'Talent & Production',
-    links: [
-      { label: 'Artist Workspace', url: '/artist' },
-      { label: 'Agent & Manager Roster', url: '/agent' },
-      { label: 'Booking & Engagements', url: '/artist/bookings' },
-      { label: 'Event Production Support', url: '/organizer/production' },
-    ],
-  },
+const primaryLinks = [
+  { label: 'Events', href: '/events' },
+  { label: 'Artists', href: '/artists' },
+  { label: 'Venues', href: '/venues' },
+  { label: 'List an Event', href: '/promote/create' },
+  { label: 'My Tickets', href: '/my-tickets' },
+  { label: 'Workspaces', href: '/workspaces' },
 ];
 ---
-<footer data-surface="dark" class="relative isolate overflow-hidden bg-[#171E20] text-cream">
-  <div class="pointer-events-none absolute inset-x-0 bottom-0 h-[185px] bg-gradient-to-t from-terracotta/10 to-transparent" aria-hidden="true"></div>
-  <div class="relative z-10 mx-auto max-w-[1536px] px-6 pt-16 pb-12 sm:px-12 lg:px-[4.5%]">
-    <div class="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-8">
-      <div class="col-span-2 lg:col-span-1">
-        <a href="/" class="inline-flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-terracotta text-sm font-extrabold tracking-wider text-white">
-            {brand.logoMark}
-          </span>
-          <span class="text-xl font-extrabold tracking-tight text-white">{brand.displayName}</span>
-        </a>
-        <p class="mt-4 max-w-sm text-sm leading-relaxed text-[#D8D4D0]">
-          {brand.tagline}. Discover gatherings, coordinate event teams, represent and book Christian artists, and manage live production in one connected platform.
-        </p>
-        <p class="mt-4 text-xs text-[#D8D4D0]/80">
-          Support: <a href={`mailto:${brand.supportEmail}`} class="underline hover:text-white">{brand.supportEmail}</a>
-        </p>
-      </div>
-      {columns.map((col) => (
-        <nav aria-label={col.title}>
-          <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-white">{col.title}</h2>
-          <ul class="space-y-2.5">
-            {col.links.map((l) => (
-              <li><a href={l.url} class="text-sm text-[#D8D4D0] transition-colors hover:text-white">{l.label}</a></li>
-            ))}
-          </ul>
-        </nav>
-      ))}
-    </div>
 
-    <div id="status" class="mt-12 space-y-2 border-t border-white/15 pt-6 text-xs leading-relaxed text-[#D8D4D0]/80">
-      <p>{brand.operatorDisclosure}</p>
-      <p>{brand.paymentDisclosure}</p>
-    </div>
+<footer
+  data-surface="light"
+  class="bg-[#FBF7F1] border-t border-[#EAE2D6] text-[#191817]"
+>
+  <div class="mx-auto max-w-[1340px] px-4 py-10 sm:px-6 lg:px-8">
+    <!-- Top Row: Brand Mark, Primary Links, Quick Actions -->
+    <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+      <!-- Brand Mark -->
+      <a
+        href="/"
+        class="inline-flex items-center gap-2.5 focus:outline-none group"
+        aria-label="Gamo Live home"
+      >
+        <svg
+          class="h-6 w-6 shrink-0 text-[#B34B1E]"
+          viewBox="0 0 28 28"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect x="2" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
+          <rect x="7.2" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
+          <rect x="12.4" y="2.5" width="3.2" height="23" rx="1.6" fill="currentColor" />
+          <rect x="17.6" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
+          <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
+        </svg>
+        <span class="text-[19px] leading-none tracking-tight flex items-baseline">
+          <span class="font-extrabold text-[#191817]">GAMO</span>
+          <span class="font-normal text-[#C85A28] ml-0.5">LIVE</span>
+          <span class="sr-only"> — Gamo Live</span>
+        </span>
+      </a>
 
-    <div class="mt-6 flex flex-col gap-4 border-t border-white/15 pt-6 text-xs text-[#D8D4D0] md:flex-row md:items-center md:justify-between">
-      <p>© {new Date().getFullYear()} {brand.displayName} · Operated by {brand.operatingDivision} ({brand.parentOrganization}).</p>
-      <nav aria-label="Legal" class="flex flex-wrap gap-x-6 gap-y-2">
-        <a href="#status" class="hover:text-white">Operator &amp; Legal Disclosure</a>
-        <a href="/my-tickets" class="hover:text-white">Verified Order Recovery</a>
+      <!-- Center Navigation Links -->
+      <nav aria-label="Footer navigation">
+        <ul class="flex flex-wrap items-center gap-x-7 gap-y-2.5">
+          {primaryLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="text-sm font-medium text-[#4A443E] hover:text-[#B34B1E] transition-colors"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </nav>
+
+      <!-- Right Icons / Discovery Shortcuts -->
+      <div class="flex items-center gap-3 text-[#3D3833]">
+        <a
+          href="/events"
+          class="p-2 rounded-full hover:bg-[#EFE7DA] hover:text-[#B34B1E] transition-colors"
+          aria-label="Browse all Christian concerts and worship events"
+          title="Browse events"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </a>
+        <a
+          href="/venues"
+          class="p-2 rounded-full hover:bg-[#EFE7DA] hover:text-[#B34B1E] transition-colors"
+          aria-label="Explore concert venues across U.S. metros"
+          title="Explore venues"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </a>
+        <a
+          href="/artists"
+          class="p-2 rounded-full hover:bg-[#EFE7DA] hover:text-[#B34B1E] transition-colors"
+          aria-label="Artists and ministry representation"
+          title="Artists"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+          </svg>
+        </a>
+        <a
+          href="/promote/create"
+          class="p-2 rounded-full hover:bg-[#EFE7DA] hover:text-[#B34B1E] transition-colors"
+          aria-label="Submit a Christian concert or worship event"
+          title="List an event"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Metro Quick Links Row -->
+    <div class="mt-7 pt-6 border-t border-[#EAE2D6]/80">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-2 text-xs">
+        <span class="font-bold uppercase tracking-wider text-[#6E675F] mr-1.5">
+          Browse by Metro:
+        </span>
+        {GAMO_LIVE_METROS.map((metro) => (
+          <a
+            href={`/events/${metro.slug}`}
+            class="inline-flex items-center rounded-full border border-[#E5DDD0] bg-[#F6F0E6] hover:bg-[#EDE4D5] hover:border-[#D4C7B4] px-3 py-1 font-medium text-[#3D3833] hover:text-[#B34B1E] transition-colors"
+          >
+            {metro.displayLabel}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Truthful Platform Disclosure Line -->
+    <div id="status" class="mt-6 pt-5 border-t border-[#EAE2D6]/80 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between text-xs text-[#6E675F] leading-relaxed">
+      <p class="max-w-4xl">
+        Gamo Live is a Christian, mission-driven event discovery and organizer platform. External discovery listings are published by Gamo Live Listings for informational discovery; ticket purchases and customer support occur on the linked official ticket provider site.
+      </p>
+      <p class="shrink-0 text-[#7A7267]">
+        © {new Date().getFullYear()} Gamo Live · Gamo Studios
+      </p>
     </div>
   </div>
 </footer>

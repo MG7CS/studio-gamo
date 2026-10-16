@@ -1,13 +1,18 @@
 ---
 import '../../app.css';
-import AuthPage from '../../components/account/AuthPage.astro';
-import { authScreens } from '../../data/account-entry';
+import AuthLayout from '@studio-gamo/ui/components/dashboard/AuthLayout.astro';
 ---
-<AuthPage screen={authScreens.signedOut}>
-  <script>
-    const isGamostudio = window.location.hostname.endsWith('gamostudio.org');
-    const domainPart = isGamostudio ? '; domain=.gamostudio.org' : '';
-    document.cookie = `gamo_profile_hint=; path=/; max-age=0; SameSite=Lax${domainPart}`;
-    fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
-  </script>
-</AuthPage>
+<AuthLayout title="Sign out" heading="Sign out of Gamo Studios" intro="End your session on this website.">
+  <button data-signout class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">Sign out</button>
+  <p data-signout-status role="status" aria-live="polite" class="mt-5"></p>
+  <a href="/account/signin" class="mt-5 inline-block font-semibold underline">Return to sign in</a>
+</AuthLayout>
+<script>
+  document.querySelector<HTMLButtonElement>('[data-signout]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    const status = document.querySelector<HTMLElement>('[data-signout-status]')!;
+    button.disabled = true; status.textContent = 'Signing out…';
+    try { const response = await fetch('/api/auth/session', { method: 'DELETE' }); if (!response.ok) throw new Error(); status.textContent = 'You are signed out of this website.'; button.hidden = true; }
+    catch { status.textContent = 'We could not confirm sign-out. Please try again.'; button.disabled = false; }
+  });
+</script>

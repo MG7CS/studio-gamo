@@ -1,0 +1,67 @@
+---
+/**
+ * Gamo Live Marketing Page on Gamo Studios (`apps/web/src/pages/live.astro` -> `/live`).
+ * Reached via the Gamo Studios top navigation (`Live`), program cards, and footer.
+ * Preserves the full promotional experience (`Harvest Night of Gospel` spotlight hero,
+ * Upcoming nearby rail, Browse by location/date, Gospel concerts, Worship & weekly fellowship,
+ * Conferences & youth, Free vs Ticketed, Ecosystem pillars, Featured organizers, Trust legend,
+ * and Organizer/Artist CTA), while connecting all action links directly to the standalone
+ * Gamo Live marketplace product (`siteUrl('live', ...)`).
+ */
+import SiteLayout from '../layouts/SiteLayout.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import EventSpotlightHero from '../components/live/EventSpotlightHero.astro';
+import NearbyRail from '../components/live/NearbyRail.astro';
+import BrowsePlaceDate from '../components/live/BrowsePlaceDate.astro';
+import GospelConcerts from '../components/live/GospelConcerts.astro';
+import WorshipAndRecurring from '../components/live/WorshipAndRecurring.astro';
+import ConferencesYouth from '../components/live/ConferencesYouth.astro';
+import FreeAndTicketed from '../components/live/FreeAndTicketed.astro';
+import LiveEcosystemPillars from '../components/live/LiveEcosystemPillars.astro';
+import FeaturedOrganizers from '../components/live/FeaturedOrganizers.astro';
+import TrustLegend from '../components/live/TrustLegend.astro';
+import { events, eventsBy } from '../data/live-marketing';
+
+const byDate = [...events].sort((a, b) => a.date.localeCompare(b.date));
+const featured = eventsBy((e) => !!e.featured);
+const canonicalUrl = siteUrl('web', '/live');
+---
+
+<SiteLayout
+  title="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios"
+  description="Learn how Gamo Live connects Christian concertgoers, churches, event organizers, and artists nationwide — then explore upcoming events or list a gathering on the Gamo Live platform."
+  current="live"
+  headerTheme="dark"
+>
+  <Fragment slot="head">
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:title" content="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios" />
+    <meta property="og:description" content="Learn how Gamo Live connects Christian concertgoers, churches, event organizers, and artists nationwide — then explore upcoming events or list a gathering on the Gamo Live platform." />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content="website" />
+  </Fragment>
+
+  <EventSpotlightHero slides={featured} />
+  <NearbyRail events={byDate.filter((e) => e.status !== 'canceled').slice(0, 7)} />
+  <BrowsePlaceDate />
+  <GospelConcerts events={eventsBy((e) => e.category === 'concert')} />
+  <WorshipAndRecurring worship={eventsBy((e) => e.category === 'worship')} recurring={eventsBy((e) => !!e.recurring)} />
+  <ConferencesYouth conferences={eventsBy((e) => e.category === 'conference')} youth={eventsBy((e) => e.category === 'youth').slice(0, 3)} />
+  <FreeAndTicketed free={eventsBy((e) => e.ticketing === 'free').slice(0, 5)} ticketed={eventsBy((e) => e.ticketing !== 'free').slice(0, 5)} />
+  <LiveEcosystemPillars />
+  <FeaturedOrganizers />
+  <section class="bg-cream px-4 pb-4 sm:px-8">
+    <TrustLegend class="mx-auto max-w-[1320px]" />
+  </section>
+  <CtaInvitation
+    eyebrow="For churches, organizers & artists"
+    title="Hosting or performing at a Christian event?"
+    body="Submit your gathering, manage ticket tiers and door check-in, or coordinate artist bookings and event production. Every listing is reviewed before publishing."
+    photo="worshipBand"
+  >
+    <ButtonLink href={siteUrl('live', '/promote/create')} arrow>List an event</ButtonLink>
+    <ButtonLink href={siteUrl('live', '/artists')} variant="secondary">Artist &amp; agent participation</ButtonLink>
+  </CtaInvitation>
+</SiteLayout>

@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+---
+
+<Layout
+  title="Create Your Gamo Live Account"
+  description="Create a verified Gamo Live account to manage Christian event submissions, artist profiles, and event passes."
+  chrome={false}
+>
+  <GamoAuthExperience mode="signup" program="Gamo Live" />
+</Layout>

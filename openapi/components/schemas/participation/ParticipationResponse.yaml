@@ -1,0 +1,16 @@
+type: object
+additionalProperties: false
+required:
+  - success
+  - data
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    required:
+      - inquiry
+    properties:
+      inquiry:
+        $ref: ParticipationInquiry.yaml

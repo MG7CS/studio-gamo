@@ -1,0 +1,52 @@
+---
+import AuthLayout from './AuthLayout.astro';
+import AuthForm from './AuthForm.astro';
+import type { AuthPhotoItem } from './AuthPhotoPanel.astro';
+import type { AuthScreenMode } from '../../lib/auth-flow-client';
+
+interface Props {
+  mode?: AuthScreenMode;
+  program?: string;
+  brandHref?: string;
+  brandLabel?: string;
+  heading?: string;
+  subtext?: string;
+  photos?: AuthPhotoItem[];
+  googleAuthUrl?: string;
+  facebookAuthUrl?: string;
+}
+
+const {
+  mode = 'signin',
+  program = 'Gamo Studios',
+  brandHref = '/',
+  brandLabel = `${program} home`,
+  heading,
+  subtext,
+  photos,
+  googleAuthUrl,
+  facebookAuthUrl,
+} = Astro.props;
+---
+
+<AuthLayout
+  mode={mode}
+  program={program}
+  brandHref={brandHref}
+  brandLabel={brandLabel}
+  photos={photos}
+>
+  <AuthForm
+    mode={mode}
+    program={program}
+    heading={heading}
+    subtext={subtext}
+    googleAuthUrl={googleAuthUrl}
+    facebookAuthUrl={facebookAuthUrl}
+  />
+</AuthLayout>
+
+<script>
+  import { initAuthFlow } from '../../lib/auth-flow-client';
+  initAuthFlow();
+</script>

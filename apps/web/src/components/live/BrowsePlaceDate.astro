@@ -1,0 +1,45 @@
+---
+/** Browse by location and by date on Gamo Live marketing page — links go to standalone marketplace /events. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { cities, dateParts, events } from '../../data/live-marketing';
+const dates = [...new Set(events.map((e) => e.date))].sort().slice(0, 10);
+---
+<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="browse-title">
+  <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+    <div class="min-w-0">
+      <p class="eyebrow text-terracotta">Browse by location</p>
+      <h2 id="browse-title" class="section-heading mt-3 text-balance">Christian events, <span class="text-terracotta">nationwide.</span></h2>
+      <p class="mt-4 max-w-md text-ink-soft">Choose a city to explore upcoming gatherings. No map tracking — just simple places.</p>
+      <ul class="mt-8 flex flex-wrap gap-2">
+        {cities.map((c) => (
+          <li><a href={siteUrl('live', `/events?q=${encodeURIComponent(c.split(',')[0])}`)} class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-sm font-medium ring-1 ring-sand transition hover:ring-terracotta"><Icon name="pin" class="h-4 w-4 text-terracotta" />{c}</a></li>
+        ))}
+      </ul>
+    </div>
+    <div class="min-w-0">
+      <p class="eyebrow text-terracotta">Browse by date</p>
+      <h3 class="section-subheading mt-3">Pick a day.</h3>
+      <ol class="scroll-rail mt-8 flex snap-x gap-3 overflow-x-auto pb-3" aria-label="Upcoming event dates">
+        {dates.map((iso, i) => {
+          const d = dateParts(iso); const n = events.filter((e) => e.date === iso).length;
+          return (
+            <li class="shrink-0 snap-start">
+              <a href={siteUrl('live', `/events?date=${iso.slice(0, 4)}`)} class:list={['flex w-24 flex-col items-center rounded-[22px] px-3 py-4 text-center transition', i === 0 ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand hover:ring-terracotta']}>
+                <span class="text-xs font-semibold uppercase tracking-wider opacity-70">{d.weekday}</span>
+                <span class="mt-1 text-3xl font-bold tracking-tight">{d.day}</span>
+                <span class="text-xs font-medium uppercase opacity-70">{d.month}</span>
+                <span class:list={['mt-3 rounded-full px-2 py-0.5 text-[11px] font-semibold', i === 0 ? 'bg-terracotta text-white' : 'bg-cream text-terracotta-dark']}>{n} event{n > 1 ? 's' : ''}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+      <div class="mt-6 grid gap-3 sm:grid-cols-3">
+        {[['This weekend', siteUrl('live', '/events?date=weekend')], ['Next 30 days', siteUrl('live', '/events?date=month')], ['All upcoming events', siteUrl('live', '/events')]].map(([l, h]) => (
+          <a href={h} class="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-sand hover:ring-terracotta">{l}<Icon name="arrow" class="h-4 w-4 text-terracotta" /></a>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

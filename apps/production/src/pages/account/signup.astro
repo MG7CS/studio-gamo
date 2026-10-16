@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+---
+
+<Layout
+  title="Create Your Gamo Production Account"
+  description="Create a verified Gamo Production account to request technical assessments, sound, livestream, and training support."
+  chrome={false}
+>
+  <GamoAuthExperience mode="signup" program="Gamo Production" />
+</Layout>

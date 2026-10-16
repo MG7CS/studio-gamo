@@ -1,14 +1,16 @@
 ---
-/** Bright sub-page header: eyebrow, oversized title, lede, optional breadcrumb + slot for actions. */
+/** Compact operational sub-page header: eyebrow, functional title, concise lede, optional back link + slot for actions. */
 interface Props { eyebrow?: string; title: string; accent?: string; lede?: string; back?: { href: string; label: string } }
 const { eyebrow, title, accent, lede, back } = Astro.props;
 ---
-<header class="bg-cream page-intro-space px-4 sm:px-8">
-  <div class="mx-auto max-w-[1320px]">
-    {back && <a href={back.href} class="text-sm font-medium text-ink-soft hover:text-terracotta">← {back.label}</a>}
-    {eyebrow && <p class="eyebrow mt-4 text-terracotta">{eyebrow}</p>}
-    <h1 class="display-lg mt-3 max-w-4xl text-balance">{title}{accent && <span class="block text-terracotta">{accent}</span>}</h1>
-    {lede && <p class="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">{lede}</p>}
-    <div class="mt-6 flex flex-wrap items-center gap-3"><slot /></div>
+<header class="bg-[#FBF7F1] border-b border-[#EAE2D6] pt-8 pb-7 px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-[1100px] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+      {back && <a href={back.href} class="inline-block text-xs font-semibold text-[#6E675F] hover:text-[#B34B1E] mb-2">← {back.label}</a>}
+      {eyebrow && <p class="text-xs font-bold uppercase tracking-wider text-[#B34B1E] mb-1.5">{eyebrow}</p>}
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#191817] text-balance">{title}{accent && <span class="block text-[#B34B1E]">{accent}</span>}</h1>
+      {lede && <p class="mt-1.5 max-w-2xl text-sm sm:text-base text-[#5C554E] leading-relaxed">{lede}</p>}
+    </div>
+    <div class="flex flex-wrap items-center gap-2.5 shrink-0"><slot /></div>
   </div>
 </header>

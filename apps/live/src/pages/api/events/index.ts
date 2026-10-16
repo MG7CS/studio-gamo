@@ -9,7 +9,7 @@ import {
   errorResponse,
   getRuntimeEnv,
 } from '@gamo/domain';
-import { requireOrgAccess } from '@gamo/auth';
+import { requireOrgAccess, requireVerifiedAuth } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -24,15 +24,19 @@ export const GET: APIRoute = async (context) => {
 
     const url = new URL(context.request.url);
     if (new Set(url.searchParams.keys()).size !== [...url.searchParams.keys()].length) throw new ContractValidationError();
-    const { category, city, artist, venue, dateFrom } = validateContract(
+    const { category, city, metro, artist, venue, q, dateFrom, dateTo, weekend } = validateContract(
       'EventFilters',
       Object.fromEntries(url.searchParams)
     ) as {
       category?: string;
       city?: string;
+      metro?: string;
       artist?: string;
       venue?: string;
+      q?: string;
       dateFrom?: string;
+      dateTo?: string;
+      weekend?: string;
     };
 
     const parsedDateFrom = dateFrom ? new Date(dateFrom) : undefined;
@@ -40,12 +44,28 @@ export const GET: APIRoute = async (context) => {
       throw new ContractValidationError();
     }
 
+    const parsedDateTo = dateTo ? new Date(dateTo) : undefined;
+    if (parsedDateTo && !Number.isFinite(parsedDateTo.getTime())) {
+      throw new ContractValidationError();
+    }
+
+    const parsedWeekend =
+      weekend === 'true' || weekend === '1'
+        ? true
+        : weekend === 'false' || weekend === '0'
+          ? false
+          : undefined;
+
     const events = await liveService.listDiscoverableEvents({
       category,
       city,
+      metro,
       artist,
       venue,
+      q,
       dateFrom: parsedDateFrom,
+      dateTo: parsedDateTo,
+      weekend: parsedWeekend,
     });
 
     return jsonResponse(events, 200, { total: events.length });
@@ -59,7 +79,7 @@ export const GET: APIRoute = async (context) => {
  *
  * Requirements:
  * - Validates input with Zod schema.
- * - Authenticates caller or demo organizer persona.
+ * - Authenticates the verified organization owner or administrator.
  * - Persists event and ticket tiers to D1.
  * - Enters `pending_review` status awaiting staff moderation.
  */
@@ -72,6 +92,7 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'CreateEvent');
     const validated = createEventSchema.parse(body);
 
+    await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
     await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], runtimeEnv.SESSION_SECRET);
 
     const { event, tiers } = await liveService.createEvent(validated.organizationId, validated);

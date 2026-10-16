@@ -1,7 +1,4 @@
 ---
-/** Agent & Manager workspace. One dynamic route renders every screen from typed data. */
-import '../../app.css';
-import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
-import { agentWorkspace } from '../../data/workspaces/agent';
+export const prerender = false;
+return Astro.redirect('/workspaces');
 ---
-<WorkspaceScreen workspace={agentWorkspace} slug={Astro.params.slug} />

@@ -107,3 +107,30 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 - Allow normal vertical scrolling at increased zoom; do not shrink text or hide actions to force everything above the fold.
 - Review image coverage, clipping, header collisions, and image/copy ordering in addition to document overflow. Check 320px mobile, landscape, and reduced CSS viewports corresponding to 110–400% zoom. A viewport simulation verifies reflow, not native browser zoom controls or text-only zoom.
 - Regression command: `ACADEMY_PORT=4332 node scripts/verify-zoom-layout.mjs` (omit the override when Academy uses 4323). Captures and geometry results: `docs/screenshots/zoom-layout/`.
+
+## UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality
+
+Apply these rules by default across all Gamo Studios design, redesign, and implementation work (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin`, and `packages/ui`):
+
+1. **Design Restraint Is Mandatory ("Less, But Better")**:
+   - Minimize text, cards, badges, icons, buttons, and decorative components.
+   - Every element must have a clear functional purpose; never add content simply to fill empty space.
+   - Use generous, intentional whitespace and prioritize typography, proportions, alignment, imagery, and visual hierarchy.
+   - Prefer one exceptionally executed visual element over several mediocre ones.
+   - Before finalizing any design, ask: *What can be removed without compromising usability?*
+2. **Respect Design References**:
+   - Preserve overall composition, layout proportions, shapes, curves, distinctive geometry, spacing, whitespace, content density, typography hierarchy, image placement, and component relationships from approved references in `design-reference/`.
+   - Do not use a reference merely as loose inspiration when the instruction is to follow it closely.
+3. **Avoid Generic AI-Generated Interfaces**:
+   - Never default to excessive rounded cards arranged in repetitive grids, unnecessary gradients/glowing effects, too many headings/subheadings/captions/explanatory paragraphs, repetitive feature lists, oversized dashboards with meaningless statistics, or excessive icons and badges.
+4. **Design According to the Page's Purpose**:
+   - A sign-in page prioritizes authentication; a registration page prioritizes completing registration; a dashboard prioritizes useful information and actions; a marketing page communicates a clear message.
+   - Never combine multiple page purposes unnecessarily (e.g., do not turn a sign-in page into a marketing page with feature descriptions, testimonials, or decorative cards).
+5. **Content Density**:
+   - Use the minimum amount of copy necessary to communicate clearly: short meaningful headings, one supporting sentence when necessary, no repeated information, no subheadings under every heading, progressive disclosure for secondary details, and visually obvious primary actions.
+   - Minimalism must never compromise accessibility, error recovery, security, or essential instructions.
+6. **Professional Design Execution & Functional Preservation**:
+   - Maintain excellent typography, pixel-accurate spacing, well-considered component dimensions, authentic photography, restrained color usage, and responsive layouts while preserving all validation, accessibility, loading states, empty states, error messages, account recovery, and navigation.
+7. **Mandatory 8-Point Design Review**:
+   - Verify before completion: (1) faithful reference adherence, (2) zero unrequested additions, (3) no unnecessary text/repetition, (4) no excessive cards/icons/decorations, (5) one clear primary page purpose, (6) intentional whitespace, (7) mature commercial product quality, and (8) maximum simplification without losing functionality.
+

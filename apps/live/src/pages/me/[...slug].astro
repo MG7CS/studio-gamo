@@ -1,7 +1,4 @@
 ---
-/** Attendee account workspace (demo). One dynamic route renders every screen from typed data. */
-import '../../app.css';
-import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
-import { attendeeWorkspace } from '../../data/workspaces/attendee';
+export const prerender = false;
+return Astro.redirect('/workspaces');
 ---
-<WorkspaceScreen workspace={attendeeWorkspace} slug={Astro.params.slug} />

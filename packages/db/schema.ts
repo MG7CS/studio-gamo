@@ -16,6 +16,7 @@ export const users = sqliteTable('users', {
 export const sessions = sqliteTable('sessions', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  product: text('product'), // 'web' | 'worship' | 'academy' | 'live' | 'production'
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
   revokedAt: integer('revoked_at', { mode: 'timestamp' }),
   ipHash: text('ip_hash'),
@@ -23,6 +24,20 @@ export const sessions = sqliteTable('sessions', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 }, (t) => [
   index('sessions_user_idx').on(t.userId),
+]);
+
+export const productAccounts = sqliteTable('product_accounts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  product: text('product').notNull(), // 'web' | 'worship' | 'academy' | 'live' | 'production'
+  status: text('status').notNull().default('active'), // 'active' | 'suspended' | 'archived'
+  onboardingStatus: text('onboarding_status').notNull().default('pending'), // 'pending' | 'completed'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  uniqueIndex('product_account_user_product_unique').on(t.userId, t.product),
+  index('product_account_user_idx').on(t.userId),
+  index('product_account_product_idx').on(t.product),
 ]);
 
 export const roles = sqliteTable('roles', {
@@ -290,10 +305,36 @@ export const events = sqliteTable('events', {
   externalUrl: text('external_url'),
   status: text('status').notNull().default('pending_review'), // 'draft' | 'pending_review' | 'approved' | 'rejected' | 'canceled'
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  listingType: text('listing_type').notNull().default('organizer_submitted'), // 'organizer_submitted' | 'external_discovery'
+  importKey: text('import_key'),
+  metroSlug: text('metro_slug'),
+  startDateLocal: text('start_date_local'),
+  startTimeLocal: text('start_time_local'),
+  publishedByLabel: text('published_by_label'),
+  publishedByUserId: text('published_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  originalOrganizerName: text('original_organizer_name'),
+  externalDestinationKind: text('external_destination_kind'), // 'official_ticket_page' | 'organizer_event_page' | 'venue_event_page' | 'publisher_event_page'
+  externalTicketProvider: text('external_ticket_provider'),
+  externalOnly: integer('external_only', { mode: 'boolean' }).notNull().default(false),
+  priceMinCents: integer('price_min_cents'),
+  currency: text('currency').notNull().default('USD'),
+  ticketAvailability: text('ticket_availability').notNull().default('unverified'),
+  sourceUrlsJson: text('source_urls_json'),
+  lastVerifiedAt: integer('last_verified_at', { mode: 'timestamp' }),
+  artworkUrl: text('artwork_url'),
+  artworkRightsVerified: integer('artwork_rights_verified', { mode: 'boolean' }).notNull().default(false),
+  artworkLicenseCredit: text('artwork_license_credit'),
+  editorialStatus: text('editorial_status').notNull().default('draft'), // 'draft' | 'verified' | 'approved' | 'published' | 'archived' | 'canceled' | 'rejected'
+  editorialNotes: text('editorial_notes'),
+  independentDisclosure: text('independent_disclosure'),
+  isFeatured: integer('is_featured', { mode: 'boolean' }).notNull().default(false),
 }, (t) => [
   index('events_organizer_idx').on(t.organizerId),
   index('events_status_idx').on(t.status),
   index('events_starts_at_idx').on(t.startsAt),
+  uniqueIndex('events_import_key_unique').on(t.importKey),
+  index('events_metro_slug_idx').on(t.metroSlug, t.status, t.startsAt),
+  index('events_listing_type_idx').on(t.listingType, t.editorialStatus, t.status),
 ]);
 
 export const eventOccurrences = sqliteTable('event_occurrences', {
@@ -791,3 +832,50 @@ export const settlementRecords = sqliteTable('settlement_records', {
 }, (t) => [
   index('settlement_event_idx').on(t.eventId),
 ]);
+
+/** Mission participation inquiries are review requests, never approved partnerships. */
+export const participationInquiries = sqliteTable('participation_inquiries', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  kind: text('kind').notNull(),
+  interest: text('interest').notNull(),
+  name: text('name').notNull(),
+  organization: text('organization'),
+  message: text('message').notNull(),
+  status: text('status').notNull().default('pending'),
+  reviewNotes: text('review_notes'),
+  reviewedByUserId: text('reviewed_by_user_id').references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+}, (t) => [index('participation_user_idx').on(t.userId, t.createdAt), index('participation_status_idx').on(t.status, t.createdAt)]);
+
+export const externalListingRevisions = sqliteTable('external_listing_revisions', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  importKey: text('import_key').notNull(),
+  actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+  action: text('action').notNull(), // 'imported' | 'reimported' | 'reviewed' | 'approved' | 'published' | 'archived' | 'canceled' | 'rejected'
+  previousEditorialStatus: text('previous_editorial_status'),
+  nextEditorialStatus: text('next_editorial_status').notNull(),
+  externalUrl: text('external_url'),
+  sourceUrlsJson: text('source_urls_json'),
+  notes: text('notes'),
+  snapshotJson: text('snapshot_json').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('external_revisions_event_idx').on(t.eventId, t.createdAt),
+  index('external_revisions_import_key_idx').on(t.importKey, t.createdAt),
+]);
+
+export const externalOutboundClicks = sqliteTable('external_outbound_clicks', {
+  id: text('id').primaryKey(),
+  eventId: text('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  metroSlug: text('metro_slug'),
+  providerName: text('provider_name'),
+  destinationKind: text('destination_kind'),
+  referrerSurface: text('referrer_surface').notNull().default('event_detail'),
+  clickedAt: integer('clicked_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  index('external_clicks_event_idx').on(t.eventId, t.clickedAt),
+]);
+

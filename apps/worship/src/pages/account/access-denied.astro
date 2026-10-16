@@ -1,0 +1,5 @@
+---
+import Layout from '../../layouts/Layout.astro';
+Astro.response.status = 403;
+---
+<Layout title="Workspace access"><section class="mx-auto max-w-xl px-5 pb-20 pt-32"><h1 class="text-3xl font-semibold">This workspace needs program access.</h1><p class="mt-5">Your current session does not have the required Gamo Worship membership or role permission for this workspace. Registering for another Gamo product does not automatically grant Gamo Worship access, and signing up does not grant a staff, church administrator, or approved musician role.</p><div class="mt-7 flex flex-wrap gap-5"><a href="/account/signup" class="font-semibold text-terracotta">Create a Gamo Worship account →</a><a href="/account" class="font-semibold text-charcoal underline">Return to your account</a></div></section></Layout>

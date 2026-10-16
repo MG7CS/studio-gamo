@@ -1,3 +1,4 @@
 ---
-return Astro.redirect('/promote/create');
+export const prerender = false;
+return Astro.redirect('/promote/create', 303);
 ---

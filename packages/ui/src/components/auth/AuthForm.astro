@@ -1,0 +1,144 @@
+---
+import AuthNavBar from './AuthNavBar.astro';
+import AuthFormHeader from './AuthFormHeader.astro';
+import AuthFeedback from './AuthFeedback.astro';
+import AuthTextField from './AuthTextField.astro';
+import AuthEmailInput from './AuthEmailInput.astro';
+import AuthCodeInput from './AuthCodeInput.astro';
+import AuthActions from './AuthActions.astro';
+import { getAuthScreenCopy, type AuthScreenMode } from '../../lib/auth-flow-client';
+
+interface Props {
+  mode?: AuthScreenMode;
+  program?: string;
+  heading?: string;
+  subtext?: string;
+  googleAuthUrl?: string;
+  facebookAuthUrl?: string;
+}
+
+const {
+  mode = 'signin',
+  program = 'Gamo Studios',
+  heading,
+  subtext,
+  googleAuthUrl,
+  facebookAuthUrl,
+} = Astro.props;
+
+const copy = getAuthScreenCopy(program)[mode];
+const effectiveHeading = heading || copy.heading;
+const effectiveSubtext = subtext || copy.subtext;
+const accent = mode === 'signin' ? 'terracotta' : 'lavender';
+const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Send verification code';
+---
+
+<AuthNavBar mode={mode} />
+
+<div class="relative z-10 my-auto w-full max-w-[432px] mx-auto pt-1 pb-4 lg:py-6">
+  <AuthFormHeader mode={mode} heading={effectiveHeading} subtext={effectiveSubtext} />
+
+  <AuthFeedback />
+
+  <!-- Challenge Form (Sign In / Create Account / Account Recovery) -->
+  <form class="space-y-3.5 lg:space-y-4" data-step-challenge hidden={mode === 'verify'}>
+    {mode === 'signup' && (
+      <div class="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3 sm:gap-3.5">
+        <AuthTextField
+          id="auth-first-name"
+          name="firstName"
+          label="First name"
+          autocomplete="given-name"
+          required
+          placeholder="First name"
+          accent="lavender"
+        />
+        <AuthTextField
+          id="auth-last-name"
+          name="lastName"
+          label="Last name"
+          autocomplete="family-name"
+          required
+          placeholder="Last name"
+          accent="lavender"
+        />
+        <input type="hidden" name="displayName" value="" />
+      </div>
+    )}
+
+    <AuthEmailInput
+      id="auth-email-input"
+      name="email"
+      label="Email address"
+      required
+      placeholder="you@example.com"
+      icon="mail"
+      accent={accent}
+    />
+
+    {mode === 'signup' && (
+      <div class="hidden lg:block">
+        <span class="block text-[13px] font-medium text-[#3A332E] mb-2">
+          Verification method
+        </span>
+        <div class="flex items-center justify-between rounded-xl border border-[#E4DFD7] bg-[#F6F3EC] px-4 py-3 text-[13px] text-[#5C534C]">
+          <span class="flex items-center gap-2.5 font-medium text-[#2C2623]">
+            <svg class="h-4 w-4 text-[#7B73E6] shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 6.5 10 11l6.5-4.5M4 5h12a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 15H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 5Z" />
+            </svg>
+            6-digit email verification code
+          </span>
+          <span class="text-[12px] text-[#7E746C]">No password</span>
+        </div>
+      </div>
+    )}
+
+    <AuthActions
+      mode={mode}
+      program={program}
+      primaryLabel={primaryActionLabel}
+      accent={accent}
+      dataBtnChallenge
+      googleAuthUrl={googleAuthUrl}
+      facebookAuthUrl={facebookAuthUrl}
+    />
+  </form>
+
+  <!-- Email Verification Form (Step 2 & Direct /account/verify) -->
+  <form class="space-y-5 lg:space-y-6" data-step-verify hidden={mode !== 'verify'}>
+    <div data-verify-direct-email class="hidden">
+      <AuthEmailInput
+        id="auth-verify-email-input"
+        name="verifyEmail"
+        label="Email address"
+        required={false}
+        placeholder="you@example.com"
+        icon="none"
+        accent="lavender"
+        dataVerifyEmailInput
+      />
+    </div>
+
+    <AuthCodeInput />
+
+    <p class="text-[14px] text-[#6E655E] text-center lg:text-left">
+      Didn't receive the code?{' '}
+      <button
+        type="button"
+        data-btn-resend
+        class="font-semibold text-[#5B52D6] lg:underline lg:decoration-[#6B63DD]/40 lg:underline-offset-4 transition-colors hover:text-[#483FC2] disabled:opacity-50"
+      >
+        Resend code
+      </button>
+    </p>
+
+    <AuthActions
+      mode="verify"
+      primaryLabel="Verify and continue"
+      accent="soft-lavender"
+      dataBtnVerify
+    />
+  </form>
+</div>
+
+<div class="relative z-10 h-2" aria-hidden="true" />

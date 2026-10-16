@@ -11,6 +11,9 @@ export type NewUser = InferInsertModel<typeof schema.users>;
 export type Session = InferSelectModel<typeof schema.sessions>;
 export type NewSession = InferInsertModel<typeof schema.sessions>;
 
+export type ProductAccount = InferSelectModel<typeof schema.productAccounts>;
+export type NewProductAccount = InferInsertModel<typeof schema.productAccounts>;
+
 export type Organization = InferSelectModel<typeof schema.organizations>;
 export type NewOrganization = InferInsertModel<typeof schema.organizations>;
 
@@ -52,6 +55,12 @@ export type NewExternalIdentity = InferInsertModel<typeof schema.externalIdentit
 
 export type NotificationJob = InferSelectModel<typeof schema.notificationJobs>;
 export type NewNotificationJob = InferInsertModel<typeof schema.notificationJobs>;
+
+export type ExternalListingRevision = InferSelectModel<typeof schema.externalListingRevisions>;
+export type NewExternalListingRevision = InferInsertModel<typeof schema.externalListingRevisions>;
+
+export type ExternalOutboundClick = InferSelectModel<typeof schema.externalOutboundClicks>;
+export type NewExternalOutboundClick = InferInsertModel<typeof schema.externalOutboundClicks>;
 
 export function createDb(d1: any) {
   return drizzle(d1, { schema });

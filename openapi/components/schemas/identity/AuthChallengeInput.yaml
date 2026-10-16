@@ -15,5 +15,19 @@ properties:
     enum:
       - login
     default: login
+  intent:
+    type: string
+    enum:
+      - signin
+      - signup
+      - recover
+  product:
+    type: string
+    enum:
+      - web
+      - worship
+      - academy
+      - live
+      - production
 required:
   - email

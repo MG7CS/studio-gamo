@@ -542,3 +542,142 @@
   - `pnpm build`: **Pass (6/6 apps built cleanly)**
   - Playwright browser verification across 13 Admin routes and 11 Live routes: **HTTP 200, 0px horizontal overflow, 0 console errors**, with screenshots saved to `docs/screenshots/admin-command-center-1440.png`, `docs/screenshots/admin-analytics-1440.png`, `docs/screenshots/admin-live-artists-1440.png`, and `docs/screenshots/live-my-tickets-1440.png`.
 
+## 2026-10-15 — Production Readiness Phase 1: Real Authentication, Onboarding, and Public-to-Workspace Journeys
+
+- **Objective**: Transition Gamo Studios (`apps/web`, `apps/live`, `apps/worship`, `apps/academy`, `apps/production`, `apps/admin`) from development-era demo personas and unpersisted prototype forms to real server-enforced authentication, organization onboarding, persistent participation inquiries, verified ticket recovery, and honest empty-state workspaces.
+- **Shared Identity, Session & Page Authorization (`packages/auth`, `packages/domain`, `packages/ui`)**:
+  - Implemented `evaluateWorkspacePageAccess(...)` (`packages/auth/page-access.ts`) and wired `src/middleware.ts` across all 5 public apps (`web`, `live`, `worship`, `academy`, `production`) to enforce server-side session and role checks before rendering any workspace route (`/account`, `/partner*`, `/organizer*`, `/artist*`, `/agent*`, `/me/tickets*`, `/workspaces*`, `/promote/create*`, `/church*`, `/musician*`, `/family*`, `/host*`, `/instructor*`, `/client*`).
+  - Removed all `?demo_key=` query-parameter bypasses and automatic demo persona fallbacks; isolated local demo workspace preview strictly to loopback requests when `ENVIRONMENT=local` and `ALLOW_PUBLIC_DEMO_WORKSPACES=true`.
+  - Standardized `/account`, `/account/signin`, `/account/signup`, and `/account/access-denied` (`403 Forbidden`) across `web`, `live`, `worship`, `academy`, and `production`, backed by shared `<AccountHub>` (`packages/ui/src/components/account/AccountHub.astro`) and `<VerifiedAuthPanel>` (`packages/ui/src/components/account/VerifiedAuthPanel.astro`) components and replicated `/api/auth/{challenge,verify,session,logout}` + `/api/organizations` endpoints.
+  - Added `emptyWorkspaceScreen(...)` (`packages/ui/src/lib/workspace-empty.ts`) so newly authenticated users see honest empty states rather than fabricated metrics or sample records.
+- **Gamo Studios Public Entry Points & Persistent Participation Workflow (`apps/web`, `apps/admin`, `0008_participation_inquiries.sql`)**:
+  - Added D1 migration `packages/db/migrations/0008_participation_inquiries.sql` (`participation_inquiries` table + indexes) and `ParticipationService` (`packages/domain/src/services/participation.ts`).
+  - Wired `apps/web` `/get-involved`, `/contact`, and `/partnerships` to persist inquiries to `POST /api/participation` and display submitted inquiries and staff review notes in `/account` (`GET /api/participation`).
+  - Redirected legacy unpersisted multi-step mock forms (`/apply`, `/hire` on `worship`; `/register`, `/host-apply` on `academy`; `/assessment`, `/consultation` on `production`) with `303` to `apps/web` `/contact?interest=...`.
+  - Added staff review queue (`GET /api/participation/review-queue`, `POST /api/participation/{id}/review`) and operational review UI at `apps/admin/src/pages/participation.astro`.
+- **Gamo Live Public-to-Workspace Journeys & Verified Ticket Recovery (`apps/live`)**:
+  - Updated `LiveHeader.astro` and `LiveFooter.astro` to expose clean public navigation (`Explore Events`, `For Organizers`, `Artists & Agents`, `Find My Tickets`, `Workspaces`, `Sign in`, `List an event`) without deep links into internal demo sub-routes.
+  - Built `/artists` (public overview + CTA to authenticated artist/agent registration) and `/workspaces` (authenticated hub showing real submitted events, artist profile creation via `POST /api/artists`, and authorized workspaces).
+  - Protected `/promote/create` behind authentication, prompting users without an organization to create one in `/account` first and persisting submitted events (`POST /api/events`) with `pending_review` moderation status.
+  - Updated `/my-tickets` to require a verified 6-digit email challenge code (`POST /api/auth/challenge` + `POST /api/tickets/lookup`) before disclosing registrations or QR admission credentials, while stating honestly that SMS recovery is unavailable.
+- **OpenAPI 3.1.1 Contract Synchronization (`openapi/`, `packages/api-contracts`)**:
+  - Added `openapi/paths/participation.yaml`, `openapi/paths/replicated-auth.yaml`, and `ParticipationInquiry` schemas in `openapi/components/schemas.yaml`; regenerated `@gamo/api-contracts` types and standalone Ajv validators (`58/58` operations verified).
+- **Verification Evidence**:
+  - `ASTRO_TELEMETRY_DISABLED=1 pnpm typecheck`: **Pass (0 errors across all 6 apps and packages)**
+  - `pnpm test`: **Pass (41/41 domain unit & vertical-slice tests)**
+  - `pnpm exec tsx --test scripts/audit/auth-journeys.test.ts scripts/audit/page-access.test.ts scripts/audit/participation.test.ts scripts/audit/security.test.ts scripts/audit/admin-analytics-workspaces.test.ts`: **Pass (30/30 tests)**
+  - `pnpm api:check` (`pnpm api:lint && node scripts/api/generate.mjs --check && node scripts/api/check.mjs && pnpm api:test`): **Pass (Redocly 0 errors, 12/12 contract test suites, 58/58 OpenAPI operations verified over loopback HTTP)**
+  - `node scripts/audit/workers.mjs` & `node scripts/audit/browser-e2e.test.mjs`: **Pass**
+  - `node scripts/audit/phase1-journeys-e2e.test.mjs`: **Pass (`PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK` across all 6 built Cloudflare Workers running in Miniflare with shared D1 and Playwright Chromium verifying all 8 fresh-browser user journey requirements)**
+
+## 2026-10-15 — Approved Authentication UI (Gamo Studios) & UI/UX Design Standards ("Less, But Better")
+
+- **Standing UI/UX Design Standards (`DESIGN.md` & Custom Agents)**:
+  - Codified **UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality** in `DESIGN.md` (§10) and synchronized `.agents/agents/{design-lead,frontend-builder,ui-reviewer}/agent.md`.
+  - Archived the approved authentication visual reference to `design-reference/authentication/gamo-studios-authentication-ui-collage.png`.
+- **Reusable Authentication Component Architecture (`packages/ui/src/components/auth/*` + `packages/ui/src/lib/auth-flow-client.ts`)**:
+  - Built 9 shared visual primitives in `packages/ui/src/components/auth/`:
+    - `AuthSplitLayout.astro`: Centered horizontal split-screen shell on warm cream canvas (`#F5F0E7`).
+    - `AuthPhotoPanel.astro`: Catalog-driven responsive `<Photo />` panel (`acousticLeader`, `girlGuitar`, `concertCrowdWide`, `soundEngineer`) with white `<Logo />` overlay and tonal lighting gradients.
+    - `AuthCurvedDivider.astro`: Sculptural SVG cubic-bezier curved white divider overlapping the photograph on desktop (`lg:-ml-[112px]`) and rounded sheet transition on mobile/tablet.
+    - `AuthNavBar.astro`: Top-right `"Already have an account? Sign in"` bar and top-left back arrow button.
+    - `AuthFormHeader.astro`: Typographic header with `h1`, supporting text, and privacy-masked destination email (`yo•••u@example.com`).
+    - `AuthStatusBanner.astro`: Accessible `aria-live="polite"` status banner (`[data-auth-status]`).
+    - `AuthTextField.astro`: Accessible input field with optional leading mail icon and configurable `terracotta` or `lavender` focus ring.
+    - `AuthPrimaryButton.astro`: Pill primary CTA button with `terracotta`, `lavender`, and `soft-lavender` variants and animated arrow.
+    - `AuthCodeInput.astro`: 6-slot visual OTP grid (`[data-otp-slot="0..5"]`) with active lavender focus ring synchronized with an accessible `<input name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>`.
+  - Built `packages/ui/src/lib/auth-flow-client.ts` (`initAuthFlow`, `maskEmailAddress`, `AUTH_SCREEN_COPY`), cleanly separating authentication API/state logic from visual presentation.
+- **Four Gamo Studios Authentication Screens (`apps/web` only, pending cross-app review)**:
+  - Implemented `GamoAuthExperience.astro`, `SignInScreen.astro`, `CreateAccountScreen.astro`, `VerifyEmailScreen.astro`, and `RecoverAccountScreen.astro` in `apps/web/src/components/account/` and wired `apps/web/src/pages/account/{signin,signup,verify,recover}.astro`.
+  - Preserved `apps/{live,worship,academy,production}/src/pages/account/{signin,signup}.astro` on their existing `VerifiedAuthPanel.astro` until founder sign-off on the `apps/web` implementation.
+- **Public & Workspace Design Restraint Refinements**:
+  - Refined `apps/web/src/components/organization/InquiryForm.astro`, `packages/ui/src/components/account/AccountHub.astro`, and `apps/live/src/pages/workspaces.astro` to eliminate redundant eyebrow labels, multi-sentence boilerplate disclaimers, and duplicate panels while preserving all functional selectors and journeys.
+- **Verification & Visual Evidence**:
+  - `ASTRO_TELEMETRY_DISABLED=1 pnpm typecheck`: **Pass (0 errors)**
+  - `pnpm test` & `pnpm exec tsx --test scripts/audit/*.test.ts`: **Pass (41/41 domain tests + 30/30 audit tests)**
+  - `ASTRO_TELEMETRY_DISABLED=1 pnpm build`: **Pass (6/6 apps)**
+  - `node scripts/audit/verify-auth-ui.mjs`: **Pass (`APPROVED_AUTH_UI_E2E_AND_SCREENSHOTS_OK` across `1920px`, `1440px`, `768px`, and `390px` viewports, verifying `naturalWidth > 0`, 0px horizontal overflow, keyboard focus, 6-digit clipboard paste, resend code, and account recovery)**
+  - `node scripts/audit/phase1-journeys-e2e.test.mjs`: **Pass (`PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK`)**
+  - Desktop (`1440px`) and mobile (`390px`) screenshots saved to `docs/screenshots/2026-refresh/auth-ui/auth-{signin,signup,verify,recover}-{1440,390}.png`.
+
+## 2026-10-15 — Gamo Live Public Concert Discovery Launch (`apps/live`)
+
+- **Objective**: Launch Gamo Live (`apps/live`) as a real, production-worthy Christian concert and worship event discovery platform and outbound ticket referral directory across 9 U.S. metros (`Phoenix, AZ`, `Atlanta, GA`, `Nashville, TN`, `Orlando, FL`, `Los Angeles, CA`, `Houston, TX`, `Seattle, WA`, `New York, NY`, `Oklahoma City, OK`), matching the approved `GAMO LIVE Concert Discovery Homepage.png` visual reference and `docs/GAMO_LIVE_AGY_LAUNCH_BRIEF_2026-10-15.md` specification.
+- **Database Schema & Editorial Safety (`packages/db/migrations/0009_live_external_discovery.sql`, `packages/db/schema.ts`)**:
+  - Added external discovery columns to `events` (`listing_type`, `editorial_status`, `external_ticket_provider`, `external_destination_kind`, `source_name`, `source_url`, `source_event_id`, `published_by_org_id`, `published_by_label`, `independent_disclosure`, `editorial_notes`, `last_verified_at`, `verified_by`, `published_at`, `published_by`, `metro_slug`, `postal_code`, `country_code`, `start_date_local`, `start_time_local`, `price_min_cents`, `price_max_cents`, `currency`, `performers_json`, `artwork_url`, `artwork_source`, `artwork_rights_verified`, `is_featured`, `canonical_dedupe_key`) plus `external_listing_revisions` and `external_outbound_clicks` audit tables.
+  - Added SQLite triggers (`trg_no_ticket_tiers_on_external_discovery`, `trg_no_holds_on_external_discovery`, `trg_no_orders_on_external_discovery`, `trg_no_tickets_on_external_discovery`, `trg_no_settlements_on_external_discovery`, `trg_events_external_discovery_insert_check`, `trg_events_external_discovery_update_check`) enforcing at the database layer that external discovery listings never enter internal Gamo checkout, never publish without an HTTPS external URL and verified venue, and never display unverified artwork.
+- **OpenAPI 3.1.1 v1.4.0 Contract & Domain Layer (`openapi/`, `packages/domain`)**:
+  - Updated `openapi/root.yaml` (`1.4.0`), `openapi/components/schemas/live/{Event,EventDetails,EventFilters}.yaml`, `openapi/paths/events.yaml`, and `docs/API_COMPATIBILITY.md`; regenerated `@gamo/api-contracts` types and runtime validators.
+  - Implemented `packages/domain/src/services/live-external-discovery.ts` and `verified-catalog-2026-10-15.ts`, plus `LiveService` discovery methods (`listDiscoverableEvents`, `listDiscoverableVenues`, `getMetroSummaries`, `ensureVerifiedCatalogSeeded`).
+- **Repeatable Editorial CLI & 21-Candidate Import Audit (`scripts/live/editorial-cli.ts`, `docs/GAMO_LIVE_IMPORT_REPORT_2026-10-15.md`)**:
+  - Implemented `pnpm live:publisher:provision`, `pnpm live:events:import`, `pnpm live:events:review`, and `pnpm live:events:publish` supporting `--dry-run` (default) and `--apply` (`--env local|staging|production`).
+  - Audited all 21 candidate events in `gamo_live_verified_events_2026-10-15.json`: **18 approved & published**, **2 held (`needs_review`)** due to unverified TicketWeb destination URLs (`pat-barrett-atlanta-2026-11-22`, `chapman-powder-springs-2026-12-06`), and **1 rejected (`rejected`)** due to missing venue and ticket URL (`josiah-queen-duluth-2027-04-18`).
+- **Frontend Pages, Metro SEO Routes & Outbound Referral Flows (`apps/live`)**:
+  - Rebuilt `LiveHeader.astro`, `LiveFooter.astro`, `LiveDiscoveryCard.astro`, and `apps/live/src/pages/index.astro` to match the approved homepage reference (`Find your next live experience.`, 3-part pill search bar, working category/weekend/market filter chips, `CAIN Live and In Worship Tour with bodie` featured banner, and `For Organizers and Artists` split section).
+  - Built `/events` discovery directory (with opt-in `#use-my-location-btn`, search/metro/category/date/saved-events filters), `/events/[id]` dual route supporting all 9 SEO metro landing pages (`/events/phoenix-az`, etc.) and individual event detail pages (with `Event` JSON-LD, Google Maps links, and direct `https://` ticket provider CTAs), `/events/[id]/register` external referral safeguard, `/venues` directory, `/sitemap.xml`, and `/robots.txt`.
+- **Verification & Visual Evidence**:
+  - `pnpm test`: **Pass (45/45 tests across 9 suites)**
+  - `pnpm api:check`: **Pass (12/12 contract suites)**
+  - `node scripts/verify-live-discovery-launch.mjs`: **Pass (Desktop `1440px` & Mobile `390px` Playwright verification, 0px horizontal overflow, outbound ticket URLs verified)**
+  - Screenshots saved to `artifacts/screenshots/live-launch-2026-10-15/`:
+    - `artifacts/screenshots/live-launch-2026-10-15/live-homepage-desktop-1440.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-homepage-mobile-390.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-events-directory-desktop-1440.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-events-directory-mobile-390.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-metro-phoenix-desktop-1440.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-metro-phoenix-mobile-390.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-event-detail-cain-desktop-1440.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-event-detail-cain-mobile-390.png`
+    - `artifacts/screenshots/live-launch-2026-10-15/live-venues-desktop-1440.png`
+
+## 2026-10-15 — Unified Authentication UI Rollout Across All Applications
+
+- **Shared Authentication Component Architecture (`packages/ui/src/components/auth/`)**:
+  - Established and refined the canonical shared authentication components in `packages/ui/src/components/auth/`: `AuthLayout.astro` (aliased by `AuthSplitLayout.astro`), `AuthForm.astro`, `AuthEmailInput.astro`, `AuthCodeInput.astro`, `AuthActions.astro`, `AuthFeedback.astro` (aliased by `AuthStatusBanner.astro`), `AuthPhotoPanel.astro`, `AuthCurvedDivider.astro`, `AuthNavBar.astro`, `AuthFormHeader.astro`, `AuthTextField.astro`, `AuthPrimaryButton.astro`, and `GamoAuthExperience.astro`, backed by `packages/ui/src/lib/auth-flow-client.ts`.
+  - Removed duplicate app-local wrappers (`apps/web/src/components/account/{SignInScreen,CreateAccountScreen,VerifyEmailScreen,RecoverAccountScreen,GamoAuthExperience}.astro`) and converted `VerifiedAuthPanel.astro` into a thin compatibility shim delegating directly to `GamoAuthExperience.astro`.
+- **Cross-Application Rollout (`chrome={false}`)**:
+  - Updated `apps/live/src/layouts/Layout.astro` to gate `<LiveHeader />` and `<LiveFooter />` behind `{chrome && ...}` so authentication pages render zero public navigation or marketing footers, and updated `LiveHeader.astro` `Sign In` links to `/account/signin`.
+  - Standardized `/account/{signin,signup,verify,recover}.astro` across `apps/web`, `apps/live`, `apps/worship`, `apps/academy`, and `apps/production` to render `<GamoAuthExperience mode="..." program="..." />` inside `<Layout chrome={false}>`.
+  - Added the mandatory **Shared Authentication Design Rule** and component reference to root `AGENTS.md`.
+- **Verification & Visual Evidence**:
+  - `pnpm --filter "./apps/**" exec tsc --noEmit`: **Pass (0 errors)**
+  - `pnpm exec tsx --test scripts/audit/security.test.ts`: **Pass (16/16 security tests)**
+  - `pnpm build`: **Pass (6/6 applications)**
+  - `node scripts/audit/verify-auth-ui.mjs`: **Pass (`APPROVED_AUTH_UI_E2E_AND_SCREENSHOTS_OK` across all 5 applications and all 4 screens at `1920px`, `1440px`, `768px`, and `390px`)**
+  - `node scripts/audit/phase1-journeys-e2e.test.mjs`: **Pass (`PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK`, including `/account/signin?next=%2Fpromote%2Fcreate` -> `/account/signup?next=%2Fpromote%2Fcreate` -> OTP verification -> `/promote/create` redirect on Gamo Live)**
+  - Desktop (`1440px`) and mobile (`390px`) screenshots saved to `docs/screenshots/2026-refresh/auth-ui/auth-{signin,signup,verify,recover}-{1440,390}.png` (Gamo Studios) and `docs/screenshots/2026-refresh/auth-ui/live-auth-{signin,signup,verify,recover}-{1440,390}.png` (Gamo Live).
+
+## 2026-10-15 — Product Account Independence Architecture & Cross-Product Isolation
+
+- **Database Schema & Non-Destructive Migration (`packages/db/migrations/0010_product_accounts.sql`, `packages/db/schema.ts`, `packages/db/index.ts`)**:
+  - Added `product_accounts` table (`id`, `user_id`, `product`, `status`, `onboarding_status`, `created_at`, `updated_at`) with unique index `product_account_user_product_unique` on `(user_id, product)` and added `sessions.product`.
+  - Non-destructively backfilled `product_accounts` from existing product-specific user records (`events`, `artist_profiles`, `ticket_orders`, `musician_profiles`, `service_requests`, `enrollments`, `instructors`, `production_requests`, `participation_inquiries`, `sessions`) so existing valid user records are preserved without granting blanket cross-product accounts.
+- **Scoped Authentication, Sessions & Middleware Isolation (`packages/auth/index.ts`, `packages/auth/page-access.ts`, `packages/domain/src/api/page-middleware.ts`, `packages/domain/src/services/identity.ts`, `packages/domain/src/http/auth.ts`)**:
+  - Added `ProductKey`, `PRODUCT_DISPLAY_NAMES`, `hasProductAccess(auth, product)`, `requireProductAuth(request, db, product, secret)`, `ensureProductAccount`, `hasProductAccount`, and `getProductAccounts`.
+  - Updated `issueEmailChallenge` and `verifyEmailChallenge` to accept `intent` (`'signin' | 'signup' | 'recover'`) and `product`, rejecting `signin` with `403 FORBIDDEN` when a user has accounts in other products but has not registered for the target product, and enrolling the user only in the target `product` upon verification.
+  - Bound each application's `/api/auth/{challenge,verify,session,me}` and `/api/organizations` routes to its owning product (`'web'`, `'live'`, `'worship'`, `'academy'`, `'production'`) via `createAuthHandlers(defaultProduct)`.
+  - Updated `canAccessPage` and `applicationPages` so sessions and memberships for one product (e.g., Gamo Live) cannot access private routes on another product (e.g., Gamo Academy `/account` or `/family`), returning a `303` redirect to `/account/access-denied` (`403`).
+- **OpenAPI 1.5.0 Contract Updates (`openapi/root.yaml`, `openapi/components/schemas/identity/*`, `docs/API_COMPATIBILITY.md`)**:
+  - Added `intent` and `product` to `AuthChallengeInput` and `AuthVerifyInput`, and `products` and `sessionProduct` to `AuthMeResponse`; regenerated `@gamo/api-contracts` types and runtime Ajv validators.
+- **Shared UI Components with Product-Specific Copy & Gamo Live Onboarding (`packages/ui/src/lib/auth-flow-client.ts`, `packages/ui/src/components/auth/*`, `packages/ui/src/components/account/AccountHub.astro`)**:
+  - Configured `getAuthScreenCopy(program)` so registration headings read `Create your ${program} account` (e.g., **Create your Gamo Live account**) and supporting copy refers only to that product.
+  - Removed all occurrences of `"One account for Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production."` across components, pages, data catalogs, and tests.
+  - Updated `AccountHub.astro` with product-scoped account status and explicit **Gamo Live Onboarding & Access** cards requiring separate organization or artist onboarding and authorization for privileged organizer/artist/agent actions.
+  - Added the permanent **Product Account Independence Rule** to root `AGENTS.md`.
+- **Verification & Visual Evidence**:
+  - `pnpm tsx --test scripts/audit/page-access.test.ts scripts/audit/auth-journeys.test.ts`: **Pass (10/10 tests, including cross-product isolation between Live, Academy, Worship, and Production)**
+  - `pnpm test`: **Pass (45/45 domain and database tests)**
+  - `pnpm api:check`: **Pass (OpenAPI lint, bundle check, and 12/12 HTTP contract suites across 58 operations)**
+  - `pnpm build`: **Pass (6/6 applications)**
+  - `node scripts/audit/verify-auth-ui.mjs`: **Pass (`APPROVED_AUTH_UI_E2E_AND_SCREENSHOTS_OK`)**
+  - `node scripts/audit/phase1-journeys-e2e.test.mjs`: **Pass (`PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK`, verifying in real Chromium browsers that a newly registered Gamo Live session cannot access Gamo Academy `/account` or `/family` and cannot sign in on Academy without creating an Academy account)**
+  - Screenshots updated at `docs/screenshots/2026-refresh/auth-ui/auth-{signin,signup,verify,recover}-{1440,390}.png` and `docs/screenshots/2026-refresh/auth-ui/live-auth-{signin,signup,verify,recover}-{1440,390}.png`.
+- **Authorized Push, Remote D1 Migrations & Production Deployment**:
+  - Applied pending remote D1 migrations (`0008_participation_inquiries.sql`, `0009_live_external_discovery.sql`, and `0010_product_accounts.sql`) to both `gamo-db-preview` (`d7e12797-cc6c-4fa3-91c7-c192863e4812`) and `gamo-db-production` (`d6db9fe7-77c0-4a50-836e-3d1924f00b53`).
+  - Deployed all six applications to Cloudflare production:
+    - `gamo-web` (`gamostudio.org`, `www.gamostudio.org`): Version `3623944a-d0b3-4520-9ba0-8b2baf447763` (HTTP 200)
+    - `gamo-worship` (`worship.gamostudio.org`): Version `5692498a-4639-4d02-86ae-2aece7455333` (HTTP 200)
+    - `gamo-academy` (`academy.gamostudio.org`): Version `bbb71aea-bc8c-41b6-ad38-d11e177275ab` (HTTP 200)
+    - `gamo-live` (`live.gamostudio.org`): Version `8a9de5ae-2749-4f8c-94e5-26473ad34c8d` (HTTP 200 on `/` and `/account/signup`)
+    - `gamo-production` (`production.gamostudio.org`): Version `9ac3225a-2d7a-4aef-8c48-a7e4a3a82e1c` (HTTP 200)
+    - `gamo-admin` (`admin.gamostudio.org`): Version `e0bce5c2-c448-4a40-86a6-c9d08e65fa9a` (HTTP 302 login gate)

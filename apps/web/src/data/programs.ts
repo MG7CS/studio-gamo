@@ -28,7 +28,7 @@ export const programs: Program[] = [
   {
     key: 'live', name: 'Gamo Live', short: 'Discover Christian events nationwide',
     summary: 'A place to share and discover worship nights, concerts and Christian community events across the country, with sponsored content always labeled.',
-    href: siteUrl('live'), photo: 'worshipNight', icon: 'calendar', accent: '#DCE8F7',
+    href: siteUrl('web', '/live'), photo: 'worshipNight', icon: 'calendar', accent: '#DCE8F7',
   },
   {
     key: 'production', name: 'Gamo Production', short: 'Sound, light and media support',

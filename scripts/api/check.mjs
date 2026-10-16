@@ -12,6 +12,11 @@ for (const file of walk('apps').filter(f => /\/pages\/api\/.*\.ts$/.test(f))) {
 const specified = [];
 for (const [path,item] of Object.entries(spec.paths)) for (const [method,op] of Object.entries(item)) if (op.operationId) {
   specified.push([op['x-application'],method,path]);
+  for (const app of op['x-replicated-applications'] ?? []) {
+    specified.push([app, method, path]);
+    const source = op['x-source'].replace(`apps/${op['x-application']}/`, `apps/${app}/`);
+    assert.ok(implemented.some(x => x[0] === app && x[1] === method && x[2] === path), `Missing replicated route ${source}`);
+  }
   assert.equal(op['x-source'], implemented.find(x => x[0] === op['x-application'] && x[1] === method && x[2] === path) ? walk(`apps/${op['x-application']}/src/pages/api`).find(f => f.replace(`apps/${op['x-application']}/src/pages`,'').replace(/\.ts$/,'').replace(/\/index$/,'').replace(/\[([^\]]+)\]/g,'{$1}') === path) : undefined, `Source mismatch ${op.operationId}`);
   if (op['x-application'] === 'admin') assert.equal(op['x-internal'], true, `Admin operation must be internal: ${op.operationId}`);
   if (op['x-internal']) assert.ok(!publicSpec.paths[path]?.[method], `Internal operation leaked: ${op.operationId}`);

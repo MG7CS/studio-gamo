@@ -33,7 +33,8 @@ const pageDescription = description || brand.socialMetadata.defaultDescription;
   bodyClass={bodyClass}
   chrome={chrome}
 >
-  <LiveHeader slot="header" />
+  <slot name="head" slot="head" />
+  {chrome && <LiveHeader slot="header" />}
   <slot />
-  <LiveFooter slot="footer" />
+  {chrome && <LiveFooter slot="footer" />}
 </BaseLayout>

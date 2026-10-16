@@ -118,3 +118,43 @@ These custom agents are located in `.agents/agents/` and can be delegated tasks 
 `openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning six applications; no seventh API application by default.
 
 Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Demo session issuance is explicitly local-only. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
+
+## Shared Authentication Design Rule
+
+All Gamo Studios applications must use the approved shared authentication UI components for sign-in, registration, email verification, and account recovery.
+
+Never independently implement, duplicate, or restyle authentication pages within individual applications.
+
+Authentication routes must use the shared full-viewport desktop layout and approved mobile layout.
+
+Application-specific differences must be supplied through supported component configuration.
+
+Any proposed exception requires explicit founder approval.
+
+When developing a new application or authentication route, reuse the existing shared components by default.
+
+### Shared Authentication Component Locations & Usage Conventions
+
+- **Canonical Shared Package Directory**: `packages/ui/src/components/auth/` (`@studio-gamo/ui/components/auth/*`)
+  - `GamoAuthExperience.astro` — Top-level full-screen 4-mode authentication experience (`mode="signin" | "signup" | "verify" | "recover"`, `program`, `brandHref`, `brandLabel`, `photos`).
+  - `AuthLayout.astro` (aliased as `AuthSplitLayout.astro`) — Full-viewport desktop split-screen composition and mobile photographic header with `AuthPhotoPanel.astro` and `AuthCurvedDivider.astro`.
+  - `AuthForm.astro` — Shared form presentation and responsive spacing composing `AuthNavBar.astro`, `AuthFormHeader.astro`, `AuthFeedback.astro`, `AuthEmailInput.astro`, `AuthCodeInput.astro`, and `AuthActions.astro`.
+  - `AuthEmailInput.astro` / `AuthTextField.astro` — Accessible email and text field presentation.
+  - `AuthCodeInput.astro` — Accessible 6-digit OTP verification code input (`[data-otp-slot="0..5"]`).
+  - `AuthActions.astro` / `AuthPrimaryButton.astro` — Primary CTA buttons, secondary mode-switching links, and loading states.
+  - `AuthFeedback.astro` (aliased as `AuthStatusBanner.astro`) — `role="status" aria-live="polite" data-auth-status` feedback banner.
+  - `packages/ui/src/lib/auth-flow-client.ts` — Centralized client controller (`initAuthFlow`) preserving `?next=` / `?returnTo=` safe redirects, challenge/verify requests, OTP paste/focus synchronization, and resend flows.
+- **Route Usage Convention**:
+  - Every application's `/account/signin.astro`, `/account/signup.astro`, `/account/verify.astro`, and `/account/recover.astro` must wrap `<GamoAuthExperience mode="..." program="..." />` inside the app layout with `chrome={false}` so no marketing navigation header or footer surrounds the authentication screen.
+
+## Product Account Independence Rule
+
+Gamo Studios applications are independent products.
+
+Authentication UI components should be reused across the ecosystem, but product registration, membership, permissions, onboarding, and workspaces must remain separate.
+
+Never interpret shared UI components or authentication infrastructure as permission to create automatic cross-product accounts or grant cross-application access.
+
+Any cross-product identity linking, enrollment, or integration must be explicitly designed and authorized.
+
+

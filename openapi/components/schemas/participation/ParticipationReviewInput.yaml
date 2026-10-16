@@ -1,0 +1,15 @@
+type: object
+additionalProperties: false
+required:
+  - status
+  - notes
+properties:
+  status:
+    type: string
+    enum:
+      - reviewed
+      - closed
+  notes:
+    type: string
+    minLength: 1
+    maxLength: 2000

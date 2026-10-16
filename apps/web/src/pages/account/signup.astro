@@ -1,9 +1,12 @@
 ---
-import '../../app.css';
-import AuthPage from '../../components/account/AuthPage.astro';
-import VerifiedAuthPanel from '../../components/account/VerifiedAuthPanel.astro';
-import { authScreens } from '../../data/account-entry';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
 ---
-<AuthPage screen={authScreens.signup}>
-  <VerifiedAuthPanel mode="signup" />
-</AuthPage>
+
+<SiteLayout
+  title="Create Your Gamo Studios Account"
+  description="Create a verified Gamo Studios account to submit participation inquiries and connect with our mission team."
+  chrome={false}
+>
+  <GamoAuthExperience mode="signup" program="Gamo Studios" />
+</SiteLayout>

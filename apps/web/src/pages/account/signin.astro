@@ -1,9 +1,12 @@
 ---
-import '../../app.css';
-import AuthPage from '../../components/account/AuthPage.astro';
-import VerifiedAuthPanel from '../../components/account/VerifiedAuthPanel.astro';
-import { authScreens } from '../../data/account-entry';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
 ---
-<AuthPage screen={authScreens.signin}>
-  <VerifiedAuthPanel />
-</AuthPage>
+
+<SiteLayout
+  title="Sign In — Gamo Studios"
+  description="Sign in to your Gamo Studios account with a passwordless email verification code."
+  chrome={false}
+>
+  <GamoAuthExperience mode="signin" program="Gamo Studios" />
+</SiteLayout>

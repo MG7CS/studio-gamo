@@ -1,34 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import EventCard from '../../components/shared/EventCard.astro';
-import { events, organizers, type Organizer } from '../../data/events';
-export const prerender = true;
-export function getStaticPaths() {
-  return organizers.map((o) => ({ params: { slug: o.slug }, props: { org: o } }));
-}
-const { org } = Astro.props as { org: Organizer };
-const list = events.filter((e) => e.organizer === org.slug);
+export const prerender = false;
+const slug = (Astro.params.slug || '').trim().replace(/-/g, ' ');
+return Astro.redirect(slug ? `/events?q=${encodeURIComponent(slug)}` : '/events', 303);
 ---
-<Layout title={org.name} headerTheme="light">
-  <header class="bg-cream page-intro-space px-4 sm:px-8">
-    <div class="mx-auto grid max-w-[1320px] items-end gap-10 lg:grid-cols-[1.2fr_1fr]">
-      <div>
-        <a href="/" class="text-sm font-medium text-ink-soft hover:text-terracotta">← Explore events</a>
-        <div class="mt-6 flex flex-wrap gap-2"><StatusPill kind="info">{org.kind}</StatusPill></div>
-        <h1 class="display-lg mt-4 text-balance">{org.name}</h1>
-        <p class="mt-2 text-lg font-medium text-terracotta">{org.kind} · {org.city}</p>
-        <p class="mt-5 max-w-xl text-lg text-ink-soft">{org.bio}</p>
-      </div>
-      <div class="aspect-[4/3] overflow-hidden rounded-[32px_32px_32px_180px]"><Photo name={org.photo} sizes="(min-width:1024px) 40vw, 100vw" priority class="h-full w-full object-cover" alt="" /></div>
-    </div>
-  </header>
-  <section class="bg-ivory px-4 py-16 sm:px-8">
-    <div class="mx-auto max-w-[1320px]">
-      <h2 class="section-subheading">Upcoming events</h2>
-      <ul class="mt-8 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">{list.map((e) => <li><EventCard event={e} /></li>)}</ul>
-    </div>
-  </section>
-</Layout>

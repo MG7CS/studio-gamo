@@ -3,9 +3,10 @@
  * Handles user provisioning, organizations, and multi-tenant memberships.
  */
 
-import { eq, and, gte, isNull, desc } from 'drizzle-orm';
+import { eq, and, gte, gt, lt, isNull, desc, sql } from 'drizzle-orm';
 import {
   users,
+  productAccounts,
   organizations,
   organizationMembers,
   organizerProfiles,
@@ -17,8 +18,9 @@ import {
   type GamoDatabase,
   type User,
   type Organization,
+  type ProductAccount,
 } from '@gamo/db';
-import { AuthError, constantTimeCompare } from '@gamo/auth';
+import { AuthError, constantTimeCompare, PRODUCT_DISPLAY_NAMES, type ProductKey } from '@gamo/auth';
 
 const CHALLENGE_TTL_SECONDS = 10 * 60; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
@@ -83,12 +85,100 @@ export class IdentityService {
   }
 
   /**
+   * Ensures an explicit product account exists for a user and product.
+   * Registering for one Gamo product never grants automatic membership in another product.
+   */
+  async ensureProductAccount(
+    userId: string,
+    product: ProductKey,
+    options?: { onboardingStatus?: 'pending' | 'completed'; now?: Date }
+  ): Promise<ProductAccount> {
+    const now = options?.now ?? new Date();
+    const [existing] = await this.db
+      .select()
+      .from(productAccounts)
+      .where(and(eq(productAccounts.userId, userId), eq(productAccounts.product, product)))
+      .limit(1);
+
+    if (existing) {
+      if (existing.status !== 'active' || (options?.onboardingStatus && existing.onboardingStatus !== options.onboardingStatus)) {
+        await this.db
+          .update(productAccounts)
+          .set({
+            status: 'active',
+            onboardingStatus: options?.onboardingStatus ?? existing.onboardingStatus,
+            updatedAt: now,
+          })
+          .where(eq(productAccounts.id, existing.id));
+        const [updated] = await this.db.select().from(productAccounts).where(eq(productAccounts.id, existing.id)).limit(1);
+        return updated;
+      }
+      return existing;
+    }
+
+    const id = `pacc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    await this.db.insert(productAccounts).values({
+      id,
+      userId,
+      product,
+      status: 'active',
+      onboardingStatus: options?.onboardingStatus ?? 'pending',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await this.db.insert(auditLogs).values({
+      id: `audit_${crypto.randomUUID()}`,
+      actorUserId: userId,
+      action: 'product_account.enrolled',
+      entityType: 'product_account',
+      entityId: id,
+      payloadJson: JSON.stringify({ product }),
+      createdAt: now,
+    });
+
+    const [created] = await this.db.select().from(productAccounts).where(eq(productAccounts.id, id)).limit(1);
+    return created;
+  }
+
+  /**
+   * Checks whether a user has an active product account for a specific product.
+   */
+  async hasProductAccount(userId: string, product: ProductKey): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: productAccounts.id })
+      .from(productAccounts)
+      .where(
+        and(
+          eq(productAccounts.userId, userId),
+          eq(productAccounts.product, product),
+          eq(productAccounts.status, 'active')
+        )
+      )
+      .limit(1);
+    return Boolean(row);
+  }
+
+  /**
+   * Lists all active product memberships for a user.
+   */
+  async getProductAccounts(userId: string): Promise<ProductKey[]> {
+    const rows = await this.db
+      .select({ product: productAccounts.product })
+      .from(productAccounts)
+      .where(and(eq(productAccounts.userId, userId), eq(productAccounts.status, 'active')));
+    return rows.map((r) => r.product as ProductKey);
+  }
+
+  /**
    * Issues a time-bounded 6-digit email verification challenge stored as a SHA-256 hash in D1.
    */
   async issueEmailChallenge(
     email: string,
     options?: {
       purpose?: 'login' | 'signin' | 'verify_email';
+      intent?: 'signin' | 'signup' | 'recover';
+      product?: ProductKey;
       ipHash?: string;
       ttlSeconds?: number;
       now?: Date;
@@ -97,6 +187,21 @@ export class IdentityService {
     const cleanEmail = email.toLowerCase().trim();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       throw new Error('A valid email address is required.');
+    }
+
+    if (options?.product && options?.intent === 'signin') {
+      const [existingUser] = await this.db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
+      if (existingUser) {
+        const existingProducts = await this.getProductAccounts(existingUser.id);
+        if (existingProducts.length > 0 && !existingProducts.includes(options.product)) {
+          const label = PRODUCT_DISPLAY_NAMES[options.product] || options.product;
+          throw new AuthError(
+            'FORBIDDEN',
+            `No ${label} account was found for this email address. Please create a ${label} account first.`,
+            403
+          );
+        }
+      }
     }
 
     const purpose = normalizeChallengePurpose(options?.purpose);
@@ -155,6 +260,8 @@ export class IdentityService {
     options?: {
       displayName?: string;
       purpose?: 'login' | 'signin' | 'verify_email';
+      intent?: 'signin' | 'signup' | 'recover';
+      product?: ProductKey;
       now?: Date;
     }
   ): Promise<User> {
@@ -189,7 +296,7 @@ export class IdentityService {
       const nextAttempts = challenge.attempts + 1;
       await this.db
         .update(authChallenges)
-        .set({ attempts: nextAttempts })
+        .set({ attempts: sql`${authChallenges.attempts} + 1` })
         .where(eq(authChallenges.id, challenge.id));
 
       if (nextAttempts >= CHALLENGE_MAX_ATTEMPTS) {
@@ -198,17 +305,34 @@ export class IdentityService {
       throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
     }
 
-    // Consume all open challenges for this email and purpose so prior codes cannot be replayed
-    await this.db
-      .update(authChallenges)
+    // If signing in (not registering) on a product where an existing user has other product accounts but not this one, deny automatic cross-product creation.
+    if (options?.product && options?.intent === 'signin') {
+      const [existingUser] = await this.db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
+      if (existingUser) {
+        const existingProducts = await this.getProductAccounts(existingUser.id);
+        if (existingProducts.length > 0 && !existingProducts.includes(options.product)) {
+          const label = PRODUCT_DISPLAY_NAMES[options.product] || options.product;
+          throw new AuthError(
+            'FORBIDDEN',
+            `No ${label} account was found for this email address. Please create a ${label} account first.`,
+            403
+          );
+        }
+      }
+    }
+
+    // Claim this challenge atomically: concurrent verification must create at most one session.
+    const claimed = await this.db.update(authChallenges)
       .set({ consumedAt: now })
-      .where(
-        and(
-          eq(authChallenges.email, cleanEmail),
-          eq(authChallenges.purpose, purpose),
-          isNull(authChallenges.consumedAt)
-        )
-      );
+      .where(and(eq(authChallenges.id, challenge.id), isNull(authChallenges.consumedAt),
+        gt(authChallenges.expiresAt, now), lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS)))
+      .returning({ id: authChallenges.id });
+    if (claimed.length !== 1) {
+      throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
+    }
+    await this.db.update(authChallenges).set({ consumedAt: now })
+      .where(and(eq(authChallenges.email, cleanEmail), eq(authChallenges.purpose, purpose),
+        isNull(authChallenges.consumedAt)));
 
     const user = await this.findOrCreateUser(cleanEmail, options?.displayName);
     if (user.status !== 'active') {
@@ -223,13 +347,17 @@ export class IdentityService {
       .set({ verifiedEmailAt, displayName })
       .where(eq(users.id, user.id));
 
+    if (options?.product) {
+      await this.ensureProductAccount(user.id, options.product, { now });
+    }
+
     await this.db.insert(auditLogs).values({
       id: `audit_${crypto.randomUUID()}`,
       actorUserId: user.id,
       action: 'auth.email_verified',
       entityType: 'user',
       entityId: user.id,
-      payloadJson: JSON.stringify({ challengeId: challenge.id, purpose }),
+      payloadJson: JSON.stringify({ challengeId: challenge.id, purpose, product: options?.product ?? null, intent: options?.intent ?? null }),
       createdAt: now,
     });
 

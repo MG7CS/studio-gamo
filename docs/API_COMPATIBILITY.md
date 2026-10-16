@@ -1,5 +1,27 @@
 # API compatibility decisions
 
+## 1.5.0
+
+Base: 2be582c
+Base: 1d17ee6
+Base: 6103121
+Base: HEAD
+
+Additive product-specific account registration, sign-in intent, and product membership isolation contracts in `1.5.0`:
+- `POST /api/auth/challenge` (`AuthChallengeInput`) and `POST /api/auth/verify` (`AuthVerifyInput`): Added optional `intent` (`signin | signup | recover`) and `product` (`web | worship | academy | live | production`) fields while keeping existing `{ email, displayName, purpose }` and `{ email, code, displayName }` payloads backward-compatible.
+- `GET /api/auth/me` (`AuthMeResponse`): Added optional `products` (active product memberships for the authenticated user) and `product` (the product scope for the active session) fields, plus `403` (`LegacyError`) when a session from one product is presented to another product where the user has not established a product account.
+
+## 1.4.0
+
+Base: 2be582c
+Base: 1d17ee6
+Base: 6103121
+Base: HEAD
+
+Additive Gamo Live public concert discovery and external ticket referral contracts in `1.4.0`:
+- `GET /api/events` (`EventFilters`): Added optional `metro`, `q`, `dateTo`, and `weekend` query parameters while keeping existing `category`, `city`, `artist`, `venue`, and `dateFrom` query filters backward-compatible.
+- `Event` and `EventDetails` (`GET /api/events`, `POST /api/events`, `GET /api/events/{id}`, `GET /api/events/pending`, `POST /api/events/{id}/review`): Added optional external discovery provenance, attribution, and referral fields (`listingType`, `importKey`, `metroSlug`, `startDateLocal`, `startTimeLocal`, `publishedByLabel`, `publishedByUserId`, `originalOrganizerName`, `externalDestinationKind`, `externalTicketProvider`, `externalOnly`, `priceMinCents`, `currency`, `ticketAvailability`, `sourceUrlsJson`, `lastVerifiedAt`, `artworkUrl`, `artworkRightsVerified`, `artworkLicenseCredit`, `editorialStatus`, `editorialNotes`, `independentDisclosure`, `isFeatured`) plus optional `performers` list on `EventDetails`. External discovery listings remain strictly outbound referrals (`admissionType: 'external'`, `externalOnly: true`) and never enter Gamo Live checkout or registration.
+
 ## 1.3.0
 
 Base: 1d17ee6

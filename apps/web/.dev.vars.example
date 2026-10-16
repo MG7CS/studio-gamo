@@ -4,15 +4,19 @@
 ENVIRONMENT=local
 PUBLIC_ROOT_DOMAIN=gamostudio.org
 
-# Resend Email Integration (Cloudflare Worker Secret)
+# Session Signing Secret (Required across all apps sharing D1 sessions; 32+ chars)
+SESSION_SECRET=local-dev-session-secret-replace-before-deploy-0123456789
+
+# Resend Email Integration (Required outside local simulation)
 # RESEND_API_KEY=re_test_xxxxxxxxxxxxxxxxxxxxxxxx
-RESEND_FROM_EMAIL=Gamo Studios <notifications@gamostudio.org>
+EMAIL_FROM=Gamo Studios <notifications@gamostudio.org>
+
+# Local-Only Auth & Demo Controls (Ignored outside ENVIRONMENT=local on loopback)
+ALLOW_AUTH_SIMULATION=true
+ALLOW_DEMO_SESSION=false
+ALLOW_PUBLIC_DEMO_WORKSPACES=false
 
 # Stripe Test-Mode Integration (Cloudflare Worker Secret - sk_test_ only)
 # STRIPE_SECRET_KEY=sk_test_51xxxxxxxxxxxxxxxxxxxxxxxx
 # STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx
 PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51xxxxxxxxxxxxxxxxxxxxxxxx
-
-# Demo Mode Workspace Controls
-ALLOW_PUBLIC_DEMO_WORKSPACES=true
-# DEMO_ACCESS_KEY=gamo_preview_secret_token

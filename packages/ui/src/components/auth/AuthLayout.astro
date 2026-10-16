@@ -1,0 +1,36 @@
+---
+import AuthPhotoPanel, { type AuthPhotoItem } from './AuthPhotoPanel.astro';
+import AuthCurvedDivider from './AuthCurvedDivider.astro';
+import type { AuthScreenMode } from '../../lib/auth-flow-client';
+
+interface Props {
+  mode: AuthScreenMode;
+  program?: string;
+  brandHref?: string;
+  brandLabel?: string;
+  photos?: AuthPhotoItem[];
+  panelBgClass?: string;
+}
+
+const {
+  mode,
+  program = 'Gamo Studios',
+  brandHref = '/',
+  brandLabel = `${program} home`,
+  photos,
+  panelBgClass,
+} = Astro.props;
+---
+
+<section
+  class="relative min-h-screen w-full bg-[#FCFBF9] text-[#1D1917] flex flex-col lg:flex-row overflow-hidden selection:bg-[#B85A34]/15"
+  data-verified-auth
+  data-auth-mode={mode}
+  data-active-mode={mode}
+  data-auth-program={program}
+>
+  <AuthPhotoPanel activeMode={mode} program={program} brandHref={brandHref} brandLabel={brandLabel} photos={photos} />
+  <AuthCurvedDivider panelBgClass={panelBgClass}>
+    <slot />
+  </AuthCurvedDivider>
+</section>
