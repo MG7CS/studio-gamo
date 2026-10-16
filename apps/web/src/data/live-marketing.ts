@@ -1,12 +1,29 @@
 /**
- * Gamo Live marketing showcase data for the Gamo Studios main website (`apps/web/src/pages/live.astro`).
- * Links connect visitors directly to the standalone Gamo Live marketplace product (`siteUrl('live', ...)`).
+ * Gamo Live showcase data & database mapper for the Gamo Studios main website (`apps/web/src/pages/live.astro`).
+ *
+ * Permanent rules:
+ * 1. Always render real approved/published events from our database (`events` table in D1 via `LiveService`),
+ *    with a deterministic fallback to the verified real event catalog (`GAMO_LIVE_VERIFIED_CATALOG_2026_10_15`)
+ *    if D1 is temporarily unreachable. Never display fictional sample events such as "Harvest Night of Gospel".
+ * 2. Any event whose scheduled date/time is already in the past (`isEventPast(event, now) === true`)
+ *    MUST resolve to `status = 'past'`, `isPast = true`, `isClosed = true`, and display as closed/past
+ *    with registration/ticket actions disabled.
  */
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import {
+  GAMO_LIVE_VERIFIED_CATALOG_2026_10_15,
+  buildFactualEditorialSummary,
+  evaluateCandidateForEditorialImport,
+  formatLocalEventSchedule,
+  getEventLifecycleStatus,
+  inferExternalProviderName,
+  isEventPast,
+  type LiveEventWithDetails,
+} from '@gamo/domain';
 
 export type EventCategory = 'concert' | 'worship' | 'bible' | 'conference' | 'youth';
 export type Ticketing = 'free' | 'preview' | 'external';
-export type EventStatus = 'scheduled' | 'rescheduled' | 'canceled';
+export type EventStatus = 'scheduled' | 'rescheduled' | 'canceled' | 'past';
 
 export interface TicketTier {
   name: string;
@@ -20,20 +37,25 @@ export interface LiveEvent {
   productPath: string;
   /** Ticket / action destination path on the standalone Gamo Live marketplace (`apps/live`). */
   ticketPath: string;
-  sample: true;
+  /** Direct external ticket URL when applicable */
+  externalUrl?: string | null;
+  sample: boolean;
   title: string;
   tagline: string;
   category: EventCategory;
-  date: string; // ISO date (local event date)
+  date: string; // ISO date (YYYY-MM-DD local event date)
   time: string;
   city: string;
   state: string;
   venue: string;
   organizer: string; // organizer slug
+  organizerName: string;
   photo: PhotoKey;
   photoPosition?: string;
   ticketing: Ticketing;
   status: EventStatus;
+  isPast: boolean;
+  isClosed: boolean;
   recurring?: string;
   featured?: boolean;
   tiers: TicketTier[];
@@ -43,7 +65,7 @@ export interface LiveEvent {
 
 export interface Organizer {
   slug: string;
-  sample: true;
+  sample: boolean;
   name: string;
   kind: string;
   city: string;
@@ -52,277 +74,342 @@ export interface Organizer {
 }
 
 export const categoryLabels: Record<EventCategory, string> = {
-  concert: 'Gospel concert',
+  concert: 'Christian concert',
   worship: 'Worship gathering',
   bible: 'Bible study',
   conference: 'Christian conference',
   youth: 'Youth & family',
 };
 
-export const organizers: Organizer[] = [
-  { slug: 'riverside-fellowship', sample: true, name: 'Riverside Fellowship Choir', kind: 'Church choir', city: 'Atlanta, GA', photo: 'gospelVocalists', bio: 'A community church choir presenting gospel concerts, choral worship nights, and seasonal services.' },
-  { slug: 'cornerstone-youth', sample: true, name: 'Cornerstone Youth Ministry', kind: 'Youth ministry', city: 'Phoenix, AZ', photo: 'worshipBand', bio: 'A regional youth ministry hosting student-led worship nights, camps, and family-friendly gatherings.' },
-  { slug: 'new-hope-gatherings', sample: true, name: 'New Hope Gatherings', kind: 'Conference organizer', city: 'Denver, CO', photo: 'concertCrowdWide', bio: 'A ministry network organizing regional conferences, retreats, and multi-day Christian gatherings.' },
-  { slug: 'grace-chapel', sample: true, name: 'Grace Chapel Community', kind: 'Local church', city: 'Columbus, OH', photo: 'sanctuaryCongregation', bio: 'A neighborhood church hosting recurring Bible studies, acoustic praise evenings, and weekly worship services.' },
+const PHOTO_ROTATION: PhotoKey[] = [
+  'gospelVocalists',
+  'worshipNight',
+  'concertCrowdWide',
+  'worshipLeaderGolden',
+  'acousticLeader',
+  'worshipBand',
+  'sanctuaryCongregation',
+  'churchGoldenHour',
+  'acousticLeaderAlt',
+  'churchModernDay',
 ];
 
-const t = (name: string, priceCents: number, note: string): TicketTier => ({ name, priceCents, note });
+function resolvePhotoKey(rawKey: string | null | undefined, index: number, category: string): PhotoKey {
+  const validKeys = new Set<string>(PHOTO_ROTATION);
+  if (rawKey && validKeys.has(rawKey)) {
+    return rawKey as PhotoKey;
+  }
+  if (category === 'worship') {
+    const worshipPhotos: PhotoKey[] = ['worshipNight', 'worshipBand', 'sanctuaryCongregation', 'churchGoldenHour'];
+    return worshipPhotos[index % worshipPhotos.length];
+  }
+  return PHOTO_ROTATION[index % PHOTO_ROTATION.length];
+}
 
-export const events: LiveEvent[] = [
-  {
-    id: 'harvest-night-of-gospel',
-    productPath: '/events/kirk-franklin-phoenix-2026-11-15',
-    ticketPath: '/events/kirk-franklin-phoenix-2026-11-15',
-    sample: true,
-    featured: true,
-    title: 'Harvest Night of Gospel',
-    tagline: 'Choirs, testimony and a full band under one roof.',
-    category: 'concert',
-    date: '2026-11-14',
-    time: '7:00 PM',
-    city: 'Atlanta',
-    state: 'GA',
-    venue: 'Riverside Fellowship Hall',
-    organizer: 'riverside-fellowship',
+function normalizeCategory(raw: string | null | undefined): EventCategory {
+  if (raw === 'worship' || raw === 'worship_event') return 'worship';
+  if (raw === 'bible') return 'bible';
+  if (raw === 'conference') return 'conference';
+  if (raw === 'youth') return 'youth';
+  return 'concert';
+}
+
+function toIsoDate(startDateLocal: string | null | undefined, startsAt: Date | string, timezone?: string | null): string {
+  if (startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(startDateLocal)) {
+    return startDateLocal;
+  }
+  const dt = startsAt instanceof Date ? startsAt : new Date(startsAt);
+  if (!Number.isFinite(dt.getTime())) return '2026-11-07';
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone || 'America/Phoenix',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(dt);
+  const y = parts.find((p) => p.type === 'year')?.value ?? '2026';
+  const m = parts.find((p) => p.type === 'month')?.value ?? '11';
+  const d = parts.find((p) => p.type === 'day')?.value ?? '07';
+  return `${y}-${m}-${d}`;
+}
+
+function slugifyOrganizer(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-') || 'gamo-live-listings'
+  );
+}
+
+/**
+ * Maps real `LiveEventWithDetails` records from D1 (`LiveService.listDiscoverableEvents`)
+ * into the `LiveEvent` view model used across the `/live` showcase components, enforcing
+ * the Past Event Closure Rule (`status = 'past'`, `isPast = true`, `isClosed = true`).
+ */
+export function mapDbEventsToMarketingEvents(
+  dbEvents: LiveEventWithDetails[],
+  referenceNow: Date = new Date()
+): LiveEvent[] {
+  const mapped = dbEvents.map((row, index): LiveEvent => {
+    const category = normalizeCategory(row.category);
+    const isoDate = toIsoDate(row.startDateLocal, row.startsAt, row.timezone);
+    const schedule = formatLocalEventSchedule(
+      row.startDateLocal,
+      row.startTimeLocal,
+      row.timezone,
+      row.startsAt
+    );
+
+    const past = typeof row.isPast === 'boolean' ? row.isPast : isEventPast(row, referenceNow);
+    const lifecycleStatus = getEventLifecycleStatus(row, referenceNow);
+    const status: EventStatus =
+      row.status === 'canceled'
+        ? 'canceled'
+        : past || lifecycleStatus === 'past'
+          ? 'past'
+          : row.status === 'rescheduled'
+            ? 'rescheduled'
+            : 'scheduled';
+
+    const isExternal =
+      row.listingType === 'external_discovery' ||
+      Boolean(row.externalOnly) ||
+      row.admissionType === 'external';
+
+    const ticketing: Ticketing = isExternal
+      ? 'external'
+      : row.admissionType === 'free'
+        ? 'free'
+        : 'preview';
+
+    const providerName =
+      row.externalTicketProvider ||
+      inferExternalProviderName(row.externalUrl, null) ||
+      (isExternal ? 'Official event page' : undefined);
+
+    const organizerDisplayName =
+      row.originalOrganizerName ||
+      (isExternal ? row.venueName : row.organizerName) ||
+      row.publishedByLabel ||
+      'Gamo Live Listings';
+    const organizerSlug = slugifyOrganizer(organizerDisplayName);
+
+    const tiers: TicketTier[] =
+      row.tiers && row.tiers.length > 0
+        ? row.tiers.map((tier) => ({
+            name: tier.name,
+            priceCents: tier.priceCents,
+            note: tier.note || '',
+          }))
+        : typeof row.priceMinCents === 'number'
+          ? [
+              {
+                name: isExternal ? `Tickets via ${providerName}` : 'General Admission',
+                priceCents: row.priceMinCents,
+                note: isExternal ? 'Sold on official ticket site' : '',
+              },
+            ]
+          : [];
+
+    const eventPath = `/events/${row.slug || row.id}`;
+
+    return {
+      id: row.slug || row.id,
+      productPath: eventPath,
+      ticketPath: eventPath,
+      externalUrl: row.externalUrl ?? null,
+      sample: false,
+      featured: Boolean(row.isFeatured) || index < 4,
+      title: row.title,
+      tagline:
+        row.tagline ||
+        `${row.venueName} · ${row.city}, ${row.state}`,
+      category,
+      date: isoDate,
+      time: schedule.timeLabel,
+      city: row.city,
+      state: row.state,
+      venue: row.venueName,
+      organizer: organizerSlug,
+      organizerName: organizerDisplayName,
+      photo: resolvePhotoKey(row.photoKey, index, category),
+      ticketing,
+      status,
+      isPast: past,
+      isClosed: past || status === 'canceled',
+      tiers,
+      externalSource: providerName,
+      description: row.description,
+    };
+  });
+
+  // Sort upcoming events first in chronological order, then past/closed events
+  mapped.sort((a, b) => {
+    if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
+    return a.date.localeCompare(b.date);
+  });
+
+  // Ensure the top 4 upcoming non-canceled events are marked featured for the hero carousel
+  let featuredCount = 0;
+  for (const ev of mapped) {
+    if (!ev.isPast && ev.status !== 'canceled' && featuredCount < 4) {
+      ev.featured = true;
+      featuredCount++;
+    } else {
+      ev.featured = false;
+    }
+  }
+
+  return mapped;
+}
+
+/**
+ * Builds the verified catalog fallback directly from `GAMO_LIVE_VERIFIED_CATALOG_2026_10_15`
+ * so that even if a local/static build runs without D1, only real verified events are shown.
+ */
+export function buildVerifiedCatalogFallbackEvents(referenceNow: Date = new Date()): LiveEvent[] {
+  const approvedCandidates = GAMO_LIVE_VERIFIED_CATALOG_2026_10_15.events.filter((candidate) => {
+    const evalResult = evaluateCandidateForEditorialImport(candidate, {
+      referenceNow: new Date('2026-10-15T00:00:00Z'),
+      revalidateUnfetched: true,
+    });
+    return evalResult.editorialDecision === 'approved';
+  });
+
+  const syntheticDbRows: LiveEventWithDetails[] = approvedCandidates.map((candidate, idx) => {
+    const evalResult = evaluateCandidateForEditorialImport(candidate, {
+      referenceNow: new Date('2026-10-15T00:00:00Z'),
+      revalidateUnfetched: true,
+    });
+    const summary = buildFactualEditorialSummary(candidate);
+    const providerName = inferExternalProviderName(
+      candidate.external_destination?.url,
+      candidate.external_destination?.provider_name
+    );
+    const past = isEventPast(
+      {
+        startsAt: evalResult.startsAt,
+        startDateLocal: candidate.start_date_local,
+        startTimeLocal: candidate.start_time_local,
+        timezone: candidate.timezone,
+      },
+      referenceNow
+    );
+
+    return {
+      id: `evt_seed_${evalResult.slug}`,
+      organizerId: 'orgprof_gamo_live_listings',
+      title: candidate.title,
+      slug: evalResult.slug,
+      category: evalResult.normalizedCategory,
+      tagline: summary.tagline,
+      description: summary.description,
+      venueName: candidate.venue.name || 'Venue TBA',
+      address: candidate.venue.street_address ?? null,
+      city: candidate.venue.city,
+      state: candidate.venue.state,
+      country: candidate.venue.country || 'US',
+      metroSlug: candidate.metro_slug,
+      startsAt: evalResult.startsAt,
+      endsAt: null,
+      startDateLocal: candidate.start_date_local,
+      startTimeLocal: candidate.start_time_local ?? null,
+      timezone: candidate.timezone,
+      admissionType: 'external',
+      listingType: 'external_discovery',
+      editorialStatus: 'published',
+      publishedByLabel: 'Gamo Live Listings',
+      originalOrganizerName: candidate.original_organizer_name ?? null,
+      externalDestinationKind: candidate.external_destination?.kind ?? 'official_ticket_page',
+      externalTicketProvider: providerName,
+      externalOnly: true,
+      checkoutOnGamo: false,
+      priceMinCents:
+        typeof candidate.ticketing?.price_min_usd === 'number'
+          ? Math.round(candidate.ticketing.price_min_usd * 100)
+          : null,
+      currency: 'USD',
+      availabilityStatus: candidate.ticketing?.availability ?? 'unverified',
+      artworkUrl: null,
+      artworkRightsVerified: false,
+      independentDisclosure: 'Independent listing · Tickets sold by the external provider.',
+      sourceUrlsJson: JSON.stringify(candidate.source_urls ?? []),
+      editorialNotes: null,
+      lastVerifiedAt: new Date('2026-10-15T00:00:00Z'),
+      isFeatured: idx < 4,
+      photoKey: PHOTO_ROTATION[idx % PHOTO_ROTATION.length],
+      externalUrl: candidate.external_destination?.url ?? null,
+      status: 'approved',
+      createdAt: new Date('2026-10-15T00:00:00Z'),
+      organizerName: candidate.venue.name || 'Gamo Live Listings',
+      organizerKind: 'venue',
+      tiers: [],
+      totalRegistered: 0,
+      performers: (candidate.performers ?? []).map((name, pIdx) => ({
+        id: `perf_${idx}_${pIdx}`,
+        displayName: name,
+        billingOrder: pIdx + 1,
+        roleLabel: pIdx === 0 ? 'Headliner' : 'Special Guest',
+      })),
+      isPast: past,
+      isClosed: past,
+      lifecycleStatus: past ? 'past' : 'scheduled',
+    };
+  });
+
+  return mapDbEventsToMarketingEvents(syntheticDbRows, referenceNow);
+}
+
+/**
+ * Builds the featured organizers / venues list dynamically from real events.
+ */
+export function buildOrganizersFromEvents(eventList: LiveEvent[]): Organizer[] {
+  const bySlug = new Map<string, { org: Organizer; count: number }>();
+
+  for (let i = 0; i < eventList.length; i++) {
+    const e = eventList[i];
+    const existing = bySlug.get(e.organizer);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      const isChurch = /church|chapel|cathedral|fellowship|ministry/i.test(e.venue);
+      bySlug.set(e.organizer, {
+        org: {
+          slug: e.organizer,
+          sample: false,
+          name: e.organizerName || e.venue,
+          kind: isChurch ? 'Host church & venue' : 'Concert venue & host',
+          city: `${e.city}, ${e.state}`,
+          photo: PHOTO_ROTATION[i % PHOTO_ROTATION.length],
+          bio: `Verified Christian event venue and host location in ${e.city}, ${e.state}.`,
+        },
+        count: 1,
+      });
+    }
+  }
+
+  return [...bySlug.values()]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4)
+    .map((entry) => entry.org);
+}
+
+export const events: LiveEvent[] = buildVerifiedCatalogFallbackEvents();
+export const organizers: Organizer[] = buildOrganizersFromEvents(events);
+
+export const getEvent = (id: string, list: LiveEvent[] = events) => list.find((e) => e.id === id);
+export const getOrganizer = (slug: string, orgList: Organizer[] = organizers): Organizer =>
+  orgList.find((o) => o.slug === slug) ?? {
+    slug,
+    sample: false,
+    name: 'Gamo Live Listings',
+    kind: 'Verified directory',
+    city: 'Nationwide',
     photo: 'gospelVocalists',
-    ticketing: 'preview',
-    status: 'scheduled',
-    tiers: [t('General admission', 2500, 'Open seating'), t('Family pass', 6000, 'Up to 4 guests'), t('Student', 1000, 'Valid student ID')],
-    description: 'An evening of choral gospel, congregational worship and testimony led by Riverside Fellowship Choir and guest musicians.',
-  },
-  {
-    id: 'rise-leadership-conference',
-    productPath: '/events/passion-2027-arlington-2027-01-01',
-    ticketPath: '/events/passion-2027-arlington-2027-01-01',
-    sample: true,
-    featured: true,
-    title: 'Rise Christian Leadership Conference',
-    tagline: 'Two days of teaching, worship and ministry workshops.',
-    category: 'conference',
-    date: '2026-11-20',
-    time: '9:00 AM',
-    city: 'Denver',
-    state: 'CO',
-    venue: 'Mile High Convention Center',
-    organizer: 'new-hope-gatherings',
-    photo: 'concertCrowdWide',
-    ticketing: 'external',
-    externalSource: 'Organizer website',
-    status: 'scheduled',
-    tiers: [t('Conference pass', 14900, 'Sold by the organizer')],
-    description: 'A two-day conference equipping pastors, worship leaders, and ministry volunteers with practical workshops and corporate worship.',
-  },
-  {
-    id: 'saturday-worship-gathering',
-    productPath: '/events/cain-phoenix-2026-11-07',
-    ticketPath: '/events/cain-phoenix-2026-11-07',
-    sample: true,
-    featured: true,
-    title: 'Saturday Night Worship',
-    tagline: 'An open, unhurried night of praise and prayer.',
-    category: 'worship',
-    date: '2026-11-07',
-    time: '6:30 PM',
-    city: 'Dallas',
-    state: 'TX',
-    venue: 'Trinity Community Church',
-    organizer: 'riverside-fellowship',
-    photo: 'worshipNight',
-    ticketing: 'free',
-    status: 'scheduled',
-    recurring: 'First Saturday monthly',
-    tiers: [t('Free registration', 0, 'Helps hosts plan seating')],
-    description: 'A monthly evening of extended praise, prayer, and acoustic worship open to churches and families across the region.',
-  },
-  {
-    id: 'acoustic-praise-evening',
-    productPath: '/events/phil-wickham-seattle-2026-12-03',
-    ticketPath: '/events/phil-wickham-seattle-2026-12-03',
-    sample: true,
-    featured: true,
-    title: 'Acoustic Praise Evening',
-    tagline: 'Stripped-back hymns and new songs of worship.',
-    category: 'concert',
-    date: '2026-12-05',
-    time: '7:30 PM',
-    city: 'Seattle',
-    state: 'WA',
-    venue: 'Grace Chapel Stage',
-    organizer: 'grace-chapel',
-    photo: 'acousticLeader',
-    ticketing: 'preview',
-    status: 'rescheduled',
-    tiers: [t('General admission', 1800, 'Open seating')],
-    description: 'An intimate evening of acoustic hymns and modern worship songs. Existing registrations automatically carry over to the updated date.',
-  },
-  {
-    id: 'psalms-bible-study',
-    productPath: '/events?category=worship',
-    ticketPath: '/events?category=worship',
-    sample: true,
-    title: 'Wednesday Bible Study: Psalms',
-    tagline: 'Reading the Psalms together, week by week.',
-    category: 'bible',
-    date: '2026-11-11',
-    time: '7:00 PM',
-    city: 'Columbus',
-    state: 'OH',
-    venue: 'Grace Chapel Sanctuary',
-    organizer: 'grace-chapel',
-    photo: 'sanctuaryCongregation',
-    ticketing: 'free',
-    status: 'scheduled',
-    recurring: 'Every Wednesday',
-    tiers: [t('Free — drop in', 0, 'No registration needed')],
-    description: 'A weekly midweek study walking through the Psalms with small-group discussion and prayer.',
-  },
-  {
-    id: 'family-fall-festival',
-    productPath: '/events/nashville-tn',
-    ticketPath: '/events/nashville-tn',
-    sample: true,
-    title: 'Family Fall Festival & Praise',
-    tagline: 'Games, food and a children’s worship set.',
-    category: 'youth',
-    date: '2026-10-31',
-    time: '2:00 PM',
-    city: 'Nashville',
-    state: 'TN',
-    venue: 'Cornerstone Church Grounds',
-    organizer: 'cornerstone-youth',
-    photo: 'chapelSpring',
-    ticketing: 'free',
-    status: 'scheduled',
-    tiers: [t('Free registration', 0, 'Family headcount')],
-    description: 'An afternoon outdoor gathering for families featuring lawn games, fellowship, and a children’s worship set.',
-  },
-  {
-    id: 'youth-worship-night',
-    productPath: '/events/phoenix-az',
-    ticketPath: '/events/phoenix-az',
-    sample: true,
-    title: 'Youth Worship Night',
-    tagline: 'Student-led worship and a short message.',
-    category: 'youth',
-    date: '2026-11-21',
-    time: '7:00 PM',
-    city: 'Phoenix',
-    state: 'AZ',
-    venue: 'Cornerstone Youth Center',
-    organizer: 'cornerstone-youth',
-    photo: 'worshipBand',
-    ticketing: 'free',
-    status: 'scheduled',
-    recurring: 'Third Saturday monthly',
-    tiers: [t('Free registration', 0, 'Parents may register students')],
-    description: 'A monthly gathering for middle and high school students featuring student-led worship, teaching, and small groups.',
-  },
-  {
-    id: 'advent-choral-service',
-    productPath: '/events/tomlin-atlanta-2026-12-03',
-    ticketPath: '/events/tomlin-atlanta-2026-12-03',
-    sample: true,
-    title: 'Advent Choral Service',
-    tagline: 'Lessons and carols for the season.',
-    category: 'worship',
-    date: '2026-12-13',
-    time: '5:00 PM',
-    city: 'Chicago',
-    state: 'IL',
-    venue: 'St. Mark Cathedral',
-    organizer: 'riverside-fellowship',
-    photo: 'churchGoldenHour',
-    ticketing: 'free',
-    status: 'scheduled',
-    tiers: [t('Free — open to all', 0, 'Arrive early for seating')],
-    description: 'A traditional service of Advent scripture readings, choral anthems, and congregational carols.',
-  },
-  {
-    id: 'gospel-brunch-testimony',
-    productPath: '/events/cece-winans-woodstock-2026-11-12',
-    ticketPath: '/events/cece-winans-woodstock-2026-11-12',
-    sample: true,
-    title: 'Gospel Brunch & Testimony',
-    tagline: 'Live gospel set with shared stories.',
-    category: 'concert',
-    date: '2026-11-15',
-    time: '11:00 AM',
-    city: 'Charlotte',
-    state: 'NC',
-    venue: 'Heritage Fellowship Hall',
-    organizer: 'riverside-fellowship',
-    photo: 'worshipLeaderGolden',
-    ticketing: 'preview',
-    status: 'canceled',
-    tiers: [t('Brunch seat', 3000, 'Includes meal')],
-    description: 'A morning gathering of live gospel music and community testimony over brunch.',
-  },
-  {
-    id: 'womens-bible-retreat',
-    productPath: '/events?date=2027',
-    ticketPath: '/events?date=2027',
-    sample: true,
-    title: 'Women’s Bible Retreat',
-    tagline: 'A weekend of study, rest and fellowship.',
-    category: 'conference',
-    date: '2027-01-16',
-    time: '10:00 AM',
-    city: 'Minneapolis',
-    state: 'MN',
-    venue: 'Northwoods Retreat Center',
-    organizer: 'new-hope-gatherings',
-    photo: 'churchModernDay',
-    ticketing: 'preview',
-    status: 'scheduled',
-    tiers: [t('Weekend pass', 8500, 'Meals included'), t('Day pass', 3500, 'Saturday only')],
-    description: 'A weekend retreat featuring scripture study, worship sessions, and unhurried fellowship.',
-  },
-  {
-    id: 'kids-music-showcase',
-    productPath: '/events/los-angeles-ca',
-    ticketPath: '/events/los-angeles-ca',
-    sample: true,
-    title: 'Kids Music Camp Showcase',
-    tagline: 'Young musicians share what they learned.',
-    category: 'youth',
-    date: '2026-12-12',
-    time: '3:00 PM',
-    city: 'Los Angeles',
-    state: 'CA',
-    venue: 'Westside Community Church',
-    organizer: 'cornerstone-youth',
-    photo: 'youngPianist',
-    ticketing: 'free',
-    status: 'scheduled',
-    tiers: [t('Free — open to families', 0, '')],
-    description: 'An afternoon showcase celebrating young piano, guitar, voice, and ensemble students with their families.',
-  },
-  {
-    id: 'night-of-hymns',
-    productPath: '/events/getty-nashville-2026-12-21',
-    ticketPath: '/events/getty-nashville-2026-12-21',
-    sample: true,
-    title: 'A Night of Hymns',
-    tagline: 'Timeless hymns with strings and choir.',
-    category: 'worship',
-    date: '2026-12-19',
-    time: '7:00 PM',
-    city: 'Philadelphia',
-    state: 'PA',
-    venue: 'Christ Historic Church',
-    organizer: 'grace-chapel',
-    photo: 'acousticLeaderAlt',
-    ticketing: 'external',
-    externalSource: 'Venue box office',
-    status: 'scheduled',
-    tiers: [t('Reserved seat', 2000, 'Sold by the venue')],
-    description: 'An evening of classic hymns accompanied by string quartet, organ, and sanctuary choir.',
-  },
-];
-
-export const getEvent = (id: string) => events.find((e) => e.id === id);
-export const getOrganizer = (slug: string) => organizers.find((o) => o.slug === slug)!;
-export const eventsBy = (pred: (e: LiveEvent) => boolean) => events.filter(pred);
+    bio: 'Curated Christian concerts, worship nights, and church gatherings.',
+  };
+export const eventsBy = (pred: (e: LiveEvent) => boolean, list: LiveEvent[] = events) => list.filter(pred);
 export const cities = [...new Set(events.map((e) => `${e.city}, ${e.state}`))];
 
 const fmt = (iso: string, o: Intl.DateTimeFormatOptions) =>
@@ -335,6 +422,21 @@ export const dateParts = (iso: string) => ({
 });
 export const price = (cents: number) => (cents === 0 ? 'Free' : `$${(cents / 100).toFixed(2)}`);
 export const fromPrice = (e: LiveEvent) => {
-  const min = Math.min(...e.tiers.map((x) => x.priceCents));
-  return e.ticketing === 'free' ? 'Free' : `From ${price(min)}`;
+  if (e.isPast || e.status === 'past') {
+    return 'Past · Closed';
+  }
+  if (e.status === 'canceled') {
+    return 'Canceled';
+  }
+  if (e.ticketing === 'free') {
+    return 'Free';
+  }
+  if (e.tiers && e.tiers.length > 0) {
+    const min = Math.min(...e.tiers.map((x) => x.priceCents));
+    return min === 0 ? 'Free' : `From ${price(min)}`;
+  }
+  if (e.externalSource) {
+    return `Tickets via ${e.externalSource}`;
+  }
+  return 'Official ticket page';
 };

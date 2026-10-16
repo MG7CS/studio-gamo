@@ -811,3 +811,85 @@ export function formatLocalEventSchedule(
   };
 }
 
+export interface EventLifecycleTemporalInput {
+  startsAt?: Date | string | number | null;
+  endsAt?: Date | string | number | null;
+  startDateLocal?: string | null;
+  startTimeLocal?: string | null;
+  timezone?: string | null;
+  status?: string | null;
+}
+
+/**
+ * Determines whether an event is already in the past and therefore closed for registration/tickets.
+ *
+ * Rules:
+ * 1. If `endsAt` is provided and valid, the event is past once `endsAt <= referenceNow`.
+ * 2. Otherwise, if `startDateLocal` is provided without a specific `startTimeLocal`, the event
+ *    remains open through the end of that local calendar date (`23:59` local time).
+ * 3. Otherwise, uses `startsAt` (or parsed `startDateLocal + startTimeLocal`) and marks the event
+ *    past once the event start window has elapsed (`startsAt <= referenceNow`).
+ */
+export function isEventPast(
+  event: EventLifecycleTemporalInput,
+  referenceNow: Date = new Date()
+): boolean {
+  const nowMs = referenceNow.getTime();
+  if (!Number.isFinite(nowMs)) return false;
+
+  if (event.endsAt != null) {
+    const endDt = event.endsAt instanceof Date ? event.endsAt : new Date(event.endsAt);
+    if (Number.isFinite(endDt.getTime())) {
+      return endDt.getTime() <= nowMs;
+    }
+  }
+
+  if (event.startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(event.startDateLocal) && !event.startTimeLocal) {
+    const endOfDayUtc = parseLocalEventDateTimeToUtc(
+      event.startDateLocal,
+      '23:59',
+      event.timezone || 'America/Phoenix'
+    );
+    if (Number.isFinite(endOfDayUtc.getTime())) {
+      return endOfDayUtc.getTime() <= nowMs;
+    }
+  }
+
+  if (event.startsAt != null) {
+    const startDt = event.startsAt instanceof Date ? event.startsAt : new Date(event.startsAt);
+    if (Number.isFinite(startDt.getTime())) {
+      return startDt.getTime() <= nowMs;
+    }
+  }
+
+  if (event.startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(event.startDateLocal)) {
+    const parsedUtc = parseLocalEventDateTimeToUtc(
+      event.startDateLocal,
+      event.startTimeLocal ?? '23:59',
+      event.timezone || 'America/Phoenix'
+    );
+    if (Number.isFinite(parsedUtc.getTime())) {
+      return parsedUtc.getTime() <= nowMs;
+    }
+  }
+
+  return false;
+}
+
+export type EventLifecycleStatus = 'past' | 'canceled' | 'rescheduled' | 'scheduled';
+
+/**
+ * Computes the effective display lifecycle status of an event, guaranteeing that
+ * any event whose date/time has passed resolves to `'past'` (closed & past) unless canceled.
+ */
+export function getEventLifecycleStatus(
+  event: EventLifecycleTemporalInput,
+  referenceNow: Date = new Date()
+): EventLifecycleStatus {
+  if (event.status === 'canceled') return 'canceled';
+  if (isEventPast(event, referenceNow)) return 'past';
+  if (event.status === 'rescheduled') return 'rescheduled';
+  return 'scheduled';
+}
+
+

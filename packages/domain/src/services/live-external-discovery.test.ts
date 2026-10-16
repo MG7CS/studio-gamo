@@ -241,4 +241,55 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
       (err: any) => /EXTERNAL_URL_HTTPS_REQUIRED/.test(String(err?.cause ?? err))
     );
   });
+
+  it('marks events whose date/time is in the past as isPast=true, isClosed=true, lifecycleStatus="past" and sorts upcoming events first', async () => {
+    const { db, liveService } = await setupMigratedD1();
+    await liveService.ensureVerifiedCatalogSeeded();
+
+    const cain = await liveService.getEvent('cain-phoenix-2026-11-07');
+    assert.ok(cain);
+
+    // Insert a past approved event
+    const pastStart = new Date(Date.now() - 7 * 86400000);
+    await db.insert(events).values({
+      id: 'evt_past_test_1',
+      organizerId: cain.organizerId,
+      slug: 'past-worship-night-2025',
+      title: 'Past Worship Night 2025',
+      category: 'worship',
+      tagline: 'Past gathering',
+      description: 'An event that already took place.',
+      venueName: 'Dream City Church',
+      city: 'Phoenix',
+      state: 'AZ',
+      metroSlug: 'phoenix-az',
+      startsAt: pastStart,
+      startDateLocal: '2025-05-10',
+      startTimeLocal: '19:00',
+      timezone: 'America/Phoenix',
+      admissionType: 'external',
+      externalUrl: 'https://www.ticketmaster.com/event/past-2025',
+      status: 'approved',
+      listingType: 'external_discovery',
+      externalOnly: true,
+      editorialStatus: 'published',
+      createdAt: new Date(),
+    });
+
+    const pastLoaded = await liveService.getEvent('past-worship-night-2025');
+    assert.ok(pastLoaded);
+    assert.equal(pastLoaded.isPast, true);
+    assert.equal(pastLoaded.isClosed, true);
+    assert.equal(pastLoaded.lifecycleStatus, 'past');
+
+    const allEvents = await liveService.listDiscoverableEvents({ limit: 50 });
+    const firstEvent = allEvents[0];
+    const lastEvent = allEvents[allEvents.length - 1];
+    assert.equal(firstEvent?.isPast, false, 'Expected upcoming events to be sorted before past events');
+    assert.equal(lastEvent?.slug, 'past-worship-night-2025');
+    assert.equal(lastEvent?.isPast, true);
+    assert.equal(lastEvent?.isClosed, true);
+    assert.equal(lastEvent?.lifecycleStatus, 'past');
+  });
 });
+

@@ -69,11 +69,14 @@ import {
   buildFactualEditorialSummary,
   buildIndependentDisclosure,
   evaluateCandidateForEditorialImport,
+  getEventLifecycleStatus,
   inferExternalProviderName,
+  isEventPast,
   isLocalWeekendDate,
   resolveMetroBySlug,
   resolveNearestMetroByCoordinates,
   validateExternalDestinationUrl,
+  type EventLifecycleStatus,
   type GamoLiveMetro,
   type SeedCatalogDocument,
 } from './live-external-discovery.ts';
@@ -92,6 +95,9 @@ export interface LiveEventWithDetails extends LiveEvent {
   tiers: TicketTier[];
   totalRegistered: number;
   performers?: LiveEventPerformerSummary[];
+  isPast?: boolean;
+  isClosed?: boolean;
+  lifecycleStatus?: EventLifecycleStatus;
 }
 
 export interface RegisterAttendeeResult {
@@ -390,6 +396,9 @@ export class LiveService {
         .from(eventRegistrations)
         .where(eq(eventRegistrations.eventId, row.event.id));
 
+      const past = isEventPast(row.event);
+      const lifecycleStatus = getEventLifecycleStatus(row.event);
+
       result.push({
         ...row.event,
         organizerName: row.orgName,
@@ -397,8 +406,19 @@ export class LiveService {
         tiers,
         totalRegistered: Number(regStats?.count ?? 0),
         performers: performerRows,
+        isPast: past,
+        isClosed: past || row.event.status === 'canceled',
+        lifecycleStatus,
       });
     }
+
+    // Sort upcoming events first in chronological order, followed by past/closed events
+    result.sort((a, b) => {
+      if (Boolean(a.isPast) !== Boolean(b.isPast)) {
+        return a.isPast ? 1 : -1;
+      }
+      return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime();
+    });
 
     return result;
   }
@@ -451,6 +471,9 @@ export class LiveService {
       .from(eventRegistrations)
       .where(eq(eventRegistrations.eventId, row.event.id));
 
+    const past = isEventPast(row.event);
+    const lifecycleStatus = getEventLifecycleStatus(row.event);
+
     return {
       ...row.event,
       organizerName: row.orgName,
@@ -458,6 +481,9 @@ export class LiveService {
       tiers,
       totalRegistered: Number(regStats?.count ?? 0),
       performers: performerRows,
+      isPast: past,
+      isClosed: past || row.event.status === 'canceled',
+      lifecycleStatus,
     };
   }
 

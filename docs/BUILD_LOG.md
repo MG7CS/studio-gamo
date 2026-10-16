@@ -681,3 +681,17 @@
     - `gamo-live` (`live.gamostudio.org`): Version `8a9de5ae-2749-4f8c-94e5-26473ad34c8d` (HTTP 200 on `/` and `/account/signup`)
     - `gamo-production` (`production.gamostudio.org`): Version `9ac3225a-2d7a-4aef-8c48-a7e4a3a82e1c` (HTTP 200)
     - `gamo-admin` (`admin.gamostudio.org`): Version `e0bce5c2-c448-4a40-86a6-c9d08e65fa9a` (HTTP 302 login gate)
+
+## 2026-10-15 — Real Database Events on `gamostudio.org/live` & Past Event Closure Rule
+
+- **Real Database Events on `/live` (`apps/web/src/pages/live.astro`, `apps/web/src/data/live-marketing.ts`)**:
+  - Updated `apps/web/src/pages/live.astro` (`export const prerender = false;`) to query D1 directly via `LiveService.ensureVerifiedCatalogSeeded()` and `LiveService.listDiscoverableEvents({ limit: 100 })`, replacing static sample events (`"Harvest Night of Gospel"`, etc.) with real database events (`Elevation Worship & Steven Furtick — Fall Tour 2026`, `Revelation Nights`, `Blessing Offor — Heart So Real Tour Pt. 2`, `CeCe Winans — COME WORSHIP! Tour`, `CAIN Live and In Worship Tour with bodie`, `Bethel Music 2026 Tour`, `Crowder LIVE!`, etc.).
+- **Past Event Closure Rule (`@gamo/domain`, `packages/ui`, `apps/web`, `apps/live`, `AGENTS.md`)**:
+  - Added `isEventPast` and `getEventLifecycleStatus` to `@gamo/domain` (`packages/domain/src/services/live-external-discovery.ts`) and enriched `LiveEventWithDetails` in `LiveService` with `isPast`, `isClosed`, and `lifecycleStatus`.
+  - Updated `LiveService.listDiscoverableEvents` and `mapDbEventsToMarketingEvents` to sort upcoming events ahead of past events and mark any event whose scheduled date/time has passed as `isPast = true`, `isClosed = true`, `status = 'past'`.
+  - Added `kind="past"` (`Past · Closed`) to `StatusPill.astro`, `EventPills.astro`, `TrustLegend.astro`, `EventSpotlightHero.astro`, `EventCard.astro`, `FreeAndTicketed.astro`, `LiveDiscoveryCard.astro`, `apps/live/src/pages/events/[id]/index.astro`, and `apps/live/src/pages/events/[id]/register.astro`.
+  - Added the permanent **Past Event Closure & Real Database Events Rule** to `AGENTS.md` and `docs/DECISIONS.md` (Decision 014).
+- **Verification & Visual Evidence**:
+  - `node --test packages/domain/src/services/live-external-discovery.test.ts`: **Pass (5/5 tests, including past-event closure and chronological sorting)**
+  - `node scripts/verify-live-discovery-launch.mjs`: **Pass (full 1440px desktop & 390px mobile Playwright verification; updated `artifacts/screenshots/live-launch-2026-10-15/gamo-live-marketing-desktop-1440.png`)**
+

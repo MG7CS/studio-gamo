@@ -1,5 +1,5 @@
 ---
-/** Trust legend on Gamo Live marketing page: explains every trust/status state. */
+/** Trust legend on Gamo Live marketing page: explains every trust/status state including Past · Closed. */
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 interface Props { class?: string; compact?: boolean }
 const { class: className, compact = false } = Astro.props;
@@ -8,6 +8,7 @@ const rows = [
   { kind: 'paid', label: 'Gamo ticketing', body: 'Tickets issued and checked in directly through Gamo Live.' },
   { kind: 'external', label: 'External tickets', body: 'Sold by the organizer or venue. You leave Gamo Live to purchase.' },
   { kind: 'free', label: 'Free', body: 'No cost to attend. Optional registration may help hosts plan.' },
+  { kind: 'past', label: 'Past · Closed', body: 'The event date has already passed. Registration and ticket actions are closed.' },
   { kind: 'rescheduled', label: 'Rescheduled', body: 'Date or time changed; the new schedule is shown first.' },
   { kind: 'canceled', label: 'Canceled', body: 'The event will not take place. Actions are disabled.' },
 ] as const;

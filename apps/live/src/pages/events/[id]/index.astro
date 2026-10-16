@@ -10,6 +10,7 @@ import {
   extractExternalDomain,
   resolveExternalCtaLabel,
   formatLocalEventSchedule,
+  isEventPast,
   type LiveEventWithDetails,
 } from '@gamo/domain';
 
@@ -79,6 +80,8 @@ const isExternal = Boolean(
       event.externalOnly ||
       event.admissionType === 'external')
 );
+const isPast = Boolean(event && (typeof event.isPast === 'boolean' ? event.isPast : isEventPast(event)));
+const isClosed = Boolean(event && (isPast || event.status === 'canceled'));
 
 const eventMetro = event?.metroSlug ? resolveMetroBySlug(event.metroSlug) : null;
 const schedule = event
@@ -512,6 +515,11 @@ const canonicalHref = metro
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-[#D5CCC2]">
                   {event.city}, {event.state}
                 </span>
+                {isPast && (
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-700 text-stone-100 border border-stone-500" data-past-closed-badge>
+                    Past Event · Closed
+                  </span>
+                )}
               </div>
 
               <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
@@ -568,6 +576,7 @@ const canonicalHref = metro
                   <div class="text-sm text-[#E5B89B] font-medium mt-0.5">
                     {schedule ? schedule.timeLabel : 'Time TBA'}
                     {event.timezone ? ` (${event.timezone})` : ''}
+                    {isPast ? ' · Past & Closed' : ''}
                   </div>
                 </div>
 
@@ -597,7 +606,36 @@ const canonicalHref = metro
 
             <!-- Right 5 Columns: Sticky / Prominent Action Card -->
             <div class="lg:col-span-5">
-              {isExternal ? (
+              {isClosed ? (
+                <div class="bg-white text-[#191817] rounded-2xl border border-[#EAE2D6] p-6 shadow-2xl" data-event-closed-panel>
+                  <div class="flex items-center justify-between gap-2 pb-4 border-b border-[#F2ECE1]">
+                    <div>
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-[#6E675F]">
+                        Event Status
+                      </span>
+                      <h2 class="text-lg font-extrabold text-[#191817] mt-0.5">
+                        {isPast ? 'Past Event · Closed' : 'Event Canceled · Closed'}
+                      </h2>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg bg-[#F5EFE6] text-[#5C554D] text-xs font-semibold">
+                      Closed
+                    </span>
+                  </div>
+                  <p class="mt-4 text-sm text-[#5C554D] leading-relaxed">
+                    {isPast
+                      ? 'This event has already taken place. Ticket purchases and attendee registration are closed.'
+                      : 'This event has been canceled and is closed for registration.'}
+                  </p>
+                  <div class="mt-5">
+                    <a
+                      href="/events"
+                      class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-[#191817] hover:bg-[#312E2B] text-white font-bold text-sm transition-colors"
+                    >
+                      <span>Browse Upcoming Events</span>
+                    </a>
+                  </div>
+                </div>
+              ) : isExternal ? (
                 <div class="bg-white text-[#191817] rounded-2xl border border-[#EAE2D6] p-6 shadow-2xl">
                   <div class="flex items-center justify-between gap-2 pb-4 border-b border-[#F2ECE1]">
                     <div>

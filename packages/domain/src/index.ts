@@ -14,4 +14,6 @@ export * from './services/notifications.ts';
 export * from './http/auth.ts';
 export * from './services/participation.ts';
 export * from './services/live-external-discovery.ts';
+export * from './services/verified-catalog-2026-10-15.ts';
+
 

@@ -150,3 +150,14 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Product-Specific Authentication Copy & Gamo Live Onboarding**:
   - Updated `getAuthScreenCopy(program)` (`packages/ui/src/lib/auth-flow-client.ts`) and `GamoAuthExperience.astro` so registration headings read `Create your ${program} account` (e.g., **Create your Gamo Live account**) and supporting copy refers exclusively to that product. Removed all occurrences of `"One account for Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production."`.
   - Gamo Live registration creates a general Gamo Live account only and routes into Gamo Live onboarding (`/account`, `/workspaces`, or `?next=`), while organizer publishing, artist representation, and settlement/refund permissions require explicit organization/artist onboarding and authorization.
+
+---
+
+## Decision 014 — Real Database Events on `gamostudio.org/live` & Past Event Closure Rule (2026-10-15)
+
+- **Context**: `gamostudio.org/live` (`apps/web/src/pages/live.astro`) previously rendered hardcoded sample events (`"Harvest Night of Gospel"`, `"Rise Christian Leadership Conference"`, etc.) instead of querying the `events` table in D1. Additionally, events whose scheduled dates had passed needed an explicit rule marking them closed and past.
+- **Decision**:
+  1. Converted `apps/web/src/pages/live.astro` (`export const prerender = false;`) to query D1 directly via `LiveService.ensureVerifiedCatalogSeeded()` and `LiveService.listDiscoverableEvents({ limit: 100 })`, mapping real database events through `mapDbEventsToMarketingEvents` in `apps/web/src/data/live-marketing.ts`.
+  2. Added `isEventPast` and `getEventLifecycleStatus` to `@gamo/domain` (`packages/domain/src/services/live-external-discovery.ts`) and enriched `LiveEventWithDetails` in `LiveService` with `isPast`, `isClosed`, and `lifecycleStatus`.
+  3. Enforced the **Past Event Closure Rule** across both `apps/web` (`/live` spotlight hero, event cards, free/ticketed ledger, and trust legend) and `apps/live` (`LiveDiscoveryCard.astro`, `/events/[id]`, and `/events/[id]/register`), rendering a `Past · Closed` / `Past Event · Closed` badge and replacing active ticket/registration CTAs with a closed notice whenever `isEventPast(event, now)` is true, while sorting upcoming events ahead of past events.
+

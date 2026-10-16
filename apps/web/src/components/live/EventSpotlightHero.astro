@@ -1,8 +1,7 @@
 ---
 /**
  * Dark cinematic event spotlight on the Gamo Studios Live marketing page (`/live`).
- * Preserves the exact approved marketing hero design and links action buttons directly
- * to the standalone Gamo Live marketplace (`siteUrl('live', ...)`).
+ * Renders real featured events from the database and enforces the Past Event Closure Rule.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
@@ -10,9 +9,9 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import EventPills from './EventPills.astro';
 import AudienceSelector from './AudienceSelector.astro';
-import { dateParts, getOrganizer, type LiveEvent } from '../../data/live-marketing';
-interface Props { slides: LiveEvent[] }
-const { slides } = Astro.props;
+import { dateParts, getOrganizer, type LiveEvent, type Organizer } from '../../data/live-marketing';
+interface Props { slides: LiveEvent[]; organizers?: Organizer[] }
+const { slides, organizers } = Astro.props;
 ---
 <section data-surface="dark" class="relative isolate overflow-hidden bg-night text-cream" data-spotlight aria-roledescription="carousel" aria-label="Featured events">
   {slides.map((e, i) => (
@@ -27,7 +26,9 @@ const { slides } = Astro.props;
     <AudienceSelector current="explore" class="self-start" />
     <div class="mt-6 max-w-3xl" aria-live="polite">
       {slides.map((e, i) => {
-        const d = dateParts(e.date); const org = getOrganizer(e.organizer);
+        const d = dateParts(e.date);
+        const org = getOrganizer(e.organizer, organizers);
+        const isClosed = Boolean(e.isPast || e.isClosed || e.status === 'past' || e.status === 'canceled');
         return (
           <article data-slide={i} hidden={i !== 0} aria-roledescription="slide" aria-label={`${i + 1} of ${slides.length}`}>
             <p class="eyebrow text-gold">Featured · {i + 1} / {slides.length}</p>
@@ -37,11 +38,23 @@ const { slides } = Astro.props;
               <li class="flex items-center gap-2"><Icon name="calendar" class="h-4 w-4 text-gold" />{d.long} · {e.time}</li>
               <li class="flex items-center gap-2"><Icon name="pin" class="h-4 w-4 text-gold" />{e.venue}, {e.city}, {e.state}</li>
             </ul>
-            <p class="mt-3 flex items-center gap-2 text-sm text-cream/70"><Icon name="users" class="h-4 w-4" />Organized by <a class="font-semibold text-cream underline-offset-4 hover:underline" href={siteUrl('live', `/organizers/${org.slug}`)}>{org.name}</a></p>
+            <p class="mt-3 flex items-center gap-2 text-sm text-cream/70">
+              <Icon name="users" class="h-4 w-4" />
+              Hosted at <a class="font-semibold text-cream underline-offset-4 hover:underline" href={siteUrl('live', e.productPath)}>{e.organizerName || org.name}</a>
+            </p>
             <EventPills event={e} class="mt-3" tone="dark" />
-            <div class="mt-5 flex flex-wrap gap-3">
+            <div class="mt-5 flex flex-wrap items-center gap-3">
               <ButtonLink href={siteUrl('live', e.productPath)} arrow>View event</ButtonLink>
-              {e.status !== 'canceled' && <ButtonLink href={siteUrl('live', e.ticketPath)} variant="ghost-dark">{e.ticketing === 'free' ? 'Register' : 'Get tickets'}</ButtonLink>}
+              {!isClosed ? (
+                <ButtonLink href={siteUrl('live', e.ticketPath)} variant="ghost-dark">
+                  {e.ticketing === 'free' ? 'Register' : e.externalSource ? `Tickets · ${e.externalSource}` : 'Get tickets'}
+                </ButtonLink>
+              ) : (
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-cream/80">
+                  <Icon name="clock" class="h-4 w-4 text-gold" />
+                  Event closed · Past
+                </span>
+              )}
             </div>
           </article>
         );
@@ -91,6 +104,7 @@ const { slides } = Astro.props;
     const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
     const bgs = [...root.querySelectorAll<HTMLElement>('[data-bg]')];
     const thumbs = [...root.querySelectorAll<HTMLAnchorElement>('[data-thumb]')];
+    if (slides.length === 0) return;
     let cur = 0;
     const show = (n: number) => {
       cur = (n + slides.length) % slides.length;
