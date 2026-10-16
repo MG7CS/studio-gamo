@@ -18,7 +18,8 @@ interface Props {
 }
 const { current } = Astro.props;
 const items = primaryNav();
-const signIn = siteUrl('web', '/signin');
+const signedIn = Boolean((Astro.locals as Record<string, any>).auth);
+const signIn = signedIn ? '/account' : '/account/signin';
 const getInvolved = siteUrl('web', '/get-involved');
 const home = siteUrl('web');
 ---
@@ -58,7 +59,7 @@ const home = siteUrl('web');
     </nav>
 
     <div class="flex items-center gap-2">
-      <a href={signIn} class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5">Sign In</a>
+      <a href={signIn} class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5">{signedIn ? 'Your Account' : 'Sign In'}</a>
       <a href={getInvolved} class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5">
         Get Involved <Icon name="arrow" class="h-4 w-4" />
       </a>
@@ -88,7 +89,7 @@ const home = siteUrl('web');
       </ul>
     </nav>
     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-sand pt-3">
-      <a href={signIn} class="rounded-full border border-charcoal/20 bg-white px-4 py-3 text-center text-sm font-semibold text-charcoal">Sign In</a>
+      <a href={signIn} class="rounded-full border border-charcoal/20 bg-white px-4 py-3 text-center text-sm font-semibold text-charcoal">{signedIn ? 'Your Account' : 'Sign In'}</a>
       <a href={getInvolved} class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white">Get Involved</a>
     </div>
   </div>

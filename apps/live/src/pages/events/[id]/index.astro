@@ -1,18 +1,944 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import EventDetailHero from '../../../components/events/EventDetailHero.astro';
-import EventDetailBody from '../../../components/events/EventDetailBody.astro';
-import RelatedEvents from '../../../components/events/RelatedEvents.astro';
-import { events, type LiveEvent } from '../../../data/events';
-export const prerender = true;
-export function getStaticPaths() {
-  return events.map((event) => ({ params: { id: event.id }, props: { event } }));
+import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
+import { getDb } from '@gamo/db';
+import {
+  LiveService,
+  getRuntimeEnv,
+  GAMO_LIVE_METROS,
+  resolveMetroBySlug,
+  extractExternalDomain,
+  resolveExternalCtaLabel,
+  formatLocalEventSchedule,
+  type LiveEventWithDetails,
+} from '@gamo/domain';
+
+export const prerender = false;
+
+const rawParam = (Astro.params.id || '').trim();
+const metro = resolveMetroBySlug(rawParam);
+
+const url = Astro.url;
+const categoryFilter = (url.searchParams.get('category') || '').trim().toLowerCase();
+const weekendFilter =
+  url.searchParams.get('weekend') === '1' || url.searchParams.get('weekend') === 'true';
+
+let unavailable = false;
+let event: LiveEventWithDetails | null = null;
+let metroEvents: LiveEventWithDetails[] = [];
+let metroVenues: Awaited<ReturnType<LiveService['listDiscoverableVenues']>> = [];
+let allMetroSummaries: Awaited<ReturnType<LiveService['getMetroSummaries']>> = [];
+let relatedEvents: LiveEventWithDetails[] = [];
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveService(getDb(env.DB));
+  await liveService.ensureVerifiedCatalogSeeded();
+
+  if (metro) {
+    metroEvents = await liveService.listDiscoverableEvents({
+      metro: metro.slug,
+      category: categoryFilter && categoryFilter !== 'all' ? categoryFilter : undefined,
+      weekend: weekendFilter || undefined,
+      limit: 100,
+    });
+    metroVenues = await liveService.listDiscoverableVenues({ metro: metro.slug });
+    allMetroSummaries = await liveService.getMetroSummaries();
+  } else {
+    event = await liveService.getEvent(rawParam);
+    if (event?.status !== 'approved') {
+      event = null;
+    }
+    if (event) {
+      const candidates = await liveService.listDiscoverableEvents({ limit: 24 });
+      relatedEvents = candidates
+        .filter((e) => e.id !== event!.id)
+        .sort((a, b) => {
+          const aSameMetro = a.metroSlug && a.metroSlug === event!.metroSlug ? 1 : 0;
+          const bSameMetro = b.metroSlug && b.metroSlug === event!.metroSlug ? 1 : 0;
+          if (aSameMetro !== bSameMetro) return bSameMetro - aSameMetro;
+          const aSameCat = a.category === event!.category ? 1 : 0;
+          const bSameCat = b.category === event!.category ? 1 : 0;
+          return bSameCat - aSameCat;
+        })
+        .slice(0, 3);
+    }
+  }
+} catch {
+  unavailable = true;
 }
-const { event } = Astro.props as { event: LiveEvent };
+
+if (!metro && !event) {
+  Astro.response.status = unavailable ? 503 : 404;
+}
+
+// Event-specific computed properties (when rendering Case B)
+const isExternal = Boolean(
+  event &&
+    (event.listingType === 'external_discovery' ||
+      event.externalOnly ||
+      event.admissionType === 'external')
+);
+
+const eventMetro = event?.metroSlug ? resolveMetroBySlug(event.metroSlug) : null;
+const schedule = event
+  ? formatLocalEventSchedule(
+      event.startDateLocal,
+      event.startTimeLocal,
+      event.timezone,
+      event.startsAt
+    )
+  : null;
+
+const externalCtaLabel = event
+  ? resolveExternalCtaLabel({
+      externalTicketProvider: event.externalTicketProvider,
+      externalDestinationKind: event.externalDestinationKind,
+    })
+  : 'View official event';
+
+const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
+
+const formattedVerifiedDate = (() => {
+  if (!event?.lastVerifiedAt) return 'Oct 15, 2026';
+  try {
+    const dt = new Date(event.lastVerifiedAt);
+    if (!Number.isFinite(dt.getTime())) return 'Oct 15, 2026';
+    return dt.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  } catch {
+    return 'Oct 15, 2026';
+  }
+})();
+
+const googleMapsUrl = event
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      [event.venueName, event.address, event.city, event.state].filter(Boolean).join(', ')
+    )}`
+  : '';
+
+const STAGE_HERO_FALLBACKS = [
+  '/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp',
+  '/images/optimized/live-gospel-vocalists-concert-stage-1254w.webp',
+  '/images/optimized/live-worship-night-hands-raised-1254w.webp',
+  '/images/optimized/worship-gospel-worship-leader-golden-light-1122w.webp',
+];
+const heroImage =
+  event?.artworkRightsVerified && event?.artworkUrl
+    ? event.artworkUrl
+    : STAGE_HERO_FALLBACKS[(event?.slug.length ?? 0) % STAGE_HERO_FALLBACKS.length];
+
+const jsonLd = event
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      name: event.title,
+      startDate:
+        event.startDateLocal && event.startTimeLocal
+          ? `${event.startDateLocal}T${event.startTimeLocal}:00`
+          : event.startDateLocal || event.startsAt.toISOString(),
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      description: event.description,
+      location: {
+        '@type': 'Place',
+        name: event.venueName,
+        address: {
+          '@type': 'PostalAddress',
+          ...(event.address ? { streetAddress: event.address } : {}),
+          addressLocality: event.city,
+          addressRegion: event.state,
+          addressCountry: 'US',
+        },
+      },
+      ...(event.performers && event.performers.length > 0
+        ? {
+            performer: event.performers.map((p) => ({
+              '@type': 'PerformingGroup',
+              name: p.displayName,
+            })),
+          }
+        : {}),
+      ...(event.externalUrl
+        ? {
+            offers: {
+              '@type': 'Offer',
+              url: event.externalUrl,
+              priceCurrency: event.currency || 'USD',
+              ...(typeof event.priceMinCents === 'number'
+                ? { price: (event.priceMinCents / 100).toFixed(2) }
+                : {}),
+            },
+          }
+        : {}),
+    }
+  : null;
+
+const pageTitle = metro
+  ? `Christian Concerts & Worship Nights in ${metro.displayLabel}`
+  : event
+    ? `${event.title} — ${event.venueName} (${event.city}, ${event.state})`
+    : unavailable
+      ? 'Events temporarily unavailable'
+      : 'Event unavailable';
+
+const pageDescription = metro
+  ? metro.introCopy
+  : event
+    ? event.tagline || event.description
+    : 'Only approved Christian concert and worship event listings are publicly available on Gamo Live.';
+
+const canonicalHref = metro
+  ? `https://live.gamostudio.org/events/${metro.slug}`
+  : event
+    ? `https://live.gamostudio.org/events/${event.slug}`
+    : undefined;
 ---
-<Layout title={event.title} description={event.tagline} headerTheme="light">
-  <EventDetailHero event={event} />
-  <EventDetailBody event={event} />
-  <RelatedEvents current={event} />
+
+<Layout title={pageTitle} description={pageDescription}>
+  {canonicalHref && <link slot="head" rel="canonical" href={canonicalHref} />}
+  {jsonLd && (
+    <script
+      slot="head"
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+    />
+  )}
+
+  {metro ? (
+    /* =======================================================================
+       CASE A: METRO CITY CONCERT DISCOVERY LANDING PAGE (/events/phoenix-az)
+       ======================================================================= */
+    <div>
+      <!-- Metro Hero -->
+      <section class="bg-[#161311] text-[#FBF7F1] pt-8 pb-12 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <!-- Breadcrumbs -->
+          <nav aria-label="Breadcrumb" class="text-xs text-[#9E9589] mb-5 flex items-center gap-2">
+            <a href="/" class="hover:text-white transition-colors">Home</a>
+            <span aria-hidden="true">/</span>
+            <a href="/events" class="hover:text-white transition-colors">Events</a>
+            <span aria-hidden="true">/</span>
+            <span class="text-[#E5B89B] font-semibold">{metro.displayLabel}</span>
+          </nav>
+
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div class="max-w-3xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[#E5B89B] text-xs font-semibold tracking-wider uppercase mb-3">
+                <span>{metro.regionLabel}</span>
+                <span class="w-1 h-1 rounded-full bg-[#B34B1E]"></span>
+                <span>{metroEvents.length} Published {metroEvents.length === 1 ? 'Event' : 'Events'}</span>
+              </div>
+              <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                Christian Concerts & Worship Nights in {metro.displayLabel}
+              </h1>
+              <p class="mt-3 text-base sm:text-lg text-[#D5CCC2] leading-relaxed">
+                {metro.introCopy}
+              </p>
+              <p class="mt-2 text-xs text-[#9E9589]">
+                Serving communities across {metro.cities.join(', ')}.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <a
+                href={`/events/${metro.slug}`}
+                class={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
+                  !categoryFilter && !weekendFilter
+                    ? 'bg-[#B34B1E] text-white'
+                    : 'bg-white/10 text-[#E6DFD5] hover:bg-white/15'
+                }`}
+              >
+                All in {metro.name}
+              </a>
+              <a
+                href={`/events/${metro.slug}?category=concert`}
+                class={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
+                  categoryFilter === 'concert'
+                    ? 'bg-[#B34B1E] text-white'
+                    : 'bg-white/10 text-[#E6DFD5] hover:bg-white/15'
+                }`}
+              >
+                Concerts
+              </a>
+              <a
+                href={`/events/${metro.slug}?category=worship`}
+                class={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
+                  categoryFilter === 'worship'
+                    ? 'bg-[#B34B1E] text-white'
+                    : 'bg-white/10 text-[#E6DFD5] hover:bg-white/15'
+                }`}
+              >
+                Worship Nights
+              </a>
+              <a
+                href={`/events/${metro.slug}?weekend=1`}
+                class={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
+                  weekendFilter
+                    ? 'bg-[#B34B1E] text-white'
+                    : 'bg-white/10 text-[#E6DFD5] hover:bg-white/15'
+                }`}
+              >
+                This Weekend (Fri–Sun)
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Metro Events Grid -->
+      <section class="py-12 bg-[#FBF7F1]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-[#191817]">
+                Upcoming Gatherings in {metro.displayLabel}
+              </h2>
+              <p class="text-sm text-[#6E675F] mt-0.5">
+                Every listing is verified with a confirmed venue, local schedule, and official HTTPS ticket or organizer link.
+              </p>
+            </div>
+            <a
+              href="/events?metro=all"
+              class="text-sm font-semibold text-[#B34B1E] hover:underline"
+            >
+              View all U.S. cities &rarr;
+            </a>
+          </div>
+
+          {metroEvents.length > 0 ? (
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {metroEvents.map((evt, idx) => (
+                <LiveDiscoveryCard event={evt} index={idx} />
+              ))}
+            </div>
+          ) : (
+            <div class="bg-white rounded-2xl border border-[#EAE2D6] p-8 text-center shadow-sm">
+              <h3 class="text-lg font-bold text-[#191817]">
+                No events in {metro.displayLabel} match that filter
+              </h3>
+              <p class="text-sm text-[#6E675F] mt-2">
+                Reset your category or weekend filter to view all published listings in {metro.displayLabel}.
+              </p>
+              <a
+                href={`/events/${metro.slug}`}
+                class="mt-4 inline-flex items-center px-5 py-2.5 rounded-full bg-[#B34B1E] text-white text-xs font-bold hover:bg-[#993D16] transition-colors"
+              >
+                Show all {metro.displayLabel} events
+              </a>
+            </div>
+          )}
+
+          <!-- Verified Venues in this Metro -->
+          {metroVenues.length > 0 && (
+            <div class="mt-14 pt-10 border-t border-[#EAE2D6]">
+              <div class="flex items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-bold text-[#191817]">
+                    Verified Concert Venues & Host Churches in {metro.displayLabel}
+                  </h2>
+                  <p class="text-sm text-[#6E675F] mt-0.5">
+                    Locations hosting upcoming Christian concerts and worship gatherings in the {metro.name} area.
+                  </p>
+                </div>
+                <a
+                  href={`/venues?metro=${metro.slug}`}
+                  class="text-xs font-bold uppercase tracking-wider text-[#B34B1E] hover:underline"
+                >
+                  All Venues &rarr;
+                </a>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {metroVenues.map((v) => {
+                  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    [v.venueName, v.address, v.city, v.state].filter(Boolean).join(', ')
+                  )}`;
+                  return (
+                    <div class="bg-white rounded-2xl border border-[#EAE2D6] p-5 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div class="flex items-start justify-between gap-3">
+                          <h3 class="font-bold text-[#191817] text-base">{v.venueName}</h3>
+                          <span class="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F5EFE6] text-[#8C421E]">
+                            {v.upcomingEventCount} {v.upcomingEventCount === 1 ? 'event' : 'events'}
+                          </span>
+                        </div>
+                        <p class="text-xs text-[#6E675F] mt-1">
+                          {v.city}, {v.state}
+                          {v.address ? ` · ${v.address}` : ''}
+                        </p>
+                        <ul class="mt-3 space-y-1.5 border-t border-[#F2ECE1] pt-3">
+                          {v.upcomingEvents.map((ev) => (
+                            <li>
+                              <a
+                                href={`/events/${ev.slug}`}
+                                class="text-xs font-semibold text-[#191817] hover:text-[#B34B1E] flex items-center justify-between gap-2"
+                              >
+                                <span class="truncate">{ev.title}</span>
+                                <span class="text-[#8C8378] shrink-0">{ev.startDateLocal}</span>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div class="mt-4 pt-3 border-t border-[#F2ECE1] flex items-center justify-between text-xs">
+                        <a
+                          href={`/events?venue=${encodeURIComponent(v.venueName)}`}
+                          class="font-semibold text-[#191817] hover:text-[#B34B1E]"
+                        >
+                          Filter by venue
+                        </a>
+                        <a
+                          href={mapLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="font-semibold text-[#B34B1E] hover:underline"
+                        >
+                          Open in Google Maps ↗
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <!-- Explore Other U.S. Metros -->
+          <div class="mt-14 pt-10 border-t border-[#EAE2D6]">
+            <h2 class="text-lg font-bold text-[#191817] mb-4">
+              Explore Christian Concerts in Other U.S. Cities
+            </h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {(allMetroSummaries.length > 0 ? allMetroSummaries : GAMO_LIVE_METROS).map((m) => (
+                <a
+                  href={`/events/${m.slug}`}
+                  class={`p-3.5 rounded-xl border transition-colors flex items-center justify-between ${
+                    m.slug === metro.slug
+                      ? 'bg-[#191817] text-white border-[#191817]'
+                      : 'bg-white text-[#191817] border-[#EAE2D6] hover:border-[#B34B1E]'
+                  }`}
+                >
+                  <div>
+                    <div class="text-sm font-bold">{m.displayLabel}</div>
+                    {'publishedEventCount' in m && (
+                      <div class={`text-xs ${m.slug === metro.slug ? 'text-[#D5CCC2]' : 'text-[#7A7267]'}`}>
+                        {m.publishedEventCount} upcoming {m.publishedEventCount === 1 ? 'listing' : 'listings'}
+                      </div>
+                    )}
+                  </div>
+                  <span aria-hidden="true" class="text-sm">&rarr;</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <!-- Organizer CTA Card -->
+          <div class="mt-12 bg-[#161311] text-[#FBF7F1] rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="max-w-2xl">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#E5B89B]">
+                Church & Ministry Organizers
+              </span>
+              <h3 class="text-xl font-bold text-white mt-1">
+                Are you hosting a Christian concert or worship gathering in {metro.name}?
+              </h3>
+              <p class="text-sm text-[#D5CCC2] mt-1.5">
+                Submit your church worship night, conference, or concert for editorial verification and inclusion in the {metro.displayLabel} directory.
+              </p>
+            </div>
+            <a
+              href="/promote/create"
+              class="shrink-0 inline-flex items-center px-6 py-3 rounded-full bg-[#B34B1E] hover:bg-[#993D16] text-white text-sm font-bold transition-colors"
+            >
+              Submit an Event in {metro.name}
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  ) : event ? (
+    /* =======================================================================
+       CASE B: INDIVIDUAL EVENT DETAIL PAGE (/events/<slug> or /events/<id>)
+       ======================================================================= */
+    <div>
+      <!-- Event Detail Header -->
+      <section class="bg-[#161311] text-[#FBF7F1] pt-8 pb-12 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <!-- Breadcrumbs -->
+          <nav aria-label="Breadcrumb" class="text-xs text-[#9E9589] mb-6 flex flex-wrap items-center gap-2">
+            <a href="/" class="hover:text-white transition-colors">Home</a>
+            <span aria-hidden="true">/</span>
+            <a href="/events" class="hover:text-white transition-colors">Events</a>
+            {eventMetro && (
+              <>
+                <span aria-hidden="true">/</span>
+                <a href={`/events/${eventMetro.slug}`} class="hover:text-white transition-colors">
+                  {eventMetro.displayLabel}
+                </a>
+              </>
+            )}
+            <span aria-hidden="true">/</span>
+            <span class="text-[#E5B89B] font-semibold line-clamp-1">{event.title}</span>
+          </nav>
+
+          <!-- Publisher & Independence Disclosure Banner (External Discovery) -->
+          {isExternal && (
+            <div class="mb-6 rounded-2xl bg-white/[0.06] border border-white/15 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#B34B1E] text-white shrink-0">
+                  Published by {event.publishedByLabel || 'Gamo Live Listings'}
+                </span>
+                <p class="text-xs sm:text-sm text-[#E6DFD5] leading-relaxed">
+                  Independent event listing. Gamo Live is not the event organizer or ticket seller unless explicitly stated. Ticket purchases and customer support occur on the linked external site.
+                </p>
+              </div>
+              <span class="text-[11px] text-[#9E9589] shrink-0">
+                Verified {formattedVerifiedDate}
+              </span>
+            </div>
+          )}
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left 7 Columns: Event Core Details -->
+            <div class="lg:col-span-7">
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#B34B1E]/25 text-[#E5B89B] border border-[#B34B1E]/40">
+                  {event.category === 'worship' ? 'Worship Night' : 'Concert'}
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-[#D5CCC2]">
+                  {event.city}, {event.state}
+                </span>
+              </div>
+
+              <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                {event.title}
+              </h1>
+
+              {event.tagline && (
+                <p class="mt-3 text-base sm:text-lg text-[#D5CCC2] leading-relaxed">
+                  {event.tagline}
+                </p>
+              )}
+
+              <!-- Performers Badges -->
+              {event.performers && event.performers.length > 0 && (
+                <div class="mt-5">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-[#9E9589] mb-2">
+                    Featured Artists & Worship Leaders
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    {event.performers.map((performer) => {
+                      const artistSlug = performer.displayName
+                        .toLowerCase()
+                        .trim()
+                        .replace(/&/g, 'and')
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '-');
+                      return (
+                        <a
+                          href={`/artists/${artistSlug}`}
+                          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition-colors"
+                        >
+                          <span>{performer.displayName}</span>
+                          {performer.roleLabel && (
+                            <span class="text-[10px] text-[#E5B89B] font-normal">
+                              · {performer.roleLabel}
+                            </span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <!-- Key Schedule & Venue Facts Box -->
+              <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#221E1B] border border-white/10 rounded-2xl p-5">
+                <div>
+                  <div class="text-xs font-semibold uppercase tracking-wider text-[#9E9589]">
+                    Local Date & Time
+                  </div>
+                  <div class="text-base font-bold text-white mt-1">
+                    {schedule ? schedule.dateLabel : 'Date TBA'}
+                  </div>
+                  <div class="text-sm text-[#E5B89B] font-medium mt-0.5">
+                    {schedule ? schedule.timeLabel : 'Time TBA'}
+                    {event.timezone ? ` (${event.timezone})` : ''}
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-xs font-semibold uppercase tracking-wider text-[#9E9589]">
+                    Venue & Location
+                  </div>
+                  <div class="text-base font-bold text-white mt-1">
+                    {event.venueName}
+                  </div>
+                  <div class="text-sm text-[#D5CCC2] mt-0.5">
+                    {event.address ? `${event.address}, ` : ''}{event.city}, {event.state}
+                  </div>
+                  <div class="mt-2">
+                    <a
+                      href={googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1 text-xs font-bold text-[#E5B89B] hover:text-white underline"
+                    >
+                      <span>Open in Google Maps ↗</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right 5 Columns: Sticky / Prominent Action Card -->
+            <div class="lg:col-span-5">
+              {isExternal ? (
+                <div class="bg-white text-[#191817] rounded-2xl border border-[#EAE2D6] p-6 shadow-2xl">
+                  <div class="flex items-center justify-between gap-2 pb-4 border-b border-[#F2ECE1]">
+                    <div>
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-[#B34B1E]">
+                        Official External Destination
+                      </span>
+                      <h2 class="text-lg font-extrabold text-[#191817] mt-0.5">
+                        {event.externalTicketProvider
+                          ? `Tickets via ${event.externalTicketProvider}`
+                          : 'Official Event Page'}
+                      </h2>
+                    </div>
+                    {externalDomain && (
+                      <span class="px-2.5 py-1 rounded-lg bg-[#F5EFE6] text-[#5C554D] text-xs font-mono font-semibold">
+                        {externalDomain}
+                      </span>
+                    )}
+                  </div>
+
+                  <!-- Pricing / Availability Note (Truthful — never invented) -->
+                  <div class="py-4 border-b border-[#F2ECE1]">
+                    <div class="text-xs font-semibold uppercase tracking-wider text-[#7A7267]">
+                      Pricing & Seat Availability
+                    </div>
+                    {typeof event.priceMinCents === 'number' ? (
+                      <p class="text-base font-bold text-[#191817] mt-1">
+                        Starting from ${(event.priceMinCents / 100).toFixed(2)} {event.currency || 'USD'}
+                      </p>
+                    ) : (
+                      <p class="text-sm text-[#5C554D] mt-1 leading-relaxed">
+                        Check official ticket page for current pricing and seat availability.
+                      </p>
+                    )}
+                  </div>
+
+                  <!-- Primary External Outbound CTA -->
+                  {event.externalUrl && (
+                    <div class="mt-5">
+                      <a
+                        href={event.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-[#B34B1E] hover:bg-[#993D16] text-white font-bold text-base shadow-md transition-colors"
+                      >
+                        <span>{externalCtaLabel}</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                      </a>
+                      <p class="text-[11px] text-[#7A7267] text-center mt-2">
+                        Opens <strong>{externalDomain || 'official site'}</strong> in a new tab · Last verified {formattedVerifiedDate}
+                      </p>
+                    </div>
+                  )}
+
+                  <!-- Save & Share Secondary Actions -->
+                  <div class="mt-4 pt-4 border-t border-[#F2ECE1] flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      data-favorite-btn
+                      data-event-slug={event.slug}
+                      data-event-title={event.title}
+                      aria-pressed="false"
+                      class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#EAE2D6] hover:border-[#B34B1E] text-xs font-bold text-[#191817] transition-colors"
+                    >
+                      <svg class="w-4 h-4 text-[#B34B1E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                      </svg>
+                      <span data-favorite-label>Save event</span>
+                    </button>
+
+                    <button
+                      id="share-event-btn"
+                      type="button"
+                      class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#EAE2D6] hover:border-[#191817] text-xs font-bold text-[#191817] transition-colors"
+                    >
+                      <svg class="w-4 h-4 text-[#5C554D]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      <span id="share-event-label">Share event</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Organizer-Submitted Event Action Card (Preserves Free/Paid Organizer Flow) */
+                <div class="bg-white text-[#191817] rounded-2xl border border-[#EAE2D6] p-6 shadow-xl">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#B34B1E]">
+                    Published Event
+                  </span>
+                  <h2 class="text-xl font-bold text-[#191817] mt-1">
+                    {event.venueName} · {event.city}, {event.state}
+                  </h2>
+                  <p class="text-sm text-[#5C554D] mt-2">
+                    {event.startsAt.toLocaleString('en-US', {
+                      timeZone: event.timezone,
+                      dateStyle: 'full',
+                      timeStyle: 'short',
+                    })}{' '}
+                    ({event.timezone})
+                  </p>
+                  <p class="text-sm text-[#5C554D] mt-2">
+                    Organized by <strong>{event.organizerName}</strong>
+                  </p>
+
+                  {event.admissionType === 'free' ? (
+                    <a
+                      class="mt-6 w-full inline-flex items-center justify-center rounded-full bg-[#B34B1E] hover:bg-[#993D16] px-6 py-3 font-semibold text-white transition-colors"
+                      href={`/events/${event.id}/register`}
+                    >
+                      Register for free
+                    </a>
+                  ) : (
+                    <p class="mt-6 text-sm text-[#5C554D] bg-[#F5EFE6] p-4 rounded-xl">
+                      Paid ticketing is not available through Gamo Live at this time. Contact the organizer for attendance information.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Event Body & Editorial Summary -->
+      <section class="py-12 bg-[#FBF7F1]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-7 space-y-8">
+              <!-- Visual Stage Atmosphere Banner -->
+              <div class="relative rounded-2xl overflow-hidden border border-[#EAE2D6] aspect-[16/9] bg-[#191513]">
+                <img
+                  src={heroImage}
+                  alt={
+                    event.artworkRightsVerified && event.artworkUrl
+                      ? `${event.title} official event artwork`
+                      : `Live worship and concert stage atmosphere for ${event.title}`
+                  }
+                  class="w-full h-full object-cover"
+                />
+                {!event.artworkRightsVerified && (
+                  <span class="absolute bottom-3 right-3 text-[11px] font-medium text-white/85 bg-black/55 px-2.5 py-1 rounded-md backdrop-blur-sm">
+                    Representative stage atmosphere · Official artwork remains on ticket provider site
+                  </span>
+                )}
+              </div>
+
+              <!-- About this Gathering -->
+              <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 sm:p-8 shadow-sm">
+                <h2 class="text-xl font-bold text-[#191817]">About This Event</h2>
+                <p class="mt-3 text-base text-[#3D3833] leading-relaxed whitespace-pre-line">
+                  {event.description}
+                </p>
+
+                {isExternal && (
+                  <div class="mt-6 pt-6 border-t border-[#F2ECE1] text-xs text-[#6E675F] space-y-1.5">
+                    <p>
+                      <strong>Listing Attribution:</strong> Published by {event.publishedByLabel || 'Gamo Live Listings'}.
+                      {event.originalOrganizerName ? ` Original promoter/organizer: ${event.originalOrganizerName}.` : ''}
+                    </p>
+                    <p>
+                      <strong>External Ticketing Notice:</strong> Clicking "{externalCtaLabel}" takes you directly to{' '}
+                      <span class="font-mono">{externalDomain || 'the external event page'}</span>. Always verify final door times, bag policies, and seat prices on the official ticket page before travelling.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <!-- Right 5 Columns: Venue Details Card -->
+            <div class="lg:col-span-5 space-y-6">
+              <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-[#191817]">Venue & Directions</h2>
+                <p class="text-base font-bold text-[#191817] mt-3">{event.venueName}</p>
+                {event.address ? (
+                  <p class="text-sm text-[#5C554D] mt-0.5">{event.address}</p>
+                ) : (
+                  <p class="text-xs text-[#8C8378] mt-0.5">
+                    Street address not listed in summary — see official venue/ticket page or Google Maps.
+                  </p>
+                )}
+                <p class="text-sm text-[#5C554D] mt-0.5">
+                  {event.city}, {event.state}
+                </p>
+
+                <div class="mt-5 flex flex-wrap gap-3">
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F5EFE6] hover:bg-[#EAE2D6] text-xs font-bold text-[#191817] transition-colors"
+                  >
+                    <span>Open in Google Maps ↗</span>
+                  </a>
+                  <a
+                    href={`/events?venue=${encodeURIComponent(event.venueName)}`}
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#EAE2D6] hover:border-[#191817] text-xs font-semibold text-[#5C554D] transition-colors"
+                  >
+                    <span>More at {event.venueName}</span>
+                  </a>
+                </div>
+              </div>
+
+              {eventMetro && (
+                <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 shadow-sm">
+                  <span class="text-xs font-bold uppercase tracking-wider text-[#B34B1E]">
+                    Metro Concert Guide
+                  </span>
+                  <h3 class="text-base font-bold text-[#191817] mt-1">
+                    Exploring {eventMetro.displayLabel}?
+                  </h3>
+                  <p class="text-xs text-[#6E675F] mt-1 leading-relaxed">
+                    {eventMetro.introCopy}
+                  </p>
+                  <a
+                    href={`/events/${eventMetro.slug}`}
+                    class="mt-4 inline-flex items-center gap-1 text-xs font-bold text-[#B34B1E] hover:underline"
+                  >
+                    <span>View all {eventMetro.displayLabel} concerts & worship nights</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <!-- Related Upcoming Events -->
+          {relatedEvents.length > 0 && (
+            <div class="mt-14 pt-10 border-t border-[#EAE2D6]">
+              <div class="flex items-center justify-between gap-4 mb-6">
+                <h2 class="text-2xl font-bold text-[#191817]">
+                  More Upcoming Concerts & Worship Gatherings
+                </h2>
+                <a href="/events" class="text-sm font-semibold text-[#B34B1E] hover:underline">
+                  Browse all events &rarr;
+                </a>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedEvents.map((rel, idx) => (
+                  <LiveDiscoveryCard event={rel} index={idx} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  ) : (
+    /* =======================================================================
+       CASE C: 404 / UNAVAILABLE STATE
+       ======================================================================= */
+    <section class="py-16 bg-[#FBF7F1] min-h-[60vh]">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+        <div class="bg-white rounded-2xl border border-[#EAE2D6] p-8 sm:p-12 shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#B34B1E]">
+            {unavailable ? 'Service Temporarily Unavailable' : 'Listing Not Found'}
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-[#191817] mt-2">
+            {unavailable ? 'Events are temporarily unavailable.' : 'This event is not available.'}
+          </h1>
+          <p class="text-sm text-[#6E675F] mt-3 leading-relaxed">
+            Only approved Christian concert and worship event listings are publicly available. The event may have ended, been held for editorial link verification, or moved.
+          </p>
+          <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <a
+              href="/events"
+              class="inline-flex items-center px-6 py-3 rounded-full bg-[#B34B1E] text-white text-sm font-bold hover:bg-[#993D16] transition-colors"
+            >
+              Browse events
+            </a>
+            <a
+              href="/events/phoenix-az"
+              class="inline-flex items-center px-6 py-3 rounded-full bg-[#F5EFE6] text-[#191817] text-sm font-semibold hover:bg-[#EAE2D6] transition-colors"
+            >
+              Phoenix, AZ Concerts
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <script is:inline>
+    (function () {
+      var STORAGE_KEY = 'gamo_live_saved_events';
+      function readSavedSlugs() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          var parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+      function writeSavedSlugs(slugs) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
+        } catch (e) {}
+      }
+      function syncButtons() {
+        var saved = readSavedSlugs();
+        document.querySelectorAll('[data-favorite-btn]').forEach(function (btn) {
+          var slug = btn.getAttribute('data-event-slug');
+          var isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
+          btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+          var label = btn.querySelector('[data-favorite-label]');
+          if (label) label.textContent = isSaved ? 'Saved' : 'Save event';
+          var svg = btn.querySelector('svg');
+          if (svg) svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
+        });
+      }
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('[data-favorite-btn]');
+        if (!btn) return;
+        e.preventDefault();
+        var slug = btn.getAttribute('data-event-slug');
+        if (!slug) return;
+        var saved = readSavedSlugs();
+        var i = saved.indexOf(slug);
+        if (i === -1) saved.push(slug);
+        else saved.splice(i, 1);
+        writeSavedSlugs(saved);
+        syncButtons();
+      });
+
+      var shareBtn = document.getElementById('share-event-btn');
+      var shareLabel = document.getElementById('share-event-label');
+      if (shareBtn) {
+        shareBtn.addEventListener('click', function () {
+          var url = window.location.href;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function () {
+              if (shareLabel) shareLabel.textContent = 'Link copied!';
+              setTimeout(function () {
+                if (shareLabel) shareLabel.textContent = 'Share event';
+              }, 2000);
+            });
+          }
+        });
+      }
+
+      syncButtons();
+    })();
+  </script>
 </Layout>

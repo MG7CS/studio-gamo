@@ -1,35 +1,85 @@
 ---
-import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { resolvePlatformBrandConfig } from '@studio-gamo/ui/lib/brand';
+import { GAMO_LIVE_METROS, resolveMetroBySlug } from '@gamo/domain';
 
-const brand = await resolvePlatformBrandConfig(Astro.locals);
 const pathname = Astro.url.pathname;
+const urlMetroParam = Astro.url.searchParams.get('metro');
+
+const pathSegments = pathname.split('/').filter(Boolean);
+const pathMetro =
+  pathSegments[0] === 'events' && pathSegments[1]
+    ? resolveMetroBySlug(pathSegments[1])
+    : null;
+
+const selectedMetro =
+  urlMetroParam === 'all'
+    ? 'all'
+    : resolveMetroBySlug(urlMetroParam)?.slug || pathMetro?.slug || 'phoenix-az';
 
 const navItems = [
-  { label: 'Discover Events', href: '/events', match: (p: string) => p === '/' || p.startsWith('/events') },
-  { label: 'Promote & Organize', href: '/promote', match: (p: string) => p.startsWith('/promote') || p.startsWith('/submit') || p.startsWith('/organizer') },
-  { label: 'Artists & Agents', href: '/artist', match: (p: string) => p.startsWith('/artist') || p.startsWith('/agent') },
-  { label: 'Order & Pass Lookup', href: '/my-tickets', match: (p: string) => p.startsWith('/my-tickets') || p.startsWith('/me') },
+  {
+    label: 'Events',
+    href: '/events',
+    match: (p: string) => p === '/events' || p.startsWith('/events/'),
+  },
+  {
+    label: 'Artists',
+    href: '/artists',
+    match: (p: string) => p.startsWith('/artists') || p.startsWith('/artist') || p.startsWith('/agent'),
+  },
+  {
+    label: 'Venues',
+    href: '/venues',
+    match: (p: string) => p.startsWith('/venues'),
+  },
+  {
+    label: 'Organizers',
+    href: '/promote/create',
+    match: (p: string) => p.startsWith('/promote') || p.startsWith('/submit') || p.startsWith('/organizer'),
+  },
 ];
 ---
-<a href="#main-content" class="sr-only z-[60] rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
+
+<a
+  href="#main-content"
+  class="sr-only z-[60] rounded-full bg-[#191817] px-4 py-2 text-sm font-semibold text-[#FBF7F1] focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+>
+  Skip to content
+</a>
+
 <header
   id="site-header"
   data-theme="light"
-  class="site-header fixed inset-x-0 top-3 z-50 mx-auto w-[calc(100%-1.5rem)] max-w-[1320px] text-charcoal transition-[top] duration-300 sm:top-4 sm:w-[calc(100%-2.5rem)]"
+  class="relative z-50 w-full bg-[#FBF7F1] border-b border-[#EAE2D6] text-[#191817] transition-shadow duration-200"
 >
-  <div
-    class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-2 pl-4 pr-2 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-5"
-  >
-    <a href="/" class="flex shrink-0 items-center gap-2.5 rounded-full pr-2" aria-label={`${brand.displayName} home`}>
-      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-charcoal text-xs font-extrabold tracking-wider text-cream">
-        {brand.logoMark}
+  <div class="mx-auto flex h-16 max-w-[1340px] items-center justify-between gap-3 px-4 sm:h-[72px] sm:px-6 lg:px-8">
+    <!-- Left Brand Mark -->
+    <a
+      href="/"
+      class="flex shrink-0 items-center gap-2.5 focus:outline-none group"
+      aria-label="Gamo Live home"
+    >
+      <svg
+        class="h-7 w-7 shrink-0 text-[#B34B1E] transition-transform duration-200 group-hover:scale-105"
+        viewBox="0 0 28 28"
+        fill="none"
+        aria-hidden="true"
+      >
+        <rect x="2" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
+        <rect x="7.2" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
+        <rect x="12.4" y="2.5" width="3.2" height="23" rx="1.6" fill="currentColor" />
+        <rect x="17.6" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
+        <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
+      </svg>
+      <span class="text-[20px] sm:text-[22px] leading-none tracking-tight flex items-baseline">
+        <span class="font-extrabold text-[#191817]">GAMO</span>
+        <span class="font-normal text-[#C85A28] ml-0.5">LIVE</span>
+        <span class="sr-only"> — Gamo Live</span>
       </span>
-      <span class="text-base font-extrabold tracking-tight text-charcoal sm:text-lg">{brand.displayName}</span>
     </a>
 
+    <!-- Center Navigation Links -->
     <nav aria-label="Primary" class="hidden lg:block">
-      <ul class="flex items-center gap-1 rounded-full border border-sand bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+      <ul class="flex items-center gap-7 xl:gap-9">
         {navItems.map((item) => {
           const active = item.match(pathname);
           return (
@@ -38,92 +88,236 @@ const navItems = [
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
                 class:list={[
-                  'block rounded-full px-3.5 py-2 text-sm font-semibold transition-colors xl:px-4 xl:text-[15px]',
+                  'relative text-[15px] transition-colors py-2',
                   active
-                    ? 'bg-charcoal text-cream shadow-sm'
-                    : 'text-charcoal/80 hover:bg-cream hover:text-charcoal',
+                    ? 'text-[#191817] font-semibold after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-[2.5px] after:rounded-full after:bg-[#C85A28]'
+                    : 'text-[#2C2825] font-medium hover:text-[#B34B1E]',
                 ]}
-              >{item.label}</a>
+              >
+                {item.label}
+              </a>
             </li>
           );
         })}
       </ul>
     </nav>
 
-    <div class="flex items-center gap-2">
-      <a href="/organizer" class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5">Workspaces</a>
-      <a href="/promote/create" class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5">
-        List an Event <Icon name="arrow" class="h-4 w-4" />
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      <!-- Search Icon Button -->
+      <a
+        href="/events#discovery-search"
+        class="w-10 h-10 rounded-full border border-[#E2D9C8] bg-[#F7F2E9] hover:bg-[#EFE7DA] text-[#2C2825] flex items-center justify-center transition-colors shrink-0"
+        aria-label="Search events, artists, or venues"
+        title="Search events"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
       </a>
+
+      <!-- Location Chooser Pill (Desktop & Tablet) -->
+      <div class="hidden md:flex items-center gap-1.5 rounded-full border border-[#E2D9C8] bg-[#F5EFE6] hover:bg-[#EFE7DA] px-3.5 py-2 transition-colors">
+        <svg class="w-4 h-4 text-[#2C2825] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        <select
+          aria-label="Select metro area"
+          data-header-metro-select
+          class="bg-transparent text-sm font-medium text-[#191817] pr-1 focus:outline-none cursor-pointer"
+        >
+          {GAMO_LIVE_METROS.map((metro) => (
+            <option value={metro.slug} selected={selectedMetro === metro.slug}>
+              {metro.displayLabel}
+            </option>
+          ))}
+          <option value="all" selected={selectedMetro === 'all'}>
+            All U.S. Cities
+          </option>
+        </select>
+      </div>
+
+      <!-- Sign In Pill -->
+      <a
+        href="/account/signin"
+        class="hidden sm:inline-flex items-center justify-center rounded-full border border-[#D8B8A8] bg-transparent hover:bg-[#F5EBE6] text-[#B34B1E] px-5 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+      >
+        Sign In
+      </a>
+
+      <!-- Get Tickets Filled Pill -->
+      <a
+        href="/events"
+        class="hidden sm:inline-flex items-center justify-center rounded-full bg-[#B34B1E] hover:bg-[#993E17] text-white px-5 py-2 text-sm font-semibold shadow-sm transition-colors whitespace-nowrap"
+      >
+        Get Tickets
+      </a>
+
+      <!-- Mobile Menu Toggle -->
       <button
         type="button"
-        class="site-header__toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/8 text-charcoal transition-colors hover:bg-charcoal/15 lg:hidden"
+        class="site-header__toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E2D9C8] bg-[#F7F2E9] text-[#191817] transition-colors hover:bg-[#EFE7DA] lg:hidden shrink-0"
         aria-expanded="false"
         aria-controls="site-mobile-menu"
         aria-label="Open menu"
       >
-        <span class="icon-open"><Icon name="menu" class="h-5 w-5" strokeWidth={2} /></span>
-        <span class="icon-close hidden"><Icon name="x" class="h-5 w-5" strokeWidth={2} /></span>
+        <svg class="icon-open h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+        <svg class="icon-close hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
   </div>
 
-  <div id="site-mobile-menu" class="mt-2 hidden rounded-[28px] border border-sand bg-ivory/98 p-3 text-charcoal shadow-2xl ring-1 ring-charcoal/10 backdrop-blur-xl lg:hidden">
-    <nav aria-label="Mobile primary">
-      <ul class="flex flex-col">
-        {navItems.map((item) => (
-          <li>
-            <a href={item.href} aria-current={item.match(pathname) ? 'page' : undefined} class:list={['flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold transition-colors hover:bg-cream', item.match(pathname) ? 'bg-cream text-terracotta' : 'text-charcoal']}>
-              {item.label}<Icon name="chevron-right" class="h-4 w-4 opacity-50" />
-            </a>
-          </li>
+  <!-- Responsive Mobile Menu Drawer -->
+  <div
+    id="site-mobile-menu"
+    class="hidden border-t border-[#EAE2D6] bg-[#FBF7F1] px-4 pt-3 pb-5 shadow-xl lg:hidden"
+  >
+    <!-- Mobile Metro Picker -->
+    <div class="mb-3 flex items-center gap-2 rounded-2xl border border-[#E2D9C8] bg-[#F5EFE6] px-3.5 py-2.5">
+      <svg class="w-4 h-4 text-[#B34B1E] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+      </svg>
+      <label for="mobile-metro-select" class="sr-only">Select metro area</label>
+      <select
+        id="mobile-metro-select"
+        aria-label="Select metro area"
+        data-header-metro-select
+        class="w-full bg-transparent text-sm font-semibold text-[#191817] focus:outline-none"
+      >
+        {GAMO_LIVE_METROS.map((metro) => (
+          <option value={metro.slug} selected={selectedMetro === metro.slug}>
+            {metro.displayLabel}
+          </option>
         ))}
+        <option value="all" selected={selectedMetro === 'all'}>
+          All U.S. Cities
+        </option>
+      </select>
+    </div>
+
+    <nav aria-label="Mobile primary">
+      <ul class="flex flex-col space-y-1">
+        {navItems.map((item) => {
+          const active = item.match(pathname);
+          return (
+            <li>
+              <a
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'flex items-center justify-between rounded-xl px-3.5 py-2.5 text-[15px] font-semibold transition-colors',
+                  active
+                    ? 'bg-[#F3EAE0] text-[#B34B1E]'
+                    : 'text-[#191817] hover:bg-[#F5EFE6]',
+                ]}
+              >
+                <span>{item.label}</span>
+                <svg class="h-4 w-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </nav>
-    <div class="mt-2 grid grid-cols-2 gap-2 border-t border-sand pt-3">
-      <a href="/organizer" class="rounded-full border border-charcoal/20 bg-white px-4 py-3 text-center text-sm font-semibold text-charcoal">Workspaces</a>
-      <a href="/promote/create" class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white">List an Event</a>
+
+    <div class="mt-4 grid grid-cols-2 gap-2.5 border-t border-[#EAE2D6] pt-4">
+      <a
+        href="/account/signin"
+        class="rounded-full border border-[#D8B8A8] bg-white px-4 py-2.5 text-center text-sm font-semibold text-[#B34B1E]"
+      >
+        Sign In
+      </a>
+      <a
+        href="/events"
+        class="rounded-full bg-[#B34B1E] px-4 py-2.5 text-center text-sm font-semibold text-white"
+      >
+        Get Tickets
+      </a>
     </div>
   </div>
 </header>
 
-<style>
-  .site-header[data-scrolled] { top: 0.5rem; }
-  .site-header[data-scrolled] .site-header__bar {
-    background-color: rgb(251 247 241 / 0.98);
-    box-shadow: 0 18px 44px -16px rgb(20, 26, 27 / 0.36);
-  }
-  @media (min-width: 1024px) {
-    .site-header[data-scrolled] .site-header__bar { height: 3.5rem; }
-  }
-</style>
+<script is:inline>
+  (function () {
+    const header = document.getElementById('site-header');
+    const toggle = header ? header.querySelector('.site-header__toggle') : null;
+    const menu = document.getElementById('site-mobile-menu');
+    const metroSelects = document.querySelectorAll('[data-header-metro-select]');
 
-<script>
-  const header = document.getElementById('site-header');
-  const toggle = header?.querySelector<HTMLButtonElement>('.site-header__toggle');
-  const menu = document.getElementById('site-mobile-menu');
+    const setOpen = function (open) {
+      if (!toggle || !menu) return;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      menu.classList.toggle('hidden', !open);
+      const openIcon = toggle.querySelector('.icon-open');
+      const closeIcon = toggle.querySelector('.icon-close');
+      if (openIcon) openIcon.classList.toggle('hidden', open);
+      if (closeIcon) closeIcon.classList.toggle('hidden', !open);
+    };
 
-  const onScroll = () => header?.toggleAttribute('data-scrolled', window.scrollY > 24);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  const setOpen = (open: boolean) => {
-    if (!toggle || !menu) return;
-    toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-    menu.classList.toggle('hidden', !open);
-    toggle.querySelector('.icon-open')?.classList.toggle('hidden', open);
-    toggle.querySelector('.icon-close')?.classList.toggle('hidden', !open);
-  };
-
-  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
-  menu?.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('a')) setOpen(false);
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
-      setOpen(false);
-      toggle.focus();
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+      });
     }
-  });
+
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('a')) {
+          setOpen(false);
+        }
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && toggle && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    const knownMetros = [
+      'phoenix-az',
+      'atlanta-ga',
+      'nashville-tn',
+      'orlando-fl',
+      'los-angeles-ca',
+      'houston-tx',
+      'seattle-wa',
+      'new-york-ny',
+      'oklahoma-city-ok',
+    ];
+
+    metroSelects.forEach(function (selectEl) {
+      selectEl.addEventListener('change', function (e) {
+        const val = e.target.value || 'phoenix-az';
+        try {
+          localStorage.setItem('gamo_live_metro', val);
+        } catch (_err) {}
+
+        const pathname = window.location.pathname;
+        const segments = pathname.split('/').filter(Boolean);
+        if (segments[0] === 'events' && segments[1] && knownMetros.indexOf(segments[1]) !== -1) {
+          if (val === 'all') {
+            window.location.href = '/events';
+          } else {
+            window.location.href = '/events/' + encodeURIComponent(val);
+          }
+          return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('metro', val);
+        window.location.href = url.pathname + url.search;
+      });
+    });
+  })();
 </script>

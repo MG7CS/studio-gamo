@@ -18,7 +18,7 @@ const d1=createInMemoryD1();
 const db=createDb(d1);
 const services={identity:new IdentityService(db),live:new LiveService(db),admin:new AdminService(db)};
 const secret='contract-test-session-signing-material-only';
-const env:Record<string,unknown>={DB:d1,ENVIRONMENT:'local',SESSION_SECRET:secret,ALLOW_DEMO_SESSION:'true',STRIPE_SECRET_KEY:'mock_test_key',STRIPE_WEBHOOK_SECRET:'contract-test-webhook-material',RESEND_API_KEY:'re_mock_contract',ENABLE_BREAK_GLASS_AUTH:'true',ADMIN_ACCESS_TOKEN:'contract-test-emergency-material'};
+const env:Record<string,unknown>={DB:d1,ENVIRONMENT:'local',SESSION_SECRET:secret,ALLOW_DEMO_SESSION:'true',ALLOW_AUTH_SIMULATION:'true',STRIPE_SECRET_KEY:'mock_test_key',STRIPE_WEBHOOK_SECRET:'contract-test-webhook-material',RESEND_API_KEY:'re_mock_contract',ENABLE_BREAK_GLASS_AUTH:'true',ADMIN_ACCESS_TOKEN:'contract-test-emergency-material'};
 const servers:Server[]=[];
 const origins:Record<string,string>={};
 const covered=new Set<string>();
@@ -44,10 +44,10 @@ before(async()=>{
   input.organizationId=orgId;
   cookie=`__session=${encodeURIComponent((await createSession(db,owner.id,secret)).cookieValue)}`;
   otherCookie=`__session=${encodeURIComponent((await createSession(db,other.id,secret)).cookieValue)}`;
-  for(const app of ['web','live','admin','worship']){
+  for(const app of ['web','live','admin','worship','academy','production']){
     const operations:any[]=[];
-    for(const [path,item] of Object.entries<any>(spec.paths)) for(const [method,op] of Object.entries<any>(item)) if(op.operationId && op['x-application']===app){
-      const module=await import(`../../${op['x-source']}`);
+    for(const [path,item] of Object.entries<any>(spec.paths)) for(const [method,op] of Object.entries<any>(item)) if(op.operationId && (op['x-application']===app || op['x-replicated-applications']?.includes(app))){
+      const module=await import(`../../${op['x-source'].replace(`apps/${op['x-application']}/`, `apps/${app}/`)}`);
       operations.push({path,method,op,handler:module[method.toUpperCase()],regex:new RegExp('^'+path.replace('{id}','([^/]+)')+'$')});
     }
     const server=createServer(async(req,res)=>{
@@ -68,12 +68,12 @@ before(async()=>{
     origins[app]=`http://127.0.0.1:${(server.address() as any).port}`;
   }
 });
-after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size}/30 operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
+after(async()=>{globalThis.fetch=nativeFetch;for(const server of servers)await new Promise<void>(resolve=>server.close(()=>resolve()));d1.sqlite.close();console.log(`Contract coverage: ${covered.size} application operations over loopback HTTP. Astro routing/edge behavior remains separate verification.`);});
 async function call(app:string,method:string,path:string,expected:number,body?:unknown,headers:Record<string,string>={}){
   const response=await fetch(origins[app]+path,{method,redirect:'manual',headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...headers},...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
   const text=await response.text();assert.equal(response.status,expected,text);
-  const template=Object.keys(spec.paths).filter(x=>spec.paths[x][method.toLowerCase()]?.['x-application']===app).sort((a,b)=>Number(a.includes('{'))-Number(b.includes('{'))).find(x=>new RegExp('^'+x.replace('{id}','[^/]+')+'$').test(path.split('?')[0]))!;
-  const operation=spec.paths[template][method.toLowerCase()];covered.add(operation.operationId);
+  const template=Object.keys(spec.paths).filter(x=>(spec.paths[x][method.toLowerCase()]?.['x-application']===app || spec.paths[x][method.toLowerCase()]?.['x-replicated-applications']?.includes(app))).sort((a,b)=>Number(a.includes('{'))-Number(b.includes('{'))).find(x=>new RegExp('^'+x.replace('{id}','[^/]+')+'$').test(path.split('?')[0]))!;
+  const operation=spec.paths[template][method.toLowerCase()];covered.add(`${app}:${operation.operationId}`);
   let declared=operation.responses[String(expected)];if(declared.$ref)declared=declared.$ref.split('/').slice(1).reduce((x:any,k:string)=>x[k],spec);
   for(const [name,header] of Object.entries<any>(declared.headers??{})){const value=response.headers.get(name);if(header.schema?.const)assert.equal(value,header.schema.const);}
   let parsed:any;
@@ -357,4 +357,31 @@ test('legacy list cap, stable ordering and response schema negative controls',as
   const response=handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
   assert.equal(covered.size,30);
+});
+
+test('all public apps expose the same isolated auth and organization contract, and participation inquiries match OpenAPI contracts', async()=>{
+  for (const app of ['web','live','worship','academy','production']) {
+    const email = `replicated-${app}@example.invalid`;
+    await call(app,'POST','/api/auth/session',200,{email:`demo-${app}@example.invalid`});
+    const challenge = await call(app,'POST','/api/auth/challenge',200,{email});
+    const code = challenge.body.data.message.match(/Local test code: (\d{6})/)[1];
+    const verified = await call(app,'POST','/api/auth/verify',200,{email,code,displayName:'Sample participant'});
+    const appCookie = verified.response.headers.get('set-cookie')!.split(';')[0];
+    await call(app,'GET','/api/auth/me',200,undefined,{cookie:appCookie});
+    await call(app,'POST','/api/organizations',201,{name:`Sample ${app}`,slug:`sample-${app}`,type:'ministry'},{cookie:appCookie});
+    await call(app,'DELETE','/api/auth/session',200,undefined,{cookie:appCookie});
+    await call(app,'GET','/api/auth/me',401,undefined,{cookie:appCookie});
+    await call(app,'POST','/api/auth/challenge',503,{email},{'x-contract-production':'1'});
+  }
+  await call('web','POST','/api/participation',401,{kind:'general',interest:'Gamo Worship',name:'Sample Applicant',message:'Unauthenticated inquiry must fail'});
+  const createdInq = await call('web','POST','/api/participation',201,{kind:'partnership',interest:'Gamo Worship',name:'Sample Applicant',organization:'Sample Fellowship',message:'Exploring worship coverage coordination for Sunday services.'},{cookie});
+  const inquiryId = createdInq.body.data.inquiry.id;
+  const myInquiries = await call('web','GET','/api/participation',200,undefined,{cookie});
+  assert.equal(myInquiries.body.data.inquiries.length,1);
+  const headers={authorization:`Bearer ${env.ADMIN_ACCESS_TOKEN}`,cookie:staffCookie};
+  const queue = await call('admin','GET','/api/participation/review-queue',200,undefined,headers);
+  assert.ok(queue.body.data.inquiries.some((item:any)=>item.id===inquiryId));
+  const reviewed = await call('admin','POST',`/api/participation/${inquiryId}/review`,200,{status:'reviewed',notes:'Followed up with church leadership.'},headers);
+  assert.equal(reviewed.body.data.inquiry.status,'reviewed');
+  assert.equal(covered.size,58);
 });

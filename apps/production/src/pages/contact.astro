@@ -1,4 +1,5 @@
 ---
-// Legacy route kept working: forwards to the consultation request page.
-return Astro.redirect('/consultation', 301);
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Production consultation'), 303);
 ---

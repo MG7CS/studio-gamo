@@ -39,6 +39,7 @@ const mf = new Miniflare({
         bindings: {
           SESSION_SECRET: 'browser-e2e-workerd-secret-0123456789abcdef',
           ENVIRONMENT: 'local',
+          ALLOW_AUTH_SIMULATION: 'true',
           STRIPE_SANDBOX_ENABLED: 'false',
         },
       },

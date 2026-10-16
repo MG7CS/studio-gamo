@@ -1,11 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import PageHeader from '../../components/shared/PageHeader.astro';
-import ScannerPreview from '../../components/organizer/ScannerPreview.astro';
-export const prerender = true;
+export const prerender = false;
+return Astro.redirect('/workspaces');
 ---
-<Layout title="Guest check-in" headerTheme="light">
-  <PageHeader eyebrow="Door check-in" title="Welcome guests quickly." back={{ href: '/organizer/dashboard', label: 'Dashboard' }} />
-  <ScannerPreview />
-</Layout>

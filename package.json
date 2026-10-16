@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
+    "dev:all": "pnpm --parallel --filter \"./apps/**\" run dev",
     "build": "WRANGLER_LOG_PATH=/tmp/wrangler-logs XDG_CONFIG_HOME=/tmp/xdg-config pnpm -r --workspace-concurrency=1 build",
     "typecheck": "WRANGLER_LOG_PATH=/tmp/wrangler-logs XDG_CONFIG_HOME=/tmp/xdg-config pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro sync && pnpm --filter \"./apps/**\" exec tsc --noEmit && tsc --noEmit -p packages/api-contracts",
     "lint": "echo \"Linting not set up yet\"",
-    "test": "node --test scripts/image-policy.test.mjs packages/integrations/src/stripe.test.ts packages/auth/auth.test.ts packages/integrations/src/storage.test.ts packages/domain/src/services/live-slice.test.ts packages/domain/src/services/payments.test.ts",
+    "test": "node --test scripts/image-policy.test.mjs packages/integrations/src/stripe.test.ts packages/auth/auth.test.ts packages/integrations/src/storage.test.ts packages/domain/src/services/live-slice.test.ts packages/domain/src/services/live-external-discovery.test.ts packages/domain/src/services/payments.test.ts",
     "test:web": "node scripts/verify-public-ui.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
     "images:report": "node scripts/optimize-images.mjs --report",
@@ -18,7 +19,10 @@
     "api:docs": "node scripts/api/docs.mjs",
     "api:check": "pnpm api:lint && node scripts/api/generate.mjs --check && node scripts/api/check.mjs && pnpm api:test",
     "api:test": "tsx --test scripts/api/contract.test.ts",
-    "api:compatibility": "node scripts/api/compatibility.mjs"
+    "api:compatibility": "node scripts/api/compatibility.mjs",
+    "live:publisher:provision": "tsx scripts/live/editorial-cli.ts provision",
+    "live:events:import": "tsx scripts/live/editorial-cli.ts import",
+    "live:events:publish": "tsx scripts/live/editorial-cli.ts publish"
   },
   "keywords": [],
   "author": "",

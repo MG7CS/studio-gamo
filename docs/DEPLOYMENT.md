@@ -48,31 +48,34 @@ Access protection is enforced at two distinct layers:
    - If unauthenticated, the middleware returns `HTTP 401 Unauthorized` with `WWW-Authenticate: Basic realm="Gamo Studios Operations"` and blocks the request.
    - `workers_dev = false` is explicitly configured in `apps/admin/wrangler.toml` to prevent public edge exposure on `workers.dev`.
 
-### 2.2 Protecting Demo Workspaces in Public Apps
+### 2.2 Server-Enforced Workspace Authorization & Isolated Local Demo Mode
 
-Public applications (`apps/web`, `apps/worship`, `apps/academy`, etc.) render interactive persona workspaces for design evaluation. In production environments, access can be locked to authorized reviewers using environment variables:
+Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`) enforce server-side page and API authentication via `applicationPages(app)` middleware (`packages/domain/src/api/page-middleware.ts`) and `packages/auth/page-access.ts`:
 
-- `ALLOW_PUBLIC_DEMO_WORKSPACES=false`: Blocks open browsing of `/musician`, `/church`, `/family`, etc.
-- `DEMO_ACCESS_KEY`: Requires a review passphrase passed via query parameter (`?demo_key=SECRET`) or cookie.
+- Unauthenticated visitors requesting private routes (`/account`, `/partner`, `/church`, `/musician`, `/check-in`, `/family`, `/instructor`, `/host`, `/dashboard`, `/organizer`, `/artist`, `/agent`, `/me`, `/workspaces`, `/promote/create`, `/promote/status`, `/ticket`, `/checkout`, `/client`, `/crew`) receive an HTTP `303` redirect to `/account/signin?next=...` with `Cache-Control: no-store`.
+- Authenticated users whose verified account lacks required program roles or organization memberships receive an HTTP `303` redirect to `/account/access-denied` (`HTTP 403`).
+- Query-parameter bypasses (`?demo_key=...`) and unsigned cookie hints (`gamo_profile_hint`) are permanently ignored for authorization.
+- Demonstration workspace screens (`DashboardShell`) are restricted strictly to isolated local loopback requests (`localhost`, `127.0.0.1`, `[::1]`) when both `ENVIRONMENT=local` and `ALLOW_PUBLIC_DEMO_WORKSPACES=true` are set. In staging and production, `ALLOW_PUBLIC_DEMO_WORKSPACES` and `ALLOW_AUTH_SIMULATION` must remain `false` or unset.
 
 ---
 
 ## 3. Required Cloudflare Resources
 
-Before deploying the complete production stack, provision the following resources in the `gamostudios` account:
+Before deploying the complete stack, ensure the following resources and migrations are provisioned in the `gamostudios` account:
 
 ### 3.1 D1 Database & R2 Storage (Provisioned)
 
 Isolated preview and production resources are provisioned in the `gamostudios` account (`ebae7bded6ab45950aeba1d6cf51eb7f`):
 
-- **Production D1 (`gamo-db-production`)**: `d6db9fe7-77c0-4a50-836e-3d1924f00b53` (migrations `0000`–`0004` applied)
+- **Production D1 (`gamo-db-production`)**: `d6db9fe7-77c0-4a50-836e-3d1924f00b53`
 - **Production R2 (`gamo-media-production`)**: Bound as `MEDIA_BUCKET`
-- **Preview D1 (`gamo-db-preview`)**: `d7e12797-cc6c-4fa3-91c7-c192863e4812` (migrations `0000`–`0004` applied)
+- **Preview D1 (`gamo-db-preview`)**: `d7e12797-cc6c-4fa3-91c7-c192863e4812`
 - **Preview R2 (`gamo-media-preview`)**: Bound as `MEDIA_BUCKET`
 
-To apply future migrations to production:
+Tracked D1 migrations in `packages/db/migrations/` (`0000_nervous_black_tarantula.sql` through `0008_participation_inquiries.sql`, including `auth_challenges`, `external_identities`, `notification_jobs`, `live_platform_expansion`, and `participation_inquiries`) must be applied before deploying updated Workers:
 
 ```bash
+CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-preview --env preview --remote
 CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-production --env production --remote
 ```
 
@@ -87,33 +90,33 @@ All six applications bind the session KV namespace:
 
 Worker secrets are managed securely via the Cloudflare CLI. **Never commit real credentials to source control.**
 
-### 4.1 Resend Integration (Email Delivery)
+### 4.1 Resend Integration (Email Verification & Transactional Delivery)
 
-Configure transactional email delivery for onboarding notifications, church requests, and ticket confirmations:
+Configure transactional email delivery for 6-digit email verification challenges (`/api/auth/challenge`), ticket lookup challenges, and registration confirmations. Without `RESEND_API_KEY` and `EMAIL_FROM` in non-local environments, `/api/auth/challenge` fails closed with `503 Service Unavailable`:
 
 ```bash
-# Set secret on each worker requiring email dispatch (e.g. apps/web, apps/worship, apps/live):
+# Set secret on each public worker (apps/web, apps/live, apps/worship, apps/academy, apps/production):
 pnpm --filter apps-web exec wrangler secret put RESEND_API_KEY --env production
-# Prompt: Paste your Resend API key (starts with re_...)
+pnpm --filter apps-live exec wrangler secret put RESEND_API_KEY --env production
+pnpm --filter apps-worship exec wrangler secret put RESEND_API_KEY --env production
+pnpm --filter apps-academy exec wrangler secret put RESEND_API_KEY --env production
+pnpm --filter apps-production exec wrangler secret put RESEND_API_KEY --env production
 ```
 
-Public variables (configured in `wrangler.toml` or `.dev.vars`):
-- `RESEND_FROM_EMAIL="Gamo Studios <notifications@gamostudio.org>"`
+Public sender variable (configured in `wrangler.toml` or `.dev.vars`):
+- `EMAIL_FROM="Gamo Studios <notifications@gamostudio.org>"` (or `RESEND_FROM_EMAIL`)
 
 ### 4.2 Stripe Integration (Test Mode Only)
 
 > [!IMPORTANT]
 > **Legal & Governance Gate:**  
-> Per `docs/GAMO_NONPROFIT_MODEL.md` and `docs/NONPROFIT_TRANSITION_CHECKLIST.md`, live transactions (donations, memberships, event payments) are strictly prohibited until legal formation and governance prerequisites are finalized.  
-> Only Stripe Test Mode keys (`sk_test_...` and `pk_test_...`) are authorized. The integration adapter actively rejects live keys (`sk_live_`).
+> Per `docs/GAMO_NONPROFIT_MODEL.md` and `docs/NONPROFIT_TRANSITION_CHECKLIST.md`, live transactions (donations, memberships, event payments, artist deposits) are strictly prohibited until legal formation and governance prerequisites are finalized.  
+> Only Stripe Test Mode keys (`sk_test_...` and `pk_test_...`) are authorized when `STRIPE_SANDBOX_ENABLED=true`. By default, `STRIPE_SANDBOX_ENABLED` is `false` and paid checkout fails closed (`503`).
 
 ```bash
-# Configure Stripe Test Mode secret for apps/live (ticketing) and apps/web:
-pnpm --filter apps-live exec wrangler secret put STRIPE_SECRET_KEY --env production
-# Prompt: Paste your Stripe test secret key (must start with sk_test_)
-
-pnpm --filter apps-live exec wrangler secret put STRIPE_WEBHOOK_SECRET --env production
-# Prompt: Paste your Stripe webhook signing secret (whsec_...)
+# Configure Stripe Test Mode secret for apps/live (sandbox testing only):
+pnpm --filter apps-live exec wrangler secret put STRIPE_SECRET_KEY --env preview
+pnpm --filter apps-live exec wrangler secret put STRIPE_WEBHOOK_SECRET --env preview
 ```
 
 Public variable:
@@ -121,12 +124,14 @@ Public variable:
 
 ### 4.3 Session & Admin Protection Secrets
 
+All six workers verify `__session` cookies against `SESSION_SECRET` and D1 `sessions`. Configure the shared `SESSION_SECRET` across every Worker sharing the D1 database:
+
 ```bash
-pnpm --filter apps-web exec wrangler secret put SESSION_SECRET --env production
-# Prompt: Enter a cryptographically strong 32+ character secret
+for app in apps-web apps-live apps-worship apps-academy apps-production apps-admin; do
+  pnpm --filter "$app" exec wrangler secret put SESSION_SECRET --env production
+done
 
 pnpm --filter apps-admin exec wrangler secret put ADMIN_ACCESS_TOKEN --env production
-# Prompt: Enter a cryptographically strong 32+ character passphrase
 ```
 
 ---

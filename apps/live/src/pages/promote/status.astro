@@ -1,14 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import PageHeader from '../../components/shared/PageHeader.astro';
-import ReviewStatus from '../../components/promote/ReviewStatus.astro';
-export const prerender = true;
+export const prerender = false;
+return Astro.redirect('/workspaces');
 ---
-<Layout title="Submission status" headerTheme="light">
-  <PageHeader eyebrow="Review & approval" title="Where your event stands." lede="Every listing is reviewed by our team before publishing to the community directory." back={{ href: '/promote', label: 'Promote Event' }}>
-    <ButtonLink href="/organizer/dashboard" variant="secondary" arrow>Organizer dashboard</ButtonLink>
-  </PageHeader>
-  <ReviewStatus />
-</Layout>

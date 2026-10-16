@@ -1,4 +1,5 @@
 ---
-/** Legacy prototype entry preserved as a redirect to the non-transactional design preview. */
-return Astro.redirect('/apply/profile', 302);
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Musician application'), 303);
 ---

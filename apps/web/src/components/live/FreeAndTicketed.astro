@@ -1,0 +1,35 @@
+---
+/** Free vs ticketed split ledger layout on Gamo Live marketing page. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { dateParts, fromPrice, type LiveEvent } from '../../data/live-marketing';
+interface Props { free: LiveEvent[]; ticketed: LiveEvent[] }
+const { free, ticketed } = Astro.props;
+const cols = [
+  { id: 'free', title: 'Free events', body: 'Open to all. Some hosts ask for a free registration so they can plan seating.', list: free, href: siteUrl('live', '/events'), dark: false },
+  { id: 'ticketed', title: 'Ticketed events', body: 'Each listing states whether tickets are issued through Gamo Live or sold directly by the organizer or venue.', list: ticketed, href: siteUrl('live', '/events'), dark: true },
+];
+---
+<section class="bg-ivory px-4 section-space sm:px-8" aria-label="Free and ticketed events">
+  <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-2">
+    {cols.map((c) => (
+      <div data-surface={c.dark ? 'dark' : undefined} class:list={['rounded-[32px] p-6 sm:p-10', c.dark ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand']}>
+        <div class="flex items-center gap-3">
+          <span class:list={['grid h-11 w-11 place-items-center rounded-full', c.dark ? 'bg-white/10 text-gold' : 'bg-sky-50 text-sky-800']}><Icon name={c.dark ? 'ticket' : 'heart'} class="h-5 w-5" /></span>
+          <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">{c.title}</h2>
+        </div>
+        <p class:list={['mt-4 max-w-md', c.dark ? 'text-cream/70' : 'text-ink-soft']}>{c.body}</p>
+        <ul class:list={['mt-8 divide-y', c.dark ? 'divide-white/10' : 'divide-sand']}>
+          {c.list.map((e) => { const d = dateParts(e.date); return (
+            <li class="relative flex items-center gap-4 py-4">
+              <span class="w-12 shrink-0 text-center leading-none"><span class="block text-[11px] font-semibold uppercase text-terracotta">{d.month}</span><span class="mt-1 block text-2xl font-bold">{d.day}</span></span>
+              <span class="min-w-0 flex-1"><a href={siteUrl('live', e.productPath)} class="block truncate font-semibold after:absolute after:inset-0">{e.title}</a><span class="block truncate text-sm opacity-65">{e.city}, {e.state}{e.ticketing === 'external' ? ' · External tickets' : ''}</span></span>
+              <span class="shrink-0 text-sm font-semibold">{fromPrice(e)}</span>
+            </li>
+          ); })}
+        </ul>
+        <a href={c.href} class:list={['mt-6 inline-flex items-center gap-2 text-sm font-semibold', c.dark ? 'text-gold' : 'text-terracotta']}>See all {c.title.toLowerCase()} <Icon name="arrow" class="h-4 w-4" /></a>
+      </div>
+    ))}
+  </div>
+</section>

@@ -1,0 +1,37 @@
+---
+interface Props {
+  label: string;
+  accent?: 'terracotta' | 'lavender' | 'soft-lavender';
+  type?: 'submit' | 'button';
+  dataBtnChallenge?: boolean;
+  dataBtnVerify?: boolean;
+}
+
+const {
+  label,
+  accent = 'terracotta',
+  type = 'submit',
+  dataBtnChallenge = false,
+  dataBtnVerify = false,
+} = Astro.props;
+
+const accentClasses =
+  accent === 'lavender'
+    ? 'bg-gradient-to-r from-[#746CE4] to-[#635AD6] hover:from-[#6860DA] hover:to-[#574EC9] focus-visible:ring-[#746CE4]'
+    : accent === 'soft-lavender'
+      ? 'bg-gradient-to-r from-[#8E88E8] to-[#7B73E6] hover:from-[#7A72E4] hover:to-[#675FD8] data-[ready=true]:from-[#746CE4] data-[ready=true]:to-[#635AD6] focus-visible:ring-[#746CE4]'
+      : 'bg-gradient-to-r from-[#B3532C] to-[#9E431F] hover:from-[#A34823] hover:to-[#8E3A19] focus-visible:ring-[#B3532C]';
+---
+
+<button
+  type={type}
+  data-btn-challenge={dataBtnChallenge ? '' : undefined}
+  data-btn-verify={dataBtnVerify ? '' : undefined}
+  class:list={[
+    'group relative mt-1 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-medium text-white shadow-[0_10px_24px_-8px_rgba(29,25,23,0.32)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60',
+    accentClasses,
+  ]}
+>
+  <span>{label}</span>
+  <span class="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">→</span>
+</button>

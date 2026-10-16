@@ -1,5 +1,4 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
-import AccountEntry from '../components/organization/AccountEntry.astro';
+const next = Astro.url.searchParams.get('next');
+return Astro.redirect(`/account/signin${next ? `?next=${encodeURIComponent(next)}` : ''}`, 302);
 ---
-<SiteLayout title="Sign In | Gamo Studios" chrome={false}><AccountEntry /></SiteLayout>

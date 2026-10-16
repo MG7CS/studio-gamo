@@ -4,7 +4,7 @@
  * Implements a lightweight, zero-external-dependency session manager built on:
  * - Standard Web Crypto API (HMAC-SHA256 cookie signing and verification).
  * - Cloudflare D1 persistence for sessions, users, roles, and organization memberships.
- * - HTTP-only, Secure, SameSite=Lax cookies with cross-subdomain support (.gamostudio.org).
+ * - HTTP-only, Secure, SameSite=Lax host-only cookies.
  * - Server-side Role-Based Access Control (RBAC) and Multi-Tenant Organization Authorization.
  */
 
@@ -12,6 +12,7 @@ import { eq, and, gt, isNull } from 'drizzle-orm';
 import {
   users,
   sessions,
+  productAccounts,
   userRoles,
   roles,
   organizations,
@@ -26,6 +27,16 @@ import {
   representationAuthorizations,
   type GamoDatabase,
 } from '@gamo/db';
+
+export type ProductKey = 'web' | 'worship' | 'academy' | 'live' | 'production';
+
+export const PRODUCT_DISPLAY_NAMES: Record<ProductKey, string> = {
+  web: 'Gamo Studios',
+  worship: 'Gamo Worship',
+  academy: 'Gamo Academy',
+  live: 'Gamo Live',
+  production: 'Gamo Production',
+};
 
 export interface AuthUser {
   id: string;
@@ -49,6 +60,8 @@ export interface SessionData {
   user: AuthUser;
   roles: string[];
   memberships: OrgMembership[];
+  products?: string[];
+  sessionProduct?: string | null;
   sessionId: string;
   expiresAt: Date;
 }
@@ -57,6 +70,7 @@ export interface SessionOptions {
   ttlSeconds?: number; // Default 30 days
   ipHash?: string;
   userAgent?: string;
+  product?: ProductKey;
 }
 
 export interface CookieOptions {
@@ -146,22 +160,44 @@ export async function createSession(
   const sessionId = generateSessionId();
   const ttl = options?.ttlSeconds ?? DEFAULT_TTL_SECONDS;
   const expiresAt = new Date(Date.now() + ttl * 1000);
+  const now = new Date();
 
   await db.insert(sessions).values({
     id: sessionId,
     userId,
+    product: options?.product ?? null,
     expiresAt,
     ipHash: options?.ipHash,
     userAgent: options?.userAgent,
-    createdAt: new Date(),
+    createdAt: now,
   });
+
+  if (options?.product) {
+    const [existingProduct] = await db
+      .select({ id: productAccounts.id })
+      .from(productAccounts)
+      .where(and(eq(productAccounts.userId, userId), eq(productAccounts.product, options.product)))
+      .limit(1);
+
+    if (!existingProduct) {
+      await db.insert(productAccounts).values({
+        id: `pacc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        userId,
+        product: options.product,
+        status: 'active',
+        onboardingStatus: 'pending',
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  }
 
   const cookieValue = await signValue(sessionId, secret);
   return { sessionId, cookieValue, expiresAt };
 }
 
 /**
- * Validates a session cookie against D1 and resolves user identity, system roles, and organization memberships.
+ * Validates a session cookie against D1 and resolves user identity, system roles, product accounts, and organization memberships.
  */
 export async function validateSession(
   db: GamoDatabase,
@@ -210,7 +246,19 @@ export async function validateSession(
 
   const roleCodes = userRoleRows.map((r) => r.code);
 
-  // 4. Resolve organization memberships
+  // 4. Resolve active product accounts
+  let productCodes: string[] = [];
+  try {
+    const productRows = await db
+      .select({ product: productAccounts.product })
+      .from(productAccounts)
+      .where(and(eq(productAccounts.userId, userRecord.id), eq(productAccounts.status, 'active')));
+    productCodes = productRows.map((p) => p.product);
+  } catch {
+    productCodes = [];
+  }
+
+  // 5. Resolve organization memberships
   const memberRows = await db
     .select({
       organizationId: organizationMembers.organizationId,
@@ -241,6 +289,8 @@ export async function validateSession(
     },
     roles: roleCodes,
     memberships: memberRows,
+    products: productCodes,
+    sessionProduct: sessionRecord.product ?? null,
     sessionId: sessionRecord.id,
     expiresAt: sessionRecord.expiresAt,
   };
@@ -373,6 +423,30 @@ export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
 }
 
 /**
+ * Checks if the authenticated session has product membership and session scope for a specific Gamo product.
+ * Sharing authentication infrastructure does not grant automatic cross-product access.
+ */
+export function hasProductAccess(
+  auth: SessionData | null | undefined,
+  product: ProductKey
+): boolean {
+  if (!auth || !auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
+  if (auth.roles.includes('superadmin')) return true;
+
+  // If the session was explicitly issued for a product, it cannot be used to authenticate into another product.
+  if (auth.sessionProduct && auth.sessionProduct !== product) {
+    return false;
+  }
+
+  // If product accounts are present on the session, require explicit membership for the target product.
+  if (Array.isArray(auth.products)) {
+    return auth.products.includes(product);
+  }
+
+  return true;
+}
+
+/**
  * Checks if the user has an allowed role within a target organization.
  */
 export function hasOrgRole(
@@ -429,6 +503,27 @@ export async function requireVerifiedAuth(
   const auth = await requireAuth(request, db, secret);
   if (!auth.user.verifiedEmailAt) {
     throw new AuthError('FORBIDDEN', 'Verified email address required for this operation.', 403);
+  }
+  return auth;
+}
+
+/**
+ * Enforces authenticated session with verified email AND explicit product account membership for the given product.
+ */
+export async function requireProductAuth(
+  request: Request,
+  db: GamoDatabase,
+  product: ProductKey,
+  secret?: string
+): Promise<SessionData> {
+  const auth = await requireVerifiedAuth(request, db, secret);
+  if (!hasProductAccess(auth, product)) {
+    const label = PRODUCT_DISPLAY_NAMES[product] || product;
+    throw new AuthError(
+      'FORBIDDEN',
+      `Your account does not have an active ${label} membership. Please create or sign in to a ${label} account.`,
+      403
+    );
   }
   return auth;
 }
@@ -622,7 +717,14 @@ export async function verifyAdminPassword(password: string, storedHash: string):
  * temporary password credential (`GamoStudios.Com`) exist in D1.
  * Never overwrites an existing credential once created or changed.
  */
-export async function ensureBootstrapAdminAccount(db: GamoDatabase): Promise<{ userId: string }> {
+export async function ensureBootstrapAdminAccount(
+  db: GamoDatabase,
+  localDemo?: { environment: string; enabled: boolean; requestUrl: string }
+): Promise<{ userId: string }> {
+  if (!localDemo || localDemo.environment !== 'local' || !localDemo.enabled ||
+      !['localhost', '127.0.0.1', '[::1]'].includes(new URL(localDemo.requestUrl).hostname)) {
+    throw new AuthError('FORBIDDEN', 'Bootstrap accounts are restricted to explicit local demos.', 403);
+  }
   const cleanEmail = BOOTSTRAP_ADMIN_EMAIL.toLowerCase();
   const now = new Date();
 
@@ -723,7 +825,6 @@ export async function authenticateAdminPassword(
   emailInput: string,
   passwordInput: string
 ): Promise<AdminAuthResult> {
-  await ensureBootstrapAdminAccount(db);
 
   const cleanEmail = emailInput.trim().toLowerCase();
   const password = passwordInput;
@@ -804,7 +905,6 @@ export async function changeAdminPassword(
   currentPassword: string,
   newPassword: string
 ): Promise<{ ok: boolean; error?: string }> {
-  await ensureBootstrapAdminAccount(db);
 
   if (!currentPassword) {
     return { ok: false, error: 'Please enter your current password.' };
@@ -855,7 +955,6 @@ export async function getAdminCredentialStatus(
   db: GamoDatabase,
   userId: string
 ): Promise<{ mustChangePassword: boolean; updatedAt: Date | null } | null> {
-  await ensureBootstrapAdminAccount(db);
   const [cred] = await db
     .select()
     .from(adminCredentials)

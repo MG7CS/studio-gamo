@@ -76,6 +76,114 @@ properties:
   totalRegistered:
     type: integer
     minimum: 0
+  listingType:
+    type: string
+    enum:
+      - organizer_submitted
+      - external_discovery
+  importKey:
+    anyOf:
+      - type: string
+      - type: "null"
+  metroSlug:
+    anyOf:
+      - type: string
+      - type: "null"
+  startDateLocal:
+    anyOf:
+      - type: string
+      - type: "null"
+  startTimeLocal:
+    anyOf:
+      - type: string
+      - type: "null"
+  publishedByLabel:
+    anyOf:
+      - type: string
+      - type: "null"
+  publishedByUserId:
+    anyOf:
+      - type: string
+      - type: "null"
+  originalOrganizerName:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalDestinationKind:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalTicketProvider:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalOnly:
+    type: boolean
+  priceMinCents:
+    anyOf:
+      - type: integer
+      - type: "null"
+  currency:
+    type: string
+  ticketAvailability:
+    type: string
+  sourceUrlsJson:
+    anyOf:
+      - type: string
+      - type: "null"
+  lastVerifiedAt:
+    anyOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: "null"
+  artworkUrl:
+    anyOf:
+      - type: string
+      - type: "null"
+  artworkRightsVerified:
+    type: boolean
+  artworkLicenseCredit:
+    anyOf:
+      - type: string
+      - type: "null"
+  editorialStatus:
+    type: string
+    enum:
+      - draft
+      - verified
+      - approved
+      - published
+      - archived
+      - canceled
+      - rejected
+  editorialNotes:
+    anyOf:
+      - type: string
+      - type: "null"
+  independentDisclosure:
+    anyOf:
+      - type: string
+      - type: "null"
+  isFeatured:
+    type: boolean
+  performers:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        billingOrder:
+          type: integer
+        roleLabel:
+          type: string
+      required:
+        - id
+        - displayName
+        - billingOrder
+        - roleLabel
 required:
   - id
   - organizerId
@@ -100,3 +208,4 @@ required:
   - organizerKind
   - tiers
   - totalRegistered
+

@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 1.3.0
+  version: 1.5.0
   description: Authoritative contract for Gamo Studios, a Christian
     mission-driven organization whose final legal incorporation structure and
     tax status remain undecided. Demo/incomplete operations are explicitly
@@ -36,6 +36,12 @@ tags:
   - name: Payments
     description: Payments domain. No endpoint existence implied by tag.
 paths:
+  /api/participation:
+    $ref: paths/participation.yaml
+  /api/participation/review-queue:
+    $ref: paths/participation-review-queue.yaml
+  /api/participation/{id}/review:
+    $ref: paths/participation-id-review.yaml
   /api/auth/session:
     $ref: paths/auth-session.yaml
   /api/auth/challenge:
@@ -212,6 +218,16 @@ components:
       $ref: components/schemas/live/EventProductionRequestResponse.yaml
     EventProductionRequestListResponse:
       $ref: components/schemas/live/EventProductionRequestListResponse.yaml
+    ParticipationInput:
+      $ref: components/schemas/participation/ParticipationInput.yaml
+    ParticipationReviewInput:
+      $ref: components/schemas/participation/ParticipationReviewInput.yaml
+    ParticipationInquiry:
+      $ref: components/schemas/participation/ParticipationInquiry.yaml
+    ParticipationResponse:
+      $ref: components/schemas/participation/ParticipationResponse.yaml
+    ParticipationListResponse:
+      $ref: components/schemas/participation/ParticipationListResponse.yaml
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml

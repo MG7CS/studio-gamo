@@ -12,6 +12,7 @@ post:
     __session cookie.
   security: []
   x-application: web
+  x-replicated-applications: [live, worship, academy, production]
   x-status: implemented
   x-authorization: Public (same-origin enforced; valid unconsumed challenge code required)
   x-idempotency: Single-use challenge code; replay after consumption returns 401.
@@ -31,6 +32,8 @@ post:
     "403":
       $ref: ../components/responses/LegacyError.yaml
     "429":
+      $ref: ../components/responses/LegacyError.yaml
+    "503":
       $ref: ../components/responses/LegacyError.yaml
     "500":
       $ref: ../components/responses/LegacyError.yaml

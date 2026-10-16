@@ -11,7 +11,7 @@ const dir=mkdtempSync(join(tmpdir(),'gamo-audit-'));
 const d1Dir=join(dir,'d1');
 const output=join(dir,'worker.mjs');
 await build({entryPoints:['scripts/audit/worker.ts'],outfile:output,bundle:true,format:'esm',platform:'browser',target:'es2022',define:{'import.meta.env':'{}'},banner:{js:'globalThis.fetch = async () => { throw new Error("External network disabled in audit"); };'},logLevel:'warning'});
-const mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:"audit",modules:true,script:readFileSync(output,'utf8'),compatibilityDate:'2024-09-23',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'audit-only'},r2Buckets:['ASSETS'],bindings:{ENVIRONMENT:'local',ALLOW_DEMO_SESSION:'true',SESSION_SECRET:'workerd-audit-only-session-secret-32-characters',STRIPE_WEBHOOK_SECRET:'audit-only-webhook'}}]}),resourcePersistencePath:d1Dir});
+const mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:"audit",modules:true,script:readFileSync(output,'utf8'),compatibilityDate:'2024-09-23',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'audit-only'},r2Buckets:['ASSETS'],bindings:{ENVIRONMENT:'local',ALLOW_DEMO_SESSION:'true',ALLOW_AUTH_SIMULATION:'true',SESSION_SECRET:'workerd-audit-only-session-secret-32-characters',STRIPE_WEBHOOK_SECRET:'audit-only-webhook'}}]}),resourcePersistencePath:d1Dir});
 try {
  const db=await mf.getD1Database('DB');
  for(const file of readdirSync('packages/db/migrations').filter(x=>x.endsWith('.sql')).sort()){

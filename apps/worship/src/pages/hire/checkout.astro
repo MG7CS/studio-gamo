@@ -1,4 +1,5 @@
 ---
-/** Legacy route: checkout is replaced by a non-transactional request summary. */
-return Astro.redirect('/hire/summary', 301);
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Church musician request'), 303);
 ---

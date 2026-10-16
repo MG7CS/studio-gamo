@@ -1,5 +1,29 @@
 // Generated public contract. DO NOT EDIT.
 export interface paths {
+    "/api/participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * list Own Participation
+         * @description Persisted participation inquiry workflow. Identity verification is required; participation submission does not approve eligibility.
+         */
+        get: operations["listOwnParticipation"];
+        put?: never;
+        /**
+         * submit Participation
+         * @description Persisted participation inquiry workflow. Identity verification is required; participation submission does not approve eligibility.
+         */
+        post: operations["submitParticipation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/session": {
         parameters: {
             query?: never;
@@ -493,6 +517,10 @@ export interface components {
              * @enum {string}
              */
             purpose: "login";
+            /** @enum {string} */
+            intent?: "signin" | "signup" | "recover";
+            /** @enum {string} */
+            product?: "web" | "worship" | "academy" | "live" | "production";
         };
         AuthChallengeResponse: {
             /** @constant */
@@ -510,6 +538,10 @@ export interface components {
             email: string;
             code: string;
             displayName?: string;
+            /** @enum {string} */
+            intent?: "signin" | "signup" | "recover";
+            /** @enum {string} */
+            product?: "web" | "worship" | "academy" | "live" | "production";
         };
         OrganizationMembershipSummary: {
             organizationId: components["schemas"]["Identifier"];
@@ -529,6 +561,8 @@ export interface components {
                 sessionId: string;
                 roles: string[];
                 memberships: components["schemas"]["OrganizationMembershipSummary"][];
+                products?: string[];
+                product?: string | null;
             };
         };
         Organization: {
@@ -679,6 +713,31 @@ export interface components {
             /** @enum {string} */
             status: "draft" | "pending_review" | "approved" | "rejected" | "revision_requested" | "canceled";
             createdAt: components["schemas"]["Timestamp"];
+            /** @enum {string} */
+            listingType?: "organizer_submitted" | "external_discovery";
+            importKey?: string | null;
+            metroSlug?: string | null;
+            startDateLocal?: string | null;
+            startTimeLocal?: string | null;
+            publishedByLabel?: string | null;
+            publishedByUserId?: string | null;
+            originalOrganizerName?: string | null;
+            externalDestinationKind?: string | null;
+            externalTicketProvider?: string | null;
+            externalOnly?: boolean;
+            priceMinCents?: number | null;
+            currency?: string;
+            ticketAvailability?: string;
+            sourceUrlsJson?: string | null;
+            lastVerifiedAt?: components["schemas"]["Timestamp"] | null;
+            artworkUrl?: string | null;
+            artworkRightsVerified?: boolean;
+            artworkLicenseCredit?: string | null;
+            /** @enum {string} */
+            editorialStatus?: "draft" | "verified" | "approved" | "published" | "archived" | "canceled" | "rejected";
+            editorialNotes?: string | null;
+            independentDisclosure?: string | null;
+            isFeatured?: boolean;
         };
         EventDetails: {
             id: components["schemas"]["Identifier"];
@@ -707,6 +766,37 @@ export interface components {
             organizerKind: string;
             tiers: components["schemas"]["Tier"][];
             totalRegistered: number;
+            /** @enum {string} */
+            listingType?: "organizer_submitted" | "external_discovery";
+            importKey?: string | null;
+            metroSlug?: string | null;
+            startDateLocal?: string | null;
+            startTimeLocal?: string | null;
+            publishedByLabel?: string | null;
+            publishedByUserId?: string | null;
+            originalOrganizerName?: string | null;
+            externalDestinationKind?: string | null;
+            externalTicketProvider?: string | null;
+            externalOnly?: boolean;
+            priceMinCents?: number | null;
+            currency?: string;
+            ticketAvailability?: string;
+            sourceUrlsJson?: string | null;
+            lastVerifiedAt?: components["schemas"]["Timestamp"] | null;
+            artworkUrl?: string | null;
+            artworkRightsVerified?: boolean;
+            artworkLicenseCredit?: string | null;
+            /** @enum {string} */
+            editorialStatus?: "draft" | "verified" | "approved" | "published" | "archived" | "canceled" | "rejected";
+            editorialNotes?: string | null;
+            independentDisclosure?: string | null;
+            isFeatured?: boolean;
+            performers?: {
+                id: string;
+                displayName: string;
+                billingOrder: number;
+                roleLabel: string;
+            }[];
         };
         EventListResponse: {
             /** @constant */
@@ -989,12 +1079,56 @@ export interface components {
             }[];
             meta: components["schemas"]["ListMeta"];
         };
+        ParticipationInput: {
+            /** @enum {string} */
+            kind: "general" | "partnership";
+            interest: string;
+            name: string;
+            organization?: string;
+            message: string;
+        };
+        ParticipationInquiry: {
+            id: string;
+            userId: string;
+            /** @enum {string} */
+            kind: "general" | "partnership";
+            interest: string;
+            name: string;
+            organization: string | null;
+            message: string;
+            /** @enum {string} */
+            status: "pending" | "reviewed" | "closed";
+            reviewNotes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            reviewedAt: string | null;
+        };
+        ParticipationResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                inquiry: components["schemas"]["ParticipationInquiry"];
+            };
+        };
+        ParticipationListResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                inquiries: components["schemas"]["ParticipationInquiry"][];
+            };
+        };
         /** @enum {string} */
         category: "concert" | "worship" | "bible" | "conference" | "youth";
         city: string;
         artist: string;
         venue: string;
         dateFrom: string;
+        dateTo: string;
+        metro: string;
+        q: string;
+        /** @enum {string} */
+        weekend: "true" | "false" | "1" | "0";
     };
     responses: {
         /** @description Documented API failure. Internal details are suppressed. */
@@ -1026,6 +1160,62 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listOwnParticipation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful persisted response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationListResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    submitParticipation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParticipationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful persisted response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipationResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
     revokeSession: {
         parameters: {
             query?: never;
@@ -1073,6 +1263,7 @@ export interface operations {
             403: components["responses"]["LegacyError"];
             429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
         };
     };
     verifyAuthChallenge: {
@@ -1102,6 +1293,7 @@ export interface operations {
             403: components["responses"]["LegacyError"];
             429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
         };
     };
     getCurrentIdentity: {
@@ -1123,6 +1315,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };
@@ -1168,6 +1361,14 @@ export interface operations {
                 venue?: components["schemas"]["venue"];
                 /** @description Minimum event start date (ISO 8601 date or timestamp). */
                 dateFrom?: components["schemas"]["dateFrom"];
+                /** @description Maximum event start date (ISO 8601 date or timestamp). */
+                dateTo?: components["schemas"]["dateTo"];
+                /** @description Metro area slug filter (e.g., phoenix-az, atlanta-ga, nashville-tn). */
+                metro?: components["schemas"]["metro"];
+                /** @description Free-text search query matching event title, performers, venue, or city. */
+                q?: components["schemas"]["q"];
+                /** @description Filter events occurring on Friday evening, Saturday, or Sunday in their local timezone. */
+                weekend?: components["schemas"]["weekend"];
             };
             header?: never;
             path?: never;

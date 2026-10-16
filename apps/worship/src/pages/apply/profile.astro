@@ -1,22 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import FlowShell from '../../components/flow/FlowShell.astro';
-import DemoForm from '../../components/flow/DemoForm.astro';
-import ChipGroup from '../../components/flow/ChipGroup.astro';
-import FormField from '@studio-gamo/ui/components/FormField.astro';
-import { applySteps, instruments, styles } from '../../data/worship';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Musician application'), 303);
 ---
-<Layout title="Instruments & styles">
-  <FlowShell eyebrow="Step 2 · Profile" title="Instruments, styles" accent="and experience." lede="Choose everything you can confidently lead or support on a Sunday." steps={applySteps} current={1} photo="worshipBand">
-    <DemoForm next="/apply/audition" back="/apply">
-      <ChipGroup legend="Primary instruments" name="instruments" options={instruments.map((i) => i.name)} checked={['Keys & piano']} />
-      <ChipGroup legend="Styles of worship" name="styles" options={styles} checked={['Contemporary worship', 'Gospel']} />
-      <div class="grid gap-6 sm:grid-cols-2">
-        <FormField label="Years serving in worship" name="years" type="select" options={['Less than 1', '1–3', '4–7', '8+']} />
-        <FormField label="Reads charts" name="charts" type="select" options={['Chord charts', 'Nashville numbers', 'Standard notation', 'By ear']} />
-      </div>
-      <FormField label="Churches or teams you have served with" name="experience" type="textarea" />
-      <FormField label="Usual availability" name="availability" type="select" options={['Most Sundays', 'Twice a month', 'Occasional / standby only']} />
-    </DemoForm>
-  </FlowShell>
-</Layout>

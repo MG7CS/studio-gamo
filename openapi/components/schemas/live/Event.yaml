@@ -66,6 +66,95 @@ properties:
       - canceled
   createdAt:
     $ref: ../shared/Timestamp.yaml
+  listingType:
+    type: string
+    enum:
+      - organizer_submitted
+      - external_discovery
+  importKey:
+    anyOf:
+      - type: string
+      - type: "null"
+  metroSlug:
+    anyOf:
+      - type: string
+      - type: "null"
+  startDateLocal:
+    anyOf:
+      - type: string
+      - type: "null"
+  startTimeLocal:
+    anyOf:
+      - type: string
+      - type: "null"
+  publishedByLabel:
+    anyOf:
+      - type: string
+      - type: "null"
+  publishedByUserId:
+    anyOf:
+      - type: string
+      - type: "null"
+  originalOrganizerName:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalDestinationKind:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalTicketProvider:
+    anyOf:
+      - type: string
+      - type: "null"
+  externalOnly:
+    type: boolean
+  priceMinCents:
+    anyOf:
+      - type: integer
+      - type: "null"
+  currency:
+    type: string
+  ticketAvailability:
+    type: string
+  sourceUrlsJson:
+    anyOf:
+      - type: string
+      - type: "null"
+  lastVerifiedAt:
+    anyOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: "null"
+  artworkUrl:
+    anyOf:
+      - type: string
+      - type: "null"
+  artworkRightsVerified:
+    type: boolean
+  artworkLicenseCredit:
+    anyOf:
+      - type: string
+      - type: "null"
+  editorialStatus:
+    type: string
+    enum:
+      - draft
+      - verified
+      - approved
+      - published
+      - archived
+      - canceled
+      - rejected
+  editorialNotes:
+    anyOf:
+      - type: string
+      - type: "null"
+  independentDisclosure:
+    anyOf:
+      - type: string
+      - type: "null"
+  isFeatured:
+    type: boolean
 required:
   - id
   - organizerId
@@ -86,3 +175,4 @@ required:
   - externalUrl
   - status
   - createdAt
+

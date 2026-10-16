@@ -41,6 +41,26 @@ get:
       description: Minimum event start date (ISO 8601 date or timestamp).
       schema:
         $ref: ../components/schemas/live/EventFilters.yaml#/properties/dateFrom
+    - name: dateTo
+      in: query
+      description: Maximum event start date (ISO 8601 date or timestamp).
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/dateTo
+    - name: metro
+      in: query
+      description: Metro area slug filter (e.g., phoenix-az, atlanta-ga, nashville-tn).
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/metro
+    - name: q
+      in: query
+      description: Free-text search query matching event title, performers, venue, or city.
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/q
+    - name: weekend
+      in: query
+      description: Filter events occurring on Friday evening, Saturday, or Sunday in their local timezone.
+      schema:
+        $ref: ../components/schemas/live/EventFilters.yaml#/properties/weekend
   responses:
     "200":
       description: Successful response

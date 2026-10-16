@@ -11,6 +11,7 @@ post:
     per-email rate limiting.
   security: []
   x-application: web
+  x-replicated-applications: [live, worship, academy, production]
   x-status: implemented
   x-authorization: Public (same-origin enforced)
   x-idempotency: Rate-limited per email (maximum 5 challenges per 15 minutes).
@@ -28,6 +29,8 @@ post:
     "403":
       $ref: ../components/responses/LegacyError.yaml
     "429":
+      $ref: ../components/responses/LegacyError.yaml
+    "503":
       $ref: ../components/responses/LegacyError.yaml
     "500":
       $ref: ../components/responses/LegacyError.yaml

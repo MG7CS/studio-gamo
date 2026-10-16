@@ -1,0 +1,210 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getDb } from '@gamo/db';
+import {
+  LiveService,
+  getRuntimeEnv,
+  GAMO_LIVE_METROS,
+  resolveMetroBySlug,
+  formatLocalEventSchedule,
+} from '@gamo/domain';
+
+export const prerender = false;
+
+const url = Astro.url;
+const metroParam = (url.searchParams.get('metro') || '').trim().toLowerCase();
+const activeMetro =
+  metroParam && metroParam !== 'all' ? resolveMetroBySlug(metroParam) : null;
+
+let venues: Awaited<ReturnType<LiveService['listDiscoverableVenues']>> = [];
+let unavailable = false;
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveService(getDb(env.DB));
+  await liveService.ensureVerifiedCatalogSeeded();
+  venues = await liveService.listDiscoverableVenues({
+    metro: activeMetro ? activeMetro.slug : undefined,
+  });
+} catch {
+  unavailable = true;
+}
+
+const pageTitle = activeMetro
+  ? `Verified Concert Venues & Host Churches in ${activeMetro.displayLabel}`
+  : 'Verified Christian Concert Venues & Host Churches Across the U.S.';
+const pageDescription = activeMetro
+  ? `Explore verified arenas, theaters, and church sanctuaries hosting upcoming Christian concerts and worship nights in ${activeMetro.displayLabel}.`
+  : 'Browse verified concert venues, arenas, theaters, and church sanctuaries hosting Christian concerts and worship nights across 9 U.S. metro markets.';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <link slot="head" rel="canonical" href="https://live.gamostudio.org/venues" />
+
+  <!-- Compact Operational Venues Directory Header -->
+  <section class="bg-[#FBF7F1] border-b border-[#EAE2D6] pt-8 pb-6">
+    <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div class="max-w-3xl">
+          <p class="text-xs font-bold uppercase tracking-wider text-[#B34B1E] mb-1.5">
+            Verified Locations · {venues.length} Active {venues.length === 1 ? 'Venue' : 'Venues'}
+          </p>
+          <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#191817]">
+            {activeMetro
+              ? `Concert Venues & Churches in ${activeMetro.displayLabel}`
+              : 'Verified Concert Venues & Host Churches'}
+          </h1>
+          <p class="mt-1.5 text-sm sm:text-base text-[#5C554E]">
+            Browse arenas, theaters, and church sanctuaries hosting upcoming Christian concerts and worship gatherings.
+          </p>
+        </div>
+
+        <a
+          href="/events"
+          class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B34B1E] hover:bg-[#993D16] text-white text-sm font-semibold transition-colors"
+        >
+          <span>Explore All Events</span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+
+      <!-- Metro Filter Bar -->
+      <div class="mt-5 pt-4 border-t border-[#EAE2D6] flex items-center gap-2 overflow-x-auto pb-1">
+        <a
+          href="/venues"
+          class={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+            !activeMetro
+              ? 'bg-[#B34B1E] text-white'
+              : 'bg-[#F5EFE6] text-[#3D3833] border border-[#E2D9C8] hover:border-[#C8B9A6]'
+          }`}
+        >
+          All U.S. Cities
+        </a>
+        {GAMO_LIVE_METROS.map((metro) => (
+          <a
+            href={`/venues?metro=${metro.slug}`}
+            class={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+              activeMetro?.slug === metro.slug
+                ? 'bg-[#B34B1E] text-white'
+                : 'bg-[#F5EFE6] text-[#3D3833] border border-[#E2D9C8] hover:border-[#C8B9A6]'
+            }`}
+          >
+            {metro.displayLabel}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Venues Directory Grid -->
+  <section class="py-12 bg-[#FBF7F1] min-h-[60vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {unavailable ? (
+        <div class="bg-white rounded-2xl border border-[#EAE2D6] p-8 text-center shadow-sm">
+          <h2 class="text-lg font-bold text-[#191817]">Venues directory is temporarily unavailable</h2>
+          <p class="text-sm text-[#6E675F] mt-2">Please try again shortly.</p>
+        </div>
+      ) : venues.length === 0 ? (
+        <div class="bg-white rounded-2xl border border-[#EAE2D6] p-8 text-center shadow-sm">
+          <h2 class="text-lg font-bold text-[#191817]">No verified venues found for this filter</h2>
+          <p class="text-sm text-[#6E675F] mt-2">
+            View all U.S. cities to browse every verified venue with upcoming events.
+          </p>
+          <a
+            href="/venues"
+            class="mt-4 inline-flex items-center px-5 py-2.5 rounded-full bg-[#B34B1E] text-white text-xs font-bold hover:bg-[#993D16] transition-colors"
+          >
+            View all venues
+          </a>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {venues.map((venue) => {
+            const metroObj = venue.metroSlug ? resolveMetroBySlug(venue.metroSlug) : null;
+            const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              [venue.venueName, venue.address, venue.city, venue.state].filter(Boolean).join(', ')
+            )}`;
+            return (
+              <article class="bg-white rounded-2xl border border-[#EAE2D6] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+                <div>
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      {metroObj && (
+                        <a
+                          href={`/events/${metroObj.slug}`}
+                          class="text-[11px] font-bold uppercase tracking-wider text-[#B34B1E] hover:underline"
+                        >
+                          {metroObj.displayLabel}
+                        </a>
+                      )}
+                      <h2 class="text-lg font-extrabold text-[#191817] mt-0.5 leading-snug">
+                        {venue.venueName}
+                      </h2>
+                    </div>
+                    <span class="shrink-0 px-2.5 py-1 rounded-full text-xs font-bold bg-[#F5EFE6] text-[#8C421E]">
+                      {venue.upcomingEventCount} upcoming
+                    </span>
+                  </div>
+
+                  <div class="mt-2 text-xs text-[#5C554D] space-y-0.5">
+                    {venue.address && <p class="font-medium text-[#191817]">{venue.address}</p>}
+                    <p>{venue.city}, {venue.state}</p>
+                  </div>
+
+                  <!-- Upcoming Events at this Venue -->
+                  <div class="mt-4 pt-4 border-t border-[#F2ECE1]">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-[#8C8378] mb-2.5">
+                      Upcoming Published Events
+                    </p>
+                    <ul class="space-y-2.5">
+                      {venue.upcomingEvents.map((evt) => {
+                        const sched = formatLocalEventSchedule(
+                          evt.startDateLocal,
+                          evt.startTimeLocal,
+                          evt.timezone,
+                          evt.startsAt
+                        );
+                        return (
+                          <li class="bg-[#FDFBF8] rounded-xl p-3 border border-[#F2ECE1]">
+                            <a
+                              href={`/events/${evt.slug}`}
+                              class="text-sm font-bold text-[#191817] hover:text-[#B34B1E] transition-colors block"
+                            >
+                              {evt.title}
+                            </a>
+                            <div class="text-xs text-[#6E675F] mt-0.5 flex items-center justify-between gap-2">
+                              <span>{sched.shortDateLabel}</span>
+                              <span class="font-medium text-[#8C421E]">{sched.timeLabel}</span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Card Footer Actions -->
+                <div class="mt-5 pt-4 border-t border-[#F2ECE1] flex items-center justify-between gap-3 text-xs">
+                  <a
+                    href={`/events?venue=${encodeURIComponent(venue.venueName)}`}
+                    class="font-bold text-[#191817] hover:text-[#B34B1E] transition-colors"
+                  >
+                    Filter events at venue &rarr;
+                  </a>
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="font-bold text-[#B34B1E] hover:underline"
+                  >
+                    Open in Google Maps ↗
+                  </a>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>

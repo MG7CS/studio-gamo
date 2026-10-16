@@ -44,7 +44,7 @@ const {
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>
     {chrome && (Astro.slots.has('header') ? <slot name="header" /> : <SiteHeader current={current} theme={headerTheme} />)}
-    <main id="main-content" class="overflow-x-clip">
+    <main id="main-content" class:list={['overflow-x-clip', !chrome && 'min-h-screen w-full']}>
       <slot />
     </main>
     {chrome && (Astro.slots.has('footer') ? <slot name="footer" /> : <SiteFooter />)}

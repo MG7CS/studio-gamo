@@ -1,11 +1,44 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
 import PageHeader from '../../components/shared/PageHeader.astro';
-import EventBuilder from '../../components/organizer/EventBuilder.astro';
-export const prerender = true;
+import JourneyPanel from '../../components/shared/JourneyPanel.astro';
+import EventSubmissionForm from '../../components/promote/EventSubmissionForm.astro';
+import { getDb } from '@gamo/db';
+import { resolveAuth } from '@gamo/auth';
+import { getRuntimeEnv } from '@gamo/domain';
+
+export const prerender = false;
+
+const env = await getRuntimeEnv(Astro);
+const auth = await resolveAuth(Astro.request, getDb(env.DB), env.SESSION_SECRET);
+if (!auth) return Astro.redirect('/account/signin?next=%2Fpromote%2Fcreate', 303);
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+const memberships = auth.memberships.filter((m) => ['owner', 'admin'].includes(m.role));
 ---
-<Layout title="Create an event" headerTheme="light">
-  <PageHeader eyebrow="Event builder" title="Tell us about your gathering." lede="Five short steps to share your event details, schedule, venue, and registration options." back={{ href: '/promote', label: 'Promote Event' }} />
-  <EventBuilder />
+
+<Layout title="List an event">
+  <PageHeader
+    eyebrow="Event submission"
+    title="Tell us about your gathering."
+    lede="Submit your Christian event for review. It will remain private until approved. Ticket sales are not activated by submitting this form."
+  >
+    <a
+      href="/workspaces"
+      class="inline-flex items-center gap-1.5 rounded-full border border-[#D8CBBB] bg-white px-4 py-2 text-sm font-semibold text-[#191817] hover:bg-[#F5EFE6] transition-colors"
+    >
+      Manage submitted events &rarr;
+    </a>
+  </PageHeader>
+
+  {memberships.length ? (
+    <EventSubmissionForm memberships={memberships} />
+  ) : (
+    <JourneyPanel
+      title="Set up your organization first"
+      body="An organization connects your submission to the church, ministry or team you represent. Only its owners and administrators can submit events."
+      href="/account"
+      label="Set up your organization"
+    />
+  )}
 </Layout>

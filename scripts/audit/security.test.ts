@@ -323,14 +323,17 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
   f.d1.sqlite.close();
  }
 });
-test('Admin password gateway provisions gasanamoise7@gmail.com with temporary password GamoStudios.Com, enforces lockout, and supports password rotation',async()=>{
+test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation',async()=>{
  const {onRequest}=await import('../../apps/admin/src/middleware.ts');
  const {GET:pending}=await import('../../apps/admin/src/pages/api/events/pending.ts');
- const {authenticateAdminPassword,changeAdminPassword,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD}=await import('../../apps/admin/src/lib/admin-password-auth.ts');
+ const {authenticateAdminPassword,changeAdminPassword,ensureBootstrapAdminAccount,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD}=await import('../../apps/admin/src/lib/admin-password-auth.ts');
  const f=await fixture();
  try{
   const env={DB:f.d1,ENVIRONMENT:'production',REQUIRE_ADMIN_AUTH:'true',SESSION_SECRET:secret};
   // 1. Initial login with temporary password succeeds and flags mustChangePassword=true
+  assert.equal((await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD)).ok,false);
+  await assert.rejects(ensureBootstrapAdminAccount(f.db));
+  await ensureBootstrapAdminAccount(f.db,{environment:'local',enabled:true,requestUrl:'http://localhost'});
   const initial=await authenticateAdminPassword(f.db,BOOTSTRAP_ADMIN_EMAIL,BOOTSTRAP_ADMIN_TEMP_PASSWORD);
   assert.equal(initial.ok,true);
   assert.equal(initial.mustChangePassword,true);

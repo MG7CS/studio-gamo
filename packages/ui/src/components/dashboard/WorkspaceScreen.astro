@@ -1,180 +1,35 @@
 ---
-/**
- * Complete workspace screen: shell + contextual header + blocks, with `?state=` design-review
- * previews (loading / empty / error / success). Unknown slugs render a not-found state.
- * Usage in an app route:  <WorkspaceScreen workspace={ws} slug={Astro.params.slug} />
- */
+/** Sample screens are restricted to an explicitly enabled loopback demo environment. */
 import DashboardShell from './DashboardShell.astro';
 import DashPageHeader from './DashPageHeader.astro';
 import DashBlocks from './DashBlocks.astro';
 import StateView from './StateView.astro';
-import { b, findScreen, screenHref, type DashBlock, type DashScreen, type Workspace } from '../../lib/dashboard';
+import BaseLayout from '../BaseLayout.astro';
+import { findScreen, screenHref, type Workspace } from '../../lib/dashboard';
 import { resolveWorkspaceViewer } from '../../lib/session-viewer';
 import { siteUrl } from '../../lib/sites';
-
 interface Props { workspace: Workspace; slug?: string }
 const { workspace, slug } = Astro.props;
-const baseScreen = findScreen(workspace, slug);
-if (!baseScreen) Astro.response.status = 404;
-const state = Astro.url.searchParams.get('state') ?? '';
-const valid = ['loading', 'empty', 'error', 'success'].includes(state)
-  ? (state as 'loading' | 'empty' | 'error' | 'success')
-  : undefined;
-const path = baseScreen ? screenHref(workspace, baseScreen.slug) : Astro.url.pathname;
-
-let runtimeEnv: Record<string, any> = {};
-try {
-  const cf = await import(/* @vite-ignore */ 'cloudflare:workers');
-  if (cf && typeof cf.env === 'object' && cf.env !== null) {
-    runtimeEnv = cf.env as Record<string, any>;
-  }
-} catch {
-  // Not in workerd
-}
-const viewer = await resolveWorkspaceViewer(Astro as any, runtimeEnv);
-
-function cleanText(text: string | undefined): string | undefined {
-  if (!text) return text;
-  return text
-    .replace(/\s*\((?:sample|demo|preview|fictional|draft)\)/gi, '')
-    .replace(/\b(?:fictional|illustrative)\s+/gi, '')
-    .replace(/\bDemo\s*[—–-]\s*not a partner church\b/gi, 'Active congregation')
-    .replace(/\bDemo only\s*[—–-]\s*[^.]*\.\s*/gi, '')
-    .replace(/\bin this preview(?:\s+only)?\.?/gi, '')
-    .trim();
-}
-
-function isDemoDisclaimerNotice(block: DashBlock): boolean {
-  if (block.type !== 'notice') return false;
-  const combined = `${block.title ?? ''} ${block.body ?? ''}`.toLowerCase();
-  return (
-    combined.includes('demo workspace') ||
-    combined.includes('design preview') ||
-    combined.includes('all records are fictional') ||
-    combined.includes('no requests are sent') ||
-    combined.includes('nothing is submitted') ||
-    combined.includes('preview only') ||
-    combined.includes('not a secured staff portal')
-  );
-}
-
-function sanitizeScreen(s: DashScreen | undefined): DashScreen | undefined {
-  if (!s) return s;
-  const clone: DashScreen = structuredClone(s);
-  clone.title = cleanText(clone.title) ?? clone.title;
-  clone.description = cleanText(clone.description);
-
-  clone.blocks = clone.blocks
-    .filter((b) => !isDemoDisclaimerNotice(b))
-    .map((block): DashBlock => {
-      const str = JSON.stringify(block)
-        .replace(/\s*\((?:sample|demo|preview|fictional)\)/gi, '')
-        .replace(/Demo\s*[—–-]\s*not a partner church/gi, 'Active member')
-        .replace(/None on file \(demo\)/gi, 'Card on file');
-      const cleanedBlock = JSON.parse(str) as DashBlock;
-
-      if (viewer.authenticated && workspace.id === 'account') {
-        const nameParts = viewer.name.split(/\s+/);
-        const firstName = nameParts[0] || viewer.name;
-        const lastName = nameParts.slice(1).join(' ') || '';
-
-        if (s.slug === '' && cleanedBlock.type === 'notice') {
-          return {
-            ...cleanedBlock,
-            tone: 'success',
-            title: `Signed in as ${viewer.name}`,
-            body: `Your personal Gamo Studios account (${viewer.email}) is active${viewer.organization ? ` and connected to ${viewer.organization}` : ''}.`,
-          };
-        }
-        if (s.slug === '' && cleanedBlock.type === 'kv') {
-          return {
-            ...cleanedBlock,
-            items: [
-              ['Personal account', `${viewer.name} (${viewer.email})`],
-              ['Active organization', viewer.organization || 'Grace Fellowship'],
-              ...cleanedBlock.items.slice(2),
-            ],
-          };
-        }
-        if (s.slug === 'organizations' && cleanedBlock.type === 'table' && viewer.organization) {
-          return {
-            ...cleanedBlock,
-            rows: [
-              {
-                org: viewer.organization,
-                location: 'Verified organization',
-                yourRole: viewer.organizationRole ? `${viewer.organizationRole[0].toUpperCase()}${viewer.organizationRole.slice(1)}` : 'Owner',
-                permission: 'Full organization access',
-                status: b('Active account', 'verified'),
-              },
-              ...cleanedBlock.rows,
-            ],
-          };
-        }
-        if (s.slug === 'profile' && cleanedBlock.type === 'form') {
-          return {
-            ...cleanedBlock,
-            fields: cleanedBlock.fields.map((f) => {
-              if (f.name === 'first') return { ...f, value: firstName };
-              if (f.name === 'last') return { ...f, value: lastName };
-              if (f.name === 'email') return { ...f, value: viewer.email };
-              return f;
-            }),
-          };
-        }
-        if (s.slug === 'profile' && cleanedBlock.type === 'list') {
-          return {
-            ...cleanedBlock,
-            items: [
-              { title: 'Personal account', body: viewer.name, icon: 'user', badge: b('Verified', 'verified') },
-              { title: 'Primary email', body: viewer.email, icon: 'mail', badge: b('Verified', 'success') },
-            ],
-          };
-        }
-      }
-      return cleanedBlock;
-    });
-
-  return clone;
-}
-
-const screen = sanitizeScreen(baseScreen);
-const cleanOrg = cleanText(viewer.organization || workspace.organization);
-const effectiveWorkspace: Workspace = {
-  ...workspace,
-  name: cleanText(workspace.name) ?? workspace.name,
-  role: cleanText(workspace.role) ?? workspace.role,
-  organization: cleanOrg,
-};
-
-const allowPublicDemo =
-  runtimeEnv.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false' &&
-  import.meta.env?.ALLOW_PUBLIC_DEMO_WORKSPACES !== 'false';
-const requiredDemoKey = runtimeEnv.DEMO_ACCESS_KEY || import.meta.env?.DEMO_ACCESS_KEY;
-const queryKey = Astro.url.searchParams.get('demo_key');
-const cookieKey = Astro.cookies.get('demo_key')?.value;
-
-if (queryKey && requiredDemoKey && queryKey === requiredDemoKey) {
-  Astro.cookies.set('demo_key', queryKey, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
-}
-
-const isAuthorized =
-  viewer.authenticated || allowPublicDemo || !requiredDemoKey || cookieKey === requiredDemoKey || queryKey === requiredDemoKey;
+const screen = findScreen(workspace, slug);
+const viewer = await resolveWorkspaceViewer(Astro as any);
+const isolatedDemo = (Astro.locals as Record<string, any>).isolatedDemo === true;
+const auth = (Astro.locals as Record<string, any>).auth ?? (Astro.locals as Record<string, any>).adminAuthSession;
+if (!isolatedDemo && !auth) return Astro.redirect('/account/signin', 303);
+if (!screen) Astro.response.status = 404;
 ---
-<DashboardShell workspace={effectiveWorkspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'} viewer={viewer}>
-  {!isAuthorized ? (
-    <StateView
-      state="error"
-      title="Workspace Sign-In Required"
-      body="Please sign in with your Gamo Studios account to access this workspace."
-      retryHref={siteUrl('web', '/account/signin')}
-    />
-  ) : screen ? (
-    <Fragment>
-      <DashPageHeader workspace={effectiveWorkspace} title={screen.title} description={screen.description} actions={screen.actions} path={path} state={valid} />
-      {valid ? <StateView state={valid} retryHref={path} /> : <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />}
-    </Fragment>
-  ) : (
-    <StateView state="empty" title="This page doesn’t exist" body="Use the workspace navigation to return to your dashboard." retryHref={screenHref(workspace, '')} />
-  )}
-</DashboardShell>
+{isolatedDemo ? <DashboardShell workspace={workspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'} viewer={viewer}>
+  <p class="mb-5 border border-terracotta bg-cream p-4 font-semibold">Isolated local demonstration · All records are fictional. No operational or financial actions occur.</p>
+  {screen ? <><DashPageHeader workspace={workspace} title={screen.title} description={screen.description} path={screenHref(workspace, screen.slug)} /><DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} /></> : <StateView state="empty" title="Page not found" body="Return to the demonstration home." retryHref={screenHref(workspace, '')} />}
+</DashboardShell> : <BaseLayout title={`${workspace.program} | Your workspace`}>
+  <section class="mx-auto max-w-3xl px-5 pb-24 pt-36">
+    <p class="text-sm font-semibold uppercase tracking-widest text-terracotta">{workspace.program}</p>
+    <h1 class="mt-4 text-4xl font-semibold">{screen ? 'Your workspace' : 'Page not found'}</h1>
+    <p class="mt-6 text-lg text-ink-soft">{screen ? 'There are no operational records available here yet. Program participation and approvals are managed separately from account registration.' : 'This workspace page does not exist.'}</p>
+    <p class="mt-4 text-ink-soft">{workspace.staff ? 'Staff review tools are available through the operational review pages. No sample metrics or records are shown.' : 'You can register your interest in a program and follow the status from your account. Booking, scheduling and payment features are not available from this workspace yet.'}</p>
+    <nav class="mt-8 flex flex-wrap gap-5 font-semibold text-terracotta" aria-label="Workspace actions">
+      {workspace.staff ? <a href="/participation">Review participation requests →</a> : <a href={siteUrl('web', '/get-involved')}>Explore participation →</a>}
+      <a href="/account">Your account →</a>
+      <a href="/">Public website →</a>
+    </nav>
+  </section>
+</BaseLayout>}

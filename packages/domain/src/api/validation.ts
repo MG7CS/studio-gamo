@@ -154,6 +154,8 @@ export const authChallengeSchema = z.object({
   email: z.string().email('A valid email address is required').max(254),
   displayName: z.string().min(1).max(120).optional(),
   purpose: z.enum(['login']).default('login'),
+  intent: z.enum(['signin', 'signup', 'recover']).optional(),
+  product: z.enum(['web', 'worship', 'academy', 'live', 'production']).optional(),
 });
 
 export type AuthChallengeInput = z.infer<typeof authChallengeSchema>;
@@ -162,6 +164,8 @@ export const authVerifySchema = z.object({
   email: z.string().email('A valid email address is required').max(254),
   code: z.string().regex(/^[0-9]{6}$/, 'Verification code must be a 6-digit number'),
   displayName: z.string().min(1).max(120).optional(),
+  intent: z.enum(['signin', 'signup', 'recover']).optional(),
+  product: z.enum(['web', 'worship', 'academy', 'live', 'production']).optional(),
 });
 
 export type AuthVerifyInput = z.infer<typeof authVerifySchema>;

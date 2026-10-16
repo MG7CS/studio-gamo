@@ -12,6 +12,7 @@ get:
   security:
     - BrowserSession: []
   x-application: web
+  x-replicated-applications: [live, worship, academy, production]
   x-status: implemented
   x-authorization: Active D1 session required.
   x-idempotency: Read-only.
@@ -25,6 +26,8 @@ get:
           schema:
             $ref: ../components/schemas/identity/AuthMeResponse.yaml
     "401":
+      $ref: ../components/responses/LegacyError.yaml
+    "403":
       $ref: ../components/responses/LegacyError.yaml
     "500":
       $ref: ../components/responses/LegacyError.yaml

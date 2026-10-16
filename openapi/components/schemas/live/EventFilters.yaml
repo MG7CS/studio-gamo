@@ -21,3 +21,20 @@ properties:
   dateFrom:
     type: string
     minLength: 8
+  dateTo:
+    type: string
+    minLength: 8
+  metro:
+    type: string
+    minLength: 2
+  q:
+    type: string
+    minLength: 2
+  weekend:
+    type: string
+    enum:
+      - "true"
+      - "false"
+      - "1"
+      - "0"
+

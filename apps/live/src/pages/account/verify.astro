@@ -1,0 +1,12 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+---
+
+<Layout
+  title="Check Your Email"
+  description="Enter the 6-digit verification code sent to your email address."
+  chrome={false}
+>
+  <GamoAuthExperience mode="verify" program="Gamo Live" />
+</Layout>

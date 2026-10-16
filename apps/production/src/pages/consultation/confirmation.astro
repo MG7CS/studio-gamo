@@ -1,25 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Production consultation'), 303);
 ---
-<Layout title="Consultation Request Received" description="Your consultation request has been received." headerTheme="light">
-  <section class="bg-cream page-intro-space">
-    <div class="mx-auto max-w-2xl px-5 text-center md:px-8">
-      <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-terracotta shadow-float"><Icon name="check" class="h-7 w-7" /></span>
-      <StatusPill kind="verified" class="mt-6">Request received</StatusPill>
-      <h1 class="section-heading mt-5 text-charcoal">Thank you for reaching out.</h1>
-      <p class="mt-6 text-lg text-ink-soft">We have received your church consultation request. Here is what happens next:</p>
-      <ol class="mx-auto mt-8 max-w-md space-y-3 text-left">
-        {['A technical ministry coordinator reviews your church details', 'You receive a follow-up reply by email', 'We schedule an introductory walkthrough with your team'].map((s, i) => (
-          <li class="flex gap-3 rounded-2xl bg-white p-4 text-sm text-charcoal ring-1 ring-sand"><span class="font-semibold text-terracotta">{i + 1}</span>{s}</li>
-        ))}
-      </ol>
-      <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-        <ButtonLink href="/" arrow>Back to Gamo Production</ButtonLink>
-        <ButtonLink href="/services" variant="secondary">Explore support areas</ButtonLink>
-      </div>
-    </div>
-  </section>
-</Layout>

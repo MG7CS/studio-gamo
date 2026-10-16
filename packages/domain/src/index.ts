@@ -11,3 +11,7 @@ export * from './services/payments.ts';
 export * from './services/media.ts';
 export * from './services/admin.ts';
 export * from './services/notifications.ts';
+export * from './http/auth.ts';
+export * from './services/participation.ts';
+export * from './services/live-external-discovery.ts';
+

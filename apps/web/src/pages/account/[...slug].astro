@@ -1,7 +1,8 @@
 ---
-/** Personal account workspace (demo). One dynamic route renders every screen from typed data. */
-import '../../app.css';
-import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
-import { accountWorkspace } from '../../data/workspaces/account';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import AccountHub from '@studio-gamo/ui/components/account/AccountHub.astro';
+import InquiryHistory from '../../components/account/InquiryHistory.astro';
 ---
-<WorkspaceScreen workspace={accountWorkspace} slug={Astro.params.slug} />
+<SiteLayout title="Your Account | Gamo Studios">
+  <AccountHub program="Gamo Studios"><InquiryHistory /></AccountHub>
+</SiteLayout>

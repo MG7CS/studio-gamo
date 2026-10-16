@@ -1,21 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import FlowShell from '../../components/flow/FlowShell.astro';
-import DemoForm from '../../components/flow/DemoForm.astro';
-import FormField from '@studio-gamo/ui/components/FormField.astro';
-import { applySteps } from '../../data/worship';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Musician application'), 303);
 ---
-<Layout title="Musician application">
-  <FlowShell eyebrow="Join the musician collection" title="Bring your gift" accent="to the congregation." lede="Start with a few details about you. The full proposed process is application, audition, a conversation with a coordinator and approval." steps={applySteps} current={0} photo="acousticLeader">
-    <DemoForm next="/apply/profile">
-      <div class="grid gap-6 sm:grid-cols-2">
-        <FormField label="First name" name="first" autocomplete="given-name" required />
-        <FormField label="Last name" name="last" autocomplete="family-name" required />
-        <FormField label="Email" name="email" type="email" autocomplete="email" required />
-        <FormField label="City / area" name="city" placeholder="e.g. Mesa, AZ" />
-      </div>
-      <FormField label="Home church or ministry (optional)" name="church" />
-      <FormField label="Why do you want to serve through Gamo Worship?" name="why" type="textarea" hint="A few sentences is plenty." />
-    </DemoForm>
-  </FlowShell>
-</Layout>

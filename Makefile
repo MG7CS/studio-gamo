@@ -1,4 +1,4 @@
-.PHONY: help dev build check lint test images clean install status \
+.PHONY: help dev dev-all build check lint test images clean install status \
         dev-web dev-worship dev-academy dev-live dev-production dev-admin \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-admin preview-all \
@@ -10,6 +10,7 @@ help:
 	@echo ""
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
+	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently"
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
@@ -50,6 +51,9 @@ help:
 	@echo ""
 
 dev: dev-web
+
+dev-all:
+	@pnpm run dev:all
 
 dev-web:
 	@pnpm --filter apps-web run dev || echo "apps/web not available yet."

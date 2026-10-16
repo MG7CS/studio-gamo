@@ -13,6 +13,7 @@ post:
   security:
     - BrowserSession: []
   x-application: web
+  x-replicated-applications: [live, worship, academy, production]
   x-status: implemented
   x-authorization: Active D1 session with verified email required.
   x-idempotency: Organization slug is globally unique; duplicate slug returns 409.

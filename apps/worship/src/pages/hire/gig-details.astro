@@ -1,7 +1,5 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import ScheduleStep from '../../components/flow/ScheduleStep.astro';
+/** Legacy demonstration flow now enters the persistent program inquiry journey. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Church musician request'), 303);
 ---
-<Layout title="Schedule">
-  <ScheduleStep />
-</Layout>

@@ -98,7 +98,7 @@ export function primaryNav(): NavItem[] {
     { key: 'mission', label: 'Mission', href: siteUrl('web', '/mission') },
     { key: 'worship', label: 'Worship', href: siteUrl('worship') },
     { key: 'academy', label: 'Academy', href: siteUrl('academy') },
-    { key: 'live', label: 'Live', href: siteUrl('live') },
+    { key: 'live', label: 'Live', href: siteUrl('web', '/live') },
     { key: 'production', label: 'Production', href: siteUrl('production') },
   ];
 }

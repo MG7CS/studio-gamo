@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "1.3.0",
+    "version": "1.5.0",
     "description": "Authoritative contract for Gamo Studios, a Christian mission-driven organization whose final legal incorporation structure and tax status remain undecided. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
@@ -59,6 +59,122 @@
     }
   ],
   "paths": {
+    "/api/participation": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local application"
+        }
+      ],
+      "get": {
+        "operationId": "listOwnParticipation",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "list Own Participation",
+        "description": "Persisted participation inquiry workflow. Identity verification is required; participation submission does not approve eligibility.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Verified account; only own records.",
+        "x-idempotency": "Unsupported; client keys ignored.",
+        "x-source": "apps/web/src/pages/api/participation/index.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful persisted response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitParticipation",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "submit Participation",
+        "description": "Persisted participation inquiry workflow. Identity verification is required; participation submission does not approve eligibility.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "web",
+        "x-status": "implemented",
+        "x-authorization": "Verified account; only own records.",
+        "x-idempotency": "Unsupported; client keys ignored.",
+        "x-source": "apps/web/src/pages/api/participation/index.ts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful persisted response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParticipationInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/session": {
       "servers": [
         {
@@ -75,6 +191,12 @@
         "description": "Revoke current session",
         "security": [],
         "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
         "x-status": "implemented",
         "x-authorization": "Public",
         "x-idempotency": "Revocation is repeatable, including absent or invalid cookies.",
@@ -113,6 +235,12 @@
         "description": "Generates a time-bounded 6-digit verification code (hashed with SHA-256 in D1 auth_challenges) and dispatches it via email. Enforces per-email rate limiting.",
         "security": [],
         "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
         "x-status": "implemented",
         "x-authorization": "Public (same-origin enforced)",
         "x-idempotency": "Rate-limited per email (maximum 5 challenges per 15 minutes).",
@@ -139,6 +267,9 @@
             "$ref": "#/components/responses/LegacyError"
           },
           "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
             "$ref": "#/components/responses/LegacyError"
           }
         },
@@ -170,6 +301,12 @@
         "description": "Verifies the 6-digit challenge code against D1 auth_challenges, enforces expiry and attempt lockout, sets users.verified_email_at, revokes any presented prior session cookie, and issues a new host-only HttpOnly __session cookie.",
         "security": [],
         "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
         "x-status": "implemented",
         "x-authorization": "Public (same-origin enforced; valid unconsumed challenge code required)",
         "x-idempotency": "Single-use challenge code; replay after consumption returns 401.",
@@ -199,6 +336,9 @@
             "$ref": "#/components/responses/LegacyError"
           },
           "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
             "$ref": "#/components/responses/LegacyError"
           }
         },
@@ -234,6 +374,12 @@
           }
         ],
         "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
         "x-status": "implemented",
         "x-authorization": "Active D1 session required.",
         "x-idempotency": "Read-only.",
@@ -251,6 +397,9 @@
             }
           },
           "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
             "$ref": "#/components/responses/LegacyError"
           },
           "500": {
@@ -279,6 +428,12 @@
           }
         ],
         "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
         "x-status": "implemented",
         "x-authorization": "Active D1 session with verified email required.",
         "x-idempotency": "Organization slug is globally unique; duplicate slug returns 409.",
@@ -382,6 +537,38 @@
             "description": "Minimum event start date (ISO 8601 date or timestamp).",
             "schema": {
               "$ref": "#/components/schemas/dateFrom"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Maximum event start date (ISO 8601 date or timestamp).",
+            "schema": {
+              "$ref": "#/components/schemas/dateTo"
+            }
+          },
+          {
+            "name": "metro",
+            "in": "query",
+            "description": "Metro area slug filter (e.g., phoenix-az, atlanta-ga, nashville-tn).",
+            "schema": {
+              "$ref": "#/components/schemas/metro"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Free-text search query matching event title, performers, venue, or city.",
+            "schema": {
+              "$ref": "#/components/schemas/q"
+            }
+          },
+          {
+            "name": "weekend",
+            "in": "query",
+            "description": "Filter events occurring on Friday evening, Saturday, or Sunday in their local timezone.",
+            "schema": {
+              "$ref": "#/components/schemas/weekend"
             }
           }
         ],
@@ -1714,6 +1901,24 @@
               "login"
             ],
             "default": "login"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "signin",
+              "signup",
+              "recover"
+            ]
+          },
+          "product": {
+            "type": "string",
+            "enum": [
+              "web",
+              "worship",
+              "academy",
+              "live",
+              "production"
+            ]
           }
         },
         "required": [
@@ -1781,6 +1986,24 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 120
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "signin",
+              "signup",
+              "recover"
+            ]
+          },
+          "product": {
+            "type": "string",
+            "enum": [
+              "web",
+              "worship",
+              "academy",
+              "live",
+              "production"
+            ]
           }
         },
         "required": [
@@ -1861,6 +2084,18 @@
                 "items": {
                   "$ref": "#/components/schemas/OrganizationMembershipSummary"
                 }
+              },
+              "products": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "product": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "required": [
@@ -2448,6 +2683,200 @@
           },
           "createdAt": {
             "$ref": "#/components/schemas/Timestamp"
+          },
+          "listingType": {
+            "type": "string",
+            "enum": [
+              "organizer_submitted",
+              "external_discovery"
+            ]
+          },
+          "importKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metroSlug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startDateLocal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startTimeLocal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedByLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedByUserId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "originalOrganizerName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalDestinationKind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalTicketProvider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalOnly": {
+            "type": "boolean"
+          },
+          "priceMinCents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "ticketAvailability": {
+            "type": "string"
+          },
+          "sourceUrlsJson": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastVerifiedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artworkUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artworkRightsVerified": {
+            "type": "boolean"
+          },
+          "artworkLicenseCredit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "editorialStatus": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "verified",
+              "approved",
+              "published",
+              "archived",
+              "canceled",
+              "rejected"
+            ]
+          },
+          "editorialNotes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "independentDisclosure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isFeatured": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2602,6 +3031,227 @@
           "totalRegistered": {
             "type": "integer",
             "minimum": 0
+          },
+          "listingType": {
+            "type": "string",
+            "enum": [
+              "organizer_submitted",
+              "external_discovery"
+            ]
+          },
+          "importKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metroSlug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startDateLocal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startTimeLocal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedByLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publishedByUserId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "originalOrganizerName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalDestinationKind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalTicketProvider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalOnly": {
+            "type": "boolean"
+          },
+          "priceMinCents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "ticketAvailability": {
+            "type": "string"
+          },
+          "sourceUrlsJson": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastVerifiedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artworkUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artworkRightsVerified": {
+            "type": "boolean"
+          },
+          "artworkLicenseCredit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "editorialStatus": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "verified",
+              "approved",
+              "published",
+              "archived",
+              "canceled",
+              "rejected"
+            ]
+          },
+          "editorialNotes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "independentDisclosure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isFeatured": {
+            "type": "boolean"
+          },
+          "performers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "billingOrder": {
+                  "type": "integer"
+                },
+                "roleLabel": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "displayName",
+                "billingOrder",
+                "roleLabel"
+              ]
+            }
           }
         },
         "required": [
@@ -3616,6 +4266,176 @@
           "meta"
         ]
       },
+      "ParticipationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "interest",
+          "name",
+          "message"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "general",
+              "partnership"
+            ]
+          },
+          "interest": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "organization": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 160
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 4000
+          }
+        }
+      },
+      "ParticipationInquiry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "userId",
+          "kind",
+          "interest",
+          "name",
+          "organization",
+          "message",
+          "status",
+          "reviewNotes",
+          "createdAt",
+          "reviewedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "general",
+              "partnership"
+            ]
+          },
+          "interest": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 4000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "reviewed",
+              "closed"
+            ]
+          },
+          "reviewNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ParticipationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "inquiry"
+            ],
+            "properties": {
+              "inquiry": {
+                "$ref": "#/components/schemas/ParticipationInquiry"
+              }
+            }
+          }
+        }
+      },
+      "ParticipationListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "success",
+          "data"
+        ],
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "inquiries"
+            ],
+            "properties": {
+              "inquiries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ParticipationInquiry"
+                }
+              }
+            }
+          }
+        }
+      },
       "category": {
         "type": "string",
         "enum": [
@@ -3641,6 +4461,27 @@
       "dateFrom": {
         "type": "string",
         "minLength": 8
+      },
+      "dateTo": {
+        "type": "string",
+        "minLength": 8
+      },
+      "metro": {
+        "type": "string",
+        "minLength": 2
+      },
+      "q": {
+        "type": "string",
+        "minLength": 2
+      },
+      "weekend": {
+        "type": "string",
+        "enum": [
+          "true",
+          "false",
+          "1",
+          "0"
+        ]
       }
     },
     "securitySchemes": {
