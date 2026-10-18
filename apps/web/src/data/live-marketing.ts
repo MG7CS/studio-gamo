@@ -1,3 +1,4 @@
+import { formatUsd } from '@studio-gamo/ui/lib/format';
 /**
  * Gamo Live showcase data & database mapper for the Gamo Studios main website (`apps/web/src/pages/live.astro`).
  *
@@ -421,7 +422,7 @@ export const dateParts = (iso: string) => ({
   weekday: fmt(iso, { weekday: 'short' }),
   long: fmt(iso, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
 });
-const price = (cents: number) => (cents === 0 ? 'Free' : `$${(cents / 100).toFixed(2)}`);
+const price = (cents: number) => (cents === 0 ? 'Free' : formatUsd(cents));
 export const fromPrice = (e: LiveEvent) => {
   if (e.isPast || e.status === 'past') {
     return 'Past · Closed';

@@ -548,6 +548,9 @@ importers:
       '@clerk/clerk-js':
         specifier: ^6.39.0
         version: 6.39.0(typescript@5.9.3)(zod@4.6.6)
+      '@gamo/config':
+        specifier: workspace:*
+        version: link:../config
       astro:
         specifier: ^7.0.0
         version: 7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)

@@ -24,7 +24,7 @@ import { LiveService } from './live.ts';
 import { AdminService } from './admin.ts';
 import { IdentityService } from './identity.ts';
 import { NotificationService } from './notifications.ts';
-import { getPlatformBrandConfig } from '../brand.ts';
+import { getPlatformBrandConfig } from '@gamo/config/brand';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

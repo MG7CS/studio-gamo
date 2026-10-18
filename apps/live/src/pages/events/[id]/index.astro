@@ -1,4 +1,5 @@
 ---
+import { formatUsd } from '@studio-gamo/ui/lib/format';
 import Layout from '../../../layouts/Layout.astro';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
@@ -652,7 +653,7 @@ const pageDescription = metro
                     </div>
                     {typeof event.priceMinCents === 'number' ? (
                       <p class="text-base font-bold text-[#191817] mt-1">
-                        Starting from ${(event.priceMinCents / 100).toFixed(2)} {event.currency || 'USD'}
+                        Starting from {formatUsd(event.priceMinCents)} {event.currency || 'USD'}
                       </p>
                     ) : (
                       <p class="text-sm text-[#5C554D] mt-1 leading-relaxed">

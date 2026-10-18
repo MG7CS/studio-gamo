@@ -1,0 +1,56 @@
+---
+/**
+ * Page shell for the program sites (Worship, Academy, Production): BaseLayout with the
+ * program's title suffix and nav highlight. Each app wraps this in its own Layout.astro,
+ * which imports that app's stylesheet.
+ */
+import BaseLayout from './BaseLayout.astro';
+
+const PROGRAM_NAMES = {
+  worship: 'Gamo Worship',
+  academy: 'Gamo Academy',
+  production: 'Gamo Production',
+} as const;
+
+export interface Props {
+  program: keyof typeof PROGRAM_NAMES;
+  title?: string;
+  description?: string;
+  headerTheme?: 'light' | 'dark';
+  bodyClass?: string;
+  chrome?: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'event';
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+const {
+  program,
+  title,
+  description,
+  headerTheme = 'light',
+  bodyClass = 'bg-cream text-charcoal',
+  chrome = true,
+  ogImage,
+  ogType,
+  noindex,
+  jsonLd,
+} = Astro.props;
+const name = PROGRAM_NAMES[program];
+---
+
+<BaseLayout
+  title={title ? `${title} | ${name}` : `${name} | Gamo Studios`}
+  description={description}
+  current={program}
+  headerTheme={headerTheme}
+  bodyClass={bodyClass}
+  chrome={chrome}
+  ogImage={ogImage}
+  ogType={ogType}
+  noindex={noindex}
+  jsonLd={jsonLd}
+>
+  <slot name="head" slot="head" />
+  <slot />
+</BaseLayout>

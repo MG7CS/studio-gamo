@@ -4,31 +4,17 @@
  * navigation works both locally (fixed dev ports) and on the planned production domains.
  * Production domains are planned routes; nothing is deployed by this helper.
  */
-export type SiteKey = 'web' | 'worship' | 'academy' | 'live' | 'production' | 'admin';
+import { LOCAL_HOST, LOCAL_PORTS, ROOT_DOMAIN, SUBDOMAINS, type AppName } from '@gamo/config/apps';
 
-/** Canonical proposed production root domain. */
-export const CANONICAL_DOMAIN = 'gamostudio.org';
+export type SiteKey = AppName;
 
-/** Production origins under canonical gamostudio.org domain. */
-export const PRODUCTION_ORIGINS: Record<SiteKey, string> = {
-  web: 'https://gamostudio.org',
-  worship: 'https://worship.gamostudio.org',
-  academy: 'https://academy.gamostudio.org',
-  live: 'https://live.gamostudio.org',
-  production: 'https://production.gamostudio.org',
-  /** Staff-only operations app (Cloudflare Access / Zero Trust protected). */
-  admin: 'https://admin.gamostudio.org',
-};
+/** Canonical production root domain. */
+export const CANONICAL_DOMAIN = ROOT_DOMAIN;
 
-/** Local dev ports — kept in sync with each app's astro.config.mjs `server.port`. */
-export const DEV_PORTS: Record<SiteKey, number> = {
-  web: 4321,
-  worship: 4322,
-  academy: 4323,
-  live: 4324,
-  production: 4325,
-  admin: 4326,
-};
+/** Production origins under the canonical domain (admin is Cloudflare Access protected). */
+export const PRODUCTION_ORIGINS = Object.fromEntries(
+  Object.entries(SUBDOMAINS).map(([site, host]) => [site, `https://${host}`]),
+) as Record<SiteKey, string>;
 
 const isDev = (): boolean => {
   try {
@@ -42,7 +28,7 @@ const isDev = (): boolean => {
  * Returns the effective origin for a given application, supporting:
  * 1. Explicit per-site environment overrides (e.g. PUBLIC_SITE_URL_WORSHIP)
  * 2. Root domain overrides (e.g. PUBLIC_ROOT_DOMAIN=preview.gamostudio.org or gamostudio.workers.dev)
- * 3. Local dev fallback (http://localhost:PORT)
+ * 3. Local dev fallback (http://127.0.0.1:PORT)
  * 4. Production default (https://<subdomain>.gamostudio.org)
  */
 export function siteOrigin(site: SiteKey): string {
@@ -59,7 +45,7 @@ export function siteOrigin(site: SiteKey): string {
 
   // 2. Local development fallback
   if (isDev()) {
-    return `http://localhost:${DEV_PORTS[site]}`;
+    return `http://${LOCAL_HOST}:${LOCAL_PORTS[site]}`;
   }
 
   // 3. Dynamic root domain override (e.g. preview staging or workers.dev)
