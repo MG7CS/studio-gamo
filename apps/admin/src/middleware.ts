@@ -1,4 +1,5 @@
 import type { GamoEnv } from '@gamo/config/env';
+import { checkEnvOnce } from '@gamo/config/env-validation';
 import { defineMiddleware } from 'astro/middleware';
 import { getDb } from '@gamo/db';
 import {
@@ -213,6 +214,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Runtime environment variables (from Cloudflare Workers bindings or process)
   const runtimeEnv = await getRuntimeEnv(context);
+  const misconfigured = checkEnvOnce('admin', runtimeEnv, context.request);
+  if (misconfigured) return misconfigured;
   const isProd = !isDev || runtimeEnv.ENVIRONMENT === 'production' || import.meta.env?.PROD;
   const signingSecret = resolveSigningSecret(runtimeEnv);
 

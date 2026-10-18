@@ -8,6 +8,7 @@
     "./apps": "./apps.ts",
     "./env-loader": "./env-loader.ts",
     "./env": "./env.ts",
-    "./brand": "./brand.ts"
+    "./brand": "./brand.ts",
+    "./env-validation": "./env-validation.ts"
   }
 }
