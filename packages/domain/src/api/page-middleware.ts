@@ -8,6 +8,7 @@ import {
   type PublicApp,
 } from '@gamo/auth/page-access';
 import type { GamoLocals } from '@gamo/auth/locals';
+import { checkEnvOnce } from '@gamo/config/env-validation';
 import { getRuntimeEnv } from './response';
 
 type Context = {
@@ -58,6 +59,9 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
   return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
     const { pathname } = context.url;
     context.locals.product = app;
+    const env = await getRuntimeEnv(context);
+    const misconfigured = checkEnvOnce(app, env, context.request);
+    if (misconfigured) return misconfigured;
     const legacy = options.legacyRedirects && matchLegacyRedirect(options.legacyRedirects, context.url);
     if (legacy) return legacy;
     // API handlers own their contract-specific authorization and status codes.
@@ -70,7 +74,6 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
       pathname === '/llms.txt'
     )
       return next();
-    const env = await getRuntimeEnv(context);
     context.locals.runtimeEnv = env;
     context.locals.auth = null;
     context.locals.isolatedDemo = isIsolatedDemo(context.request, env);
