@@ -475,12 +475,13 @@ try {
   assert.equal(deniedMusicianRes.status(), 403);
   assert.match((await progPage.textContent('h1')) || '', /This workspace needs program access\./);
 
-  // Verify a Worship session cookie does NOT grant access to Gamo Academy /family -> redirected to 403 /account/access-denied
+  // A Worship session is not a session for Gamo Academy at all (product mismatch is rejected when the
+  // session is resolved), so /family treats the visitor as signed out and asks them to sign in.
   const crossProductDeniedRes = await progPage.goto(`${urls.academy}/family`, {
     waitUntil: 'domcontentloaded',
   });
-  assert.equal(progPage.url(), `${urls.academy}/account/access-denied`);
-  assert.equal(crossProductDeniedRes.status(), 403);
+  assert.equal(progPage.url(), `${urls.academy}/account/signin?next=%2Ffamily`);
+  assert.equal(crossProductDeniedRes.status(), 200);
 
   // Explicitly register for Gamo Academy on /account/signup?next=%2Ffamily and verify /family renders honest empty workspace while /instructor is blocked with 403
   await progPage.goto(`${urls.academy}/account/signup?next=%2Ffamily`, { waitUntil: 'networkidle' });

@@ -1,9 +1,10 @@
 // Test-only workerd adapter: real application route handlers + browser E2E test harness pages, no deployed route.
-import { POST as login, DELETE as logout } from '../../apps/web/src/pages/api/auth/session';
-import { POST as challenge } from '../../apps/web/src/pages/api/auth/challenge';
-import { POST as verify } from '../../apps/web/src/pages/api/auth/verify';
-import { GET as me } from '../../apps/web/src/pages/api/auth/me';
-import { POST as createOrg } from '../../apps/web/src/pages/api/organizations/index';
+import { POST as login, DELETE as logout } from '../../apps/live/src/pages/api/auth/session';
+// Gamo Live's own auth handlers: the journey creates Live events, which require a Live account.
+import { POST as challenge } from '../../apps/live/src/pages/api/auth/challenge';
+import { POST as verify } from '../../apps/live/src/pages/api/auth/verify';
+import { GET as me } from '../../apps/live/src/pages/api/auth/me';
+import { POST as createOrg } from '../../apps/live/src/pages/api/organizations/index';
 import { GET as list, POST as create } from '../../apps/live/src/pages/api/events/index';
 import { GET as detail } from '../../apps/live/src/pages/api/events/[id]/index';
 import { POST as register } from '../../apps/live/src/pages/api/events/[id]/register';
