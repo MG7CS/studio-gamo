@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ redirect }) => {
   // In a real implementation:
   // 1. Verify session & authorization
   // 2. Parse form data for assignmentId

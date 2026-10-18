@@ -1,16 +1,6 @@
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
-export interface Program {
-  name: string; label: string; title: string; body: string; photo: PhotoKey; href: string;
-}
-export const programs: Program[] = [
-  { name: 'Worship', label: 'Prepared to serve', title: 'Stronger worship, together.', body: 'A planned network connecting churches with prepared musicians, with thoughtful auditioning, fair compensation and standby support where available.', photo: 'worshipLeaderGolden', href: siteUrl('worship') },
-  { name: 'Academy', label: 'Room to discover', title: 'A love of music starts here.', body: 'Instrument education for children, teens and adults. Private lessons, group learning and proposed church-hosted programs make room for different learning journeys.', photo: 'boyGuitar', href: siteUrl('academy') },
-  { name: 'Live', label: 'Reasons to gather', title: 'Shared faith. Shared experiences.', body: 'Discover Christian concerts, worship gatherings, Bible studies and community events nationwide, or explore the organizer journey.', photo: 'worshipNight', href: siteUrl('web', '/live') },
-  { name: 'Production', label: 'Skills that support', title: 'Help the message come through.', body: 'Audio, video, livestreaming and technical education designed to strengthen churches and develop the volunteers behind every service.', photo: 'soundEngineer', href: siteUrl('production') },
-];
-
 export const participation = [
   { title: 'Churches & ministries', body: 'Explore musician support, host lessons or share the resources your community can offer.', href: '/partners', action: 'Explore partnerships', photo: 'churchModernDay' as PhotoKey },
   { title: 'Musicians', body: 'Discover the preparation and audition journey for serving with the musician collection.', href: '/contact?interest=Musician%20application', action: 'Explore the application', photo: 'acousticLeader' as PhotoKey },

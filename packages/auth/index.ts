@@ -263,7 +263,7 @@ export async function validateSession(
   const roleCodes = userRoleRows.map((r) => r.code);
 
   // 4. Resolve active product accounts
-  let productCodes: string[] = [];
+  let productCodes: string[];
   try {
     const productRows = await db
       .select({ product: productAccounts.product })

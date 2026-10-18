@@ -102,7 +102,7 @@ export class AdminService {
         this.db.insert(auditLogs).values({id: `audit_${crypto.randomUUID()}`, actorUserId: reviewerUserId, action: `event.${newStatus}`, entityType: 'event', entityId: eventId, payloadJson: JSON.stringify({decision: input.decision, previousStatus: event.status}), createdAt: new Date()}),
       ]);
     } catch (error) {
-      if (String((error as Error)?.cause ?? error).includes('REVIEW_CONFLICT')) throw new Error('CONFLICT: Event already reviewed.');
+      if (String((error as Error)?.cause ?? error).includes('REVIEW_CONFLICT')) throw new Error('CONFLICT: Event already reviewed.', { cause: error });
       throw error;
     }
 

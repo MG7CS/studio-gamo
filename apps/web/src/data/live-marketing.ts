@@ -402,7 +402,6 @@ export function buildOrganizersFromEvents(eventList: LiveEvent[]): Organizer[] {
 export const events: LiveEvent[] = buildVerifiedCatalogFallbackEvents();
 export const organizers: Organizer[] = buildOrganizersFromEvents(events);
 
-export const getEvent = (id: string, list: LiveEvent[] = events) => list.find((e) => e.id === id);
 export const getOrganizer = (slug: string, orgList: Organizer[] = organizers): Organizer =>
   orgList.find((o) => o.slug === slug) ?? {
     slug,
@@ -413,8 +412,6 @@ export const getOrganizer = (slug: string, orgList: Organizer[] = organizers): O
     photo: 'gospelVocalists',
     bio: 'Curated Christian concerts, worship nights, and church gatherings.',
   };
-export const eventsBy = (pred: (e: LiveEvent) => boolean, list: LiveEvent[] = events) => list.filter(pred);
-export const cities = [...new Set(events.map((e) => `${e.city}, ${e.state}`))];
 
 const fmt = (iso: string, o: Intl.DateTimeFormatOptions) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', ...o });
@@ -424,7 +421,7 @@ export const dateParts = (iso: string) => ({
   weekday: fmt(iso, { weekday: 'short' }),
   long: fmt(iso, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
 });
-export const price = (cents: number) => (cents === 0 ? 'Free' : `$${(cents / 100).toFixed(2)}`);
+const price = (cents: number) => (cents === 0 ? 'Free' : `$${(cents / 100).toFixed(2)}`);
 export const fromPrice = (e: LiveEvent) => {
   if (e.isPast || e.status === 'past') {
     return 'Past · Closed';

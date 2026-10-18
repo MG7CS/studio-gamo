@@ -15,8 +15,6 @@
     "tailwindcss": "^4.0.0"
   },
   "dependencies": {
-    "@clerk/astro": "^4.1.12",
-    "@clerk/backend": "^3.23.2",
     "@clerk/clerk-js": "^6.39.0"
   }
 }

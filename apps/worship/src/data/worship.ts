@@ -51,26 +51,4 @@ export const opportunities: Opportunity[] = [
   { id: 'o5', church: 'Living Water Church', city: 'Glendale, AZ', date: 'Sun · Nov 15 · 8:30 AM call', role: 'Acoustic guitar', style: 'Bilingual services', payCents: 12000 },
 ];
 
-export interface RosterRow { date: string; service: string; role: string; primary: string; standby?: string; status: 'confirmed' | 'pending' | 'open' }
-export const roster: RosterRow[] = [
-  { date: 'Nov 1', service: 'Sunday · 9:00 AM', role: 'Keys', primary: 'Ana R.', standby: 'David K.', status: 'confirmed' },
-  { date: 'Nov 1', service: 'Sunday · 9:00 AM', role: 'Bass', primary: 'Marcus T.', status: 'confirmed' },
-  { date: 'Nov 8', service: 'Sunday · 9:00 AM', role: 'Keys', primary: 'Ana R.', standby: 'Leah M.', status: 'pending' },
-  { date: 'Nov 8', service: 'Sunday · 9:00 AM', role: 'Drums', primary: '—', status: 'open' },
-  { date: 'Nov 15', service: 'Sunday · 9:00 AM', role: 'Keys', primary: 'Samuel O.', standby: 'Ana R.', status: 'pending' },
-];
-
-export const applySteps = [
-  { label: 'Start', href: '/apply' },
-  { label: 'Instruments', href: '/apply/profile' },
-  { label: 'Audition', href: '/apply/audition' },
-  { label: 'Status', href: '/apply/status' },
-];
-export const hireSteps = [
-  { label: 'Request', href: '/hire' },
-  { label: 'Repertoire', href: '/hire/repertoire' },
-  { label: 'Schedule', href: '/hire/schedule' },
-  { label: 'Summary', href: '/hire/summary' },
-];
-
 export const formatUsd = (cents: number) => `$${(cents / 100).toFixed(2)}`;

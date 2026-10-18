@@ -111,7 +111,9 @@ export async function resolvePlatformBrandConfig(locals?: unknown): Promise<Plat
       if (legacy && typeof legacy === 'object') {
         runtimeEnv = legacy;
       }
-    } catch {}
+    } catch {
+      // No legacy runtime env either; fall back to defaults below.
+    }
   }
   return getPlatformBrandConfig(runtimeEnv);
 }

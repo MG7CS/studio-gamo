@@ -301,7 +301,9 @@ const navItems = [
         const val = e.target.value || 'phoenix-az';
         try {
           localStorage.setItem('gamo_live_metro', val);
-        } catch (_err) {}
+        } catch {
+          // Storage unavailable (private mode); the metro choice just isn't remembered.
+        }
 
         const pathname = window.location.pathname;
         const segments = pathname.split('/').filter(Boolean);

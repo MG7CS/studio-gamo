@@ -6,7 +6,6 @@ import {
   createEventSchema,
   jsonResponse,
   handleApiError,
-  errorResponse,
   getRuntimeEnv,
 } from '@gamo/domain';
 import { requireOrgAccess, requireVerifiedAuth } from '@gamo/auth';

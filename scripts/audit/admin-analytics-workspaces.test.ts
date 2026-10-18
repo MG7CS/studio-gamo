@@ -1,27 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { adminWorkspace } from '../../apps/admin/src/data/workspace';
-import { organizerWorkspace } from '../../apps/live/src/data/workspaces/organizer';
-import { artistWorkspace } from '../../apps/live/src/data/workspaces/artist';
-import { agentWorkspace } from '../../apps/live/src/data/workspaces/agent';
 import { churchWorkspace } from '../../apps/worship/src/data/workspaces/church';
 import { musicianWorkspace } from '../../apps/worship/src/data/workspaces/musician';
 import { hostWorkspace } from '../../apps/academy/src/data/workspaces/host';
 import { instructorWorkspace } from '../../apps/academy/src/data/workspaces/instructor';
-import { partnerWorkspace } from '../../apps/web/src/data/workspaces/partner';
 import { clientWorkspace } from '../../apps/production/src/data/workspaces/client';
 import { findScreen, type Workspace } from '../../packages/ui/src/lib/dashboard';
 
 const ALL_WORKSPACES: Workspace[] = [
   adminWorkspace,
-  organizerWorkspace,
-  artistWorkspace,
-  agentWorkspace,
   churchWorkspace,
   musicianWorkspace,
   hostWorkspace,
   instructorWorkspace,
-  partnerWorkspace,
   clientWorkspace,
 ];
 

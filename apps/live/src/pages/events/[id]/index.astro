@@ -899,11 +899,11 @@ const pageDescription = metro
 
   <script is:inline>
     (function () {
-      var STORAGE_KEY = 'gamo_live_saved_events';
+      const STORAGE_KEY = 'gamo_live_saved_events';
       function readSavedSlugs() {
         try {
-          var raw = localStorage.getItem(STORAGE_KEY);
-          var parsed = raw ? JSON.parse(raw) : [];
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
           return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           return [];
@@ -912,39 +912,41 @@ const pageDescription = metro
       function writeSavedSlugs(slugs) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
-        } catch (e) {}
+        } catch {
+          // Storage unavailable (private mode); favorites stay in-memory only.
+        }
       }
       function syncButtons() {
-        var saved = readSavedSlugs();
+        const saved = readSavedSlugs();
         document.querySelectorAll('[data-favorite-btn]').forEach(function (btn) {
-          var slug = btn.getAttribute('data-event-slug');
-          var isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
+          const slug = btn.getAttribute('data-event-slug');
+          const isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
           btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
-          var label = btn.querySelector('[data-favorite-label]');
+          const label = btn.querySelector('[data-favorite-label]');
           if (label) label.textContent = isSaved ? 'Saved' : 'Save event';
-          var svg = btn.querySelector('svg');
+          const svg = btn.querySelector('svg');
           if (svg) svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
         });
       }
       document.addEventListener('click', function (e) {
-        var btn = e.target.closest && e.target.closest('[data-favorite-btn]');
+        const btn = e.target.closest && e.target.closest('[data-favorite-btn]');
         if (!btn) return;
         e.preventDefault();
-        var slug = btn.getAttribute('data-event-slug');
+        const slug = btn.getAttribute('data-event-slug');
         if (!slug) return;
-        var saved = readSavedSlugs();
-        var i = saved.indexOf(slug);
+        const saved = readSavedSlugs();
+        const i = saved.indexOf(slug);
         if (i === -1) saved.push(slug);
         else saved.splice(i, 1);
         writeSavedSlugs(saved);
         syncButtons();
       });
 
-      var shareBtn = document.getElementById('share-event-btn');
-      var shareLabel = document.getElementById('share-event-label');
+      const shareBtn = document.getElementById('share-event-btn');
+      const shareLabel = document.getElementById('share-event-label');
       if (shareBtn) {
         shareBtn.addEventListener('click', function () {
-          var url = window.location.href;
+          const url = window.location.href;
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(function () {
               if (shareLabel) shareLabel.textContent = 'Link copied!';

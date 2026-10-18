@@ -114,14 +114,6 @@ export const trainingTracks: TrainingTrack[] = [
   { title: 'Technical Team Leaders', level: 'Experienced volunteers', format: 'Proposed · 3 sessions', icon: 'users', topics: ['Scheduling and onboarding', 'Writing team routines', 'Leading calmly under pressure'] },
 ];
 
-export const assessmentSteps = [
-  { label: 'Your church' },
-  { label: 'Current setup' },
-  { label: 'Priorities' },
-  { label: 'Team & timing' },
-  { label: 'Review' },
-];
-
 export const productionFaq = [
   { q: 'How does a church get started with Gamo Production?', a: 'Start with our five-step church needs assessment or submit a consultation request so our team can review your current setup, room, and volunteer goals.' },
   { q: 'How are contributions structured?', a: 'Any fees or suggested contributions remain proposals until approved, and support is designed to remain accessible to small and under-resourced congregations.' },

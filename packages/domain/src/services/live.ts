@@ -73,7 +73,6 @@ import {
   inferExternalProviderName,
   isEventPast,
   isLocalWeekendDate,
-  resolveMetroBySlug,
   resolveNearestMetroByCoordinates,
   validateExternalDestinationUrl,
   type EventLifecycleStatus,
@@ -589,7 +588,7 @@ export class LiveService {
         .limit(1);
       if (duplicate) return { registration: duplicate, event, isDuplicate: true };
       const cause = String((error as Error)?.cause ?? error);
-      if (cause.includes('REGISTRATION_')) throw new Error('CONFLICT: Registration unavailable.');
+      if (cause.includes('REGISTRATION_')) throw new Error('CONFLICT: Registration unavailable.', { cause: error });
       throw error;
     }
 
@@ -795,7 +794,7 @@ export class LiveService {
       )
       .limit(1);
 
-    let memberId = existing?.id ?? `evteam_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const memberId = existing?.id ?? `evteam_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     if (existing) {
       await this.db
@@ -1291,7 +1290,7 @@ export class LiveService {
       if (cause.includes('REP_EXCLUSIVE_CONFLICT')) {
         throw new Error(
           'CONFLICT: REP_EXCLUSIVE_CONFLICT: Conflicting active exclusive representation already exists for this artist.'
-        );
+        , { cause: error });
       }
       throw error;
     }
