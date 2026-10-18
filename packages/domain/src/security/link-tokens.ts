@@ -5,7 +5,7 @@
  */
 import { base64UrlToBytes, bytesToBase64Url, hmacSha256Hex, randomBytes, requireSecret } from './crypto.ts';
 import { newPrefixedId } from './ids.ts';
-import { changesOf, type SqlDatabase } from './sql-database.ts';
+import { changesOf, runBatch, type SqlDatabase } from './sql-database.ts';
 
 export const LINK_TOKEN_BYTES = 32;
 /** `/tickets/find`, `/registrations/find`: `customer:all` links last 30 minutes. */
@@ -221,22 +221,37 @@ export class CustomerLinkTokens {
     return { ok: false, reason: 'exhausted' };
   }
 
-  /** Revokes every live token with exactly this scope (e.g. after a transfer). Returns how many. */
+  /**
+   * Revokes every live token with exactly this scope (e.g. after a transfer) **and** every customer
+   * session opened from those tokens, in one batch. Returns how many tokens were revoked.
+   */
   async revokeForScope(scope: CustomerScope, now: number): Promise<number> {
-    const r = await this.db
-      .prepare('UPDATE customer_access_tokens SET revoked_at = ?2 WHERE scope = ?1 AND revoked_at IS NULL')
-      .bind(scope, now)
-      .run();
-    return changesOf(r);
+    const [, tokens] = await runBatch(this.db, [
+      {
+        sql: 'UPDATE customer_sessions SET revoked_at = ?2 WHERE revoked_at IS NULL AND token_id IN (SELECT id FROM customer_access_tokens WHERE scope = ?1)',
+        params: [scope, now],
+      },
+      {
+        sql: 'UPDATE customer_access_tokens SET revoked_at = ?2 WHERE scope = ?1 AND revoked_at IS NULL RETURNING id',
+        params: [scope, now],
+      },
+    ]);
+    return tokens.length;
   }
 
-  /** Revokes one token by id. */
+  /** Revokes one token by id and the customer sessions opened from it, in one batch. */
   async revoke(id: string, now: number): Promise<boolean> {
-    const r = await this.db
-      .prepare('UPDATE customer_access_tokens SET revoked_at = ?2 WHERE id = ?1 AND revoked_at IS NULL')
-      .bind(id, now)
-      .run();
-    return changesOf(r) > 0;
+    const [, tokens] = await runBatch(this.db, [
+      {
+        sql: 'UPDATE customer_sessions SET revoked_at = ?2 WHERE token_id = ?1 AND revoked_at IS NULL',
+        params: [id, now],
+      },
+      {
+        sql: 'UPDATE customer_access_tokens SET revoked_at = ?2 WHERE id = ?1 AND revoked_at IS NULL RETURNING id',
+        params: [id, now],
+      },
+    ]);
+    return tokens.length > 0;
   }
 
   /** Retention: deletes tokens that expired more than 30 days ago. Returns how many. */
