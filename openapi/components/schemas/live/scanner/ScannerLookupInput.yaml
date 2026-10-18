@@ -1,0 +1,13 @@
+type: object
+additionalProperties: false
+properties:
+  eventId:
+    $ref: ../../shared/Identifier.yaml
+  query:
+    type: string
+    description: Holder or purchaser name (contains), email (exact) or order reference (exact).
+    minLength: 2
+    maxLength: 120
+required:
+  - eventId
+  - query

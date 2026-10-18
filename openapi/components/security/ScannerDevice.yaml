@@ -1,0 +1,6 @@
+type: apiKey
+in: cookie
+name: gamo_scanner
+description: Door-staff scanner device cookie (HMAC-signed device id, purpose scanner_device, at
+  most 12 hours and never past the gate session's expiry). Issued after the gate PIN; path-scoped to
+  /scan and /api/scanner. Not an account.

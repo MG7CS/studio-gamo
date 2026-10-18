@@ -580,6 +580,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scanner/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Scan a ticket in or out at the door
+         * @description Verifies a GL1 code (or a legacy gamt_ pass) and lets the database decide admission (one conditional presence upsert). Results expose first name and last initial, category, section and zone only. Rate-limited per device.
+         */
+        post: operations["scanTicketAtDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scanner/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manual ticket lookup (dead phone, name check)
+         * @description Finds up to 10 tickets of the event by order reference, email (exact) or name. Organizer accounts and supervisor scanner sessions (can_override) only. Every result is written to ticket_access_log.
+         */
+        post: operations["lookupTicketsAtDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scanner/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admit a ticket without its code, with a reason
+         * @description Supervisor override: lifts the entry limit but never admits someone already inside; zones and the scan window still apply. Recorded as override_admitted with the reason and in ticket_access_log.
+         */
+        post: operations["overrideAdmitAtDoor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scanner/manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Offline manifest for a scanner device
+         * @description Event-scoped list of ticket id parts, versions, MAC digests, category, section, zone, status, presence and holder initials, for offline verification. No emails, full names or order data. Supports If-None-Match.
+         */
+        get: operations["getScannerManifest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scanner/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replay a device’s offline scan queue
+         * @description Replays up to 200 queued scans in device-time order through the same statements as online scanning. Scans that lost to an earlier admission are flagged duplicate_offline and counted in needsReview. Scanner devices only.
+         */
+        post: operations["syncOfflineScans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scanner/headcount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live headcount for the scanner screen
+         * @description People inside now, admitted today (venue-local day) and capacity. Polled every 10 seconds while online.
+         */
+        get: operations["getScannerHeadcount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/venue-maps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Venue blueprint image
+         * @description Serves an uploaded blueprint (PNG, JPEG, WebP or sanitised SVG) as an image with X-Content-Type-Options nosniff and Content-Security-Policy sandbox; never inlined into pages. Archived blueprints are not served. Cacheable by content hash (the v query parameter).
+         */
+        get: operations["getVenueMapImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1344,6 +1484,137 @@ export interface components {
                 inquiries: components["schemas"]["ParticipationInquiry"][];
             };
         };
+        ScannerScanInput: {
+            eventId: components["schemas"]["Identifier"];
+            /** @description Scanned or typed ticket code (GL1 payload, or a legacy gamt_ pass). */
+            code: string;
+            /** @enum {string} */
+            direction: "in" | "out";
+            clientScanId?: components["schemas"]["ClientScanId"];
+            gate?: string;
+        };
+        ScannerScanResponse: {
+            /** @constant */
+            success: true;
+            data: components["schemas"]["ScanOutcome"];
+        };
+        ScannerLookupInput: {
+            eventId: components["schemas"]["Identifier"];
+            /** @description Holder or purchaser name (contains), email (exact) or order reference (exact). */
+            query: string;
+        };
+        ScannerLookupResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                truncated: boolean;
+                results: {
+                    ticketId: string;
+                    holderName: string;
+                    emailMasked: string;
+                    orderReference: string | null;
+                    category: string | null;
+                    section: string | null;
+                    status: string;
+                    inside: boolean;
+                    entriesToday: number;
+                    legacy: boolean;
+                }[];
+            };
+        };
+        ScannerOverrideInput: {
+            eventId: components["schemas"]["Identifier"];
+            ticketId: string;
+            reason: string;
+            clientScanId?: components["schemas"]["ClientScanId"];
+        };
+        /** @description Event-scoped offline manifest. No emails, no full names, no order data. */
+        ScannerManifestResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                /** @constant */
+                v: 1;
+                eventId: string;
+                eventTitle: string;
+                timeZone: string;
+                startsAt: number;
+                endsAt: number;
+                opensAt: number;
+                cancelled: boolean;
+                maxEntriesPerDay: number | null;
+                generatedAt: number;
+                categories: {
+                    [key: string]: {
+                        name: string;
+                        validDays: string[] | null;
+                        seats: number;
+                    };
+                };
+                tickets: {
+                    /** @description QR id part (26 Crockford symbols). */
+                    i: string;
+                    v: number;
+                    /** @description SHA-256 hex of the current QR MAC. */
+                    d: string;
+                    c: string | null;
+                    s: string | null;
+                    z: string[];
+                    /** @enum {string} */
+                    st: "valid" | "voided" | "refunded";
+                    /** @description First name and last initial. */
+                    n: string;
+                    p: {
+                        [key: string]: {
+                            /** @enum {string} */
+                            s: "inside" | "outside";
+                            e: number;
+                        };
+                    };
+                }[];
+                legacy: {
+                    h: string;
+                    n: string;
+                    c: string | null;
+                    st: string;
+                }[];
+            };
+        };
+        ScannerSyncInput: {
+            eventId: components["schemas"]["Identifier"];
+            scans: {
+                clientScanId: components["schemas"]["ClientScanId"];
+                code: string;
+                /** @enum {string} */
+                direction: "in" | "out";
+                /** @description Device clock, epoch seconds. */
+                deviceScannedAt: number;
+                localResult?: components["schemas"]["ScanResult"] | null;
+            }[];
+        };
+        ScannerSyncResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                needsReview: number;
+                headcount: components["schemas"]["ScannerHeadcount"];
+                results: {
+                    clientScanId: string;
+                    result: components["schemas"]["ScanResult"];
+                    conflict: components["schemas"]["ScanConflict"];
+                    localResult: components["schemas"]["ScanResult"] | null;
+                    needsReview: boolean;
+                    title: string;
+                    message: string;
+                    holder: string | null;
+                }[];
+            };
+        };
+        ScannerHeadcountResponse: {
+            /** @constant */
+            success: true;
+            data: components["schemas"]["ScannerHeadcount"];
+        };
         /** @enum {string} */
         category: "concert" | "worship" | "bible" | "conference" | "youth";
         city: string;
@@ -1355,6 +1626,51 @@ export interface components {
         q: string;
         /** @enum {string} */
         weekend: "true" | "false" | "1" | "0";
+        /** @description Device-generated id; the same id twice from one scanner session is recorded once. */
+        ClientScanId: string;
+        /**
+         * @description Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner.
+         * @enum {string}
+         */
+        ScanResult: "admitted" | "exited" | "already_inside" | "already_used" | "reentry_denied" | "not_inside" | "wrong_event" | "wrong_zone" | "voided" | "refunded" | "stale_version" | "invalid" | "not_found" | "not_open_yet" | "event_cancelled" | "override_admitted";
+        /** @enum {string} */
+        ScanConflict: "none" | "duplicate_offline" | "superseded";
+        /** @description What a scanner may see about a ticket. Never an email, full name or order data. */
+        ScanTicketView: {
+            /** @description First name and last initial only. */
+            holder: string;
+            category: string | null;
+            section: string | null;
+            zone: string | null;
+            seatsPerTicket: number;
+        };
+        ScanOutcome: {
+            result: components["schemas"]["ScanResult"];
+            admitted: boolean;
+            title: string;
+            message: string;
+            scanId: string | null;
+            conflict: components["schemas"]["ScanConflict"];
+            /** @description This client scan id had already been recorded; the stored result is returned. */
+            repeated: boolean;
+            offline: boolean;
+            ticket: components["schemas"]["ScanTicketView"] | null;
+            detail: {
+                at: number | null;
+                atText: string | null;
+                gate: string | null;
+                allowedZones: string[] | null;
+                eventTitle: string | null;
+                validDays: string[] | null;
+                opensAt: number | null;
+            };
+        };
+        ScannerHeadcount: {
+            dayKey: string;
+            insideNow: number;
+            admittedToday: number;
+            capacity: number;
+        };
     };
     responses: {
         /** @description Documented API failure. Internal details are suppressed. */
@@ -2379,6 +2695,229 @@ export interface operations {
             403: components["responses"]["LegacyError"];
             409: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
+        };
+    };
+    scanTicketAtDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerScanInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerScanResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    lookupTicketsAtDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerLookupInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerLookupResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    overrideAdmitAtDoor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerOverrideInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerScanResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    getScannerManifest: {
+        parameters: {
+            query: {
+                /** @description The event the scanner works. */
+                eventId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    /** @description Content version of the manifest. */
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerManifestResponse"];
+                };
+            };
+            /** @description Not modified (If-None-Match matched the current ETag). */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    syncOfflineScans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerSyncInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerSyncResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    getScannerHeadcount: {
+        parameters: {
+            query: {
+                /** @description The event the scanner works. */
+                eventId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerHeadcountResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    getVenueMapImage: {
+        parameters: {
+            query?: {
+                /** @description Content hash prefix (cache key only). */
+                v?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Venue blueprint identifier (vmap_…). */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The blueprint image. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                    "image/jpeg": string;
+                    "image/webp": string;
+                    "image/svg+xml": string;
+                };
+            };
+            /** @description Not modified. */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
         };
     };
 }

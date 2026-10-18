@@ -1,0 +1,19 @@
+type: string
+description: Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner.
+enum:
+  - admitted
+  - exited
+  - already_inside
+  - already_used
+  - reentry_denied
+  - not_inside
+  - wrong_event
+  - wrong_zone
+  - voided
+  - refunded
+  - stale_version
+  - invalid
+  - not_found
+  - not_open_yet
+  - event_cancelled
+  - override_admitted

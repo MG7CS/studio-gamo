@@ -1,0 +1,56 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      needsReview:
+        type: integer
+        minimum: 0
+      headcount:
+        $ref: ./ScannerHeadcount.yaml
+      results:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          properties:
+            clientScanId:
+              type: string
+            result:
+              $ref: ./ScanResult.yaml
+            conflict:
+              $ref: ./ScanConflict.yaml
+            localResult:
+              oneOf:
+                - $ref: ./ScanResult.yaml
+                - type: 'null'
+            needsReview:
+              type: boolean
+            title:
+              type: string
+            message:
+              type: string
+            holder:
+              type:
+                - string
+                - 'null'
+          required:
+            - clientScanId
+            - result
+            - conflict
+            - localResult
+            - needsReview
+            - title
+            - message
+            - holder
+    required:
+      - needsReview
+      - headcount
+      - results
+required:
+  - success
+  - data

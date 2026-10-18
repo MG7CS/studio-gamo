@@ -1,0 +1,19 @@
+type: object
+additionalProperties: false
+properties:
+  eventId:
+    $ref: ../../shared/Identifier.yaml
+  ticketId:
+    type: string
+    minLength: 1
+    maxLength: 64
+  reason:
+    type: string
+    minLength: 3
+    maxLength: 300
+  clientScanId:
+    $ref: ./ClientScanId.yaml
+required:
+  - eventId
+  - ticketId
+  - reason

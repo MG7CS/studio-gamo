@@ -3,8 +3,21 @@
  * dashboard (Agent C, design §5.3, T-09, T-10): the event as the scanner sees it, venue-local day
  * keys, holder initials and small SQL helpers. All instants are epoch seconds (UTC).
  */
+import { isLocalEnvironment, resolveEnvSecret } from '../../security/env-secret.ts';
+import { qrKeyringFromEnv, type QrKeyring } from '../../security/ticket-qr.ts';
 import { allRows, type SqlDatabase, type SqlParam } from '../../security/sql-database.ts';
 import { eventPolicyFromRow, type EventPolicy, type EventPolicyRow } from '../../types/policy.ts';
+
+/**
+ * QR keyring for scanning and door issue: `TICKET_QR_SECRET_GL1…9` from the environment. With
+ * `ENVIRONMENT=local` and no GL1 key, the fixed local development key (`resolveEnvSecret`) so local
+ * scanning works without setup; anywhere else an empty ring makes scanning answer 503.
+ */
+export function scannerKeyring(env: Record<string, unknown>): QrKeyring {
+  const ring = qrKeyringFromEnv(env);
+  if (!ring.GL1 && isLocalEnvironment(env)) ring.GL1 = resolveEnvSecret(env, 'TICKET_QR_SECRET_GL1');
+  return ring;
+}
 
 /** The event fields scanning needs. Times are epoch seconds. */
 export interface ScanEventContext {
