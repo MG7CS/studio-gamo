@@ -32,9 +32,7 @@ if (event?.status !== 'approved') {
 
 const isExternal = Boolean(
   event &&
-    (event.listingType === 'external_discovery' ||
-      event.externalOnly ||
-      event.admissionType === 'external')
+  (event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external'),
 );
 
 if (event && !isExternal && event.admissionType !== 'free') {
@@ -97,7 +95,8 @@ const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
           </h2>
           <p class="text-sm text-[#5C554D] mt-2 leading-relaxed">
             This concert or worship gathering is an independent listing curated by{' '}
-            <strong>{event.publishedByLabel || 'Gamo Live Listings'}</strong>. Gamo Live does not issue tickets or collect RSVPs for this event. Please use the verified link below to continue to{' '}
+            <strong>{event.publishedByLabel || 'Gamo Live Listings'}</strong>. Gamo Live does not issue
+            tickets or collect RSVPs for this event. Please use the verified link below to continue to{' '}
             <strong>{externalDomain || externalProviderLabel}</strong>.
           </p>
 

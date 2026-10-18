@@ -24,13 +24,13 @@ get:
   x-source: apps/admin/src/pages/api/events/pending.ts
   parameters: []
   responses:
-    "200":
+    '200':
       description: Successful response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/administration/PendingResponse.yaml
-    "401":
+    '401':
       description: Middleware denies access
       content:
         text/html:
@@ -43,8 +43,8 @@ get:
         WWW-Authenticate:
           schema:
             type: string
-    "403":
+    '403':
       $ref: ../components/responses/LegacyError.yaml
-    "500":
+    '500':
       $ref: ../components/responses/LegacyError.yaml
   x-internal: true

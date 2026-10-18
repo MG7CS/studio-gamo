@@ -2,7 +2,12 @@ import { createHash } from 'node:crypto';
 
 /** Generate capped responsive widths. Smaller sources keep their native size. */
 export function responsiveWidths(intrinsicWidth, targets) {
-  if (!Number.isInteger(intrinsicWidth) || intrinsicWidth <= 0 || !targets.length || targets.some((w) => !Number.isInteger(w) || w <= 0)) {
+  if (
+    !Number.isInteger(intrinsicWidth) ||
+    intrinsicWidth <= 0 ||
+    !targets.length ||
+    targets.some((w) => !Number.isInteger(w) || w <= 0)
+  ) {
     throw new Error('Image dimensions and target widths must be positive integers');
   }
   const cap = Math.max(...targets);

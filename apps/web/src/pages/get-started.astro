@@ -3,12 +3,33 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import GetStartedRoutes from '../components/organization/GetStartedRoutes.astro';
 ---
-<SiteLayout title="Get Started | Gamo Studios" description="Tell us who you are and we'll point you to the right Gamo Studios program, whether you are a church, musician, student, family or event organizer.">
+
+<SiteLayout
+  title="Get Started | Gamo Studios"
+  description="Tell us who you are and we'll point you to the right Gamo Studios program, whether you are a church, musician, student, family or event organizer."
+>
   <section class="px-5 page-intro-space sm:px-10">
     <div class="mx-auto max-w-[1320px]">
-      <EditorialHeading eyebrow="Get started" title="Where would you" accent="like to begin?" as="h1" size="display" lede="Tell us who you are and we'll point you to the right program." />
+      <EditorialHeading
+        eyebrow="Get started"
+        title="Where would you"
+        accent="like to begin?"
+        as="h1"
+        size="display"
+        lede="Tell us who you are and we'll point you to the right program."
+      />
       <GetStartedRoutes />
-      <p class="mt-10 text-ink-soft">Not sure? <a href="/get-involved" class="font-semibold text-terracotta underline">See every way to get involved</a> or <a href="/contact" class="font-semibold text-terracotta underline">contact us</a>.</p>
+      <p class="mt-10 text-ink-soft">
+        Not sure?{' '}
+        <a href="/get-involved" class="font-semibold text-terracotta underline">
+          See every way to get involved
+        </a>{' '}
+        or{' '}
+        <a href="/contact" class="font-semibold text-terracotta underline">
+          contact us
+        </a>
+        .
+      </p>
     </div>
   </section>
 </SiteLayout>

@@ -4,29 +4,61 @@ import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro'
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 const formats = [
-  { icon: 'users' as const, name: 'Private lessons', text: 'One student, one instructor. Lessons follow your pace, goals and favourite music.', items: ['30, 45 or 60 minutes', 'In person or online', 'Personal practice plan'] },
-  { icon: 'music' as const, name: 'Group classes', text: 'Learn alongside 3–8 others. Encouraging, social and a lower proposed cost per student.', items: ['Weekly sessions', 'Play together early', 'Great for siblings & friends'] },
+  {
+    icon: 'users' as const,
+    name: 'Private lessons',
+    text: 'One student, one instructor. Lessons follow your pace, goals and favourite music.',
+    items: ['30, 45 or 60 minutes', 'In person or online', 'Personal practice plan'],
+  },
+  {
+    icon: 'music' as const,
+    name: 'Group classes',
+    text: 'Learn alongside 3–8 others. Encouraging, social and a lower proposed cost per student.',
+    items: ['Weekly sessions', 'Play together early', 'Great for siblings & friends'],
+  },
 ];
 ---
+
 <section class="px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
     <div class="relative mx-auto w-full max-w-[500px]">
       <div class="mask-arch-sm aspect-[4/5] overflow-hidden">
-        <Photo name="guitarMentor" sizes="(min-width:1024px) 45vw, 100vw" position="40% 50%" class="h-full w-full object-cover" />
+        <Photo
+          name="guitarMentor"
+          sizes="(min-width:1024px) 45vw, 100vw"
+          position="40% 50%"
+          class="h-full w-full object-cover"
+        />
       </div>
-      <p class="absolute -bottom-5 right-4 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream shadow-float sm:right-10">Private or group — you choose</p>
+      <p class="absolute -bottom-5 right-4 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream shadow-float sm:right-10">
+        Private or group — you choose
+      </p>
     </div>
     <div>
-      <EditorialHeading eyebrow="How you learn" title="One-on-one focus" accent="or the joy of a group." lede="Both formats use the same caring instructors and the same step-by-step approach." />
+      <EditorialHeading
+        eyebrow="How you learn"
+        title="One-on-one focus"
+        accent="or the joy of a group."
+        lede="Both formats use the same caring instructors and the same step-by-step approach."
+      />
       <div class="mt-10 space-y-4">
         {formats.map((f) => (
           <article class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-8">
             <div class="flex items-center gap-4">
-              <span class="grid h-12 w-12 place-items-center rounded-2xl bg-cream text-terracotta"><Icon name={f.icon} class="h-6 w-6" /></span>
+              <span class="grid h-12 w-12 place-items-center rounded-2xl bg-cream text-terracotta">
+                <Icon name={f.icon} class="h-6 w-6" />
+              </span>
               <h3 class="text-2xl font-bold tracking-tight">{f.name}</h3>
             </div>
             <p class="mt-4 leading-relaxed text-ink-soft">{f.text}</p>
-            <ul class="mt-4 grid gap-2 text-sm sm:grid-cols-3">{f.items.map((i) => <li class="flex items-center gap-2"><Icon name="check" class="h-4 w-4 text-terracotta" />{i}</li>)}</ul>
+            <ul class="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+              {f.items.map((i) => (
+                <li class="flex items-center gap-2">
+                  <Icon name="check" class="h-4 w-4 text-terracotta" />
+                  {i}
+                </li>
+              ))}
+            </ul>
           </article>
         ))}
       </div>

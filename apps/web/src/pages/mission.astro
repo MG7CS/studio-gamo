@@ -8,13 +8,42 @@ import OurValues from '../components/mission/OurValues.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
-<SiteLayout title="Our Mission | Gamo Studios" description="Helping churches, musicians, students and families grow through music and shared Christian experiences: four connected programs, one developing mission." current="mission">
-  <OrganizationHero eyebrow="Faith expressed through music" title="Music. Worship." accent="Community." body="Helping churches, musicians, students and families grow through music and shared Christian experiences. Four connected programs. One developing mission." photo="sanctuaryCongregation" inset="girlGuitar">
-    <ButtonLink href="#programs" arrow>Explore Our Programs</ButtonLink><ButtonLink href="/get-involved" variant="secondary">Get Involved</ButtonLink>
+
+<SiteLayout
+  title="Our Mission | Gamo Studios"
+  description="Helping churches, musicians, students and families grow through music and shared Christian experiences: four connected programs, one developing mission."
+  current="mission"
+>
+  <OrganizationHero
+    eyebrow="Faith expressed through music"
+    title="Music. Worship."
+    accent="Community."
+    body="Helping churches, musicians, students and families grow through music and shared Christian experiences. Four connected programs. One developing mission."
+    photo="sanctuaryCongregation"
+    inset="girlGuitar"
+  >
+    <ButtonLink href="#programs" arrow>
+      Explore Our Programs
+    </ButtonLink>
+    <ButtonLink href="/get-involved" variant="secondary">
+      Get Involved
+    </ButtonLink>
   </OrganizationHero>
   <WhyWeExist />
   <FourPrograms />
   <WhoWeServe />
   <OurValues />
-  <CtaInvitation eyebrow="Get involved" title="Your gifts can help shape what comes next." body="Churches, musicians, instructors, families, volunteers and organizers each have a practical way to take part as Gamo Studios develops its programs." photo="guitarMentor"><ButtonLink href="/get-involved" arrow>Find your path</ButtonLink><ButtonLink href="/partners" variant="secondary">Explore partnerships</ButtonLink></CtaInvitation>
+  <CtaInvitation
+    eyebrow="Get involved"
+    title="Your gifts can help shape what comes next."
+    body="Churches, musicians, instructors, families, volunteers and organizers each have a practical way to take part as Gamo Studios develops its programs."
+    photo="guitarMentor"
+  >
+    <ButtonLink href="/get-involved" arrow>
+      Find your path
+    </ButtonLink>
+    <ButtonLink href="/partners" variant="secondary">
+      Explore partnerships
+    </ButtonLink>
+  </CtaInvitation>
 </SiteLayout>

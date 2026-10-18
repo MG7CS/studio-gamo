@@ -11,12 +11,12 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
   test('assertStripeTestMode strictly rejects live secret and restricted keys', () => {
     assert.throws(
       () => assertStripeTestMode('sk_live_1234567890abcdef'),
-      /\[Gamo Governance Gate\] Live Stripe keys \(sk_live_ \/ rk_live_\) are strictly prohibited/
+      /\[Gamo Governance Gate\] Live Stripe keys \(sk_live_ \/ rk_live_\) are strictly prohibited/,
     );
 
     assert.throws(
       () => assertStripeTestMode('rk_live_1234567890abcdef'),
-      /\[Gamo Governance Gate\] Live Stripe keys \(sk_live_ \/ rk_live_\) are strictly prohibited/
+      /\[Gamo Governance Gate\] Live Stripe keys \(sk_live_ \/ rk_live_\) are strictly prohibited/,
     );
 
     // Permitted test keys
@@ -103,7 +103,7 @@ describe('Cryptographic Stripe Webhook Signature Verification', () => {
       encoder.encode(secretKey),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
     const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadToSign));
     const hex = Array.from(new Uint8Array(signatureBuffer))
@@ -150,7 +150,7 @@ describe('Cryptographic Stripe Webhook Signature Verification', () => {
       samplePayload,
       signatureHeader,
       secret,
-      300 // 5 minute tolerance
+      300, // 5 minute tolerance
     );
     assert.equal(result.valid, false);
     assert.equal(result.error, 'Webhook signature timestamp outside tolerance window');

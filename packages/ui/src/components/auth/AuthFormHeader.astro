@@ -8,12 +8,7 @@ interface Props {
   maskedEmailPlaceholder?: string;
 }
 
-const {
-  mode,
-  heading,
-  subtext,
-  maskedEmailPlaceholder = 'you@example.com',
-} = Astro.props;
+const { mode, heading, subtext, maskedEmailPlaceholder = 'you@example.com' } = Astro.props;
 ---
 
 <header class="mb-6 lg:mb-7">
@@ -23,10 +18,7 @@ const {
   >
     {heading}
   </h1>
-  <p
-    data-auth-subtext
-    class="mt-2 text-[15px] leading-relaxed text-[#6E655E]"
-  >
+  <p data-auth-subtext class="mt-2 text-[15px] leading-relaxed text-[#6E655E]">
     {subtext}
   </p>
   <p

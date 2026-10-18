@@ -38,10 +38,7 @@ export const POST: APIRoute = async (context) => {
     const validated = registerAttendeeSchema.parse(body);
 
     // 1. Process free registration in D1 (trigger atomically reserves capacity and inserts notification_jobs row)
-    const { registration, isDuplicate } = await liveService.registerFreeAttendee(
-      eventId,
-      validated
-    );
+    const { registration, isDuplicate } = await liveService.registerFreeAttendee(eventId, validated);
 
     let message = 'Registration request received.';
     if (!isDuplicate) {
@@ -61,7 +58,7 @@ export const POST: APIRoute = async (context) => {
         isDuplicate,
         message,
       },
-      isDuplicate ? 200 : 201
+      isDuplicate ? 200 : 201,
     );
   } catch (err) {
     return handleApiError(err);

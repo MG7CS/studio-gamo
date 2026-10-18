@@ -58,6 +58,7 @@ const tablePayload = JSON.stringify({
   rows: serializedRows,
 });
 ---
+
 <div data-table data-table-payload={tablePayload}>
   {showToolbar && (
     <div class="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
@@ -65,14 +66,28 @@ const tablePayload = JSON.stringify({
         {showSearch && (
           <label class="relative block w-full sm:w-64">
             <span class="sr-only">Filter {caption.toLowerCase()}</span>
-            <Icon name="filter" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
-            <input type="search" data-table-filter placeholder="Filter records..." class="h-9 w-full rounded-lg border border-sand bg-ivory pl-9 pr-3 text-[13px]" />
+            <Icon
+              name="filter"
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft"
+            />
+            <input
+              type="search"
+              data-table-filter
+              placeholder="Filter records..."
+              class="h-9 w-full rounded-lg border border-sand bg-ivory pl-9 pr-3 text-[13px]"
+            />
           </label>
         )}
         {filterOptions.length > 0 && (
           <div class="flex flex-wrap gap-1.5" role="group" aria-label="Status filter">
-            <button type="button" data-table-chip data-value="" aria-pressed="true" class="chip">All</button>
-            {filterOptions.map((o) => <button type="button" data-table-chip data-value={o} aria-pressed="false" class="chip">{o}</button>)}
+            <button type="button" data-table-chip data-value="" aria-pressed="true" class="chip">
+              All
+            </button>
+            {filterOptions.map((o) => (
+              <button type="button" data-table-chip data-value={o} aria-pressed="false" class="chip">
+                {o}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -105,16 +120,37 @@ const tablePayload = JSON.stringify({
       <caption class="sr-only">{caption}</caption>
       <thead>
         <tr class="border-b border-sand text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
-          {columns.map((c) => <th scope="col" class="whitespace-nowrap px-3 py-2.5 first:pl-0 last:pr-0">{c.label}</th>)}
-          {rowAction && <th scope="col" class="whitespace-nowrap px-3 py-2.5 text-right last:pr-0">Control</th>}
+          {columns.map((c) => (
+            <th scope="col" class="whitespace-nowrap px-3 py-2.5 first:pl-0 last:pr-0">
+              {c.label}
+            </th>
+          ))}
+          {rowAction && (
+            <th scope="col" class="whitespace-nowrap px-3 py-2.5 text-right last:pr-0">
+              Control
+            </th>
+          )}
         </tr>
       </thead>
       <tbody>
         {rows.map((r, i) => (
-          <tr data-row data-key={i} data-filter={fval(r)} class="border-b border-sand/60 last:border-0 hover:bg-ivory">
-            {columns.map((c) => c === primary
-              ? <th scope="row" class="px-3 py-3 font-semibold first:pl-0"><CellValue value={r[c.key]} /></th>
-              : <td class="px-3 py-3 align-middle text-charcoal/85 last:pr-0"><CellValue value={r[c.key]} /></td>)}
+          <tr
+            data-row
+            data-key={i}
+            data-filter={fval(r)}
+            class="border-b border-sand/60 last:border-0 hover:bg-ivory"
+          >
+            {columns.map((c) =>
+              c === primary ? (
+                <th scope="row" class="px-3 py-3 font-semibold first:pl-0">
+                  <CellValue value={r[c.key]} />
+                </th>
+              ) : (
+                <td class="px-3 py-3 align-middle text-charcoal/85 last:pr-0">
+                  <CellValue value={r[c.key]} />
+                </td>
+              ),
+            )}
             {rowAction && (
               <td class="px-3 py-3 text-right align-middle last:pr-0">
                 <button
@@ -130,7 +166,11 @@ const tablePayload = JSON.stringify({
             )}
           </tr>
         ))}
-        <tr data-table-empty hidden><td colspan={columns.length + (rowAction ? 1 : 0)} class="py-8 text-center text-ink-soft">{emptyText}</td></tr>
+        <tr data-table-empty hidden>
+          <td colspan={columns.length + (rowAction ? 1 : 0)} class="py-8 text-center text-ink-soft">
+            {emptyText}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -138,7 +178,9 @@ const tablePayload = JSON.stringify({
     {rows.map((r, i) => (
       <li data-row data-key={i} data-filter={fval(r)} class="rounded-xl border border-sand/80 bg-ivory p-3.5">
         <div class="flex items-start justify-between gap-2">
-          <p class="text-[15px] font-semibold"><CellValue value={r[primary.key]} /></p>
+          <p class="text-[15px] font-semibold">
+            <CellValue value={r[primary.key]} />
+          </p>
           {rowAction && (
             <button
               type="button"
@@ -152,15 +194,31 @@ const tablePayload = JSON.stringify({
           )}
         </div>
         <dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
-          {rest.map((c) => <div class="min-w-0"><dt class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{c.label}</dt><dd class="mt-0.5 break-words text-[13px]"><CellValue value={r[c.key]} /></dd></div>)}
+          {rest.map((c) => (
+            <div class="min-w-0">
+              <dt class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{c.label}</dt>
+              <dd class="mt-0.5 break-words text-[13px]">
+                <CellValue value={r[c.key]} />
+              </dd>
+            </div>
+          ))}
         </dl>
       </li>
     ))}
-    <li data-table-empty hidden class="py-6 text-center text-ink-soft">{emptyText}</li>
+    <li data-table-empty hidden class="py-6 text-center text-ink-soft">
+      {emptyText}
+    </li>
   </ul>
   <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-    <p class="text-[12px] text-ink-soft" data-table-count aria-live="polite">{rows.length} of {rows.length} records</p>
-    <p class="text-[12px] font-medium text-terracotta-dark" data-table-export-status aria-live="polite" hidden></p>
+    <p class="text-[12px] text-ink-soft" data-table-count aria-live="polite">
+      {rows.length} of {rows.length} records
+    </p>
+    <p
+      class="text-[12px] font-medium text-terracotta-dark"
+      data-table-export-status
+      aria-live="polite"
+      hidden
+    ></p>
   </div>
 </div>
 <style>
@@ -173,9 +231,21 @@ const tablePayload = JSON.stringify({
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
   }
-  .chip:hover { border-color: var(--color-charcoal); }
-  .chip[aria-pressed='true'] { background: var(--color-charcoal); border-color: var(--color-charcoal); color: var(--color-cream); }
-  .chip:focus-visible { outline: 2px solid var(--color-terracotta); outline-offset: 2px; }
+  .chip:hover {
+    border-color: var(--color-charcoal);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--color-charcoal);
+    border-color: var(--color-charcoal);
+    color: var(--color-cream);
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--color-terracotta);
+    outline-offset: 2px;
+  }
 </style>

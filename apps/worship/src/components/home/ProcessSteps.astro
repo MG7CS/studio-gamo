@@ -1,14 +1,25 @@
 ---
 /** Reusable numbered process: oversized numerals in an editorial staggered layout. */
 import type { Step } from '../../data/worship';
-interface Props { steps: Step[]; tone?: 'light' | 'dark' }
+interface Props {
+  steps: Step[];
+  tone?: 'light' | 'dark';
+}
 const { steps, tone = 'light' } = Astro.props;
 const dark = tone === 'dark';
 ---
+
 <ol class="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4" data-reveal>
   {steps.map((s, i) => (
     <li class:list={['border-t pt-6', dark ? 'border-cream/20' : 'border-sand', i % 2 === 1 && 'lg:mt-16']}>
-      <span class:list={['block text-6xl font-semibold tracking-tighter', dark ? 'text-gold' : 'text-terracotta/80']}>{String(i + 1).padStart(2, '0')}</span>
+      <span
+        class:list={[
+          'block text-6xl font-semibold tracking-tighter',
+          dark ? 'text-gold' : 'text-terracotta/80',
+        ]}
+      >
+        {String(i + 1).padStart(2, '0')}
+      </span>
       <h3 class:list={['mt-4 text-xl font-semibold', dark ? 'text-cream' : 'text-charcoal']}>{s.title}</h3>
       <p class:list={['mt-2 leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>{s.body}</p>
     </li>

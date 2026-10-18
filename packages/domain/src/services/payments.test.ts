@@ -14,13 +14,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { eq } from 'drizzle-orm';
-import {
-  createDb,
-  type GamoDatabase,
-  stripeWebhookEvents,
-  paymentRecords,
-  ledgerEntries,
-} from '@gamo/db';
+import { createDb, type GamoDatabase, stripeWebhookEvents, paymentRecords, ledgerEntries } from '@gamo/db';
 import { PaymentService } from './payments.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,10 +46,7 @@ describe('PaymentService & Durable D1 Webhook Idempotency', () => {
     assert.equal(firstDelivery.isDuplicate, false);
 
     // Verify stored in D1
-    const [stored] = await db
-      .select()
-      .from(stripeWebhookEvents)
-      .where(eq(stripeWebhookEvents.id, eventId));
+    const [stored] = await db.select().from(stripeWebhookEvents).where(eq(stripeWebhookEvents.id, eventId));
     assert.ok(stored !== undefined);
     assert.equal(stored.eventType, eventType);
     assert.equal(stored.status, 'ignored');
@@ -81,10 +72,7 @@ describe('PaymentService & Durable D1 Webhook Idempotency', () => {
     assert.equal(payment.status, 'succeeded');
     assert.equal(payment.customerEmail, 'donor@example.org');
 
-    const [dbRecord] = await db
-      .select()
-      .from(paymentRecords)
-      .where(eq(paymentRecords.id, payment.id));
+    const [dbRecord] = await db.select().from(paymentRecords).where(eq(paymentRecords.id, payment.id));
     assert.ok(dbRecord !== undefined);
     assert.equal(dbRecord.sessionId, 'cs_test_session_999');
   });
@@ -108,10 +96,7 @@ describe('PaymentService & Durable D1 Webhook Idempotency', () => {
 
     assert.equal(entryIds.length, 3);
 
-    const rows = await db
-      .select()
-      .from(ledgerEntries)
-      .where(eq(ledgerEntries.sourceId, eventId));
+    const rows = await db.select().from(ledgerEntries).where(eq(ledgerEntries.sourceId, eventId));
 
     assert.equal(rows.length, 3);
 

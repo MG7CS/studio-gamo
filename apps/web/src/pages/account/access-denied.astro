@@ -4,4 +4,5 @@ import AuthPage from '../../components/account/AuthPage.astro';
 import { authScreens } from '../../data/account-entry';
 Astro.response.status = 403;
 ---
+
 <AuthPage screen={authScreens.denied} />

@@ -4,16 +4,22 @@ import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro'
 import InstructorCard from '../shared/InstructorCard.astro';
 import { instructors } from '../../data/instructors';
 ---
+
 <section class="bg-ivory px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto max-w-[1320px]">
     <div class="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-end">
       <EditorialHeading eyebrow="Music instructors" title="Teachers who care" accent="how you grow." />
       <div>
-        <p class="text-lg leading-relaxed text-ink-soft">Every Gamo Academy instructor goes through an application, teaching interview, and background review before teaching students.</p>
+        <p class="text-lg leading-relaxed text-ink-soft">
+          Every Gamo Academy instructor goes through an application, teaching interview, and background review
+          before teaching students.
+        </p>
       </div>
     </div>
     <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {instructors.map((t, i) => <InstructorCard instructor={t} class={i % 2 ? 'lg:translate-y-8' : ''} />)}
+      {instructors.map((t, i) => (
+        <InstructorCard instructor={t} class={i % 2 ? 'lg:translate-y-8' : ''} />
+      ))}
     </div>
   </div>
 </section>

@@ -18,7 +18,10 @@ const INK = '#18181B';
 const CREAM = '#F9F6F0';
 const APPS = ['web', 'worship', 'academy', 'live', 'production'];
 
-const logoSvg = readFileSync(join(root, 'design-reference/branding/svg/gamo-studios-horizontal-primary-cropped.svg'), 'utf8');
+const logoSvg = readFileSync(
+  join(root, 'design-reference/branding/svg/gamo-studios-horizontal-primary-cropped.svg'),
+  'utf8',
+);
 const logoDataUri = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString('base64')}`;
 const fontDataUri = `data:font/ttf;base64,${readFileSync(join(root, 'scripts/assets/Inter-SemiBold.ttf')).toString('base64')}`;
 const LOGO_RATIO = 1008.4 / 176;
@@ -53,16 +56,19 @@ await browser.close();
 // 512x512: wordmark centred on cream with generous padding.
 const logoWidth = 400;
 const logoHeight = Math.round(logoWidth / LOGO_RATIO);
-const wordmark = await sharp(Buffer.from(logoSvg), { density: 600 }).resize(logoWidth, logoHeight).png().toBuffer();
+const wordmark = await sharp(Buffer.from(logoSvg), { density: 600 })
+  .resize(logoWidth, logoHeight)
+  .png()
+  .toBuffer();
 const logo512 = await sharp({ create: { width: 512, height: 512, channels: 4, background: CREAM } })
-	.composite([{ input: wordmark, left: (512 - logoWidth) / 2, top: Math.round((512 - logoHeight) / 2) }])
-	.png({ compressionLevel: 9 })
-	.toBuffer();
+  .composite([{ input: wordmark, left: (512 - logoWidth) / 2, top: Math.round((512 - logoHeight) / 2) }])
+  .png({ compressionLevel: 9 })
+  .toBuffer();
 
 for (const app of APPS) {
-	const dir = join(root, 'apps', app, 'public');
-	mkdirSync(dir, { recursive: true });
-	writeFileSync(join(dir, 'og-image.png'), og);
-	writeFileSync(join(dir, 'logo-512.png'), logo512);
+  const dir = join(root, 'apps', app, 'public');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'og-image.png'), og);
+  writeFileSync(join(dir, 'logo-512.png'), logo512);
 }
 console.log(`Wrote og-image.png (1200x630) and logo-512.png (512x512) to ${APPS.length} apps.`);

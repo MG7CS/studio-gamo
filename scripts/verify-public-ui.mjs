@@ -2,7 +2,20 @@ import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
-const routes = ['/', '/mission', '/get-involved', '/partners', '/partners/interest', '/support', '/contact', '/faq', '/legal', '/signin', '/get-started', '/preview/hero-2026'];
+const routes = [
+  '/',
+  '/mission',
+  '/get-involved',
+  '/partners',
+  '/partners/interest',
+  '/support',
+  '/contact',
+  '/faq',
+  '/legal',
+  '/signin',
+  '/get-started',
+  '/preview/hero-2026',
+];
 const widths = [390, 768, 1024, 1440, 1920];
 const output = 'docs/screenshots/2026-refresh/web';
 await fs.mkdir(output, { recursive: true });
@@ -11,7 +24,9 @@ const context = await browser.newContext({ reducedMotion: 'reduce' });
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', (error) => errors.push(error.message));
-page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+page.on('console', (message) => {
+  if (message.type() === 'error') errors.push(message.text());
+});
 const links = new Set();
 const checks = [];
 try {
@@ -23,13 +38,19 @@ try {
       const state = await page.evaluate(async () => {
         for (const image of document.querySelectorAll('img')) {
           image.loading = 'eager';
-          try { await image.decode(); } catch { /* reported below */ }
+          try {
+            await image.decode();
+          } catch {
+            /* reported below */
+          }
         }
         return {
           title: document.title,
           h1: document.querySelectorAll('main h1').length,
           overflow: document.documentElement.scrollWidth > innerWidth + 1,
-          broken: [...document.querySelectorAll('img')].filter((image) => !image.complete || !image.naturalWidth).map((image) => image.currentSrc),
+          broken: [...document.querySelectorAll('img')]
+            .filter((image) => !image.complete || !image.naturalWidth)
+            .map((image) => image.currentSrc),
           links: [...document.querySelectorAll('a[href]')].map((a) => a.href),
         };
       });
@@ -39,13 +60,19 @@ try {
       await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
       state.links.forEach((href) => links.add(href));
       checks.push({ route, width, title: state.title, status: 'passed' });
-      if (width === 390 || width === 1440) await page.screenshot({ path: `${output}/${route === '/' ? 'home' : route.slice(1).replaceAll('/', '-')}-${width}.png`, fullPage: true });
+      if (width === 390 || width === 1440)
+        await page.screenshot({
+          path: `${output}/${route === '/' ? 'home' : route.slice(1).replaceAll('/', '-')}-${width}.png`,
+          fullPage: true,
+        });
     }
   }
   // Negative validation, positive local preview, clearing and zero transmission.
   await page.goto('http://localhost:4321/contact');
   let transmitted = 0;
-  page.on('request', (request) => { if (request.method() === 'POST') transmitted++; });
+  page.on('request', (request) => {
+    if (request.method() === 'POST') transmitted++;
+  });
   await page.getByRole('button', { name: 'Send inquiry', exact: true }).click();
   assert.equal(await page.locator('[data-inquiry-result]').isVisible(), false);
   await page.getByLabel('Your name').fill('Grace Visitor');
@@ -83,7 +110,26 @@ try {
   }
   assert.deepEqual(badLinks, [], 'all linked local destinations');
   assert.deepEqual(errors, [], 'console and uncaught errors');
-  const report = { checks, linksChecked: links.size, interactions: ['empty fields', 'invalid email', 'local inquiry preview', 'zero POST requests', 'clear details', 'mobile menu Escape', 'FAQ expansion', 'no-JS form disabled'], errors, badLinks };
+  const report = {
+    checks,
+    linksChecked: links.size,
+    interactions: [
+      'empty fields',
+      'invalid email',
+      'local inquiry preview',
+      'zero POST requests',
+      'clear details',
+      'mobile menu Escape',
+      'FAQ expansion',
+      'no-JS form disabled',
+    ],
+    errors,
+    badLinks,
+  };
   await fs.writeFile(`${output}/verification.json`, JSON.stringify(report, null, 2) + '\n');
-  console.log(`Passed ${checks.length} responsive route checks and 8 interaction checks; ${links.size} links inspected.`);
-} finally { await browser.close(); }
+  console.log(
+    `Passed ${checks.length} responsive route checks and 8 interaction checks; ${links.size} links inspected.`,
+  );
+} finally {
+  await browser.close();
+}

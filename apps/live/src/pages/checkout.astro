@@ -3,4 +3,17 @@ import Layout from '../layouts/Layout.astro';
 import PageHeader from '../components/shared/PageHeader.astro';
 import JourneyPanel from '../components/shared/JourneyPanel.astro';
 ---
-<Layout title="Ticket purchases"><PageHeader eyebrow="Ticket purchases" title="Paid checkout is not available yet." lede="No payment has been collected. Paid ticketing will open only after the required release approvals." /><JourneyPanel title="Find your next gathering" body="Browse published events for current attendance and registration details." href="/events" label="Explore events" /></Layout>
+
+<Layout title="Ticket purchases">
+  <PageHeader
+    eyebrow="Ticket purchases"
+    title="Paid checkout is not available yet."
+    lede="No payment has been collected. Paid ticketing will open only after the required release approvals."
+  />
+  <JourneyPanel
+    title="Find your next gathering"
+    body="Browse published events for current attendance and registration details."
+    href="/events"
+    label="Explore events"
+  />
+</Layout>

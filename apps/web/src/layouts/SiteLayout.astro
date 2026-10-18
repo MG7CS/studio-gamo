@@ -28,7 +28,19 @@ const {
   jsonLd,
 } = Astro.props;
 ---
-<BaseLayout title={title} description={description} current={current} headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome} ogImage={ogImage} ogType={ogType} noindex={noindex} jsonLd={jsonLd}>
+
+<BaseLayout
+  title={title}
+  description={description}
+  current={current}
+  headerTheme={headerTheme}
+  bodyClass={bodyClass}
+  chrome={chrome}
+  ogImage={ogImage}
+  ogType={ogType}
+  noindex={noindex}
+  jsonLd={jsonLd}
+>
   <slot name="head" slot="head" />
   <slot />
 </BaseLayout>

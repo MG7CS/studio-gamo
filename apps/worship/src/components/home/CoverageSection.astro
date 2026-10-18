@@ -11,21 +11,49 @@ const timeline = [
   { t: 'Sun 7:30', label: 'Primary checks in at the church', done: false },
 ];
 ---
+
 <section class="bg-cream section-space" aria-labelledby="coverage-title">
   <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-8 lg:grid-cols-2">
     <div>
-      <EditorialHeading id="coverage-title" eyebrow="Primary & standby" title="A plan for the Sunday" accent="nobody expected." lede="Illness and emergencies happen. Where local availability allows, a standby musician receives the same preparation so the congregation can still worship without disruption." />
-      <p class="mt-6 rounded-2xl border border-sand bg-white/70 p-4 text-sm text-ink-soft">Standby support is a goal of the program, not a guarantee. Coverage will depend on the musicians available in each area.</p>
+      <EditorialHeading
+        id="coverage-title"
+        eyebrow="Primary & standby"
+        title="A plan for the Sunday"
+        accent="nobody expected."
+        lede="Illness and emergencies happen. Where local availability allows, a standby musician receives the same preparation so the congregation can still worship without disruption."
+      />
+      <p class="mt-6 rounded-2xl border border-sand bg-white/70 p-4 text-sm text-ink-soft">
+        Standby support is a goal of the program, not a guarantee. Coverage will depend on the musicians
+        available in each area.
+      </p>
     </div>
     <div class="relative">
-      <div class="aspect-[4/3] overflow-hidden rounded-[2.5rem] rounded-tl-[10rem]"><Photo name="worshipBand" sizes="(min-width:1024px) 45vw, 100vw" position="55% 40%" /></div>
-      <div class="relative -mt-20 ml-auto w-[92%] rounded-3xl border border-sand bg-white p-6 shadow-float sm:w-80 lg:absolute lg:-bottom-10 lg:-left-8 lg:mt-0" data-reveal>
-        <div class="flex items-center justify-between"><p class="font-semibold">Keys coverage</p><StatusPill kind="verified">Active</StatusPill></div>
+      <div class="aspect-[4/3] overflow-hidden rounded-[2.5rem] rounded-tl-[10rem]">
+        <Photo name="worshipBand" sizes="(min-width:1024px) 45vw, 100vw" position="55% 40%" />
+      </div>
+      <div
+        class="relative -mt-20 ml-auto w-[92%] rounded-3xl border border-sand bg-white p-6 shadow-float sm:w-80 lg:absolute lg:-bottom-10 lg:-left-8 lg:mt-0"
+        data-reveal
+      >
+        <div class="flex items-center justify-between">
+          <p class="font-semibold">Keys coverage</p>
+          <StatusPill kind="verified">Active</StatusPill>
+        </div>
         <ol class="mt-4 space-y-3">
           {timeline.map((s) => (
             <li class="flex gap-3 text-sm">
-              <span class:list={['mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full', s.done ? 'bg-terracotta text-white' : 'border border-sand']}>{s.done && <Icon name="check" class="h-3 w-3" />}</span>
-              <span><span class="font-semibold text-charcoal">{s.t}</span> · <span class="text-ink-soft">{s.label}</span></span>
+              <span
+                class:list={[
+                  'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full',
+                  s.done ? 'bg-terracotta text-white' : 'border border-sand',
+                ]}
+              >
+                {s.done && <Icon name="check" class="h-3 w-3" />}
+              </span>
+              <span>
+                <span class="font-semibold text-charcoal">{s.t}</span> ·{' '}
+                <span class="text-ink-soft">{s.label}</span>
+              </span>
             </li>
           ))}
         </ol>

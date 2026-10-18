@@ -43,7 +43,7 @@ export const POST: APIRoute = async (context) => {
         accessSubject: provisioned.accessSubject,
         message: `Staff identity provisioned with role ${provisioned.role}.`,
       },
-      200
+      200,
     );
   } catch (err) {
     return handleApiError(err);

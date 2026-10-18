@@ -33,8 +33,7 @@ properties:
   weekend:
     type: string
     enum:
-      - "true"
-      - "false"
-      - "1"
-      - "0"
-
+      - 'true'
+      - 'false'
+      - '1'
+      - '0'

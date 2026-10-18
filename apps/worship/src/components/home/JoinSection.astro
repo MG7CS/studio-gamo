@@ -1,14 +1,29 @@
 ---
 /** Joining the musician collection: shared rounded-edge EditorialFeatureCard with arch photo. */
-import EditorialFeatureCard, { type EditorialFeaturePoint } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+import EditorialFeatureCard, {
+  type EditorialFeaturePoint,
+} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const values: EditorialFeaturePoint[] = [
-  { icon: 'heart', title: 'Faith and character first', body: 'Every musician is reviewed for musical readiness, humility, and care for the local church.' },
-  { icon: 'shield', title: 'Prepared, punctual, teachable', body: 'Clear chord charts, rehearsal expectations, and reliable communication with worship leaders.' },
-  { icon: 'music', title: 'Transparent, fair pay on its own line', body: 'Musician compensation and any proposed Gamo administrative allocation are always shown separately.' },
+  {
+    icon: 'heart',
+    title: 'Faith and character first',
+    body: 'Every musician is reviewed for musical readiness, humility, and care for the local church.',
+  },
+  {
+    icon: 'shield',
+    title: 'Prepared, punctual, teachable',
+    body: 'Clear chord charts, rehearsal expectations, and reliable communication with worship leaders.',
+  },
+  {
+    icon: 'music',
+    title: 'Transparent, fair pay on its own line',
+    body: 'Musician compensation and any proposed Gamo administrative allocation are always shown separately.',
+  },
 ];
 ---
+
 <EditorialFeatureCard
   eyebrow="The musician collection"
   pillText="Reviewed musician network"
@@ -22,6 +37,10 @@ const values: EditorialFeaturePoint[] = [
   caption="Choose the services and schedules you accept"
   tone="sand"
 >
-  <ButtonLink href="/apply" arrow>Start an application</ButtonLink>
-  <ButtonLink href="/opportunities" variant="secondary">Browse opportunities</ButtonLink>
+  <ButtonLink href="/apply" arrow>
+    Start an application
+  </ButtonLink>
+  <ButtonLink href="/opportunities" variant="secondary">
+    Browse opportunities
+  </ButtonLink>
 </EditorialFeatureCard>

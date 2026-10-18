@@ -3,22 +3,46 @@
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const phases = [
-  { when: '8 weeks out', what: 'Vision & scope', detail: 'Clarify the gathering, room and expected attendance.' },
-  { when: '4 weeks out', what: 'Stage plot & input list', detail: 'Map instruments, microphones and staffing needs.' },
+  {
+    when: '8 weeks out',
+    what: 'Vision & scope',
+    detail: 'Clarify the gathering, room and expected attendance.',
+  },
+  {
+    when: '4 weeks out',
+    what: 'Stage plot & input list',
+    detail: 'Map instruments, microphones and staffing needs.',
+  },
   { when: 'Event week', what: 'Rehearsal & run-of-show', detail: 'Time changeovers and confirm every cue.' },
   { when: 'After', what: 'Debrief', detail: 'Capture lessons for the next event.' },
 ];
 ---
-<section class="relative overflow-hidden bg-night section-space text-cream" aria-labelledby="events-title" data-surface="dark" data-reveal>
+
+<section
+  class="relative overflow-hidden bg-night section-space text-cream"
+  aria-labelledby="events-title"
+  data-surface="dark"
+  data-reveal
+>
   <div class="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
-    <Photo name="worshipNight" sizes="(min-width:1024px) 50vw, 0px" class="h-full w-full object-cover opacity-60" alt="" />
+    <Photo
+      name="worshipNight"
+      sizes="(min-width:1024px) 50vw, 0px"
+      class="h-full w-full object-cover opacity-60"
+      alt=""
+    />
     <div class="absolute inset-0 bg-gradient-to-r from-night via-night/40 to-transparent"></div>
   </div>
   <div class="relative mx-auto max-w-7xl px-5 md:px-8">
     <div class="max-w-xl">
       <p class="eyebrow text-gold">06 · Event production support</p>
-      <h2 id="events-title" class="section-heading mt-4 text-cream">Christmas, Easter and worship nights — planned calmly.</h2>
-      <p class="mt-5 text-lg text-cream/75">Planning help for special services and conferences, so the team is prepared long before the doors open.</p>
+      <h2 id="events-title" class="section-heading mt-4 text-cream">
+        Christmas, Easter and worship nights — planned calmly.
+      </h2>
+      <p class="mt-5 text-lg text-cream/75">
+        Planning help for special services and conferences, so the team is prepared long before the doors
+        open.
+      </p>
     </div>
     <div class="mt-8 aspect-[16/10] overflow-hidden rounded-[2rem] lg:hidden">
       <Photo name="worshipNight" sizes="100vw" class="h-full w-full object-cover" />
@@ -33,6 +57,8 @@ const phases = [
         </li>
       ))}
     </ol>
-    <ButtonLink href="/services/event-support" variant="ghost-dark" arrow class="mt-10">Event support details</ButtonLink>
+    <ButtonLink href="/services/event-support" variant="ghost-dark" arrow class="mt-10">
+      Event support details
+    </ButtonLink>
   </div>
 </section>

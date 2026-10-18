@@ -22,7 +22,7 @@ try {
          FROM events e
          LEFT JOIN organizations o ON o.id = e.organization_id
          ORDER BY e.created_at DESC
-         LIMIT 5`
+         LIMIT 5`,
       ).all<{
         title: string;
         category: string;
@@ -49,8 +49,14 @@ try {
               day: 'numeric',
               year: 'numeric',
             }),
-            admission: b(ev.admission_type === 'free' ? 'Free RSVP' : 'Ticketed', ev.admission_type === 'free' ? 'free' : 'paid'),
-            status: b(ev.status === 'approved' ? 'Approved' : 'Submitted', ev.status === 'approved' ? 'verified' : 'info'),
+            admission: b(
+              ev.admission_type === 'free' ? 'Free RSVP' : 'Ticketed',
+              ev.admission_type === 'free' ? 'free' : 'paid',
+            ),
+            status: b(
+              ev.status === 'approved' ? 'Approved' : 'Submitted',
+              ev.status === 'approved' ? 'verified' : 'info',
+            ),
           }));
           tableBlock.rows = [...liveRows, ...tableBlock.rows];
         }
@@ -61,4 +67,5 @@ try {
   // Gracefully fall back to workspace dataset when D1 is not bound or table is empty
 }
 ---
+
 <WorkspaceScreen workspace={workspace} slug={Astro.params.slug} />

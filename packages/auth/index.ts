@@ -99,7 +99,6 @@ export interface CookieOptions {
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const DEFAULT_COOKIE_NAME = '__session';
 
-
 /**
  * Signs a payload with HMAC-SHA256 using Web Crypto API.
  */
@@ -111,7 +110,7 @@ export async function signValue(value: string, secret?: string): Promise<string>
     encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign']
+    ['sign'],
   );
 
   const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
@@ -170,7 +169,7 @@ export async function createSession(
   db: GamoDatabase,
   userId: string,
   secret?: string,
-  options?: SessionOptions
+  options?: SessionOptions,
 ): Promise<{ sessionId: string; cookieValue: string; expiresAt: Date }> {
   if (!secret || secret.length < 32) throw new Error('Session signing secret unavailable.');
   const sessionId = generateSessionId();
@@ -218,7 +217,7 @@ export async function createSession(
 export async function validateSession(
   db: GamoDatabase,
   cookieValue: string | undefined | null,
-  secret?: string
+  secret?: string,
 ): Promise<SessionData | null> {
   if (!cookieValue) return null;
 
@@ -231,13 +230,7 @@ export async function validateSession(
   const [sessionRecord] = await db
     .select()
     .from(sessions)
-    .where(
-      and(
-        eq(sessions.id, sessionId),
-        gt(sessions.expiresAt, now),
-        isNull(sessions.revokedAt)
-      )
-    )
+    .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now), isNull(sessions.revokedAt)))
     .limit(1);
 
   if (!sessionRecord) return null;
@@ -290,8 +283,8 @@ export async function validateSession(
       and(
         eq(organizationMembers.userId, userRecord.id),
         eq(organizationMembers.status, 'active'),
-        eq(organizations.status, 'active')
-      )
+        eq(organizations.status, 'active'),
+      ),
     );
 
   return {
@@ -316,30 +309,20 @@ export async function validateSession(
  * Revokes a single session.
  */
 export async function revokeSession(db: GamoDatabase, sessionId: string): Promise<void> {
-  await db
-    .update(sessions)
-    .set({ revokedAt: new Date() })
-    .where(eq(sessions.id, sessionId));
+  await db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, sessionId));
 }
 
 /**
  * Revokes all active sessions for a user (e.g. security credential reset).
  */
 export async function revokeAllUserSessions(db: GamoDatabase, userId: string): Promise<void> {
-  await db
-    .update(sessions)
-    .set({ revokedAt: new Date() })
-    .where(eq(sessions.userId, userId));
+  await db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.userId, userId));
 }
 
 /**
  * Serializes the session cookie header.
  */
-export function buildSessionCookie(
-  cookieValue: string,
-  expiresAt: Date,
-  options?: CookieOptions
-): string {
+export function buildSessionCookie(cookieValue: string, expiresAt: Date, options?: CookieOptions): string {
   const parts = [
     `${DEFAULT_COOKIE_NAME}=${encodeURIComponent(cookieValue)}`,
     `Expires=${expiresAt.toUTCString()}`,
@@ -393,7 +376,11 @@ export function extractSessionCookie(request: Request): string | null {
   for (const cookie of cookies) {
     const [name, ...val] = cookie.trim().split('=');
     if (name === DEFAULT_COOKIE_NAME) {
-      try { return decodeURIComponent(val.join('=')); } catch { return null; }
+      try {
+        return decodeURIComponent(val.join('='));
+      } catch {
+        return null;
+      }
     }
   }
   return null;
@@ -410,7 +397,7 @@ export class AuthError extends Error {
   constructor(
     code: 'UNAUTHENTICATED' | 'FORBIDDEN' | 'ORGANIZATION_FORBIDDEN',
     message: string,
-    status: number = 401
+    status: number = 401,
   ) {
     super(message);
     this.name = 'AuthError';
@@ -432,20 +419,14 @@ export function hasSystemRole(auth: SessionData | null | undefined, role: string
  */
 export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
   if (!auth) return false;
-  return (
-    auth.roles.includes('superadmin') ||
-    auth.roles.includes('staff_reviewer')
-  );
+  return auth.roles.includes('superadmin') || auth.roles.includes('staff_reviewer');
 }
 
 /**
  * Checks if the authenticated session has product membership and session scope for a specific Gamo product.
  * Sharing authentication infrastructure does not grant automatic cross-product access.
  */
-export function hasProductAccess(
-  auth: SessionData | null | undefined,
-  product: ProductKey
-): boolean {
+export function hasProductAccess(auth: SessionData | null | undefined, product: ProductKey): boolean {
   if (!auth || !auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
   if (auth.roles.includes('superadmin')) return true;
 
@@ -468,7 +449,7 @@ export function hasProductAccess(
 export function hasOrgRole(
   auth: SessionData | null | undefined,
   organizationId: string,
-  allowedRoles: string[] = ['owner', 'admin', 'member']
+  allowedRoles: string[] = ['owner', 'admin', 'member'],
 ): boolean {
   if (!auth) return false;
   if (auth.roles.includes('superadmin')) return true; // Superadmins have global tenant override
@@ -485,11 +466,18 @@ function inferProductFromRequest(request: Request, explicitProduct?: ProductKey)
     const url = new URL(request.url);
     const host = url.hostname.toLowerCase();
     const port = url.port;
-    if (port === '4321' || host === 'gamostudio.org' || host === 'www.gamostudio.org' || host.startsWith('gamo-web')) return 'web';
+    if (
+      port === '4321' ||
+      host === 'gamostudio.org' ||
+      host === 'www.gamostudio.org' ||
+      host.startsWith('gamo-web')
+    )
+      return 'web';
     if (port === '4322' || host.startsWith('worship.') || host.startsWith('gamo-worship')) return 'worship';
     if (port === '4323' || host.startsWith('academy.') || host.startsWith('gamo-academy')) return 'academy';
     if (port === '4324' || host.startsWith('live.') || host.startsWith('gamo-live')) return 'live';
-    if (port === '4325' || host.startsWith('production.') || host.startsWith('gamo-production')) return 'production';
+    if (port === '4325' || host.startsWith('production.') || host.startsWith('gamo-production'))
+      return 'production';
   } catch {
     // ignore URL parse error
   }
@@ -516,11 +504,14 @@ function normalizeAuthOptions(secretOrOptions?: SecretOrAuthOptions): AuthResolu
 export async function resolveAuth(
   request: Request,
   db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData | null> {
   const opts = normalizeAuthOptions(secretOrOptions);
   const signingSecret = opts.secret ?? opts.env?.SESSION_SECRET;
-  const product = inferProductFromRequest(request, opts.product ?? (opts.env?.CLERK_PRODUCT as ProductKey | undefined));
+  const product = inferProductFromRequest(
+    request,
+    opts.product ?? (opts.env?.CLERK_PRODUCT as ProductKey | undefined),
+  );
 
   // 1. Check for a 3-segment Clerk JWT token first when targeting a public product
   const clerkJwt = extractClerkJwtFromRequest(request);
@@ -539,7 +530,12 @@ export async function resolveAuth(
   if (!d1Session) return null;
 
   // Enforce strict product session boundary when product is known
-  if (product && d1Session.sessionProduct && d1Session.sessionProduct !== product && !d1Session.roles.includes('superadmin')) {
+  if (
+    product &&
+    d1Session.sessionProduct &&
+    d1Session.sessionProduct !== product &&
+    !d1Session.roles.includes('superadmin')
+  ) {
     return null;
   }
 
@@ -557,7 +553,7 @@ export async function resolveAuth(
 export async function requireAuth(
   request: Request,
   db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   requireSameOrigin(request);
   const auth = await resolveAuth(request, db, secretOrOptions);
@@ -573,7 +569,7 @@ export async function requireAuth(
 export async function requireVerifiedAuth(
   request: Request,
   db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   const auth = await requireAuth(request, db, secretOrOptions);
   if (!auth.user.verifiedEmailAt) {
@@ -589,7 +585,7 @@ export async function requireProductAuth(
   request: Request,
   db: GamoDatabase,
   product: ProductKey,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   const baseOpts = normalizeAuthOptions(secretOrOptions);
   const auth = await requireVerifiedAuth(request, db, { ...baseOpts, product });
@@ -598,7 +594,7 @@ export async function requireProductAuth(
     throw new AuthError(
       'FORBIDDEN',
       `Your account does not have an active ${label} membership. Please create or sign in to a ${label} account.`,
-      403
+      403,
     );
   }
   return auth;
@@ -610,7 +606,7 @@ export async function requireProductAuth(
 export async function requireStaff(
   request: Request,
   db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   const auth = await requireAuth(request, db, secretOrOptions);
   if (!isStaffOrAdmin(auth)) {
@@ -625,7 +621,7 @@ export async function requireStaff(
 export async function requireSuperadmin(
   request: Request,
   db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   const auth = await requireStaff(request, db, secretOrOptions);
   if (!auth.roles.includes('superadmin')) {
@@ -640,7 +636,7 @@ export async function requireSuperadmin(
 export async function verifyStaffBoundaryIdentity(
   db: GamoDatabase,
   auth: SessionData,
-  locals: Record<string, any> | undefined
+  locals: Record<string, any> | undefined,
 ): Promise<void> {
   const accessEmail = locals?.staffEmail;
   if (accessEmail && accessEmail.toLowerCase() !== auth.user.email.toLowerCase()) {
@@ -656,8 +652,8 @@ export async function verifyStaffBoundaryIdentity(
       .where(
         and(
           eq(externalIdentities.userId, auth.user.id),
-          eq(externalIdentities.provider, 'cloudflare_access')
-        )
+          eq(externalIdentities.provider, 'cloudflare_access'),
+        ),
       )
       .limit(1);
 
@@ -672,8 +668,8 @@ export async function verifyStaffBoundaryIdentity(
       .where(
         and(
           eq(externalIdentities.provider, 'cloudflare_access'),
-          eq(externalIdentities.providerSubject, accessSubject)
-        )
+          eq(externalIdentities.providerSubject, accessSubject),
+        ),
       )
       .limit(1);
 
@@ -691,14 +687,14 @@ export async function requireOrgAccess(
   db: GamoDatabase,
   organizationId: string,
   allowedRoles: string[] = ['owner', 'admin'],
-  secretOrOptions?: SecretOrAuthOptions
+  secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData> {
   const auth = await requireAuth(request, db, secretOrOptions);
   if (!hasOrgRole(auth, organizationId, allowedRoles)) {
     throw new AuthError(
       'ORGANIZATION_FORBIDDEN',
       'You do not have required permissions for this organization.',
-      403
+      403,
     );
   }
   return auth;
@@ -708,7 +704,10 @@ export async function requireOrgAccess(
 export function requireSameOrigin(request: Request): void {
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return;
   const origin = request.headers.get('origin');
-  if ((origin && origin !== new URL(request.url).origin) || request.headers.get('sec-fetch-site') === 'cross-site') {
+  if (
+    (origin && origin !== new URL(request.url).origin) ||
+    request.headers.get('sec-fetch-site') === 'cross-site'
+  ) {
     throw new AuthError('FORBIDDEN', 'Cross-origin mutation denied.', 403);
   }
 }
@@ -746,17 +745,13 @@ function hexToBytes(hex: string): Uint8Array {
 export async function hashAdminPassword(
   password: string,
   saltBytes?: Uint8Array,
-  iterations: number = PBKDF2_ITERATIONS
+  iterations: number = PBKDF2_ITERATIONS,
 ): Promise<string> {
   const salt = saltBytes ?? crypto.getRandomValues(new Uint8Array(16));
   const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(password),
-    { name: 'PBKDF2' },
-    false,
-    ['deriveBits']
-  );
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, [
+    'deriveBits',
+  ]);
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
@@ -765,7 +760,7 @@ export async function hashAdminPassword(
       hash: 'SHA-256',
     },
     keyMaterial,
-    256
+    256,
   );
   const hashHex = bytesToHex(new Uint8Array(derivedBits));
   return `pbkdf2_sha256$${iterations}$${bytesToHex(salt)}$${hashHex}`;
@@ -795,10 +790,14 @@ export async function verifyAdminPassword(password: string, storedHash: string):
  */
 export async function ensureBootstrapAdminAccount(
   db: GamoDatabase,
-  localDemo?: { environment: string; enabled: boolean; requestUrl: string }
+  localDemo?: { environment: string; enabled: boolean; requestUrl: string },
 ): Promise<{ userId: string }> {
-  if (!localDemo || localDemo.environment !== 'local' || !localDemo.enabled ||
-      !['localhost', '127.0.0.1', '[::1]'].includes(new URL(localDemo.requestUrl).hostname)) {
+  if (
+    !localDemo ||
+    localDemo.environment !== 'local' ||
+    !localDemo.enabled ||
+    !['localhost', '127.0.0.1', '[::1]'].includes(new URL(localDemo.requestUrl).hostname)
+  ) {
     throw new AuthError('FORBIDDEN', 'Bootstrap accounts are restricted to explicit local demos.', 403);
   }
   const cleanEmail = BOOTSTRAP_ADMIN_EMAIL.toLowerCase();
@@ -847,8 +846,8 @@ export async function ensureBootstrapAdminAccount(
         eq(userRoles.userId, user.id),
         eq(userRoles.roleId, superRole.id),
         isNull(userRoles.scopeType),
-        isNull(userRoles.scopeId)
-      )
+        isNull(userRoles.scopeId),
+      ),
     )
     .limit(1);
 
@@ -899,9 +898,8 @@ export interface AdminAuthResult {
 export async function authenticateAdminPassword(
   db: GamoDatabase,
   emailInput: string,
-  passwordInput: string
+  passwordInput: string,
 ): Promise<AdminAuthResult> {
-
   const cleanEmail = emailInput.trim().toLowerCase();
   const password = passwordInput;
 
@@ -941,8 +939,7 @@ export async function authenticateAdminPassword(
   const valid = await verifyAdminPassword(password, cred.passwordHash);
   if (!valid) {
     const nextAttempts = (cred.failedAttempts || 0) + 1;
-    const lockedUntil =
-      nextAttempts >= MAX_FAILED_ATTEMPTS ? new Date(now.getTime() + LOCKOUT_MS) : null;
+    const lockedUntil = nextAttempts >= MAX_FAILED_ATTEMPTS ? new Date(now.getTime() + LOCKOUT_MS) : null;
     await db
       .update(adminCredentials)
       .set({
@@ -979,9 +976,8 @@ export async function changeAdminPassword(
   db: GamoDatabase,
   userId: string,
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<{ ok: boolean; error?: string }> {
-
   if (!currentPassword) {
     return { ok: false, error: 'Please enter your current password.' };
   }
@@ -992,11 +988,7 @@ export async function changeAdminPassword(
     return { ok: false, error: 'New password must be 128 characters or fewer.' };
   }
 
-  const [cred] = await db
-    .select()
-    .from(adminCredentials)
-    .where(eq(adminCredentials.userId, userId))
-    .limit(1);
+  const [cred] = await db.select().from(adminCredentials).where(eq(adminCredentials.userId, userId)).limit(1);
 
   if (!cred) {
     return { ok: false, error: 'Admin password credential record not found.' };
@@ -1029,13 +1021,9 @@ export async function changeAdminPassword(
  */
 export async function getAdminCredentialStatus(
   db: GamoDatabase,
-  userId: string
+  userId: string,
 ): Promise<{ mustChangePassword: boolean; updatedAt: Date | null } | null> {
-  const [cred] = await db
-    .select()
-    .from(adminCredentials)
-    .where(eq(adminCredentials.userId, userId))
-    .limit(1);
+  const [cred] = await db.select().from(adminCredentials).where(eq(adminCredentials.userId, userId)).limit(1);
   if (!cred) return null;
   return {
     mustChangePassword: Boolean(cred.mustChangePassword),
@@ -1051,7 +1039,7 @@ export async function buildAdminGateCookie(
   userId: string,
   expiresAt: Date,
   secret: string,
-  options?: CookieOptions
+  options?: CookieOptions,
 ): Promise<string> {
   const payload = `${sessionId}:${userId}`;
   const signed = await signValue(payload, secret);
@@ -1092,7 +1080,7 @@ export async function verifyAdminGateCookie(
   request: Request,
   expectedSessionId: string,
   expectedUserId: string,
-  secret?: string
+  secret?: string,
 ): Promise<boolean> {
   if (!secret || secret.length < 32) return false;
   const cookieHeader = request.headers.get('cookie');
@@ -1140,7 +1128,7 @@ export async function hasEventPermission(
   db: GamoDatabase,
   auth: SessionData | null | undefined,
   eventId: string,
-  permission: EventPermission
+  permission: EventPermission,
 ): Promise<boolean> {
   if (!auth || !auth.user.verifiedEmailAt) return false;
   if (auth.roles.includes('superadmin')) return true;
@@ -1153,8 +1141,8 @@ export async function hasEventPermission(
       and(
         eq(eventTeamMembers.eventId, eventId),
         eq(eventTeamMembers.userId, auth.user.id),
-        eq(eventTeamMembers.status, 'active')
-      )
+        eq(eventTeamMembers.status, 'active'),
+      ),
     );
 
   for (const member of teamRows) {
@@ -1191,15 +1179,11 @@ export async function requireEventPermission(
   db: GamoDatabase,
   auth: SessionData,
   eventId: string,
-  permission: EventPermission
+  permission: EventPermission,
 ): Promise<void> {
   const allowed = await hasEventPermission(db, auth, eventId, permission);
   if (!allowed) {
-    throw new AuthError(
-      'FORBIDDEN',
-      `You do not have '${permission}' permission for this event.`,
-      403
-    );
+    throw new AuthError('FORBIDDEN', `You do not have '${permission}' permission for this event.`, 403);
   }
 }
 
@@ -1215,7 +1199,7 @@ export async function hasRepresentationAuthority(
   auth: SessionData | null | undefined,
   artistId: string,
   capability: RepresentationCapability,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): Promise<{
   authorized: boolean;
   actorKind: 'artist' | 'representative' | null;
@@ -1226,11 +1210,7 @@ export async function hasRepresentationAuthority(
     return { authorized: false, actorKind: null };
   }
 
-  const [artist] = await db
-    .select()
-    .from(artistProfiles)
-    .where(eq(artistProfiles.id, artistId))
-    .limit(1);
+  const [artist] = await db.select().from(artistProfiles).where(eq(artistProfiles.id, artistId)).limit(1);
 
   if (!artist) {
     return { authorized: false, actorKind: null };
@@ -1259,8 +1239,8 @@ export async function hasRepresentationAuthority(
           eq(representationAuthorizations.artistId, artistId),
           eq(representationAuthorizations.representativeId, rep.id),
           eq(representationAuthorizations.status, 'active'),
-          isNull(representationAuthorizations.revokedAt)
-        )
+          isNull(representationAuthorizations.revokedAt),
+        ),
       );
 
     for (const row of authRows) {

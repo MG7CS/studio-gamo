@@ -1,11 +1,19 @@
-@import "tailwindcss";
-@import "@studio-gamo/ui/styles/tokens.css";
+@import 'tailwindcss';
+@import '@studio-gamo/ui/styles/tokens.css';
 
 /* Spotlight grows with long titles; the rail no longer forces an 860px hero. */
-.spotlight-frame { min-height: min(90svh, 820px); }
-.spotlight-title { font-size: clamp(2.5rem, 4.5vw, 4rem); }
+.spotlight-frame {
+  min-height: min(90svh, 820px);
+}
+.spotlight-title {
+  font-size: clamp(2.5rem, 4.5vw, 4rem);
+}
 
 /* Longer organizer headline has its own scale within a split composition. */
-.promote-hero-title { font-size: clamp(2.5rem, 4.4vw, 4rem); }
+.promote-hero-title {
+  font-size: clamp(2.5rem, 4.4vw, 4rem);
+}
 
-.event-detail-title { font-size: clamp(2.25rem, 4.2vw, 3.75rem); }
+.event-detail-title {
+  font-size: clamp(2.25rem, 4.2vw, 3.75rem);
+}

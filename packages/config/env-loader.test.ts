@@ -9,11 +9,7 @@ import {
   isAppVarAllowedForApp,
   resolveAppLocalEnv,
 } from './env-loader.ts';
-import {
-  resolveProductClerkConfig,
-  GAMO_LIVE_CLERK_APP_ID,
-  AuthError,
-} from '../auth/index.ts';
+import { resolveProductClerkConfig, GAMO_LIVE_CLERK_APP_ID, AuthError } from '../auth/index.ts';
 
 describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)', () => {
   test('parses .env and .dev.vars syntax accurately without mutating values', () => {
@@ -80,7 +76,7 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
           'ALLOW_TEST_CHALLENGE_OUTBOX="false"',
           'REQUIRE_ADMIN_AUTH="true"',
           'PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_SHOULD_NEVER_BE_INHERITED_FROM_ROOT"',
-        ].join('\n')
+        ].join('\n'),
       );
 
       // 2. Write per-app .env files using standard Clerk variable names
@@ -92,7 +88,7 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
         [
           `PUBLIC_CLERK_PUBLISHABLE_KEY="${livePubKey}"`,
           'CLERK_SECRET_KEY="sk_test_live_isolated_secret"',
-        ].join('\n')
+        ].join('\n'),
       );
 
       writeFileSync(
@@ -102,13 +98,13 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
           'CLERK_SECRET_KEY="sk_test_academy_isolated_secret"',
           // Even if someone accidentally pasted a _LIVE key in apps/academy/.env, it must be stripped
           'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE="pk_test_accidental_live_leak"',
-        ].join('\n')
+        ].join('\n'),
       );
 
       // 3. Write apps/live/.dev.vars override for Worker-specific Stripe secret
       writeFileSync(
         join(tempRoot, 'apps/live/.dev.vars'),
-        'STRIPE_SECRET_KEY="sk_test_live_worker_override"\n'
+        'STRIPE_SECRET_KEY="sk_test_live_worker_override"\n',
       );
 
       const liveEnv = resolveAppLocalEnv({
@@ -195,7 +191,7 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
             PUBLIC_CLERK_PUBLISHABLE_KEY: academyPubKey,
             CLERK_SECRET_KEY: 'sk_test_academy_isolated_secret',
           }),
-        (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN'
+        (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
       );
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });

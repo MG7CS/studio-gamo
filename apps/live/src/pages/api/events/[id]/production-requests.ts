@@ -8,12 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import {
-  requireVerifiedAuth,
-  requireEventPermission,
-  hasEventPermission,
-  AuthError,
-} from '@gamo/auth';
+import { requireVerifiedAuth, requireEventPermission, hasEventPermission, AuthError } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -59,11 +54,7 @@ export const POST: APIRoute = async (context) => {
     await requireEventPermission(db, auth, eventId, 'coordinate_production');
 
     const liveService = new LiveService(db);
-    const created = await liveService.createEventProductionRequest(
-      eventId,
-      auth.user.id,
-      validated
-    );
+    const created = await liveService.createEventProductionRequest(eventId, auth.user.id, validated);
 
     return jsonResponse(created, 201);
   } catch (err) {

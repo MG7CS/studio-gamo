@@ -91,16 +91,11 @@ const iconBadgeSurface = {
     >
       <div class="flex flex-wrap items-center gap-3">
         {pillText && <StatusPill kind={pillKind}>{pillText}</StatusPill>}
-        {eyebrow && (
-          <p class:list={['eyebrow', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>
-        )}
+        {eyebrow && <p class:list={['eyebrow', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
       </div>
 
       <h2 class="section-heading mt-4 text-balance">
-        {title}{' '}
-        {accent && (
-          <span class:list={[dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>
-        )}
+        {title} {accent && <span class:list={[dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>}
       </h2>
 
       <p
@@ -115,28 +110,13 @@ const iconBadgeSurface = {
       {points.length > 0 && (
         <ul class="mt-7 grid gap-3">
           {points.map((pt) => (
-            <li
-              class:list={[
-                'flex items-start gap-3.5 rounded-2xl p-3.5 sm:p-4',
-                pointSurface,
-              ]}
-            >
-              <span
-                class:list={[
-                  'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
-                  iconBadgeSurface,
-                ]}
-              >
+            <li class:list={['flex items-start gap-3.5 rounded-2xl p-3.5 sm:p-4', pointSurface]}>
+              <span class:list={['grid h-10 w-10 shrink-0 place-items-center rounded-xl', iconBadgeSurface]}>
                 <Icon name={pt.icon} class="h-5 w-5" />
               </span>
               <div class="min-w-0">
                 <p class="font-bold leading-snug">{pt.title}</p>
-                <p
-                  class:list={[
-                    'mt-0.5 text-sm leading-relaxed',
-                    dark ? 'text-cream/70' : 'text-ink-soft',
-                  ]}
-                >
+                <p class:list={['mt-0.5 text-sm leading-relaxed', dark ? 'text-cream/70' : 'text-ink-soft']}>
                   {pt.body}
                 </p>
               </div>

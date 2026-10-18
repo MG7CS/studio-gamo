@@ -5,13 +5,25 @@ import LessonFilters from '../../components/lessons/LessonFilters.astro';
 import LessonCard from '../../components/shared/LessonCard.astro';
 import { lessons } from '../../data/lessons';
 ---
-<Layout title="Discover lessons" description="Browse Gamo Academy lessons and filter by instrument, age, level and format to find music lessons that fit your family's week.">
-  <PageHero eyebrow="Lesson discovery" title="Find a lesson" accent="that fits your week." lede="Filter lessons by instrument, age, level and format." crumbs={[{ label: 'Lessons', href: '/lessons' }]} />
+
+<Layout
+  title="Discover lessons"
+  description="Browse Gamo Academy lessons and filter by instrument, age, level and format to find music lessons that fit your family's week."
+>
+  <PageHero
+    eyebrow="Lesson discovery"
+    title="Find a lesson"
+    accent="that fits your week."
+    lede="Filter lessons by instrument, age, level and format."
+    crumbs={[{ label: 'Lessons', href: '/lessons' }]}
+  />
   <section class="px-4 pb-16 sm:px-8 lg:pb-24">
     <div class="mx-auto max-w-[1320px]">
       <LessonFilters />
       <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {lessons.map((l) => <LessonCard lesson={l} />)}
+        {lessons.map((l) => (
+          <LessonCard lesson={l} />
+        ))}
       </div>
     </div>
   </section>

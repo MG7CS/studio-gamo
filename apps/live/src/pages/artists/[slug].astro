@@ -2,11 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import LiveDiscoveryCard from '../../components/LiveDiscoveryCard.astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  getRuntimeEnv,
-  type LiveEventWithDetails,
-} from '@gamo/domain';
+import { LiveService, getRuntimeEnv, type LiveEventWithDetails } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -159,9 +155,7 @@ if (unavailable) {
               </h1>
 
               {artist.bio && (
-                <p class="mt-2 max-w-2xl text-sm sm:text-base text-[#5C554E] leading-relaxed">
-                  {artist.bio}
-                </p>
+                <p class="mt-2 max-w-2xl text-sm sm:text-base text-[#5C554E] leading-relaxed">{artist.bio}</p>
               )}
             </div>
 
@@ -189,10 +183,7 @@ if (unavailable) {
           <h2 class="text-xl font-extrabold text-[#191817]">
             Upcoming dates ({artist.upcomingEvents.length})
           </h2>
-          <a
-            href="/events"
-            class="text-sm font-semibold text-[#B34B1E] hover:underline"
-          >
+          <a href="/events" class="text-sm font-semibold text-[#B34B1E] hover:underline">
             View full event directory &rarr;
           </a>
         </div>

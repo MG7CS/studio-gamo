@@ -21,9 +21,24 @@ export const createEventSchema = z.object({
   address: z.string().optional(),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required').max(50),
-  startsAt: z.union([z.string().datetime({ offset: true }), z.number(), z.date()]).transform((val) => new Date(val)),
-  endsAt: z.union([z.string().datetime({ offset: true }), z.number(), z.date()]).optional().transform((val) => (val ? new Date(val) : undefined)),
-  timezone: z.string().refine(value => { try { new Intl.DateTimeFormat('en', { timeZone: value }); return true; } catch { return false; } }, 'Invalid IANA timezone').default('America/Phoenix'),
+  startsAt: z
+    .union([z.string().datetime({ offset: true }), z.number(), z.date()])
+    .transform((val) => new Date(val)),
+  endsAt: z
+    .union([z.string().datetime({ offset: true }), z.number(), z.date()])
+    .optional()
+    .transform((val) => (val ? new Date(val) : undefined)),
+  timezone: z
+    .string()
+    .refine((value) => {
+      try {
+        new Intl.DateTimeFormat('en', { timeZone: value });
+        return true;
+      } catch {
+        return false;
+      }
+    }, 'Invalid IANA timezone')
+    .default('America/Phoenix'),
   admissionType: z.enum(['free', 'paid', 'external']).default('free'),
   photoKey: z.string().optional(),
   externalUrl: z.string().url().optional().or(z.literal('')),
@@ -34,7 +49,7 @@ export const createEventSchema = z.object({
         priceCents: z.number().int().min(0).default(0),
         capacity: z.number().int().min(1).default(100),
         note: z.string().optional(),
-      })
+      }),
     )
     .optional(),
 });

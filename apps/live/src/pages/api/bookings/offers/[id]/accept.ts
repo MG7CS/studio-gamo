@@ -1,12 +1,7 @@
 import { validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  jsonResponse,
-  handleApiError,
-  getRuntimeEnv,
-} from '@gamo/domain';
+import { LiveService, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 import {
   requireVerifiedAuth,
   hasOrgRole,
@@ -61,19 +56,10 @@ export const POST: APIRoute = async (context) => {
     }
 
     if (!actorRole) {
-      throw new AuthError(
-        'FORBIDDEN',
-        'Only an authorized counterparty may accept this booking offer.',
-        403
-      );
+      throw new AuthError('FORBIDDEN', 'Only an authorized counterparty may accept this booking offer.', 403);
     }
 
-    const result = await liveService.acceptBookingOffer(
-      offerId,
-      auth.user.id,
-      actorRole,
-      repContext
-    );
+    const result = await liveService.acceptBookingOffer(offerId, auth.user.id, actorRole, repContext);
 
     return jsonResponse(result, 200);
   } catch (err) {

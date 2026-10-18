@@ -6,16 +6,16 @@
 @source "../components";
 
 @theme {
-  --color-cream: #F4EDE3;
-  --color-ivory: #FBF7F1;
-  --color-charcoal: #1D2323;
-  --color-night: #141A1B;
-  --color-terracotta: #B65B35;
-  --color-terracotta-dark: #8F432A;
-  --color-sand: #DED6CC;
-  --color-gold: #D7AD86;
-  --color-ink-soft: #4E5655;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-cream: #f4ede3;
+  --color-ivory: #fbf7f1;
+  --color-charcoal: #1d2323;
+  --color-night: #141a1b;
+  --color-terracotta: #b65b35;
+  --color-terracotta-dark: #8f432a;
+  --color-sand: #ded6cc;
+  --color-gold: #d7ad86;
+  --color-ink-soft: #4e5655;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --text-hero: clamp(2.5rem, 5.2vw, 4.75rem);
   --text-page-title: clamp(2.25rem, 4.7vw, 4.25rem);
   --text-section-title: clamp(2rem, 3.6vw, 3.25rem);
@@ -64,12 +64,26 @@
 }
 
 /* Sculptural photo masks */
-@utility mask-arch { border-radius: 999px 999px 32px 32px; }
-@utility mask-arch-sm { border-radius: 400px 400px 24px 24px; }
-@utility mask-leaf { border-radius: 48px 220px 48px 220px; }
-@utility mask-leaf-alt { border-radius: 220px 48px 220px 48px; }
-@utility mask-pebble { border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%; }
-@utility shadow-float { box-shadow: 0 24px 60px -24px rgb(29 35 35 / 0.35), 0 2px 6px rgb(29 35 35 / 0.06); }
+@utility mask-arch {
+  border-radius: 999px 999px 32px 32px;
+}
+@utility mask-arch-sm {
+  border-radius: 400px 400px 24px 24px;
+}
+@utility mask-leaf {
+  border-radius: 48px 220px 48px 220px;
+}
+@utility mask-leaf-alt {
+  border-radius: 220px 48px 220px 48px;
+}
+@utility mask-pebble {
+  border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%;
+}
+@utility shadow-float {
+  box-shadow:
+    0 24px 60px -24px rgb(29 35 35 / 0.35),
+    0 2px 6px rgb(29 35 35 / 0.06);
+}
 
 /* Horizontal collections */
 @utility scroll-rail {
@@ -78,42 +92,61 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
-  &::-webkit-scrollbar { display: none; }
-  & > * { scroll-snap-align: start; flex-shrink: 0; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  & > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
 }
 
 /* Scroll reveal: only active when JS marks <html class="js">; never hides content without JS. */
 @media (prefers-reduced-motion: no-preference) {
   html.js [data-reveal] {
     transform: translateY(24px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
   }
   html.js [data-reveal].is-visible {
     transform: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Visible keyboard focus: terracotta on light surfaces, cream on dark ones ([data-surface="dark"]). */
 a:focus-visible,
 button:focus-visible,
 summary:focus-visible,
-[role="tab"]:focus-visible,
+[role='tab']:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid #b65b35;
   outline-offset: 3px;
 }
-[data-surface="dark"] :focus-visible { outline-color: #f4ede3; }
+[data-surface='dark'] :focus-visible {
+  outline-color: #f4ede3;
+}
 
-html { scroll-padding-top: 6rem; }
+html {
+  scroll-padding-top: 6rem;
+}
 
 /* Small accent text needs stronger contrast on cream/ivory; large brand type
    and terracotta button fills retain the approved palette. */
 .eyebrow.text-terracotta,
 .text-xs.text-terracotta,
 .text-sm.text-terracotta,
-.text-base.text-terracotta { color: var(--color-terracotta-dark); }
+.text-base.text-terracotta {
+  color: var(--color-terracotta-dark);
+}

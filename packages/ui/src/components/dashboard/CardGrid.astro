@@ -4,17 +4,23 @@ import Icon from '../Icon.astro';
 import StatusPill from '../StatusPill.astro';
 import type { BadgeValue } from '../../lib/dashboard';
 import type { IconName } from '../../lib/icons';
-interface Props { items: { title: string; meta?: string; body?: string; badge?: BadgeValue; href?: string; icon?: IconName }[] }
+interface Props {
+  items: {
+    title: string;
+    meta?: string;
+    body?: string;
+    badge?: BadgeValue;
+    href?: string;
+    icon?: IconName;
+  }[];
+}
 const { items } = Astro.props;
 ---
+
 <ul class="grid grid-cols-1 gap-2.5 @xl:grid-cols-2 @4xl:grid-cols-3">
   {items.map((c, idx) => {
     const Tag = c.href ? 'a' : 'div';
-    const tones = [
-      'bg-[#F3E1C7] text-[#5C3A20]',
-      'bg-cream text-terracotta-dark',
-      'bg-charcoal text-cream',
-    ];
+    const tones = ['bg-[#F3E1C7] text-[#5C3A20]', 'bg-cream text-terracotta-dark', 'bg-charcoal text-cream'];
     const iconTone = tones[idx % tones.length];
     return (
       <li class="min-w-0" data-search-item>
@@ -27,26 +33,47 @@ const { items } = Astro.props;
         >
           <div class="flex shrink-0 items-center justify-between gap-2 @xl:w-full">
             {c.icon && (
-              <span class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-xl shadow-2xs @xl:h-10 @xl:w-10 @xl:rounded-2xl', iconTone]}>
+              <span
+                class:list={[
+                  'grid h-9 w-9 shrink-0 place-items-center rounded-xl shadow-2xs @xl:h-10 @xl:w-10 @xl:rounded-2xl',
+                  iconTone,
+                ]}
+              >
                 <Icon name={c.icon} class="h-4 w-4 @xl:h-[18px] @xl:w-[18px]" strokeWidth={1.9} />
               </span>
             )}
-            {c.badge && <div class="hidden @xl:block"><StatusPill kind={c.badge.tone ?? 'info'}>{c.badge.badge}</StatusPill></div>}
+            {c.badge && (
+              <div class="hidden @xl:block">
+                <StatusPill kind={c.badge.tone ?? 'info'}>{c.badge.badge}</StatusPill>
+              </div>
+            )}
           </div>
           <div class="min-w-0 flex-1 @xl:mt-3">
             <div class="flex items-center justify-between gap-1.5">
-              <h3 class="truncate text-[13.5px] font-bold leading-5 text-charcoal @xl:text-[15px]">{c.title}</h3>
+              <h3 class="truncate text-[13.5px] font-bold leading-5 text-charcoal @xl:text-[15px]">
+                {c.title}
+              </h3>
               {c.badge && (
                 <div class="shrink-0 @xl:hidden">
-                  <StatusPill kind={c.badge.tone ?? 'info'} size="sm">{c.badge.badge}</StatusPill>
+                  <StatusPill kind={c.badge.tone ?? 'info'} size="sm">
+                    {c.badge.badge}
+                  </StatusPill>
                 </div>
               )}
             </div>
             {(c.meta || c.body) && (
               <p class="mt-0.5 truncate text-[12px] leading-4 text-ink-soft @xl:mt-1 @xl:whitespace-normal">
-                {c.meta && <span class="font-semibold text-terracotta-dark @xl:block @xl:text-ink-soft">{c.meta}</span>}
-                {c.meta && c.body && <span class="mx-1 text-ink-soft/45 @xl:hidden" aria-hidden="true">·</span>}
-                {c.body && <span class="text-charcoal/80 @xl:mt-1.5 @xl:block @xl:text-[13px]">{c.body}</span>}
+                {c.meta && (
+                  <span class="font-semibold text-terracotta-dark @xl:block @xl:text-ink-soft">{c.meta}</span>
+                )}
+                {c.meta && c.body && (
+                  <span class="mx-1 text-ink-soft/45 @xl:hidden" aria-hidden="true">
+                    ·
+                  </span>
+                )}
+                {c.body && (
+                  <span class="text-charcoal/80 @xl:mt-1.5 @xl:block @xl:text-[13px]">{c.body}</span>
+                )}
               </p>
             )}
           </div>

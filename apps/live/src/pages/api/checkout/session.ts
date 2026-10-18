@@ -38,7 +38,7 @@ export const POST: APIRoute = async (context) => {
     if (holdAndOrder.gateBlocked) {
       return Response.json(
         { error: 'Checkout is disabled pending inventory, authorization and fulfillment verification.' },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
@@ -73,7 +73,7 @@ export const POST: APIRoute = async (context) => {
         orderNumber: holdAndOrder.orderNumber,
         holdExpiresAt: holdAndOrder.holdExpiresAt.toISOString(),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : '';

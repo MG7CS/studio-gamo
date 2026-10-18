@@ -53,7 +53,7 @@ const browser = await chromium.launch({ headless: true });
 const hashOtp = async (email, code) => {
   const buf = await crypto.subtle.digest(
     'SHA-256',
-    new TextEncoder().encode(`${email.toLowerCase()}:signin:${code}`)
+    new TextEncoder().encode(`${email.toLowerCase()}:signin:${code}`),
   );
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
 };
@@ -65,7 +65,9 @@ try {
   for (const file of readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
     .sort()) {
-    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split('--> statement-breakpoint')) {
+    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split(
+      '--> statement-breakpoint',
+    )) {
       const sql = raw.replace(/^\s*--.*$/gm, '').trim();
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
@@ -161,11 +163,13 @@ try {
   await db.batch([
     db.prepare("INSERT OR IGNORE INTO roles (id, code) VALUES ('role_superadmin', 'superadmin')"),
     db
-      .prepare("INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_super_e2e', ?, 'role_superadmin', unixepoch())")
+      .prepare(
+        "INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_super_e2e', ?, 'role_superadmin', unixepoch())",
+      )
       .bind(superUserId),
     db
       .prepare(
-        "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudio.org', unixepoch(), unixepoch())"
+        "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudio.org', unixepoch(), unixepoch())",
       )
       .bind(superUserId),
   ]);
@@ -228,9 +232,7 @@ try {
   assert.match(regStatusText || '', /Registration confirmed and confirmation notification processed/);
 
   // Verify notification_jobs row in D1 was processed to status = 'sent'
-  const notifRow = await db
-    .prepare('SELECT status, attempts FROM notification_jobs LIMIT 1')
-    .first();
+  const notifRow = await db.prepare('SELECT status, attempts FROM notification_jobs LIMIT 1').first();
   assert.equal(notifRow.status, 'sent');
   assert.equal(notifRow.attempts, 1);
 

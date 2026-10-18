@@ -10,13 +10,23 @@ const values = [
   { name: 'Stewardship', body: 'We handle every gift and resource responsibly.' },
 ];
 ---
-<section aria-labelledby="values-title" data-surface="dark" class="bg-night px-5 py-20 text-cream sm:px-8 lg:py-28">
+
+<section
+  aria-labelledby="values-title"
+  data-surface="dark"
+  class="bg-night px-5 py-20 text-cream sm:px-8 lg:py-28"
+>
   <div class="mx-auto max-w-[1320px]">
     <p class="eyebrow text-gold">Our values</p>
-    <h2 id="values-title" class="section-heading mt-4 max-w-2xl text-balance">What guides how we serve.</h2>
+    <h2 id="values-title" class="section-heading mt-4 max-w-2xl text-balance">
+      What guides how we serve.
+    </h2>
     <ul class="mt-12 border-t border-cream/15">
       {values.map((v, i) => (
-        <li data-reveal class="grid items-baseline gap-2 border-b border-cream/15 py-6 sm:grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)] sm:gap-8">
+        <li
+          data-reveal
+          class="grid items-baseline gap-2 border-b border-cream/15 py-6 sm:grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)] sm:gap-8"
+        >
           <span class="text-sm font-semibold text-gold">{String(i + 1).padStart(2, '0')}</span>
           <h3 class="text-4xl font-extrabold tracking-tight sm:text-6xl">{v.name}</h3>
           <p class="text-lg text-cream/70">{v.body}</p>

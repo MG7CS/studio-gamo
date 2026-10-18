@@ -1,5 +1,8 @@
 ---
-interface Props { program?: string; workspaceHref?: string }
+interface Props {
+  program?: string;
+  workspaceHref?: string;
+}
 const { program = 'Gamo Studios', workspaceHref } = Astro.props;
 const auth = (Astro.locals as Record<string, any>).auth;
 if (!auth) return Astro.redirect('/account/signin', 303);
@@ -9,14 +12,23 @@ const isAcademy = program === 'Gamo Academy';
 const isWorship = program === 'Gamo Worship';
 const isProduction = program === 'Gamo Production';
 ---
-<section class="mx-auto w-full max-w-3xl px-5 pb-24 pt-32 sm:px-8" aria-labelledby="account-title" data-product-account={program}>
+
+<section
+  class="mx-auto w-full max-w-3xl px-5 pb-24 pt-32 sm:px-8"
+  aria-labelledby="account-title"
+  data-product-account={program}
+>
   <p class="text-xs font-semibold uppercase tracking-[0.16em] text-terracotta">{program} Account</p>
-  <h1 id="account-title" class="mt-2 text-4xl font-semibold tracking-tight text-charcoal">Welcome, {auth.user.displayName || 'friend'}.</h1>
+  <h1 id="account-title" class="mt-2 text-4xl font-semibold tracking-tight text-charcoal">
+    Welcome, {auth.user.displayName || 'friend'}.
+  </h1>
   <p class="mt-3 text-[15px] text-ink-soft">
-    Signed in to <strong class="font-medium text-charcoal">{program}</strong> with <strong class="break-all font-medium text-charcoal">{auth.user.email}</strong>.
+    Signed in to <strong class="font-medium text-charcoal">{program}</strong> with{' '}
+    <strong class="break-all font-medium text-charcoal">{auth.user.email}</strong>.
   </p>
   <p class="mt-2 text-xs text-ink-soft">
-    Your {program} account manages your membership, onboarding, and permissions for {program} only. Other Gamo programs require separate registration.
+    Your {program} account manages your membership, onboarding, and permissions for {program} only. Other Gamo
+    programs require separate registration.
   </p>
 
   <nav class="mt-6 flex flex-wrap gap-6 text-sm font-medium text-terracotta" aria-label="Account actions">
@@ -28,32 +40,61 @@ const isProduction = program === 'Gamo Production';
     {isProduction && <a href="/client">Ministry production requests →</a>}
     {program === 'Gamo Studios' && <a href="/get-involved">Get involved →</a>}
     <a href="/">Return to {program}</a>
-    <button type="button" data-account-logout>Sign out</button>
+    <button type="button" data-account-logout>
+      Sign out
+    </button>
   </nav>
   <p class="mt-4 text-sm" data-account-status role="status" aria-live="polite"></p>
 
   {isLive && (
-    <section class="mt-10 rounded-2xl border border-sand bg-white p-6" aria-labelledby="live-onboarding-title">
-      <h2 id="live-onboarding-title" class="text-lg font-semibold text-charcoal">Gamo Live Onboarding & Access</h2>
+    <section
+      class="mt-10 rounded-2xl border border-sand bg-white p-6"
+      aria-labelledby="live-onboarding-title"
+    >
+      <h2 id="live-onboarding-title" class="text-lg font-semibold text-charcoal">
+        Gamo Live Onboarding & Access
+      </h2>
       <p class="mt-2 text-sm text-ink-soft">
-        Your verified Gamo Live account includes attendee pass recovery and access to start organizer or artist onboarding. Privileged operations require explicit authorization:
+        Your verified Gamo Live account includes attendee pass recovery and access to start organizer or
+        artist onboarding. Privileged operations require explicit authorization:
       </p>
       <ul class="mt-4 space-y-2.5 text-sm text-charcoal">
-        <li><strong>1. Event Organizer Onboarding:</strong> Register your church or ministry below, then submit event listings for staff editorial review (<a href="/promote/create" class="font-medium text-terracotta underline">Submit an event</a>).</li>
-        <li><strong>2. Artist & Representative Onboarding:</strong> Create an artist profile in your <a href="/workspaces" class="font-medium text-terracotta underline">Gamo Live workspace</a>. Booking agent representation requires explicit artist authorization.</li>
-        <li><strong>3. Privileged Operations Gate:</strong> A general Gamo Live account does not automatically grant public event publishing, artist representation, refund approval, settlement access, or door scanner permissions.</li>
+        <li>
+          <strong>1. Event Organizer Onboarding:</strong> Register your church or ministry below, then submit
+          event listings for staff editorial review (
+          <a href="/promote/create" class="font-medium text-terracotta underline">
+            Submit an event
+          </a>
+          ).
+        </li>
+        <li>
+          <strong>2. Artist & Representative Onboarding:</strong> Create an artist profile in your{' '}
+          <a href="/workspaces" class="font-medium text-terracotta underline">
+            Gamo Live workspace
+          </a>
+          . Booking agent representation requires explicit artist authorization.
+        </li>
+        <li>
+          <strong>3. Privileged Operations Gate:</strong> A general Gamo Live account does not automatically
+          grant public event publishing, artist representation, refund approval, settlement access, or door
+          scanner permissions.
+        </li>
       </ul>
     </section>
   )}
 
   <section class="mt-12 border-t border-sand pt-8" aria-labelledby="org-title">
-    <h2 id="org-title" class="text-xl font-semibold text-charcoal">Organizations</h2>
+    <h2 id="org-title" class="text-xl font-semibold text-charcoal">
+      Organizations
+    </h2>
     {memberships.length ? (
       <ul class="mt-4 divide-y divide-sand">
         {memberships.map((m: any) => (
           <li class="flex flex-wrap justify-between gap-2 py-3.5 text-sm">
             <span class="font-medium text-charcoal">{m.orgName}</span>
-            <span class="text-ink-soft">{m.orgType} · {m.role}</span>
+            <span class="text-ink-soft">
+              {m.orgType} · {m.role}
+            </span>
           </li>
         ))}
       </ul>
@@ -62,12 +103,48 @@ const isProduction = program === 'Gamo Production';
     )}
     <details class="mt-6 rounded-2xl border border-sand bg-white p-5">
       <summary class="cursor-pointer text-sm font-semibold text-charcoal">Create an organization</summary>
-      <p class="mt-2.5 text-sm text-ink-soft">Register a church, ministry, or event-organizing team you are authorized to represent in {program}.</p>
+      <p class="mt-2.5 text-sm text-ink-soft">
+        Register a church, ministry, or event-organizing team you are authorized to represent in {program}.
+      </p>
       <form data-organization-form class="mt-5 space-y-4">
-        <label class="block text-sm font-medium text-charcoal">Organization name<input name="name" required minlength="2" maxlength="120" autocomplete="organization" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm" /></label>
-        <label class="block text-sm font-medium text-charcoal">Organization address name<input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9]+(-[a-z0-9]+)*" aria-describedby="slug-help" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm" /><span id="slug-help" class="mt-1 block text-xs text-ink-soft">Lowercase letters, numbers, and hyphens (e.g. your-church).</span></label>
-        <label class="block text-sm font-medium text-charcoal">Organization type<select name="type" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm"><option value="church">Church</option><option value="ministry">Ministry</option><option value="school">School</option><option value="other">Event-organizing team / Other</option></select></label>
-        <button class="rounded-full bg-charcoal px-6 py-2.5 text-sm font-semibold text-cream" type="submit">Create organization</button>
+        <label class="block text-sm font-medium text-charcoal">
+          Organization name
+          <input
+            name="name"
+            required
+            minlength="2"
+            maxlength="120"
+            autocomplete="organization"
+            class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm"
+          />
+        </label>
+        <label class="block text-sm font-medium text-charcoal">
+          Organization address name
+          <input
+            name="slug"
+            required
+            minlength="3"
+            maxlength="60"
+            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            aria-describedby="slug-help"
+            class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm"
+          />
+          <span id="slug-help" class="mt-1 block text-xs text-ink-soft">
+            Lowercase letters, numbers, and hyphens (e.g. your-church).
+          </span>
+        </label>
+        <label class="block text-sm font-medium text-charcoal">
+          Organization type
+          <select name="type" class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-2.5 text-sm">
+            <option value="church">Church</option>
+            <option value="ministry">Ministry</option>
+            <option value="school">School</option>
+            <option value="other">Event-organizing team / Other</option>
+          </select>
+        </label>
+        <button class="rounded-full bg-charcoal px-6 py-2.5 text-sm font-semibold text-cream" type="submit">
+          Create organization
+        </button>
         <p data-organization-status role="status" aria-live="polite" class="text-sm"></p>
       </form>
     </details>
@@ -76,19 +153,27 @@ const isProduction = program === 'Gamo Production';
 </section>
 <script>
   const form = document.querySelector<HTMLFormElement>('[data-organization-form]');
-  form?.addEventListener('submit', async event => {
+  form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const button = form.querySelector<HTMLButtonElement>('button')!;
     const status = form.querySelector<HTMLElement>('[data-organization-status]')!;
-    button.disabled = true; status.textContent = 'Saving organization…';
+    button.disabled = true;
+    status.textContent = 'Saving organization…';
     try {
       const values = Object.fromEntries(new FormData(form));
-      const response = await fetch('/api/organizations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values) });
+      const response = await fetch('/api/organizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error?.message || 'Organization could not be saved. Try again.');
       window.location.reload();
-    } catch (error) { status.textContent = error instanceof Error ? error.message : 'Connection interrupted. Try again.'; }
-    finally { button.disabled = false; }
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : 'Connection interrupted. Try again.';
+    } finally {
+      button.disabled = false;
+    }
   });
   document.querySelector('[data-account-logout]')?.addEventListener('click', async () => {
     const status = document.querySelector<HTMLElement>('[data-account-status]')!;
@@ -100,6 +185,8 @@ const isProduction = program === 'Gamo Production';
       const response = await fetch('/api/auth/session', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign out failed. Please try again.');
       window.location.assign('/account/signin');
-    } catch { status.textContent = 'Unable to sign out. Please try again.'; }
+    } catch {
+      status.textContent = 'Unable to sign out. Please try again.';
+    }
   });
 </script>

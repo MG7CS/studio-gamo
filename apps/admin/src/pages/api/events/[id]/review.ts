@@ -40,11 +40,7 @@ export const POST: APIRoute = async (context) => {
 
     const reviewerUserId = auth.user.id;
 
-    const { event, reviewId } = await adminService.reviewEvent(
-      reviewerUserId,
-      eventId,
-      validated
-    );
+    const { event, reviewId } = await adminService.reviewEvent(reviewerUserId, eventId, validated);
 
     return jsonResponse(
       {
@@ -52,7 +48,7 @@ export const POST: APIRoute = async (context) => {
         reviewId,
         message: `Event has been successfully ${event.status}.`,
       },
-      200
+      200,
     );
   } catch (err) {
     return handleApiError(err);

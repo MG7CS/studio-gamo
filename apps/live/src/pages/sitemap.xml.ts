@@ -1,10 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  getRuntimeEnv,
-  GAMO_LIVE_METROS,
-} from '@gamo/domain';
+import { LiveService, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -36,7 +32,7 @@ export const GET: APIRoute = async (context) => {
       .filter(
         (evt) =>
           evt.status === 'approved' &&
-          (evt.listingType !== 'external_discovery' || evt.editorialStatus === 'published')
+          (evt.listingType !== 'external_discovery' || evt.editorialStatus === 'published'),
       )
       .map((evt) => {
         // Real dates only: last verification, else record creation. No date means no <lastmod>.
@@ -68,13 +64,13 @@ export const GET: APIRoute = async (context) => {
 
   for (const item of [...staticPaths, ...metroPaths]) {
     urlsXml.push(
-      `  <url>\n    <loc>${escapeXml(`${siteBase}${item.path}`)}</loc>\n    <changefreq>${item.changefreq}</changefreq>\n    <priority>${item.priority}</priority>\n  </url>`
+      `  <url>\n    <loc>${escapeXml(`${siteBase}${item.path}`)}</loc>\n    <changefreq>${item.changefreq}</changefreq>\n    <priority>${item.priority}</priority>\n  </url>`,
     );
   }
 
   for (const evt of publishedSlugs) {
     urlsXml.push(
-      `  <url>\n    <loc>${escapeXml(`${siteBase}/events/${evt.slug}`)}</loc>\n    ${evt.lastMod ? `<lastmod>${escapeXml(evt.lastMod)}</lastmod>\n    ` : ''}<changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`
+      `  <url>\n    <loc>${escapeXml(`${siteBase}/events/${evt.slug}`)}</loc>\n    ${evt.lastMod ? `<lastmod>${escapeXml(evt.lastMod)}</lastmod>\n    ` : ''}<changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`,
     );
   }
 

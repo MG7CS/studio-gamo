@@ -17,19 +17,19 @@ get:
   x-source: apps/web/src/pages/api/participation/index.ts
   parameters: []
   responses:
-    "200":
+    '200':
       description: Successful persisted response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/participation/ParticipationListResponse.yaml
-    "400": &a1
+    '400': &a1
       $ref: ../components/responses/LegacyError.yaml
-    "401": *a1
-    "403": *a1
-    "404": *a1
-    "409": *a1
-    "500": *a1
+    '401': *a1
+    '403': *a1
+    '404': *a1
+    '409': *a1
+    '500': *a1
 post:
   operationId: submitParticipation
   tags:
@@ -46,18 +46,18 @@ post:
   x-source: apps/web/src/pages/api/participation/index.ts
   parameters: []
   responses:
-    "201":
+    '201':
       description: Successful persisted response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/participation/ParticipationResponse.yaml
-    "400": *a1
-    "401": *a1
-    "403": *a1
-    "404": *a1
-    "409": *a1
-    "500": *a1
+    '400': *a1
+    '401': *a1
+    '403': *a1
+    '404': *a1
+    '409': *a1
+    '500': *a1
   requestBody:
     required: true
     content:

@@ -128,7 +128,10 @@ const m = manifest as Record<string, ManifestEntry>;
 export const photos = Object.fromEntries(
   Object.entries(meta).map(([key, value]) => {
     const entry = m[value.stem];
-    if (!entry) throw new Error(`Photo "${key}" (${value.stem}) missing from image-manifest.json — run \`make images\`.`);
+    if (!entry)
+      throw new Error(
+        `Photo "${key}" (${value.stem}) missing from image-manifest.json — run \`make images\`.`,
+      );
     return [key, { ...value, widths: entry.widths, width: entry.width, height: entry.height }];
   }),
 ) as Record<PhotoKey, PhotoEntry>;

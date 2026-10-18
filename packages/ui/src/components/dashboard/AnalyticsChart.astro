@@ -27,12 +27,45 @@ const {
   exportFilename,
 } = Astro.props;
 
-const palette: Record<NonNullable<ChartSeries['color']>, { hex: string; fill: string; bg: string; text: string; ring: string }> = {
-  terracotta: { hex: '#A94A2E', fill: 'rgba(169, 74, 46, 0.14)', bg: 'bg-[#A94A2E]', text: 'text-[#A94A2E]', ring: 'ring-[#A94A2E]/30' },
-  charcoal: { hex: '#1D2323', fill: 'rgba(29, 35, 35, 0.10)', bg: 'bg-[#1D2323]', text: 'text-[#1D2323]', ring: 'ring-[#1D2323]/30' },
-  gold: { hex: '#C68B3E', fill: 'rgba(198, 139, 62, 0.16)', bg: 'bg-[#C68B3E]', text: 'text-[#8B5D1E]', ring: 'ring-[#C68B3E]/35' },
-  sage: { hex: '#2E6B4E', fill: 'rgba(46, 107, 78, 0.14)', bg: 'bg-[#2E6B4E]', text: 'text-[#2E6B4E]', ring: 'ring-[#2E6B4E]/30' },
-  sand: { hex: '#8C7355', fill: 'rgba(140, 115, 85, 0.14)', bg: 'bg-[#8C7355]', text: 'text-[#6A553D]', ring: 'ring-[#8C7355]/30' },
+const palette: Record<
+  NonNullable<ChartSeries['color']>,
+  { hex: string; fill: string; bg: string; text: string; ring: string }
+> = {
+  terracotta: {
+    hex: '#A94A2E',
+    fill: 'rgba(169, 74, 46, 0.14)',
+    bg: 'bg-[#A94A2E]',
+    text: 'text-[#A94A2E]',
+    ring: 'ring-[#A94A2E]/30',
+  },
+  charcoal: {
+    hex: '#1D2323',
+    fill: 'rgba(29, 35, 35, 0.10)',
+    bg: 'bg-[#1D2323]',
+    text: 'text-[#1D2323]',
+    ring: 'ring-[#1D2323]/30',
+  },
+  gold: {
+    hex: '#C68B3E',
+    fill: 'rgba(198, 139, 62, 0.16)',
+    bg: 'bg-[#C68B3E]',
+    text: 'text-[#8B5D1E]',
+    ring: 'ring-[#C68B3E]/35',
+  },
+  sage: {
+    hex: '#2E6B4E',
+    fill: 'rgba(46, 107, 78, 0.14)',
+    bg: 'bg-[#2E6B4E]',
+    text: 'text-[#2E6B4E]',
+    ring: 'ring-[#2E6B4E]/30',
+  },
+  sand: {
+    hex: '#8C7355',
+    fill: 'rgba(140, 115, 85, 0.14)',
+    bg: 'bg-[#8C7355]',
+    text: 'text-[#6A553D]',
+    ring: 'ring-[#8C7355]/30',
+  },
 };
 
 const colorKeys: NonNullable<ChartSeries['color']>[] = ['terracotta', 'charcoal', 'gold', 'sage', 'sand'];
@@ -45,12 +78,9 @@ const normalizedSeries = series.map((s, idx) => ({
 const labels = normalizedSeries[0]?.points.map((p) => p.label) ?? [];
 const allValues = normalizedSeries.flatMap((s) => s.points.map((p) => p.value));
 const stackedTotals = labels.map((_, pointIdx) =>
-  normalizedSeries.reduce((acc, s) => acc + (s.points[pointIdx]?.value ?? 0), 0)
+  normalizedSeries.reduce((acc, s) => acc + (s.points[pointIdx]?.value ?? 0), 0),
 );
-const maxVal = Math.max(
-  1,
-  variant === 'stacked' ? Math.max(1, ...stackedTotals) : Math.max(1, ...allValues)
-);
+const maxVal = Math.max(1, variant === 'stacked' ? Math.max(1, ...stackedTotals) : Math.max(1, ...allValues));
 
 const formatValue = (v: number, displayValue?: string) => {
   if (displayValue) return displayValue;
@@ -77,9 +107,10 @@ const trendPaths = normalizedSeries.map((s) => {
     return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, pt };
   });
   const lineD = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x},${c.y}`).join(' ');
-  const areaD = coords.length > 1
-    ? `${lineD} L${coords[coords.length - 1].x},${padTop + plotH} L${coords[0].x},${padTop + plotH} Z`
-    : '';
+  const areaD =
+    coords.length > 1
+      ? `${lineD} L${coords[coords.length - 1].x},${padTop + plotH} L${coords[0].x},${padTop + plotH} Z`
+      : '';
   return { ...s, coords, lineD, areaD };
 });
 
@@ -116,7 +147,9 @@ const exportPayload = JSON.stringify({
         <div class="rounded-2xl border border-sand/70 bg-ivory/80 px-3.5 py-2.5">
           <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">{m.label}</p>
           <div class="mt-1 flex flex-wrap items-baseline justify-between gap-1.5">
-            <span class="text-[18px] font-bold tracking-[-0.02em] text-charcoal sm:text-[20px]">{m.value}</span>
+            <span class="text-[18px] font-bold tracking-[-0.02em] text-charcoal sm:text-[20px]">
+              {m.value}
+            </span>
             {m.delta && (
               <span
                 class:list={[
@@ -140,7 +173,10 @@ const exportPayload = JSON.stringify({
   <div class="flex flex-wrap items-center justify-between gap-2 border-b border-sand/60 pb-2.5">
     <div class="flex flex-wrap items-center gap-3" aria-label="Chart series legend">
       {normalizedSeries.map((s, idx) => (
-        <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-charcoal/85" data-series-legend={idx}>
+        <span
+          class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-charcoal/85"
+          data-series-legend={idx}
+        >
           <span class:list={['h-2.5 w-2.5 rounded-full', s.theme.bg]} aria-hidden="true"></span>
           <span>{s.label}</span>
         </span>
@@ -148,11 +184,25 @@ const exportPayload = JSON.stringify({
     </div>
 
     <div class="flex flex-wrap items-center gap-1.5">
-      <div class="inline-flex rounded-full border border-sand bg-ivory p-0.5 text-[11px] font-semibold" role="group" aria-label="Chart view mode">
-        <button type="button" data-chart-view="visual" aria-pressed="true" class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream">
+      <div
+        class="inline-flex rounded-full border border-sand bg-ivory p-0.5 text-[11px] font-semibold"
+        role="group"
+        aria-label="Chart view mode"
+      >
+        <button
+          type="button"
+          data-chart-view="visual"
+          aria-pressed="true"
+          class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
+        >
           Graph
         </button>
-        <button type="button" data-chart-view="table" aria-pressed="false" class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream">
+        <button
+          type="button"
+          data-chart-view="table"
+          aria-pressed="false"
+          class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
+        >
           Data table
         </button>
       </div>
@@ -200,8 +250,15 @@ const exportPayload = JSON.stringify({
                   stroke-dasharray={ratio === 0 ? undefined : '3 3'}
                   stroke-width="1"
                 />
-                <text x={padLeft - 8} y={y + 4} text-anchor="end" class="fill-[#6E6A63] text-[10px] font-medium">
-                  {unit === '$' ? `$${tickVal >= 1000 ? `${(tickVal / 1000).toFixed(tickVal % 1000 === 0 ? 0 : 1)}k` : tickVal}` : `${tickVal}${unit === '%' ? '%' : ''}`}
+                <text
+                  x={padLeft - 8}
+                  y={y + 4}
+                  text-anchor="end"
+                  class="fill-[#6E6A63] text-[10px] font-medium"
+                >
+                  {unit === '$'
+                    ? `$${tickVal >= 1000 ? `${(tickVal / 1000).toFixed(tickVal % 1000 === 0 ? 0 : 1)}k` : tickVal}`
+                    : `${tickVal}${unit === '%' ? '%' : ''}`}
                 </text>
               </g>
             );
@@ -220,14 +277,7 @@ const exportPayload = JSON.stringify({
               />
               {s.coords.map((c) => (
                 <g>
-                  <circle
-                    cx={c.x}
-                    cy={c.y}
-                    r="4.2"
-                    fill="#FFFFFF"
-                    stroke={s.theme.hex}
-                    stroke-width="2.4"
-                  >
+                  <circle cx={c.x} cy={c.y} r="4.2" fill="#FFFFFF" stroke={s.theme.hex} stroke-width="2.4">
                     <title>{`${s.label} (${c.pt.label}): ${formatValue(c.pt.value, c.pt.displayValue)}${c.pt.note ? ` — ${c.pt.note}` : ''}`}</title>
                   </circle>
                 </g>
@@ -267,7 +317,10 @@ const exportPayload = JSON.stringify({
                         {formatValue(val, pt?.displayValue)}
                       </span>
                       <div
-                        class:list={['w-full max-w-9 rounded-t-lg transition-all group-hover:opacity-90', s.theme.bg]}
+                        class:list={[
+                          'w-full max-w-9 rounded-t-lg transition-all group-hover:opacity-90',
+                          s.theme.bg,
+                        ]}
                         style={`height: ${pct}%`}
                         title={`${s.label} · ${lbl}: ${formatValue(val, pt?.displayValue)}`}
                       />
@@ -290,7 +343,9 @@ const exportPayload = JSON.stringify({
             <div class="space-y-1.5">
               <div class="flex items-baseline justify-between gap-2 text-[12px]">
                 <span class="font-semibold text-charcoal">{lbl}</span>
-                <span class="font-bold text-charcoal/80">{formatValue(stackedTotals[pointIdx] ?? 0)} total</span>
+                <span class="font-bold text-charcoal/80">
+                  {formatValue(stackedTotals[pointIdx] ?? 0)} total
+                </span>
               </div>
               <div class="flex h-4 w-full overflow-hidden rounded-full bg-sand/40 p-0.5">
                 {normalizedSeries.map((s) => {
@@ -299,7 +354,10 @@ const exportPayload = JSON.stringify({
                   const widthPct = Math.max(0, Math.round((val / rowTotal) * 1000) / 10);
                   return (
                     <div
-                      class:list={['h-full first:rounded-l-full last:rounded-r-full transition-all', s.theme.bg]}
+                      class:list={[
+                        'h-full first:rounded-l-full last:rounded-r-full transition-all',
+                        s.theme.bg,
+                      ]}
                       style={`width: ${widthPct}%`}
                       title={`${s.label} (${lbl}): ${formatValue(val, pt?.displayValue)} (${widthPct}%)`}
                     />
@@ -312,7 +370,8 @@ const exportPayload = JSON.stringify({
                   const val = pt?.value ?? 0;
                   return (
                     <span>
-                      <strong class="text-charcoal/85">{s.label}:</strong> {formatValue(val, pt?.displayValue)}
+                      <strong class="text-charcoal/85">{s.label}:</strong>{' '}
+                      {formatValue(val, pt?.displayValue)}
                     </span>
                   );
                 })}
@@ -349,16 +408,22 @@ const exportPayload = JSON.stringify({
     <table class="w-full border-collapse text-left text-[13px]">
       <thead>
         <tr class="border-b border-sand text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
-          <th scope="col" class="py-2 pr-3">Period / Category</th>
+          <th scope="col" class="py-2 pr-3">
+            Period / Category
+          </th>
           {normalizedSeries.map((s) => (
-            <th scope="col" class="px-3 py-2">{s.label}</th>
+            <th scope="col" class="px-3 py-2">
+              {s.label}
+            </th>
           ))}
         </tr>
       </thead>
       <tbody>
         {labels.map((lbl, idx) => (
           <tr class="border-b border-sand/50 last:border-0">
-            <th scope="row" class="py-2 pr-3 font-semibold text-charcoal">{lbl}</th>
+            <th scope="row" class="py-2 pr-3 font-semibold text-charcoal">
+              {lbl}
+            </th>
             {normalizedSeries.map((s) => {
               const pt = s.points[idx];
               return (
@@ -376,6 +441,11 @@ const exportPayload = JSON.stringify({
 
   <div class="flex flex-wrap items-center justify-between gap-2">
     {footnote ? <p class="text-[12px] text-ink-soft">{footnote}</p> : <span />}
-    <p class="text-[12px] font-medium text-terracotta-dark" data-chart-export-status aria-live="polite" hidden></p>
+    <p
+      class="text-[12px] font-medium text-terracotta-dark"
+      data-chart-export-status
+      aria-live="polite"
+      hidden
+    ></p>
   </div>
 </div>

@@ -2,22 +2,46 @@
 /** Workspace navigation list, used by the desktop sidebar and the mobile drawer. */
 import Icon from '../Icon.astro';
 import { screenHref, type Workspace } from '../../lib/dashboard';
-interface Props { workspace: Workspace; current: string }
+interface Props {
+  workspace: Workspace;
+  current: string;
+}
 const { workspace, current } = Astro.props;
 ---
+
 <nav aria-label={`${workspace.name} navigation`} class="space-y-5">
   {workspace.nav.map((group) => (
     <div>
-      {group.label && <p class="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/45">{group.label}</p>}
+      {group.label && (
+        <p class="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream/45">
+          {group.label}
+        </p>
+      )}
       <ul class="space-y-0.5">
         {group.items.map((item) => {
           const active = item.slug === current;
           return (
             <li>
-              <a href={screenHref(workspace, item.slug)} aria-current={active ? 'page' : undefined} class:list={['flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-medium transition-colors', active ? 'bg-cream text-charcoal' : 'text-cream/80 hover:bg-white/10 hover:text-cream']}>
+              <a
+                href={screenHref(workspace, item.slug)}
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[14px] font-medium transition-colors',
+                  active ? 'bg-cream text-charcoal' : 'text-cream/80 hover:bg-white/10 hover:text-cream',
+                ]}
+              >
                 <Icon name={item.icon} class="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
                 <span class="flex-1">{item.label}</span>
-                {item.badge && <span class:list={['rounded-full px-1.5 text-[11px] font-semibold', active ? 'bg-terracotta text-white' : 'bg-white/15 text-cream']}>{item.badge}</span>}
+                {item.badge && (
+                  <span
+                    class:list={[
+                      'rounded-full px-1.5 text-[11px] font-semibold',
+                      active ? 'bg-terracotta text-white' : 'bg-white/15 text-cream',
+                    ]}
+                  >
+                    {item.badge}
+                  </span>
+                )}
               </a>
             </li>
           );

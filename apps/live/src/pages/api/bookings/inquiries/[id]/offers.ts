@@ -59,16 +59,11 @@ export const POST: APIRoute = async (context) => {
       throw new AuthError(
         'FORBIDDEN',
         'You do not have negotiation authority for this booking inquiry.',
-        403
+        403,
       );
     }
 
-    const result = await liveService.proposeBookingOffer(
-      inquiryId,
-      auth.user.id,
-      offeredByRole,
-      validated
-    );
+    const result = await liveService.proposeBookingOffer(inquiryId, auth.user.id, offeredByRole, validated);
 
     return jsonResponse(result, 201);
   } catch (err) {

@@ -3,16 +3,76 @@ import Photo from '@studio-gamo/ui/components/Photo.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const ways = [
-  ['Music education & access', 'Explore proposed support for instruments, learning materials, instructor time and welcoming music programs.'],
-  ['Program sponsorships', 'Discuss support focused on a defined education or community program, with delivery and reporting agreed before launch.'],
-  ['Instruments & equipment', 'Offer instruments, audio equipment or useful resources. Suitability, condition and acceptance arrangements will need review.'],
-  ['Church & institutional support', 'Explore mission-aligned church contributions, grants and institutional collaboration as governance develops.'],
-  ['Time, skills & spaces', 'Volunteer knowledge, teach, mentor or offer facilities. Nonfinancial support can make a meaningful contribution.'],
+  [
+    'Music education & access',
+    'Explore proposed support for instruments, learning materials, instructor time and welcoming music programs.',
+  ],
+  [
+    'Program sponsorships',
+    'Discuss support focused on a defined education or community program, with delivery and reporting agreed before launch.',
+  ],
+  [
+    'Instruments & equipment',
+    'Offer instruments, audio equipment or useful resources. Suitability, condition and acceptance arrangements will need review.',
+  ],
+  [
+    'Church & institutional support',
+    'Explore mission-aligned church contributions, grants and institutional collaboration as governance develops.',
+  ],
+  [
+    'Time, skills & spaces',
+    'Volunteer knowledge, teach, mentor or offer facilities. Nonfinancial support can make a meaningful contribution.',
+  ],
 ];
 ---
+
 <section id="support-paths" class="bg-ivory px-6 section-space sm:px-12">
-  <div class="mx-auto max-w-[1320px]"><EditorialHeading eyebrow="Ways to sustain the mission" title="Support can take" accent="many forms." lede="We are developing responsible pathways for people and organizations to support religious and educational programs." />
-    <div class="mt-12 grid items-start gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-24"><div>{ways.map(([title, body]) => <article class="border-t border-sand py-7"><h3 class="text-2xl font-semibold tracking-tight">{title}</h3><p class="mt-3 leading-relaxed text-ink-soft">{body}</p></article>)}</div><div class="lg:sticky lg:top-28"><div class="h-[360px] lg:h-[440px] overflow-hidden mask-leaf-alt"><Photo name="youngPianist" sizes="(min-width:1024px) 40vw, 100vw" /></div><p class="mt-5 text-sm leading-relaxed text-ink-soft">Sponsored and scholarship-supported programs are coordinated as dedicated funding and community partnerships are established.</p></div></div>
+  <div class="mx-auto max-w-[1320px]">
+    <EditorialHeading
+      eyebrow="Ways to sustain the mission"
+      title="Support can take"
+      accent="many forms."
+      lede="We are developing responsible pathways for people and organizations to support religious and educational programs."
+    />
+    <div class="mt-12 grid items-start gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-24">
+      <div>
+        {ways.map(([title, body]) => (
+          <article class="border-t border-sand py-7">
+            <h3 class="text-2xl font-semibold tracking-tight">{title}</h3>
+            <p class="mt-3 leading-relaxed text-ink-soft">{body}</p>
+          </article>
+        ))}
+      </div>
+      <div class="lg:sticky lg:top-28">
+        <div class="h-[360px] lg:h-[440px] overflow-hidden mask-leaf-alt">
+          <Photo name="youngPianist" sizes="(min-width:1024px) 40vw, 100vw" />
+        </div>
+        <p class="mt-5 text-sm leading-relaxed text-ink-soft">
+          Sponsored and scholarship-supported programs are coordinated as dedicated funding and community
+          partnerships are established.
+        </p>
+      </div>
+    </div>
   </div>
 </section>
-<section class="px-6 section-space sm:px-12"><div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-2 lg:gap-24"><EditorialHeading eyebrow="Responsible stewardship" title="Care for the mission." accent="Care for the resources." /><div><p class="text-lg leading-relaxed text-ink-soft">Our financial controls include program budgets, separate tracking for restricted support, transparent musician and instructor pay, and reporting to an independent governing board as organizational governance develops.</p><div class="mt-7"><ButtonLink href="/contact?interest=Mission%20support" arrow>Start a support inquiry</ButtonLink></div></div></div></section>
+<section class="px-6 section-space sm:px-12">
+  <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-2 lg:gap-24">
+    <EditorialHeading
+      eyebrow="Responsible stewardship"
+      title="Care for the mission."
+      accent="Care for the resources."
+    />
+    <div>
+      <p class="text-lg leading-relaxed text-ink-soft">
+        Our financial controls include program budgets, separate tracking for restricted support, transparent
+        musician and instructor pay, and reporting to an independent governing board as organizational
+        governance develops.
+      </p>
+      <div class="mt-7">
+        <ButtonLink href="/contact?interest=Mission%20support" arrow>
+          Start a support inquiry
+        </ButtonLink>
+      </div>
+    </div>
+  </div>
+</section>

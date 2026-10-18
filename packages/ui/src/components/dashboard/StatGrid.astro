@@ -14,6 +14,7 @@ interface Props {
 }
 const { items } = Astro.props;
 ---
+
 <ul class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary metrics" data-stat-grid>
   {items.map((s, idx) => {
     const featured = idx === 0;
@@ -31,15 +32,32 @@ const { items } = Astro.props;
         data-stat-hint={s.hint ?? s.delta ?? ''}
       >
         <div class="flex items-center justify-between gap-2">
-          <p class:list={['text-[12px] font-semibold leading-4 sm:text-[13px]', featured ? 'text-[#5A3A1E]' : 'text-ink-soft']}>{s.label}</p>
+          <p
+            class:list={[
+              'text-[12px] font-semibold leading-4 sm:text-[13px]',
+              featured ? 'text-[#5A3A1E]' : 'text-ink-soft',
+            ]}
+          >
+            {s.label}
+          </p>
           {s.icon && (
-            <span class:list={['grid h-7 w-7 shrink-0 place-items-center rounded-full', featured ? 'bg-charcoal/10 text-charcoal' : 'bg-cream text-terracotta-dark']}>
+            <span
+              class:list={[
+                'grid h-7 w-7 shrink-0 place-items-center rounded-full',
+                featured ? 'bg-charcoal/10 text-charcoal' : 'bg-cream text-terracotta-dark',
+              ]}
+            >
               <Icon name={s.icon} class="h-3.5 w-3.5" strokeWidth={2} />
             </span>
           )}
         </div>
         <div class="mt-2.5 flex items-baseline justify-between gap-2">
-          <p class="truncate text-[24px] font-bold leading-none tracking-[-0.03em] sm:text-[28px]" title={s.value}>{s.value}</p>
+          <p
+            class="truncate text-[24px] font-bold leading-none tracking-[-0.03em] sm:text-[28px]"
+            title={s.value}
+          >
+            {s.value}
+          </p>
           {s.delta && (
             <span
               class:list={[
@@ -57,7 +75,12 @@ const { items } = Astro.props;
         </div>
         {s.hint && (
           <p class="mt-2.5">
-            <span class:list={['inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-semibold', featured ? 'bg-charcoal/10 text-[#4A2F17]' : 'bg-ivory text-ink-soft ring-1 ring-sand/70']}>
+            <span
+              class:list={[
+                'inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                featured ? 'bg-charcoal/10 text-[#4A2F17]' : 'bg-ivory text-ink-soft ring-1 ring-sand/70',
+              ]}
+            >
               {s.hint}
             </span>
           </p>

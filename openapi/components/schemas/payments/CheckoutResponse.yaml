@@ -8,7 +8,7 @@ properties:
   url:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   mock:
     type: boolean
   orderId:

@@ -18,6 +18,17 @@ const variants = {
 };
 const sizes = { md: 'min-h-11 px-5 py-3 text-sm', lg: 'min-h-12 px-6 py-3 text-base' };
 ---
-<a href={href} class:list={['inline-flex items-center justify-center gap-3 rounded-full font-semibold transition-colors', variants[variant], sizes[size], className]} {...rest}>
-  <slot />{arrow && <Icon name="arrow" class="h-4 w-4" />}
+
+<a
+  href={href}
+  class:list={[
+    'inline-flex items-center justify-center gap-3 rounded-full font-semibold transition-colors',
+    variants[variant],
+    sizes[size],
+    className,
+  ]}
+  {...rest}
+>
+  <slot />
+  {arrow && <Icon name="arrow" class="h-4 w-4" />}
 </a>

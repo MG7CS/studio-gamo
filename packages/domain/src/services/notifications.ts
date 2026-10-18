@@ -7,12 +7,7 @@
  */
 
 import { eq, and, lt, or, isNull, lte, asc } from 'drizzle-orm';
-import {
-  notificationJobs,
-  eventRegistrations,
-  events,
-  type GamoDatabase,
-} from '@gamo/db';
+import { notificationJobs, eventRegistrations, events, type GamoDatabase } from '@gamo/db';
 import { createResendClient, type ResendConfig } from '@studio-gamo/integrations/resend';
 import { getPlatformBrandConfig } from '../brand.ts';
 
@@ -105,7 +100,7 @@ export class NotificationService {
    */
   async processRegistrationJob(
     registrationId: string,
-    now: Date = new Date()
+    now: Date = new Date(),
   ): Promise<ProcessNotificationResult | null> {
     const [job] = await this.db
       .select()
@@ -132,11 +127,7 @@ export class NotificationService {
       .limit(1);
     if (!registration) return null;
 
-    const [event] = await this.db
-      .select()
-      .from(events)
-      .where(eq(events.id, registration.eventId))
-      .limit(1);
+    const [event] = await this.db.select().from(events).where(eq(events.id, registration.eventId)).limit(1);
     if (!event) return null;
 
     return this.dispatchJobRow(job, registration, event, now);
@@ -145,10 +136,7 @@ export class NotificationService {
   /**
    * Processes due pending outbox jobs in batch order, respecting retry backoff and max attempt limits.
    */
-  async processPendingJobs(
-    limit: number = 20,
-    now: Date = new Date()
-  ): Promise<ProcessNotificationResult[]> {
+  async processPendingJobs(limit: number = 20, now: Date = new Date()): Promise<ProcessNotificationResult[]> {
     const jobs = await this.db
       .select()
       .from(notificationJobs)
@@ -156,8 +144,8 @@ export class NotificationService {
         and(
           eq(notificationJobs.status, 'pending'),
           lt(notificationJobs.attempts, MAX_NOTIFICATION_ATTEMPTS),
-          or(isNull(notificationJobs.nextAttemptAt), lte(notificationJobs.nextAttemptAt, now))
-        )
+          or(isNull(notificationJobs.nextAttemptAt), lte(notificationJobs.nextAttemptAt, now)),
+        ),
       )
       .orderBy(asc(notificationJobs.createdAt), asc(notificationJobs.id))
       .limit(limit);
@@ -171,11 +159,7 @@ export class NotificationService {
         .limit(1);
       if (!registration) continue;
 
-      const [event] = await this.db
-        .select()
-        .from(events)
-        .where(eq(events.id, registration.eventId))
-        .limit(1);
+      const [event] = await this.db.select().from(events).where(eq(events.id, registration.eventId)).limit(1);
       if (!event) continue;
 
       const outcome = await this.dispatchJobRow(job, registration, event, now);
@@ -188,7 +172,7 @@ export class NotificationService {
     job: typeof notificationJobs.$inferSelect,
     registration: typeof eventRegistrations.$inferSelect,
     event: typeof events.$inferSelect,
-    now: Date
+    now: Date,
   ): Promise<ProcessNotificationResult> {
     const client = createResendClient(this.resendConfig);
 

@@ -6,7 +6,7 @@ properties:
     format: email
   verificationCode:
     type: string
-    pattern: "^[0-9]{6}$"
+    pattern: '^[0-9]{6}$'
 required:
   - email
   - verificationCode

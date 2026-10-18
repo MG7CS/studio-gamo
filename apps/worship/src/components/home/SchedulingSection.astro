@@ -6,28 +6,73 @@ import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 const days = Array.from({ length: 30 }, (_, i) => i + 1);
 const sundays = new Set([2, 9, 16, 23, 30]);
 const open = new Set([9]);
-const points = ['Weekly, bi-weekly or monthly patterns', 'Seasonal needs — Easter, Christmas, revivals', 'One roster view for every confirmed role'];
+const points = [
+  'Weekly, bi-weekly or monthly patterns',
+  'Seasonal needs — Easter, Christmas, revivals',
+  'One roster view for every confirmed role',
+];
 ---
+
 <section class="bg-ivory section-space" aria-labelledby="schedule-title">
   <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-8 lg:grid-cols-12">
     <div class="lg:col-span-5">
-      <EditorialHeading id="schedule-title" eyebrow="Scheduling & recurring needs" title="Plan the season," accent="not just the week." lede="Churches can describe a recurring need once and see every upcoming Sunday in a simple roster." />
-      <ul class="mt-8 space-y-3">{points.map((p) => <li class="flex gap-3 text-charcoal"><span class="mt-2 h-1.5 w-6 shrink-0 rounded-full bg-terracotta"></span>{p}</li>)}</ul>
-      <ButtonLink href="/church/roster" variant="secondary" class="mt-8" arrow>View service roster</ButtonLink>
+      <EditorialHeading
+        id="schedule-title"
+        eyebrow="Scheduling & recurring needs"
+        title="Plan the season,"
+        accent="not just the week."
+        lede="Churches can describe a recurring need once and see every upcoming Sunday in a simple roster."
+      />
+      <ul class="mt-8 space-y-3">
+        {points.map((p) => (
+          <li class="flex gap-3 text-charcoal">
+            <span class="mt-2 h-1.5 w-6 shrink-0 rounded-full bg-terracotta"></span>
+            {p}
+          </li>
+        ))}
+      </ul>
+      <ButtonLink href="/church/roster" variant="secondary" class="mt-8" arrow>
+        View service roster
+      </ButtonLink>
     </div>
     <div class="lg:col-span-7" data-reveal>
       <div class="mx-auto max-w-lg rounded-[2rem] border border-sand bg-white p-6 shadow-float sm:p-8">
-        <div class="flex items-center justify-between"><p class="text-lg font-semibold">November</p><StatusPill kind="verified">Service roster</StatusPill></div>
+        <div class="flex items-center justify-between">
+          <p class="text-lg font-semibold">November</p>
+          <StatusPill kind="verified">Service roster</StatusPill>
+        </div>
         <div class="mt-5 grid grid-cols-7 gap-1.5 text-center text-xs text-ink-soft" aria-hidden="true">
-          {['S','M','T','W','T','F','S'].map((d) => <span class="py-1 font-semibold">{d}</span>)}
-          <span></span><span></span><span></span><span></span><span></span><span></span>
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => (
+            <span class="py-1 font-semibold">{d}</span>
+          ))}
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
           {days.map((d) => (
-            <span class:list={['grid aspect-square place-items-center rounded-xl text-sm', sundays.has(d) ? (open.has(d) ? 'border-2 border-dashed border-terracotta text-terracotta font-semibold' : 'bg-terracotta text-white font-semibold') : 'text-charcoal/70']}>{d}</span>
+            <span
+              class:list={[
+                'grid aspect-square place-items-center rounded-xl text-sm',
+                sundays.has(d)
+                  ? open.has(d)
+                    ? 'border-2 border-dashed border-terracotta text-terracotta font-semibold'
+                    : 'bg-terracotta text-white font-semibold'
+                  : 'text-charcoal/70',
+              ]}
+            >
+              {d}
+            </span>
           ))}
         </div>
         <div class="mt-5 flex flex-wrap gap-4 text-xs text-ink-soft">
-          <span class="flex items-center gap-2"><span class="h-3 w-3 rounded bg-terracotta"></span>Musicians confirmed</span>
-          <span class="flex items-center gap-2"><span class="h-3 w-3 rounded border-2 border-dashed border-terracotta"></span>Role still open</span>
+          <span class="flex items-center gap-2">
+            <span class="h-3 w-3 rounded bg-terracotta"></span>Musicians confirmed
+          </span>
+          <span class="flex items-center gap-2">
+            <span class="h-3 w-3 rounded border-2 border-dashed border-terracotta"></span>Role still open
+          </span>
         </div>
         <p class="sr-only">November calendar: four Sundays confirmed, November 9 has an open role.</p>
       </div>

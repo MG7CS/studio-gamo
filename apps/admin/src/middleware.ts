@@ -29,10 +29,7 @@ function resolveSigningSecret(runtimeEnv: Record<string, any>): string | undefin
 }
 
 function resolveCookieDomain(url: URL, isProd: boolean): string | undefined {
-  if (
-    isProd &&
-    (url.hostname === 'gamostudio.org' || url.hostname.endsWith('.gamostudio.org'))
-  ) {
+  if (isProd && (url.hostname === 'gamostudio.org' || url.hostname.endsWith('.gamostudio.org'))) {
     return '.gamostudio.org';
   }
   return undefined;
@@ -231,7 +228,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
           renderAdminGatewaySignInHtml({
             error: 'Admin authentication database or signing secret is not configured.',
           }),
-          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
         );
       }
 
@@ -254,7 +251,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
               'Content-Type': 'text/html; charset=utf-8',
               'X-Robots-Tag': 'noindex, nofollow, noarchive',
             },
-          }
+          },
         );
       }
 
@@ -278,7 +275,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
           secure: isProd,
           sameSite: 'Lax',
           path: '/',
-        }
+        },
       );
 
       const headers = new Headers();
@@ -291,7 +288,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         renderAdminGatewaySignInHtml({
           error: err?.message || 'Unable to complete sign-in request.',
         }),
-        { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
       );
     }
   }
@@ -315,13 +312,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const headers = new Headers();
     headers.append(
       'Set-Cookie',
-      buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/', domain: cookieDomain })
+      buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/', domain: cookieDomain }),
     );
     if (cookieDomain) {
-      headers.append(
-        'Set-Cookie',
-        buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/' })
-      );
+      headers.append('Set-Cookie', buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/' }));
     }
     headers.append('Set-Cookie', buildClearAdminGateCookie({ secure: isProd, sameSite: 'Lax', path: '/' }));
     headers.set('Content-Type', 'text/html; charset=utf-8');
@@ -333,9 +327,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const requireAuth =
-    runtimeEnv.REQUIRE_ADMIN_AUTH === 'true' ||
-    import.meta.env?.REQUIRE_ADMIN_AUTH === 'true' ||
-    isProd;
+    runtimeEnv.REQUIRE_ADMIN_AUTH === 'true' || import.meta.env?.REQUIRE_ADMIN_AUTH === 'true' || isProd;
 
   // 1. In local dev mode without explicit auth requirement, permit testing
   if (isDev && !requireAuth && !url.pathname.startsWith('/api/')) {
@@ -370,7 +362,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
           context.request,
           sessionAuth.sessionId,
           sessionAuth.user.id,
-          signingSecret
+          signingSecret,
         ))
       ) {
         (context.locals as Record<string, any>).staffEmail = sessionAuth.user.email;
@@ -397,7 +389,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
             db,
             sessionAuth.user.id,
             currentPassword,
-            newPassword
+            newPassword,
           );
           if (!changeResult.ok) {
             return new Response(null, {
@@ -450,10 +442,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     // Check for Basic Auth
-    const basicAuthUser =
-      runtimeEnv.ADMIN_BASIC_AUTH_USER || import.meta.env?.ADMIN_BASIC_AUTH_USER;
-    const basicAuthPass =
-      runtimeEnv.ADMIN_BASIC_AUTH_PASS || import.meta.env?.ADMIN_BASIC_AUTH_PASS;
+    const basicAuthUser = runtimeEnv.ADMIN_BASIC_AUTH_USER || import.meta.env?.ADMIN_BASIC_AUTH_USER;
+    const basicAuthPass = runtimeEnv.ADMIN_BASIC_AUTH_PASS || import.meta.env?.ADMIN_BASIC_AUTH_PASS;
 
     if (basicAuthUser && basicAuthPass && authHeader.startsWith('Basic ')) {
       try {

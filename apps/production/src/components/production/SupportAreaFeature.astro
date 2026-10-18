@@ -20,13 +20,29 @@ const dark = tone === 'dark';
 const bg = { cream: 'bg-cream', ivory: 'bg-ivory', dark: 'bg-night text-cream' }[tone];
 const id = `area-${area.slug}`;
 ---
-<section class:list={[bg, 'section-space']} aria-labelledby={id} data-surface={dark ? 'dark' : undefined} data-reveal>
+
+<section
+  class:list={[bg, 'section-space']}
+  aria-labelledby={id}
+  data-surface={dark ? 'dark' : undefined}
+  data-reveal
+>
   <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-12 lg:gap-16">
     <div class:list={['relative lg:col-span-6', reverse && 'lg:order-2']}>
       <div class:list={['aspect-[5/4] overflow-hidden bg-sand shadow-float', mask]}>
-        <Photo name={area.photo} position={area.photoPosition} sizes="(min-width:1024px) 45vw, 100vw" class="h-full w-full object-cover" />
+        <Photo
+          name={area.photo}
+          position={area.photoPosition}
+          sizes="(min-width:1024px) 45vw, 100vw"
+          class="h-full w-full object-cover"
+        />
       </div>
-      <div class:list={['relative -mt-16 px-4 sm:absolute sm:-bottom-10 sm:mt-0 sm:px-0', reverse ? 'sm:-left-4' : 'sm:-right-4']}>
+      <div
+        class:list={[
+          'relative -mt-16 px-4 sm:absolute sm:-bottom-10 sm:mt-0 sm:px-0',
+          reverse ? 'sm:-left-4' : 'sm:-right-4',
+        ]}
+      >
         <slot name="preview" />
       </div>
     </div>
@@ -34,16 +50,33 @@ const id = `area-${area.slug}`;
       <p class:list={['eyebrow flex items-center gap-2', dark ? 'text-gold' : 'text-terracotta']}>
         <Icon name={area.icon} class="h-4 w-4" /> 0{index} · Support area
       </p>
-      <h2 id={id} class:list={['section-heading mt-4', dark ? 'text-cream' : 'text-charcoal']}>{area.title}</h2>
-      <p class:list={['mt-5 text-lg leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>{area.summary}</p>
+      <h2 id={id} class:list={['section-heading mt-4', dark ? 'text-cream' : 'text-charcoal']}>
+        {area.title}
+      </h2>
+      <p class:list={['mt-5 text-lg leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>
+        {area.summary}
+      </p>
       <ul class="mt-8 grid gap-3 sm:grid-cols-2">
         {area.covers.map((c) => (
-          <li class:list={['flex items-start gap-3 border-t pt-3 text-sm', dark ? 'border-white/15 text-cream/85' : 'border-sand text-charcoal']}>
-            <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" strokeWidth={2} />{c}
+          <li
+            class:list={[
+              'flex items-start gap-3 border-t pt-3 text-sm',
+              dark ? 'border-white/15 text-cream/85' : 'border-sand text-charcoal',
+            ]}
+          >
+            <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" strokeWidth={2} />
+            {c}
           </li>
         ))}
       </ul>
-      <ButtonLink href={`/services/${area.slug}`} variant={dark ? 'ghost-dark' : 'secondary'} arrow class="mt-8">Explore {area.title.toLowerCase()}</ButtonLink>
+      <ButtonLink
+        href={`/services/${area.slug}`}
+        variant={dark ? 'ghost-dark' : 'secondary'}
+        arrow
+        class="mt-8"
+      >
+        Explore {area.title.toLowerCase()}
+      </ButtonLink>
     </div>
   </div>
 </section>

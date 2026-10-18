@@ -1,12 +1,34 @@
 ---
 import Photo from '@studio-gamo/ui/components/Photo.astro';
-interface Props { partnership?: boolean; }
+interface Props {
+  partnership?: boolean;
+}
 const { partnership = false } = Astro.props;
 ---
+
 <div>
-  <p class="eyebrow text-terracotta">{partnership ? 'Build something together' : 'Questions · ideas · possibilities'}</p>
-  <h1 class="display-lg mt-5">{partnership ? 'Every partnership' : "Let's start"}<span class="block text-terracotta">{partnership ? 'starts with an idea.' : 'a conversation.'}</span></h1>
-  <p class="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">{partnership ? 'Explore hosting, education sponsorships, worship development or shared resources with our team.' : 'Explore a program, a way to serve or a community collaboration with the Gamo Studios team.'}</p>
-  <div class="mt-7 h-[240px] overflow-hidden rounded-[120px_28px_28px_28px]"><Photo name={partnership ? 'churchModernDay' : 'guitarMentor'} sizes="(min-width:1024px) 40vw, 100vw" priority /></div>
-  <p class="mt-5 text-sm leading-relaxed text-ink-soft">Initial local program area: Phoenix metropolitan area, Arizona.<br />Gamo Live is designed for Christian events nationwide.</p>
+  <p class="eyebrow text-terracotta">
+    {partnership ? 'Build something together' : 'Questions · ideas · possibilities'}
+  </p>
+  <h1 class="display-lg mt-5">
+    {partnership ? 'Every partnership' : "Let's start"}
+    <span class="block text-terracotta">{partnership ? 'starts with an idea.' : 'a conversation.'}</span>
+  </h1>
+  <p class="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">
+    {partnership
+      ? 'Explore hosting, education sponsorships, worship development or shared resources with our team.'
+      : 'Explore a program, a way to serve or a community collaboration with the Gamo Studios team.'}
+  </p>
+  <div class="mt-7 h-[240px] overflow-hidden rounded-[120px_28px_28px_28px]">
+    <Photo
+      name={partnership ? 'churchModernDay' : 'guitarMentor'}
+      sizes="(min-width:1024px) 40vw, 100vw"
+      priority
+    />
+  </div>
+  <p class="mt-5 text-sm leading-relaxed text-ink-soft">
+    Initial local program area: Phoenix metropolitan area, Arizona.
+    <br />
+    Gamo Live is designed for Christian events nationwide.
+  </p>
 </div>

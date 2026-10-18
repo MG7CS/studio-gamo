@@ -4,12 +4,41 @@ import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
-const groups: { id: string; label: string; photo: PhotoKey; title: string; body: string; points: string[] }[] = [
-  { id: 'kids', label: 'Kids (6–12)', photo: 'youngPianist', title: 'Playful, patient first steps', body: 'Short lessons, lots of encouragement and practice plans that parents can follow at home.', points: ['30-minute lessons', 'Games for rhythm and reading', 'Progress notes for families'] },
-  { id: 'teens', label: 'Teens (13–17)', photo: 'girlGuitar', title: 'Real songs, real confidence', body: 'Teens learn the music they actually want to play, with chances to play together in small groups.', points: ['Songs they choose', 'Group sessions with peers', 'Technique that lasts'] },
-  { id: 'adults', label: 'Adults', photo: 'guitarMentor', title: 'It is never too late to start', body: 'Whether you are a first-timer or returning after years away, lessons fit around work and family life.', points: ['Evening and online options', 'Beginner-friendly pacing', 'Goals you set'] },
+const groups: {
+  id: string;
+  label: string;
+  photo: PhotoKey;
+  title: string;
+  body: string;
+  points: string[];
+}[] = [
+  {
+    id: 'kids',
+    label: 'Kids (6–12)',
+    photo: 'youngPianist',
+    title: 'Playful, patient first steps',
+    body: 'Short lessons, lots of encouragement and practice plans that parents can follow at home.',
+    points: ['30-minute lessons', 'Games for rhythm and reading', 'Progress notes for families'],
+  },
+  {
+    id: 'teens',
+    label: 'Teens (13–17)',
+    photo: 'girlGuitar',
+    title: 'Real songs, real confidence',
+    body: 'Teens learn the music they actually want to play, with chances to play together in small groups.',
+    points: ['Songs they choose', 'Group sessions with peers', 'Technique that lasts'],
+  },
+  {
+    id: 'adults',
+    label: 'Adults',
+    photo: 'guitarMentor',
+    title: 'It is never too late to start',
+    body: 'Whether you are a first-timer or returning after years away, lessons fit around work and family life.',
+    points: ['Evening and online options', 'Beginner-friendly pacing', 'Goals you set'],
+  },
 ];
 ---
+
 <section class="bg-ivory px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto max-w-[1320px]">
     <AudienceSwitch
@@ -24,7 +53,10 @@ const groups: { id: string; label: string; photo: PhotoKey; title: string; body:
         </h2>
       </div>
       {groups.map((g) => (
-        <div slot={g.id} class="grid items-center gap-8 rounded-[36px] bg-white p-6 shadow-sm ring-1 ring-sand/80 sm:p-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
+        <div
+          slot={g.id}
+          class="grid items-center gap-8 rounded-[36px] bg-white p-6 shadow-sm ring-1 ring-sand/80 sm:p-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12"
+        >
           <div class="mask-leaf-alt relative aspect-[4/3] overflow-hidden lg:aspect-[5/4]">
             <Photo name={g.photo} sizes="(min-width:1024px) 40vw, 100vw" class="h-full w-full object-cover" />
           </div>

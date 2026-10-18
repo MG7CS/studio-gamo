@@ -9,26 +9,40 @@ const choices = [
   { k: 'Wait', v: 'Nice to have — revisit when the budget allows.' },
 ];
 ---
+
 <section class="bg-cream section-space" aria-labelledby="facility-title" data-reveal>
   <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-12">
     <div class="relative lg:col-span-5">
       <div class="mask-leaf aspect-[4/5] sm:aspect-[5/4] overflow-hidden">
-        <Photo name="churchModernDay" sizes="(min-width:1024px) 38vw, 100vw" class="h-full w-full object-cover" />
+        <Photo
+          name="churchModernDay"
+          sizes="(min-width:1024px) 38vw, 100vw"
+          class="h-full w-full object-cover"
+        />
       </div>
     </div>
     <div class="lg:col-span-7">
       <p class="eyebrow text-terracotta">07 · Equipment & facility guidance</p>
-      <h2 id="facility-title" class="section-heading mt-4 text-charcoal">Steward what you have before buying what you don’t.</h2>
-      <p class="mt-5 text-lg text-ink-soft">Independent guidance with no vendor ties — helping churches decide what to keep, repair, replace or wait on.</p>
+      <h2 id="facility-title" class="section-heading mt-4 text-charcoal">
+        Steward what you have before buying what you don’t.
+      </h2>
+      <p class="mt-5 text-lg text-ink-soft">
+        Independent guidance with no vendor ties — helping churches decide what to keep, repair, replace or
+        wait on.
+      </p>
       <dl class="mt-10 grid gap-4 sm:grid-cols-2">
         {choices.map((c, i) => (
-          <div class:list={['rounded-3xl p-6', i === 1 ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand']}>
+          <div
+            class:list={['rounded-3xl p-6', i === 1 ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand']}
+          >
             <dt class:list={['text-2xl font-semibold', i === 1 ? 'text-gold' : 'text-terracotta']}>{c.k}</dt>
             <dd class:list={['mt-2 text-sm', i === 1 ? 'text-cream/80' : 'text-ink-soft']}>{c.v}</dd>
           </div>
         ))}
       </dl>
-      <ButtonLink href="/services/facility-guidance" variant="secondary" arrow class="mt-8">Facility guidance details</ButtonLink>
+      <ButtonLink href="/services/facility-guidance" variant="secondary" arrow class="mt-8">
+        Facility guidance details
+      </ButtonLink>
     </div>
   </div>
 </section>

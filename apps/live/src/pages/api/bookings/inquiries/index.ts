@@ -8,12 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import {
-  requireVerifiedAuth,
-  hasOrgRole,
-  hasEventPermission,
-  AuthError,
-} from '@gamo/auth';
+import { requireVerifiedAuth, hasOrgRole, hasEventPermission, AuthError } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -39,7 +34,7 @@ export const POST: APIRoute = async (context) => {
       throw new AuthError(
         'FORBIDDEN',
         'Organization or event booking negotiation authority is required.',
-        403
+        403,
       );
     }
 

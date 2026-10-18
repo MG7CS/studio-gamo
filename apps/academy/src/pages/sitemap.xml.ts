@@ -13,8 +13,20 @@ export const GET: APIRoute = () =>
       { path: '/instruments', priority: '0.9', changefreq: 'monthly' },
       { path: '/lessons', priority: '0.9', changefreq: 'monthly' },
       { path: '/sponsored', priority: '0.7', changefreq: 'monthly' },
-      ...instruments.map((i) => ({ path: `/instruments/${i.slug}`, priority: '0.8', changefreq: 'monthly' as const })),
-      ...lessons.map((l) => ({ path: `/lessons/${l.slug}`, priority: '0.8', changefreq: 'monthly' as const })),
-      ...instructors.map((i) => ({ path: `/instructors/${i.slug}`, priority: '0.6', changefreq: 'monthly' as const })),
+      ...instruments.map((i) => ({
+        path: `/instruments/${i.slug}`,
+        priority: '0.8',
+        changefreq: 'monthly' as const,
+      })),
+      ...lessons.map((l) => ({
+        path: `/lessons/${l.slug}`,
+        priority: '0.8',
+        changefreq: 'monthly' as const,
+      })),
+      ...instructors.map((i) => ({
+        path: `/instructors/${i.slug}`,
+        priority: '0.6',
+        changefreq: 'monthly' as const,
+      })),
     ]),
   );

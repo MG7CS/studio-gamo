@@ -1,13 +1,7 @@
 import { readContract, validateContract, ContractValidationError } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  createEventSchema,
-  jsonResponse,
-  handleApiError,
-  getRuntimeEnv,
-} from '@gamo/domain';
+import { LiveService, createEventSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 import { requireOrgAccess, requireVerifiedAuth } from '@gamo/auth';
 
 export const prerender = false;
@@ -22,10 +16,11 @@ export const GET: APIRoute = async (context) => {
     const liveService = new LiveService(db);
 
     const url = new URL(context.request.url);
-    if (new Set(url.searchParams.keys()).size !== [...url.searchParams.keys()].length) throw new ContractValidationError();
+    if (new Set(url.searchParams.keys()).size !== [...url.searchParams.keys()].length)
+      throw new ContractValidationError();
     const { category, city, metro, artist, venue, q, dateFrom, dateTo, weekend } = validateContract(
       'EventFilters',
-      Object.fromEntries(url.searchParams)
+      Object.fromEntries(url.searchParams),
     ) as {
       category?: string;
       city?: string;
@@ -103,7 +98,7 @@ export const POST: APIRoute = async (context) => {
         tiers,
         message: 'Event submitted successfully. Awaiting staff review before publication.',
       },
-      201
+      201,
     );
   } catch (err) {
     return handleApiError(err);

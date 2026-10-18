@@ -8,11 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import {
-  requireVerifiedAuth,
-  requireEventPermission,
-  hasEventPermission,
-} from '@gamo/auth';
+import { requireVerifiedAuth, requireEventPermission, hasEventPermission } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -43,7 +39,7 @@ export const POST: APIRoute = async (context) => {
       eventId,
       auth.user.id,
       actorCanGrantFinancialAuthority,
-      validated
+      validated,
     );
 
     return jsonResponse(result, 201);

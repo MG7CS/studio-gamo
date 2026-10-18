@@ -8,7 +8,9 @@ export function initDashboard(): void {
     Array.from(root.querySelectorAll<T>(sel) as NodeListOf<T>);
 
   const escapeCsvCell = (val: unknown): string => {
-    const str = String(val ?? '').replace(/\r?\n|\r/g, ' ').trim();
+    const str = String(val ?? '')
+      .replace(/\r?\n|\r/g, ' ')
+      .trim();
     if (/[",]/.test(str)) {
       return `"${str.replace(/"/g, '""')}"`;
     }
@@ -39,12 +41,12 @@ export function initDashboard(): void {
   menus.forEach((m) =>
     m.addEventListener('toggle', () => {
       if (m.open) menus.forEach((o) => o !== m && (o.open = false));
-    })
+    }),
   );
   document.addEventListener('click', (e) =>
     menus.forEach((m) => {
       if (m.open && !m.contains(e.target as Node)) m.open = false;
-    })
+    }),
   );
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -65,13 +67,13 @@ export function initDashboard(): void {
       if (!drawer || desktop.matches) return;
       drawer.showModal();
       drawerButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
-    })
+    }),
   );
   drawer?.addEventListener('keydown', (event) => {
     if (event.key !== 'Tab') return;
     const controls = $$<HTMLElement>(
       'a[href], button, input, select, textarea, [tabindex="0"]',
-      drawer
+      drawer,
     ).filter((element) => element.getClientRects().length && !element.matches(':disabled'));
     const first = controls[0];
     const last = controls[controls.length - 1];
@@ -105,7 +107,7 @@ export function initDashboard(): void {
         e.clientY >= rect.bottom
       )
         d.close();
-    })
+    }),
   );
   $$('[data-dialog-open]').forEach((btn) =>
     btn.addEventListener('click', () => {
@@ -125,15 +127,15 @@ export function initDashboard(): void {
       }
       if (subject) {
         const subjectInput = d.querySelector<HTMLInputElement>(
-          'input[name="subject"], input[name="record"], input[name="target"]'
+          'input[name="subject"], input[name="record"], input[name="target"]',
         );
         if (subjectInput) subjectInput.value = subject;
       }
       d.showModal();
-    })
+    }),
   );
   $$('[data-dialog-close]').forEach((btn) =>
-    btn.addEventListener('click', () => (btn.closest('dialog') as HTMLDialogElement | null)?.close())
+    btn.addEventListener('click', () => (btn.closest('dialog') as HTMLDialogElement | null)?.close()),
   );
 
   // Local form validation + confirmation state.
@@ -178,11 +180,7 @@ export function initDashboard(): void {
 
   // Table / list filtering & CSV/JSON export.
   const applyFilter = (root: HTMLElement) => {
-    const q = (
-      root.querySelector<HTMLInputElement>('[data-table-filter]')?.value ?? ''
-    )
-      .toLowerCase()
-      .trim();
+    const q = (root.querySelector<HTMLInputElement>('[data-table-filter]')?.value ?? '').toLowerCase().trim();
     const chip =
       root.querySelector<HTMLElement>('[data-table-chip][aria-pressed="true"]')?.dataset.value ?? '';
     let shown = 0;
@@ -197,11 +195,9 @@ export function initDashboard(): void {
     const uniqueShown = new Set(
       $$('[data-row]', root)
         .filter((r) => !r.hidden)
-        .map((r) => r.dataset.key)
+        .map((r) => r.dataset.key),
     ).size;
-    root.querySelectorAll<HTMLElement>('[data-table-empty]').forEach(
-      (el) => (el.hidden = uniqueShown > 0)
-    );
+    root.querySelectorAll<HTMLElement>('[data-table-empty]').forEach((el) => (el.hidden = uniqueShown > 0));
     const count = root.querySelector<HTMLElement>('[data-table-count]');
     if (count) count.textContent = `${uniqueShown} of ${total} records`;
     return shown;
@@ -216,7 +212,7 @@ export function initDashboard(): void {
         chip.setAttribute('aria-pressed', on ? 'false' : 'true');
         if (!on && !chip.dataset.value) chip.setAttribute('aria-pressed', 'true');
         applyFilter(root);
-      })
+      }),
     );
 
     $$<HTMLButtonElement>('[data-table-export]', root).forEach((btn) =>
@@ -234,7 +230,7 @@ export function initDashboard(): void {
           const visibleKeys = new Set(
             $$('[data-row]', root)
               .filter((r) => !r.hidden)
-              .map((r) => Number(r.dataset.key))
+              .map((r) => Number(r.dataset.key)),
           );
           const filteredRows = parsed.rows.filter((_, idx) => visibleKeys.has(idx));
           const stamp = dateStamp();
@@ -248,13 +244,13 @@ export function initDashboard(): void {
                 records: filteredRows,
               },
               null,
-              2
+              2,
             );
             triggerDownload(`${parsed.filename}-${stamp}.json`, jsonContent, 'application/json');
           } else {
             const headerLine = parsed.columns.map((c) => escapeCsvCell(c.label)).join(',');
             const dataLines = filteredRows.map((row) =>
-              parsed.columns.map((c) => escapeCsvCell(row[c.key] ?? '')).join(',')
+              parsed.columns.map((c) => escapeCsvCell(row[c.key] ?? '')).join(','),
             );
             const csvContent = [headerLine, ...dataLines].join('\n');
             triggerDownload(`${parsed.filename}-${stamp}.csv`, csvContent, 'text/csv;charset=utf-8');
@@ -269,7 +265,7 @@ export function initDashboard(): void {
         } catch {
           // Ignore malformed payload
         }
-      })
+      }),
     );
   });
 
@@ -282,14 +278,12 @@ export function initDashboard(): void {
     viewButtons.forEach((btn) =>
       btn.addEventListener('click', () => {
         const mode = btn.dataset.chartView;
-        viewButtons.forEach((b) =>
-          b.setAttribute('aria-pressed', b === btn ? 'true' : 'false')
-        );
+        viewButtons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
         if (visualPane && tablePane) {
           visualPane.hidden = mode === 'table';
           tablePane.hidden = mode !== 'table';
         }
-      })
+      }),
     );
 
     $$<HTMLButtonElement>('[data-chart-export]', chartRoot).forEach((btn) =>
@@ -320,7 +314,7 @@ export function initDashboard(): void {
                 series: parsed.series,
               },
               null,
-              2
+              2,
             );
             triggerDownload(`${parsed.filename}-${stamp}.json`, jsonContent, 'application/json');
           } else {
@@ -345,7 +339,7 @@ export function initDashboard(): void {
         } catch {
           // Ignore malformed chart payload
         }
-      })
+      }),
     );
   });
 
@@ -404,7 +398,7 @@ export function initDashboard(): void {
             tables,
           },
           null,
-          2
+          2,
         );
         triggerDownload(`${slug}-${stamp}.json`, jsonReport, 'application/json');
       } else {
@@ -413,9 +407,7 @@ export function initDashboard(): void {
         if (stats.length > 0) {
           lines.push('');
           lines.push('Metric,Value,Context');
-          stats.forEach((s) =>
-            lines.push([s.metric, s.value, s.context].map(escapeCsvCell).join(','))
-          );
+          stats.forEach((s) => lines.push([s.metric, s.value, s.context].map(escapeCsvCell).join(',')));
         }
         charts.forEach((c: any) => {
           lines.push('');
@@ -425,9 +417,7 @@ export function initDashboard(): void {
           (c.labels ?? []).forEach((lbl: string, idx: number) => {
             const row = [
               lbl,
-              ...c.series.map(
-                (s: any) => s.points?.[idx]?.displayValue ?? s.points?.[idx]?.value ?? ''
-              ),
+              ...c.series.map((s: any) => s.points?.[idx]?.displayValue ?? s.points?.[idx]?.value ?? ''),
             ];
             lines.push(row.map(escapeCsvCell).join(','));
           });
@@ -448,7 +438,7 @@ export function initDashboard(): void {
         pageStatus.textContent = `Full ${mode.toUpperCase()} report exported (${slug}-${stamp}.${mode})`;
         pageStatus.hidden = false;
       }
-    })
+    }),
   );
 
   // Top-bar search filters searchable items on the current page.
@@ -475,7 +465,7 @@ export function initDashboard(): void {
         $$('[data-cal-day]', cal).forEach((d) => d.setAttribute('aria-pressed', 'false'));
         day.setAttribute('aria-pressed', 'true');
         if (detail) detail.textContent = day.dataset.detail ?? '';
-      })
+      }),
     );
   });
 
@@ -486,7 +476,7 @@ export function initDashboard(): void {
       sw.setAttribute('aria-checked', on ? 'false' : 'true');
       const status = sw.closest('[data-settings]')?.querySelector<HTMLElement>('[data-settings-status]');
       if (status) status.textContent = 'Control state updated.';
-    })
+    }),
   );
 
   // Choice cards (role selection etc.).

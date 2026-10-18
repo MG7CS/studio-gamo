@@ -2,10 +2,14 @@
 /** Grid of shortcut actions (links or dialog triggers). */
 import Icon from '../Icon.astro';
 import type { DashAction } from '../../lib/dashboard';
-interface Props { items: DashAction[] }
+interface Props {
+  items: DashAction[];
+}
 const { items } = Astro.props;
-const cls = 'flex min-h-12 w-full items-center gap-3 rounded-[20px] border border-sand/70 bg-ivory/85 px-3.5 py-2.5 text-left text-[14px] font-semibold transition-colors hover:border-charcoal/30 hover:bg-white';
+const cls =
+  'flex min-h-12 w-full items-center gap-3 rounded-[20px] border border-sand/70 bg-ivory/85 px-3.5 py-2.5 text-left text-[14px] font-semibold transition-colors hover:border-charcoal/30 hover:bg-white';
 ---
+
 <ul class="grid gap-2.5 @lg:grid-cols-2">
   {items.map((a) => (
     <li data-search-item>

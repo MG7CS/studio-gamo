@@ -12,9 +12,18 @@ export function getStaticPaths() {
 }
 const { area } = Astro.props as { area: SupportArea };
 ---
+
 <Layout title={area.title} description={clampDescription(area.summary)} headerTheme="light">
-  <PageIntro eyebrow="Technical support category" title={area.title} lede={area.summary} photo={area.photo} crumb={{ label: 'All support areas', href: '/services' }}>
-    <StatusPill kind="proposal" class="mt-6">Technical ministry support</StatusPill>
+  <PageIntro
+    eyebrow="Technical support category"
+    title={area.title}
+    lede={area.summary}
+    photo={area.photo}
+    crumb={{ label: 'All support areas', href: '/services' }}
+  >
+    <StatusPill kind="proposal" class="mt-6">
+      Technical ministry support
+    </StatusPill>
   </PageIntro>
   <AreaDetail area={area} />
 </Layout>

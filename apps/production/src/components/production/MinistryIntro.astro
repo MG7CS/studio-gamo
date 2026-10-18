@@ -2,29 +2,43 @@
 /** Section 1 — introduction to technical ministry support, with an asymmetric statement and three principles. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 const principles = [
-  { k: 'Serve the room', v: 'Technology should help people pray, sing and hear the Word — never distract from it.' },
+  {
+    k: 'Serve the room',
+    v: 'Technology should help people pray, sing and hear the Word — never distract from it.',
+  },
   { k: 'Build people', v: 'Strong volunteer teams matter more than expensive equipment.' },
   { k: 'Steward well', v: 'Independent guidance that respects every congregation’s budget.' },
 ];
 ---
+
 <section class="bg-ivory section-space" aria-labelledby="intro-title" data-reveal>
   <div class="mx-auto grid max-w-7xl gap-12 px-5 md:px-8 lg:grid-cols-12">
     <div class="lg:col-span-7">
       <p class="eyebrow text-terracotta">Technical ministry support</p>
-      <h2 id="intro-title" class="section-heading mt-4 text-charcoal">The quiet work that helps a whole church worship.</h2>
+      <h2 id="intro-title" class="section-heading mt-4 text-charcoal">
+        The quiet work that helps a whole church worship.
+      </h2>
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
-        Behind every clear sermon and steady livestream is a volunteer who arrived early. Gamo Production is being designed to come alongside those teams with practical guidance, training and planning support.
+        Behind every clear sermon and steady livestream is a volunteer who arrived early. Gamo Production is
+        being designed to come alongside those teams with practical guidance, training and planning support.
       </p>
     </div>
     <div class="relative hidden lg:col-span-5 lg:block">
       <div class="mask-arch aspect-[5/4] overflow-hidden rounded-t-full bg-sand">
-        <Photo name="sanctuaryCongregation" sizes="(min-width:1024px) 34vw, 0px" class="h-full w-full object-cover" />
+        <Photo
+          name="sanctuaryCongregation"
+          sizes="(min-width:1024px) 34vw, 0px"
+          class="h-full w-full object-cover"
+        />
       </div>
     </div>
     <dl class="grid gap-8 border-t border-sand pt-10 md:grid-cols-3 lg:col-span-12">
       {principles.map((p, i) => (
         <div>
-          <dt class="flex items-baseline gap-3 text-xl font-semibold text-charcoal"><span class="text-sm text-terracotta">0{i + 1}</span>{p.k}</dt>
+          <dt class="flex items-baseline gap-3 text-xl font-semibold text-charcoal">
+            <span class="text-sm text-terracotta">0{i + 1}</span>
+            {p.k}
+          </dt>
           <dd class="mt-3 text-ink-soft">{p.v}</dd>
         </div>
       ))}

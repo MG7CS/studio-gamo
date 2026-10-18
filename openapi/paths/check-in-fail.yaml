@@ -16,7 +16,7 @@ post:
   x-source: apps/worship/src/pages/api/check-in/fail.ts
   parameters: []
   responses:
-    "303":
+    '303':
       description: Demo redirect; no API JSON body.
       headers:
         Location:

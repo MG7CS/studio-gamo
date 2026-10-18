@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isPrivatePage, canAccessPage, safeReturnPath, isIsolatedDemo } from '../../packages/auth/page-access.ts';
+import {
+  isPrivatePage,
+  canAccessPage,
+  safeReturnPath,
+  isIsolatedDemo,
+} from '../../packages/auth/page-access.ts';
 import { hasProductAccess } from '../../packages/auth/index.ts';
 import { resolveWorkspaceViewer } from '../../packages/ui/src/lib/session-viewer.ts';
 
@@ -37,22 +42,52 @@ const productionAuth: any = {
 };
 
 test('all application private route families are gated without gating public learning pages', () => {
-  for (const [app, path] of [['web','/account'],['web','/partner/overview'],['worship','/church'],['worship','/musician/calendar'],['worship','/check-in/any'],['academy','/family'],['academy','/instructor'],['academy','/host'],['live','/artist'],['live','/agent/bookings'],['live','/organizer/scan'],['live','/workspaces'],['live','/promote/create'],['live','/ticket'],['production','/crew'],['production','/client']] as const) assert.equal(isPrivatePage(app,path),true,`${app}${path}`);
-  for (const app of ['web','worship','academy','live','production'] as const) {
-    assert.equal(isPrivatePage(app,'/'),false);
-    assert.equal(isPrivatePage(app,'/account/signin'),false);
-    assert.equal(isPrivatePage(app,'/account/signup/'),false);
+  for (const [app, path] of [
+    ['web', '/account'],
+    ['web', '/partner/overview'],
+    ['worship', '/church'],
+    ['worship', '/musician/calendar'],
+    ['worship', '/check-in/any'],
+    ['academy', '/family'],
+    ['academy', '/instructor'],
+    ['academy', '/host'],
+    ['live', '/artist'],
+    ['live', '/agent/bookings'],
+    ['live', '/organizer/scan'],
+    ['live', '/workspaces'],
+    ['live', '/promote/create'],
+    ['live', '/ticket'],
+    ['production', '/crew'],
+    ['production', '/client'],
+  ] as const)
+    assert.equal(isPrivatePage(app, path), true, `${app}${path}`);
+  for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const) {
+    assert.equal(isPrivatePage(app, '/'), false);
+    assert.equal(isPrivatePage(app, '/account/signin'), false);
+    assert.equal(isPrivatePage(app, '/account/signup/'), false);
   }
-  assert.equal(isPrivatePage('live','/artists'),false);
-  assert.equal(isPrivatePage('live','/organizers/public-ministry'),false);
+  assert.equal(isPrivatePage('live', '/artists'), false);
+  assert.equal(isPrivatePage('live', '/organizers/public-ministry'), false);
 });
 
 test('new accounts cannot assign themselves privileged program roles', () => {
-  for (const [app, path] of [['worship','/musician'],['worship','/church'],['worship','/admin']] as const) assert.equal(canAccessPage(app, path, worshipAuth), false);
-  for (const [app, path] of [['academy','/instructor'],['academy','/host']] as const) assert.equal(canAccessPage(app, path, academyAuth), false);
+  for (const [app, path] of [
+    ['worship', '/musician'],
+    ['worship', '/church'],
+    ['worship', '/admin'],
+  ] as const)
+    assert.equal(canAccessPage(app, path, worshipAuth), false);
+  for (const [app, path] of [
+    ['academy', '/instructor'],
+    ['academy', '/host'],
+  ] as const)
+    assert.equal(canAccessPage(app, path, academyAuth), false);
   assert.equal(canAccessPage('production', '/crew', productionAuth), false);
   assert.equal(canAccessPage('live', '/organizer', liveAuth), true); // Scoped onboarding; records separately filtered.
-  assert.equal(canAccessPage('live', '/account', { ...liveAuth, user: { ...liveAuth.user, verifiedEmailAt: null } }), false);
+  assert.equal(
+    canAccessPage('live', '/account', { ...liveAuth, user: { ...liveAuth.user, verifiedEmailAt: null } }),
+    false,
+  );
 });
 
 test('product accounts are strictly isolated across Gamo Live, Academy, Worship, Production, and Studios', () => {
@@ -88,19 +123,39 @@ test('product accounts are strictly isolated across Gamo Live, Academy, Worship,
 });
 
 test('return paths reject external redirects and authentication loops', () => {
-  for (const path of ['//evil.test','/\\evil.test','https://evil.test','/api/auth/session','/account/signin?next=/account','/\n/evil.test']) assert.equal(safeReturnPath(path),'/account');
-  assert.equal(safeReturnPath('/promote/create?step=1'),'/promote/create?step=1');
+  for (const path of [
+    '//evil.test',
+    '/\\evil.test',
+    'https://evil.test',
+    '/api/auth/session',
+    '/account/signin?next=/account',
+    '/\n/evil.test',
+  ])
+    assert.equal(safeReturnPath(path), '/account');
+  assert.equal(safeReturnPath('/promote/create?step=1'), '/promote/create?step=1');
 });
 
 test('sample workspaces require explicit isolated local environment, never a query key', () => {
-  const env = {ENVIRONMENT:'local',ALLOW_PUBLIC_DEMO_WORKSPACES:'true'};
-  assert.equal(isIsolatedDemo(new Request('http://127.0.0.1:4321/account'),env),true);
-  assert.equal(isIsolatedDemo(new Request('https://gamostudio.org/account?demo_key=anything'),env),false);
-  assert.equal(isIsolatedDemo(new Request('http://localhost/account'),{...env,ENVIRONMENT:'production'}),false);
+  const env = { ENVIRONMENT: 'local', ALLOW_PUBLIC_DEMO_WORKSPACES: 'true' };
+  assert.equal(isIsolatedDemo(new Request('http://127.0.0.1:4321/account'), env), true);
+  assert.equal(isIsolatedDemo(new Request('https://gamostudio.org/account?demo_key=anything'), env), false);
+  assert.equal(
+    isIsolatedDemo(new Request('http://localhost/account'), { ...env, ENVIRONMENT: 'production' }),
+    false,
+  );
 });
 
 test('unsigned profile hint and arbitrary session cookies never establish a viewer', async () => {
-  const request = new Request('https://gamostudio.org/account',{headers:{cookie:'__session=anything; gamo_profile_hint='+encodeURIComponent(JSON.stringify({email:'admin@example.test',orgRole:'superadmin'}))}});
-  assert.equal((await resolveWorkspaceViewer(request)).authenticated,false);
-  assert.equal((await resolveWorkspaceViewer({request,locals:{auth:liveAuth}})).email,liveAuth.user.email);
+  const request = new Request('https://gamostudio.org/account', {
+    headers: {
+      cookie:
+        '__session=anything; gamo_profile_hint=' +
+        encodeURIComponent(JSON.stringify({ email: 'admin@example.test', orgRole: 'superadmin' })),
+    },
+  });
+  assert.equal((await resolveWorkspaceViewer(request)).authenticated, false);
+  assert.equal(
+    (await resolveWorkspaceViewer({ request, locals: { auth: liveAuth } })).email,
+    liveAuth.user.email,
+  );
 });

@@ -33,6 +33,7 @@ const brand = await resolvePlatformBrandConfig(Astro.locals);
 const pageTitle = title ? `${title} | ${brand.displayName}` : `${brand.displayName} · ${brand.tagline}`;
 const pageDescription = description || brand.socialMetadata.defaultDescription;
 ---
+
 <BaseLayout
   title={pageTitle}
   description={pageDescription}

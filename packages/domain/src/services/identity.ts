@@ -34,7 +34,7 @@ function normalizeChallengePurpose(purpose?: string): 'signin' | 'verify_email' 
 export async function hashChallengeCode(
   email: string,
   code: string,
-  purpose: string = 'signin'
+  purpose: string = 'signin',
 ): Promise<string> {
   const dbPurpose = normalizeChallengePurpose(purpose);
   const payload = `${email.toLowerCase().trim()}:${dbPurpose}:${code.trim()}`;
@@ -91,7 +91,7 @@ export class IdentityService {
   async ensureProductAccount(
     userId: string,
     product: ProductKey,
-    options?: { onboardingStatus?: 'pending' | 'completed'; now?: Date }
+    options?: { onboardingStatus?: 'pending' | 'completed'; now?: Date },
   ): Promise<ProductAccount> {
     const now = options?.now ?? new Date();
     const [existing] = await this.db
@@ -101,7 +101,10 @@ export class IdentityService {
       .limit(1);
 
     if (existing) {
-      if (existing.status !== 'active' || (options?.onboardingStatus && existing.onboardingStatus !== options.onboardingStatus)) {
+      if (
+        existing.status !== 'active' ||
+        (options?.onboardingStatus && existing.onboardingStatus !== options.onboardingStatus)
+      ) {
         await this.db
           .update(productAccounts)
           .set({
@@ -110,7 +113,11 @@ export class IdentityService {
             updatedAt: now,
           })
           .where(eq(productAccounts.id, existing.id));
-        const [updated] = await this.db.select().from(productAccounts).where(eq(productAccounts.id, existing.id)).limit(1);
+        const [updated] = await this.db
+          .select()
+          .from(productAccounts)
+          .where(eq(productAccounts.id, existing.id))
+          .limit(1);
         return updated;
       }
       return existing;
@@ -152,8 +159,8 @@ export class IdentityService {
         and(
           eq(productAccounts.userId, userId),
           eq(productAccounts.product, product),
-          eq(productAccounts.status, 'active')
-        )
+          eq(productAccounts.status, 'active'),
+        ),
       )
       .limit(1);
     return Boolean(row);
@@ -182,7 +189,7 @@ export class IdentityService {
       ipHash?: string;
       ttlSeconds?: number;
       now?: Date;
-    }
+    },
   ): Promise<{ challengeId: string; code: string; email: string; expiresAt: Date }> {
     const cleanEmail = email.toLowerCase().trim();
     if (!cleanEmail || !cleanEmail.includes('@')) {
@@ -198,7 +205,7 @@ export class IdentityService {
           throw new AuthError(
             'FORBIDDEN',
             `No ${label} account was found for this email address. Please create a ${label} account first.`,
-            403
+            403,
           );
         }
       }
@@ -215,13 +222,13 @@ export class IdentityService {
         and(
           eq(authChallenges.email, cleanEmail),
           eq(authChallenges.purpose, purpose),
-          gte(authChallenges.createdAt, windowStart)
-        )
+          gte(authChallenges.createdAt, windowStart),
+        ),
       );
 
     if (recentChallenges.length >= CHALLENGE_RATE_LIMIT_MAX) {
       throw new Error(
-        'RATE_LIMITED: Too many verification requests for this email address. Please wait before requesting a new code.'
+        'RATE_LIMITED: Too many verification requests for this email address. Please wait before requesting a new code.',
       );
     }
 
@@ -263,7 +270,7 @@ export class IdentityService {
       intent?: 'signin' | 'signup' | 'recover';
       product?: ProductKey;
       now?: Date;
-    }
+    },
   ): Promise<User> {
     const cleanEmail = email.toLowerCase().trim();
     const cleanCode = code.trim();
@@ -277,8 +284,8 @@ export class IdentityService {
         and(
           eq(authChallenges.email, cleanEmail),
           eq(authChallenges.purpose, purpose),
-          isNull(authChallenges.consumedAt)
-        )
+          isNull(authChallenges.consumedAt),
+        ),
       )
       .orderBy(desc(authChallenges.createdAt), desc(authChallenges.id))
       .limit(1);
@@ -315,24 +322,38 @@ export class IdentityService {
           throw new AuthError(
             'FORBIDDEN',
             `No ${label} account was found for this email address. Please create a ${label} account first.`,
-            403
+            403,
           );
         }
       }
     }
 
     // Claim this challenge atomically: concurrent verification must create at most one session.
-    const claimed = await this.db.update(authChallenges)
+    const claimed = await this.db
+      .update(authChallenges)
       .set({ consumedAt: now })
-      .where(and(eq(authChallenges.id, challenge.id), isNull(authChallenges.consumedAt),
-        gt(authChallenges.expiresAt, now), lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS)))
+      .where(
+        and(
+          eq(authChallenges.id, challenge.id),
+          isNull(authChallenges.consumedAt),
+          gt(authChallenges.expiresAt, now),
+          lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
+        ),
+      )
       .returning({ id: authChallenges.id });
     if (claimed.length !== 1) {
       throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
     }
-    await this.db.update(authChallenges).set({ consumedAt: now })
-      .where(and(eq(authChallenges.email, cleanEmail), eq(authChallenges.purpose, purpose),
-        isNull(authChallenges.consumedAt)));
+    await this.db
+      .update(authChallenges)
+      .set({ consumedAt: now })
+      .where(
+        and(
+          eq(authChallenges.email, cleanEmail),
+          eq(authChallenges.purpose, purpose),
+          isNull(authChallenges.consumedAt),
+        ),
+      );
 
     const user = await this.findOrCreateUser(cleanEmail, options?.displayName);
     if (user.status !== 'active') {
@@ -342,10 +363,7 @@ export class IdentityService {
     const verifiedEmailAt = user.verifiedEmailAt ?? now;
     const displayName = user.displayName ?? (options?.displayName || null);
 
-    await this.db
-      .update(users)
-      .set({ verifiedEmailAt, displayName })
-      .where(eq(users.id, user.id));
+    await this.db.update(users).set({ verifiedEmailAt, displayName }).where(eq(users.id, user.id));
 
     if (options?.product) {
       await this.ensureProductAccount(user.id, options.product, { now });
@@ -357,7 +375,12 @@ export class IdentityService {
       action: 'auth.email_verified',
       entityType: 'user',
       entityId: user.id,
-      payloadJson: JSON.stringify({ challengeId: challenge.id, purpose, product: options?.product ?? null, intent: options?.intent ?? null }),
+      payloadJson: JSON.stringify({
+        challengeId: challenge.id,
+        purpose,
+        product: options?.product ?? null,
+        intent: options?.intent ?? null,
+      }),
       createdAt: now,
     });
 
@@ -372,7 +395,7 @@ export class IdentityService {
     name: string,
     slug: string,
     type: string,
-    ownerUserId: string
+    ownerUserId: string,
   ): Promise<Organization> {
     const cleanSlug = slug.toLowerCase().trim();
     const [existingSlug] = await this.db
@@ -470,7 +493,7 @@ export class IdentityService {
       role: 'staff_reviewer' | 'finance_manager' | 'superadmin';
       accessSubject: string;
       displayName?: string;
-    }
+    },
   ): Promise<{
     user: User;
     role: 'staff_reviewer' | 'finance_manager' | 'superadmin';
@@ -488,8 +511,8 @@ export class IdentityService {
           eq(users.id, actorUserId),
           eq(users.status, 'active'),
           isNull(userRoles.scopeType),
-          isNull(userRoles.scopeId)
-        )
+          isNull(userRoles.scopeId),
+        ),
       );
 
     if (!actorRoles.some((r) => r.code === 'superadmin')) {
@@ -507,8 +530,8 @@ export class IdentityService {
       .where(
         and(
           eq(externalIdentities.provider, 'cloudflare_access'),
-          eq(externalIdentities.providerSubject, cleanSubject)
-        )
+          eq(externalIdentities.providerSubject, cleanSubject),
+        ),
       )
       .limit(1);
 
@@ -525,8 +548,8 @@ export class IdentityService {
       .where(
         and(
           eq(externalIdentities.userId, targetUser.id),
-          eq(externalIdentities.provider, 'cloudflare_access')
-        )
+          eq(externalIdentities.provider, 'cloudflare_access'),
+        ),
       )
       .limit(1);
 
@@ -548,10 +571,7 @@ export class IdentityService {
     }
 
     if (!targetUser.verifiedEmailAt) {
-      await this.db
-        .update(users)
-        .set({ verifiedEmailAt: now })
-        .where(eq(users.id, targetUser.id));
+      await this.db.update(users).set({ verifiedEmailAt: now }).where(eq(users.id, targetUser.id));
     }
 
     await this.assignSystemRole(targetUser.id, input.role);
@@ -570,11 +590,7 @@ export class IdentityService {
       createdAt: now,
     });
 
-    const [updatedUser] = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.id, targetUser.id))
-      .limit(1);
+    const [updatedUser] = await this.db.select().from(users).where(eq(users.id, targetUser.id)).limit(1);
 
     return {
       user: updatedUser,

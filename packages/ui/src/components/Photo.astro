@@ -18,9 +18,18 @@ interface Props {
   position?: string;
   priority?: boolean;
 }
-const { name, sizes, class: className = 'h-full w-full object-cover', pictureClass, alt, position, priority = false } = Astro.props;
+const {
+  name,
+  sizes,
+  class: className = 'h-full w-full object-cover',
+  pictureClass,
+  alt,
+  position,
+  priority = false,
+} = Astro.props;
 const p = photos[name];
 ---
+
 <ResponsivePicture
   stem={p.stem}
   widths={p.widths}

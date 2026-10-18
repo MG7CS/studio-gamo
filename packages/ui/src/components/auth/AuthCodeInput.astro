@@ -8,7 +8,9 @@ const { id = 'auth-code-input', label = '6-digit verification code' } = Astro.pr
 ---
 
 <div>
-  <label for={id} class="sr-only">{label}</label>
+  <label for={id} class="sr-only">
+    {label}
+  </label>
   <div class="relative" data-otp-container>
     <div class="grid grid-cols-6 gap-2 min-[375px]:gap-2.5 sm:gap-3" aria-hidden="true">
       {[0, 1, 2, 3, 4, 5].map((idx) => (

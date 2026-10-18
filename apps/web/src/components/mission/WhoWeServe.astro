@@ -3,22 +3,41 @@
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 
 const audiences = [
-  { title: 'Churches & ministries', body: 'Congregations of every size looking for musicians, guidance and technical help.' },
+  {
+    title: 'Churches & ministries',
+    body: 'Congregations of every size looking for musicians, guidance and technical help.',
+  },
   { title: 'Students & families', body: 'Young learners and parents who want a caring path into music.' },
-  { title: 'Musicians & instructors', body: 'Worship musicians and teachers who want to serve with their gifts and be treated fairly.' },
-  { title: 'Christian artists & organizers', body: 'People hosting worship nights, concerts and community gatherings across the country.' },
-  { title: 'Community partners & supporters', body: 'Individuals and organizations who want to share time, skills, spaces or resources.' },
+  {
+    title: 'Musicians & instructors',
+    body: 'Worship musicians and teachers who want to serve with their gifts and be treated fairly.',
+  },
+  {
+    title: 'Christian artists & organizers',
+    body: 'People hosting worship nights, concerts and community gatherings across the country.',
+  },
+  {
+    title: 'Community partners & supporters',
+    body: 'Individuals and organizations who want to share time, skills, spaces or resources.',
+  },
 ];
 ---
+
 <section aria-labelledby="serve-title" class="bg-ivory px-5 py-20 sm:px-8 lg:py-28">
   <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
     <div class="relative mx-auto w-full max-w-[520px]">
-      <div class="mask-arch aspect-[4/5] overflow-hidden shadow-float"><Photo name="sanctuaryCongregation" sizes="(min-width:1024px) 38vw, 90vw" position="50% 40%" /></div>
-      <div class="mask-pebble absolute -right-3 bottom-6 aspect-square w-[38%] overflow-hidden border-[6px] border-ivory shadow-float sm:-right-8"><Photo name="youngPianist" sizes="(min-width:1024px) 14vw, 36vw" /></div>
+      <div class="mask-arch aspect-[4/5] overflow-hidden shadow-float">
+        <Photo name="sanctuaryCongregation" sizes="(min-width:1024px) 38vw, 90vw" position="50% 40%" />
+      </div>
+      <div class="mask-pebble absolute -right-3 bottom-6 aspect-square w-[38%] overflow-hidden border-[6px] border-ivory shadow-float sm:-right-8">
+        <Photo name="youngPianist" sizes="(min-width:1024px) 14vw, 36vw" />
+      </div>
     </div>
     <div>
       <p class="eyebrow text-terracotta">Who we serve</p>
-      <h2 id="serve-title" class="section-heading mt-4 text-balance text-charcoal">Built for the whole worshiping community.</h2>
+      <h2 id="serve-title" class="section-heading mt-4 text-balance text-charcoal">
+        Built for the whole worshiping community.
+      </h2>
       <dl class="mt-10 space-y-7">
         {audiences.map((a) => (
           <div data-reveal class="border-l-2 border-terracotta/40 pl-5">

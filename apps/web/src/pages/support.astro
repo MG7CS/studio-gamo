@@ -5,8 +5,36 @@ import SupportPathways from '../components/organization/SupportPathways.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
-<SiteLayout title="Support Our Mission | Gamo Studios" description="Support is more than financial giving: teaching, mentoring, technical skills and welcoming spaces all help sustain the developing Gamo Studios mission.">
-  <OrganizationHero eyebrow="Sustain a shared purpose" title="Make room for" accent="what music can do." body="Help shape opportunities to learn, worship and gather. Explore the practical resources and collaboration that can sustain our developing mission." photo="girlGuitar" inset="churchGoldenHour" variant="support"><ButtonLink href="#support-paths" arrow>Explore ways to support</ButtonLink><ButtonLink href="/contact?interest=Mission%20support" variant="secondary">Start an inquiry</ButtonLink></OrganizationHero>
+
+<SiteLayout
+  title="Support Our Mission | Gamo Studios"
+  description="Support is more than financial giving: teaching, mentoring, technical skills and welcoming spaces all help sustain the developing Gamo Studios mission."
+>
+  <OrganizationHero
+    eyebrow="Sustain a shared purpose"
+    title="Make room for"
+    accent="what music can do."
+    body="Help shape opportunities to learn, worship and gather. Explore the practical resources and collaboration that can sustain our developing mission."
+    photo="girlGuitar"
+    inset="churchGoldenHour"
+    variant="support"
+  >
+    <ButtonLink href="#support-paths" arrow>
+      Explore ways to support
+    </ButtonLink>
+    <ButtonLink href="/contact?interest=Mission%20support" variant="secondary">
+      Start an inquiry
+    </ButtonLink>
+  </OrganizationHero>
   <SupportPathways />
-  <CtaInvitation eyebrow="Your time matters too" title="Serve with the gifts you already have." body="Support is more than financial giving. Teaching, mentoring, technical skills and welcoming spaces all have a place in this mission." photo="guitarMentor"><ButtonLink href="/get-involved" arrow>Get involved</ButtonLink></CtaInvitation>
+  <CtaInvitation
+    eyebrow="Your time matters too"
+    title="Serve with the gifts you already have."
+    body="Support is more than financial giving. Teaching, mentoring, technical skills and welcoming spaces all have a place in this mission."
+    photo="guitarMentor"
+  >
+    <ButtonLink href="/get-involved" arrow>
+      Get involved
+    </ButtonLink>
+  </CtaInvitation>
 </SiteLayout>

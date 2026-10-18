@@ -8,14 +8,30 @@ interface Props {
 }
 const { items, tone = 'light', class: className } = Astro.props;
 ---
-<div class:list={['divide-y border-y', tone === 'dark' ? 'divide-white/15 border-white/15' : 'divide-sand border-sand', className]}>
+
+<div
+  class:list={[
+    'divide-y border-y',
+    tone === 'dark' ? 'divide-white/15 border-white/15' : 'divide-sand border-sand',
+    className,
+  ]}
+>
   {items.map((item) => (
     <details class="group py-1">
       <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-xl py-5 text-left text-lg font-semibold [&::-webkit-details-marker]:hidden">
         {item.q}
-        <span class:list={['flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform group-open:rotate-45', tone === 'dark' ? 'bg-white/10' : 'bg-white']}><Icon name="plus" class="h-4 w-4" strokeWidth={2} /></span>
+        <span
+          class:list={[
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform group-open:rotate-45',
+            tone === 'dark' ? 'bg-white/10' : 'bg-white',
+          ]}
+        >
+          <Icon name="plus" class="h-4 w-4" strokeWidth={2} />
+        </span>
       </summary>
-      <p class:list={['max-w-3xl pb-6 leading-relaxed', tone === 'dark' ? 'text-cream/75' : 'text-ink-soft']}>{item.a}</p>
+      <p class:list={['max-w-3xl pb-6 leading-relaxed', tone === 'dark' ? 'text-cream/75' : 'text-ink-soft']}>
+        {item.a}
+      </p>
     </details>
   ))}
 </div>

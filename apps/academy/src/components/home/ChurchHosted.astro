@@ -1,14 +1,29 @@
 ---
 /** Section 7: church-hosted lessons — uses shared EditorialFeatureCard in reversed layout. */
-import EditorialFeatureCard, { type EditorialFeaturePoint } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+import EditorialFeatureCard, {
+  type EditorialFeaturePoint,
+} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const roles: EditorialFeaturePoint[] = [
-  { icon: 'church', title: 'A church provides', body: 'A welcoming room, a schedule window and an invitation to its neighbourhood.' },
-  { icon: 'shield', title: 'Gamo Academy provides', body: 'Reviewed instructors, curriculum and family communication.' },
-  { icon: 'users', title: 'Students receive', body: 'Quality lessons close to home, open to the wider community.' },
+  {
+    icon: 'church',
+    title: 'A church provides',
+    body: 'A welcoming room, a schedule window and an invitation to its neighbourhood.',
+  },
+  {
+    icon: 'shield',
+    title: 'Gamo Academy provides',
+    body: 'Reviewed instructors, curriculum and family communication.',
+  },
+  {
+    icon: 'users',
+    title: 'Students receive',
+    body: 'Quality lessons close to home, open to the wider community.',
+  },
 ];
 ---
+
 <EditorialFeatureCard
   eyebrow="Church-hosted lessons"
   pillText="Community hosting model"
@@ -23,5 +38,7 @@ const roles: EditorialFeaturePoint[] = [
   tone="ivory"
   reverse={true}
 >
-  <ButtonLink href="/host-apply" arrow>Apply to host lessons</ButtonLink>
+  <ButtonLink href="/host-apply" arrow>
+    Apply to host lessons
+  </ButtonLink>
 </EditorialFeatureCard>

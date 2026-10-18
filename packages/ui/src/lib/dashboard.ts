@@ -12,8 +12,22 @@
 import type { IconName } from './icons';
 import { siteUrl, type SiteKey } from './sites';
 
-export type Tone = 'sample' | 'verified' | 'free' | 'paid' | 'external' | 'canceled' | 'rescheduled' | 'pending' | 'proposal' | 'info' | 'success';
-export interface BadgeValue { badge: string; tone?: Tone }
+export type Tone =
+  | 'sample'
+  | 'verified'
+  | 'free'
+  | 'paid'
+  | 'external'
+  | 'canceled'
+  | 'rescheduled'
+  | 'pending'
+  | 'proposal'
+  | 'info'
+  | 'success';
+export interface BadgeValue {
+  badge: string;
+  tone?: Tone;
+}
 export type Cell = string | BadgeValue;
 
 export interface DashAction {
@@ -47,10 +61,26 @@ export interface ChartSummaryMetric {
   tone?: 'up' | 'down' | 'neutral';
 }
 
-interface BlockBase { id?: string; title?: string; description?: string; span?: 1 | 2 | 3; action?: DashAction }
+interface BlockBase {
+  id?: string;
+  title?: string;
+  description?: string;
+  span?: 1 | 2 | 3;
+  action?: DashAction;
+}
 
 export type DashBlock =
-  | (BlockBase & { type: 'stats'; items: { label: string; value: string; hint?: string; delta?: string; deltaTone?: 'up' | 'down' | 'neutral'; icon?: IconName }[] })
+  | (BlockBase & {
+      type: 'stats';
+      items: {
+        label: string;
+        value: string;
+        hint?: string;
+        delta?: string;
+        deltaTone?: 'up' | 'down' | 'neutral';
+        icon?: IconName;
+      }[];
+    })
   | (BlockBase & {
       type: 'table';
       columns: { key: string; label: string; primary?: boolean }[];
@@ -72,20 +102,75 @@ export type DashBlock =
       footnote?: string;
       exportFilename?: string;
     })
-  | (BlockBase & { type: 'list'; items: { title: string; meta?: string; body?: string; badge?: BadgeValue; href?: string; icon?: IconName }[] })
-  | (BlockBase & { type: 'agenda'; items: { date: string; time?: string; title: string; meta?: string; badge?: BadgeValue; href?: string }[] })
-  | (BlockBase & { type: 'calendar'; month: string; /** weekday index (0=Sun) of day 1 */ startDay: number; days: number; events: { day: number; label: string; tone?: Tone }[]; selectable?: boolean })
-  | (BlockBase & { type: 'steps'; items: { label: string; body?: string; state: 'done' | 'current' | 'upcoming' | 'blocked' }[] })
+  | (BlockBase & {
+      type: 'list';
+      items: {
+        title: string;
+        meta?: string;
+        body?: string;
+        badge?: BadgeValue;
+        href?: string;
+        icon?: IconName;
+      }[];
+    })
+  | (BlockBase & {
+      type: 'agenda';
+      items: {
+        date: string;
+        time?: string;
+        title: string;
+        meta?: string;
+        badge?: BadgeValue;
+        href?: string;
+      }[];
+    })
+  | (BlockBase & {
+      type: 'calendar';
+      month: string;
+      /** weekday index (0=Sun) of day 1 */ startDay: number;
+      days: number;
+      events: { day: number; label: string; tone?: Tone }[];
+      selectable?: boolean;
+    })
+  | (BlockBase & {
+      type: 'steps';
+      items: { label: string; body?: string; state: 'done' | 'current' | 'upcoming' | 'blocked' }[];
+    })
   | (BlockBase & { type: 'kv'; items: [string, Cell][] })
   | (BlockBase & { type: 'notice'; tone?: 'info' | 'warning' | 'success' | 'privacy'; body: string })
   | (BlockBase & { type: 'actions'; items: DashAction[] })
   | (BlockBase & { type: 'form'; fields: FormFieldDef[]; submitLabel?: string; successText?: string })
-  | (BlockBase & { type: 'settings'; groups: { title: string; toggles: { label: string; description?: string; on?: boolean }[] }[] })
+  | (BlockBase & {
+      type: 'settings';
+      groups: { title: string; toggles: { label: string; description?: string; on?: boolean }[] }[];
+    })
   | (BlockBase & { type: 'progress'; items: { label: string; value: number; note?: string }[] })
-  | (BlockBase & { type: 'cards'; items: { title: string; meta?: string; body?: string; badge?: BadgeValue; href?: string; icon?: IconName }[] })
+  | (BlockBase & {
+      type: 'cards';
+      items: {
+        title: string;
+        meta?: string;
+        body?: string;
+        badge?: BadgeValue;
+        href?: string;
+        icon?: IconName;
+      }[];
+    })
   | (BlockBase & { type: 'empty'; body: string; icon?: IconName })
-  | (BlockBase & { type: 'statement'; lines: { label: string; amount: string; note?: string }[]; total?: { label: string; amount: string }; footnote?: string })
-  | (BlockBase & { type: 'dialog'; id: string; body: string; fields?: FormFieldDef[]; confirmLabel?: string; successText?: string });
+  | (BlockBase & {
+      type: 'statement';
+      lines: { label: string; amount: string; note?: string }[];
+      total?: { label: string; amount: string };
+      footnote?: string;
+    })
+  | (BlockBase & {
+      type: 'dialog';
+      id: string;
+      body: string;
+      fields?: FormFieldDef[];
+      confirmLabel?: string;
+      successText?: string;
+    });
 
 export interface FormFieldDef {
   name: string;
@@ -108,13 +193,22 @@ export interface DashScreen {
   aliases?: string[];
 }
 
-export interface NavItem { slug: string; label: string; shortLabel?: string; icon: IconName; badge?: string }
-export interface NavGroup { label?: string; items: NavItem[] }
+export interface NavItem {
+  slug: string;
+  label: string;
+  shortLabel?: string;
+  icon: IconName;
+  badge?: string;
+}
+export interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
 
 export function shortNavLabel(item: Pick<NavItem, 'label' | 'shortLabel'>): string {
   if (item.shortLabel) return item.shortLabel;
   const map: Record<string, string> = {
-    'Overview': 'Overview',
+    Overview: 'Overview',
     'Request a musician': 'Request',
     'Active requests': 'Requests',
     'Upcoming services': 'Services',
@@ -124,7 +218,7 @@ export function shortNavLabel(item: Pick<NavItem, 'label' | 'shortLabel'>): stri
     'Open opportunities': 'Openings',
     'My schedule': 'Schedule',
     'Service details': 'Service',
-    'Availability': 'Dates',
+    Availability: 'Dates',
   };
   if (map[item.label]) return map[item.label];
   const words = item.label.split(/\s+/);
@@ -178,25 +272,125 @@ export const DEMO_PERSONA: ViewerPersona = {
   authenticated: false,
 };
 
-export interface WorkspaceLink { id: string; program: string; label: string; role: string; organization?: string; href: string; staff?: boolean }
+export interface WorkspaceLink {
+  id: string;
+  program: string;
+  label: string;
+  role: string;
+  organization?: string;
+  href: string;
+  staff?: boolean;
+}
 
 /** Every workspace the account can switch between (one account, many roles). */
 export function workspaceDirectory(): WorkspaceLink[] {
   return [
-    { id: 'account', program: 'Gamo Studios', label: 'Personal account', role: 'Account holder', href: siteUrl('web', '/account') },
-    { id: 'musician', program: 'Gamo Worship', label: 'Musician workspace', role: 'Musician', href: siteUrl('worship', '/musician') },
-    { id: 'church', program: 'Gamo Worship', label: 'Church workspace', role: 'Church administrator', organization: 'Grace Fellowship', href: siteUrl('worship', '/church') },
-    { id: 'family', program: 'Gamo Academy', label: 'Student & family', role: 'Parent / guardian', href: siteUrl('academy', '/family') },
-    { id: 'instructor', program: 'Gamo Academy', label: 'Instructor workspace', role: 'Instructor', href: siteUrl('academy', '/instructor') },
-    { id: 'host', program: 'Gamo Academy', label: 'Church host & sponsor', role: 'Program host', organization: 'Grace Fellowship', href: siteUrl('academy', '/host') },
-    { id: 'organizer', program: 'Gamo Live', label: 'Organizer workspace', role: 'Event organizer', organization: 'Grace Fellowship', href: siteUrl('live', '/organizer') },
-    { id: 'artist', program: 'Gamo Live', label: 'Artist workspace', role: 'Verified artist', organization: 'Grace Collective', href: siteUrl('live', '/artist') },
-    { id: 'agent', program: 'Gamo Live', label: 'Agent & manager', role: 'Authorized representative', organization: 'Selah Talent Agency', href: siteUrl('live', '/agent') },
-    { id: 'attendee', program: 'Gamo Live', label: 'Ticket & pass lookup', role: 'Attendee self-service', href: siteUrl('live', '/me/tickets') },
-    { id: 'client', program: 'Gamo Production', label: 'Church projects', role: 'Church client', organization: 'Grace Fellowship', href: siteUrl('production', '/client') },
-    { id: 'crew', program: 'Gamo Production', label: 'Volunteer & technician', role: 'Technician', href: siteUrl('production', '/crew') },
-    { id: 'partner', program: 'Gamo Studios', label: 'Church partner & supporter', role: 'Partner contact', organization: 'Grace Fellowship', href: siteUrl('web', '/partner') },
-    { id: 'admin', program: 'Internal', label: 'Staff operations', role: 'Staff', href: siteUrl('admin', '/'), staff: true },
+    {
+      id: 'account',
+      program: 'Gamo Studios',
+      label: 'Personal account',
+      role: 'Account holder',
+      href: siteUrl('web', '/account'),
+    },
+    {
+      id: 'musician',
+      program: 'Gamo Worship',
+      label: 'Musician workspace',
+      role: 'Musician',
+      href: siteUrl('worship', '/musician'),
+    },
+    {
+      id: 'church',
+      program: 'Gamo Worship',
+      label: 'Church workspace',
+      role: 'Church administrator',
+      organization: 'Grace Fellowship',
+      href: siteUrl('worship', '/church'),
+    },
+    {
+      id: 'family',
+      program: 'Gamo Academy',
+      label: 'Student & family',
+      role: 'Parent / guardian',
+      href: siteUrl('academy', '/family'),
+    },
+    {
+      id: 'instructor',
+      program: 'Gamo Academy',
+      label: 'Instructor workspace',
+      role: 'Instructor',
+      href: siteUrl('academy', '/instructor'),
+    },
+    {
+      id: 'host',
+      program: 'Gamo Academy',
+      label: 'Church host & sponsor',
+      role: 'Program host',
+      organization: 'Grace Fellowship',
+      href: siteUrl('academy', '/host'),
+    },
+    {
+      id: 'organizer',
+      program: 'Gamo Live',
+      label: 'Organizer workspace',
+      role: 'Event organizer',
+      organization: 'Grace Fellowship',
+      href: siteUrl('live', '/organizer'),
+    },
+    {
+      id: 'artist',
+      program: 'Gamo Live',
+      label: 'Artist workspace',
+      role: 'Verified artist',
+      organization: 'Grace Collective',
+      href: siteUrl('live', '/artist'),
+    },
+    {
+      id: 'agent',
+      program: 'Gamo Live',
+      label: 'Agent & manager',
+      role: 'Authorized representative',
+      organization: 'Selah Talent Agency',
+      href: siteUrl('live', '/agent'),
+    },
+    {
+      id: 'attendee',
+      program: 'Gamo Live',
+      label: 'Ticket & pass lookup',
+      role: 'Attendee self-service',
+      href: siteUrl('live', '/me/tickets'),
+    },
+    {
+      id: 'client',
+      program: 'Gamo Production',
+      label: 'Church projects',
+      role: 'Church client',
+      organization: 'Grace Fellowship',
+      href: siteUrl('production', '/client'),
+    },
+    {
+      id: 'crew',
+      program: 'Gamo Production',
+      label: 'Volunteer & technician',
+      role: 'Technician',
+      href: siteUrl('production', '/crew'),
+    },
+    {
+      id: 'partner',
+      program: 'Gamo Studios',
+      label: 'Church partner & supporter',
+      role: 'Partner contact',
+      organization: 'Grace Fellowship',
+      href: siteUrl('web', '/partner'),
+    },
+    {
+      id: 'admin',
+      program: 'Internal',
+      label: 'Staff operations',
+      role: 'Staff',
+      href: siteUrl('admin', '/'),
+      staff: true,
+    },
   ];
 }
 

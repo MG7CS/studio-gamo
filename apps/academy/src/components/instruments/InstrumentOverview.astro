@@ -2,9 +2,12 @@
 /** Instrument landing body: first-steps list beside a typographic “who it suits” panel. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import type { Instrument } from '../../data/instruments';
-interface Props { instrument: Instrument }
+interface Props {
+  instrument: Instrument;
+}
 const { instrument: i } = Astro.props;
 ---
+
 <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-20" data-reveal>
   <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-[1.2fr_0.8fr]">
     <div class="rounded-[32px] bg-white p-8 ring-1 ring-sand sm:p-10">
@@ -13,18 +16,37 @@ const { instrument: i } = Astro.props;
       <ol class="mt-8 space-y-5">
         {i.firstSteps.map((s, n) => (
           <li class="flex items-center gap-5 border-b border-sand pb-5 last:border-0">
-            <span class="text-4xl font-black tracking-tighter text-terracotta/30">{String(n + 1).padStart(2, '0')}</span>
+            <span class="text-4xl font-black tracking-tighter text-terracotta/30">
+              {String(n + 1).padStart(2, '0')}
+            </span>
             <span class="text-lg font-semibold">{s}</span>
           </li>
         ))}
       </ol>
     </div>
     <div class:list={['relative overflow-hidden rounded-[32px] p-8 sm:p-10', i.tint]}>
-      <span aria-hidden="true" class="absolute -bottom-10 -right-4 text-[8rem] font-black leading-none tracking-tighter text-white/60">{i.short}</span>
-      <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-terracotta"><Icon name={i.icon} class="h-7 w-7" /></span>
+      <span
+        aria-hidden="true"
+        class="absolute -bottom-10 -right-4 text-[8rem] font-black leading-none tracking-tighter text-white/60"
+      >
+        {i.short}
+      </span>
+      <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-terracotta">
+        <Icon name={i.icon} class="h-7 w-7" />
+      </span>
       <h2 class="mt-6 text-2xl font-bold">Who it suits</h2>
       <ul class="relative mt-4 space-y-3">
-        {[i.ages, 'Complete beginners welcome', 'Private or group formats', 'Online or in person (planned)'].map((t) => <li class="flex items-center gap-2"><Icon name="check" class="h-4 w-4 text-terracotta" />{t}</li>)}
+        {[
+          i.ages,
+          'Complete beginners welcome',
+          'Private or group formats',
+          'Online or in person (planned)',
+        ].map((t) => (
+          <li class="flex items-center gap-2">
+            <Icon name="check" class="h-4 w-4 text-terracotta" />
+            {t}
+          </li>
+        ))}
       </ul>
     </div>
   </div>

@@ -1,7 +1,11 @@
 ---
 /** Inline contextual notice: info, warning, success or privacy boundary. */
 import Icon from '../Icon.astro';
-interface Props { tone?: 'info' | 'warning' | 'success' | 'privacy'; title?: string; body: string }
+interface Props {
+  tone?: 'info' | 'warning' | 'success' | 'privacy';
+  title?: string;
+  body: string;
+}
 const { tone = 'info', title, body } = Astro.props;
 const map = {
   info: ['border-sand bg-white', 'info', 'text-terracotta-dark'],
@@ -11,7 +15,11 @@ const map = {
 } as const;
 const [cls, icon, ic] = map[tone];
 ---
+
 <div role="note" class:list={['flex items-start gap-3 rounded-2xl border px-4 py-3.5', cls]} data-search-item>
   <Icon name={icon} class:list={['mt-0.5 h-[18px] w-[18px] shrink-0', ic]} strokeWidth={2} />
-  <p class="text-[13px] leading-5 text-charcoal/90 sm:text-[14px]">{title && <strong class="font-semibold text-charcoal">{title}. </strong>}{body}</p>
+  <p class="text-[13px] leading-5 text-charcoal/90 sm:text-[14px]">
+    {title && <strong class="font-semibold text-charcoal">{title}. </strong>}
+    {body}
+  </p>
 </div>

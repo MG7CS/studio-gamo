@@ -1,9 +1,6 @@
 import { validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
-import {
-  verifyStripeWebhookSignature,
-  type StripeWebhookEvent,
-} from '@studio-gamo/integrations';
+import { verifyStripeWebhookSignature, type StripeWebhookEvent } from '@studio-gamo/integrations';
 import { getDb } from '@gamo/db';
 import { PaymentService, LiveService, getRuntimeEnv } from '@gamo/domain';
 
@@ -27,20 +24,13 @@ export const POST: APIRoute = async (context) => {
     const rawBody = await context.request.text().catch(() => '');
     const signatureHeader = context.request.headers.get('stripe-signature');
 
-    const verification = await verifyStripeWebhookSignature(
-      rawBody,
-      signatureHeader,
-      webhookSecret
-    );
+    const verification = await verifyStripeWebhookSignature(rawBody, signatureHeader, webhookSecret);
 
     if (!verification.valid || !verification.event) {
-      return new Response(
-        JSON.stringify({ error: verification.error || 'Invalid webhook signature' }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      return new Response(JSON.stringify({ error: verification.error || 'Invalid webhook signature' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const event: StripeWebhookEvent = verification.event;
@@ -67,7 +57,7 @@ export const POST: APIRoute = async (context) => {
       if (fulfillment.gateBlocked) {
         return Response.json(
           { error: 'Financial fulfillment is disabled pending verified order processing.' },
-          { status: 503 }
+          { status: 503 },
         );
       }
 
