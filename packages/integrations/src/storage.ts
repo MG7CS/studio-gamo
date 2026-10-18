@@ -25,7 +25,8 @@ export type StorageScope =
   | 'educational_resource'
   | 'event_media'
   | 'technical_attachment'
-  | 'restricted_verification';
+  | 'restricted_verification'
+  | 'venue_map';
 
 export type AccessPolicy = 'public_read' | 'private' | 'audition' | 'restricted';
 
@@ -78,6 +79,13 @@ export const SCOPE_POLICIES: Record<StorageScope, ScopePolicyRule> = {
     allowedMimeTypes: ['application/pdf', 'image/png', 'image/jpeg'],
     maxByteSize: 15 * 1024 * 1024, // 15MB
     defaultAccessPolicy: 'restricted',
+  },
+  // Gamo Live venue blueprints (Agent C): rasters ≤ 5 MB; SVG ≤ 1 MB and sanitised server-side
+  // (packages/domain/src/services/ticketing/venue-maps-svg.ts). Served only through the Live route.
+  venue_map: {
+    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
+    maxByteSize: 5 * 1024 * 1024, // 5MB
+    defaultAccessPolicy: 'public_read',
   },
 };
 

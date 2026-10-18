@@ -21,6 +21,7 @@
     "@studio-gamo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.8",
+    "jsqr": "1.4.0",
     "tailwindcss": "^4.3.3",
     "wrangler": "^4.149.0"
   },
