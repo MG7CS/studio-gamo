@@ -1,5 +1,6 @@
 ---
 import { GAMO_LIVE_METROS } from '@gamo/domain';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
 const primaryLinks = [
   { label: 'Events', href: '/events' },
@@ -164,5 +165,20 @@ const primaryLinks = [
       </p>
       <p class="shrink-0 text-muted">© {new Date().getFullYear()} Gamo Live · Gamo Studios</p>
     </div>
+
+    {/* Legal documents (drafts) on gamostudio.org — Phase 2 Agent A */}
+    <nav aria-label="Legal" class="mt-4 flex flex-wrap gap-x-6 text-xs text-muted">
+      {[
+        { label: 'Legal & Privacy', path: '/legal' },
+        { label: 'Privacy Policy', path: '/legal/privacy-policy' },
+        { label: 'Site Terms', path: '/legal/site-terms' },
+        { label: 'Ticket Terms', path: '/legal/ticket-terms' },
+        { label: 'Organizer Terms', path: '/legal/organizer-terms' },
+      ].map((link) => (
+        <a href={siteUrl('web', link.path)} class="inline-flex min-h-11 items-center hover:text-terracotta">
+          {link.label}
+        </a>
+      ))}
+    </nav>
   </div>
 </footer>

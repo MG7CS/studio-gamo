@@ -1,0 +1,47 @@
+---
+/** gamostudio.org/legal — index of the draft legal documents (design §4.5). Rendered on demand. */
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import LegalDraftBanner from '@studio-gamo/ui/components/legal/LegalDraftBanner.astro';
+import LegalIndexList from '@studio-gamo/ui/components/legal/LegalIndexList.astro';
+import { TERMS_DOCUMENTS } from '@gamo/domain/terms';
+
+const documents = TERMS_DOCUMENTS.map((doc) => ({
+  title: doc.title,
+  summary: doc.summary,
+  href: doc.path,
+  version: doc.version,
+}));
+---
+
+<SiteLayout
+  title="Legal & Privacy | Gamo Studios"
+  description="Draft Site Terms, Privacy Policy, Ticket Terms, Organizer Terms, Provider and Church Terms and Academy Enrollment Terms for Gamo Studios programs."
+>
+  <section class="px-6 page-intro-space sm:px-12">
+    <div class="mx-auto max-w-[1050px]">
+      <EditorialHeading
+        eyebrow="Clear expectations"
+        title="Legal & privacy"
+        accent="documents."
+        as="h1"
+        size="display"
+      />
+      <p class="mt-8 max-w-3xl leading-relaxed text-muted">
+        Gamo Studios is a Christian, mission-driven Public Benefit Corporation. These documents explain how
+        our sites, tickets, provider profiles and Academy lessons work.
+      </p>
+      <LegalDraftBanner class="mt-8">
+        Every document below is a working draft that has not been reviewed by a lawyer and is not yet in
+        effect. Questions:{' '}
+        <a
+          href="mailto:hello@gamostudio.org"
+          class="inline-flex min-h-11 items-center font-semibold text-terracotta underline underline-offset-4 hover:text-terracotta-deep"
+        >
+          hello@gamostudio.org
+        </a>
+      </LegalDraftBanner>
+      <LegalIndexList documents={documents} />
+    </div>
+  </section>
+</SiteLayout>
