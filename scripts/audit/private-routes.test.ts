@@ -232,6 +232,11 @@ test('admin: pages and APIs reject anonymous requests through the admin middlewa
       })) as Response;
       assert.equal(rendered, false, `admin ${method} ${route} reached the page/handler anonymously`);
       assert.ok([401, 403].includes(response.status), `admin ${method} ${route} answered ${response.status}`);
+      assert.equal(
+        response.headers.get('cache-control'),
+        'no-store',
+        `admin ${method} ${route} is cacheable`,
+      );
     }
   }
 });

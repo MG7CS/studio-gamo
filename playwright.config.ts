@@ -26,8 +26,11 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://127.0.0.1:4321' },
   webServer: apps.map(([app, port]) => ({
+    // A local DB made by the old editorial CLI has tables but no migration records; the apply then
+    // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
     command:
-      `pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local && ` +
+      `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
+      `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
       `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 pnpm --filter apps-${app} exec astro preview`,
     url: `http://127.0.0.1:${port}/robots.txt`,
     reuseExistingServer: !process.env.CI,
