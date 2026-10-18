@@ -72,6 +72,20 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 | live | — | `STRIPE_SECRET_KEY` (test mode `sk_test_`/`rk_test_` only; checkout stays 503 regardless until order authority exists), `STRIPE_WEBHOOK_SECRET` |
 | admin | `CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD` | Break-glass: `ENABLE_BREAK_GLASS_AUTH`, `ADMIN_ACCESS_TOKEN`, `ADMIN_SECRET_KEY`, `ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_PASS` (leave unset unless needed) |
 
+**Identity and ticketing** (docs/design/identity-and-ticketing.md §10). All optional at startup; each one switches on a feature that otherwise **fails closed**. Missing ones are logged by name as warnings; a Gamo HMAC key shorter than 32 characters, or one that reuses `SESSION_SECRET` or another key, is an error. Generate each HMAC key separately, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`, and set it with `wrangler secret put`.
+
+| Name | Apps | Kind | Without it (outside local) |
+| --- | --- | --- | --- |
+| `TICKET_QR_SECRET_GL1` | live | secret, ≥ 32 chars | ticket issue and scanning answer 503. Rotation later adds `TICKET_QR_SECRET_GL2` while GL1 stays accepted. |
+| `CUSTOMER_LINK_SECRET` | live, academy | secret, ≥ 32 chars | manage/recovery links answer 503 |
+| `PII_HASH_SECRET` | web, worship, academy, live, production | secret, ≥ 32 chars | forms that record consent or rate-limit by address answer 503 |
+| `SCANNER_SESSION_SECRET` | live | secret, ≥ 32 chars | door scanner answers 503 |
+| `PUBLIC_TURNSTILE_SITE_KEY` (var) + `TURNSTILE_SECRET_KEY` (secret) | web, worship, academy, live, production | Cloudflare Turnstile widget (owner creates it) | protected public forms answer 503 |
+| `STRIPE_TEST_CHECKOUT` | live, academy | var, `true` only in local/preview | paid checkout answers 503. **`true` in production is fatal** (the app answers 503 everywhere; preflight reports `test-checkout-in-production`). |
+| `RESEND_WEBHOOK_SECRET` | live (+ academy) | secret (Svix, from Resend) | `/api/webhook/resend` answers 503; no delivery/bounce updates |
+| `CLERK_WEBHOOK_SECRET_<APP>` | each public app | secret (Svix, from that product's Clerk app) | `/api/webhook/clerk` answers 503; a session ended in Clerk stays valid here up to 7 days |
+| `CLERK_GOOGLE_ENABLED_<APP>` | each public app | var (`true`) | "Continue with Google" stays hidden (also hidden while that product's Clerk is off) |
+
 `<APP>` is `WEB`, `WORSHIP`, `ACADEMY`, `LIVE` or `PRODUCTION`; each product uses its **own** Clerk application — never copy keys between products. The Clerk secret names are `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>`; `EMAIL_FROM` must be on `gamostudio.org`.
 
 Never set `ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION` or `ALLOW_PUBLIC_DEMO_WORKSPACES` to `true` outside local: the app refuses to serve (503). `LIVE_CATALOG_AUTOSEED=true` (live only) is the one deliberate exception that writes on a visitor request — see §5.

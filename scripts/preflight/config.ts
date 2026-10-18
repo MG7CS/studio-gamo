@@ -199,6 +199,14 @@ export function analyzeConfigs(
       if (r.vars[flag] === 'true')
         add({ severity: 'error', app, code: 'local-flag', message: `${flag} is true in ${env}.` });
     }
+    if (env === 'production' && r.vars.STRIPE_TEST_CHECKOUT === 'true')
+      add({
+        severity: 'error',
+        app,
+        code: 'test-checkout-in-production',
+        message:
+          'STRIPE_TEST_CHECKOUT is true in production (the app refuses to serve; paid checkout stays 503).',
+      });
 
     if (r.kv.length === 0)
       add({ severity: 'error', app, code: 'kv-missing', message: 'no kv_namespaces declared.' });

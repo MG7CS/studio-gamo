@@ -8,7 +8,7 @@
  *   - warning: an optional integration is unconfigured; the feature is unavailable
  */
 import type { AppName } from './apps.ts';
-import type { GamoEnv } from './env.ts';
+import { HMAC_SECRET_NAMES, type GamoEnv } from './env.ts';
 import { GAMO_LIVE_CLERK_APP_ID, clerkVariableNames, diagnoseClerkEnv } from './clerk-env.ts';
 
 export type EnvSeverity = 'fatal' | 'error' | 'warning';
@@ -54,6 +54,12 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (env[flag] === 'true')
       add('fatal', flag, 'is a local-only flag and must not be enabled outside ENVIRONMENT=local');
   }
+  if (environment === 'production' && env.STRIPE_TEST_CHECKOUT === 'true')
+    add(
+      'fatal',
+      'STRIPE_TEST_CHECKOUT',
+      'must not be "true" in production; paid checkout stays closed (503) in production',
+    );
 
   if (!env.DB) add('error', 'DB', 'D1 binding is missing; accounts and data features are unavailable');
   if (!present(env.SESSION_SECRET) || (env.SESSION_SECRET?.length ?? 0) < 32) {
@@ -89,7 +95,91 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (!present(env.STRIPE_WEBHOOK_SECRET))
       add('warning', 'STRIPE_WEBHOOK_SECRET', 'Stripe webhooks are rejected');
   }
+  addIdentityTicketingProblems(app, env, add);
   return problems;
+}
+
+/** What each identity/ticketing secret switches on (design §10), for messages. */
+const SECRET_FEATURES: Record<(typeof HMAC_SECRET_NAMES)[number], string> = {
+  TICKET_QR_SECRET_GL1: 'ticket issue and scanning answer 503',
+  TICKET_QR_SECRET_GL2: 'QR key rotation to GL2 is unavailable',
+  CUSTOMER_LINK_SECRET: 'ticket/registration manage and recovery links answer 503',
+  PII_HASH_SECRET: 'forms that record consent or rate-limit by address answer 503',
+  SCANNER_SESSION_SECRET: 'door scanning answers 503',
+};
+
+/** Secrets each public app uses (missing → warning by name). */
+function optionalSecretsFor(
+  app: Exclude<AppName, 'admin'>,
+): Array<(typeof HMAC_SECRET_NAMES)[number] | 'RESEND_WEBHOOK_SECRET'> {
+  if (app === 'live')
+    return [
+      'TICKET_QR_SECRET_GL1',
+      'CUSTOMER_LINK_SECRET',
+      'PII_HASH_SECRET',
+      'SCANNER_SESSION_SECRET',
+      'RESEND_WEBHOOK_SECRET',
+    ];
+  if (app === 'academy') return ['CUSTOMER_LINK_SECRET', 'PII_HASH_SECRET'];
+  return ['PII_HASH_SECRET'];
+}
+
+function addIdentityTicketingProblems(
+  app: Exclude<AppName, 'admin'>,
+  env: GamoEnv,
+  add: (severity: EnvSeverity, name: string, message: string) => void,
+): void {
+  const values = env as Record<string, unknown>;
+  const seen = new Map<string, string>();
+  if (present(env.SESSION_SECRET)) seen.set(env.SESSION_SECRET!.trim(), 'SESSION_SECRET');
+  for (const name of HMAC_SECRET_NAMES) {
+    const value = values[name];
+    if (!present(value)) continue;
+    const trimmed = (value as string).trim();
+    if (trimmed.length < 32) {
+      add('error', name, `must be at least 32 characters; ${SECRET_FEATURES[name]}`);
+      continue;
+    }
+    const reused = seen.get(trimmed);
+    if (reused) add('error', name, `must not reuse the value of ${reused}; generate a separate secret`);
+    else seen.set(trimmed, name);
+  }
+
+  for (const name of optionalSecretsFor(app)) {
+    if (present(values[name])) continue;
+    add(
+      'warning',
+      name,
+      name === 'RESEND_WEBHOOK_SECRET'
+        ? 'email delivery and bounce updates are not received (/api/webhook/resend answers 503)'
+        : `is not set; ${SECRET_FEATURES[name]}`,
+    );
+  }
+
+  if (!present(env.PUBLIC_TURNSTILE_SITE_KEY) || !present(env.TURNSTILE_SECRET_KEY)) {
+    add(
+      'warning',
+      present(env.TURNSTILE_SECRET_KEY) ? 'PUBLIC_TURNSTILE_SITE_KEY' : 'TURNSTILE_SECRET_KEY',
+      'Turnstile is not configured (PUBLIC_TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY); protected public forms answer 503',
+    );
+  }
+
+  const suffix = app.toUpperCase();
+  const clerk = diagnoseClerkEnv(app, values);
+  const webhookName = `CLERK_WEBHOOK_SECRET_${suffix}`;
+  if (clerk.state === 'ready' && !present(values[webhookName]))
+    add(
+      'warning',
+      webhookName,
+      'Clerk is on but its webhook is off: a session ended in Clerk stays valid here for up to 7 days',
+    );
+  const googleName = `CLERK_GOOGLE_ENABLED_${suffix}`;
+  if (values[googleName] === 'true' && clerk.state !== 'ready')
+    add(
+      'warning',
+      googleName,
+      'is true but Clerk is not configured for this product; the Google button stays hidden',
+    );
 }
 
 /** Clerk is optional. These problems mean it is half set up (and therefore off) or set up with the wrong names. */
