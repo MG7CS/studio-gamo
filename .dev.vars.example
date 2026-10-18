@@ -1,20 +1,19 @@
-# Gamo Studios — Local Worker Secrets Example (.dev.vars.example)
-# Copy to .dev.vars in the relevant app directory for local development.
+# Gamo Studios Monorepo — Shared Local Worker Secrets Example (.dev.vars.example)
+# Application-specific Clerk and Stripe credentials belong inside each application's own directory:
+#   apps/web/.dev.vars          (or apps/web/.env)
+#   apps/live/.dev.vars         (or apps/live/.env)
+#   apps/academy/.dev.vars      (or apps/academy/.env)
+#   apps/worship/.dev.vars      (or apps/worship/.env)
+#   apps/production/.dev.vars   (or apps/production/.env)
+#   apps/admin/.dev.vars        (or apps/admin/.env)
 # Never commit real secrets or API keys.
 
 ENVIRONMENT="local"
 SESSION_SECRET="replace-with-32-character-minimum-random-secret"
 ALLOW_DEMO_SESSION="false"
 ALLOW_TEST_CHALLENGE_OUTBOX="false"
-
-# Cloudflare Zero Trust Access (apps/admin)
 REQUIRE_ADMIN_AUTH="true"
-CF_ACCESS_TEAM_NAME="your-cf-access-team"
-CF_ACCESS_AUD="your-cf-access-application-aud-tag"
 
-# Stripe Sandbox Only (sk_live_ and rk_live_ keys are blocked by assertStripeTestMode)
-STRIPE_SECRET_KEY="sk_test_placeholder"
-STRIPE_WEBHOOK_SECRET="whsec_placeholder"
-
-# Resend Transactional Email (re_mock_ prefix safely logs locally without sending external mail)
+# Shared local transactional email fallback (re_mock_ prefix safely logs locally without sending external mail)
 RESEND_API_KEY="re_mock_local"
+EMAIL_FROM="noreply@gamostudio.org"

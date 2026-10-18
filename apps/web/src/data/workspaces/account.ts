@@ -238,7 +238,7 @@ export const accountWorkspace: Workspace = {
                 { label: 'Worship assignment alerts', description: 'Immediate emails when a church requests or confirms you', on: true },
                 { label: 'Academy lesson schedule updates', description: 'Reminders and schedule adjustments for learners', on: true },
                 { label: 'Live event registration digests', description: 'Weekly summary of attendee registrations', on: true },
-                { label: 'Monthly stewardship & newsletter', description: 'Gamo Studios nonprofit updates', on: false },
+                { label: 'Monthly stewardship & newsletter', description: 'Gamo Studios mission updates', on: false },
               ],
             },
             {

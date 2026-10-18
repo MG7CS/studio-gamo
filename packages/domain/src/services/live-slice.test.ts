@@ -209,7 +209,8 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(retainedBrand.operatingDivision, 'Gamo Live');
     assert.equal(retainedBrand.parentOrganization, 'Gamo Studios');
     assert.equal(retainedBrand.isPlaceholderDomain, true);
-    assert.match(retainedBrand.operatorDisclosure, /final legal incorporation and federal tax status remain under evaluation/i);
+    assert.match(retainedBrand.operatorDisclosure, /Christian, mission-driven Public Benefit Corporation/);
+    assert.doesNotMatch(retainedBrand.operatorDisclosure, /non-?profit|tax-(exempt|deductible)|501/i);
     assert.match(retainedBrand.paymentDisclosure, /not a bank, escrow agent, or fiduciary/i);
 
     const placeholderFallback = getPlatformBrandConfig({ PLATFORM_BRAND: 'PLATFORM_BRAND' });

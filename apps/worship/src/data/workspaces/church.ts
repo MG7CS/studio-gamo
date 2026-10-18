@@ -300,7 +300,7 @@ export const churchWorkspace: Workspace = {
           { label: 'Musician pay — Oct 11 keys', amount: '$180.00', note: 'Paid to musician' },
           { label: 'Musician pay — Oct 18 keys & drums', amount: '$360.00', note: 'Paid to musicians' },
           { label: 'Proposed Gamo administrative allocation', amount: '$60.00', note: 'Separate line · proposal pending board approval' },
-        ], total: { label: 'Illustrative total', amount: '$780.00' }, footnote: 'Musician pay is never reduced by the administrative allocation. Contributions are not described as tax-deductible.' },
+        ], total: { label: 'Illustrative total', amount: '$780.00' }, footnote: 'Musician pay is never reduced by the administrative allocation.' },
         { type: 'kv', title: 'Billing records (demo)', items: [['Payment method', 'None on file (demo)'], ['Status', b('Not processed', 'sample')], ['Records contact', 'Program office']] },
         { type: 'table', span: 3, title: 'Administrative records', columns: [
           { key: 'period', label: 'Period', primary: true }, { key: 'pay', label: 'Musician pay' }, { key: 'alloc', label: 'Proposed allocation' }, { key: 'state', label: 'Status' },

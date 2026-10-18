@@ -92,8 +92,9 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'CreateEvent');
     const validated = createEventSchema.parse(body);
 
-    await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
-    await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], runtimeEnv.SESSION_SECRET);
+    const authOpts = { secret: runtimeEnv.SESSION_SECRET, product: 'live' as const, env: runtimeEnv };
+    await requireVerifiedAuth(context.request, db, authOpts);
+    await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], authOpts);
 
     const { event, tiers } = await liveService.createEvent(validated.organizationId, validated);
 

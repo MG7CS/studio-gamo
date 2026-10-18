@@ -20,7 +20,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'TicketScanInput');
     const validated = ticketScanSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     await requireEventPermission(db, auth, validated.eventId, 'scan_tickets');
 
     const liveService = new LiveService(db);

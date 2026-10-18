@@ -3963,6 +3963,20 @@
                 "roleLabel"
               ]
             }
+          },
+          "isPast": {
+            "type": "boolean"
+          },
+          "isClosed": {
+            "type": "boolean"
+          },
+          "lifecycleStatus": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "past",
+              "canceled"
+            ]
           }
         },
         "required": [

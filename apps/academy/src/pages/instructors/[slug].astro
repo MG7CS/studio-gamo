@@ -1,4 +1,5 @@
 ---
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import LessonCard from '../../components/shared/LessonCard.astro';
 import DemoNotice from '@studio-gamo/ui/components/DemoNotice.astro';
@@ -15,7 +16,7 @@ export function getStaticPaths() {
 const { instructor: t } = Astro.props as { instructor: Instructor };
 const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 ---
-<Layout title={`${t.name} | Gamo Academy`} description={t.bio}>
+<Layout title={`${t.name} | Gamo Academy`} description={clampDescription(`Sample Gamo Academy instructor profile: ${t.name}, ${t.teaches}. ${t.bio}`)}>
   <section class="px-4 page-intro-space sm:px-8">
     <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[300px_minmax(0,1fr)]">
       <aside class="rounded-[32px] bg-white p-8 ring-1 ring-sand lg:sticky lg:top-28 lg:self-start">

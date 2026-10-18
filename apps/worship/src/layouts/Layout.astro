@@ -9,9 +9,14 @@ interface Props {
   headerTheme?: 'light' | 'dark';
   bodyClass?: string;
   chrome?: boolean;
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'event';
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
-const { title, description, headerTheme = 'light', bodyClass = 'bg-cream text-charcoal', chrome = true } = Astro.props;
+const { title, description, headerTheme = 'light', bodyClass = 'bg-cream text-charcoal', chrome = true, ogImage, ogType, noindex, jsonLd } = Astro.props;
 ---
-<BaseLayout title={title ? `${title} | Gamo Worship` : 'Gamo Worship | Gamo Studios'} description={description} current="worship" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome}>
+<BaseLayout title={title ? `${title} | Gamo Worship` : 'Gamo Worship | Gamo Studios'} description={description} current="worship" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome} ogImage={ogImage} ogType={ogType} noindex={noindex} jsonLd={jsonLd}>
+  <slot name="head" slot="head" />
   <slot />
 </BaseLayout>

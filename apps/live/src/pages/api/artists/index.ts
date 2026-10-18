@@ -33,7 +33,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'CreateArtistInput');
     const validated = createArtistProfileSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
 
     const liveService = new LiveService(db);
     const created = await liveService.createArtistProfile(auth.user.id, validated);

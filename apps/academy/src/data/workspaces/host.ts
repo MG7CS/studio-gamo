@@ -1,7 +1,7 @@
 /**
  * Gamo Academy — Church host & program sponsor workspace (design-first demo).
  * Grace Fellowship is a fictional sample. Enrollment is shown as aggregate counts only.
- * Sponsorship figures are proposed/pledged-in-preview — not real donations, no tax claims.
+ * Sponsorship figures are illustrative and proposed in preview; no real payments, no tax claims.
  */
 import { b, type Workspace } from '@studio-gamo/ui/lib/dashboard';
 
@@ -154,7 +154,7 @@ export const hostWorkspace: Workspace = {
       slug: 'sponsorship',
       title: 'Sponsorship commitments',
       blocks: [
-        { type: 'notice', tone: 'warning', title: 'Preview only', body: 'Figures are proposed or pledged in preview — not real donations. No payments are processed. Gamo Studios is a Christian, mission-driven organization whose final legal incorporation and tax status remain under evaluation; no tax-deductibility is claimed.' },
+        { type: 'notice', tone: 'warning', title: 'Preview only', body: 'Figures are illustrative and proposed in preview. No payments are processed. Gamo Studios is a Christian, mission-driven Public Benefit Corporation.' },
         { type: 'statement', span: 2, title: 'Fall 2026 seat sponsorship (proposed)', lines: [
           { label: '6 sponsored seats × 10 weeks', amount: '$1,200.00', note: 'Pledged in preview' },
           { label: 'Instruments on loan (3 keyboards)', amount: 'In kind', note: 'Proposed' },

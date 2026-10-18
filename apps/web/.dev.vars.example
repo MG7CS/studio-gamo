@@ -1,22 +1,14 @@
-# Gamo Studios Web (apps/web) Local Worker Variables & Secrets Example
-# Copy to .dev.vars for local testing. NEVER commit real credentials.
+# Gamo Studios (apps/web) — Local Worker Secrets Example (.dev.vars.example)
+# Copy to apps/web/.dev.vars after provisioning the dedicated Gamo Studios Clerk application.
+# NEVER reuse Gamo Live (app_3KlWyOBL2xL2YzhJuvgk8QdrWIt) credentials here.
+# Shared local settings (ENVIRONMENT, SESSION_SECRET, RESEND_API_KEY, etc.) are inherited from root .dev.vars / .env.
 
-ENVIRONMENT=local
-PUBLIC_ROOT_DOMAIN=gamostudio.org
-
-# Session Signing Secret (Required across all apps sharing D1 sessions; 32+ chars)
-SESSION_SECRET=local-dev-session-secret-replace-before-deploy-0123456789
-
-# Resend Email Integration (Required outside local simulation)
-# RESEND_API_KEY=re_test_xxxxxxxxxxxxxxxxxxxxxxxx
-EMAIL_FROM=Gamo Studios <notifications@gamostudio.org>
-
-# Local-Only Auth & Demo Controls (Ignored outside ENVIRONMENT=local on loopback)
-ALLOW_AUTH_SIMULATION=true
-ALLOW_DEMO_SESSION=false
-ALLOW_PUBLIC_DEMO_WORKSPACES=false
-
-# Stripe Test-Mode Integration (Cloudflare Worker Secret - sk_test_ only)
-# STRIPE_SECRET_KEY=sk_test_51xxxxxxxxxxxxxxxxxxxxxxxx
-# STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx
-PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51xxxxxxxxxxxxxxxxxxxxxxxx
+# Clerk — Gamo Studios Dedicated Application (Pending Founder Provisioning)
+PUBLIC_CLERK_KEYLESS_DISABLED="true"
+CLERK_KEYLESS_DISABLED="true"
+CLERK_APP_ID_WEB="pending_clerk_app_gamo_web"
+PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_YOUR_WEB_KEY"
+CLERK_SECRET_KEY="sk_test_YOUR_WEB_SECRET"
+CLERK_JWT_KEY_WEB=""
+CLERK_ISSUER_WEB=""
+CLERK_AUTHORIZED_PARTIES_WEB="http://127.0.0.1:4321,http://localhost:4321,https://gamostudio.org,https://www.gamostudio.org"

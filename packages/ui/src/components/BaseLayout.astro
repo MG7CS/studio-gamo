@@ -5,6 +5,7 @@
  */
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
+import { siteOrigin, type SiteKey } from '../lib/sites';
 
 interface Props {
   title: string;
@@ -16,15 +17,35 @@ interface Props {
   bodyClass?: string;
   /** Hide shared chrome for focused flows (e.g. sign-in, scanner). */
   chrome?: boolean;
+  /** Absolute or root-relative 1200x630 share image; defaults to the app's /og-image.png (scripts/generate-share-images.mjs). */
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'event';
+  /** Opt a page out of indexing metadata (no canonical or social tags). Private routes are detected automatically. */
+  noindex?: boolean;
+  /** Structured data blocks, serialized as JSON-LD. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 const {
   title,
-  description = 'Gamo Studios is a developing Christian nonprofit strengthening worship and community through musicians, music education, Christian events and technical support.',
+  description = 'Gamo Studios brings together Worship, Academy, Live and Production to serve churches, musicians, students and families through music and Christian gatherings.',
   current,
   headerTheme = 'light',
   bodyClass = 'bg-cream text-charcoal',
   chrome = true,
+  ogImage = '/og-image.png',
+  ogType = 'website',
+  noindex = false,
+  jsonLd,
 } = Astro.props;
+
+// Private and account pages (flagged by the page middleware) get no canonical or social tags.
+const locals = Astro.locals as Record<string, any>;
+const app = locals.product as SiteKey | undefined;
+const indexable = Boolean(app) && !noindex && !locals.noindexPage;
+const origin = app ? siteOrigin(app) : '';
+const canonical = indexable ? origin + (Astro.url.pathname.replace(/\/+$/, '') || '/') : undefined;
+const imageUrl = indexable && ogImage ? new URL(ogImage, origin).href : undefined;
+const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
 <!doctype html>
 <html lang="en">
@@ -40,6 +61,24 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && (
+      <>
+        <meta property="og:site_name" content="Gamo Studios" />
+        <meta property="og:type" content={ogType} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={canonical} />
+        <meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        {imageUrl && <meta property="og:image" content={imageUrl} />}
+        {imageUrl && <meta name="twitter:image" content={imageUrl} />}
+      </>
+    )}
+    {indexable && jsonLdBlocks.map((block) => (
+      <script type="application/ld+json" set:html={JSON.stringify(block).replace(/</g, '\\u003c')} />
+    ))}
     <slot name="head" />
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>

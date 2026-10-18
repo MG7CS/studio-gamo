@@ -1,7 +1,7 @@
 /**
  * Gamo Studios — Church Partner & Supporter workspace (design-first demo).
  * Grace Fellowship (sample) is a fictional participating church.
- * No real payments, donations, sponsorship charges or tax-deductible gifts exist.
+ * No real payments, sponsorship charges or gifts exist.
  * Contributions and sponsorships are proposed/pledged in preview only.
  */
 import { b, type Workspace } from '@studio-gamo/ui/lib/dashboard';
@@ -42,8 +42,8 @@ export const partnerWorkspace: Workspace = {
         {
           type: 'notice',
           tone: 'info',
-          title: 'Nonprofit partnership model',
-          body: 'Gamo Studios is a developing Christian nonprofit initiative. Partnerships are collaborative relationships serving our shared mission, not commercial vendor contracts. Partnership never influences musician vetting, rankings, or editorial trust signals.',
+          title: 'Mission-driven partnership model',
+          body: 'Gamo Studios is a developing Christian, mission-driven Public Benefit Corporation. Partnerships are collaborative relationships serving our shared mission, not commercial vendor contracts. Partnership never influences musician vetting, rankings, or editorial trust signals.',
         },
         {
           type: 'stats',
@@ -72,7 +72,7 @@ export const partnerWorkspace: Workspace = {
           items: [
             { title: 'Academy Fall semester underway', meta: 'Oct 10, 2026', body: '18 students enrolled across piano and youth voice programs.', icon: 'school' },
             { title: 'Standby coordination tested', meta: 'Sep 27, 2026', body: 'Seamless musician check-in and Sunday worship coverage.', icon: 'shield' },
-            { title: 'Nonprofit transition update', meta: 'Sep 15, 2026', body: 'Legal formation checklist in progress; governance bylaws drafted.', icon: 'file' },
+            { title: 'Governance update', meta: 'Sep 15, 2026', body: 'Legal formation checklist in progress; governance bylaws drafted.', icon: 'file' },
           ],
         },
       ],
@@ -128,7 +128,7 @@ export const partnerWorkspace: Workspace = {
           type: 'notice',
           tone: 'warning',
           title: 'Demonstration commitments only',
-          body: 'All figures below represent proposed/pledged amounts in preview. No financial commitments are legally binding or currently collected. Gamo Studios does not claim 501(c)(3) tax-exempt status, and payments cannot be processed until governance milestones are complete.',
+          body: 'All figures below represent proposed/pledged amounts in preview. No financial commitments are legally binding or currently collected. Payments cannot be processed until governance milestones are complete.',
         },
         {
           type: 'table',
@@ -141,7 +141,7 @@ export const partnerWorkspace: Workspace = {
             { key: 'status', label: 'Status' },
           ],
           rows: [
-            { initiative: 'Academy Room 102 Facility Hosting', type: 'In-kind facility space', term: 'Fall 2026 (12 weeks)', amount: 'Space donation (in-kind)', status: b('Active Host', 'success') },
+            { initiative: 'Academy Room 102 Facility Hosting', type: 'In-kind facility space', term: 'Fall 2026 (12 weeks)', amount: 'In-kind space', status: b('Active Host', 'success') },
             { initiative: 'Youth Instrument Scholarship Fund', type: 'Proposed Program Sponsorship', term: '2026–2027 Academic Year', amount: '$2,400 (proposed)', status: b('Proposal Pending', 'proposal') },
             { initiative: 'Community Gospel Concert Sound Grant', type: 'Proposed Event Sponsorship', term: 'Single Gathering (Nov 2026)', amount: '$500 (proposed)', status: b('Proposal Pending', 'proposal') },
           ],
@@ -203,7 +203,7 @@ export const partnerWorkspace: Workspace = {
           span: 3,
           title: 'Recent bulletins',
           items: [
-            { title: 'Nonprofit Model Clarifications Released', meta: 'Gamo Studios Governance Committee · Oct 12, 2026', body: 'Updated GAMO_NONPROFIT_MODEL.md ensures complete fee transparency and musician compensation protection across all church collaborations.', icon: 'file' },
+            { title: 'Mission Model Clarifications Released', meta: 'Gamo Studios Governance Committee · Oct 12, 2026', body: 'Updated mission model document ensures complete fee transparency and musician compensation protection across all church collaborations.', icon: 'file' },
             { title: 'Academy Winter Term Host Applications Open', meta: 'Gamo Academy Team · Oct 5, 2026', body: 'Expanding church-hosted instrument classes to four new regional fellowships for the upcoming spring semester.', icon: 'school' },
             { title: 'Production Ministry Workshop Series Announced', meta: 'Gamo Production · Sep 20, 2026', body: 'Free volunteer training curriculum in live audio mixing and video streaming to be tested in Phoenix.', icon: 'wrench' },
           ],
@@ -222,8 +222,8 @@ export const partnerWorkspace: Workspace = {
         {
           type: 'notice',
           tone: 'warning',
-          title: 'Organizational structure & tax status notice',
-          body: 'Gamo Studios is a Christian, mission-driven organization whose final legal incorporation and tax status remain under evaluation. Contributions are not described as tax-deductible. The records below are illustrative lines.',
+          title: 'Organizational structure notice',
+          body: 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation. The records below are illustrative lines.',
         },
         {
           type: 'chart',

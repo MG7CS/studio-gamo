@@ -14,7 +14,13 @@ interface Props {
   photos?: AuthPhotoItem[];
   googleAuthUrl?: string;
   facebookAuthUrl?: string;
+  clerkPublishableKey?: string;
+  clerkAppId?: string;
 }
+
+const clerkLocals = (Astro.locals as Record<string, any>).clerkConfig as
+  | { publishableKey?: string | null; appId?: string | null }
+  | undefined;
 
 const {
   mode = 'signin',
@@ -26,6 +32,8 @@ const {
   photos,
   googleAuthUrl,
   facebookAuthUrl,
+  clerkPublishableKey = clerkLocals?.publishableKey ?? undefined,
+  clerkAppId = clerkLocals?.appId ?? undefined,
 } = Astro.props;
 ---
 
@@ -35,6 +43,8 @@ const {
   brandHref={brandHref}
   brandLabel={brandLabel}
   photos={photos}
+  clerkPublishableKey={clerkPublishableKey}
+  clerkAppId={clerkAppId}
 >
   <AuthForm
     mode={mode}

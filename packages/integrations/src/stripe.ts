@@ -4,7 +4,7 @@
  * ORGANIZATIONAL POLICY GATE:
  * Per docs/GAMO_NONPROFIT_MODEL.md and docs/NONPROFIT_TRANSITION_CHECKLIST.md,
  * live payment processing (donations, memberships, sponsorships) is strictly disabled
- * until legal 501(c)(3) formation prerequisites are authorized by the founder and board.
+ * until the legal formation prerequisites are authorized by the founder and board.
  *
  * Only test-mode keys (`sk_test_` / `rk_test_`) are permitted.
  * Live keys (`sk_live_` / `rk_live_`) are actively blocked by this integration.
@@ -110,7 +110,7 @@ export function assertStripeTestMode(secretKey?: string): void {
   if (secretKey.startsWith('sk_live_') || secretKey.startsWith('rk_live_')) {
     throw new Error(
       '[Gamo Governance Gate] Live Stripe keys (sk_live_ / rk_live_) are strictly prohibited. ' +
-      'All transactions must remain in test mode until 501(c)(3) legal transition prerequisites are finalized.'
+      'All transactions must remain in test mode until the legal prerequisites in the transition checklist are finalized.'
     );
   }
 

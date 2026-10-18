@@ -21,7 +21,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'AuthorizeRepresentativeInput');
     const validated = authorizeRepresentativeSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const isSuperadmin = hasSystemRole(auth, 'superadmin');
 
     const liveService = new LiveService(db);

@@ -1,4 +1,5 @@
 ---
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import PageIntro from '../../components/production/PageIntro.astro';
 import AreaDetail from '../../components/production/AreaDetail.astro';
@@ -11,7 +12,7 @@ export function getStaticPaths() {
 }
 const { area } = Astro.props as { area: SupportArea };
 ---
-<Layout title={area.title} description={area.summary} headerTheme="light">
+<Layout title={area.title} description={clampDescription(area.summary)} headerTheme="light">
   <PageIntro eyebrow="Technical support category" title={area.title} lede={area.summary} photo={area.photo} crumb={{ label: 'All support areas', href: '/services' }}>
     <StatusPill kind="proposal" class="mt-6">Technical ministry support</StatusPill>
   </PageIntro>

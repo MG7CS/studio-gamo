@@ -93,6 +93,10 @@ const isProduction = program === 'Gamo Production';
   document.querySelector('[data-account-logout]')?.addEventListener('click', async () => {
     const status = document.querySelector<HTMLElement>('[data-account-status]')!;
     try {
+      const w = window as unknown as { Clerk?: { signOut?: () => Promise<void> } };
+      if (w.Clerk?.signOut) {
+        await w.Clerk.signOut().catch(() => undefined);
+      }
       const response = await fetch('/api/auth/session', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign out failed. Please try again.');
       window.location.assign('/account/signin');

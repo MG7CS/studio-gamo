@@ -2,6 +2,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
+  browser-tabs-lock: false
+  core-js: false
   esbuild: true
   workerd: true
 

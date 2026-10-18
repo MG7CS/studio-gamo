@@ -9,7 +9,11 @@ import { getRuntimeEnv } from '@gamo/domain';
 export const prerender = false;
 const env = await getRuntimeEnv(Astro);
 const db = getDb(env.DB);
-const auth = await resolveAuth(Astro.request, db, env.SESSION_SECRET);
+const auth = await resolveAuth(Astro.request, db, {
+  secret: env.SESSION_SECRET,
+  product: 'live',
+  env,
+});
 if (!auth) return Astro.redirect('/account/signin?next=%2Fworkspaces', 303);
 Astro.response.headers.set('Cache-Control', 'private, no-store');
 const memberships = auth.memberships.filter(m => ['owner','admin'].includes(m.role));

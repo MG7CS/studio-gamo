@@ -2,13 +2,13 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 const sections = [
-  ['Organizational status', 'Gamo Studios is a Christian, mission-driven organization. Final legal incorporation structure and federal tax-exempt recognition remain under evaluation, and contributions are not currently tax-deductible.'],
+  ['Organizational status', 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.'],
   ['Program participation', 'Participation across Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production is subject to program guidelines, scheduling availability, and community review standards.'],
   ['Event ticketing, talent bookings & representation', 'Gamo Live is operated by Gamo Studios. Event organizers, performing artists, and authorized representatives remain responsible for their event accuracy, venue safety, and contractual commitments. Musician, instructor, and artist compensation is always separated from any proposed Gamo administrative allocation.'],
   ['Privacy & information stewardship', 'We handle contact details, registration inquiries, minor learner privacy, and account information with care and use them solely to coordinate Gamo Studios programs and verified self-service order recovery.'],
   ['Governance & policy review', 'Formal participation terms, child and youth safeguarding standards, and cancellation/refund policies are maintained alongside organizational governance.'],
 ];
 ---
-<SiteLayout title="Legal & Privacy Information | Gamo Studios">
+<SiteLayout title="Legal & Privacy Information | Gamo Studios" description="Program guidelines, privacy, event ticketing and compensation information for Gamo Worship, Gamo Academy, Gamo Live and Gamo Production.">
   <section class="px-6 page-intro-space sm:px-12"><div class="mx-auto max-w-[1050px]"><EditorialHeading eyebrow="Clear expectations" title="Legal & privacy" accent="information." as="h1" size="display" /><div class="mt-10 space-y-8">{sections.map(([title, body]) => <section class="border-t border-sand pt-7"><h2 class="text-2xl font-semibold">{title}</h2><p class="mt-4 max-w-3xl leading-relaxed text-ink-soft">{body}</p></section>)}</div></div></section>
 </SiteLayout>

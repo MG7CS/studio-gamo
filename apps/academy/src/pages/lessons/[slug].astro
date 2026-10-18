@@ -1,4 +1,5 @@
 ---
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '../../components/shared/PageHero.astro';
 import InstructorCard from '../../components/shared/InstructorCard.astro';
@@ -19,7 +20,7 @@ const t = instructorBySlug(l.instructorSlug)!;
 const inst = instrumentBySlug(l.instrumentSlug);
 const facts = [['calendar', 'Schedule', l.schedule], ['clock', 'Length', l.length], ['pin', 'Location', l.location], ['users', 'Ages', l.ages.join(', ')]] as const;
 ---
-<Layout title={`${l.title} | Gamo Academy`} description={l.summary}>
+<Layout title={`${l.title} | Gamo Academy`} description={clampDescription(`${l.title} (${l.format}, ${l.schedule}): ${l.summary}`)}>
   <PageHero eyebrow={`${l.instrument} · ${l.level} · ${l.format}`} title={l.title} lede={l.summary} photo={inst?.photo ?? 'guitarMentor'} mask="mask-arch" crumbs={[{ label: 'Lessons', href: '/lessons' }, { label: l.title, href: `/lessons/${l.slug}` }]}>
     <div class="mt-6"><StatusPill kind="verified">Open enrollment</StatusPill></div>
   </PageHero>

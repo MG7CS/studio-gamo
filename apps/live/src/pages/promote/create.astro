@@ -10,7 +10,11 @@ import { getRuntimeEnv } from '@gamo/domain';
 export const prerender = false;
 
 const env = await getRuntimeEnv(Astro);
-const auth = await resolveAuth(Astro.request, getDb(env.DB), env.SESSION_SECRET);
+const auth = await resolveAuth(Astro.request, getDb(env.DB), {
+  secret: env.SESSION_SECRET,
+  product: 'live',
+  env,
+});
 if (!auth) return Astro.redirect('/account/signin?next=%2Fpromote%2Fcreate', 303);
 
 Astro.response.headers.set('Cache-Control', 'private, no-store');

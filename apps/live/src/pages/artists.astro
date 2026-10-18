@@ -55,7 +55,11 @@ try {
   await liveService.ensureVerifiedCatalogSeeded();
 
   if (env.SESSION_SECRET) {
-    const auth = await resolveAuth(Astro.request, db, env.SESSION_SECRET);
+    const auth = await resolveAuth(Astro.request, db, {
+      secret: env.SESSION_SECRET,
+      product: 'live',
+      env,
+    });
     if (auth) {
       authUser = auth.user;
       userArtistProfiles = await db.query.artistProfiles.findMany({
@@ -145,8 +149,6 @@ try {
   title="Artists & Lineups"
   description="Browse artists performing at upcoming Christian concerts and worship gatherings on Gamo Live, or onboard your artist profile."
 >
-  <link slot="head" rel="canonical" href="https://live.gamostudio.org/artists" />
-
   <!-- Compact Operational Directory Header & Direct Onboarding Entry -->
   <section class="bg-[#FBF7F1] border-b border-[#EAE2D6] pt-8 pb-7">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">

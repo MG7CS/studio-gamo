@@ -1,5 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
 import { getDb } from '@gamo/db';
 import {
@@ -135,6 +137,8 @@ const heroImage =
     ? event.artworkUrl
     : STAGE_HERO_FALLBACKS[(event?.slug.length ?? 0) % STAGE_HERO_FALLBACKS.length];
 
+// Event structured data: only fields present in the event record are emitted.
+const eventPath = event ? `/events/${event.slug}` : '';
 const jsonLd = event
   ? {
       '@context': 'https://schema.org',
@@ -144,20 +148,25 @@ const jsonLd = event
         event.startDateLocal && event.startTimeLocal
           ? `${event.startDateLocal}T${event.startTimeLocal}:00`
           : event.startDateLocal || event.startsAt.toISOString(),
-      eventStatus: 'https://schema.org/EventScheduled',
+      eventStatus: event.status === 'canceled' ? 'https://schema.org/EventCancelled' : 'https://schema.org/EventScheduled',
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-      description: event.description,
-      location: {
-        '@type': 'Place',
-        name: event.venueName,
-        address: {
-          '@type': 'PostalAddress',
-          ...(event.address ? { streetAddress: event.address } : {}),
-          addressLocality: event.city,
-          addressRegion: event.state,
-          addressCountry: 'US',
-        },
-      },
+      url: `${siteOrigin('live')}${eventPath}`,
+      ...(event.description ? { description: event.description } : {}),
+      ...(event.venueName
+        ? {
+            location: {
+              '@type': 'Place',
+              name: event.venueName,
+              address: {
+                '@type': 'PostalAddress',
+                ...(event.address ? { streetAddress: event.address } : {}),
+                ...(event.city ? { addressLocality: event.city } : {}),
+                ...(event.state ? { addressRegion: event.state } : {}),
+                addressCountry: 'US',
+              },
+            },
+          }
+        : {}),
       ...(event.performers && event.performers.length > 0
         ? {
             performer: event.performers.map((p) => ({
@@ -166,15 +175,14 @@ const jsonLd = event
             })),
           }
         : {}),
-      ...(event.externalUrl
+      // Offers only when the record carries a real price.
+      ...(typeof event.priceMinCents === 'number' && event.priceMinCents >= 0
         ? {
             offers: {
               '@type': 'Offer',
-              url: event.externalUrl,
+              url: event.externalUrl || `${siteOrigin('live')}${eventPath}`,
               priceCurrency: event.currency || 'USD',
-              ...(typeof event.priceMinCents === 'number'
-                ? { price: (event.priceMinCents / 100).toFixed(2) }
-                : {}),
+              price: (event.priceMinCents / 100).toFixed(2),
             },
           }
         : {}),
@@ -190,27 +198,16 @@ const pageTitle = metro
       : 'Event unavailable';
 
 const pageDescription = metro
-  ? metro.introCopy
+  ? clampDescription(metro.introCopy.length < 120 ? `${metro.introCopy} Dates, venues and details on Gamo Live.` : metro.introCopy)
   : event
-    ? event.tagline || event.description
+    ? clampDescription(
+        `${event.title} at ${event.venueName} in ${event.city}, ${event.state}${schedule && schedule.dateLabel !== 'Date TBA' ? ` on ${schedule.dateLabel}` : ''}. ${event.tagline || event.description || ''}`,
+      )
     : 'Only approved Christian concert and worship event listings are publicly available on Gamo Live.';
 
-const canonicalHref = metro
-  ? `https://live.gamostudio.org/events/${metro.slug}`
-  : event
-    ? `https://live.gamostudio.org/events/${event.slug}`
-    : undefined;
 ---
 
-<Layout title={pageTitle} description={pageDescription}>
-  {canonicalHref && <link slot="head" rel="canonical" href={canonicalHref} />}
-  {jsonLd && (
-    <script
-      slot="head"
-      type="application/ld+json"
-      set:html={JSON.stringify(jsonLd)}
-    />
-  )}
+<Layout title={pageTitle} description={pageDescription} jsonLd={jsonLd ?? undefined} noindex={!metro && !event}>
 
   {metro ? (
     /* =======================================================================
@@ -487,23 +484,6 @@ const canonicalHref = metro
             <span aria-hidden="true">/</span>
             <span class="text-[#E5B89B] font-semibold line-clamp-1">{event.title}</span>
           </nav>
-
-          <!-- Publisher & Independence Disclosure Banner (External Discovery) -->
-          {isExternal && (
-            <div class="mb-6 rounded-2xl bg-white/[0.06] border border-white/15 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex items-start gap-3">
-                <span class="mt-0.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#B34B1E] text-white shrink-0">
-                  Published by {event.publishedByLabel || 'Gamo Live Listings'}
-                </span>
-                <p class="text-xs sm:text-sm text-[#E6DFD5] leading-relaxed">
-                  Independent event listing. Gamo Live is not the event organizer or ticket seller unless explicitly stated. Ticket purchases and customer support occur on the linked external site.
-                </p>
-              </div>
-              <span class="text-[11px] text-[#9E9589] shrink-0">
-                Verified {formattedVerifiedDate}
-              </span>
-            </div>
-          )}
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Left 7 Columns: Event Core Details -->

@@ -261,7 +261,11 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       const signingSecret = runtimeEnv.SESSION_SECRET;
       const product = resolveContextProduct(context, defaultProduct);
 
-      const auth = await requireAuth(context.request, db, signingSecret);
+      const auth = await requireAuth(context.request, db, {
+        secret: signingSecret,
+        product,
+        env: runtimeEnv,
+      });
       if (auth.user.verifiedEmailAt && !hasProductAccess(auth, product)) {
         const label = PRODUCT_DISPLAY_NAMES[product] || product;
         throw new AuthError('FORBIDDEN', `Your session is not enrolled in ${label}.`, 403);
@@ -307,7 +311,11 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       const signingSecret = runtimeEnv.SESSION_SECRET;
       const product = resolveContextProduct(context, defaultProduct);
 
-      const auth = await requireVerifiedAuth(context.request, db, signingSecret);
+      const auth = await requireVerifiedAuth(context.request, db, {
+        secret: signingSecret,
+        product,
+        env: runtimeEnv,
+      });
       if (!hasProductAccess(auth, product)) {
         const label = PRODUCT_DISPLAY_NAMES[product] || product;
         throw new AuthError('FORBIDDEN', `Your session does not have an active ${label} account.`, 403);

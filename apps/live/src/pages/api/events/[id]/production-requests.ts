@@ -23,7 +23,11 @@ export const GET: APIRoute = async (context) => {
     const db = getDb(runtimeEnv.DB);
     const eventId = validateContract('Identifier', context.params.id) as string;
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const canProd = await hasEventPermission(db, auth, eventId, 'coordinate_production');
     const canEdit = await hasEventPermission(db, auth, eventId, 'edit_content');
     if (!canProd && !canEdit) {
@@ -47,7 +51,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'CreateEventProductionRequestInput');
     const validated = createEventProductionRequestSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     await requireEventPermission(db, auth, eventId, 'coordinate_production');
 
     const liveService = new LiveService(db);

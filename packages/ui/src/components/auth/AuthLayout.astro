@@ -10,6 +10,8 @@ interface Props {
   brandLabel?: string;
   photos?: AuthPhotoItem[];
   panelBgClass?: string;
+  clerkPublishableKey?: string;
+  clerkAppId?: string;
 }
 
 const {
@@ -19,6 +21,8 @@ const {
   brandLabel = `${program} home`,
   photos,
   panelBgClass,
+  clerkPublishableKey,
+  clerkAppId,
 } = Astro.props;
 ---
 
@@ -28,6 +32,8 @@ const {
   data-auth-mode={mode}
   data-active-mode={mode}
   data-auth-program={program}
+  data-clerk-publishable-key={clerkPublishableKey || undefined}
+  data-clerk-app-id={clerkAppId || undefined}
 >
   <AuthPhotoPanel activeMode={mode} program={program} brandHref={brandHref} brandLabel={brandLabel} photos={photos} />
   <AuthCurvedDivider panelBgClass={panelBgClass}>

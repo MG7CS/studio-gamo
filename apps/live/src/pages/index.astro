@@ -94,10 +94,6 @@ const featuredTicketUrl =
 const featuredDetailUrl = featuredEvent
   ? `/events/${featuredEvent.slug}`
   : '/events/cain-phoenix-2026-11-07';
-const canonicalHomeUrl =
-  Astro.url.origin.includes('127.0.0.1') || Astro.url.origin.includes('localhost')
-    ? `${Astro.url.origin}/`
-    : 'https://live.gamostudio.org/';
 ---
 
 <Layout
@@ -105,14 +101,6 @@ const canonicalHomeUrl =
   description="Discover verified Christian concerts, worship nights, and live gatherings across Phoenix and major U.S. cities on Gamo Live."
   bodyClass="bg-[#FBF7F1] text-[#191817] antialiased selection:bg-[#B34B1E] selection:text-white"
 >
-  <Fragment slot="head">
-    <link rel="canonical" href={canonicalHomeUrl} />
-    <meta property="og:title" content="Find Your Next Live Christian Concert or Worship Experience | Gamo Live" />
-    <meta property="og:description" content="Discover verified Christian concerts, worship nights, and live gatherings across Phoenix and major U.S. cities on Gamo Live." />
-    <meta property="og:url" content={canonicalHomeUrl} />
-    <meta property="og:type" content="website" />
-  </Fragment>
-
   <!-- SECTION 1: HERO BANNER -->
   <section class="relative w-full overflow-hidden bg-[#16110E] text-white">
     <!-- Stage Photography Backdrop -->

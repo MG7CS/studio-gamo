@@ -24,7 +24,7 @@ export const GET: APIRoute = async (context) => {
       ? reqOrigin
       : 'https://live.gamostudio.org';
 
-  let publishedSlugs: Array<{ slug: string; lastMod: string }> = [];
+  let publishedSlugs: Array<{ slug: string; lastMod?: string }> = [];
 
   try {
     const runtimeEnv = await getRuntimeEnv(context);
@@ -39,17 +39,12 @@ export const GET: APIRoute = async (context) => {
           (evt.listingType !== 'external_discovery' || evt.editorialStatus === 'published')
       )
       .map((evt) => {
-        const verifiedAt = evt.lastVerifiedAt
-          ? new Date(evt.lastVerifiedAt)
-          : evt.createdAt
-            ? new Date(evt.createdAt)
-            : new Date('2026-10-15T00:00:00Z');
-        const isoDate = Number.isFinite(verifiedAt.getTime())
-          ? verifiedAt.toISOString().split('T')[0]
-          : '2026-10-15';
+        // Real dates only: last verification, else record creation. No date means no <lastmod>.
+        const source = evt.lastVerifiedAt ?? evt.createdAt;
+        const date = source ? new Date(source) : null;
         return {
           slug: evt.slug,
-          lastMod: isoDate,
+          lastMod: date && Number.isFinite(date.getTime()) ? date.toISOString().split('T')[0] : undefined,
         };
       });
   } catch {
@@ -73,13 +68,13 @@ export const GET: APIRoute = async (context) => {
 
   for (const item of [...staticPaths, ...metroPaths]) {
     urlsXml.push(
-      `  <url>\n    <loc>${escapeXml(`${siteBase}${item.path}`)}</loc>\n    <lastmod>2026-10-15</lastmod>\n    <changefreq>${item.changefreq}</changefreq>\n    <priority>${item.priority}</priority>\n  </url>`
+      `  <url>\n    <loc>${escapeXml(`${siteBase}${item.path}`)}</loc>\n    <changefreq>${item.changefreq}</changefreq>\n    <priority>${item.priority}</priority>\n  </url>`
     );
   }
 
   for (const evt of publishedSlugs) {
     urlsXml.push(
-      `  <url>\n    <loc>${escapeXml(`${siteBase}/events/${evt.slug}`)}</loc>\n    <lastmod>${escapeXml(evt.lastMod)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`
+      `  <url>\n    <loc>${escapeXml(`${siteBase}/events/${evt.slug}`)}</loc>\n    ${evt.lastMod ? `<lastmod>${escapeXml(evt.lastMod)}</lastmod>\n    ` : ''}<changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`
     );
   }
 

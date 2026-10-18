@@ -695,3 +695,28 @@
   - `node --test packages/domain/src/services/live-external-discovery.test.ts`: **Pass (5/5 tests, including past-event closure and chronological sorting)**
   - `node scripts/verify-live-discovery-launch.mjs`: **Pass (full 1440px desktop & 390px mobile Playwright verification; updated `artifacts/screenshots/live-launch-2026-10-15/gamo-live-marketing-desktop-1440.png`)**
 
+## 2026-10-16 — Monorepo Environment Architecture & Per-Application Clerk Credential Isolation
+
+- **Environment Architecture Audit & Loader (`packages/config/env-loader.ts`, `packages/config/env-loader.test.ts`, `apps/*/astro.config.mjs`)**:
+  - Audited `make dev`, `@astrojs/cloudflare` (`wrangler-config.js`), and `@cloudflare/vite-plugin` (`unstable_getMiniflareWorkerOptions` / `unstable_getVarsForDev`). Confirmed that Wrangler's default dev loader resolves `.dev.vars` or `.env` only within each application's own directory (`apps/<app>`) and skips `.env` whenever `.dev.vars` exists.
+  - Implemented `createGamoCloudflareConfig(app, import.meta.url)` and `resolveAppLocalEnv` in `packages/config/env-loader.ts` and wired it across all six `astro.config.mjs` files (`web`, `live`, `academy`, `worship`, `production`, `admin`).
+  - During local development (`make dev`, `make dev-all`, `make dev-<app>`), each app inherits shared non-product-specific settings (`ENVIRONMENT`, `SESSION_SECRET`, `ALLOW_DEMO_SESSION`, `ALLOW_TEST_CHALLENGE_OUTBOX`, `REQUIRE_ADMIN_AUTH`, `RESEND_API_KEY`) from root `studio-gamo/.env` while loading its own isolated Clerk credentials from `apps/<app>/.env` and `apps/<app>/.dev.vars`.
+  - Both standard Clerk SDK variable names (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_APP_ID`, `CLERK_AUTHORIZED_PARTIES`) and product-suffixed variable names (`*_LIVE`, `*_WEB`, `*_ACADEMY`, `*_WORSHIP`, `*_PRODUCTION`) are supported inside each application's directory without duplicating secrets or permitting cross-product leakage.
+  - Production and preview builds (`make deploy-*`, `make preview-*`) never inject local `.env` or `.dev.vars` secrets into generated `dist/server/wrangler.json` bundles.
+- **Templates, `.gitignore` & Documentation (`.gitignore`, `apps/*/.gitignore`, `.env.example`, `apps/*/.env.example`, `apps/*/.dev.vars.example`, `docs/CLERK_ARCHITECTURE_AND_MIGRATION.md`)**:
+  - Updated root and per-application `.gitignore` rules so all `.env`, `.env.*`, `.dev.vars`, and `.dev.vars.*` files are ignored by Git while `!.env.example` and `!.dev.vars.example` remain tracked.
+  - Added safe `.env.example` templates at the repository root and inside `apps/web`, `apps/live`, `apps/academy`, `apps/worship`, `apps/production`, and `apps/admin`, and updated `.dev.vars.example` files and `docs/CLERK_ARCHITECTURE_AND_MIGRATION.md`.
+
+
+
+## 2026-10-18 — Crawler access and SEO basics (not committed, not deployed)
+- Per-app `robots.txt` / `sitemap.xml` via `packages/ui/src/lib/crawlers.ts`; `llms.txt` on apps/web.
+- `BaseLayout`: canonical (app origin, no query; omitted on private/account pages), Open Graph/Twitter tags, optional JSON-LD; `og:image` omitted until a 1200x630 image is supplied.
+- Unique 120–155 char descriptions on every marketing page; Organization JSON-LD on web home; Event JSON-LD on Live `/events/[id]` (offers only with a real price).
+- Cache: marketing pages still `private, no-store` because `SiteHeader` renders signed-in state and `/contact` + `/partners/interest` render the user's name/email. `pageCacheControl()` in `packages/auth/page-access.ts` holds the switch (`MARKETING_PAGES_CACHEABLE`); `packages/auth/page-cache.test.ts` guards private pages.
+- Known pre-existing test failure: live-external-discovery "past events sort" (date-dependent; the seeded 2026-10-17 event is now past).
+
+## 2026-10-18 — Status claims, share images, test fix (not committed, not deployed)
+- Removed nonprofit / tax-exempt / tax-deductible wording from public pages, workspaces and Gamo Live brand disclosure; approved wording is "Christian, mission-driven Public Benefit Corporation" (AGENTS.md updated). llms.txt and Organization JSON-LD use the same wording.
+- `scripts/generate-share-images.mjs` writes og-image.png (1200x630) and logo-512.png to each public app from the vector wordmark; `og:image`/`twitter:image` default in `BaseLayout`.
+- `live-external-discovery.test.ts` ordering test now builds its own upcoming and past fixtures relative to now.

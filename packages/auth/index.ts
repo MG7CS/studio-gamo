@@ -27,6 +27,11 @@ import {
   representationAuthorizations,
   type GamoDatabase,
 } from '@gamo/db';
+import {
+  extractClerkJwtFromRequest,
+  verifyClerkProductToken,
+  resolveOrProvisionClerkProductSession,
+} from './clerk.ts';
 
 export type ProductKey = 'web' | 'worship' | 'academy' | 'live' | 'production';
 
@@ -64,7 +69,18 @@ export interface SessionData {
   sessionProduct?: string | null;
   sessionId: string;
   expiresAt: Date;
+  clerkUserId?: string;
+  clerkAppId?: string;
+  clerkIssuer?: string;
 }
+
+export interface AuthResolutionOptions {
+  secret?: string;
+  product?: ProductKey;
+  env?: Record<string, any>;
+}
+
+export type SecretOrAuthOptions = string | AuthResolutionOptions | undefined;
 
 export interface SessionOptions {
   ttlSeconds?: number; // Default 30 days
@@ -463,17 +479,76 @@ export function hasOrgRole(
   return allowedRoles.includes(membership.role);
 }
 
+function inferProductFromRequest(request: Request, explicitProduct?: ProductKey): ProductKey | undefined {
+  if (explicitProduct) return explicitProduct;
+  try {
+    const url = new URL(request.url);
+    const host = url.hostname.toLowerCase();
+    const port = url.port;
+    if (port === '4321' || host === 'gamostudio.org' || host === 'www.gamostudio.org' || host.startsWith('gamo-web')) return 'web';
+    if (port === '4322' || host.startsWith('worship.') || host.startsWith('gamo-worship')) return 'worship';
+    if (port === '4323' || host.startsWith('academy.') || host.startsWith('gamo-academy')) return 'academy';
+    if (port === '4324' || host.startsWith('live.') || host.startsWith('gamo-live')) return 'live';
+    if (port === '4325' || host.startsWith('production.') || host.startsWith('gamo-production')) return 'production';
+  } catch {
+    // ignore URL parse error
+  }
+  return undefined;
+}
+
+function normalizeAuthOptions(secretOrOptions?: SecretOrAuthOptions): AuthResolutionOptions {
+  if (!secretOrOptions) return {};
+  if (typeof secretOrOptions === 'string') {
+    return { secret: secretOrOptions };
+  }
+  return secretOrOptions;
+}
+
 /**
  * Resolves session auth from an Astro or Worker Request.
+ * Supports:
+ * 1. Product-isolated Clerk JWT sessions (`__session` JWT cookie or `Authorization: Bearer <jwt>`)
+ *    verified against the specific product's Clerk application (`CLERK_SECRET_KEY_<PRODUCT>` / `CLERK_JWT_KEY_<PRODUCT>`,
+ *    issuer `iss`, and `authorizedParties`).
+ * 2. D1 product-scoped HMAC session cookies (`__session` 2-part signed ID) for local simulation, rollback safety,
+ *    and internal Admin Gateway sessions.
  */
 export async function resolveAuth(
   request: Request,
   db: GamoDatabase,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData | null> {
+  const opts = normalizeAuthOptions(secretOrOptions);
+  const signingSecret = opts.secret ?? opts.env?.SESSION_SECRET;
+  const product = inferProductFromRequest(request, opts.product ?? (opts.env?.CLERK_PRODUCT as ProductKey | undefined));
+
+  // 1. Check for a 3-segment Clerk JWT token first when targeting a public product
+  const clerkJwt = extractClerkJwtFromRequest(request);
+  if (clerkJwt && product) {
+    const verifiedClerk = await verifyClerkProductToken(clerkJwt, product, opts.env);
+    if (!verifiedClerk) {
+      return null;
+    }
+    return resolveOrProvisionClerkProductSession(db, verifiedClerk);
+  }
+
+  // 2. Fallback to D1 signed session cookie (local simulation, migration rollback, or Admin Gateway)
   const cookie = extractSessionCookie(request);
   if (!cookie) return null;
-  return validateSession(db, cookie, secret);
+  const d1Session = await validateSession(db, cookie, signingSecret);
+  if (!d1Session) return null;
+
+  // Enforce strict product session boundary when product is known
+  if (product && d1Session.sessionProduct && d1Session.sessionProduct !== product && !d1Session.roles.includes('superadmin')) {
+    return null;
+  }
+
+  // Ensure email display strips any internal `#<product>:<clerkId>` suffix
+  if (d1Session.user.email.includes('#')) {
+    d1Session.user.email = d1Session.user.email.split('#')[0] || d1Session.user.email;
+  }
+
+  return d1Session;
 }
 
 /**
@@ -482,10 +557,10 @@ export async function resolveAuth(
 export async function requireAuth(
   request: Request,
   db: GamoDatabase,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
   requireSameOrigin(request);
-  const auth = await resolveAuth(request, db, secret);
+  const auth = await resolveAuth(request, db, secretOrOptions);
   if (!auth) {
     throw new AuthError('UNAUTHENTICATED', 'Authentication required for this operation.', 401);
   }
@@ -498,9 +573,9 @@ export async function requireAuth(
 export async function requireVerifiedAuth(
   request: Request,
   db: GamoDatabase,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
-  const auth = await requireAuth(request, db, secret);
+  const auth = await requireAuth(request, db, secretOrOptions);
   if (!auth.user.verifiedEmailAt) {
     throw new AuthError('FORBIDDEN', 'Verified email address required for this operation.', 403);
   }
@@ -514,9 +589,10 @@ export async function requireProductAuth(
   request: Request,
   db: GamoDatabase,
   product: ProductKey,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
-  const auth = await requireVerifiedAuth(request, db, secret);
+  const baseOpts = normalizeAuthOptions(secretOrOptions);
+  const auth = await requireVerifiedAuth(request, db, { ...baseOpts, product });
   if (!hasProductAccess(auth, product)) {
     const label = PRODUCT_DISPLAY_NAMES[product] || product;
     throw new AuthError(
@@ -534,9 +610,9 @@ export async function requireProductAuth(
 export async function requireStaff(
   request: Request,
   db: GamoDatabase,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
-  const auth = await requireAuth(request, db, secret);
+  const auth = await requireAuth(request, db, secretOrOptions);
   if (!isStaffOrAdmin(auth)) {
     throw new AuthError('FORBIDDEN', 'Administrative or staff permissions required.', 403);
   }
@@ -549,9 +625,9 @@ export async function requireStaff(
 export async function requireSuperadmin(
   request: Request,
   db: GamoDatabase,
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
-  const auth = await requireStaff(request, db, secret);
+  const auth = await requireStaff(request, db, secretOrOptions);
   if (!auth.roles.includes('superadmin')) {
     throw new AuthError('FORBIDDEN', 'Superadmin permissions required.', 403);
   }
@@ -615,9 +691,9 @@ export async function requireOrgAccess(
   db: GamoDatabase,
   organizationId: string,
   allowedRoles: string[] = ['owner', 'admin'],
-  secret?: string
+  secretOrOptions?: SecretOrAuthOptions
 ): Promise<SessionData> {
-  const auth = await requireAuth(request, db, secret);
+  const auth = await requireAuth(request, db, secretOrOptions);
   if (!hasOrgRole(auth, organizationId, allowedRoles)) {
     throw new AuthError(
       'ORGANIZATION_FORBIDDEN',
@@ -1234,3 +1310,5 @@ export async function hasRepresentationAuthority(
 
   return { authorized: false, actorKind: null };
 }
+
+export * from './clerk.ts';

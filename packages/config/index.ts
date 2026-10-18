@@ -23,3 +23,6 @@ export const LOCAL_PORTS = {
 } as const;
 
 export type AppName = keyof typeof SUBDOMAINS;
+
+export * from './env-loader.ts';
+
