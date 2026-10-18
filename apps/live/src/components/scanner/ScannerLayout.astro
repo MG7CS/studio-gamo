@@ -1,0 +1,39 @@
+---
+/**
+ * Full-screen, one-handed frame for the door-scanner pages: no marketing chrome, dark surface for
+ * bright result colours, the scanner web manifest (PWA) and no referrer (scanner links carry a token).
+ */
+import Layout from '../../layouts/Layout.astro';
+
+interface Props {
+  title: string;
+  /** Small line above the heading (event title). */
+  eyebrow?: string;
+  /** The page's single <h1>. */
+  heading: string;
+  gate?: string;
+}
+const { title, eyebrow, heading, gate } = Astro.props;
+---
+
+<Layout title={title} chrome={false} noindex bodyClass="bg-night text-cream">
+  <Fragment slot="head">
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#0f0f12" />
+    <link rel="manifest" href="/scan/manifest.webmanifest" />
+  </Fragment>
+  <div class="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 pt-4 pb-8">
+    <header class="flex items-start justify-between gap-3 border-b border-white/15 pb-3">
+      <div class="min-w-0">
+        {eyebrow && (
+          <p class="truncate text-xs font-bold tracking-wider text-terracotta-soft uppercase">{eyebrow}</p>
+        )}
+        <h1 class="text-xl leading-tight font-black tracking-tight uppercase">{heading}</h1>
+      </div>
+      {gate && <p class="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">{gate}</p>}
+    </header>
+    <div class="flex flex-1 flex-col gap-4 pt-4">
+      <slot />
+    </div>
+  </div>
+</Layout>

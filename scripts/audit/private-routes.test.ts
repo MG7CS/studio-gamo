@@ -71,6 +71,13 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/venues',
     '/artists',
     '/artists/[slug]',
+    // Door scanner (Agent C): gated by the scanner device cookie or an organizer session with
+    // scan_tickets inside the page; anyone else sees "open the scanner link" (no account needed).
+    '/scan',
+    '/scan/[event]',
+    '/scan/[event]/unlock',
+    '/scan/[event]/lookup',
+    '/scan/[event]/door',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
