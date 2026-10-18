@@ -17,10 +17,10 @@
  *   so `astro dev` and local verification immediately serve the curated catalog.
  */
 
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createDb } from '../../packages/db/index.ts';
-import { createInMemoryD1 } from '../../packages/db/testing.ts';
+import { asD1, createInMemoryD1, createSqliteD1, type SqliteD1 } from '../../packages/db/testing.ts';
 import { LiveService, type SeedCatalogDocument } from '../../packages/domain/index.ts';
 
 interface CliArgs {
@@ -122,7 +122,7 @@ function parseCliArgs(argv: string[]): CliArgs {
  * Applies all tracked D1 migrations idempotently to a D1 database instance,
  * tolerating already-applied tables/columns/triggers/indexes on persistent local state.
  */
-async function ensureMigrationsApplied(d1: any, migrationsDir: string): Promise<void> {
+async function ensureMigrationsApplied(d1: Pick<SqliteD1, 'exec'>, migrationsDir: string): Promise<void> {
   const files = readdirSync(migrationsDir)
     .filter((f) => f.endsWith('.sql'))
     .sort();
@@ -153,80 +153,11 @@ async function ensureMigrationsApplied(d1: any, migrationsDir: string): Promise<
   }
 }
 
-import { mkdirSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-
-function createSqliteBackedD1(sqlitePath: string): any {
-  const sqlite = new DatabaseSync(sqlitePath);
-  sqlite.exec('PRAGMA foreign_keys=ON');
-
-  const createStatement = (query: string) => {
-    let boundParams: any[] = [];
-    const stmtObj = {
-      bind(...params: any[]) {
-        boundParams = params;
-        return stmtObj;
-      },
-      async all() {
-        const stmt = sqlite.prepare(query);
-        const rows = stmt.all(...boundParams);
-        return { results: rows, success: true };
-      },
-      async run() {
-        const stmt = sqlite.prepare(query);
-        const info = stmt.run(...boundParams);
-        return {
-          success: true,
-          meta: {
-            changes: info.changes,
-            last_row_id: Number(info.lastInsertRowid),
-          },
-        };
-      },
-      async first(col?: string) {
-        const stmt = sqlite.prepare(query);
-        const row = stmt.get(...boundParams) as any;
-        if (!row) return null;
-        return col ? row[col] : row;
-      },
-      async raw() {
-        const stmt = sqlite.prepare(query);
-        const rows = stmt.all(...boundParams);
-        return rows.map((r) => Object.values(r as any));
-      },
-    };
-    return stmtObj;
-  };
-
-  return {
-    sqlite,
-    prepare(query: string) {
-      return createStatement(query);
-    },
-    async batch(statements: any[]) {
-      const results = [];
-      sqlite.exec('BEGIN');
-      try {
-        for (const s of statements) results.push(await s.all());
-        sqlite.exec('COMMIT');
-        return results;
-      } catch (error) {
-        sqlite.exec('ROLLBACK');
-        throw error;
-      }
-    },
-    async exec(query: string) {
-      sqlite.exec(query);
-      return { count: 0, duration: 0 };
-    },
-  };
-}
-
 async function openTargetD1(
   env: 'local' | 'staging' | 'production',
   dryRun: boolean,
 ): Promise<{
-  d1: any;
+  d1: SqliteD1;
   dispose: () => Promise<void>;
   storageDescription: string;
 }> {
@@ -261,7 +192,7 @@ async function openTargetD1(
     existingSqliteFiles[0] ?? 'a36f84ea60804f30bb0c7f7cad9f5336a6cca0165abdab8b9241d93dbf0b6006.sqlite';
   const targetSqlitePath = resolve(d1ObjectDir, targetSqliteFile);
 
-  const d1 = createSqliteBackedD1(targetSqlitePath);
+  const d1 = createSqliteD1(targetSqlitePath);
   await ensureMigrationsApplied(d1, migrationsDir);
 
   return {
@@ -291,7 +222,7 @@ async function main() {
   const { d1, dispose, storageDescription } = await openTargetD1(args.env, args.dryRun);
 
   try {
-    const db = createDb(d1);
+    const db = createDb(asD1(d1));
     const liveService = new LiveService(db);
 
     console.log(

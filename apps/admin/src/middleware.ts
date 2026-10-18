@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 import { defineMiddleware } from 'astro/middleware';
 import { getDb } from '@gamo/db';
 import {
@@ -20,12 +21,8 @@ import {
   verifyAdminGateCookie,
 } from './lib/admin-password-auth';
 
-function resolveSigningSecret(runtimeEnv: Record<string, any>): string | undefined {
-  return (
-    runtimeEnv.SESSION_SECRET ||
-    import.meta.env?.SESSION_SECRET ||
-    (globalThis as Record<string, any>).process?.env?.SESSION_SECRET
-  );
+function resolveSigningSecret(runtimeEnv: GamoEnv): string | undefined {
+  return runtimeEnv.SESSION_SECRET;
 }
 
 function resolveCookieDomain(url: URL, isProd: boolean): string | undefined {
@@ -283,10 +280,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
       headers.append('Set-Cookie', gateCookie);
       headers.set('Location', authResult.mustChangePassword ? '/security?welcome=1' : '/');
       return new Response(null, { status: 303, headers });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error('[admin] sign-in failed:', err instanceof Error ? err.name : 'unknown error');
       return new Response(
         renderAdminGatewaySignInHtml({
-          error: err?.message || 'Unable to complete sign-in request.',
+          error: 'Unable to complete sign-in request.',
         }),
         { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
       );
@@ -343,8 +341,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const result = await verifyCloudflareAccessJwt(cfJwt, expectedAud, teamName);
     if (result.valid && result.claims) {
       // Cryptographically verified: attach staff identity
-      (context.locals as Record<string, any>).staffEmail = result.claims.email;
-      (context.locals as Record<string, any>).staffSubject = result.claims.sub;
+      context.locals.staffEmail = result.claims.email;
+      context.locals.staffSubject = result.claims.sub;
       return next();
     } else {
       console.error(`[Cloudflare Access Rejected] ${result.error}`);
@@ -365,8 +363,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
           signingSecret,
         ))
       ) {
-        (context.locals as Record<string, any>).staffEmail = sessionAuth.user.email;
-        (context.locals as Record<string, any>).adminAuthSession = sessionAuth;
+        context.locals.staffEmail = sessionAuth.user.email;
+        context.locals.adminAuthSession = sessionAuth;
 
         // Handle authenticated password change submission
         if (url.pathname === '/__admin_auth/password' && context.request.method === 'POST') {

@@ -39,7 +39,7 @@ const {
 } = Astro.props;
 
 // Private and account pages (flagged by the page middleware) get no canonical or social tags.
-const locals = Astro.locals as Record<string, any>;
+const locals = Astro.locals;
 const app = locals.product as SiteKey | undefined;
 const indexable = Boolean(app) && !noindex && !locals.noindexPage;
 const origin = app ? siteOrigin(app) : '';

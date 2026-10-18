@@ -88,7 +88,7 @@ export function createResendClient(config?: ResendConfig) {
           id: data.id,
           mock: false,
         };
-      } catch (err: any) {
+      } catch {
         console.error('[Resend Network Error]');
         return {
           success: false,

@@ -1890,12 +1890,14 @@ export class LiveService {
   async fulfillWebhookFinancialEvent(stripeEvent: {
     id: string;
     type: string;
-    data?: { object?: Record<string, any> };
+    data?: { object?: unknown };
   }): Promise<
     | { gateBlocked: true }
     | { gateBlocked: false; orderId: string; ticketsIssued: number; deduplicated: boolean }
   > {
-    const obj = stripeEvent.data?.object ?? {};
+    const raw = stripeEvent.data?.object;
+    const obj: { id?: unknown; payment_intent?: unknown; metadata?: { orderId?: unknown } | null } =
+      raw && typeof raw === 'object' ? raw : {};
     const sessionId = typeof obj.id === 'string' ? obj.id : undefined;
     const metaOrderId = typeof obj.metadata?.orderId === 'string' ? obj.metadata.orderId : undefined;
 

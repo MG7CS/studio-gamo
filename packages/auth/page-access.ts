@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 import { hasProductAccess, type SessionData } from './index.ts';
 
 export type PublicApp = 'web' | 'worship' | 'academy' | 'live' | 'production';
@@ -64,7 +65,7 @@ export function canAccessPage(app: PublicApp, path: string, auth: SessionData): 
   // Live pages perform resource-scoped ownership checks; a Gamo Live account may start onboarding without a privileged role.
   return true;
 }
-export function isIsolatedDemo(request: Request, env: Record<string, unknown>): boolean {
+export function isIsolatedDemo(request: Request, env: GamoEnv): boolean {
   return (
     env.ENVIRONMENT === 'local' &&
     env.ALLOW_PUBLIC_DEMO_WORKSPACES === 'true' &&

@@ -3,10 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "index.ts",
   "dependencies": {
     "@clerk/backend": "^3.23.2",
     "@gamo/db": "workspace:*",
-    "drizzle-orm": "^0.45.4"
+    "drizzle-orm": "^0.45.4",
+    "@gamo/config": "workspace:*"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./page-access": "./page-access.ts",
+    "./locals": "./locals.ts",
+    "./app-locals": "./app-locals.d.ts"
   }
 }

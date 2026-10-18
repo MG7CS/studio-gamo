@@ -14,10 +14,9 @@ interface Props {
 }
 const { workspace, slug } = Astro.props;
 const screen = findScreen(workspace, slug);
-const viewer = await resolveWorkspaceViewer(Astro as any);
-const isolatedDemo = (Astro.locals as Record<string, any>).isolatedDemo === true;
-const auth =
-  (Astro.locals as Record<string, any>).auth ?? (Astro.locals as Record<string, any>).adminAuthSession;
+const viewer = await resolveWorkspaceViewer(Astro);
+const isolatedDemo = Astro.locals.isolatedDemo === true;
+const auth = Astro.locals.auth ?? Astro.locals.adminAuthSession;
 if (!isolatedDemo && !auth) return Astro.redirect('/account/signin', 303);
 if (!screen) Astro.response.status = 404;
 ---

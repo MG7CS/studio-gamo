@@ -2,8 +2,7 @@ import { DEMO_PERSONA, initialsFromName, type ViewerPersona } from './dashboard'
 
 /** Identity is supplied only by the server's validated D1 session middleware. */
 export async function resolveWorkspaceViewer(
-  requestOrContext: Request | { request?: Request; locals?: Record<string, any> },
-  _runtimeEnv: Record<string, any> = {},
+  requestOrContext: Request | { request?: Request; locals?: App.Locals },
 ): Promise<ViewerPersona> {
   const locals = 'locals' in requestOrContext ? requestOrContext.locals : undefined;
   const auth = locals?.auth ?? locals?.adminAuthSession;

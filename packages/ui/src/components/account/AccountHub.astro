@@ -5,7 +5,7 @@ interface Props {
   workspaceHref?: string;
 }
 const { program = 'Gamo Studios', workspaceHref } = Astro.props;
-const auth = (Astro.locals as Record<string, any>).auth;
+const auth = Astro.locals.auth;
 if (!auth) return Astro.redirect('/account/signin', 303);
 const memberships = auth.memberships ?? [];
 const isLive = program === 'Gamo Live';
@@ -90,7 +90,7 @@ const isProduction = program === 'Gamo Production';
     </h2>
     {memberships.length ? (
       <ul class="mt-4 divide-y divide-sand">
-        {memberships.map((m: any) => (
+        {memberships.map((m) => (
           <li class="flex flex-wrap justify-between gap-2 py-3.5 text-sm">
             <span class="font-medium text-charcoal">{m.orgName}</span>
             <span class="text-ink-soft">

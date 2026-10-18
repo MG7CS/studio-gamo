@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -247,7 +248,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
   const liveIssuer = 'https://live-instance-01.clerk.accounts.dev';
   const academyIssuer = 'https://academy-instance-02.clerk.accounts.dev';
 
-  const testEnv: Record<string, unknown> = {
+  const testEnv: GamoEnv = {
     SESSION_SECRET: sessionSecret,
     CLERK_APP_ID_LIVE: GAMO_LIVE_CLERK_APP_ID,
     PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: buildTestPublishableKey('live-instance-01.clerk.accounts.dev'),

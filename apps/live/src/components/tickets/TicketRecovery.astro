@@ -47,6 +47,19 @@
   const form = document.querySelector<HTMLFormElement>('#ticket-recovery')!;
   const status = document.querySelector<HTMLElement>('#recovery-status')!;
   const results = document.querySelector<HTMLElement>('#recovery-results')!;
+  /** Fields this page reads from TicketLookupResponse records (the contract leaves them open). */
+  interface LookupRecord {
+    id?: string;
+    orderNumber?: string;
+    quantity?: number;
+    status?: string;
+    qrToken?: string;
+  }
+  interface LookupData {
+    orders: LookupRecord[];
+    registrations: LookupRecord[];
+    tickets: LookupRecord[];
+  }
   async function post(url: string, data: unknown) {
     const res = await fetch(url, {
       method: 'POST',
@@ -79,18 +92,22 @@
     results.replaceChildren();
     status.textContent = 'Verifying…';
     try {
-      const data = await post('/api/tickets/lookup', Object.fromEntries(new FormData(form)));
+      const data = (await post('/api/tickets/lookup', Object.fromEntries(new FormData(form)))) as LookupData;
       status.textContent = 'Email verified.';
-      const records = [
-        ...data.orders.map((r: any) => ({
+      const records: Array<{ title: string; detail: string; token?: string }> = [
+        ...data.orders.map((r) => ({
           title: `Order ${r.orderNumber}`,
           detail: `${r.quantity} admission(s) · ${r.status}`,
         })),
-        ...data.registrations.map((r: any) => ({
+        ...data.registrations.map((r) => ({
           title: `Registration ${r.id}`,
           detail: `${r.quantity} guest(s) · ${r.status}`,
         })),
-        ...data.tickets.map((r: any) => ({ title: `Admission ${r.id}`, detail: r.status, token: r.qrToken })),
+        ...data.tickets.map((r) => ({
+          title: `Admission ${r.id}`,
+          detail: r.status ?? '',
+          token: r.qrToken,
+        })),
       ];
       if (!records.length) {
         status.textContent = 'Email verified. No orders or registrations were found for this address.';

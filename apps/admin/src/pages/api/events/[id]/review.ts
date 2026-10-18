@@ -32,7 +32,7 @@ export const POST: APIRoute = async (context) => {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const auth = await requireStaff(context.request, db, runtimeEnv.SESSION_SECRET);
-    await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);
+    await verifyStaffBoundaryIdentity(db, auth, context.locals);
     const adminService = new AdminService(db);
 
     const body = await readContract(context.request, 'ReviewDecision');

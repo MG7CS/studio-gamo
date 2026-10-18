@@ -15,7 +15,7 @@ export const POST: APIRoute = async (context) => {
     const env = await getRuntimeEnv(context);
     const db = getDb(env.DB);
     const auth = await requireStaff(context.request, db, env.SESSION_SECRET);
-    await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);
+    await verifyStaffBoundaryIdentity(db, auth, context.locals);
     const input = participationReviewSchema.parse(
       await readContract(context.request, 'ParticipationReviewInput'),
     );

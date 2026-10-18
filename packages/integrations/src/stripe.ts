@@ -61,7 +61,7 @@ export interface CustomerPortalResult {
   mock?: boolean;
 }
 
-export interface StripeWebhookEvent<T = any> {
+export interface StripeWebhookEvent<T = unknown> {
   id: string;
   object: 'event';
   type: string;
@@ -206,8 +206,8 @@ export async function verifyStripeWebhookSignature(
 
     const event = JSON.parse(rawBody) as StripeWebhookEvent;
     return { valid: true, event };
-  } catch (err: any) {
-    return { valid: false, error: `Webhook signature calculation error: ${err?.message || err}` };
+  } catch {
+    return { valid: false, error: 'Webhook signature verification failed.' };
   }
 }
 

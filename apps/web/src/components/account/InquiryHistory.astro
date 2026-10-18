@@ -1,7 +1,7 @@
 ---
 import { getDb } from '@gamo/db';
 import { ParticipationService, getRuntimeEnv } from '@gamo/domain';
-const auth = (Astro.locals as Record<string, any>).auth;
+const auth = Astro.locals.auth;
 let inquiries: Awaited<ReturnType<ParticipationService['list']>> = [];
 let failed = false;
 if (auth) {

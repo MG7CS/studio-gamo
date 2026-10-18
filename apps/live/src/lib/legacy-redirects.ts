@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/src/api/page-middleware';
+import type { LegacyRedirect } from '@gamo/domain/page-middleware';
 
 /** Retired Gamo Live URLs: per-role dashboards (now /workspaces) and old ticket/organizer paths. */
 export const legacyRedirects: LegacyRedirect[] = [

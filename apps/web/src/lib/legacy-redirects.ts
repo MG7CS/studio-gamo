@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/src/api/page-middleware';
+import type { LegacyRedirect } from '@gamo/domain/page-middleware';
 import { safeReturnPath } from '@gamo/auth/page-access';
 
 /** Retired gamostudio.org URLs. */

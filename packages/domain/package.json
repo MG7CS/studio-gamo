@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "index.ts",
   "dependencies": {
     "@gamo/auth": "workspace:*",
     "@gamo/db": "workspace:*",
     "@studio-gamo/integrations": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "zod": "^3.24.2",
-    "@gamo/api-contracts": "workspace:*"
+    "@gamo/api-contracts": "workspace:*",
+    "@gamo/config": "workspace:*"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./page-middleware": "./src/api/page-middleware.ts"
   }
 }

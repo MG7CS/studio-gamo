@@ -62,7 +62,10 @@ test('missing delivery configuration and signing secret fail honestly before cre
       );
       assert.equal(result.status, 503);
     }
-    assert.equal(f.d1.sqlite.prepare('SELECT COUNT(*) AS count FROM auth_challenges').get()?.count, 0);
+    assert.equal(
+      (f.d1.sqlite.prepare('SELECT COUNT(*) AS count FROM auth_challenges').get() as any)?.count,
+      0,
+    );
   } finally {
     f.d1.sqlite.close();
   }
@@ -99,7 +102,7 @@ test('fresh identity verifies once, persists across logout and repeat sign-in, a
     const again = await service.issueEmailChallenge(email);
     const signed = await verifyPOST(f.context('/api/auth/verify', { email, code: again.code }));
     assert.equal(((await signed.json()) as any).data.user.id, auth.data.user.id);
-    assert.equal(f.d1.sqlite.prepare('SELECT COUNT(*) AS count FROM users').get()?.count, 1);
+    assert.equal((f.d1.sqlite.prepare('SELECT COUNT(*) AS count FROM users').get() as any)?.count, 1);
   } finally {
     f.d1.sqlite.close();
   }

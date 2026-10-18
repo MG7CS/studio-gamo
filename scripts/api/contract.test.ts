@@ -485,7 +485,7 @@ test('sandbox completion never applies unapproved allocations or estimated fees'
   );
   const rows = d1.sqlite
     .prepare('SELECT category,amount_cents FROM ledger_entries WHERE source_id=?')
-    .all(eventId);
+    .all(eventId) as any;
   assert.deepEqual(
     rows.map((row: any) => ({ ...row })),
     [],

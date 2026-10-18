@@ -116,7 +116,24 @@ export interface R2StorageConfig {
   publicCdnBaseUrl?: string;
 }
 
-const FALLBACK_SIGNING_SECRET = 'gamo_storage_ticket_signing_secret_min_32_characters_123';
+/** The subset of Cloudflare's R2Bucket binding this client uses. */
+export interface R2BucketLike {
+  get(
+    key: string,
+  ): Promise<{ arrayBuffer(): Promise<ArrayBuffer>; customMetadata?: Record<string, string> } | null>;
+  put(
+    key: string,
+    value: string | ArrayBuffer | Uint8Array | ReadableStream,
+    options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> },
+  ): Promise<unknown>;
+  delete(key: string): Promise<void>;
+}
+
+/** In-memory mode signs tickets with a random per-instance key; nothing outside this client can forge or reuse them. */
+function randomSigningSecret(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 /**
  * Sanitizes a filename to prevent directory traversal or malicious characters.
@@ -184,8 +201,14 @@ async function verifyTicketPayload(signedTicket: string, secret: string): Promis
  * Storage client abstraction supporting real Cloudflare R2 bucket bindings
  * and safe in-memory mocks for testing/local preview.
  */
-export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageConfig) {
-  const secret = config?.signingSecret || FALLBACK_SIGNING_SECRET;
+export function createR2StorageClient(r2BucketBinding?: R2BucketLike, config?: R2StorageConfig) {
+  if (config?.signingSecret !== undefined && config.signingSecret.length < 32) {
+    throw new Error('Storage signing secret must be at least 32 characters.');
+  }
+  if (r2BucketBinding && !config?.signingSecret) {
+    throw new Error('Storage signing secret is required when an R2 bucket is bound.');
+  }
+  const secret = config?.signingSecret || randomSigningSecret();
   const publicBaseUrl = config?.publicCdnBaseUrl || 'https://assets.gamostudio.org';
 
   // In-memory object store for tests and mock environments
@@ -408,7 +431,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         isAuditionReviewer?: boolean;
       },
     ): Promise<{ data: Uint8Array; metadata: Record<string, string> } | null> {
-      let record: { data: any; metadata: Record<string, string> } | null;
+      let record: { data: Uint8Array; metadata: Record<string, string> } | null;
 
       if (r2BucketBinding && typeof r2BucketBinding.get === 'function') {
         const r2Obj = await r2BucketBinding.get(key);

@@ -21,13 +21,10 @@ export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
-    const signingSecret =
-      runtimeEnv.SESSION_SECRET ||
-      import.meta.env?.SESSION_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.SESSION_SECRET;
+    const signingSecret = runtimeEnv.SESSION_SECRET;
 
     const auth = await requireSuperadmin(context.request, db, signingSecret);
-    await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);
+    await verifyStaffBoundaryIdentity(db, auth, context.locals);
 
     const body = await readContract(context.request, 'ProvisionStaffInput');
     const validated = provisionStaffSchema.parse(body);
