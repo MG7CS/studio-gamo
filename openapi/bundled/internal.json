@@ -541,6 +541,59 @@
         }
       }
     },
+    "/api/auth/clerk-session": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "exchangeClerkSession",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Exchange a fresh Clerk session token for a Gamo session cookie",
+        "description": "Only for a product with Clerk configured. Clerk session tokens last about a minute and are refreshed by Clerk's browser script, which ordinary pages do not load. After Clerk sign-in the browser sends the current token as a Bearer token; the token is verified against this product's own Clerk application (signature, issuer, authorized party), the product account is found or created, and a 7-day host-only HttpOnly __session cookie backed by a D1 session is issued. Tokens from another product's Clerk application are refused.",
+        "security": [],
+        "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
+        "x-status": "implemented",
+        "x-authorization": "Public (same-origin enforced; valid Clerk session token for this product required in the Authorization header).",
+        "x-idempotency": "Each call issues a new session and revokes the presented prior one.",
+        "x-source": "apps/web/src/pages/api/auth/clerk-session.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
     "/api/auth/me": {
       "servers": [
         {

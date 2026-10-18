@@ -4,11 +4,14 @@
 
 # OPTIONAL. Clerk sign-in for this product only. When unset, sign-in uses Gamo's own email
 # verification codes (D1 sessions). Use this product's own Clerk application — never Gamo Live's
-# keys (the app refuses to start auth with them). Unsuffixed names are mapped to *_PRODUCTION locally.
+# keys (the app refuses to start auth with them). Locally the un-suffixed names (CLERK_SECRET_KEY, …) also work; a deployed Worker reads only the *_PRODUCTION names.
+# Local development uses the Clerk DEVELOPMENT instance (pk_test_/sk_test_). Production keys are never kept here:
+# set them with scripts/set-clerk-secrets.sh --env production (docs/AUTH.md). CLERK_JWT_KEY is a PEM public key,
+# on one line with literal \n sequences or in quotes over several lines.
 CLERK_APP_ID_PRODUCTION=
 PUBLIC_CLERK_PUBLISHABLE_KEY_PRODUCTION=
 CLERK_SECRET_KEY_PRODUCTION=
-# OPTIONAL. Networkless JWT verification key (PEM) and issuer; derived from the publishable key when unset.
+# RECOMMENDED. Networkless JWT verification key (PEM) and issuer; the issuer is derived from the publishable key when unset.
 CLERK_JWT_KEY_PRODUCTION=
 CLERK_ISSUER_PRODUCTION=
 # OPTIONAL. Comma-separated allowed origins for Clerk tokens; defaults to this app's local/preview/production origins.

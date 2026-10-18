@@ -4,6 +4,9 @@
 
 # OPTIONAL. Clerk sign-in for Gamo Live only (Clerk application app_3KlWyOBL2xL2YzhJuvgk8QdrWIt).
 # When unset, sign-in uses Gamo's own email verification codes. Never reuse these keys in another product.
+# Local development uses the Clerk DEVELOPMENT instance (pk_test_/sk_test_). Production keys are never kept here:
+# set them with scripts/set-clerk-secrets.sh --env production (docs/AUTH.md). CLERK_JWT_KEY is a PEM public key,
+# on one line with literal \n sequences or in quotes over several lines.
 CLERK_APP_ID_LIVE=
 PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE=
 CLERK_SECRET_KEY_LIVE=

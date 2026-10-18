@@ -84,6 +84,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/clerk-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exchange a fresh Clerk session token for a Gamo session cookie
+         * @description Only for a product with Clerk configured. Clerk session tokens last about a minute and are refreshed by Clerk's browser script, which ordinary pages do not load. After Clerk sign-in the browser sends the current token as a Bearer token; the token is verified against this product's own Clerk application (signature, issuer, authorized party), the product account is found or created, and a 7-day host-only HttpOnly __session cookie backed by a D1 session is issued. Tokens from another product's Clerk application are refused.
+         */
+        post: operations["exchangeClerkSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/me": {
         parameters: {
             query?: never;
@@ -1299,6 +1319,30 @@ export interface operations {
             401: components["responses"]["LegacyError"];
             403: components["responses"]["LegacyError"];
             429: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    exchangeClerkSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
             503: components["responses"]["LegacyError"];
         };

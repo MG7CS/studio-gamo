@@ -47,6 +47,8 @@ paths:
     $ref: paths/auth-challenge.yaml
   /api/auth/verify:
     $ref: paths/auth-verify.yaml
+  /api/auth/clerk-session:
+    $ref: paths/auth-clerk-session.yaml
   /api/auth/me:
     $ref: paths/auth-me.yaml
   /api/organizations:

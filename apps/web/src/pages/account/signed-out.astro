@@ -1,10 +1,17 @@
 ---
 import '../../app.css';
 import AuthLayout from '@studio-gamo/ui/components/dashboard/AuthLayout.astro';
+
+const clerkConfig = Astro.locals.clerkConfig;
+const clerkPublishableKey = clerkConfig?.isConfigured ? (clerkConfig.publishableKey ?? '') : '';
 ---
 
 <AuthLayout title="Sign out" heading="Sign out of Gamo Studios" intro="End your session on this website.">
-  <button data-signout class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">
+  <button
+    data-signout
+    data-clerk-publishable-key={clerkPublishableKey || undefined}
+    class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white"
+  >
     Sign out
   </button>
   <p data-signout-status role="status" aria-live="polite" class="mt-5"></p>
@@ -13,12 +20,14 @@ import AuthLayout from '@studio-gamo/ui/components/dashboard/AuthLayout.astro';
   </a>
 </AuthLayout>
 <script>
+  import { signOutOfClerk } from '@studio-gamo/ui/lib/clerk-browser.ts';
   document.querySelector<HTMLButtonElement>('[data-signout]')?.addEventListener('click', async (event) => {
     const button = event.currentTarget as HTMLButtonElement;
     const status = document.querySelector<HTMLElement>('[data-signout-status]')!;
     button.disabled = true;
     status.textContent = 'Signing out…';
     try {
+      await signOutOfClerk(button.dataset.clerkPublishableKey).catch(() => undefined);
       const response = await fetch('/api/auth/session', { method: 'DELETE' });
       if (!response.ok) throw new Error();
       status.textContent = 'You are signed out of this website.';

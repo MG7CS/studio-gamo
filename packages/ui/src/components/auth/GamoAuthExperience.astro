@@ -18,8 +18,11 @@ interface Props {
   clerkAppId?: string;
 }
 
+// The browser may use Clerk only when the server can verify the resulting session (publishable key
+// plus secret or JWT key). A half-configured product keeps the emailed-code flow.
 const clerkLocals = Astro.locals.clerkConfig as
-  { publishableKey?: string | null; appId?: string | null } | undefined;
+  { isConfigured?: boolean; publishableKey?: string | null; clerkAppId?: string | null } | undefined;
+const clerkActive = clerkLocals?.isConfigured === true;
 
 const {
   mode = 'signin',
@@ -31,8 +34,8 @@ const {
   photos,
   googleAuthUrl,
   facebookAuthUrl,
-  clerkPublishableKey = clerkLocals?.publishableKey ?? undefined,
-  clerkAppId = clerkLocals?.appId ?? undefined,
+  clerkPublishableKey = clerkActive ? (clerkLocals?.publishableKey ?? undefined) : undefined,
+  clerkAppId = clerkActive ? (clerkLocals?.clerkAppId ?? undefined) : undefined,
 } = Astro.props;
 ---
 

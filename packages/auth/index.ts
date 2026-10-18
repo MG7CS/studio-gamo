@@ -20,6 +20,7 @@ import {
   organizations,
   organizationMembers,
   externalIdentities,
+  clerkIdentityLinks,
   adminCredentials,
   events,
   organizerProfiles,
@@ -379,9 +380,12 @@ export function extractSessionCookie(request: Request): string | null {
     const [name, ...val] = cookie.trim().split('=');
     if (name === DEFAULT_COOKIE_NAME) {
       try {
-        return decodeURIComponent(val.join('='));
+        const value = decodeURIComponent(val.join('='));
+        // Clerk's session JWT (three dot-separated parts) uses the same cookie name; ours is `id.signature`.
+        if (value.split('.').length === 3) continue;
+        return value;
       } catch {
-        return null;
+        continue;
       }
     }
   }
@@ -518,11 +522,20 @@ export async function resolveAuth(
   // 1. Check for a 3-segment Clerk JWT token first when targeting a public product
   const clerkJwt = extractClerkJwtFromRequest(request);
   if (clerkJwt && product) {
+    // Throws ClerkUnavailableError when Clerk cannot be reached (callers answer 503, not "signed out").
     const verifiedClerk = await verifyClerkProductToken(clerkJwt, product, opts.env);
-    if (!verifiedClerk) {
-      return null;
+    if (verifiedClerk) {
+      try {
+        return await resolveOrProvisionClerkProductSession(db, verifiedClerk);
+      } catch (error) {
+        if (error instanceof AuthError) throw error;
+        // First sign-in fires several requests at once; the loser of the insert race hits a unique
+        // index. By now the winner's rows exist, so one more pass resolves the same account.
+        return await resolveOrProvisionClerkProductSession(db, verifiedClerk);
+      }
     }
-    return resolveOrProvisionClerkProductSession(db, verifiedClerk);
+    // An unverifiable Clerk token (expired, another product's, tampered) never authenticates by itself.
+    // A valid Gamo emailed-code session, if the browser also sends one, still can.
   }
 
   // 2. Fallback to D1 signed session cookie (local simulation, migration rollback, or Admin Gateway)
@@ -539,6 +552,16 @@ export async function resolveAuth(
     !d1Session.roles.includes('superadmin')
   ) {
     return null;
+  }
+
+  // A session that began with a Clerk sign-in ends when that identity is suspended or revoked here.
+  if (product) {
+    const [link] = await db
+      .select({ status: clerkIdentityLinks.status })
+      .from(clerkIdentityLinks)
+      .where(and(eq(clerkIdentityLinks.userId, d1Session.user.id), eq(clerkIdentityLinks.product, product)))
+      .limit(1);
+    if (link && link.status !== 'active') return null;
   }
 
   // Ensure email display strips any internal `#<product>:<clerkId>` suffix

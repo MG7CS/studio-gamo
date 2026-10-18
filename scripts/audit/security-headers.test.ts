@@ -23,12 +23,15 @@ test('CSP forbids inline and third-party script, framing, plugins and foreign fo
   assert.ok(!buildContentSecurityPolicy({ https: false }).includes('upgrade-insecure-requests'));
 });
 
-test("the product's Clerk Frontend API is the only extra script origin, and only when configured", () => {
+test("Clerk adds its Frontend API and Cloudflare's bot-protection origin to script-src, and only when configured", () => {
   const csp = buildContentSecurityPolicy({
     https: true,
     clerkFrontendApi: 'https://clerk.example.com/v1/whatever',
   });
-  assert.equal(directive(csp, 'script-src'), "script-src 'self' https://clerk.example.com");
+  assert.equal(
+    directive(csp, 'script-src'),
+    "script-src 'self' https://challenges.cloudflare.com https://clerk.example.com",
+  );
   assert.match(directive(csp, 'connect-src')!, /https:\/\/clerk\.example\.com/);
   assert.match(directive(csp, 'frame-src')!, /challenges\.cloudflare\.com/);
   assert.equal(

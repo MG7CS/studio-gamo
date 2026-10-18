@@ -9,7 +9,7 @@ import type { GamoEnv } from '@gamo/config/env';
  */
 
 import { ZodError } from 'zod';
-import { AuthError } from '@gamo/auth';
+import { AuthError, ClerkUnavailableError } from '@gamo/auth';
 import { ContractValidationError } from '@gamo/api-contracts/runtime';
 
 export interface ApiResponse<T = unknown> {
@@ -99,6 +99,10 @@ export function handleApiError(err: unknown): Response {
 
   if (err instanceof AuthError) {
     return errorResponse(err.code, err.message, err.status);
+  }
+
+  if (err instanceof ClerkUnavailableError) {
+    return errorResponse('UNAVAILABLE', 'Sign-in is temporarily unavailable. Please try again shortly.', 503);
   }
 
   if (err instanceof Error) {

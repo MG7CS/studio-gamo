@@ -9,6 +9,7 @@
  */
 import type { AppName } from './apps.ts';
 import type { GamoEnv } from './env.ts';
+import { GAMO_LIVE_CLERK_APP_ID, clerkVariableNames, diagnoseClerkEnv } from './clerk-env.ts';
 
 export type EnvSeverity = 'fatal' | 'error' | 'warning';
 
@@ -71,6 +72,17 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
   if (!present(env.RESEND_API_KEY) || !present(env.EMAIL_FROM)) {
     add('warning', 'RESEND_API_KEY', 'email delivery is not configured (RESEND_API_KEY and EMAIL_FROM)');
   }
+  if (present(env.EMAIL_FROM)) {
+    const domain = /@([A-Za-z0-9.-]+)>?\s*$/.exec(env.EMAIL_FROM!.trim())?.[1]?.toLowerCase();
+    if (!domain || (domain !== 'gamostudio.org' && !domain.endsWith('.gamostudio.org'))) {
+      add(
+        'error',
+        'EMAIL_FROM',
+        'must be an address on the verified sending domain gamostudio.org; Resend rejects other senders',
+      );
+    }
+  }
+  addClerkProblems(app, env, add);
   if (app === 'live') {
     if (!present(env.STRIPE_SECRET_KEY))
       add('warning', 'STRIPE_SECRET_KEY', 'paid checkout is unavailable (503)');
@@ -78,6 +90,47 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       add('warning', 'STRIPE_WEBHOOK_SECRET', 'Stripe webhooks are rejected');
   }
   return problems;
+}
+
+/** Clerk is optional. These problems mean it is half set up (and therefore off) or set up with the wrong names. */
+function addClerkProblems(
+  app: Exclude<AppName, 'admin'>,
+  env: GamoEnv,
+  add: (severity: EnvSeverity, name: string, message: string) => void,
+): void {
+  const clerk = diagnoseClerkEnv(app, env as Record<string, unknown>);
+  const appIdName = clerkVariableNames(app).appId;
+  if (app !== 'live' && (env as Record<string, unknown>)[appIdName] === GAMO_LIVE_CLERK_APP_ID) {
+    add(
+      'error',
+      appIdName,
+      "is Gamo Live's Clerk application id; this product needs its own (sign-in pages answer 503 until fixed)",
+    );
+  }
+  if (clerk.state === 'partial') {
+    add(
+      'error',
+      clerk.missing[0] ?? 'CLERK',
+      `Clerk is partly configured and stays off (sign-in uses emailed codes). Missing: ${clerk.missing.join(', ')}`,
+    );
+  }
+  if (clerk.legacy.length > 0) {
+    add(
+      'error',
+      clerk.legacy[0],
+      `un-suffixed Clerk names are ignored when deployed; set the ${app.toUpperCase()}-suffixed names instead (${clerk.legacy.join(', ')}) — docs/AUTH.md`,
+    );
+  }
+  for (const name of clerk.developmentKeysInProduction) {
+    add('error', name, 'is a Clerk development key; production needs the production instance keys');
+  }
+  if (clerk.state === 'ready' && clerk.recommended.length > 0) {
+    add(
+      'warning',
+      clerk.recommended[0],
+      `Clerk is on; also set ${clerk.recommended.join(', ')} (offline token verification, exact CSP origin)`,
+    );
+  }
 }
 
 let reported = false;
