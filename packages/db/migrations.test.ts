@@ -245,7 +245,7 @@ describe('from scratch', () => {
   });
 
   test('every trigger is written on one line (Wrangler remote splitter rule)', () => {
-    for (const sql of readMigrations().slice(-2))
+    for (const sql of readMigrations().slice(readMigrations('0012').length))
       for (const stmt of sql.split('--> statement-breakpoint'))
         if (/CREATE TRIGGER/i.test(stmt)) {
           const body = stmt.split('\n').filter((l) => l.trim() && !l.trim().startsWith('--'));
@@ -255,7 +255,8 @@ describe('from scratch', () => {
 
   test('applying twice is harmless for IF NOT EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
     const d1 = await createMigratedD1();
-    await assert.rejects(() => applyMigrations(d1, readMigrations().slice(-1)), /duplicate column/);
+    const only0013 = readMigrations('0014').slice(readMigrations('0013').length);
+    await assert.rejects(() => applyMigrations(d1, only0013), /duplicate column/);
   });
 });
 
@@ -513,7 +514,7 @@ describe('upgrade from 0011 with existing rows', () => {
         VALUES ('hold_legacy', 'evt_free', 'tier_evt_free', 'guest@example.org', 1, 'idem_hold_legacy', 'held', ${T + 900}, ${T});
     `);
     assert.equal(get(d1, 'SELECT reserved_count AS r FROM ticket_tiers').r, 2);
-    await applyMigrations(d1, readMigrations().slice(-2));
+    await applyMigrations(d1, readMigrations().slice(readMigrations('0012').length));
     return d1;
   }
 

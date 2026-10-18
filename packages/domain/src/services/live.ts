@@ -920,6 +920,12 @@ export class LiveService {
       .where(eq(tickets.qrToken, input.qrToken.trim()))
       .limit(1);
 
+    // Trigger-managed tickets (0013+) are admitted only through the signed, versioned GL1 path:
+    // their qr_token is an unpublished handle, never a credential.
+    if (ticket?.orderItemId) {
+      throw new Error('NOT_FOUND: Ticket pass not found.');
+    }
+
     if (ticket) {
       if (ticket.eventId !== input.eventId) {
         await this.db.insert(ticketScans).values({

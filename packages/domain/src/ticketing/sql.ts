@@ -457,7 +457,7 @@ export interface NewTicketInput {
  */
 export function insertTicketStatement(t: NewTicketInput): SqlStatementSpec {
   return spec(
-    "INSERT INTO tickets (id, order_id, event_id, tier_id, registration_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at, order_item_id, section_id, seat_id, customer_profile_id, version, qr_salt, qr_key_id, seq, zone_code, gate_label, transfer_count, issued_at, updated_at, released_on_void) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, ?1, ?7, 'valid', ?8, ?9, ?10, ?11, ?12, 1, ?13, ?14, ?15, ?16, ?17, 0, ?8, ?8, 0) ON CONFLICT(order_item_id, seq) WHERE order_item_id IS NOT NULL DO NOTHING RETURNING id",
+    "INSERT INTO tickets (id, order_id, event_id, tier_id, registration_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at, order_item_id, section_id, seat_id, customer_profile_id, version, qr_salt, qr_key_id, seq, zone_code, gate_label, transfer_count, issued_at, updated_at, released_on_void) VALUES (?1, ?2, ?3, ?4, NULL, ?5, ?6, 'tkm_' || lower(hex(randomblob(16))), ?7, 'valid', ?8, ?9, ?10, ?11, ?12, 1, ?13, ?14, ?15, ?16, ?17, 0, ?8, ?8, 0) ON CONFLICT(order_item_id, seq) WHERE order_item_id IS NOT NULL DO NOTHING RETURNING id",
     [
       t.id,
       t.orderId,
