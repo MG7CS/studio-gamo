@@ -16,10 +16,14 @@
     "@clerk/astro": "^4.1.12",
     "@clerk/backend": "^3.23.2",
     "@clerk/clerk-js": "^6.39.0",
+    "@gamo/domain": "workspace:*",
     "@studio-gamo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.8",
     "tailwindcss": "^4.3.3",
     "wrangler": "^4.149.0"
+  },
+  "devDependencies": {
+    "@gamo/config": "workspace:*"
   }
 }

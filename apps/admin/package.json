@@ -26,5 +26,8 @@
     "astro": "^7.3.8",
     "tailwindcss": "^4.3.3",
     "wrangler": "^4.149.0"
+  },
+  "devDependencies": {
+    "@gamo/config": "workspace:*"
   }
 }

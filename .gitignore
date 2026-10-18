@@ -1,8 +1,33 @@
-node_modules
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build and framework output
+dist/
+.astro/
+.wrangler/
+*.tsbuildinfo
+
+# Test and tooling output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.eslintcache
+*.log
+
+# Generated visual evidence (screenshots are produced by scripts/*.mjs from a
+# running UI; keep them out of git — see docs/CLEANUP_LOG.md D-03)
+docs/screenshots/
+docs/audit-evidence/
+artifacts/
+
+# OS / editor
 .DS_Store
-dist
-.astro
-.wrangler
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
 
 # Environment & Cloudflare Worker local secrets (never commit real secrets)
 .env
@@ -14,5 +39,3 @@ dist
 
 # Local-only generated API references (internal must never be published).
 docs/api-reference/*.html
-.pnpm-store/
-

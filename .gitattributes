@@ -1,0 +1,21 @@
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Generated from openapi/ by scripts/api/generate.mjs — never edit by hand
+openapi/bundled/*.json linguist-generated=true -diff
+packages/api-contracts/src/public.d.ts linguist-generated=true
+packages/api-contracts/src/internal.d.ts linguist-generated=true
+packages/api-contracts/src/validators.js linguist-generated=true
+packages/db/migrations/meta/*.json linguist-generated=true
+pnpm-lock.yaml linguist-generated=true -diff

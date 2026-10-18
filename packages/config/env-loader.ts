@@ -27,7 +27,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { AppName } from './index.ts';
+import { LOCAL_HOST, LOCAL_INSPECTOR_PORTS, LOCAL_PORTS, type AppName } from './apps.ts';
 
 const ALL_PRODUCT_SUFFIXES = ['WEB', 'WORSHIP', 'ACADEMY', 'LIVE', 'PRODUCTION'] as const;
 
@@ -246,6 +246,8 @@ export function isLocalDevEnvironment(): boolean {
  * - Loads shared local settings from root `.env` and app-specific settings from `apps/<app>/.env` + `apps/<app>/.dev.vars`.
  * - Populates `process.env` for build/dev time (`import.meta.env`) and merges into Miniflare Worker `vars` during local dev
  *   so `cloudflare:workers` (`getRuntimeEnv`) receives both root shared config and per-app Clerk credentials.
+ * - Gives each app its own workerd inspector port and its own persisted local state
+ *   (`apps/<app>/.wrangler/state`: D1, KV, R2), so all six apps can run at once.
  */
 export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | URL) {
   const appDir = dirname(fileURLToPath(appConfigUrl));
@@ -261,7 +263,9 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   }
 
   return {
-    config(workerConfig: Record<string, any>) {
+    inspectorPort: LOCAL_INSPECTOR_PORTS[app],
+    persistState: { path: resolve(appDir, '.wrangler/state') },
+    config(workerConfig: { vars?: Record<string, unknown> }) {
       if (!isLocalDev) {
         return {};
       }
@@ -273,4 +277,9 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
       };
     },
   };
+}
+
+/** Astro `server` options for an app: fixed port, IPv4 loopback. */
+export function createGamoDevServer(app: AppName) {
+  return { host: LOCAL_HOST, port: LOCAL_PORTS[app] };
 }

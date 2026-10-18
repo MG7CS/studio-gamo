@@ -1,1 +1,11 @@
-{"name": "@gamo/config", "version": "0.0.0", "private": true, "type": "module", "main": "index.ts"}
+{
+  "name": "@gamo/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./apps": "./apps.ts",
+    "./env-loader": "./env-loader.ts"
+  }
+}
