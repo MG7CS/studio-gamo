@@ -37,6 +37,8 @@ for (const viewport of [
   test(`academy guest registration: reserve → receipt → manage → cancel (${viewport.name})`, async ({
     browser,
   }) => {
+    // A fresh address per run: the per-email rate limit persists in the local D1 between runs.
+    const email = `family+${viewport.name}-${Date.now().toString(36)}@example.org`;
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
     const errors: string[] = [];
@@ -56,8 +58,8 @@ for (const viewport of [
     // A student under 18 without guardian details: the server lists what is missing and keeps the input.
     await page.getByLabel("Student's first name").fill('Sample Ada');
     await page.getByLabel('Age group').selectOption('6_9');
-    await page.getByLabel('Email for the receipt').fill('family@example.org');
-    await page.getByLabel('Confirm email').fill('family@example.org');
+    await page.getByLabel('Email for the receipt').fill(email);
+    await page.getByLabel('Confirm email').fill(email);
     await page.locator('#terms-accept').check();
     await page.getByRole('button', { name: 'Reserve my spot' }).click();
     const summary = page.locator('[data-error-summary]');
@@ -101,7 +103,7 @@ for (const viewport of [
     expect(response?.status()).toBe(401);
     await expect(other.getByRole('link', { name: 'Email me a new link' })).toBeVisible();
     await other.getByRole('link', { name: 'Email me a new link' }).click();
-    await other.getByLabel('Email address').fill('family@example.org');
+    await other.getByLabel('Email address').fill(email);
     await other.getByRole('button', { name: 'Email me a link' }).click();
     await expect(other).toHaveURL(`${ORIGIN}/registrations/find?sent=1`);
     await expect(
