@@ -8,7 +8,11 @@ export default defineConfig({
   devToolbar: { enabled: false },
   server: createGamoDevServer('web'),
   adapter: cloudflare(createGamoCloudflareConfig('web', import.meta.url)),
+  // Emit every script and stylesheet as a file so the CSP needs no 'unsafe-inline' for scripts
+  // (packages/domain/src/http/security-headers.ts).
+  build: { inlineStylesheets: 'never' },
   vite: {
+    build: { assetsInlineLimit: 0 },
     plugins: [tailwindcss()],
     optimizeDeps: {
       exclude: ['drizzle-orm'],

@@ -945,7 +945,7 @@ const pageDescription = metro
     </section>
   )}
 
-  <script is:inline>
+  <script>
     (function () {
       const STORAGE_KEY = 'gamo_live_saved_events';
       function readSavedSlugs() {
@@ -957,7 +957,7 @@ const pageDescription = metro
           return [];
         }
       }
-      function writeSavedSlugs(slugs) {
+      function writeSavedSlugs(slugs: string[]) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
         } catch {
@@ -977,7 +977,7 @@ const pageDescription = metro
         });
       }
       document.addEventListener('click', function (e) {
-        const btn = e.target.closest && e.target.closest('[data-favorite-btn]');
+        const btn = (e.target as Element | null)?.closest('[data-favorite-btn]');
         if (!btn) return;
         e.preventDefault();
         const slug = btn.getAttribute('data-event-slug');

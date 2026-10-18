@@ -635,7 +635,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
   </section>
 
   <!-- Interactive Client Script for Filter Chips + Saved Event Hearts -->
-  <script is:inline>
+  <script>
     (function () {
       const FAVORITES_KEY = 'gamo_live_saved_events';
 
@@ -649,7 +649,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         }
       }
 
-      function setSavedSlugs(slugs) {
+      function setSavedSlugs(slugs: string[]) {
         try {
           localStorage.setItem(FAVORITES_KEY, JSON.stringify(slugs));
         } catch {
@@ -715,8 +715,9 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
       } else if (urlParams.get('category') === 'worship') {
         activeFilter = 'worship';
       }
-      if (urlParams.get('metro')) {
-        activeScope = urlParams.get('metro');
+      const metroParam = urlParams.get('metro');
+      if (metroParam) {
+        activeScope = metroParam;
       }
 
       function applyChipVisuals() {
@@ -747,12 +748,12 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         });
       }
 
-      function applyFiltering(syncUrl) {
+      function applyFiltering(syncUrl: boolean) {
         applyChipVisuals();
         if (!cardWrappers.length) return;
 
         // First check matches within activeScope
-        const matchesFilter = function (wrapper) {
+        const matchesFilter = function (wrapper: Element) {
           const cat = wrapper.getAttribute('data-card-category');
           const weekend = wrapper.getAttribute('data-card-weekend') === 'true';
           if (activeFilter === 'weekend') return weekend;
