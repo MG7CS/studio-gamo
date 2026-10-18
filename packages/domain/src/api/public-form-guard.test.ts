@@ -2,6 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createMigratedD1 } from '@gamo/db/testing';
 import {
+  PUBLIC_FORM_MAX_BYTES,
+  readBoundedBody,
+  readPublicFormBody,
   describeWait,
   guardPublicForm,
   guardPublicFormForPage,
@@ -257,12 +260,19 @@ test('bodies: malformed JSON, arrays, unknown content types and oversize bodies 
   for (const req of [
     raw('{oops', 'application/json'),
     raw('[1]', 'application/json'),
-    raw('a=b', 'text/plain'),
+    new Request('https://live.example.test/x', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new Uint8Array([0x61, 0x3d, 0xff, 0xfe]), // invalid UTF-8
+    }),
   ]) {
     const r = await guardPublicForm({ request: req, env: e }, opts);
     assert.ok(!r.ok);
     assert.equal(r.response.status, 400);
   }
+  const plain = await guardPublicForm({ request: raw('a=b', 'text/plain'), env: e }, opts);
+  assert.ok(!plain.ok);
+  assert.equal(plain.response.status, 415);
   const big = await guardPublicForm(
     { request: raw(`a=${'x'.repeat(70_000)}`, 'application/x-www-form-urlencoded'), env: e },
     opts,
@@ -282,4 +292,110 @@ test('describeWait phrases the wait for people', () => {
   assert.equal(describeWait(61), 'about 2 minutes');
   assert.equal(describeWait(3600), 'about 1 hour');
   assert.equal(describeWait(7201), 'about 3 hours');
+});
+
+/** A streamed body with no Content-Length (or a lying one); counts how many chunks were pulled. */
+function streamed(totalBytes: number, chunk = 8192, headers: Record<string, string> = {}) {
+  let sent = 0;
+  let pulls = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      pulls++;
+      if (sent >= totalBytes) return controller.close();
+      const n = Math.min(chunk, totalBytes - sent);
+      sent += n;
+      controller.enqueue(new Uint8Array(n).fill(0x61));
+    },
+  });
+  const request = new Request('https://live.example.test/x', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded', ...headers },
+    body: stream,
+    duplex: 'half',
+  } as RequestInit);
+  return { request, pulls: () => pulls };
+}
+
+test('size limit counts bytes as they stream: no Content-Length and a lying Content-Length both get 413 early', async () => {
+  const noLength = streamed(10 * 1024 * 1024);
+  const r1 = await readPublicFormBody(noLength.request);
+  assert.ok(!r1.ok);
+  assert.equal(r1.error.status, 413);
+  assert.match(r1.error.message, /too large/);
+  assert.ok(noLength.pulls() < 20, 'reading stops right after the limit (not the whole 10 MB)');
+
+  const lying = streamed(1024 * 1024, 8192, { 'content-length': '10' });
+  const r2 = await readPublicFormBody(lying.request);
+  assert.ok(!r2.ok);
+  assert.equal(r2.error.status, 413);
+
+  const honestBig = new Request('https://live.example.test/x', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'content-length': String(PUBLIC_FORM_MAX_BYTES + 1) },
+    body: '{}',
+  });
+  const r3 = await readPublicFormBody(honestBig);
+  assert.ok(!r3.ok);
+  assert.equal(r3.error.status, 413, 'an honest oversize Content-Length is refused without reading');
+
+  const exact = await readBoundedBody(streamed(PUBLIC_FORM_MAX_BYTES).request, PUBLIC_FORM_MAX_BYTES);
+  assert.ok(exact.ok && exact.bytes.byteLength === PUBLIC_FORM_MAX_BYTES, 'exactly the limit is fine');
+  await assert.rejects(readBoundedBody(streamed(1).request, 0), RangeError);
+});
+
+test('multibyte characters are counted in bytes, not string length', async () => {
+  // "é" is 2 bytes in UTF-8: a value of 32 769 "é" is under 64 Ki characters but over 64 KiB.
+  const send = (body: string) =>
+    readPublicFormBody(
+      new Request('https://live.example.test/x', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body,
+      }),
+    );
+  const json = (n: number) => JSON.stringify({ name: 'é'.repeat(n) });
+  const under = await send(json(Math.floor((PUBLIC_FORM_MAX_BYTES - 20) / 2)));
+  assert.ok(under.ok, 'just under the byte limit is accepted');
+  assert.equal(under.body.get('name')?.length, Math.floor((PUBLIC_FORM_MAX_BYTES - 20) / 2));
+  const over = await send(json(Math.ceil(PUBLIC_FORM_MAX_BYTES / 2)));
+  assert.ok(!over.ok, 'fewer characters than the limit but more bytes is refused');
+  assert.equal(over.error.status, 413);
+  assert.ok(
+    json(Math.ceil(PUBLIC_FORM_MAX_BYTES / 2)).length < PUBLIC_FORM_MAX_BYTES,
+    'string length alone would pass',
+  );
+});
+
+test('multipart is refused on public forms (415) unless the route opts in with its own limit', async () => {
+  const multipart = () => {
+    const form = new FormData();
+    form.append('email', 'sam@example.org');
+    form.append(TURNSTILE_RESPONSE_FIELD, 'tok');
+    return new Request('https://live.example.test/x', { method: 'POST', body: form });
+  };
+  const e = await env();
+  const refused = await guardPublicForm(
+    { request: multipart(), env: e },
+    { route: 'live.rsvp', limits, now: T0, fetchImpl: siteverify({ success: true }).impl },
+  );
+  assert.ok(!refused.ok);
+  assert.equal(refused.response.status, 415);
+  assert.equal(((await refused.response.json()) as any).error.code, 'UNSUPPORTED_MEDIA_TYPE');
+
+  const optedIn = await guardPublicForm(
+    { request: multipart(), env: e },
+    {
+      route: 'live.map',
+      limits,
+      now: T0,
+      fetchImpl: siteverify({ success: true }).impl,
+      allowMultipart: { maxBytes: 1024 * 1024 },
+    },
+  );
+  assert.ok(optedIn.ok);
+  assert.equal(optedIn.body.get('email'), 'sam@example.org');
+
+  const tooBig = await readPublicFormBody(multipart(), { allowMultipart: { maxBytes: 16 } });
+  assert.ok(!tooBig.ok);
+  assert.equal(tooBig.error.status, 413);
 });
