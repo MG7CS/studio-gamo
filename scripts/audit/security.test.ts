@@ -14,6 +14,17 @@ import {
 } from '../../packages/auth/index.ts';
 import { verifyCloudflareAccessJwt } from '../../apps/admin/src/lib/cf-access.ts';
 import { readContract } from '../../packages/api-contracts/src/runtime.ts';
+
+/** Admin middleware wrapped so every call resolves to a Response (the tests never call `next()` lazily). */
+async function loadAdminMiddleware() {
+  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- hand-built APIContext test doubles
+  return async (context: any, next: () => Promise<Response>): Promise<Response> => {
+    const result = await onRequest(context, next);
+    assert.ok(result instanceof Response, 'admin middleware must return a Response');
+    return result;
+  };
+}
 const migrations = () =>
   readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
@@ -321,7 +332,7 @@ test('registration insert failure rolls back inventory and notification; cancell
   }
 });
 test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejects forged headers or mismatched staff identity', async () => {
-  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
+  const onRequest = await loadAdminMiddleware();
   const { GET: pending } = await import('../../apps/admin/src/pages/api/events/pending.ts');
   const f = await fixture();
   const oldFetch = globalThis.fetch;
@@ -370,7 +381,7 @@ test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejec
     const runMiddleware = async (headers: Record<string, string>) => {
       const request = new Request('https://admin.gamostudio.org/api/events/pending', { headers });
       const context: any = { request, params: {}, locals: { runtime: { env } } };
-      return onRequest(context, () => pending(context));
+      return onRequest(context, async () => pending(context));
     };
     // 1. Forged header without valid signature rejected with 401
     const wrongKp = await crypto.subtle.generateKey(
@@ -813,7 +824,7 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
   }
 });
 test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation', async () => {
-  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
+  const onRequest = await loadAdminMiddleware();
   const { GET: pending } = await import('../../apps/admin/src/pages/api/events/pending.ts');
   const {
     authenticateAdminPassword,
@@ -873,7 +884,7 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
       headers: { cookie: cookieHeader },
     });
     const apiCtx: any = { request: apiReq, params: {}, locals: { runtime: { env } } };
-    const apiRes = await onRequest(apiCtx, () => pending(apiCtx));
+    const apiRes = await onRequest(apiCtx, async () => pending(apiCtx));
     assert.equal(apiRes.status, 200);
     // 4. Changing password updates hash and disables temporary password
     const changed = await changeAdminPassword(

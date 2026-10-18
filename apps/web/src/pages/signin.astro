@@ -1,4 +1,0 @@
----
-const next = Astro.url.searchParams.get('next');
-return Astro.redirect(`/account/signin${next ? `?next=${encodeURIComponent(next)}` : ''}`, 302);
----

@@ -120,29 +120,25 @@ export class AdminService {
     const newStatus = input.decision;
     try {
       await this.db.batch([
-        this.db
-          .insert(moderationReviews)
-          .values({
-            id: reviewId,
-            reviewerUserId,
-            targetType: 'event',
-            targetId: eventId,
-            decision: input.decision,
-            notes: input.notes || null,
-            reviewedAt: new Date(),
-          }),
+        this.db.insert(moderationReviews).values({
+          id: reviewId,
+          reviewerUserId,
+          targetType: 'event',
+          targetId: eventId,
+          decision: input.decision,
+          notes: input.notes || null,
+          reviewedAt: new Date(),
+        }),
         this.db.update(events).set({ status: newStatus }).where(eq(events.id, eventId)),
-        this.db
-          .insert(auditLogs)
-          .values({
-            id: `audit_${crypto.randomUUID()}`,
-            actorUserId: reviewerUserId,
-            action: `event.${newStatus}`,
-            entityType: 'event',
-            entityId: eventId,
-            payloadJson: JSON.stringify({ decision: input.decision, previousStatus: event.status }),
-            createdAt: new Date(),
-          }),
+        this.db.insert(auditLogs).values({
+          id: `audit_${crypto.randomUUID()}`,
+          actorUserId: reviewerUserId,
+          action: `event.${newStatus}`,
+          entityType: 'event',
+          entityId: eventId,
+          payloadJson: JSON.stringify({ decision: input.decision, previousStatus: event.status }),
+          createdAt: new Date(),
+        }),
       ]);
     } catch (error) {
       if (String((error as Error)?.cause ?? error).includes('REVIEW_CONFLICT'))

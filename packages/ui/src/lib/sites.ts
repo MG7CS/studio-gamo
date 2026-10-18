@@ -86,6 +86,22 @@ export function siteUrl(site: SiteKey, path = '/'): string {
   return `${siteOrigin(site)}${clean === '/' ? '/' : clean}`;
 }
 
+/**
+ * Program inquiries all go through the organization contact form, pre-selecting the topic.
+ * (Musician applications, church requests, lesson interest and production consultations
+ * are reviewed by staff; there is no self-service flow yet.)
+ */
+export type InquiryTopic =
+  | 'Church musician request'
+  | 'Musician application'
+  | 'Lesson interest'
+  | 'Church-hosted lessons'
+  | 'Production consultation';
+
+export function inquiryUrl(topic: InquiryTopic): string {
+  return `${siteUrl('web', '/contact')}?interest=${encodeURIComponent(topic)}`;
+}
+
 export interface NavItem {
   key: string;
   label: string;

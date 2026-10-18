@@ -1,5 +1,0 @@
----
-export const prerender = false;
-const slug = (Astro.params.slug || '').trim().replace(/-/g, ' ');
-return Astro.redirect(slug ? `/events?q=${encodeURIComponent(slug)}` : '/events', 303);
----

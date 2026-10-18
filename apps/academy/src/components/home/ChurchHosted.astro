@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 /** Section 7: church-hosted lessons — uses shared EditorialFeatureCard in reversed layout. */
 import EditorialFeatureCard, {
   type EditorialFeaturePoint,
@@ -38,7 +39,7 @@ const roles: EditorialFeaturePoint[] = [
   tone="ivory"
   reverse={true}
 >
-  <ButtonLink href="/host-apply" arrow>
+  <ButtonLink href={inquiryUrl('Church-hosted lessons')} arrow>
     Apply to host lessons
   </ButtonLink>
 </EditorialFeatureCard>

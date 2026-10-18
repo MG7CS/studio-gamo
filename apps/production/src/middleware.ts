@@ -1,3 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
 import { applicationPages } from '@gamo/domain/src/api/page-middleware';
-export const onRequest = defineMiddleware(applicationPages('production'));
+import { legacyRedirects } from './lib/legacy-redirects';
+
+export const onRequest = defineMiddleware(applicationPages('production', { legacyRedirects }));

@@ -1,4 +1,4 @@
-.PHONY: help dev dev-all build check lint test images print clean install status \
+.PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
         dev-web dev-worship dev-academy dev-live dev-production dev-admin \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-admin preview-all \
@@ -21,7 +21,9 @@ help:
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
 	@echo "  \033[36mmake build\033[0m             - Build all applications"
-	@echo "  \033[36mmake check\033[0m             - Run TypeScript and Astro checks"
+	@echo "  \033[36mmake check\033[0m             - Run everything CI runs (typecheck, lint, format, tests, API contract, build)"
+	@echo "  \033[36mmake typecheck\033[0m         - Type-check apps (astro check), packages and scripts"
+	@echo "  \033[36mmake format\033[0m            - Format the workspace with Prettier"
 	@echo "  \033[36mmake lint\033[0m              - Run linting"
 	@echo "  \033[36mmake test\033[0m              - Run tests"
 	@echo "  \033[36mmake verify-deployment\033[0m - Dry-run deployment check across all applications"
@@ -57,22 +59,22 @@ dev-all:
 	@pnpm run dev:all
 
 dev-web:
-	@pnpm --filter apps-web run dev || echo "apps/web not available yet."
+	@pnpm --filter apps-web run dev
 
 dev-worship:
-	@pnpm --filter apps-worship run dev || echo "apps/worship not available yet."
+	@pnpm --filter apps-worship run dev
 
 dev-academy:
-	@pnpm --filter apps-academy run dev || echo "apps/academy not available yet."
+	@pnpm --filter apps-academy run dev
 
 dev-live:
-	@pnpm --filter apps-live run dev || echo "apps/live not available yet."
+	@pnpm --filter apps-live run dev
 
 dev-production:
-	@pnpm --filter apps-production run dev || echo "apps/production not available yet."
+	@pnpm --filter apps-production run dev
 
 dev-admin:
-	@pnpm --filter apps-admin run dev || echo "apps/admin not available yet."
+	@pnpm --filter apps-admin run dev
 
 install:
 	@pnpm install
@@ -81,10 +83,16 @@ build:
 	@pnpm run build
 
 check:
+	@pnpm run check
+
+typecheck:
 	@pnpm run typecheck
 
+format:
+	@pnpm run format
+
 lint:
-	@pnpm run lint || echo "Lint script not configured yet."
+	@pnpm run lint
 
 test:
 	@pnpm run test

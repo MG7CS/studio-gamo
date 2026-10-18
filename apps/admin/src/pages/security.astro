@@ -61,19 +61,19 @@ try {
       />
     )}
 
-    {errorMsg && <InlineNotice tone="danger" title="Unable to update password" body={errorMsg} />}
+    {errorMsg && <InlineNotice tone="error" title="Unable to update password" body={errorMsg} />}
 
     {mustChangePassword && !updated && (
       <InlineNotice
         tone="warning"
         title="Temporary password active — please set a new password"
-        body="You signed in with the initial temporary password (GamoStudios.Com). Enter your current temporary password and choose a new password below."
+        body="You signed in with a temporary password. Enter your current temporary password and choose a new password below."
       />
     )}
 
     <Panel
       title="Change administrator password"
-      subtitle={`Signed in as ${staffEmail} · ${lastUpdatedLabel}`}
+      description={`Signed in as ${staffEmail} · ${lastUpdatedLabel}`}
     >
       <form method="POST" action="/__admin_auth/password" class="space-y-4">
         <div>
@@ -105,11 +105,7 @@ try {
             type="password"
             required
             autocomplete="current-password"
-            placeholder={
-              mustChangePassword
-                ? 'Enter temporary password (GamoStudios.Com)'
-                : 'Enter your current password'
-            }
+            placeholder={mustChangePassword ? 'Enter your temporary password' : 'Enter your current password'}
             class="h-11 w-full rounded-xl border border-sand bg-white px-3.5 text-[14px] text-charcoal focus:border-terracotta focus:outline-none"
           />
         </div>

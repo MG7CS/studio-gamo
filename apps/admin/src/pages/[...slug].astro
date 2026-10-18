@@ -1,71 +1,12 @@
 ---
 /**
- * Gamo Studios Operations & Analytics workspace route (`apps/admin`).
- * Renders all administrative control and analytics screens from typed definitions,
- * enriching tables with live D1 records when connected to Cloudflare D1.
+ * Gamo Studios staff workspace route (`apps/admin`).
+ * Navigation comes from the typed admin workspace definition; operational data is served by the
+ * staff APIs under /api (events review, participation review, staff provisioning).
  */
 import '../app.css';
 import WorkspaceScreen from '@studio-gamo/ui/components/dashboard/WorkspaceScreen.astro';
-import { b, type Workspace } from '@studio-gamo/ui/lib/dashboard';
-import { getRuntimeEnv } from '@gamo/domain';
 import { adminWorkspace } from '../data/workspace';
-
-let workspace: Workspace = adminWorkspace;
-
-try {
-  const runtimeEnv = await getRuntimeEnv(Astro as any);
-  if (runtimeEnv?.DB && typeof runtimeEnv.DB.prepare === 'function') {
-    const cleanSlug = (Astro.params.slug ?? '').replace(/^\/+|\/+$/g, '');
-    if (cleanSlug === 'live/submissions' || cleanSlug === 'reviews') {
-      const pendingEvents = await runtimeEnv.DB.prepare(
-        `SELECT e.title, e.category, e.city, e.state, e.starts_at, e.admission_type, e.status, o.name AS org_name
-         FROM events e
-         LEFT JOIN organizations o ON o.id = e.organization_id
-         ORDER BY e.created_at DESC
-         LIMIT 5`,
-      ).all<{
-        title: string;
-        category: string;
-        city: string;
-        state: string;
-        starts_at: number;
-        admission_type: string;
-        status: string;
-        org_name: string | null;
-      }>();
-
-      if (pendingEvents?.results?.length) {
-        workspace = structuredClone(adminWorkspace);
-        const target = workspace.screens.find((s) => s.slug === 'live/submissions');
-        const tableBlock = target?.blocks.find((blk) => blk.type === 'table');
-        if (tableBlock && tableBlock.type === 'table') {
-          const liveRows = pendingEvents.results.map((ev) => ({
-            event: ev.title,
-            organizer: ev.org_name || 'Verified Organizer',
-            category: ev.category,
-            city: `${ev.city}, ${ev.state}`,
-            when: new Date(ev.starts_at * 1000).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-            admission: b(
-              ev.admission_type === 'free' ? 'Free RSVP' : 'Ticketed',
-              ev.admission_type === 'free' ? 'free' : 'paid',
-            ),
-            status: b(
-              ev.status === 'approved' ? 'Approved' : 'Submitted',
-              ev.status === 'approved' ? 'verified' : 'info',
-            ),
-          }));
-          tableBlock.rows = [...liveRows, ...tableBlock.rows];
-        }
-      }
-    }
-  }
-} catch {
-  // Gracefully fall back to workspace dataset when D1 is not bound or table is empty
-}
 ---
 
-<WorkspaceScreen workspace={workspace} slug={Astro.params.slug} />
+<WorkspaceScreen workspace={adminWorkspace} slug={Astro.params.slug} />

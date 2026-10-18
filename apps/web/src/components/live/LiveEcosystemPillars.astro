@@ -26,7 +26,7 @@ const pillars = [
     body: 'Publish moderated event listings, manage multi-role event teams with scoped permissions, configure ticket tiers, and run offline-capable QR door check-in.',
     icon: 'calendar' as const,
     links: [
-      { label: 'Promote an event', href: siteUrl('live', '/promote') },
+      { label: 'Promote an event', href: siteUrl('live', '/promote/create') },
       { label: 'List an event', href: siteUrl('live', '/promote/create') },
     ],
   },
@@ -38,7 +38,7 @@ const pillars = [
     icon: 'music' as const,
     links: [
       { label: 'Artists & booking', href: siteUrl('live', '/artists') },
-      { label: 'Artist workspace', href: siteUrl('live', '/artist') },
+      { label: 'Artist workspace', href: siteUrl('live', '/workspaces') },
     ],
   },
   {
@@ -48,8 +48,8 @@ const pillars = [
     body: 'Coordinate stage plots, input lists, audio/lighting/livestream riders, and request Gamo Production support without duplicating identity or losing event context.',
     icon: 'sliders' as const,
     links: [
-      { label: 'Event production coordination', href: siteUrl('live', '/organizer/production') },
-      { label: 'Door scanner & operations', href: siteUrl('live', '/organizer/scan') },
+      { label: 'Event production coordination', href: siteUrl('live', '/workspaces') },
+      { label: 'Door scanner & operations', href: siteUrl('live', '/workspaces') },
     ],
   },
 ];

@@ -1,0 +1,36 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      # Uses the exact pnpm version pinned in package.json "packageManager".
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # Local-only HTML API reference; api:check scans it for credential-shaped strings.
+      - run: pnpm api:docs
+      # typecheck (incl. .astro), lint, format check, unit/integration tests,
+      # OpenAPI lint + generated-artifact drift + contract tests, build of all six apps.
+      - run: pnpm check
+      - name: OpenAPI compatibility review against the base commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            pnpm api:compatibility "$BASE_SHA"
+          fi

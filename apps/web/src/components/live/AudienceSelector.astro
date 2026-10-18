@@ -8,7 +8,7 @@ interface Props {
 }
 const { current, tone = 'dark', class: className } = Astro.props;
 const items = [
-  { id: 'promote', label: 'Promote Event', href: siteUrl('live', '/promote') },
+  { id: 'promote', label: 'Promote Event', href: siteUrl('live', '/promote/create') },
   { id: 'explore', label: 'Explore Events', href: siteUrl('live', '/events') },
 ];
 const dark = tone === 'dark';

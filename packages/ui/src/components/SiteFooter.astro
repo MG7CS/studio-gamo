@@ -6,7 +6,7 @@
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { siteUrl } from '../lib/sites';
+import { siteUrl, inquiryUrl } from '../lib/sites';
 
 const columns = [
   {
@@ -22,10 +22,10 @@ const columns = [
     title: 'Get Involved',
     links: [
       { label: 'Ways to Participate', url: siteUrl('web', '/get-involved') },
-      { label: 'Request a Musician', url: siteUrl('worship', '/hire') },
-      { label: 'Join the Musician Collection', url: siteUrl('worship', '/apply') },
+      { label: 'Request a Musician', url: inquiryUrl('Church musician request') },
+      { label: 'Join the Musician Collection', url: inquiryUrl('Musician application') },
       { label: 'Find a Lesson', url: siteUrl('academy', '/lessons') },
-      { label: 'Promote an Event', url: siteUrl('live', '/promote') },
+      { label: 'Promote an Event', url: siteUrl('live', '/promote/create') },
       { label: 'Partnerships', url: siteUrl('web', '/partners') },
     ],
   },

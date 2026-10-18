@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import { opportunities, formatUsd } from '../../data/worship';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -39,7 +40,7 @@ const roles = [...new Set(opportunities.map((o) => o.role))];
         <p class="mt-2 text-xs text-ink-soft">
           Musician pay is always shown on its own line with no deduction.
         </p>
-        <ButtonLink href="/apply" variant="secondary" class="mt-6">
+        <ButtonLink href={inquiryUrl('Musician application')} variant="secondary" class="mt-6">
           Apply as a musician
         </ButtonLink>
       </article>

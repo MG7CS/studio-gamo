@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 /** How churches request musicians. */
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -16,7 +17,7 @@ import { requestSteps } from '../../data/worship';
         accent="in four calm steps."
         class="max-w-2xl"
       />
-      <ButtonLink href="/hire" variant="secondary" arrow>
+      <ButtonLink href={inquiryUrl('Church musician request')} variant="secondary" arrow>
         Start a request
       </ButtonLink>
     </div>

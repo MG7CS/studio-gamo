@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 /** Joining the musician collection: shared rounded-edge EditorialFeatureCard with arch photo. */
 import EditorialFeatureCard, {
   type EditorialFeaturePoint,
@@ -37,7 +38,7 @@ const values: EditorialFeaturePoint[] = [
   caption="Choose the services and schedules you accept"
   tone="sand"
 >
-  <ButtonLink href="/apply" arrow>
+  <ButtonLink href={inquiryUrl('Musician application')} arrow>
     Start an application
   </ButtonLink>
   <ButtonLink href="/opportunities" variant="secondary">
