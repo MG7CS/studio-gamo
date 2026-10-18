@@ -43,7 +43,7 @@ test('participation persists by owner, stays pending, and review does not grant 
     assert.deepEqual(await f.service.list(f.other.id), []);
     await assert.rejects(
       f.service.review(inquiry.id, f.owner.id, { status: 'reviewed', notes: 'Self approval' }),
-      /Access denied/,
+      /FORBIDDEN/,
     );
     assert.equal(
       (

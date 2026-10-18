@@ -471,7 +471,7 @@ export interface paths {
         put?: never;
         /**
          * Create sandbox checkout
-         * @description Checkout disabled until authoritative order, inventory, organizer permission and fulfillment are implemented. Valid requests return 503.
+         * @description Creates a Stripe test-mode Checkout session for an authoritative ticket order. Returns 503 when paid checkout is not configured (no test-mode Stripe key outside local development) or when the event's order, inventory or organizer-authorization gate is not satisfied; no hold is created when Stripe is unconfigured. Cross-origin browser requests are rejected (403).
          */
         post: operations["createTestCheckout"];
         delete?: never;
@@ -825,6 +825,8 @@ export interface components {
                 object: {
                     [key: string]: unknown;
                 };
+            } & {
+                [key: string]: unknown;
             };
         } & {
             [key: string]: unknown;
@@ -1524,6 +1526,7 @@ export interface operations {
                     "application/json": components["schemas"]["LogoutResponse"];
                 };
             };
+            403: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };
@@ -1768,6 +1771,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
             404: components["responses"]["LegacyError"];
             409: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
@@ -1888,6 +1892,7 @@ export interface operations {
             };
             400: components["responses"]["LegacyError"];
             401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };
@@ -2183,7 +2188,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["SimpleError"];
-            404: components["responses"]["SimpleError"];
+            403: components["responses"]["SimpleError"];
             409: components["responses"]["SimpleError"];
             500: components["responses"]["SimpleError"];
             503: components["responses"]["SimpleError"];

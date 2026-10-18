@@ -102,24 +102,25 @@ export function handleApiError(err: unknown): Response {
   }
 
   if (err instanceof Error) {
-    if (err.message.includes('RATE_LIMITED') || err.message.includes('TOO_MANY_REQUESTS')) {
-      return errorResponse('RATE_LIMITED', 'Too many requests. Please wait before trying again.', 429);
-    }
-    if (err.message.includes('NOT_FOUND') || err.message.toLowerCase().includes('not found')) {
-      return errorResponse('NOT_FOUND', 'Resource not found.', 404);
-    }
-    if (
-      err.message.includes('CONFLICT') ||
-      err.message.includes('ALREADY_EXISTS') ||
-      err.message.includes('duplicate')
-    ) {
-      return errorResponse('CONFLICT', 'The operation conflicts with the current resource state.', 409);
-    }
-    if (err.message.includes('INVALID_CHALLENGE_CODE') || err.message.includes('UNAUTHORIZED')) {
-      return errorResponse('UNAUTHENTICATED', 'Verification or authentication failed.', 401);
-    }
-    if (err.message.includes('Access denied') || err.message.toLowerCase().includes('forbidden')) {
-      return errorResponse('FORBIDDEN', 'Operation forbidden.', 403);
+    // Domain services signal expected failures with a leading code: `CONFLICT: …`, `NOT_FOUND: …`.
+    // Only that prefix is trusted; the rest of the message is never returned to the client.
+    const code = /^([A-Z_]+)(?::|$)/.exec(err.message)?.[1];
+    switch (code) {
+      case 'BAD_REQUEST':
+        return errorResponse('BAD_REQUEST', 'The request is invalid.', 400);
+      case 'RATE_LIMITED':
+      case 'TOO_MANY_REQUESTS':
+        return errorResponse('RATE_LIMITED', 'Too many requests. Please wait before trying again.', 429);
+      case 'NOT_FOUND':
+        return errorResponse('NOT_FOUND', 'Resource not found.', 404);
+      case 'CONFLICT':
+      case 'ALREADY_EXISTS':
+        return errorResponse('CONFLICT', 'The operation conflicts with the current resource state.', 409);
+      case 'INVALID_CHALLENGE_CODE':
+      case 'UNAUTHORIZED':
+        return errorResponse('UNAUTHENTICATED', 'Verification or authentication failed.', 401);
+      case 'FORBIDDEN':
+        return errorResponse('FORBIDDEN', 'Operation forbidden.', 403);
     }
 
     console.error('[API Route Internal Error]');

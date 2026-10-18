@@ -447,7 +447,7 @@
 ## 2026-10-14 — Admin Gateway Password Login (`gasanamoise7@gmail.com`) & Cohesive Global Homepage Draft
 
 - Added `packages/db/migrations/0005_admin_password_credentials.sql`, `adminCredentials` in `packages/db/schema.ts`, and PBKDF2-HMAC-SHA256 administrator password authentication + self-service password rotation in `packages/auth/index.ts`, `apps/admin/src/middleware.ts`, and `apps/admin/src/pages/security.astro`:
-  - Idempotently provisions `gasanamoise7@gmail.com` with `superadmin` role and temporary password `GamoStudios.Com` (`mustChangePassword: true`), 5-attempt lockout protection, and `/security` password rotation inside `apps/admin`.
+  - Idempotently provisions `gasanamoise7@gmail.com` with `superadmin` role and temporary password `[temporary password redacted — see docs/CLEANUP_LOG.md H-02]` (`mustChangePassword: true`), 5-attempt lockout protection, and `/security` password rotation inside `apps/admin`.
 - Rebuilt `apps/web/src/pages/index.astro` from the ground up using modular Level-3 components (`HomeEditorialHero.astro`, `HomeProgramsBento.astro`, `HomeWorshipSpotlight.astro`, `HomeAcademySpotlight.astro`, `HomeLiveSpotlight.astro`, `HomeProductionSpotlight.astro`, `HomeCommunityPaths.astro`, and `CtaInvitation.astro`) to match the bright editorial design language of `/mission`, `/partners`, `/get-involved`, Worship, Academy, Live, and Production.
 - Verification:
   - `node scripts/verify-public-ui.mjs`: passed 60 responsive route checks (`390`, `768`, `1024`, `1440`, `1920`) and 8 interaction checks; 73 links inspected (`docs/screenshots/2026-refresh/web/home-1440.png`, `docs/screenshots/2026-refresh/web/home-390.png`).

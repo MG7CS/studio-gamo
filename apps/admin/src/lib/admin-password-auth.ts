@@ -1,9 +1,4 @@
 export {
-  BOOTSTRAP_ADMIN_EMAIL,
-  BOOTSTRAP_ADMIN_NAME,
-  BOOTSTRAP_ADMIN_TEMP_PASSWORD,
-  hashAdminPassword,
-  verifyAdminPassword,
   ensureBootstrapAdminAccount,
   authenticateAdminPassword,
   changeAdminPassword,
@@ -12,4 +7,5 @@ export {
   buildClearAdminGateCookie,
   verifyAdminGateCookie,
   type AdminAuthResult,
+  type BootstrapAdminIdentity,
 } from '@gamo/auth';

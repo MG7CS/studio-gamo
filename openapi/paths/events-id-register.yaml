@@ -33,6 +33,8 @@ post:
             $ref: ../components/schemas/live/RegistrationResponse.yaml
     '400':
       $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
     '404':
       $ref: ../components/responses/LegacyError.yaml
     '409':

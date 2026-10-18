@@ -21,7 +21,7 @@ let unavailable = false;
 try {
   const env = await getRuntimeEnv(Astro);
   const liveService = new LiveService(getDb(env.DB));
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
   venues = await liveService.listDiscoverableVenues({
     metro: activeMetro ? activeMetro.slug : undefined,
   });

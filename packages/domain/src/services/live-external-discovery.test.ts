@@ -45,6 +45,60 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     assert.equal(secondApply.createdOrUpdated, 'already_provisioned');
   });
 
+  it('public pages never seed the catalog in preview/production unless LIVE_CATALOG_AUTOSEED=true', async () => {
+    const count = (d1: { sqlite: { prepare(sql: string): { get(): unknown } } }) =>
+      (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM events').get() as { n: number }).n;
+
+    const prod = await setupMigratedD1();
+    await prod.liveService.seedCatalogIfAllowed({ ENVIRONMENT: 'production' });
+    await prod.liveService.seedCatalogIfAllowed({ ENVIRONMENT: 'preview' });
+    assert.equal(count(prod.d1), 0);
+
+    const optedIn = await setupMigratedD1();
+    await optedIn.liveService.seedCatalogIfAllowed({
+      ENVIRONMENT: 'production',
+      LIVE_CATALOG_AUTOSEED: 'true',
+    });
+    assert.ok(count(optedIn.d1) > 0);
+
+    const local = await setupMigratedD1();
+    await local.liveService.seedCatalogIfAllowed({ ENVIRONMENT: 'local' });
+    assert.ok(count(local.d1) > 0);
+  });
+
+  it('the publisher is a non-loginable system identity with no roles, even if an older version granted one', async () => {
+    const { d1, liveService } = await setupMigratedD1();
+    await liveService.provisionListingsPublisher({ dryRun: false });
+    const user = d1.sqlite
+      .prepare("SELECT id, status FROM users WHERE email = 'listings-editorial@gamostudios.org'")
+      .get() as {
+      id: string;
+      status: string;
+    };
+    assert.equal(user.status, 'system');
+
+    // Simulate a database provisioned by an older version: active account with a global staff role.
+    d1.sqlite.prepare("UPDATE users SET status = 'active' WHERE id = ?").run(user.id);
+    d1.sqlite.exec(
+      "INSERT OR IGNORE INTO roles (id, code, description) VALUES ('role_staff_reviewer', 'staff_reviewer', 'x')",
+    );
+    d1.sqlite
+      .prepare(
+        "INSERT INTO user_roles (id, user_id, role_id, scope_type, created_at) VALUES ('ur_old', ?, 'role_staff_reviewer', 'global', 0)",
+      )
+      .run(user.id);
+
+    await liveService.provisionListingsPublisher({ dryRun: false });
+    const after = d1.sqlite.prepare('SELECT status FROM users WHERE id = ?').get(user.id) as {
+      status: string;
+    };
+    const grants = d1.sqlite
+      .prepare('SELECT COUNT(*) AS n FROM user_roles WHERE user_id = ?')
+      .get(user.id) as { n: number };
+    assert.equal(after.status, 'system');
+    assert.equal(grants.n, 0);
+  });
+
   it('imports 21 candidate events with strict editorial triage (18 approved, 2 held, 1 rejected) and publishes only approved records', async () => {
     const { liveService } = await setupMigratedD1();
 

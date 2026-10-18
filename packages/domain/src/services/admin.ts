@@ -84,7 +84,7 @@ export class AdminService {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     if (!event) {
-      throw new Error(`Event ${eventId} not found.`);
+      throw new Error('NOT_FOUND: Event not found.');
     }
 
     const reviewers = await this.db
@@ -101,7 +101,7 @@ export class AdminService {
         ),
       );
     if (!reviewers.some((r) => ['staff_reviewer', 'superadmin'].includes(r.code)))
-      throw new Error('Access denied: Event reviewer permission required.');
+      throw new Error('FORBIDDEN: Event reviewer permission required.');
     const [self] = await this.db
       .select({ id: organizationMembers.id })
       .from(organizationMembers)
@@ -114,7 +114,7 @@ export class AdminService {
         ),
       )
       .limit(1);
-    if (self) throw new Error('Access denied: Cannot moderate your own organization.');
+    if (self) throw new Error('FORBIDDEN: Cannot moderate your own organization.');
     if (event.status !== 'pending_review') throw new Error('CONFLICT: Event already reviewed.');
     const reviewId = `mod_${crypto.randomUUID()}`;
     const newStatus = input.decision;

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { requireStaff, verifyStaffBoundaryIdentity } from '@gamo/auth';
 import { getDb } from '@gamo/db';
-import { readContract } from '@gamo/api-contracts/runtime';
+import { readContract, validateContract } from '@gamo/api-contracts/runtime';
 import {
   ParticipationService,
   participationReviewSchema,
@@ -20,7 +20,13 @@ export const POST: APIRoute = async (context) => {
       await readContract(context.request, 'ParticipationReviewInput'),
     );
     return jsonResponse(
-      { inquiry: await new ParticipationService(db).review(context.params.id!, auth.user.id, input) },
+      {
+        inquiry: await new ParticipationService(db).review(
+          validateContract('Identifier', context.params.id) as string,
+          auth.user.id,
+          input,
+        ),
+      },
       200,
       undefined,
       { 'Cache-Control': 'no-store' },

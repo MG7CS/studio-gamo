@@ -1,5 +1,6 @@
 import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
+import { requireSameOrigin } from '@gamo/auth';
 import { getDb } from '@gamo/db';
 import { LiveService, getRuntimeEnv } from '@gamo/domain';
 import { createStripeTestClient, StripeNotConfiguredError } from '@studio-gamo/integrations';
@@ -15,6 +16,11 @@ export const POST: APIRoute = async (context) => {
     customerName?: string;
     idempotencyKey?: string;
   };
+  try {
+    requireSameOrigin(context.request);
+  } catch {
+    return Response.json({ error: 'Cross-origin checkout request rejected.' }, { status: 403 });
+  }
   try {
     body = (await readContract(context.request, 'CheckoutInput')) as typeof body;
   } catch {

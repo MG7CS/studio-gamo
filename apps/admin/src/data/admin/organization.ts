@@ -470,8 +470,8 @@ export const organizationScreens: DashScreen[] = [
             status: b('Vetting pending', 'pending'),
           },
           {
-            name: 'Moise Gasana',
-            email: 'gasanamoise7@gmail.com',
+            name: 'Sample Superadmin',
+            email: 'superadmin@example.invalid',
             roles: 'Superadmin · Operations Gateway',
             org: 'Gamo Studios Operations',
             status: b('Superadmin', 'verified'),
@@ -772,7 +772,7 @@ export const organizationScreens: DashScreen[] = [
         [
           {
             timestamp: '2026-10-14 18:42:10',
-            actor: 'gasanamoise7@gmail.com',
+            actor: 'superadmin@example.invalid',
             action: 'admin.gateway.login',
             target: 'Operations Gateway Session',
             reason: 'Verified PBKDF2-SHA256 credential + signed __admin_gate cookie',

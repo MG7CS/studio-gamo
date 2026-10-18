@@ -9,7 +9,7 @@ import {
   getRuntimeEnv,
 } from '@gamo/domain';
 import {
-  requireVerifiedAuth,
+  requireProductAuth,
   hasOrgRole,
   hasEventPermission,
   hasRepresentationAuthority,
@@ -22,16 +22,16 @@ export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
+    const auth = await requireProductAuth(context.request, db, 'live', {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const inquiryId = validateContract('Identifier', context.params.id) as string;
 
     const body = await readContract(context.request, 'ProposeBookingOfferInput');
     const validated = proposeBookingOfferSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, {
-      secret: runtimeEnv.SESSION_SECRET,
-      product: 'live',
-      env: runtimeEnv,
-    });
     const liveService = new LiveService(db);
     const ctx = await liveService.getBookingInquiryContext(inquiryId);
 

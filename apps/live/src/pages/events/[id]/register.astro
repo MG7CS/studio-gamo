@@ -20,7 +20,7 @@ let unavailable = false;
 try {
   const env = await getRuntimeEnv(Astro);
   const liveService = new LiveService(getDb(env.DB));
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
   event = await liveService.getEvent(Astro.params.id || '');
 } catch {
   unavailable = true;

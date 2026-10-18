@@ -8,7 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import { requireVerifiedAuth, hasSystemRole } from '@gamo/auth';
+import { requireProductAuth, hasSystemRole } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -16,16 +16,16 @@ export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
+    const auth = await requireProductAuth(context.request, db, 'live', {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const artistId = validateContract('Identifier', context.params.id) as string;
 
     const body = await readContract(context.request, 'AuthorizeRepresentativeInput');
     const validated = authorizeRepresentativeSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, {
-      secret: runtimeEnv.SESSION_SECRET,
-      product: 'live',
-      env: runtimeEnv,
-    });
     const isSuperadmin = hasSystemRole(auth, 'superadmin');
 
     const liveService = new LiveService(db);

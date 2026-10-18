@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import { LiveService, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 import {
-  requireVerifiedAuth,
+  requireProductAuth,
   hasOrgRole,
   hasEventPermission,
   hasRepresentationAuthority,
@@ -16,13 +16,13 @@ export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
-    const offerId = validateContract('Identifier', context.params.id) as string;
-
-    const auth = await requireVerifiedAuth(context.request, db, {
+    const auth = await requireProductAuth(context.request, db, 'live', {
       secret: runtimeEnv.SESSION_SECRET,
       product: 'live',
       env: runtimeEnv,
     });
+    const offerId = validateContract('Identifier', context.params.id) as string;
+
     const liveService = new LiveService(db);
     const ctx = await liveService.getBookingOfferContext(offerId);
 

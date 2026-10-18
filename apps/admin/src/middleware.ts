@@ -14,7 +14,6 @@ import {
 import { getRuntimeEnv, escapeHtml } from '@gamo/domain';
 import { verifyCloudflareAccessJwt } from './lib/cf-access';
 import {
-  BOOTSTRAP_ADMIN_EMAIL,
   authenticateAdminPassword,
   changeAdminPassword,
   buildAdminGateCookie,
@@ -26,7 +25,12 @@ function resolveSigningSecret(runtimeEnv: GamoEnv): string | undefined {
   return runtimeEnv.SESSION_SECRET;
 }
 
-function resolveCookieDomain(url: URL, isProd: boolean): string | undefined {
+/**
+ * Admin cookies are host-only (admin.gamostudio.org). Earlier versions scoped the session cookie to
+ * `.gamostudio.org`, which sent the staff session to every product site; logout still clears that
+ * legacy variant so old cookies are removed.
+ */
+function legacySharedCookieDomain(url: URL, isProd: boolean): string | undefined {
   if (isProd && (url.hostname === 'gamostudio.org' || url.hostname.endsWith('.gamostudio.org'))) {
     return '.gamostudio.org';
   }
@@ -37,8 +41,10 @@ function renderAdminGatewaySignInHtml(options?: {
   email?: string;
   error?: string;
   signedOut?: boolean;
+  /** Render a sign-out confirmation (POST form) instead of the sign-in form. */
+  confirmSignOut?: boolean;
 }): string {
-  const emailVal = escapeHtml(options?.email || BOOTSTRAP_ADMIN_EMAIL);
+  const emailVal = escapeHtml(options?.email || '');
   const errorBanner = options?.error
     ? `<div class="alert alert-error" role="alert">${escapeHtml(options.error)}</div>`
     : '';
@@ -180,7 +186,10 @@ function renderAdminGatewaySignInHtml(options?: {
     <p>Sign in with your authorized Gamo Studios administrator credentials to access staff operations.</p>
     ${errorBanner}
     ${signedOutBanner}
-    <form method="POST" action="/__admin_auth/login">
+    ${
+      options?.confirmSignOut
+        ? `<form method="POST" action="/__admin_auth/logout"><button type="submit">Sign out of Operations Gateway</button></form>`
+        : `<form method="POST" action="/__admin_auth/login">
       <div>
         <label for="admin-email">Administrator Email</label>
         <input id="admin-email" name="email" type="email" required autocomplete="username" value="${emailVal}" />
@@ -193,7 +202,8 @@ function renderAdminGatewaySignInHtml(options?: {
     </form>
     <div class="note">
       After signing in with your temporary password, you can update your password anytime under <strong>Password &amp; security</strong> inside the Admin workspace.
-    </div>
+    </div>`
+    }
   </div>
 </body>
 </html>`;
@@ -259,12 +269,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
         userAgent: context.request.headers.get('user-agent') || undefined,
       });
 
-      const cookieDomain = resolveCookieDomain(url, isProd);
       const sessionCookie = buildSessionCookie(session.cookieValue, session.expiresAt, {
         secure: isProd,
         sameSite: 'Lax',
         path: '/',
-        domain: cookieDomain,
       });
       const gateCookie = await buildAdminGateCookie(
         session.sessionId,
@@ -294,10 +302,24 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  if (
-    url.pathname === '/__admin_auth/logout' &&
-    (context.request.method === 'POST' || context.request.method === 'GET')
-  ) {
+  // GET only asks for confirmation; signing out is a same-origin POST (no logout CSRF).
+  if (url.pathname === '/__admin_auth/logout' && context.request.method === 'GET') {
+    return new Response(renderAdminGatewaySignInHtml({ confirmSignOut: true }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive',
+      },
+    });
+  }
+
+  if (url.pathname === '/__admin_auth/logout' && context.request.method === 'POST') {
+    try {
+      requireSameOrigin(context.request);
+    } catch {
+      return new Response('Cross-origin sign-out rejected.', { status: 403 });
+    }
     try {
       if (runtimeEnv.DB && signingSecret) {
         const db = getDb(runtimeEnv.DB);
@@ -309,14 +331,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     } catch {
       // Ignore cleanup errors on logout
     }
-    const cookieDomain = resolveCookieDomain(url, isProd);
+    const legacyDomain = legacySharedCookieDomain(url, isProd);
     const headers = new Headers();
-    headers.append(
-      'Set-Cookie',
-      buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/', domain: cookieDomain }),
-    );
-    if (cookieDomain) {
-      headers.append('Set-Cookie', buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/' }));
+    headers.append('Set-Cookie', buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/' }));
+    if (legacyDomain) {
+      headers.append(
+        'Set-Cookie',
+        buildClearSessionCookie({ secure: isProd, sameSite: 'Lax', path: '/', domain: legacyDomain }),
+      );
     }
     headers.append('Set-Cookie', buildClearAdminGateCookie({ secure: isProd, sameSite: 'Lax', path: '/' }));
     headers.set('Content-Type', 'text/html; charset=utf-8');
