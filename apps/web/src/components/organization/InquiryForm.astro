@@ -33,7 +33,7 @@ const next = Astro.url.pathname + Astro.url.search;
           maxlength="120"
           autocomplete="name"
           value={auth.user.displayName || ''}
-          class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm"
+          class="mt-2 block w-full rounded-xl border border-ink/50 px-3.5 py-3 text-sm"
         />
       </label>
       <p class="text-xs text-ink-soft">Signed in as {auth.user.email}</p>
@@ -43,7 +43,7 @@ const next = Astro.url.pathname + Astro.url.search;
           name="organization"
           maxlength="160"
           autocomplete="organization"
-          class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm"
+          class="mt-2 block w-full rounded-xl border border-ink/50 px-3.5 py-3 text-sm"
         />
       </label>
       <label class="block text-sm font-medium text-charcoal">
@@ -51,7 +51,7 @@ const next = Astro.url.pathname + Astro.url.search;
         <select
           name="interest"
           required
-          class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm"
+          class="mt-2 block w-full rounded-xl border border-ink/50 px-3.5 py-3 text-sm"
         >
           {[
             'Musician application',
@@ -83,7 +83,7 @@ const next = Astro.url.pathname + Astro.url.search;
           maxlength="4000"
           rows="5"
           aria-describedby="inquiry-privacy"
-          class="mt-2 block w-full rounded-xl border border-sand px-3.5 py-3 text-sm"
+          class="mt-2 block w-full rounded-xl border border-ink/50 px-3.5 py-3 text-sm"
         ></textarea>
       </label>
       <p id="inquiry-privacy" class="text-xs text-ink-soft">

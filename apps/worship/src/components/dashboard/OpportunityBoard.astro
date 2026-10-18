@@ -9,7 +9,7 @@ const roles = [...new Set(opportunities.map((o) => o.role))];
 <div data-opportunity-board>
   <label class="block max-w-sm text-sm font-semibold">
     Filter by instrument
-    <select data-role class="mt-2 block w-full rounded-2xl border border-sand bg-white px-4 py-3 text-base">
+    <select data-role class="mt-2 block w-full rounded-2xl border border-ink/50 bg-white px-4 py-3 text-base">
       <option value="">All instruments</option>
       {roles.map((role) => (
         <option>{role}</option>

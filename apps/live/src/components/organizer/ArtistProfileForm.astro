@@ -42,7 +42,8 @@
     display: block;
     width: 100%;
     margin-top: 0.5rem;
-    border: 1px solid var(--color-line);
+    /* 3.3:1 against white (WCAG 1.4.11) */
+    border: 1px solid color-mix(in srgb, var(--color-ink) 50%, transparent);
     border-radius: 0.75rem;
     padding: 0.8rem;
     background: white;
