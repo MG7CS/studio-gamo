@@ -1,0 +1,82 @@
+---
+/**
+ * OnboardingStepper — progress through role-specific onboarding steps, each its own page (form POST + 303),
+ * so it works without JS. Complete and upcoming steps with an `href` are links; the current step carries
+ * `aria-current="step"`; locked steps are plain text with a reason.
+ *
+ * Props
+ * - steps: { label: string; state: 'complete' | 'current' | 'upcoming' | 'locked'; href?: string;
+ *   description?: string }[] — `description` is shown under the label (e.g. "Saved as draft",
+ *   "Unlocks after staff review").
+ * - label?: string — accessible name of the navigation (default 'Onboarding progress').
+ * - class?: string.
+ *
+ * Layout: a vertical list on phones (fits 360 px), a wrapping row from 768 px.
+ */
+type StepState = 'complete' | 'current' | 'upcoming' | 'locked';
+
+interface Props {
+  steps: { label: string; state: StepState; href?: string; description?: string }[];
+  label?: string;
+  class?: string;
+}
+
+const { steps, label = 'Onboarding progress', class: className } = Astro.props;
+const stateText: Record<StepState, string> = {
+  complete: 'completed',
+  current: 'current step',
+  upcoming: 'not started',
+  locked: 'locked',
+};
+const badge: Record<StepState, string> = {
+  complete: 'bg-ink text-cream',
+  current: 'bg-terracotta text-white',
+  upcoming: 'border border-ink/50 bg-white text-ink',
+  locked: 'border border-dashed border-ink/50 bg-sand/60 text-muted',
+};
+---
+
+<nav aria-label={label} class={className}>
+  <ol class="flex flex-col gap-2 md:flex-row md:flex-wrap md:gap-3">
+    {steps.map((step, i) => {
+      const linked = Boolean(step.href) && step.state !== 'locked';
+      const Tag = linked ? 'a' : 'div';
+      return (
+        <li class="md:min-w-[11rem] md:flex-1">
+          <Tag
+            href={linked ? step.href : undefined}
+            aria-current={step.state === 'current' ? 'step' : undefined}
+            class:list={[
+              'flex min-h-11 items-start gap-3 rounded-2xl px-3 py-2.5',
+              step.state === 'current' ? 'bg-white ring-2 ring-terracotta' : 'bg-white/70 ring-1 ring-ink/15',
+              linked &&
+                'hover:bg-white focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:outline-none',
+            ]}
+          >
+            <span
+              class:list={[
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                badge[step.state],
+              ]}
+              aria-hidden="true"
+            >
+              {step.state === 'complete' ? '✓' : step.state === 'locked' ? '–' : i + 1}
+            </span>
+            <span class="min-w-0">
+              <span
+                class:list={[
+                  'block text-[15px] font-semibold',
+                  step.state === 'locked' ? 'text-muted' : 'text-ink',
+                ]}
+              >
+                {step.label}
+                <span class="sr-only"> ({stateText[step.state]})</span>
+              </span>
+              {step.description && <span class="block text-sm text-muted">{step.description}</span>}
+            </span>
+          </Tag>
+        </li>
+      );
+    })}
+  </ol>
+</nav>

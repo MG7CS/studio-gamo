@@ -1,0 +1,136 @@
+---
+/**
+ * TextField — one labelled text input for public forms.
+ *
+ * Props
+ * - id: string — element id (error summary links point here); hint/error ids are `${id}-hint` / `${id}-error`.
+ * - name: string — form field name.
+ * - label: string — always visible (never screen-reader-only).
+ * - type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search' (default 'text').
+ * - value?: string — server-rendered value (e.g. after a failed submit).
+ * - hint?: string — help text under the label, bound with aria-describedby.
+ * - error?: string — server-rendered error; sets aria-invalid and is bound with aria-describedby.
+ * - required?: boolean — native `required` plus a visible marker.
+ * - autocomplete?: string — e.g. 'name', 'email', 'tel', 'given-name'.
+ * - inputmode?: 'text' | 'email' | 'tel' | 'url' | 'numeric' | 'decimal' | 'search'.
+ * - placeholder?: string — an example only; never a replacement for the label.
+ * - maxlength?: number; minlength?: number; pattern?: string; spellcheck?: boolean; autocapitalize?: string.
+ * - disabled?: boolean; readonly?: boolean.
+ * - data?: Record<string, string> — extra `data-*` attributes (used by EmailField/ConfirmEmailField).
+ * - class?: string — wrapper classes.
+ *
+ * Slot `after`: content rendered after the error (EmailField's suggestion button).
+ * Styles: Inter, ink text on white, 1px ink/50 border (3.3:1, WCAG 1.4.11), 44 px min height, terracotta
+ * focus ring; error state uses terracotta-deep border + text (≥ 7:1 on white) and an "Error:" prefix.
+ */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search';
+  value?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  autocomplete?: string;
+  inputmode?: 'text' | 'email' | 'tel' | 'url' | 'numeric' | 'decimal' | 'search';
+  placeholder?: string;
+  maxlength?: number;
+  minlength?: number;
+  pattern?: string;
+  spellcheck?: boolean;
+  autocapitalize?: 'off' | 'none' | 'on' | 'sentences' | 'words' | 'characters';
+  disabled?: boolean;
+  readonly?: boolean;
+  data?: Record<string, string>;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  type = 'text',
+  value,
+  hint,
+  error,
+  required = false,
+  autocomplete,
+  inputmode,
+  placeholder,
+  maxlength,
+  minlength,
+  pattern,
+  spellcheck,
+  autocapitalize,
+  disabled = false,
+  readonly = false,
+  data = {},
+  class: className,
+} = Astro.props;
+
+const hintId = `${id}-hint`;
+const errorId = `${id}-error`;
+const describedBy = [hint ? hintId : null, errorId].filter(Boolean).join(' ');
+const dataAttributes = Object.fromEntries(
+  Object.entries(data).map(([k, v]) => [`data-${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`, v]),
+);
+---
+
+<div class:list={['gamo-field', className]}>
+  <label for={id} class="block text-[15px] font-semibold text-ink">
+    {label}
+    {required && (
+      <span class="font-normal text-muted">
+        {' '}
+        <span aria-hidden="true">*</span>
+        <span class="sr-only">(required)</span>
+      </span>
+    )}
+  </label>
+  {hint && (
+    <p id={hintId} class="mt-1 text-sm text-muted">
+      {hint}
+    </p>
+  )}
+  <input
+    id={id}
+    name={name}
+    type={type}
+    value={value}
+    required={required}
+    autocomplete={autocomplete}
+    inputmode={inputmode}
+    placeholder={placeholder}
+    maxlength={maxlength}
+    minlength={minlength}
+    pattern={pattern}
+    spellcheck={spellcheck === undefined ? undefined : spellcheck ? 'true' : 'false'}
+    autocapitalize={autocapitalize}
+    disabled={disabled}
+    readonly={readonly}
+    aria-describedby={describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    {...dataAttributes}
+    class:list={[
+      'mt-2 block min-h-11 w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink placeholder:text-muted/80',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
+      'disabled:cursor-not-allowed disabled:bg-sand/40',
+      error ? 'border-2 border-terracotta-deep' : 'border-ink/50 focus:border-terracotta',
+    ]}
+  />
+  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
+    <span class="sr-only">Error: </span>
+    <span data-error-text>{error}</span>
+  </p>
+  <slot name="after" />
+</div>
+
+<style>
+  /* The client module toggles aria-invalid on inputs it validates; mirror the server error style. */
+  .gamo-field input[aria-invalid='true'] {
+    border-width: 2px;
+    border-color: var(--color-terracotta-deep);
+  }
+</style>

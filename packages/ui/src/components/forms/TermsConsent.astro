@@ -1,0 +1,86 @@
+---
+/**
+ * TermsConsent — the required "I agree to the … and …" checkbox, plus hidden inputs naming exactly which
+ * documents and versions were shown (`terms_slug` / `terms_version`, one pair per document, in order), so
+ * the server can record them with `recordTermsAcceptance` and refuse a stale page.
+ *
+ * Props
+ * - documents: { slug: string; label: string; href: string; version: string }[] — build with
+ *   `termsConsentDocuments()` from `lib/terms-links` (links go to gamostudio.org/legal/<slug>).
+ * - id?: string (default 'terms-accept'); name?: string (default 'terms_accept'; value 'yes').
+ * - error?: string — server-rendered "Please agree to the terms to continue."
+ * - newTab?: boolean — open the documents in a new tab (default false: same tab).
+ * - class?: string.
+ *
+ * Never pre-checked (there is no `checked` prop).
+ */
+import type { TermsConsentDocument } from '../../lib/terms-links';
+
+interface Props {
+  documents: TermsConsentDocument[];
+  id?: string;
+  name?: string;
+  error?: string;
+  newTab?: boolean;
+  class?: string;
+}
+
+const {
+  documents,
+  id = 'terms-accept',
+  name = 'terms_accept',
+  error,
+  newTab = false,
+  class: className,
+} = Astro.props;
+const errorId = `${id}-error`;
+const joiner = (i: number) => (i === 0 ? '' : i === documents.length - 1 ? ' and ' : ', ');
+---
+
+<div class:list={['gamo-field', className]}>
+  {documents.map((doc) => (
+    <>
+      <input type="hidden" name="terms_slug" value={doc.slug} />
+      <input type="hidden" name="terms_version" value={doc.version} />
+    </>
+  ))}
+  <div class="flex min-h-11 items-start gap-3">
+    <input
+      id={id}
+      name={name}
+      type="checkbox"
+      value="yes"
+      required
+      aria-describedby={errorId}
+      aria-invalid={error ? 'true' : undefined}
+      data-server-error={error ? 'true' : undefined}
+      class:list={[
+        'mt-0.5 h-6 w-6 shrink-0 rounded border-ink/60 accent-terracotta',
+        'focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:outline-none',
+        error && 'outline-2 outline-terracotta-deep',
+      ]}
+    />
+    <label for={id} class="text-[15px] leading-6 text-ink">
+      I agree to the{' '}
+      {documents.map((doc, i) => (
+        <>
+          {joiner(i)}
+          <a
+            href={doc.href}
+            target={newTab ? '_blank' : undefined}
+            rel={newTab ? 'noopener' : undefined}
+            class="font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink"
+          >
+            {doc.label}
+            {newTab && <span class="sr-only"> (opens in a new tab)</span>}
+          </a>
+        </>
+      ))}
+      .
+    </label>
+  </div>
+  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
+    <span class="sr-only">Error: </span>
+    <span data-error-text>{error}</span>
+  </p>
+</div>
