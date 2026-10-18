@@ -1,0 +1,47 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: setOrganizerAlwaysReview
+  tags:
+    - Administration
+  summary: Turn "review every event" on or off for an organizer
+  description: >-
+    Sets organizer_profiles.always_review and writes an audit row. Redirects 303 to
+    /review/events.
+  security:
+    - CloudflareAccess: []
+      BrowserSession: []
+  x-application: admin
+  x-status: implemented
+  x-authorization: Staff boundary plus staff session (staff_reviewer or superadmin).
+  x-idempotency: Setting the same value again changes nothing.
+  x-source: apps/admin/src/pages/api/review/organizers/[id].ts
+  x-internal: true
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '303':
+      description: Form handled; redirects back to the page with the outcome in the query string.
+      headers:
+        Location:
+          schema:
+            type: string
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '415':
+      $ref: ../components/responses/LegacyError.yaml
+    '500':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/administration/OrganizerReviewForm.yaml

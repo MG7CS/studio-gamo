@@ -1,0 +1,14 @@
+type: object
+additionalProperties: false
+properties:
+  decision:
+    type: string
+    enum:
+      - approved
+      - rejected
+      - revision_requested
+  notes:
+    type: string
+    maxLength: 2000
+required:
+  - decision

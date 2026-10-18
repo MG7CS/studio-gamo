@@ -1,0 +1,69 @@
+---
+/**
+ * TextAreaField — a labelled multi-line field matching `forms/TextField` (visible label, hint and error
+ * bound with aria-describedby, aria-invalid on error, ≥ 44 px, terracotta focus ring).
+ */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  value?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  maxlength?: number;
+  rows?: number;
+  autocomplete?: string;
+}
+const {
+  id,
+  name,
+  label,
+  value = '',
+  hint,
+  error,
+  required = false,
+  maxlength,
+  rows = 4,
+  autocomplete,
+} = Astro.props;
+const hintId = `${id}-hint`;
+const errorId = `${id}-error`;
+---
+
+<div class="gamo-field">
+  <label for={id} class="block text-[15px] font-semibold text-ink">
+    {label}
+    {required && (
+      <span class="font-normal text-muted">
+        {' '}
+        <span aria-hidden="true">*</span>
+        <span class="sr-only">(required)</span>
+      </span>
+    )}
+  </label>
+  {hint && (
+    <p id={hintId} class="mt-1 text-sm text-muted">
+      {hint}
+    </p>
+  )}
+  <textarea
+    id={id}
+    name={name}
+    rows={rows}
+    required={required}
+    maxlength={maxlength}
+    autocomplete={autocomplete}
+    aria-describedby={[hint ? hintId : null, errorId].filter(Boolean).join(' ')}
+    aria-invalid={error ? 'true' : undefined}
+    class:list={[
+      'mt-2 block min-h-11 w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
+      error ? 'border-2 border-terracotta-deep' : 'border-ink/50 focus:border-terracotta',
+    ]}
+  >{value}</textarea>
+  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
+    <span class="sr-only">Error: </span>
+    <span data-error-text>{error}</span>
+  </p>
+</div>

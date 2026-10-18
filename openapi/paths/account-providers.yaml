@@ -1,0 +1,54 @@
+servers:
+  - url: http://127.0.0.1:4322
+    description: Local worship application
+post:
+  operationId: changeProviderProfile
+  tags:
+    - Identity and Accounts
+  summary: Provider onboarding steps, terms, submit for review and publish
+  description: >-
+    Plain HTML form post used by /account/onboarding and /account/profile. start creates the
+    draft profile for one of this product's sign-up roles; save stores one onboarding step as a draft
+    (invalid fields are listed in the redirect); terms records the current Provider (or Organizer) Terms;
+    submit sends the profile to staff review (verified email, complete profile and current terms
+    required); publish lists it when every publish gate holds (staff verification for church, musician,
+    technician and teacher; payout setup is not available yet and never blocks a profile); unpublish
+    takes it off public view. Redirects 303 to the page with the outcome in the query string.
+  security:
+    - BrowserSession: []
+  x-application: worship
+  x-replicated-applications: [live, academy, production]
+  x-status: implemented
+  x-authorization: >-
+    Verified session with an active account in this product; same origin; the profile must
+    belong to the signed-in person.
+  x-idempotency: >-
+    start and submit are idempotent; save overwrites the same step; publish is conditional
+    on the status read.
+  x-source: apps/worship/src/pages/api/account/providers.ts
+  parameters: []
+  responses:
+    '303':
+      description: Form handled; redirects back to the page with the outcome in the query string.
+      headers:
+        Location:
+          schema:
+            type: string
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '413':
+      $ref: ../components/responses/LegacyError.yaml
+    '415':
+      $ref: ../components/responses/LegacyError.yaml
+    '500':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/identity/ProviderAccountForm.yaml

@@ -450,6 +450,12 @@
           "403": {
             "$ref": "#/components/responses/LegacyError"
           },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
           "429": {
             "$ref": "#/components/responses/LegacyError"
           },
@@ -519,6 +525,12 @@
           "403": {
             "$ref": "#/components/responses/LegacyError"
           },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
           "429": {
             "$ref": "#/components/responses/LegacyError"
           },
@@ -579,10 +591,16 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
           "401": {
             "$ref": "#/components/responses/LegacyError"
           },
           "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
             "$ref": "#/components/responses/LegacyError"
           },
           "500": {
@@ -590,6 +608,16 @@
           },
           "503": {
             "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClerkSessionInput"
+              }
+            }
           }
         }
       }
@@ -2216,6 +2244,433 @@
         },
         "x-internal": true
       }
+    },
+    "/api/auth/clerk-webhook": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "receiveClerkWebhook",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Receive a Svix-signed event from this product's own Clerk application",
+        "description": "Verified with CLERK_WEBHOOK_SECRET_<APP> (Svix scheme, 5-minute timestamp tolerance). session.ended, session.revoked and session.removed revoke the D1 sessions exchanged from that Clerk session id in this product; user.deleted and user.banned revoke every D1 session of the linked user in this product, and user.deleted also suspends the Clerk identity link. Other events are ignored with 200. Answers 503 when the secret is not configured.",
+        "security": [],
+        "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
+        "x-status": "implemented",
+        "x-authorization": "Svix signature with this product's Clerk webhook secret.",
+        "x-idempotency": "Revocations are conditional; replays change nothing.",
+        "x-source": "apps/web/src/pages/api/auth/clerk-webhook.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Event verified and applied (or ignored).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClerkWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClerkWebhookEvent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account/person-link": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local web application"
+        }
+      ],
+      "post": {
+        "operationId": "changePersonLink",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Unlink (or link again) this product's account from the shared person record",
+        "description": "Plain HTML form post (no JavaScript needed). unlink clears users.person_id and writes a person.unlinked audit row, which also stops automatic re-linking at the next sign-in; link re-attaches the account to the person of its verified email. Never grants access in another product. Redirects 303 to /account with person=unlinked|linked|unchanged or error=<code>.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "web",
+        "x-replicated-applications": [
+          "live",
+          "worship",
+          "academy",
+          "production"
+        ],
+        "x-status": "implemented",
+        "x-authorization": "Verified session with an active account in this product; same origin.",
+        "x-idempotency": "Repeating the same action leaves the link unchanged.",
+        "x-source": "apps/web/src/pages/api/account/person-link.ts",
+        "parameters": [],
+        "responses": {
+          "303": {
+            "description": "Form handled; redirects back to the page with the outcome in the query string.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonLinkForm"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account/providers": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4322",
+          "description": "Local worship application"
+        }
+      ],
+      "post": {
+        "operationId": "changeProviderProfile",
+        "tags": [
+          "Identity and Accounts"
+        ],
+        "summary": "Provider onboarding steps, terms, submit for review and publish",
+        "description": "Plain HTML form post used by /account/onboarding and /account/profile. start creates the draft profile for one of this product's sign-up roles; save stores one onboarding step as a draft (invalid fields are listed in the redirect); terms records the current Provider (or Organizer) Terms; submit sends the profile to staff review (verified email, complete profile and current terms required); publish lists it when every publish gate holds (staff verification for church, musician, technician and teacher; payout setup is not available yet and never blocks a profile); unpublish takes it off public view. Redirects 303 to the page with the outcome in the query string.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "worship",
+        "x-replicated-applications": [
+          "live",
+          "academy",
+          "production"
+        ],
+        "x-status": "implemented",
+        "x-authorization": "Verified session with an active account in this product; same origin; the profile must belong to the signed-in person.",
+        "x-idempotency": "start and submit are idempotent; save overwrites the same step; publish is conditional on the status read.",
+        "x-source": "apps/worship/src/pages/api/account/providers.ts",
+        "parameters": [],
+        "responses": {
+          "303": {
+            "description": "Form handled; redirects back to the page with the outcome in the query string.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderAccountForm"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/providers/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "reviewProviderProfile",
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Staff decision on a provider profile (church verification and provider review)",
+        "description": "schedule_meeting (date/time in the given IANA zone, default America/Phoenix; location; attending staff), start_review, verify (notes required; churches only after a scheduled meeting), request_changes (message), reject, suspend, reinstate. One D1 batch per decision: a status UPDATE conditional on expected_status, then the verification_records and audit_logs rows. A stale form or a concurrent decision changes nothing (error=CONFLICT). Self-review is refused. The provider is emailed through the outbox (honest when email is not configured). Redirects 303 to the review detail page.",
+        "security": [
+          {
+            "CloudflareAccess": [],
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "implemented",
+        "x-authorization": "Staff boundary plus staff session (staff_reviewer or superadmin).",
+        "x-idempotency": "Conditional on expected_status; a repeated submission is refused as stale.",
+        "x-source": "apps/admin/src/pages/api/review/providers/[id].ts",
+        "x-internal": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Form handled; redirects back to the page with the outcome in the query string.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderReviewForm"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/events/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "reviewOrganizerEvent",
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Staff decision on an event waiting for review (organizer first-event review)",
+        "description": "Plain HTML form wrapper over AdminService.reviewEvent. On the organizer's first approval it sets organizer_profiles.first_event_approved_at (once) and records a verification_records row for the event. Self-moderation and already-reviewed events are refused. Redirects 303 to /review/events.",
+        "security": [
+          {
+            "CloudflareAccess": [],
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "implemented",
+        "x-authorization": "Staff boundary plus staff session (staff_reviewer or superadmin).",
+        "x-idempotency": "Only an event still pending review can be decided.",
+        "x-source": "apps/admin/src/pages/api/review/events/[id].ts",
+        "x-internal": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Form handled; redirects back to the page with the outcome in the query string.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/EventReviewForm"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/review/organizers/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "setOrganizerAlwaysReview",
+        "tags": [
+          "Administration"
+        ],
+        "summary": "Turn \"review every event\" on or off for an organizer",
+        "description": "Sets organizer_profiles.always_review and writes an audit row. Redirects 303 to /review/events.",
+        "security": [
+          {
+            "CloudflareAccess": [],
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "implemented",
+        "x-authorization": "Staff boundary plus staff session (staff_reviewer or superadmin).",
+        "x-idempotency": "Setting the same value again changes nothing.",
+        "x-source": "apps/admin/src/pages/api/review/organizers/[id].ts",
+        "x-internal": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Form handled; redirects back to the page with the outcome in the query string.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "415": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizerReviewForm"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2441,6 +2896,11 @@
               },
               "message": {
                 "type": "string"
+              },
+              "next": {
+                "type": "string",
+                "description": "Same-site path to continue at (provider onboarding after a sign-up with a role).",
+                "pattern": "^/account/"
               }
             },
             "required": [
@@ -2519,6 +2979,24 @@
               "live",
               "production"
             ]
+          },
+          "role": {
+            "type": "string",
+            "description": "Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).",
+            "enum": [
+              "musician",
+              "technician",
+              "church",
+              "agent",
+              "organizer",
+              "teacher",
+              "artist"
+            ]
+          },
+          "cf-turnstile-response": {
+            "type": "string",
+            "maxLength": 4096,
+            "description": "Cloudflare Turnstile token (required outside ENVIRONMENT=local; local accepts the documented dummy token)."
           }
         },
         "required": [
@@ -2604,6 +3082,31 @@
               "live",
               "production"
             ]
+          },
+          "role": {
+            "type": "string",
+            "description": "Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).",
+            "enum": [
+              "musician",
+              "technician",
+              "church",
+              "agent",
+              "organizer",
+              "teacher",
+              "artist"
+            ]
+          },
+          "terms": {
+            "type": "array",
+            "maxItems": 10,
+            "description": "Sign-up only — the terms documents the form showed (current Site Terms and Privacy Policy versions are required).",
+            "items": {
+              "$ref": "#/components/schemas/TermsDocumentRef"
+            }
+          },
+          "marketingOptIn": {
+            "type": "boolean",
+            "description": "Sign-up only — the separate, never pre-ticked marketing checkbox."
           }
         },
         "required": [
@@ -5375,6 +5878,276 @@
             }
           }
         }
+      },
+      "TermsDocumentRef": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "slug",
+          "version"
+        ]
+      },
+      "ClerkSessionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Optional body of the Clerk token exchange; carries what the sign-up screen collected.",
+        "properties": {
+          "intent": {
+            "type": "string",
+            "enum": [
+              "signin",
+              "signup",
+              "recover"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "description": "Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).",
+            "enum": [
+              "musician",
+              "technician",
+              "church",
+              "agent",
+              "organizer",
+              "teacher",
+              "artist"
+            ]
+          },
+          "terms": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/TermsDocumentRef"
+            }
+          },
+          "marketingOptIn": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ClerkWebhookEvent": {
+        "type": "object",
+        "description": "Clerk webhook payload (only type and data.id are read).",
+        "additionalProperties": true,
+        "properties": {
+          "type": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "ClerkWebhookResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "received": {
+                "const": true
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "revoked",
+                  "ignored"
+                ]
+              },
+              "sessionsRevoked": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "received",
+              "status",
+              "sessionsRevoked"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "PersonLinkForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "unlink",
+              "link"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "ProviderAccountForm": {
+        "type": "object",
+        "description": "Onboarding form fields. Besides the listed controls, a save carries the step's own fields (role-specific, validated server-side by the step schema) as plain strings.",
+        "additionalProperties": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "start",
+              "save",
+              "terms",
+              "submit",
+              "publish",
+              "unpublish"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "musician",
+              "technician",
+              "church",
+              "agent",
+              "organizer",
+              "teacher",
+              "artist"
+            ]
+          },
+          "step": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "terms_slug": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "terms_version": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "terms_accept": {
+            "type": "string",
+            "enum": [
+              "yes"
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "role"
+        ]
+      },
+      "ProviderReviewForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "schedule_meeting",
+              "start_review",
+              "verify",
+              "request_changes",
+              "reject",
+              "suspend",
+              "reinstate"
+            ]
+          },
+          "expected_status": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "meeting_at": {
+            "type": "string",
+            "description": "Local date and time (YYYY-MM-DDTHH:MM) in meeting_zone.",
+            "maxLength": 20
+          },
+          "meeting_zone": {
+            "type": "string",
+            "description": "IANA time zone of meeting_at (default America/Phoenix).",
+            "maxLength": 64
+          },
+          "meeting_location": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "meeting_staff": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "action",
+          "expected_status"
+        ]
+      },
+      "EventReviewForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected",
+              "revision_requested"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "OrganizerReviewForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "always_review": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        "required": [
+          "always_review"
+        ]
       },
       "category": {
         "type": "string",

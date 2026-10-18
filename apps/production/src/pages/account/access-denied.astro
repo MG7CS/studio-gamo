@@ -1,23 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import AccessDenied from '@studio-gamo/ui/components/account/AccessDenied.astro';
 Astro.response.status = 403;
 ---
 
-<Layout title="Workspace Access">
-  <section class="mx-auto max-w-xl px-5 pb-20 pt-32">
-    <h1 class="text-3xl font-semibold">This workspace needs program access.</h1>
-    <p class="mt-5">
-      Your current session does not have the required Gamo Production membership or role permission for this
-      workspace. Registering for another Gamo product does not automatically grant Gamo Production access, and
-      signing up does not grant a production crew or staff role.
-    </p>
-    <div class="mt-7 flex flex-wrap gap-5">
-      <a href="/account/signup" class="font-semibold text-terracotta">
-        Create a Gamo Production account →
-      </a>
-      <a href="/account" class="font-semibold text-charcoal underline">
-        Return to your account
-      </a>
-    </div>
-  </section>
+<Layout
+  title="Access Needed — Gamo Production"
+  description="This part of Gamo Production needs a role or verification."
+>
+  <AccessDenied program="Gamo Production" reason={Astro.url.searchParams.get('reason')} />
 </Layout>

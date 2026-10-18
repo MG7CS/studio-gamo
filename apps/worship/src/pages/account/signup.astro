@@ -1,6 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+import { termsConsentDocuments } from '@studio-gamo/ui/lib/terms-links';
+import { signupScreenOptions } from '@gamo/domain';
+
+const options = signupScreenOptions('worship');
 ---
 
 <Layout
@@ -8,5 +12,11 @@ import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperien
   description="Create a verified Gamo Worship account for church worship coverage coordination and musician onboarding."
   chrome={false}
 >
-  <GamoAuthExperience mode="signup" program="Gamo Worship" />
+  <GamoAuthExperience
+    mode="signup"
+    program="Gamo Worship"
+    signupRoles={options.roles}
+    selectedRole={Astro.url.searchParams.get('role')}
+    termsDocuments={termsConsentDocuments(options.terms)}
+  />
 </Layout>

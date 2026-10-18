@@ -1177,7 +1177,7 @@ return errors === 0;
 validate28.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_SessionResponse = validate29;
-const schema43 = {"$id":"schema_SessionResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"sessionId":{"type":"string"},"message":{"type":"string"}},"required":["user","sessionId","message"]}},"required":["success","data"]};
+const schema43 = {"$id":"schema_SessionResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"sessionId":{"type":"string"},"message":{"type":"string"},"next":{"type":"string","description":"Same-site path to continue at (provider onboarding after a sign-up with a role).","pattern":"^/account/"}},"required":["user","sessionId","message"]}},"required":["success","data"]};
 const schema44 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"email":{"type":"string","format":"email"},"displayName":{"anyOf":[{"type":"string"},{"type":"null"}]},"verifiedEmailAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","email","displayName","verifiedEmailAt","status","createdAt"]};
 
 function validate30(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -1482,6 +1482,7 @@ return errors === 0;
 }
 validate30.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
+const pattern4 = new RegExp("^/account/", "u");
 
 function validate29(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_SessionResponse" */;
@@ -1573,7 +1574,7 @@ vErrors.push(err6);
 errors++;
 }
 for(const key1 in data1){
-if(!(((key1 === "user") || (key1 === "sessionId")) || (key1 === "message"))){
+if(!((((key1 === "user") || (key1 === "sessionId")) || (key1 === "message")) || (key1 === "next"))){
 const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err7];
@@ -1614,9 +1615,11 @@ vErrors.push(err9);
 errors++;
 }
 }
-}
-else {
-const err10 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data1.next !== undefined){
+let data5 = data1.next;
+if(typeof data5 === "string"){
+if(!pattern4.test(data5)){
+const err10 = {instancePath:instancePath+"/data/next",schemaPath:"#/properties/data/properties/next/pattern",keyword:"pattern",params:{pattern: "^/account/"},message:"must match pattern \""+"^/account/"+"\""};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -1626,14 +1629,37 @@ vErrors.push(err10);
 errors++;
 }
 }
-}
 else {
-const err11 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err11 = {instancePath:instancePath+"/data/next",schemaPath:"#/properties/data/properties/next/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err11];
 }
 else {
 vErrors.push(err11);
+}
+errors++;
+}
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+else {
+const err13 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
 }
 errors++;
 }
@@ -1767,7 +1793,7 @@ return errors === 0;
 validate32.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AuthChallengeInput = validate33;
-const schema49 = {"$id":"schema_AuthChallengeInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"displayName":{"type":"string","minLength":1,"maxLength":120},"purpose":{"type":"string","enum":["login"],"default":"login"},"intent":{"type":"string","enum":["signin","signup","recover"]},"product":{"type":"string","enum":["web","worship","academy","live","production"]}},"required":["email"]};
+const schema49 = {"$id":"schema_AuthChallengeInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"displayName":{"type":"string","minLength":1,"maxLength":120},"purpose":{"type":"string","enum":["login"],"default":"login"},"intent":{"type":"string","enum":["signin","signup","recover"]},"product":{"type":"string","enum":["web","worship","academy","live","production"]},"role":{"type":"string","description":"Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).","enum":["musician","technician","church","agent","organizer","teacher","artist"]},"cf-turnstile-response":{"type":"string","maxLength":4096,"description":"Cloudflare Turnstile token (required outside ENVIRONMENT=local; local accepts the documented dummy token)."}},"required":["email"]};
 
 function validate33(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_AuthChallengeInput" */;
@@ -1792,7 +1818,7 @@ vErrors.push(err0);
 errors++;
 }
 for(const key0 in data){
-if(!(((((key0 === "email") || (key0 === "displayName")) || (key0 === "purpose")) || (key0 === "intent")) || (key0 === "product"))){
+if(!(((((((key0 === "email") || (key0 === "displayName")) || (key0 === "purpose")) || (key0 === "intent")) || (key0 === "product")) || (key0 === "role")) || (key0 === "cf-turnstile-response"))){
 const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err1];
@@ -1952,14 +1978,62 @@ vErrors.push(err14);
 errors++;
 }
 }
-}
-else {
-const err15 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.role !== undefined){
+let data5 = data.role;
+if(typeof data5 !== "string"){
+const err15 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err15];
 }
 else {
 vErrors.push(err15);
+}
+errors++;
+}
+if(!(((((((data5 === "musician") || (data5 === "technician")) || (data5 === "church")) || (data5 === "agent")) || (data5 === "organizer")) || (data5 === "teacher")) || (data5 === "artist"))){
+const err16 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema49.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+if(data["cf-turnstile-response"] !== undefined){
+let data6 = data["cf-turnstile-response"];
+if(typeof data6 === "string"){
+if(func1(data6) > 4096){
+const err17 = {instancePath:instancePath+"/cf-turnstile-response",schemaPath:"#/properties/cf-turnstile-response/maxLength",keyword:"maxLength",params:{limit: 4096},message:"must NOT have more than 4096 characters"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+}
+else {
+const err18 = {instancePath:instancePath+"/cf-turnstile-response",schemaPath:"#/properties/cf-turnstile-response/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+}
+}
+else {
+const err19 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
 }
 errors++;
 }
@@ -2196,8 +2270,9 @@ return errors === 0;
 validate34.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AuthVerifyInput = validate35;
-const schema53 = {"$id":"schema_AuthVerifyInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"code":{"type":"string","pattern":"^[0-9]{6}$","minLength":6,"maxLength":6},"displayName":{"type":"string","minLength":1,"maxLength":120},"intent":{"type":"string","enum":["signin","signup","recover"]},"product":{"type":"string","enum":["web","worship","academy","live","production"]}},"required":["email","code"]};
-const pattern4 = new RegExp("^[0-9]{6}$", "u");
+const schema53 = {"$id":"schema_AuthVerifyInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"code":{"type":"string","pattern":"^[0-9]{6}$","minLength":6,"maxLength":6},"displayName":{"type":"string","minLength":1,"maxLength":120},"intent":{"type":"string","enum":["signin","signup","recover"]},"product":{"type":"string","enum":["web","worship","academy","live","production"]},"role":{"type":"string","description":"Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).","enum":["musician","technician","church","agent","organizer","teacher","artist"]},"terms":{"type":"array","maxItems":10,"description":"Sign-up only — the terms documents the form showed (current Site Terms and Privacy Policy versions are required).","items":{"$ref":"gamo#/components/schemas/TermsDocumentRef"}},"marketingOptIn":{"type":"boolean","description":"Sign-up only — the separate, never pre-ticked marketing checkbox."}},"required":["email","code"]};
+const schema54 = {"type":"object","additionalProperties":false,"properties":{"slug":{"type":"string","minLength":2,"maxLength":64},"version":{"type":"string","minLength":1,"maxLength":32}},"required":["slug","version"]};
+const pattern5 = new RegExp("^[0-9]{6}$", "u");
 
 function validate35(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_AuthVerifyInput" */;
@@ -2232,7 +2307,7 @@ vErrors.push(err1);
 errors++;
 }
 for(const key0 in data){
-if(!(((((key0 === "email") || (key0 === "code")) || (key0 === "displayName")) || (key0 === "intent")) || (key0 === "product"))){
+if(!((((((((key0 === "email") || (key0 === "code")) || (key0 === "displayName")) || (key0 === "intent")) || (key0 === "product")) || (key0 === "role")) || (key0 === "terms")) || (key0 === "marketingOptIn"))){
 const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err2];
@@ -2311,7 +2386,7 @@ vErrors.push(err8);
 }
 errors++;
 }
-if(!pattern4.test(data1)){
+if(!pattern5.test(data1)){
 const err9 = {instancePath:instancePath+"/code",schemaPath:"#/properties/code/pattern",keyword:"pattern",params:{pattern: "^[0-9]{6}$"},message:"must match pattern \""+"^[0-9]{6}$"+"\""};
 if(vErrors === null){
 vErrors = [err9];
@@ -2414,14 +2489,192 @@ vErrors.push(err17);
 errors++;
 }
 }
-}
-else {
-const err18 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.role !== undefined){
+let data5 = data.role;
+if(typeof data5 !== "string"){
+const err18 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err18];
 }
 else {
 vErrors.push(err18);
+}
+errors++;
+}
+if(!(((((((data5 === "musician") || (data5 === "technician")) || (data5 === "church")) || (data5 === "agent")) || (data5 === "organizer")) || (data5 === "teacher")) || (data5 === "artist"))){
+const err19 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema53.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err19];
+}
+else {
+vErrors.push(err19);
+}
+errors++;
+}
+}
+if(data.terms !== undefined){
+let data6 = data.terms;
+if(Array.isArray(data6)){
+if(data6.length > 10){
+const err20 = {instancePath:instancePath+"/terms",schemaPath:"#/properties/terms/maxItems",keyword:"maxItems",params:{limit: 10},message:"must NOT have more than 10 items"};
+if(vErrors === null){
+vErrors = [err20];
+}
+else {
+vErrors.push(err20);
+}
+errors++;
+}
+const len0 = data6.length;
+for(let i0=0; i0<len0; i0++){
+let data7 = data6[i0];
+if(data7 && typeof data7 == "object" && !Array.isArray(data7)){
+if(data7.slug === undefined){
+const err21 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err21];
+}
+else {
+vErrors.push(err21);
+}
+errors++;
+}
+if(data7.version === undefined){
+const err22 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/required",keyword:"required",params:{missingProperty: "version"},message:"must have required property '"+"version"+"'"};
+if(vErrors === null){
+vErrors = [err22];
+}
+else {
+vErrors.push(err22);
+}
+errors++;
+}
+for(const key1 in data7){
+if(!((key1 === "slug") || (key1 === "version"))){
+const err23 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err23];
+}
+else {
+vErrors.push(err23);
+}
+errors++;
+}
+}
+if(data7.slug !== undefined){
+let data8 = data7.slug;
+if(typeof data8 === "string"){
+if(func1(data8) > 64){
+const err24 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/maxLength",keyword:"maxLength",params:{limit: 64},message:"must NOT have more than 64 characters"};
+if(vErrors === null){
+vErrors = [err24];
+}
+else {
+vErrors.push(err24);
+}
+errors++;
+}
+if(func1(data8) < 2){
+const err25 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/minLength",keyword:"minLength",params:{limit: 2},message:"must NOT have fewer than 2 characters"};
+if(vErrors === null){
+vErrors = [err25];
+}
+else {
+vErrors.push(err25);
+}
+errors++;
+}
+}
+else {
+const err26 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err26];
+}
+else {
+vErrors.push(err26);
+}
+errors++;
+}
+}
+if(data7.version !== undefined){
+let data9 = data7.version;
+if(typeof data9 === "string"){
+if(func1(data9) > 32){
+const err27 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+if(vErrors === null){
+vErrors = [err27];
+}
+else {
+vErrors.push(err27);
+}
+errors++;
+}
+if(func1(data9) < 1){
+const err28 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err28];
+}
+else {
+vErrors.push(err28);
+}
+errors++;
+}
+}
+else {
+const err29 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err29];
+}
+else {
+vErrors.push(err29);
+}
+errors++;
+}
+}
+}
+else {
+const err30 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err30];
+}
+else {
+vErrors.push(err30);
+}
+errors++;
+}
+}
+}
+else {
+const err31 = {instancePath:instancePath+"/terms",schemaPath:"#/properties/terms/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err31];
+}
+else {
+vErrors.push(err31);
+}
+errors++;
+}
+}
+if(data.marketingOptIn !== undefined){
+if(typeof data.marketingOptIn !== "boolean"){
+const err32 = {instancePath:instancePath+"/marketingOptIn",schemaPath:"#/properties/marketingOptIn/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err32];
+}
+else {
+vErrors.push(err32);
+}
+errors++;
+}
+}
+}
+else {
+const err33 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err33];
+}
+else {
+vErrors.push(err33);
 }
 errors++;
 }
@@ -2431,7 +2684,7 @@ return errors === 0;
 validate35.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_OrganizationMembershipSummary = validate36;
-const schema54 = {"$id":"schema_OrganizationMembershipSummary","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
+const schema55 = {"$id":"schema_OrganizationMembershipSummary","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
 
 function validate36(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_OrganizationMembershipSummary" */;
@@ -2579,7 +2832,7 @@ vErrors.push(err11);
 errors++;
 }
 if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
-const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema54.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
+const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema55.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -2602,7 +2855,7 @@ vErrors.push(err13);
 errors++;
 }
 if(!((((data4 === "owner") || (data4 === "admin")) || (data4 === "coordinator")) || (data4 === "member"))){
-const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema54.properties.role.enum},message:"must be equal to one of the allowed values"};
+const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema55.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err14];
 }
@@ -2641,7 +2894,7 @@ return errors === 0;
 validate36.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AuthMeResponse = validate37;
-const schema56 = {"$id":"schema_AuthMeResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"sessionId":{"type":"string"},"roles":{"type":"array","items":{"type":"string"}},"memberships":{"type":"array","items":{"$ref":"gamo#/components/schemas/OrganizationMembershipSummary"}},"products":{"type":"array","items":{"type":"string"}},"product":{"type":["string","null"]}},"required":["user","sessionId","roles","memberships"]}},"required":["success","data"]};
+const schema57 = {"$id":"schema_AuthMeResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"sessionId":{"type":"string"},"roles":{"type":"array","items":{"type":"string"}},"memberships":{"type":"array","items":{"$ref":"gamo#/components/schemas/OrganizationMembershipSummary"}},"products":{"type":"array","items":{"type":"string"}},"product":{"type":["string","null"]}},"required":["user","sessionId","roles","memberships"]}},"required":["success","data"]};
 
 function validate38(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -2945,7 +3198,7 @@ return errors === 0;
 }
 validate38.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-const schema61 = {"type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
+const schema62 = {"type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"#/components/schemas/Identifier"},"organizationName":{"type":"string"},"organizationSlug":{"type":"string"},"organizationType":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"role":{"type":"string","enum":["owner","admin","coordinator","member"]},"status":{"type":"string"}},"required":["organizationId","organizationName","organizationSlug","organizationType","role","status"]};
 
 function validate40(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -3092,7 +3345,7 @@ vErrors.push(err11);
 errors++;
 }
 if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
-const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema61.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
+const err12 = {instancePath:instancePath+"/organizationType",schemaPath:"#/properties/organizationType/enum",keyword:"enum",params:{allowedValues: schema62.properties.organizationType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -3115,7 +3368,7 @@ vErrors.push(err13);
 errors++;
 }
 if(!((((data4 === "owner") || (data4 === "admin")) || (data4 === "coordinator")) || (data4 === "member"))){
-const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema61.properties.role.enum},message:"must be equal to one of the allowed values"};
+const err14 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema62.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err14];
 }
@@ -3364,7 +3617,7 @@ errors++;
 if(data1.product !== undefined){
 let data10 = data1.product;
 if((typeof data10 !== "string") && (data10 !== null)){
-const err15 = {instancePath:instancePath+"/data/product",schemaPath:"#/properties/data/properties/product/type",keyword:"type",params:{type: schema56.properties.data.properties.product.type},message:"must be string,null"};
+const err15 = {instancePath:instancePath+"/data/product",schemaPath:"#/properties/data/properties/product/type",keyword:"type",params:{type: schema57.properties.data.properties.product.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -3403,7 +3656,7 @@ return errors === 0;
 validate37.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_Organization = validate42;
-const schema63 = {"$id":"schema_Organization","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
+const schema64 = {"$id":"schema_Organization","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
 
 function validate42(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Organization" */;
@@ -3561,7 +3814,7 @@ vErrors.push(err12);
 errors++;
 }
 if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
-const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema63.properties.type.enum},message:"must be equal to one of the allowed values"};
+const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema64.properties.type.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -3689,8 +3942,8 @@ return errors === 0;
 validate42.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateOrganizationInput = validate43;
-const schema67 = {"$id":"schema_CreateOrganizationInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":2,"maxLength":160},"slug":{"type":"string","pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","minLength":2,"maxLength":80},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]}},"required":["name","slug","type"]};
-const pattern5 = new RegExp("^[a-z0-9]+(?:-[a-z0-9]+)*$", "u");
+const schema68 = {"$id":"schema_CreateOrganizationInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":2,"maxLength":160},"slug":{"type":"string","pattern":"^[a-z0-9]+(?:-[a-z0-9]+)*$","minLength":2,"maxLength":80},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]}},"required":["name","slug","type"]};
+const pattern6 = new RegExp("^[a-z0-9]+(?:-[a-z0-9]+)*$", "u");
 
 function validate43(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateOrganizationInput" */;
@@ -3804,7 +4057,7 @@ vErrors.push(err8);
 }
 errors++;
 }
-if(!pattern5.test(data1)){
+if(!pattern6.test(data1)){
 const err9 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/pattern",keyword:"pattern",params:{pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"},message:"must match pattern \""+"^[a-z0-9]+(?:-[a-z0-9]+)*$"+"\""};
 if(vErrors === null){
 vErrors = [err9];
@@ -3839,7 +4092,7 @@ vErrors.push(err11);
 errors++;
 }
 if(!(((((data2 === "church") || (data2 === "ministry")) || (data2 === "school")) || (data2 === "sponsor")) || (data2 === "other"))){
-const err12 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema67.properties.type.enum},message:"must be equal to one of the allowed values"};
+const err12 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema68.properties.type.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err12];
 }
@@ -3866,8 +4119,8 @@ return errors === 0;
 validate43.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateOrganizationResponse = validate44;
-const schema68 = {"$id":"schema_CreateOrganizationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"organization":{"$ref":"gamo#/components/schemas/Organization"},"membershipRole":{"type":"string","const":"owner"},"message":{"type":"string"}},"required":["organization","membershipRole","message"]}},"required":["success","data"]};
-const schema69 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
+const schema69 = {"$id":"schema_CreateOrganizationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"organization":{"$ref":"gamo#/components/schemas/Organization"},"membershipRole":{"type":"string","const":"owner"},"message":{"type":"string"}},"required":["organization","membershipRole","message"]}},"required":["success","data"]};
+const schema70 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"slug":{"type":"string"},"type":{"type":"string","enum":["church","ministry","school","sponsor","other"]},"verifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"status":{"type":"string"},"createdAt":{"$ref":"#/components/schemas/Timestamp"}},"required":["id","name","slug","type","verifiedAt","status","createdAt"]};
 
 function validate45(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -4024,7 +4277,7 @@ vErrors.push(err12);
 errors++;
 }
 if(!(((((data3 === "church") || (data3 === "ministry")) || (data3 === "school")) || (data3 === "sponsor")) || (data3 === "other"))){
-const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema69.properties.type.enum},message:"must be equal to one of the allowed values"};
+const err13 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/enum",keyword:"enum",params:{allowedValues: schema70.properties.type.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -4323,7 +4576,7 @@ return errors === 0;
 validate44.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_TierInput = validate47;
-const schema73 = {"$id":"schema_TierInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
+const schema74 = {"$id":"schema_TierInput","type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
 
 function validate47(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_TierInput" */;
@@ -4463,7 +4716,7 @@ return errors === 0;
 validate47.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_Tier = validate48;
-const schema74 = {"$id":"schema_Tier","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
+const schema75 = {"$id":"schema_Tier","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
 
 function validate48(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Tier" */;
@@ -4765,9 +5018,9 @@ return errors === 0;
 validate48.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateEvent = validate49;
-const schema77 = {"$id":"schema_CreateEvent","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string","minLength":3,"maxLength":150},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"type":"string","maxLength":250},"description":{"type":"string","minLength":20},"venueName":{"type":"string","minLength":2},"address":{"type":"string"},"city":{"type":"string","minLength":2},"state":{"type":"string","minLength":2,"maxLength":50},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"timezone":{"type":"string","default":"America/Phoenix","description":"IANA timezone; validated by Intl.DateTimeFormat."},"admissionType":{"type":"string","enum":["free","paid","external"],"default":"free"},"photoKey":{"type":"string"},"externalUrl":{"anyOf":[{"type":"string","format":"uri"},{"const":""}]},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/TierInput"}}},"required":["organizationId","title","category","description","venueName","city","state","startsAt"]};
-const schema81 = {"type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
-const func27 = Object.prototype.hasOwnProperty;
+const schema78 = {"$id":"schema_CreateEvent","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string","minLength":3,"maxLength":150},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"type":"string","maxLength":250},"description":{"type":"string","minLength":20},"venueName":{"type":"string","minLength":2},"address":{"type":"string"},"city":{"type":"string","minLength":2},"state":{"type":"string","minLength":2,"maxLength":50},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"timezone":{"type":"string","default":"America/Phoenix","description":"IANA timezone; validated by Intl.DateTimeFormat."},"admissionType":{"type":"string","enum":["free","paid","external"],"default":"free"},"photoKey":{"type":"string"},"externalUrl":{"anyOf":[{"type":"string","format":"uri"},{"const":""}]},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/TierInput"}}},"required":["organizationId","title","category","description","venueName","city","state","startsAt"]};
+const schema82 = {"type":"object","additionalProperties":false,"properties":{"name":{"type":"string","minLength":1},"priceCents":{"type":"integer","minimum":0,"default":0},"capacity":{"type":"integer","minimum":1,"default":100},"note":{"type":"string"}},"required":["name"]};
+const func32 = Object.prototype.hasOwnProperty;
 const formats44 = formats.uri;
 
 function validate49(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -4863,7 +5116,7 @@ vErrors.push(err7);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema77.properties, key0))){
+if(!(func32.call(schema78.properties, key0))){
 const err8 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err8];
@@ -4947,7 +5200,7 @@ vErrors.push(err14);
 errors++;
 }
 if(!(((((data2 === "concert") || (data2 === "worship")) || (data2 === "bible")) || (data2 === "conference")) || (data2 === "youth"))){
-const err15 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema77.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err15 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema78.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -5179,7 +5432,7 @@ vErrors.push(err33);
 errors++;
 }
 if(!(((data12 === "free") || (data12 === "paid")) || (data12 === "external"))){
-const err34 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema77.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err34 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema78.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -5422,7 +5675,7 @@ return errors === 0;
 validate49.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_RegisterAttendee = validate50;
-const schema82 = {"$id":"schema_RegisterAttendee","type":"object","additionalProperties":false,"properties":{"attendeeName":{"type":"string","minLength":2},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"tierId":{"$ref":"gamo#/components/schemas/Identifier"}},"required":["attendeeName","attendeeEmail"]};
+const schema83 = {"$id":"schema_RegisterAttendee","type":"object","additionalProperties":false,"properties":{"attendeeName":{"type":"string","minLength":2},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"tierId":{"$ref":"gamo#/components/schemas/Identifier"}},"required":["attendeeName","attendeeEmail"]};
 
 function validate50(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RegisterAttendee" */;
@@ -5595,7 +5848,7 @@ return errors === 0;
 validate50.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ReviewDecision = validate51;
-const schema84 = {"$id":"schema_ReviewDecision","type":"object","additionalProperties":false,"properties":{"decision":{"type":"string","enum":["approved","rejected","revision_requested"]},"notes":{"type":"string"}},"required":["decision"]};
+const schema85 = {"$id":"schema_ReviewDecision","type":"object","additionalProperties":false,"properties":{"decision":{"type":"string","enum":["approved","rejected","revision_requested"]},"notes":{"type":"string"}},"required":["decision"]};
 
 function validate51(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ReviewDecision" */;
@@ -5644,7 +5897,7 @@ vErrors.push(err2);
 errors++;
 }
 if(!(((data0 === "approved") || (data0 === "rejected")) || (data0 === "revision_requested"))){
-const err3 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/enum",keyword:"enum",params:{allowedValues: schema84.properties.decision.enum},message:"must be equal to one of the allowed values"};
+const err3 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/enum",keyword:"enum",params:{allowedValues: schema85.properties.decision.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err3];
 }
@@ -5683,7 +5936,7 @@ return errors === 0;
 validate51.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ProvisionStaffInput = validate52;
-const schema85 = {"$id":"schema_ProvisionStaffInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"accessSubject":{"type":"string","minLength":1,"maxLength":255},"displayName":{"type":"string","minLength":1,"maxLength":120}},"required":["email","role","accessSubject"]};
+const schema86 = {"$id":"schema_ProvisionStaffInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"accessSubject":{"type":"string","minLength":1,"maxLength":255},"displayName":{"type":"string","minLength":1,"maxLength":120}},"required":["email","role","accessSubject"]};
 
 function validate52(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ProvisionStaffInput" */;
@@ -5797,7 +6050,7 @@ vErrors.push(err8);
 errors++;
 }
 if(!(((data1 === "staff_reviewer") || (data1 === "finance_manager")) || (data1 === "superadmin"))){
-const err9 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema85.properties.role.enum},message:"must be equal to one of the allowed values"};
+const err9 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema86.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err9];
 }
@@ -5894,7 +6147,7 @@ return errors === 0;
 validate52.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ProvisionStaffResponse = validate53;
-const schema86 = {"$id":"schema_ProvisionStaffResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"provider":{"type":"string","const":"cloudflare_access"},"accessSubject":{"type":"string"},"message":{"type":"string"}},"required":["user","role","provider","accessSubject","message"]}},"required":["success","data"]};
+const schema87 = {"$id":"schema_ProvisionStaffResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"user":{"$ref":"gamo#/components/schemas/User"},"role":{"type":"string","enum":["staff_reviewer","finance_manager","superadmin"]},"provider":{"type":"string","const":"cloudflare_access"},"accessSubject":{"type":"string"},"message":{"type":"string"}},"required":["user","role","provider","accessSubject","message"]}},"required":["success","data"]};
 
 function validate54(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -6339,7 +6592,7 @@ vErrors.push(err10);
 errors++;
 }
 if(!(((data3 === "staff_reviewer") || (data3 === "finance_manager")) || (data3 === "superadmin"))){
-const err11 = {instancePath:instancePath+"/data/role",schemaPath:"#/properties/data/properties/role/enum",keyword:"enum",params:{allowedValues: schema86.properties.data.properties.role.enum},message:"must be equal to one of the allowed values"};
+const err11 = {instancePath:instancePath+"/data/role",schemaPath:"#/properties/data/properties/role/enum",keyword:"enum",params:{allowedValues: schema87.properties.data.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err11];
 }
@@ -6425,7 +6678,7 @@ return errors === 0;
 validate53.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CheckoutInput = validate56;
-const schema91 = {"$id":"schema_CheckoutInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierIndex":{"type":"integer","minimum":0,"default":0},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"customerEmail":{"type":"string","format":"email"},"customerName":{"type":"string","minLength":2,"maxLength":120},"idempotencyKey":{"type":"string","minLength":4,"maxLength":120}},"required":["eventId"]};
+const schema92 = {"$id":"schema_CheckoutInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierIndex":{"type":"integer","minimum":0,"default":0},"quantity":{"type":"integer","minimum":1,"maximum":10,"default":1},"customerEmail":{"type":"string","format":"email"},"customerName":{"type":"string","minLength":2,"maxLength":120},"idempotencyKey":{"type":"string","minLength":4,"maxLength":120}},"required":["eventId"]};
 
 function validate56(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CheckoutInput" */;
@@ -6658,7 +6911,7 @@ return errors === 0;
 validate56.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CheckoutResponse = validate57;
-const schema93 = {"$id":"schema_CheckoutResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"sessionId":{"type":"string"},"url":{"anyOf":[{"type":"string"},{"type":"null"}]},"mock":{"type":"boolean"},"orderId":{"type":"string"},"orderNumber":{"type":"string"},"holdExpiresAt":{"type":"string"}},"required":["success","sessionId","url"]};
+const schema94 = {"$id":"schema_CheckoutResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"sessionId":{"type":"string"},"url":{"anyOf":[{"type":"string"},{"type":"null"}]},"mock":{"type":"boolean"},"orderId":{"type":"string"},"orderNumber":{"type":"string"},"holdExpiresAt":{"type":"string"}},"required":["success","sessionId","url"]};
 
 function validate57(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CheckoutResponse" */;
@@ -6855,7 +7108,7 @@ return errors === 0;
 validate57.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_StripeEvent = validate58;
-const schema94 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":true,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
+const schema95 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":true,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
 
 function validate58(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_StripeEvent" */;
@@ -7027,7 +7280,7 @@ return errors === 0;
 validate58.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_WebhookResponse = validate59;
-const schema95 = {"$id":"schema_WebhookResponse","type":"object","additionalProperties":false,"properties":{"received":{"const":true},"eventId":{"type":"string"},"type":{"type":"string"},"deduplicated":{"const":true},"orderId":{"type":"string"},"ticketsIssued":{"type":"integer"}},"required":["received","eventId"]};
+const schema96 = {"$id":"schema_WebhookResponse","type":"object","additionalProperties":false,"properties":{"received":{"const":true},"eventId":{"type":"string"},"type":{"type":"string"},"deduplicated":{"const":true},"orderId":{"type":"string"},"ticketsIssued":{"type":"integer"}},"required":["received","eventId"]};
 
 function validate59(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_WebhookResponse" */;
@@ -7163,7 +7416,7 @@ return errors === 0;
 validate59.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_Event = validate60;
-const schema96 = {"$id":"schema_Event","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
+const schema97 = {"$id":"schema_Event","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
 
 function validate60(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Event" */;
@@ -7368,7 +7621,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema96.properties, key0))){
+if(!(func32.call(schema97.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -7466,7 +7719,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema96.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema97.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -7742,7 +7995,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema96.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema97.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -7869,7 +8122,7 @@ vErrors.push(err53);
 errors++;
 }
 if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema96.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema97.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -7917,7 +8170,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!((data19 === "organizer_submitted") || (data19 === "external_discovery"))){
-const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema96.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema97.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -8728,7 +8981,7 @@ vErrors.push(err106);
 errors++;
 }
 if(!(((((((data38 === "draft") || (data38 === "verified")) || (data38 === "approved")) || (data38 === "published")) || (data38 === "archived")) || (data38 === "canceled")) || (data38 === "rejected"))){
-const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema96.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema97.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -8871,8 +9124,8 @@ return errors === 0;
 validate60.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventDetails = validate61;
-const schema103 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
-const schema109 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
+const schema104 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+const schema110 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
 
 function validate62(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -9416,7 +9669,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema103.properties, key0))){
+if(!(func32.call(schema104.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -9514,7 +9767,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema103.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema104.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -9790,7 +10043,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema103.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema104.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -9917,7 +10170,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema103.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema104.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -10036,7 +10289,7 @@ vErrors.push(err66);
 errors++;
 }
 if(!((data24 === "organizer_submitted") || (data24 === "external_discovery"))){
-const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema103.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema104.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -10847,7 +11100,7 @@ vErrors.push(err115);
 errors++;
 }
 if(!(((((((data43 === "draft") || (data43 === "verified")) || (data43 === "approved")) || (data43 === "published")) || (data43 === "archived")) || (data43 === "canceled")) || (data43 === "rejected"))){
-const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema103.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema104.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err116];
 }
@@ -11142,7 +11395,7 @@ vErrors.push(err137);
 errors++;
 }
 if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
-const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema103.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema104.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err138];
 }
@@ -11169,9 +11422,9 @@ return errors === 0;
 validate61.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventListResponse = validate64;
-const schema113 = {"$id":"schema_EventListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"$ref":"gamo#/components/schemas/EventDetails"}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
-const schema124 = {"type":"object","additionalProperties":false,"properties":{"total":{"type":"integer","minimum":0}},"required":["total"]};
-const schema114 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+const schema114 = {"$id":"schema_EventListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"$ref":"gamo#/components/schemas/EventDetails"}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+const schema125 = {"type":"object","additionalProperties":false,"properties":{"total":{"type":"integer","minimum":0}},"required":["total"]};
+const schema115 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
 
 function validate66(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -11714,7 +11967,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema114.properties, key0))){
+if(!(func32.call(schema115.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -11812,7 +12065,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema114.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema115.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -12088,7 +12341,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema114.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema115.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -12215,7 +12468,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema114.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema115.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -12334,7 +12587,7 @@ vErrors.push(err66);
 errors++;
 }
 if(!((data24 === "organizer_submitted") || (data24 === "external_discovery"))){
-const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema114.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema115.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -13145,7 +13398,7 @@ vErrors.push(err115);
 errors++;
 }
 if(!(((((((data43 === "draft") || (data43 === "verified")) || (data43 === "approved")) || (data43 === "published")) || (data43 === "archived")) || (data43 === "canceled")) || (data43 === "rejected"))){
-const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema115.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err116];
 }
@@ -13440,7 +13693,7 @@ vErrors.push(err137);
 errors++;
 }
 if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
-const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema115.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err138];
 }
@@ -13634,7 +13887,7 @@ return errors === 0;
 validate64.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventResponse = validate69;
-const schema125 = {"$id":"schema_EventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"$ref":"gamo#/components/schemas/EventDetails"}},"required":["success","data"]};
+const schema126 = {"$id":"schema_EventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"$ref":"gamo#/components/schemas/EventDetails"}},"required":["success","data"]};
 
 function validate70(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -13878,7 +14131,7 @@ vErrors.push(err22);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema114.properties, key0))){
+if(!(func32.call(schema115.properties, key0))){
 const err23 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err23];
@@ -13976,7 +14229,7 @@ vErrors.push(err30);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema114.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err31 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema115.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -14252,7 +14505,7 @@ vErrors.push(err49);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema114.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err50 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema115.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err50];
 }
@@ -14379,7 +14632,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!(((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "canceled"))){
-const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema114.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema115.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -14498,7 +14751,7 @@ vErrors.push(err66);
 errors++;
 }
 if(!((data24 === "organizer_submitted") || (data24 === "external_discovery"))){
-const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema114.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err67 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema115.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err67];
 }
@@ -15309,7 +15562,7 @@ vErrors.push(err115);
 errors++;
 }
 if(!(((((((data43 === "draft") || (data43 === "verified")) || (data43 === "approved")) || (data43 === "published")) || (data43 === "archived")) || (data43 === "canceled")) || (data43 === "rejected"))){
-const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err116 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema115.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err116];
 }
@@ -15604,7 +15857,7 @@ vErrors.push(err137);
 errors++;
 }
 if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
-const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema115.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err138];
 }
@@ -15710,8 +15963,8 @@ return errors === 0;
 validate69.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateEventResponse = validate73;
-const schema133 = {"$id":"schema_CreateEventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"message":{"type":"string"}},"required":["event","tiers","message"]}},"required":["success","data"]};
-const schema134 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
+const schema134 = {"$id":"schema_CreateEventResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"message":{"type":"string"}},"required":["event","tiers","message"]}},"required":["success","data"]};
+const schema135 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","revision_requested","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt"]};
 
 function validate74(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -15915,7 +16168,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema134.properties, key0))){
+if(!(func32.call(schema135.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -16013,7 +16266,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema134.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema135.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -16289,7 +16542,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema134.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema135.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -16416,7 +16669,7 @@ vErrors.push(err53);
 errors++;
 }
 if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema134.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema135.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -16464,7 +16717,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!((data19 === "organizer_submitted") || (data19 === "external_discovery"))){
-const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema134.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema135.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -17275,7 +17528,7 @@ vErrors.push(err106);
 errors++;
 }
 if(!(((((((data38 === "draft") || (data38 === "verified")) || (data38 === "approved")) || (data38 === "published")) || (data38 === "archived")) || (data38 === "canceled")) || (data38 === "rejected"))){
-const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema134.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema135.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -17887,7 +18140,7 @@ return errors === 0;
 validate73.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_Registration = validate78;
-const schema144 = {"$id":"schema_Registration","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"userId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"attendeeName":{"type":"string"},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10},"qrToken":{"type":"string"},"status":{"type":"string"},"checkedInAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","eventId","tierId","userId","attendeeName","attendeeEmail","quantity","qrToken","status","checkedInAt","createdAt"]};
+const schema145 = {"$id":"schema_Registration","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"tierId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"userId":{"anyOf":[{"$ref":"gamo#/components/schemas/Identifier"},{"type":"null"}]},"attendeeName":{"type":"string"},"attendeeEmail":{"type":"string","format":"email"},"quantity":{"type":"integer","minimum":1,"maximum":10},"qrToken":{"type":"string"},"status":{"type":"string"},"checkedInAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"}},"required":["id","eventId","tierId","userId","attendeeName","attendeeEmail","quantity","qrToken","status","checkedInAt","createdAt"]};
 
 function validate78(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_Registration" */;
@@ -18012,7 +18265,7 @@ vErrors.push(err10);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema144.properties, key0))){
+if(!(func32.call(schema145.properties, key0))){
 const err11 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err11];
@@ -18403,7 +18656,7 @@ return errors === 0;
 validate78.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_RegistrationResponse = validate79;
-const schema151 = {"$id":"schema_RegistrationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"isDuplicate":{"type":"boolean"},"message":{"type":"string"}},"required":["isDuplicate","message"]}},"required":["success","data"]};
+const schema152 = {"$id":"schema_RegistrationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"isDuplicate":{"type":"boolean"},"message":{"type":"string"}},"required":["isDuplicate","message"]}},"required":["success","data"]};
 
 function validate79(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RegistrationResponse" */;
@@ -18549,7 +18802,7 @@ return errors === 0;
 validate79.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_PendingResponse = validate80;
-const schema152 = {"$id":"schema_PendingResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"organizationName":{"type":"string"},"organizationType":{"type":"string"}},"required":["event","organizationName","organizationType"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+const schema153 = {"$id":"schema_PendingResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"organizationName":{"type":"string"},"organizationType":{"type":"string"}},"required":["event","organizationName","organizationType"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
 
 function validate81(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -18753,7 +19006,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema134.properties, key0))){
+if(!(func32.call(schema135.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -18851,7 +19104,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema134.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema135.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -19127,7 +19380,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema134.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema135.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -19254,7 +19507,7 @@ vErrors.push(err53);
 errors++;
 }
 if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema134.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema135.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -19302,7 +19555,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!((data19 === "organizer_submitted") || (data19 === "external_discovery"))){
-const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema134.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema135.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -20113,7 +20366,7 @@ vErrors.push(err106);
 errors++;
 }
 if(!(((((((data38 === "draft") || (data38 === "verified")) || (data38 === "approved")) || (data38 === "published")) || (data38 === "archived")) || (data38 === "canceled")) || (data38 === "rejected"))){
-const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema134.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema135.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -20504,7 +20757,7 @@ return errors === 0;
 validate80.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ReviewResponse = validate83;
-const schema161 = {"$id":"schema_ReviewResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"reviewId":{"$ref":"gamo#/components/schemas/Identifier"},"message":{"type":"string"}},"required":["event","reviewId","message"]}},"required":["success","data"]};
+const schema162 = {"$id":"schema_ReviewResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"event":{"$ref":"gamo#/components/schemas/Event"},"reviewId":{"$ref":"gamo#/components/schemas/Identifier"},"message":{"type":"string"}},"required":["event","reviewId","message"]}},"required":["success","data"]};
 
 function validate84(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -20708,7 +20961,7 @@ vErrors.push(err18);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema134.properties, key0))){
+if(!(func32.call(schema135.properties, key0))){
 const err19 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err19];
@@ -20806,7 +21059,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((((data4 === "concert") || (data4 === "worship")) || (data4 === "bible")) || (data4 === "conference")) || (data4 === "youth"))){
-const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema134.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema135.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -21082,7 +21335,7 @@ vErrors.push(err45);
 errors++;
 }
 if(!(((data14 === "free") || (data14 === "paid")) || (data14 === "external"))){
-const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema134.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
+const err46 = {instancePath:instancePath+"/admissionType",schemaPath:"#/properties/admissionType/enum",keyword:"enum",params:{allowedValues: schema135.properties.admissionType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err46];
 }
@@ -21209,7 +21462,7 @@ vErrors.push(err53);
 errors++;
 }
 if(!((((((data17 === "draft") || (data17 === "pending_review")) || (data17 === "approved")) || (data17 === "rejected")) || (data17 === "revision_requested")) || (data17 === "canceled"))){
-const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema134.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err54 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema135.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err54];
 }
@@ -21257,7 +21510,7 @@ vErrors.push(err57);
 errors++;
 }
 if(!((data19 === "organizer_submitted") || (data19 === "external_discovery"))){
-const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema134.properties.listingType.enum},message:"must be equal to one of the allowed values"};
+const err58 = {instancePath:instancePath+"/listingType",schemaPath:"#/properties/listingType/enum",keyword:"enum",params:{allowedValues: schema135.properties.listingType.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err58];
 }
@@ -22068,7 +22321,7 @@ vErrors.push(err106);
 errors++;
 }
 if(!(((((((data38 === "draft") || (data38 === "verified")) || (data38 === "approved")) || (data38 === "published")) || (data38 === "archived")) || (data38 === "canceled")) || (data38 === "rejected"))){
-const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema134.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
+const err107 = {instancePath:instancePath+"/editorialStatus",schemaPath:"#/properties/editorialStatus/enum",keyword:"enum",params:{allowedValues: schema135.properties.editorialStatus.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err107];
 }
@@ -22384,7 +22637,7 @@ return errors === 0;
 validate83.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventFilters = validate86;
-const schema170 = {"$id":"schema_EventFilters","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"city":{"type":"string","minLength":2},"artist":{"type":"string","minLength":2},"venue":{"type":"string","minLength":2},"dateFrom":{"type":"string","minLength":8},"dateTo":{"type":"string","minLength":8},"metro":{"type":"string","minLength":2},"q":{"type":"string","minLength":2},"weekend":{"type":"string","enum":["true","false","1","0"]}}};
+const schema171 = {"$id":"schema_EventFilters","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"city":{"type":"string","minLength":2},"artist":{"type":"string","minLength":2},"venue":{"type":"string","minLength":2},"dateFrom":{"type":"string","minLength":8},"dateTo":{"type":"string","minLength":8},"metro":{"type":"string","minLength":2},"q":{"type":"string","minLength":2},"weekend":{"type":"string","enum":["true","false","1","0"]}}};
 
 function validate86(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventFilters" */;
@@ -22399,7 +22652,7 @@ evaluated0.items = undefined;
 }
 if(data && typeof data == "object" && !Array.isArray(data)){
 for(const key0 in data){
-if(!(func27.call(schema170.properties, key0))){
+if(!(func32.call(schema171.properties, key0))){
 const err0 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err0];
@@ -22423,7 +22676,7 @@ vErrors.push(err1);
 errors++;
 }
 if(!(((((data0 === "concert") || (data0 === "worship")) || (data0 === "bible")) || (data0 === "conference")) || (data0 === "youth"))){
-const err2 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema170.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err2 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema171.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err2];
 }
@@ -22621,7 +22874,7 @@ vErrors.push(err17);
 errors++;
 }
 if(!((((data8 === "true") || (data8 === "false")) || (data8 === "1")) || (data8 === "0"))){
-const err18 = {instancePath:instancePath+"/weekend",schemaPath:"#/properties/weekend/enum",keyword:"enum",params:{allowedValues: schema170.properties.weekend.enum},message:"must be equal to one of the allowed values"};
+const err18 = {instancePath:instancePath+"/weekend",schemaPath:"#/properties/weekend/enum",keyword:"enum",params:{allowedValues: schema171.properties.weekend.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err18];
 }
@@ -22648,7 +22901,7 @@ return errors === 0;
 validate86.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AssignEventTeamInput = validate87;
-const schema171 = {"$id":"schema_AssignEventTeamInput","type":"object","additionalProperties":false,"properties":{"userId":{"$ref":"gamo#/components/schemas/Identifier"},"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"role":{"type":"string","enum":["event_owner","lead_promoter","host_venue","co_organizer","booking_agent","production_coordinator","ticketing_admin","finance_contact","door_scanner"]},"canEditContent":{"type":"boolean"},"canManageTicketing":{"type":"boolean"},"canApproveRefunds":{"type":"boolean"},"canViewSettlement":{"type":"boolean"},"canNegotiateBooking":{"type":"boolean"},"canCoordinateProduction":{"type":"boolean"},"canScanTickets":{"type":"boolean"}},"required":["userId","role"]};
+const schema172 = {"$id":"schema_AssignEventTeamInput","type":"object","additionalProperties":false,"properties":{"userId":{"$ref":"gamo#/components/schemas/Identifier"},"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"role":{"type":"string","enum":["event_owner","lead_promoter","host_venue","co_organizer","booking_agent","production_coordinator","ticketing_admin","finance_contact","door_scanner"]},"canEditContent":{"type":"boolean"},"canManageTicketing":{"type":"boolean"},"canApproveRefunds":{"type":"boolean"},"canViewSettlement":{"type":"boolean"},"canNegotiateBooking":{"type":"boolean"},"canCoordinateProduction":{"type":"boolean"},"canScanTickets":{"type":"boolean"}},"required":["userId","role"]};
 
 function validate87(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_AssignEventTeamInput" */;
@@ -22683,7 +22936,7 @@ vErrors.push(err1);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema171.properties, key0))){
+if(!(func32.call(schema172.properties, key0))){
 const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err2];
@@ -22757,7 +23010,7 @@ vErrors.push(err7);
 errors++;
 }
 if(!(((((((((data2 === "event_owner") || (data2 === "lead_promoter")) || (data2 === "host_venue")) || (data2 === "co_organizer")) || (data2 === "booking_agent")) || (data2 === "production_coordinator")) || (data2 === "ticketing_admin")) || (data2 === "finance_contact")) || (data2 === "door_scanner"))){
-const err8 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema171.properties.role.enum},message:"must be equal to one of the allowed values"};
+const err8 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema172.properties.role.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err8];
 }
@@ -22868,7 +23121,7 @@ return errors === 0;
 validate87.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AssignEventTeamResponse = validate88;
-const schema174 = {"$id":"schema_AssignEventTeamResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"userId":{"type":"string"},"role":{"type":"string"},"canEditContent":{"type":"boolean"},"canManageTicketing":{"type":"boolean"},"canApproveRefunds":{"type":"boolean"},"canViewSettlement":{"type":"boolean"},"canNegotiateBooking":{"type":"boolean"},"canCoordinateProduction":{"type":"boolean"},"canScanTickets":{"type":"boolean"}},"required":["id","eventId","userId","role"]}},"required":["success","data"]};
+const schema175 = {"$id":"schema_AssignEventTeamResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"userId":{"type":"string"},"role":{"type":"string"},"canEditContent":{"type":"boolean"},"canManageTicketing":{"type":"boolean"},"canApproveRefunds":{"type":"boolean"},"canViewSettlement":{"type":"boolean"},"canNegotiateBooking":{"type":"boolean"},"canCoordinateProduction":{"type":"boolean"},"canScanTickets":{"type":"boolean"}},"required":["id","eventId","userId","role"]}},"required":["success","data"]};
 
 function validate88(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_AssignEventTeamResponse" */;
@@ -22970,7 +23223,7 @@ vErrors.push(err7);
 errors++;
 }
 for(const key1 in data1){
-if(!(func27.call(schema174.properties.data.properties, key1))){
+if(!(func32.call(schema175.properties.data.properties, key1))){
 const err8 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err8];
@@ -23142,7 +23395,7 @@ return errors === 0;
 validate88.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_TicketLookupInput = validate89;
-const schema175 = {"$id":"schema_TicketLookupInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email"},"verificationCode":{"type":"string","pattern":"^[0-9]{6}$"}},"required":["email","verificationCode"]};
+const schema176 = {"$id":"schema_TicketLookupInput","type":"object","additionalProperties":false,"properties":{"email":{"type":"string","format":"email"},"verificationCode":{"type":"string","pattern":"^[0-9]{6}$"}},"required":["email","verificationCode"]};
 
 function validate89(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_TicketLookupInput" */;
@@ -23216,7 +23469,7 @@ errors++;
 if(data.verificationCode !== undefined){
 let data1 = data.verificationCode;
 if(typeof data1 === "string"){
-if(!pattern4.test(data1)){
+if(!pattern5.test(data1)){
 const err5 = {instancePath:instancePath+"/verificationCode",schemaPath:"#/properties/verificationCode/pattern",keyword:"pattern",params:{pattern: "^[0-9]{6}$"},message:"must match pattern \""+"^[0-9]{6}$"+"\""};
 if(vErrors === null){
 vErrors = [err5];
@@ -23255,7 +23508,7 @@ return errors === 0;
 validate89.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_TicketLookupResponse = validate90;
-const schema176 = {"$id":"schema_TicketLookupResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"email":{"type":"string"},"registrations":{"type":"array","items":{"type":"object","additionalProperties":true}},"orders":{"type":"array","items":{"type":"object","additionalProperties":true}},"tickets":{"type":"array","items":{"type":"object","additionalProperties":true}},"operatorDisclosure":{"type":"string"}},"required":["email","registrations","orders","tickets"]}},"required":["success","data"]};
+const schema177 = {"$id":"schema_TicketLookupResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"email":{"type":"string"},"registrations":{"type":"array","items":{"type":"object","additionalProperties":true}},"orders":{"type":"array","items":{"type":"object","additionalProperties":true}},"tickets":{"type":"array","items":{"type":"object","additionalProperties":true}},"operatorDisclosure":{"type":"string"}},"required":["email","registrations","orders","tickets"]}},"required":["success","data"]};
 
 function validate90(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_TicketLookupResponse" */;
@@ -23514,7 +23767,7 @@ return errors === 0;
 validate90.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_TicketScanInput = validate91;
-const schema177 = {"$id":"schema_TicketScanInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"qrToken":{"type":"string","minLength":6,"maxLength":200},"gateLabel":{"type":"string","maxLength":80}},"required":["eventId","qrToken"]};
+const schema178 = {"$id":"schema_TicketScanInput","type":"object","additionalProperties":false,"properties":{"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"qrToken":{"type":"string","minLength":6,"maxLength":200},"gateLabel":{"type":"string","maxLength":80}},"required":["eventId","qrToken"]};
 
 function validate91(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_TicketScanInput" */;
@@ -23662,7 +23915,7 @@ return errors === 0;
 validate91.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_TicketScanResponse = validate92;
-const schema179 = {"$id":"schema_TicketScanResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"scanId":{"type":"string"},"eventId":{"type":"string"},"outcome":{"type":"string","enum":["admitted"]},"holderName":{"type":"string"},"checkedInAt":{"type":"string"}},"required":["scanId","eventId","outcome","holderName","checkedInAt"]}},"required":["success","data"]};
+const schema180 = {"$id":"schema_TicketScanResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"scanId":{"type":"string"},"eventId":{"type":"string"},"outcome":{"type":"string","enum":["admitted"]},"holderName":{"type":"string"},"checkedInAt":{"type":"string"}},"required":["scanId","eventId","outcome","holderName","checkedInAt"]}},"required":["success","data"]};
 
 function validate92(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_TicketScanResponse" */;
@@ -23822,7 +24075,7 @@ vErrors.push(err12);
 errors++;
 }
 if(!(data4 === "admitted")){
-const err13 = {instancePath:instancePath+"/data/outcome",schemaPath:"#/properties/data/properties/outcome/enum",keyword:"enum",params:{allowedValues: schema179.properties.data.properties.outcome.enum},message:"must be equal to one of the allowed values"};
+const err13 = {instancePath:instancePath+"/data/outcome",schemaPath:"#/properties/data/properties/outcome/enum",keyword:"enum",params:{allowedValues: schema180.properties.data.properties.outcome.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err13];
 }
@@ -23885,7 +24138,7 @@ return errors === 0;
 validate92.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateArtistInput = validate93;
-const schema180 = {"$id":"schema_CreateArtistInput","type":"object","additionalProperties":false,"properties":{"stageName":{"type":"string","minLength":2,"maxLength":120},"genre":{"type":"string","minLength":2,"maxLength":60},"bio":{"type":"string","maxLength":2000},"homeCity":{"type":"string","maxLength":80},"homeState":{"type":"string","maxLength":40},"repertoireSummary":{"type":"string","maxLength":1000},"allowSelfBooking":{"type":"boolean"},"musicianProfileId":{"type":"string"}},"required":["stageName"]};
+const schema181 = {"$id":"schema_CreateArtistInput","type":"object","additionalProperties":false,"properties":{"stageName":{"type":"string","minLength":2,"maxLength":120},"genre":{"type":"string","minLength":2,"maxLength":60},"bio":{"type":"string","maxLength":2000},"homeCity":{"type":"string","maxLength":80},"homeState":{"type":"string","maxLength":40},"repertoireSummary":{"type":"string","maxLength":1000},"allowSelfBooking":{"type":"boolean"},"musicianProfileId":{"type":"string"}},"required":["stageName"]};
 
 function validate93(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateArtistInput" */;
@@ -24132,7 +24385,7 @@ return errors === 0;
 validate93.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ArtistProfileResponse = validate94;
-const schema181 = {"$id":"schema_ArtistProfileResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"userId":{"type":"string"},"stageName":{"type":"string"},"slug":{"type":"string"},"genre":{"type":"string"},"verificationStatus":{"type":"string"},"allowSelfBooking":{"type":"boolean"}},"required":["id","userId","stageName","slug"]}},"required":["success","data"]};
+const schema182 = {"$id":"schema_ArtistProfileResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"userId":{"type":"string"},"stageName":{"type":"string"},"slug":{"type":"string"},"genre":{"type":"string"},"verificationStatus":{"type":"string"},"allowSelfBooking":{"type":"boolean"}},"required":["id","userId","stageName","slug"]}},"required":["success","data"]};
 
 function validate94(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ArtistProfileResponse" */;
@@ -24346,7 +24599,7 @@ return errors === 0;
 validate94.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ArtistListResponse = validate95;
-const schema182 = {"$id":"schema_ArtistListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":true}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+const schema183 = {"$id":"schema_ArtistListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":true}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
 
 function validate95(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ArtistListResponse" */;
@@ -24524,7 +24777,7 @@ return errors === 0;
 validate95.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_AuthorizeRepresentativeInput = validate96;
-const schema184 = {"$id":"schema_AuthorizeRepresentativeInput","type":"object","additionalProperties":false,"properties":{"representativeUserId":{"$ref":"gamo#/components/schemas/Identifier"},"agencyName":{"type":"string","minLength":2,"maxLength":120},"roleKind":{"type":"string","enum":["booking_agent","manager","ministry_coordinator"]},"contactEmail":{"type":"string","format":"email"},"scope":{"type":"string","enum":["booking_only","booking_and_negotiation","full_management"]},"exclusivity":{"type":"string","enum":["non_exclusive","exclusive"]},"territory":{"type":"string","minLength":2,"maxLength":40},"canViewFinancials":{"type":"boolean"},"commissionRateBps":{"type":"integer","minimum":0,"maximum":5000}},"required":["representativeUserId","agencyName","contactEmail"]};
+const schema185 = {"$id":"schema_AuthorizeRepresentativeInput","type":"object","additionalProperties":false,"properties":{"representativeUserId":{"$ref":"gamo#/components/schemas/Identifier"},"agencyName":{"type":"string","minLength":2,"maxLength":120},"roleKind":{"type":"string","enum":["booking_agent","manager","ministry_coordinator"]},"contactEmail":{"type":"string","format":"email"},"scope":{"type":"string","enum":["booking_only","booking_and_negotiation","full_management"]},"exclusivity":{"type":"string","enum":["non_exclusive","exclusive"]},"territory":{"type":"string","minLength":2,"maxLength":40},"canViewFinancials":{"type":"boolean"},"commissionRateBps":{"type":"integer","minimum":0,"maximum":5000}},"required":["representativeUserId","agencyName","contactEmail"]};
 
 function validate96(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_AuthorizeRepresentativeInput" */;
@@ -24569,7 +24822,7 @@ vErrors.push(err2);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema184.properties, key0))){
+if(!(func32.call(schema185.properties, key0))){
 const err3 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err3];
@@ -24653,7 +24906,7 @@ vErrors.push(err9);
 errors++;
 }
 if(!(((data2 === "booking_agent") || (data2 === "manager")) || (data2 === "ministry_coordinator"))){
-const err10 = {instancePath:instancePath+"/roleKind",schemaPath:"#/properties/roleKind/enum",keyword:"enum",params:{allowedValues: schema184.properties.roleKind.enum},message:"must be equal to one of the allowed values"};
+const err10 = {instancePath:instancePath+"/roleKind",schemaPath:"#/properties/roleKind/enum",keyword:"enum",params:{allowedValues: schema185.properties.roleKind.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -24701,7 +24954,7 @@ vErrors.push(err13);
 errors++;
 }
 if(!(((data4 === "booking_only") || (data4 === "booking_and_negotiation")) || (data4 === "full_management"))){
-const err14 = {instancePath:instancePath+"/scope",schemaPath:"#/properties/scope/enum",keyword:"enum",params:{allowedValues: schema184.properties.scope.enum},message:"must be equal to one of the allowed values"};
+const err14 = {instancePath:instancePath+"/scope",schemaPath:"#/properties/scope/enum",keyword:"enum",params:{allowedValues: schema185.properties.scope.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err14];
 }
@@ -24724,7 +24977,7 @@ vErrors.push(err15);
 errors++;
 }
 if(!((data5 === "non_exclusive") || (data5 === "exclusive"))){
-const err16 = {instancePath:instancePath+"/exclusivity",schemaPath:"#/properties/exclusivity/enum",keyword:"enum",params:{allowedValues: schema184.properties.exclusivity.enum},message:"must be equal to one of the allowed values"};
+const err16 = {instancePath:instancePath+"/exclusivity",schemaPath:"#/properties/exclusivity/enum",keyword:"enum",params:{allowedValues: schema185.properties.exclusivity.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err16];
 }
@@ -24833,7 +25086,7 @@ return errors === 0;
 validate96.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_RepresentationResponse = validate97;
-const schema186 = {"$id":"schema_RepresentationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"artistId":{"type":"string"},"representativeId":{"type":"string"},"scope":{"type":"string"},"exclusivity":{"type":"string"},"status":{"type":"string"},"canViewFinancials":{"type":"boolean"}},"required":["id","artistId","representativeId","status"]}},"required":["success","data"]};
+const schema187 = {"$id":"schema_RepresentationResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"artistId":{"type":"string"},"representativeId":{"type":"string"},"scope":{"type":"string"},"exclusivity":{"type":"string"},"status":{"type":"string"},"canViewFinancials":{"type":"boolean"}},"required":["id","artistId","representativeId","status"]}},"required":["success","data"]};
 
 function validate97(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RepresentationResponse" */;
@@ -25047,7 +25300,7 @@ return errors === 0;
 validate97.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_RevokeRepresentationInput = validate98;
-const schema187 = {"$id":"schema_RevokeRepresentationInput","type":"object","additionalProperties":false,"properties":{"reason":{"type":"string","minLength":3,"maxLength":500}},"required":["reason"]};
+const schema188 = {"$id":"schema_RevokeRepresentationInput","type":"object","additionalProperties":false,"properties":{"reason":{"type":"string","minLength":3,"maxLength":500}},"required":["reason"]};
 
 function validate98(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_RevokeRepresentationInput" */;
@@ -25135,7 +25388,7 @@ return errors === 0;
 validate98.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateBookingInquiryInput = validate99;
-const schema188 = {"$id":"schema_CreateBookingInquiryInput","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"artistId":{"$ref":"gamo#/components/schemas/Identifier"},"proposedStartsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"venueName":{"type":"string","minLength":2,"maxLength":160},"city":{"type":"string","minLength":2,"maxLength":80},"state":{"type":"string","minLength":2,"maxLength":40},"performanceScope":{"type":"string","minLength":4,"maxLength":1000},"proposedArtistFeeCents":{"type":"integer","minimum":0},"agentCommissionCents":{"type":"integer","minimum":0},"platformAdminAllocationCents":{"type":"integer","minimum":0},"termsSummary":{"type":"string","minLength":4,"maxLength":1000}},"required":["organizationId","artistId","proposedStartsAt","venueName","city","state","performanceScope","proposedArtistFeeCents"]};
+const schema189 = {"$id":"schema_CreateBookingInquiryInput","type":"object","additionalProperties":false,"properties":{"organizationId":{"$ref":"gamo#/components/schemas/Identifier"},"eventId":{"$ref":"gamo#/components/schemas/Identifier"},"artistId":{"$ref":"gamo#/components/schemas/Identifier"},"proposedStartsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"venueName":{"type":"string","minLength":2,"maxLength":160},"city":{"type":"string","minLength":2,"maxLength":80},"state":{"type":"string","minLength":2,"maxLength":40},"performanceScope":{"type":"string","minLength":4,"maxLength":1000},"proposedArtistFeeCents":{"type":"integer","minimum":0},"agentCommissionCents":{"type":"integer","minimum":0},"platformAdminAllocationCents":{"type":"integer","minimum":0},"termsSummary":{"type":"string","minLength":4,"maxLength":1000}},"required":["organizationId","artistId","proposedStartsAt","venueName","city","state","performanceScope","proposedArtistFeeCents"]};
 
 function validate99(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateBookingInquiryInput" */;
@@ -25230,7 +25483,7 @@ vErrors.push(err7);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema188.properties, key0))){
+if(!(func32.call(schema189.properties, key0))){
 const err8 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err8];
@@ -25608,7 +25861,7 @@ return errors === 0;
 validate99.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_BookingInquiryResponse = validate100;
-const schema193 = {"$id":"schema_BookingInquiryResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"inquiry":{"type":"object","additionalProperties":true},"initialOffer":{"type":"object","additionalProperties":true}},"required":["inquiry","initialOffer"]}},"required":["success","data"]};
+const schema194 = {"$id":"schema_BookingInquiryResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"inquiry":{"type":"object","additionalProperties":true},"initialOffer":{"type":"object","additionalProperties":true}},"required":["inquiry","initialOffer"]}},"required":["success","data"]};
 
 function validate100(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_BookingInquiryResponse" */;
@@ -25748,7 +26001,7 @@ return errors === 0;
 validate100.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ProposeBookingOfferInput = validate101;
-const schema194 = {"$id":"schema_ProposeBookingOfferInput","type":"object","additionalProperties":false,"properties":{"artistFeeCents":{"type":"integer","minimum":0},"agentCommissionCents":{"type":"integer","minimum":0},"platformAdminAllocationCents":{"type":"integer","minimum":0},"travelStipendCents":{"type":"integer","minimum":0},"performanceMinutes":{"type":"integer","minimum":10,"maximum":480},"termsSummary":{"type":"string","minLength":4,"maxLength":1000}},"required":["artistFeeCents","termsSummary"]};
+const schema195 = {"$id":"schema_ProposeBookingOfferInput","type":"object","additionalProperties":false,"properties":{"artistFeeCents":{"type":"integer","minimum":0},"agentCommissionCents":{"type":"integer","minimum":0},"platformAdminAllocationCents":{"type":"integer","minimum":0},"travelStipendCents":{"type":"integer","minimum":0},"performanceMinutes":{"type":"integer","minimum":10,"maximum":480},"termsSummary":{"type":"string","minLength":4,"maxLength":1000}},"required":["artistFeeCents","termsSummary"]};
 
 function validate101(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ProposeBookingOfferInput" */;
@@ -25981,7 +26234,7 @@ return errors === 0;
 validate101.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_BookingOfferResponse = validate102;
-const schema195 = {"$id":"schema_BookingOfferResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"inquiryId":{"type":"string"},"offeredByRole":{"type":"string"},"artistFeeCents":{"type":"integer"},"agentCommissionCents":{"type":"integer"},"platformAdminAllocationCents":{"type":"integer"},"status":{"type":"string"}},"required":["id","inquiryId","offeredByRole","artistFeeCents","status"]}},"required":["success","data"]};
+const schema196 = {"$id":"schema_BookingOfferResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"inquiryId":{"type":"string"},"offeredByRole":{"type":"string"},"artistFeeCents":{"type":"integer"},"agentCommissionCents":{"type":"integer"},"platformAdminAllocationCents":{"type":"integer"},"status":{"type":"string"}},"required":["id","inquiryId","offeredByRole","artistFeeCents","status"]}},"required":["success","data"]};
 
 function validate102(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_BookingOfferResponse" */;
@@ -26208,7 +26461,7 @@ return errors === 0;
 validate102.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_BookingAcceptResponse = validate103;
-const schema196 = {"$id":"schema_BookingAcceptResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"offer":{"type":"object","additionalProperties":true},"engagement":{"type":"object","additionalProperties":true}},"required":["offer","engagement"]}},"required":["success","data"]};
+const schema197 = {"$id":"schema_BookingAcceptResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"offer":{"type":"object","additionalProperties":true},"engagement":{"type":"object","additionalProperties":true}},"required":["offer","engagement"]}},"required":["success","data"]};
 
 function validate103(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_BookingAcceptResponse" */;
@@ -26348,7 +26601,7 @@ return errors === 0;
 validate103.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_OrderRefundInput = validate104;
-const schema197 = {"$id":"schema_OrderRefundInput","type":"object","additionalProperties":false,"properties":{"reason":{"type":"string","minLength":3,"maxLength":500},"amountCents":{"type":"integer","minimum":1}},"required":["reason"]};
+const schema198 = {"$id":"schema_OrderRefundInput","type":"object","additionalProperties":false,"properties":{"reason":{"type":"string","minLength":3,"maxLength":500},"amountCents":{"type":"integer","minimum":1}},"required":["reason"]};
 
 function validate104(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_OrderRefundInput" */;
@@ -26461,7 +26714,7 @@ return errors === 0;
 validate104.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_OrderRefundResponse = validate105;
-const schema198 = {"$id":"schema_OrderRefundResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"refundId":{"type":"string"},"orderId":{"type":"string"},"amountCents":{"type":"integer"},"status":{"type":"string"},"ticketsVoided":{"type":"integer"}},"required":["refundId","orderId","amountCents","status","ticketsVoided"]}},"required":["success","data"]};
+const schema199 = {"$id":"schema_OrderRefundResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":true,"properties":{"refundId":{"type":"string"},"orderId":{"type":"string"},"amountCents":{"type":"integer"},"status":{"type":"string"},"ticketsVoided":{"type":"integer"}},"required":["refundId","orderId","amountCents","status","ticketsVoided"]}},"required":["success","data"]};
 
 function validate105(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_OrderRefundResponse" */;
@@ -26663,7 +26916,7 @@ return errors === 0;
 validate105.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_CreateEventProductionRequestInput = validate106;
-const schema199 = {"$id":"schema_CreateEventProductionRequestInput","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["audio","livestream","lighting","acoustic","training"]},"scopeSummary":{"type":"string","minLength":6,"maxLength":1000}},"required":["category","scopeSummary"]};
+const schema200 = {"$id":"schema_CreateEventProductionRequestInput","type":"object","additionalProperties":false,"properties":{"category":{"type":"string","enum":["audio","livestream","lighting","acoustic","training"]},"scopeSummary":{"type":"string","minLength":6,"maxLength":1000}},"required":["category","scopeSummary"]};
 
 function validate106(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_CreateEventProductionRequestInput" */;
@@ -26722,7 +26975,7 @@ vErrors.push(err3);
 errors++;
 }
 if(!(((((data0 === "audio") || (data0 === "livestream")) || (data0 === "lighting")) || (data0 === "acoustic")) || (data0 === "training"))){
-const err4 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema199.properties.category.enum},message:"must be equal to one of the allowed values"};
+const err4 = {instancePath:instancePath+"/category",schemaPath:"#/properties/category/enum",keyword:"enum",params:{allowedValues: schema200.properties.category.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err4];
 }
@@ -26784,7 +27037,7 @@ return errors === 0;
 validate106.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventProductionRequestResponse = validate107;
-const schema200 = {"$id":"schema_EventProductionRequestResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"category":{"type":"string"},"scopeSummary":{"type":"string"},"status":{"type":"string"},"venueName":{"type":"string"},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"type":"string"}},"required":["id","eventId","category","scopeSummary","status"]}},"required":["success","data"]};
+const schema201 = {"$id":"schema_EventProductionRequestResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"category":{"type":"string"},"scopeSummary":{"type":"string"},"status":{"type":"string"},"venueName":{"type":"string"},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"type":"string"}},"required":["id","eventId","category","scopeSummary","status"]}},"required":["success","data"]};
 
 function validate107(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventProductionRequestResponse" */;
@@ -26896,7 +27149,7 @@ vErrors.push(err8);
 errors++;
 }
 for(const key1 in data1){
-if(!(func27.call(schema200.properties.data.properties, key1))){
+if(!(func32.call(schema201.properties.data.properties, key1))){
 const err9 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err9];
@@ -27044,7 +27297,7 @@ return errors === 0;
 validate107.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventProductionRequestListResponse = validate108;
-const schema201 = {"$id":"schema_EventProductionRequestListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"category":{"type":"string"},"scopeSummary":{"type":"string"},"status":{"type":"string"},"venueName":{"type":"string"},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"type":"string"}},"required":["id","eventId","category","scopeSummary","status"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
+const schema202 = {"$id":"schema_EventProductionRequestListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"eventId":{"type":"string"},"category":{"type":"string"},"scopeSummary":{"type":"string"},"status":{"type":"string"},"venueName":{"type":"string"},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"type":"string"}},"required":["id","eventId","category","scopeSummary","status"]}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
 
 function validate108(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventProductionRequestListResponse" */;
@@ -27170,7 +27423,7 @@ vErrors.push(err9);
 errors++;
 }
 for(const key1 in data2){
-if(!(func27.call(schema201.properties.data.items.properties, key1))){
+if(!(func32.call(schema202.properties.data.items.properties, key1))){
 const err10 = {instancePath:instancePath+"/data/" + i0,schemaPath:"#/properties/data/items/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err10];
@@ -27392,7 +27645,7 @@ return errors === 0;
 validate108.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ParticipationInput = validate109;
-const schema203 = {"$id":"schema_ParticipationInput","type":"object","additionalProperties":false,"required":["kind","interest","name","message"],"properties":{"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":"string","minLength":0,"maxLength":160},"message":{"type":"string","minLength":10,"maxLength":4000}}};
+const schema204 = {"$id":"schema_ParticipationInput","type":"object","additionalProperties":false,"required":["kind","interest","name","message"],"properties":{"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":"string","minLength":0,"maxLength":160},"message":{"type":"string","minLength":10,"maxLength":4000}}};
 
 function validate109(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ParticipationInput" */;
@@ -27471,7 +27724,7 @@ vErrors.push(err5);
 errors++;
 }
 if(!((data0 === "general") || (data0 === "partnership"))){
-const err6 = {instancePath:instancePath+"/kind",schemaPath:"#/properties/kind/enum",keyword:"enum",params:{allowedValues: schema203.properties.kind.enum},message:"must be equal to one of the allowed values"};
+const err6 = {instancePath:instancePath+"/kind",schemaPath:"#/properties/kind/enum",keyword:"enum",params:{allowedValues: schema204.properties.kind.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err6];
 }
@@ -27638,7 +27891,7 @@ return errors === 0;
 validate109.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ParticipationReviewInput = validate110;
-const schema204 = {"$id":"schema_ParticipationReviewInput","type":"object","additionalProperties":false,"required":["status","notes"],"properties":{"status":{"type":"string","enum":["reviewed","closed"]},"notes":{"type":"string","minLength":1,"maxLength":2000}}};
+const schema205 = {"$id":"schema_ParticipationReviewInput","type":"object","additionalProperties":false,"required":["status","notes"],"properties":{"status":{"type":"string","enum":["reviewed","closed"]},"notes":{"type":"string","minLength":1,"maxLength":2000}}};
 
 function validate110(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ParticipationReviewInput" */;
@@ -27697,7 +27950,7 @@ vErrors.push(err3);
 errors++;
 }
 if(!((data0 === "reviewed") || (data0 === "closed"))){
-const err4 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema204.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err4 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema205.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err4];
 }
@@ -27759,7 +28012,7 @@ return errors === 0;
 validate110.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ParticipationInquiry = validate111;
-const schema205 = {"$id":"schema_ParticipationInquiry","type":"object","additionalProperties":false,"required":["id","userId","kind","interest","name","organization","message","status","reviewNotes","createdAt","reviewedAt"],"properties":{"id":{"type":"string"},"userId":{"type":"string"},"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":["string","null"]},"message":{"type":"string","minLength":10,"maxLength":4000},"status":{"type":"string","enum":["pending","reviewed","closed"]},"reviewNotes":{"type":["string","null"]},"createdAt":{"type":"string","format":"date-time"},"reviewedAt":{"type":["string","null"],"format":"date-time"}}};
+const schema206 = {"$id":"schema_ParticipationInquiry","type":"object","additionalProperties":false,"required":["id","userId","kind","interest","name","organization","message","status","reviewNotes","createdAt","reviewedAt"],"properties":{"id":{"type":"string"},"userId":{"type":"string"},"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":["string","null"]},"message":{"type":"string","minLength":10,"maxLength":4000},"status":{"type":"string","enum":["pending","reviewed","closed"]},"reviewNotes":{"type":["string","null"]},"createdAt":{"type":"string","format":"date-time"},"reviewedAt":{"type":["string","null"],"format":"date-time"}}};
 
 function validate111(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ParticipationInquiry" */;
@@ -27884,7 +28137,7 @@ vErrors.push(err10);
 errors++;
 }
 for(const key0 in data){
-if(!(func27.call(schema205.properties, key0))){
+if(!(func32.call(schema206.properties, key0))){
 const err11 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err11];
@@ -27932,7 +28185,7 @@ vErrors.push(err14);
 errors++;
 }
 if(!((data2 === "general") || (data2 === "partnership"))){
-const err15 = {instancePath:instancePath+"/kind",schemaPath:"#/properties/kind/enum",keyword:"enum",params:{allowedValues: schema205.properties.kind.enum},message:"must be equal to one of the allowed values"};
+const err15 = {instancePath:instancePath+"/kind",schemaPath:"#/properties/kind/enum",keyword:"enum",params:{allowedValues: schema206.properties.kind.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err15];
 }
@@ -28015,7 +28268,7 @@ errors++;
 if(data.organization !== undefined){
 let data5 = data.organization;
 if((typeof data5 !== "string") && (data5 !== null)){
-const err22 = {instancePath:instancePath+"/organization",schemaPath:"#/properties/organization/type",keyword:"type",params:{type: schema205.properties.organization.type},message:"must be string,null"};
+const err22 = {instancePath:instancePath+"/organization",schemaPath:"#/properties/organization/type",keyword:"type",params:{type: schema206.properties.organization.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err22];
 }
@@ -28073,7 +28326,7 @@ vErrors.push(err26);
 errors++;
 }
 if(!(((data7 === "pending") || (data7 === "reviewed")) || (data7 === "closed"))){
-const err27 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema205.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err27 = {instancePath:instancePath+"/status",schemaPath:"#/properties/status/enum",keyword:"enum",params:{allowedValues: schema206.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err27];
 }
@@ -28086,7 +28339,7 @@ errors++;
 if(data.reviewNotes !== undefined){
 let data8 = data.reviewNotes;
 if((typeof data8 !== "string") && (data8 !== null)){
-const err28 = {instancePath:instancePath+"/reviewNotes",schemaPath:"#/properties/reviewNotes/type",keyword:"type",params:{type: schema205.properties.reviewNotes.type},message:"must be string,null"};
+const err28 = {instancePath:instancePath+"/reviewNotes",schemaPath:"#/properties/reviewNotes/type",keyword:"type",params:{type: schema206.properties.reviewNotes.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -28124,7 +28377,7 @@ errors++;
 if(data.reviewedAt !== undefined){
 let data10 = data.reviewedAt;
 if((typeof data10 !== "string") && (data10 !== null)){
-const err31 = {instancePath:instancePath+"/reviewedAt",schemaPath:"#/properties/reviewedAt/type",keyword:"type",params:{type: schema205.properties.reviewedAt.type},message:"must be string,null"};
+const err31 = {instancePath:instancePath+"/reviewedAt",schemaPath:"#/properties/reviewedAt/type",keyword:"type",params:{type: schema206.properties.reviewedAt.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err31];
 }
@@ -28163,8 +28416,8 @@ return errors === 0;
 validate111.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ParticipationResponse = validate112;
-const schema206 = {"$id":"schema_ParticipationResponse","type":"object","additionalProperties":false,"required":["success","data"],"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"required":["inquiry"],"properties":{"inquiry":{"$ref":"gamo#/components/schemas/ParticipationInquiry"}}}}};
-const schema207 = {"type":"object","additionalProperties":false,"required":["id","userId","kind","interest","name","organization","message","status","reviewNotes","createdAt","reviewedAt"],"properties":{"id":{"type":"string"},"userId":{"type":"string"},"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":["string","null"]},"message":{"type":"string","minLength":10,"maxLength":4000},"status":{"type":"string","enum":["pending","reviewed","closed"]},"reviewNotes":{"type":["string","null"]},"createdAt":{"type":"string","format":"date-time"},"reviewedAt":{"type":["string","null"],"format":"date-time"}}};
+const schema207 = {"$id":"schema_ParticipationResponse","type":"object","additionalProperties":false,"required":["success","data"],"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"required":["inquiry"],"properties":{"inquiry":{"$ref":"gamo#/components/schemas/ParticipationInquiry"}}}}};
+const schema208 = {"type":"object","additionalProperties":false,"required":["id","userId","kind","interest","name","organization","message","status","reviewNotes","createdAt","reviewedAt"],"properties":{"id":{"type":"string"},"userId":{"type":"string"},"kind":{"type":"string","enum":["general","partnership"]},"interest":{"type":"string","minLength":2,"maxLength":80},"name":{"type":"string","minLength":2,"maxLength":120},"organization":{"type":["string","null"]},"message":{"type":"string","minLength":10,"maxLength":4000},"status":{"type":"string","enum":["pending","reviewed","closed"]},"reviewNotes":{"type":["string","null"]},"createdAt":{"type":"string","format":"date-time"},"reviewedAt":{"type":["string","null"],"format":"date-time"}}};
 
 function validate112(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ParticipationResponse" */;
@@ -28361,7 +28614,7 @@ vErrors.push(err16);
 errors++;
 }
 for(const key2 in data2){
-if(!(func27.call(schema207.properties, key2))){
+if(!(func32.call(schema208.properties, key2))){
 const err17 = {instancePath:instancePath+"/data/inquiry",schemaPath:"gamo#/components/schemas/ParticipationInquiry/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err17];
@@ -28409,7 +28662,7 @@ vErrors.push(err20);
 errors++;
 }
 if(!((data5 === "general") || (data5 === "partnership"))){
-const err21 = {instancePath:instancePath+"/data/inquiry/kind",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/kind/enum",keyword:"enum",params:{allowedValues: schema207.properties.kind.enum},message:"must be equal to one of the allowed values"};
+const err21 = {instancePath:instancePath+"/data/inquiry/kind",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/kind/enum",keyword:"enum",params:{allowedValues: schema208.properties.kind.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err21];
 }
@@ -28492,7 +28745,7 @@ errors++;
 if(data2.organization !== undefined){
 let data8 = data2.organization;
 if((typeof data8 !== "string") && (data8 !== null)){
-const err28 = {instancePath:instancePath+"/data/inquiry/organization",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/organization/type",keyword:"type",params:{type: schema207.properties.organization.type},message:"must be string,null"};
+const err28 = {instancePath:instancePath+"/data/inquiry/organization",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/organization/type",keyword:"type",params:{type: schema208.properties.organization.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -28550,7 +28803,7 @@ vErrors.push(err32);
 errors++;
 }
 if(!(((data10 === "pending") || (data10 === "reviewed")) || (data10 === "closed"))){
-const err33 = {instancePath:instancePath+"/data/inquiry/status",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/status/enum",keyword:"enum",params:{allowedValues: schema207.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err33 = {instancePath:instancePath+"/data/inquiry/status",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/status/enum",keyword:"enum",params:{allowedValues: schema208.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -28563,7 +28816,7 @@ errors++;
 if(data2.reviewNotes !== undefined){
 let data11 = data2.reviewNotes;
 if((typeof data11 !== "string") && (data11 !== null)){
-const err34 = {instancePath:instancePath+"/data/inquiry/reviewNotes",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewNotes/type",keyword:"type",params:{type: schema207.properties.reviewNotes.type},message:"must be string,null"};
+const err34 = {instancePath:instancePath+"/data/inquiry/reviewNotes",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewNotes/type",keyword:"type",params:{type: schema208.properties.reviewNotes.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -28601,7 +28854,7 @@ errors++;
 if(data2.reviewedAt !== undefined){
 let data13 = data2.reviewedAt;
 if((typeof data13 !== "string") && (data13 !== null)){
-const err37 = {instancePath:instancePath+"/data/inquiry/reviewedAt",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewedAt/type",keyword:"type",params:{type: schema207.properties.reviewedAt.type},message:"must be string,null"};
+const err37 = {instancePath:instancePath+"/data/inquiry/reviewedAt",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewedAt/type",keyword:"type",params:{type: schema208.properties.reviewedAt.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -28664,7 +28917,7 @@ return errors === 0;
 validate112.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_ParticipationListResponse = validate113;
-const schema208 = {"$id":"schema_ParticipationListResponse","type":"object","additionalProperties":false,"required":["success","data"],"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"required":["inquiries"],"properties":{"inquiries":{"type":"array","items":{"$ref":"gamo#/components/schemas/ParticipationInquiry"}}}}}};
+const schema209 = {"$id":"schema_ParticipationListResponse","type":"object","additionalProperties":false,"required":["success","data"],"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"required":["inquiries"],"properties":{"inquiries":{"type":"array","items":{"$ref":"gamo#/components/schemas/ParticipationInquiry"}}}}}};
 
 function validate113(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_ParticipationListResponse" */;
@@ -28865,7 +29118,7 @@ vErrors.push(err16);
 errors++;
 }
 for(const key2 in data3){
-if(!(func27.call(schema207.properties, key2))){
+if(!(func32.call(schema208.properties, key2))){
 const err17 = {instancePath:instancePath+"/data/inquiries/" + i0,schemaPath:"gamo#/components/schemas/ParticipationInquiry/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key2},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err17];
@@ -28913,7 +29166,7 @@ vErrors.push(err20);
 errors++;
 }
 if(!((data6 === "general") || (data6 === "partnership"))){
-const err21 = {instancePath:instancePath+"/data/inquiries/" + i0+"/kind",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/kind/enum",keyword:"enum",params:{allowedValues: schema207.properties.kind.enum},message:"must be equal to one of the allowed values"};
+const err21 = {instancePath:instancePath+"/data/inquiries/" + i0+"/kind",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/kind/enum",keyword:"enum",params:{allowedValues: schema208.properties.kind.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err21];
 }
@@ -28996,7 +29249,7 @@ errors++;
 if(data3.organization !== undefined){
 let data9 = data3.organization;
 if((typeof data9 !== "string") && (data9 !== null)){
-const err28 = {instancePath:instancePath+"/data/inquiries/" + i0+"/organization",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/organization/type",keyword:"type",params:{type: schema207.properties.organization.type},message:"must be string,null"};
+const err28 = {instancePath:instancePath+"/data/inquiries/" + i0+"/organization",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/organization/type",keyword:"type",params:{type: schema208.properties.organization.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err28];
 }
@@ -29054,7 +29307,7 @@ vErrors.push(err32);
 errors++;
 }
 if(!(((data11 === "pending") || (data11 === "reviewed")) || (data11 === "closed"))){
-const err33 = {instancePath:instancePath+"/data/inquiries/" + i0+"/status",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/status/enum",keyword:"enum",params:{allowedValues: schema207.properties.status.enum},message:"must be equal to one of the allowed values"};
+const err33 = {instancePath:instancePath+"/data/inquiries/" + i0+"/status",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/status/enum",keyword:"enum",params:{allowedValues: schema208.properties.status.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err33];
 }
@@ -29067,7 +29320,7 @@ errors++;
 if(data3.reviewNotes !== undefined){
 let data12 = data3.reviewNotes;
 if((typeof data12 !== "string") && (data12 !== null)){
-const err34 = {instancePath:instancePath+"/data/inquiries/" + i0+"/reviewNotes",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewNotes/type",keyword:"type",params:{type: schema207.properties.reviewNotes.type},message:"must be string,null"};
+const err34 = {instancePath:instancePath+"/data/inquiries/" + i0+"/reviewNotes",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewNotes/type",keyword:"type",params:{type: schema208.properties.reviewNotes.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err34];
 }
@@ -29105,7 +29358,7 @@ errors++;
 if(data3.reviewedAt !== undefined){
 let data14 = data3.reviewedAt;
 if((typeof data14 !== "string") && (data14 !== null)){
-const err37 = {instancePath:instancePath+"/data/inquiries/" + i0+"/reviewedAt",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewedAt/type",keyword:"type",params:{type: schema207.properties.reviewedAt.type},message:"must be string,null"};
+const err37 = {instancePath:instancePath+"/data/inquiries/" + i0+"/reviewedAt",schemaPath:"gamo#/components/schemas/ParticipationInquiry/properties/reviewedAt/type",keyword:"type",params:{type: schema208.properties.reviewedAt.type},message:"must be string,null"};
 if(vErrors === null){
 vErrors = [err37];
 }
@@ -29179,14 +29432,1375 @@ return errors === 0;
 }
 validate113.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
-export const schema_category = validate114;
-const schema210 = {"$id":"schema_category","type":"string","enum":["concert","worship","bible","conference","youth"]};
+export const schema_TermsDocumentRef = validate114;
+const schema211 = {"$id":"schema_TermsDocumentRef","type":"object","additionalProperties":false,"properties":{"slug":{"type":"string","minLength":2,"maxLength":64},"version":{"type":"string","minLength":1,"maxLength":32}},"required":["slug","version"]};
 
 function validate114(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
-/*# sourceURL="schema_category" */;
+/*# sourceURL="schema_TermsDocumentRef" */;
 let vErrors = null;
 let errors = 0;
 const evaluated0 = validate114.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.slug === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.version === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "version"},message:"must have required property '"+"version"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "slug") || (key0 === "version"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.slug !== undefined){
+let data0 = data.slug;
+if(typeof data0 === "string"){
+if(func1(data0) > 64){
+const err3 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/maxLength",keyword:"maxLength",params:{limit: 64},message:"must NOT have more than 64 characters"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(func1(data0) < 2){
+const err4 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/minLength",keyword:"minLength",params:{limit: 2},message:"must NOT have fewer than 2 characters"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/slug",schemaPath:"#/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.version !== undefined){
+let data1 = data.version;
+if(typeof data1 === "string"){
+if(func1(data1) > 32){
+const err6 = {instancePath:instancePath+"/version",schemaPath:"#/properties/version/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(func1(data1) < 1){
+const err7 = {instancePath:instancePath+"/version",schemaPath:"#/properties/version/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/version",schemaPath:"#/properties/version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+}
+else {
+const err9 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+validate114.errors = vErrors;
+return errors === 0;
+}
+validate114.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ClerkSessionInput = validate115;
+const schema212 = {"$id":"schema_ClerkSessionInput","type":"object","additionalProperties":false,"description":"Optional body of the Clerk token exchange; carries what the sign-up screen collected.","properties":{"intent":{"type":"string","enum":["signin","signup","recover"]},"role":{"type":"string","description":"Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).","enum":["musician","technician","church","agent","organizer","teacher","artist"]},"terms":{"type":"array","maxItems":10,"items":{"$ref":"gamo#/components/schemas/TermsDocumentRef"}},"marketingOptIn":{"type":"boolean"}}};
+
+function validate115(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ClerkSessionInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate115.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+for(const key0 in data){
+if(!((((key0 === "intent") || (key0 === "role")) || (key0 === "terms")) || (key0 === "marketingOptIn"))){
+const err0 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+}
+if(data.intent !== undefined){
+let data0 = data.intent;
+if(typeof data0 !== "string"){
+const err1 = {instancePath:instancePath+"/intent",schemaPath:"#/properties/intent/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+if(!(((data0 === "signin") || (data0 === "signup")) || (data0 === "recover"))){
+const err2 = {instancePath:instancePath+"/intent",schemaPath:"#/properties/intent/enum",keyword:"enum",params:{allowedValues: schema212.properties.intent.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data1 = data.role;
+if(typeof data1 !== "string"){
+const err3 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(!(((((((data1 === "musician") || (data1 === "technician")) || (data1 === "church")) || (data1 === "agent")) || (data1 === "organizer")) || (data1 === "teacher")) || (data1 === "artist"))){
+const err4 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema212.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+if(data.terms !== undefined){
+let data2 = data.terms;
+if(Array.isArray(data2)){
+if(data2.length > 10){
+const err5 = {instancePath:instancePath+"/terms",schemaPath:"#/properties/terms/maxItems",keyword:"maxItems",params:{limit: 10},message:"must NOT have more than 10 items"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+const len0 = data2.length;
+for(let i0=0; i0<len0; i0++){
+let data3 = data2[i0];
+if(data3 && typeof data3 == "object" && !Array.isArray(data3)){
+if(data3.slug === undefined){
+const err6 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/required",keyword:"required",params:{missingProperty: "slug"},message:"must have required property '"+"slug"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(data3.version === undefined){
+const err7 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/required",keyword:"required",params:{missingProperty: "version"},message:"must have required property '"+"version"+"'"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+for(const key1 in data3){
+if(!((key1 === "slug") || (key1 === "version"))){
+const err8 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data3.slug !== undefined){
+let data4 = data3.slug;
+if(typeof data4 === "string"){
+if(func1(data4) > 64){
+const err9 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/maxLength",keyword:"maxLength",params:{limit: 64},message:"must NOT have more than 64 characters"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+if(func1(data4) < 2){
+const err10 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/minLength",keyword:"minLength",params:{limit: 2},message:"must NOT have fewer than 2 characters"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/terms/" + i0+"/slug",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data3.version !== undefined){
+let data5 = data3.version;
+if(typeof data5 === "string"){
+if(func1(data5) > 32){
+const err12 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+if(func1(data5) < 1){
+const err13 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/minLength",keyword:"minLength",params:{limit: 1},message:"must NOT have fewer than 1 characters"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+else {
+const err14 = {instancePath:instancePath+"/terms/" + i0+"/version",schemaPath:"gamo#/components/schemas/TermsDocumentRef/properties/version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+}
+else {
+const err15 = {instancePath:instancePath+"/terms/" + i0,schemaPath:"gamo#/components/schemas/TermsDocumentRef/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath:instancePath+"/terms",schemaPath:"#/properties/terms/type",keyword:"type",params:{type: "array"},message:"must be array"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+if(data.marketingOptIn !== undefined){
+if(typeof data.marketingOptIn !== "boolean"){
+const err17 = {instancePath:instancePath+"/marketingOptIn",schemaPath:"#/properties/marketingOptIn/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+}
+}
+else {
+const err18 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err18];
+}
+else {
+vErrors.push(err18);
+}
+errors++;
+}
+validate115.errors = vErrors;
+return errors === 0;
+}
+validate115.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ClerkWebhookEvent = validate116;
+const schema214 = {"$id":"schema_ClerkWebhookEvent","type":"object","description":"Clerk webhook payload (only type and data.id are read).","additionalProperties":true,"properties":{"type":{"type":"string","maxLength":100},"data":{"type":"object","additionalProperties":true}},"required":["type"]};
+
+function validate116(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ClerkWebhookEvent" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate116.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.type === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "type"},message:"must have required property '"+"type"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.type !== undefined){
+let data0 = data.type;
+if(typeof data0 === "string"){
+if(func1(data0) > 100){
+const err1 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/maxLength",keyword:"maxLength",params:{limit: 100},message:"must NOT have more than 100 characters"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+else {
+const err2 = {instancePath:instancePath+"/type",schemaPath:"#/properties/type/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+}
+else {
+const err3 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+}
+else {
+const err4 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+validate116.errors = vErrors;
+return errors === 0;
+}
+validate116.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ClerkWebhookResponse = validate117;
+const schema215 = {"$id":"schema_ClerkWebhookResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"received":{"const":true},"status":{"type":"string","enum":["revoked","ignored"]},"sessionsRevoked":{"type":"integer","minimum":0}},"required":["received","status","sessionsRevoked"]}},"required":["success","data"]};
+
+function validate117(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ClerkWebhookResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate117.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.success === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "success"},message:"must have required property '"+"success"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.data === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "success") || (key0 === "data"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.success !== undefined){
+if(true !== data.success){
+const err3 = {instancePath:instancePath+"/success",schemaPath:"#/properties/success/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data1 = data.data;
+if(data1 && typeof data1 == "object" && !Array.isArray(data1)){
+if(data1.received === undefined){
+const err4 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "received"},message:"must have required property '"+"received"+"'"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(data1.status === undefined){
+const err5 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "status"},message:"must have required property '"+"status"+"'"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+if(data1.sessionsRevoked === undefined){
+const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/required",keyword:"required",params:{missingProperty: "sessionsRevoked"},message:"must have required property '"+"sessionsRevoked"+"'"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+for(const key1 in data1){
+if(!(((key1 === "received") || (key1 === "status")) || (key1 === "sessionsRevoked"))){
+const err7 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data1.received !== undefined){
+if(true !== data1.received){
+const err8 = {instancePath:instancePath+"/data/received",schemaPath:"#/properties/data/properties/received/const",keyword:"const",params:{allowedValue: true},message:"must be equal to constant"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data1.status !== undefined){
+let data3 = data1.status;
+if(typeof data3 !== "string"){
+const err9 = {instancePath:instancePath+"/data/status",schemaPath:"#/properties/data/properties/status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+if(!((data3 === "revoked") || (data3 === "ignored"))){
+const err10 = {instancePath:instancePath+"/data/status",schemaPath:"#/properties/data/properties/status/enum",keyword:"enum",params:{allowedValues: schema215.properties.data.properties.status.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data1.sessionsRevoked !== undefined){
+let data4 = data1.sessionsRevoked;
+if(!((typeof data4 == "number") && (!(data4 % 1) && !isNaN(data4)))){
+const err11 = {instancePath:instancePath+"/data/sessionsRevoked",schemaPath:"#/properties/data/properties/sessionsRevoked/type",keyword:"type",params:{type: "integer"},message:"must be integer"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+if(typeof data4 == "number"){
+if(data4 < 0 || isNaN(data4)){
+const err12 = {instancePath:instancePath+"/data/sessionsRevoked",schemaPath:"#/properties/data/properties/sessionsRevoked/minimum",keyword:"minimum",params:{comparison: ">=", limit: 0},message:"must be >= 0"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+}
+else {
+const err14 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+validate117.errors = vErrors;
+return errors === 0;
+}
+validate117.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_PersonLinkForm = validate118;
+const schema216 = {"$id":"schema_PersonLinkForm","type":"object","additionalProperties":false,"properties":{"action":{"type":"string","enum":["unlink","link"]}},"required":["action"]};
+
+function validate118(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_PersonLinkForm" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate118.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.action === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "action"},message:"must have required property '"+"action"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(key0 === "action")){
+const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.action !== undefined){
+let data0 = data.action;
+if(typeof data0 !== "string"){
+const err2 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(!((data0 === "unlink") || (data0 === "link"))){
+const err3 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/enum",keyword:"enum",params:{allowedValues: schema216.properties.action.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+}
+else {
+const err4 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+validate118.errors = vErrors;
+return errors === 0;
+}
+validate118.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ProviderAccountForm = validate119;
+const schema217 = {"$id":"schema_ProviderAccountForm","type":"object","description":"Onboarding form fields. Besides the listed controls, a save carries the step's own fields (role-specific, validated server-side by the step schema) as plain strings.","additionalProperties":{"type":"string","maxLength":4000},"properties":{"action":{"type":"string","enum":["start","save","terms","submit","publish","unpublish"]},"role":{"type":"string","enum":["musician","technician","church","agent","organizer","teacher","artist"]},"step":{"type":"string","maxLength":40},"terms_slug":{"type":"string","maxLength":64},"terms_version":{"type":"string","maxLength":32},"terms_accept":{"type":"string","enum":["yes"]}},"required":["action","role"]};
+
+function validate119(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ProviderAccountForm" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate119.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.action === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "action"},message:"must have required property '"+"action"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.role === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "role"},message:"must have required property '"+"role"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((((((key0 === "action") || (key0 === "role")) || (key0 === "step")) || (key0 === "terms_slug")) || (key0 === "terms_version")) || (key0 === "terms_accept"))){
+let data0 = data[key0];
+if(typeof data0 === "string"){
+if(func1(data0) > 4000){
+const err2 = {instancePath:instancePath+"/" + key0.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/additionalProperties/maxLength",keyword:"maxLength",params:{limit: 4000},message:"must NOT have more than 4000 characters"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+else {
+const err3 = {instancePath:instancePath+"/" + key0.replace(/~/g, "~0").replace(/\//g, "~1"),schemaPath:"#/additionalProperties/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+}
+if(data.action !== undefined){
+let data1 = data.action;
+if(typeof data1 !== "string"){
+const err4 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+if(!((((((data1 === "start") || (data1 === "save")) || (data1 === "terms")) || (data1 === "submit")) || (data1 === "publish")) || (data1 === "unpublish"))){
+const err5 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/enum",keyword:"enum",params:{allowedValues: schema217.properties.action.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+if(data.role !== undefined){
+let data2 = data.role;
+if(typeof data2 !== "string"){
+const err6 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+if(!(((((((data2 === "musician") || (data2 === "technician")) || (data2 === "church")) || (data2 === "agent")) || (data2 === "organizer")) || (data2 === "teacher")) || (data2 === "artist"))){
+const err7 = {instancePath:instancePath+"/role",schemaPath:"#/properties/role/enum",keyword:"enum",params:{allowedValues: schema217.properties.role.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+if(data.step !== undefined){
+let data3 = data.step;
+if(typeof data3 === "string"){
+if(func1(data3) > 40){
+const err8 = {instancePath:instancePath+"/step",schemaPath:"#/properties/step/maxLength",keyword:"maxLength",params:{limit: 40},message:"must NOT have more than 40 characters"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+else {
+const err9 = {instancePath:instancePath+"/step",schemaPath:"#/properties/step/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+if(data.terms_slug !== undefined){
+let data4 = data.terms_slug;
+if(typeof data4 === "string"){
+if(func1(data4) > 64){
+const err10 = {instancePath:instancePath+"/terms_slug",schemaPath:"#/properties/terms_slug/maxLength",keyword:"maxLength",params:{limit: 64},message:"must NOT have more than 64 characters"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+else {
+const err11 = {instancePath:instancePath+"/terms_slug",schemaPath:"#/properties/terms_slug/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+if(data.terms_version !== undefined){
+let data5 = data.terms_version;
+if(typeof data5 === "string"){
+if(func1(data5) > 32){
+const err12 = {instancePath:instancePath+"/terms_version",schemaPath:"#/properties/terms_version/maxLength",keyword:"maxLength",params:{limit: 32},message:"must NOT have more than 32 characters"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+else {
+const err13 = {instancePath:instancePath+"/terms_version",schemaPath:"#/properties/terms_version/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+if(data.terms_accept !== undefined){
+let data6 = data.terms_accept;
+if(typeof data6 !== "string"){
+const err14 = {instancePath:instancePath+"/terms_accept",schemaPath:"#/properties/terms_accept/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+if(!(data6 === "yes")){
+const err15 = {instancePath:instancePath+"/terms_accept",schemaPath:"#/properties/terms_accept/enum",keyword:"enum",params:{allowedValues: schema217.properties.terms_accept.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+}
+else {
+const err16 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+validate119.errors = vErrors;
+return errors === 0;
+}
+validate119.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_ProviderReviewForm = validate120;
+const schema218 = {"$id":"schema_ProviderReviewForm","type":"object","additionalProperties":false,"properties":{"action":{"type":"string","enum":["schedule_meeting","start_review","verify","request_changes","reject","suspend","reinstate"]},"expected_status":{"type":"string","maxLength":40},"notes":{"type":"string","maxLength":2000},"meeting_at":{"type":"string","description":"Local date and time (YYYY-MM-DDTHH:MM) in meeting_zone.","maxLength":20},"meeting_zone":{"type":"string","description":"IANA time zone of meeting_at (default America/Phoenix).","maxLength":64},"meeting_location":{"type":"string","maxLength":300},"meeting_staff":{"type":"string","maxLength":120}},"required":["action","expected_status"]};
+
+function validate120(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_ProviderReviewForm" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate120.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.action === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "action"},message:"must have required property '"+"action"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+if(data.expected_status === undefined){
+const err1 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "expected_status"},message:"must have required property '"+"expected_status"+"'"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(((((((key0 === "action") || (key0 === "expected_status")) || (key0 === "notes")) || (key0 === "meeting_at")) || (key0 === "meeting_zone")) || (key0 === "meeting_location")) || (key0 === "meeting_staff"))){
+const err2 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+if(data.action !== undefined){
+let data0 = data.action;
+if(typeof data0 !== "string"){
+const err3 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+if(!(((((((data0 === "schedule_meeting") || (data0 === "start_review")) || (data0 === "verify")) || (data0 === "request_changes")) || (data0 === "reject")) || (data0 === "suspend")) || (data0 === "reinstate"))){
+const err4 = {instancePath:instancePath+"/action",schemaPath:"#/properties/action/enum",keyword:"enum",params:{allowedValues: schema218.properties.action.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+if(data.expected_status !== undefined){
+let data1 = data.expected_status;
+if(typeof data1 === "string"){
+if(func1(data1) > 40){
+const err5 = {instancePath:instancePath+"/expected_status",schemaPath:"#/properties/expected_status/maxLength",keyword:"maxLength",params:{limit: 40},message:"must NOT have more than 40 characters"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+else {
+const err6 = {instancePath:instancePath+"/expected_status",schemaPath:"#/properties/expected_status/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+}
+if(data.notes !== undefined){
+let data2 = data.notes;
+if(typeof data2 === "string"){
+if(func1(data2) > 2000){
+const err7 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/maxLength",keyword:"maxLength",params:{limit: 2000},message:"must NOT have more than 2000 characters"};
+if(vErrors === null){
+vErrors = [err7];
+}
+else {
+vErrors.push(err7);
+}
+errors++;
+}
+}
+else {
+const err8 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err8];
+}
+else {
+vErrors.push(err8);
+}
+errors++;
+}
+}
+if(data.meeting_at !== undefined){
+let data3 = data.meeting_at;
+if(typeof data3 === "string"){
+if(func1(data3) > 20){
+const err9 = {instancePath:instancePath+"/meeting_at",schemaPath:"#/properties/meeting_at/maxLength",keyword:"maxLength",params:{limit: 20},message:"must NOT have more than 20 characters"};
+if(vErrors === null){
+vErrors = [err9];
+}
+else {
+vErrors.push(err9);
+}
+errors++;
+}
+}
+else {
+const err10 = {instancePath:instancePath+"/meeting_at",schemaPath:"#/properties/meeting_at/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err10];
+}
+else {
+vErrors.push(err10);
+}
+errors++;
+}
+}
+if(data.meeting_zone !== undefined){
+let data4 = data.meeting_zone;
+if(typeof data4 === "string"){
+if(func1(data4) > 64){
+const err11 = {instancePath:instancePath+"/meeting_zone",schemaPath:"#/properties/meeting_zone/maxLength",keyword:"maxLength",params:{limit: 64},message:"must NOT have more than 64 characters"};
+if(vErrors === null){
+vErrors = [err11];
+}
+else {
+vErrors.push(err11);
+}
+errors++;
+}
+}
+else {
+const err12 = {instancePath:instancePath+"/meeting_zone",schemaPath:"#/properties/meeting_zone/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err12];
+}
+else {
+vErrors.push(err12);
+}
+errors++;
+}
+}
+if(data.meeting_location !== undefined){
+let data5 = data.meeting_location;
+if(typeof data5 === "string"){
+if(func1(data5) > 300){
+const err13 = {instancePath:instancePath+"/meeting_location",schemaPath:"#/properties/meeting_location/maxLength",keyword:"maxLength",params:{limit: 300},message:"must NOT have more than 300 characters"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
+}
+errors++;
+}
+}
+else {
+const err14 = {instancePath:instancePath+"/meeting_location",schemaPath:"#/properties/meeting_location/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err14];
+}
+else {
+vErrors.push(err14);
+}
+errors++;
+}
+}
+if(data.meeting_staff !== undefined){
+let data6 = data.meeting_staff;
+if(typeof data6 === "string"){
+if(func1(data6) > 120){
+const err15 = {instancePath:instancePath+"/meeting_staff",schemaPath:"#/properties/meeting_staff/maxLength",keyword:"maxLength",params:{limit: 120},message:"must NOT have more than 120 characters"};
+if(vErrors === null){
+vErrors = [err15];
+}
+else {
+vErrors.push(err15);
+}
+errors++;
+}
+}
+else {
+const err16 = {instancePath:instancePath+"/meeting_staff",schemaPath:"#/properties/meeting_staff/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err16];
+}
+else {
+vErrors.push(err16);
+}
+errors++;
+}
+}
+}
+else {
+const err17 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err17];
+}
+else {
+vErrors.push(err17);
+}
+errors++;
+}
+validate120.errors = vErrors;
+return errors === 0;
+}
+validate120.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_EventReviewForm = validate121;
+const schema219 = {"$id":"schema_EventReviewForm","type":"object","additionalProperties":false,"properties":{"decision":{"type":"string","enum":["approved","rejected","revision_requested"]},"notes":{"type":"string","maxLength":2000}},"required":["decision"]};
+
+function validate121(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_EventReviewForm" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate121.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.decision === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "decision"},message:"must have required property '"+"decision"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+for(const key0 in data){
+if(!((key0 === "decision") || (key0 === "notes"))){
+const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.decision !== undefined){
+let data0 = data.decision;
+if(typeof data0 !== "string"){
+const err2 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(!(((data0 === "approved") || (data0 === "rejected")) || (data0 === "revision_requested"))){
+const err3 = {instancePath:instancePath+"/decision",schemaPath:"#/properties/decision/enum",keyword:"enum",params:{allowedValues: schema219.properties.decision.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+if(data.notes !== undefined){
+let data1 = data.notes;
+if(typeof data1 === "string"){
+if(func1(data1) > 2000){
+const err4 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/maxLength",keyword:"maxLength",params:{limit: 2000},message:"must NOT have more than 2000 characters"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+}
+else {
+const err5 = {instancePath:instancePath+"/notes",schemaPath:"#/properties/notes/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err5];
+}
+else {
+vErrors.push(err5);
+}
+errors++;
+}
+}
+}
+else {
+const err6 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err6];
+}
+else {
+vErrors.push(err6);
+}
+errors++;
+}
+validate121.errors = vErrors;
+return errors === 0;
+}
+validate121.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_OrganizerReviewForm = validate122;
+const schema220 = {"$id":"schema_OrganizerReviewForm","type":"object","additionalProperties":false,"properties":{"always_review":{"type":"string","enum":["on","off"]}},"required":["always_review"]};
+
+function validate122(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_OrganizerReviewForm" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate122.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.always_review === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "always_review"},message:"must have required property '"+"always_review"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(key0 === "always_review")){
+const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.always_review !== undefined){
+let data0 = data.always_review;
+if(typeof data0 !== "string"){
+const err2 = {instancePath:instancePath+"/always_review",schemaPath:"#/properties/always_review/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+if(!((data0 === "on") || (data0 === "off"))){
+const err3 = {instancePath:instancePath+"/always_review",schemaPath:"#/properties/always_review/enum",keyword:"enum",params:{allowedValues: schema220.properties.always_review.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+}
+}
+else {
+const err4 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err4];
+}
+else {
+vErrors.push(err4);
+}
+errors++;
+}
+validate122.errors = vErrors;
+return errors === 0;
+}
+validate122.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_category = validate123;
+const schema221 = {"$id":"schema_category","type":"string","enum":["concert","worship","bible","conference","youth"]};
+
+function validate123(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_category" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate123.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29204,7 +30818,7 @@ vErrors.push(err0);
 errors++;
 }
 if(!(((((data === "concert") || (data === "worship")) || (data === "bible")) || (data === "conference")) || (data === "youth"))){
-const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema210.enum},message:"must be equal to one of the allowed values"};
+const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema221.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err1];
 }
@@ -29213,19 +30827,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate114.errors = vErrors;
+validate123.errors = vErrors;
 return errors === 0;
 }
-validate114.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate123.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_city = validate115;
-const schema211 = {"$id":"schema_city","type":"string","minLength":2};
+export const schema_city = validate124;
+const schema222 = {"$id":"schema_city","type":"string","minLength":2};
 
-function validate115(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate124(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_city" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate115.evaluated;
+const evaluated0 = validate124.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29254,19 +30868,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate115.errors = vErrors;
+validate124.errors = vErrors;
 return errors === 0;
 }
-validate115.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate124.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_artist = validate116;
-const schema212 = {"$id":"schema_artist","type":"string","minLength":2};
+export const schema_artist = validate125;
+const schema223 = {"$id":"schema_artist","type":"string","minLength":2};
 
-function validate116(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate125(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_artist" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate116.evaluated;
+const evaluated0 = validate125.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29295,19 +30909,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate116.errors = vErrors;
+validate125.errors = vErrors;
 return errors === 0;
 }
-validate116.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate125.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_venue = validate117;
-const schema213 = {"$id":"schema_venue","type":"string","minLength":2};
+export const schema_venue = validate126;
+const schema224 = {"$id":"schema_venue","type":"string","minLength":2};
 
-function validate117(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate126(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_venue" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate117.evaluated;
+const evaluated0 = validate126.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29336,19 +30950,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate117.errors = vErrors;
+validate126.errors = vErrors;
 return errors === 0;
 }
-validate117.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate126.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_dateFrom = validate118;
-const schema214 = {"$id":"schema_dateFrom","type":"string","minLength":8};
+export const schema_dateFrom = validate127;
+const schema225 = {"$id":"schema_dateFrom","type":"string","minLength":8};
 
-function validate118(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate127(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_dateFrom" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate118.evaluated;
+const evaluated0 = validate127.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29377,19 +30991,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate118.errors = vErrors;
+validate127.errors = vErrors;
 return errors === 0;
 }
-validate118.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate127.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_dateTo = validate119;
-const schema215 = {"$id":"schema_dateTo","type":"string","minLength":8};
+export const schema_dateTo = validate128;
+const schema226 = {"$id":"schema_dateTo","type":"string","minLength":8};
 
-function validate119(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate128(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_dateTo" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate119.evaluated;
+const evaluated0 = validate128.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29418,19 +31032,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate119.errors = vErrors;
+validate128.errors = vErrors;
 return errors === 0;
 }
-validate119.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate128.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_metro = validate120;
-const schema216 = {"$id":"schema_metro","type":"string","minLength":2};
+export const schema_metro = validate129;
+const schema227 = {"$id":"schema_metro","type":"string","minLength":2};
 
-function validate120(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate129(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_metro" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate120.evaluated;
+const evaluated0 = validate129.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29459,19 +31073,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate120.errors = vErrors;
+validate129.errors = vErrors;
 return errors === 0;
 }
-validate120.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate129.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_q = validate121;
-const schema217 = {"$id":"schema_q","type":"string","minLength":2};
+export const schema_q = validate130;
+const schema228 = {"$id":"schema_q","type":"string","minLength":2};
 
-function validate121(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate130(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_q" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate121.evaluated;
+const evaluated0 = validate130.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29500,19 +31114,19 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate121.errors = vErrors;
+validate130.errors = vErrors;
 return errors === 0;
 }
-validate121.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate130.evaluated = {"dynamicProps":false,"dynamicItems":false};
 
-export const schema_weekend = validate122;
-const schema218 = {"$id":"schema_weekend","type":"string","enum":["true","false","1","0"]};
+export const schema_weekend = validate131;
+const schema229 = {"$id":"schema_weekend","type":"string","enum":["true","false","1","0"]};
 
-function validate122(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+function validate131(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_weekend" */;
 let vErrors = null;
 let errors = 0;
-const evaluated0 = validate122.evaluated;
+const evaluated0 = validate131.evaluated;
 if(evaluated0.dynamicProps){
 evaluated0.props = undefined;
 }
@@ -29530,7 +31144,7 @@ vErrors.push(err0);
 errors++;
 }
 if(!((((data === "true") || (data === "false")) || (data === "1")) || (data === "0"))){
-const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema218.enum},message:"must be equal to one of the allowed values"};
+const err1 = {instancePath,schemaPath:"#/enum",keyword:"enum",params:{allowedValues: schema229.enum},message:"must be equal to one of the allowed values"};
 if(vErrors === null){
 vErrors = [err1];
 }
@@ -29539,7 +31153,7 @@ vErrors.push(err1);
 }
 errors++;
 }
-validate122.errors = vErrors;
+validate131.errors = vErrors;
 return errors === 0;
 }
-validate122.evaluated = {"dynamicProps":false,"dynamicItems":false};
+validate131.evaluated = {"dynamicProps":false,"dynamicItems":false};

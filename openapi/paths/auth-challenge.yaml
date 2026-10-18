@@ -28,6 +28,10 @@ post:
       $ref: ../components/responses/LegacyError.yaml
     '403':
       $ref: ../components/responses/LegacyError.yaml
+    '413':
+      $ref: ../components/responses/LegacyError.yaml
+    '415':
+      $ref: ../components/responses/LegacyError.yaml
     '429':
       $ref: ../components/responses/LegacyError.yaml
     '503':

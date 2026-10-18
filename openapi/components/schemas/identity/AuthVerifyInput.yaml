@@ -29,6 +29,26 @@ properties:
       - academy
       - live
       - production
+  role:
+    type: string
+    description: Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).
+    enum:
+      - musician
+      - technician
+      - church
+      - agent
+      - organizer
+      - teacher
+      - artist
+  terms:
+    type: array
+    maxItems: 10
+    description: Sign-up only — the terms documents the form showed (current Site Terms and Privacy Policy versions are required).
+    items:
+      $ref: ./TermsDocumentRef.yaml
+  marketingOptIn:
+    type: boolean
+    description: Sign-up only — the separate, never pre-ticked marketing checkbox.
 required:
   - email
   - code

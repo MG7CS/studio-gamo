@@ -1,0 +1,45 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local web application
+post:
+  operationId: changePersonLink
+  tags:
+    - Identity and Accounts
+  summary: Unlink (or link again) this product's account from the shared person record
+  description: >-
+    Plain HTML form post (no JavaScript needed). unlink clears users.person_id and writes a
+    person.unlinked audit row, which also stops automatic re-linking at the next sign-in; link re-attaches
+    the account to the person of its verified email. Never grants access in another product. Redirects
+    303 to /account with person=unlinked|linked|unchanged or error=<code>.
+  security:
+    - BrowserSession: []
+  x-application: web
+  x-replicated-applications: [live, worship, academy, production]
+  x-status: implemented
+  x-authorization: Verified session with an active account in this product; same origin.
+  x-idempotency: Repeating the same action leaves the link unchanged.
+  x-source: apps/web/src/pages/api/account/person-link.ts
+  parameters: []
+  responses:
+    '303':
+      description: Form handled; redirects back to the page with the outcome in the query string.
+      headers:
+        Location:
+          schema:
+            type: string
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '415':
+      $ref: ../components/responses/LegacyError.yaml
+    '500':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/identity/PersonLinkForm.yaml

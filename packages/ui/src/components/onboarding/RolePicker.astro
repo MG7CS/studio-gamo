@@ -1,0 +1,50 @@
+---
+/**
+ * Choose (or continue) a provider role: one small form per role (POST action=start → 303 to its first
+ * step). Roles already started link straight to their onboarding.
+ */
+interface Props {
+  roles: { value: string; label: string; started: boolean; href: string }[];
+  program: string;
+}
+const { roles, program } = Astro.props;
+---
+
+<section aria-labelledby="role-picker-title">
+  <h2 id="role-picker-title" class="text-xl font-bold text-ink">
+    Choose how you'll serve with {program}
+  </h2>
+  {roles.length === 0 ? (
+    <p class="mt-2 text-[15px] text-ink">
+      {program} has no provider roles. Musicians, technicians, churches, organizers and teachers sign up on
+      Gamo Worship, Gamo Live, Gamo Academy or Gamo Production.
+    </p>
+  ) : (
+    <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+      {roles.map((role) => (
+        <li class="rounded-2xl bg-white p-4 ring-1 ring-ink/15">
+          <p class="text-[15px] font-semibold text-ink">{role.label}</p>
+          {role.started ? (
+            <a
+              href={role.href}
+              class="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-terracotta-deep underline underline-offset-4"
+            >
+              Continue {role.label.toLowerCase()} profile
+            </a>
+          ) : (
+            <form method="post" action="/api/account/providers" class="mt-2">
+              <input type="hidden" name="action" value="start" />
+              <input type="hidden" name="role" value={role.value} />
+              <button
+                type="submit"
+                class="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2"
+              >
+                Start a {role.label.toLowerCase()} profile
+              </button>
+            </form>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
+</section>

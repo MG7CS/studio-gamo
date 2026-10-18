@@ -1,0 +1,50 @@
+---
+/**
+ * The terms step of provider onboarding: the current Provider and Church Terms (or Organizer Terms) with the
+ * required consent checkbox. Records the acceptance (document, version, time, hashed IP) on submit.
+ */
+import TermsConsent from '../forms/TermsConsent.astro';
+import SubmitButton from '../forms/SubmitButton.astro';
+import type { TermsConsentDocument } from '../../lib/terms-links';
+
+interface Props {
+  role: string;
+  document: TermsConsentDocument & { title: string };
+  accepted: boolean;
+  error?: string;
+}
+const { role, document, accepted, error } = Astro.props;
+---
+
+<form method="post" action="/api/account/providers" class="space-y-5">
+  <input type="hidden" name="action" value="terms" />
+  <input type="hidden" name="role" value={role} />
+  <div>
+    <h2 class="text-2xl font-black uppercase tracking-tight text-ink">{document.title}</h2>
+    <p class="mt-1 text-[15px] text-muted">
+      Version {document.version}. This text is a draft that still requires legal review; you will be asked
+      again when a new version is published.
+    </p>
+  </div>
+  {accepted ? (
+    <p class="rounded-xl bg-white px-4 py-3 text-[15px] text-ink ring-1 ring-ink/15">
+      ✓ You accepted this version.{' '}
+      <a href={document.href} class="font-semibold text-terracotta-deep underline">
+        Read it again
+      </a>
+    </p>
+  ) : (
+    <>
+      <TermsConsent documents={[document]} id="provider-terms-accept" error={error} />
+      <SubmitButton label="Accept and continue" pendingLabel="Saving…" />
+    </>
+  )}
+  {accepted && (
+    <a
+      href={`/account/onboarding?role=${role}&step=review`}
+      class="inline-flex min-h-11 items-center rounded-full bg-ink px-6 text-sm font-semibold text-cream"
+    >
+      Continue
+    </a>
+  )}
+</form>

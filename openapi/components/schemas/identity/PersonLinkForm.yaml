@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  action:
+    type: string
+    enum:
+      - unlink
+      - link
+required:
+  - action

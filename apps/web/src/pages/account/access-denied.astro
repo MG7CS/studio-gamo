@@ -1,8 +1,12 @@
 ---
-import '../../app.css';
-import AuthPage from '../../components/account/AuthPage.astro';
-import { authScreens } from '../../data/account-entry';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import AccessDenied from '@studio-gamo/ui/components/account/AccessDenied.astro';
 Astro.response.status = 403;
 ---
 
-<AuthPage screen={authScreens.denied} />
+<SiteLayout
+  title="Access Needed — Gamo Studios"
+  description="This part of Gamo Studios needs a role or verification."
+>
+  <AccessDenied program="Gamo Studios" reason={Astro.url.searchParams.get('reason')} />
+</SiteLayout>
