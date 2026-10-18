@@ -6,6 +6,7 @@
   "exports": {
     ".": "./index.ts",
     "./apps": "./apps.ts",
-    "./env-loader": "./env-loader.ts"
+    "./env-loader": "./env-loader.ts",
+    "./env": "./env.ts"
   }
 }

@@ -9,10 +9,7 @@ export const prerender = false;
 export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
-    const webhookSecret =
-      runtimeEnv.STRIPE_WEBHOOK_SECRET ||
-      import.meta.env?.STRIPE_WEBHOOK_SECRET ||
-      (globalThis as Record<string, any>).process?.env?.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = runtimeEnv.STRIPE_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
       return new Response(JSON.stringify({ error: 'Webhook secret unconfigured' }), {

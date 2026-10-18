@@ -185,7 +185,7 @@ export async function verifyCloudflareAccessJwt(
     }
 
     return { valid: true, claims: payload };
-  } catch (err: any) {
-    return { valid: false, error: `Signature verification exception: ${err?.message || err}` };
+  } catch {
+    return { valid: false, error: 'Signature verification failed.' };
   }
 }

@@ -1,3 +1,4 @@
+/// <reference path="../packages/auth/app-locals.d.ts" />
 // Scripts and tests import app modules that read `import.meta.env`. Mirrors vite/client's
 // declaration so these modules type-check outside an Astro project.
 interface ImportMetaEnv {

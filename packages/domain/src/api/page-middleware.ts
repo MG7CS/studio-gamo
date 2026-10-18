@@ -7,12 +7,13 @@ import {
   pageCacheControl,
   type PublicApp,
 } from '@gamo/auth/page-access';
+import type { GamoLocals } from '@gamo/auth/locals';
 import { getRuntimeEnv } from './response';
 
 type Context = {
   request: Request;
   url: URL;
-  locals: Record<string, any>;
+  locals: GamoLocals;
   redirect: (path: string, status?: 302 | 303) => Response;
 };
 

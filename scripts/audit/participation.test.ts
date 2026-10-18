@@ -60,10 +60,13 @@ test('participation persists by owner, stays pending, and review does not grant 
       f.service.review(inquiry.id, f.staff.id, { status: 'reviewed', notes: 'Reopen' }),
       /CONFLICT/,
     );
-    assert.equal(f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM user_roles').get().n, 0);
+    assert.equal((f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM user_roles').get() as any).n, 0);
     assert.equal(
-      f.d1.sqlite.prepare("SELECT COUNT(*) AS n FROM audit_logs WHERE action='participation.reviewed'").get()
-        .n,
+      (
+        f.d1.sqlite
+          .prepare("SELECT COUNT(*) AS n FROM audit_logs WHERE action='participation.reviewed'")
+          .get() as any
+      ).n,
       2,
     );
   } finally {

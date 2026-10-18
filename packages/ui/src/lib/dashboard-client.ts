@@ -3,6 +3,18 @@
  * menus, native dialogs, row control actions, instant search & filtering,
  * interactive analytics charts, and client-side CSV / JSON report exports.
  */
+
+/** Serialized chart/table payloads embedded in `data-chart-payload` / `data-table-payload` for export. */
+interface ExportChart {
+  title: string;
+  labels?: string[];
+  series: Array<{ label: string; points?: Array<{ value?: number | string; displayValue?: string }> }>;
+}
+interface ExportTable {
+  caption: string;
+  columns: Array<{ key: string; label: string }>;
+  rows?: Record<string, string>[];
+}
 export function initDashboard(): void {
   const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>
     Array.from(root.querySelectorAll<T>(sel) as NodeListOf<T>);
@@ -371,22 +383,22 @@ export function initDashboard(): void {
       const charts = $$('[data-analytics-chart]')
         .map((el) => {
           try {
-            return JSON.parse(el.dataset.chartPayload ?? 'null');
+            return JSON.parse(el.dataset.chartPayload ?? 'null') as ExportChart | null;
           } catch {
             return null;
           }
         })
-        .filter(Boolean);
+        .filter((c): c is ExportChart => Boolean(c));
 
       const tables = $$('[data-table]')
         .map((el) => {
           try {
-            return JSON.parse(el.dataset.tablePayload ?? 'null');
+            return JSON.parse(el.dataset.tablePayload ?? 'null') as ExportTable | null;
           } catch {
             return null;
           }
         })
-        .filter(Boolean);
+        .filter((t): t is ExportTable => Boolean(t));
 
       if (mode === 'json') {
         const jsonReport = JSON.stringify(
@@ -409,25 +421,25 @@ export function initDashboard(): void {
           lines.push('Metric,Value,Context');
           stats.forEach((s) => lines.push([s.metric, s.value, s.context].map(escapeCsvCell).join(',')));
         }
-        charts.forEach((c: any) => {
+        charts.forEach((c) => {
           lines.push('');
           lines.push(`# Chart: ${c.title}`);
-          const headers = ['Period / Category', ...c.series.map((s: any) => s.label)];
+          const headers = ['Period / Category', ...c.series.map((s) => s.label)];
           lines.push(headers.map(escapeCsvCell).join(','));
           (c.labels ?? []).forEach((lbl: string, idx: number) => {
             const row = [
               lbl,
-              ...c.series.map((s: any) => s.points?.[idx]?.displayValue ?? s.points?.[idx]?.value ?? ''),
+              ...c.series.map((s) => s.points?.[idx]?.displayValue ?? s.points?.[idx]?.value ?? ''),
             ];
             lines.push(row.map(escapeCsvCell).join(','));
           });
         });
-        tables.forEach((t: any) => {
+        tables.forEach((t) => {
           lines.push('');
           lines.push(`# Table: ${t.caption}`);
-          lines.push(t.columns.map((c: any) => escapeCsvCell(c.label)).join(','));
+          lines.push(t.columns.map((c) => escapeCsvCell(c.label)).join(','));
           (t.rows ?? []).forEach((r: Record<string, string>) => {
-            lines.push(t.columns.map((c: any) => escapeCsvCell(r[c.key] ?? '')).join(','));
+            lines.push(t.columns.map((c) => escapeCsvCell(r[c.key] ?? '')).join(','));
           });
         });
         triggerDownload(`${slug}-${stamp}.csv`, lines.join('\n'), 'text/csv;charset=utf-8');

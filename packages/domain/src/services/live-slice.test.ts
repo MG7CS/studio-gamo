@@ -281,7 +281,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.ok(settlementId && settlementId.startsWith('stl_'));
     const settlementRow = d1.sqlite
       .prepare(`SELECT * FROM settlement_records WHERE id = ?`)
-      .get(settlementId) as Record<string, any>;
+      .get(settlementId) as any as Record<string, any>;
     assert.equal(settlementRow.event_id, event.id);
     assert.equal(settlementRow.performer_payables_cents, 100000);
     assert.equal(settlementRow.agent_commissions_cents, 10000);

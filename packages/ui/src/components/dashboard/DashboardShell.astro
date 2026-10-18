@@ -21,7 +21,7 @@ interface Props {
   viewer?: ViewerPersona;
 }
 const { workspace, current, title, viewer: viewerProp } = Astro.props;
-const viewer = viewerProp ?? (await resolveWorkspaceViewer(Astro as any));
+const viewer = viewerProp ?? (await resolveWorkspaceViewer(Astro));
 const activeOrg = viewer.organization || workspace.organization;
 const flat = workspace.nav.flatMap((g) => g.items);
 const tabs = flat.slice(0, 4);

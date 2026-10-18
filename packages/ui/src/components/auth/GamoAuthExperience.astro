@@ -18,7 +18,7 @@ interface Props {
   clerkAppId?: string;
 }
 
-const clerkLocals = (Astro.locals as Record<string, any>).clerkConfig as
+const clerkLocals = Astro.locals.clerkConfig as
   { publishableKey?: string | null; appId?: string | null } | undefined;
 
 const {

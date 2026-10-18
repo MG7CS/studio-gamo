@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/src/api/page-middleware';
+import type { LegacyRedirect } from '@gamo/domain/page-middleware';
 import { inquiryUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
 
 /** Retired Gamo Worship URLs (demo flows and moved staff tools). */

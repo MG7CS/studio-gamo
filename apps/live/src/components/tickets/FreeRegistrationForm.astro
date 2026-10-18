@@ -116,8 +116,8 @@ const { eventId, eventTitle } = Astro.props;
           return;
         }
         showStatus(body.data?.message || 'Registration confirmed.', false);
-      } catch (err: any) {
-        showStatus(err?.message || 'Network error while registering', true);
+      } catch {
+        showStatus('Network error while registering. Please try again.', true);
       }
     });
   });

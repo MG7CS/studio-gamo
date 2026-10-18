@@ -8,7 +8,7 @@ export const GET: APIRoute = async (context) => {
     const env = await getRuntimeEnv(context);
     const db = getDb(env.DB);
     const auth = await requireStaff(context.request, db, env.SESSION_SECRET);
-    await verifyStaffBoundaryIdentity(db, auth, context.locals as Record<string, any>);
+    await verifyStaffBoundaryIdentity(db, auth, context.locals);
     return jsonResponse({ inquiries: await new ParticipationService(db).list() }, 200, undefined, {
       'Cache-Control': 'no-store',
     });

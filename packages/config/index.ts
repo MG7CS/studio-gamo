@@ -3,4 +3,5 @@
  */
 
 export * from './apps.ts';
+export * from './env.ts';
 export * from './env-loader.ts';

@@ -18,7 +18,6 @@ import { readContract } from '../../packages/api-contracts/src/runtime.ts';
 /** Admin middleware wrapped so every call resolves to a Response (the tests never call `next()` lazily). */
 async function loadAdminMiddleware() {
   const { onRequest } = await import('../../apps/admin/src/middleware.ts');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- hand-built APIContext test doubles
   return async (context: any, next: () => Promise<Response>): Promise<Response> => {
     const result = await onRequest(context, next);
     assert.ok(result instanceof Response, 'admin middleware must return a Response');
@@ -169,10 +168,11 @@ test('registration races enforce capacity, duplicate uniqueness, outbox atomicit
     );
     assert.equal(outcomes.filter((x) => x.status === 'fulfilled').length, 3);
     assert.equal(
-      f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers WHERE id=?').get(f.tier.id).reserved_count,
+      (f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers WHERE id=?').get(f.tier.id) as any)
+        .reserved_count,
       3,
     );
-    assert.equal(f.d1.sqlite.prepare('SELECT count(*) n FROM notification_jobs').get().n, 3);
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM notification_jobs').get() as any).n, 3);
     const duplicates = await Promise.all(
       Array.from({ length: 8 }, () =>
         f.live.registerFreeAttendee(f.event.id, {
@@ -183,8 +183,8 @@ test('registration races enforce capacity, duplicate uniqueness, outbox atomicit
       ),
     );
     assert.ok(duplicates.every((x) => x.isDuplicate));
-    assert.deepEqual(f.d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
-    assert.equal(f.d1.sqlite.prepare('PRAGMA integrity_check').get().integrity_check, 'ok');
+    assert.deepEqual(f.d1.sqlite.prepare('PRAGMA foreign_key_check').all() as any, []);
+    assert.equal((f.d1.sqlite.prepare('PRAGMA integrity_check').get() as any).integrity_check, 'ok');
     await assert.rejects(
       f.db.batch([
         f.db.run("UPDATE events SET title='Should rollback'"),
@@ -271,13 +271,14 @@ test('migrations upgrade populated pre-backend development data without losing i
     );
     await applyMigrations(d1, sql.slice(2));
     assert.equal(
-      d1.sqlite.prepare("SELECT email FROM users WHERE id='legacy'").get().email,
+      (d1.sqlite.prepare("SELECT email FROM users WHERE id='legacy'").get() as any).email,
       'legacy@example.invalid',
     );
     assert.ok(
-      d1.sqlite.prepare("SELECT created_at FROM sessions WHERE id='legacy-session'").get().created_at > 0,
+      (d1.sqlite.prepare("SELECT created_at FROM sessions WHERE id='legacy-session'").get() as any)
+        .created_at > 0,
     );
-    assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
+    assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all() as any, []);
   } finally {
     d1.sqlite.close();
   }
@@ -312,8 +313,11 @@ test('registration insert failure rolls back inventory and notification; cancell
         quantity: 2,
       }),
     );
-    assert.equal(f.d1.sqlite.prepare('SELECT count(*) n FROM event_registrations').get().n, 0);
-    assert.equal(f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get().reserved_count, 0);
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM event_registrations').get() as any).n, 0);
+    assert.equal(
+      (f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get() as any).reserved_count,
+      0,
+    );
     f.d1.sqlite.exec('DROP TRIGGER fail_notice');
     const first = await f.live.registerFreeAttendee(f.event.id, {
       attendeeName: 'Sample',
@@ -323,7 +327,10 @@ test('registration insert failure rolls back inventory and notification; cancell
     f.d1.sqlite
       .prepare("UPDATE event_registrations SET status='canceled' WHERE id=?")
       .run(first.registration.id);
-    assert.equal(f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get().reserved_count, 0);
+    assert.equal(
+      (f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get() as any).reserved_count,
+      0,
+    );
     assert.throws(() =>
       f.d1.sqlite.prepare('UPDATE event_registrations SET quantity=5 WHERE id=?').run(first.registration.id),
     );
@@ -498,7 +505,7 @@ test('Stripe webhook route enforces signature timestamp tolerance, gates financi
       });
       assert.equal(res.status, 503);
     }
-    assert.equal(f.d1.sqlite.prepare('SELECT count(*) n FROM stripe_webhook_events').get().n, 0);
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM stripe_webhook_events').get() as any).n, 0);
     // Unsupported non-financial event recorded idempotently as ignored
     const nonFin = {
       id: 'evt_nonfin_1',
@@ -657,7 +664,7 @@ test('verified email challenge enforces SHA-256 hashing, 10-min expiry, 5-attemp
     // Plaintext code must never be stored in D1
     const stored = f.d1.sqlite
       .prepare('SELECT code_hash, attempts FROM auth_challenges WHERE id=?')
-      .get(issued.challengeId);
+      .get(issued.challengeId) as any;
     assert.notEqual(stored.code_hash, issued.code);
     assert.equal(stored.code_hash.length, 64);
     // Expired challenge rejected

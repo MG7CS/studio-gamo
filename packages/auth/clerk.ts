@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 /**
  * @gamo/auth/clerk — Product-Isolated Clerk Authentication & Identity Bridge
  *
@@ -217,8 +218,8 @@ export function deriveFrontendApiFromPublishableKey(publishableKey?: string): st
   }
 }
 
-function readEnvString(env: Record<string, any> | undefined, key: string): string | undefined {
-  const val = env?.[key];
+function readEnvString(env: GamoEnv | undefined, key: string): string | undefined {
+  const val = (env as Record<string, unknown> | undefined)?.[key];
   if (
     typeof val === 'string' &&
     val.trim().length > 0 &&
@@ -243,18 +244,16 @@ export const GAMO_LIVE_CLERK_APP_ID = 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt';
  *   when `CLERK_PRODUCT` is unset or matches the target product (and never allows `apps/live`'s
  *   `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or keys to be reused in another product).
  */
-export function resolveProductClerkConfig(
-  product: ProductKey,
-  env?: Record<string, any>,
-): ResolvedProductClerkConfig {
+export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): ResolvedProductClerkConfig {
   const spec = CLERK_PRODUCT_APPS[product];
   const suffix = product.toUpperCase();
 
+  const rawEnv = env as Record<string, unknown> | undefined;
   const configuredProduct = readEnvString(env, 'CLERK_PRODUCT')?.toLowerCase();
   const allowGenericKeys = !configuredProduct || configuredProduct === product;
 
   const rawConfiguredAppId =
-    env?.[spec.envVarNames.appId] || (allowGenericKeys ? env?.['CLERK_APP_ID'] : undefined);
+    rawEnv?.[spec.envVarNames.appId] || (allowGenericKeys ? rawEnv?.['CLERK_APP_ID'] : undefined);
 
   // Hard guard: Never allow Gamo Live's Clerk application ID to be configured on non-Live products
   if (
@@ -411,29 +410,29 @@ export function extractClerkJwtFromRequest(request: Request): string | null {
 export async function verifyClerkProductToken(
   token: string,
   product: ProductKey,
-  env?: Record<string, any>,
+  env?: GamoEnv,
 ): Promise<VerifiedClerkIdentity | null> {
   const config = resolveProductClerkConfig(product, env);
   if (!config.isConfigured) {
     return null;
   }
 
-  let payload: Record<string, any> | null = null;
+  let payload: Record<string, unknown> | null = null;
   try {
     const verifyResult = (await verifyToken(token, {
       jwtKey: config.jwtKey,
       secretKey: config.secretKey,
       authorizedParties: config.authorizedParties,
-    })) as any;
+    })) as unknown;
 
     if (verifyResult && typeof verifyResult === 'object') {
       if ('errors' in verifyResult && verifyResult.errors) {
         return null;
       }
       if ('data' in verifyResult && verifyResult.data && typeof verifyResult.data === 'object') {
-        payload = verifyResult.data;
+        payload = verifyResult.data as Record<string, unknown>;
       } else if ('sub' in verifyResult && typeof verifyResult.sub === 'string') {
-        payload = verifyResult;
+        payload = verifyResult as Record<string, unknown>;
       }
     }
   } catch {
@@ -463,12 +462,11 @@ export async function verifyClerkProductToken(
   }
 
   // Enforce product claim isolation if custom claims include product or clerkAppId
-  const customProduct = (payload as Record<string, any>).product;
+  const customProduct = payload.product;
   if (typeof customProduct === 'string' && customProduct !== product) {
     return null;
   }
-  const customAppId =
-    (payload as Record<string, any>).app_id || (payload as Record<string, any>).clerk_app_id;
+  const customAppId = payload.app_id || payload.clerk_app_id;
   if (typeof customAppId === 'string' && customAppId !== config.clerkAppId) {
     return null;
   }
@@ -477,20 +475,13 @@ export async function verifyClerkProductToken(
   const clerkSessionId =
     typeof payload.sid === 'string' && payload.sid ? payload.sid : `clerk_sess_${clerkUserId}`;
 
-  let email =
-    typeof (payload as Record<string, any>).email === 'string'
-      ? String((payload as Record<string, any>).email)
-          .toLowerCase()
-          .trim()
-      : '';
-  let emailVerified =
-    (payload as Record<string, any>).email_verified === true ||
-    (payload as Record<string, any>).email_verified === 'true';
+  let email = typeof payload.email === 'string' ? String(payload.email).toLowerCase().trim() : '';
+  let emailVerified = payload.email_verified === true || payload.email_verified === 'true';
   let displayName: string | null =
-    typeof (payload as Record<string, any>).name === 'string'
-      ? String((payload as Record<string, any>).name).trim() || null
-      : typeof (payload as Record<string, any>).full_name === 'string'
-        ? String((payload as Record<string, any>).full_name).trim() || null
+    typeof payload.name === 'string'
+      ? String(payload.name).trim() || null
+      : typeof payload.full_name === 'string'
+        ? String(payload.full_name).trim() || null
         : null;
 
   // If the session token does not embed email claims directly, fetch the verified user from Clerk Backend API when secretKey is available

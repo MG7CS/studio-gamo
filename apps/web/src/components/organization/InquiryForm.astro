@@ -3,7 +3,7 @@ interface Props {
   partnership?: boolean;
 }
 const { partnership = false } = Astro.props;
-const auth = (Astro.locals as Record<string, any>).auth;
+const auth = Astro.locals.auth;
 const next = Astro.url.pathname + Astro.url.search;
 ---
 

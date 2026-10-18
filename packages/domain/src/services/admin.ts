@@ -34,7 +34,7 @@ export class AdminService {
     action: string,
     entityType: string,
     entityId: string,
-    payload?: any,
+    payload?: unknown,
   ): Promise<void> {
     const id = `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     await this.db.insert(auditLogs).values({

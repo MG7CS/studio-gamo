@@ -18,7 +18,7 @@ interface Props {
 }
 const { current } = Astro.props;
 const items = primaryNav();
-const signedIn = Boolean((Astro.locals as Record<string, any>).auth);
+const signedIn = Boolean(Astro.locals.auth);
 const signIn = signedIn ? '/account' : '/account/signin';
 const getInvolved = siteUrl('web', '/get-involved');
 const home = siteUrl('web');

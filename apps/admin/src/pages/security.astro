@@ -16,7 +16,7 @@ const welcome = url.searchParams.get('welcome') === '1';
 const updated = url.searchParams.get('updated') === '1';
 const errorMsg = url.searchParams.get('error');
 
-const locals = Astro.locals as Record<string, any>;
+const locals = Astro.locals;
 const adminSession = locals?.adminAuthSession;
 const staffEmail = locals?.staffEmail || adminSession?.user?.email || BOOTSTRAP_ADMIN_EMAIL;
 
@@ -24,7 +24,7 @@ let mustChangePassword = welcome;
 let lastUpdatedLabel = 'Temporary password active';
 
 try {
-  const runtimeEnv = await getRuntimeEnv(Astro as any);
+  const runtimeEnv = await getRuntimeEnv(Astro);
   if (runtimeEnv?.DB && adminSession?.user?.id) {
     const db = getDb(runtimeEnv.DB);
     const credStatus = await getAdminCredentialStatus(db, adminSession.user.id);

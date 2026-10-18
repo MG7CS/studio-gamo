@@ -5,7 +5,7 @@ import { ParticipationService, getRuntimeEnv } from '@gamo/domain';
 const env = await getRuntimeEnv(Astro);
 const db = getDb(env.DB);
 const auth = await requireStaff(Astro.request, db, env.SESSION_SECRET);
-await verifyStaffBoundaryIdentity(db, auth, Astro.locals as Record<string, any>);
+await verifyStaffBoundaryIdentity(db, auth, Astro.locals);
 const inquiries = await new ParticipationService(db).list();
 ---
 

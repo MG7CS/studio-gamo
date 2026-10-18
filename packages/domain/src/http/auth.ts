@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 import { readContract } from '@gamo/api-contracts/runtime';
 import { getDb, authChallenges } from '@gamo/db';
 import { eq } from 'drizzle-orm';
@@ -32,14 +33,17 @@ type AuthContext = { request: Request; locals?: unknown };
 type AuthHandler = (context: AuthContext) => Promise<Response>;
 
 function resolveContextProduct(context: AuthContext, defaultProduct: ProductKey): ProductKey {
-  const localsProduct = (context.locals as Record<string, any> | undefined)?.product;
-  if (localsProduct && ['web', 'worship', 'academy', 'live', 'production'].includes(localsProduct)) {
+  const localsProduct = (context.locals as { product?: unknown } | undefined)?.product;
+  if (
+    typeof localsProduct === 'string' &&
+    ['web', 'worship', 'academy', 'live', 'production'].includes(localsProduct)
+  ) {
     return localsProduct as ProductKey;
   }
   return defaultProduct;
 }
 
-export function isLocalAuthSimulation(request: Request, env: Record<string, any>): boolean {
+export function isLocalAuthSimulation(request: Request, env: GamoEnv): boolean {
   return (
     env.ENVIRONMENT === 'local' &&
     env.ALLOW_AUTH_SIMULATION === 'true' &&

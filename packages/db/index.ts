@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/d1';
+import { drizzle, type AnyD1Database } from 'drizzle-orm/d1';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import * as schema from './schema.ts';
 
@@ -65,6 +65,6 @@ export type NewExternalListingRevision = InferInsertModel<typeof schema.external
 export type ExternalOutboundClick = InferSelectModel<typeof schema.externalOutboundClicks>;
 export type NewExternalOutboundClick = InferInsertModel<typeof schema.externalOutboundClicks>;
 
-export function createDb(d1: any) {
+export function createDb(d1: AnyD1Database) {
   return drizzle(d1, { schema });
 }

@@ -1,3 +1,5 @@
+import type { GamoEnv } from '@gamo/config/env';
+import type { GamoLocals } from './locals.ts';
 /**
  * @gamo/auth — Cloudflare-Native Authentication & Authorization
  *
@@ -77,7 +79,7 @@ export interface SessionData {
 export interface AuthResolutionOptions {
   secret?: string;
   product?: ProductKey;
-  env?: Record<string, any>;
+  env?: GamoEnv;
 }
 
 export type SecretOrAuthOptions = string | AuthResolutionOptions | undefined;
@@ -636,7 +638,7 @@ export async function requireSuperadmin(
 export async function verifyStaffBoundaryIdentity(
   db: GamoDatabase,
   auth: SessionData,
-  locals: Record<string, any> | undefined,
+  locals: Pick<GamoLocals, 'staffEmail' | 'staffSubject'> | undefined,
 ): Promise<void> {
   const accessEmail = locals?.staffEmail;
   if (accessEmail && accessEmail.toLowerCase() !== auth.user.email.toLowerCase()) {

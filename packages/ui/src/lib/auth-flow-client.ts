@@ -226,21 +226,49 @@ export function initAuthFlow(scope: ParentNode = document): void {
       !clerkPublishableKey.includes('YOUR_') &&
       !clerkPublishableKey.includes('placeholder');
 
-    let clerkInstancePromise: Promise<any> | null = null;
+    /** The part of the Clerk browser SDK this flow uses (email-code sign-up and sign-in). */
+    interface ClerkAttempt {
+      status: string | null;
+      createdSessionId: string | null;
+    }
+    interface ClerkLike {
+      load(): Promise<void>;
+      setActive(params: { session: string }): Promise<void>;
+      client: {
+        signUp: {
+          create(params: { emailAddress: string; firstName?: string; lastName?: string }): Promise<unknown>;
+          prepareEmailAddressVerification(params: { strategy: 'email_code' }): Promise<unknown>;
+          attemptEmailAddressVerification(params: { code: string }): Promise<ClerkAttempt>;
+        };
+        signIn: {
+          create(params: { identifier: string }): Promise<{
+            supportedFirstFactors?: Array<{ strategy?: string; emailAddressId?: string }> | null;
+          }>;
+          prepareFirstFactor(params: { strategy: 'email_code'; emailAddressId: string }): Promise<unknown>;
+          attemptFirstFactor(params: { strategy: 'email_code'; code: string }): Promise<ClerkAttempt>;
+        };
+      };
+    }
+
+    let clerkInstancePromise: Promise<ClerkLike | null> | null = null;
     let activeClerkFlow: 'signup' | 'signin' | null = null;
 
-    const getClerkInstance = async (): Promise<any> => {
+    type ClerkCtor = new (publishableKey: string) => ClerkLike;
+
+    const getClerkInstance = async (): Promise<ClerkLike | null> => {
       if (!isClerkConfigured) return null;
       if (!clerkInstancePromise) {
         clerkInstancePromise = (async () => {
-          const w = window as unknown as { Clerk?: any };
+          const w = window as unknown as { Clerk?: ClerkLike };
           if (w.Clerk && typeof w.Clerk.load === 'function') {
             await w.Clerk.load();
             return w.Clerk;
           }
           const mod = await import('@clerk/clerk-js');
-          const ClerkCtor = (mod as any).Clerk || (mod as any).default;
-          const clerk = new ClerkCtor(clerkPublishableKey);
+          const exports = mod as unknown as { Clerk?: ClerkCtor; default?: ClerkCtor };
+          const Ctor = exports.Clerk ?? exports.default;
+          if (!Ctor) throw new Error('Clerk SDK failed to load.');
+          const clerk = new Ctor(clerkPublishableKey);
           await clerk.load();
           w.Clerk = clerk;
           return clerk;
@@ -263,7 +291,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
     };
 
     const requestClerkEmailOtp = async (
-      clerk: any,
+      clerk: ClerkLike,
       targetEmail: string,
       firstName: string,
       lastName: string,
@@ -287,7 +315,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
         identifier: targetEmail,
       });
       const emailCodeFactor = (signInAttempt.supportedFirstFactors || []).find(
-        (factor: any) => factor?.strategy === 'email_code',
+        (factor) => factor?.strategy === 'email_code',
       );
       if (!emailCodeFactor?.emailAddressId) {
         throw new Error(`Email verification code sign-in is not enabled for this ${program} account.`);
