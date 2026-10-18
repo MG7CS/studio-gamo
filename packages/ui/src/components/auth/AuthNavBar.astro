@@ -10,7 +10,7 @@ const { mode, signInHref = '/account/signin' } = Astro.props;
 ---
 
 <div class="relative z-10 flex items-center justify-between min-h-[12px] lg:min-h-[36px]">
-  <!-- Top-left Back Button (Verify & Recover) — aligned with the form column on mobile and top-left on desktop -->
+  {/* Top-left Back Button (Verify & Recover) — aligned with the form column on mobile and top-left on desktop */}
   <div
     data-back-bar
     class:list={[
@@ -37,7 +37,7 @@ const { mode, signInHref = '/account/signin' } = Astro.props;
     </button>
   </div>
 
-  <!-- Top-right "Already have an account? Sign in" bar (Desktop Create Account) -->
+  {/* Top-right "Already have an account? Sign in" bar (Desktop Create Account) */}
   <div
     data-signup-topbar
     class:list={[

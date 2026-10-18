@@ -16,7 +16,7 @@ export const generalFaq = [
   { q: 'How can our church or family participate?', a: 'Churches, musicians and families can submit program inquiries for review. Event organizers can create an account and submit eligible Christian gatherings through Gamo Live. Program inquiries do not enroll students or approve applications.' },
   { q: 'What kind of organization is Gamo Studios?', a: 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.' },
   { q: 'Do churches need a partnership to participate?', a: 'Partnership is never a requirement for ordinary program participation. Contributions and sponsorships never influence musician vetting or rankings.' },
-  { q: 'Are scholarships or sponsored lessons available?', a: 'Sponsored and scholarship-supported education are coordinated as community partnerships and dedicated program support are established.' },
+  { q: 'Are scholarships or sponsored lessons available?', a: 'Sponsored and scholarship-supported education is coordinated as community partnerships and dedicated program support are established.' },
   { q: 'Where do programs operate?', a: 'Our initial local service area for Worship, Academy, and Production is the Phoenix metropolitan area, Arizona. Gamo Live serves Christian events nationwide.' },
   { q: 'How do I get in touch with the team?', a: 'You can reach us through the contact or partnership inquiry forms on our website, then view staff updates in your account.' },
 ];

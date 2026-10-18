@@ -429,7 +429,7 @@ export const organizationScreens: DashScreen[] = [
         [
           {
             name: 'Jordan Avery',
-            email: 'jordan.avery@gamostudio.org',
+            email: 'jordan.avery@example.invalid',
             roles: 'Musician, Church Admin, Organizer, Production Crew',
             org: 'Grace Fellowship',
             status: b('Verified active', 'verified'),
@@ -660,7 +660,7 @@ export const organizationScreens: DashScreen[] = [
         title: 'Provision staff identity (Cloudflare Access + D1)',
         body: 'Bind an authorized staff email to an immutable Cloudflare Access subject (sub) and assign a system role.',
         fields: [
-          { name: 'email', label: 'Staff email address', type: 'email', required: true, placeholder: 'reviewer@gamostudio.org' },
+          { name: 'email', label: 'Staff email address', type: 'email', required: true, placeholder: 'reviewer@example.invalid' },
           { name: 'displayName', label: 'Full name', type: 'text', required: true, placeholder: 'Staff Reviewer Name' },
           { name: 'role', label: 'System role', type: 'select', options: ['staff_reviewer', 'support_coordinator', 'superadmin'], required: true },
           { name: 'accessSubject', label: 'Cloudflare Access immutable subject (sub)', type: 'text', required: true, placeholder: 'cf-access-sub-uuid' },
@@ -780,7 +780,7 @@ export const organizationScreens: DashScreen[] = [
           },
           {
             timestamp: '2026-10-14 17:15:04',
-            actor: 'reviewer@gamostudio.org',
+            actor: 'reviewer@example.invalid',
             action: 'live.event.approve',
             target: 'evt_phoenix_worship_2026',
             reason: 'Verified host church leadership, venue capacity (450), and free RSVP tier',
@@ -788,7 +788,7 @@ export const organizationScreens: DashScreen[] = [
           },
           {
             timestamp: '2026-10-14 15:30:22',
-            actor: 'reviewer@gamostudio.org',
+            actor: 'reviewer@example.invalid',
             action: 'live.representation.verify',
             target: 'rep_selah_agency_01',
             reason: 'Confirmed dual-party artist approval and non-conflicting regional booking scope',
@@ -796,7 +796,7 @@ export const organizationScreens: DashScreen[] = [
           },
           {
             timestamp: '2026-10-14 14:08:49',
-            actor: 'coordinator@gamostudio.org',
+            actor: 'coordinator@example.invalid',
             action: 'worship.placement.assign',
             target: 'req_grace_oct18_keys',
             reason: 'Matched Jordan A. (Keys · $200 pass-through stipend) + Priya N. standby',

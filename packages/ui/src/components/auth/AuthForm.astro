@@ -40,7 +40,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
   <AuthFeedback />
 
-  <!-- Challenge Form (Sign In / Create Account / Account Recovery) -->
+  {/* Challenge Form (Sign In / Create Account / Account Recovery) */}
   <form class="space-y-3.5 lg:space-y-4" data-step-challenge hidden={mode === 'verify'}>
     {mode === 'signup' && (
       <div class="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3 sm:gap-3.5">
@@ -113,7 +113,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
     />
   </form>
 
-  <!-- Email Verification Form (Step 2 & Direct /account/verify) -->
+  {/* Email Verification Form (Step 2 & Direct /account/verify) */}
   <form class="space-y-5 lg:space-y-6" data-step-verify hidden={mode !== 'verify'}>
     <div data-verify-direct-email class="hidden">
       <AuthEmailInput

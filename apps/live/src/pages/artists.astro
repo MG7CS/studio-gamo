@@ -147,7 +147,7 @@ try {
   title="Artists & Lineups"
   description="Browse artists performing at upcoming Christian concerts and worship gatherings on Gamo Live, or onboard your artist profile."
 >
-  <!-- Compact Operational Directory Header & Direct Onboarding Entry -->
+  {/* Compact Operational Directory Header & Direct Onboarding Entry */}
   <section class="bg-ivory border-b border-sand pt-8 pb-7">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
@@ -165,7 +165,7 @@ try {
           </p>
         </div>
 
-        <!-- Direct Artist & Representative Onboarding Actions -->
+        {/* Direct Artist & Representative Onboarding Actions */}
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
           {authUser ? (
             <>
@@ -201,7 +201,7 @@ try {
         </div>
       </div>
 
-      <!-- Search Filter Bar -->
+      {/* Search Filter Bar */}
       <form action="/artists" method="get" role="search" class="mt-6 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-[240px] max-w-md">
           <label for="artist-search-q" class="sr-only">
@@ -248,7 +248,7 @@ try {
     </div>
   </section>
 
-  <!-- Active Artist Directory Grid -->
+  {/* Active Artist Directory Grid */}
   <section class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
     {unavailable ? (
       <div class="rounded-2xl border border-sand bg-white p-8 text-center">
@@ -356,7 +356,7 @@ try {
     )}
   </section>
 
-  <!-- Direct Artist Onboarding Section -->
+  {/* Direct Artist Onboarding Section */}
   <section id="artist-onboarding" class="border-t border-sand bg-cream py-10">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
       {authUser ? (

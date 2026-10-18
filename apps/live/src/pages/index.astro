@@ -89,9 +89,9 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
   description="Discover verified Christian concerts, worship nights, and live gatherings across Phoenix and major U.S. cities on Gamo Live."
   bodyClass="bg-ivory text-ink antialiased selection:bg-terracotta selection:text-white"
 >
-  <!-- SECTION 1: HERO BANNER -->
+  {/* SECTION 1: HERO BANNER */}
   <section class="relative w-full overflow-hidden bg-ink text-white">
-    <!-- Stage Photography Backdrop -->
+    {/* Stage Photography Backdrop */}
     <div class="absolute inset-0 z-0">
       <img
         src="/images/optimized/worship-gospel-worship-leader-golden-light-1122w.webp"
@@ -100,7 +100,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         fetchpriority="high"
         decoding="async"
       />
-      <!-- Rich dark left-to-right and bottom stage lighting gradients matching reference -->
+      {/* Rich dark left-to-right and bottom stage lighting gradients matching reference */}
       <div
         class="absolute inset-0 bg-gradient-to-r from-night/95 via-night/80 to-night/35"
         aria-hidden="true"
@@ -109,7 +109,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         class="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-night/40"
         aria-hidden="true"
       ></div>
-      <!-- Subtle warm magenta/amber stage glow accent -->
+      {/* Subtle warm magenta/amber stage glow accent */}
       <div
         class="pointer-events-none absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-terracotta/20 blur-3xl"
         aria-hidden="true"
@@ -128,7 +128,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         </p>
       </div>
 
-      <!-- Floating White 3-Part Pill Search Bar -->
+      {/* Floating White 3-Part Pill Search Bar */}
       <form
         action="/events"
         method="get"
@@ -137,7 +137,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         class="mt-8 sm:mt-10 bg-white text-ink rounded-3xl lg:rounded-full p-2 sm:p-2.5 shadow-[0_22px_50px_-12px_rgba(12,9,8,0.65)] border border-white/80"
       >
         <div class="grid grid-cols-1 gap-2 lg:grid-cols-[1.5fr_1fr_1fr_auto] lg:items-center lg:gap-2">
-          <!-- Part 1: Search Input -->
+          {/* Part 1: Search Input */}
           <div class="flex items-center gap-3 rounded-full bg-ivory lg:bg-transparent px-4 py-3 border border-sand lg:border-0">
             <svg
               class="h-5 w-5 text-muted shrink-0"
@@ -166,7 +166,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             />
           </div>
 
-          <!-- Part 2: Location Dropdown -->
+          {/* Part 2: Location Dropdown */}
           <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
             <svg
               class="h-5 w-5 text-ink shrink-0"
@@ -203,7 +203,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             </select>
           </div>
 
-          <!-- Part 3: Date Window Dropdown -->
+          {/* Part 3: Date Window Dropdown */}
           <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
             <svg
               class="h-5 w-5 text-ink shrink-0"
@@ -245,7 +245,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             </select>
           </div>
 
-          <!-- Submit Button -->
+          {/* Submit Button */}
           <button
             type="submit"
             class="bg-terracotta hover:bg-terracotta-deep text-white rounded-full w-full lg:w-16 h-12 flex items-center justify-center shadow-md transition-colors shrink-0 cursor-pointer"
@@ -268,9 +268,9 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     </div>
   </section>
 
-  <!-- SECTION 2: UPCOMING EVENTS -->
+  {/* SECTION 2: UPCOMING EVENTS */}
   <section id="upcoming-events" class="mx-auto max-w-[1340px] px-4 pt-10 pb-8 sm:px-6 sm:pt-12 lg:px-8">
-    <!-- Section Header Row -->
+    {/* Section Header Row */}
     <div class="flex flex-wrap items-baseline justify-between gap-4">
       <div>
         <h2 class="text-2xl sm:text-[32px] font-black tracking-tight text-ink uppercase">Upcoming events</h2>
@@ -299,7 +299,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
       </a>
     </div>
 
-    <!-- Working Filter Chips Row -->
+    {/* Working Filter Chips Row */}
     <div
       class="mt-5 flex flex-wrap items-center justify-between gap-3"
       role="toolbar"
@@ -340,7 +340,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         </button>
       </div>
 
-      <!-- Market Scope Chips -->
+      {/* Market Scope Chips */}
       <div class="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -382,7 +382,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
       </div>
     </div>
 
-    <!-- 4-Column Event Cards Grid -->
+    {/* 4-Column Event Cards Grid */}
     {orderedEvents.length > 0 ? (
       <div
         id="homepage-events-grid"
@@ -441,7 +441,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
       </div>
     )}
 
-    <!-- Empty Filter Fallback Notice (Hidden unless a filter combination yields 0 cards) -->
+    {/* Empty Filter Fallback Notice (Hidden unless a filter combination yields 0 cards) */}
     <div
       id="homepage-empty-filter-state"
       class="hidden mt-6 rounded-2xl border border-sand bg-white p-8 text-center"
@@ -460,10 +460,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     </div>
   </section>
 
-  <!-- SECTION 3: FEATURED EVENT BANNER -->
+  {/* SECTION 3: FEATURED EVENT BANNER */}
   <section class="mx-auto max-w-[1340px] px-4 py-4 sm:px-6 lg:px-8">
     <div class="relative overflow-hidden rounded-3xl bg-ink text-white shadow-xl border border-ink">
-      <!-- Right Stage Visual with Seamless Dark Gradient Blend -->
+      {/* Right Stage Visual with Seamless Dark Gradient Blend */}
       <div class="absolute inset-0 z-0">
         <img
           src="/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp"
@@ -479,7 +479,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         ></div>
       </div>
 
-      <!-- Left Content Column -->
+      {/* Left Content Column */}
       <div class="relative z-10 max-w-2xl p-7 sm:p-10 lg:p-14">
         <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-terracotta-soft">
           FEATURED EVENT
@@ -491,7 +491,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         </h2>
 
         <div class="mt-6 space-y-2.5 text-sm sm:text-base text-sand">
-          <!-- Calendar Schedule Line -->
+          {/* Calendar Schedule Line */}
           <div class="flex items-center gap-3">
             <svg
               class="h-5 w-5 text-line shrink-0"
@@ -510,7 +510,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             <span class="font-medium">{featuredDateLine}</span>
           </div>
 
-          <!-- Venue Pin Line -->
+          {/* Venue Pin Line */}
           <div class="flex items-center gap-3">
             <svg
               class="h-5 w-5 text-line shrink-0"
@@ -535,7 +535,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           Published by Gamo Live Listings · Independent listing · Tickets sold by TicketWeb
         </p>
 
-        <!-- CTA Row -->
+        {/* CTA Row */}
         <div class="mt-7 flex flex-wrap items-center gap-3.5">
           <a
             href={featuredTicketUrl}
@@ -568,10 +568,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     </div>
   </section>
 
-  <!-- SECTION 4: FOR ORGANIZERS AND ARTISTS SPLIT CARD -->
+  {/* SECTION 4: FOR ORGANIZERS AND ARTISTS SPLIT CARD */}
   <section class="mx-auto max-w-[1340px] px-4 pt-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
     <div class="overflow-hidden rounded-3xl bg-cream border border-sand grid grid-cols-1 lg:grid-cols-12 items-center shadow-sm">
-      <!-- Left Content Column -->
+      {/* Left Content Column */}
       <div class="lg:col-span-7 p-7 sm:p-10 lg:p-14">
         <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.12em] text-terracotta">
           FOR ORGANIZERS AND ARTISTS
@@ -612,7 +612,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         </div>
       </div>
 
-      <!-- Right Sculptural Curved Photo Mask -->
+      {/* Right Sculptural Curved Photo Mask */}
       <div class="lg:col-span-5 relative h-64 sm:h-80 lg:h-[360px] w-full overflow-hidden">
         <div class="h-full w-full lg:rounded-tl-[160px] lg:rounded-bl-[40px] overflow-hidden relative">
           <img
@@ -631,7 +631,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     </div>
   </section>
 
-  <!-- Interactive Client Script for Filter Chips + Saved Event Hearts -->
+  {/* Interactive Client Script for Filter Chips + Saved Event Hearts */}
   <script>
     (function () {
       const FAVORITES_KEY = 'gamo_live_saved_events';
