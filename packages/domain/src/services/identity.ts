@@ -24,7 +24,7 @@ import {
 } from '@gamo/db';
 import { AuthError, constantTimeCompare, type ProductKey } from '@gamo/auth';
 import { asSqlDatabase, type SqlDatabase } from '../security/sql-database.ts';
-import { linkUserToVerifiedPerson } from './persons.ts';
+import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from './persons.ts';
 
 const CHALLENGE_TTL_SECONDS = 10 * 60; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
@@ -455,6 +455,12 @@ export class IdentityService {
         displayName: flow === 'signup' ? (options.displayName ?? null) : null,
         now: Math.floor(now.getTime() / 1000),
       });
+      // Customer account claim: guest orders/registrations with this (now proven) email join the person.
+      await attachCustomerProfileForVerifiedEmail(
+        sqlDatabaseOf(this.db),
+        cleanEmail,
+        Math.floor(now.getTime() / 1000),
+      );
     }
 
     const [updatedUser] = await this.db.select().from(users).where(eq(users.id, user.id)).limit(1);

@@ -32,7 +32,7 @@ import {
   getRuntimeEnv,
 } from '../index.ts';
 import { authFlowOf, LOCKED_CODE_MESSAGE, sqlDatabaseOf } from '../services/identity.ts';
-import { linkUserToVerifiedPerson } from '../services/persons.ts';
+import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from '../services/persons.ts';
 import { createDraftProviderProfile, isSignupRole, roleLabel, SIGNUP_ROLES } from '../services/providers.ts';
 import { guardPublicForm } from '../api/public-form-guard.ts';
 import { clerkWebhookSecretName, handleClerkWebhookRequest } from '../services/identity-clerk-webhook.ts';
@@ -574,6 +574,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
         allowRelink: true,
       });
       const personId = link.linked ? link.personId : null;
+      if (personId) await attachCustomerProfileForVerifiedEmail(sqlDb, identity.email, nowSeconds);
       const role = flow === 'signup' && isSignupRole(product, input.role) ? input.role! : null;
       if (flow === 'signup') {
         await recordSignupConsent(runtimeEnv, {
