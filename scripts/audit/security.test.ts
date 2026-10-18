@@ -445,6 +445,20 @@ test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejec
       (await runMiddleware({ 'cf-access-jwt-assertion': validJwt, cookie: staffCookie })).status,
       200,
     );
+    // 4. Behind Access but not signed in to the gateway, a workspace PAGE shows the gateway
+    //    sign-in (401, email prefilled) instead of redirecting into a sign-in loop.
+    const pageRequest = new Request('https://admin.gamostudio.org/live/submissions', {
+      headers: { 'cf-access-jwt-assertion': validJwt },
+    });
+    const pageContext: any = { request: pageRequest, params: {}, locals: { runtime: { env } } };
+    let rendered = false;
+    const page = await onRequest(pageContext, async () => {
+      rendered = true;
+      return new Response('page');
+    });
+    assert.equal(rendered, false);
+    assert.equal(page.status, 401);
+    assert.match(await page.text(), /value="reviewer@example\.invalid"/);
   } finally {
     globalThis.fetch = oldFetch;
     f.d1.sqlite.close();
