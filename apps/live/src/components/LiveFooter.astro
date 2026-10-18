@@ -16,11 +16,7 @@ const primaryLinks = [
     <!-- Top Row: Brand Mark, Primary Links, Quick Actions -->
     <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
       <!-- Brand Mark -->
-      <a
-        href="/"
-        class="inline-flex items-center gap-2.5 focus:outline-none group"
-        aria-label="Gamo Live home"
-      >
+      <a href="/" class="inline-flex items-center gap-2.5 focus:outline-none group">
         <svg class="h-6 w-6 shrink-0 text-terracotta" viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <rect x="2" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
           <rect x="7.2" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
@@ -29,9 +25,13 @@ const primaryLinks = [
           <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
         </svg>
         <span class="text-[19px] leading-none tracking-tight flex items-baseline">
-          <span class="font-extrabold text-ink">GAMO</span>
-          <span class="font-normal text-terracotta ml-0.5">LIVE</span>
-          <span class="sr-only"> — Gamo Live</span>
+          <span aria-hidden="true" class="font-extrabold text-ink">
+            GAMO
+          </span>{' '}
+          <span aria-hidden="true" class="font-normal text-terracotta ml-0.5">
+            LIVE
+          </span>
+          <span class="sr-only">Gamo Live home</span>
         </span>
       </a>
 

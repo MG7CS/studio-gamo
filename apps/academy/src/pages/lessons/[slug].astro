@@ -50,12 +50,12 @@ const facts = [
       <div class="space-y-8">
         <dl class="grid gap-3 sm:grid-cols-2">
           {facts.map(([icon, k, v]) => (
-            <div class="flex gap-3 rounded-2xl bg-white p-5 ring-1 ring-sand">
-              <Icon name={icon} class="h-5 w-5 text-terracotta" />
-              <div>
-                <dt class="text-xs text-ink-soft">{k}</dt>
-                <dd class="font-semibold">{v}</dd>
-              </div>
+            <div class="rounded-2xl bg-white p-5 ring-1 ring-sand">
+              <dt class="flex items-center gap-2 text-xs text-ink-soft">
+                <Icon name={icon} class="h-5 w-5 text-terracotta" />
+                {k}
+              </dt>
+              <dd class="mt-1 font-semibold">{v}</dd>
             </div>
           ))}
         </dl>

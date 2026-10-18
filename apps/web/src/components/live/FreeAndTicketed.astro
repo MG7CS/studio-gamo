@@ -59,7 +59,14 @@ const cols = [
             return (
               <li class="relative flex items-center gap-4 py-4">
                 <span class="w-12 shrink-0 text-center leading-none">
-                  <span class="block text-[11px] font-semibold uppercase text-terracotta">{d.month}</span>
+                  <span
+                    class:list={[
+                      'block text-[11px] font-semibold uppercase',
+                      c.dark ? 'text-terracotta-soft' : 'text-terracotta-deep',
+                    ]}
+                  >
+                    {d.month}
+                  </span>
                   <span class="mt-1 block text-2xl font-bold">{d.day}</span>
                 </span>
                 <span class="min-w-0 flex-1">

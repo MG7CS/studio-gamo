@@ -30,8 +30,13 @@ const isGamoLive = program.trim().toLowerCase() === 'gamo live';
       <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.8" />
     </svg>
     <span class="text-[20px] sm:text-[21px] leading-none tracking-[-0.02em] flex items-baseline">
-      <span class="font-extrabold text-current">GAMO</span>
-      <span class="font-normal text-terracotta-soft ml-1">LIVE</span>
+      <span aria-hidden="true" class="font-extrabold text-current">
+        GAMO
+      </span>{' '}
+      <span aria-hidden="true" class="font-normal text-terracotta-soft ml-1">
+        LIVE
+      </span>
+      <span class="sr-only">Gamo Live</span>
     </span>
   </span>
 ) : (
