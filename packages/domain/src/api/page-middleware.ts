@@ -10,6 +10,7 @@ import {
 import type { GamoLocals } from '@gamo/auth/locals';
 import { checkEnvOnce } from '@gamo/config/env-validation';
 import { getRuntimeEnv } from './response';
+import { withSecurityHeaders } from '../http/security-headers.ts';
 
 type Context = {
   request: Request;
@@ -56,7 +57,7 @@ export interface ApplicationPagesOptions {
 }
 
 export function applicationPages(app: PublicApp, options: ApplicationPagesOptions = {}) {
-  return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
+  const handle = async (context: Context, next: () => Promise<Response>): Promise<Response> => {
     const { pathname } = context.url;
     context.locals.product = app;
     const env = await getRuntimeEnv(context);
@@ -121,5 +122,15 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
     if (privatePage || pathname.startsWith('/account'))
       response.headers.set('X-Robots-Tag', 'noindex, nofollow');
     return response;
+  };
+
+  return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
+    const response = await handle(context, next);
+    return withSecurityHeaders(response, {
+      clerkFrontendApi: context.locals.clerkConfig?.issuer,
+      enforceCsp: import.meta.env?.PROD === true,
+      https: context.url.protocol === 'https:',
+      allowGeolocation: app === 'live',
+    });
   };
 }

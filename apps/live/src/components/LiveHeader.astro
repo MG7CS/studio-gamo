@@ -301,14 +301,14 @@ const navItems = [
   </div>
 </header>
 
-<script is:inline>
+<script>
   (function () {
     const header = document.getElementById('site-header');
-    const toggle = header ? header.querySelector('.site-header__toggle') : null;
+    const toggle = header ? header.querySelector<HTMLElement>('.site-header__toggle') : null;
     const menu = document.getElementById('site-mobile-menu');
     const metroSelects = document.querySelectorAll('[data-header-metro-select]');
 
-    const setOpen = function (open) {
+    const setOpen = function (open: boolean) {
       if (!toggle || !menu) return;
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
@@ -327,7 +327,7 @@ const navItems = [
 
     if (menu) {
       menu.addEventListener('click', function (e) {
-        if (e.target && e.target.closest && e.target.closest('a')) {
+        if ((e.target as Element | null)?.closest('a')) {
           setOpen(false);
         }
       });
@@ -354,7 +354,7 @@ const navItems = [
 
     metroSelects.forEach(function (selectEl) {
       selectEl.addEventListener('change', function (e) {
-        const val = e.target.value || 'phoenix-az';
+        const val = (e.target as HTMLSelectElement).value || 'phoenix-az';
         try {
           localStorage.setItem('gamo_live_metro', val);
         } catch {

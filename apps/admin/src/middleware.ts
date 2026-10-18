@@ -1,6 +1,7 @@
 import type { GamoEnv } from '@gamo/config/env';
 import { checkEnvOnce } from '@gamo/config/env-validation';
 import { defineMiddleware } from 'astro/middleware';
+import type { MiddlewareHandler } from 'astro';
 import { getDb } from '@gamo/db';
 import {
   createSession,
@@ -11,7 +12,7 @@ import {
   buildClearSessionCookie,
   requireSameOrigin,
 } from '@gamo/auth';
-import { getRuntimeEnv, escapeHtml } from '@gamo/domain';
+import { getRuntimeEnv, escapeHtml, withSecurityHeaders } from '@gamo/domain';
 import { verifyCloudflareAccessJwt } from './lib/cf-access';
 import {
   authenticateAdminPassword,
@@ -218,7 +219,7 @@ function renderAdminGatewaySignInHtml(options?: {
  * 3. Supports cryptographic Cloudflare Access (Zero Trust) RS256 JWT assertions AND
  *    PBKDF2-SHA256 D1 administrator password gateway sessions.
  */
-export const onRequest = defineMiddleware(async (context, next) => {
+const handleAdminRequest: MiddlewareHandler = async (context, next) => {
   const isDev = Boolean(import.meta.env?.DEV);
   const url = new URL(context.request.url);
 
@@ -496,5 +497,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return new Response(renderAdminGatewaySignInHtml(), {
     status: 401,
     headers,
+  });
+};
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = (await handleAdminRequest(context, next)) ?? (await next());
+  return withSecurityHeaders(response, {
+    enforceCsp: import.meta.env?.PROD === true,
+    https: new URL(context.request.url).protocol === 'https:',
   });
 });

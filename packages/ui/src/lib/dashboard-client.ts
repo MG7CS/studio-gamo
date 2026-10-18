@@ -453,7 +453,10 @@ export function initDashboard(): void {
     }),
   );
 
-  // Top-bar search filters searchable items on the current page.
+  // Top-bar search filters searchable items on the current page (it never submits).
+  document
+    .querySelector<HTMLFormElement>('form[data-dash-search]')
+    ?.addEventListener('submit', (e) => e.preventDefault());
   const search = document.querySelector<HTMLInputElement>('[data-dash-search-input]');
   search?.addEventListener('input', () => {
     const q = search.value.toLowerCase().trim();
