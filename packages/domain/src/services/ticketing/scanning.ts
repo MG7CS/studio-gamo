@@ -96,7 +96,8 @@ export class ScanRequestError extends Error {
       | 'OVERRIDE_NOT_ALLOWED'
       | 'EVENT_NOT_FOUND'
       | 'BAD_REQUEST'
-      | 'TICKET_NOT_FOUND',
+      | 'TICKET_NOT_FOUND'
+      | 'NOT_ALLOWED',
     message: string,
   ) {
     super(message);
@@ -195,6 +196,21 @@ function actorFields(actor: ScanActor, gate: string | null | undefined) {
     allowedZones: null,
     canOverride: true,
   };
+}
+
+/**
+ * A scanner device works exactly one event: the one its gate session was created for. Every entry
+ * point (scan, lookup, override, sync, door sale, manifest, headcount) calls this first, so a device
+ * cookie for event X can never act on event Y by sending another event id. Organizer actors are
+ * checked per event by the route (`requireEventPermission(…, 'scan_tickets')`).
+ */
+export function assertActorForEvent(actor: ScanActor, eventId: string): void {
+  if (actor.kind === 'scanner' && actor.device.eventId !== eventId)
+    throw new ScanRequestError(
+      403,
+      'NOT_ALLOWED',
+      'This scanner link is for a different event. Open the scanner link the organizer sent for this event.',
+    );
 }
 
 export function directionAllowed(allowed: 'in' | 'out' | 'both', direction: ScanDirection): boolean {
@@ -355,6 +371,7 @@ export function effectiveScanTime(now: number, deviceScannedAt: number | null | 
 
 /** Scans one code. Throws `ScanRequestError` for requests the actor may not make, `SecretNotConfiguredError` without QR keys. */
 export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
+  assertActorForEvent(input.actor, input.eventId);
   const event = await loadScanEvent(db, input.eventId);
   if (!event) throw new ScanRequestError(404, 'EVENT_NOT_FOUND', 'That event was not found.');
   const who = actorFields(input.actor, input.gate);
@@ -648,6 +665,7 @@ export async function lookupTickets(
   db: SqlDatabase,
   input: { eventId: string; query: string; actor: ScanActor; ipHash: string | null; now: number },
 ): Promise<{ results: LookupResult[]; truncated: boolean }> {
+  assertActorForEvent(input.actor, input.eventId);
   if (!actorCanLookUp(input.actor))
     throw new ScanRequestError(
       403,
@@ -746,6 +764,7 @@ export async function overrideAdmit(
     now: number;
   },
 ): Promise<ScanOutcome> {
+  assertActorForEvent(input.actor, input.eventId);
   if (!actorCanLookUp(input.actor))
     throw new ScanRequestError(
       403,

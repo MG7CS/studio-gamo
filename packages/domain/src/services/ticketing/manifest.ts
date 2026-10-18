@@ -20,6 +20,7 @@ import { SCAN_RESULTS } from '../../types/enums.ts';
 import { maxEntriesPerDay } from '../../types/policy.ts';
 import type { ScannerDeviceContext } from './scanner-sessions.ts';
 import {
+  assertActorForEvent,
   eventHeadcount,
   scanTicket,
   ScanRequestError,
@@ -226,6 +227,8 @@ export async function syncOfflineScans(
     now: number;
   },
 ): Promise<{ results: SyncedScan[]; needsReview: number; headcount: Headcount }> {
+  // The whole sync is refused for another event's device (before any scan is replayed).
+  assertActorForEvent({ kind: 'scanner', device: input.device }, input.eventId);
   if (input.scans.length > SYNC_MAX_SCANS)
     throw new ScanRequestError(400, 'BAD_REQUEST', `Send at most ${SYNC_MAX_SCANS} scans per sync.`);
   const ordered = input.scans

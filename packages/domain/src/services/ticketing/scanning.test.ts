@@ -19,12 +19,16 @@ import {
   type ScanActor,
 } from './scanning.ts';
 import { holderInitials, venueDayKey } from './scanning-context.ts';
+import { syncOfflineScans } from './manifest.ts';
+import { DoorSaleError, sellAtDoor } from './scanning-door-sales.ts';
+import { revokeScannerSession } from './scanner-sessions.ts';
 import {
   createFixture,
   issueTickets,
   QR_KEYS,
   scannerDevice,
   seedEvent,
+  TEST_ENV,
   type Fixture,
 } from './scanning-test-fixtures.ts';
 
@@ -458,5 +462,95 @@ describe('manual lookup and override', () => {
 
   test('a scan event id is unique per attempt', () => {
     assert.notEqual(newPrefixedId('scan'), newPrefixedId('scan'));
+  });
+});
+
+describe('a scanner device is bound to its own event (review fix D-206)', () => {
+  test('a device for event A is refused on event B for scan, lookup, override, sync and door sale', async () => {
+    const f = await createFixture();
+    const a = seedEvent(f, { eventId: 'evt_a', startsAt: NOW + HOUR });
+    const b = seedEvent(f, {
+      eventId: 'evt_b',
+      startsAt: NOW + HOUR,
+      policy: { door_sales_enabled: 1, door_sales_methods_json: '["free_issue"]' },
+    });
+    const [tb] = await issueTickets(f, {
+      eventId: b,
+      categoryId: `${b}_ga`,
+      quantity: 1,
+      holderName: 'Sample Other',
+      now: NOW,
+    });
+    const { device } = await scannerDevice(f, { eventId: a, now: NOW, canOverride: true });
+    const actor: ScanActor = { kind: 'scanner', device };
+    const refused = (e: unknown) =>
+      e instanceof ScanRequestError && e.status === 403 && e.code === 'NOT_ALLOWED';
+    await assert.rejects(scan(f, b, actor, tb.payload), refused);
+    await assert.rejects(
+      lookupTickets(f.db, { eventId: b, query: 'Sample', actor, ipHash: null, now: NOW }),
+      refused,
+    );
+    await assert.rejects(
+      overrideAdmit(f.db, {
+        eventId: b,
+        ticketId: tb.id,
+        reason: 'Phone died',
+        actor,
+        ipHash: null,
+        now: NOW,
+      }),
+      refused,
+    );
+    await assert.rejects(
+      syncOfflineScans(f.db, {
+        eventId: b,
+        device,
+        keyring: QR_KEYS,
+        now: NOW,
+        scans: [{ clientScanId: 'x-1', code: tb.payload, direction: 'in', deviceScannedAt: NOW }],
+      }),
+      refused,
+    );
+    await assert.rejects(
+      sellAtDoor(f.db, TEST_ENV, {
+        eventId: b,
+        categoryId: `${b}_ga`,
+        actor,
+        quantity: 1,
+        method: 'free_issue',
+        admitNow: true,
+        idempotencyKey: 'door-cross-event-1',
+        keyring: QR_KEYS,
+        now: NOW,
+      }),
+      (e: unknown) => e instanceof DoorSaleError && e.code === 'NOT_ALLOWED',
+    );
+    assert.equal(f.q('SELECT count(*) AS n FROM ticket_scan_events').n, 0, 'nothing recorded');
+    assert.equal(f.q('SELECT count(*) AS n FROM ticket_access_log').n, 0, 'no lookup logged');
+    assert.equal(f.q("SELECT count(*) AS n FROM ticket_orders WHERE source = 'door'").n, 0, 'nothing sold');
+    // The same device still works on its own event.
+    const [ta] = await issueTickets(f, { eventId: a, categoryId: `${a}_ga`, quantity: 1, now: NOW });
+    assert.equal((await scan(f, a, actor, ta.payload)).result, 'admitted');
+  });
+
+  test('revoking a session id under another event changes nothing', async () => {
+    const f = await createFixture();
+    const a = seedEvent(f, { eventId: 'evt_a', startsAt: NOW + HOUR });
+    const b = seedEvent(f, { eventId: 'evt_b', startsAt: NOW + HOUR });
+    const { created, device } = await scannerDevice(f, { eventId: a, now: NOW });
+    assert.equal(
+      await revokeScannerSession(f.db, { eventId: b, sessionId: created.id, now: NOW + 1 }),
+      false,
+    );
+    assert.equal(f.q('SELECT revoked_at FROM scanner_sessions WHERE id = ?', created.id).revoked_at, null);
+    assert.equal(
+      f.q('SELECT revoked_at FROM scanner_devices WHERE id = ?', device.deviceId).revoked_at,
+      null,
+    );
+    assert.equal(await revokeScannerSession(f.db, { eventId: a, sessionId: created.id, now: NOW + 2 }), true);
+    assert.equal(
+      f.q('SELECT revoked_at FROM scanner_devices WHERE id = ?', device.deviceId).revoked_at,
+      NOW + 2,
+    );
   });
 });

@@ -24,7 +24,13 @@ import {
   SOLD_OUT_CODES,
 } from '../../ticketing/sql.ts';
 import { SecretNotConfiguredError } from '../../security/crypto.ts';
-import { scanTicket, type ScanActor, type ScanOutcome } from './scanning.ts';
+import {
+  assertActorForEvent,
+  scanTicket,
+  ScanRequestError,
+  type ScanActor,
+  type ScanOutcome,
+} from './scanning.ts';
 import { firstRow, loadScanEvent } from './scanning-context.ts';
 
 export interface DoorIssueInput {
@@ -236,6 +242,13 @@ export async function sellAtDoor(
   input: DoorSaleRequest,
   issuer: DoorIssuer = issueDoorTicketsLocal,
 ): Promise<DoorSaleResult> {
+  // A device sells only for the event its gate session belongs to.
+  try {
+    assertActorForEvent(input.actor, input.eventId);
+  } catch (error) {
+    if (error instanceof ScanRequestError) throw new DoorSaleError('NOT_ALLOWED', error.message);
+    throw error;
+  }
   const canSell = input.actor.kind === 'organizer' || input.actor.device.canOverride;
   if (!canSell)
     throw new DoorSaleError('NOT_ALLOWED', 'Door sales need a supervisor scanner or the organizer.');

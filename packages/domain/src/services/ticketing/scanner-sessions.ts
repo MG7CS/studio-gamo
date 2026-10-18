@@ -234,8 +234,9 @@ export async function revokeScannerSession(
       params: [input.sessionId, input.eventId, input.now],
     },
     {
-      sql: 'UPDATE scanner_devices SET revoked_at = ?2 WHERE scanner_session_id = ?1 AND revoked_at IS NULL',
-      params: [input.sessionId, input.now],
+      // Scoped to the event too: a session id of another event changes nothing.
+      sql: 'UPDATE scanner_devices SET revoked_at = ?2 WHERE revoked_at IS NULL AND scanner_session_id IN (SELECT id FROM scanner_sessions WHERE id = ?1 AND event_id = ?3)',
+      params: [input.sessionId, input.now, input.eventId],
     },
   ]);
   return revoked.length > 0;
