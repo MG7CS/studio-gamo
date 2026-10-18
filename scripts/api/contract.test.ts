@@ -765,10 +765,6 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
   });
   assert.equal(prodList.body.data.length, 1);
 });
-test('Worship operations remain explicitly documented redirect stubs', async () => {
-  await call('worship', 'POST', '/api/check-in/confirm', 303);
-  await call('worship', 'POST', '/api/check-in/fail', 303);
-});
 test('legacy list cap, stable ordering and response schema negative controls', async () => {
   for (let n = 0; n < 51; n++) {
     const created = await services.live.createEvent(
@@ -792,7 +788,7 @@ test('legacy list cap, stable ordering and response schema negative controls', a
   assert.throws(() => validateContract('CheckoutInput', { eventId, quantity: null }));
   const response = handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
-  assert.equal(covered.size, 30);
+  assert.equal(covered.size, 28);
 });
 
 test('all public apps expose the same isolated auth and organization contract, and participation inquiries match OpenAPI contracts', async () => {
@@ -855,5 +851,5 @@ test('all public apps expose the same isolated auth and organization contract, a
     headers,
   );
   assert.equal(reviewed.body.data.inquiry.status, 'reviewed');
-  assert.equal(covered.size, 58);
+  assert.equal(covered.size, 56);
 });

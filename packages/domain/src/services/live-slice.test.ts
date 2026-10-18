@@ -54,7 +54,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     liveService = new LiveService(db);
     adminService = new AdminService(db);
     identityService = new IdentityService(db);
-    notificationService = new NotificationService(db);
+    notificationService = new NotificationService(db, { allowMock: true });
 
     // 3. Issue and verify email challenge for organizer user, then onboard organization
     const challenge = await identityService.issueEmailChallenge('organizer@riversidefellowship.org');
@@ -168,6 +168,12 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.ok(regResult.registration.qrToken.startsWith('gamt_'));
     assert.equal(regResult.registration.quantity, 2);
     assert.equal(regResult.registration.status, 'confirmed');
+
+    // Without an email provider (and outside local simulation) nothing is sent and no retry is spent.
+    const unconfigured = await new NotificationService(db).processRegistrationJob(regResult.registration.id);
+    assert.ok(unconfigured);
+    assert.equal(unconfigured.status, 'pending');
+    assert.equal(unconfigured.attempts, 0);
 
     // Process durable notification_jobs outbox row created by the registration trigger
     const jobOutcome = await notificationService.processRegistrationJob(regResult.registration.id);

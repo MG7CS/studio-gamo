@@ -105,29 +105,14 @@ const socials = [
         <p class="max-w-xs text-sm leading-relaxed text-[#D8D4D0]">
           Updates on programs, upcoming events and ways to get involved.
         </p>
-        <form
-          class="mt-5 flex items-center overflow-hidden rounded-full border border-white/25 bg-white/5 p-1.5"
-          onsubmit="event.preventDefault(); this.querySelector('[data-nl-msg]')?.removeAttribute('hidden');"
+        {/* No mailing-list provider is approved yet (CLEANUP_LOG O-15): link to the contact form instead of a form that goes nowhere. */}
+        <a
+          href={siteUrl('web', '/contact')}
+          class="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-white/5 px-5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
         >
-          <label class="sr-only" for="footer-newsletter-email">
-            Newsletter email
-          </label>
-          <input
-            id="footer-newsletter-email"
-            type="email"
-            required
-            placeholder="Your email address"
-            class="min-w-0 flex-1 bg-transparent pl-4 pr-2 text-sm text-white placeholder:text-white/60 focus:outline-none"
-          />
-          <button
-            type="submit"
-            aria-label="Subscribe to updates"
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta text-white transition-colors hover:bg-terracotta-dark"
-          >
-            <Icon name="arrow" class="h-5 w-5" />
-          </button>
-        </form>
-        <p class="mt-2 text-xs text-[#D8D4D0]/80">Program updates &amp; community news</p>
+          Contact us for updates
+          <Icon name="arrow" class="h-4 w-4" />
+        </a>
       </div>
     </div>
     <p id="status" class="mt-16 max-w-3xl text-xs leading-relaxed text-[#D8D4D0]/80">

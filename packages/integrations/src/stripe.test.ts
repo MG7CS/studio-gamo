@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   assertStripeTestMode,
   createStripeTestClient,
+  StripeNotConfiguredError,
   verifyStripeWebhookSignature,
   createMemoryIdempotencyStore,
 } from './stripe.ts';
@@ -26,9 +27,36 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
     assert.doesNotThrow(() => assertStripeTestMode(undefined));
   });
 
-  test('createStripeTestClient generates safe mock checkout sessions in mock mode', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key' });
-    assert.equal(client.isConfigured(), false);
+  test('without a real test key and without allowMock, every Stripe call fails closed', async () => {
+    for (const secretKey of [undefined, 'mock_test_key', 'sk_test_placeholder']) {
+      const client = createStripeTestClient({ secretKey });
+      assert.equal(client.isConfigured(), false);
+      await assert.rejects(
+        client.createTestCheckoutSession({
+          mode: 'payment',
+          amountMinorUnits: 2500,
+          successUrl: 'https://live.gamostudio.org/my-tickets?order=A1',
+          cancelUrl: 'https://live.gamostudio.org/events/concert-1',
+        }),
+        StripeNotConfiguredError,
+      );
+      await assert.rejects(
+        client.createCustomerPortalSession({
+          customerId: 'cus_1',
+          returnUrl: 'https://academy.gamostudio.org/account',
+        }),
+        StripeNotConfiguredError,
+      );
+    }
+  });
+
+  test('a real test-mode key counts as configured', () => {
+    assert.equal(createStripeTestClient({ secretKey: 'sk_test_51abc' }).isConfigured(), true);
+  });
+
+  test('createStripeTestClient generates mock checkout sessions only when allowMock is set', async () => {
+    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
+    assert.equal(client.isConfigured(), true);
 
     const session = await client.createTestCheckoutSession({
       mode: 'payment',
@@ -44,8 +72,22 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
     assert.ok(session.url?.includes(session.id));
   });
 
+  test('mock success URL keeps an existing query string well-formed', async () => {
+    const client = createStripeTestClient({ allowMock: true });
+    const session = await client.createTestCheckoutSession({
+      mode: 'payment',
+      amountMinorUnits: 2500,
+      successUrl: 'https://live.gamostudio.org/my-tickets?order=A1',
+      cancelUrl: 'https://live.gamostudio.org/events/concert-1',
+    });
+    const url = new URL(session.url!);
+    assert.equal(url.searchParams.get('order'), 'A1');
+    assert.equal(url.searchParams.get('session_id'), session.id);
+    assert.equal((session.url!.match(/\?/g) ?? []).length, 1);
+  });
+
   test('createStripeTestClient supports subscription mode for Academy lessons', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key' });
+    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
 
     const session = await client.createTestCheckoutSession({
       mode: 'subscription',
@@ -64,7 +106,7 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
   });
 
   test('createCustomerPortalSession creates self-service portal link', async () => {
-    const client = createStripeTestClient({ secretKey: 'mock_test_key' });
+    const client = createStripeTestClient({ secretKey: 'mock_test_key', allowMock: true });
 
     const portal = await client.createCustomerPortalSession({
       customerId: 'cus_test_123',

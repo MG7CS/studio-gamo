@@ -500,46 +500,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/check-in/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Demo check-in redirect
-         * @description Local UI demo. Ignores input, no persistence, authentication, authorization, or dispatch. Production functionality deferred.
-         */
-        post: operations["demoCheckinConfirm"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/check-in/fail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Demo check-in redirect
-         * @description Local UI demo. Ignores input, no persistence, authentication, authorization, or dispatch. Production functionality deferred.
-         */
-        post: operations["demoCheckinFail"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/events/pending": {
         parameters: {
             query?: never;
@@ -2254,46 +2214,6 @@ export interface operations {
             400: components["responses"]["SimpleError"];
             500: components["responses"]["SimpleError"];
             503: components["responses"]["SimpleError"];
-        };
-    };
-    demoCheckinConfirm: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Demo redirect; no API JSON body. */
-            303: {
-                headers: {
-                    /** @description Demo destination */
-                    Location?: "/check-in/success";
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    demoCheckinFail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Demo redirect; no API JSON body. */
-            303: {
-                headers: {
-                    /** @description Demo destination */
-                    Location?: "/check-in/standby-notified";
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
         };
     };
     listPendingEvents: {

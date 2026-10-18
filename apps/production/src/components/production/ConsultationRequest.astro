@@ -1,0 +1,42 @@
+---
+/**
+ * Consultation request card. Requests are submitted through the Gamo Studios inquiry form,
+ * where staff review them; this card only explains what to include and links there.
+ */
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+const helpful = [
+  'Your church or ministry and city',
+  'The area you need help with (audio, livestream, lighting, training …)',
+  'Approximate weekly attendance and number of technical volunteers',
+  'Your current setup and what your team hopes to improve',
+];
+---
+
+<section
+  class:list={['rounded-[2rem] border border-sand bg-white p-6 shadow-float md:p-10', className]}
+  aria-labelledby="consult-request-title"
+>
+  <h3 id="consult-request-title" class="text-2xl font-semibold text-charcoal">
+    Consultation request
+  </h3>
+  <p class="mt-2 text-ink-soft">
+    Requests go through the Gamo Studios inquiry form, where our team reviews each one and follows up. It
+    helps to include:
+  </p>
+  <ul class="mt-6 space-y-3 text-charcoal">
+    {helpful.map((item) => (
+      <li class="flex gap-3">
+        <span aria-hidden="true" class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta" />
+        <span>{item}</span>
+      </li>
+    ))}
+  </ul>
+  <ButtonLink href={inquiryUrl('Production consultation')} class="mt-8" arrow>
+    Request a consultation
+  </ButtonLink>
+</section>

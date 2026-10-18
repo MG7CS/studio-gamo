@@ -89,6 +89,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       const notificationService = new NotificationService(db, {
         apiKey: runtimeEnv.RESEND_API_KEY,
         defaultFrom: runtimeEnv.EMAIL_FROM,
+        allowMock: runtimeEnv.ENVIRONMENT === 'local',
       });
 
       const delivery = simulated

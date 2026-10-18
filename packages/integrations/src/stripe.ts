@@ -22,6 +22,29 @@ export interface StripeConfig {
   secretKey?: string;
   publishableKey?: string;
   webhookSecret?: string;
+  /**
+   * Return simulated sessions when no real test key is configured. Only ever pass `true` for
+   * ENVIRONMENT=local; everywhere else an unconfigured client throws StripeNotConfiguredError.
+   */
+  allowMock?: boolean;
+}
+
+/** Thrown when a Stripe call is attempted without a real (test-mode) key and mocks are not allowed. */
+export class StripeNotConfiguredError extends Error {
+  constructor() {
+    super('Stripe is not configured.');
+    this.name = 'StripeNotConfiguredError';
+  }
+}
+
+const isRealTestKey = (key?: string): key is string =>
+  Boolean(key && (key.startsWith('sk_test_') || key.startsWith('rk_test_')) && !key.includes('placeholder'));
+
+/** Appends query parameters to a URL that may already have a query string. */
+function withQuery(url: string, params: Record<string, string>): string {
+  const u = new URL(url);
+  for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
+  return u.toString();
 }
 
 export type CheckoutMode = 'payment' | 'subscription' | 'setup';
@@ -216,11 +239,20 @@ export async function verifyStripeWebhookSignature(
  */
 export function createStripeTestClient(config?: StripeConfig) {
   const secretKey = config?.secretKey;
+  const allowMock = config?.allowMock === true;
   assertStripeTestMode(secretKey);
 
+  /** true → use the simulated path; throws when simulation is not allowed. */
+  const useMock = (): boolean => {
+    if (isRealTestKey(secretKey)) return false;
+    if (!allowMock) throw new StripeNotConfiguredError();
+    return true;
+  };
+
   return {
+    /** A real test-mode key is present, or simulation is explicitly allowed (local only). */
     isConfigured(): boolean {
-      return Boolean(secretKey && (secretKey.startsWith('sk_test_') || secretKey.startsWith('rk_test_')));
+      return isRealTestKey(secretKey) || allowMock;
     },
 
     /**
@@ -233,13 +265,16 @@ export function createStripeTestClient(config?: StripeConfig) {
       assertStripeTestMode(secretKey);
       const mode = options.mode || 'payment';
 
-      // Safe mock simulation if test key is unconfigured or a mock placeholder
-      if (!secretKey || secretKey.startsWith('mock_') || secretKey.includes('placeholder')) {
+      // Simulated session (local development only; see StripeConfig.allowMock).
+      if (useMock()) {
         const mockSessionId = `cs_test_mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         console.warn(`[Stripe mock checkout] mode=${mode} session=${mockSessionId}`);
         return {
           id: mockSessionId,
-          url: `${options.successUrl.replace('{CHECKOUT_SESSION_ID}', mockSessionId)}?session_id=${mockSessionId}&test_mode=true`,
+          url: withQuery(options.successUrl.replace('{CHECKOUT_SESSION_ID}', mockSessionId), {
+            session_id: mockSessionId,
+            test_mode: 'true',
+          }),
           mock: true,
         };
       }
@@ -325,11 +360,11 @@ export function createStripeTestClient(config?: StripeConfig) {
     async createCustomerPortalSession(options: CustomerPortalOptions): Promise<CustomerPortalResult> {
       assertStripeTestMode(secretKey);
 
-      if (!secretKey || secretKey.startsWith('mock_') || secretKey.includes('placeholder')) {
+      if (useMock()) {
         const mockPortalId = `bps_test_mock_${Date.now()}`;
         return {
           id: mockPortalId,
-          url: `${options.returnUrl}?portal_mock=true`,
+          url: withQuery(options.returnUrl, { portal_mock: 'true' }),
           mock: true,
         };
       }
