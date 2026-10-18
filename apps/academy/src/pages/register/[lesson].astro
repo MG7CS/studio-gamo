@@ -65,7 +65,8 @@ if (Astro.request.method === 'POST') {
         route: 'academy.register',
         turnstileAction: 'academy_register',
         limits: {
-          perIp: { limit: 20, windowSeconds: 60 * 60 },
+          // Families often register from one church or school network: generous per IP, tight per email.
+          perIp: { limit: 30, windowSeconds: 15 * 60 },
           perEmail: { limit: 10, windowSeconds: 60 * 60 },
         },
       },
