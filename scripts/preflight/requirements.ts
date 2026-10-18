@@ -34,11 +34,27 @@ export function requirementsFor(app: PreflightApp): SecretRequirements {
     };
   }
   const suffix = app.toUpperCase();
+  // Identity/ticketing (design §10): each unlocks a feature that otherwise answers 503.
+  const identity = ['PII_HASH_SECRET', 'PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'];
+  const optional =
+    app === 'live'
+      ? [
+          'STRIPE_SECRET_KEY',
+          'STRIPE_WEBHOOK_SECRET',
+          'TICKET_QR_SECRET_GL1',
+          'CUSTOMER_LINK_SECRET',
+          'SCANNER_SESSION_SECRET',
+          'RESEND_WEBHOOK_SECRET',
+          ...identity,
+        ]
+      : app === 'academy'
+        ? ['CUSTOMER_LINK_SECRET', ...identity]
+        : identity;
   return {
     required: ['SESSION_SECRET'],
     // Launch signs people in with emailed codes, so email delivery is effectively needed.
     recommended: ['RESEND_API_KEY', 'EMAIL_FROM'],
-    optional: app === 'live' ? ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'] : [],
+    optional: [...optional, `CLERK_WEBHOOK_SECRET_${suffix}`],
     clerk: [
       `PUBLIC_CLERK_PUBLISHABLE_KEY_${suffix}`,
       `CLERK_SECRET_KEY_${suffix}`,

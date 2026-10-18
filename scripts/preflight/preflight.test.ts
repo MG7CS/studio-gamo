@@ -108,6 +108,23 @@ test('a clean configuration has no findings', () => {
   }
 });
 
+test('STRIPE_TEST_CHECKOUT=true is an error in production only', () => {
+  const root = fixtureRepo((app) =>
+    toml({ admin: app === 'admin' })
+      .replace('ENVIRONMENT = "production"', 'ENVIRONMENT = "production"\nSTRIPE_TEST_CHECKOUT = "true"')
+      .replace('ENVIRONMENT = "preview"', 'ENVIRONMENT = "preview"\nSTRIPE_TEST_CHECKOUT = "true"'),
+  );
+  try {
+    assert.deepEqual(analyzeConfigs(root, ['live'], 'preview'), []);
+    assert.deepEqual(
+      analyzeConfigs(root, ['live'], 'production').map((f) => f.code),
+      ['test-checkout-in-production'],
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('KV, D1 and placeholder problems are reported with the offending id', () => {
   const root = fixtureRepo((app) =>
     toml({
@@ -152,6 +169,26 @@ test('secret evaluation reports names only and distinguishes required, recommend
   assert.equal(byCode('secret-recommended').length, 2);
   assert.match(byCode('clerk-partial')[0], /PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE/);
   assert.ok(byCode('secret-optional').some((m) => m.includes('STRIPE_SECRET_KEY')));
+  for (const name of [
+    'TICKET_QR_SECRET_GL1',
+    'CUSTOMER_LINK_SECRET',
+    'PII_HASH_SECRET',
+    'SCANNER_SESSION_SECRET',
+    'TURNSTILE_SECRET_KEY',
+    'RESEND_WEBHOOK_SECRET',
+    'CLERK_WEBHOOK_SECRET_LIVE',
+  ])
+    assert.ok(
+      byCode('secret-optional').some((m) => m.startsWith(`${name} `)),
+      name,
+    );
+  const web = evaluateSecrets('web', 'production', new Set(['SESSION_SECRET', 'PII_HASH_SECRET']), {
+    PUBLIC_TURNSTILE_SITE_KEY: 'site',
+  });
+  assert.deepEqual(
+    web.filter((f) => f.code === 'secret-optional').map((f) => f.message.split(' ')[0]),
+    ['TURNSTILE_SECRET_KEY', 'CLERK_WEBHOOK_SECRET_WEB'],
+  );
 
   const admin = evaluateSecrets('admin', 'production', new Set(['SESSION_SECRET']), {
     CF_ACCESS_TEAM_NAME: 'team',
