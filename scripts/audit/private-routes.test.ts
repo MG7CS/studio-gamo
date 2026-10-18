@@ -41,6 +41,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/support',
     '/faq',
     '/legal',
+    '/legal/[slug]',
     '/contact',
     '/partners',
     '/partners/interest',
