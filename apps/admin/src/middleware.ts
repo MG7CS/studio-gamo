@@ -530,8 +530,11 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const response = (await handleAdminRequest(context, next)) ?? (await next());
-  return withSecurityHeaders(response, {
+  const secured = withSecurityHeaders(response, {
     enforceCsp: import.meta.env?.PROD === true,
     https: new URL(context.request.url).protocol === 'https:',
   });
+  // Everything on admin is staff-only (including the gateway sign-in pages): never cache.
+  if (!secured.headers.has('Cache-Control')) secured.headers.set('Cache-Control', 'no-store');
+  return secured;
 });
