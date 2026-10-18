@@ -1,0 +1,49 @@
+---
+/**
+ * A full draft legal document: back link, title (the page's only <h1>), intro, draft banner and sections.
+ * Props:
+ * - content: the structured document (content/*.ts).
+ * - version: current registry version (shown in the banner).
+ * - effectiveDate?: shown in the banner; omitted → "Not yet in effect".
+ * - indexHref?: link back to the legal index (default `/legal`).
+ */
+import LegalDraftBanner from './LegalDraftBanner.astro';
+import LegalSection from './LegalSection.astro';
+import type { LegalDocumentContent } from './content/types.ts';
+
+interface Props {
+  content: LegalDocumentContent;
+  version: string;
+  effectiveDate?: string | null;
+  indexHref?: string;
+}
+const { content, version, effectiveDate, indexHref = '/legal' } = Astro.props;
+---
+
+<article class="mx-auto max-w-[900px]" data-legal-document={content.slug}>
+  <a
+    href={indexHref}
+    class="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-terracotta hover:text-terracotta-deep"
+  >
+    <span aria-hidden="true">←</span> All legal documents
+  </a>
+  <h1 class="mt-4 text-[length:var(--text-page-title)] font-black uppercase leading-[0.95] break-words text-balance text-ink">
+    {content.title}
+  </h1>
+  <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted">{content.intro}</p>
+  <LegalDraftBanner class="mt-8" version={version} effectiveDate={effectiveDate} />
+  <div class="mt-10 space-y-8">
+    {content.sections.map((section) => (
+      <LegalSection section={section} />
+    ))}
+  </div>
+  <p class="mt-12 border-t border-sand pt-7 text-sm leading-relaxed text-muted">
+    Questions about this document? Email
+    <a
+      href="mailto:hello@gamostudio.org"
+      class="inline-flex min-h-11 items-center font-semibold text-terracotta underline underline-offset-4 hover:text-terracotta-deep"
+    >
+      hello@gamostudio.org
+    </a>
+  </p>
+</article>

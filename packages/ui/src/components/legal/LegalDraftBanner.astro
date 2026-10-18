@@ -1,0 +1,45 @@
+---
+/**
+ * Prominent notice on every legal page: the text is a draft that requires legal review and is not yet in
+ * effect (design §4.5). Props:
+ * - version?: the document version people accept (registry `version`), e.g. `2026-10-18-draft.2`. When
+ *   given, the version and effective date are listed.
+ * - effectiveDate?: human date once the document is in effect; omitted → "Not yet in effect".
+ * - class?: extra classes.
+ * Default slot: replaces the explanatory sentence.
+ */
+interface Props {
+  version?: string;
+  effectiveDate?: string | null;
+  class?: string;
+}
+const { version, effectiveDate, class: className } = Astro.props;
+---
+
+<aside
+  class:list={['rounded-2xl border-2 border-terracotta bg-white px-5 py-5 sm:px-7', className]}
+  aria-label="Draft notice"
+  data-legal-draft-banner
+>
+  <p class="text-base font-black uppercase tracking-wide text-terracotta-deep">
+    DRAFT — requires legal review
+  </p>
+  <p class="mt-2 text-sm leading-relaxed text-ink">
+    <slot>
+      This text is a working draft. It has not been reviewed by a lawyer, is not yet in effect and is not a
+      final agreement.
+    </slot>
+  </p>
+  {version && (
+    <dl class="mt-4 grid gap-x-8 gap-y-2 text-sm text-ink sm:grid-cols-2">
+      <div>
+        <dt class="font-semibold">Version</dt>
+        <dd class="break-all text-muted">{version}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold">Effective date</dt>
+        <dd class="text-muted">{effectiveDate || 'Not yet in effect'}</dd>
+      </div>
+    </dl>
+  )}
+</aside>
