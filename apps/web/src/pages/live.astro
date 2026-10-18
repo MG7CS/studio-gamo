@@ -36,7 +36,7 @@ let liveEvents: LiveEvent[];
 try {
   const env = await getRuntimeEnv(Astro);
   const liveService = new LiveService(getDb(env.DB));
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
   const dbEvents = await liveService.listDiscoverableEvents({ limit: 100 });
   if (dbEvents.length > 0) {
     liveEvents = mapDbEventsToMarketingEvents(dbEvents, now);

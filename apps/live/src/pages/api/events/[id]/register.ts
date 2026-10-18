@@ -1,12 +1,12 @@
-import { readContract } from '@gamo/api-contracts/runtime';
+import { readContract, validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
+import { requireSameOrigin } from '@gamo/auth';
 import { getDb } from '@gamo/db';
 import {
   LiveService,
   NotificationService,
   registerAttendeeSchema,
   jsonResponse,
-  errorResponse,
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
@@ -25,11 +25,9 @@ export const prerender = false;
  */
 export const POST: APIRoute = async (context) => {
   try {
-    const eventId = context.params.id;
-    if (!eventId) {
-      return errorResponse('BAD_REQUEST', 'Event identifier is required.', 400);
-    }
+    const eventId = validateContract('Identifier', context.params.id) as string;
 
+    requireSameOrigin(context.request);
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);

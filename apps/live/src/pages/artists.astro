@@ -52,7 +52,7 @@ try {
   const env = await getRuntimeEnv(Astro);
   const db = getDb(env.DB);
   const liveService = new LiveService(db);
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
 
   if (env.SESSION_SECRET) {
     const auth = await resolveAuth(Astro.request, db, {

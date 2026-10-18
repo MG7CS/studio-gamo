@@ -57,5 +57,7 @@ delete:
         application/json:
           schema:
             $ref: ../components/schemas/identity/LogoutResponse.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
     '500':
       $ref: ../components/responses/LegacyError.yaml

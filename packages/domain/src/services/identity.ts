@@ -193,7 +193,7 @@ export class IdentityService {
   ): Promise<{ challengeId: string; code: string; email: string; expiresAt: Date }> {
     const cleanEmail = email.toLowerCase().trim();
     if (!cleanEmail || !cleanEmail.includes('@')) {
-      throw new Error('A valid email address is required.');
+      throw new Error('BAD_REQUEST: A valid email address is required.');
     }
 
     if (options?.product && options?.intent === 'signin') {
@@ -516,7 +516,7 @@ export class IdentityService {
       );
 
     if (!actorRoles.some((r) => r.code === 'superadmin')) {
-      throw new Error('Access denied: Superadmin permission required to provision staff identities.');
+      throw new Error('FORBIDDEN: Superadmin permission required to provision staff identities.');
     }
 
     const cleanEmail = input.email.toLowerCase().trim();

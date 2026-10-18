@@ -205,7 +205,7 @@ test('moderation rejects normal users, self-approval, repeat decisions and inval
     const next = await f.live.createEvent(f.org.id, f.input);
     await assert.rejects(
       f.admin.reviewEvent(f.owner.id, next.event.id, { decision: 'approved' }),
-      /Access denied/,
+      /FORBIDDEN/,
     );
     await f.identity.assignSystemRole(f.owner.id, 'staff_reviewer');
     await assert.rejects(
@@ -833,13 +833,16 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
 test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation', async () => {
   const onRequest = await loadAdminMiddleware();
   const { GET: pending } = await import('../../apps/admin/src/pages/api/events/pending.ts');
-  const {
-    authenticateAdminPassword,
-    changeAdminPassword,
-    ensureBootstrapAdminAccount,
-    BOOTSTRAP_ADMIN_EMAIL,
-    BOOTSTRAP_ADMIN_TEMP_PASSWORD,
-  } = await import('../../apps/admin/src/lib/admin-password-auth.ts');
+  const { authenticateAdminPassword, changeAdminPassword, ensureBootstrapAdminAccount } =
+    await import('../../apps/admin/src/lib/admin-password-auth.ts');
+  // Test-only identity; real bootstrap identities are never committed.
+  const BOOTSTRAP_ADMIN_EMAIL = 'bootstrap.admin@example.invalid';
+  const BOOTSTRAP_ADMIN_TEMP_PASSWORD = 'temporary-test-password-1';
+  const bootstrapIdentity = {
+    email: BOOTSTRAP_ADMIN_EMAIL,
+    displayName: 'Bootstrap Admin (test)',
+    temporaryPassword: BOOTSTRAP_ADMIN_TEMP_PASSWORD,
+  };
   const f = await fixture();
   try {
     const env = { DB: f.d1, ENVIRONMENT: 'production', REQUIRE_ADMIN_AUTH: 'true', SESSION_SECRET: secret };
@@ -848,8 +851,8 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
       (await authenticateAdminPassword(f.db, BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_TEMP_PASSWORD)).ok,
       false,
     );
-    await assert.rejects(ensureBootstrapAdminAccount(f.db));
-    await ensureBootstrapAdminAccount(f.db, {
+    await assert.rejects(ensureBootstrapAdminAccount(f.db, bootstrapIdentity));
+    await ensureBootstrapAdminAccount(f.db, bootstrapIdentity, {
       environment: 'local',
       enabled: true,
       requestUrl: 'http://localhost',

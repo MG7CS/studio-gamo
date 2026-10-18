@@ -8,7 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import { requireVerifiedAuth, requireEventPermission, hasEventPermission } from '@gamo/auth';
+import { requireProductAuth, requireEventPermission, hasEventPermission } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -16,16 +16,16 @@ export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
+    const auth = await requireProductAuth(context.request, db, 'live', {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const eventId = validateContract('Identifier', context.params.id) as string;
 
     const body = await readContract(context.request, 'AssignEventTeamInput');
     const validated = assignEventTeamMemberSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, {
-      secret: runtimeEnv.SESSION_SECRET,
-      product: 'live',
-      env: runtimeEnv,
-    });
     await requireEventPermission(db, auth, eventId, 'edit_content');
 
     // Only someone who already holds approve_refunds AND view_settlement (e.g. primary owner or superadmin)

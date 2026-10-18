@@ -47,6 +47,9 @@ export interface GamoEnv {
   ADMIN_BASIC_AUTH_USER?: string;
   ADMIN_BASIC_AUTH_PASS?: string;
 
+  // Gamo Live: seed the bundled verified catalog on page requests (on by default only when ENVIRONMENT=local)
+  LIVE_CATALOG_AUTOSEED?: string;
+
   // Local-only flags (also require a loopback request host)
   ALLOW_DEMO_SESSION?: string;
   ALLOW_AUTH_SIMULATION?: string;

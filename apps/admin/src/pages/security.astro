@@ -7,7 +7,7 @@ import InlineNotice from '@studio-gamo/ui/components/dashboard/InlineNotice.astr
 import { getDb } from '@gamo/db';
 import { getRuntimeEnv } from '@gamo/domain';
 import { adminWorkspace } from '../data/workspace';
-import { BOOTSTRAP_ADMIN_EMAIL, getAdminCredentialStatus } from '../lib/admin-password-auth';
+import { getAdminCredentialStatus } from '../lib/admin-password-auth';
 
 export const prerender = false;
 
@@ -18,7 +18,7 @@ const errorMsg = url.searchParams.get('error');
 
 const locals = Astro.locals;
 const adminSession = locals?.adminAuthSession;
-const staffEmail = locals?.staffEmail || adminSession?.user?.email || BOOTSTRAP_ADMIN_EMAIL;
+const staffEmail = locals?.staffEmail || adminSession?.user?.email || 'unknown staff account';
 
 let mustChangePassword = welcome;
 let lastUpdatedLabel = 'Temporary password active';

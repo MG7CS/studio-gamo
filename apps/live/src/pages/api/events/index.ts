@@ -2,7 +2,7 @@ import { readContract, validateContract, ContractValidationError } from '@gamo/a
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import { LiveService, createEventSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
-import { requireOrgAccess, requireVerifiedAuth } from '@gamo/auth';
+import { requireOrgAccess, requireProductAuth } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -82,12 +82,12 @@ export const POST: APIRoute = async (context) => {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
+    const authOpts = { secret: runtimeEnv.SESSION_SECRET, product: 'live' as const, env: runtimeEnv };
+    await requireProductAuth(context.request, db, 'live', authOpts);
 
     const body = await readContract(context.request, 'CreateEvent');
     const validated = createEventSchema.parse(body);
 
-    const authOpts = { secret: runtimeEnv.SESSION_SECRET, product: 'live' as const, env: runtimeEnv };
-    await requireVerifiedAuth(context.request, db, authOpts);
     await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], authOpts);
 
     const { event, tiers } = await liveService.createEvent(validated.organizationId, validated);

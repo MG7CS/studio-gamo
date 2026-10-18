@@ -6,13 +6,16 @@ post:
   tags:
     - Payments
   summary: Create sandbox checkout
-  description: Checkout disabled until authoritative order, inventory, organizer
-    permission and fulfillment are implemented. Valid requests return 503.
+  description: Creates a Stripe test-mode Checkout session for an authoritative
+    ticket order. Returns 503 when paid checkout is not configured (no test-mode
+    Stripe key outside local development) or when the event's order, inventory
+    or organizer-authorization gate is not satisfied; no hold is created when
+    Stripe is unconfigured. Cross-origin browser requests are rejected (403).
   security: []
   x-application: live
   x-status: implemented
   x-authorization: Public
-  x-idempotency: Unsupported; client keys are ignored.
+  x-idempotency: Optional idempotencyKey is passed to order creation.
   x-source: apps/live/src/pages/api/checkout/session.ts
   parameters: []
   responses:
@@ -24,7 +27,7 @@ post:
             $ref: ../components/schemas/payments/CheckoutResponse.yaml
     '400':
       $ref: ../components/responses/SimpleError.yaml
-    '404':
+    '403':
       $ref: ../components/responses/SimpleError.yaml
     '409':
       $ref: ../components/responses/SimpleError.yaml

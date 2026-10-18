@@ -13,7 +13,8 @@ properties:
     const: false
   data:
     type: object
-    additionalProperties: false
+    # Stripe adds fields such as previous_attributes (on *.updated events).
+    additionalProperties: true
     properties:
       object:
         type: object

@@ -16,7 +16,7 @@ async function publishedEventEntries(context: Parameters<APIRoute>[0]): Promise<
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const liveService = new LiveService(getDb(runtimeEnv.DB));
-    await liveService.ensureVerifiedCatalogSeeded();
+    await liveService.seedCatalogIfAllowed(runtimeEnv);
     const events = await liveService.listDiscoverableEvents({ limit: 200 });
     return events
       .filter(

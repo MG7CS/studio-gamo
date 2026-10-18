@@ -6855,7 +6855,7 @@ return errors === 0;
 validate57.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_StripeEvent = validate58;
-const schema94 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":false,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
+const schema94 = {"$id":"schema_StripeEvent","type":"object","additionalProperties":true,"properties":{"id":{"type":"string"},"object":{"const":"event"},"type":{"type":"string"},"created":{"type":"integer"},"livemode":{"const":false},"data":{"type":"object","additionalProperties":true,"properties":{"object":{"type":"object","additionalProperties":true}},"required":["object"]}},"required":["id","type","data","livemode"]};
 
 function validate58(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_StripeEvent" */;
@@ -6983,9 +6983,12 @@ vErrors.push(err9);
 }
 errors++;
 }
-for(const key0 in data5){
-if(!(key0 === "object")){
-const err10 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(data5.object !== undefined){
+let data6 = data5.object;
+if(data6 && typeof data6 == "object" && !Array.isArray(data6)){
+}
+else {
+const err10 = {instancePath:instancePath+"/data/object",schemaPath:"#/properties/data/properties/object/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -6995,12 +6998,9 @@ vErrors.push(err10);
 errors++;
 }
 }
-if(data5.object !== undefined){
-let data6 = data5.object;
-if(data6 && typeof data6 == "object" && !Array.isArray(data6)){
 }
 else {
-const err11 = {instancePath:instancePath+"/data/object",schemaPath:"#/properties/data/properties/object/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err11 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err11];
 }
@@ -7012,24 +7012,12 @@ errors++;
 }
 }
 else {
-const err12 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err12 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err12];
 }
 else {
 vErrors.push(err12);
-}
-errors++;
-}
-}
-}
-else {
-const err13 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
-if(vErrors === null){
-vErrors = [err13];
-}
-else {
-vErrors.push(err13);
 }
 errors++;
 }

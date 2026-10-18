@@ -703,13 +703,32 @@ export async function requireOrgAccess(
 }
 
 /** Reject browser cross-origin mutations, including sibling subdomains. */
+/**
+ * CSRF guard for state-changing requests. Browsers send `Origin` on every cross-origin POST/PUT/
+ * PATCH/DELETE and `Sec-Fetch-Site` on all modern engines, so:
+ * - a mismatched `Origin` (including sibling subdomains such as worship.gamostudio.org) is rejected;
+ * - `Sec-Fetch-Site: cross-site` or `same-site` is rejected;
+ * - without `Origin`, a mismatched `Referer` is rejected.
+ * A request with none of these headers is not from a browser and cannot carry a victim's cookies.
+ */
 export function requireSameOrigin(request: Request): void {
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return;
+  const expected = new URL(request.url).origin;
   const origin = request.headers.get('origin');
-  if (
-    (origin && origin !== new URL(request.url).origin) ||
-    request.headers.get('sec-fetch-site') === 'cross-site'
-  ) {
+  const fetchSite = request.headers.get('sec-fetch-site');
+  let crossOrigin =
+    Boolean(origin && origin !== expected) || fetchSite === 'cross-site' || fetchSite === 'same-site';
+  if (!origin && !crossOrigin) {
+    const referer = request.headers.get('referer');
+    if (referer) {
+      try {
+        crossOrigin = new URL(referer).origin !== expected;
+      } catch {
+        crossOrigin = true;
+      }
+    }
+  }
+  if (crossOrigin) {
     throw new AuthError('FORBIDDEN', 'Cross-origin mutation denied.', 403);
   }
 }
@@ -717,10 +736,6 @@ export function requireSameOrigin(request: Request): void {
 // ============================================================================
 // ADMIN GATEWAY PASSWORD AUTHENTICATION & ROTATION
 // ============================================================================
-
-export const BOOTSTRAP_ADMIN_EMAIL = 'gasanamoise7@gmail.com';
-export const BOOTSTRAP_ADMIN_NAME = 'Moise Gasana';
-export const BOOTSTRAP_ADMIN_TEMP_PASSWORD = 'GamoStudios.Com';
 
 const PBKDF2_ITERATIONS = 100_000;
 const MAX_FAILED_ATTEMPTS = 5;
@@ -785,13 +800,21 @@ export async function verifyAdminPassword(password: string, storedHash: string):
   return constantTimeCompare(computed, storedHash);
 }
 
+export interface BootstrapAdminIdentity {
+  email: string;
+  displayName: string;
+  /** Must be changed at first sign-in (`mustChangePassword`). Never commit a real value. */
+  temporaryPassword: string;
+}
+
 /**
- * Ensures the bootstrap superadmin account (`gasanamoise7@gmail.com`) and its initial
- * temporary password credential (`GamoStudios.Com`) exist in D1.
+ * Ensures a local superadmin account and its temporary password credential exist in D1.
+ * Restricted to explicit local demos; the identity is supplied by the caller (no defaults in code).
  * Never overwrites an existing credential once created or changed.
  */
 export async function ensureBootstrapAdminAccount(
   db: GamoDatabase,
+  identity: BootstrapAdminIdentity,
   localDemo?: { environment: string; enabled: boolean; requestUrl: string },
 ): Promise<{ userId: string }> {
   if (
@@ -802,7 +825,10 @@ export async function ensureBootstrapAdminAccount(
   ) {
     throw new AuthError('FORBIDDEN', 'Bootstrap accounts are restricted to explicit local demos.', 403);
   }
-  const cleanEmail = BOOTSTRAP_ADMIN_EMAIL.toLowerCase();
+  if (identity.temporaryPassword.length < 12) {
+    throw new Error('Temporary password must be at least 12 characters.');
+  }
+  const cleanEmail = identity.email.trim().toLowerCase();
   const now = new Date();
 
   let [user] = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
@@ -811,7 +837,7 @@ export async function ensureBootstrapAdminAccount(
     await db.insert(users).values({
       id,
       email: cleanEmail,
-      displayName: BOOTSTRAP_ADMIN_NAME,
+      displayName: identity.displayName,
       verifiedEmailAt: now,
       status: 'active',
       createdAt: now,
@@ -823,7 +849,7 @@ export async function ensureBootstrapAdminAccount(
       .update(users)
       .set({
         verifiedEmailAt: user.verifiedEmailAt ?? now,
-        displayName: user.displayName || BOOTSTRAP_ADMIN_NAME,
+        displayName: user.displayName || identity.displayName,
         status: 'active',
       })
       .where(eq(users.id, user.id));
@@ -871,7 +897,7 @@ export async function ensureBootstrapAdminAccount(
     .limit(1);
 
   if (!cred) {
-    const initialHash = await hashAdminPassword(BOOTSTRAP_ADMIN_TEMP_PASSWORD);
+    const initialHash = await hashAdminPassword(identity.temporaryPassword);
     await db.insert(adminCredentials).values({
       userId: user.id,
       passwordHash: initialHash,

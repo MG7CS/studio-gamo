@@ -45,7 +45,7 @@ export class ParticipationService {
       .where(eq(participationInquiries.id, id))
       .limit(1);
     if (!existing) throw new Error('NOT_FOUND');
-    if (existing.userId === reviewerId) throw new Error('Access denied: self-review is prohibited.');
+    if (existing.userId === reviewerId) throw new Error('FORBIDDEN: self-review is prohibited.');
     if (existing.status === 'closed') throw new Error('CONFLICT: inquiry is closed.');
     const now = new Date();
     const result = await this.db.batch([

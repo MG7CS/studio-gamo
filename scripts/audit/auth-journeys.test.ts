@@ -79,7 +79,8 @@ test('fresh identity verifies once, persists across logout and repeat sign-in, a
     const challenge = await service.issueEmailChallenge(email);
     const attempts = await Promise.all([
       verifyPOST(f.context('/api/auth/verify', { email, code: challenge.code, displayName: 'Fresh member' })),
-      verifyPOST(f.context('/api/auth/verify', { email, code: challenge.code })),
+      // Same payload as the first attempt: whichever request wins the race must produce the same profile.
+      verifyPOST(f.context('/api/auth/verify', { email, code: challenge.code, displayName: 'Fresh member' })),
     ]);
     assert.deepEqual(attempts.map((x) => x.status).sort(), [200, 401]);
     const verified = attempts.find((x) => x.status === 200)!;

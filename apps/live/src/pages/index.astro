@@ -19,7 +19,7 @@ let dbUnavailable = false;
 try {
   const env = await getRuntimeEnv(Astro);
   const liveService = new LiveService(getDb(env.DB));
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
   allEvents = await liveService.listDiscoverableEvents({ limit: 50 });
 } catch {
   dbUnavailable = true;

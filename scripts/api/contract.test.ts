@@ -90,6 +90,8 @@ before(async () => {
     await services.identity.createOrganization('Sample ministry', 'contract-ministry', 'church', owner.id)
   ).id;
   input.organizationId = orgId;
+  // Live private APIs require a Gamo Live product account (created by signing up through Live).
+  for (const id of [owner.id, other.id]) await services.identity.ensureProductAccount(id, 'live');
   cookie = `__session=${encodeURIComponent((await createSession(db, owner.id, secret)).cookieValue)}`;
   otherCookie = `__session=${encodeURIComponent((await createSession(db, other.id, secret)).cookieValue)}`;
   for (const app of ['web', 'live', 'admin', 'worship', 'academy', 'production']) {
@@ -499,6 +501,7 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
   const agent2User = await services.identity.findOrCreateUser('agent2@example.invalid', 'Second Agent');
   for (const u of [coOrgUser, artistUser, agentUser, agent2User]) {
     d1.sqlite.prepare('UPDATE users SET verified_email_at = ? WHERE id = ?').run(nowSec, u.id);
+    await services.identity.ensureProductAccount(u.id, 'live');
   }
   const coOrgCookie = `__session=${encodeURIComponent((await createSession(db, coOrgUser.id, secret)).cookieValue)}`;
   const artistCookie = `__session=${encodeURIComponent((await createSession(db, artistUser.id, secret)).cookieValue)}`;

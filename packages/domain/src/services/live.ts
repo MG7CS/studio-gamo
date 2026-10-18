@@ -1,3 +1,4 @@
+import type { GamoEnv } from '@gamo/config/env';
 /**
  * Gamo Live Domain Service
  * Manages Christian events, multi-role event teams, artist & agent representation,
@@ -8,7 +9,6 @@
 import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import {
   users,
-  roles,
   userRoles,
   organizationMembers,
   events,
@@ -475,7 +475,7 @@ export class LiveService {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     if (!event) {
-      throw new Error(`Event ${eventId} not found.`);
+      throw new Error('NOT_FOUND: Event not found.');
     }
 
     if (event.status !== 'approved') {
@@ -2383,54 +2383,25 @@ export class LiveService {
 
     const userId = existingUser?.id ?? GAMO_LIVE_PUBLISHER_USER_ID;
 
+    // The publisher is a system identity that owns imported listings. It is never a person:
+    // status 'system' is rejected by every sign-in and session path, and it holds no roles.
     if (!existingUser) {
       await this.db.insert(users).values({
         id: userId,
         email: GAMO_LIVE_PUBLISHER_EMAIL,
         displayName: GAMO_LIVE_PUBLISHER_LABEL,
-        status: 'active',
-        verifiedEmailAt: now,
+        status: 'system',
+        verifiedEmailAt: null,
         createdAt: now,
       });
-    } else if (!existingUser.verifiedEmailAt) {
+    } else if (existingUser.status !== 'system') {
       await this.db
         .update(users)
-        .set({ verifiedEmailAt: now, displayName: GAMO_LIVE_PUBLISHER_LABEL })
+        .set({ status: 'system', displayName: GAMO_LIVE_PUBLISHER_LABEL })
         .where(eq(users.id, userId));
     }
-
-    // Ensure staff_reviewer role exists and is assigned to editorial publisher user
-    const [reviewerRole] = await this.db
-      .select()
-      .from(roles)
-      .where(eq(roles.code, 'staff_reviewer'))
-      .limit(1);
-
-    const roleId = reviewerRole?.id ?? 'role_staff_reviewer';
-    if (!reviewerRole) {
-      await this.db.insert(roles).values({
-        id: roleId,
-        code: 'staff_reviewer',
-        description: 'Gamo Studios editorial and moderation reviewer',
-      });
-    }
-
-    const [existingUserRole] = await this.db
-      .select()
-      .from(userRoles)
-      .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, roleId)))
-      .limit(1);
-
-    if (!existingUserRole) {
-      await this.db.insert(userRoles).values({
-        id: `ur_live_editorial_${Date.now()}`,
-        userId,
-        roleId,
-        scopeType: 'global',
-        scopeId: null,
-        createdAt: now,
-      });
-    }
+    // Earlier versions granted this account a global staff_reviewer role; remove any grant.
+    await this.db.delete(userRoles).where(eq(userRoles.userId, userId));
 
     const orgId = existingOrg?.id ?? GAMO_LIVE_PUBLISHER_ORG_ID;
     if (!existingOrg) {
@@ -3129,6 +3100,18 @@ export class LiveService {
       referrerSurface,
       clickedAt: new Date(),
     });
+  }
+
+  /**
+   * Request-path seeding guard. Public pages must not write to the database on a visitor's
+   * request in preview/production, so the bundled catalog is only seeded automatically in
+   * local development, or when LIVE_CATALOG_AUTOSEED=true is set deliberately.
+   * Production listings are imported with the editorial CLI or admin review instead.
+   */
+  async seedCatalogIfAllowed(env: Pick<GamoEnv, 'ENVIRONMENT' | 'LIVE_CATALOG_AUTOSEED'>): Promise<void> {
+    if (env.ENVIRONMENT === 'local' || env.LIVE_CATALOG_AUTOSEED === 'true') {
+      await this.ensureVerifiedCatalogSeeded();
+    }
   }
 
   /**

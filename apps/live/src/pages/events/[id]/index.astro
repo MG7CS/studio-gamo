@@ -36,7 +36,7 @@ let relatedEvents: LiveEventWithDetails[] = [];
 try {
   const env = await getRuntimeEnv(Astro);
   const liveService = new LiveService(getDb(env.DB));
-  await liveService.ensureVerifiedCatalogSeeded();
+  await liveService.seedCatalogIfAllowed(env);
 
   if (metro) {
     metroEvents = await liveService.listDiscoverableEvents({
