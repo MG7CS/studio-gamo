@@ -102,6 +102,9 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
       </div>
     )}
 
+    {/* Mount point for Clerk's bot-protection widget (Cloudflare Turnstile). Empty and harmless when Clerk is off. */}
+    {mode === 'signup' && <div id="clerk-captcha" class="empty:hidden"></div>}
+
     <AuthActions
       mode={mode}
       program={program}

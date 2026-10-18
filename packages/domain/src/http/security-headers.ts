@@ -44,7 +44,8 @@ export function buildContentSecurityPolicy(
   const withClerk = (...sources: string[]) => (clerk ? [...sources, clerk] : sources);
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': withClerk("'self'"),
+    // Clerk's bot protection (Cloudflare Turnstile) loads its script and frame from challenges.cloudflare.com.
+    'script-src': withClerk("'self'", ...(clerk ? [CLERK_SUPPORT_ORIGINS.captcha] : [])),
     'style-src': ["'self'", "'unsafe-inline'"],
     'font-src': ["'self'", 'data:'],
     'img-src': ["'self'", 'data:', 'blob:', ...(clerk ? [CLERK_SUPPORT_ORIGINS.img] : [])],

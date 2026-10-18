@@ -6,6 +6,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
+import { CLERK_LEGACY_NAMES } from '../../packages/config/clerk-env.ts';
 import type { Finding } from './config.ts';
 import { requirementsFor, type DeployEnv, type PreflightApp } from './requirements.ts';
 
@@ -81,6 +82,14 @@ export function evaluateSecrets(
     if (!has(name)) add('info', 'secret-optional', `${name} is not set (optional).`);
 
   if (req.clerk.length > 0) {
+    const legacy = CLERK_LEGACY_NAMES.filter((name) => secretNames.has(name));
+    if (legacy.length > 0) {
+      add(
+        'warning',
+        'clerk-legacy-name',
+        `un-suffixed Clerk secret(s) ${legacy.join(', ')} are ignored by a deployed Worker; run scripts/set-clerk-secrets.sh and delete them (docs/AUTH.md).`,
+      );
+    }
     const set = req.clerk.filter(has);
     if (set.length > 0 && set.length < req.clerk.length) {
       const missing = req.clerk.filter((n) => !has(n));

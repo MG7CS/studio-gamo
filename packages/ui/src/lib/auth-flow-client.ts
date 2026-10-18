@@ -1,3 +1,5 @@
+import { safeNextPath } from './auth-redirect.ts';
+
 export type AuthScreenMode = 'signin' | 'signup' | 'verify' | 'recover';
 
 export const PROGRAM_TO_PRODUCT_KEY: Record<string, string> = {
@@ -234,6 +236,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
     interface ClerkLike {
       load(): Promise<void>;
       setActive(params: { session: string }): Promise<void>;
+      session?: { getToken(): Promise<string | null> } | null;
       client: {
         signUp: {
           create(params: { emailAddress: string; firstName?: string; lastName?: string }): Promise<unknown>;
@@ -326,19 +329,30 @@ export function initAuthFlow(scope: ParentNode = document): void {
       });
     };
 
+    /**
+     * Clerk's own session token lasts about a minute and is only refreshed by Clerk's script, which
+     * ordinary pages do not load. So right after Clerk signs the person in, the server verifies the
+     * token and starts a normal Gamo session (7 days); that cookie is what keeps them signed in.
+     */
+    const startGamoSession = async (clerk: ClerkLike): Promise<void> => {
+      const token = await clerk.session?.getToken();
+      if (!token) throw new Error('Signed in, but no session token was issued. Please try again.');
+      const res = await fetch('/api/auth/clerk-session', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(
+          body.error?.message || 'Signed in, but this site could not start your session. Please try again.',
+        );
+      }
+    };
+
     const completeRedirect = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const next = searchParams.get('next') || searchParams.get('returnTo');
-      const target = next ? new URL(next, window.location.origin) : null;
-      window.location.assign(
-        target &&
-          next?.startsWith('/') &&
-          !next.startsWith('//') &&
-          target.origin === window.location.origin &&
-          !target.pathname.startsWith('/api/')
-          ? target.pathname + target.search
-          : '/account',
-      );
+      window.location.assign(safeNextPath(next, window.location.origin));
     };
 
     const submitJson = async (form: HTMLFormElement, url: string, payload: Record<string, string>) => {
@@ -485,6 +499,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
               throw new Error('Additional verification steps are required to complete registration.');
             }
             await clerk.setActive({ session: res.createdSessionId });
+            await startGamoSession(clerk);
           } else {
             const res = await clerk.client.signIn.attemptFirstFactor({
               strategy: 'email_code',
@@ -494,6 +509,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
               throw new Error('Unable to complete verification. Please check your 6-digit code.');
             }
             await clerk.setActive({ session: res.createdSessionId });
+            await startGamoSession(clerk);
           }
           completeRedirect();
           return;

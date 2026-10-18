@@ -72,7 +72,7 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 | live | — | `STRIPE_SECRET_KEY` (test mode `sk_test_`/`rk_test_` only; checkout stays 503 regardless until order authority exists), `STRIPE_WEBHOOK_SECRET` |
 | admin | `CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD` | Break-glass: `ENABLE_BREAK_GLASS_AUTH`, `ADMIN_ACCESS_TOKEN`, `ADMIN_SECRET_KEY`, `ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_PASS` (leave unset unless needed) |
 
-`<APP>` is `WEB`, `WORSHIP`, `ACADEMY`, `LIVE` or `PRODUCTION`; each product uses its **own** Clerk application — never copy keys between products.
+`<APP>` is `WEB`, `WORSHIP`, `ACADEMY`, `LIVE` or `PRODUCTION`; each product uses its **own** Clerk application — never copy keys between products. The Clerk secret names are `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>`; `EMAIL_FROM` must be on `gamostudio.org`.
 
 Never set `ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION` or `ALLOW_PUBLIC_DEMO_WORKSPACES` to `true` outside local: the app refuses to serve (503). `LIVE_CATALOG_AUTOSEED=true` (live only) is the one deliberate exception that writes on a visitor request — see §5.
 
@@ -80,13 +80,20 @@ On the first request each isolate logs missing configuration by **name** (`[env:
 
 ### 3a. Clerk is optional (deferred)
 
-**Launch uses Gamo's own emailed verification codes** (Resend, sender `gamostudio.org`). Do not set any Clerk variable for launch; with none set, every product signs people in by emailed code and `pnpm preflight` reports "Clerk not configured (optional)".
+**Launch uses Gamo's own emailed verification codes** (Resend, sender `gamostudio.org`). Do not set any Clerk variable for launch; with none set, every product signs people in by emailed code and `pnpm preflight` reports "Clerk not configured (optional)". Everything about Clerk (how it works, the full variable list, the Clerk dashboard checklist for all five applications, Development → Production, and the manual test script) is in **[docs/AUTH.md](AUTH.md)**.
 
-Clerk is already integrated (`packages/auth/clerk.ts`, shared auth UI) and switches on per product when that product's four variables are set. If you enable it later:
+Clerk is already integrated (`packages/auth/clerk.ts`, shared auth UI) and switches on per product when that product's keys are set under the **product-suffixed names** (the only names a deployed Worker reads):
+
+```
+PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>   CLERK_SECRET_KEY_<APP>   CLERK_JWT_KEY_<APP>   CLERK_ISSUER_<APP>
+```
+
+If you enable it later:
 
 - each product needs **its own production Clerk instance** (never share keys or instances between products; no automatic account linking — AGENTS.md);
-- a Clerk production instance needs its own **DNS records** on the product's domain (Clerk shows them in its dashboard: a Frontend API CNAME and mail/DKIM records) — add them in Cloudflare DNS yourself, and wait until Clerk shows the domain as verified;
-- set the four secrets for that product (§3 table), keep `CLERK_APP_ID_<APP>`/`CLERK_AUTHORIZED_PARTIES_<APP>` in `wrangler.toml`, deploy to preview and complete CLEANUP_LOG H-05 (sign-in works under the CSP) before production.
+- a Clerk production instance needs its own **DNS records** on the product's domain (Clerk shows them in its dashboard) — add them in Cloudflare DNS yourself, and wait until Clerk shows the domain as verified;
+- put the keys in `apps/<app>/.dev.vars` (or a file you pass) and run `scripts/set-clerk-secrets.sh --env preview|production [--app <app>] [--dry-run]`: it reads values without printing them, handles PEM keys with line breaks, quotes or literal `\n`, refuses `pk_test_`/`sk_test_` for production and refuses one key used for two products, and prints only `ok <app> <NAME>`. Keep `CLERK_APP_ID_<APP>`/`CLERK_AUTHORIZED_PARTIES_<APP>` in `wrangler.toml`; deploy to preview and complete CLEANUP_LOG H-05 (sign-in works under the CSP) before production;
+- a startup log line names any missing Clerk variable (`wrangler tail`), and `pnpm preflight` warns about un-suffixed Clerk secrets left on a Worker.
 
 Do **not** run `clerk init`, the Clerk CLI or a dashboard-generated Clerk setup prompt in this repository; they would replace the existing integration.
 

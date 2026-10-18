@@ -128,7 +128,9 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
   return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
     const response = await handle(context, next);
     return withSecurityHeaders(response, {
-      clerkFrontendApi: context.locals.clerkConfig?.issuer,
+      clerkFrontendApi: context.locals.clerkConfig?.isConfigured
+        ? context.locals.clerkConfig.issuer
+        : undefined,
       enforceCsp: import.meta.env?.PROD === true,
       https: context.url.protocol === 'https:',
       allowGeolocation: app === 'live',

@@ -6,6 +6,8 @@ interface Props {
 }
 const { program = 'Gamo Studios', workspaceHref } = Astro.props;
 const auth = Astro.locals.auth;
+const clerkConfig = Astro.locals.clerkConfig;
+const clerkPublishableKey = clerkConfig?.isConfigured ? (clerkConfig.publishableKey ?? '') : '';
 if (!auth) return Astro.redirect('/account/signin', 303);
 const memberships = auth.memberships ?? [];
 const isLive = program === 'Gamo Live';
@@ -41,7 +43,7 @@ const isProduction = program === 'Gamo Production';
     {isProduction && <a href="/client">Ministry production requests →</a>}
     {program === 'Gamo Studios' && <a href="/get-involved">Get involved →</a>}
     <a href="/">Return to {program}</a>
-    <button type="button" data-account-logout>
+    <button type="button" data-account-logout data-clerk-publishable-key={clerkPublishableKey || undefined}>
       Sign out
     </button>
   </nav>
@@ -153,6 +155,7 @@ const isProduction = program === 'Gamo Production';
   <slot />
 </section>
 <script>
+  import { signOutOfClerk } from '../../lib/clerk-browser.ts';
   const form = document.querySelector<HTMLFormElement>('[data-organization-form]');
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -176,13 +179,12 @@ const isProduction = program === 'Gamo Production';
       button.disabled = false;
     }
   });
-  document.querySelector('[data-account-logout]')?.addEventListener('click', async () => {
+  document.querySelector<HTMLElement>('[data-account-logout]')?.addEventListener('click', async (event) => {
     const status = document.querySelector<HTMLElement>('[data-account-status]')!;
+    const clerkKey = (event.currentTarget as HTMLElement).dataset.clerkPublishableKey;
     try {
-      const w = window as unknown as { Clerk?: { signOut?: () => Promise<void> } };
-      if (w.Clerk?.signOut) {
-        await w.Clerk.signOut().catch(() => undefined);
-      }
+      // Clerk first (when this product uses it), then our own session; a Clerk outage must not block sign-out here.
+      await signOutOfClerk(clerkKey).catch(() => undefined);
       const response = await fetch('/api/auth/session', { method: 'DELETE' });
       if (!response.ok) throw new Error('Sign out failed. Please try again.');
       window.location.assign('/account/signin');

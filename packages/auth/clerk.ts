@@ -1,4 +1,10 @@
 import type { GamoEnv } from '@gamo/config/env';
+import {
+  GAMO_LIVE_CLERK_APP_ID,
+  deriveFrontendApiFromPublishableKey,
+  isRealClerkValue,
+  normalizePemValue,
+} from '@gamo/config/clerk-env';
 /**
  * @gamo/auth/clerk — Product-Isolated Clerk Authentication & Identity Bridge
  *
@@ -196,53 +202,40 @@ export interface ResolvedProductClerkConfig {
   isConfigured: boolean;
 }
 
-/**
- * Decodes the Frontend API domain embedded inside a Clerk Publishable Key (`pk_test_<base64>` or `pk_live_<base64>`).
- * Clerk publishable keys encode `<frontend-api-domain>$` in Base64 after the prefix.
- */
-export function deriveFrontendApiFromPublishableKey(publishableKey?: string): string | null {
-  if (!publishableKey) return null;
-  const trimmed = publishableKey.trim();
-  const match = /^pk_(?:test|live)_([A-Za-z0-9+/=_-]+)$/.exec(trimmed);
-  if (!match) return null;
-  try {
-    const b64 = match[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
-    const decoded = atob(padded);
-    if (!decoded.endsWith('$')) return null;
-    const host = decoded.slice(0, -1).trim().toLowerCase();
-    if (!host || !host.includes('.')) return null;
-    return `https://${host}`;
-  } catch {
-    return null;
-  }
-}
+export { deriveFrontendApiFromPublishableKey };
 
 function readEnvString(env: GamoEnv | undefined, key: string): string | undefined {
   const val = (env as Record<string, unknown> | undefined)?.[key];
-  if (
-    typeof val === 'string' &&
-    val.trim().length > 0 &&
-    !val.includes('placeholder') &&
-    !val.includes('REPLACE_WITH') &&
-    !val.includes('YOUR_') &&
-    !val.startsWith('pending_clerk_app_')
-  ) {
-    return val.trim();
-  }
-  return undefined;
+  return isRealClerkValue(val) ? val.trim() : undefined;
 }
 
-export const GAMO_LIVE_CLERK_APP_ID = 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt';
+function isNetworkFailure(error: unknown): boolean {
+  const message = error instanceof Error ? `${error.name} ${error.message}` : '';
+  return /fetch failed|network|ECONN|ENOTFOUND|ETIMEDOUT|timed? ?out|socket|AbortError/i.test(message);
+}
+
+/**
+ * Thrown when a request carries a well-formed Clerk session token but Clerk's Backend API could not
+ * be reached to look the user up. Callers answer "account service unavailable" (503) instead of
+ * treating the visitor as signed out, which would bounce them in a sign-in loop.
+ */
+export class ClerkUnavailableError extends Error {
+  constructor(message = 'Clerk could not be reached.') {
+    super(message);
+    this.name = 'ClerkUnavailableError';
+  }
+}
+
+export { GAMO_LIVE_CLERK_APP_ID };
 
 /**
  * Resolves the Clerk configuration for a specific Gamo product from its Worker runtime environment.
  * Enforces strict product isolation:
- * - Product-scoped keys (`PUBLIC_CLERK_PUBLISHABLE_KEY_<PRODUCT>`, `CLERK_SECRET_KEY_<PRODUCT>`) take precedence.
- * - Standard Clerk variable names (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_APP_ID`)
- *   are also supported inside that application's isolated `apps/<product>/.env` or `apps/<product>/.dev.vars`
- *   when `CLERK_PRODUCT` is unset or matches the target product (and never allows `apps/live`'s
- *   `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or keys to be reused in another product).
+ * - The canonical names are product-suffixed (`PUBLIC_CLERK_PUBLISHABLE_KEY_<PRODUCT>`, `CLERK_SECRET_KEY_<PRODUCT>`, …;
+ *   see `@gamo/config/clerk-env`). They are the only names a deployed Worker (`ENVIRONMENT` preview or production) reads.
+ * - Un-suffixed names (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, …) are a local-development convenience, read only
+ *   when `ENVIRONMENT` is not a deployed one and `CLERK_PRODUCT` is unset or matches the target product (and
+ *   `apps/live`'s `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or keys can never be reused in another product).
  */
 export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): ResolvedProductClerkConfig {
   const spec = CLERK_PRODUCT_APPS[product];
@@ -250,7 +243,8 @@ export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): R
 
   const rawEnv = env as Record<string, unknown> | undefined;
   const configuredProduct = readEnvString(env, 'CLERK_PRODUCT')?.toLowerCase();
-  const allowGenericKeys = !configuredProduct || configuredProduct === product;
+  const deployed = env?.ENVIRONMENT === 'preview' || env?.ENVIRONMENT === 'production';
+  const allowGenericKeys = !deployed && (!configuredProduct || configuredProduct === product);
 
   const rawConfiguredAppId =
     rawEnv?.[spec.envVarNames.appId] || (allowGenericKeys ? rawEnv?.['CLERK_APP_ID'] : undefined);
@@ -276,9 +270,11 @@ export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): R
     readEnvString(env, spec.envVarNames.secretKey) ||
     (allowGenericKeys ? readEnvString(env, 'CLERK_SECRET_KEY') : undefined);
 
-  const jwtKey =
+  // The PEM may be stored with real line breaks or with literal "\\n" sequences (single-line secret values).
+  const rawJwtKey =
     readEnvString(env, spec.envVarNames.jwtKey) ||
     (allowGenericKeys ? readEnvString(env, 'CLERK_JWT_KEY') : undefined);
+  const jwtKey = rawJwtKey ? normalizePemValue(rawJwtKey) : undefined;
 
   const explicitAppId =
     readEnvString(env, spec.envVarNames.appId) ||
@@ -427,6 +423,12 @@ export async function verifyClerkProductToken(
 
     if (verifyResult && typeof verifyResult === 'object') {
       if ('errors' in verifyResult && verifyResult.errors) {
+        // Without CLERK_JWT_KEY_<APP> the signing keys are fetched from Clerk; if that fetch fails the
+        // token is not "invalid", Clerk is unreachable.
+        const reasons = (Array.isArray(verifyResult.errors) ? verifyResult.errors : []).map(
+          (e) => (e as { reason?: unknown } | null)?.reason,
+        );
+        if (reasons.includes('jwk-remote-failed-to-load')) throw new ClerkUnavailableError();
         return null;
       }
       if ('data' in verifyResult && verifyResult.data && typeof verifyResult.data === 'object') {
@@ -435,7 +437,10 @@ export async function verifyClerkProductToken(
         payload = verifyResult as Record<string, unknown>;
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof ClerkUnavailableError) throw error;
+    // The signing-key fetch (when no CLERK_JWT_KEY_<APP> is set) fails with a raw network error.
+    if (isNetworkFailure(error)) throw new ClerkUnavailableError();
     return null;
   }
 
@@ -503,8 +508,13 @@ export async function verifyClerkProductToken(
         const fullName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ').trim();
         displayName = fullName || clerkUser.username || null;
       }
-    } catch {
-      // If backend fetch fails and token lacked email, cannot verify identity
+    } catch (error) {
+      // A 4xx (for example 404, the user was deleted) means the identity cannot be confirmed: not signed in.
+      // Anything else (network failure, timeout, 5xx, 429) means Clerk is unreachable: surface that.
+      const status = (error as { status?: unknown } | null)?.status;
+      if (typeof status !== 'number' || status >= 500 || status === 429) {
+        throw new ClerkUnavailableError();
+      }
     }
   }
 
@@ -573,6 +583,32 @@ export async function resolveOrProvisionClerkProductSession(
       throw new AuthError('FORBIDDEN', 'Clerk issuer mismatch for this product identity.', 403);
     }
     targetUserId = existingLink.userId;
+
+    // The person changed their (verified) email address in Clerk: keep the link and the account row
+    // in step so notifications reach the new address. The stored address is skipped when another
+    // account already holds the new one (the unique index would refuse it); the link is still updated.
+    const cleanEmail = identity.email.toLowerCase().trim();
+    if (existingLink.clerkEmail !== cleanEmail) {
+      const [holder] = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
+      const [current] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
+      const storedHasProductSuffix = Boolean(current?.email.includes('#'));
+      if (current && !holder && !storedHasProductSuffix) {
+        await db.update(users).set({ email: cleanEmail }).where(eq(users.id, targetUserId));
+      }
+      await db
+        .update(clerkIdentityLinks)
+        .set({ clerkEmail: cleanEmail, updatedAt: now })
+        .where(eq(clerkIdentityLinks.id, existingLink.id));
+      await db.insert(auditLogs).values({
+        id: `audit_${crypto.randomUUID()}`,
+        actorUserId: targetUserId,
+        action: 'clerk.email_changed',
+        entityType: 'product_account',
+        entityId: existingLink.productAccountId ?? existingLink.id,
+        payloadJson: JSON.stringify({ product: identity.product, clerkUserId: identity.clerkUserId }),
+        createdAt: now,
+      });
+    }
   } else {
     // Ensure this (clerkIssuer, clerkUserId) is not already bound to a different product
     const [crossProductLink] = await db
@@ -685,62 +721,76 @@ export async function resolveOrProvisionClerkProductSession(
       const [existingTargetUser] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
 
       if (!existingTargetUser) {
-        await db.insert(users).values({
-          id: targetUserId,
-          email: storedUserEmail,
-          displayName: identity.displayName || null,
-          verifiedEmailAt: now,
+        await db
+          .insert(users)
+          .values({
+            id: targetUserId,
+            email: storedUserEmail,
+            displayName: identity.displayName || null,
+            verifiedEmailAt: now,
+            status: 'active',
+            createdAt: now,
+          })
+          .onConflictDoNothing();
+      }
+
+      // Parallel first requests race here; the unique indexes decide the winner and the loser
+      // simply carries on with the winner's rows (nothing is inserted or audited twice).
+      const productAccountId = `pacc_${identity.product}_${sanitizedClerkId}`;
+      const createdAccount = await db
+        .insert(productAccounts)
+        .values({
+          id: productAccountId,
+          userId: targetUserId,
+          product: identity.product,
           status: 'active',
+          onboardingStatus: 'pending',
+          clerkAppId: identity.clerkAppId,
+          clerkUserId: identity.clerkUserId,
+          clerkIssuer: identity.issuer,
+          clerkLinkedAt: now,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoNothing()
+        .returning({ id: productAccounts.id });
+
+      if (createdAccount.length > 0) {
+        const linkId = `clink_${identity.product}_${sanitizedClerkId}`;
+        await db
+          .insert(clerkIdentityLinks)
+          .values({
+            id: linkId,
+            product: identity.product,
+            clerkAppId: identity.clerkAppId,
+            clerkIssuer: identity.issuer,
+            clerkUserId: identity.clerkUserId,
+            clerkEmail: cleanEmail,
+            clerkEmailVerified: true,
+            userId: targetUserId,
+            productAccountId,
+            migrationSource: 'clerk_registration',
+            status: 'active',
+            linkedAt: now,
+            updatedAt: now,
+          })
+          .onConflictDoNothing();
+
+        await db.insert(auditLogs).values({
+          id: `audit_${crypto.randomUUID()}`,
+          actorUserId: targetUserId,
+          action: 'clerk.product_account_registered',
+          entityType: 'product_account',
+          entityId: productAccountId,
+          payloadJson: JSON.stringify({
+            product: identity.product,
+            clerkAppId: identity.clerkAppId,
+            clerkUserId: identity.clerkUserId,
+            issuer: identity.issuer,
+          }),
           createdAt: now,
         });
       }
-
-      const productAccountId = `pacc_${identity.product}_${sanitizedClerkId}`;
-      await db.insert(productAccounts).values({
-        id: productAccountId,
-        userId: targetUserId,
-        product: identity.product,
-        status: 'active',
-        onboardingStatus: 'pending',
-        clerkAppId: identity.clerkAppId,
-        clerkUserId: identity.clerkUserId,
-        clerkIssuer: identity.issuer,
-        clerkLinkedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      const linkId = `clink_${identity.product}_${sanitizedClerkId}`;
-      await db.insert(clerkIdentityLinks).values({
-        id: linkId,
-        product: identity.product,
-        clerkAppId: identity.clerkAppId,
-        clerkIssuer: identity.issuer,
-        clerkUserId: identity.clerkUserId,
-        clerkEmail: cleanEmail,
-        clerkEmailVerified: true,
-        userId: targetUserId,
-        productAccountId,
-        migrationSource: 'clerk_registration',
-        status: 'active',
-        linkedAt: now,
-        updatedAt: now,
-      });
-
-      await db.insert(auditLogs).values({
-        id: `audit_${crypto.randomUUID()}`,
-        actorUserId: targetUserId,
-        action: 'clerk.product_account_registered',
-        entityType: 'product_account',
-        entityId: productAccountId,
-        payloadJson: JSON.stringify({
-          product: identity.product,
-          clerkAppId: identity.clerkAppId,
-          clerkUserId: identity.clerkUserId,
-          issuer: identity.issuer,
-        }),
-        createdAt: now,
-      });
     }
   }
 

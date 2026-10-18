@@ -187,6 +187,6 @@ Authentication and business authorization are separate responsibilities.
 
 Do not introduce shared single sign-on or alter product-account independence without explicit founder approval.
 
-**Never run `clerk init`, the Clerk CLI, or any dashboard-generated Clerk setup prompt in this repository, and never replace the existing Clerk integration.** Clerk is already integrated in `packages/auth/clerk.ts` (with the shared auth UI) and is optional: launch uses Gamo's emailed verification codes. If Clerk is enabled later, each product needs its own production Clerk instance and DNS records (`docs/RUNBOOK.md` §3a).
+**Never run `clerk init`, the Clerk CLI, or any dashboard-generated Clerk setup prompt in this repository, and never replace the existing Clerk integration.** Clerk is already integrated in `packages/auth/clerk.ts` (with the shared auth UI) and is optional: launch uses Gamo's emailed verification codes. If Clerk is enabled later, each product needs its own production Clerk instance and DNS records (`docs/RUNBOOK.md` §3a). Deployed Clerk variables are always product-suffixed (`CLERK_SECRET_KEY_<APP>`, …; defined once in `packages/config/clerk-env.ts`), set with `scripts/set-clerk-secrets.sh`; everything else about auth is in `docs/AUTH.md`.
 
 **Email domain:** the verified sending domain is `gamostudio.org` (contact `hello@gamostudio.org`). `scripts/audit/email-domain.test.ts` fails if the misspelled extra-"s" domain appears anywhere in the repository.
