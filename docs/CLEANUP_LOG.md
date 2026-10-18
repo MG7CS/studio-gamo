@@ -15,6 +15,56 @@ This log is appended to while work happens. Sections:
 
 ---
 
+## Final summary (2026-10-18)
+
+**State.** Phases 0–9 complete on `cleanup/foundation-pass` (local; not pushed, not deployed; no production resource touched). A fresh clone installs with `pnpm install --frozen-lockfile` and passes `pnpm check` end to end: typecheck (astro check ×6 + packages, 0 warnings), lint (0 warnings), Prettier, 158 unit/integration tests, OpenAPI lint/drift/coverage + 12 contract tests, 6 builds, 2 browser journeys, 15 Playwright smoke tests covering every public marketing page in five apps. The same command runs in CI (`.github/workflows/ci.yml`).
+
+**What changed, in short.** Repo hygiene and real tooling (ESLint, Prettier, knip, astro check, CI, fixed ports and isolated local state with `pnpm dev:all`); strict typing of env and locals, env validation that fails closed, duplicate services/schemas removed; security headers + CSP on every response, stricter CSRF, private-route and webhook tests, admin Access hardening, the committed bootstrap credential removed from code; booklet design tokens, self-hosted Inter, 44 px targets, axe-clean pages, branded 404/500, icons and manifests; content typo/name fixes; Stripe/Resend timeouts, retries and idempotency keys, honest 503s, local DB workflow and `docs/DATABASE.md`; browser smoke tests; accurate README, `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`, AGENTS.md conventions, stale docs bannered.
+
+### Remaining issues, ranked
+
+| Rank | Item | Ref |
+| --- | --- | --- |
+| P0 | Preview and production share one KV namespace for sessions. | F-05 → H-01 |
+| P0 | A real bootstrap admin password and personal email are in git history (removed from the tree). Rotate; rewrite history before the repo is ever public. | F-01 → H-02 |
+| P1 | Paid checkout and financial webhook fulfillment stay fail-closed (503) until order/inventory authority exists — by design, but it blocks paid tickets. | AGENTS.md priority, `docs/BACKEND_RELEASE_READINESS.md` |
+| P1 | No supported way to create the first preview/production staff account. | F-59 → H-07 |
+| P1 | Failed/queued emails are never retried (no scheduled job). | F-09 → O-19 |
+| P1 | Webhook fulfillment dedupe is read-then-write: concurrent duplicate deliveries can answer 500 (Stripe retries; financial fulfillment is fail-closed for now). | F-32, D-40 |
+| P1 | Clerk sign-in under the new CSP is unverified (no Clerk keys locally). | H-05 |
+| P2 | Drizzle schema vs migration drift (PK, FK actions, indexes). | F-15 |
+| P2 | Admin: gateway page is hand-written HTML; ~4,300 lines of fixtures; `/nonprofit/*` routes and "tax status under evaluation" text. | F-39, F-47, O-14 |
+| P2 | Optimized images duplicated in five apps' `public/` (~6.9 MB each). | F-41 |
+| P2 | Fictional sample content on public pages (labeled) awaits owner decision. | O-03, O-17 |
+| P3 | Demo-session impersonation is local + loopback only; documented. Account ID committed (not a secret). | F-35, F-54 |
+
+### Needs owner decision (details in §4)
+
+O-01 email domain (`gamostudio.org` vs `gamostudios.org`) · O-02 public contact details · O-03/O-17 sample content on public pages · O-04 program status wording (every occurrence listed) · O-05 first admin identity · O-06 "support"/giving language · O-07 "developing … PBC" wording · O-08 board/governance claims · O-09 service area · O-10 public proposed prices/pay · O-11 tagline placement · O-12 staff access to Live · O-13 production catalog seeding · O-14 admin nonprofit routes · O-15 newsletter · O-16 uppercase titles · O-18 musician pool name · O-19 email retry job · O-20 governance docs' legal wording.
+
+### Needs human action outside the code (details in §5)
+
+H-01 separate KV namespaces · H-02 retire the historical bootstrap credential · H-03 decide/run production catalog import · H-04 demote the listings publisher in remote D1 · H-05 verify Clerk under CSP on preview · H-07 first staff account. (H-06 done.)
+
+### Launch-readiness checklist
+
+- [x] `pnpm check` passes on a fresh clone and in CI
+- [x] Every public page: 200, one h1, no console/CSP errors, no broken images or links, axe WCAG 2.2 AA (serious/critical) clean, no overflow at 360 px
+- [x] Security headers + CSP on every response; private pages and APIs deny anonymous and foreign sessions (tested)
+- [x] Integrations fail closed outside local; local-only flags are fatal on real hosts
+- [x] Approved PBC wording only on public pages, emails, `llms.txt` and structured data (tested for `llms.txt`)
+- [x] Runbook for deploy, rollback, secrets, migrations and catalog import
+- [ ] H-01 separate KV namespaces (**blocker**)
+- [ ] H-02 historical credential retired (**blocker**)
+- [ ] Secrets set per app and environment (RUNBOOK §3); `SESSION_SECRET` ≥ 32 chars everywhere
+- [ ] Cloudflare Access application for admin; `CF_ACCESS_TEAM_NAME`/`CF_ACCESS_AUD` set; first staff account (H-07)
+- [ ] Remote D1: backup, migrations applied, H-04 run; catalog decision (H-03)
+- [ ] Preview deploy of all apps; RUNBOOK §6–§7 checks pass; Clerk verified (H-05)
+- [ ] Owner decisions O-01–O-20 resolved or explicitly deferred (at least O-01, O-02, O-03/O-17, O-04, O-07, O-10 affect public copy)
+- [ ] Paid ticketing remains off until order/inventory authority is built and approved
+
+---
+
 ## Phase 0 baseline (recorded before any change)
 
 **Git state.** `main` at `1d4bbad` with 180 uncommitted changes (modified + untracked: new robots/sitemap/llms routes, `.env.example` files, Clerk env loader, migration `0011`, booklet assets). All of it was saved as checkpoint commit `35d233d` on `cleanup/foundation-pass`. Before committing I checked every untracked env example for real-looking values (`sk_`, `pk_`, `whsec_`, `re_`, JWTs, long base64): none found. No `dist/`, `.astro/` or `.wrangler/` directories were tracked. `.DS_Store` was tracked.
@@ -215,6 +265,13 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **`AGENTS.md`**: new "Established conventions" subsection (pnpm check, hosts/ports, typed env/locals, middleware order, private routes + robots, legacy redirects, API order, fail-closed/`allowMock`, CSP rules, UI tokens/targets/a11y, sample labels, migrations, logging).
 - **Stale docs marked** with a status banner (`<!-- status-banner: 2026-10 foundation pass -->`): historical — `docs/RESUME_LIVE.md`, `RESUME_PRODUCTION.md`, `RESUME_WORSHIP_ACADEMY.md`, `MULTIPAGE_DESIGN_REVIEW.md`, `HOMEPAGE_VISUAL_REVIEW.md`, `DESIGN_REVIEW_WEB.md`, `prompts/MASTER-PROMPT.md`; partly stale — `COMPONENT_ARCHITECTURE.md`, `DASHBOARD_ARCHITECTURE.md`; superseded — `docs/DEPLOYMENT.md` (→ RUNBOOK), root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` (→ docs/ARCHITECTURE.md); PBC-statement-prevails banner on `ROADMAP.md`, `SECURITY.md`, `DESIGN.md`, `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md` (their body text still says "legal-structure-neutral"/"nonprofit"; rewriting legal/governance text is left to the owner, O-20).
 
+### Phase 9 — Final verification
+
+- Clean install and full `pnpm check` in a fresh clone (CI mode) — found F-60 (e2e servers on an unmigrated local D1 → Live detail pages 503); fixed in `playwright.config.ts` (`0a7e9b3`), re-verified on a second fresh clone.
+- Admin smoke found F-61 (no `Cache-Control` on gateway pages); every admin response is now `no-store`, asserted for every admin route in `scripts/audit/private-routes.test.ts` (test fails without the fix, passes with it) (`f6276bb`).
+- The e2e migrate step warns instead of blocking when a local DB predates migration tracking (F-62; this machine's Live DB).
+- Finding statuses brought up to date (F-18, F-19, F-21, F-22, F-34, F-36, F-48, F-49, F-50 were fixed in earlier phases but still read "open"). Final summary and launch-readiness checklist added at the top of this log.
+
 ## 3. Findings
 
 Ranked: **P0** = security/data-integrity risk in production, **P1** = correctness bug or broken user path, **P2** = quality/maintainability, **P3** = cosmetic. Status is updated as items are fixed.
@@ -238,11 +295,11 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-15 | P2 | `schema.ts` drift vs migrations: `user_roles.id` not a PK in DB; 11 FKs have cascade/set-null in schema but NO ACTION in DB; 9 indexes exist only in schema. drizzle `meta/_journal.json` lists only 0000–0002. | `packages/db/schema.ts`, `packages/db/migrations/meta` | documented (docs/DATABASE.md); open |
 | F-16 | P2 | Migration numbering gap (`0007` missing); most migrations use bare `CREATE TABLE`/`INDEX` (not idempotent if re-run by hand). | `packages/db/migrations/` | documented (D-31, docs/DATABASE.md) |
 | F-17 | P2 | Two error formats in the API (`{success:false,error:{…}}` and `{error:string}` for checkout/webhook); RFC 7807 `Problem` schema defined but unused. Checkout contract text says "returns 503" but code returns 200. | `openapi/`, `apps/live/src/pages/api/checkout/session.ts` | **fixed** (Phase 3) |
-| F-18 | P2 | `api:check`, `scripts/audit/*.test.ts` and browser tests are not run by `pnpm test`; one of them (`auth-journeys`) fails. | `package.json` | open (Phase 1/7) |
-| F-19 | P2 | `tsc --noEmit` typecheck ignores `.astro` files. | `package.json` `typecheck` | open (Phase 1/2) |
+| F-18 | P2 | `api:check`, `scripts/audit/*.test.ts` and browser tests are not run by `pnpm test`; one of them (`auth-journeys`) fails. | `package.json` | **fixed** (Phase 1: `pnpm test` runs all audit tests; Phase 7: journeys + e2e in `pnpm check`) |
+| F-19 | P2 | `tsc --noEmit` typecheck ignores `.astro` files. | `package.json` `typecheck` | **fixed** (Phase 1: `typecheck:apps` runs `astro check` with warnings failing) |
 | F-20 | P2 | worship/academy/production import `@gamo/domain` without declaring it. | `apps/{worship,academy,production}/package.json` | **fixed** |
-| F-21 | P2 | Same catalog in 3 byte-identical JSON files + an embedded TS copy. | `gamo_live_verified_events_2026-10-15.json`, `data/*.json`, `packages/domain/src/services/verified-catalog-2026-10-15.ts` | open (Phase 1) |
-| F-22 | P2 | Docs stale: `docs/DEPLOYMENT.md:75-79` names a nonexistent migration and stops at 0008; import report uses wrong DB name; README says legal status undecided (AGENTS.md: PBC); `openapi/root.yaml:6-8` also says undecided. | docs | open (Phase 8) |
+| F-21 | P2 | Same catalog in 3 byte-identical JSON files + an embedded TS copy. | `gamo_live_verified_events_2026-10-15.json`, `data/*.json`, `packages/domain/src/services/verified-catalog-2026-10-15.ts` | partly fixed: one JSON in `data/` + the bundled TS module (needed at runtime); the duplicate JSON copies were removed |
+| F-22 | P2 | Docs stale: `docs/DEPLOYMENT.md:75-79` names a nonexistent migration and stops at 0008; import report uses wrong DB name; README says legal status undecided (AGENTS.md: PBC); `openapi/root.yaml:6-8` also says undecided. | docs | **fixed** (Phase 8: README, RUNBOOK, banners on stale docs) |
 | F-23 | P3 | Admin middleware logs the raw error object. | `apps/admin/src/middleware.ts:420` | **fixed** (Phase 2/6) |
 | F-24 | P0 | Request-path seeding (F-02) also inserts a verified active user `listings-editorial@gamostudios.org` with a **global `staff_reviewer` role** and org ownership — on an anonymous GET in production. Called from 9 pages: live `/`, `/events`, `/events/[id]`, `/events/[id]/register`, `/venues`, `/artists`, `/artists/[slug]`, `sitemap.xml`, and web `/live`. | `packages/domain/src/services/live.ts:2433+,3267`; `live-external-discovery.ts:22` | **fixed** (Phase 3) |
 | F-25 | P0 | Admin login sets `__session` with `Domain=.gamostudio.org` in production; that session has no product scope, and Live private APIs (`requireVerifiedAuth`) never check product membership → an admin session is accepted by every Live API. | `apps/admin/src/middleware.ts:31-39,265-271`; `packages/auth/index.ts:573` | **fixed** (Phase 3) |
@@ -254,9 +311,9 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-31 | P1 | Admin login page renders `err?.message` (escaped) into HTML; Stripe webhook returns `verification.error` which can carry `JSON.parse` messages; `handleApiError` returns `AuthError` messages verbatim (incl. Clerk config errors). | admin `middleware.ts:292`; `stripe.ts:210`; `response.ts:80-126` | **fixed** (Phase 3) |
 | F-32 | P1 | Webhook fulfillment dedupe is read-then-write (not atomic); concurrent deliveries collide on deterministic PKs → 500. Event is recorded idempotent **after** fulfillment. | `packages/domain/src/services/live.ts:1967-2085`; `payments.ts:51-60` | by design (D-40) |
 | F-33 | P1 | Worship `/api/check-in/{confirm,fail}` are unauthenticated no-op stubs (303 redirect) that are part of the public contract. | `apps/worship/src/pages/api/check-in/*.ts` | **fixed** (Phase 2) |
-| F-34 | P2 | Default top-level wrangler env is `ENVIRONMENT="local"` — a `wrangler deploy` without `--env` ships "local" flags (demo gates still need a loopback hostname, so not exploitable on real hosts). | `apps/*/wrangler.toml` | open (Phase 2) |
+| F-34 | P2 | Default top-level wrangler env is `ENVIRONMENT="local"` — a `wrangler deploy` without `--env` ships "local" flags (demo gates still need a loopback hostname, so not exploitable on real hosts). | `apps/*/wrangler.toml` | **fixed** (Phase 2: env validation answers 503 when `ENVIRONMENT=local` is served from a non-loopback host; RUNBOOK §1) |
 | F-35 | P2 | Demo session endpoint (local + loopback only) can impersonate any existing user, incl. superadmin, without verification. Acceptable for local, but should be documented. | `packages/domain/src/http/auth.ts:164-220` | document |
-| F-36 | P2 | No test exercises the `applicationPages` page middleware end to end; `scripts/audit/*` security tests are not in CI. | — | open (Phase 7) |
+| F-36 | P2 | No test exercises the `applicationPages` page middleware end to end; `scripts/audit/*` security tests are not in CI. | — | **fixed** (Phase 3/7: private-routes, legacy-redirects and the e2e smoke suite go through `applicationPages`; all in CI) |
 | F-37 | P1 | No `404.astro`/`500.astro` in any app; no web manifest or `theme-color`; Inter 900 never loaded although `font-black` is used; Google Fonts loaded at runtime. | all apps, `packages/ui/src/components/BaseLayout.astro:58-60` | **fixed** (Phase 4) |
 | F-38 | P2 | Design tokens exist in one place (`packages/ui/src/styles/tokens.css`) but none matches the booklet values; ~945 arbitrary color classes and ~1,100 hex literals bypass them (worst: Live, which re-implements header/footer/logo with hex only). Auth CTA is purple/indigo. | `packages/ui/src/styles/tokens.css`, `apps/live/**`, `packages/ui/src/components/auth/*` | **fixed** (Phase 4) |
 | F-39 | P2 | Admin login gateway is a hand-written HTML page inside middleware with its own palette and no skip link/landmarks. | `apps/admin/src/middleware.ts:55-200` | partly fixed: palette, landmark, icons (Phase 4); still hand-written HTML |
@@ -268,8 +325,8 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-45 | P1 | Production homepage consultation form discards input: `onsubmit="return false"` then navigates to a redirect stub. | `apps/production/src/components/production/ConsultationForm.astro:12,29-32` | **fixed** (Phase 2) |
 | F-46 | P1 | Worship `/check-in/*` pages always say "Your arrival has been recorded" without writing anything. | `apps/worship/src/pages/check-in/*.astro` | **fixed** (Phase 2) |
 | F-47 | P2 | Admin workspace fixtures (~4,300 lines) can never render (`isolatedDemo` is never set in admin), and `[...slug].astro` prepends real D1 rows to fake rows. | `apps/admin/src/data/**`, `apps/admin/src/pages/[...slug].astro:14-60` | partly: dead D1 enrichment removed (Phase 1); fixtures kept for nav |
-| F-48 | P2 | `scripts/generate-index.mjs` would overwrite the current homepage with an old layout. | `scripts/generate-index.mjs:396` | open (Phase 1) |
-| F-49 | P2 | `@clerk/astro` declared in 8 packages, imported nowhere; `@clerk/backend`/`@clerk/clerk-js` declared in all apps but imported only by packages. | package.json files | open (Phase 1/2) |
+| F-48 | P2 | `scripts/generate-index.mjs` would overwrite the current homepage with an old layout. | `scripts/generate-index.mjs:396` | **fixed** (Phase 1: script removed) |
+| F-49 | P2 | `@clerk/astro` declared in 8 packages, imported nowhere; `@clerk/backend`/`@clerk/clerk-js` declared in all apps but imported only by packages. | package.json files | **fixed** (Phase 1/2: unused Clerk dependencies removed from apps and packages) |
 | F-51 | P1 | Storage ticket signing falls back to a hard-coded secret constant when none is configured (forgeable upload/download tickets). No app route uses the R2 client yet. | `packages/integrations/src/storage.ts:119` | **fixed** (Phase 2) |
 | F-52 | P3 | Variables set in templates/wrangler but read by no code: `ALLOW_TEST_CHALLENGE_OUTBOX`, `ADMIN_INITIAL_PASSWORD`, `CLERK_KEYLESS_DISABLED`, `PUBLIC_CLERK_KEYLESS_DISABLED`, `STRIPE_SANDBOX_ENABLED`. | templates, `apps/*/wrangler.toml` | templates **fixed**; wrangler vars left (deploy config) |
 | F-53 | P1 | `siteOrigin()` reads `PUBLIC_SITE_URL_*`/`PUBLIC_ROOT_DOMAIN` from `import.meta.env` (build time); preview builds may therefore link to production origins, and the workers.dev pattern (`gamo-<app>.<root>`) does not match the real preview Worker names (`gamo-<app>-preview`). Duplicates the port table. | `packages/ui/src/lib/sites.ts` | **not a bug** in preview/production builds (explicit vars); fallback pattern fixed (Phase 4) |
@@ -279,7 +336,10 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-57 | P2 | Building while dev servers run failed (build bound the dev inspector port). | `packages/config/env-loader.ts` | **fixed** (Phase 4) |
 | F-58 | P1 | Prerendered Academy/Production detail pages were served as static files without the CSP, security headers or the page cache rule. | `apps/academy/src/pages/{instruments,lessons,instructors}/[slug].astro`, `apps/production/src/pages/services/[slug].astro` | **fixed** (Phase 7) |
 | F-59 | P1 | No supported way to create the first staff/admin account in preview or production: `ensureBootstrapAdminAccount` is (correctly) local-demo only. A small owner-run provisioning script (hash locally, emit SQL) would close this. | `packages/auth/index.ts:815` | open → H-07 |
-| F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | open (Phase 1) |
+| F-60 | P1 | `pnpm check` failed on a fresh clone (and would in CI): the e2e preview servers started on an unmigrated local D1, so every Live event detail page answered 503. Earlier runs passed only because this machine had migrated local state. | `playwright.config.ts` | **fixed** (Phase 9: each server applies local migrations first) |
+| F-61 | P3 | Admin gateway sign-in/401 responses had no `Cache-Control`. | `apps/admin/src/middleware.ts` | **fixed** (Phase 9: every admin response `no-store`; asserted in `private-routes.test.ts`) |
+| F-62 | P3 | This machine's local Live D1 was created by the old editorial CLI (tables, no migration records), so `wrangler d1 migrations apply --local` fails on it. | `apps/live/.wrangler/state` (git-ignored) | local only: run `pnpm db:reset:local` once (H-06); the e2e step now warns instead of blocking |
+| F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | **fixed** (Phase 1: stub files replaced by `src/lib/legacy-redirects.ts` tables, D-13) |
 
 ## 4. Needs owner decision
 
@@ -404,15 +464,37 @@ Nothing in this section was changed in code unless the row says so.
 | `pnpm test:journeys` | 2/2 (Miniflare + Chromium) |
 | `pnpm test:e2e` | 15/15 (production builds) |
 
+### After Phase 8
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` | **pass**, 2 min 46 s (docs-only phase; Prettier covers the new Markdown) |
+| Every command, script, file path and env-var name in README/ARCHITECTURE/RUNBOOK | checked against `package.json`, `Makefile`, `wrangler.toml`, `.dev.vars.example`, `env-validation.ts`, `editorial-cli.ts`, `packages/auth/index.ts` |
+
+### After Phase 9 (final)
+
+| Command | Result |
+| --- | --- |
+| Fresh `git clone` → `pnpm install --frozen-lockfile` | pass (7 s, pnpm 11.28.5) |
+| Fresh clone `CI=1 pnpm check` (first attempt) | **fail** — Live detail pages 503 on unmigrated local D1 (F-60) |
+| Fresh clone `CI=1 pnpm check` after fix (`0a7e9b3`, `f6276bb`) | **pass**, 3 min 37 s: typecheck 0 errors/0 warnings ×6 apps + packages; lint 0; format clean; 158/158 tests; API lint + drift + coverage + 12/12 contract; 6 builds; 2/2 journeys; 15/15 e2e |
+| Working tree `pnpm check` | **pass**, 2 min 56 s (warns about this machine's old local Live DB, F-62) |
+| Local smoke, public apps | every sitemap URL + sign-in pages in web, worship, academy, live, production via the e2e suite (200, one h1, no console/CSP errors, no broken images/links, axe, 360 px) + branded 404 + crawler files |
+| Local smoke, admin (`astro preview`, no Access configured) | `/`, `/signin`, `/security`, `/api/admin/health`, `/robots.txt`, unknown path → all 401 gateway page (fail closed); CSP, `X-Frame-Options: DENY`, nosniff, `X-Robots-Tag: noindex`; `Cache-Control` was missing → F-61 fixed |
+
 ## 7. How to revert
 
-| Phase | Commit | Revert |
+All commits are on `cleanup/foundation-pass` only. Revert a phase with `git revert <sha>…` (newest first), or reset to the end of the previous phase.
+
+| Phase | Commits | Reset to (end of previous phase) |
 | --- | --- | --- |
-| Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
-| Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
-| Phase 7 | `713de6c` smoke + crawler tests · `ae5184a` journeys + regressions · (log commit follows) | `git revert` newest first, or `git reset --hard 3323c85` |
-| Phase 6 | `0d7a384` integrations/DB workflow · `fb5e91d` contract tests · `3323c85` log | `git revert` newest first, or `git reset --hard 0cfd416` |
-| Phase 5 | `f9d4a1f` content · `0cfd416` log | `git revert f9d4a1f` |
-| Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · `c933bc2` log | `git revert` newest first, or `git reset --hard accea2b` |
-| Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `git revert` newest first, or `git reset --hard 062aa98` |
-| Phase 2 | `8d47e01` types · `13d54a7` fail closed + sample labels + stub removal · `174fef0` dedupe · `5b00c0d` env validation · `062aa98` log | `git revert` newest first, or `git reset --hard c01cf18` (end of Phase 1) |
+| Checkpoint (pre-cleanup state) | `35d233d` | `git reset --hard 35d233d` restores the original state exactly |
+| Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `35d233d` |
+| Phase 2 | `8d47e01` types · `13d54a7` fail closed + sample labels + stub removal · `174fef0` dedupe · `5b00c0d` env validation · `062aa98` log | `c01cf18` |
+| Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `062aa98` |
+| Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · `c933bc2` log | `accea2b` |
+| Phase 5 | `f9d4a1f` content · `0cfd416` log | `c933bc2` |
+| Phase 6 | `0d7a384` integrations/DB workflow · `fb5e91d` contract tests · `3323c85` log | `0cfd416` |
+| Phase 7 | `713de6c` smoke + crawler tests · `ae5184a` journeys + regressions · `9c8705d` log | `3323c85` |
+| Phase 8 | `ee77c12` README, ARCHITECTURE, RUNBOOK, AGENTS conventions, banners | `9c8705d` |
+| Phase 9 | `0a7e9b3` e2e migrations · `f6276bb` admin no-store + non-blocking migrate · final log commit (`docs(cleanup-log): final summary`) | `ee77c12` |
