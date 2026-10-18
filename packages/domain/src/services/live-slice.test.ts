@@ -295,3 +295,10 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(settlementRow.status, 'reconciled');
   });
 });
+
+test('registration emails show the start time in the event timezone, not UTC', async () => {
+  const { formatEventStart } = await import('./notifications.ts');
+  const start = new Date('2026-10-20T23:00:00Z'); // 7:00 PM in New York (EDT)
+  assert.equal(formatEventStart(start, 'America/New_York'), 'Tuesday, October 20, 2026 at 7:00 PM EDT');
+  assert.match(formatEventStart(start, 'Not/AZone'), /GMT$/);
+});

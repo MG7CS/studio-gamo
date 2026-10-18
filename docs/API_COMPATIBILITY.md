@@ -9,7 +9,7 @@ Base: HEAD
 Additive/corrective changes (cleanup pass Phase 3, `docs/CLEANUP_LOG.md` F-06, F-17, F-28):
 - `POST /api/checkout/session`: added `403` (cross-origin browser request) and removed the never-returned `404`; description now matches behavior (503 when paid checkout is unconfigured outside local, before any hold is created; 503 when the order/inventory/authorization gate is closed; idempotency key is honored).
 - `POST /api/events/{id}/register`: added `403` (cross-origin browser request; the route now calls `requireSameOrigin`).
-- `POST /api/tickets/lookup` and `DELETE /api/auth/session`: documented the `403` that `requireSameOrigin` already returned.
+- `POST /api/tickets/lookup` and `DELETE /api/auth/session`: documented the `403` that `requireSameOrigin` already returned; `POST /api/tickets/lookup` also documents `429` (verification code locked after too many attempts), which it already returned.
 - `StripeEvent.data` now allows additional properties: real `*.updated` events carry `data.previous_attributes` and were rejected with `400`, making Stripe retry indefinitely.
 - Live private operations now require a Gamo Live product account (`403` was already declared); unauthenticated requests are rejected before body validation (`401` instead of `400`).
 - Affected consumers: none in the repository besides the Live UI, which already sends same-origin requests.

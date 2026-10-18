@@ -13,6 +13,8 @@ export interface SendEmailOptions {
   from?: string;
   replyTo?: string;
   tags?: { name: string; value: string }[];
+  /** Sent as Resend's Idempotency-Key (e.g. the outbox job id); also enables one safe retry. */
+  idempotencyKey?: string;
 }
 
 export interface EmailSendResult {
@@ -68,33 +70,40 @@ export function createResendClient(config?: ResendConfig) {
         };
       }
 
-      // Live dispatch via Cloudflare Workers fetch
-      try {
-        const response = await fetch(RESEND_API_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          signal: AbortSignal.timeout(timeoutMs),
-          body: JSON.stringify({
-            from,
-            to: recipients,
-            subject: options.subject,
-            html: options.html,
-            text: options.text,
-            reply_to: options.replyTo,
-            tags: options.tags,
-          }),
-        });
+      // Live dispatch. With an idempotency key, one retry on network errors, 429 and 5xx.
+      const attempts = options.idempotencyKey ? 2 : 1;
+      for (let attempt = 1; attempt <= attempts; attempt++) {
+        let response: Response;
+        try {
+          response = await fetch(RESEND_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+              ...(options.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : {}),
+            },
+            signal: AbortSignal.timeout(timeoutMs),
+            body: JSON.stringify({
+              from,
+              to: recipients,
+              subject: options.subject,
+              html: options.html,
+              text: options.text,
+              reply_to: options.replyTo,
+              tags: options.tags,
+            }),
+          });
+        } catch {
+          console.error('[Resend Network Error]');
+          if (attempt < attempts) continue;
+          return { success: false, error: 'Failed to dispatch email via Resend' };
+        }
 
         if (!response.ok) {
           await response.body?.cancel();
           console.error(`[Resend Error] Status ${response.status}`);
-          return {
-            success: false,
-            error: `Resend API returned status ${response.status}`,
-          };
+          if (attempt < attempts && (response.status === 429 || response.status >= 500)) continue;
+          return { success: false, error: `Resend API returned status ${response.status}` };
         }
 
         const data = (await response.json()) as { id: string };
@@ -103,13 +112,8 @@ export function createResendClient(config?: ResendConfig) {
           id: data.id,
           mock: false,
         };
-      } catch {
-        console.error('[Resend Network Error]');
-        return {
-          success: false,
-          error: 'Failed to dispatch email via Resend',
-        };
       }
+      return { success: false, error: 'Failed to dispatch email via Resend' };
     },
   };
 }

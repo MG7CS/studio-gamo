@@ -17,10 +17,16 @@
  *   so `astro dev` and local verification immediately serve the curated catalog.
  */
 
-import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createDb } from '../../packages/db/index.ts';
-import { asD1, createInMemoryD1, createSqliteD1, type SqliteD1 } from '../../packages/db/testing.ts';
+import {
+  applyMigrations,
+  asD1,
+  createInMemoryD1,
+  createSqliteD1,
+  type SqliteD1,
+} from '../../packages/db/testing.ts';
 import { LiveService, type SeedCatalogDocument } from '../../packages/domain/index.ts';
 
 interface CliArgs {
@@ -118,38 +124,30 @@ function parseCliArgs(argv: string[]): CliArgs {
   };
 }
 
-/**
- * Applies all tracked D1 migrations idempotently to a D1 database instance,
- * tolerating already-applied tables/columns/triggers/indexes on persistent local state.
- */
-async function ensureMigrationsApplied(d1: Pick<SqliteD1, 'exec'>, migrationsDir: string): Promise<void> {
-  const files = readdirSync(migrationsDir)
+function migrationFiles(migrationsDir: string): string[] {
+  return readdirSync(migrationsDir)
     .filter((f) => f.endsWith('.sql'))
     .sort();
+}
 
-  for (const file of files) {
-    const rawSql = readFileSync(resolve(migrationsDir, file), 'utf8');
-    const statements = rawSql
-      .split('--> statement-breakpoint')
-      .map((s) => s.replace(/^\s*--.*$/gm, '').trim())
-      .filter(Boolean);
-
-    for (const stmt of statements) {
-      try {
-        await d1.exec(stmt.replace(/\n/g, ' '));
-      } catch (err) {
-        const msg = String((err as Error)?.message ?? err).toLowerCase();
-        // Ignore benign idempotency errors when re-running on already-migrated persistent local D1
-        if (
-          msg.includes('already exists') ||
-          msg.includes('duplicate column name') ||
-          msg.includes('unique constraint failed')
-        ) {
-          continue;
-        }
-        throw err;
-      }
-    }
+/**
+ * The local database must have been migrated by Wrangler (`pnpm db:migrate:local`), which records
+ * applied files in `d1_migrations`. The CLI never migrates it itself: a second runner that does
+ * not record its work makes Wrangler re-apply everything and fail later.
+ */
+function assertWranglerMigrated(d1: SqliteD1, migrationsDir: string): void {
+  let applied: Set<string>;
+  try {
+    const rows = d1.sqlite.prepare('SELECT name FROM d1_migrations').all() as Array<{ name: string }>;
+    applied = new Set(rows.map((r) => r.name));
+  } catch {
+    applied = new Set();
+  }
+  const missing = migrationFiles(migrationsDir).filter((f) => !applied.has(f));
+  if (missing.length) {
+    throw new Error(
+      `Local Gamo Live D1 is missing migrations (${missing.join(', ')}). Run \`pnpm db:migrate:local\` first.`,
+    );
   }
 }
 
@@ -165,7 +163,10 @@ async function openTargetD1(
 
   if (dryRun && env !== 'local') {
     const d1 = createInMemoryD1();
-    await ensureMigrationsApplied(d1, migrationsDir);
+    await applyMigrations(
+      d1,
+      migrationFiles(migrationsDir).map((f) => readFileSync(resolve(migrationsDir, f), 'utf8')),
+    );
     return {
       d1,
       dispose: async () => {
@@ -181,19 +182,19 @@ async function openTargetD1(
     );
   }
 
+  // Wrangler's local D1 for apps/live (the same state `astro dev` uses, see persistState).
   const d1ObjectDir = resolve(process.cwd(), 'apps/live/.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
-  mkdirSync(d1ObjectDir, { recursive: true });
-
-  const existingSqliteFiles = readdirSync(d1ObjectDir)
-    .filter((f) => f.endsWith('.sqlite') && f !== 'metadata.sqlite')
-    .sort();
-
-  const targetSqliteFile =
-    existingSqliteFiles[0] ?? 'a36f84ea60804f30bb0c7f7cad9f5336a6cca0165abdab8b9241d93dbf0b6006.sqlite';
-  const targetSqlitePath = resolve(d1ObjectDir, targetSqliteFile);
-
+  const sqliteFiles = existsSync(d1ObjectDir)
+    ? readdirSync(d1ObjectDir)
+        .filter((f) => f.endsWith('.sqlite') && f !== 'metadata.sqlite')
+        .sort()
+    : [];
+  if (!sqliteFiles.length) {
+    throw new Error('No local Gamo Live D1 database found. Run `pnpm db:migrate:local` first.');
+  }
+  const targetSqlitePath = resolve(d1ObjectDir, sqliteFiles[0]);
   const d1 = createSqliteD1(targetSqlitePath);
-  await ensureMigrationsApplied(d1, migrationsDir);
+  assertWranglerMigrated(d1, migrationsDir);
 
   return {
     d1,

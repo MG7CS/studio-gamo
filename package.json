@@ -27,7 +27,10 @@
     "api:compatibility": "node scripts/api/compatibility.mjs",
     "live:publisher:provision": "tsx scripts/live/editorial-cli.ts provision",
     "live:events:import": "tsx scripts/live/editorial-cli.ts import",
-    "live:events:publish": "tsx scripts/live/editorial-cli.ts publish"
+    "live:events:publish": "tsx scripts/live/editorial-cli.ts publish",
+    "db:migrate:local": "pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-worship exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-academy exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-live exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-production exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-admin exec wrangler d1 migrations apply gamo-db-local --local",
+    "db:reset:local": "node scripts/db/reset-local.mjs && pnpm db:migrate:local",
+    "db:seed:local": "pnpm live:publisher:provision --env local --apply && pnpm live:events:import --env local --apply && pnpm live:events:publish --env local --apply"
   },
   "devEngines": {
     "packageManager": {

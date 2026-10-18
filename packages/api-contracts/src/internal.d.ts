@@ -1893,6 +1893,7 @@ export interface operations {
             400: components["responses"]["LegacyError"];
             401: components["responses"]["LegacyError"];
             403: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };

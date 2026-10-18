@@ -40,6 +40,57 @@ export class StripeNotConfiguredError extends Error {
 const isRealTestKey = (key?: string): key is string =>
   Boolean(key && (key.startsWith('sk_test_') || key.startsWith('rk_test_')) && !key.includes('placeholder'));
 
+const STRIPE_API = 'https://api.stripe.com/v1';
+const STRIPE_TIMEOUT_MS = 10_000;
+
+/** Thrown for a non-2xx Stripe response; carries Stripe's error code, never the raw body. */
+export class StripeApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string | undefined,
+  ) {
+    super(`Stripe API error ${status}${code ? ` (${code})` : ''}`);
+    this.name = 'StripeApiError';
+  }
+}
+
+/**
+ * POST to the Stripe API with a timeout. With an idempotency key, one retry is made on network
+ * errors, 429 and 5xx (Stripe replays the original result for a repeated key).
+ */
+async function stripePost(
+  secretKey: string,
+  path: string,
+  params: URLSearchParams,
+  idempotencyKey?: string,
+): Promise<{ id: string; url: string }> {
+  const attempts = idempotencyKey ? 2 : 1;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetch(`${STRIPE_API}${path}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+        },
+        body: params.toString(),
+        signal: AbortSignal.timeout(STRIPE_TIMEOUT_MS),
+      });
+      if (res.ok) return (await res.json()) as { id: string; url: string };
+      const body = (await res.json().catch(() => null)) as {
+        error?: { code?: string; type?: string };
+      } | null;
+      lastError = new StripeApiError(res.status, body?.error?.code ?? body?.error?.type);
+      if (res.status !== 429 && res.status < 500) break;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
 /** Appends query parameters to a URL that may already have a query string. */
 function withQuery(url: string, params: Record<string, string>): string {
   const u = new URL(url);
@@ -65,6 +116,8 @@ export interface CheckoutSessionOptions {
     trialPeriodDays?: number;
     metadata?: Record<string, string>;
   };
+  /** Sent as Stripe's Idempotency-Key; also enables one safe retry. */
+  idempotencyKey?: string;
 }
 
 export interface CheckoutSessionResult {
@@ -332,21 +385,7 @@ export function createStripeTestClient(config?: StripeConfig) {
         }
       }
 
-      const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString(),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Stripe Test API error (${res.status}): ${errText}`);
-      }
-
-      const data = (await res.json()) as { id: string; url: string };
+      const data = await stripePost(secretKey!, '/checkout/sessions', params, options.idempotencyKey);
       return {
         id: data.id,
         url: data.url,
@@ -373,21 +412,7 @@ export function createStripeTestClient(config?: StripeConfig) {
       params.append('customer', options.customerId);
       params.append('return_url', options.returnUrl);
 
-      const res = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: params.toString(),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Stripe Portal API error (${res.status}): ${errText}`);
-      }
-
-      const data = (await res.json()) as { id: string; url: string };
+      const data = await stripePost(secretKey!, '/billing_portal/sessions', params);
       return {
         id: data.id,
         url: data.url,

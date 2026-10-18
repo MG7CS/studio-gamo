@@ -65,6 +65,7 @@ export const POST: APIRoute = async (context) => {
       customerEmail: body.customerEmail,
       successUrl: `${new URL(context.request.url).origin}/my-tickets?order=${encodeURIComponent(holdAndOrder.orderNumber)}`,
       cancelUrl: `${new URL(context.request.url).origin}/events/${encodeURIComponent(holdAndOrder.event.slug)}`,
+      idempotencyKey: `checkout_session_${holdAndOrder.orderId}`,
       metadata: {
         eventId: holdAndOrder.event.id,
         orderId: holdAndOrder.orderId,
