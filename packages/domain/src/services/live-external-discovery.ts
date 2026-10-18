@@ -19,7 +19,7 @@ export const GAMO_LIVE_PUBLISHER_ORG_SLUG = 'gamo-live-listings';
 export const GAMO_LIVE_PUBLISHER_ORG_NAME = 'Gamo Live Listings';
 export const GAMO_LIVE_PUBLISHER_PROFILE_ID = 'orgprof_gamo_live_listings';
 export const GAMO_LIVE_PUBLISHER_USER_ID = 'usr_gamo_live_listings_editorial';
-export const GAMO_LIVE_PUBLISHER_EMAIL = 'listings-editorial@gamostudios.org';
+export const GAMO_LIVE_PUBLISHER_EMAIL = 'listings-editorial@gamostudio.org';
 export const GAMO_LIVE_PUBLISHER_LABEL = 'Gamo Live Listings';
 
 export const DEFAULT_INDEPENDENT_DISCLOSURE = 'Independent listing · Tickets sold by the external provider.';

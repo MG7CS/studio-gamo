@@ -13,7 +13,22 @@ pnpm --filter apps-web exec wrangler whoami   # or: make verify-config
 make verify-deployment          # wrangler deploy --dry-run for all six apps
 ```
 
-Then confirm the per-app secrets in §3 exist for the target environment (`wrangler secret list --env <env>` from `apps/<app>`; it prints names only).
+### Preflight
+
+```sh
+pnpm preflight all --env preview              # or: pnpm preflight live --env production
+pnpm preflight all --env production --no-remote   # configuration only, no Cloudflare calls
+```
+
+`pnpm preflight [app|all] --env preview|production` is read-only and never prints a secret value:
+
+1. **Configuration (offline).** Reads each `apps/*/wrangler.toml` and reports, with the offending id: empty or placeholder KV/D1 ids and R2 bucket names, KV/D1/R2 resources **shared between environments** (this is how the single KV namespace of CLEANUP_LOG H-01 shows up), `ENVIRONMENT` not matching the environment, local-only flags set to `true`, a production Worker without a `custom_domain` route, preview and production sharing one Worker name, and an admin Worker that is not `workers_dev = false`.
+2. **Worker secrets (remote, read-only).** If `wrangler` is logged in, runs `wrangler secret list --env <env> --format json` for each app and compares the **names** with §3: missing required secrets are errors; missing `RESEND_API_KEY`/`EMAIL_FROM` (needed for emailed sign-in codes) are warnings; Stripe and break-glass names are noted as optional; a partly filled Clerk group is a warning. A Worker that does not exist yet is reported as "not deployed yet".
+3. **Not logged in →** the remote part is skipped with a message (log in yourself with `pnpm exec wrangler login`). `--no-remote` skips it on purpose; `--require-remote` turns a skipped or failed remote check into a failure.
+
+Exit code: `1` if any error was found (✗), otherwise `0`; `2` for bad arguments. Warnings (`!`) do not fail the run. The checks live in `scripts/preflight/` and are covered by `scripts/preflight/preflight.test.ts`.
+
+Then confirm any remaining item in §3 that preflight cannot see (values are never inspected, only that the names exist).
 
 ## 1. Deploy
 
@@ -53,7 +68,7 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 | App | Required | Optional (feature unavailable without it) |
 | --- | --- | --- |
 | all six | `SESSION_SECRET` (≥ 32 chars; same value across apps is not required) | — |
-| web, worship, academy, live, production | — | `RESEND_API_KEY` + `EMAIL_FROM` (email delivery); Clerk for that product: `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>`, `CLERK_ISSUER_<APP>` |
+| web, worship, academy, live, production | — | `RESEND_API_KEY` + `EMAIL_FROM` (email delivery — **needed for sign-in codes at launch**; the sender domain `gamostudio.org` is verified in Resend, and when `EMAIL_FROM` is unset mail goes out as `Gamo Studios <hello@gamostudio.org>` with Reply-To `hello@gamostudio.org`); Clerk for that product (optional, deferred — see §3a) |
 | live | — | `STRIPE_SECRET_KEY` (test mode `sk_test_`/`rk_test_` only; checkout stays 503 regardless until order authority exists), `STRIPE_WEBHOOK_SECRET` |
 | admin | `CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD` | Break-glass: `ENABLE_BREAK_GLASS_AUTH`, `ADMIN_ACCESS_TOKEN`, `ADMIN_SECRET_KEY`, `ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_PASS` (leave unset unless needed) |
 
@@ -62,6 +77,18 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 Never set `ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION` or `ALLOW_PUBLIC_DEMO_WORKSPACES` to `true` outside local: the app refuses to serve (503). `LIVE_CATALOG_AUTOSEED=true` (live only) is the one deliberate exception that writes on a visitor request — see §5.
 
 On the first request each isolate logs missing configuration by **name** (`[env:<app>] error: …`). Check with `pnpm exec wrangler tail --env <env>` from `apps/<app>`.
+
+### 3a. Clerk is optional (deferred)
+
+**Launch uses Gamo's own emailed verification codes** (Resend, sender `gamostudio.org`). Do not set any Clerk variable for launch; with none set, every product signs people in by emailed code and `pnpm preflight` reports "Clerk not configured (optional)".
+
+Clerk is already integrated (`packages/auth/clerk.ts`, shared auth UI) and switches on per product when that product's four variables are set. If you enable it later:
+
+- each product needs **its own production Clerk instance** (never share keys or instances between products; no automatic account linking — AGENTS.md);
+- a Clerk production instance needs its own **DNS records** on the product's domain (Clerk shows them in its dashboard: a Frontend API CNAME and mail/DKIM records) — add them in Cloudflare DNS yourself, and wait until Clerk shows the domain as verified;
+- set the four secrets for that product (§3 table), keep `CLERK_APP_ID_<APP>`/`CLERK_AUTHORIZED_PARTIES_<APP>` in `wrangler.toml`, deploy to preview and complete CLEANUP_LOG H-05 (sign-in works under the CSP) before production.
+
+Do **not** run `clerk init`, the Clerk CLI or a dashboard-generated Clerk setup prompt in this repository; they would replace the existing integration.
 
 ## 4. Database (D1)
 
@@ -121,4 +148,45 @@ For each public host:
 
 ## 8. First staff account
 
-Admin needs a Cloudflare Access identity **and** a D1 user with the `superadmin` (or staff) role and an `admin_credentials` row. `ensureBootstrapAdminAccount` creates these **only for explicit local demos on loopback**; there is no supported command for preview/production yet (CLEANUP_LOG H-07). Until one exists, the owner creates the rows with `wrangler d1 execute … --remote`, using a password hash produced by `hashAdminPassword` locally and `must_change_password = 1`. Retire the historical bootstrap credential first (H-02).
+Admin needs a Cloudflare Access identity (the same email) **and** a D1 user with the `superadmin` role and an `admin_credentials` row. `ensureBootstrapAdminAccount` only works for explicit local demos on loopback, so for preview/production the SQL is generated locally and run by the owner.
+
+### 8.1 Generate the SQL (local, nothing is sent anywhere)
+
+```sh
+pnpm staff:account:sql --env production            # asks for the email; --email you@example.org to skip the prompt
+pnpm staff:account:sql --env preview --name "Full Name"
+```
+
+The script (`scripts/admin/first-staff-account.ts`):
+
+- creates a strong random 24-character temporary password and **prints it once** to your terminal — store it in a password manager at once;
+- writes `.staff-sql/first-superadmin-<env>-<timestamp>.sql` (git-ignored, mode 600). The file holds only the PBKDF2 hash (`hashAdminPassword`) and creates/activates the user, grants `superadmin` (global), and inserts the `admin_credentials` row with `must_change_password = 1`;
+- an **existing** credential is left alone (so re-running cannot lock anyone out); add `--reset-password` to replace it and sign the account out everywhere;
+- does **not** run `wrangler` and makes no network call.
+
+Review the file, then run it yourself (the exact command is printed):
+
+```sh
+cd apps/admin && pnpm exec wrangler d1 execute gamo-db-production --env production --remote --file ../../.staff-sql/<file>.sql
+```
+
+Sign in at the admin host through Cloudflare Access with the same email, enter the temporary password, and set a new one when prompted. Then delete the SQL file.
+
+### 8.2 Retire the historical bootstrap credential (CLEANUP_LOG H-02)
+
+Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-coded a bootstrap admin: an email (`BOOTSTRAP_ADMIN_EMAIL`), a display name and a **temporary password** (`BOOTSTRAP_ADMIN_TEMP_PASSWORD`). `ensureBootstrapAdminAccount` stored its hash in `admin_credentials` for that email with the `superadmin` role. That function only ran for local demos on loopback, so preview/production should not contain it — but the password is in git history, so assume it is known and **verify**.
+
+1. Find the email without printing the password: `git show 35d233d:packages/auth/index.ts | grep -n "BOOTSTRAP_ADMIN_EMAIL ="`.
+2. Read-only check on each remote database (does the account exist, with a password or roles?):
+
+   ```sh
+   cd apps/admin && pnpm exec wrangler d1 execute gamo-db-production --env production --remote \
+     --command "SELECT u.id, u.status, (SELECT COUNT(*) FROM admin_credentials c WHERE c.user_id = u.id) AS has_password, (SELECT COUNT(*) FROM user_roles r WHERE r.user_id = u.id) AS role_grants FROM users u WHERE u.email = '<that email>'"
+   ```
+
+   No row, or `has_password = 0` → nothing to retire for that database.
+3. If it exists, choose by who the person is:
+   - **The email is not going to be a staff account** → generate SQL that retires it: `pnpm staff:account:sql --env production --disable-user <that email>`. The file revokes its sessions, deletes its password and roles and sets `status = 'disabled'`. Review and run it as in §8.1.
+   - **The email is the same person who will be the first staff account** → do not disable it; create the account with `pnpm staff:account:sql --env production --email <that email> --reset-password`. That replaces the known password with a new random one and signs the account out everywhere.
+
+Generated files live only in `.staff-sql/` (git-ignored). Repeat for preview. The historical password stays in git history; rewriting history before the repository is ever public is a separate owner decision (H-02).

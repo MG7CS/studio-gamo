@@ -39,3 +39,6 @@ Thumbs.db
 
 # Local-only generated API references (internal must never be published).
 docs/api-reference/*.html
+
+# Generated staff-account SQL (contains password hashes; owner-reviewed, never committed)
+.staff-sql/

@@ -29,6 +29,8 @@ export interface EmailSendResult {
 export interface ResendConfig {
   apiKey?: string;
   defaultFrom?: string;
+  /** Reply-To used when a message sets none (default hello@gamostudio.org). */
+  defaultReplyTo?: string;
   /**
    * Simulate sends when no real key is configured. Only pass `true` for ENVIRONMENT=local;
    * elsewhere an unconfigured client reports `{ success: false, notConfigured: true }`.
@@ -38,7 +40,9 @@ export interface ResendConfig {
   timeoutMs?: number;
 }
 
-const DEFAULT_FROM = 'Gamo Studios <notifications@gamostudio.org>';
+/** gamostudio.org is the verified Resend sending domain; replies go to the same mailbox. */
+const DEFAULT_FROM = 'Gamo Studios <hello@gamostudio.org>';
+const DEFAULT_REPLY_TO = 'hello@gamostudio.org';
 const RESEND_API_ENDPOINT = 'https://api.resend.com/emails';
 
 const isRealKey = (key?: string): key is string =>
@@ -51,6 +55,7 @@ const isRealKey = (key?: string): key is string =>
 export function createResendClient(config?: ResendConfig) {
   const apiKey = config?.apiKey;
   const defaultFrom = config?.defaultFrom || DEFAULT_FROM;
+  const defaultReplyTo = config?.defaultReplyTo || DEFAULT_REPLY_TO;
   const timeoutMs = config?.timeoutMs ?? 10_000;
 
   return {
@@ -89,7 +94,7 @@ export function createResendClient(config?: ResendConfig) {
               subject: options.subject,
               html: options.html,
               text: options.text,
-              reply_to: options.replyTo,
+              reply_to: options.replyTo || defaultReplyTo,
               tags: options.tags,
             }),
           });

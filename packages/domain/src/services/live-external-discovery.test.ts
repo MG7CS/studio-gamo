@@ -45,6 +45,25 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     assert.equal(secondApply.createdOrUpdated, 'already_provisioned');
   });
 
+  it('a publisher provisioned under the old misspelled sender domain is corrected in place, not duplicated', async () => {
+    const { d1, liveService } = await setupMigratedD1();
+    await liveService.provisionListingsPublisher({ dryRun: false });
+    // The old address is assembled so the repo-wide misspelling guard (scripts/audit/email-domain.test.ts) stays strict.
+    const oldEmail = `listings-editorial@gamostudio${'s'}.org`;
+    d1.sqlite
+      .prepare("UPDATE users SET email = ? WHERE id = 'usr_gamo_live_listings_editorial'")
+      .run(oldEmail);
+
+    await liveService.provisionListingsPublisher({ dryRun: false });
+    const rows = d1.sqlite
+      .prepare("SELECT email FROM users WHERE id = 'usr_gamo_live_listings_editorial'")
+      .all() as Array<{ email: string }>;
+    assert.deepEqual(
+      rows.map((row) => row.email),
+      ['listings-editorial@gamostudio.org'],
+    );
+  });
+
   it('public pages never seed the catalog in preview/production unless LIVE_CATALOG_AUTOSEED=true', async () => {
     const count = (d1: { sqlite: { prepare(sql: string): { get(): unknown } } }) =>
       (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM events').get() as { n: number }).n;
@@ -70,7 +89,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     const { d1, liveService } = await setupMigratedD1();
     await liveService.provisionListingsPublisher({ dryRun: false });
     const user = d1.sqlite
-      .prepare("SELECT id, status FROM users WHERE email = 'listings-editorial@gamostudios.org'")
+      .prepare("SELECT id, status FROM users WHERE email = 'listings-editorial@gamostudio.org'")
       .get() as {
       id: string;
       status: string;

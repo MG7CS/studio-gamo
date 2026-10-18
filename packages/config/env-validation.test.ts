@@ -55,7 +55,7 @@ test('a complete production configuration has no problems', () => {
     DB: {},
     SESSION_SECRET: SECRET,
     RESEND_API_KEY: 're_123',
-    EMAIL_FROM: 'Gamo Studios <notifications@gamostudio.org>',
+    EMAIL_FROM: 'Gamo Studios <hello@gamostudio.org>',
   } as const;
   assert.deepEqual(validateEnv('web', env, 'gamostudio.org'), []);
 });

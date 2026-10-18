@@ -14,6 +14,8 @@
     "format:check": "prettier --check .",
     "test": "tsx --test 'packages/**/*.test.ts' 'scripts/**/*.test.ts' scripts/image-policy.test.mjs",
     "knip": "knip",
+    "preflight": "tsx scripts/preflight/cli.ts",
+    "staff:account:sql": "tsx scripts/admin/first-staff-account.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm api:check && pnpm build && pnpm test:journeys && pnpm test:e2e",
     "images:optimize": "node scripts/optimize-images.mjs",
     "images:report": "node scripts/optimize-images.mjs --report",

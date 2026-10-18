@@ -6,7 +6,7 @@ import type { GamoEnv } from '@gamo/config/env';
  * self-service verified order recovery, refunds, settlements, and linked production requests.
  */
 
-import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
+import { eq, and, or, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import {
   users,
   userRoles,
@@ -2375,10 +2375,12 @@ export class LiveService {
 
     const now = new Date();
 
+    // Match by the fixed id too: databases provisioned before the sender-domain correction hold
+    // this account under the old address, and the id is the primary key.
     const [existingUser] = await this.db
       .select()
       .from(users)
-      .where(eq(users.email, GAMO_LIVE_PUBLISHER_EMAIL))
+      .where(or(eq(users.email, GAMO_LIVE_PUBLISHER_EMAIL), eq(users.id, GAMO_LIVE_PUBLISHER_USER_ID)))
       .limit(1);
 
     const userId = existingUser?.id ?? GAMO_LIVE_PUBLISHER_USER_ID;
@@ -2394,10 +2396,10 @@ export class LiveService {
         verifiedEmailAt: null,
         createdAt: now,
       });
-    } else if (existingUser.status !== 'system') {
+    } else if (existingUser.status !== 'system' || existingUser.email !== GAMO_LIVE_PUBLISHER_EMAIL) {
       await this.db
         .update(users)
-        .set({ status: 'system', displayName: GAMO_LIVE_PUBLISHER_LABEL })
+        .set({ status: 'system', displayName: GAMO_LIVE_PUBLISHER_LABEL, email: GAMO_LIVE_PUBLISHER_EMAIL })
         .where(eq(users.id, userId));
     }
     // Earlier versions granted this account a global staff_reviewer role; remove any grant.
