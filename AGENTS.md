@@ -167,6 +167,8 @@ Never interpret shared UI components or authentication infrastructure as permiss
 
 Any cross-product identity linking, enrollment, or integration must be explicitly designed and authorized.
 
+**Approved exception — shared person record (owner decision, 2026-10-18; design: `docs/design/identity-and-ticketing.md` §4.6, built: `docs/IDENTITY.md`).** A D1 `persons` row keyed by a **verified** email links a provider's per-product users so that provider profiles, provider roles (musician, technician, church, agent, organizer, teacher) and terms acceptances carry across products. Linking happens only after the product has verified the email itself (its own emailed code or its own Clerk application); a typed-but-unproven email never links. Still separate per product: users, product accounts, sessions and cookies, Clerk applications and identity links, staff and program authorization roles, workspaces and onboarding. The person record never grants product access, staff roles or a session in another product, and a person can unlink a product. Customers (ticket buyers, parents, students) need no account: their identity is their email (`customer_profiles`) and they manage purchases through signed, expiring emailed links; door staff use event-scoped scanner links with a PIN.
+
 ## Past Event Closure & Real Database Events Rule
 
 - All public Gamo Live surfaces (`gamostudio.org/live`, `live.gamostudio.org`, `/events`, `/events/<slug>`) must display **real approved/published events from the database (`events` table in D1 via `LiveService`)**, never hardcoded fictional sample events (such as `"Harvest Night of Gospel"`).
@@ -181,7 +183,7 @@ Every Gamo Studios product uses its own Clerk application and independent authen
 
 All products reuse the approved shared authentication UI components.
 
-Never reuse one product's Clerk credentials in another product. Never automatically link users, grant memberships, or authorize cross-product access based on matching email addresses.
+Never reuse one product's Clerk credentials in another product. Never automatically grant memberships or authorize cross-product access based on matching email addresses; the only email-based link is the approved shared person record above (verified email, profile data only).
 
 Authentication and business authorization are separate responsibilities.
 
