@@ -1,0 +1,38 @@
+---
+/** Church verification queue (design §4.4): submitted → meeting scheduled → verified (in person). */
+import '../../app.css';
+import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
+import DashPageHeader from '@studio-gamo/ui/components/dashboard/DashPageHeader.astro';
+import { adminWorkspace } from '../../data/workspace';
+import ReviewQueueTable from '../../components/review/ReviewQueueTable.astro';
+import StaffSignInNotice from '../../components/review/StaffSignInNotice.astro';
+import ReviewOutcome from '../../components/review/ReviewOutcome.astro';
+import { CHURCH_ROLES, loadQueue, outcomeFrom, staffContext } from '../../lib/review-pages';
+
+const staff = await staffContext(Astro);
+const queue = staff ? await loadQueue(staff.env, CHURCH_ROLES, Astro.url) : null;
+if (!staff) Astro.response.status = 401;
+---
+
+<DashboardShell workspace={adminWorkspace} current="review/churches" title="Church verification">
+  <DashPageHeader
+    workspace={adminWorkspace}
+    title="Church verification"
+    description="Churches are verified in person before they are listed: schedule the meeting, then verify with notes."
+    path="/review/churches"
+  />
+  <ReviewOutcome outcome={outcomeFrom(Astro.url)} />
+  {
+    queue ? (
+      <ReviewQueueTable
+        basePath="/review/churches"
+        filter={queue.filter}
+        filters={queue.filters}
+        items={queue.items}
+        emptyText="No churches in this state."
+      />
+    ) : (
+      <StaffSignInNotice />
+    )
+  }
+</DashboardShell>

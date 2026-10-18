@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -35,7 +35,7 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
     <ButtonLink href="/instruments" size="lg" arrow>
       Choose an instrument
     </ButtonLink>
-    <ButtonLink href={inquiryUrl('Lesson interest')} size="lg" variant="secondary">
+    <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" variant="secondary">
       Register now
     </ButtonLink>
   </CtaInvitation>

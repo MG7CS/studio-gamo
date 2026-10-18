@@ -4,7 +4,7 @@
  * where staff review them; this card only explains what to include and links there.
  */
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { inquiryUrl, providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 interface Props {
   class?: string;
 }
@@ -39,4 +39,10 @@ const helpful = [
   <ButtonLink href={inquiryUrl('Production consultation')} class="mt-8" arrow>
     Request a consultation
   </ButtonLink>
+  <p class="mt-4 text-charcoal">
+    Are you a sound, video or livestream technician?{' '}
+    <a href={providerSignupUrl('production', 'technician')} class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline">
+      Join the technician team
+    </a>
+  </p>
 </section>
