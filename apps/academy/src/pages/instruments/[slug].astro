@@ -11,11 +11,11 @@ import { instruments, type Instrument } from '../../data/instruments';
 import { lessons } from '../../data/lessons';
 import { instructors } from '../../data/instructors';
 
-export const prerender = true;
-export function getStaticPaths() {
-  return instruments.map((instrument) => ({ params: { slug: instrument.slug }, props: { instrument } }));
-}
-const { instrument } = Astro.props as { instrument: Instrument };
+// Rendered on demand (not prerendered) so the page gets the same security and cache headers
+// as every other HTML response; unknown slugs render the branded 404 page.
+const found = instruments.find((item) => item.slug === Astro.params.slug);
+if (!found) return Astro.rewrite('/404');
+const instrument: Instrument = found;
 const related = lessons.filter((l) => l.instrumentSlug === instrument.slug);
 const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument.slug));
 ---

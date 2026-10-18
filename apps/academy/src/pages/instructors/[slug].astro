@@ -9,11 +9,11 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { instructors, type Instructor } from '../../data/instructors';
 import { lessons } from '../../data/lessons';
 
-export const prerender = true;
-export function getStaticPaths() {
-  return instructors.map((instructor) => ({ params: { slug: instructor.slug }, props: { instructor } }));
-}
-const { instructor: t } = Astro.props as { instructor: Instructor };
+// Rendered on demand (not prerendered) so the page gets the same security and cache headers
+// as every other HTML response; unknown slugs render the branded 404 page.
+const found = instructors.find((item) => item.slug === Astro.params.slug);
+if (!found) return Astro.rewrite('/404');
+const t: Instructor = found;
 const taught = lessons.filter((l) => l.instructorSlug === t.slug);
 ---
 
