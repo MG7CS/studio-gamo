@@ -28,14 +28,14 @@ const { eyebrow, title, accent, lede, photo, photoPosition, mask = 'mask-arch', 
         <nav aria-label="Breadcrumb" class="mb-5 text-sm text-ink-soft">
           <ol class="flex flex-wrap items-center gap-2">
             <li>
-              <a href="/" class="hover:text-terracotta">
+              <a href="/" class="inline-flex min-h-11 min-w-11 items-center hover:text-terracotta">
                 Academy
               </a>
             </li>
             {crumbs.map((c) => (
               <li class="flex items-center gap-2">
                 <span aria-hidden="true">/</span>
-                <a href={c.href} class="hover:text-terracotta">
+                <a href={c.href} class="inline-flex min-h-11 min-w-11 items-center hover:text-terracotta">
                   {c.label}
                 </a>
               </li>

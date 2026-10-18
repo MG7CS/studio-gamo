@@ -52,6 +52,7 @@ const { slides, organizers } = Astro.props;
 
   <div class="mx-auto flex spotlight-frame max-w-[1320px] flex-col px-4 pb-6 pt-28 sm:px-8">
     <AudienceSelector current="explore" class="self-start" />
+    <h1 class="sr-only">Gamo Live — Christian concerts, worship gatherings and event promotion</h1>
     <div class="mt-6 max-w-3xl" aria-live="polite">
       {slides.map((e, i) => {
         const d = dateParts(e.date);
@@ -67,7 +68,7 @@ const { slides, organizers } = Astro.props;
             <p class="eyebrow text-gold">
               Featured · {i + 1} / {slides.length}
             </p>
-            <h1 class="display-xl spotlight-title mt-3 text-balance">{e.title}</h1>
+            <h2 class="display-xl spotlight-title mt-3 text-balance">{e.title}</h2>
             <p class="mt-4 max-w-xl text-base md:text-lg text-cream/80">{e.tagline}</p>
             <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-cream/85">
               <li class="flex items-center gap-2">

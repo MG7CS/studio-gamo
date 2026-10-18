@@ -39,15 +39,15 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
 {hasSocialAuth && (mode === 'signin' || mode === 'signup') && (
   <div class="pt-3 space-y-4" data-social-auth>
     <div class="relative flex items-center py-1">
-      <div class="flex-grow border-t border-[#E6E0D6]" />
-      <span class="mx-3 shrink text-[13px] text-[#8C827A]">or</span>
-      <div class="flex-grow border-t border-[#E6E0D6]" />
+      <div class="flex-grow border-t border-sand" />
+      <span class="mx-3 shrink text-[13px] text-muted">or</span>
+      <div class="flex-grow border-t border-sand" />
     </div>
     <div class="grid grid-cols-2 gap-3">
       {googleAuthUrl && (
         <a
           href={googleAuthUrl}
-          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-[#E4DFD7] bg-white px-4 py-2.5 text-[13px] font-medium text-[#1D1917] shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-[#F7F4EE]"
+          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-4 py-2.5 text-[13px] font-medium text-ink shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-cream"
         >
           <span>Continue with Google</span>
         </a>
@@ -55,7 +55,7 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
       {facebookAuthUrl && (
         <a
           href={facebookAuthUrl}
-          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-[#E4DFD7] bg-white px-4 py-2.5 text-[13px] font-medium text-[#1D1917] shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-[#F7F4EE]"
+          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-4 py-2.5 text-[13px] font-medium text-ink shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-cream"
         >
           <span>Continue with Facebook</span>
         </a>
@@ -66,22 +66,22 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
 
 {mode === 'signin' && (
   <div class="pt-5 text-center space-y-2.5">
-    <p class="text-[14px] text-[#6E655E]">
+    <p class="text-[14px] text-muted">
       New to {program}?{' '}
       <a
         href="/account/signup"
         data-nav-signup
-        class="font-semibold text-[#A84F2B] transition-colors hover:text-[#8E3A19] lg:underline lg:decoration-[#A84F2B]/40 lg:underline-offset-4"
+        class="font-semibold text-terracotta transition-colors hover:text-terracotta-deep lg:underline lg:decoration-terracotta/40 lg:underline-offset-4"
       >
         Create an account
       </a>
     </p>
-    <p class="text-[13px] text-[#8C827A]">
+    <p class="text-[13px] text-muted">
       Need help accessing your email?{' '}
       <a
         href="/account/recover"
         data-nav-recover
-        class="font-medium text-[#5C534C] underline decoration-[#8C827A]/40 underline-offset-4 transition-colors hover:text-[#1D1917]"
+        class="font-medium text-muted underline decoration-muted/40 underline-offset-4 transition-colors hover:text-ink"
       >
         Recover your account
       </a>
@@ -91,12 +91,12 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
 
 {mode === 'signup' && (
   <div class="pt-4 text-center lg:hidden">
-    <p class="text-[14px] text-[#6E655E]">
+    <p class="text-[14px] text-muted">
       Already have a {program} account?{' '}
       <a
         href="/account/signin"
         data-nav-signin
-        class="font-semibold text-[#5B52D6] transition-colors hover:text-[#483FC2]"
+        class="font-semibold text-terracotta transition-colors hover:text-terracotta-deep"
       >
         Sign in
       </a>
@@ -109,7 +109,7 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
     <a
       href="/account/signin"
       data-nav-signin
-      class="inline-flex items-center gap-2 text-[14px] font-medium text-[#5B52D6] lg:text-[#5C534C] transition-colors hover:text-[#1D1917]"
+      class="inline-flex items-center gap-2 text-[14px] font-medium text-terracotta lg:text-muted transition-colors hover:text-ink"
     >
       <span aria-hidden="true">←</span>
       <span>Back to sign in</span>

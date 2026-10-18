@@ -36,7 +36,7 @@ const hasHeadingSlot = Astro.slots.has('heading');
           aria-selected={i === 0 ? 'true' : 'false'}
           tabindex={i === 0 ? 0 : -1}
           class:list={[
-            'rounded-full px-5 py-2.5 text-sm font-semibold transition-colors sm:px-6',
+            'min-h-11 rounded-full px-5 text-sm font-semibold transition-colors sm:px-6',
             tone === 'dark'
               ? 'text-cream/75 aria-selected:bg-cream aria-selected:text-charcoal'
               : 'text-charcoal/75 aria-selected:bg-charcoal aria-selected:text-cream',

@@ -1,0 +1,10 @@
+---
+/**
+ * Preloads the self-hosted Inter variable font (Latin subset) used above the fold.
+ * The @font-face rules come from @fontsource-variable/inter via styles/tokens.css; Vite
+ * fingerprints this file identically for both, so the preload is reused by the font face.
+ */
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+---
+
+<link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />

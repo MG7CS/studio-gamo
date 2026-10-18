@@ -60,11 +60,13 @@ function renderAdminGatewaySignInHtml(options?: {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sign In — Gamo Studios Operations Gateway</title>
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #1A1A18;
-      color: #F4EDE3;
+      font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #18181B;
+      color: #F9F6F0;
       margin: 0;
       padding: 2rem 1rem;
       display: flex;
@@ -74,7 +76,7 @@ function renderAdminGatewaySignInHtml(options?: {
       box-sizing: border-box;
     }
     .card {
-      background: #252422;
+      background: #232327;
       border: 1px solid rgba(244, 237, 227, 0.14);
       border-radius: 16px;
       padding: 2.25rem;
@@ -84,7 +86,7 @@ function renderAdminGatewaySignInHtml(options?: {
     }
     .badge {
       display: inline-block;
-      background: #8F432A;
+      background: #8F3B18;
       color: #FFF;
       font-size: 0.72rem;
       font-weight: 600;
@@ -101,7 +103,7 @@ function renderAdminGatewaySignInHtml(options?: {
       letter-spacing: -0.02em;
     }
     p {
-      color: #D8D4D0;
+      color: #EDE6DA;
       font-size: 0.92rem;
       line-height: 1.55;
       margin: 0 0 1.25rem 0;
@@ -135,7 +137,7 @@ function renderAdminGatewaySignInHtml(options?: {
       font-weight: 600;
       letter-spacing: 0.03em;
       text-transform: uppercase;
-      color: #C8C4C0;
+      color: #DCD3C6;
       margin-bottom: 0.35rem;
     }
     input {
@@ -145,13 +147,13 @@ function renderAdminGatewaySignInHtml(options?: {
       padding: 0 0.85rem;
       border-radius: 10px;
       border: 1px solid rgba(244, 237, 227, 0.18);
-      background: #1A1A18;
-      color: #F4EDE3;
+      background: #18181B;
+      color: #F9F6F0;
       font-size: 0.95rem;
       outline: none;
     }
     input:focus {
-      border-color: #C86D51;
+      border-color: #D98B62;
       box-shadow: 0 0 0 2px rgba(200, 109, 81, 0.25);
     }
     button {
@@ -159,7 +161,7 @@ function renderAdminGatewaySignInHtml(options?: {
       height: 2.85rem;
       border: none;
       border-radius: 9999px;
-      background: #A94A2E;
+      background: #B34E24;
       color: #FFF;
       font-size: 0.92rem;
       font-weight: 600;
@@ -167,14 +169,14 @@ function renderAdminGatewaySignInHtml(options?: {
       transition: background 0.15s ease;
     }
     button:hover {
-      background: #8F3D24;
+      background: #8F3B18;
     }
     .note {
       background: rgba(0, 0, 0, 0.28);
-      border-left: 3px solid #D4A373;
+      border-left: 3px solid #D8C5AE;
       padding: 0.7rem 0.9rem;
       font-size: 0.8rem;
-      color: #B8B4B0;
+      color: #D8C5AE;
       margin-top: 1.35rem;
       border-radius: 0 6px 6px 0;
       line-height: 1.45;
@@ -182,7 +184,7 @@ function renderAdminGatewaySignInHtml(options?: {
   </style>
 </head>
 <body>
-  <div class="card">
+  <main class="card">
     <span class="badge">Restricted Access</span>
     <h1>Gamo Studios · Operations Gateway</h1>
     <p>Sign in with your authorized Gamo Studios administrator credentials to access staff operations.</p>
@@ -206,7 +208,7 @@ function renderAdminGatewaySignInHtml(options?: {
       After signing in with your temporary password, you can update your password anytime under <strong>Password &amp; security</strong> inside the Admin workspace.
     </div>`
     }
-  </div>
+  </main>
 </body>
 </html>`;
 }

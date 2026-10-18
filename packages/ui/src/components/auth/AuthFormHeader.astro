@@ -14,17 +14,17 @@ const { mode, heading, subtext, maskedEmailPlaceholder = 'you@example.com' } = A
 <header class="mb-6 lg:mb-7">
   <h1
     data-auth-heading
-    class="text-[29px] sm:text-[34px] lg:text-[36px] font-semibold tracking-[-0.03em] text-[#1D1917] leading-[1.12]"
+    class="text-[29px] sm:text-[34px] lg:text-[36px] font-black tracking-[-0.03em] text-ink leading-[1.12] uppercase"
   >
     {heading}
   </h1>
-  <p data-auth-subtext class="mt-2 text-[15px] leading-relaxed text-[#6E655E]">
+  <p data-auth-subtext class="mt-2 text-[15px] leading-relaxed text-muted">
     {subtext}
   </p>
   <p
     data-verify-email-wrap
     class:list={[
-      'mt-0.5 text-[15px] font-medium text-[#4A433E] lg:text-[#1D1917]',
+      'mt-0.5 text-[15px] font-medium text-muted lg:text-ink',
       mode === 'verify' ? 'block' : 'hidden',
     ]}
   >

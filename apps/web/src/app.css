@@ -7,5 +7,5 @@ footer :focus-visible,
 #keep-going :focus-visible,
 #join :focus-visible,
 [aria-labelledby='hero-title'] :focus-visible {
-  outline-color: #f4ede3;
+  outline-color: var(--color-cream);
 }

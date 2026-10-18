@@ -45,8 +45,8 @@ export function buildContentSecurityPolicy(
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
     'script-src': withClerk("'self'"),
-    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-    'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'font-src': ["'self'", 'data:'],
     'img-src': ["'self'", 'data:', 'blob:', ...(clerk ? [CLERK_SUPPORT_ORIGINS.img] : [])],
     'connect-src': withClerk("'self'", ...(clerk ? [CLERK_SUPPORT_ORIGINS.telemetry] : [])),
     'frame-src': ["'self'", ...(clerk ? [CLERK_SUPPORT_ORIGINS.captcha] : [])],

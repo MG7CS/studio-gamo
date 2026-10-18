@@ -78,11 +78,11 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
     {mode === 'signup' && (
       <div class="hidden lg:block">
-        <span class="block text-[13px] font-medium text-[#3A332E] mb-2">Verification method</span>
-        <div class="flex items-center justify-between rounded-xl border border-[#E4DFD7] bg-[#F6F3EC] px-4 py-3 text-[13px] text-[#5C534C]">
-          <span class="flex items-center gap-2.5 font-medium text-[#2C2623]">
+        <span class="block text-[13px] font-medium text-ink mb-2">Verification method</span>
+        <div class="flex items-center justify-between rounded-xl border border-sand bg-cream px-4 py-3 text-[13px] text-muted">
+          <span class="flex items-center gap-2.5 font-medium text-ink">
             <svg
-              class="h-4 w-4 text-[#7B73E6] shrink-0"
+              class="h-4 w-4 text-terracotta shrink-0"
               viewBox="0 0 20 20"
               fill="none"
               stroke="currentColor"
@@ -97,7 +97,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
             </svg>
             6-digit email verification code
           </span>
-          <span class="text-[12px] text-[#7E746C]">No password</span>
+          <span class="text-[12px] text-muted">No password</span>
         </div>
       </div>
     )}
@@ -130,12 +130,12 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
     <AuthCodeInput />
 
-    <p class="text-[14px] text-[#6E655E] text-center lg:text-left">
+    <p class="text-[14px] text-muted text-center lg:text-left">
       Didn't receive the code?{' '}
       <button
         type="button"
         data-btn-resend
-        class="font-semibold text-[#5B52D6] lg:underline lg:decoration-[#6B63DD]/40 lg:underline-offset-4 transition-colors hover:text-[#483FC2] disabled:opacity-50"
+        class="font-semibold text-terracotta lg:underline lg:decoration-terracotta/40 lg:underline-offset-4 transition-colors hover:text-terracotta-deep disabled:opacity-50"
       >
         Resend code
       </button>

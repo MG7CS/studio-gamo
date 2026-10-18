@@ -19,7 +19,7 @@ const { eyebrow, title, accent, lede, photo, crumb } = Astro.props;
       {crumb && (
         <a
           href={crumb.href}
-          class="text-sm font-medium text-ink-soft underline-offset-4 hover:text-charcoal hover:underline"
+          class="inline-flex min-h-11 items-center text-sm font-medium text-ink-soft underline-offset-4 hover:text-charcoal hover:underline"
         >
           ← {crumb.label}
         </a>

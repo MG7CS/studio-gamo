@@ -1,4 +1,6 @@
 ---
+import HeadIcons from '../HeadIcons.astro';
+import FontPreload from '../FontPreload.astro';
 /**
  * Authenticated application shell (design-first demo).
  * Full document: demo banner · desktop sidebar · top bar (search, notifications,
@@ -38,14 +40,8 @@ const notifHref = notifSlug
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <HeadIcons />
+    <FontPreload />
     <title>{`${title} · ${workspace.name} | ${workspace.program}`}</title>
   </head>
   <body class="dash bg-ivory font-sans text-[14px] leading-6 text-charcoal antialiased">

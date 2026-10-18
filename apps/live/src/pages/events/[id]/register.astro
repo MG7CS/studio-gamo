@@ -84,16 +84,16 @@ const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
       label="Browse upcoming events"
     />
   ) : event && isExternal ? (
-    <section class="py-10 bg-[#FBF7F1]">
+    <section class="py-10 bg-ivory">
       <div class="max-w-2xl mx-auto px-4 sm:px-6">
-        <div class="bg-white rounded-2xl border border-[#EAE2D6] p-6 sm:p-8 shadow-sm">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#F5EFE6] text-[#B34B1E]">
+        <div class="bg-white rounded-2xl border border-sand p-6 sm:p-8 shadow-sm">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-cream text-terracotta">
             External Ticketing & Registration Only
           </span>
-          <h2 class="text-xl sm:text-2xl font-bold text-[#191817] mt-3">
+          <h2 class="text-xl sm:text-2xl font-black text-ink mt-3 uppercase">
             Tickets and registration for {event.title} are handled on {externalProviderLabel}
           </h2>
-          <p class="text-sm text-[#5C554D] mt-2 leading-relaxed">
+          <p class="text-sm text-muted mt-2 leading-relaxed">
             This concert or worship gathering is an independent listing curated by{' '}
             <strong>{event.publishedByLabel || 'Gamo Live Listings'}</strong>. Gamo Live does not issue
             tickets or collect RSVPs for this event. Please use the verified link below to continue to{' '}
@@ -106,7 +106,7 @@ const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
                 href={event.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#B34B1E] hover:bg-[#993D16] text-white text-sm font-bold transition-colors"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta hover:bg-terracotta-deep text-white text-sm font-bold transition-colors"
               >
                 <span>{externalCtaLabel}</span>
                 <span aria-hidden="true">↗</span>
@@ -114,7 +114,7 @@ const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
             )}
             <a
               href={`/events/${event.slug}`}
-              class="inline-flex items-center px-5 py-3 rounded-full border border-[#D5CCC2] text-[#191817] hover:border-[#191817] text-sm font-semibold transition-colors"
+              class="inline-flex items-center px-5 py-3 rounded-full border border-line text-ink hover:border-ink text-sm font-semibold transition-colors"
             >
               Back to event details
             </a>

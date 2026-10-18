@@ -22,7 +22,7 @@ const { mode, signInHref = '/account/signin' } = Astro.props;
       type="button"
       data-btn-reset
       aria-label="Back to sign in"
-      class="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#4A433E] transition-colors hover:bg-[#1D1917]/[0.05] hover:text-[#1D1917] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7B73E6]"
+      class="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-ink/[0.05] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
     >
       <svg
         class="h-5 w-5"
@@ -41,7 +41,7 @@ const { mode, signInHref = '/account/signin' } = Astro.props;
   <div
     data-signup-topbar
     class:list={[
-      'ml-auto items-center gap-3 text-[13px] text-[#6E655E]',
+      'ml-auto items-center gap-3 text-[13px] text-muted',
       mode === 'signup' ? 'hidden lg:flex' : 'hidden',
     ]}
   >
@@ -49,7 +49,7 @@ const { mode, signInHref = '/account/signin' } = Astro.props;
     <a
       href={signInHref}
       data-nav-signin
-      class="inline-flex items-center justify-center rounded-lg border border-[#C67B57]/60 bg-transparent px-3.5 py-1.5 text-[13px] font-medium text-[#A84F2B] transition-colors hover:border-[#A84F2B] hover:bg-[#A84F2B]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A84F2B]"
+      class="inline-flex items-center justify-center rounded-lg border border-terracotta-soft/60 bg-transparent px-3.5 py-1.5 text-[13px] font-medium text-terracotta transition-colors hover:border-terracotta hover:bg-terracotta/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
     >
       Sign in
     </a>

@@ -71,7 +71,7 @@ const performerLine =
 ---
 
 <article
-  class={`group bg-white rounded-2xl border border-[#EAE2D6] overflow-hidden shadow-[0_2px_8px_rgba(25,24,23,0.04)] hover:shadow-xl transition-all duration-300 flex flex-col justify-between ${isClosed ? 'opacity-85' : ''}`}
+  class={`group bg-white rounded-2xl border border-sand overflow-hidden shadow-[0_2px_8px_rgba(25,24,23,0.04)] hover:shadow-xl transition-all duration-300 flex flex-col justify-between ${isClosed ? 'opacity-85' : ''}`}
   data-event-card
   data-event-slug={event.slug}
   data-event-status={isPast ? 'past-closed' : event.status}
@@ -85,30 +85,30 @@ const performerLine =
 >
   <div>
     <!-- Visual Header -->
-    <div class="relative aspect-[16/10] bg-[#191513] overflow-hidden">
+    <div class="relative aspect-[16/10] bg-ink overflow-hidden">
       <a href={`/events/${event.slug}`} class="block w-full h-full focus:outline-none">
         <img
           src={cardImage}
           alt={hasVerifiedArtwork ? `${event.title} event poster` : `Stage atmosphere for ${event.title}`}
-          loading="eager"
-          decoding="sync"
+          loading="lazy"
+          decoding="async"
+          width="800"
+          height="500"
           class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
         />
-        <div class="absolute inset-0 bg-gradient-to-t from-[#14110F]/75 via-[#14110F]/10 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/10 to-transparent"></div>
       </a>
 
       <!-- Date Badge (top-left white rounded badge) -->
       <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md text-center min-w-[50px] pointer-events-none">
-        <div class="text-[10px] font-bold tracking-wider uppercase text-[#6E675F] leading-none">
-          {badgeMonth}
-        </div>
-        <div class="text-lg font-extrabold text-[#191817] leading-tight mt-0.5">{badgeDay}</div>
+        <div class="text-[10px] font-bold tracking-wider uppercase text-muted leading-none">{badgeMonth}</div>
+        <div class="text-lg font-extrabold text-ink leading-tight mt-0.5">{badgeDay}</div>
       </div>
 
       <!-- Top-Right Image Heart Overlay Button -->
       <button
         type="button"
-        class="favorite-event-btn absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-white/90 hover:text-white hover:bg-black/25 transition-colors focus:outline-none"
+        class="favorite-event-btn absolute top-2 right-2 w-11 h-11 rounded-full flex items-center justify-center text-white/90 hover:text-white hover:bg-black/25 transition-colors focus:outline-none"
         data-favorite-btn
         data-event-slug={event.slug}
         data-event-title={event.title}
@@ -133,7 +133,7 @@ const performerLine =
 
       <!-- Category & Past/Closed Pill (bottom-left/right) -->
       <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#14110F]/80 text-[#FBF7F1] backdrop-blur-sm capitalize">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-ink/80 text-ivory backdrop-blur-sm capitalize">
           {event.category === 'worship'
             ? 'Worship Night'
             : event.category === 'concert'
@@ -141,7 +141,7 @@ const performerLine =
               : event.category}
         </span>
         {isPast && (
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#3D3833]/95 text-[#FBF7F1] border border-white/20 backdrop-blur-sm">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-muted/95 text-ivory border border-white/20 backdrop-blur-sm">
             Past · Closed
           </span>
         )}
@@ -150,7 +150,7 @@ const performerLine =
 
     <!-- Card Body -->
     <div class="p-4 pb-3.5">
-      <h3 class="font-bold text-[#191817] text-[15.5px] leading-snug line-clamp-1 group-hover:text-[#B34B1E] transition-colors">
+      <h3 class="font-bold text-ink text-[15.5px] leading-snug line-clamp-1 group-hover:text-terracotta transition-colors">
         <a href={`/events/${event.slug}`} class="focus:outline-none">
           {event.title}
         </a>
@@ -160,7 +160,7 @@ const performerLine =
 
       <div class="mt-2 flex items-start gap-2 text-[13px]">
         <svg
-          class="w-4 h-4 text-[#5C554D] shrink-0 mt-0.5"
+          class="w-4 h-4 text-muted shrink-0 mt-0.5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -175,8 +175,8 @@ const performerLine =
           />
         </svg>
         <div class="min-w-0 leading-snug">
-          <p class="text-[#5C554D] font-normal truncate">{event.venueName}</p>
-          <p class="text-[#7A7267] truncate">
+          <p class="text-muted font-normal truncate">{event.venueName}</p>
+          <p class="text-muted truncate">
             {event.city}, {event.state}
           </p>
         </div>
@@ -187,10 +187,10 @@ const performerLine =
   </div>
 
   <!-- Card Footer: External CTA + Save Heart -->
-  <div class="px-4 py-3 border-t border-[#F0EAE0] flex items-center justify-between gap-2 bg-white">
+  <div class="px-4 py-3 border-t border-cream flex items-center justify-between gap-2 bg-white">
     {isClosed ? (
       <span
-        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6E675F]"
+        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted"
         data-past-closed-badge
       >
         <span>Past · Closed</span>
@@ -200,12 +200,12 @@ const performerLine =
         href={event.externalUrl}
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#C85A28] hover:text-[#993E17] transition-colors"
+        class="inline-flex min-h-11 items-center gap-1.5 text-[13.5px] font-semibold text-terracotta hover:text-terracotta-deep transition-colors"
         aria-label={`${ctaLabel} for ${event.title} (opens external ticket provider in a new tab)`}
       >
         <span>{ctaLabel}</span>
         <svg
-          class="w-3.5 h-3.5 text-[#C85A28]"
+          class="w-3.5 h-3.5 text-terracotta"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -222,7 +222,7 @@ const performerLine =
     ) : (
       <a
         href={`/events/${event.slug}`}
-        class="inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#C85A28] hover:text-[#993E17] transition-colors"
+        class="inline-flex min-h-11 items-center gap-1 text-[13.5px] font-semibold text-terracotta hover:text-terracotta-deep transition-colors"
       >
         <span>{ctaLabel}</span>
       </a>
@@ -230,7 +230,7 @@ const performerLine =
 
     <button
       type="button"
-      class="favorite-event-btn p-1 rounded-full text-[#5C554D] hover:text-[#C85A28] hover:bg-[#F5EFE6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#B34B1E]/30"
+      class="favorite-event-btn inline-flex h-11 w-11 items-center justify-center rounded-full text-muted hover:text-terracotta hover:bg-cream transition-colors focus:outline-none focus:ring-2 focus:ring-terracotta/30"
       data-favorite-btn
       data-event-slug={event.slug}
       data-event-title={event.title}

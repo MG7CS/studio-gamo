@@ -26,7 +26,7 @@ const dates = [...new Set(events.filter((e) => !e.isPast).map((e) => e.date))].s
           <li>
             <a
               href={siteUrl('live', `/events?q=${encodeURIComponent(c.split(',')[0])}`)}
-              class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-sm font-medium ring-1 ring-sand transition hover:ring-terracotta"
+              class="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2.5 text-sm font-medium ring-1 ring-sand transition hover:ring-terracotta min-h-11"
             >
               <Icon name="pin" class="h-4 w-4 text-terracotta" />
               {c}

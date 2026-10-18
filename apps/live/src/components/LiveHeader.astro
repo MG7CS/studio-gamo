@@ -39,7 +39,7 @@ const navItems = [
 
 <a
   href="#main-content"
-  class="sr-only z-[60] rounded-full bg-[#191817] px-4 py-2 text-sm font-semibold text-[#FBF7F1] focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+  class="sr-only z-[60] rounded-full bg-ink px-5 text-sm font-semibold text-ivory focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:inline-flex focus:min-h-11 focus:items-center"
 >
   Skip to content
 </a>
@@ -47,17 +47,17 @@ const navItems = [
 <header
   id="site-header"
   data-theme="light"
-  class="relative z-50 w-full bg-[#FBF7F1] border-b border-[#EAE2D6] text-[#191817] transition-shadow duration-200"
+  class="relative z-50 w-full bg-ivory border-b border-sand text-ink transition-shadow duration-200"
 >
   <div class="mx-auto flex h-16 max-w-[1340px] items-center justify-between gap-3 px-4 sm:h-[72px] sm:px-6 lg:px-8">
     <!-- Left Brand Mark -->
     <a
       href="/"
-      class="flex shrink-0 items-center gap-2.5 focus:outline-none group"
+      class="flex min-h-11 shrink-0 items-center gap-2.5 rounded-md group"
       aria-label="Gamo Live home"
     >
       <svg
-        class="h-7 w-7 shrink-0 text-[#B34B1E] transition-transform duration-200 group-hover:scale-105"
+        class="h-7 w-7 shrink-0 text-terracotta transition-transform duration-200 group-hover:scale-105"
         viewBox="0 0 28 28"
         fill="none"
         aria-hidden="true"
@@ -69,8 +69,8 @@ const navItems = [
         <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
       </svg>
       <span class="text-[20px] sm:text-[22px] leading-none tracking-tight flex items-baseline">
-        <span class="font-extrabold text-[#191817]">GAMO</span>
-        <span class="font-normal text-[#C85A28] ml-0.5">LIVE</span>
+        <span class="font-extrabold text-ink">GAMO</span>
+        <span class="font-normal text-terracotta ml-0.5">LIVE</span>
         <span class="sr-only"> — Gamo Live</span>
       </span>
     </a>
@@ -88,8 +88,8 @@ const navItems = [
                 class:list={[
                   'relative text-[15px] transition-colors py-2',
                   active
-                    ? 'text-[#191817] font-semibold after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-[2.5px] after:rounded-full after:bg-[#C85A28]'
-                    : 'text-[#2C2825] font-medium hover:text-[#B34B1E]',
+                    ? 'text-ink font-semibold after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-[2.5px] after:rounded-full after:bg-terracotta'
+                    : 'text-ink font-medium hover:text-terracotta',
                 ]}
               >
                 {item.label}
@@ -105,7 +105,7 @@ const navItems = [
       <!-- Search Icon Button -->
       <a
         href="/events#discovery-search"
-        class="w-10 h-10 rounded-full border border-[#E2D9C8] bg-[#F7F2E9] hover:bg-[#EFE7DA] text-[#2C2825] flex items-center justify-center transition-colors shrink-0"
+        class="w-11 h-11 rounded-full border border-sand bg-cream hover:bg-sand text-ink flex items-center justify-center transition-colors shrink-0"
         aria-label="Search events, artists, or venues"
         title="Search events"
       >
@@ -126,9 +126,9 @@ const navItems = [
       </a>
 
       <!-- Location Chooser Pill (Desktop & Tablet) -->
-      <div class="hidden md:flex items-center gap-1.5 rounded-full border border-[#E2D9C8] bg-[#F5EFE6] hover:bg-[#EFE7DA] px-3.5 py-2 transition-colors">
+      <div class="hidden md:flex min-h-11 items-center gap-1.5 rounded-full border border-sand bg-cream hover:bg-sand px-3.5 transition-colors">
         <svg
-          class="w-4 h-4 text-[#2C2825] shrink-0"
+          class="w-4 h-4 text-ink shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -145,7 +145,7 @@ const navItems = [
         <select
           aria-label="Select metro area"
           data-header-metro-select
-          class="bg-transparent text-sm font-medium text-[#191817] pr-1 focus:outline-none cursor-pointer"
+          class="min-h-11 bg-transparent text-sm font-medium text-ink pr-1 cursor-pointer"
         >
           {GAMO_LIVE_METROS.map((metro) => (
             <option value={metro.slug} selected={selectedMetro === metro.slug}>
@@ -161,7 +161,7 @@ const navItems = [
       <!-- Sign In Pill -->
       <a
         href="/account/signin"
-        class="hidden sm:inline-flex items-center justify-center rounded-full border border-[#D8B8A8] bg-transparent hover:bg-[#F5EBE6] text-[#B34B1E] px-5 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+        class="hidden sm:inline-flex items-center justify-center rounded-full border border-line bg-transparent hover:bg-cream text-terracotta px-5 min-h-11 text-sm font-semibold transition-colors whitespace-nowrap"
       >
         Sign In
       </a>
@@ -169,7 +169,7 @@ const navItems = [
       <!-- Get Tickets Filled Pill -->
       <a
         href="/events"
-        class="hidden sm:inline-flex items-center justify-center rounded-full bg-[#B34B1E] hover:bg-[#993E17] text-white px-5 py-2 text-sm font-semibold shadow-sm transition-colors whitespace-nowrap"
+        class="hidden sm:inline-flex items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep text-white px-5 min-h-11 text-sm font-semibold shadow-sm transition-colors whitespace-nowrap"
       >
         Get Tickets
       </a>
@@ -177,7 +177,7 @@ const navItems = [
       <!-- Mobile Menu Toggle -->
       <button
         type="button"
-        class="site-header__toggle inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E2D9C8] bg-[#F7F2E9] text-[#191817] transition-colors hover:bg-[#EFE7DA] lg:hidden shrink-0"
+        class="site-header__toggle inline-flex h-11 w-11 items-center justify-center rounded-full border border-sand bg-cream text-ink transition-colors hover:bg-sand lg:hidden shrink-0"
         aria-expanded="false"
         aria-controls="site-mobile-menu"
         aria-label="Open menu"
@@ -211,14 +211,11 @@ const navItems = [
   </div>
 
   <!-- Responsive Mobile Menu Drawer -->
-  <div
-    id="site-mobile-menu"
-    class="hidden border-t border-[#EAE2D6] bg-[#FBF7F1] px-4 pt-3 pb-5 shadow-xl lg:hidden"
-  >
+  <div id="site-mobile-menu" class="hidden border-t border-sand bg-ivory px-4 pt-3 pb-5 shadow-xl lg:hidden">
     <!-- Mobile Metro Picker -->
-    <div class="mb-3 flex items-center gap-2 rounded-2xl border border-[#E2D9C8] bg-[#F5EFE6] px-3.5 py-2.5">
+    <div class="mb-3 flex items-center gap-2 rounded-2xl border border-sand bg-cream px-3.5">
       <svg
-        class="w-4 h-4 text-[#B34B1E] shrink-0"
+        class="w-4 h-4 text-terracotta shrink-0"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -239,7 +236,7 @@ const navItems = [
         id="mobile-metro-select"
         aria-label="Select metro area"
         data-header-metro-select
-        class="w-full bg-transparent text-sm font-semibold text-[#191817] focus:outline-none"
+        class="min-h-11 w-full bg-transparent text-sm font-semibold text-ink"
       >
         {GAMO_LIVE_METROS.map((metro) => (
           <option value={metro.slug} selected={selectedMetro === metro.slug}>
@@ -263,7 +260,7 @@ const navItems = [
                 aria-current={active ? 'page' : undefined}
                 class:list={[
                   'flex items-center justify-between rounded-xl px-3.5 py-2.5 text-[15px] font-semibold transition-colors',
-                  active ? 'bg-[#F3EAE0] text-[#B34B1E]' : 'text-[#191817] hover:bg-[#F5EFE6]',
+                  active ? 'bg-cream text-terracotta' : 'text-ink hover:bg-cream',
                 ]}
               >
                 <span>{item.label}</span>
@@ -284,16 +281,16 @@ const navItems = [
       </ul>
     </nav>
 
-    <div class="mt-4 grid grid-cols-2 gap-2.5 border-t border-[#EAE2D6] pt-4">
+    <div class="mt-4 grid grid-cols-2 gap-2.5 border-t border-sand pt-4">
       <a
         href="/account/signin"
-        class="rounded-full border border-[#D8B8A8] bg-white px-4 py-2.5 text-center text-sm font-semibold text-[#B34B1E]"
+        class="rounded-full border border-line bg-white px-4 py-2.5 text-center text-sm font-semibold text-terracotta"
       >
         Sign In
       </a>
       <a
         href="/events"
-        class="rounded-full bg-[#B34B1E] px-4 py-2.5 text-center text-sm font-semibold text-white"
+        class="rounded-full bg-terracotta px-4 py-2.5 text-center text-sm font-semibold text-white"
       >
         Get Tickets
       </a>
