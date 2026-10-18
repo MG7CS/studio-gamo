@@ -421,6 +421,29 @@ describe('Clerk users in D1', () => {
     );
   });
 
+  test('an email change in one product never moves the address another product signs in with', async () => {
+    const db = await migratedDb();
+    const first = await resolveOrProvisionClerkProductSession(db, await identity());
+    const before = (await db.select().from(users).where(eq(users.id, first.user.id)))[0].email;
+    await db.insert(productAccounts).values({
+      id: 'pacc_academy_shared',
+      userId: first.user.id,
+      product: 'academy',
+      status: 'active',
+      onboardingStatus: 'completed',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    await resolveOrProvisionClerkProductSession(db, await identity({ email: 'moved@example.org' }));
+    const [link] = await db.select().from(clerkIdentityLinks);
+    assert.equal(link.clerkEmail, 'moved@example.org', 'the link follows Clerk');
+    assert.equal(
+      (await db.select().from(users).where(eq(users.id, first.user.id)))[0].email,
+      before,
+      'the shared address is unchanged',
+    );
+  });
+
   test('a revoked link or a disabled user is refused even with a valid token', async () => {
     const db = await migratedDb();
     const session = await resolveOrProvisionClerkProductSession(db, await identity());

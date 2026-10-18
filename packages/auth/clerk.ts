@@ -23,7 +23,7 @@ import {
  */
 
 import { verifyToken, createClerkClient } from '@clerk/backend';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import {
   users,
   productAccounts,
@@ -592,7 +592,14 @@ export async function resolveOrProvisionClerkProductSession(
       const [holder] = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
       const [current] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
       const storedHasProductSuffix = Boolean(current?.email.includes('#'));
-      if (current && !holder && !storedHasProductSuffix) {
+      // A legacy row can back accounts in other products, whose emailed-code sign-in uses this
+      // address: one product's Clerk application must never move it for them.
+      const [otherProduct] = await db
+        .select({ id: productAccounts.id })
+        .from(productAccounts)
+        .where(and(eq(productAccounts.userId, targetUserId), ne(productAccounts.product, identity.product)))
+        .limit(1);
+      if (current && !holder && !storedHasProductSuffix && !otherProduct) {
         await db.update(users).set({ email: cleanEmail }).where(eq(users.id, targetUserId));
       }
       await db
