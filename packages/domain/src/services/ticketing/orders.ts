@@ -92,8 +92,28 @@ export interface TicketView {
   version: number;
 }
 
+/** Purchase details, shown only to the purchaser's session (never to a transfer recipient). */
+export interface PurchaseDetails {
+  purchaserName: string;
+  purchaserEmail: string;
+  totalCents: number;
+  amountRefundedCents: number;
+  currency: string;
+  status: string;
+  source: string;
+  createdAt: number;
+}
+
+/**
+ * The order page. A session that only holds some of the order's tickets (transfer recipient, ticket
+ * link) gets a reduced view (CLEANUP_LOG D-166): the tickets it holds plus public event data — no
+ * purchase details, totals, lines, email status or other holders' tickets.
+ */
 export interface OrderView {
-  order: OrderRow;
+  orderId: string;
+  /** True when the session covers the whole order (the purchaser). */
+  isPurchaser: boolean;
+  purchase: PurchaseDetails | null;
   event: EventRow;
   when: string;
   reference: string;
@@ -165,7 +185,7 @@ export async function getOrderView(
     }),
     orderEmailStatus(db, order.id),
     allRows<{ n: number }>(db, {
-      sql: "SELECT count(*) AS n FROM event_changes WHERE event_id = ?1 AND kind IN ('rescheduled', 'venue_changed') AND created_at > ?2",
+      sql: "SELECT count(*) AS n FROM event_changes WHERE event_id = ?1 AND kind IN ('rescheduled', 'venue_changed') AND created_at >= ?2",
       params: [event.id, order.created_at],
     }),
     allRows<{ ticket_id: string; day_key: string; entry_count: number }>(db, {
@@ -179,6 +199,7 @@ export async function getOrderView(
     month: '2-digit',
     day: '2-digit',
   }).format(new Date(input.now * 1000));
+  // Not the purchaser → only the tickets this session holds, nothing about the purchase.
   const visible = tickets.filter((t) => ownsOrder || sessionHoldsTicket(input.session, t));
   const ticketViews: TicketView[] = visible.map((t) => {
     const c = categories.find((x) => x.id === t.tier_id);
@@ -242,13 +263,26 @@ export async function getOrderView(
       state = 'cancelled';
   }
   return {
-    order,
+    orderId: order.id,
+    isPurchaser: ownsOrder,
+    purchase: ownsOrder
+      ? {
+          purchaserName: order.purchaser_name,
+          purchaserEmail: order.purchaser_email,
+          totalCents: Number(order.total_cents),
+          amountRefundedCents: Number(order.amount_refunded_cents),
+          currency: order.currency,
+          status: order.status,
+          source: order.source,
+          createdAt: Number(order.created_at),
+        }
+      : null,
     event,
     when: formatEventDateTime(Number(event.starts_at), event.timezone),
     reference: order.order_reference ?? order.order_number,
-    state,
+    state: ownsOrder ? state : ticketViews.some((t) => t.state === 'valid') ? 'issued' : 'cancelled',
     tickets: ticketViews,
-    lines: items.map((i) => {
+    lines: (ownsOrder ? items : []).map((i) => {
       const c = categories.find((x) => x.id === i.tier_id);
       const s = sections.find((x) => x.id === i.section_id);
       return {
@@ -258,7 +292,7 @@ export async function getOrderView(
         subtotalCents: Number(i.subtotal_cents),
       };
     }),
-    emailStatus: emailStatus?.status ?? null,
+    emailStatus: ownsOrder ? (emailStatus?.status ?? null) : null,
     eventCancelled: isEventCancelled(event),
     changeRefundOpen:
       ownsOrder &&

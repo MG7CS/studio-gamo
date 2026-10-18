@@ -19,6 +19,7 @@ import {
   type EventPolicy,
   type EventPolicyInput,
 } from '../../types/policy.ts';
+import { singleLine } from './calendar.ts';
 import { isValidTimeZone, utcToZonedLocal, zonedLocalToUtc } from './events-time.ts';
 import {
   TicketingError,
@@ -151,27 +152,19 @@ export function normalizeEventInput(
 ): { ok: true; value: NormalizedEvent } | { ok: false; errors: FieldError[] } {
   const errors: FieldError[] = [];
   const text = (field: string, value: unknown, min: number, max: number, message: string) => {
-    const v = String(value ?? '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const v = singleLine(value as string);
     if (v.length < min || v.length > max) errors.push({ field, message });
     return v;
   };
   const title = text('title', input.title, 3, 150, 'Enter the event title (3 to 150 characters).');
   if (!(EVENT_CATEGORIES as readonly string[]).includes(input.category))
     errors.push({ field: 'category', message: 'Choose what kind of gathering this is.' });
-  const tagline =
-    String(input.tagline ?? '')
-      .trim()
-      .slice(0, 250) || null;
+  const tagline = singleLine(input.tagline).slice(0, 250) || null;
   const description = String(input.description ?? '').trim();
   if (description.length < 20 || description.length > 10_000)
     errors.push({ field: 'description', message: 'Describe the event in at least 20 characters.' });
   const venueName = text('venueName', input.venueName, 2, 200, 'Enter the venue name.');
-  const address =
-    String(input.address ?? '')
-      .trim()
-      .slice(0, 300) || null;
+  const address = singleLine(input.address).slice(0, 300) || null;
   const city = text('city', input.city, 2, 100, 'Enter the city.');
   const state = text('state', input.state, 2, 50, 'Enter the state.');
   const timezone = String(input.timezone ?? '').trim();

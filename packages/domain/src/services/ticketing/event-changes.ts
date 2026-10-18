@@ -16,6 +16,7 @@ import { newPrefixedId } from '../../security/ids.ts';
 import { voidEventTicketsStatement } from '../../ticketing/sql.ts';
 import { zonedLocalToUtc, isValidTimeZone, utcToZonedLocal } from './events-time.ts';
 import { sendEventChangeEmail } from './email.ts';
+import { singleLine } from './calendar.ts';
 import { refundTickets } from './refunds.ts';
 import { getOrderView, type CustomerIdentity } from './orders.ts';
 import {
@@ -313,9 +314,9 @@ export async function changeEventVenue(
   },
 ): Promise<{ changeId: string; notified: number }> {
   const event = await editableEvent(db, input.eventId);
-  const venueName = String(input.venueName ?? '').trim();
-  const city = String(input.city ?? '').trim();
-  const state = String(input.state ?? '').trim();
+  const venueName = singleLine(input.venueName);
+  const city = singleLine(input.city);
+  const state = singleLine(input.state);
   const fields = [];
   if (venueName.length < 2 || venueName.length > 200)
     fields.push({ field: 'venueName', message: 'Enter the new venue name.' });
@@ -323,7 +324,7 @@ export async function changeEventVenue(
   if (state.length < 2) fields.push({ field: 'state', message: 'Enter the state.' });
   if (fields.length) throw new TicketingError('VALIDATION', fields[0].message, { fields });
   const changeId = newPrefixedId('evc');
-  const address = input.address?.trim() || null;
+  const address = singleLine(input.address).slice(0, 300) || null;
   await runBatch(db, [
     {
       sql: 'UPDATE events SET venue_name = ?2, address = ?3, city = ?4, state = ?5 WHERE id = ?1',
