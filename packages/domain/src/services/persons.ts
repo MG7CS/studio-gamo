@@ -20,7 +20,12 @@
  *
  * All times are epoch seconds.
  */
-import { findOrCreatePersonForVerifiedEmail, PersonErasedError } from './customers.ts';
+import {
+  CustomerInputError,
+  findOrCreatePersonForVerifiedEmail,
+  markCustomerEmailVerified,
+  PersonErasedError,
+} from './customers.ts';
 import { isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
 import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
 import { PRODUCTS, type Product } from '../types/enums.ts';
@@ -301,4 +306,32 @@ export async function listCustomerRecordsForPerson(
     })),
   ];
   return records.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
+}
+
+/**
+ * Customer account claim (design §4.2): an account sign-up or sign-in just verified this email, which also
+ * proves control of the guest customer profile with the same address. Marks that profile verified and
+ * links it to the same person, so the account page lists its orders and registrations. No-op when there
+ * is no (or an erased) customer profile.
+ */
+export async function attachCustomerProfileForVerifiedEmail(
+  db: SqlDatabase,
+  email: string,
+  now: number,
+): Promise<boolean> {
+  const normalized = normalizeEmail(email);
+  if (!isPlausibleEmail(normalized)) return false;
+  const [profile] = await allRows<{ id: string; person_id: string | null; erased_at: number | null }>(db, {
+    sql: 'SELECT id, person_id, erased_at FROM customer_profiles WHERE email_normalized = ?1',
+    params: [normalized],
+  });
+  if (!profile || profile.erased_at !== null) return false;
+  if (profile.person_id) return true;
+  try {
+    const updated = await markCustomerEmailVerified(db, { customerProfileId: profile.id, now });
+    return Boolean(updated.personId);
+  } catch (err) {
+    if (err instanceof CustomerInputError) return false;
+    throw err;
+  }
 }

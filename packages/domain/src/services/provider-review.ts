@@ -130,6 +130,77 @@ async function personEmail(db: SqlDatabase, personId: string): Promise<string | 
   return row.email_normalized;
 }
 
+export type ReviewSubject =
+  | { kind: 'provider_profile'; id: string; personId: string; organizationId: string | null }
+  | { kind: 'organizer'; organizerProfileId: string };
+
+/**
+ * One self-moderation rule for every staff review action (verification transitions, first-event review,
+ * always_review; D-106): staff may not act on a subject they own or belong to —
+ *   - the provider profile's person is the staff member's person, or its verified email is theirs;
+ *   - the staff member (by user id, by person, or by email) is an active member of the organization
+ *     behind the profile or the organizer.
+ * A refusal writes a `review.self_review_refused` audit row and throws `ReviewError('SELF_REVIEW')`.
+ */
+export async function assertNotSelfReview(
+  db: SqlDatabase,
+  staff: StaffActor,
+  subject: ReviewSubject,
+  now: number,
+): Promise<void> {
+  let organizationId: string | null;
+  let ownPerson = false;
+  let entity: { type: string; id: string };
+  if (subject.kind === 'provider_profile') {
+    entity = { type: 'provider_profile', id: subject.id };
+    organizationId = subject.organizationId;
+    const ownerEmail = await personEmail(db, subject.personId);
+    ownPerson =
+      (staff.personId !== null && staff.personId === subject.personId) ||
+      (ownerEmail !== null && normalizeEmail(staff.email) === ownerEmail);
+  } else {
+    entity = { type: 'organizer_profile', id: subject.organizerProfileId };
+    const [row] = await allRows<{ organization_id: string }>(db, {
+      sql: 'SELECT organization_id FROM organizer_profiles WHERE id = ?1',
+      params: [subject.organizerProfileId],
+    });
+    if (!row) throw new ReviewError('NOT_FOUND', 'That organizer no longer exists.');
+    organizationId = row.organization_id;
+  }
+  let member = false;
+  if (!ownPerson && organizationId) {
+    const [hit] = await allRows<{ n: number }>(db, {
+      sql: `SELECT count(*) AS n FROM organization_members m JOIN users u ON u.id = m.user_id
+             WHERE m.organization_id = ?1 AND m.status = 'active'
+               AND (u.id = ?2 OR (?3 IS NOT NULL AND u.person_id = ?3)
+                    OR lower(CASE WHEN instr(u.email, '#') > 0 THEN substr(u.email, 1, instr(u.email, '#') - 1) ELSE u.email END) = ?4)`,
+      params: [organizationId, staff.userId, staff.personId, normalizeEmail(staff.email)],
+    });
+    member = Number(hit?.n ?? 0) > 0;
+  }
+  if (!ownPerson && !member) return;
+  await runBatch(db, [
+    {
+      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
+            VALUES (?1, ?2, 'review.self_review_refused', ?3, ?4, ?5, ?6)`,
+      params: [
+        `audit_${crypto.randomUUID()}`,
+        staff.userId,
+        entity.type,
+        entity.id,
+        JSON.stringify({ reason: ownPerson ? 'own_profile' : 'organization_member' }),
+        now,
+      ],
+    },
+  ]);
+  throw new ReviewError(
+    'SELF_REVIEW',
+    ownPerson
+      ? 'You cannot review your own profile. Ask another staff member.'
+      : 'You belong to this organization, so another staff member must review it.',
+  );
+}
+
 /** The meeting date on record for a church (the latest `schedule_meeting`), if any. */
 export async function latestMeeting(
   db: SqlDatabase,
@@ -164,12 +235,17 @@ export async function reviewProviderProfile(
   if (!input.staff.userId || !clean(input.staff.name, 120))
     throw new ReviewError('FORBIDDEN', 'Sign in to the staff gateway with a named staff account first.');
 
-  const ownerEmail = await personEmail(db, profile.personId);
-  if (
-    (input.staff.personId && input.staff.personId === profile.personId) ||
-    (ownerEmail && normalizeEmail(input.staff.email) === ownerEmail)
-  )
-    throw new ReviewError('SELF_REVIEW', 'You cannot review your own profile. Ask another staff member.');
+  await assertNotSelfReview(
+    db,
+    input.staff,
+    {
+      kind: 'provider_profile',
+      id: profile.id,
+      personId: profile.personId,
+      organizationId: profile.organizationId,
+    },
+    input.now,
+  );
 
   if (profile.status !== input.expectedStatus)
     throw new ReviewError(
@@ -499,6 +575,12 @@ export async function recordEventReviewDecision(
     now: number;
   },
 ): Promise<{ firstApproval: boolean }> {
+  await assertNotSelfReview(
+    db,
+    input.staff,
+    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
+    input.now,
+  );
   const action =
     input.decision === 'approved'
       ? 'approve_event'
@@ -534,6 +616,12 @@ export async function setOrganizerAlwaysReview(
   db: SqlDatabase,
   input: { organizerProfileId: string; alwaysReview: boolean; staff: StaffActor; now: number },
 ): Promise<boolean> {
+  await assertNotSelfReview(
+    db,
+    input.staff,
+    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
+    input.now,
+  );
   const results = await runBatch(db, [
     {
       sql: 'UPDATE organizer_profiles SET always_review = ?2 WHERE id = ?1 RETURNING id',

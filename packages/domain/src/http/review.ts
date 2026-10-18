@@ -28,6 +28,7 @@ import {
   ReviewError,
   setOrganizerAlwaysReview,
   latestMeeting,
+  assertNotSelfReview,
   type ProviderReviewAction,
   type StaffActor,
 } from '../services/provider-review.ts';
@@ -225,6 +226,13 @@ export async function eventReviewPOST(context: Context): Promise<Response> {
           event: id,
         }),
       );
+    // Same self-moderation rule as every other review action, before the event changes (D-106).
+    await assertNotSelfReview(
+      sql,
+      staff,
+      { kind: 'organizer', organizerProfileId: event.organizer_id },
+      Math.floor(Date.now() / 1000),
+    );
     await new AdminService(db).reviewEvent(staff.userId, id, { decision: form.decision, notes: form.notes });
     const recorded = await recordEventReviewDecision(sql, {
       eventId: id,
