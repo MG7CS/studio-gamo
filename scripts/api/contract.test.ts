@@ -435,6 +435,36 @@ test('checkout validates quantities, lookup, price authority and isolated mock s
     quantity: 2,
   });
   assert.match(checkout.body.error, /disabled/);
+  // Outside local development a mock_/missing key means paid checkout is unavailable, and the
+  // request is refused before any hold or order is created.
+  const holdsBefore = (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n;
+  const unconfigured = await call(
+    'live',
+    'POST',
+    '/api/checkout/session',
+    503,
+    { eventId: paid.event.id, quantity: 1 },
+    { 'x-contract-production': '1' },
+  );
+  assert.match(unconfigured.body.error, /not available/);
+  assert.equal((d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n, holdsBefore);
+  // Cross-origin browser requests are rejected.
+  await call(
+    'live',
+    'POST',
+    '/api/checkout/session',
+    403,
+    { eventId: paid.event.id },
+    { origin: 'https://evil.example' },
+  );
+  await call(
+    'live',
+    'POST',
+    `/api/events/${eventId}/register`,
+    403,
+    { attendeeName: 'Sample attendee', attendeeEmail: 'cross@example.invalid' },
+    { 'sec-fetch-site': 'cross-site' },
+  );
 });
 async function signed(event: any, expected = event.livemode ? 400 : 200) {
   const body = JSON.stringify(event),
@@ -452,6 +482,16 @@ async function signed(event: any, expected = event.livemode ? 400 : 200) {
     'stripe-signature': `t=${timestamp},v1=${hex}`,
   });
 }
+test('webhook accepts real *.updated payloads that carry data.previous_attributes', async () => {
+  await signed({
+    id: 'evt_contract_updated',
+    object: 'event',
+    type: 'customer.updated',
+    created: Math.floor(Date.now() / 1000),
+    livemode: false,
+    data: { object: { id: 'cus_1', object: 'customer' }, previous_attributes: { email: null } },
+  });
+});
 test('webhook verifies raw signature, rejects live events, accepts ignored test event and deduplicates', async () => {
   await call('live', 'POST', '/api/webhook/stripe', 400, {});
   await call('live', 'POST', '/api/webhook/stripe', 400, {}, { 'stripe-signature': 'invalid' });
