@@ -1,0 +1,27 @@
+---
+/**
+ * A short status box for the registration pages (success, information or a problem). Text, not colour
+ * alone, carries the meaning; `role="status"` for success/info, `role="alert"` for problems.
+ */
+interface Props {
+  tone?: 'success' | 'info' | 'problem';
+  title: string;
+  class?: string;
+}
+const { tone = 'info', title, class: className } = Astro.props;
+const styles = {
+  success: 'border-emerald-700/40 bg-emerald-50',
+  info: 'border-ink/30 bg-white',
+  problem: 'border-2 border-terracotta-deep bg-white',
+};
+---
+
+<div
+  role={tone === 'problem' ? 'alert' : 'status'}
+  class:list={['rounded-2xl border p-5 text-ink', styles[tone], className]}
+>
+  <p class="text-base font-bold">{title}</p>
+  <div class="mt-1 space-y-2 text-[15px] leading-6">
+    <slot />
+  </div>
+</div>
