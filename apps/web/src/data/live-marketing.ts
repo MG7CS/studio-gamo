@@ -271,17 +271,19 @@ export function mapDbEventsToMarketingEvents(
  */
 export function buildVerifiedCatalogFallbackEvents(referenceNow: Date = new Date()): LiveEvent[] {
   const approvedCandidates = GAMO_LIVE_VERIFIED_CATALOG_2026_10_15.events.filter((candidate) => {
+    // Same rules as the editorial import (no revalidateUnfetched): listings held for an
+    // unverified ticket destination must not appear here either, or they would link to a 404.
     const evalResult = evaluateCandidateForEditorialImport(candidate, {
       referenceNow: new Date('2026-10-15T00:00:00Z'),
-      revalidateUnfetched: true,
     });
     return evalResult.editorialDecision === 'approved';
   });
 
   const syntheticDbRows: LiveEventWithDetails[] = approvedCandidates.map((candidate, idx) => {
+    // Same rules as the editorial import (no revalidateUnfetched): listings held for an
+    // unverified ticket destination must not appear here either, or they would link to a 404.
     const evalResult = evaluateCandidateForEditorialImport(candidate, {
       referenceNow: new Date('2026-10-15T00:00:00Z'),
-      revalidateUnfetched: true,
     });
     const summary = buildFactualEditorialSummary(candidate);
     const providerName = inferExternalProviderName(

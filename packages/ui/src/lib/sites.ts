@@ -53,8 +53,9 @@ export function siteOrigin(site: SiteKey): string {
     const rootDomain = (import.meta.env as Record<string, string | undefined>)?.PUBLIC_ROOT_DOMAIN;
     if (rootDomain && typeof rootDomain === 'string') {
       const cleanRoot = rootDomain.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+      // workers.dev is only used for preview Workers, named gamo-<app>-preview in wrangler.toml.
       if (cleanRoot.endsWith('workers.dev')) {
-        return `https://gamo-${site}.${cleanRoot}`;
+        return `https://gamo-${site}-preview.${cleanRoot}`;
       }
       return site === 'web' ? `https://${cleanRoot}` : `https://${site}.${cleanRoot}`;
     }
