@@ -17,6 +17,12 @@ export interface GamoLocals {
   /** Explicitly enabled loopback demo (fictional workspace data, no sign-in). */
   isolatedDemo?: boolean;
   noindexPage?: boolean;
+  /**
+   * Per-page header additions requested with `requestSecurityHeaders(Astro.locals, …)` from
+   * `@gamo/domain` in the page frontmatter; read by the page middleware when it sets the CSP and
+   * Permissions-Policy. Origins are filtered to exact https origins there.
+   */
+  securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean };
   /** apps/admin: D1 staff session that passed the admin gateway. */
   adminAuthSession?: SessionData;
   /** apps/admin: identity asserted by Cloudflare Access. */

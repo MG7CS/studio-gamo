@@ -9,8 +9,9 @@ import {
 } from '@gamo/auth/page-access';
 import type { GamoLocals } from '@gamo/auth/locals';
 import { checkEnvOnce } from '@gamo/config/env-validation';
+import type { GamoEnv } from '@gamo/config/env';
 import { getRuntimeEnv } from './response';
-import { withSecurityHeaders } from '../http/security-headers.ts';
+import { withSecurityHeaders, type SecurityHeaderOptions } from '../http/security-headers.ts';
 
 type Context = {
   request: Request;
@@ -56,11 +57,35 @@ export interface ApplicationPagesOptions {
   legacyRedirects?: readonly LegacyRedirect[];
 }
 
+/**
+ * Header options for one page response: Clerk and Turnstile origins from configuration
+ * (`PUBLIC_TURNSTILE_SITE_KEY` present → Turnstile allowed), geolocation for Live, plus whatever the
+ * page asked for with `requestSecurityHeaders(Astro.locals, …)` (form-action origins, camera).
+ */
+export function pageSecurityHeaderOptions(
+  app: PublicApp,
+  context: { url: URL; locals: GamoLocals },
+  env: GamoEnv,
+  enforceCsp: boolean,
+): SecurityHeaderOptions {
+  const requested = context.locals.securityRequest;
+  const clerk = context.locals.clerkConfig;
+  return {
+    clerkFrontendApi: clerk?.isConfigured ? clerk.issuer : undefined,
+    enforceCsp,
+    https: context.url.protocol === 'https:',
+    allowGeolocation: app === 'live',
+    turnstile:
+      typeof env.PUBLIC_TURNSTILE_SITE_KEY === 'string' && env.PUBLIC_TURNSTILE_SITE_KEY.trim() !== '',
+    formActionOrigins: requested?.formActionOrigins,
+    camera: requested?.camera === true,
+  };
+}
+
 export function applicationPages(app: PublicApp, options: ApplicationPagesOptions = {}) {
-  const handle = async (context: Context, next: () => Promise<Response>): Promise<Response> => {
+  const handle = async (context: Context, next: () => Promise<Response>, env: GamoEnv): Promise<Response> => {
     const { pathname } = context.url;
     context.locals.product = app;
-    const env = await getRuntimeEnv(context);
     const misconfigured = checkEnvOnce(app, env, context.request);
     if (misconfigured) return misconfigured;
     // API handlers own their contract-specific authorization and status codes.
@@ -126,14 +151,12 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
   };
 
   return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
-    const response = await handle(context, next);
-    return withSecurityHeaders(response, {
-      clerkFrontendApi: context.locals.clerkConfig?.isConfigured
-        ? context.locals.clerkConfig.issuer
-        : undefined,
-      enforceCsp: import.meta.env?.PROD === true,
-      https: context.url.protocol === 'https:',
-      allowGeolocation: app === 'live',
-    });
+    const env = await getRuntimeEnv(context);
+    const response = await handle(context, next, env);
+    // Read after `next()`: the page's frontmatter has run and may have called requestSecurityHeaders().
+    return withSecurityHeaders(
+      response,
+      pageSecurityHeaderOptions(app, context, env, import.meta.env?.PROD === true),
+    );
   };
 }
