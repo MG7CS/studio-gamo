@@ -72,7 +72,11 @@ const taught = lessons.filter((l) => l.instructorSlug === t.slug);
         <ul class="mt-6 grid gap-4 sm:grid-cols-3">
           {t.approach.map((a, i) => (
             <li class="rounded-[24px] bg-ivory p-6 ring-1 ring-sand">
-              <span class="text-3xl font-black text-terracotta/30">0{i + 1}</span>
+              <span
+                aria-hidden="true"
+                data-glyph={`0${i + 1}`}
+                class="text-3xl font-black text-terracotta/30 after:content-[attr(data-glyph)]"
+              ></span>
               <p class="mt-2 font-semibold">{a}</p>
             </li>
           ))}

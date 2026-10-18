@@ -37,9 +37,10 @@ const tall = size === 'lg' ? 'min-h-[280px] sm:min-h-[300px]' : 'min-h-[220px]';
     </>
   ) : (
     <div aria-hidden="true" class="absolute inset-0 overflow-hidden">
-      <span class="absolute -right-6 -top-8 select-none text-[9rem] font-black leading-none tracking-tighter text-white/55">
-        {i.short}
-      </span>
+      <span
+        data-glyph={i.short}
+        class="absolute -right-6 -top-8 select-none text-[9rem] font-black leading-none tracking-tighter text-white/55 after:content-[attr(data-glyph)]"
+      ></span>
       <span class="absolute right-6 top-24 grid h-20 w-20 place-items-center rounded-full bg-white/70 text-terracotta shadow-float">
         <Icon name={i.icon} class="h-9 w-9" />
       </span>

@@ -63,19 +63,19 @@ const pillars = [
         lede="Many congregations struggle to keep worship teams staffed week to week, while skilled Christian musicians look for respectful, well-prepared ways to serve."
       />
 
-      <dl class="mt-9 space-y-6">
+      <ul class="mt-9 space-y-6">
         {pillars.map((p) => (
-          <div data-reveal class="flex gap-4">
+          <li data-reveal class="flex gap-4">
             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-ivory text-terracotta ring-1 ring-sand">
               <Icon name={p.icon} class="h-5 w-5" />
             </span>
             <div>
-              <dt class="text-lg font-bold tracking-tight text-charcoal">{p.title}</dt>
-              <dd class="mt-1 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</dd>
+              <h3 class="text-lg font-bold tracking-tight text-charcoal">{p.title}</h3>
+              <p class="mt-1 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</p>
             </div>
-          </div>
+          </li>
         ))}
-      </dl>
+      </ul>
 
       <div class="mt-9 flex flex-wrap gap-3">
         <ButtonLink href={inquiryUrl('Church musician request')} arrow>
