@@ -107,7 +107,7 @@ pnpm --filter apps-production exec wrangler secret put RESEND_API_KEY --env prod
 ```
 
 Public sender variable (configured in `wrangler.toml` or `.dev.vars`):
-- `EMAIL_FROM="Gamo Studios <notifications@gamostudio.org>"` (or `RESEND_FROM_EMAIL`)
+- `EMAIL_FROM="Gamo Studios <hello@gamostudio.org>"` (or `RESEND_FROM_EMAIL`)
 
 ### 4.2 Stripe Integration (Test Mode Only)
 

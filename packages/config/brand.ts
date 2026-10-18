@@ -82,9 +82,9 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
   const canonicalOrigin = isPlaceholderDomain
     ? 'http://localhost:4324'
     : `https://${primaryDomain.replace(/^https?:\/\//, '')}`;
-  const supportEmail = env.PLATFORM_SUPPORT_EMAIL?.trim() || 'support@live.gamostudios.local';
+  const supportEmail = env.PLATFORM_SUPPORT_EMAIL?.trim() || 'hello@gamostudio.org';
   const emailSenderName = sanitizeDisplayName(env.PLATFORM_SENDER_NAME || displayName);
-  const emailSenderAddress = env.PLATFORM_SENDER_EMAIL?.trim() || 'tickets@live.gamostudios.local';
+  const emailSenderAddress = env.PLATFORM_SENDER_EMAIL?.trim() || 'hello@gamostudio.org';
   const logoMark = deriveLogoMark(displayName, env.PLATFORM_LOGO_MARK);
 
   return {

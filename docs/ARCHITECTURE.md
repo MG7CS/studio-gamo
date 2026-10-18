@@ -54,6 +54,10 @@ Admin adds its own middleware: Cloudflare Access JWT (`CF_ACCESS_TEAM_NAME`, `CF
 - Each product has **its own accounts**: a product account row per product, and its own Clerk application (`CLERK_*_<APP>` variables). Nothing links accounts across products automatically (AGENTS.md "Product Account Independence").
 - Without Clerk keys, sign-in uses Gamo's own emailed verification codes. `ALLOW_AUTH_SIMULATION=true` shows the code on screen — local only; any local-only flag outside `ENVIRONMENT=local` is a fatal config error (503).
 - All sign-in/sign-up/verify/recover pages use `GamoAuthExperience` from `packages/ui`.
+
+### Clerk is optional and deferred
+
+Launch signs everyone in with Gamo's **emailed verification codes** (6-digit, single use, sent through Resend from `Gamo Studios <hello@gamostudio.org>`; the code and session logic is in `packages/domain/src/http/auth.ts` and `packages/auth`). Clerk is already integrated (`packages/auth/clerk.ts`) and activates per product only when that product's `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>` are all set; otherwise nothing Clerk-related runs and the CSP omits Clerk origins. If enabled later, each product needs its **own production Clerk instance** and the DNS records Clerk requires for that domain (`docs/RUNBOOK.md` §3a). Do not run `clerk init` or the Clerk CLI in this repository.
 - Session cookie: HMAC-signed with `SESSION_SECRET`, `HttpOnly; Secure; SameSite=Lax`, host-only (no cross-subdomain cookie).
 
 ## Payments
