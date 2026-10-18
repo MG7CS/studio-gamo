@@ -1,0 +1,44 @@
+---
+/**
+ * Body for 404 and 500 pages. Each app renders it inside its own layout (src/pages/404.astro,
+ * src/pages/500.astro), so the header, footer and program name match the site. Never shows
+ * error details.
+ */
+import ButtonLink from './ButtonLink.astro';
+import { siteUrl } from '../lib/sites';
+
+interface Props {
+  status: 404 | 500;
+  /** Program site name, e.g. "Gamo Worship". */
+  siteName: string;
+  /** This site's home path or URL. */
+  homeHref?: string;
+}
+const { status, siteName, homeHref = '/' } = Astro.props;
+const copy =
+  status === 404
+    ? {
+        eyebrow: 'Error 404',
+        title: 'Page not found',
+        body: `This page doesn't exist on ${siteName}, or it has moved. Check the address, or start again from the home page.`,
+      }
+    : {
+        eyebrow: 'Error 500',
+        title: 'Something went wrong',
+        body: 'We could not load this page. Please try again in a moment. If it keeps happening, let us know.',
+      };
+---
+
+<section class="page-intro-space mx-auto flex min-h-[70vh] max-w-3xl flex-col justify-center px-5 md:px-8">
+  <p class="eyebrow text-terracotta">{copy.eyebrow}</p>
+  <h1 class="display-lg mt-4 text-charcoal">{copy.title}</h1>
+  <p class="mt-6 max-w-xl text-lg text-ink-soft">{copy.body}</p>
+  <div class="mt-10 flex flex-wrap gap-3">
+    <ButtonLink href={homeHref} arrow>
+      {siteName} home
+    </ButtonLink>
+    <ButtonLink href={siteUrl('web', '/contact')} variant="secondary">
+      Contact us
+    </ButtonLink>
+  </div>
+</section>

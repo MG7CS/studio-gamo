@@ -1,4 +1,6 @@
 ---
+import HeadIcons from './HeadIcons.astro';
+import FontPreload from './FontPreload.astro';
 /**
  * Shared document shell for every public Gamo Studios app.
  * Each app's own Layout imports its `app.css` and then wraps this component.
@@ -53,15 +55,8 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.ico" sizes="48x48" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <HeadIcons />
+    <FontPreload />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -87,6 +82,15 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <slot name="head" />
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>
+    {/* SiteHeader carries its own skip link; focused flows without chrome still need one. */}
+    {!chrome && (
+      <a
+        href="#main-content"
+        class="sr-only z-[60] rounded-full bg-charcoal px-5 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:inline-flex focus:min-h-11 focus:items-center"
+      >
+        Skip to content
+      </a>
+    )}
     {chrome &&
       (Astro.slots.has('header') ? (
         <slot name="header" />

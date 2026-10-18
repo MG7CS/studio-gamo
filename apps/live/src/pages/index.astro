@@ -87,10 +87,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 <Layout
   title="Find Your Next Live Christian Concert or Worship Experience"
   description="Discover verified Christian concerts, worship nights, and live gatherings across Phoenix and major U.S. cities on Gamo Live."
-  bodyClass="bg-[#FBF7F1] text-[#191817] antialiased selection:bg-[#B34B1E] selection:text-white"
+  bodyClass="bg-ivory text-ink antialiased selection:bg-terracotta selection:text-white"
 >
   <!-- SECTION 1: HERO BANNER -->
-  <section class="relative w-full overflow-hidden bg-[#16110E] text-white">
+  <section class="relative w-full overflow-hidden bg-ink text-white">
     <!-- Stage Photography Backdrop -->
     <div class="absolute inset-0 z-0">
       <img
@@ -102,26 +102,26 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
       />
       <!-- Rich dark left-to-right and bottom stage lighting gradients matching reference -->
       <div
-        class="absolute inset-0 bg-gradient-to-r from-[#120D10]/95 via-[#1C1218]/80 to-[#24131E]/35"
+        class="absolute inset-0 bg-gradient-to-r from-night/95 via-night/80 to-night/35"
         aria-hidden="true"
       ></div>
       <div
-        class="absolute inset-0 bg-gradient-to-t from-[#120E0C]/90 via-transparent to-[#120D10]/40"
+        class="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-night/40"
         aria-hidden="true"
       ></div>
       <!-- Subtle warm magenta/amber stage glow accent -->
       <div
-        class="pointer-events-none absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-[#A8386B]/20 blur-3xl"
+        class="pointer-events-none absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-terracotta/20 blur-3xl"
         aria-hidden="true"
       ></div>
     </div>
 
     <div class="relative z-10 mx-auto max-w-[1340px] px-4 pt-12 pb-12 sm:px-6 sm:pt-16 sm:pb-16 lg:px-8 lg:pt-20 lg:pb-16">
       <div class="max-w-2xl">
-        <h1 class="text-[40px] font-extrabold tracking-tight text-white leading-[1.06] sm:text-6xl lg:text-[68px]">
+        <h1 class="text-[40px] font-black tracking-tight text-white leading-[1.06] sm:text-6xl lg:text-[68px] uppercase">
           Find your next
           <br />
-          <span class="text-[#D96B38]">live</span> experience.
+          <span class="text-terracotta-soft">live</span> experience.
         </h1>
         <p class="mt-4 max-w-lg text-base sm:text-xl text-white/90 font-normal leading-relaxed">
           Concerts, worship nights, and gatherings worth being there for.
@@ -134,13 +134,13 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         method="get"
         role="search"
         aria-label="Search Christian concerts and worship events"
-        class="mt-8 sm:mt-10 bg-white text-[#191817] rounded-3xl lg:rounded-full p-2 sm:p-2.5 shadow-[0_22px_50px_-12px_rgba(12,9,8,0.65)] border border-white/80"
+        class="mt-8 sm:mt-10 bg-white text-ink rounded-3xl lg:rounded-full p-2 sm:p-2.5 shadow-[0_22px_50px_-12px_rgba(12,9,8,0.65)] border border-white/80"
       >
         <div class="grid grid-cols-1 gap-2 lg:grid-cols-[1.5fr_1fr_1fr_auto] lg:items-center lg:gap-2">
           <!-- Part 1: Search Input -->
-          <div class="flex items-center gap-3 rounded-full bg-[#FBF9F5] lg:bg-transparent px-4 py-3 border border-[#EAE2D6] lg:border-0">
+          <div class="flex items-center gap-3 rounded-full bg-ivory lg:bg-transparent px-4 py-3 border border-sand lg:border-0">
             <svg
-              class="h-5 w-5 text-[#6E675F] shrink-0"
+              class="h-5 w-5 text-muted shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -162,14 +162,14 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
               type="search"
               value={rawQueryParam}
               placeholder="Search events, artists, or venues"
-              class="w-full bg-transparent text-sm sm:text-[15px] text-[#191817] placeholder:text-[#7A7267] focus:outline-none"
+              class="w-full bg-transparent text-sm sm:text-[15px] text-ink placeholder:text-muted focus:outline-none min-h-11"
             />
           </div>
 
           <!-- Part 2: Location Dropdown -->
-          <div class="flex items-center gap-2.5 rounded-full border border-[#E6DFD3] bg-[#FBF9F5] px-4 py-3">
+          <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
             <svg
-              class="h-5 w-5 text-[#191817] shrink-0"
+              class="h-5 w-5 text-ink shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -190,7 +190,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
               id="hero-search-metro"
               name="metro"
               data-hero-metro-select
-              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-[#191817] focus:outline-none cursor-pointer"
+              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-ink focus:outline-none cursor-pointer min-h-11"
             >
               {GAMO_LIVE_METROS.map((metro) => (
                 <option value={metro.slug} selected={selectedMetroSlug === metro.slug}>
@@ -204,9 +204,9 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           </div>
 
           <!-- Part 3: Date Window Dropdown -->
-          <div class="flex items-center gap-2.5 rounded-full border border-[#E6DFD3] bg-[#FBF9F5] px-4 py-3">
+          <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
             <svg
-              class="h-5 w-5 text-[#191817] shrink-0"
+              class="h-5 w-5 text-ink shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -225,7 +225,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             <select
               id="hero-search-date"
               name="date"
-              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-[#6E675F] focus:outline-none cursor-pointer"
+              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-muted focus:outline-none cursor-pointer min-h-11"
             >
               <option value="any" selected={rawDateParam === 'any'}>
                 Any date
@@ -248,7 +248,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           <!-- Submit Button -->
           <button
             type="submit"
-            class="bg-[#B34B1E] hover:bg-[#993E17] text-white rounded-full w-full lg:w-16 h-12 flex items-center justify-center shadow-md transition-colors shrink-0 cursor-pointer"
+            class="bg-terracotta hover:bg-terracotta-deep text-white rounded-full w-full lg:w-16 h-12 flex items-center justify-center shadow-md transition-colors shrink-0 cursor-pointer"
             aria-label="Search events"
           >
             <span class="lg:sr-only font-semibold text-sm mr-2">Search Events</span>
@@ -273,8 +273,8 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     <!-- Section Header Row -->
     <div class="flex flex-wrap items-baseline justify-between gap-4">
       <div>
-        <h2 class="text-2xl sm:text-[32px] font-extrabold tracking-tight text-[#191817]">Upcoming events</h2>
-        <p id="discovery-active-status" class="mt-1 text-xs sm:text-sm text-[#6E675F]">
+        <h2 class="text-2xl sm:text-[32px] font-black tracking-tight text-ink uppercase">Upcoming events</h2>
+        <p id="discovery-active-status" class="mt-1 text-xs sm:text-sm text-muted">
           {selectedMetroSlug === 'all'
             ? `Showing all ${allEvents.length} verified Christian concerts and worship gatherings across U.S. metros`
             : `Prioritizing ${activeMetroCount} verified events in ${selectedMetroLabel} · ${allEvents.length} nationwide`}
@@ -283,7 +283,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 
       <a
         href="/events"
-        class="inline-flex items-center gap-1.5 text-sm sm:text-[15px] font-semibold text-[#B34B1E] hover:text-[#8F3914] transition-colors"
+        class="inline-flex items-center gap-1.5 text-sm sm:text-[15px] font-semibold text-terracotta hover:text-terracotta-deep transition-colors min-h-11"
       >
         <span>View all events</span>
         <svg
@@ -310,7 +310,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           type="button"
           data-filter-chip="all"
           aria-pressed={rawCategoryParam === 'all' && !rawWeekendParam ? 'true' : 'false'}
-          class="filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-[#B34B1E] text-white border-[#B34B1E]"
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-terracotta text-white border-terracotta"
         >
           All events
         </button>
@@ -318,7 +318,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           type="button"
           data-filter-chip="weekend"
           aria-pressed={rawWeekendParam ? 'true' : 'false'}
-          class="filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-[#F6F1E8] text-[#3D3833] border-[#E2D9C8] hover:border-[#C8B9A6]"
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
         >
           This weekend
         </button>
@@ -326,7 +326,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           type="button"
           data-filter-chip="concert"
           aria-pressed={rawCategoryParam === 'concert' ? 'true' : 'false'}
-          class="filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-[#F6F1E8] text-[#3D3833] border-[#E2D9C8] hover:border-[#C8B9A6]"
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
         >
           Concerts
         </button>
@@ -334,7 +334,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           type="button"
           data-filter-chip="worship"
           aria-pressed={rawCategoryParam === 'worship' ? 'true' : 'false'}
-          class="filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-[#F6F1E8] text-[#3D3833] border-[#E2D9C8] hover:border-[#C8B9A6]"
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
         >
           Worship nights
         </button>
@@ -347,10 +347,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           data-scope-chip={selectedMetroSlug === 'all' ? 'phoenix-az' : selectedMetroSlug}
           data-scope-label={selectedMetroSlug === 'all' ? 'Phoenix, AZ' : selectedMetroLabel}
           aria-pressed={selectedMetroSlug !== 'all' ? 'true' : 'false'}
-          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-[#EFE7DA] text-[#191817] border-[#D5C7B2]"
+          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-sand text-ink border-line min-h-11"
         >
           <svg
-            class="w-3.5 h-3.5 text-[#B34B1E]"
+            class="w-3.5 h-3.5 text-terracotta"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -375,7 +375,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           data-scope-chip="all"
           data-scope-label="All U.S. Cities"
           aria-pressed={selectedMetroSlug === 'all' ? 'true' : 'false'}
-          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-[#F6F1E8] text-[#4A443E] border-[#E2D9C8] hover:border-[#C8B9A6]"
+          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line min-h-11"
         >
           <span>All U.S. Cities ({allEvents.length})</span>
         </button>
@@ -425,16 +425,16 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
         })}
       </div>
     ) : (
-      <div class="mt-6 rounded-2xl border border-[#EAE2D6] bg-white p-8 text-center">
-        <h3 class="text-lg font-bold text-[#191817]">
+      <div class="mt-6 rounded-2xl border border-sand bg-white p-8 text-center">
+        <h3 class="text-lg font-bold text-ink">
           {dbUnavailable ? 'Event discovery is refreshing' : 'No matching events right now'}
         </h3>
-        <p class="mt-2 text-sm text-[#6E675F]">
+        <p class="mt-2 text-sm text-muted">
           Explore all U.S. metros or browse our verified Christian concert directory.
         </p>
         <a
           href="/events"
-          class="mt-4 inline-flex items-center gap-2 rounded-full bg-[#B34B1E] px-5 py-2.5 text-sm font-semibold text-white"
+          class="mt-4 inline-flex items-center gap-2 rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
         >
           Browse all events
         </a>
@@ -444,16 +444,16 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     <!-- Empty Filter Fallback Notice (Hidden unless a filter combination yields 0 cards) -->
     <div
       id="homepage-empty-filter-state"
-      class="hidden mt-6 rounded-2xl border border-[#EAE2D6] bg-white p-8 text-center"
+      class="hidden mt-6 rounded-2xl border border-sand bg-white p-8 text-center"
     >
-      <p class="text-base font-bold text-[#191817]">No events match that exact filter in this metro yet.</p>
-      <p class="mt-1 text-sm text-[#6E675F]">
+      <p class="text-base font-bold text-ink">No events match that exact filter in this metro yet.</p>
+      <p class="mt-1 text-sm text-muted">
         Switch to All U.S. Cities to see all upcoming concerts and worship nights nationwide.
       </p>
       <button
         type="button"
         id="reset-home-filters-btn"
-        class="mt-4 inline-flex items-center gap-2 rounded-full bg-[#B34B1E] px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
+        class="mt-4 inline-flex items-center gap-2 rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
       >
         Show all U.S. events
       </button>
@@ -462,42 +462,39 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 
   <!-- SECTION 3: FEATURED EVENT BANNER -->
   <section class="mx-auto max-w-[1340px] px-4 py-4 sm:px-6 lg:px-8">
-    <div class="relative overflow-hidden rounded-3xl bg-[#181310] text-white shadow-xl border border-[#2C221E]">
+    <div class="relative overflow-hidden rounded-3xl bg-ink text-white shadow-xl border border-ink">
       <!-- Right Stage Visual with Seamless Dark Gradient Blend -->
       <div class="absolute inset-0 z-0">
         <img
           src="/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp"
           alt={`Live stage atmosphere for ${featuredPrimaryTitle}`}
-          loading="eager"
-          decoding="sync"
+          loading="lazy"
+          decoding="async"
           class="h-full w-full object-cover object-[center_20%] lg:object-right opacity-55 lg:opacity-90"
         />
+        <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/20" aria-hidden="true"></div>
         <div
-          class="absolute inset-0 bg-gradient-to-r from-[#16110E] via-[#181310]/90 to-[#181310]/20"
-          aria-hidden="true"
-        ></div>
-        <div
-          class="absolute inset-0 bg-gradient-to-t from-[#16110E] via-transparent to-[#16110E]/40 lg:hidden"
+          class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40 lg:hidden"
           aria-hidden="true"
         ></div>
       </div>
 
       <!-- Left Content Column -->
       <div class="relative z-10 max-w-2xl p-7 sm:p-10 lg:p-14">
-        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-[#E06D3B]">
+        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-terracotta-soft">
           FEATURED EVENT
         </p>
 
-        <h2 class="mt-3 text-3xl sm:text-5xl lg:text-[52px] font-extrabold tracking-tight leading-[1.06]">
+        <h2 class="mt-3 text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.06] uppercase">
           <span class="block text-white">{featuredPrimaryTitle}</span>
-          <span class="block text-[#D8C3B0] mt-1">{featuredSecondaryTitle}</span>
+          <span class="block text-line mt-1">{featuredSecondaryTitle}</span>
         </h2>
 
-        <div class="mt-6 space-y-2.5 text-sm sm:text-base text-[#EAE0D5]">
+        <div class="mt-6 space-y-2.5 text-sm sm:text-base text-sand">
           <!-- Calendar Schedule Line -->
           <div class="flex items-center gap-3">
             <svg
-              class="h-5 w-5 text-[#D8C3B0] shrink-0"
+              class="h-5 w-5 text-line shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -516,7 +513,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           <!-- Venue Pin Line -->
           <div class="flex items-center gap-3">
             <svg
-              class="h-5 w-5 text-[#D8C3B0] shrink-0"
+              class="h-5 w-5 text-line shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -534,7 +531,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           </div>
         </div>
 
-        <p class="mt-4 text-xs text-[#C4B5A5]/90">
+        <p class="mt-4 text-xs text-line/90">
           Published by Gamo Live Listings · Independent listing · Tickets sold by TicketWeb
         </p>
 
@@ -544,7 +541,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             href={featuredTicketUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-2.5 rounded-full bg-[#B34B1E] hover:bg-[#993E17] px-7 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-lg transition-colors"
+            class="inline-flex items-center gap-2.5 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-lg transition-colors"
             aria-label={`Get tickets for ${featuredPrimaryTitle} at TicketWeb (opens in a new tab)`}
           >
             <span>Get tickets</span>
@@ -573,25 +570,25 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 
   <!-- SECTION 4: FOR ORGANIZERS AND ARTISTS SPLIT CARD -->
   <section class="mx-auto max-w-[1340px] px-4 pt-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
-    <div class="overflow-hidden rounded-3xl bg-[#F2EFF9] border border-[#E4DFF3] grid grid-cols-1 lg:grid-cols-12 items-center shadow-sm">
+    <div class="overflow-hidden rounded-3xl bg-cream border border-sand grid grid-cols-1 lg:grid-cols-12 items-center shadow-sm">
       <!-- Left Content Column -->
       <div class="lg:col-span-7 p-7 sm:p-10 lg:p-14">
-        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.12em] text-[#5145CD]">
+        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.12em] text-terracotta">
           FOR ORGANIZERS AND ARTISTS
         </p>
 
-        <h2 class="mt-3 text-3xl sm:text-4xl lg:text-[44px] font-extrabold tracking-tight text-[#191817] leading-[1.08]">
+        <h2 class="mt-3 text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-ink leading-[1.08] uppercase">
           Bring your next event to life.
         </h2>
 
-        <p class="mt-4 max-w-xl text-base sm:text-lg text-[#5C554D] leading-relaxed">
+        <p class="mt-4 max-w-xl text-base sm:text-lg text-muted leading-relaxed">
           Create events, reach audiences, and manage live performances with powerful, easy-to-use tools.
         </p>
 
         <div class="mt-7 flex flex-wrap items-center gap-3.5">
           <a
             href="/promote/create"
-            class="inline-flex items-center gap-2 rounded-full bg-[#5145CD] hover:bg-[#4236B2] px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-white shadow-md transition-colors"
+            class="inline-flex items-center gap-2 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-white shadow-md transition-colors"
           >
             <span>List an event</span>
             <svg
@@ -608,7 +605,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 
           <a
             href="/artists"
-            class="inline-flex items-center justify-center rounded-full border border-[#7A70E0] bg-transparent hover:bg-[#E7E2F6] px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-[#5145CD] transition-colors"
+            class="inline-flex items-center justify-center rounded-full border border-terracotta bg-transparent hover:bg-sand px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-terracotta transition-colors"
           >
             For artists
           </a>
@@ -626,7 +623,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
             class="h-full w-full object-cover object-center"
           />
           <div
-            class="absolute inset-0 bg-gradient-to-tr from-[#231942]/35 via-transparent to-transparent"
+            class="absolute inset-0 bg-gradient-to-tr from-night/35 via-transparent to-transparent"
             aria-hidden="true"
           ></div>
         </div>
@@ -666,12 +663,12 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
           const svg = btn.querySelector('svg');
           if (isSaved) {
-            btn.classList.add('text-[#B34B1E]', 'bg-[#F5EFE6]');
-            btn.classList.remove('text-[#7A7267]');
+            btn.classList.add('text-terracotta', 'bg-cream');
+            btn.classList.remove('text-muted');
             if (svg) svg.setAttribute('fill', 'currentColor');
           } else {
-            btn.classList.remove('text-[#B34B1E]', 'bg-[#F5EFE6]');
-            btn.classList.add('text-[#7A7267]');
+            btn.classList.remove('text-terracotta', 'bg-cream');
+            btn.classList.add('text-muted');
             if (svg) svg.setAttribute('fill', 'none');
           }
         });
@@ -727,10 +724,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           chip.setAttribute('aria-pressed', active ? 'true' : 'false');
           if (active) {
             chip.className =
-              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-[#B34B1E] text-white border-[#B34B1E]';
+              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-terracotta text-white border-terracotta';
           } else {
             chip.className =
-              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-[#F6F1E8] text-[#3D3833] border-[#E2D9C8] hover:border-[#C8B9A6]';
+              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line';
           }
         });
 
@@ -740,10 +737,10 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
           chip.setAttribute('aria-pressed', active ? 'true' : 'false');
           if (active) {
             chip.className =
-              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-[#EFE7DA] text-[#191817] border-[#D5C7B2]';
+              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-sand text-ink border-line';
           } else {
             chip.className =
-              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-[#F6F1E8] text-[#4A443E] border-[#E2D9C8] hover:border-[#C8B9A6]';
+              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line';
           }
         });
       }

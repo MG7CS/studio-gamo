@@ -26,7 +26,7 @@ const home = siteUrl('web');
 
 <a
   href="#main-content"
-  class="sr-only z-[60] rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+  class="sr-only z-[60] rounded-full bg-charcoal px-5 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:inline-flex focus:min-h-11 focus:items-center"
 >
   Skip to content
 </a>
@@ -35,8 +35,8 @@ const home = siteUrl('web');
   data-theme="light"
   class="site-header fixed inset-x-0 top-3 z-50 mx-auto w-[calc(100%-1.5rem)] max-w-[1320px] text-charcoal transition-[top] duration-300 sm:top-4 sm:w-[calc(100%-2.5rem)]"
 >
-  <div class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-2 pl-5 pr-2 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-6">
-    <a href={home} class="flex shrink-0 items-center rounded-full" aria-label="Gamo Studios home">
+  <div class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-1.5 pl-5 pr-1.5 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-6">
+    <a href={home} class="flex min-h-11 shrink-0 items-center rounded-full" aria-label="Gamo Studios home">
       <Logo width="138" height="26" />
     </a>
 
@@ -67,19 +67,19 @@ const home = siteUrl('web');
     <div class="flex items-center gap-2">
       <a
         href={signIn}
-        class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5"
+        class="hidden min-h-11 items-center rounded-full border border-charcoal/20 bg-white/90 px-4 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5"
       >
         {signedIn ? 'Your Account' : 'Sign In'}
       </a>
       <a
         href={getInvolved}
-        class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5"
+        class="hidden min-h-11 items-center gap-2 rounded-full bg-terracotta px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5"
       >
         Get Involved <Icon name="arrow" class="h-4 w-4" />
       </a>
       <button
         type="button"
-        class="site-header__toggle inline-flex h-10 w-10 items-center justify-center rounded-full bg-charcoal/8 text-charcoal transition-colors hover:bg-charcoal/15 lg:hidden"
+        class="site-header__toggle inline-flex h-11 w-11 items-center justify-center rounded-full bg-charcoal/8 text-charcoal transition-colors hover:bg-charcoal/15 lg:hidden"
         aria-expanded="false"
         aria-controls="site-mobile-menu"
         aria-label="Open menu"

@@ -25,6 +25,8 @@ const AUTH_PAGES = [
   '/account/access-denied',
 ];
 const CRAWLER_FILES = ['/robots.txt', '/sitemap.xml'];
+/** Error pages render for any path (Astro uses them for unmatched routes and server errors). */
+const ERROR_PAGES = ['/404', '/500'];
 
 /** Pages anyone may view. Anything not listed here must be private. */
 const PUBLIC_PAGES: Record<PublicApp, string[]> = {
@@ -44,8 +46,9 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/llms.txt',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
+    ...ERROR_PAGES,
   ],
-  worship: ['/', '/opportunities', ...AUTH_PAGES, ...CRAWLER_FILES],
+  worship: ['/', '/opportunities', ...AUTH_PAGES, ...CRAWLER_FILES, ...ERROR_PAGES],
   academy: [
     '/',
     '/instruments',
@@ -56,6 +59,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/sponsored',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
+    ...ERROR_PAGES,
   ],
   live: [
     '/',
@@ -69,8 +73,17 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/artists/[slug]',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
+    ...ERROR_PAGES,
   ],
-  production: ['/', '/services', '/services/[slug]', '/training', ...AUTH_PAGES, ...CRAWLER_FILES],
+  production: [
+    '/',
+    '/services',
+    '/services/[slug]',
+    '/training',
+    ...AUTH_PAGES,
+    ...CRAWLER_FILES,
+    ...ERROR_PAGES,
+  ],
 };
 
 /** API methods anyone may call (each enforces its own gate: OTP, signature, local-only, etc.). */

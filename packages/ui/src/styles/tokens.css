@@ -3,48 +3,66 @@
  * Import from every app stylesheet AFTER `@import "tailwindcss";`:
  *   @import "@studio-gamo/ui/styles/tokens.css";
  */
+/* Self-hosted Inter variable font (OFL), weights 100–900, font-display: swap. */
+@import '@fontsource-variable/inter';
+
 @source "../components";
 
 @theme {
-  --color-cream: #f4ede3;
-  --color-ivory: #fbf7f1;
-  --color-charcoal: #1d2323;
-  --color-night: #141a1b;
-  --color-terracotta: #b65b35;
-  --color-terracotta-dark: #8f432a;
-  --color-sand: #ded6cc;
-  --color-gold: #d7ad86;
-  --color-ink-soft: #4e5655;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Brand palette — values from the Gamo Studios booklet (design-reference/gamo-studios-booklet.html). */
+  --color-terracotta: #b34e24;
+  --color-terracotta-deep: #8f3b18;
+  --color-terracotta-soft: #d98b62;
+  --color-ink: #18181b;
+  --color-cream: #f9f6f0;
+  --color-sand: #ede6da;
+  --color-tan: #d8c5ae;
+  --color-line: #dcd3c6;
+  --color-muted: #57534e;
+
+  /* Aliases kept so existing class names keep working; prefer the names above in new code. */
+  --color-terracotta-dark: var(--color-terracotta-deep);
+  --color-charcoal: var(--color-ink);
+  --color-ink-soft: var(--color-muted);
+  --color-gold: var(--color-tan);
+  /* Surfaces derived from the palette (not in the booklet): a lighter paper and a deeper night. */
+  --color-ivory: #fcfaf6;
+  --color-night: #0f0f12;
+
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --text-hero: clamp(2.5rem, 5.2vw, 4.75rem);
   --text-page-title: clamp(2.25rem, 4.7vw, 4.25rem);
   --text-section-title: clamp(2rem, 3.6vw, 3.25rem);
 }
 
-/* Editorial type scale */
+/* Editorial type scale. Titles follow the booklet: heavy (900), uppercase, tight leading. */
 @utility display-xl {
   font-size: var(--text-hero);
   line-height: 1;
-  letter-spacing: -0.045em;
-  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 @utility display-lg {
   font-size: var(--text-page-title);
-  line-height: 1.03;
-  letter-spacing: -0.04em;
-  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 @utility section-heading {
   font-size: var(--text-section-title);
   line-height: 1.08;
-  letter-spacing: -0.03em;
-  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 @utility section-subheading {
   font-size: clamp(1.75rem, 2.8vw, 2.75rem);
-  line-height: 1.07;
-  letter-spacing: -0.03em;
-  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 /* Opt-in rhythm: compositions can retain their own sizes and natural height. */
@@ -81,8 +99,8 @@
 }
 @utility shadow-float {
   box-shadow:
-    0 24px 60px -24px rgb(29 35 35 / 0.35),
-    0 2px 6px rgb(29 35 35 / 0.06);
+    0 24px 60px -24px rgb(24 24 27 / 0.35),
+    0 2px 6px rgb(24 24 27 / 0.06);
 }
 
 /* Horizontal collections */
@@ -130,20 +148,21 @@ summary:focus-visible,
 [role='tab']:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #b65b35;
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-terracotta);
   outline-offset: 3px;
 }
 [data-surface='dark'] :focus-visible {
-  outline-color: #f4ede3;
+  outline-color: var(--color-cream);
 }
 
 html {
   scroll-padding-top: 6rem;
 }
 
-/* Small accent text needs stronger contrast on cream/ivory; large brand type
-   and terracotta button fills retain the approved palette. */
+/* Small terracotta text: 4.8:1 on cream passes, but only 4.2:1 on sand, so small accent text
+   uses the deep shade everywhere (6.0:1 on sand). Large brand type and button fills keep terracotta. */
 .eyebrow.text-terracotta,
 .text-xs.text-terracotta,
 .text-sm.text-terracotta,

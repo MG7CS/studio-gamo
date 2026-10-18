@@ -41,7 +41,7 @@ export const instructors: Instructor[] = [
   {
     slug: 'samuel-park', name: 'Samuel Park', initials: 'SP', instruments: ['Drums & percussion', 'Bass guitar'],
     instrumentSlugs: ['drums', 'bass'], city: 'Seattle, WA', teaches: 'Kids, teens & adults',
-    formats: ['Private', 'Group'], tone: 'bg-[#8A6A4F] text-white',
+    formats: ['Private', 'Group'], tone: 'bg-muted text-white',
     bio: 'Rhythm-section teacher who helps students feel time, play with dynamics and listen as a band.',
     approach: ['Practice-pad foundations', 'Groove and timing games', 'Playing together as a rhythm section'],
   },

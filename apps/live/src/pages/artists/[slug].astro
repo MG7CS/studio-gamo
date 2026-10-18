@@ -123,23 +123,20 @@ if (unavailable) {
   {artist ? (
     <div>
       <!-- Compact Artist Profile Header -->
-      <section class="bg-[#FBF7F1] border-b border-[#EAE2D6] pt-8 pb-7">
+      <section class="bg-ivory border-b border-sand pt-8 pb-7">
         <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
-          <a
-            href="/artists"
-            class="inline-block text-xs font-semibold text-[#6E675F] hover:text-[#B34B1E] mb-2"
-          >
+          <a href="/artists" class="inline-block text-xs font-semibold text-muted hover:text-terracotta mb-2">
             &larr; All artists
           </a>
 
           <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
             <div>
               <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                <span class="text-xs font-bold uppercase tracking-wider text-[#B34B1E]">
+                <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
                   {artist.genre || artist.roleLabel}
                 </span>
                 {artist.homeCity && artist.homeState && (
-                  <span class="text-xs text-[#6E675F]">
+                  <span class="text-xs text-muted">
                     · {artist.homeCity}, {artist.homeState}
                   </span>
                 )}
@@ -150,25 +147,25 @@ if (unavailable) {
                 )}
               </div>
 
-              <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#191817]">
+              <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-ink uppercase">
                 {artist.stageName}
               </h1>
 
               {artist.bio && (
-                <p class="mt-2 max-w-2xl text-sm sm:text-base text-[#5C554E] leading-relaxed">{artist.bio}</p>
+                <p class="mt-2 max-w-2xl text-sm sm:text-base text-muted leading-relaxed">{artist.bio}</p>
               )}
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5 shrink-0">
               <a
                 href={`/events?metro=all&q=${encodeURIComponent(artist.stageName)}`}
-                class="inline-flex items-center justify-center rounded-full bg-[#B34B1E] hover:bg-[#993E17] text-white px-5 py-2.5 text-sm font-semibold transition-colors"
+                class="inline-flex items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep text-white px-5 py-2.5 text-sm font-semibold transition-colors min-h-11"
               >
                 Filter in marketplace ({artist.upcomingEvents.length})
               </a>
               <a
                 href="/artists#artist-onboarding"
-                class="inline-flex items-center justify-center rounded-full border border-[#D8CBBB] bg-white hover:bg-[#F5EFE6] text-[#191817] px-5 py-2.5 text-sm font-semibold transition-colors"
+                class="inline-flex items-center justify-center rounded-full border border-line bg-white hover:bg-cream text-ink px-5 py-2.5 text-sm font-semibold transition-colors min-h-11"
               >
                 Manage representation
               </a>
@@ -180,10 +177,11 @@ if (unavailable) {
       <!-- Upcoming Tour Dates for this Artist -->
       <section class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="flex items-baseline justify-between gap-4 mb-6">
-          <h2 class="text-xl font-extrabold text-[#191817]">
-            Upcoming dates ({artist.upcomingEvents.length})
-          </h2>
-          <a href="/events" class="text-sm font-semibold text-[#B34B1E] hover:underline">
+          <h2 class="text-xl font-extrabold text-ink">Upcoming dates ({artist.upcomingEvents.length})</h2>
+          <a
+            href="/events"
+            class="inline-flex min-h-11 items-center text-sm font-semibold text-terracotta hover:underline"
+          >
             View full event directory &rarr;
           </a>
         </div>
@@ -195,13 +193,13 @@ if (unavailable) {
             ))}
           </div>
         ) : (
-          <div class="rounded-2xl border border-[#E6DFD3] bg-white p-8 text-center">
-            <p class="text-base font-bold text-[#191817]">
+          <div class="rounded-2xl border border-sand bg-white p-8 text-center">
+            <p class="text-base font-bold text-ink">
               No upcoming public tour dates currently listed for {artist.stageName}.
             </p>
             <a
               href="/events"
-              class="mt-4 inline-flex items-center rounded-full bg-[#B34B1E] px-5 py-2.5 text-sm font-semibold text-white"
+              class="mt-4 inline-flex items-center rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
             >
               Browse all upcoming events
             </a>
@@ -211,12 +209,12 @@ if (unavailable) {
     </div>
   ) : (
     <section class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div class="rounded-2xl border border-[#E6DFD3] bg-white p-8 text-center">
-        <h1 class="text-lg font-bold text-[#191817]">Artist profile temporarily unavailable</h1>
-        <p class="mt-1 text-sm text-[#6E675F]">Please try again or browse the artist directory.</p>
+      <div class="rounded-2xl border border-sand bg-white p-8 text-center">
+        <h1 class="text-lg font-bold text-ink">Artist profile temporarily unavailable</h1>
+        <p class="mt-1 text-sm text-muted">Please try again or browse the artist directory.</p>
         <a
           href="/artists"
-          class="mt-4 inline-flex items-center rounded-full bg-[#B34B1E] px-5 py-2.5 text-sm font-semibold text-white"
+          class="mt-4 inline-flex items-center rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
         >
           Back to artists
         </a>

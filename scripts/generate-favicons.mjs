@@ -11,8 +11,8 @@ const require = createRequire(import.meta.url);
 const sharp = require('sharp');
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const RUST = '#BE5B32';
-const CREAM = '#F6EFE4';
+const RUST = '#B34E24'; // brand terracotta (--color-terracotta)
+const CREAM = '#F9F6F0'; // --color-cream
 const BARS =
   '<rect x="0" y="54" width="22" height="68" rx="11"/><rect x="33" y="25" width="22" height="126" rx="11"/><rect x="66" y="0" width="22" height="176" rx="11"/><rect x="99" y="25" width="22" height="126" rx="11"/><rect x="132" y="54" width="22" height="68" rx="11"/>';
 // Square viewBox centred on the 154x176 symbol with minimal padding.
@@ -50,8 +50,6 @@ const apps = ['web', 'worship', 'academy', 'live', 'production', 'admin'];
 const flat = flatSvg(RUST);
 const files = {
   'favicon.svg': Buffer.from(faviconSvg),
-  'favicon-16x16.png': await png(flat, 16),
-  'favicon-32x32.png': await png(flat, 32),
   'apple-touch-icon.png': await png(appleSvg, 180),
 };
 files['favicon.ico'] = ico(
