@@ -59,6 +59,10 @@ export interface PublicFormGuardOptions {
      */
     perEmail?: PublicFormLimit & { email?: string | null; field?: string };
   };
+  /** Body limit in bytes (default `PUBLIC_FORM_MAX_BYTES`, 64 KiB). */
+  maxBytes?: number;
+  /** Opt in to `multipart/form-data` with a route-specific byte limit (refused with 415 otherwise). */
+  allowMultipart?: { maxBytes: number };
   /** Epoch seconds (tests). */
   now?: number;
   /** Injected siteverify fetch (tests). */
@@ -92,6 +96,7 @@ export interface PublicFormGuardSuccess {
 export type PublicFormErrorCode =
   | 'BAD_REQUEST'
   | 'PAYLOAD_TOO_LARGE'
+  | 'UNSUPPORTED_MEDIA_TYPE'
   | 'UNAVAILABLE'
   | 'TURNSTILE_REQUIRED'
   | 'TURNSTILE_FAILED'
@@ -99,7 +104,7 @@ export type PublicFormErrorCode =
 
 /** A failure a page can render inline: a summary message plus, when it belongs to one, a field. */
 export interface PublicFormError {
-  status: 400 | 403 | 413 | 429 | 503;
+  status: 400 | 403 | 413 | 415 | 429 | 503;
   code: PublicFormErrorCode;
   /** Human sentence for the error summary and API clients. */
   message: string;
@@ -168,38 +173,117 @@ function bodyFromJson(json: Record<string, unknown>): PublicFormBody {
   return { type: 'json', json, get: (name) => all(name)[0] ?? null, getAll: all };
 }
 
-/** Reads a form-encoded, multipart or JSON body once. Null when it is missing, too large or malformed. */
+export type BoundedBodyResult =
+  { ok: true; bytes: Uint8Array } | { ok: false; reason: 'too_large' | 'unreadable' };
+
+/**
+ * Reads at most `maxBytes` of a request body, counting bytes as they arrive and cancelling the stream as
+ * soon as the limit is passed. `Content-Length` is only a fast path for an honest oversize declaration: a
+ * missing or lying header changes nothing. Use it for any route-specific reader (e.g. uploads).
+ */
+export async function readBoundedBody(request: Request, maxBytes: number): Promise<BoundedBodyResult> {
+  if (!Number.isInteger(maxBytes) || maxBytes < 1) throw new RangeError('readBoundedBody: maxBytes');
+  const declared = request.headers.get('content-length');
+  if (declared !== null && /^\d+$/.test(declared.trim()) && Number(declared) > maxBytes)
+    return { ok: false, reason: 'too_large' };
+  if (request.bodyUsed) return { ok: false, reason: 'unreadable' };
+  if (!request.body) return { ok: true, bytes: new Uint8Array(0) };
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => {});
+        return { ok: false, reason: 'too_large' };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, reason: 'unreadable' };
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, bytes };
+}
+
+export interface ReadPublicFormBodyOptions {
+  /** Default `PUBLIC_FORM_MAX_BYTES` (64 KiB). */
+  maxBytes?: number;
+  /**
+   * `multipart/form-data` is refused (415) on public forms unless a route opts in with its own bounded
+   * limit. The bytes are still read through `readBoundedBody` before parsing.
+   */
+  allowMultipart?: { maxBytes: number };
+}
+
+/**
+ * Reads a form-encoded or JSON body once (bounded, byte-counted, strict UTF-8). Multipart only when
+ * `allowMultipart` is set. Fails with 413 when too large, 415 for other content types, 400 when malformed.
+ */
 export async function readPublicFormBody(
   request: Request,
+  options: ReadPublicFormBodyOptions = {},
 ): Promise<{ ok: true; body: PublicFormBody } | { ok: false; error: PublicFormError }> {
   const bad = failure(400, 'BAD_REQUEST', "We couldn't read the form. Please reload the page and try again.");
-  const declared = Number(request.headers.get('content-length') ?? '0');
-  if (declared > PUBLIC_FORM_MAX_BYTES)
-    return { ok: false, error: failure(413, 'PAYLOAD_TOO_LARGE', 'The form is too large to send.') };
-  if (request.bodyUsed) return { ok: false, error: bad };
-  const type = (request.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
+  const tooLarge = failure(
+    413,
+    'PAYLOAD_TOO_LARGE',
+    'The form is too large to send. Please shorten what you typed and try again.',
+  );
+  const contentType = request.headers.get('content-type') ?? '';
+  const type = contentType.split(';')[0].trim().toLowerCase();
+  const multipart = type === 'multipart/form-data';
+  if (multipart && !options.allowMultipart)
+    return {
+      ok: false,
+      error: failure(
+        415,
+        'UNSUPPORTED_MEDIA_TYPE',
+        "This form can't accept file uploads. Please reload the page and send it again.",
+      ),
+    };
+  if (!multipart && type !== 'application/json' && type !== 'application/x-www-form-urlencoded')
+    return {
+      ok: false,
+      error: failure(
+        415,
+        'UNSUPPORTED_MEDIA_TYPE',
+        "We couldn't read the form. Please reload the page and try again.",
+      ),
+    };
+  const limit = multipart
+    ? (options.allowMultipart?.maxBytes ?? PUBLIC_FORM_MAX_BYTES)
+    : (options.maxBytes ?? PUBLIC_FORM_MAX_BYTES);
+  const read = await readBoundedBody(request, limit);
+  if (!read.ok) return { ok: false, error: read.reason === 'too_large' ? tooLarge : bad };
   try {
+    if (multipart) {
+      const form = await new Response(read.bytes as BodyInit, {
+        headers: { 'content-type': contentType },
+      }).formData();
+      return { ok: true, body: bodyFromForm(form) };
+    }
+    const text = new TextDecoder('utf-8', { fatal: true }).decode(read.bytes);
     if (type === 'application/json') {
-      const text = await request.text();
-      if (text.length > PUBLIC_FORM_MAX_BYTES)
-        return { ok: false, error: failure(413, 'PAYLOAD_TOO_LARGE', 'The form is too large to send.') };
       const parsed: unknown = JSON.parse(text);
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ok: false, error: bad };
       return { ok: true, body: bodyFromJson(parsed as Record<string, unknown>) };
     }
-    if (type === 'application/x-www-form-urlencoded') {
-      const text = await request.text();
-      if (text.length > PUBLIC_FORM_MAX_BYTES)
-        return { ok: false, error: failure(413, 'PAYLOAD_TOO_LARGE', 'The form is too large to send.') };
-      const form = new FormData();
-      for (const [k, v] of new URLSearchParams(text)) form.append(k, v);
-      return { ok: true, body: bodyFromForm(form) };
-    }
-    if (type === 'multipart/form-data') return { ok: true, body: bodyFromForm(await request.formData()) };
+    const form = new FormData();
+    for (const [k, v] of new URLSearchParams(text)) form.append(k, v);
+    return { ok: true, body: bodyFromForm(form) };
   } catch {
     return { ok: false, error: bad };
   }
-  return { ok: false, error: bad };
 }
 
 function turnstileError(reason: TurnstileFailure, route: string, fieldId: string): PublicFormError {
@@ -254,7 +338,10 @@ async function runGuard(
   const requireTurnstile = options.requireTurnstile !== false;
   const now = options.now ?? Math.floor(Date.now() / 1000);
 
-  const parsed = await readPublicFormBody(input.request);
+  const parsed = await readPublicFormBody(input.request, {
+    maxBytes: options.maxBytes,
+    allowMultipart: options.allowMultipart,
+  });
   if (!parsed.ok) return parsed;
   const body = parsed.body;
 
