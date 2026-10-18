@@ -15,6 +15,23 @@ export interface SendEmailOptions {
   tags?: { name: string; value: string }[];
   /** Sent as Resend's Idempotency-Key (e.g. the outbox job id); also enables one safe retry. */
   idempotencyKey?: string;
+  /**
+   * Files sent with the message (Resend `attachments`). `content` is Base64. `contentId` embeds an inline
+   * image referenced from the HTML as `<img src="cid:…">` (Resend `content_id`).
+   */
+  attachments?: EmailAttachment[];
+  /** Extra message headers (Resend `headers`), e.g. `List-Unsubscribe`. */
+  headers?: Record<string, string>;
+}
+
+export interface EmailAttachment {
+  filename: string;
+  /** Base64-encoded file content. */
+  content: string;
+  /** Resend `content_type`; derived from `filename` when omitted. */
+  contentType?: string;
+  /** Resend `content_id`, for inline images (`cid:`). */
+  contentId?: string;
 }
 
 export interface EmailSendResult {
@@ -24,6 +41,10 @@ export interface EmailSendResult {
   mock?: boolean;
   /** No real API key and simulation not allowed: nothing was sent (callers should keep the job queued). */
   notConfigured?: boolean;
+  /** HTTP status of a failed API call (absent for network errors). */
+  status?: number;
+  /** Short machine code for logs/outbox rows: `http_<status>`, `network` or `not_configured`. Never content. */
+  errorCode?: string;
 }
 
 export interface ResendConfig {
@@ -38,6 +59,8 @@ export interface ResendConfig {
   allowMock?: boolean;
   /** Request timeout in milliseconds (default 10 s). */
   timeoutMs?: number;
+  /** Injected for tests; defaults to the global `fetch` at call time. */
+  fetchImpl?: typeof fetch;
 }
 
 /** gamostudio.org is the verified Resend sending domain; replies go to the same mailbox. */
@@ -65,7 +88,12 @@ export function createResendClient(config?: ResendConfig) {
 
       if (!isRealKey(apiKey)) {
         if (!config?.allowMock) {
-          return { success: false, notConfigured: true, error: 'Email delivery is not configured.' };
+          return {
+            success: false,
+            notConfigured: true,
+            errorCode: 'not_configured',
+            error: 'Email delivery is not configured.',
+          };
         }
         const mockId = `mock_msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         return {
@@ -80,7 +108,7 @@ export function createResendClient(config?: ResendConfig) {
       for (let attempt = 1; attempt <= attempts; attempt++) {
         let response: Response;
         try {
-          response = await fetch(RESEND_API_ENDPOINT, {
+          response = await (config?.fetchImpl ?? fetch)(RESEND_API_ENDPOINT, {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${apiKey}`,
@@ -96,19 +124,35 @@ export function createResendClient(config?: ResendConfig) {
               text: options.text,
               reply_to: options.replyTo || defaultReplyTo,
               tags: options.tags,
+              ...(options.attachments?.length
+                ? {
+                    attachments: options.attachments.map((a) => ({
+                      filename: a.filename,
+                      content: a.content,
+                      ...(a.contentType ? { content_type: a.contentType } : {}),
+                      ...(a.contentId ? { content_id: a.contentId } : {}),
+                    })),
+                  }
+                : {}),
+              ...(options.headers && Object.keys(options.headers).length ? { headers: options.headers } : {}),
             }),
           });
         } catch {
           console.error('[Resend Network Error]');
           if (attempt < attempts) continue;
-          return { success: false, error: 'Failed to dispatch email via Resend' };
+          return { success: false, errorCode: 'network', error: 'Failed to dispatch email via Resend' };
         }
 
         if (!response.ok) {
           await response.body?.cancel();
           console.error(`[Resend Error] Status ${response.status}`);
           if (attempt < attempts && (response.status === 429 || response.status >= 500)) continue;
-          return { success: false, error: `Resend API returned status ${response.status}` };
+          return {
+            success: false,
+            status: response.status,
+            errorCode: `http_${response.status}`,
+            error: `Resend API returned status ${response.status}`,
+          };
         }
 
         const data = (await response.json()) as { id: string };
@@ -118,7 +162,7 @@ export function createResendClient(config?: ResendConfig) {
           mock: false,
         };
       }
-      return { success: false, error: 'Failed to dispatch email via Resend' };
+      return { success: false, errorCode: 'network', error: 'Failed to dispatch email via Resend' };
     },
   };
 }
