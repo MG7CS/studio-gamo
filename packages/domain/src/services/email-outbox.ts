@@ -72,6 +72,15 @@ export interface OutboxMessage {
   now: number;
 }
 
+/** A second call reused an idempotency key with a different recipient; nothing was sent. */
+export class OutboxRecipientMismatchError extends Error {
+  readonly code = 'IDEMPOTENCY_KEY_REUSED_FOR_DIFFERENT_RECIPIENT';
+  constructor() {
+    super('IDEMPOTENCY_KEY_REUSED_FOR_DIFFERENT_RECIPIENT');
+    this.name = 'OutboxRecipientMismatchError';
+  }
+}
+
 export interface OutboxResult {
   /** Null only when nothing could be recorded (PII_HASH_SECRET missing outside local). */
   logId: string | null;
@@ -221,7 +230,7 @@ async function deliver(
 const CLAIM_SQL = `UPDATE email_log SET attempts = attempts + 1, status = 'queued', next_attempt_at = ?2, updated_at = ?3
   WHERE id = ?1 AND status IN ('queued', 'failed', 'not_configured') AND attempts < ?4
     AND (next_attempt_at IS NULL OR next_attempt_at <= ?3)
-  RETURNING id, attempts, recipient_hash`;
+  RETURNING id, attempts`;
 
 /** Sends (or re-sends) one message through the outbox. See the module header for the rules. */
 export async function sendOutboxEmail(
@@ -265,10 +274,15 @@ export async function sendOutboxEmail(
     .bind(message.idempotencyKey)
     .first()) as Pick<LogRow, 'id' | 'status' | 'attempts' | 'provider_message_id' | 'recipient_hash'> | null;
   if (!existing) throw new Error('outbox: row vanished');
+  // An idempotency key belongs to one recipient: never send a different address under an old key.
+  if (!constantTimeEqual(existing.recipient_hash, recipientHash)) {
+    console.error(`[email-outbox] ${message.kind}: IDEMPOTENCY_KEY_REUSED_FOR_DIFFERENT_RECIPIENT`);
+    throw new OutboxRecipientMismatchError();
+  }
   const claimed = (await db
     .prepare(CLAIM_SQL)
     .bind(existing.id, now + OUTBOX_LEASE_SECONDS, now, OUTBOX_MAX_ATTEMPTS)
-    .first()) as { id: string; attempts: number; recipient_hash: string } | null;
+    .first()) as { id: string; attempts: number } | null;
   if (!claimed)
     return {
       logId: existing.id,
@@ -278,11 +292,11 @@ export async function sendOutboxEmail(
       providerMessageId: existing.provider_message_id,
       attempts: Number(existing.attempts),
     };
-  // The first call's address and hash stay authoritative for this key.
+  // Suppression is checked on the hash of the address actually sent to (equal to the stored one, above).
   return deliver(
     db,
     env,
-    { id: claimed.id, attempts: Number(claimed.attempts), recipientHash: claimed.recipient_hash },
+    { id: claimed.id, attempts: Number(claimed.attempts), recipientHash },
     message,
     to,
     options,
@@ -301,8 +315,10 @@ export interface DueOutboxRow {
 }
 
 /**
- * Re-sends due rows (queued/failed/not_configured with `next_attempt_at <= now`). Bodies are not stored, so
- * `render(row)` rebuilds the message from `kind` + related ids; return null to stop retrying that row.
+ * Re-sends due rows (queued/failed/not_configured with `next_attempt_at <= now`) to the **stored**
+ * `recipient_email` (rows whose address was purged are closed as `not_renderable`). Bodies are not stored,
+ * so `render(row)` rebuilds subject/body from `kind` + related ids (it cannot change the recipient); return
+ * null to stop retrying that row.
  * For a future cron (O-19); returns per-row outcomes.
  */
 export async function retryDueOutboxEmails(

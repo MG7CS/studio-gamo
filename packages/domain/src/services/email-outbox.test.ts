@@ -7,6 +7,7 @@ import {
   EmailOutbox,
   isSuppressed,
   OUTBOX_MAX_ATTEMPTS,
+  OutboxRecipientMismatchError,
   purgeRecipientEmails,
   retryDueOutboxEmails,
   sendOutboxEmail,
@@ -339,4 +340,43 @@ test('verifyResendWebhook refuses bad signatures, tampering, stale timestamps, m
   assert.deepEqual(await check(webhook(body, noId)), { ok: false, reason: 'missing_headers' });
   assert.deepEqual(await check(webhook(body, headers()), null), { ok: false, reason: 'not_configured' });
   assert.deepEqual(await check(webhook(body, headers()), '  '), { ok: false, reason: 'not_configured' });
+});
+
+test('an idempotency key never sends to a different recipient; retries use the stored address only', async () => {
+  const db = await createMigratedD1();
+  await sendOutboxEmail(db, { ...ENV, RESEND_API_KEY: undefined }, message());
+  const r = resend([ok('re_should_not_happen')]);
+  await assert.rejects(
+    sendOutboxEmail(db, ENV, message({ to: 'someone-else@example.org', now: NOW + 600 }), {
+      fetchImpl: r.impl,
+    }),
+    (err: unknown) =>
+      err instanceof OutboxRecipientMismatchError &&
+      err.code === 'IDEMPOTENCY_KEY_REUSED_FOR_DIFFERENT_RECIPIENT',
+  );
+  assert.equal(r.calls.length, 0);
+  assert.equal(row(db).attempts, 1, 'the refused call did not claim the row');
+  // Same address in another spelling is the same recipient.
+  const same = await sendOutboxEmail(db, ENV, message({ to: ' GUEST@example.org ', now: NOW + 600 }), {
+    fetchImpl: r.impl,
+  });
+  assert.equal(same.status, 'sent');
+
+  // retryDue: a render that tries to change the recipient cannot; purged rows are closed, not sent.
+  await sendOutboxEmail(db, { ...ENV, RESEND_API_KEY: undefined }, message({ idempotencyKey: 'k-retry' }));
+  await sendOutboxEmail(db, { ...ENV, RESEND_API_KEY: undefined }, message({ idempotencyKey: 'k-purged' }));
+  db.sqlite.prepare("UPDATE email_log SET recipient_email = NULL WHERE idempotency_key = 'k-purged'").run();
+  const retry = resend([ok('re_retry')]);
+  await retryDueOutboxEmails(
+    db,
+    ENV,
+    {
+      now: NOW + 600,
+      render: async () => ({ subject: 'Again', text: 'again', to: 'attacker@example.org' }) as never,
+    },
+    { fetchImpl: retry.impl },
+  );
+  assert.equal(retry.calls.length, 1);
+  assert.deepEqual(retry.calls[0].body.to, ['guest@example.org']);
+  assert.equal(row(db, 'k-purged').last_error_code, 'not_renderable');
 });
