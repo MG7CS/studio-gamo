@@ -1,0 +1,119 @@
+---
+/**
+ * The staff decision forms for one provider profile (POST /api/review/providers/{id} → 303). Each form
+ * carries `expected_status` (the status shown) so a stale tab cannot overwrite a newer decision. The
+ * staff name on the record comes from the signed-in staff account, never from the form.
+ */
+interface Props {
+  id: string;
+  status: string;
+  actions: string[];
+  isChurch: boolean;
+  staffName: string;
+  errorField?: string | null;
+}
+const { id, status, actions, isChurch, staffName, errorField } = Astro.props;
+const action = `/api/review/providers/${encodeURIComponent(id)}`;
+const field = 'mt-1 block min-h-11 w-full rounded-xl border border-ink/50 bg-white px-3 py-2 text-sm text-charcoal';
+const label = 'block text-sm font-semibold text-charcoal';
+const button = 'inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold';
+const has = (a: string) => actions.includes(a);
+const ZONES = ['America/Phoenix', 'America/Denver', 'America/Los_Angeles', 'America/Chicago', 'America/New_York', 'Pacific/Honolulu', 'America/Anchorage'];
+---
+
+<div class="space-y-6">
+  <p class="text-sm text-ink-soft">Decisions are recorded as <strong class="text-charcoal">{staffName}</strong>.</p>
+
+  {
+    has('schedule_meeting') && (
+      <form method="post" action={action} class="space-y-3 rounded-2xl border border-sand bg-white p-5">
+        <h3 class="text-base font-semibold text-charcoal">{isChurch ? 'Schedule the in-person verification meeting' : 'Schedule a meeting (optional)'}</h3>
+        <input type="hidden" name="action" value="schedule_meeting" />
+        <input type="hidden" name="expected_status" value={status} />
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class={label} for="meeting_at">Date and time</label>
+            <input id="meeting_at" name="meeting_at" type="datetime-local" required class={field} aria-invalid={errorField === 'meeting_at' ? 'true' : undefined} />
+          </div>
+          <div>
+            <label class={label} for="meeting_zone">Time zone</label>
+            <select id="meeting_zone" name="meeting_zone" class={field}>
+              {ZONES.map((z) => (
+                <option value={z} selected={z === 'America/Phoenix'}>
+                  {z.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class={label} for="meeting_location">Location</label>
+          <input id="meeting_location" name="meeting_location" required maxlength="300" class={field} aria-invalid={errorField === 'meeting_location' ? 'true' : undefined} />
+        </div>
+        <div>
+          <label class={label} for="meeting_staff">Staff attending</label>
+          <input id="meeting_staff" name="meeting_staff" required maxlength="120" value={staffName} class={field} />
+        </div>
+        <div>
+          <label class={label} for="schedule_notes">Notes (optional)</label>
+          <textarea id="schedule_notes" name="notes" rows="2" maxlength="2000" class={field} />
+        </div>
+        <button type="submit" class={`${button} bg-charcoal text-cream`}>Schedule meeting</button>
+      </form>
+    )
+  }
+
+  {
+    has('verify') && (
+      <form method="post" action={action} class="space-y-3 rounded-2xl border border-sand bg-white p-5">
+        <h3 class="text-base font-semibold text-charcoal">Verify</h3>
+        <input type="hidden" name="action" value="verify" />
+        <input type="hidden" name="expected_status" value={status} />
+        <label class={label} for="verify_notes">Verification notes (required)</label>
+        <textarea id="verify_notes" name="notes" rows="3" required maxlength="2000" class={field} aria-invalid={errorField === 'notes' ? 'true' : undefined} />
+        <p class="text-xs text-ink-soft">What you checked and with whom. {isChurch && 'The meeting date on record is attached automatically.'}</p>
+        <button type="submit" class={`${button} bg-terracotta-deep text-white`}>Verify</button>
+      </form>
+    )
+  }
+  {
+    !has('verify') && isChurch && status === 'submitted' && (
+      <p class="text-sm text-ink-soft">A church can be verified once the in-person meeting is scheduled.</p>
+    )
+  }
+
+  {
+    (['start_review', 'request_changes', 'reject', 'suspend', 'reinstate'] as const)
+      .filter(has)
+      .map((a) => (
+        <form method="post" action={action} class="space-y-3 rounded-2xl border border-sand bg-white p-5">
+          <h3 class="text-base font-semibold text-charcoal">
+            {{
+              start_review: 'Mark as in review',
+              request_changes: 'Request changes',
+              reject: 'Reject',
+              suspend: 'Suspend',
+              reinstate: 'Reinstate for review',
+            }[a]}
+          </h3>
+          <input type="hidden" name="action" value={a} />
+          <input type="hidden" name="expected_status" value={status} />
+          {a !== 'start_review' && a !== 'reinstate' && (
+            <>
+              <label class={label} for={`${a}_notes`}>
+                {a === 'request_changes' ? 'Message to the provider (required)' : 'Reason (required, sent to the provider)'}
+              </label>
+              <textarea id={`${a}_notes`} name="notes" rows="3" required maxlength="2000" class={field} />
+            </>
+          )}
+          <button
+            type="submit"
+            class:list={[button, a === 'reject' || a === 'suspend' ? 'bg-white text-terracotta-deep ring-2 ring-terracotta-deep' : 'bg-charcoal text-cream']}
+          >
+            {{ start_review: 'Start review', request_changes: 'Send request', reject: 'Reject', suspend: 'Suspend', reinstate: 'Reinstate' }[a]}
+          </button>
+        </form>
+      ))
+  }
+  {actions.length === 0 && <p class="text-sm text-ink-soft">No staff action is possible in this status.</p>}
+</div>

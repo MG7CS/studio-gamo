@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 /** Section 8: family-friendly registration journey with a rich, high-contrast household sign-up preview card. */
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -85,7 +85,7 @@ const learners = [
       </ol>
 
       <div class="mt-8 flex flex-wrap items-center gap-3">
-        <ButtonLink href={inquiryUrl('Lesson interest')} arrow>
+        <ButtonLink href={siteUrl('academy', '/lessons')} arrow>
           Start family registration
         </ButtonLink>
         <ButtonLink href="/instruments" variant="secondary">
@@ -172,7 +172,7 @@ const learners = [
           ))}
 
           <a
-            href={inquiryUrl('Lesson interest')}
+            href={siteUrl('academy', '/lessons')}
             class="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-terracotta/45 bg-cream/55 px-4 py-3.5 text-sm font-semibold text-charcoal transition-colors hover:bg-cream"
           >
             <span class="inline-flex items-center gap-2.5">
@@ -188,7 +188,7 @@ const learners = [
         <div class="mt-6 flex flex-col gap-3 border-t border-sand pt-5 sm:flex-row sm:items-center sm:justify-between">
           <span class="text-xs font-medium text-ink-soft">Takes ~2 minutes · No payment required</span>
           <a
-            href={inquiryUrl('Lesson interest')}
+            href={siteUrl('academy', '/lessons')}
             class="inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark"
           >
             Continue to schedule

@@ -53,14 +53,12 @@ test('program demo flows keep the original 303 status of their stubs', () => {
   }
 });
 
-test('program demo flows go to the matching inquiry topic', () => {
-  assert.match(
-    redirect(worship, '/hire/schedule')!.location!,
-    /\/contact\?interest=Church%20musician%20request$/,
-  );
-  assert.match(redirect(worship, '/apply')!.location!, /\/contact\?interest=Musician%20application$/);
-  assert.match(redirect(academy, '/register')!.location!, /interest=Lesson%20interest$/);
-  assert.match(redirect(academy, '/host-apply')!.location!, /interest=Church-hosted%20lessons$/);
+test('program demo flows go to the matching provider sign-up, lessons or inquiry topic', () => {
+  assert.match(redirect(worship, '/hire/schedule')!.location!, /\/account\/signup\?role=church$/);
+  assert.match(redirect(worship, '/apply')!.location!, /\/account\/signup\?role=musician$/);
+  assert.match(redirect(academy, '/register')!.location!, /\/lessons$/);
+  assert.match(redirect(academy, '/host-apply')!.location!, /\/account\/signup\?role=church$/);
+  // Production consultations come from client churches (not a provider role): still the inquiry form.
   assert.match(
     redirect(production, '/consultation/confirmation')!.location!,
     /interest=Production%20consultation$/,
