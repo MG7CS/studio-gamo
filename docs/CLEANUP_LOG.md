@@ -101,6 +101,8 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-35 | Self-hosting Inter | download files into `public/`; `@fontsource-variable/inter` | `@fontsource-variable/inter` (OFL) imported from tokens.css; Latin subset preloaded via `FontPreload.astro` | Versioned, fingerprinted by Vite, `font-display: swap`, weights 100–900 (makes `font-black` real), no runtime third party. |
 | D-36 | Tap targets | 44 px everywhere; 44 px on touch widths | 44 px for every control at 360/768; shared header controls 44 px at all widths; desktop pointer-only nav pills unchanged; WCAG 2.5.8 exceptions honored (inline links in text, equivalent same-href control, stretched-link cards) | "Tap" targets are a touch concern; forcing 44 px desktop nav pills would break the header bar. |
 | D-37 | Decorative text failing contrast | darken; aria-hidden; pseudo-element | Render purely decorative glyphs (giant initials, step numerals in ordered lists) via `::after { content: attr(data-glyph) }` | Keeps the design; not exposed as text to assistive tech or the contrast check; meaning is conveyed by the list order and headings. |
+| D-38 | Capitalization convention | sentence case everywhere; Title Case everywhere | Document `<title>`s in Title Case (the majority already); headings, body text and in-page CTAs in sentence case; navigation labels unchanged | Smallest diff to a consistent rule; titles and headings were each already mostly in that style. |
+| D-39 | HTML comments in templates | keep; strip with a build step; convert | Convert template `<!-- -->` comments to Astro `{/* */}` comments (stripped at build) | 102 internal notes (design-file names, implementation remarks) were shipped to every visitor on Live and in auth screens. |
 | D-15 | Four domain services (`Academy`, `Worship`, `Production`, `Partnership`) and six zod schemas never used | keep as "foundation"; delete | Deleted (recoverable from `35d233d`) | Dead code with no route, test or caller; they implied functionality that does not exist. `MediaService` kept (tested). `createApiClient` kept (documented in `docs/OPENAPI_ARCHITECTURE.md`). |
 
 ## 2. Done
@@ -167,6 +169,16 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **Images**: Live card images lazy + `decoding=async` + dimensions (were forced eager/sync on every card); mid-page Live image lazy. All other photos already use `<picture>` with AVIF/WebP and dimensions via `Photo.astro`.
 - **Links** (F-53 resolved): 666 unique internal/cross-app link and image targets from 59 pages: 3 broken → 0. Real bug fixed: web `/live` fallback approved two editorially held listings. Preview/production builds inline correct sibling origins; `workers.dev` fallback pattern corrected.
 - **Build**: builds no longer bind the dev inspector port (building while dev servers ran failed).
+
+### Phase 5 — Content consistency (editing only)
+
+- **Headline/tagline:** canonical Academy headline in `apps/web/src/data/programs.ts`; homepage card tagline `Worship. Learn. Gather. Serve.` (`HomeEditorialHero.astro`). The tagline still appears only in these places (O-11).
+- **Spelling/grammar:** neighborhood (×2), favorite, traveling, practice; `apps/worship/src/pages/index.astro` (2 sentences), `apps/web/src/pages/llms.txt.ts`, `apps/web/src/data/organization.ts` FAQ.
+- **Capitalization** (D-38): 34 document titles normalized (Title Case, "Sign In" kept as a phrasal verb); mission page CTA to sentence case.
+- **Shipped comments** (D-39): 102 converted in 12 files (Live pages/components, auth components).
+- **Fictional data:** sample emails on `riversidefellowship.org` (real-looking third-party domain) and fictional staff on `gamostudio.org` moved to `*.example`/`example.invalid` (admin fixtures, dashboard demo persona, a test).
+- **Checked, nothing to change:** no lorem/TBD/placeholder copy; no prohibited legal-status words in public output (content audit); program names used consistently (Gamo Studios/Worship/Academy/Live/Production). "Gamo Live Listings" is the name of the listings publisher (data), kept.
+- **Not changed (owner):** program-status wording (O-04), `hello@gamostudios.org` vs `gamostudio.org` (O-01 — `hello@gamostudios.org` does not appear in the code; other `gamostudios` addresses do), the musician pool's name varies between "Musician Collection", "musician collection", "a vetted collection" and "our reviewed network" (O-18), giving-style wording (O-06), "developing … Public Benefit Corporation" (O-07).
 
 ## 3. Findings
 
@@ -254,6 +266,7 @@ Nothing in this section was changed in code unless the row says so.
 | O-15 | **Newsletter.** The footer had an email signup that stored and sent nothing (now a "Contact us for updates" link). | choose a mailing-list provider (needs approval: new external service); keep the link | Keep the link until a provider is approved. |
 | O-16 | **Uppercase titles.** Per the booklet, page and section titles are now 900 uppercase. Some `h1`s are full sentences (e.g. Academy instructor pages: "A patient piano and voice teacher who loves…") and read heavy in uppercase. | keep; sentence-case long statements; shorten those headings | Keep the rule and shorten sentence-style headings (copy decision). |
 | O-17 | **Homepage sample events** (`HomeLiveSpotlight.astro`) are now labeled "Sample", but the AGENTS.md Live rule says Live surfaces must show real database events. | label (done); replace with the same DB-backed list as gamostudio.org/live | Replace with real events (small code change once approved). |
+| O-18 | **Name of the musician pool** varies: "Musician Collection" (footer), "musician collection" (`organization.ts`, `GetStartedRoutes.astro`, `JoinSection.astro`), "a vetted collection" (`programs.ts`), "our reviewed network" (worship layout). | pick one term | Pick one; then a one-line copy pass. |
 | O-14 | **Admin nav labels use `/nonprofit/*` URLs** and "Fund reconciliation", "Stewardship reports" (`apps/admin/src/data/workspace.ts:96-102`); admin data says tax status "under evaluation" (`apps/admin/src/data/admin/nonprofit.ts:87`). Staff-only, but contradicts the PBC statement. | rename routes; keep | Rename to `/organization/*` when admin is next worked on. Not changed. |
 
 **O-04 detail — every program-status phrase found (unchanged):**
@@ -325,12 +338,20 @@ Nothing in this section was changed in code unless the row says so.
 | 404 on 5 public apps | branded page, status 404 |
 | Preview/production builds of web | correct sibling origins inlined |
 
+### After Phase 5
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` | **pass** |
+| Rendered Live pages | 0 HTML comments shipped (was 3–25 per page) |
+
 ## 7. How to revert
 
 | Phase | Commit | Revert |
 | --- | --- | --- |
 | Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
 | Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
-| Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · (log commit follows) | `git revert` newest first, or `git reset --hard accea2b` |
+| Phase 5 | `f9d4a1f` content · (log commit follows) | `git revert f9d4a1f` |
+| Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · `c933bc2` log | `git revert` newest first, or `git reset --hard accea2b` |
 | Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `git revert` newest first, or `git reset --hard 062aa98` |
 | Phase 2 | `8d47e01` types · `13d54a7` fail closed + sample labels + stub removal · `174fef0` dedupe · `5b00c0d` env validation · `062aa98` log | `git revert` newest first, or `git reset --hard c01cf18` (end of Phase 1) |
