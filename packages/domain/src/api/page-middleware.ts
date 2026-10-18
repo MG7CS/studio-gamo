@@ -63,8 +63,6 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
     const env = await getRuntimeEnv(context);
     const misconfigured = checkEnvOnce(app, env, context.request);
     if (misconfigured) return misconfigured;
-    const legacy = options.legacyRedirects && matchLegacyRedirect(options.legacyRedirects, context.url);
-    if (legacy) return legacy;
     // API handlers own their contract-specific authorization and status codes.
     // robots.txt, sitemap.xml and llms.txt are public crawler files and must stay cacheable.
     if (
@@ -117,6 +115,9 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
           headers: { Location: '/account/access-denied', 'Cache-Control': 'no-store' },
         });
     }
+    // After the private-page guard, so a retired private URL still asks anonymous visitors to sign in first.
+    const legacy = options.legacyRedirects && matchLegacyRedirect(options.legacyRedirects, context.url);
+    if (legacy) return legacy;
     const response = await next();
     response.headers.set('Cache-Control', pageCacheControl(app, pathname));
     if (privatePage || pathname.startsWith('/account'))
