@@ -1,17 +1,34 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  index,
+  uniqueIndex,
+  primaryKey,
+  foreignKey,
+  type AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core';
 
 // ============================================================================
 // 1. IDENTITY, ACCOUNTS & ACCESS
 // ============================================================================
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  displayName: text('display_name'),
-  verifiedEmailAt: integer('verified_email_at', { mode: 'timestamp' }),
-  status: text('status').notNull().default('active'), // 'active' | 'suspended' | 'archived'
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-});
+export const users = sqliteTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull().unique(),
+    displayName: text('display_name'),
+    verifiedEmailAt: integer('verified_email_at', { mode: 'timestamp' }),
+    status: text('status').notNull().default('active'), // 'active' | 'suspended' | 'archived'
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    // 0012: shared person record (set only from a verified email; never grants product access)
+    personId: text('person_id').references((): AnySQLiteColumn => persons.id, { onDelete: 'set null' }),
+  },
+  (t) => [index('users_person_idx').on(t.personId)],
+);
 
 export const sessions = sqliteTable(
   'sessions',
@@ -26,8 +43,14 @@ export const sessions = sqliteTable(
     ipHash: text('ip_hash'),
     userAgent: text('user_agent'),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    clerkSessionId: text('clerk_session_id'), // 0012: Clerk `sid`, revoked by the Clerk webhook
   },
-  (t) => [index('sessions_user_idx').on(t.userId)],
+  (t) => [
+    index('sessions_user_idx').on(t.userId),
+    index('sessions_clerk_session_idx')
+      .on(t.clerkSessionId)
+      .where(sql`clerk_session_id IS NOT NULL`),
+  ],
 );
 
 export const productAccounts = sqliteTable(
@@ -400,6 +423,9 @@ export const organizerProfiles = sqliteTable(
     verificationStatus: text('verification_status').notNull().default('unverified'), // 'unverified' | 'submitted' | 'verified' | 'rejected'
     ticketingAuthorizedAt: integer('ticketing_authorized_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    // 0012: manual review of an organizer's first event (decision 4)
+    firstEventApprovedAt: integer('first_event_approved_at', { mode: 'timestamp' }),
+    alwaysReview: integer('always_review', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => [index('organizer_org_idx').on(t.organizationId)],
 );
@@ -451,8 +477,20 @@ export const events = sqliteTable(
     editorialNotes: text('editorial_notes'),
     independentDisclosure: text('independent_disclosure'),
     isFeatured: integer('is_featured', { mode: 'boolean' }).notNull().default(false),
+    // 0013: venue, blueprint and event changes
+    venueId: text('venue_id').references((): AnySQLiteColumn => venues.id, { onDelete: 'set null' }),
+    venueMapId: text('venue_map_id').references((): AnySQLiteColumn => venueMaps.id, {
+      onDelete: 'set null',
+    }),
+    firstEventReview: integer('first_event_review', { mode: 'boolean' }).notNull().default(false),
+    cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    rescheduledFromStartsAt: integer('rescheduled_from_starts_at', { mode: 'timestamp' }),
+    doorSalesCashEnabled: integer('door_sales_cash_enabled', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => [
+    index('events_venue_idx')
+      .on(t.venueId)
+      .where(sql`venue_id IS NOT NULL`),
     index('events_organizer_idx').on(t.organizerId),
     index('events_status_idx').on(t.status),
     index('events_starts_at_idx').on(t.startsAt),
@@ -476,6 +514,7 @@ export const eventOccurrences = sqliteTable(
   (t) => [index('occurrences_event_idx').on(t.eventId)],
 );
 
+/** Ticket categories ("TicketCategory" in code). Counts are units = tickets × seats_per_ticket. */
 export const ticketTiers = sqliteTable(
   'ticket_tiers',
   {
@@ -486,10 +525,31 @@ export const ticketTiers = sqliteTable(
     name: text('name').notNull(),
     priceCents: integer('price_cents').notNull().default(0),
     capacity: integer('capacity').notNull().default(100),
-    reservedCount: integer('reserved_count').notNull().default(0),
+    reservedCount: integer('reserved_count').notNull().default(0), // units held + sold
     note: text('note'),
+    // 0013: categories
+    kind: text('kind').notNull().default('general'), // CategoryKind
+    description: text('description'),
+    soldCount: integer('sold_count').notNull().default(0), // units sold (≤ reserved_count)
+    perOrderLimit: integer('per_order_limit'),
+    minAge: integer('min_age'),
+    maxAge: integer('max_age'),
+    seatsPerTicket: integer('seats_per_ticket').notNull().default(1),
+    zoneCodesJson: text('zone_codes_json'),
+    validDaysJson: text('valid_days_json'),
+    salesStartAt: integer('sales_start_at', { mode: 'timestamp' }),
+    salesEndAt: integer('sales_end_at', { mode: 'timestamp' }),
+    requiresCompanionOf: text('requires_companion_of').references((): AnySQLiteColumn => ticketTiers.id, {
+      onDelete: 'set null',
+    }),
+    currency: text('currency').notNull().default('usd'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    status: text('status').notNull().default('active'), // CategoryStatus
   },
-  (t) => [index('ticket_tiers_event_idx').on(t.eventId)],
+  (t) => [
+    index('ticket_tiers_event_idx').on(t.eventId),
+    index('ticket_tiers_event_sort_idx').on(t.eventId, t.status, t.sortOrder),
+  ],
 );
 
 export const eventRegistrations = sqliteTable(
@@ -978,10 +1038,35 @@ export const ticketHolds = sqliteTable(
     status: text('status').notNull().default('held'), // 'held' | 'converted' | 'expired' | 'released'
     expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    // 0013: trigger-managed holds are the ones with order_item_id (see docs/DATABASE.md)
+    orderId: text('order_id').references((): AnySQLiteColumn => ticketOrders.id, { onDelete: 'cascade' }),
+    orderItemId: text('order_item_id').references((): AnySQLiteColumn => orderItems.id, {
+      onDelete: 'cascade',
+    }),
+    sectionId: text('section_id').references((): AnySQLiteColumn => venueSections.id),
+    seatId: text('seat_id').references((): AnySQLiteColumn => venueSeats.id),
+    customerProfileId: text('customer_profile_id').references((): AnySQLiteColumn => customerProfiles.id, {
+      onDelete: 'set null',
+    }),
+    stripeCheckoutSessionId: text('stripe_checkout_session_id'),
+    releasedAt: integer('released_at', { mode: 'timestamp' }),
   },
   (t) => [
     index('ticket_holds_event_tier_idx').on(t.eventId, t.tierId, t.status),
     index('ticket_holds_expires_idx').on(t.expiresAt, t.status),
+    index('ticket_holds_order_idx')
+      .on(t.orderId, t.status)
+      .where(sql`order_id IS NOT NULL`),
+    index('ticket_holds_order_item_idx')
+      .on(t.orderItemId, t.status)
+      .where(sql`order_item_id IS NOT NULL`),
+    index('ticket_holds_event_sweep_idx').on(t.eventId, t.status, t.expiresAt),
+    index('ticket_holds_checkout_idx')
+      .on(t.stripeCheckoutSessionId)
+      .where(sql`stripe_checkout_session_id IS NOT NULL`),
+    uniqueIndex('ticket_holds_seat_unique')
+      .on(t.eventId, t.seatId)
+      .where(sql`status = 'held' AND seat_id IS NOT NULL`),
   ],
 );
 
@@ -1010,14 +1095,41 @@ export const ticketOrders = sqliteTable(
     stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
     stripePaymentIntentId: text('stripe_payment_intent_id'),
     idempotencyKey: text('idempotency_key').notNull().unique(),
-    status: text('status').notNull().default('pending_payment'), // 'pending_payment' | 'pending_approval' | 'confirmed' | 'refunded' | 'partially_refunded' | 'disputed' | 'canceled'
+    status: text('status').notNull().default('pending_payment'), // OrderStatus (+ legacy 'pending_approval' | 'canceled')
     confirmedAt: integer('confirmed_at', { mode: 'timestamp' }),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    // 0013
+    customerProfileId: text('customer_profile_id').references((): AnySQLiteColumn => customerProfiles.id, {
+      onDelete: 'set null',
+    }),
+    orderReference: text('order_reference'), // GL-XXXX-XXXX
+    holdExpiresAt: integer('hold_expires_at', { mode: 'timestamp' }),
+    stripeCheckoutExpiresAt: integer('stripe_checkout_expires_at', { mode: 'timestamp' }),
+    amountRefundedCents: integer('amount_refunded_cents').notNull().default(0),
+    paymentStatus: text('payment_status'), // PaymentStatus
+    paymentMethod: text('payment_method'), // PaymentMethod
+    disputedAt: integer('disputed_at', { mode: 'timestamp' }),
+    cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    policySnapshotJson: text('policy_snapshot_json'),
+    source: text('source').notNull().default('online'), // OrderSource
+    verificationRequired: integer('verification_required', { mode: 'boolean' }).notNull().default(false),
+    emailVerifiedAt: integer('email_verified_at', { mode: 'timestamp' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }),
   },
   (t) => [
     index('ticket_orders_event_idx').on(t.eventId, t.status),
     index('ticket_orders_email_idx').on(t.purchaserEmail),
     index('ticket_orders_session_idx').on(t.stripeCheckoutSessionId),
+    uniqueIndex('ticket_orders_reference_unique')
+      .on(t.orderReference)
+      .where(sql`order_reference IS NOT NULL`),
+    index('ticket_orders_customer_idx')
+      .on(t.customerProfileId, t.createdAt)
+      .where(sql`customer_profile_id IS NOT NULL`),
+    index('ticket_orders_hold_sweep_idx').on(t.status, t.holdExpiresAt),
+    index('ticket_orders_payment_intent_idx')
+      .on(t.stripePaymentIntentId)
+      .where(sql`stripe_payment_intent_id IS NOT NULL`),
   ],
 );
 
@@ -1037,15 +1149,48 @@ export const tickets = sqliteTable(
     holderEmail: text('holder_email').notNull(),
     qrToken: text('qr_token').notNull().unique(),
     qrSignatureHash: text('qr_signature_hash').notNull(),
-    status: text('status').notNull().default('valid'), // 'valid' | 'checked_in' | 'refunded' | 'voided'
+    status: text('status').notNull().default('valid'), // TicketStatus (+ legacy 'checked_in')
     checkedInAt: integer('checked_in_at', { mode: 'timestamp' }),
     checkedInByUserId: text('checked_in_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    // 0013: trigger-managed tickets are the ones with order_item_id; qr_token = id for them
+    orderItemId: text('order_item_id').references((): AnySQLiteColumn => orderItems.id),
+    sectionId: text('section_id').references((): AnySQLiteColumn => venueSections.id),
+    seatId: text('seat_id').references((): AnySQLiteColumn => venueSeats.id),
+    customerProfileId: text('customer_profile_id').references((): AnySQLiteColumn => customerProfiles.id, {
+      onDelete: 'set null',
+    }),
+    version: integer('version').notNull().default(1),
+    qrSalt: text('qr_salt'),
+    qrKeyId: text('qr_key_id'),
+    seq: integer('seq'),
+    zoneCode: text('zone_code'),
+    gateLabel: text('gate_label'),
+    transferredFromTicketEmail: text('transferred_from_ticket_email'),
+    transferCount: integer('transfer_count').notNull().default(0),
+    voidedAt: integer('voided_at', { mode: 'timestamp' }),
+    voidReason: text('void_reason'), // VoidReason
+    refundedAt: integer('refunded_at', { mode: 'timestamp' }),
+    issuedAt: integer('issued_at', { mode: 'timestamp' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }),
+    releasedOnVoid: integer('released_on_void', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => [
     index('tickets_order_idx').on(t.orderId),
     index('tickets_event_idx').on(t.eventId, t.status),
     index('tickets_email_idx').on(t.holderEmail),
+    uniqueIndex('tickets_order_item_seq_unique')
+      .on(t.orderItemId, t.seq)
+      .where(sql`order_item_id IS NOT NULL`),
+    uniqueIndex('tickets_seat_unique')
+      .on(t.eventId, t.seatId)
+      .where(sql`seat_id IS NOT NULL AND status NOT IN ('voided', 'refunded')`),
+    index('tickets_customer_idx')
+      .on(t.customerProfileId)
+      .where(sql`customer_profile_id IS NOT NULL`),
+    index('tickets_section_idx')
+      .on(t.sectionId)
+      .where(sql`section_id IS NOT NULL`),
   ],
 );
 
@@ -1185,4 +1330,650 @@ export const externalOutboundClicks = sqliteTable(
     clickedAt: integer('clicked_at', { mode: 'timestamp' }).notNull(),
   },
   (t) => [index('external_clicks_event_idx').on(t.eventId, t.clickedAt)],
+);
+
+// ============================================================================
+// 0012. SHARED PERSON, GUEST CUSTOMERS, PROVIDERS, TERMS, RATE LIMITS, EMAIL
+// (docs/design/identity-and-ticketing.md §4, §5.1; docs/DATABASE.md)
+// ============================================================================
+
+/** One row per verified normalised email, linked from each product's `users.person_id`. */
+export const persons = sqliteTable('persons', {
+  id: text('id').primaryKey(),
+  emailNormalized: text('email_normalized').notNull().unique(),
+  emailVerifiedAt: integer('email_verified_at', { mode: 'timestamp' }).notNull(),
+  displayName: text('display_name'),
+  erasedAt: integer('erased_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+});
+
+/** Guests (ticket buyers, parents, students): email is identity; `person_id` only once the email is proven. */
+export const customerProfiles = sqliteTable(
+  'customer_profiles',
+  {
+    id: text('id').primaryKey(),
+    emailNormalized: text('email_normalized').notNull().unique(),
+    personId: text('person_id').references(() => persons.id, { onDelete: 'set null' }),
+    displayName: text('display_name'),
+    phone: text('phone'),
+    emailVerifiedAt: integer('email_verified_at', { mode: 'timestamp' }),
+    erasedAt: integer('erased_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('customer_profiles_person_idx')
+      .on(t.personId)
+      .where(sql`person_id IS NOT NULL`),
+  ],
+);
+
+/** Emailed manage/recovery links; only the HMAC of the token is stored. */
+export const customerAccessTokens = sqliteTable(
+  'customer_access_tokens',
+  {
+    id: text('id').primaryKey(),
+    customerProfileId: text('customer_profile_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    scope: text('scope').notNull(), // CustomerScope
+    purpose: text('purpose').notNull(), // TokenPurpose
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+    useCount: integer('use_count').notNull().default(0),
+    maxUses: integer('max_uses'),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+    createdIpHash: text('created_ip_hash'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('customer_tokens_profile_scope_idx').on(t.customerProfileId, t.scope),
+    index('customer_tokens_scope_idx').on(t.scope, t.revokedAt),
+    index('customer_tokens_expires_idx').on(t.expiresAt),
+  ],
+);
+
+export const customerSessions = sqliteTable(
+  'customer_sessions',
+  {
+    id: text('id').primaryKey(),
+    customerProfileId: text('customer_profile_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    scope: text('scope').notNull(),
+    tokenId: text('token_id').references(() => customerAccessTokens.id, { onDelete: 'set null' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+    lastSeenAt: integer('last_seen_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('customer_sessions_profile_idx').on(t.customerProfileId),
+    index('customer_sessions_token_idx').on(t.tokenId),
+    index('customer_sessions_expires_idx').on(t.expiresAt),
+  ],
+);
+
+/** Every provider role a person holds; publishing needs `verified` when staff review is required (trigger). */
+export const providerProfiles = sqliteTable(
+  'provider_profiles',
+  {
+    id: text('id').primaryKey(),
+    personId: text('person_id')
+      .notNull()
+      .references(() => persons.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(), // ProviderRole
+    productOrigin: text('product_origin').notNull(), // Product
+    organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
+    displayName: text('display_name').notNull(),
+    slug: text('slug').unique(),
+    profileJson: text('profile_json').notNull().default('{}'),
+    status: text('status').notNull().default('draft'), // ProviderStatus
+    publishedAt: integer('published_at', { mode: 'timestamp' }),
+    requiresStaffReview: integer('requires_staff_review', { mode: 'boolean' }).notNull().default(true),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    uniqueIndex('provider_profiles_person_role_org_unique').on(
+      t.personId,
+      t.role,
+      sql`coalesce(${t.organizationId}, '')`,
+    ),
+    index('provider_profiles_queue_idx').on(t.status, t.role, t.updatedAt),
+    index('provider_profiles_org_idx')
+      .on(t.organizationId)
+      .where(sql`organization_id IS NOT NULL`),
+  ],
+);
+
+/** Append-only staff verification log (UPDATE and DELETE are refused by triggers). */
+export const verificationRecords = sqliteTable(
+  'verification_records',
+  {
+    id: text('id').primaryKey(),
+    subjectType: text('subject_type').notNull(), // VerificationSubjectType
+    subjectId: text('subject_id').notNull(),
+    action: text('action').notNull(), // VerificationAction
+    fromStatus: text('from_status'),
+    toStatus: text('to_status'),
+    staffUserId: text('staff_user_id'),
+    staffName: text('staff_name'),
+    meetingAt: integer('meeting_at', { mode: 'timestamp' }),
+    meetingLocation: text('meeting_location'),
+    notes: text('notes'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('verification_records_subject_idx').on(t.subjectType, t.subjectId, t.createdAt),
+    index('verification_records_staff_idx').on(t.staffUserId, t.createdAt),
+  ],
+);
+
+export const termsDocuments = sqliteTable(
+  'terms_documents',
+  {
+    id: text('id').primaryKey(),
+    slug: text('slug').notNull(), // TermsSlug
+    version: text('version').notNull(),
+    title: text('title').notNull(),
+    status: text('status').notNull().default('draft'), // TermsStatus
+    contentHash: text('content_hash').notNull(),
+    effectiveAt: integer('effective_at', { mode: 'timestamp' }),
+    legalReviewStatus: text('legal_review_status').notNull().default('draft_requires_review'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    uniqueIndex('terms_documents_slug_version_unique').on(t.slug, t.version),
+    uniqueIndex('terms_documents_one_active_unique')
+      .on(t.slug)
+      .where(sql`status = 'active'`),
+  ],
+);
+
+export const termsAcceptances = sqliteTable(
+  'terms_acceptances',
+  {
+    id: text('id').primaryKey(),
+    documentSlug: text('document_slug').notNull(),
+    documentVersion: text('document_version').notNull(),
+    personId: text('person_id').references(() => persons.id, { onDelete: 'set null' }),
+    userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+    customerProfileId: text('customer_profile_id').references(() => customerProfiles.id, {
+      onDelete: 'set null',
+    }),
+    emailNormalized: text('email_normalized'),
+    context: text('context').notNull(), // e.g. 'order:<id>', 'signup:live', 'registration:<id>'
+    ipHash: text('ip_hash'),
+    acceptedAt: integer('accepted_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.documentSlug, t.documentVersion],
+      foreignColumns: [termsDocuments.slug, termsDocuments.version],
+    }),
+    index('terms_acceptances_person_idx')
+      .on(t.personId, t.documentSlug)
+      .where(sql`person_id IS NOT NULL`),
+    index('terms_acceptances_user_idx')
+      .on(t.userId, t.documentSlug)
+      .where(sql`user_id IS NOT NULL`),
+    index('terms_acceptances_customer_idx')
+      .on(t.customerProfileId, t.documentSlug)
+      .where(sql`customer_profile_id IS NOT NULL`),
+    index('terms_acceptances_email_idx')
+      .on(t.emailNormalized, t.documentSlug)
+      .where(sql`email_normalized IS NOT NULL`),
+    index('terms_acceptances_context_idx').on(t.context),
+  ],
+);
+
+/** Opt-in marketing consent, separate from terms; the latest row per (email, product) wins. */
+export const marketingConsents = sqliteTable(
+  'marketing_consents',
+  {
+    id: text('id').primaryKey(),
+    emailNormalized: text('email_normalized').notNull(),
+    product: text('product').notNull(), // Product
+    granted: integer('granted', { mode: 'boolean' }).notNull(),
+    source: text('source').notNull(),
+    ipHash: text('ip_hash'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [index('marketing_consents_email_idx').on(t.emailNormalized, t.product, t.createdAt)],
+);
+
+export const rateLimitCounters = sqliteTable(
+  'rate_limit_counters',
+  {
+    bucket: text('bucket').notNull(),
+    windowStart: integer('window_start').notNull(), // epoch seconds
+    count: integer('count').notNull().default(0),
+    expiresAt: integer('expires_at').notNull(), // epoch seconds
+  },
+  (t) => [
+    primaryKey({ columns: [t.bucket, t.windowStart] }),
+    index('rate_limit_counters_expires_idx').on(t.expiresAt),
+  ],
+);
+
+/** One outbox for every email (idempotency key unique). `recipient_email` is nulled after 180 days. */
+export const emailLog = sqliteTable(
+  'email_log',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind').notNull(), // EmailKind
+    product: text('product'),
+    idempotencyKey: text('idempotency_key').notNull().unique(),
+    recipientEmail: text('recipient_email'),
+    recipientHash: text('recipient_hash').notNull(), // hashEmail()
+    subject: text('subject'),
+    relatedType: text('related_type'),
+    relatedId: text('related_id'),
+    status: text('status').notNull().default('queued'), // EmailStatus
+    providerMessageId: text('provider_message_id'),
+    attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: integer('next_attempt_at', { mode: 'timestamp' }),
+    lastErrorCode: text('last_error_code'),
+    sentAt: integer('sent_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('email_log_retry_idx').on(t.status, t.nextAttemptAt),
+    index('email_log_related_idx').on(t.relatedType, t.relatedId),
+    index('email_log_recipient_idx').on(t.recipientHash, t.createdAt),
+    index('email_log_provider_idx')
+      .on(t.providerMessageId)
+      .where(sql`provider_message_id IS NOT NULL`),
+    index('email_log_created_idx').on(t.createdAt),
+  ],
+);
+
+export const emailSuppressions = sqliteTable('email_suppressions', {
+  emailHash: text('email_hash').primaryKey(), // hashEmail()
+  reason: text('reason').notNull(), // SuppressionReason
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
+/** Who looked up, downloaded, resent, reissued, transferred or overrode which ticket. No FKs (outlives rows). */
+export const ticketAccessLog = sqliteTable(
+  'ticket_access_log',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id'),
+    ticketId: text('ticket_id'),
+    orderId: text('order_id'),
+    actorType: text('actor_type').notNull(), // AccessActorType
+    actorId: text('actor_id'),
+    action: text('action').notNull(), // AccessAction
+    ipHash: text('ip_hash'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('ticket_access_log_ticket_idx')
+      .on(t.ticketId, t.createdAt)
+      .where(sql`ticket_id IS NOT NULL`),
+    index('ticket_access_log_order_idx')
+      .on(t.orderId, t.createdAt)
+      .where(sql`order_id IS NOT NULL`),
+    index('ticket_access_log_event_idx')
+      .on(t.eventId, t.createdAt)
+      .where(sql`event_id IS NOT NULL`),
+    index('ticket_access_log_created_idx').on(t.createdAt),
+  ],
+);
+
+/** Guest Academy registration (no account; an age band, never a birth date). */
+export const academyRegistrations = sqliteTable(
+  'academy_registrations',
+  {
+    id: text('id').primaryKey(),
+    reference: text('reference').unique(),
+    programSlug: text('program_slug').notNull(),
+    lessonSlug: text('lesson_slug'),
+    location: text('location').notNull(),
+    scheduleText: text('schedule_text'),
+    studentFirstName: text('student_first_name').notNull(),
+    studentAgeBand: text('student_age_band').notNull(), // StudentAgeBand
+    guardianName: text('guardian_name'),
+    guardianEmail: text('guardian_email'),
+    guardianPhone: text('guardian_phone'),
+    customerProfileId: text('customer_profile_id')
+      .notNull()
+      .references(() => customerProfiles.id),
+    status: text('status').notNull().default('reserved'), // AcademyRegistrationStatus
+    termsAcceptanceId: text('terms_acceptance_id')
+      .notNull()
+      .references(() => termsAcceptances.id),
+    guardianConsentAcceptanceId: text('guardian_consent_acceptance_id').references(() => termsAcceptances.id),
+    childSafetyAcceptanceId: text('child_safety_acceptance_id').references(() => termsAcceptances.id),
+    amountCents: integer('amount_cents').notNull().default(0),
+    currency: text('currency').notNull().default('usd'),
+    stripeCheckoutSessionId: text('stripe_checkout_session_id').unique(),
+    idempotencyKey: text('idempotency_key').notNull().unique(),
+    paidAt: integer('paid_at', { mode: 'timestamp' }),
+    cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('academy_registrations_customer_idx').on(t.customerProfileId, t.createdAt),
+    index('academy_registrations_program_idx').on(t.programSlug, t.status),
+    index('academy_registrations_status_idx').on(t.status, t.createdAt),
+  ],
+);
+
+// ============================================================================
+// 0013. GAMO LIVE TICKETING: VENUES, SECTIONS, ORDER ITEMS, POLICIES, SCANNING
+// ============================================================================
+
+export const venues = sqliteTable(
+  'venues',
+  {
+    id: text('id').primaryKey(),
+    organizationId: text('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    address: text('address'),
+    city: text('city'),
+    state: text('state'),
+    country: text('country').notNull().default('US'),
+    timezone: text('timezone').notNull(),
+    accessibilityNotes: text('accessibility_notes'),
+    latitude: real('latitude'),
+    longitude: real('longitude'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('venues_org_idx')
+      .on(t.organizationId)
+      .where(sql`organization_id IS NOT NULL`),
+  ],
+);
+
+/** An uploaded blueprint (R2 key). SVGs are sanitised server-side and served as images only. */
+export const venueMaps = sqliteTable(
+  'venue_maps',
+  {
+    id: text('id').primaryKey(),
+    venueId: text('venue_id').references(() => venues.id, { onDelete: 'set null' }),
+    eventId: text('event_id').references((): AnySQLiteColumn => events.id, { onDelete: 'cascade' }),
+    mediaKey: text('media_key').notNull(),
+    mediaType: text('media_type').notNull(), // VenueMapMediaType
+    byteSize: integer('byte_size'),
+    width: integer('width').notNull(),
+    height: integer('height').notNull(),
+    altText: text('alt_text').notNull(),
+    status: text('status').notNull().default('draft'), // VenueMapStatus
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [index('venue_maps_event_idx').on(t.eventId, t.status), index('venue_maps_venue_idx').on(t.venueId)],
+);
+
+/** A clickable section: its own price, capacity and category. Counts are units (CHECK 0 ≤ sold ≤ reserved ≤ capacity). */
+export const venueSections = sqliteTable(
+  'venue_sections',
+  {
+    id: text('id').primaryKey(),
+    venueMapId: text('venue_map_id').references(() => venueMaps.id, { onDelete: 'set null' }),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    tierId: text('tier_id')
+      .notNull()
+      .references(() => ticketTiers.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    priceCents: integer('price_cents'), // null = category price
+    capacity: integer('capacity').notNull(),
+    reservedCount: integer('reserved_count').notNull().default(0),
+    soldCount: integer('sold_count').notNull().default(0),
+    shapeJson: text('shape_json'),
+    zoneCode: text('zone_code'),
+    gateLabel: text('gate_label'),
+    accessible: integer('accessible', { mode: 'boolean' }).notNull().default(false),
+    companionSeats: integer('companion_seats', { mode: 'boolean' }).notNull().default(false),
+    sortOrder: integer('sort_order').notNull().default(0),
+    status: text('status').notNull().default('active'), // SectionStatus
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    uniqueIndex('venue_sections_event_code_unique').on(t.eventId, t.code),
+    index('venue_sections_tier_idx').on(t.tierId),
+    index('venue_sections_map_idx').on(t.venueMapId),
+  ],
+);
+
+/** Phase 2 placeholder (individual seats are not built; stays empty). */
+export const venueSeats = sqliteTable(
+  'venue_seats',
+  {
+    id: text('id').primaryKey(),
+    sectionId: text('section_id')
+      .notNull()
+      .references(() => venueSections.id, { onDelete: 'cascade' }),
+    rowLabel: text('row_label').notNull(),
+    seatLabel: text('seat_label').notNull(),
+    accessible: integer('accessible', { mode: 'boolean' }).notNull().default(false),
+    status: text('status').notNull().default('available'), // SeatStatus
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [uniqueIndex('venue_seats_label_unique').on(t.sectionId, t.rowLabel, t.seatLabel)],
+);
+
+/** One line per category/section in an order; price and seats_per_ticket are snapshots. */
+export const orderItems = sqliteTable(
+  'order_items',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id')
+      .notNull()
+      .references(() => ticketOrders.id, { onDelete: 'cascade' }),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    tierId: text('tier_id')
+      .notNull()
+      .references(() => ticketTiers.id),
+    sectionId: text('section_id').references(() => venueSections.id),
+    seatId: text('seat_id').references(() => venueSeats.id),
+    quantity: integer('quantity').notNull(),
+    seatsPerTicket: integer('seats_per_ticket').notNull().default(1),
+    unitPriceCents: integer('unit_price_cents').notNull(),
+    subtotalCents: integer('subtotal_cents').notNull(),
+    currency: text('currency').notNull().default('usd'),
+    refundedQuantity: integer('refunded_quantity').notNull().default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('order_items_order_idx').on(t.orderId),
+    index('order_items_event_tier_idx').on(t.eventId, t.tierId),
+    index('order_items_section_idx')
+      .on(t.sectionId)
+      .where(sql`section_id IS NOT NULL`),
+  ],
+);
+
+/** Per-event policy within platform bounds (CHECKs); defaults in `EVENT_POLICY_DEFAULTS`. */
+export const eventPolicies = sqliteTable('event_policies', {
+  eventId: text('event_id')
+    .primaryKey()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  reentryAllowed: integer('reentry_allowed', { mode: 'boolean' }).notNull().default(true),
+  reentryLimit: integer('reentry_limit'),
+  refundPolicy: text('refund_policy').notNull().default('until_48h'), // RefundPolicy
+  refundCutoffHours: integer('refund_cutoff_hours'),
+  transferAllowed: integer('transfer_allowed', { mode: 'boolean' }).notNull().default(true),
+  transferCutoffHours: integer('transfer_cutoff_hours').notNull().default(0),
+  maxTransfersPerTicket: integer('max_transfers_per_ticket').notNull().default(3),
+  attendeeNamesRequired: integer('attendee_names_required', { mode: 'boolean' }).notNull().default(false),
+  maxTicketsPerOrder: integer('max_tickets_per_order').notNull().default(10),
+  doorSalesEnabled: integer('door_sales_enabled', { mode: 'boolean' }).notNull().default(false),
+  doorSalesMethodsJson: text('door_sales_methods_json').notNull().default('[]'),
+  agePolicy: text('age_policy').notNull().default('all_ages'), // AgePolicy
+  minAge: integer('min_age'),
+  scanOpensMinutesBefore: integer('scan_opens_minutes_before').notNull().default(120),
+  updatedByUserId: text('updated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+});
+
+export const eventChanges = sqliteTable(
+  'event_changes',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(), // EventChangeKind
+    beforeJson: text('before_json').notNull(),
+    afterJson: text('after_json').notNull(),
+    notifiedAt: integer('notified_at', { mode: 'timestamp' }),
+    createdByUserId: text('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [index('event_changes_event_idx').on(t.eventId, t.createdAt)],
+);
+
+export const waitlistEntries = sqliteTable(
+  'waitlist_entries',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    tierId: text('tier_id').references(() => ticketTiers.id, { onDelete: 'cascade' }),
+    customerProfileId: text('customer_profile_id')
+      .notNull()
+      .references(() => customerProfiles.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').notNull().default(1),
+    status: text('status').notNull().default('waiting'), // WaitlistStatus
+    notifiedAt: integer('notified_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    uniqueIndex('waitlist_entries_unique').on(t.eventId, sql`coalesce(${t.tierId}, '')`, t.customerProfileId),
+    index('waitlist_entries_queue_idx').on(t.eventId, t.tierId, t.status, t.createdAt),
+  ],
+);
+
+/** Door-staff gate sessions: unguessable link (hash stored) + PBKDF2 PIN; no account. */
+export const scannerSessions = sqliteTable(
+  'scanner_sessions',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    label: text('label').notNull(),
+    linkTokenHash: text('link_token_hash').notNull().unique(),
+    pinHash: text('pin_hash').notNull(),
+    pinSalt: text('pin_salt').notNull(),
+    allowedDirections: text('allowed_directions').notNull().default('in'), // AllowedDirections
+    allowedZonesJson: text('allowed_zones_json'), // null = every zone
+    canOverride: integer('can_override', { mode: 'boolean' }).notNull().default(false),
+    createdByUserId: text('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+    failedPinAttempts: integer('failed_pin_attempts').notNull().default(0),
+    lockedUntil: integer('locked_until', { mode: 'timestamp' }),
+    lastSeenAt: integer('last_seen_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('scanner_sessions_event_idx').on(t.eventId, t.revokedAt),
+    index('scanner_sessions_expires_idx').on(t.expiresAt),
+  ],
+);
+
+export const scannerDevices = sqliteTable(
+  'scanner_devices',
+  {
+    id: text('id').primaryKey(),
+    scannerSessionId: text('scanner_session_id')
+      .notNull()
+      .references(() => scannerSessions.id, { onDelete: 'cascade' }),
+    deviceLabel: text('device_label'),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+    lastSeenAt: integer('last_seen_at', { mode: 'timestamp' }),
+    lastSyncAt: integer('last_sync_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (t) => [
+    index('scanner_devices_session_idx').on(t.scannerSessionId),
+    index('scanner_devices_expires_idx').on(t.expiresAt),
+  ],
+);
+
+/** Every scan attempt (also unknown codes); deduplicated per (scanner session, client scan id). */
+export const ticketScanEvents = sqliteTable(
+  'ticket_scan_events',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    ticketId: text('ticket_id').references(() => tickets.id, { onDelete: 'set null' }),
+    ticketVersion: integer('ticket_version'),
+    scannerSessionId: text('scanner_session_id').references(() => scannerSessions.id, {
+      onDelete: 'set null',
+    }),
+    scannerDeviceId: text('scanner_device_id').references(() => scannerDevices.id, { onDelete: 'set null' }),
+    scannedByUserId: text('scanned_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    direction: text('direction').notNull(), // ScanDirection
+    gate: text('gate'),
+    result: text('result').notNull(), // ScanResult
+    overrideReason: text('override_reason'),
+    clientScanId: text('client_scan_id'),
+    deviceScannedAt: integer('device_scanned_at', { mode: 'timestamp' }),
+    receivedAt: integer('received_at', { mode: 'timestamp' }).notNull(),
+    offline: integer('offline', { mode: 'boolean' }).notNull().default(false),
+    conflict: text('conflict').notNull().default('none'), // ScanConflict
+    dayKey: text('day_key'), // venue-local YYYY-MM-DD
+  },
+  (t) => [
+    uniqueIndex('ticket_scan_events_client_unique')
+      .on(t.scannerSessionId, t.clientScanId)
+      .where(sql`scanner_session_id IS NOT NULL AND client_scan_id IS NOT NULL`),
+    index('ticket_scan_events_event_idx').on(t.eventId, t.receivedAt),
+    index('ticket_scan_events_ticket_idx')
+      .on(t.ticketId, t.receivedAt)
+      .where(sql`ticket_id IS NOT NULL`),
+    index('ticket_scan_events_conflict_idx')
+      .on(t.eventId, t.conflict)
+      .where(sql`conflict != 'none'`),
+  ],
+);
+
+/** Inside/outside per ticket per venue-local day; admission is one conditional upsert. */
+export const ticketPresence = sqliteTable(
+  'ticket_presence',
+  {
+    ticketId: text('ticket_id')
+      .notNull()
+      .references(() => tickets.id, { onDelete: 'cascade' }),
+    dayKey: text('day_key').notNull(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    state: text('state').notNull(), // PresenceState
+    entryCount: integer('entry_count').notNull().default(0),
+    exitCount: integer('exit_count').notNull().default(0),
+    firstEntryAt: integer('first_entry_at', { mode: 'timestamp' }),
+    lastScanAt: integer('last_scan_at', { mode: 'timestamp' }).notNull(),
+    lastGate: text('last_gate'),
+    lastScanEventId: text('last_scan_event_id'),
+  },
+  (t) => [
+    primaryKey({ columns: [t.ticketId, t.dayKey] }),
+    index('ticket_presence_event_idx').on(t.eventId, t.dayKey, t.state),
+  ],
 );

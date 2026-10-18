@@ -1,6 +1,6 @@
 import type { GamoEnv } from '@gamo/config/env';
 import { readContract } from '@gamo/api-contracts/runtime';
-import { getDb, authChallenges } from '@gamo/db';
+import { getDb, authChallenges, toContractUser } from '@gamo/db';
 import { eq } from 'drizzle-orm';
 import {
   createSession,
@@ -196,7 +196,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
 
       const res = jsonResponse(
         {
-          user,
+          user: toContractUser(user),
           sessionId,
           message: 'Email verified and session established.',
         },
@@ -264,7 +264,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       });
 
       const res = jsonResponse({
-        user,
+        user: toContractUser(user),
         sessionId,
         message: 'Authenticated successfully.',
       });

@@ -41,6 +41,10 @@ import {
   type GamoDatabase,
   type LiveEvent,
   type TicketTier,
+  type ContractEvent,
+  type ContractTicketTier,
+  toContractEvent,
+  toContractTicketTier,
   type EventRegistration,
 } from '@gamo/db';
 import type {
@@ -88,10 +92,11 @@ export interface LiveEventPerformerSummary {
   roleLabel: string;
 }
 
-export interface LiveEventWithDetails extends LiveEvent {
+/** Public event shape: the row minus columns not yet in the OpenAPI contract (`@gamo/db` projections). */
+export interface LiveEventWithDetails extends ContractEvent {
   organizerName?: string;
   organizerKind?: string;
-  tiers: TicketTier[];
+  tiers: ContractTicketTier[];
   totalRegistered: number;
   performers?: LiveEventPerformerSummary[];
   isPast?: boolean;
@@ -147,7 +152,7 @@ export class LiveService {
   async createEvent(
     organizerOrgId: string,
     input: CreateEventInput,
-  ): Promise<{ event: LiveEvent; tiers: TicketTier[] }> {
+  ): Promise<{ event: ContractEvent; tiers: ContractTicketTier[] }> {
     if (
       !Number.isFinite(input.startsAt.getTime()) ||
       input.startsAt <= new Date() ||
@@ -217,7 +222,7 @@ export class LiveService {
       createdAt: now,
     });
 
-    const tierRecords: TicketTier[] = [];
+    const tierRecords: ContractTicketTier[] = [];
     const tiersToInsert =
       input.tiers && input.tiers.length > 0
         ? input.tiers
@@ -250,7 +255,7 @@ export class LiveService {
     const [createdEvent] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     return {
-      event: createdEvent,
+      event: toContractEvent(createdEvent),
       tiers: tierRecords,
     };
   }
@@ -386,10 +391,10 @@ export class LiveService {
       const lifecycleStatus = getEventLifecycleStatus(row.event);
 
       result.push({
-        ...row.event,
+        ...toContractEvent(row.event),
         organizerName: row.orgName,
         organizerKind: row.orgKind,
-        tiers,
+        tiers: tiers.map(toContractTicketTier),
         totalRegistered: Number(regStats?.count ?? 0),
         performers: performerRows,
         isPast: past,
@@ -455,10 +460,10 @@ export class LiveService {
     const lifecycleStatus = getEventLifecycleStatus(row.event);
 
     return {
-      ...row.event,
+      ...toContractEvent(row.event),
       organizerName: row.orgName,
       organizerKind: row.orgKind,
-      tiers,
+      tiers: tiers.map(toContractTicketTier),
       totalRegistered: Number(regStats?.count ?? 0),
       performers: performerRows,
       isPast: past,

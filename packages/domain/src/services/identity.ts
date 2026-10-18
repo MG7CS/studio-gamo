@@ -17,6 +17,8 @@ import {
   auditLogs,
   type GamoDatabase,
   type User,
+  type ContractUser,
+  toContractUser,
   type Organization,
   type ProductAccount,
 } from '@gamo/db';
@@ -495,7 +497,7 @@ export class IdentityService {
       displayName?: string;
     },
   ): Promise<{
-    user: User;
+    user: ContractUser;
     role: 'staff_reviewer' | 'finance_manager' | 'superadmin';
     provider: 'cloudflare_access';
     accessSubject: string;
@@ -593,7 +595,7 @@ export class IdentityService {
     const [updatedUser] = await this.db.select().from(users).where(eq(users.id, targetUser.id)).limit(1);
 
     return {
-      user: updatedUser,
+      user: toContractUser(updatedUser),
       role: input.role,
       provider: 'cloudflare_access',
       accessSubject: cleanSubject,
