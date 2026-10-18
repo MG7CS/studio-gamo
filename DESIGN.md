@@ -1,5 +1,8 @@
 # Gamo Studios — Cinematic Editorial Interface
 
+<!-- status-banner: 2026-10 foundation pass -->
+> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails. Brand tokens in code: `packages/ui/src/styles/tokens.css`.
+
 ## Approved 2026 public design phase
 
 The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Live uses a cinematic manual event spotlight; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.

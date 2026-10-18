@@ -1,5 +1,8 @@
 # Global Homepage — Visual Fidelity Review
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical document** (design review snapshot). It is kept for the record and is not maintained; it may describe code, routes or decisions that no longer exist. Current reference: [DESIGN.md](../DESIGN.md).
+
 **Scope:** \`apps/web\` sections beneath the approved hero. **Do not change the hero during this pass.**
 
 The screenshots in \`design-reference/homepage/\` are the composition source of truth. These are design studies: recreate the HTML/CSS/photography composition instead of rendering the whole screenshot as a background.

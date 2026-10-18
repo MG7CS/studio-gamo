@@ -1,5 +1,8 @@
 # Gamo Studios — Technical Architecture
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Superseded for current structure by [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md);** this file keeps the original constraints. Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
+
 **Status:** proposed architecture and build constraints; verify vendor APIs and dependencies at implementation time.
 
 **Organizational context:** Gamo Studios is a Christian, mission-driven organization whose final legal incorporation structure and tax status remain undecided (legal-structure-neutral). The software exists to support connected religious, educational and community programs, not to maximize transaction revenue. Organizational purpose, fee philosophy and funding sources are defined in [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md); this document covers technical boundaries only.

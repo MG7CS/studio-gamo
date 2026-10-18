@@ -1,106 +1,64 @@
-# Gamo Studios
+# Gamo Studios (`studio-gamo`)
 
-**A Christian, mission-driven organization strengthening worship and community through musical talent, music education, Christian events and shared technical resources.**
+Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This repository holds the six web applications for its programs — **Gamo Worship**, **Gamo Academy**, **Gamo Live** and **Gamo Production** — plus the organization site and the staff admin app.
 
-> Organization: **Gamo Studios** · Repository: `studio-gamo` · Primary domain: `gamostudio.org` · Initial service area: Phoenix metropolitan area, Arizona (Gamo Live events: nationwide Christian events).
+> Read [`AGENTS.md`](AGENTS.md) before changing anything: it holds the organization's rules for copy, legal wording, payments and data. [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) is the organizational reference (its file name is historical; the PBC statement above prevails).
 
-> [!IMPORTANT]
-> Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has not incorporated as a nonprofit corporation and has not received 501(c)(3) recognition; contributions or payments are not tax-deductible. The authoritative organizational reference is **[docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)**. Legal and governance prerequisites are tracked in [docs/NONPROFIT_TRANSITION_CHECKLIST.md](docs/NONPROFIT_TRANSITION_CHECKLIST.md).
+## Applications
 
-## Mission (proposed working statement)
+| App | Host | Local | What it is |
+| --- | --- | --- | --- |
+| `apps/web` | gamostudio.org | http://127.0.0.1:4321 | Organization site, mission, partnerships, contact/inquiries, account hub |
+| `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician and church journeys, workspaces |
+| `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, family/instructor/host workspaces |
+| `apps/live` | live.gamostudio.org | http://127.0.0.1:4324 | Gamo Live: Christian event discovery, free registration, organizer tools, ticket APIs |
+| `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support areas and training |
+| `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | Staff operations, behind Cloudflare Access + an admin gateway |
 
-**Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, expanding access to music education, and helping people discover and participate in Christian events.**
+Shared packages: `@studio-gamo/ui` (components, layouts, design tokens), `@gamo/domain` (services, API helpers, middleware), `@gamo/auth` (sessions, Clerk, page access), `@gamo/db` (Drizzle schema, migrations), `@studio-gamo/integrations` (Stripe, Resend, R2), `@gamo/config` (hosts, ports, env, brand), `@gamo/api-contracts` (generated from `openapi/`). See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-Our purpose is religious, educational and community service, not maximizing commercial returns. We are building a Christian, mission-driven organization and its supporting software infrastructure — not a commercial startup.
+**Stack:** Astro 7 (SSR) on Cloudflare Workers, Tailwind CSS 4, D1 + Drizzle, KV, R2, Clerk (optional per product), Stripe (test mode only), Resend. pnpm workspace, Node 22.
 
-**Distinctive strength:** a vetted local musician network with paid standby musicians and a practical coordination workflow, so churches can keep worship going. This is not a generic gig board or a chatbot.
+## Quick start
 
-**Homepage:** a continuously refreshed window into the mission — worship coverage, music education, Christian events, production support and church partnerships. "Keep Worship Going" remains the permanent brand message. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
+```sh
+nvm use                       # Node 22.22.3 (.nvmrc)
+corepack enable               # pnpm 11.28.5 (package.json "packageManager")
+pnpm install
+cp .env.example .env          # fill in ENVIRONMENT=local and a 32+ char SESSION_SECRET
+pnpm db:migrate:local         # create each app's local D1 database
+pnpm dev:all                  # all six apps; or `pnpm dev` for apps/web only
+```
 
-## Programs and applications
+Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.dev.vars` — see each `.dev.vars.example`. Everything works without them: sign-in falls back to emailed codes (with `ALLOW_AUTH_SIMULATION=true` the code is shown locally), paid checkout returns 503, email is simulated locally.
 
-The applications are **connected programs of one Christian mission**, not independent profit centers.
+## Commands
 
-| Host | Program purpose | Initial priority |
-| --- | --- | --- |
-| `gamostudio.org` | Organization hub: mission, programs, church partnerships, support pathways, account access, legal pages | P0 |
-| `worship.gamostudio.org` | **Gamo Worship** — musician applications and auditions, church requests, recurring and Sunday coverage, standby, coordination | P0 |
-| `admin.gamostudio.org` | Governance and staff operations: vetting, scheduling, event moderation, program administration, financial accountability, reporting | P0 |
-| `academy.gamostudio.org` | **Gamo Academy** — instrument lessons for children, teens, adults and families; church-hosted and sponsored classes | P1 |
-| `live.gamostudio.org` | **Gamo Live** — Christian events nationwide: *Promote Event* (organizers) and *Explore Events* (attendees); free registration and authorized ticketing | P2 |
-| `production.gamostudio.org` | **Gamo Production** — worship audio, livestreaming, lighting, technical training and event creative for churches and ministries | P2 |
+| Command | Does |
+| --- | --- |
+| `pnpm dev` / `pnpm dev:all` | Dev server for web / all six apps (fixed ports, isolated local state) |
+| `pnpm check` | **Everything CI runs:** typecheck → lint → format check → unit/integration tests → OpenAPI checks → build → browser journeys → browser smoke tests |
+| `pnpm typecheck` | `astro check` for every app + `tsc` for packages and scripts |
+| `pnpm lint` / `pnpm lint:fix` | ESLint (TypeScript, Astro, a11y); zero warnings allowed |
+| `pnpm format` / `pnpm format:check` | Prettier |
+| `pnpm test` | Unit and integration tests (`node --test` via tsx) |
+| `pnpm test:e2e` | Playwright smoke suite against production builds (`pnpm build` first) |
+| `pnpm test:journeys` | Browser sign-up/workspace journeys on built Workers (Miniflare) |
+| `pnpm api:check` | OpenAPI lint, generated-artifact drift, route coverage, HTTP contract tests |
+| `pnpm build` | Build all six apps (local configuration) |
+| `pnpm db:migrate:local` / `db:seed:local` / `db:reset:local` | Local D1 (see [`docs/DATABASE.md`](docs/DATABASE.md)) |
+| `pnpm live:events:import …` | Gamo Live editorial catalog import (dry run by default) |
+| `pnpm knip` | Report unused files, exports and dependencies |
 
-These are product domains deployed as six Cloudflare Workers under `gamostudio.org`. All share the same visual identity and governed identity/access model.
+## Deploying
 
-## Sustainability (proposed — no fees, contributions or prices approved)
+Deploys, secrets, DNS and database changes are **owner-only** operations. The procedure — preview first, order of apps, rollback, required secrets per app, post-deploy checks — is in [`docs/RUNBOOK.md`](docs/RUNBOOK.md). `make deploy-<app>` / `make preview-<app>` wrap the build with the right `CLOUDFLARE_ENV`.
 
-Gamo aims for **financial sustainability in service of the mission**. Potential sources include donations, church contributions, supporting memberships, program sponsorships, grants, in-kind gifts, Academy cost-sharing, modest administrative allocations on facilitated musician engagements, ticketing/registration administration fees and production cost recovery. Musicians' agreed pay is always kept separate from any Gamo allocation, and partnership or payment never influences vetting or rankings. Full detail: [docs/GAMO_NONPROFIT_MODEL.md §5](docs/GAMO_NONPROFIT_MODEL.md#5-organizational-sustainability).
+## Documentation
 
-## Audiences
-
-1. Churches and ministries seeking dependable worship musicians, including emergency coverage.
-2. Musicians seeking to serve, grow and be fairly paid as lead or standby musicians.
-3. Students, parents and families seeking instrument lessons (primary Academy audience).
-4. Christian artists and event organizers sharing events with the community.
-5. Individuals and families discovering Christian events.
-6. Churches seeking technical support, and churches interested in partnering to support shared programs.
-7. Donors, sponsors, foundations and community partners (support pathways planned; no donation processing yet).
-8. Authorized internal staff and the governing board.
-
-## Experience principles
-
-- Rich, realistic photography and visual hierarchy; low text density.
-- Trust is demonstrated through real vetting and transparent statuses, never invented numbers or testimonials.
-- Mobile-first operational flows; time-critical Sunday dispatch must be exceptionally clear.
-- Minimal account friction without compromising identity, payments, or safeguarding.
-- Interfaces must work without externally provisioned secrets using documented local mocks; never pretend live payments or identity checks succeeded.
-
-## Technology choices
-
-- Astro SSR on Cloudflare Workers, TypeScript strict mode, Tailwind CSS.
-- Cloudflare D1 for relational application state; R2 for authorized object storage; Durable Objects where reservation/dispatch coordination requires strong serialization; optional Queues for reliable jobs.
-- Stripe Checkout/Elements and Stripe Connect for supported customer payment, account onboarding and payouts.
-- Resend for transactional email; no SMS provider without explicit approval.
-- Shared auth backed by secure sessions and a vetted Cloudflare-compatible auth implementation (evaluate options before committing).
-- Testing: unit, integration, end-to-end/browser and accessibility checks.
-
-**Never implement 'Stripe escrow', atomic seat locks using KV alone, or public access to a musician's legal ID.** Refer to [ARCHITECTURE.md](ARCHITECTURE.md) and [SECURITY.md](SECURITY.md).
-
-## Source of truth
-
-Read in this order:
-
-1. [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md) — **organizational purpose, programs, governance, sustainability (authoritative)**.
-2. [AGENTS.md](AGENTS.md) — mandatory agent operating instructions.
-3. [ARCHITECTURE.md](ARCHITECTURE.md) — app boundaries, data, services, integrations.
-4. [DESIGN.md](DESIGN.md) — visual direction, components, responsive rules.
-5. [SECURITY.md](SECURITY.md) — trust, privacy, compliance and hard gates.
-6. [ROADMAP.md](ROADMAP.md) — mission-aligned milestones, evidence and acceptance criteria.
-7. [prompts/MASTER-PROMPT.md](prompts/MASTER-PROMPT.md) — founder's nonprofit transformation instructions (2026-10-12).
-
-## Getting started
-
-This repository uses a root `Makefile` to simplify common development commands. 
-Run `make help` to see all available commands.
-
-**Common Commands:**
-- `make dev` — Start the global website development server.
-- `make build` — Build the monorepo projects.
-- `make check` — Run TypeScript type-checking.
-- `make images` — Optimize new images using the optimization pipeline.
-
-Local configuration goes in `.dev.vars` or other current Wrangler-compatible local secret files, excluded from git. Create `.dev.vars.example` with variable names only. Do not commit API keys or account identifiers.
-
-## Non-goals for the first production milestone
-
-- A nationwide, fully launched ticketing and Academy platform.
-- Donation, sponsorship or membership payment processing before nonprofit formation, recognition and counsel-reviewed acknowledgments.
-- Any public claim of 501(c)(3) status or tax-deductibility before it is confirmed.
-- Live background-check vendor integration without a contract and review.
-- Unconditional 100% staffing coverage guarantees.
-- Real payment capture or payouts without approved Stripe configuration and legal review.
-- Deploying production domains, changing DNS, incurring charges, or sending emails to real customers without user approval.
-
-## Ownership of decisions
-
-Product requirements in this repository are approved direction; any feature marked *proposed*, especially fees, contributions, guarantees, compliance paths or provider choices, must not silently become a public contractual claim. Decisions requiring board, legal, tax or founder approval are listed in [docs/GAMO_NONPROFIT_MODEL.md §8](docs/GAMO_NONPROFIT_MODEL.md#8-decisions-requiring-approval). If blocked by an external service, implement a safe demonstrable local adapter, record the blocker and continue elsewhere.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — apps, packages, request flow, auth, payments, hosting
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — deploy, rollback, env vars, Cloudflare checks, Live catalog import
+- [`docs/DATABASE.md`](docs/DATABASE.md) — schema, migrations, local database
+- [`docs/OPENAPI_ARCHITECTURE.md`](docs/OPENAPI_ARCHITECTURE.md), [`docs/API_COMPATIBILITY.md`](docs/API_COMPATIBILITY.md) — HTTP contract
+- [`docs/CLEANUP_LOG.md`](docs/CLEANUP_LOG.md) — the 2026-10 foundation pass: decisions, findings, open owner questions
+- [`SECURITY.md`](SECURITY.md), [`DESIGN.md`](DESIGN.md), [`ROADMAP.md`](ROADMAP.md) — policy, design system and milestones (see banners for what is current)

@@ -1,5 +1,8 @@
 # Gamo Studios — Component ownership
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Partly stale.** Component locations and the shared/app/section levels still apply; package exports, layouts and design tokens changed in the 2026-10 foundation pass. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md), `packages/ui/src/styles/tokens.css`.
+
 ## Three levels
 
 - **`packages/ui/src/components/`**: shared, design-neutral building blocks reused across apps, such as `Button`, `Badge`, `Container`, `Logo`, and `ResponsivePicture`.

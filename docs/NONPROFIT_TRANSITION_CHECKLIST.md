@@ -1,5 +1,8 @@
 # Gamo Studios — Legal Structure, Governance & Operational Readiness Checklist
 
+<!-- status-banner: 2026-10 foundation pass -->
+> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+
 **Purpose:** Track the legal, governance, financial, policy and operational decisions required for Gamo Studios as a Christian, mission-driven organization whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). Organizational direction lives in [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md).
 
 > [!CAUTION]

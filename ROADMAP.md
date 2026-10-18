@@ -1,5 +1,8 @@
 # Gamo Studios — Mission-Aligned Delivery Roadmap
 
+<!-- status-banner: 2026-10 foundation pass -->
+> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
+
 > **Current phase override:** [DESIGN_FIRST_OVERRIDES.md](DESIGN_FIRST_OVERRIDES.md) governs build order. Design-first remains in force: complete and approve screens before functionality, one application at a time. Organizational direction: [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md).
 
 ### Public frontend resume — 2026-10-12

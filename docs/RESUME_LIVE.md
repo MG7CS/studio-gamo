@@ -1,5 +1,8 @@
 # Gamo Live interrupted-work resumption — 2026-10-12
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical document** (2026-10-12 work-resumption notes). It is kept for the record and is not maintained; it may describe code, routes or decisions that no longer exist. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md), [CLEANUP_LOG.md](CLEANUP_LOG.md).
+
 ## Scope and preservation
 
 Preserved the existing photographic landing, discovery, event detail and ticket components. Added missing public organizer profiles and organizer management experiences. All events and organizations remain fictional, sample-labeled Christian events nationwide. No organizer has been verified; the verification legend describes a future state only. Internal sample ticketing type is `preview`, not `authorized`.

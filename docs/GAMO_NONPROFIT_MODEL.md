@@ -1,5 +1,8 @@
 # Gamo Studios — Mission-Driven Organizational Model (Legal-Structure-Neutral)
 
+<!-- status-banner: 2026-10 foundation pass -->
+> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+
 **Status:** Governing organizational direction, updated 2026-10-13. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and updates earlier assumptions that a single legal/tax form had already been finalized.
 
 **This is the authoritative reference** for Gamo Studios' purpose, mission, programs, governance, sustainability and financial stewardship. Other documents link here and must not restate conflicting descriptions. If any repository document conflicts with this one on organizational purpose, programs, fees, membership or funding, **this document wins** and the conflict should be fixed.

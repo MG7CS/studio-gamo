@@ -67,6 +67,21 @@ On each meaningful change:
 - Frontend is not authority for check-in, inventory, authorization or payments.
 - Unit tests for domain logic, integration tests for D1/API/Stripe webhooks, and Playwright/browser checks for main flows.
 
+### Established conventions (2026-10 foundation pass — see `docs/ARCHITECTURE.md`, `docs/CLEANUP_LOG.md`)
+
+- **`pnpm check` must pass before every commit.** It runs typecheck, lint (zero warnings), Prettier check, unit/integration tests, `api:check`, build, the Miniflare journeys and the Playwright smoke suite. In an agent shell, run Astro commands with `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT` so they stay in the foreground.
+- **Hosts and ports** come from `packages/config/apps.ts`; cross-app links from `packages/ui/src/lib/sites.ts` (`siteUrl`, `inquiryUrl`). Never hard-code an origin.
+- **Typed runtime:** read bindings through `getRuntimeEnv()` (`GamoEnv`) and `Astro.locals` (`GamoLocals`); never read secrets from `import.meta.env`. New env vars go in `packages/config/env.ts`, `env-validation.ts` (if required), the relevant `.dev.vars.example` and `docs/RUNBOOK.md` §3.
+- **Middleware order** (`applicationPages`): env check → session → private-page guard → legacy redirects → page → security headers. New private areas go in `packages/auth/page-access.ts` *and* the app's `robots.txt`; `scripts/audit/private-routes.test.ts` and `crawler-files.test.ts` enforce both.
+- **Renamed or removed URLs** get an entry in the app's `src/lib/legacy-redirects.ts` (default 302; keep the status the old route used — 301 for permanent page moves, 303 for old form endpoints), covered by `scripts/audit/legacy-redirects.test.ts`.
+- **API routes:** auth check first, then `requireSameOrigin` on every state-changing request, then validation; errors via `api/response.ts`. Change `openapi/root.yaml` first.
+- **Fail closed:** integrations take `allowMock` only for `ENVIRONMENT=local`; outside local a missing key means the feature answers 503/unavailable, never a fake success. Local-only flags (`ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION`, `ALLOW_PUBLIC_DEMO_WORKSPACES`) are fatal elsewhere. Paid checkout stays 503.
+- **CSP:** no inline `<script>` or `on*=` handlers, no third-party script origins beyond the product's Clerk Frontend API; styles and fonts are self-hosted. Pages are on-demand (not prerendered) so middleware and headers always apply.
+- **UI:** tokens from `packages/ui/src/styles/tokens.css` only (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`); Inter (self-hosted variable); titles weight 900 uppercase; interactive targets ≥ 44 × 44 px; exactly one `<h1>` per page; every page passes axe WCAG 2.2 AA (serious/critical) and has no horizontal overflow at 360 px.
+- **Sample content:** any fictional person, booking, event or story is visibly labeled *Sample*/*Example*; Gamo Live public pages use D1 events only.
+- **Database:** add a new numbered migration in `packages/db/migrations` (never edit an applied one; additive by default), update the Drizzle schema and `docs/DATABASE.md`. Local: `pnpm db:migrate:local`, `db:seed:local`, `db:reset:local`.
+- **Logs** name variables and error codes, never secret values or personal data.
+
 ## External operations require explicit permission
 
 **Do not** publish to production, change DNS, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations, change security policies, commit credentials, publish legal terms as finalized, or push to remotes without the owner's approval. Local commits and sandbox payment/webhook simulations are allowed.

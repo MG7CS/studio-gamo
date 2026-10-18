@@ -1,5 +1,8 @@
 # Production frontend resume — 2026-10-12
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical document** (2026-10-12 work-resumption notes). It is kept for the record and is not maintained; it may describe code, routes or decisions that no longer exist. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md), [CLEANUP_LOG.md](CLEANUP_LOG.md).
+
 Resumed the interrupted component-first Production implementation without replacing its existing landing-page design or shared components. The program remains proposed and all forms remain local previews.
 
 ## Completed and preserved
