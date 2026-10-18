@@ -9,7 +9,9 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { createMigratedD1, type SqliteD1 } from '@gamo/db/testing';
+import { createDb } from '@gamo/db';
+import { asD1, createMigratedD1, type SqliteD1 } from '@gamo/db/testing';
+import { LiveService } from '../services/live.ts';
 import { newOrderReference, newPrefixedId, newTicketId } from '../security/ids.ts';
 import { macDigest, newQrSalt, signTicketQr } from '../security/ticket-qr.ts';
 import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
@@ -411,8 +413,37 @@ describe('holds and orders', () => {
       'TICKET_ORDER_ITEM_MISMATCH',
     );
     assert.equal(rowCount(f, 'tickets'), 1);
-    const row = f.q('SELECT qr_token = id AS handle, version, status, released_on_void FROM tickets');
-    assert.deepEqual(row, { handle: 1, version: 1, status: 'valid', released_on_void: 0 });
+    const row = f.q(
+      "SELECT qr_token = id AS same_as_id, qr_token LIKE 'tkm_%' AS handle, length(qr_token) AS len, version, status, released_on_void FROM tickets",
+    );
+    assert.deepEqual(
+      row,
+      { same_as_id: 0, handle: 1, len: 36, version: 1, status: 'valid', released_on_void: 0 },
+      'the legacy token handle is random and never the id shown in the QR',
+    );
+    await failsWith(
+      Promise.resolve().then(() =>
+        f.d1.sqlite
+          .prepare(
+            "INSERT INTO tickets (id, order_id, event_id, tier_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at, order_item_id, version, qr_salt, qr_key_id, seq, released_on_void) SELECT 'tkt_forged', order_id, event_id, tier_id, holder_name, holder_email, 'tkt_forged', 'x', 'valid', 0, order_item_id, 1, 's', 'GL1', 2, 0 FROM tickets LIMIT 1",
+          )
+          .run(),
+      ),
+      'TICKET_ISSUE_INVALID',
+    );
+    // The legacy plaintext-token scanner never admits a managed ticket, by its id or by its handle.
+    const managed = f.q('SELECT id, event_id, qr_token FROM tickets') as {
+      id: string;
+      event_id: string;
+      qr_token: string;
+    };
+    const legacy = new LiveService(createDb(asD1(f.d1)));
+    for (const qrToken of [managed.id, managed.qr_token])
+      await assert.rejects(
+        legacy.scanTicketPass('usr_door', { eventId: managed.event_id, qrToken }),
+        /^Error: NOT_FOUND/,
+      );
+    assert.equal(f.q('SELECT status FROM tickets').status, 'valid');
   });
 
   test('voiding releases once; refunding a voided ticket does not release again; terminal states stay terminal', async () => {
