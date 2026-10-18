@@ -560,7 +560,9 @@ const featuredDetailUrl = featuredEvent
       function setSavedSlugs(slugs) {
         try {
           localStorage.setItem(FAVORITES_KEY, JSON.stringify(slugs));
-        } catch (_e) {}
+        } catch {
+          // Storage unavailable (private mode); favorites stay in-memory only.
+        }
       }
 
       function syncFavoriteButtons() {

@@ -45,6 +45,8 @@ export function isIsolatedDemo(request: Request, env: Record<string, unknown>): 
     && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(request.url).hostname);
 }
 export function safeReturnPath(value: string | null | undefined, fallback = '/account'): string {
+  // Reject backslashes and ASCII control characters before URL parsing.
+  // eslint-disable-next-line no-control-regex
   if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\u0000-\u001f]/.test(value)) return fallback;
   try {
     const url = new URL(value, 'https://gamo.invalid');

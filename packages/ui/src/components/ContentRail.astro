@@ -25,6 +25,8 @@ const btn = tone === 'dark'
       <button type="button" data-rail-next class:list={['flex h-11 w-11 items-center justify-center rounded-full border transition-colors disabled:opacity-40', btn]} aria-label={`Next: ${label}`}><Icon name="chevron-right" class="h-5 w-5" strokeWidth={2} /></button>
     </div>
   )}
+  {/* A scrollable region must be focusable so keyboard users can scroll it (WCAG 2.1.1). */}
+  {/* eslint-disable-next-line astro/jsx-a11y/no-noninteractive-tabindex */}
   <div class:list={['scroll-rail pb-2', gap]} data-rail-track role="region" aria-label={label} tabindex="0">
     <slot />
   </div>

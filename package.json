@@ -1,8 +1,6 @@
 {
   "name": "studio-gamo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter apps-web dev & pnpm --filter apps-worship dev",
     "dev:all": "pnpm --parallel --filter \"./apps/**\" run dev",
@@ -24,9 +22,6 @@
     "live:events:import": "tsx scripts/live/editorial-cli.ts import",
     "live:events:publish": "tsx scripts/live/editorial-cli.ts publish"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -49,7 +44,6 @@
     "eslint-plugin-jsx-a11y-x": "0.2.0",
     "globals": "17.13.0",
     "knip": "6.41.0",
-    "openapi-fetch": "^0.17.0",
     "openapi-typescript": "^7.13.0",
     "playwright": "^1.64.0",
     "prettier": "3.9.10",
@@ -60,5 +54,11 @@
     "typescript-eslint": "8.71.2",
     "wrangler": "^4.149.0",
     "yaml": "^2.9.1"
+  },
+  "private": true,
+  "packageManager": "pnpm@11.28.5",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=11.28.5"
   }
 }

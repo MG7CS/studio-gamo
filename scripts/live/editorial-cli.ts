@@ -5,8 +5,8 @@
  * Commands:
  *   pnpm live:publisher:provision --env local --dry-run
  *   pnpm live:publisher:provision --env local --apply
- *   pnpm live:events:import --file ./gamo_live_verified_events_2026-10-15.json --env local --dry-run
- *   pnpm live:events:import --file ./gamo_live_verified_events_2026-10-15.json --env local --apply
+ *   pnpm live:events:import --file data/gamo_live_verified_events_2026-10-15.json --env local --dry-run
+ *   pnpm live:events:import --file data/gamo_live_verified_events_2026-10-15.json --env local --apply
  *   pnpm live:events:publish --env local --only-approved --dry-run
  *   pnpm live:events:publish --env local --only-approved --apply
  *
@@ -17,7 +17,6 @@
  *   so `astro dev` and local verification immediately serve the curated catalog.
  */
 
-import { createRequire } from 'node:module';
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createDb } from '../../packages/db/index.ts';
@@ -288,9 +287,7 @@ async function openTargetD1(env: 'local' | 'staging' | 'production', dryRun: boo
 function resolveCatalogPath(inputPath?: string): string {
   const candidates = [
     inputPath ? resolve(process.cwd(), inputPath) : null,
-    resolve(process.cwd(), 'gamo_live_verified_events_2026-10-15.json'),
     resolve(process.cwd(), 'data/gamo_live_verified_events_2026-10-15.json'),
-    resolve(process.cwd(), 'data/gamo_live_events.json'),
   ].filter((p): p is string => Boolean(p));
 
   for (const p of candidates) {

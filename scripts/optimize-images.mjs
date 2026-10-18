@@ -23,7 +23,7 @@ const isReport = process.argv.includes('--report');
 async function run() {
   let cache = {};
   if (fs.existsSync(CACHE_FILE)) {
-    try { cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch(e){}
+    try { cache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch { /* unreadable cache: rebuild from scratch */ }
   }
 
   if (isReport) {
@@ -66,11 +66,10 @@ async function run() {
         const outName = `${cleanName}-${width}w.${fmt.ext}`;
         const outPath = path.join(OPTIMIZED_DIR, outName);
         
-        await image.clone()
+        const resized = image.clone()
           .rotate() // auto correct EXIF orientation
-          .resize({ width, withoutEnlargement: true })
-          [fmt.format](fmt.options)
-          .toFile(outPath);
+          .resize({ width, withoutEnlargement: true });
+        await resized[fmt.format](fmt.options).toFile(outPath);
           
         variants.push({
           name: outName,
@@ -86,10 +85,8 @@ async function run() {
       const outName = `${cleanName}-original.${fmt.ext}`;
       const outPath = path.join(OPTIMIZED_DIR, outName);
       
-      await image.clone()
-        .rotate()
-        [fmt.format](fmt.options)
-        .toFile(outPath);
+      const rotated = image.clone().rotate();
+      await rotated[fmt.format](fmt.options).toFile(outPath);
         
       variants.push({
         name: outName,

@@ -201,7 +201,6 @@ export class NotificationService {
     const formattedDate = escapeHtml(event.startsAt.toUTCString());
 
     const brand = getPlatformBrandConfig();
-    const safeBrandName = escapeHtml(brand.displayName);
     const safePassHeader = escapeHtml(brand.ticketPassHeader);
     const safeDisclosure = escapeHtml(brand.operatorDisclosure);
 

@@ -487,32 +487,32 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
 
   <script is:inline>
     (function () {
-      var STORAGE_KEY = 'gamo_live_saved_events';
-      var METROS = [
-        { slug: 'phoenix-az', name: 'Phoenix, AZ', lat: 33.4484, lng: -112.074 },
-        { slug: 'atlanta-ga', name: 'Atlanta, GA', lat: 33.749, lng: -84.388 },
-        { slug: 'nashville-tn', name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
-        { slug: 'orlando-fl', name: 'Orlando, FL', lat: 28.5383, lng: -81.3792 },
-        { slug: 'los-angeles-ca', name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
-        { slug: 'houston-tx', name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
-        { slug: 'seattle-wa', name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
-        { slug: 'new-york-ny', name: 'New York, NY', lat: 40.6782, lng: -73.9442 },
-        { slug: 'oklahoma-city-ok', name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 }
-      ];
+      const STORAGE_KEY = 'gamo_live_saved_events';
+      const METROS = [
+    { slug: 'phoenix-az', name: 'Phoenix, AZ', lat: 33.4484, lng: -112.074 },
+    { slug: 'atlanta-ga', name: 'Atlanta, GA', lat: 33.749, lng: -84.388 },
+    { slug: 'nashville-tn', name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
+    { slug: 'orlando-fl', name: 'Orlando, FL', lat: 28.5383, lng: -81.3792 },
+    { slug: 'los-angeles-ca', name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+    { slug: 'houston-tx', name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+    { slug: 'seattle-wa', name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
+    { slug: 'new-york-ny', name: 'New York, NY', lat: 40.6782, lng: -73.9442 },
+    { slug: 'oklahoma-city-ok', name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 }
+  ];
 
-      var discoveryForm = document.getElementById('events-discovery-form');
-      var autoSubmitSelects = document.querySelectorAll('[data-auto-submit-select]');
+      const discoveryForm = document.getElementById('events-discovery-form');
+      const autoSubmitSelects = document.querySelectorAll('[data-auto-submit-select]');
       autoSubmitSelects.forEach(function (sel) {
         sel.addEventListener('change', function () {
           if (discoveryForm) discoveryForm.submit();
         });
       });
 
-      var moreFiltersBtn = document.getElementById('toggle-more-filters-btn');
-      var moreFiltersDrawer = document.getElementById('more-filters-drawer');
+      const moreFiltersBtn = document.getElementById('toggle-more-filters-btn');
+      const moreFiltersDrawer = document.getElementById('more-filters-drawer');
       if (moreFiltersBtn && moreFiltersDrawer) {
         moreFiltersBtn.addEventListener('click', function () {
-          var isHidden = moreFiltersDrawer.classList.contains('hidden');
+          const isHidden = moreFiltersDrawer.classList.contains('hidden');
           if (isHidden) {
             moreFiltersDrawer.classList.remove('hidden');
             moreFiltersBtn.setAttribute('aria-expanded', 'true');
@@ -524,19 +524,19 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       }
 
       // Client-side Sort By handler
-      var sortSelect = document.getElementById('events-sort-select');
-      var eventsGrid = document.getElementById('events-grid');
+      const sortSelect = document.getElementById('events-sort-select');
+      const eventsGrid = document.getElementById('events-grid');
       if (sortSelect && eventsGrid) {
         sortSelect.addEventListener('change', function () {
-          var mode = sortSelect.value;
-          var cards = Array.prototype.slice.call(eventsGrid.querySelectorAll('[data-event-card]'));
+          const mode = sortSelect.value;
+          const cards = Array.prototype.slice.call(eventsGrid.querySelectorAll('[data-event-card]'));
           cards.sort(function (a, b) {
-            var dateA = a.getAttribute('data-start-date') || '';
-            var dateB = b.getAttribute('data-start-date') || '';
-            var cityA = a.getAttribute('data-city') || '';
-            var cityB = b.getAttribute('data-city') || '';
-            var titleA = a.getAttribute('data-title') || '';
-            var titleB = b.getAttribute('data-title') || '';
+            const dateA = a.getAttribute('data-start-date') || '';
+            const dateB = b.getAttribute('data-start-date') || '';
+            const cityA = a.getAttribute('data-city') || '';
+            const cityB = b.getAttribute('data-city') || '';
+            const titleA = a.getAttribute('data-title') || '';
+            const titleB = b.getAttribute('data-title') || '';
             if (mode === 'date-desc') return dateB.localeCompare(dateA);
             if (mode === 'city-asc') return cityA.localeCompare(cityB);
             if (mode === 'title-asc') return titleA.localeCompare(titleB);
@@ -550,9 +550,9 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
 
       function readSavedSlugs() {
         try {
-          var raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(STORAGE_KEY);
           if (!raw) return [];
-          var parsed = JSON.parse(raw);
+          const parsed = JSON.parse(raw);
           return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           return [];
@@ -562,30 +562,32 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       function writeSavedSlugs(slugs) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
-        } catch (e) {}
+        } catch {
+          // Storage unavailable (private mode); favorites stay in-memory only.
+        }
       }
 
-      var savedFilterBtn = document.getElementById('saved-events-filter-btn');
-      var savedCountBadge = document.getElementById('saved-events-count-badge');
-      var savedEmptyState = document.getElementById('saved-events-empty-state');
-      var clearSavedBtn = document.getElementById('clear-saved-filter-btn');
-      var visibleCountEl = document.getElementById('visible-events-count');
-      var visibleUnitEl = document.getElementById('visible-events-unit');
-      var savedOnlyActive =
+      const savedFilterBtn = document.getElementById('saved-events-filter-btn');
+      const savedCountBadge = document.getElementById('saved-events-count-badge');
+      const savedEmptyState = document.getElementById('saved-events-empty-state');
+      const clearSavedBtn = document.getElementById('clear-saved-filter-btn');
+      const visibleCountEl = document.getElementById('visible-events-count');
+      const visibleUnitEl = document.getElementById('visible-events-unit');
+      let savedOnlyActive =
         savedFilterBtn && savedFilterBtn.getAttribute('data-saved-active') === 'true';
 
       function syncFavoriteUi() {
-        var saved = readSavedSlugs();
+        const saved = readSavedSlugs();
         if (savedCountBadge) {
           savedCountBadge.textContent = String(saved.length);
         }
 
-        var favButtons = document.querySelectorAll('[data-favorite-btn]');
+        const favButtons = document.querySelectorAll('[data-favorite-btn]');
         favButtons.forEach(function (btn) {
-          var slug = btn.getAttribute('data-event-slug');
-          var isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
+          const slug = btn.getAttribute('data-event-slug');
+          const isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
           btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
-          var svg = btn.querySelector('svg');
+          const svg = btn.querySelector('svg');
           if (isSaved) {
             btn.classList.add('text-[#B34B1E]');
             if (svg) svg.setAttribute('fill', 'currentColor');
@@ -595,11 +597,11 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           }
         });
 
-        var cards = document.querySelectorAll('[data-event-card]');
-        var visibleCount = 0;
+        const cards = document.querySelectorAll('[data-event-card]');
+        let visibleCount = 0;
         cards.forEach(function (card) {
-          var slug = card.getAttribute('data-event-slug');
-          var show = !savedOnlyActive || (slug && saved.indexOf(slug) !== -1);
+          const slug = card.getAttribute('data-event-slug');
+          const show = !savedOnlyActive || (slug && saved.indexOf(slug) !== -1);
           if (show) {
             card.classList.remove('hidden');
             visibleCount++;
@@ -633,13 +635,13 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       }
 
       document.addEventListener('click', function (e) {
-        var btn = e.target.closest && e.target.closest('[data-favorite-btn]');
+        const btn = e.target.closest && e.target.closest('[data-favorite-btn]');
         if (!btn) return;
         e.preventDefault();
-        var slug = btn.getAttribute('data-event-slug');
+        const slug = btn.getAttribute('data-event-slug');
         if (!slug) return;
-        var current = readSavedSlugs();
-        var idx = current.indexOf(slug);
+        const current = readSavedSlugs();
+        const idx = current.indexOf(slug);
         if (idx === -1) {
           current.push(slug);
         } else {
@@ -666,22 +668,22 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       }
 
       // Opt-in browser geolocation handler (never auto-prompts on load)
-      var locBtn = document.getElementById('use-my-location-btn');
-      var locLabel = document.getElementById('use-my-location-label');
-      var locStatus = document.getElementById('location-status-msg');
+      const locBtn = document.getElementById('use-my-location-btn');
+      const locLabel = document.getElementById('use-my-location-label');
+      const locStatus = document.getElementById('location-status-msg');
 
       function nearestMetro(lat, lng) {
-        var toRad = function (d) { return (d * Math.PI) / 180; };
-        var best = METROS[0];
-        var bestDist = Infinity;
-        for (var i = 0; i < METROS.length; i++) {
-          var m = METROS[i];
-          var dLat = toRad(m.lat - lat);
-          var dLng = toRad(m.lng - lng);
-          var a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat)) * Math.cos(toRad(m.lat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-          var dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const toRad = function (d) { return (d * Math.PI) / 180; };
+        let best = METROS[0];
+        let bestDist = Infinity;
+        for (let i = 0; i < METROS.length; i++) {
+          const m = METROS[i];
+          const dLat = toRad(m.lat - lat);
+          const dLng = toRad(m.lng - lng);
+          const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat)) * Math.cos(toRad(m.lat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           if (dist < bestDist) {
             bestDist = dist;
             best = m;
@@ -702,14 +704,14 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           if (locLabel) locLabel.textContent = 'Locating...';
           navigator.geolocation.getCurrentPosition(
             function (pos) {
-              var lat = pos.coords.latitude;
-              var lng = pos.coords.longitude;
-              var match = nearestMetro(lat, lng);
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              const match = nearestMetro(lat, lng);
               if (locStatus) {
                 locStatus.textContent = 'Matched nearest city: ' + match.name + '. Loading events...';
                 locStatus.classList.remove('hidden');
               }
-              var nextUrl = new URL(window.location.href);
+              const nextUrl = new URL(window.location.href);
               nextUrl.searchParams.set('metro', match.slug);
               nextUrl.searchParams.set('lat', lat.toFixed(4));
               nextUrl.searchParams.set('lng', lng.toFixed(4));

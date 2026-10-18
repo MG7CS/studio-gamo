@@ -122,7 +122,7 @@ const FALLBACK_SIGNING_SECRET = 'gamo_storage_ticket_signing_secret_min_32_chara
  * Sanitizes a filename to prevent directory traversal or malicious characters.
  */
 export function sanitizeFilename(filename: string): string {
-  const base = filename.replace(/^.*[\\\/]/, ''); // Strip paths
+  const base = filename.replace(/^.*[\\/]/, ''); // Strip paths
   const clean = base.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase();
   return clean.slice(0, 100) || 'unnamed_file';
 }
@@ -412,7 +412,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         isAuditionReviewer?: boolean;
       }
     ): Promise<{ data: Uint8Array; metadata: Record<string, string> } | null> {
-      let record: { data: any; metadata: Record<string, string> } | null = null;
+      let record: { data: any; metadata: Record<string, string> } | null;
 
       if (r2BucketBinding && typeof r2BucketBinding.get === 'function') {
         const r2Obj = await r2BucketBinding.get(key);

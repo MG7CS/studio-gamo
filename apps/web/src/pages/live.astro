@@ -31,7 +31,7 @@ import {
 export const prerender = false;
 
 const now = new Date();
-let liveEvents: LiveEvent[] = [];
+let liveEvents: LiveEvent[];
 
 try {
   const env = await getRuntimeEnv(Astro);

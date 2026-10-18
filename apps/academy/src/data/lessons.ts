@@ -68,6 +68,5 @@ export const lessons: Lesson[] = [
   },
 ];
 
-export const lessonBySlug = (slug: string) => lessons.find((l) => l.slug === slug);
 export const formatTuition = (cents: number | null) =>
   cents === null ? 'Sponsorship planned' : `$${(cents / 100).toFixed(0)} / session (proposed)`;

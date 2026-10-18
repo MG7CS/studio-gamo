@@ -24,7 +24,7 @@ export const GET: APIRoute = async (context) => {
       ? reqOrigin
       : 'https://live.gamostudio.org';
 
-  let publishedSlugs: Array<{ slug: string; lastMod?: string }> = [];
+  let publishedSlugs: Array<{ slug: string; lastMod?: string }>;
 
   try {
     const runtimeEnv = await getRuntimeEnv(context);

@@ -240,9 +240,7 @@ export function createStripeTestClient(config?: StripeConfig) {
       // Safe mock simulation if test key is unconfigured or a mock placeholder
       if (!secretKey || secretKey.startsWith('mock_') || secretKey.includes('placeholder')) {
         const mockSessionId = `cs_test_mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        console.log(
-          `[Stripe Mock Checkout] Mode: ${mode} | Amount: $${((options.amountMinorUnits || 0) / 100).toFixed(2)} ${options.currency ?? 'usd'} | Description: "${options.description || 'Gamo Program'}" (Session: ${mockSessionId})`
-        );
+        console.warn(`[Stripe mock checkout] mode=${mode} session=${mockSessionId}`);
         return {
           id: mockSessionId,
           url: `${options.successUrl.replace('{CHECKOUT_SESSION_ID}', mockSessionId)}?session_id=${mockSessionId}&test_mode=true`,
