@@ -3,6 +3,8 @@
  * enforced Content-Security-Policy and the built assets are what gets tested. Run `pnpm build`
  * first (pnpm check does), then `pnpm test:e2e`.
  *
+ * Each server first applies the D1 migrations to that app's local state (idempotent), so a fresh
+ * clone or CI runner has real tables instead of answering 503 on database-backed pages.
  * `env -u …` keeps Astro from detaching into the background when it detects an AI agent shell.
  */
 import { defineConfig } from '@playwright/test';
@@ -24,7 +26,9 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://127.0.0.1:4321' },
   webServer: apps.map(([app, port]) => ({
-    command: `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 pnpm --filter apps-${app} exec astro preview`,
+    command:
+      `pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local && ` +
+      `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 pnpm --filter apps-${app} exec astro preview`,
     url: `http://127.0.0.1:${port}/robots.txt`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
