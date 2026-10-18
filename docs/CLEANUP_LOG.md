@@ -103,6 +103,10 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-37 | Decorative text failing contrast | darken; aria-hidden; pseudo-element | Render purely decorative glyphs (giant initials, step numerals in ordered lists) via `::after { content: attr(data-glyph) }` | Keeps the design; not exposed as text to assistive tech or the contrast check; meaning is conveyed by the list order and headings. |
 | D-38 | Capitalization convention | sentence case everywhere; Title Case everywhere | Document `<title>`s in Title Case (the majority already); headings, body text and in-page CTAs in sentence case; navigation labels unchanged | Smallest diff to a consistent rule; titles and headings were each already mostly in that style. |
 | D-39 | HTML comments in templates | keep; strip with a build step; convert | Convert template `<!-- -->` comments to Astro `{/* */}` comments (stripped at build) | 102 internal notes (design-file names, implementation remarks) were shipped to every visitor on Live and in auth screens. |
+| D-40 | Webhook event recording order (F-32) | record first; record after fulfillment | Keep: record only after fulfillment succeeds | A failure leaves the event unrecorded so Stripe retries; concurrent duplicates collide on deterministic ticket/payment keys (500) and the retry then deduplicates (`order.status === 'confirmed'`). No double issue is possible. |
+| D-41 | Retries on external calls | none; always retry; retry only when idempotent | One retry on network error/429/5xx only when an idempotency key is sent (Stripe `checkout_session_<orderId>`, Resend `notification_job_<id>` / `auth_challenge_<id>`); 10 s timeouts | Retrying a non-idempotent POST could create duplicate sessions or emails. |
+| D-42 | Two API error formats (`{success:false,error:{…}}` and `{error}` on checkout/webhook) | unify (breaking); keep | Keep, documented | Changing the shape is a breaking contract change for no current consumer benefit; Stripe ignores webhook bodies. RFC 7807 `Problem` stays unused. Revisit when a real client consumes checkout. |
+| D-43 | Outbox consumer (F-09) | add cron `scheduled` handler; leave | Leave disabled; documented design (O-19) | A cron trigger would start sending real emails from production queues — an operational decision for the owner. |
 | D-15 | Four domain services (`Academy`, `Worship`, `Production`, `Partnership`) and six zod schemas never used | keep as "foundation"; delete | Deleted (recoverable from `35d233d`) | Dead code with no route, test or caller; they implied functionality that does not exist. `MediaService` kept (tested). `createApiClient` kept (documented in `docs/OPENAPI_ARCHITECTURE.md`). |
 
 ## 2. Done
@@ -180,6 +184,16 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **Checked, nothing to change:** no lorem/TBD/placeholder copy; no prohibited legal-status words in public output (content audit); program names used consistently (Gamo Studios/Worship/Academy/Live/Production). "Gamo Live Listings" is the name of the listings publisher (data), kept.
 - **Not changed (owner):** program-status wording (O-04), `hello@gamostudios.org` vs `gamostudio.org` (O-01 — `hello@gamostudios.org` does not appear in the code; other `gamostudios` addresses do), the musician pool's name varies between "Musician Collection", "musician collection", "a vetted collection" and "our reviewed network" (O-18), giving-style wording (O-06), "developing … Public Benefit Corporation" (O-07).
 
+### Phase 6 — Data, API and integrations
+
+- **Contract vs behavior:** 2.1.0 completed (declared 403s and the lookup 429; checkout description; open `StripeEvent.data`). New HTTP contract cases run the real handlers and validate responses against the spec: production checkout without a real key → 503 and no hold created; cross-origin checkout and registration → 403; a `customer.updated` event with `previous_attributes` → 200. `api:check` also confirms every operation has a handler and vice versa.
+- **External calls** (D-41, F-10 fixed): `packages/integrations/src/stripe.ts` (`stripePost`, `StripeApiError`), `packages/integrations/src/resend.ts`; tests with a stubbed `fetch` in `http-retry.test.ts`.
+- **Logging:** all runtime `console.*` calls reviewed; none logs personal data, request bodies or raw error objects (F-23 fixed).
+- **Webhooks:** signature before anything else (existing), contract validation, idempotent recording (D-40).
+- **Email** (F-11 fixed): verification email names the product in subject, heading and text; registration email uses the Worker's brand config and the event timezone (`formatEventStart`); booklet palette; every email has a plain-text part.
+- **Database** (F-14 fixed): CLI requires a Wrangler-migrated local DB; `db:migrate:local`, `db:seed:local`, `db:reset:local`; `scripts/db/reset-local.mjs`; `docs/DATABASE.md` (tables, triggers, migrations, rules for new migrations, drift F-15, local vs remote). Verified all migrations apply from scratch with `wrangler d1 migrations apply --local` (H-06 resolved).
+- **Not done:** outbox consumer (D-43/O-19); error format unification (D-42); schema drift reconciliation (F-15, needs table rebuilds).
+
 ## 3. Findings
 
 Ranked: **P0** = security/data-integrity risk in production, **P1** = correctness bug or broken user path, **P2** = quality/maintainability, **P3** = cosmetic. Status is updated as items are fixed.
@@ -194,21 +208,21 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-06 | P1 | Stripe webhook contract schema closes `data` to `{object}` only; real `*.updated` events carry `data.previous_attributes` → `400` → Stripe retries forever. | `openapi/components/schemas/payments/StripeEvent.yaml`, `apps/live/src/pages/api/webhook/stripe.ts:54-61` | **fixed** (Phase 3) |
 | F-07 | P1 | `pnpm dev:all` failed: all workerd runtimes bind inspector port 9229. | `apps/*/astro.config.mjs` | **fixed** (D-04) |
 | F-08 | P1 | Local cross-app links point to `127.0.0.1` while dev servers bound `[::1]`. | `apps/*/wrangler.toml` `[vars]` | **fixed** (D-04) |
-| F-09 | P1 | Outbox retry (`processPendingJobs`) is never called — no cron/scheduled handler — so failed emails are never retried. | `packages/domain/src/services/notifications.ts:148` | open (Phase 6) |
-| F-10 | P1 | No timeouts on Resend/Stripe `fetch` calls. | `packages/integrations/src/resend.ts:59`, `stripe.ts:306,349` | partly fixed: Resend 10 s timeout (Phase 2); Stripe in Phase 6 |
-| F-11 | P1 | Registration email uses `getPlatformBrandConfig()` without env → always defaults (`live.example.invalid`). Verification email is branded "Gamo Studios" for every product. | `packages/domain/src/services/notifications.ts:56-101,203` | open (Phase 6) |
+| F-09 | P1 | Outbox retry (`processPendingJobs`) is never called — no cron/scheduled handler — so failed emails are never retried. | `packages/domain/src/services/notifications.ts:148` | open — owner decision O-19 |
+| F-10 | P1 | No timeouts on Resend/Stripe `fetch` calls. | `packages/integrations/src/resend.ts:59`, `stripe.ts:306,349` | **fixed** (Phase 6) |
+| F-11 | P1 | Registration email uses `getPlatformBrandConfig()` without env → always defaults (`live.example.invalid`). Verification email is branded "Gamo Studios" for every product. | `packages/domain/src/services/notifications.ts:56-101,203` | **fixed** (Phase 6) |
 | F-12 | P1 | `handleApiError` maps *any* error whose message contains "not found"/"duplicate"/"forbidden" to 404/409/403 — fragile, can return undeclared statuses. | `packages/domain/src/api/response.ts:103-118` | **fixed** (Phase 3) |
 | F-13 | P1 | Several private routes parse/validate body before checking the session (anonymous gets 400, not 401). | artists, representatives, offers, inquiries, team, production-requests, refund, scan, events POST | **fixed** (Phase 3) |
-| F-14 | P1 | Local live DB was migrated by the editorial CLI (no `d1_migrations` table), so `wrangler d1 migrations apply --local` would re-run everything and fail. CLI's own migration runner silently skips the rest of a file after the first "already exists". Local dry-run still mutates schema. | `scripts/live/editorial-cli.ts:136-165,261-277` | open (Phase 6) |
-| F-15 | P2 | `schema.ts` drift vs migrations: `user_roles.id` not a PK in DB; 11 FKs have cascade/set-null in schema but NO ACTION in DB; 9 indexes exist only in schema. drizzle `meta/_journal.json` lists only 0000–0002. | `packages/db/schema.ts`, `packages/db/migrations/meta` | open (Phase 6) |
-| F-16 | P2 | Migration numbering gap (`0007` missing); most migrations use bare `CREATE TABLE`/`INDEX` (not idempotent if re-run by hand). | `packages/db/migrations/` | open (Phase 3/6) |
+| F-14 | P1 | Local live DB was migrated by the editorial CLI (no `d1_migrations` table), so `wrangler d1 migrations apply --local` would re-run everything and fail. CLI's own migration runner silently skips the rest of a file after the first "already exists". Local dry-run still mutates schema. | `scripts/live/editorial-cli.ts:136-165,261-277` | **fixed** (Phase 6) |
+| F-15 | P2 | `schema.ts` drift vs migrations: `user_roles.id` not a PK in DB; 11 FKs have cascade/set-null in schema but NO ACTION in DB; 9 indexes exist only in schema. drizzle `meta/_journal.json` lists only 0000–0002. | `packages/db/schema.ts`, `packages/db/migrations/meta` | documented (docs/DATABASE.md); open |
+| F-16 | P2 | Migration numbering gap (`0007` missing); most migrations use bare `CREATE TABLE`/`INDEX` (not idempotent if re-run by hand). | `packages/db/migrations/` | documented (D-31, docs/DATABASE.md) |
 | F-17 | P2 | Two error formats in the API (`{success:false,error:{…}}` and `{error:string}` for checkout/webhook); RFC 7807 `Problem` schema defined but unused. Checkout contract text says "returns 503" but code returns 200. | `openapi/`, `apps/live/src/pages/api/checkout/session.ts` | **fixed** (Phase 3) |
 | F-18 | P2 | `api:check`, `scripts/audit/*.test.ts` and browser tests are not run by `pnpm test`; one of them (`auth-journeys`) fails. | `package.json` | open (Phase 1/7) |
 | F-19 | P2 | `tsc --noEmit` typecheck ignores `.astro` files. | `package.json` `typecheck` | open (Phase 1/2) |
 | F-20 | P2 | worship/academy/production import `@gamo/domain` without declaring it. | `apps/{worship,academy,production}/package.json` | **fixed** |
 | F-21 | P2 | Same catalog in 3 byte-identical JSON files + an embedded TS copy. | `gamo_live_verified_events_2026-10-15.json`, `data/*.json`, `packages/domain/src/services/verified-catalog-2026-10-15.ts` | open (Phase 1) |
 | F-22 | P2 | Docs stale: `docs/DEPLOYMENT.md:75-79` names a nonexistent migration and stops at 0008; import report uses wrong DB name; README says legal status undecided (AGENTS.md: PBC); `openapi/root.yaml:6-8` also says undecided. | docs | open (Phase 8) |
-| F-23 | P3 | Admin middleware logs the raw error object. | `apps/admin/src/middleware.ts:420` | open (Phase 6) |
+| F-23 | P3 | Admin middleware logs the raw error object. | `apps/admin/src/middleware.ts:420` | **fixed** (Phase 2/6) |
 | F-24 | P0 | Request-path seeding (F-02) also inserts a verified active user `listings-editorial@gamostudios.org` with a **global `staff_reviewer` role** and org ownership — on an anonymous GET in production. Called from 9 pages: live `/`, `/events`, `/events/[id]`, `/events/[id]/register`, `/venues`, `/artists`, `/artists/[slug]`, `sitemap.xml`, and web `/live`. | `packages/domain/src/services/live.ts:2433+,3267`; `live-external-discovery.ts:22` | **fixed** (Phase 3) |
 | F-25 | P0 | Admin login sets `__session` with `Domain=.gamostudio.org` in production; that session has no product scope, and Live private APIs (`requireVerifiedAuth`) never check product membership → an admin session is accepted by every Live API. | `apps/admin/src/middleware.ts:31-39,265-271`; `packages/auth/index.ts:573` | **fixed** (Phase 3) |
 | F-26 | P0 | Live private APIs (events POST, team, production-requests, artists POST, representatives, bookings, offers accept, revoke, refund, scan) do not check `hasProductAccess`. | `packages/auth/index.ts:573` | **fixed** (Phase 3) |
@@ -217,7 +231,7 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-29 | P1 | Admin break-glass compares tokens with `===` (not constant-time); active whenever not prod or `ENABLE_BREAK_GLASS_AUTH=true`. | `apps/admin/src/middleware.ts:442,446,463` | **fixed** (Phase 3) |
 | F-30 | P1 | Admin: a Cloudflare-Access-only user (valid JWT, no D1 session) is redirected to `/account/signin`, which in admin is the `[...slug]` route → redirect loop. | `apps/admin/src/middleware.ts:346-359` | **fixed** (Phase 3) |
 | F-31 | P1 | Admin login page renders `err?.message` (escaped) into HTML; Stripe webhook returns `verification.error` which can carry `JSON.parse` messages; `handleApiError` returns `AuthError` messages verbatim (incl. Clerk config errors). | admin `middleware.ts:292`; `stripe.ts:210`; `response.ts:80-126` | **fixed** (Phase 3) |
-| F-32 | P1 | Webhook fulfillment dedupe is read-then-write (not atomic); concurrent deliveries collide on deterministic PKs → 500. Event is recorded idempotent **after** fulfillment. | `packages/domain/src/services/live.ts:1967-2085`; `payments.ts:51-60` | open (Phase 6) |
+| F-32 | P1 | Webhook fulfillment dedupe is read-then-write (not atomic); concurrent deliveries collide on deterministic PKs → 500. Event is recorded idempotent **after** fulfillment. | `packages/domain/src/services/live.ts:1967-2085`; `payments.ts:51-60` | by design (D-40) |
 | F-33 | P1 | Worship `/api/check-in/{confirm,fail}` are unauthenticated no-op stubs (303 redirect) that are part of the public contract. | `apps/worship/src/pages/api/check-in/*.ts` | **fixed** (Phase 2) |
 | F-34 | P2 | Default top-level wrangler env is `ENVIRONMENT="local"` — a `wrangler deploy` without `--env` ships "local" flags (demo gates still need a loopback hostname, so not exploitable on real hosts). | `apps/*/wrangler.toml` | open (Phase 2) |
 | F-35 | P2 | Demo session endpoint (local + loopback only) can impersonate any existing user, incl. superadmin, without verification. Acceptable for local, but should be documented. | `packages/domain/src/http/auth.ts:164-220` | document |
@@ -267,6 +281,7 @@ Nothing in this section was changed in code unless the row says so.
 | O-16 | **Uppercase titles.** Per the booklet, page and section titles are now 900 uppercase. Some `h1`s are full sentences (e.g. Academy instructor pages: "A patient piano and voice teacher who loves…") and read heavy in uppercase. | keep; sentence-case long statements; shorten those headings | Keep the rule and shorten sentence-style headings (copy decision). |
 | O-17 | **Homepage sample events** (`HomeLiveSpotlight.astro`) are now labeled "Sample", but the AGENTS.md Live rule says Live surfaces must show real database events. | label (done); replace with the same DB-backed list as gamostudio.org/live | Replace with real events (small code change once approved). |
 | O-18 | **Name of the musician pool** varies: "Musician Collection" (footer), "musician collection" (`organization.ts`, `GetStartedRoutes.astro`, `JoinSection.astro`), "a vetted collection" (`programs.ts`), "our reviewed network" (worship layout). | pick one term | Pick one; then a one-line copy pass. |
+| O-19 | **Sending queued emails.** Registration confirmations that fail (or are queued while email is unconfigured) are never retried: nothing runs `NotificationService.processPendingJobs`. | (a) cron trigger on the live Worker (custom Worker entry with a `scheduled` handler calling `processPendingJobs`, `[triggers] crons = ["*/10 * * * *"]`); (b) Cloudflare Queues; (c) leave manual | (a): smallest change; it sends real emails, so it needs approval and a configured Resend key. |
 | O-14 | **Admin nav labels use `/nonprofit/*` URLs** and "Fund reconciliation", "Stewardship reports" (`apps/admin/src/data/workspace.ts:96-102`); admin data says tax status "under evaluation" (`apps/admin/src/data/admin/nonprofit.ts:87`). Staff-only, but contradicts the PBC statement. | rename routes; keep | Rename to `/organization/*` when admin is next worked on. Not changed. |
 
 **O-04 detail — every program-status phrase found (unchanged):**
@@ -287,7 +302,7 @@ Nothing in this section was changed in code unless the row says so.
 | H-03 | Decide whether production D1 should contain the bundled Live catalog. If it does not yet, either import it deliberately or set `LIVE_CATALOG_AUTOSEED=true` on the live Worker for one deploy, then remove it. Note: the editorial CLI cannot write to remote D1 (F-14). | O-13; request-path seeding is now off in production. |
 | H-04 | In preview and production D1, remove the global role from the listings publisher and demote it: `DELETE FROM user_roles WHERE user_id = 'usr_gamo_live_listings_editorial'; UPDATE users SET status = 'system' WHERE id = 'usr_gamo_live_listings_editorial';` (`wrangler d1 execute gamo-db-<env> --remote --command "…"`). | F-24: code no longer grants it, but existing rows remain. |
 | H-05 | Verify in a browser on preview that Clerk sign-in works under the new CSP for each product with Clerk keys (the policy allows the product's Clerk Frontend API derived from its publishable key, `img.clerk.com`, `clerk-telemetry.com`, `challenges.cloudflare.com`). If a product uses a Clerk custom domain, confirm it is the issuer. | D-28; Clerk was not configured locally, so this path was not exercised. |
-| H-06 | Run `pnpm --filter apps-live exec wrangler d1 migrations apply gamo-db-local --local` once on a clean checkout to confirm wrangler's own SQL splitter accepts all migrations from scratch. | Declined in this session (D-31). |
+| H-06 | ~~Confirm wrangler's splitter accepts all migrations from scratch.~~ **Done** in Phase 6 (into a scratch directory). Existing local databases created by the old CLI need `pnpm db:reset:local` once. | — |
 
 ## 6. Verification
 
@@ -345,13 +360,23 @@ Nothing in this section was changed in code unless the row says so.
 | `pnpm check` | **pass** |
 | Rendered Live pages | 0 HTML comments shipped (was 3–25 per page) |
 
+### After Phase 6
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` | **pass** |
+| `pnpm api:check` | pass; 12 contract tests incl. the new fail-closed/cross-origin/webhook cases |
+| `wrangler d1 migrations apply gamo-db-local --local --persist-to <scratch>` | all 11 migrations ✅ |
+| `pnpm live:events:import --env staging --dry-run` | 18 approved, 2 held, 1 rejected (in memory) |
+
 ## 7. How to revert
 
 | Phase | Commit | Revert |
 | --- | --- | --- |
 | Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
 | Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
-| Phase 5 | `f9d4a1f` content · (log commit follows) | `git revert f9d4a1f` |
+| Phase 6 | `0d7a384` integrations/DB workflow · contract tests (next commit) · log | `git revert` newest first, or `git reset --hard 0cfd416` |
+| Phase 5 | `f9d4a1f` content · `0cfd416` log | `git revert f9d4a1f` |
 | Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · `c933bc2` log | `git revert` newest first, or `git reset --hard accea2b` |
 | Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `git revert` newest first, or `git reset --hard 062aa98` |
 | Phase 2 | `8d47e01` types · `13d54a7` fail closed + sample labels + stub removal · `174fef0` dedupe · `5b00c0d` env validation · `062aa98` log | `git revert` newest first, or `git reset --hard c01cf18` (end of Phase 1) |
