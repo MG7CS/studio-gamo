@@ -1,6 +1,7 @@
 export * from '@gamo/config/brand';
 export * from './api/response.ts';
 export * from './api/validation.ts';
+export * from './api/public-form-guard.ts';
 export * from './services/identity.ts';
 export * from './services/live.ts';
 export * from './services/payments.ts';
@@ -12,3 +13,4 @@ export * from './http/security-headers.ts';
 export * from './services/participation.ts';
 export * from './services/live-external-discovery.ts';
 export * from './services/verified-catalog-2026-10-15.ts';
+export * from './terms/index.ts';
