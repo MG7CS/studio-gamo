@@ -89,7 +89,9 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
       id: 'usr_staff_1',
       email: 'jordan@gamostudio.org',
       displayName: 'Jordan Avery',
+      verifiedEmailAt: new Date(0),
       status: 'active',
+      createdAt: new Date(0),
     },
     roles: ['staff_reviewer'],
     memberships: [
@@ -98,6 +100,8 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
         role: 'admin',
         orgName: 'Gamo Operations',
         orgSlug: 'gamo-ops',
+        orgType: 'ministry',
+        status: 'active',
       },
     ],
     sessionId: 'sess_1',
@@ -109,7 +113,9 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
       id: 'usr_organizer_1',
       email: 'pastor@riverside.org',
       displayName: 'Pastor David',
+      verifiedEmailAt: new Date(0),
       status: 'active',
+      createdAt: new Date(0),
     },
     roles: ['organizer'],
     memberships: [
@@ -118,6 +124,8 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
         role: 'owner',
         orgName: 'Riverside Fellowship',
         orgSlug: 'riverside-fellowship',
+        orgType: 'church',
+        status: 'active',
       },
     ],
     sessionId: 'sess_2',
@@ -149,7 +157,9 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
         id: 'usr_super_1',
         email: 'admin@gamostudio.org',
         displayName: 'Super Admin',
+        verifiedEmailAt: new Date(0),
         status: 'active',
+        createdAt: new Date(0),
       },
       roles: ['superadmin'],
       memberships: [],
@@ -438,11 +448,10 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     await db.insert(users).values({
       id: legacyUserId,
       email: legacyEmail,
-      emailVerifiedAt: now,
+      verifiedEmailAt: now,
       displayName: 'Pastor Legacy',
       status: 'active',
       createdAt: now,
-      updatedAt: now,
     });
 
     await db.insert(productAccounts).values({
@@ -451,7 +460,6 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
       product: 'live',
       status: 'active',
       onboardingStatus: 'completed',
-      verifiedAt: now,
       createdAt: now,
       updatedAt: now,
     });
@@ -461,9 +469,8 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
       name: 'Cornerstone Church',
       slug: 'cornerstone-church',
       type: 'church',
-      verificationStatus: 'verified',
+      verifiedAt: now,
       createdAt: now,
-      updatedAt: now,
     });
 
     await db.insert(organizationMembers).values({

@@ -53,7 +53,7 @@ try {
       stageName: prof.stageName.trim(),
       roleLabel: prof.genre || 'Verified Artist',
       genre: prof.genre,
-      bio: prof.bio ?? null,
+      bio: null, // listArtists() does not expose bio (contract: ArtistListResponse)
       homeCity: prof.homeCity ?? null,
       homeState: prof.homeState ?? null,
       isVerifiedProfile: true,

@@ -134,10 +134,11 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     assert.deepEqual(liveMeData.products, ['live']);
     assert.equal(liveMeData.product, 'live');
 
-    // Presenting the Live session cookie to Academy, Worship, or Production is denied with 403
-    assert.equal((await academyAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 403);
-    assert.equal((await worshipAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 403);
-    assert.equal((await productionAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 403);
+    // A Live session is not a session for any other product: resolveAuth rejects the product
+    // mismatch, so Academy, Worship and Production treat the caller as signed out (401).
+    assert.equal((await academyAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
+    assert.equal((await worshipAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
+    assert.equal((await productionAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
 
     // Validating the session confirms page-level isolation across products
     const rawCookieVal = decodeURIComponent(liveCookie.split('=')[1]);

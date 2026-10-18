@@ -335,7 +335,7 @@ export function workspaceDirectory(): WorkspaceLink[] {
       label: 'Organizer workspace',
       role: 'Event organizer',
       organization: 'Grace Fellowship',
-      href: siteUrl('live', '/organizer'),
+      href: siteUrl('live', '/workspaces'),
     },
     {
       id: 'artist',
@@ -343,7 +343,7 @@ export function workspaceDirectory(): WorkspaceLink[] {
       label: 'Artist workspace',
       role: 'Verified artist',
       organization: 'Grace Collective',
-      href: siteUrl('live', '/artist'),
+      href: siteUrl('live', '/workspaces'),
     },
     {
       id: 'agent',
@@ -351,14 +351,14 @@ export function workspaceDirectory(): WorkspaceLink[] {
       label: 'Agent & manager',
       role: 'Authorized representative',
       organization: 'Selah Talent Agency',
-      href: siteUrl('live', '/agent'),
+      href: siteUrl('live', '/workspaces'),
     },
     {
       id: 'attendee',
       program: 'Gamo Live',
       label: 'Ticket & pass lookup',
       role: 'Attendee self-service',
-      href: siteUrl('live', '/me/tickets'),
+      href: siteUrl('live', '/my-tickets'),
     },
     {
       id: 'client',
@@ -381,7 +381,7 @@ export function workspaceDirectory(): WorkspaceLink[] {
       label: 'Church partner & supporter',
       role: 'Partner contact',
       organization: 'Grace Fellowship',
-      href: siteUrl('web', '/partner'),
+      href: siteUrl('web', '/account/inquiries'),
     },
     {
       id: 'admin',

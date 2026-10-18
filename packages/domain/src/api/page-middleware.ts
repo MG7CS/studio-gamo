@@ -15,10 +15,50 @@ type Context = {
   locals: Record<string, any>;
   redirect: (path: string, status?: 302 | 303) => Response;
 };
-export function applicationPages(app: PublicApp) {
+
+/**
+ * A retired URL that should keep working for old links and bookmarks.
+ * `from` is an exact path, a prefix ending in `/*` (which also matches the bare prefix),
+ * or a RegExp tested against the path (its match is passed to `to`).
+ */
+export interface LegacyRedirect {
+  from: string | RegExp;
+  to: string | ((url: URL, match: RegExpMatchArray | null) => string);
+  status?: 301 | 302 | 303 | 308;
+}
+
+export function matchLegacyRedirect(redirects: readonly LegacyRedirect[], url: URL): Response | null {
+  const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname;
+  for (const rule of redirects) {
+    let match: RegExpMatchArray | null = null;
+    if (rule.from instanceof RegExp) {
+      match = path.match(rule.from);
+      if (!match) continue;
+    } else if (rule.from.endsWith('/*')) {
+      const base = rule.from.slice(0, -2);
+      if (path !== base && !path.startsWith(`${base}/`)) continue;
+    } else if (path !== rule.from) {
+      continue;
+    }
+    const location = typeof rule.to === 'function' ? rule.to(url, match) : rule.to;
+    return new Response(null, {
+      status: rule.status ?? 302,
+      headers: { Location: location, 'Cache-Control': 'no-store' },
+    });
+  }
+  return null;
+}
+
+export interface ApplicationPagesOptions {
+  legacyRedirects?: readonly LegacyRedirect[];
+}
+
+export function applicationPages(app: PublicApp, options: ApplicationPagesOptions = {}) {
   return async (context: Context, next: () => Promise<Response>): Promise<Response> => {
     const { pathname } = context.url;
     context.locals.product = app;
+    const legacy = options.legacyRedirects && matchLegacyRedirect(options.legacyRedirects, context.url);
+    if (legacy) return legacy;
     // API handlers own their contract-specific authorization and status codes.
     // robots.txt, sitemap.xml and llms.txt are public crawler files and must stay cacheable.
     if (

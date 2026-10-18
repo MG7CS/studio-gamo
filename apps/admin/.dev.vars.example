@@ -1,11 +1,16 @@
-# Gamo Admin (apps/admin) — Internal Staff Boundary Secrets Example (.dev.vars.example)
-# Public product Clerk accounts NEVER grant access to apps/admin.
-# Admin access requires Cloudflare Zero Trust Access RS256 JWT or PBKDF2 Admin Gateway password auth + staff/superadmin D1 role.
-# Shared local settings (ENVIRONMENT, SESSION_SECRET, REQUIRE_ADMIN_AUTH) are inherited from root .dev.vars / .env.
+# Gamo Admin (apps/admin) — local secrets. Copy to apps/admin/.dev.vars (git-ignored).
+# Shared settings (ENVIRONMENT, SESSION_SECRET) come from the root .env.
+# Product Clerk accounts never grant admin access; Clerk variables are ignored in this app.
+# In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/admin.
 
-# Cloudflare Zero Trust Access
-CF_ACCESS_TEAM_NAME="your-cf-access-team"
-CF_ACCESS_AUD="your-cf-access-application-aud-tag"
+# REQUIRED in preview/production. Cloudflare Zero Trust Access application in front of admin.
+CF_ACCESS_TEAM_NAME=
+CF_ACCESS_AUD=
 
-# Optional initial bootstrap password for local/first-time admin setup (stored as PBKDF2-SHA256 in D1)
-ADMIN_INITIAL_PASSWORD=""
+# BREAK-GLASS (emergency) access. Ignored unless ENABLE_BREAK_GLASS_AUTH=true outside local.
+# Tokens must be at least 16 characters. Leave empty in normal operation.
+ENABLE_BREAK_GLASS_AUTH=
+ADMIN_ACCESS_TOKEN=
+ADMIN_SECRET_KEY=
+ADMIN_BASIC_AUTH_USER=
+ADMIN_BASIC_AUTH_PASS=

@@ -9,6 +9,8 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false
   }
 }

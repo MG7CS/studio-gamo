@@ -5,7 +5,7 @@
  * pending approval.
  */
 import { b, type Workspace } from '@studio-gamo/ui/lib/dashboard';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
 export const clientWorkspace: Workspace = {
   id: 'client',
@@ -53,7 +53,7 @@ export const clientWorkspace: Workspace = {
         ] },
         { type: 'actions', title: 'Quick actions', items: [
           { label: 'Review draft recommendation', href: '/client/documents', icon: 'file' },
-          { label: 'Start a needs assessment', href: siteUrl('production', '/assessment'), icon: 'list' },
+          { label: 'Start a needs assessment', href: inquiryUrl('Production consultation'), icon: 'list' },
           { label: 'Message project lead', dialog: 'new-request', icon: 'message' },
           { label: 'View service history', href: '/client/history', icon: 'clock' },
         ] },
@@ -97,7 +97,7 @@ export const clientWorkspace: Workspace = {
       slug: 'assessments',
       title: 'Needs assessments',
       description: 'Summaries of answers submitted through the public assessment flow.',
-      actions: [{ label: 'Start a new assessment', href: siteUrl('production', '/assessment'), icon: 'plus' }],
+      actions: [{ label: 'Start a new assessment', href: inquiryUrl('Production consultation'), icon: 'plus' }],
       blocks: [
         { type: 'kv', span: 2, title: 'Sanctuary assessment — Sep 22 (sample)', items: [
           ['Room', 'Sanctuary · ~350 seats'], ['Service style', 'Contemporary with choir on special Sundays'], ['Primary concern', 'Uneven coverage in rear pews; feedback on lapel mics'], ['Current system', 'Analog 24-channel console, 2 mains, no delays'], ['Volunteers', '3 sound volunteers · limited training'], ['Livestream', 'Yes — weekly'], ['Status', b('Reviewed', 'success')],

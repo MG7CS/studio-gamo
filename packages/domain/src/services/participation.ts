@@ -59,17 +59,15 @@ export class ParticipationService {
         })
         .where(and(eq(participationInquiries.id, id), ne(participationInquiries.status, 'closed')))
         .returning(),
-      this.db
-        .insert(auditLogs)
-        .values({
-          id: `audit_${crypto.randomUUID()}`,
-          actorUserId: reviewerId,
-          action: 'participation.reviewed',
-          entityType: 'participation_inquiry',
-          entityId: id,
-          payloadJson: JSON.stringify({ status: input.status }),
-          createdAt: now,
-        }),
+      this.db.insert(auditLogs).values({
+        id: `audit_${crypto.randomUUID()}`,
+        actorUserId: reviewerId,
+        action: 'participation.reviewed',
+        entityType: 'participation_inquiry',
+        entityId: id,
+        payloadJson: JSON.stringify({ status: input.status }),
+        createdAt: now,
+      }),
     ]);
     const inquiry = result[0][0];
     if (!inquiry) throw new Error('CONFLICT: inquiry is closed.');

@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '../../lib/sites';
 interface Props {
   program?: string;
   workspaceHref?: string;
@@ -36,7 +37,7 @@ const isProduction = program === 'Gamo Production';
     {isLive && <a href="/promote/create">List a Christian event →</a>}
     {isLive && <a href="/my-tickets">My tickets & passes →</a>}
     {isAcademy && <a href="/family">Family enrollment workspace →</a>}
-    {isWorship && <a href="/apply">Musician application →</a>}
+    {isWorship && <a href={inquiryUrl('Musician application')}>Musician application →</a>}
     {isProduction && <a href="/client">Ministry production requests →</a>}
     {program === 'Gamo Studios' && <a href="/get-involved">Get involved →</a>}
     <a href="/">Return to {program}</a>

@@ -6,7 +6,7 @@ export const participation = [
   { title: 'Musicians', body: 'Discover the preparation and audition journey for serving with the musician collection.', href: '/contact?interest=Musician%20application', action: 'Explore the application', photo: 'acousticLeader' as PhotoKey },
   { title: 'Students & families', body: 'Find an instrument you love and explore a welcoming path into music education.', href: siteUrl('academy', '/instruments'), action: 'Discover instruments', photo: 'girlGuitar' as PhotoKey },
   { title: 'Instructors', body: 'Bring your teaching experience to proposed private, group and community learning programs.', href: '/contact?interest=Teaching', action: 'Explore teaching interest', photo: 'guitarMentor' as PhotoKey },
-  { title: 'Christian event organizers', body: 'Learn how to introduce a Christian gathering, prepare event details and request review.', href: siteUrl('live', '/promote'), action: 'Explore event promotion', photo: 'gospelVocalists' as PhotoKey },
+  { title: 'Christian event organizers', body: 'Learn how to introduce a Christian gathering, prepare event details and request review.', href: siteUrl('live', '/promote/create'), action: 'Explore event promotion', photo: 'gospelVocalists' as PhotoKey },
   { title: 'Volunteers & community partners', body: 'Offer your time, a learning space, instruments or practical skills as programs grow.', href: '/contact?interest=Volunteering', action: 'Explore ways to help', photo: 'sanctuaryCongregation' as PhotoKey },
   { title: 'Sponsors & supporters', body: 'Explore education sponsorships, equipment support and responsible ways to sustain the mission.', href: '/support', action: 'Explore mission support', photo: 'youngPianist' as PhotoKey },
 ];

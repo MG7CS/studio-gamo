@@ -182,12 +182,8 @@ async function optimizeBrandRefresh(cache) {
         for (const fmt of BRAND_FORMATS) {
           const outName = `${stem}-${width}w.${fmt.ext}`;
           const primary = path.join(APP_PUBLIC_DIRS[0], outName);
-          await image
-            .clone()
-            .rotate()
-            .resize({ width, withoutEnlargement: true })
-            [fmt.format](fmt.options)
-            .toFile(primary);
+          const resized = image.clone().rotate().resize({ width, withoutEnlargement: true });
+          await resized[fmt.format](fmt.options).toFile(primary);
           for (const dir of APP_PUBLIC_DIRS.slice(1)) fs.copyFileSync(primary, path.join(dir, outName));
           variants.push({ name: outName, size: fs.statSync(primary).size, width, format: fmt.ext });
         }

@@ -7,7 +7,7 @@ import EditorialFeatureCard, {
   type EditorialFeaturePoint,
 } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
 const areas: EditorialFeaturePoint[] = [
   {
@@ -43,7 +43,7 @@ const areas: EditorialFeaturePoint[] = [
   tone="sand"
   sectionClass="bg-cream"
 >
-  <ButtonLink href={siteUrl('production', '/assessment')} arrow>
+  <ButtonLink href={inquiryUrl('Production consultation')} arrow>
     Request a needs assessment
   </ButtonLink>
   <ButtonLink href={siteUrl('production', '/training')} variant="secondary">

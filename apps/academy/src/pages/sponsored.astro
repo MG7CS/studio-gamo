@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '../components/shared/PageHero.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
@@ -77,7 +78,7 @@ const qa = [
       <div>
         <EditorialHeading eyebrow="Questions" title="How sponsored learning works" />
         <div class="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href="/host-apply" variant="secondary" arrow>
+          <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
             Apply to host lessons
           </ButtonLink>
         </div>

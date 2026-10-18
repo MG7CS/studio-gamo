@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 /** Detail body for one support area: coverage, volunteer skills and preparation questions. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -45,10 +46,10 @@ const { area } = Astro.props;
             The needs assessment preview walks through your setup, priorities and team.
           </p>
           <div class="mt-5 flex flex-wrap gap-3">
-            <ButtonLink href="/assessment" arrow>
+            <ButtonLink href={inquiryUrl('Production consultation')} arrow>
               Start assessment
             </ButtonLink>
-            <ButtonLink href="/consultation" variant="ghost-dark">
+            <ButtonLink href={inquiryUrl('Production consultation')} variant="ghost-dark">
               Consultation
             </ButtonLink>
           </div>

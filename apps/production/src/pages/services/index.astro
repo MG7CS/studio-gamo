@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../../layouts/Layout.astro';
 import PageIntro from '../../components/production/PageIntro.astro';
 import ServicesIndex from '../../components/production/ServicesIndex.astro';
@@ -34,10 +35,10 @@ import { productionFaq } from '../../data/production';
     body="A short walk-through of your church, current setup, priorities and volunteer team."
     photo="sanctuaryCongregation"
   >
-    <ButtonLink href="/assessment" arrow>
+    <ButtonLink href={inquiryUrl('Production consultation')} arrow>
       Start assessment
     </ButtonLink>
-    <ButtonLink href="/consultation" variant="secondary">
+    <ButtonLink href={inquiryUrl('Production consultation')} variant="secondary">
       Request consultation
     </ButtonLink>
   </CtaInvitation>

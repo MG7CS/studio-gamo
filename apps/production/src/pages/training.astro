@@ -1,4 +1,5 @@
 ---
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import PageIntro from '../components/production/PageIntro.astro';
 import TrainingSection from '../components/production/TrainingSection.astro';
@@ -30,7 +31,7 @@ import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
     body="Share your church's training goals through a consultation request."
     photo="worshipBand"
   >
-    <ButtonLink href="/consultation" arrow>
+    <ButtonLink href={inquiryUrl('Production consultation')} arrow>
       Share training interest
     </ButtonLink>
   </CtaInvitation>
