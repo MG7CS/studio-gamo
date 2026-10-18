@@ -52,11 +52,7 @@ const pillars = [
 ];
 ---
 
-<section
-  id="worship"
-  aria-labelledby="home-worship-title"
-  class="bg-cream px-5 section-space sm:px-8"
->
+<section id="worship" aria-labelledby="home-worship-title" class="bg-cream px-5 section-space sm:px-8">
   <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-12 lg:gap-16">
     <div class="lg:col-span-6">
       <EditorialHeading
@@ -82,7 +78,9 @@ const pillars = [
       </dl>
 
       <div class="mt-9 flex flex-wrap gap-3">
-        <ButtonLink href={siteUrl('worship', '/hire')} arrow>Request a musician</ButtonLink>
+        <ButtonLink href={siteUrl('worship', '/hire')} arrow>
+          Request a musician
+        </ButtonLink>
         <ButtonLink href={siteUrl('worship', '/apply')} variant="secondary">
           Apply as a musician
         </ButtonLink>

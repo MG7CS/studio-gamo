@@ -2,15 +2,33 @@
 /** Trust/status pills for an event on the Gamo Live marketing page. */
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import type { LiveEvent } from '../../data/live-marketing';
-interface Props { event: LiveEvent; class?: string; showSample?: boolean; tone?: 'light' | 'dark' }
+interface Props {
+  event: LiveEvent;
+  class?: string;
+  showSample?: boolean;
+  tone?: 'light' | 'dark';
+}
 const { event: e, class: className, tone = 'light' } = Astro.props;
 const isPast = Boolean(e.isPast || e.status === 'past');
 ---
+
 <div class:list={['flex flex-wrap items-center gap-1.5', className]}>
-  {isPast && <StatusPill kind="past" tone={tone}>Past · Closed</StatusPill>}
+  {isPast && (
+    <StatusPill kind="past" tone={tone}>
+      Past · Closed
+    </StatusPill>
+  )}
   {e.status === 'canceled' && <StatusPill kind="canceled">Canceled</StatusPill>}
   {e.status === 'rescheduled' && !isPast && <StatusPill kind="rescheduled">Rescheduled</StatusPill>}
   {!isPast && e.ticketing === 'free' && <StatusPill kind="free">Free</StatusPill>}
-  {!isPast && e.ticketing === 'preview' && <StatusPill kind="paid" tone={tone}>Gamo ticketing</StatusPill>}
-  {!isPast && e.ticketing === 'external' && <StatusPill kind="external">{e.externalSource ? `Tickets · ${e.externalSource}` : 'External tickets'}</StatusPill>}
+  {!isPast && e.ticketing === 'preview' && (
+    <StatusPill kind="paid" tone={tone}>
+      Gamo ticketing
+    </StatusPill>
+  )}
+  {!isPast && e.ticketing === 'external' && (
+    <StatusPill kind="external">
+      {e.externalSource ? `Tickets · ${e.externalSource}` : 'External tickets'}
+    </StatusPill>
+  )}
 </div>

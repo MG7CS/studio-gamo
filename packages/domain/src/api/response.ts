@@ -31,7 +31,7 @@ export function jsonResponse<T>(
   data: T,
   status: number = 200,
   meta?: ApiResponse['meta'],
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response {
   const body: ApiResponse<T> = {
     success: true,
@@ -53,7 +53,7 @@ export function errorResponse(
   message: string,
   status: number = 400,
   details?: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response {
   const body: ApiResponse = {
     success: false,
@@ -92,7 +92,7 @@ export function handleApiError(err: unknown): Response {
       'VALIDATION_ERROR',
       'The request payload failed schema validation.',
       400,
-      formattedIssues
+      formattedIssues,
     );
   }
 
@@ -107,7 +107,11 @@ export function handleApiError(err: unknown): Response {
     if (err.message.includes('NOT_FOUND') || err.message.toLowerCase().includes('not found')) {
       return errorResponse('NOT_FOUND', 'Resource not found.', 404);
     }
-    if (err.message.includes('CONFLICT') || err.message.includes('ALREADY_EXISTS') || err.message.includes('duplicate')) {
+    if (
+      err.message.includes('CONFLICT') ||
+      err.message.includes('ALREADY_EXISTS') ||
+      err.message.includes('duplicate')
+    ) {
       return errorResponse('CONFLICT', 'The operation conflicts with the current resource state.', 409);
     }
     if (err.message.includes('INVALID_CHALLENGE_CODE') || err.message.includes('UNAUTHORIZED')) {
@@ -153,4 +157,3 @@ export async function getRuntimeEnv(context?: { locals?: unknown }): Promise<Rec
   }
   return {};
 }
-

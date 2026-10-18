@@ -2,62 +2,29 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": [
-        "scripts/**/*.{mjs,ts}",
-        "design-reference/make_print_pdf.mjs"
-      ],
-      "project": [
-        "scripts/**/*.{mjs,ts}"
-      ]
+      "entry": ["scripts/**/*.{mjs,ts}", "design-reference/make_print_pdf.mjs"],
+      "project": ["scripts/**/*.{mjs,ts}"]
     },
     "apps/*": {
-      "entry": [
-        "src/pages/**/*.{astro,ts}"
-      ],
-      "project": [
-        "src/**/*.{astro,ts}"
-      ]
+      "entry": ["src/pages/**/*.{astro,ts}"],
+      "project": ["src/**/*.{astro,ts}"]
     },
     "packages/ui": {
-      "entry": [
-        "src/components/**/*.astro",
-        "src/lib/*.ts"
-      ],
-      "project": [
-        "src/**/*.{astro,ts}"
-      ]
+      "entry": ["src/components/**/*.astro", "src/lib/*.ts"],
+      "project": ["src/**/*.{astro,ts}"]
     },
     "packages/db": {
-      "entry": [
-        "index.ts",
-        "testing.ts",
-        "drizzle.config.ts"
-      ],
-      "project": [
-        "*.ts"
-      ]
+      "entry": ["index.ts", "testing.ts", "drizzle.config.ts"],
+      "project": ["*.ts"]
     },
     "packages/api-contracts": {
-      "entry": [
-        "src/index.ts",
-        "src/runtime.ts",
-        "src/internal.d.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ]
+      "entry": ["src/index.ts", "src/runtime.ts", "src/internal.d.ts"],
+      "project": ["src/**/*.ts"]
     },
     "packages/*": {
-      "project": [
-        "**/*.ts"
-      ]
+      "project": ["**/*.ts"]
     }
   },
-  "ignore": [
-    "openapi/bundled/**"
-  ],
-  "ignoreDependencies": [
-    "ajv",
-    "ajv-formats"
-  ]
+  "ignore": ["openapi/bundled/**"],
+  "ignoreDependencies": ["ajv", "ajv-formats"]
 }

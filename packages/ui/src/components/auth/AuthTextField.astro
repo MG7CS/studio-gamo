@@ -32,13 +32,25 @@ const focusClasses =
 ---
 
 <div>
-  <label for={id} class="sr-only lg:not-sr-only lg:block lg:text-[13px] lg:font-medium lg:text-[#3A332E] lg:mb-2">
+  <label
+    for={id}
+    class="sr-only lg:not-sr-only lg:block lg:text-[13px] lg:font-medium lg:text-[#3A332E] lg:mb-2"
+  >
     {label}
   </label>
   <div class="relative">
     {icon === 'mail' && (
-      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#8C827A]" aria-hidden="true">
-        <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+      <span
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-[#8C827A]"
+        aria-hidden="true"
+      >
+        <svg
+          class="h-[18px] w-[18px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+        >
           <rect x="3" y="5" width="18" height="14" rx="2.5" />
           <path stroke-linecap="round" stroke-linejoin="round" d="m4 7 8 6 8-6" />
         </svg>

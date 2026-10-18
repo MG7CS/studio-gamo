@@ -9,12 +9,7 @@
  */
 
 import { eq } from 'drizzle-orm';
-import {
-  stripeWebhookEvents,
-  paymentRecords,
-  ledgerEntries,
-  type GamoDatabase,
-} from '@gamo/db';
+import { stripeWebhookEvents, paymentRecords, ledgerEntries, type GamoDatabase } from '@gamo/db';
 
 export interface RecordPaymentInput {
   sessionId?: string;
@@ -48,15 +43,19 @@ export class PaymentService {
    * Records a Stripe webhook event in D1 for durable idempotency.
    * Returns true if already processed (deduplicated), false if newly recorded.
    */
-  async recordWebhookEventIdempotent(
-    eventId: string,
-    eventType: string
-  ): Promise<{ isDuplicate: boolean }> {
+  async recordWebhookEventIdempotent(eventId: string, eventType: string): Promise<{ isDuplicate: boolean }> {
     // Only used to acknowledge ignored events; financial fulfillment remains disabled.
-    const inserted = await this.db.insert(stripeWebhookEvents).values({
-      id: eventId, eventType, processedAt: new Date(), status: 'ignored',
-    }).onConflictDoNothing().returning({id: stripeWebhookEvents.id});
-    return {isDuplicate: inserted.length === 0};
+    const inserted = await this.db
+      .insert(stripeWebhookEvents)
+      .values({
+        id: eventId,
+        eventType,
+        processedAt: new Date(),
+        status: 'ignored',
+      })
+      .onConflictDoNothing()
+      .returning({ id: stripeWebhookEvents.id });
+    return { isDuplicate: inserted.length === 0 };
   }
 
   /**

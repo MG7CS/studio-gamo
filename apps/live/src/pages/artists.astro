@@ -122,9 +122,7 @@ try {
   }
 
   const allEntries = Array.from(artistMap.values()).sort(
-    (a, b) =>
-      b.upcomingEvents.length - a.upcomingEvents.length ||
-      a.stageName.localeCompare(b.stageName)
+    (a, b) => b.upcomingEvents.length - a.upcomingEvents.length || a.stageName.localeCompare(b.stageName),
   );
 
   directoryArtists = queryParam
@@ -136,8 +134,8 @@ try {
             (e) =>
               e.title.toLowerCase().includes(queryParam) ||
               e.city.toLowerCase().includes(queryParam) ||
-              e.venueName.toLowerCase().includes(queryParam)
-          )
+              e.venueName.toLowerCase().includes(queryParam),
+          ),
       )
     : allEntries;
 } catch {
@@ -161,7 +159,8 @@ try {
             Artists on tour &amp; artist onboarding
           </h1>
           <p class="mt-1.5 text-sm sm:text-base text-[#5C554E] max-w-2xl">
-            Browse verified performers with upcoming U.S. concert dates, or register an artist profile for event representation.
+            Browse verified performers with upcoming U.S. concert dates, or register an artist profile for
+            event representation.
             <span class="sr-only">Bring your music to the gathering.</span>
           </p>
         </div>
@@ -205,7 +204,9 @@ try {
       <!-- Search Filter Bar -->
       <form action="/artists" method="get" role="search" class="mt-6 flex flex-wrap items-center gap-3">
         <div class="relative flex-1 min-w-[240px] max-w-md">
-          <label for="artist-search-q" class="sr-only">Filter artists by name, city, or tour</label>
+          <label for="artist-search-q" class="sr-only">
+            Filter artists by name, city, or tour
+          </label>
           <input
             id="artist-search-q"
             name="q"
@@ -222,7 +223,11 @@ try {
             stroke-width="2"
             aria-hidden="true"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+            />
           </svg>
         </div>
         <button
@@ -232,10 +237,7 @@ try {
           Filter
         </button>
         {queryParam && (
-          <a
-            href="/artists"
-            class="text-sm font-semibold text-[#B34B1E] hover:underline px-2 py-1"
-          >
+          <a href="/artists" class="text-sm font-semibold text-[#B34B1E] hover:underline px-2 py-1">
             Clear filter
           </a>
         )}
@@ -283,10 +285,7 @@ try {
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <h2 class="text-lg font-extrabold text-[#191817] leading-snug">
-                    <a
-                      href={`/artists/${artist.slug}`}
-                      class="hover:text-[#B34B1E] transition-colors"
-                    >
+                    <a href={`/artists/${artist.slug}`} class="hover:text-[#B34B1E] transition-colors">
                       {artist.stageName}
                     </a>
                   </h2>
@@ -314,12 +313,14 @@ try {
                         </a>
                         <p class="text-[#6E675F] truncate mt-0.5">
                           {evt.city}, {evt.state} · {evt.venueName} ·{' '}
-                          {formatLocalEventSchedule(
-                            evt.startDateLocal,
-                            evt.startTimeLocal,
-                            evt.timezone,
-                            evt.startsAt
-                          ).dateChipLabel}
+                          {
+                            formatLocalEventSchedule(
+                              evt.startDateLocal,
+                              evt.startTimeLocal,
+                              evt.timezone,
+                              evt.startsAt,
+                            ).dateChipLabel
+                          }
                         </p>
                       </div>
                       <a
@@ -405,7 +406,8 @@ try {
               Onboard as an artist or authorized representative
             </h2>
             <p class="mt-1 text-sm text-[#5C554E]">
-              Sign in or create an account to register an artist profile or manage authorized booking representation.
+              Sign in or create an account to register an artist profile or manage authorized booking
+              representation.
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-3 shrink-0">

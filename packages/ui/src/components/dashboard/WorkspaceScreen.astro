@@ -8,28 +8,73 @@ import BaseLayout from '../BaseLayout.astro';
 import { findScreen, screenHref, type Workspace } from '../../lib/dashboard';
 import { resolveWorkspaceViewer } from '../../lib/session-viewer';
 import { siteUrl } from '../../lib/sites';
-interface Props { workspace: Workspace; slug?: string }
+interface Props {
+  workspace: Workspace;
+  slug?: string;
+}
 const { workspace, slug } = Astro.props;
 const screen = findScreen(workspace, slug);
 const viewer = await resolveWorkspaceViewer(Astro as any);
 const isolatedDemo = (Astro.locals as Record<string, any>).isolatedDemo === true;
-const auth = (Astro.locals as Record<string, any>).auth ?? (Astro.locals as Record<string, any>).adminAuthSession;
+const auth =
+  (Astro.locals as Record<string, any>).auth ?? (Astro.locals as Record<string, any>).adminAuthSession;
 if (!isolatedDemo && !auth) return Astro.redirect('/account/signin', 303);
 if (!screen) Astro.response.status = 404;
 ---
-{isolatedDemo ? <DashboardShell workspace={workspace} current={screen?.slug ?? ''} title={screen?.title ?? 'Not found'} viewer={viewer}>
-  <p class="mb-5 border border-terracotta bg-cream p-4 font-semibold">Isolated local demonstration · All records are fictional. No operational or financial actions occur.</p>
-  {screen ? <><DashPageHeader workspace={workspace} title={screen.title} description={screen.description} path={screenHref(workspace, screen.slug)} /><DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} /></> : <StateView state="empty" title="Page not found" body="Return to the demonstration home." retryHref={screenHref(workspace, '')} />}
-</DashboardShell> : <BaseLayout title={`${workspace.program} | Your workspace`}>
-  <section class="mx-auto max-w-3xl px-5 pb-24 pt-36">
-    <p class="text-sm font-semibold uppercase tracking-widest text-terracotta">{workspace.program}</p>
-    <h1 class="mt-4 text-4xl font-semibold">{screen ? 'Your workspace' : 'Page not found'}</h1>
-    <p class="mt-6 text-lg text-ink-soft">{screen ? 'There are no operational records available here yet. Program participation and approvals are managed separately from account registration.' : 'This workspace page does not exist.'}</p>
-    <p class="mt-4 text-ink-soft">{workspace.staff ? 'Staff review tools are available through the operational review pages. No sample metrics or records are shown.' : 'You can register your interest in a program and follow the status from your account. Booking, scheduling and payment features are not available from this workspace yet.'}</p>
-    <nav class="mt-8 flex flex-wrap gap-5 font-semibold text-terracotta" aria-label="Workspace actions">
-      {workspace.staff ? <a href="/participation">Review participation requests →</a> : <a href={siteUrl('web', '/get-involved')}>Explore participation →</a>}
-      <a href="/account">Your account →</a>
-      <a href="/">Public website →</a>
-    </nav>
-  </section>
-</BaseLayout>}
+
+{isolatedDemo ? (
+  <DashboardShell
+    workspace={workspace}
+    current={screen?.slug ?? ''}
+    title={screen?.title ?? 'Not found'}
+    viewer={viewer}
+  >
+    <p class="mb-5 border border-terracotta bg-cream p-4 font-semibold">
+      Isolated local demonstration · All records are fictional. No operational or financial actions occur.
+    </p>
+    {screen ? (
+      <>
+        <DashPageHeader
+          workspace={workspace}
+          title={screen.title}
+          description={screen.description}
+          path={screenHref(workspace, screen.slug)}
+        />
+        <DashBlocks blocks={screen.blocks} idPrefix={`${workspace.id}-${screen.slug || 'home'}`} />
+      </>
+    ) : (
+      <StateView
+        state="empty"
+        title="Page not found"
+        body="Return to the demonstration home."
+        retryHref={screenHref(workspace, '')}
+      />
+    )}
+  </DashboardShell>
+) : (
+  <BaseLayout title={`${workspace.program} | Your workspace`}>
+    <section class="mx-auto max-w-3xl px-5 pb-24 pt-36">
+      <p class="text-sm font-semibold uppercase tracking-widest text-terracotta">{workspace.program}</p>
+      <h1 class="mt-4 text-4xl font-semibold">{screen ? 'Your workspace' : 'Page not found'}</h1>
+      <p class="mt-6 text-lg text-ink-soft">
+        {screen
+          ? 'There are no operational records available here yet. Program participation and approvals are managed separately from account registration.'
+          : 'This workspace page does not exist.'}
+      </p>
+      <p class="mt-4 text-ink-soft">
+        {workspace.staff
+          ? 'Staff review tools are available through the operational review pages. No sample metrics or records are shown.'
+          : 'You can register your interest in a program and follow the status from your account. Booking, scheduling and payment features are not available from this workspace yet.'}
+      </p>
+      <nav class="mt-8 flex flex-wrap gap-5 font-semibold text-terracotta" aria-label="Workspace actions">
+        {workspace.staff ? (
+          <a href="/participation">Review participation requests →</a>
+        ) : (
+          <a href={siteUrl('web', '/get-involved')}>Explore participation →</a>
+        )}
+        <a href="/account">Your account →</a>
+        <a href="/">Public website →</a>
+      </nav>
+    </section>
+  </BaseLayout>
+)}

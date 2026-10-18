@@ -5,25 +5,43 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import MixerStripPreview from './MixerStripPreview.astro';
 ---
-<section class="relative overflow-hidden bg-cream pt-28 pb-16 lg:pt-32 lg:pb-16" aria-labelledby="prod-hero-title">
+
+<section
+  class="relative overflow-hidden bg-cream pt-28 pb-16 lg:pt-32 lg:pb-16"
+  aria-labelledby="prod-hero-title"
+>
   <div class="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-12 lg:gap-8">
     <div class="lg:col-span-6">
       <p class="eyebrow text-terracotta">Gamo Production · Technical ministry</p>
       <h1 id="prod-hero-title" class="display-xl production-hero-title mt-4 text-charcoal">
-        Better Tools.<br /><span class="text-terracotta">Stronger Worship.</span>
+        Better Tools.
+        <br />
+        <span class="text-terracotta">Stronger Worship.</span>
       </h1>
       <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">
-        A proposed program helping churches grow in worship audio, video, lighting and livestreaming — and in the volunteers who serve behind the board every Sunday.
+        A proposed program helping churches grow in worship audio, video, lighting and livestreaming — and in
+        the volunteers who serve behind the board every Sunday.
       </p>
       <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ButtonLink href="/assessment" arrow>Start a needs assessment</ButtonLink>
-        <ButtonLink href="/services" variant="secondary">Explore support areas</ButtonLink>
+        <ButtonLink href="/assessment" arrow>
+          Start a needs assessment
+        </ButtonLink>
+        <ButtonLink href="/services" variant="secondary">
+          Explore support areas
+        </ButtonLink>
       </div>
-      <StatusPill kind="proposal" class="mt-6">Technical ministry &amp; volunteer training</StatusPill>
+      <StatusPill kind="proposal" class="mt-6">
+        Technical ministry &amp; volunteer training
+      </StatusPill>
     </div>
     <div class="order-first lg:order-none relative lg:col-span-6">
       <div class="relative ml-auto aspect-[4/5] w-full max-w-[480px] overflow-hidden rounded-[2.5rem] rounded-tl-[9rem] bg-night shadow-float sm:aspect-[5/4] lg:aspect-square">
-        <Photo name="soundEngineer" priority sizes="(min-width:1024px) 45vw, 100vw" class="h-full w-full object-cover" />
+        <Photo
+          name="soundEngineer"
+          priority
+          sizes="(min-width:1024px) 45vw, 100vw"
+          class="h-full w-full object-cover"
+        />
       </div>
       <MixerStripPreview class="absolute -bottom-8 left-2 w-48 sm:left-0 md:-left-4 md:w-56" />
       <div class="absolute right-3 top-5 hidden rounded-2xl bg-white/95 px-4 py-3 text-sm shadow-float sm:block">

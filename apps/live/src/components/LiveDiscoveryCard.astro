@@ -23,10 +23,7 @@ const cardImage = hasVerifiedArtwork
   ? event.artworkUrl!
   : STAGE_ATMOSPHERE_IMAGES[index % STAGE_ATMOSPHERE_IMAGES.length];
 
-const MONTH_SHORT = [
-  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-  'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
-];
+const MONTH_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 let badgeMonth: string;
 let badgeDay: string;
@@ -38,14 +35,20 @@ if (event.startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(event.startDateLocal)) {
   badgeDay = dStr;
 } else {
   const dt = new Date(event.startsAt);
-  badgeMonth = dt.toLocaleDateString('en-US', { month: 'short', timeZone: event.timezone || 'America/Phoenix' }).toUpperCase();
-  badgeDay = dt.toLocaleDateString('en-US', { day: '2-digit', timeZone: event.timezone || 'America/Phoenix' });
+  badgeMonth = dt
+    .toLocaleDateString('en-US', { month: 'short', timeZone: event.timezone || 'America/Phoenix' })
+    .toUpperCase();
+  badgeDay = dt.toLocaleDateString('en-US', {
+    day: '2-digit',
+    timeZone: event.timezone || 'America/Phoenix',
+  });
 }
 
 const isPast = typeof event.isPast === 'boolean' ? event.isPast : isEventPast(event);
 const isClosed = isPast || event.status === 'canceled';
 const isWeekend = isLocalWeekendDate(event.startDateLocal, event.startsAt, event.timezone);
-const isExternal = event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external';
+const isExternal =
+  event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external';
 const providerName = event.externalTicketProvider || 'Official Site';
 const ctaLabel = isPast
   ? 'Past · Closed'
@@ -95,15 +98,11 @@ const performerLine =
       </a>
 
       <!-- Date Badge (top-left white rounded badge) -->
-      <div
-        class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md text-center min-w-[50px] pointer-events-none"
-      >
+      <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-md text-center min-w-[50px] pointer-events-none">
         <div class="text-[10px] font-bold tracking-wider uppercase text-[#6E675F] leading-none">
           {badgeMonth}
         </div>
-        <div class="text-lg font-extrabold text-[#191817] leading-tight mt-0.5">
-          {badgeDay}
-        </div>
+        <div class="text-lg font-extrabold text-[#191817] leading-tight mt-0.5">{badgeDay}</div>
       </div>
 
       <!-- Top-Right Image Heart Overlay Button -->
@@ -116,15 +115,30 @@ const performerLine =
         aria-pressed="false"
         aria-label={`Save ${event.title}`}
       >
-        <svg class="w-4 h-4 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+        <svg
+          class="w-4 h-4 drop-shadow-sm"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+          />
         </svg>
       </button>
 
       <!-- Category & Past/Closed Pill (bottom-left/right) -->
       <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#14110F]/80 text-[#FBF7F1] backdrop-blur-sm capitalize">
-          {event.category === 'worship' ? 'Worship Night' : event.category === 'concert' ? 'Concert' : event.category}
+          {event.category === 'worship'
+            ? 'Worship Night'
+            : event.category === 'concert'
+              ? 'Concert'
+              : event.category}
         </span>
         {isPast && (
           <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#3D3833]/95 text-[#FBF7F1] border border-white/20 backdrop-blur-sm">
@@ -145,13 +159,26 @@ const performerLine =
       {performerLine && <span class="sr-only">Performers: {performerLine}</span>}
 
       <div class="mt-2 flex items-start gap-2 text-[13px]">
-        <svg class="w-4 h-4 text-[#5C554D] shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <svg
+          class="w-4 h-4 text-[#5C554D] shrink-0 mt-0.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+          />
         </svg>
         <div class="min-w-0 leading-snug">
           <p class="text-[#5C554D] font-normal truncate">{event.venueName}</p>
-          <p class="text-[#7A7267] truncate">{event.city}, {event.state}</p>
+          <p class="text-[#7A7267] truncate">
+            {event.city}, {event.state}
+          </p>
         </div>
       </div>
 
@@ -162,7 +189,10 @@ const performerLine =
   <!-- Card Footer: External CTA + Save Heart -->
   <div class="px-4 py-3 border-t border-[#F0EAE0] flex items-center justify-between gap-2 bg-white">
     {isClosed ? (
-      <span class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6E675F]" data-past-closed-badge>
+      <span
+        class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#6E675F]"
+        data-past-closed-badge
+      >
         <span>Past · Closed</span>
       </span>
     ) : isExternal && event.externalUrl ? (
@@ -174,8 +204,19 @@ const performerLine =
         aria-label={`${ctaLabel} for ${event.title} (opens external ticket provider in a new tab)`}
       >
         <span>{ctaLabel}</span>
-        <svg class="w-3.5 h-3.5 text-[#C85A28]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+        <svg
+          class="w-3.5 h-3.5 text-[#C85A28]"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2.2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+          />
         </svg>
       </a>
     ) : (
@@ -197,8 +238,19 @@ const performerLine =
       aria-label={`Save ${event.title}`}
       title="Save event to your device"
     >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+        />
       </svg>
     </button>
   </div>

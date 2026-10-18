@@ -25,15 +25,15 @@ post:
   parameters:
     - $ref: ../components/parameters/id.yaml
   responses:
-    "200":
+    '200':
       description: Successful response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/administration/ReviewResponse.yaml
-    "400":
+    '400':
       $ref: ../components/responses/LegacyError.yaml
-    "401":
+    '401':
       description: Middleware denies access
       content:
         text/html:
@@ -46,13 +46,13 @@ post:
         WWW-Authenticate:
           schema:
             type: string
-    "403":
+    '403':
       $ref: ../components/responses/LegacyError.yaml
-    "404":
+    '404':
       $ref: ../components/responses/LegacyError.yaml
-    "409":
+    '409':
       $ref: ../components/responses/LegacyError.yaml
-    "500":
+    '500':
       $ref: ../components/responses/LegacyError.yaml
   requestBody:
     required: true

@@ -9,15 +9,19 @@ export const PROGRAM_TO_PRODUCT_KEY: Record<string, string> = {
 };
 
 const PROGRAM_SIGNUP_SUBTEXT: Record<string, string> = {
-  'Gamo Live': 'Register for Gamo Live to manage Christian event submissions, artist profiles, and verified event passes.',
+  'Gamo Live':
+    'Register for Gamo Live to manage Christian event submissions, artist profiles, and verified event passes.',
   'Gamo Academy': 'Register for Gamo Academy to explore music lessons and family enrollment.',
-  'Gamo Worship': 'Register for Gamo Worship to connect with church worship coverage and musician onboarding.',
-  'Gamo Production': 'Register for Gamo Production to request technical assessments, audio, livestream, and ministry training.',
-  'Gamo Studios': 'Register for Gamo Studios to submit participation inquiries and connect with our mission team.',
+  'Gamo Worship':
+    'Register for Gamo Worship to connect with church worship coverage and musician onboarding.',
+  'Gamo Production':
+    'Register for Gamo Production to request technical assessments, audio, livestream, and ministry training.',
+  'Gamo Studios':
+    'Register for Gamo Studios to submit participation inquiries and connect with our mission team.',
 };
 
 export function getAuthScreenCopy(
-  program: string = 'Gamo Studios'
+  program: string = 'Gamo Studios',
 ): Record<AuthScreenMode, { heading: string; subtext: string }> {
   const cleanProgram = program.trim() || 'Gamo Studios';
   const signupSubtext =
@@ -80,7 +84,15 @@ export function initAuthFlow(scope: ParentNode = document): void {
     const backBar = root.querySelector<HTMLElement>('[data-back-bar]');
     const socialAuth = root.querySelector<HTMLElement>('[data-social-auth]');
 
-    if (!challenge || !verify || !status || !headingEl || !subtextEl || !verifyEmailWrap || !verifyEmailLabel) {
+    if (
+      !challenge ||
+      !verify ||
+      !status ||
+      !headingEl ||
+      !subtextEl ||
+      !verifyEmailWrap ||
+      !verifyEmailLabel
+    ) {
       return;
     }
 
@@ -254,7 +266,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
       clerk: any,
       targetEmail: string,
       firstName: string,
-      lastName: string
+      lastName: string,
     ): Promise<void> => {
       const intent = intentForRequest();
       if (intent === 'signup') {
@@ -275,7 +287,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
         identifier: targetEmail,
       });
       const emailCodeFactor = (signInAttempt.supportedFirstFactors || []).find(
-        (factor: any) => factor?.strategy === 'email_code'
+        (factor: any) => factor?.strategy === 'email_code',
       );
       if (!emailCodeFactor?.emailAddressId) {
         throw new Error(`Email verification code sign-in is not enabled for this ${program} account.`);
@@ -297,7 +309,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
           target.origin === window.location.origin &&
           !target.pathname.startsWith('/api/')
           ? target.pathname + target.search
-          : '/account'
+          : '/account',
       );
     };
 
@@ -355,7 +367,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
         message(
           data?.deliveryStatus === 'simulated'
             ? String(data.message || 'Local verification simulation. No email was sent.')
-            : 'Your verification code has been sent. Check your email.'
+            : 'Your verification code has been sent. Check your email.',
         );
         codeInput.focus();
       } catch (error) {
@@ -383,7 +395,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
             clerk,
             email,
             firstNameInput?.value.trim() || '',
-            lastNameInput?.value.trim() || ''
+            lastNameInput?.value.trim() || '',
           );
           verifyEmailLabel.textContent = maskEmailAddress(email);
           message('A new verification code has been sent. Check your email.');
@@ -409,7 +421,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
         message(
           body.data?.deliveryStatus === 'simulated'
             ? String(body.data.message || 'Local verification simulation. No email was sent.')
-            : 'A new verification code has been sent. Check your email.'
+            : 'A new verification code has been sent. Check your email.',
         );
         codeInput.focus();
       } catch (error) {

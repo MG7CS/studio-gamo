@@ -1,10 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  createR2StorageClient,
-  generateR2Key,
-  sanitizeFilename,
-} from './storage.ts';
+import { createR2StorageClient, generateR2Key, sanitizeFilename } from './storage.ts';
 
 describe('R2 Object Storage & Upload Security', () => {
   const client = createR2StorageClient();
@@ -61,7 +57,7 @@ describe('R2 Object Storage & Upload Security', () => {
       },
       {
         message: /Invalid content type/,
-      }
+      },
     );
   });
 
@@ -78,7 +74,7 @@ describe('R2 Object Storage & Upload Security', () => {
       },
       {
         message: /File size exceeds maximum allowed/,
-      }
+      },
     );
   });
 
@@ -135,7 +131,7 @@ describe('R2 Object Storage & Upload Security', () => {
       },
       {
         message: /Access denied/,
-      }
+      },
     );
   });
 });

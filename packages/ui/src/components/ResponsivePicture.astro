@@ -20,7 +20,10 @@ interface Props {
   pictureClass?: string;
 }
 const {
-  stem, widths, sizes, alt,
+  stem,
+  widths,
+  sizes,
+  alt,
   class: className = '',
   loading = 'lazy',
   decoding = 'async',
@@ -38,8 +41,19 @@ const asset = (w: number, format: 'webp' | 'avif') => `/images/optimized/${stem}
 const srcset = (format: 'webp' | 'avif') => available.map((w) => `${asset(w, format)} ${w}w`).join(', ');
 const fallback = asset(available[available.length - 1], 'webp');
 ---
+
 <picture class={pictureClass}>
   <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
   <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
-  <img src={fallback} alt={alt} class={className} loading={loading} decoding={decoding} fetchpriority={fetchpriority} width={width} height={height} style={position ? `object-position: ${position}` : undefined} />
+  <img
+    src={fallback}
+    alt={alt}
+    class={className}
+    loading={loading}
+    decoding={decoding}
+    fetchpriority={fetchpriority}
+    width={width}
+    height={height}
+    style={position ? `object-position: ${position}` : undefined}
+  />
 </picture>

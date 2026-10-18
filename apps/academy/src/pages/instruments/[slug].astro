@@ -18,20 +18,46 @@ const { instrument } = Astro.props as { instrument: Instrument };
 const related = lessons.filter((l) => l.instrumentSlug === instrument.slug);
 const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument.slug));
 ---
-<Layout title={instrument.name} description={`${instrument.name} lessons at Gamo Academy. ${instrument.blurb} ${instrument.ages}.`}>
-  <PageHero eyebrow={instrument.ages} title={instrument.name} lede={instrument.blurb} photo={instrument.photo} mask="mask-leaf" crumbs={[{ label: 'Instruments', href: '/instruments' }, { label: instrument.short, href: `/instruments/${instrument.slug}` }]}>
+
+<Layout
+  title={instrument.name}
+  description={`${instrument.name} lessons at Gamo Academy. ${instrument.blurb} ${instrument.ages}.`}
+>
+  <PageHero
+    eyebrow={instrument.ages}
+    title={instrument.name}
+    lede={instrument.blurb}
+    photo={instrument.photo}
+    mask="mask-leaf"
+    crumbs={[
+      { label: 'Instruments', href: '/instruments' },
+      { label: instrument.short, href: `/instruments/${instrument.slug}` },
+    ]}
+  >
     <div class="mt-8 flex flex-wrap gap-3">
-      <ButtonLink href={`/register?instrument=${instrument.slug}`} size="lg" arrow>Register for {instrument.short.toLowerCase()}</ButtonLink>
-      <ButtonLink href="/lessons" size="lg" variant="secondary">All lessons</ButtonLink>
+      <ButtonLink href={`/register?instrument=${instrument.slug}`} size="lg" arrow>
+        Register for {instrument.short.toLowerCase()}
+      </ButtonLink>
+      <ButtonLink href="/lessons" size="lg" variant="secondary">
+        All lessons
+      </ButtonLink>
     </div>
   </PageHero>
   <InstrumentOverview instrument={instrument} />
   <section class="px-4 py-16 sm:px-8 lg:py-20">
     <div class="mx-auto max-w-[1320px]">
-      <EditorialHeading eyebrow="Available lessons" title={`Ways to learn ${instrument.short.toLowerCase()}`} size="sub" />
+      <EditorialHeading
+        eyebrow="Available lessons"
+        title={`Ways to learn ${instrument.short.toLowerCase()}`}
+        size="sub"
+      />
       <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {related.map((l) => <LessonCard lesson={l} />)}
-        {teachers.map((t) => <InstructorCard instructor={t} />)}
+        {related.map((l) => (
+          <LessonCard lesson={l} />
+        ))}
+        {teachers.map((t) => (
+          <InstructorCard instructor={t} />
+        ))}
       </div>
     </div>
   </section>

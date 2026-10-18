@@ -1,14 +1,29 @@
 ---
 /** Section 6: sponsored & scholarship-supported programs — clearly marked as planned. */
-import EditorialFeatureCard, { type EditorialFeaturePoint } from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+import EditorialFeatureCard, {
+  type EditorialFeaturePoint,
+} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 const ideas: EditorialFeaturePoint[] = [
-  { icon: 'heart', title: 'Need-based tuition support', body: 'Proposed reduced or no-cost lessons for families who need it.' },
-  { icon: 'church', title: 'Church-sponsored cohorts', body: 'Proposed groups a congregation could underwrite for its community.' },
-  { icon: 'school', title: 'Instrument lending', body: 'An idea under review for students without an instrument at home.' },
+  {
+    icon: 'heart',
+    title: 'Need-based tuition support',
+    body: 'Proposed reduced or no-cost lessons for families who need it.',
+  },
+  {
+    icon: 'church',
+    title: 'Church-sponsored cohorts',
+    body: 'Proposed groups a congregation could underwrite for its community.',
+  },
+  {
+    icon: 'school',
+    title: 'Instrument lending',
+    body: 'An idea under review for students without an instrument at home.',
+  },
 ];
 ---
+
 <EditorialFeatureCard
   pillText="Sponsored & scholarship pathways"
   pillKind="proposal"
@@ -21,5 +36,7 @@ const ideas: EditorialFeaturePoint[] = [
   caption="Scholarship & church-sponsored cohort pathways"
   tone="sand"
 >
-  <ButtonLink href="/sponsored" arrow>Explore sponsored programs</ButtonLink>
+  <ButtonLink href="/sponsored" arrow>
+    Explore sponsored programs
+  </ButtonLink>
 </EditorialFeatureCard>

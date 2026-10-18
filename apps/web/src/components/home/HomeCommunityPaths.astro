@@ -11,11 +11,7 @@ import { participation } from '../../data/organization';
 const featuredPaths = participation.slice(0, 6);
 ---
 
-<section
-  id="paths"
-  aria-labelledby="home-paths-title"
-  class="bg-ivory px-5 section-space sm:px-8"
->
+<section id="paths" aria-labelledby="home-paths-title" class="bg-ivory px-5 section-space sm:px-8">
   <div class="mx-auto max-w-[1320px]">
     <div class="flex flex-wrap items-end justify-between gap-6">
       <EditorialHeading
@@ -35,11 +31,7 @@ const featuredPaths = participation.slice(0, 6);
 
     <div class="mt-10 grid gap-x-10 md:grid-cols-2">
       {featuredPaths.map((p, i) => (
-        <a
-          href={p.href}
-          data-reveal
-          class="group flex items-center gap-5 border-t border-sand py-6 sm:gap-6"
-        >
+        <a href={p.href} data-reveal class="group flex items-center gap-5 border-t border-sand py-6 sm:gap-6">
           <div
             class:list={[
               'h-[120px] w-[96px] shrink-0 overflow-hidden bg-sand sm:h-[145px] sm:w-[118px]',

@@ -8,11 +8,11 @@ properties:
   tierId:
     anyOf:
       - $ref: ../shared/Identifier.yaml
-      - type: "null"
+      - type: 'null'
   userId:
     anyOf:
       - $ref: ../shared/Identifier.yaml
-      - type: "null"
+      - type: 'null'
   attendeeName:
     type: string
   attendeeEmail:
@@ -29,7 +29,7 @@ properties:
   checkedInAt:
     anyOf:
       - $ref: ../shared/Timestamp.yaml
-      - type: "null"
+      - type: 'null'
   createdAt:
     $ref: ../shared/Timestamp.yaml
 required:

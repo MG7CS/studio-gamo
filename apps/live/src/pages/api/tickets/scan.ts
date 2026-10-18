@@ -1,13 +1,7 @@
 import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  ticketScanSchema,
-  jsonResponse,
-  handleApiError,
-  getRuntimeEnv,
-} from '@gamo/domain';
+import { LiveService, ticketScanSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 import { requireVerifiedAuth, requireEventPermission } from '@gamo/auth';
 
 export const prerender = false;

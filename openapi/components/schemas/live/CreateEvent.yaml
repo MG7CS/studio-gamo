@@ -54,7 +54,7 @@ properties:
     anyOf:
       - type: string
         format: uri
-      - const: ""
+      - const: ''
   tiers:
     type: array
     items:

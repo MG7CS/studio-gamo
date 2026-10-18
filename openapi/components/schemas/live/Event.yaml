@@ -20,7 +20,7 @@ properties:
   tagline:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   description:
     type: string
   venueName:
@@ -28,7 +28,7 @@ properties:
   address:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   city:
     type: string
   state:
@@ -38,7 +38,7 @@ properties:
   endsAt:
     anyOf:
       - $ref: ../shared/Timestamp.yaml
-      - type: "null"
+      - type: 'null'
   timezone:
     type: string
   admissionType:
@@ -50,11 +50,11 @@ properties:
   photoKey:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   externalUrl:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   status:
     type: string
     enum:
@@ -74,45 +74,45 @@ properties:
   importKey:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   metroSlug:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   startDateLocal:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   startTimeLocal:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   publishedByLabel:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   publishedByUserId:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   originalOrganizerName:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   externalDestinationKind:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   externalTicketProvider:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   externalOnly:
     type: boolean
   priceMinCents:
     anyOf:
       - type: integer
-      - type: "null"
+      - type: 'null'
   currency:
     type: string
   ticketAvailability:
@@ -120,21 +120,21 @@ properties:
   sourceUrlsJson:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   lastVerifiedAt:
     anyOf:
       - $ref: ../shared/Timestamp.yaml
-      - type: "null"
+      - type: 'null'
   artworkUrl:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   artworkRightsVerified:
     type: boolean
   artworkLicenseCredit:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   editorialStatus:
     type: string
     enum:
@@ -148,11 +148,11 @@ properties:
   editorialNotes:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   independentDisclosure:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   isFeatured:
     type: boolean
 required:
@@ -175,4 +175,3 @@ required:
   - externalUrl
   - status
   - createdAt
-

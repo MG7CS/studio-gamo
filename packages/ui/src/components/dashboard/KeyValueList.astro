@@ -2,9 +2,19 @@
 /** Definition list of labelled values. */
 import CellValue from './CellValue.astro';
 import type { Cell } from '../../lib/dashboard';
-interface Props { items: [string, Cell][] }
+interface Props {
+  items: [string, Cell][];
+}
 const { items } = Astro.props;
 ---
+
 <dl class="grid gap-x-6 gap-y-3 @md:grid-cols-2">
-  {items.map(([k, v]) => <div class="min-w-0 border-b border-sand/60 pb-2.5" data-search-item><dt class="text-[12px] font-medium text-ink-soft">{k}</dt><dd class="mt-0.5 break-words text-[14px]"><CellValue value={v} /></dd></div>)}
+  {items.map(([k, v]) => (
+    <div class="min-w-0 border-b border-sand/60 pb-2.5" data-search-item>
+      <dt class="text-[12px] font-medium text-ink-soft">{k}</dt>
+      <dd class="mt-0.5 break-words text-[14px]">
+        <CellValue value={v} />
+      </dd>
+    </div>
+  ))}
 </dl>

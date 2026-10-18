@@ -1,7 +1,121 @@
-<section class="bg-cream px-5 pb-20"><div class="mx-auto max-w-2xl"><form id="ticket-recovery" class="space-y-5"><label class="block font-semibold">Purchaser or registration email<input name="email" type="email" required autocomplete="email" class="mt-2 block w-full rounded-xl border border-sand bg-white p-3" /></label><button type="button" id="send-code" class="rounded-full border border-charcoal px-6 py-3 font-semibold">Send email verification code</button><label class="block font-semibold">Verification code<input name="verificationCode" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" class="mt-2 block w-full rounded-xl border border-sand bg-white p-3" /></label><button type="submit" class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">Verify & find tickets</button><p id="recovery-status" role="status" aria-live="polite"></p></form><div id="recovery-results" class="mt-8 space-y-4"></div><p class="mt-8 text-sm text-ink-soft">Email verification is the supported recovery method. SMS recovery is unavailable. If you no longer have access to that inbox, contact the event organizer using your original confirmation; do not share verification codes.</p></div></section>
+<section class="bg-cream px-5 pb-20">
+  <div class="mx-auto max-w-2xl">
+    <form id="ticket-recovery" class="space-y-5">
+      <label class="block font-semibold">
+        Purchaser or registration email
+        <input
+          name="email"
+          type="email"
+          required
+          autocomplete="email"
+          class="mt-2 block w-full rounded-xl border border-sand bg-white p-3"
+        />
+      </label>
+      <button
+        type="button"
+        id="send-code"
+        class="rounded-full border border-charcoal px-6 py-3 font-semibold"
+      >
+        Send email verification code
+      </button>
+      <label class="block font-semibold">
+        Verification code
+        <input
+          name="verificationCode"
+          required
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          class="mt-2 block w-full rounded-xl border border-sand bg-white p-3"
+        />
+      </label>
+      <button type="submit" class="rounded-full bg-terracotta px-6 py-3 font-semibold text-white">
+        Verify & find tickets
+      </button>
+      <p id="recovery-status" role="status" aria-live="polite"></p>
+    </form>
+    <div id="recovery-results" class="mt-8 space-y-4"></div>
+    <p class="mt-8 text-sm text-ink-soft">
+      Email verification is the supported recovery method. SMS recovery is unavailable. If you no longer have
+      access to that inbox, contact the event organizer using your original confirmation; do not share
+      verification codes.
+    </p>
+  </div>
+</section>
 <script>
-const form=document.querySelector<HTMLFormElement>('#ticket-recovery')!;const status=document.querySelector<HTMLElement>('#recovery-status')!;const results=document.querySelector<HTMLElement>('#recovery-results')!;
-async function post(url:string,data:unknown){const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const body=await res.json();if(!res.ok)throw new Error(body.error?.message||'Unable to complete this request.');return body.data;}
-document.querySelector<HTMLButtonElement>('#send-code')?.addEventListener('click',async function(){const email=form.elements.namedItem('email') as HTMLInputElement;if(!email.reportValidity())return;this.disabled=true;results.replaceChildren();status.textContent='Requesting verification code…';try{const data=await post('/api/auth/challenge',{email:email.value,purpose:'login'});status.textContent=data.message;}catch(e){status.textContent=e instanceof Error?e.message:'Please try again.';}finally{this.disabled=false;}});
-form.addEventListener('submit',async e=>{e.preventDefault();const button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;button.disabled=true;results.replaceChildren();status.textContent='Verifying…';try{const data=await post('/api/tickets/lookup',Object.fromEntries(new FormData(form)));status.textContent='Email verified.';const records=[...data.orders.map((r:any)=>({title:`Order ${r.orderNumber}`,detail:`${r.quantity} admission(s) · ${r.status}`})),...data.registrations.map((r:any)=>({title:`Registration ${r.id}`,detail:`${r.quantity} guest(s) · ${r.status}`})),...data.tickets.map((r:any)=>({title:`Admission ${r.id}`,detail:r.status,token:r.qrToken}))];if(!records.length){status.textContent='Email verified. No orders or registrations were found for this address.';}for(const record of records){const section=document.createElement('section');section.className='border-t border-sand py-4';const title=document.createElement('h2');title.className='font-semibold';title.textContent=record.title;const detail=document.createElement('p');detail.textContent=record.detail;section.append(title,detail);if(record.token){const token=document.createElement('p');token.className='mt-3 break-all font-mono text-sm';token.textContent=`Admission credential: ${record.token}`;section.append(token);}results.append(section);}}catch(e){status.textContent=e instanceof Error?e.message:'Please try again.';}finally{button.disabled=false;}});
+  const form = document.querySelector<HTMLFormElement>('#ticket-recovery')!;
+  const status = document.querySelector<HTMLElement>('#recovery-status')!;
+  const results = document.querySelector<HTMLElement>('#recovery-results')!;
+  async function post(url: string, data: unknown) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error?.message || 'Unable to complete this request.');
+    return body.data;
+  }
+  document.querySelector<HTMLButtonElement>('#send-code')?.addEventListener('click', async function () {
+    const email = form.elements.namedItem('email') as HTMLInputElement;
+    if (!email.reportValidity()) return;
+    this.disabled = true;
+    results.replaceChildren();
+    status.textContent = 'Requesting verification code…';
+    try {
+      const data = await post('/api/auth/challenge', { email: email.value, purpose: 'login' });
+      status.textContent = data.message;
+    } catch (e) {
+      status.textContent = e instanceof Error ? e.message : 'Please try again.';
+    } finally {
+      this.disabled = false;
+    }
+  });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    button.disabled = true;
+    results.replaceChildren();
+    status.textContent = 'Verifying…';
+    try {
+      const data = await post('/api/tickets/lookup', Object.fromEntries(new FormData(form)));
+      status.textContent = 'Email verified.';
+      const records = [
+        ...data.orders.map((r: any) => ({
+          title: `Order ${r.orderNumber}`,
+          detail: `${r.quantity} admission(s) · ${r.status}`,
+        })),
+        ...data.registrations.map((r: any) => ({
+          title: `Registration ${r.id}`,
+          detail: `${r.quantity} guest(s) · ${r.status}`,
+        })),
+        ...data.tickets.map((r: any) => ({ title: `Admission ${r.id}`, detail: r.status, token: r.qrToken })),
+      ];
+      if (!records.length) {
+        status.textContent = 'Email verified. No orders or registrations were found for this address.';
+      }
+      for (const record of records) {
+        const section = document.createElement('section');
+        section.className = 'border-t border-sand py-4';
+        const title = document.createElement('h2');
+        title.className = 'font-semibold';
+        title.textContent = record.title;
+        const detail = document.createElement('p');
+        detail.textContent = record.detail;
+        section.append(title, detail);
+        if (record.token) {
+          const token = document.createElement('p');
+          token.className = 'mt-3 break-all font-mono text-sm';
+          token.textContent = `Admission credential: ${record.token}`;
+          section.append(token);
+        }
+        results.append(section);
+      }
+    } catch (e) {
+      status.textContent = e instanceof Error ? e.message : 'Please try again.';
+    } finally {
+      button.disabled = false;
+    }
+  });
 </script>

@@ -3,10 +3,36 @@ import assert from 'node:assert/strict';
 import { isPrivatePage, pageCacheControl, PRIVATE_PAGE_CACHE, type PublicApp } from './page-access.ts';
 
 const PRIVATE_SAMPLES: Record<PublicApp, string[]> = {
-  web: ['/partner', '/partner/workspace', '/account', '/account/onboarding', '/account/signin', '/api/auth/me'],
-  worship: ['/church', '/church/roster', '/musician/profile', '/check-in/success', '/admin', '/apply/status', '/account/signin'],
+  web: [
+    '/partner',
+    '/partner/workspace',
+    '/account',
+    '/account/onboarding',
+    '/account/signin',
+    '/api/auth/me',
+  ],
+  worship: [
+    '/church',
+    '/church/roster',
+    '/musician/profile',
+    '/check-in/success',
+    '/admin',
+    '/apply/status',
+    '/account/signin',
+  ],
   academy: ['/family', '/instructor/classes', '/host/rooms', '/dashboard', '/account/verify'],
-  live: ['/organizer/dashboard', '/artist/profile', '/agent/clients', '/me/tickets', '/workspaces', '/promote/create', '/promote/status', '/ticket', '/checkout', '/account/recover'],
+  live: [
+    '/organizer/dashboard',
+    '/artist/profile',
+    '/agent/clients',
+    '/me/tickets',
+    '/workspaces',
+    '/promote/create',
+    '/promote/status',
+    '/ticket',
+    '/checkout',
+    '/account/recover',
+  ],
   production: ['/client', '/client/projects', '/crew/schedule', '/account/signin'],
 };
 

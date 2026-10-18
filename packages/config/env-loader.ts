@@ -113,10 +113,7 @@ export function isRootVarAllowedForApp(key: string, app: AppName): boolean {
   }
 
   // Admin-only Cloudflare Access / Admin bootstrap variables should only be inherited by admin.
-  if (
-    (upperKey.startsWith('CF_ACCESS_') || upperKey.startsWith('ADMIN_')) &&
-    app !== 'admin'
-  ) {
+  if ((upperKey.startsWith('CF_ACCESS_') || upperKey.startsWith('ADMIN_')) && app !== 'admin') {
     return false;
   }
 
@@ -168,9 +165,7 @@ export interface LoadAppLocalEnvOptions {
  */
 export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<string, string> {
   const appDir = resolve(options.appDir);
-  const monorepoRoot = options.monorepoRoot
-    ? resolve(options.monorepoRoot)
-    : resolve(appDir, '../..');
+  const monorepoRoot = options.monorepoRoot ? resolve(options.monorepoRoot) : resolve(appDir, '../..');
   const { app } = options;
 
   const rootDevVars = readEnvFileIfExists(resolve(monorepoRoot, '.dev.vars'));

@@ -52,7 +52,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
 
     const importReport = await liveService.importExternalDiscoveryCatalog(
       GAMO_LIVE_VERIFIED_CATALOG_2026_10_15,
-      { dryRun: false }
+      { dryRun: false },
     );
 
     assert.equal(importReport.totalCandidates, 21);
@@ -92,7 +92,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     assert.equal(cain.externalTicketProvider, 'TicketWeb');
     assert.equal(
       cain.externalUrl,
-      'https://www.ticketweb.com/event/cain-live-and-in-worship-dream-city-church-tickets/14954663?pl=TPR'
+      'https://www.ticketweb.com/event/cain-live-and-in-worship-dream-city-church-tickets/14954663?pl=TPR',
     );
     assert.equal(cain.isFeatured, true);
     assert.equal(cain.publishedByLabel, 'Gamo Live Listings');
@@ -153,7 +153,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     for (const evt of weekendEvents) {
       assert.ok(
         expectedWeekendDates.has(evt.startDateLocal ?? ''),
-        `Unexpected weekend date ${evt.startDateLocal}`
+        `Unexpected weekend date ${evt.startDateLocal}`,
       );
     }
   });
@@ -173,7 +173,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
           attendeeEmail: 'test@example.com',
           quantity: 1,
         }),
-      /CONFLICT: Free registration is unavailable for this event/
+      /CONFLICT: Free registration is unavailable for this event/,
     );
 
     // 2. DB trigger blocks inserting ticket_tiers for external_discovery event
@@ -187,7 +187,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
           capacity: 100,
           reservedCount: 0,
         }),
-      (err: any) => /EXTERNAL_EVENT_NO_TIERS/.test(String(err?.cause ?? err))
+      (err: any) => /EXTERNAL_EVENT_NO_TIERS/.test(String(err?.cause ?? err)),
     );
 
     // 3. DB trigger blocks inserting ticket_orders for external_discovery event
@@ -212,7 +212,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
           status: 'pending_payment',
           createdAt: new Date(),
         }),
-      (err: any) => /EXTERNAL_EVENT_NO_ORDERS/.test(String(err?.cause ?? err))
+      (err: any) => /EXTERNAL_EVENT_NO_ORDERS/.test(String(err?.cause ?? err)),
     );
 
     // 4. DB trigger blocks non-HTTPS external_url on external_discovery events
@@ -238,7 +238,7 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
           editorialStatus: 'draft',
           createdAt: new Date(),
         }),
-      (err: any) => /EXTERNAL_URL_HTTPS_REQUIRED/.test(String(err?.cause ?? err))
+      (err: any) => /EXTERNAL_URL_HTTPS_REQUIRED/.test(String(err?.cause ?? err)),
     );
   });
 
@@ -303,4 +303,3 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     assert.equal(allEvents.find((e) => e.slug === 'future-worship-night')?.isPast, false);
   });
 });
-

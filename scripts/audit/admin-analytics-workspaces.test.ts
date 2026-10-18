@@ -121,10 +121,16 @@ test('Analytics charts across Admin and role dashboards have non-empty series an
           totalCharts++;
           if (ws.id === 'admin') adminCharts++;
           assert.ok(block.title, `Chart in ${ws.id}/${screen.slug} must have a title`);
-          assert.ok(block.series.length > 0, `Chart "${block.title}" in ${ws.id}/${screen.slug} must have at least 1 series`);
+          assert.ok(
+            block.series.length > 0,
+            `Chart "${block.title}" in ${ws.id}/${screen.slug} must have at least 1 series`,
+          );
           for (const s of block.series) {
             assert.ok(s.label, `Series in chart "${block.title}" must have a label`);
-            assert.ok(s.points.length > 0, `Series "${s.label}" in chart "${block.title}" must have at least 1 point`);
+            assert.ok(
+              s.points.length > 0,
+              `Series "${s.label}" in chart "${block.title}" must have at least 1 point`,
+            );
           }
         }
       }
@@ -138,5 +144,8 @@ test('Analytics charts across Admin and role dashboards have non-empty series an
 test('Workspaces never claim confirmed 501(c)(3) status or tax-deductible contributions', () => {
   const serialized = JSON.stringify(ALL_WORKSPACES);
   assert.ok(!/is a 501\(c\)\(3\)/i.test(serialized), 'Must never claim confirmed 501(c)(3) status');
-  assert.ok(!/contributions are tax-deductible/i.test(serialized), 'Must never claim contributions are tax-deductible');
+  assert.ok(
+    !/contributions are tax-deductible/i.test(serialized),
+    'Must never claim contributions are tax-deductible',
+  );
 });

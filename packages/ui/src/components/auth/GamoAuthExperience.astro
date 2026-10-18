@@ -19,8 +19,7 @@ interface Props {
 }
 
 const clerkLocals = (Astro.locals as Record<string, any>).clerkConfig as
-  | { publishableKey?: string | null; appId?: string | null }
-  | undefined;
+  { publishableKey?: string | null; appId?: string | null } | undefined;
 
 const {
   mode = 'signin',

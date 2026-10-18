@@ -4,20 +4,41 @@ import PageIntro from '../../components/production/PageIntro.astro';
 import ServicesIndex from '../../components/production/ServicesIndex.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
-import ButtonLink from "@studio-gamo/ui/components/ButtonLink.astro";
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { productionFaq } from '../../data/production';
 ---
-<Layout title="Support Areas" description="Six proposed ways Gamo Production could support technical ministry: audio, livestream and video, lighting, training, event support and facility guidance." headerTheme="light">
-  <PageIntro eyebrow="Service overview" title="Six ways to support" accent="technical ministry." lede="Proposed support areas for churches and their volunteer teams. Each is designed around people first, equipment second." />
+
+<Layout
+  title="Support Areas"
+  description="Six proposed ways Gamo Production could support technical ministry: audio, livestream and video, lighting, training, event support and facility guidance."
+  headerTheme="light"
+>
+  <PageIntro
+    eyebrow="Service overview"
+    title="Six ways to support"
+    accent="technical ministry."
+    lede="Proposed support areas for churches and their volunteer teams. Each is designed around people first, equipment second."
+  />
   <ServicesIndex />
   <section class="bg-cream py-16 md:py-24" aria-labelledby="faq-title">
     <div class="mx-auto max-w-3xl px-5 md:px-8">
-      <h2 id="faq-title" class="section-heading text-charcoal">Questions</h2>
+      <h2 id="faq-title" class="section-heading text-charcoal">
+        Questions
+      </h2>
       <FaqAccordion items={productionFaq} class="mt-8" />
     </div>
   </section>
-  <CtaInvitation eyebrow="Not sure where to begin?" title="Start with a needs assessment." body="A short walk-through of your church, current setup, priorities and volunteer team." photo="sanctuaryCongregation">
-    <ButtonLink href="/assessment" arrow>Start assessment</ButtonLink>
-    <ButtonLink href="/consultation" variant="secondary">Request consultation</ButtonLink>
+  <CtaInvitation
+    eyebrow="Not sure where to begin?"
+    title="Start with a needs assessment."
+    body="A short walk-through of your church, current setup, priorities and volunteer team."
+    photo="sanctuaryCongregation"
+  >
+    <ButtonLink href="/assessment" arrow>
+      Start assessment
+    </ButtonLink>
+    <ButtonLink href="/consultation" variant="secondary">
+      Request consultation
+    </ButtonLink>
   </CtaInvitation>
 </Layout>

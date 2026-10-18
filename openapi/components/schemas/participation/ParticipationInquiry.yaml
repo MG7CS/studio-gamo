@@ -33,7 +33,7 @@ properties:
   organization:
     type:
       - string
-      - "null"
+      - 'null'
   message:
     type: string
     minLength: 10
@@ -47,12 +47,12 @@ properties:
   reviewNotes:
     type:
       - string
-      - "null"
+      - 'null'
   createdAt:
     type: string
     format: date-time
   reviewedAt:
     type:
       - string
-      - "null"
+      - 'null'
     format: date-time

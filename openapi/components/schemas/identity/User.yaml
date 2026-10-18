@@ -9,11 +9,11 @@ properties:
   displayName:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
   verifiedEmailAt:
     anyOf:
       - $ref: ../shared/Timestamp.yaml
-      - type: "null"
+      - type: 'null'
   status:
     type: string
   createdAt:

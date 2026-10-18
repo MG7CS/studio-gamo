@@ -15,21 +15,73 @@ interface Props {
   class?: string;
   autocomplete?: string;
 }
-const { label, name, type = 'text', options = [], placeholder, hint, required = false, value, rows = 4, class: className, autocomplete } = Astro.props;
+const {
+  label,
+  name,
+  type = 'text',
+  options = [],
+  placeholder,
+  hint,
+  required = false,
+  value,
+  rows = 4,
+  class: className,
+  autocomplete,
+} = Astro.props;
 const id = `f-${name}`;
-const base = 'mt-2 block w-full rounded-2xl border border-sand bg-white px-4 py-3 text-base text-charcoal placeholder:text-charcoal/40 transition-colors focus:border-terracotta';
+const base =
+  'mt-2 block w-full rounded-2xl border border-sand bg-white px-4 py-3 text-base text-charcoal placeholder:text-charcoal/40 transition-colors focus:border-terracotta';
 ---
+
 <div class={className}>
-  <label for={id} class="text-sm font-semibold text-charcoal">{label}{required && <span class="text-terracotta" aria-hidden="true"> *</span>}</label>
+  <label for={id} class="text-sm font-semibold text-charcoal">
+    {label}
+    {required && (
+      <span class="text-terracotta" aria-hidden="true">
+        {' '}
+        *
+      </span>
+    )}
+  </label>
   {type === 'textarea' ? (
-    <textarea id={id} name={name} rows={rows} placeholder={placeholder} required={required} class={base} aria-describedby={hint ? `${id}-hint` : undefined}>{value}</textarea>
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      placeholder={placeholder}
+      required={required}
+      class={base}
+      aria-describedby={hint ? `${id}-hint` : undefined}
+    >{value}</textarea>
   ) : type === 'select' ? (
-    <select id={id} name={name} required={required} class={base} aria-describedby={hint ? `${id}-hint` : undefined}>
+    <select
+      id={id}
+      name={name}
+      required={required}
+      class={base}
+      aria-describedby={hint ? `${id}-hint` : undefined}
+    >
       <option value="">{placeholder ?? 'Select an option'}</option>
-      {options.map((o) => <option selected={o === value}>{o}</option>)}
+      {options.map((o) => (
+        <option selected={o === value}>{o}</option>
+      ))}
     </select>
   ) : (
-    <input id={id} name={name} type={type} placeholder={placeholder} required={required} value={value} autocomplete={autocomplete} class={base} aria-describedby={hint ? `${id}-hint` : undefined} />
+    <input
+      id={id}
+      name={name}
+      type={type}
+      placeholder={placeholder}
+      required={required}
+      value={value}
+      autocomplete={autocomplete}
+      class={base}
+      aria-describedby={hint ? `${id}-hint` : undefined}
+    />
   )}
-  {hint && <p id={`${id}-hint`} class="mt-1.5 text-sm text-ink-soft">{hint}</p>}
+  {hint && (
+    <p id={`${id}-hint`} class="mt-1.5 text-sm text-ink-soft">
+      {hint}
+    </p>
+  )}
 </div>

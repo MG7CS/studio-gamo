@@ -133,7 +133,7 @@ export function sanitizeFilename(filename: string): string {
 export function generateR2Key(scope: StorageScope, ownerId: string, filename: string): string {
   const sanitized = sanitizeFilename(filename);
   const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) =>
-    b.toString(16).padStart(2, '0')
+    b.toString(16).padStart(2, '0'),
   ).join('');
   const timestamp = Date.now();
   return `${scope}/${ownerId}/${timestamp}_${randomHex}_${sanitized}`;
@@ -149,7 +149,7 @@ async function signTicketPayload(payloadString: string, secret: string): Promise
     encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign']
+    ['sign'],
   );
 
   const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadString));
@@ -189,10 +189,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
   const publicBaseUrl = config?.publicCdnBaseUrl || 'https://assets.gamostudio.org';
 
   // In-memory object store for tests and mock environments
-  const memoryStore = new Map<
-    string,
-    { data: Uint8Array; metadata: Record<string, string>; size: number }
-  >();
+  const memoryStore = new Map<string, { data: Uint8Array; metadata: Record<string, string>; size: number }>();
 
   return {
     /**
@@ -207,34 +204,30 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
       // 1. Content-Type validation
       if (!policy.allowedMimeTypes.includes(request.contentType.toLowerCase())) {
         throw new Error(
-          `Invalid content type "${request.contentType}" for scope "${request.scope}". Allowed types: ${policy.allowedMimeTypes.join(', ')}`
+          `Invalid content type "${request.contentType}" for scope "${request.scope}". Allowed types: ${policy.allowedMimeTypes.join(', ')}`,
         );
       }
 
       // 2. Size limit validation
       if (request.byteSize > policy.maxByteSize) {
         const maxMb = (policy.maxByteSize / (1024 * 1024)).toFixed(1);
-        throw new Error(
-          `File size exceeds maximum allowed of ${maxMb}MB for scope "${request.scope}".`
-        );
+        throw new Error(`File size exceeds maximum allowed of ${maxMb}MB for scope "${request.scope}".`);
       }
 
       // 3. Sensitive Identity & Student Documentation Prohibition Rule
       if (
         /(identity_document|government_id|student_document|minor_record)/i.test(request.scope) ||
         /(passport|driver[_-]?licen[sc]e|ssn|social[_-]?security|birth[_-]?certificate|student[_-]?id|minor[_-]?record)/i.test(
-          request.filename
+          request.filename,
         )
       ) {
         throw new Error(
-          'SENSITIVE_DOCUMENT_PROHIBITED: Collection of personal identity documents or sensitive student/minor records is prohibited.'
+          'SENSITIVE_DOCUMENT_PROHIBITED: Collection of personal identity documents or sensitive student/minor records is prohibited.',
         );
       }
 
       if (request.scope === 'restricted_verification' && !request.organizationId) {
-        throw new Error(
-          'Verification material must be explicitly associated with an organization.'
-        );
+        throw new Error('Verification material must be explicitly associated with an organization.');
       }
 
       // 4. Generate key & expiration (15 minutes)
@@ -304,7 +297,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         accessPolicy: AccessPolicy;
         ownerUserId: string;
         allowOverwrite?: boolean;
-      }
+      },
     ): Promise<StorageObjectMetadata> {
       const policy = SCOPE_POLICIES[metadata.scope];
       if (!policy) {
@@ -319,11 +312,11 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
       if (
         /(identity_document|government_id|student_document|minor_record)/i.test(metadata.scope) ||
         /(passport|driver[_-]?licen[sc]e|ssn|social[_-]?security|birth[_-]?certificate|student[_-]?id|minor[_-]?record)/i.test(
-          key
+          key,
         )
       ) {
         throw new Error(
-          'SENSITIVE_DOCUMENT_PROHIBITED: Storage of personal identity documents or sensitive student/minor records is prohibited.'
+          'SENSITIVE_DOCUMENT_PROHIBITED: Storage of personal identity documents or sensitive student/minor records is prohibited.',
         );
       }
 
@@ -342,7 +335,10 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
       }
 
       if (buf && buf.byteLength > 0) {
-        const head = new TextDecoder('utf-8', { fatal: false }).decode(buf.subarray(0, 64)).trimStart().toLowerCase();
+        const head = new TextDecoder('utf-8', { fatal: false })
+          .decode(buf.subarray(0, 64))
+          .trimStart()
+          .toLowerCase();
         const isExecutableSign =
           (buf.byteLength >= 2 && buf[0] === 0x4d && buf[1] === 0x5a) || // MZ (PE)
           (buf.byteLength >= 4 && buf[0] === 0x7f && buf[1] === 0x45 && buf[2] === 0x4c && buf[3] === 0x46) || // ELF
@@ -410,7 +406,7 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         userId?: string;
         isStaff?: boolean;
         isAuditionReviewer?: boolean;
-      }
+      },
     ): Promise<{ data: Uint8Array; metadata: Record<string, string> } | null> {
       let record: { data: any; metadata: Record<string, string> } | null;
 
@@ -438,7 +434,11 @@ export function createR2StorageClient(r2BucketBinding?: any, config?: R2StorageC
         return record;
       }
 
-      if (callerAuth?.isStaff && accessPolicy === 'private' && record.metadata.scope !== 'educational_resource') {
+      if (
+        callerAuth?.isStaff &&
+        accessPolicy === 'private' &&
+        record.metadata.scope !== 'educational_resource'
+      ) {
         return record; // Staff can review all private & audition assets
       }
 

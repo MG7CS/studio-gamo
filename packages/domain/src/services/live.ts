@@ -146,7 +146,7 @@ export class LiveService {
    */
   async createEvent(
     organizerOrgId: string,
-    input: CreateEventInput
+    input: CreateEventInput,
   ): Promise<{ event: LiveEvent; tiers: TicketTier[] }> {
     if (
       !Number.isFinite(input.startsAt.getTime()) ||
@@ -276,8 +276,7 @@ export class LiveService {
     const conditions = [eq(events.status, 'approved')];
 
     if (filters?.category) {
-      const normalizedCat =
-        filters.category === 'worship_event' ? 'worship' : filters.category;
+      const normalizedCat = filters.category === 'worship_event' ? 'worship' : filters.category;
       conditions.push(eq(events.category, normalizedCat));
     }
     if (filters?.city) {
@@ -321,10 +320,7 @@ export class LiveService {
     const result: LiveEventWithDetails[] = [];
 
     for (const row of eventRows) {
-      if (
-        row.event.listingType === 'external_discovery' &&
-        row.event.editorialStatus !== 'published'
-      ) {
+      if (row.event.listingType === 'external_discovery' && row.event.editorialStatus !== 'published') {
         continue;
       }
 
@@ -334,11 +330,7 @@ export class LiveService {
 
       if (
         filters?.weekend &&
-        !isLocalWeekendDate(
-          row.event.startDateLocal,
-          row.event.startsAt,
-          row.event.timezone
-        )
+        !isLocalWeekendDate(row.event.startDateLocal, row.event.startsAt, row.event.timezone)
       ) {
         continue;
       }
@@ -355,9 +347,7 @@ export class LiveService {
         .orderBy(eventPerformers.billingOrder);
 
       if (artistQuery) {
-        const matchesPerformer = performerRows.some((p) =>
-          p.displayName.toLowerCase().includes(artistQuery)
-        );
+        const matchesPerformer = performerRows.some((p) => p.displayName.toLowerCase().includes(artistQuery));
         const matchesTitleOrTagline =
           row.event.title.toLowerCase().includes(artistQuery) ||
           (row.event.tagline?.toLowerCase().includes(artistQuery) ?? false);
@@ -385,10 +375,7 @@ export class LiveService {
         }
       }
 
-      const tiers = await this.db
-        .select()
-        .from(ticketTiers)
-        .where(eq(ticketTiers.eventId, row.event.id));
+      const tiers = await this.db.select().from(ticketTiers).where(eq(ticketTiers.eventId, row.event.id));
 
       const [regStats] = await this.db
         .select({ count: sql<number>`count(*)` })
@@ -442,17 +429,11 @@ export class LiveService {
 
     if (!row) return null;
 
-    if (
-      row.event.listingType === 'external_discovery' &&
-      row.event.editorialStatus !== 'published'
-    ) {
+    if (row.event.listingType === 'external_discovery' && row.event.editorialStatus !== 'published') {
       return null;
     }
 
-    const tiers = await this.db
-      .select()
-      .from(ticketTiers)
-      .where(eq(ticketTiers.eventId, row.event.id));
+    const tiers = await this.db.select().from(ticketTiers).where(eq(ticketTiers.eventId, row.event.id));
 
     const performerRows = await this.db
       .select({
@@ -490,15 +471,8 @@ export class LiveService {
    * Registers an attendee for a free Christian event with duplicate prevention,
    * and issues a corresponding durable ticket_orders and tickets record.
    */
-  async registerFreeAttendee(
-    eventId: string,
-    input: RegisterAttendeeInput
-  ): Promise<RegisterAttendeeResult> {
-    const [event] = await this.db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
+  async registerFreeAttendee(eventId: string, input: RegisterAttendeeInput): Promise<RegisterAttendeeResult> {
+    const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     if (!event) {
       throw new Error(`Event ${eventId} not found.`);
@@ -509,11 +483,7 @@ export class LiveService {
     }
 
     if (event.startsAt <= new Date()) throw new Error('CONFLICT: Registration has closed.');
-    if (
-      event.admissionType !== 'free' ||
-      event.listingType === 'external_discovery' ||
-      event.externalOnly
-    ) {
+    if (event.admissionType !== 'free' || event.listingType === 'external_discovery' || event.externalOnly) {
       throw new Error('CONFLICT: Free registration is unavailable for this event.');
     }
 
@@ -523,12 +493,7 @@ export class LiveService {
     const [existing] = await this.db
       .select()
       .from(eventRegistrations)
-      .where(
-        and(
-          eq(eventRegistrations.eventId, eventId),
-          eq(eventRegistrations.attendeeEmail, cleanEmail)
-        )
-      )
+      .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attendeeEmail, cleanEmail)))
       .limit(1);
 
     if (existing) {
@@ -579,16 +544,12 @@ export class LiveService {
       const [duplicate] = await this.db
         .select()
         .from(eventRegistrations)
-        .where(
-          and(
-            eq(eventRegistrations.eventId, eventId),
-            eq(eventRegistrations.attendeeEmail, cleanEmail)
-          )
-        )
+        .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attendeeEmail, cleanEmail)))
         .limit(1);
       if (duplicate) return { registration: duplicate, event, isDuplicate: true };
       const cause = String((error as Error)?.cause ?? error);
-      if (cause.includes('REGISTRATION_')) throw new Error('CONFLICT: Registration unavailable.', { cause: error });
+      if (cause.includes('REGISTRATION_'))
+        throw new Error('CONFLICT: Registration unavailable.', { cause: error });
       throw error;
     }
 
@@ -656,7 +617,7 @@ export class LiveService {
     eventId: string,
     actorUserId: string,
     actorCanGrantFinancialAuthority: boolean,
-    input: AssignEventTeamMemberInput
+    input: AssignEventTeamMemberInput,
   ) {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
     if (!event) {
@@ -671,7 +632,7 @@ export class LiveService {
 
     if (wantsFinancialAuthority && !actorCanGrantFinancialAuthority) {
       throw new Error(
-        'FORBIDDEN: Publishing or content roles cannot grant refund approval or settlement access.'
+        'FORBIDDEN: Publishing or content roles cannot grant refund approval or settlement access.',
       );
     }
 
@@ -789,8 +750,8 @@ export class LiveService {
         and(
           eq(eventTeamMembers.eventId, eventId),
           eq(eventTeamMembers.userId, input.userId),
-          eq(eventTeamMembers.role, input.role)
-        )
+          eq(eventTeamMembers.role, input.role),
+        ),
       )
       .limit(1);
 
@@ -834,8 +795,8 @@ export class LiveService {
           and(
             eq(eventOrganizations.eventId, eventId),
             eq(eventOrganizations.organizationId, input.organizationId),
-            eq(eventOrganizations.participationRole, participationRole)
-          )
+            eq(eventOrganizations.participationRole, participationRole),
+          ),
         )
         .limit(1);
 
@@ -1144,12 +1105,7 @@ export class LiveService {
       const [mp] = await this.db
         .select()
         .from(musicianProfiles)
-        .where(
-          and(
-            eq(musicianProfiles.id, input.musicianProfileId),
-            eq(musicianProfiles.userId, userId)
-          )
-        )
+        .where(and(eq(musicianProfiles.id, input.musicianProfileId), eq(musicianProfiles.userId, userId)))
         .limit(1);
       if (!mp) {
         throw new Error('FORBIDDEN: Linked Gamo Worship musician profile must belong to the same user.');
@@ -1227,7 +1183,7 @@ export class LiveService {
     artistId: string,
     actorUserId: string,
     isSuperadmin: boolean,
-    input: AuthorizeRepresentativeInput
+    input: AuthorizeRepresentativeInput,
   ) {
     const [artist] = await this.db
       .select()
@@ -1289,8 +1245,9 @@ export class LiveService {
       const cause = String((error as Error)?.cause ?? error);
       if (cause.includes('REP_EXCLUSIVE_CONFLICT')) {
         throw new Error(
-          'CONFLICT: REP_EXCLUSIVE_CONFLICT: Conflicting active exclusive representation already exists for this artist.'
-        , { cause: error });
+          'CONFLICT: REP_EXCLUSIVE_CONFLICT: Conflicting active exclusive representation already exists for this artist.',
+          { cause: error },
+        );
       }
       throw error;
     }
@@ -1329,7 +1286,7 @@ export class LiveService {
     authorizationId: string,
     actorUserId: string,
     isSuperadmin: boolean,
-    reason: string
+    reason: string,
   ) {
     const [authRow] = await this.db
       .select()
@@ -1353,11 +1310,7 @@ export class LiveService {
       .where(eq(artistRepresentatives.id, authRow.representativeId))
       .limit(1);
 
-    if (
-      !isSuperadmin &&
-      artist?.userId !== actorUserId &&
-      rep?.userId !== actorUserId
-    ) {
+    if (!isSuperadmin && artist?.userId !== actorUserId && rep?.userId !== actorUserId) {
       throw new Error('FORBIDDEN: Not authorized to revoke this representation agreement.');
     }
 
@@ -1436,8 +1389,8 @@ export class LiveService {
       .where(
         and(
           eq(representationAuthorizations.artistId, artist.id),
-          eq(representationAuthorizations.status, 'active')
-        )
+          eq(representationAuthorizations.status, 'active'),
+        ),
       )
       .limit(1);
 
@@ -1516,7 +1469,7 @@ export class LiveService {
     inquiryId: string,
     actorUserId: string,
     offeredByRole: 'organizer' | 'artist' | 'representative',
-    input: ProposeBookingOfferInput
+    input: ProposeBookingOfferInput,
   ) {
     const [inquiry] = await this.db
       .select()
@@ -1591,13 +1544,9 @@ export class LiveService {
     offerId: string,
     actorUserId: string,
     actorRole: 'organizer' | 'artist' | 'representative',
-    repContext?: { representativeId?: string; authorizationId?: string }
+    repContext?: { representativeId?: string; authorizationId?: string },
   ) {
-    const [offer] = await this.db
-      .select()
-      .from(bookingOffers)
-      .where(eq(bookingOffers.id, offerId))
-      .limit(1);
+    const [offer] = await this.db.select().from(bookingOffers).where(eq(bookingOffers.id, offerId)).limit(1);
 
     if (!offer) {
       throw new Error(`NOT_FOUND: Booking offer ${offerId} not found.`);
@@ -1619,13 +1568,17 @@ export class LiveService {
 
     // Counterparty rule: organizer cannot accept their own offer; artist/rep cannot accept their own counteroffer
     if (offer.offeredByRole === 'organizer' && actorRole === 'organizer') {
-      throw new Error('FORBIDDEN: An organizer offer must be accepted by the artist or authorized representative.');
+      throw new Error(
+        'FORBIDDEN: An organizer offer must be accepted by the artist or authorized representative.',
+      );
     }
     if (
       (offer.offeredByRole === 'artist' || offer.offeredByRole === 'representative') &&
       actorRole !== 'organizer'
     ) {
-      throw new Error('FORBIDDEN: An artist or representative counteroffer must be accepted by the organizer.');
+      throw new Error(
+        'FORBIDDEN: An artist or representative counteroffer must be accepted by the organizer.',
+      );
     }
 
     const now = new Date();
@@ -1754,11 +1707,7 @@ export class LiveService {
         totalCents: number;
       }
   > {
-    const [event] = await this.db
-      .select()
-      .from(events)
-      .where(eq(events.id, params.eventId))
-      .limit(1);
+    const [event] = await this.db.select().from(events).where(eq(events.id, params.eventId)).limit(1);
 
     if (
       !event ||
@@ -1769,7 +1718,8 @@ export class LiveService {
     ) {
       return {
         gateBlocked: true,
-        reason: 'Paid ticket checkout is unavailable until authoritative order, inventory, and organizer permissions are active.',
+        reason:
+          'Paid ticket checkout is unavailable until authoritative order, inventory, and organizer permissions are active.',
       };
     }
 
@@ -1779,21 +1729,15 @@ export class LiveService {
       .where(eq(organizerProfiles.id, event.organizerId))
       .limit(1);
 
-    if (
-      !organizer ||
-      organizer.verificationStatus !== 'verified' ||
-      !organizer.ticketingAuthorizedAt
-    ) {
+    if (!organizer || organizer.verificationStatus !== 'verified' || !organizer.ticketingAuthorizedAt) {
       return {
         gateBlocked: true,
-        reason: 'Paid ticket checkout is disabled until the organizer is verified and authorized for ticketing.',
+        reason:
+          'Paid ticket checkout is disabled until the organizer is verified and authorized for ticketing.',
       };
     }
 
-    const tiers = await this.db
-      .select()
-      .from(ticketTiers)
-      .where(eq(ticketTiers.eventId, event.id));
+    const tiers = await this.db.select().from(ticketTiers).where(eq(ticketTiers.eventId, event.id));
 
     const tier = tiers[params.tierIndex];
     if (!tier || tier.priceCents <= 0) {
@@ -1808,19 +1752,11 @@ export class LiveService {
     const expiredHolds = await this.db
       .select()
       .from(ticketHolds)
-      .where(
-        and(
-          eq(ticketHolds.tierId, tier.id),
-          eq(ticketHolds.status, 'held')
-        )
-      );
+      .where(and(eq(ticketHolds.tierId, tier.id), eq(ticketHolds.status, 'held')));
 
     for (const h of expiredHolds) {
       if (h.expiresAt.getTime() <= now.getTime()) {
-        await this.db
-          .update(ticketHolds)
-          .set({ status: 'expired' })
-          .where(eq(ticketHolds.id, h.id));
+        await this.db.update(ticketHolds).set({ status: 'expired' }).where(eq(ticketHolds.id, h.id));
         await this.db
           .update(ticketTiers)
           .set({
@@ -1830,11 +1766,7 @@ export class LiveService {
       }
     }
 
-    const [freshTier] = await this.db
-      .select()
-      .from(ticketTiers)
-      .where(eq(ticketTiers.id, tier.id))
-      .limit(1);
+    const [freshTier] = await this.db.select().from(ticketTiers).where(eq(ticketTiers.id, tier.id)).limit(1);
 
     if (!freshTier || freshTier.reservedCount + params.quantity > freshTier.capacity) {
       throw new Error('CONFLICT: Requested ticket tier does not have sufficient remaining capacity.');
@@ -1922,11 +1854,7 @@ export class LiveService {
   }
 
   async getBookingOfferContext(offerId: string) {
-    const [offer] = await this.db
-      .select()
-      .from(bookingOffers)
-      .where(eq(bookingOffers.id, offerId))
-      .limit(1);
+    const [offer] = await this.db.select().from(bookingOffers).where(eq(bookingOffers.id, offerId)).limit(1);
     if (!offer) return null;
     const [inquiry] = await this.db
       .select()
@@ -1943,11 +1871,7 @@ export class LiveService {
   }
 
   async getTicketOrder(orderId: string) {
-    const [order] = await this.db
-      .select()
-      .from(ticketOrders)
-      .where(eq(ticketOrders.id, orderId))
-      .limit(1);
+    const [order] = await this.db.select().from(ticketOrders).where(eq(ticketOrders.id, orderId)).limit(1);
     return order ?? null;
   }
 
@@ -1998,10 +1922,7 @@ export class LiveService {
       }
 
       if (order.status === 'confirmed') {
-        const existingTickets = await this.db
-          .select()
-          .from(tickets)
-          .where(eq(tickets.orderId, order.id));
+        const existingTickets = await this.db.select().from(tickets).where(eq(tickets.orderId, order.id));
         return {
           gateBlocked: false,
           orderId: order.id,
@@ -2016,8 +1937,7 @@ export class LiveService {
         .set({
           status: 'confirmed',
           confirmedAt: now,
-          stripePaymentIntentId:
-            typeof obj.payment_intent === 'string' ? obj.payment_intent : null,
+          stripePaymentIntentId: typeof obj.payment_intent === 'string' ? obj.payment_intent : null,
         })
         .where(eq(ticketOrders.id, order.id));
 
@@ -2088,16 +2008,8 @@ export class LiveService {
    * Processes an authorized ticket order refund, voids issued tickets, releases tier capacity,
    * and updates settlement and ledger records.
    */
-  async refundTicketOrder(
-    orderId: string,
-    approvedByUserId: string,
-    input: OrderRefundInput
-  ) {
-    const [order] = await this.db
-      .select()
-      .from(ticketOrders)
-      .where(eq(ticketOrders.id, orderId))
-      .limit(1);
+  async refundTicketOrder(orderId: string, approvedByUserId: string, input: OrderRefundInput) {
+    const [order] = await this.db.select().from(ticketOrders).where(eq(ticketOrders.id, orderId)).limit(1);
 
     if (!order) {
       throw new Error(`NOT_FOUND: Ticket order ${orderId} not found.`);
@@ -2136,15 +2048,9 @@ export class LiveService {
       })
       .where(eq(ticketOrders.id, order.id));
 
-    const orderTickets = await this.db
-      .select()
-      .from(tickets)
-      .where(eq(tickets.orderId, order.id));
+    const orderTickets = await this.db.select().from(tickets).where(eq(tickets.orderId, order.id));
 
-    await this.db
-      .update(tickets)
-      .set({ status: 'refunded' })
-      .where(eq(tickets.orderId, order.id));
+    await this.db.update(tickets).set({ status: 'refunded' }).where(eq(tickets.orderId, order.id));
 
     if (order.tierId) {
       await this.db
@@ -2202,8 +2108,8 @@ export class LiveService {
       .where(
         and(
           eq(ticketOrders.eventId, eventId),
-          inArray(ticketOrders.status, ['confirmed', 'refunded', 'partially_refunded'])
-        )
+          inArray(ticketOrders.status, ['confirmed', 'refunded', 'partially_refunded']),
+        ),
       );
 
     const refunds = await this.db
@@ -2214,7 +2120,9 @@ export class LiveService {
     const engagements = await this.db
       .select()
       .from(performanceEngagements)
-      .where(and(eq(performanceEngagements.eventId, eventId), eq(performanceEngagements.status, 'confirmed')));
+      .where(
+        and(eq(performanceEngagements.eventId, eventId), eq(performanceEngagements.status, 'confirmed')),
+      );
 
     const grossReceiptsCents = orders.reduce((s, o) => s + o.totalCents, 0);
     const refundsCents = refunds.reduce((s, r) => s + r.amountCents, 0);
@@ -2223,10 +2131,7 @@ export class LiveService {
     const taxWithheldCents = orders.reduce((s, o) => s + o.taxCents, 0);
     const performerPayablesCents = engagements.reduce((s, e) => s + e.artistFeeCents, 0);
     const agentCommissionsCents = engagements.reduce((s, e) => s + e.agentCommissionCents, 0);
-    const engagementPlatformAllocCents = engagements.reduce(
-      (s, e) => s + e.platformAdminAllocationCents,
-      0
-    );
+    const engagementPlatformAllocCents = engagements.reduce((s, e) => s + e.platformAdminAllocationCents, 0);
     const platformAdminAllocationCents = orderPlatformAllocCents + engagementPlatformAllocCents;
 
     const netOrganizerProceedsCents = Math.max(
@@ -2237,7 +2142,7 @@ export class LiveService {
         platformAdminAllocationCents -
         taxWithheldCents -
         performerPayablesCents -
-        agentCommissionsCents
+        agentCommissionsCents,
     );
 
     const [existing] = await this.db
@@ -2291,7 +2196,7 @@ export class LiveService {
   async createEventProductionRequest(
     eventId: string,
     contactUserId: string,
-    input: CreateEventProductionRequestInput
+    input: CreateEventProductionRequestInput,
   ) {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
     if (!event) {
@@ -2429,10 +2334,7 @@ export class LiveService {
    * organization, and verified non-ticketing organizer profile.
    * Supports dry-run inspection without mutating D1.
    */
-  async provisionListingsPublisher(options?: {
-    dryRun?: boolean;
-    actorUserId?: string;
-  }): Promise<{
+  async provisionListingsPublisher(options?: { dryRun?: boolean; actorUserId?: string }): Promise<{
     dryRun: boolean;
     publisherUserId: string;
     publisherEmail: string;
@@ -2544,12 +2446,7 @@ export class LiveService {
     const [existingMember] = await this.db
       .select()
       .from(organizationMembers)
-      .where(
-        and(
-          eq(organizationMembers.organizationId, orgId),
-          eq(organizationMembers.userId, userId)
-        )
-      )
+      .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, userId)))
       .limit(1);
 
     if (!existingMember) {
@@ -2615,7 +2512,7 @@ export class LiveService {
       actorUserId?: string;
       referenceNow?: Date;
       revalidateUnfetched?: boolean;
-    }
+    },
   ): Promise<{
     dryRun: boolean;
     totalCandidates: number;
@@ -2690,7 +2587,7 @@ export class LiveService {
       const resolvedSlug = (candidate.slug || candidate.import_key || 'missing-slug').trim();
       const resolvedProvider = inferExternalProviderName(
         candidate.external_destination?.url,
-        candidate.external_destination?.provider_name
+        candidate.external_destination?.provider_name,
       );
       const occurrenceSig = `${(candidate.title ?? '').trim().toLowerCase()}|${candidate.start_date_local}|${candidate.start_time_local ?? ''}|${(candidate.venue?.name ?? '').trim().toLowerCase()}|${(candidate.venue?.city ?? '').trim().toLowerCase()}`;
 
@@ -2781,33 +2678,23 @@ export class LiveService {
 
       const { tagline, description } = buildFactualEditorialSummary(candidate);
       const urlCheck = validateExternalDestinationUrl(candidate.external_destination.url);
-      const disclosure = buildIndependentDisclosure(
-        resolvedProvider,
-        candidate.external_destination.kind
-      );
+      const disclosure = buildIndependentDisclosure(resolvedProvider, candidate.external_destination.kind);
       const rawVerifiedAt =
         candidate.verification?.last_verified_at ||
         candidate.external_destination?.last_checked_at ||
         catalog.research_date;
       const verifiedAt = rawVerifiedAt ? new Date(rawVerifiedAt) : new Date();
-      const rawPriceMinUsd =
-        candidate.pricing?.price_min_usd ?? candidate.ticketing?.price_min_usd ?? null;
+      const rawPriceMinUsd = candidate.pricing?.price_min_usd ?? candidate.ticketing?.price_min_usd ?? null;
       const priceMinCents =
         typeof rawPriceMinUsd === 'number' && Number.isFinite(rawPriceMinUsd)
           ? Math.round(rawPriceMinUsd * 100)
           : null;
       const rawAddress = candidate.venue.street_address ?? candidate.venue.address ?? null;
-      const rawSourceUrls =
-        candidate.source_urls ?? candidate.verification?.source_urls ?? [];
-      const rawNotes =
-        candidate.editorial_notes ?? candidate.verification?.editorial_notes ?? null;
+      const rawSourceUrls = candidate.source_urls ?? candidate.verification?.source_urls ?? [];
+      const rawNotes = candidate.editorial_notes ?? candidate.verification?.editorial_notes ?? null;
       const now = new Date();
 
-      const [existing] = await this.db
-        .select()
-        .from(events)
-        .where(eq(events.importKey, importKey))
-        .limit(1);
+      const [existing] = await this.db.select().from(events).where(eq(events.importKey, importKey)).limit(1);
 
       const eventId = existing?.id ?? `evt_ext_${importKey.replace(/[^a-z0-9_]/gi, '_')}`;
       // Preserve 'published' if already published and still approved
@@ -2846,24 +2733,18 @@ export class LiveService {
           GAMO_LIVE_PUBLISHER_LABEL,
         publishedByUserId: publisherUserId,
         originalOrganizerName:
-          candidate.original_organizer_name ??
-          candidate.organizer?.original_organizer_name ??
-          null,
+          candidate.original_organizer_name ?? candidate.organizer?.original_organizer_name ?? null,
         externalDestinationKind: candidate.external_destination.kind,
         externalTicketProvider: resolvedProvider,
         externalOnly: true,
         priceMinCents,
         currency: candidate.pricing?.currency || candidate.ticketing?.currency || 'USD',
         ticketAvailability:
-          candidate.pricing?.availability_status ||
-          candidate.ticketing?.availability ||
-          'unverified',
+          candidate.pricing?.availability_status || candidate.ticketing?.availability || 'unverified',
         sourceUrlsJson: JSON.stringify(rawSourceUrls),
         lastVerifiedAt: verifiedAt,
         artworkUrl: candidate.artwork?.rights_verified ? candidate.artwork.url : null,
-        artworkRightsVerified: Boolean(
-          candidate.artwork?.rights_verified && candidate.artwork?.url
-        ),
+        artworkRightsVerified: Boolean(candidate.artwork?.rights_verified && candidate.artwork?.url),
         artworkLicenseCredit: null,
         editorialStatus: nextEditorialStatus,
         editorialNotes: rawNotes,
@@ -2971,7 +2852,7 @@ export class LiveService {
   async reviewExternalListing(
     importKeyOrId: string,
     decision: 'approved' | 'verified' | 'published' | 'archived' | 'canceled' | 'rejected',
-    options?: { actorUserId?: string; notes?: string }
+    options?: { actorUserId?: string; notes?: string },
   ): Promise<LiveEvent> {
     const isId = importKeyOrId.startsWith('evt_');
     const [existing] = await this.db
@@ -2988,7 +2869,7 @@ export class LiveService {
       const urlCheck = validateExternalDestinationUrl(existing.externalUrl);
       if (!urlCheck.valid || !existing.venueName.trim()) {
         throw new Error(
-          `CONFLICT: Listing ${importKeyOrId} is missing a verified HTTPS external destination URL or venue name.`
+          `CONFLICT: Listing ${importKeyOrId} is missing a verified HTTPS external destination URL or venue name.`,
         );
       }
     }
@@ -3049,11 +2930,7 @@ export class LiveService {
       createdAt: now,
     });
 
-    const [updated] = await this.db
-      .select()
-      .from(events)
-      .where(eq(events.id, existing.id))
-      .limit(1);
+    const [updated] = await this.db.select().from(events).where(eq(events.id, existing.id)).limit(1);
     return updated;
   }
 
@@ -3160,7 +3037,7 @@ export class LiveService {
         (evt) =>
           evt.metroSlug === metro.slug ||
           (evt.state.toUpperCase() === metro.state &&
-            metro.cities.some((c) => c.toLowerCase() === evt.city.toLowerCase()))
+            metro.cities.some((c) => c.toLowerCase() === evt.city.toLowerCase())),
       );
       const nextEvent = metroEvents[0] ?? null;
       return {
@@ -3230,22 +3107,15 @@ export class LiveService {
       (a, b) =>
         b.upcomingEventCount - a.upcomingEventCount ||
         a.city.localeCompare(b.city) ||
-        a.venueName.localeCompare(b.venueName)
+        a.venueName.localeCompare(b.venueName),
     );
   }
 
   /**
    * Records a privacy-preserving outbound ticket referral click without storing personal data.
    */
-  async recordExternalOutboundClick(
-    eventId: string,
-    referrerSurface = 'event_detail'
-  ): Promise<void> {
-    const [event] = await this.db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
+  async recordExternalOutboundClick(eventId: string, referrerSurface = 'event_detail'): Promise<void> {
+    const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
     if (!event) return;
 
     await this.db.insert(externalOutboundClicks).values({

@@ -127,7 +127,9 @@ const mf = new Miniflare({
         script: routerScript,
         compatibilityDate: '2024-09-23',
         d1Databases: { DB: 'phase1-shared-db' },
-        serviceBindings: Object.fromEntries(APPS.map((a) => [`APP_${a.name.toUpperCase()}`, `app-${a.name}`])),
+        serviceBindings: Object.fromEntries(
+          APPS.map((a) => [`APP_${a.name.toUpperCase()}`, `app-${a.name}`]),
+        ),
       },
       ...workerConfigs,
     ],
@@ -146,7 +148,9 @@ try {
   for (const file of readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
     .sort()) {
-    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split('--> statement-breakpoint')) {
+    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split(
+      '--> statement-breakpoint',
+    )) {
       const sql = raw.replace(/^\s*--.*$/gm, '').trim();
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
@@ -321,7 +325,7 @@ try {
   await webPage.fill('[data-inquiry-form] input[name="organization"]', 'Bethel Covenant Fellowship');
   await webPage.fill(
     '[data-inquiry-form] textarea[name="message"]',
-    'Our congregation would like to explore Sunday morning worship coverage and keyboard mentorship.'
+    'Our congregation would like to explore Sunday morning worship coverage and keyboard mentorship.',
   );
   await webPage.click('[data-inquiry-form] button[type="submit"]');
   await webPage.waitForFunction(() => {
@@ -357,7 +361,10 @@ try {
   ]);
 
   const afterReloginBody = await webPage.textContent('main#main-content');
-  assert.match(afterReloginBody || '', /Our congregation would like to explore Sunday morning worship coverage/);
+  assert.match(
+    afterReloginBody || '',
+    /Our congregation would like to explore Sunday morning worship coverage/,
+  );
 
   // Provision a staff reviewer and review the inquiry in apps/admin (/participation)
   const staffChallenge = await fetch(`${urls.web}/api/auth/challenge`, {
@@ -370,7 +377,11 @@ try {
   const staffVerify = await fetch(`${urls.web}/api/auth/verify`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Origin: urls.web },
-    body: JSON.stringify({ email: 'staff.reviewer@gamostudio.org', code: staffCode, displayName: 'Staff Reviewer' }),
+    body: JSON.stringify({
+      email: 'staff.reviewer@gamostudio.org',
+      code: staffCode,
+      displayName: 'Staff Reviewer',
+    }),
   });
   const staffSessionCookie = staffVerify.headers.get('set-cookie').split(';')[0];
   const staffVerifyBody = await staffVerify.json();
@@ -378,7 +389,9 @@ try {
   await db.batch([
     db.prepare("INSERT OR IGNORE INTO roles (id, code) VALUES ('role_staff_reviewer', 'staff_reviewer')"),
     db
-      .prepare("INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_staff_e2e', ?, 'role_staff_reviewer', unixepoch())")
+      .prepare(
+        "INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_staff_e2e', ?, 'role_staff_reviewer', unixepoch())",
+      )
       .bind(staffUserId),
   ]);
 
@@ -403,7 +416,7 @@ try {
   await adminPage.selectOption('[data-review-inquiry] select[name="status"]', 'reviewed');
   await adminPage.fill(
     '[data-review-inquiry] textarea[name="notes"]',
-    'Connected Ruth with the Gamo Worship regional coordinator for an introductory call.'
+    'Connected Ruth with the Gamo Worship regional coordinator for an introductory call.',
   );
   await Promise.all([
     adminPage.waitForNavigation({ waitUntil: 'networkidle' }),
@@ -417,7 +430,7 @@ try {
   assert.match(reviewedAccountText || '', /Reviewed/);
   assert.match(
     reviewedAccountText || '',
-    /Connected Ruth with the Gamo Worship regional coordinator for an introductory call\./
+    /Connected Ruth with the Gamo Worship regional coordinator for an introductory call\./,
   );
   await webContext.close();
 
@@ -455,13 +468,17 @@ try {
   ]);
 
   // Signed-in Worship user without approved_musician role cannot access /musician -> redirected to 403 /account/access-denied
-  const deniedMusicianRes = await progPage.goto(`${urls.worship}/musician`, { waitUntil: 'domcontentloaded' });
+  const deniedMusicianRes = await progPage.goto(`${urls.worship}/musician`, {
+    waitUntil: 'domcontentloaded',
+  });
   assert.equal(progPage.url(), `${urls.worship}/account/access-denied`);
   assert.equal(deniedMusicianRes.status(), 403);
   assert.match((await progPage.textContent('h1')) || '', /This workspace needs program access\./);
 
   // Verify a Worship session cookie does NOT grant access to Gamo Academy /family -> redirected to 403 /account/access-denied
-  const crossProductDeniedRes = await progPage.goto(`${urls.academy}/family`, { waitUntil: 'domcontentloaded' });
+  const crossProductDeniedRes = await progPage.goto(`${urls.academy}/family`, {
+    waitUntil: 'domcontentloaded',
+  });
   assert.equal(progPage.url(), `${urls.academy}/account/access-denied`);
   assert.equal(crossProductDeniedRes.status(), 403);
 
@@ -479,9 +496,14 @@ try {
     progPage.waitForURL(`${urls.academy}/family`),
     progPage.click('[data-step-verify] button[type="submit"]'),
   ]);
-  assert.match((await progPage.textContent('main#main-content')) || '', /There are no operational records available here yet\./);
+  assert.match(
+    (await progPage.textContent('main#main-content')) || '',
+    /There are no operational records available here yet\./,
+  );
 
-  const deniedInstructorRes = await progPage.goto(`${urls.academy}/instructor`, { waitUntil: 'domcontentloaded' });
+  const deniedInstructorRes = await progPage.goto(`${urls.academy}/instructor`, {
+    waitUntil: 'domcontentloaded',
+  });
   assert.equal(progPage.url(), `${urls.academy}/account/access-denied`);
   assert.equal(deniedInstructorRes.status(), 403);
   await progContext.close();
@@ -533,7 +555,7 @@ try {
   await livePage.selectOption('#event-submission select[name="category"]', 'worship');
   await livePage.fill(
     '#event-submission textarea[name="description"]',
-    'An evening of congregational worship, scripture reading, and prayer open to the community.'
+    'An evening of congregational worship, scripture reading, and prayer open to the community.',
   );
   await livePage.fill('#event-submission input[name="venueName"]', 'New Jerusalem Sanctuary');
   await livePage.fill('#event-submission input[name="city"]', 'Dallas');
@@ -575,7 +597,9 @@ try {
   await livePage.fill('[data-step-challenge] input[name="email"]', 'organizer.live@example.org');
   await livePage.click('[data-step-challenge] button[type="submit"]');
   await livePage.waitForSelector('[data-step-verify]:not([hidden])');
-  const liveReloginCode = (await livePage.textContent('[data-auth-status]')).match(/Local test code: (\d{6})/)[1];
+  const liveReloginCode = (await livePage.textContent('[data-auth-status]')).match(
+    /Local test code: (\d{6})/,
+  )[1];
   await livePage.fill('[data-step-verify] input[name="code"]', liveReloginCode);
   await Promise.all([
     livePage.waitForURL(`${urls.live}/workspaces`),

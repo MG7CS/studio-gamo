@@ -47,6 +47,7 @@ const canonical = indexable ? origin + (Astro.url.pathname.replace(/\/+$/, '') |
 const imageUrl = indexable && ogImage ? new URL(ogImage, origin).href : undefined;
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -57,7 +58,10 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -76,13 +80,19 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
         {imageUrl && <meta name="twitter:image" content={imageUrl} />}
       </>
     )}
-    {indexable && jsonLdBlocks.map((block) => (
-      <script type="application/ld+json" set:html={JSON.stringify(block).replace(/</g, '\\u003c')} />
-    ))}
+    {indexable &&
+      jsonLdBlocks.map((block) => (
+        <script type="application/ld+json" set:html={JSON.stringify(block).replace(/</g, '\\u003c')} />
+      ))}
     <slot name="head" />
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>
-    {chrome && (Astro.slots.has('header') ? <slot name="header" /> : <SiteHeader current={current} theme={headerTheme} />)}
+    {chrome &&
+      (Astro.slots.has('header') ? (
+        <slot name="header" />
+      ) : (
+        <SiteHeader current={current} theme={headerTheme} />
+      ))}
     <main id="main-content" class:list={['overflow-x-clip', !chrome && 'min-h-screen w-full']}>
       <slot />
     </main>
@@ -94,14 +104,17 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
       if (!('IntersectionObserver' in window)) {
         items.forEach((el) => el.classList.add('is-visible'));
       } else {
-        const io = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              io.unobserve(entry.target);
-            }
-          });
-        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
+        );
         items.forEach((el) => io.observe(el));
       }
     </script>

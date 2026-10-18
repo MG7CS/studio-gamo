@@ -124,7 +124,9 @@ const mf = new Miniflare({
         script: routerScript,
         compatibilityDate: '2024-09-23',
         d1Databases: { DB: 'auth-ui-shared-db' },
-        serviceBindings: Object.fromEntries(APPS.map((a) => [`APP_${a.name.toUpperCase()}`, `app-${a.name}`])),
+        serviceBindings: Object.fromEntries(
+          APPS.map((a) => [`APP_${a.name.toUpperCase()}`, `app-${a.name}`]),
+        ),
       },
       ...workerConfigs,
     ],
@@ -142,7 +144,9 @@ try {
   for (const file of readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
     .sort()) {
-    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split('--> statement-breakpoint')) {
+    for (const raw of readFileSync(`packages/db/migrations/${file}`, 'utf8').split(
+      '--> statement-breakpoint',
+    )) {
       const sql = raw.replace(/^\s*--.*$/gm, '').trim();
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
@@ -199,10 +203,20 @@ try {
   };
 
   const getScreensForProgram = (program) => [
-    { slug: 'signin', path: '/account/signin', heading: 'Welcome back', subtext: `Sign in to your ${program} account.` },
+    {
+      slug: 'signin',
+      path: '/account/signin',
+      heading: 'Welcome back',
+      subtext: `Sign in to your ${program} account.`,
+    },
     { slug: 'signup', path: '/account/signup', heading: `Create your ${program} account` },
     { slug: 'verify', path: '/account/verify?email=you%40example.com', heading: 'Check your email' },
-    { slug: 'recover', path: '/account/recover', heading: 'Recover your account', subtext: `Enter your email and we'll send you a verification code to restore access to your ${program} account.` },
+    {
+      slug: 'recover',
+      path: '/account/recover',
+      heading: 'Recover your account',
+      subtext: `Enter your email and we'll send you a verification code to restore access to your ${program} account.`,
+    },
   ];
 
   const VIEWPORTS = [
@@ -231,7 +245,7 @@ try {
       const bodyText = (await page.textContent('body')) || '';
       assert.ok(
         !bodyText.includes('One account for Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production.'),
-        `Must not claim one shared cross-product account on ${screen.path}`
+        `Must not claim one shared cross-product account on ${screen.path}`,
       );
 
       const overflow = await page.evaluate(() => {
@@ -255,8 +269,15 @@ try {
       assert.ok(bounds, `Missing [data-verified-auth] shell on ${screen.path}`);
       assert.equal(bounds.left, 0, `Expected 0px left margin on ${screen.path} at ${vp.label}px`);
       assert.equal(bounds.top, 0, `Expected 0px top margin on ${screen.path} at ${vp.label}px`);
-      assert.equal(bounds.width, bounds.innerWidth, `Expected full viewport width on ${screen.path} at ${vp.label}px`);
-      assert.ok(bounds.height >= bounds.innerHeight, `Expected full viewport height on ${screen.path} at ${vp.label}px`);
+      assert.equal(
+        bounds.width,
+        bounds.innerWidth,
+        `Expected full viewport width on ${screen.path} at ${vp.label}px`,
+      );
+      assert.ok(
+        bounds.height >= bounds.innerHeight,
+        `Expected full viewport height on ${screen.path} at ${vp.label}px`,
+      );
 
       const imgLoaded = await page.evaluate((slug) => {
         const img = document.querySelector(`[data-auth-photo="${slug}"] img`);
@@ -285,17 +306,25 @@ try {
     for (const screen of appScreens) {
       const res = await appCheckPage.goto(`${urls[appName]}${screen.path}`, { waitUntil: 'networkidle' });
       assert.equal(res.status(), 200, `${appName} ${screen.path}`);
-      assert.equal((await appCheckPage.textContent('h1'))?.trim(), screen.heading, `${appName} ${screen.path} heading`);
-      const subtext = (await appCheckPage.textContent('[data-auth-subtext]'))?.replace(/\s+/g, ' ').trim() || '';
+      assert.equal(
+        (await appCheckPage.textContent('h1'))?.trim(),
+        screen.heading,
+        `${appName} ${screen.path} heading`,
+      );
+      const subtext =
+        (await appCheckPage.textContent('[data-auth-subtext]'))?.replace(/\s+/g, ' ').trim() || '';
       if (screen.subtext) {
         assert.equal(subtext, screen.subtext, `${appName} ${screen.path} subtext`);
       }
       assert.ok(
         !subtext.includes('One account for Gamo Worship'),
-        `${appName} ${screen.path} must not claim cross-product account`
+        `${appName} ${screen.path} must not claim cross-product account`,
       );
       if (screen.slug === 'signup') {
-        assert.ok(subtext.includes(program), `Expected ${appName} signup subtext to reference ${program}, got "${subtext}"`);
+        assert.ok(
+          subtext.includes(program),
+          `Expected ${appName} signup subtext to reference ${program}, got "${subtext}"`,
+        );
       }
       const hasLegacyChrome = await appCheckPage.evaluate(() => {
         return Boolean(
@@ -304,7 +333,11 @@ try {
           ),
         );
       });
-      assert.equal(hasLegacyChrome, false, `Expected zero public header/footer chrome on ${appName} ${screen.path}`);
+      assert.equal(
+        hasLegacyChrome,
+        false,
+        `Expected zero public header/footer chrome on ${appName} ${screen.path}`,
+      );
       const bounds = await appCheckPage.evaluate(() => {
         const shell = document.querySelector('[data-verified-auth]');
         if (!shell) return null;
@@ -321,8 +354,15 @@ try {
       assert.ok(bounds, `Missing [data-verified-auth] shell on ${appName} ${screen.path}`);
       assert.equal(bounds.left, 0, `Expected 0px left margin on ${appName} ${screen.path}`);
       assert.equal(bounds.top, 0, `Expected 0px top margin on ${appName} ${screen.path}`);
-      assert.equal(bounds.width, bounds.innerWidth, `Expected full viewport width on ${appName} ${screen.path}`);
-      assert.ok(bounds.height >= bounds.innerHeight, `Expected full viewport height on ${appName} ${screen.path}`);
+      assert.equal(
+        bounds.width,
+        bounds.innerWidth,
+        `Expected full viewport width on ${appName} ${screen.path}`,
+      );
+      assert.ok(
+        bounds.height >= bounds.innerHeight,
+        `Expected full viewport height on ${appName} ${screen.path}`,
+      );
       const imgLoaded = await appCheckPage.evaluate((slug) => {
         const img = document.querySelector(`[data-auth-photo="${slug}"] img`);
         return Boolean(img && img.complete && img.naturalWidth > 0);
@@ -342,7 +382,11 @@ try {
         });
         assert.equal(brandLinkInfo.href, '/', `Expected Gamo Live auth logo link href="/" on ${screen.path}`);
         assert.equal(brandLinkInfo.brandLogo, 'Gamo Live', `Expected Gamo Live logo on ${screen.path}`);
-        assert.match(brandLinkInfo.text || '', /^GAMO\s*LIVE$/, `Expected GAMO LIVE wordmark on ${screen.path}`);
+        assert.match(
+          brandLinkInfo.text || '',
+          /^GAMO\s*LIVE$/,
+          `Expected GAMO LIVE wordmark on ${screen.path}`,
+        );
 
         await appCheckPage.screenshot({
           path: join(screenshotDir, `live-auth-${screen.slug}-1440.png`),
@@ -354,10 +398,7 @@ try {
 
   // Verify clicking the Gamo Live logo on /account/signin navigates to the Gamo Live homepage ("/")
   await appCheckPage.goto(`${urls.live}/account/signin`, { waitUntil: 'networkidle' });
-  await Promise.all([
-    appCheckPage.waitForURL(`${urls.live}/`),
-    appCheckPage.click('[data-auth-brand-link]'),
-  ]);
+  await Promise.all([appCheckPage.waitForURL(`${urls.live}/`), appCheckPage.click('[data-auth-brand-link]')]);
 
   // Also capture Gamo Live mobile (390x844) screenshots for all 4 auth screens
   const liveMobileCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });

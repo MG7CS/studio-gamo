@@ -6,23 +6,61 @@ import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
 const routes: { who: string; next: string; href: string; photo: PhotoKey; shape: string }[] = [
-  { who: 'a church or ministry', next: 'Request worship musicians or explore partnership', href: siteUrl('worship', '/hire'), photo: 'churchModernDay', shape: 'rounded-[28px] rounded-tl-[90px]' },
-  { who: 'a musician', next: 'Learn about joining the musician collection', href: siteUrl('worship', '/apply'), photo: 'acousticLeader', shape: 'mask-arch-sm' },
-  { who: 'a student or family', next: 'Find an instrument and a lesson', href: siteUrl('academy', '/lessons'), photo: 'girlGuitar', shape: 'rounded-[28px] rounded-br-[90px]' },
-  { who: 'an event organizer', next: 'Share a Christian event on Gamo Live', href: siteUrl('live', '/promote'), photo: 'gospelVocalists', shape: 'mask-pebble' },
-  { who: 'a supporter', next: 'See ways to support and partner', href: '/support', photo: 'youngPianist', shape: 'rounded-[28px] rounded-tr-[90px]' },
+  {
+    who: 'a church or ministry',
+    next: 'Request worship musicians or explore partnership',
+    href: siteUrl('worship', '/hire'),
+    photo: 'churchModernDay',
+    shape: 'rounded-[28px] rounded-tl-[90px]',
+  },
+  {
+    who: 'a musician',
+    next: 'Learn about joining the musician collection',
+    href: siteUrl('worship', '/apply'),
+    photo: 'acousticLeader',
+    shape: 'mask-arch-sm',
+  },
+  {
+    who: 'a student or family',
+    next: 'Find an instrument and a lesson',
+    href: siteUrl('academy', '/lessons'),
+    photo: 'girlGuitar',
+    shape: 'rounded-[28px] rounded-br-[90px]',
+  },
+  {
+    who: 'an event organizer',
+    next: 'Share a Christian event on Gamo Live',
+    href: siteUrl('live', '/promote'),
+    photo: 'gospelVocalists',
+    shape: 'mask-pebble',
+  },
+  {
+    who: 'a supporter',
+    next: 'See ways to support and partner',
+    href: '/support',
+    photo: 'youngPianist',
+    shape: 'rounded-[28px] rounded-tr-[90px]',
+  },
 ];
 ---
+
 <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
   {routes.map((r) => (
     <li data-reveal>
-      <a href={r.href} class="group flex h-full flex-col rounded-[30px] bg-white p-3 ring-1 ring-sand transition-transform hover:-translate-y-1 hover:shadow-float">
-        <div class:list={['aspect-square overflow-hidden', r.shape]}><Photo name={r.photo} sizes="(min-width:1024px) 18vw, (min-width:640px) 45vw, 92vw" alt="" /></div>
+      <a
+        href={r.href}
+        class="group flex h-full flex-col rounded-[30px] bg-white p-3 ring-1 ring-sand transition-transform hover:-translate-y-1 hover:shadow-float"
+      >
+        <div class:list={['aspect-square overflow-hidden', r.shape]}>
+          <Photo name={r.photo} sizes="(min-width:1024px) 18vw, (min-width:640px) 45vw, 92vw" alt="" />
+        </div>
         <div class="flex flex-1 flex-col p-3 pt-5">
           <p class="text-sm text-ink-soft">I am</p>
           <h2 class="text-xl font-bold tracking-tight text-charcoal">{r.who}</h2>
           <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{r.next}</p>
-          <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-terracotta">Continue <Icon name="arrow" class="h-4 w-4" /></span>
+          <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-terracotta">
+            Continue <Icon name="arrow" class="h-4 w-4" />
+          </span>
         </div>
       </a>
     </li>

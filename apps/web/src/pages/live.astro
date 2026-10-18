@@ -82,7 +82,6 @@ const freeOrChurchEvents =
     : liveEvents.filter((e) => e.category === 'worship' || /church/i.test(e.venue)).slice(0, 5);
 
 const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0, 5);
-
 ---
 
 <SiteLayout
@@ -116,7 +115,11 @@ const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0,
     body="Submit your gathering, manage ticket tiers and door check-in, or coordinate artist bookings and event production. Every listing is reviewed before publishing."
     photo="worshipBand"
   >
-    <ButtonLink href={siteUrl('live', '/promote/create')} arrow>List an event</ButtonLink>
-    <ButtonLink href={siteUrl('live', '/artists')} variant="secondary">Artist &amp; agent participation</ButtonLink>
+    <ButtonLink href={siteUrl('live', '/promote/create')} arrow>
+      List an event
+    </ButtonLink>
+    <ButtonLink href={siteUrl('live', '/artists')} variant="secondary">
+      Artist &amp; agent participation
+    </ButtonLink>
   </CtaInvitation>
 </SiteLayout>

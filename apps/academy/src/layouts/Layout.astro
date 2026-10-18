@@ -14,9 +14,31 @@ interface Props {
   noindex?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
-const { title, description, headerTheme = 'light', bodyClass = 'bg-cream text-charcoal', chrome = true, ogImage, ogType, noindex, jsonLd } = Astro.props;
+const {
+  title,
+  description,
+  headerTheme = 'light',
+  bodyClass = 'bg-cream text-charcoal',
+  chrome = true,
+  ogImage,
+  ogType,
+  noindex,
+  jsonLd,
+} = Astro.props;
 ---
-<BaseLayout title={title ? `${title} | Gamo Academy` : 'Gamo Academy | Gamo Studios'} description={description} current="academy" headerTheme={headerTheme} bodyClass={bodyClass} chrome={chrome} ogImage={ogImage} ogType={ogType} noindex={noindex} jsonLd={jsonLd}>
+
+<BaseLayout
+  title={title ? `${title} | Gamo Academy` : 'Gamo Academy | Gamo Studios'}
+  description={description}
+  current="academy"
+  headerTheme={headerTheme}
+  bodyClass={bodyClass}
+  chrome={chrome}
+  ogImage={ogImage}
+  ogType={ogType}
+  noindex={noindex}
+  jsonLd={jsonLd}
+>
   <slot name="head" slot="head" />
   <slot />
 </BaseLayout>

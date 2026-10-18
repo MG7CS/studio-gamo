@@ -18,21 +18,21 @@ post:
   x-source: apps/web/src/pages/api/auth/challenge.ts
   parameters: []
   responses:
-    "200":
+    '200':
       description: Successful response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/identity/AuthChallengeResponse.yaml
-    "400":
+    '400':
       $ref: ../components/responses/LegacyError.yaml
-    "403":
+    '403':
       $ref: ../components/responses/LegacyError.yaml
-    "429":
+    '429':
       $ref: ../components/responses/LegacyError.yaml
-    "503":
+    '503':
       $ref: ../components/responses/LegacyError.yaml
-    "500":
+    '500':
       $ref: ../components/responses/LegacyError.yaml
   requestBody:
     required: true

@@ -89,9 +89,10 @@ async function getJwksKeys(certsUrl: string): Promise<JwkKey[]> {
 export async function verifyCloudflareAccessJwt(
   token: string | null | undefined,
   expectedAud?: string,
-  teamName?: string
+  teamName?: string,
 ): Promise<VerificationResult> {
-  if (!expectedAud || !teamName || !/^[a-zA-Z0-9-]+$/.test(teamName)) return { valid: false, error: 'Access verification configuration unavailable' };
+  if (!expectedAud || !teamName || !/^[a-zA-Z0-9-]+$/.test(teamName))
+    return { valid: false, error: 'Access verification configuration unavailable' };
   if (!token) {
     return { valid: false, error: 'Missing cf-access-jwt-assertion token' };
   }
@@ -119,7 +120,13 @@ export async function verifyCloudflareAccessJwt(
 
   // 1. Expiration validation
   const nowSec = Math.floor(Date.now() / 1000);
-  if (!Number.isFinite(payload.exp) || payload.exp <= nowSec || typeof payload.sub !== 'string' || !payload.sub || typeof payload.email !== 'string') {
+  if (
+    !Number.isFinite(payload.exp) ||
+    payload.exp <= nowSec ||
+    typeof payload.sub !== 'string' ||
+    !payload.sub ||
+    typeof payload.email !== 'string'
+  ) {
     return { valid: false, error: 'Token has expired' };
   }
   if (payload.nbf && payload.nbf > nowSec + 60) {
@@ -160,7 +167,7 @@ export async function verifyCloudflareAccessJwt(
         hash: 'SHA-256',
       },
       false,
-      ['verify']
+      ['verify'],
     );
 
     const signedData = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
@@ -170,7 +177,7 @@ export async function verifyCloudflareAccessJwt(
       'RSASSA-PKCS1-v1_5',
       cryptoKey,
       signatureBytes as unknown as BufferSource,
-      signedData
+      signedData,
     );
 
     if (!isSignatureValid) {

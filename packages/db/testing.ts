@@ -60,7 +60,10 @@ export function createInMemoryD1(): any {
         for (const s of statements) results.push(await s.all());
         sqlite.exec('COMMIT');
         return results;
-      } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+      } catch (error) {
+        sqlite.exec('ROLLBACK');
+        throw error;
+      }
     },
     async exec(query: string) {
       sqlite.exec(query);
@@ -88,4 +91,3 @@ export async function applyMigrations(d1: any, migrationSqls: string[]): Promise
     }
   }
 }
-

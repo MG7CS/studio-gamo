@@ -22,8 +22,7 @@ export const GAMO_LIVE_PUBLISHER_USER_ID = 'usr_gamo_live_listings_editorial';
 export const GAMO_LIVE_PUBLISHER_EMAIL = 'listings-editorial@gamostudios.org';
 export const GAMO_LIVE_PUBLISHER_LABEL = 'Gamo Live Listings';
 
-export const DEFAULT_INDEPENDENT_DISCLOSURE =
-  'Independent listing · Tickets sold by the external provider.';
+export const DEFAULT_INDEPENDENT_DISCLOSURE = 'Independent listing · Tickets sold by the external provider.';
 
 export interface GamoLiveMetro {
   slug: string;
@@ -121,8 +120,7 @@ export const GAMO_LIVE_METROS: readonly GamoLiveMetro[] = [
     lng: -95.3698,
     timezone: 'America/Chicago',
     isPrimaryLaunchMarket: false,
-    introCopy:
-      'Explore verified Christian concerts and live worship gatherings in Houston, Texas.',
+    introCopy: 'Explore verified Christian concerts and live worship gatherings in Houston, Texas.',
   },
   {
     slug: 'seattle-wa',
@@ -135,8 +133,7 @@ export const GAMO_LIVE_METROS: readonly GamoLiveMetro[] = [
     lng: -122.3321,
     timezone: 'America/Los_Angeles',
     isPrimaryLaunchMarket: false,
-    introCopy:
-      'Find verified Christian concerts and seasonal worship gatherings in Seattle, Washington.',
+    introCopy: 'Find verified Christian concerts and seasonal worship gatherings in Seattle, Washington.',
   },
   {
     slug: 'new-york-ny',
@@ -149,8 +146,7 @@ export const GAMO_LIVE_METROS: readonly GamoLiveMetro[] = [
     lng: -73.9442,
     timezone: 'America/New_York',
     isPrimaryLaunchMarket: false,
-    introCopy:
-      'Discover verified Christian worship nights and live concerts in Brooklyn and New York City.',
+    introCopy: 'Discover verified Christian worship nights and live concerts in Brooklyn and New York City.',
   },
   {
     slug: 'oklahoma-city-ok',
@@ -163,8 +159,7 @@ export const GAMO_LIVE_METROS: readonly GamoLiveMetro[] = [
     lng: -97.5164,
     timezone: 'America/Chicago',
     isPrimaryLaunchMarket: false,
-    introCopy:
-      'Browse verified Christian worship nights and arena concerts in Oklahoma City, Oklahoma.',
+    introCopy: 'Browse verified Christian worship nights and arena concerts in Oklahoma City, Oklahoma.',
   },
 ] as const;
 
@@ -179,7 +174,7 @@ export function resolveMetroBySlug(slug: string | null | undefined): GamoLiveMet
  */
 export function resolveNearestMetroByCoordinates(
   lat: number,
-  lng: number
+  lng: number,
 ): { metro: GamoLiveMetro; distanceKm: number } {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   let bestMetro = GAMO_LIVE_METROS[0];
@@ -333,7 +328,7 @@ export function validateExternalDestinationUrl(rawUrl: string | null | undefined
 export function parseLocalEventDateTimeToUtc(
   startDateLocal: string,
   startTimeLocal: string | null | undefined,
-  timezone: string
+  timezone: string,
 ): Date {
   const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDateLocal.trim());
   if (!dateMatch) {
@@ -382,7 +377,7 @@ export function parseLocalEventDateTimeToUtc(
     partMap.day ?? 1,
     partMap.hour ?? 0,
     partMap.minute ?? 0,
-    partMap.second ?? 0
+    partMap.second ?? 0,
   );
   const offsetMs = zonedAsUtcMs - approxUtcMs;
   return new Date(approxUtcMs - offsetMs);
@@ -394,7 +389,7 @@ export function parseLocalEventDateTimeToUtc(
 export function isLocalWeekendDate(
   startDateLocal: string | null | undefined,
   startsAt: Date,
-  timezone: string
+  timezone: string,
 ): boolean {
   if (startDateLocal && /^\d{4}-\d{2}-\d{2}$/.test(startDateLocal)) {
     const [y, m, d] = startDateLocal.split('-').map(Number);
@@ -415,13 +410,9 @@ export function isLocalWeekendDate(
 
 export function inferExternalProviderName(
   url: string | null | undefined,
-  explicitProvider?: string | null
+  explicitProvider?: string | null,
 ): string | null {
-  if (
-    explicitProvider &&
-    explicitProvider.trim() &&
-    explicitProvider.trim().toLowerCase() !== 'external'
-  ) {
+  if (explicitProvider && explicitProvider.trim() && explicitProvider.trim().toLowerCase() !== 'external') {
     return explicitProvider.trim();
   }
   const domain = extractExternalDomain(url);
@@ -563,7 +554,7 @@ export function buildFactualEditorialSummary(candidate: SeedCatalogCandidateEven
 
   const resolvedProvider = inferExternalProviderName(
     candidate.external_destination?.url,
-    candidate.external_destination?.provider_name
+    candidate.external_destination?.provider_name,
   );
 
   const providerClause = resolvedProvider
@@ -574,8 +565,7 @@ export function buildFactualEditorialSummary(candidate: SeedCatalogCandidateEven
         ? `Official event details and registration information are published on the host organizer's official event page.`
         : `Official event details require verification before publication.`;
 
-  const isWorship =
-    candidate.category === 'worship_event' || candidate.category === 'worship';
+  const isWorship = candidate.category === 'worship_event' || candidate.category === 'worship';
 
   const tagline = isWorship
     ? `Live worship gathering with ${performersList} in ${locationLabel}`
@@ -608,25 +598,21 @@ export interface CandidateEvaluationResult {
  */
 export function evaluateCandidateForEditorialImport(
   candidate: SeedCatalogCandidateEvent,
-  options?: { referenceNow?: Date; revalidateUnfetched?: boolean }
+  options?: { referenceNow?: Date; revalidateUnfetched?: boolean },
 ): CandidateEvaluationResult {
   const referenceNow = options?.referenceNow ?? new Date('2026-10-15T00:00:00Z');
   const slug = (candidate.slug || candidate.import_key).trim();
   const normalizedCategory: 'concert' | 'worship' =
-    candidate.category === 'worship_event' || candidate.category === 'worship'
-      ? 'worship'
-      : 'concert';
+    candidate.category === 'worship_event' || candidate.category === 'worship' ? 'worship' : 'concert';
 
   const startsAt = parseLocalEventDateTimeToUtc(
     candidate.start_date_local,
     candidate.start_time_local,
-    candidate.timezone
+    candidate.timezone,
   );
 
   const publishEligible =
-    candidate.publish_eligible_after_review ??
-    candidate.verification?.publish_eligible_after_review ??
-    false;
+    candidate.publish_eligible_after_review ?? candidate.verification?.publish_eligible_after_review ?? false;
 
   if (!publishEligible) {
     return {
@@ -686,8 +672,7 @@ export function evaluateCandidateForEditorialImport(
     };
   }
 
-  const rawNotes =
-    candidate.editorial_notes ?? candidate.verification?.editorial_notes ?? '';
+  const rawNotes = candidate.editorial_notes ?? candidate.verification?.editorial_notes ?? '';
   const notesLower = rawNotes.toLowerCase();
   const hasUnfetchedDestinationWarning =
     notesLower.includes('could not be fetched') ||
@@ -717,8 +702,7 @@ export function evaluateCandidateForEditorialImport(
     startsAt,
     editorialDecision: 'approved',
     editorialStatus: 'approved',
-    reason:
-      'Verified venue, schedule, performers, and HTTPS official external destination confirmed.',
+    reason: 'Verified venue, schedule, performers, and HTTPS official external destination confirmed.',
     isFeatured: candidate.import_key === 'cain-phoenix-2026-11-07',
   };
 }
@@ -731,7 +715,7 @@ export function formatLocalEventSchedule(
   startDateLocal: string | null | undefined,
   startTimeLocal: string | null | undefined,
   timezone: string | null | undefined,
-  fallbackStartsAt?: Date | string | null
+  fallbackStartsAt?: Date | string | null,
 ): {
   dateLabel: string;
   shortDateLabel: string;
@@ -830,10 +814,7 @@ export interface EventLifecycleTemporalInput {
  * 3. Otherwise, uses `startsAt` (or parsed `startDateLocal + startTimeLocal`) and marks the event
  *    past once the event start window has elapsed (`startsAt <= referenceNow`).
  */
-export function isEventPast(
-  event: EventLifecycleTemporalInput,
-  referenceNow: Date = new Date()
-): boolean {
+export function isEventPast(event: EventLifecycleTemporalInput, referenceNow: Date = new Date()): boolean {
   const nowMs = referenceNow.getTime();
   if (!Number.isFinite(nowMs)) return false;
 
@@ -848,7 +829,7 @@ export function isEventPast(
     const endOfDayUtc = parseLocalEventDateTimeToUtc(
       event.startDateLocal,
       '23:59',
-      event.timezone || 'America/Phoenix'
+      event.timezone || 'America/Phoenix',
     );
     if (Number.isFinite(endOfDayUtc.getTime())) {
       return endOfDayUtc.getTime() <= nowMs;
@@ -866,7 +847,7 @@ export function isEventPast(
     const parsedUtc = parseLocalEventDateTimeToUtc(
       event.startDateLocal,
       event.startTimeLocal ?? '23:59',
-      event.timezone || 'America/Phoenix'
+      event.timezone || 'America/Phoenix',
     );
     if (Number.isFinite(parsedUtc.getTime())) {
       return parsedUtc.getTime() <= nowMs;
@@ -884,12 +865,10 @@ export type EventLifecycleStatus = 'past' | 'canceled' | 'rescheduled' | 'schedu
  */
 export function getEventLifecycleStatus(
   event: EventLifecycleTemporalInput,
-  referenceNow: Date = new Date()
+  referenceNow: Date = new Date(),
 ): EventLifecycleStatus {
   if (event.status === 'canceled') return 'canceled';
   if (isEventPast(event, referenceNow)) return 'past';
   if (event.status === 'rescheduled') return 'rescheduled';
   return 'scheduled';
 }
-
-

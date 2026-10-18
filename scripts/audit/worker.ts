@@ -1,18 +1,18 @@
 // Test-only workerd adapter: real application route handlers + browser E2E test harness pages, no deployed route.
-import {POST as login, DELETE as logout} from '../../apps/web/src/pages/api/auth/session';
-import {POST as challenge} from '../../apps/web/src/pages/api/auth/challenge';
-import {POST as verify} from '../../apps/web/src/pages/api/auth/verify';
-import {GET as me} from '../../apps/web/src/pages/api/auth/me';
-import {POST as createOrg} from '../../apps/web/src/pages/api/organizations/index';
-import {GET as list, POST as create} from '../../apps/live/src/pages/api/events/index';
-import {GET as detail} from '../../apps/live/src/pages/api/events/[id]/index';
-import {POST as register} from '../../apps/live/src/pages/api/events/[id]/register';
-import {POST as review} from '../../apps/admin/src/pages/api/events/[id]/review';
-import {GET as pending} from '../../apps/admin/src/pages/api/events/pending';
-import {POST as provisionStaff} from '../../apps/admin/src/pages/api/staff/provision';
-import {POST as checkout} from '../../apps/live/src/pages/api/checkout/session';
-import {POST as webhook} from '../../apps/live/src/pages/api/webhook/stripe';
-import {createR2StorageClient} from '../../packages/integrations/src/storage';
+import { POST as login, DELETE as logout } from '../../apps/web/src/pages/api/auth/session';
+import { POST as challenge } from '../../apps/web/src/pages/api/auth/challenge';
+import { POST as verify } from '../../apps/web/src/pages/api/auth/verify';
+import { GET as me } from '../../apps/web/src/pages/api/auth/me';
+import { POST as createOrg } from '../../apps/web/src/pages/api/organizations/index';
+import { GET as list, POST as create } from '../../apps/live/src/pages/api/events/index';
+import { GET as detail } from '../../apps/live/src/pages/api/events/[id]/index';
+import { POST as register } from '../../apps/live/src/pages/api/events/[id]/register';
+import { POST as review } from '../../apps/admin/src/pages/api/events/[id]/review';
+import { GET as pending } from '../../apps/admin/src/pages/api/events/pending';
+import { POST as provisionStaff } from '../../apps/admin/src/pages/api/staff/provision';
+import { POST as checkout } from '../../apps/live/src/pages/api/checkout/session';
+import { POST as webhook } from '../../apps/live/src/pages/api/webhook/stripe';
+import { createR2StorageClient } from '../../packages/integrations/src/storage';
 
 function renderSignInHtml(): string {
   return `<!doctype html>
@@ -238,7 +238,9 @@ export default {
     }
     const pageRegMatch = path.match(/^\/events\/([^/]+)\/register$/);
     if (request.method === 'GET' && pageRegMatch) {
-      return new Response(renderRegisterHtml(pageRegMatch[1]), { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      return new Response(renderRegisterHtml(pageRegMatch[1]), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
     }
     const match = path.match(/^\/api\/events\/([^/]+)(?:\/(register|review))?$/);
     const handler =
@@ -275,12 +277,16 @@ export default {
                             : null;
     if (path === '/test/r2') {
       const storage = createR2StorageClient(env.ASSETS, { signingSecret: env.SESSION_SECRET });
-      await storage.putObject('restricted_verification/sample/audit.pdf', new TextEncoder().encode('%PDF-1.7 fictional'), {
-        scope: 'restricted_verification',
-        accessPolicy: 'restricted',
-        ownerUserId: 'sample',
-        contentType: 'application/pdf',
-      });
+      await storage.putObject(
+        'restricted_verification/sample/audit.pdf',
+        new TextEncoder().encode('%PDF-1.7 fictional'),
+        {
+          scope: 'restricted_verification',
+          accessPolicy: 'restricted',
+          ownerUserId: 'sample',
+          contentType: 'application/pdf',
+        },
+      );
       let denied = false;
       try {
         await storage.getObject('restricted_verification/sample/audit.pdf', { isStaff: true });

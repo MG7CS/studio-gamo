@@ -13,6 +13,7 @@ import ChurchHosted from '../components/home/ChurchHosted.astro';
 import FamilyJourney from '../components/home/FamilyJourney.astro';
 import AcademyFaq from '../components/home/AcademyFaq.astro';
 ---
+
 <Layout description="Friendly, patient music lessons for students and families: private or small group, online or near home, with church-hosted and sponsored options planned.">
   <AcademyHero />
   <InstrumentDiscovery />
@@ -24,8 +25,17 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
   <ChurchHosted />
   <FamilyJourney />
   <AcademyFaq />
-  <CtaInvitation eyebrow="Start your music journey" title="Your first song is closer than you think." body="Explore instruments, meet our instructors and register your family in five guided steps." photo="girlGuitar">
-    <ButtonLink href="/instruments" size="lg" arrow>Choose an instrument</ButtonLink>
-    <ButtonLink href="/register" size="lg" variant="secondary">Register now</ButtonLink>
+  <CtaInvitation
+    eyebrow="Start your music journey"
+    title="Your first song is closer than you think."
+    body="Explore instruments, meet our instructors and register your family in five guided steps."
+    photo="girlGuitar"
+  >
+    <ButtonLink href="/instruments" size="lg" arrow>
+      Choose an instrument
+    </ButtonLink>
+    <ButtonLink href="/register" size="lg" variant="secondary">
+      Register now
+    </ButtonLink>
   </CtaInvitation>
 </Layout>

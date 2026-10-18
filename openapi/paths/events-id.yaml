@@ -16,15 +16,15 @@ get:
   parameters:
     - $ref: ../components/parameters/id.yaml
   responses:
-    "200":
+    '200':
       description: Successful response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/live/EventResponse.yaml
-    "400":
+    '400':
       $ref: ../components/responses/LegacyError.yaml
-    "404":
+    '404':
       $ref: ../components/responses/LegacyError.yaml
-    "500":
+    '500':
       $ref: ../components/responses/LegacyError.yaml

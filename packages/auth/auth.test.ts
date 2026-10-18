@@ -169,7 +169,14 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
-import { createDb, users, productAccounts, organizations, organizationMembers, clerkIdentityLinks } from '@gamo/db';
+import {
+  createDb,
+  users,
+  productAccounts,
+  organizations,
+  organizationMembers,
+  clerkIdentityLinks,
+} from '@gamo/db';
 import { eq } from 'drizzle-orm';
 import {
   CLERK_PRODUCT_APPS,
@@ -185,7 +192,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function signTestClerkJwt(
   privateKeyPem: string,
   payload: Record<string, unknown>,
-  kid = 'ins_test_key_1'
+  kid = 'ins_test_key_1',
 ): string {
   const header = { alg: 'RS256', typ: 'JWT', kid };
   const encode = (obj: unknown) =>
@@ -273,7 +280,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
           ...testEnv,
           CLERK_APP_ID_ACADEMY: GAMO_LIVE_CLERK_APP_ID,
         }),
-      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN'
+      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
     );
 
     // Attempting to reuse Gamo Live's publishable key on Worship must throw FORBIDDEN
@@ -283,7 +290,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
           ...testEnv,
           PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: testEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE,
         }),
-      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN'
+      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
     );
   });
 
@@ -349,11 +356,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
         product: targetProduct,
         env: testEnv,
       });
-      assert.equal(
-        resolved,
-        null,
-        `Gamo Live token must not authenticate against ${targetProduct}`
-      );
+      assert.equal(resolved, null, `Gamo Live token must not authenticate against ${targetProduct}`);
 
       await assert.rejects(
         () =>
@@ -361,7 +364,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
             secret: sessionSecret,
             env: testEnv,
           }),
-        (err: unknown) => err instanceof AuthError && err.status === 401
+        (err: unknown) => err instanceof AuthError && err.status === 401,
       );
     }
   });
@@ -400,7 +403,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
         headers: { Authorization: `Bearer ${liveToken}` },
       }),
       db,
-      { secret: sessionSecret, product: 'live', env: testEnv }
+      { secret: sessionSecret, product: 'live', env: testEnv },
     );
 
     const academySession = await resolveAuth(
@@ -408,7 +411,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
         headers: { Authorization: `Bearer ${academyToken}` },
       }),
       db,
-      { secret: sessionSecret, product: 'academy', env: testEnv }
+      { secret: sessionSecret, product: 'academy', env: testEnv },
     );
 
     assert.ok(liveSession);
@@ -418,7 +421,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     assert.notEqual(
       liveSession.user.id,
       academySession.user.id,
-      'Identical email across independent Clerk apps must NEVER auto-merge D1 users'
+      'Identical email across independent Clerk apps must NEVER auto-merge D1 users',
     );
     assert.equal(liveSession.user.email, sharedEmail);
     assert.equal(academySession.user.email, sharedEmail);
@@ -488,7 +491,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
         headers: { Authorization: `Bearer ${liveToken}` },
       }),
       db,
-      { secret: sessionSecret, product: 'live', env: testEnv }
+      { secret: sessionSecret, product: 'live', env: testEnv },
     );
 
     assert.ok(session);
@@ -507,4 +510,3 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     assert.equal(link.userId, legacyUserId);
   });
 });
-

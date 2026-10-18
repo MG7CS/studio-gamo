@@ -16,7 +16,17 @@ import {
   verifySignedValue,
   type ProductKey,
 } from '@gamo/auth';
-import { IdentityService, NotificationService, authChallengeSchema, authVerifySchema, createOrganizationSchema, jsonResponse, errorResponse, handleApiError, getRuntimeEnv } from '../index.ts';
+import {
+  IdentityService,
+  NotificationService,
+  authChallengeSchema,
+  authVerifySchema,
+  createOrganizationSchema,
+  jsonResponse,
+  errorResponse,
+  handleApiError,
+  getRuntimeEnv,
+} from '../index.ts';
 
 type AuthContext = { request: Request; locals?: unknown };
 type AuthHandler = (context: AuthContext) => Promise<Response>;
@@ -30,8 +40,11 @@ function resolveContextProduct(context: AuthContext, defaultProduct: ProductKey)
 }
 
 export function isLocalAuthSimulation(request: Request, env: Record<string, any>): boolean {
-  return env.ENVIRONMENT === 'local' && env.ALLOW_AUTH_SIMULATION === 'true' &&
-    ['localhost', '127.0.0.1', '[::1]'].includes(new URL(request.url).hostname);
+  return (
+    env.ENVIRONMENT === 'local' &&
+    env.ALLOW_AUTH_SIMULATION === 'true' &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(new URL(request.url).hostname)
+  );
 }
 
 export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
@@ -47,12 +60,18 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
 
       const body = await readContract(context.request, 'AuthChallengeInput');
       const validated = authChallengeSchema.parse(body);
-      const product = (validated.product as ProductKey | undefined) ?? resolveContextProduct(context, defaultProduct);
+      const product =
+        (validated.product as ProductKey | undefined) ?? resolveContextProduct(context, defaultProduct);
 
       const simulated = isLocalAuthSimulation(context.request, runtimeEnv);
-      if (!runtimeEnv.SESSION_SECRET || runtimeEnv.SESSION_SECRET.length < 32) return errorResponse('UNAVAILABLE', 'Sign-in is not configured. Please try again later.', 503);
+      if (!runtimeEnv.SESSION_SECRET || runtimeEnv.SESSION_SECRET.length < 32)
+        return errorResponse('UNAVAILABLE', 'Sign-in is not configured. Please try again later.', 503);
       const key = runtimeEnv.RESEND_API_KEY;
-      if (!simulated && (!key || key.startsWith('re_mock_') || key.includes('placeholder') || !runtimeEnv.EMAIL_FROM)) return errorResponse('UNAVAILABLE', 'Email delivery is not configured. Please try again later.', 503);
+      if (
+        !simulated &&
+        (!key || key.startsWith('re_mock_') || key.includes('placeholder') || !runtimeEnv.EMAIL_FROM)
+      )
+        return errorResponse('UNAVAILABLE', 'Email delivery is not configured. Please try again later.', 503);
 
       const { challengeId, code, email, expiresAt } = await identityService.issueEmailChallenge(
         validated.email,
@@ -60,7 +79,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           purpose: validated.purpose ?? 'login',
           intent: validated.intent,
           product,
-        }
+        },
       );
 
       const notificationService = new NotificationService(db, {
@@ -68,15 +87,24 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
         defaultFrom: runtimeEnv.EMAIL_FROM,
       });
 
-      const delivery = simulated ? { sent: true, deliveryStatus: 'simulated' as const } : await notificationService.sendVerificationChallengeEmail({
-        email,
-        code,
-        expiresAt,
-      });
+      const delivery = simulated
+        ? { sent: true, deliveryStatus: 'simulated' as const }
+        : await notificationService.sendVerificationChallengeEmail({
+            email,
+            code,
+            expiresAt,
+          });
 
       if (!delivery.sent || (!simulated && delivery.deliveryStatus === 'simulated')) {
-        await db.update(authChallenges).set({ consumedAt: new Date() }).where(eq(authChallenges.id, challengeId));
-        return errorResponse('UNAVAILABLE', 'We could not send a verification email. Please try again later.', 503);
+        await db
+          .update(authChallenges)
+          .set({ consumedAt: new Date() })
+          .where(eq(authChallenges.id, challengeId));
+        return errorResponse(
+          'UNAVAILABLE',
+          'We could not send a verification email. Please try again later.',
+          503,
+        );
       }
       const isLocalSimulated = simulated;
 
@@ -89,7 +117,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
             ? `Local simulation only; no email was sent. Local test code: ${code}`
             : 'Verification code dispatched to your email address.',
         },
-        200
+        200,
       );
     } catch (err) {
       return handleApiError(err);
@@ -108,9 +136,11 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
 
       const body = await readContract(context.request, 'AuthVerifyInput');
       const validated = authVerifySchema.parse(body);
-      const product = (validated.product as ProductKey | undefined) ?? resolveContextProduct(context, defaultProduct);
+      const product =
+        (validated.product as ProductKey | undefined) ?? resolveContextProduct(context, defaultProduct);
 
-      if (!runtimeEnv.SESSION_SECRET || runtimeEnv.SESSION_SECRET.length < 32) return errorResponse('UNAVAILABLE', 'Sign-in is not configured. Please try again later.', 503);
+      if (!runtimeEnv.SESSION_SECRET || runtimeEnv.SESSION_SECRET.length < 32)
+        return errorResponse('UNAVAILABLE', 'Sign-in is not configured. Please try again later.', 503);
       const user = await identityService.verifyEmailChallenge(validated.email, validated.code, {
         displayName: validated.displayName,
         purpose: 'login',
@@ -120,15 +150,10 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
 
       const signingSecret = runtimeEnv.SESSION_SECRET;
 
-      const { sessionId, cookieValue, expiresAt } = await createSession(
-        db,
-        user.id,
-        signingSecret,
-        {
-          userAgent: context.request.headers.get('user-agent') ?? undefined,
-          product,
-        }
-      );
+      const { sessionId, cookieValue, expiresAt } = await createSession(db, user.id, signingSecret, {
+        userAgent: context.request.headers.get('user-agent') ?? undefined,
+        product,
+      });
 
       const prior = extractSessionCookie(context.request);
       if (prior) {
@@ -148,7 +173,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           sessionId,
           message: 'Email verified and session established.',
         },
-        200
+        200,
       );
 
       res.headers.set('Set-Cookie', cookieHeader);
@@ -165,8 +190,16 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
     try {
       requireSameOrigin(context.request);
       const runtimeEnv = await getRuntimeEnv(context);
-      if (runtimeEnv.ENVIRONMENT !== 'local' || runtimeEnv.ALLOW_DEMO_SESSION !== 'true' || !['localhost', '127.0.0.1', '[::1]'].includes(new URL(context.request.url).hostname)) {
-        return errorResponse('FORBIDDEN', 'Demo session creation is disabled. Use email verification to sign in.', 403);
+      if (
+        runtimeEnv.ENVIRONMENT !== 'local' ||
+        runtimeEnv.ALLOW_DEMO_SESSION !== 'true' ||
+        !['localhost', '127.0.0.1', '[::1]'].includes(new URL(context.request.url).hostname)
+      ) {
+        return errorResponse(
+          'FORBIDDEN',
+          'Demo session creation is disabled. Use email verification to sign in.',
+          403,
+        );
       }
       const db = getDb(runtimeEnv.DB);
       const identityService = new IdentityService(db);
@@ -186,12 +219,9 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       // 2. Create session in D1 scoped to this product
       const signingSecret = runtimeEnv.SESSION_SECRET;
 
-      const { sessionId, cookieValue, expiresAt } = await createSession(
-        db,
-        user.id,
-        signingSecret,
-        { product }
-      );
+      const { sessionId, cookieValue, expiresAt } = await createSession(db, user.id, signingSecret, {
+        product,
+      });
 
       const prior = extractSessionCookie(context.request);
       if (prior) {
@@ -294,7 +324,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
             status: m.status,
           })),
         },
-        200
+        200,
       );
     } catch (err) {
       return handleApiError(err);
@@ -329,7 +359,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
         validated.name,
         validated.slug,
         validated.type,
-        auth.user.id
+        auth.user.id,
       );
 
       return jsonResponse(
@@ -338,7 +368,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           membershipRole: 'owner' as const,
           message: 'Organization created and owner membership assigned.',
         },
-        201
+        201,
       );
     } catch (err) {
       return handleApiError(err);
@@ -362,4 +392,3 @@ export const sessionPOST: AuthHandler = defaultWebHandlers.sessionPOST;
 export const sessionDELETE: AuthHandler = defaultWebHandlers.sessionDELETE;
 export const meGET: AuthHandler = defaultWebHandlers.meGET;
 export const organizationsPOST: AuthHandler = defaultWebHandlers.organizationsPOST;
-

@@ -19,7 +19,7 @@ properties:
   note:
     anyOf:
       - type: string
-      - type: "null"
+      - type: 'null'
 required:
   - id
   - eventId

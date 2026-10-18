@@ -110,7 +110,7 @@ export function assertStripeTestMode(secretKey?: string): void {
   if (secretKey.startsWith('sk_live_') || secretKey.startsWith('rk_live_')) {
     throw new Error(
       '[Gamo Governance Gate] Live Stripe keys (sk_live_ / rk_live_) are strictly prohibited. ' +
-      'All transactions must remain in test mode until the legal prerequisites in the transition checklist are finalized.'
+        'All transactions must remain in test mode until the legal prerequisites in the transition checklist are finalized.',
     );
   }
 
@@ -120,7 +120,7 @@ export function assertStripeTestMode(secretKey?: string): void {
     !secretKey.startsWith('mock_')
   ) {
     console.warn(
-      '[Stripe Warning] Key does not start with standard test prefix "sk_test_" or "rk_test_". Verify configuration.'
+      '[Stripe Warning] Key does not start with standard test prefix "sk_test_" or "rk_test_". Verify configuration.',
     );
   }
 }
@@ -145,7 +145,7 @@ export async function verifyStripeWebhookSignature(
   rawBody: string,
   signatureHeader: string | null | undefined,
   webhookSecret: string,
-  toleranceSeconds = 300
+  toleranceSeconds = 300,
 ): Promise<{ valid: boolean; event?: StripeWebhookEvent; error?: string }> {
   if (!signatureHeader) {
     return { valid: false, error: 'Missing stripe-signature header' };
@@ -190,7 +190,7 @@ export async function verifyStripeWebhookSignature(
       encoder.encode(webhookSecret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
 
     const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payloadToSign));
@@ -220,9 +220,7 @@ export function createStripeTestClient(config?: StripeConfig) {
 
   return {
     isConfigured(): boolean {
-      return Boolean(
-        secretKey && (secretKey.startsWith('sk_test_') || secretKey.startsWith('rk_test_'))
-      );
+      return Boolean(secretKey && (secretKey.startsWith('sk_test_') || secretKey.startsWith('rk_test_')));
     },
 
     /**
@@ -231,9 +229,7 @@ export function createStripeTestClient(config?: StripeConfig) {
      * - Supports one-time payments and recurring subscriptions
      * - Optional automatic tax calculation
      */
-    async createTestCheckoutSession(
-      options: CheckoutSessionOptions
-    ): Promise<CheckoutSessionResult> {
+    async createTestCheckoutSession(options: CheckoutSessionOptions): Promise<CheckoutSessionResult> {
       assertStripeTestMode(secretKey);
       const mode = options.mode || 'payment';
 
@@ -262,7 +258,7 @@ export function createStripeTestClient(config?: StripeConfig) {
         params.append('line_items[0][price_data][currency]', options.currency || 'usd');
         params.append(
           'line_items[0][price_data][product_data][name]',
-          options.description || 'Gamo Studios Program'
+          options.description || 'Gamo Studios Program',
         );
         params.append('line_items[0][price_data][unit_amount]', options.amountMinorUnits.toString());
         params.append('line_items[0][quantity]', '1');
@@ -290,7 +286,7 @@ export function createStripeTestClient(config?: StripeConfig) {
       if (mode === 'subscription' && options.subscriptionData?.trialPeriodDays) {
         params.append(
           'subscription_data[trial_period_days]',
-          options.subscriptionData.trialPeriodDays.toString()
+          options.subscriptionData.trialPeriodDays.toString(),
         );
       }
 
@@ -326,9 +322,7 @@ export function createStripeTestClient(config?: StripeConfig) {
     /**
      * Creates a Customer Portal session for self-service subscription and payment method management.
      */
-    async createCustomerPortalSession(
-      options: CustomerPortalOptions
-    ): Promise<CustomerPortalResult> {
+    async createCustomerPortalSession(options: CustomerPortalOptions): Promise<CustomerPortalResult> {
       assertStripeTestMode(secretKey);
 
       if (!secretKey || secretKey.startsWith('mock_') || secretKey.includes('placeholder')) {

@@ -1,13 +1,7 @@
 import { readContract, validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  orderRefundSchema,
-  jsonResponse,
-  handleApiError,
-  getRuntimeEnv,
-} from '@gamo/domain';
+import { LiveService, orderRefundSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
 import { requireVerifiedAuth, requireEventPermission } from '@gamo/auth';
 
 export const prerender = false;
@@ -37,11 +31,7 @@ export const POST: APIRoute = async (context) => {
     // require explicit approve_refunds permission on the event.
     await requireEventPermission(db, auth, order.eventId, 'approve_refunds');
 
-    const result = await liveService.refundTicketOrder(
-      orderId,
-      auth.user.id,
-      validated
-    );
+    const result = await liveService.refundTicketOrder(orderId, auth.user.id, validated);
 
     return jsonResponse(result, 200);
   } catch (err) {

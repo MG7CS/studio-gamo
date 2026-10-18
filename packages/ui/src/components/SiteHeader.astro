@@ -23,15 +23,19 @@ const signIn = signedIn ? '/account' : '/account/signin';
 const getInvolved = siteUrl('web', '/get-involved');
 const home = siteUrl('web');
 ---
-<a href="#main-content" class="sr-only z-[60] rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
+
+<a
+  href="#main-content"
+  class="sr-only z-[60] rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+>
+  Skip to content
+</a>
 <header
   id="site-header"
   data-theme="light"
   class="site-header fixed inset-x-0 top-3 z-50 mx-auto w-[calc(100%-1.5rem)] max-w-[1320px] text-charcoal transition-[top] duration-300 sm:top-4 sm:w-[calc(100%-2.5rem)]"
 >
-  <div
-    class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-2 pl-5 pr-2 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-6"
-  >
+  <div class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-2 pl-5 pr-2 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-6">
     <a href={home} class="flex shrink-0 items-center rounded-full" aria-label="Gamo Studios home">
       <Logo width="138" height="26" />
     </a>
@@ -51,7 +55,9 @@ const home = siteUrl('web');
                     ? 'bg-charcoal text-cream shadow-sm'
                     : 'text-charcoal/80 hover:bg-cream hover:text-charcoal',
                 ]}
-              >{item.label}</a>
+              >
+                {item.label}
+              </a>
             </li>
           );
         })}
@@ -59,8 +65,16 @@ const home = siteUrl('web');
     </nav>
 
     <div class="flex items-center gap-2">
-      <a href={signIn} class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5">{signedIn ? 'Your Account' : 'Sign In'}</a>
-      <a href={getInvolved} class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5">
+      <a
+        href={signIn}
+        class="hidden rounded-full border border-charcoal/20 bg-white/90 px-4 py-2.5 text-sm font-semibold text-charcoal transition-colors hover:bg-white md:inline-flex xl:px-5"
+      >
+        {signedIn ? 'Your Account' : 'Sign In'}
+      </a>
+      <a
+        href={getInvolved}
+        class="hidden items-center gap-2 rounded-full bg-terracotta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5"
+      >
         Get Involved <Icon name="arrow" class="h-4 w-4" />
       </a>
       <button
@@ -70,39 +84,68 @@ const home = siteUrl('web');
         aria-controls="site-mobile-menu"
         aria-label="Open menu"
       >
-        <span class="icon-open"><Icon name="menu" class="h-5 w-5" strokeWidth={2} /></span>
-        <span class="icon-close hidden"><Icon name="x" class="h-5 w-5" strokeWidth={2} /></span>
+        <span class="icon-open">
+          <Icon name="menu" class="h-5 w-5" strokeWidth={2} />
+        </span>
+        <span class="icon-close hidden">
+          <Icon name="x" class="h-5 w-5" strokeWidth={2} />
+        </span>
       </button>
     </div>
   </div>
 
-  <div id="site-mobile-menu" class="mt-2 hidden rounded-[28px] border border-sand bg-ivory/98 p-3 text-charcoal shadow-2xl ring-1 ring-charcoal/10 backdrop-blur-xl lg:hidden">
+  <div
+    id="site-mobile-menu"
+    class="mt-2 hidden rounded-[28px] border border-sand bg-ivory/98 p-3 text-charcoal shadow-2xl ring-1 ring-charcoal/10 backdrop-blur-xl lg:hidden"
+  >
     <nav aria-label="Mobile primary">
       <ul class="flex flex-col">
         {items.map((item) => (
           <li>
-            <a href={item.href} aria-current={item.key === current ? 'page' : undefined} class:list={['flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold transition-colors hover:bg-cream', item.key === current ? 'bg-cream text-terracotta' : 'text-charcoal']}>
-              {item.label}<Icon name="chevron-right" class="h-4 w-4 opacity-50" />
+            <a
+              href={item.href}
+              aria-current={item.key === current ? 'page' : undefined}
+              class:list={[
+                'flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold transition-colors hover:bg-cream',
+                item.key === current ? 'bg-cream text-terracotta' : 'text-charcoal',
+              ]}
+            >
+              {item.label}
+              <Icon name="chevron-right" class="h-4 w-4 opacity-50" />
             </a>
           </li>
         ))}
       </ul>
     </nav>
     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-sand pt-3">
-      <a href={signIn} class="rounded-full border border-charcoal/20 bg-white px-4 py-3 text-center text-sm font-semibold text-charcoal">{signedIn ? 'Your Account' : 'Sign In'}</a>
-      <a href={getInvolved} class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white">Get Involved</a>
+      <a
+        href={signIn}
+        class="rounded-full border border-charcoal/20 bg-white px-4 py-3 text-center text-sm font-semibold text-charcoal"
+      >
+        {signedIn ? 'Your Account' : 'Sign In'}
+      </a>
+      <a
+        href={getInvolved}
+        class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white"
+      >
+        Get Involved
+      </a>
     </div>
   </div>
 </header>
 
 <style>
-  .site-header[data-scrolled] { top: 0.5rem; }
+  .site-header[data-scrolled] {
+    top: 0.5rem;
+  }
   .site-header[data-scrolled] .site-header__bar {
     background-color: rgb(251 247 241 / 0.98);
     box-shadow: 0 18px 44px -16px rgb(20 26 27 / 0.36);
   }
   @media (min-width: 1024px) {
-    .site-header[data-scrolled] .site-header__bar { height: 3.5rem; }
+    .site-header[data-scrolled] .site-header__bar {
+      height: 3.5rem;
+    }
   }
 </style>
 

@@ -19,15 +19,15 @@ get:
   x-source: apps/web/src/pages/api/auth/me.ts
   parameters: []
   responses:
-    "200":
+    '200':
       description: Successful response
       content:
         application/json:
           schema:
             $ref: ../components/schemas/identity/AuthMeResponse.yaml
-    "401":
+    '401':
       $ref: ../components/responses/LegacyError.yaml
-    "403":
+    '403':
       $ref: ../components/responses/LegacyError.yaml
-    "500":
+    '500':
       $ref: ../components/responses/LegacyError.yaml

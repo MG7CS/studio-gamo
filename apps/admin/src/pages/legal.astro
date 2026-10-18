@@ -22,10 +22,34 @@ const blocks: DashBlock[] = [
     type: 'stats',
     span: 3,
     items: [
-      { label: 'Tracked legal documents', value: '8', delta: 'v0.1 – v0.3 drafts', deltaTone: 'neutral', icon: 'file' },
-      { label: 'Mandatory child-safety gate', value: 'Enforced', delta: 'Required before Academy launch', deltaTone: 'up', icon: 'shield' },
-      { label: 'Public legal disclosure', value: 'Draft-labeled', delta: 'gamostudio.org/legal', deltaTone: 'up', icon: 'check' },
-      { label: 'Counsel sign-off gate', value: 'Pending owner', delta: 'Tracked in checklist', deltaTone: 'neutral', icon: 'lock' },
+      {
+        label: 'Tracked legal documents',
+        value: '8',
+        delta: 'v0.1 – v0.3 drafts',
+        deltaTone: 'neutral',
+        icon: 'file',
+      },
+      {
+        label: 'Mandatory child-safety gate',
+        value: 'Enforced',
+        delta: 'Required before Academy launch',
+        deltaTone: 'up',
+        icon: 'shield',
+      },
+      {
+        label: 'Public legal disclosure',
+        value: 'Draft-labeled',
+        delta: 'gamostudio.org/legal',
+        deltaTone: 'up',
+        icon: 'check',
+      },
+      {
+        label: 'Counsel sign-off gate',
+        value: 'Pending owner',
+        delta: 'Tracked in checklist',
+        deltaTone: 'neutral',
+        icon: 'lock',
+      },
     ],
   },
   {
@@ -129,6 +153,7 @@ const blocks: DashBlock[] = [
   },
 ];
 ---
+
 <DashboardShell workspace={adminWorkspace} current="legal" title="Legal & governance documents">
   <DashPageHeader
     workspace={adminWorkspace}
@@ -137,7 +162,12 @@ const blocks: DashBlock[] = [
     path="/legal"
     actions={[
       { label: 'Export registry (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
-      { label: 'View public legal page', href: siteUrl('web', '/legal'), icon: 'external', variant: 'secondary' },
+      {
+        label: 'View public legal page',
+        href: siteUrl('web', '/legal'),
+        icon: 'external',
+        variant: 'secondary',
+      },
     ]}
   />
   <DashBlocks blocks={blocks} idPrefix="admin-legal" />

@@ -16,10 +16,20 @@ const audio = getArea('audio')!;
 const stream = getArea('livestream-video')!;
 const lighting = getArea('lighting-media')!;
 ---
-<Layout title="Technical Ministry Support" description="A proposed Gamo Production program helping churches grow in worship audio, video, lighting and livestreaming, and the volunteers behind the board." headerTheme="light">
+
+<Layout
+  title="Technical Ministry Support"
+  description="A proposed Gamo Production program helping churches grow in worship audio, video, lighting and livestreaming, and the volunteers behind the board."
+  headerTheme="light"
+>
   <ProductionHero />
   <MinistryIntro />
-  <SupportAreaFeature area={{ ...audio, photo: 'worshipBand' }} index={2} tone="cream" mask="rounded-[2.5rem] rounded-bl-[8rem]">
+  <SupportAreaFeature
+    area={{ ...audio, photo: 'worshipBand' }}
+    index={2}
+    tone="cream"
+    mask="rounded-[2.5rem] rounded-bl-[8rem]"
+  >
     <MixerStripPreview slot="preview" class="w-60" />
   </SupportAreaFeature>
   <SupportAreaFeature area={stream} index={3} reverse tone="dark" mask="rounded-[2.5rem] rounded-tr-[8rem]">

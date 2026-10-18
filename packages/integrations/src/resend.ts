@@ -59,7 +59,7 @@ export function createResendClient(config?: ResendConfig) {
         const response = await fetch(RESEND_API_ENDPOINT, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

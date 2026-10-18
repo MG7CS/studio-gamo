@@ -1,5 +1,8 @@
 ---
 /** Legacy demonstration flow now enters the persistent program inquiry journey. */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
-return Astro.redirect(siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Musician application'), 303);
+return Astro.redirect(
+  siteUrl('web', '/contact') + '?interest=' + encodeURIComponent('Musician application'),
+  303,
+);
 ---

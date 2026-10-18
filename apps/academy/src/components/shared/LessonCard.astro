@@ -4,12 +4,21 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import { formatTuition, type Lesson } from '../../data/lessons';
 import { instructorBySlug } from '../../data/instructors';
-interface Props { lesson: Lesson }
+interface Props {
+  lesson: Lesson;
+}
 const { lesson: l } = Astro.props;
 const t = instructorBySlug(l.instructorSlug);
 ---
-<article data-lesson data-instrument={l.instrumentSlug} data-level={l.level} data-format={l.format} data-ages={l.ages.join(',')}
-  class="group relative flex flex-col rounded-[28px] bg-white p-6 ring-1 ring-sand transition-shadow hover:shadow-float">
+
+<article
+  data-lesson
+  data-instrument={l.instrumentSlug}
+  data-level={l.level}
+  data-format={l.format}
+  data-ages={l.ages.join(',')}
+  class="group relative flex flex-col rounded-[28px] bg-white p-6 ring-1 ring-sand transition-shadow hover:shadow-float"
+>
   <div class="flex flex-wrap items-center gap-2">
     <StatusPill kind="verified">Open enrollment</StatusPill>
     <span class="rounded-full bg-cream px-3 py-1 text-xs font-semibold">{l.format}</span>
@@ -17,14 +26,30 @@ const t = instructorBySlug(l.instructorSlug);
   </div>
   <p class="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-terracotta">{l.instrument}</p>
   <h3 class="mt-1 text-xl font-bold tracking-tight">
-    <a href={`/lessons/${l.slug}`} class="after:absolute after:inset-0 after:rounded-[28px]">{l.title}</a>
+    <a href={`/lessons/${l.slug}`} class="after:absolute after:inset-0 after:rounded-[28px]">
+      {l.title}
+    </a>
   </h3>
   <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{l.summary}</p>
   <dl class="mt-5 grid grid-cols-2 gap-3 border-t border-sand pt-4 text-sm">
-    <div><dt class="text-xs text-ink-soft">Schedule</dt><dd class="font-medium">{l.schedule}</dd></div>
-    <div><dt class="text-xs text-ink-soft">Ages</dt><dd class="font-medium">{l.ages.join(', ')}</dd></div>
-    <div><dt class="text-xs text-ink-soft">Instructor</dt><dd class="font-medium">{t?.name}</dd></div>
-    <div><dt class="text-xs text-ink-soft">Tuition</dt><dd class="font-medium">{formatTuition(l.proposedTuitionCents)}</dd></div>
+    <div>
+      <dt class="text-xs text-ink-soft">Schedule</dt>
+      <dd class="font-medium">{l.schedule}</dd>
+    </div>
+    <div>
+      <dt class="text-xs text-ink-soft">Ages</dt>
+      <dd class="font-medium">{l.ages.join(', ')}</dd>
+    </div>
+    <div>
+      <dt class="text-xs text-ink-soft">Instructor</dt>
+      <dd class="font-medium">{t?.name}</dd>
+    </div>
+    <div>
+      <dt class="text-xs text-ink-soft">Tuition</dt>
+      <dd class="font-medium">{formatTuition(l.proposedTuitionCents)}</dd>
+    </div>
   </dl>
-  <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-terracotta">Lesson details <Icon name="arrow" class="h-4 w-4" /></span>
+  <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-terracotta">
+    Lesson details <Icon name="arrow" class="h-4 w-4" />
+  </span>
 </article>

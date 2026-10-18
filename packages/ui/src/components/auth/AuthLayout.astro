@@ -35,7 +35,13 @@ const {
   data-clerk-publishable-key={clerkPublishableKey || undefined}
   data-clerk-app-id={clerkAppId || undefined}
 >
-  <AuthPhotoPanel activeMode={mode} program={program} brandHref={brandHref} brandLabel={brandLabel} photos={photos} />
+  <AuthPhotoPanel
+    activeMode={mode}
+    program={program}
+    brandHref={brandHref}
+    brandLabel={brandLabel}
+    photos={photos}
+  />
   <AuthCurvedDivider panelBgClass={panelBgClass}>
     <slot />
   </AuthCurvedDivider>

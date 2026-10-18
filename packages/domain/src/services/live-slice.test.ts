@@ -61,7 +61,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     const organizerUser = await identityService.verifyEmailChallenge(
       'organizer@riversidefellowship.org',
       challenge.code,
-      { displayName: 'Pastor David' }
+      { displayName: 'Pastor David' },
     );
     assert.ok(organizerUser.verifiedEmailAt instanceof Date);
 
@@ -69,7 +69,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
       'Riverside Fellowship',
       'riverside-fellowship',
       'church',
-      organizerUser.id
+      organizerUser.id,
     );
     organizerOrgId = org.id;
 
@@ -142,9 +142,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
 
     // 3. Verify audit log was recorded
     const auditLogs = await adminService.getRecentAuditLogs(5);
-    const eventAudit = auditLogs.find(
-      (l) => l.entityId === targetEvent.id && l.action === 'event.approved'
-    );
+    const eventAudit = auditLogs.find((l) => l.entityId === targetEvent.id && l.action === 'event.approved');
     assert.ok(eventAudit !== undefined);
     assert.equal(eventAudit?.actorUserId, staffUserId);
 
@@ -229,7 +227,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
       d1.sqlite
         .prepare(
           `INSERT INTO event_performers (id, event_id, display_name, billing_order, role_label, is_minor_showcase, guardian_consent_verified, safeguarding_cleared, status, created_at)
-           VALUES ('perf_minor_fail', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 0, 0, 'confirmed', ?)`
+           VALUES ('perf_minor_fail', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 0, 0, 'confirmed', ?)`,
         )
         .run(event.id, nowSec);
     }, /MINOR_SAFEGUARDING_REQUIRED/);
@@ -238,7 +236,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     d1.sqlite
       .prepare(
         `INSERT INTO event_performers (id, event_id, display_name, billing_order, role_label, is_minor_showcase, guardian_consent_verified, guardian_user_id, safeguarding_cleared, status, created_at)
-         VALUES ('perf_minor_ok', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 1, ?, 1, 'confirmed', ?)`
+         VALUES ('perf_minor_ok', ?, 'Youth Ensemble', 1, 'Recital Showcase', 1, 1, ?, 1, 'confirmed', ?)`,
       )
       .run(event.id, staffUserId, nowSec);
 
@@ -261,11 +259,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
       agentCommissionCents: 10000,
       platformAdminAllocationCents: 0,
     });
-    const accepted = await liveService.acceptBookingOffer(
-      inq.initialOffer.id,
-      staffUserId,
-      'artist'
-    );
+    const accepted = await liveService.acceptBookingOffer(inq.initialOffer.id, staffUserId, 'artist');
     assert.equal(accepted.engagement.depositCollectionStatus, 'disabled_pending_policy');
 
     // Attempting to mutate an accepted booking offer is blocked by SQLite trigger

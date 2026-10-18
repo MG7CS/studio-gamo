@@ -33,7 +33,7 @@ export const POST: APIRoute = async (context) => {
       authorizationId,
       auth.user.id,
       isSuperadmin,
-      validated.reason
+      validated.reason,
     );
 
     return jsonResponse(result, 200);

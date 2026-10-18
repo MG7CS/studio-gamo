@@ -21,10 +21,7 @@ import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createDb } from '../../packages/db/index.ts';
 import { createInMemoryD1 } from '../../packages/db/testing.ts';
-import {
-  LiveService,
-  type SeedCatalogDocument,
-} from '../../packages/domain/index.ts';
+import { LiveService, type SeedCatalogDocument } from '../../packages/domain/index.ts';
 
 interface CliArgs {
   command: 'provision' | 'import' | 'publish' | 'review';
@@ -89,15 +86,8 @@ function parseCliArgs(argv: string[]): CliArgs {
   }
 
   const rawCmd = positional[0] || 'import';
-  if (
-    rawCmd !== 'provision' &&
-    rawCmd !== 'import' &&
-    rawCmd !== 'publish' &&
-    rawCmd !== 'review'
-  ) {
-    throw new Error(
-      `Unknown command '${rawCmd}'. Expected provision | import | publish | review.`
-    );
+  if (rawCmd !== 'provision' && rawCmd !== 'import' && rawCmd !== 'publish' && rawCmd !== 'review') {
+    throw new Error(`Unknown command '${rawCmd}'. Expected provision | import | publish | review.`);
   }
 
   // Default to dry-run if --apply was not explicitly passed
@@ -110,7 +100,7 @@ function parseCliArgs(argv: string[]): CliArgs {
 
   if (env === 'production' && apply && !confirmProduction) {
     throw new Error(
-      'SAFETY GATE: Refusing to run with --env production --apply without explicit --confirm-production approval flag.'
+      'SAFETY GATE: Refusing to run with --env production --apply without explicit --confirm-production approval flag.',
     );
   }
 
@@ -232,7 +222,10 @@ function createSqliteBackedD1(sqlitePath: string): any {
   };
 }
 
-async function openTargetD1(env: 'local' | 'staging' | 'production', dryRun: boolean): Promise<{
+async function openTargetD1(
+  env: 'local' | 'staging' | 'production',
+  dryRun: boolean,
+): Promise<{
   d1: any;
   dispose: () => Promise<void>;
   storageDescription: string;
@@ -253,14 +246,11 @@ async function openTargetD1(env: 'local' | 'staging' | 'production', dryRun: boo
 
   if (env !== 'local') {
     throw new Error(
-      `Remote D1 mutation for --env ${env} requires authenticated Cloudflare Wrangler D1 execution and owner release sign-off.`
+      `Remote D1 mutation for --env ${env} requires authenticated Cloudflare Wrangler D1 execution and owner release sign-off.`,
     );
   }
 
-  const d1ObjectDir = resolve(
-    process.cwd(),
-    'apps/live/.wrangler/state/v3/d1/miniflare-D1DatabaseObject'
-  );
+  const d1ObjectDir = resolve(process.cwd(), 'apps/live/.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
   mkdirSync(d1ObjectDir, { recursive: true });
 
   const existingSqliteFiles = readdirSync(d1ObjectDir)
@@ -268,8 +258,7 @@ async function openTargetD1(env: 'local' | 'staging' | 'production', dryRun: boo
     .sort();
 
   const targetSqliteFile =
-    existingSqliteFiles[0] ??
-    'a36f84ea60804f30bb0c7f7cad9f5336a6cca0165abdab8b9241d93dbf0b6006.sqlite';
+    existingSqliteFiles[0] ?? 'a36f84ea60804f30bb0c7f7cad9f5336a6cca0165abdab8b9241d93dbf0b6006.sqlite';
   const targetSqlitePath = resolve(d1ObjectDir, targetSqliteFile);
 
   const d1 = createSqliteBackedD1(targetSqlitePath);
@@ -294,9 +283,7 @@ function resolveCatalogPath(inputPath?: string): string {
     if (existsSync(p)) return p;
   }
 
-  throw new Error(
-    `Could not locate verified event catalog JSON. Checked: ${candidates.join(', ')}`
-  );
+  throw new Error(`Could not locate verified event catalog JSON. Checked: ${candidates.join(', ')}`);
 }
 
 async function main() {
@@ -308,7 +295,7 @@ async function main() {
     const liveService = new LiveService(db);
 
     console.log(
-      `\n[Gamo Live Editorial CLI] command=${args.command} env=${args.env} mode=${args.dryRun ? 'DRY-RUN' : 'APPLY'} target=${storageDescription}`
+      `\n[Gamo Live Editorial CLI] command=${args.command} env=${args.env} mode=${args.dryRun ? 'DRY-RUN' : 'APPLY'} target=${storageDescription}`,
     );
 
     if (args.command === 'provision') {
@@ -334,7 +321,7 @@ async function main() {
           `  Approved for Publish:  ${report.approvedForPublishCount}\n` +
           `  Held for Review:       ${report.heldForReviewCount}\n` +
           `  Rejected / Incomplete: ${report.rejectedCount}\n` +
-          `  DB Created / Updated:  ${report.importedCount} created, ${report.updatedCount} updated\n`
+          `  DB Created / Updated:  ${report.importedCount} created, ${report.updatedCount} updated\n`,
       );
 
       for (const entry of report.entries) {
@@ -345,15 +332,12 @@ async function main() {
               ? 'HELD    '
               : 'REJECTED';
         console.log(
-          `  [${badge}] ${entry.importKey.padEnd(36)} | ${entry.metroSlug.padEnd(16)} | ${(entry.venueName ?? 'MISSING VENUE').padEnd(32)} | ${entry.reason}`
+          `  [${badge}] ${entry.importKey.padEnd(36)} | ${entry.metroSlug.padEnd(16)} | ${(entry.venueName ?? 'MISSING VENUE').padEnd(32)} | ${entry.reason}`,
         );
       }
 
       if (!args.dryRun) {
-        const outJsonPath = resolve(
-          process.cwd(),
-          'docs/GAMO_LIVE_IMPORT_REPORT_2026-10-15.json'
-        );
+        const outJsonPath = resolve(process.cwd(), 'docs/GAMO_LIVE_IMPORT_REPORT_2026-10-15.json');
         writeFileSync(outJsonPath, JSON.stringify(report, null, 2), 'utf8');
         console.log(`\nWrote structured import report to ${outJsonPath}`);
       }
@@ -366,7 +350,7 @@ async function main() {
       }
       if (args.dryRun) {
         console.log(
-          `[DRY-RUN] Would transition ${args.importKey} -> ${args.decision} (${args.notes ?? 'no notes'})`
+          `[DRY-RUN] Would transition ${args.importKey} -> ${args.decision} (${args.notes ?? 'no notes'})`,
         );
         return;
       }
@@ -374,7 +358,7 @@ async function main() {
         notes: args.notes,
       });
       console.log(
-        `Updated ${updated.importKey} (${updated.slug}): editorialStatus=${updated.editorialStatus}, publicStatus=${updated.status}`
+        `Updated ${updated.importKey} (${updated.slug}): editorialStatus=${updated.editorialStatus}, publicStatus=${updated.status}`,
       );
       return;
     }
@@ -390,7 +374,7 @@ async function main() {
           `  Newly Published:    ${result.publishedCount}\n` +
           `  Already Published:  ${result.alreadyPublishedCount}\n` +
           `  Skipped / Held:     ${result.skippedHeldCount}\n` +
-          `  Active Public Slugs (${result.publishedSlugs.length}): ${result.publishedSlugs.join(', ')}\n`
+          `  Active Public Slugs (${result.publishedSlugs.length}): ${result.publishedSlugs.join(', ')}\n`,
       );
 
       if (result.skippedSlugs.length > 0) {

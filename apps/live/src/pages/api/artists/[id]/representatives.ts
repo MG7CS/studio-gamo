@@ -29,12 +29,7 @@ export const POST: APIRoute = async (context) => {
     const isSuperadmin = hasSystemRole(auth, 'superadmin');
 
     const liveService = new LiveService(db);
-    const result = await liveService.authorizeRepresentative(
-      artistId,
-      auth.user.id,
-      isSuperadmin,
-      validated
-    );
+    const result = await liveService.authorizeRepresentative(artistId, auth.user.id, isSuperadmin, validated);
 
     return jsonResponse(result, 201);
   } catch (err) {

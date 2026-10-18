@@ -78,13 +78,22 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
     {mode === 'signup' && (
       <div class="hidden lg:block">
-        <span class="block text-[13px] font-medium text-[#3A332E] mb-2">
-          Verification method
-        </span>
+        <span class="block text-[13px] font-medium text-[#3A332E] mb-2">Verification method</span>
         <div class="flex items-center justify-between rounded-xl border border-[#E4DFD7] bg-[#F6F3EC] px-4 py-3 text-[13px] text-[#5C534C]">
           <span class="flex items-center gap-2.5 font-medium text-[#2C2623]">
-            <svg class="h-4 w-4 text-[#7B73E6] shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.5 6.5 10 11l6.5-4.5M4 5h12a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 15H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 5Z" />
+            <svg
+              class="h-4 w-4 text-[#7B73E6] shrink-0"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3.5 6.5 10 11l6.5-4.5M4 5h12a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 15H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 5Z"
+              />
             </svg>
             6-digit email verification code
           </span>
@@ -132,12 +141,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
       </button>
     </p>
 
-    <AuthActions
-      mode="verify"
-      primaryLabel="Verify and continue"
-      accent="soft-lavender"
-      dataBtnVerify
-    />
+    <AuthActions mode="verify" primaryLabel="Verify and continue" accent="soft-lavender" dataBtnVerify />
   </form>
 </div>
 

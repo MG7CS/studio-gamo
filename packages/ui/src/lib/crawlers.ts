@@ -77,7 +77,12 @@ export interface SitemapEntry {
 }
 
 const escapeXml = (value: string) =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 
 export function buildSitemapXml(app: SiteKey, entries: readonly SitemapEntry[], origin?: string): string {
   const base = origin ?? siteOrigin(app);
@@ -92,7 +97,11 @@ export function buildSitemapXml(app: SiteKey, entries: readonly SitemapEntry[], 
 }
 
 export const textResponse = (body: string) =>
-  new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+  new Response(body, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+  });
 
 export const xmlResponse = (body: string) =>
-  new Response(body, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+  new Response(body, {
+    headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+  });

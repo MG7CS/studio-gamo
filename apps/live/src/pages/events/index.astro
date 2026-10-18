@@ -32,9 +32,7 @@ const parsedLat = latParam !== null && latParam !== '' ? Number.parseFloat(latPa
 const parsedLng = lngParam !== null && lngParam !== '' ? Number.parseFloat(lngParam) : Number.NaN;
 const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
 
-const nearestResolution = hasValidCoords
-  ? resolveNearestMetroByCoordinates(parsedLat, parsedLng)
-  : null;
+const nearestResolution = hasValidCoords ? resolveNearestMetroByCoordinates(parsedLat, parsedLng) : null;
 
 const effectiveMetroSlug =
   rawMetroParam && rawMetroParam !== 'all'
@@ -47,10 +45,7 @@ const selectedMetro = effectiveMetroSlug ? resolveMetroBySlug(effectiveMetroSlug
 const dropdownMetroValue =
   rawMetroParam === 'all' ? 'all' : selectedMetro ? selectedMetro.slug : 'phoenix-az';
 
-const isWeekendFilter =
-  rawWeekendParam === '1' ||
-  rawWeekendParam === 'true' ||
-  rawDateParam === 'weekend';
+const isWeekendFilter = rawWeekendParam === '1' || rawWeekendParam === 'true' || rawDateParam === 'weekend';
 
 let computedDateFrom: Date | undefined;
 let computedDateTo: Date | undefined;
@@ -124,20 +119,24 @@ const orderedEvents = [...events].sort((a, b) => {
 
 const hasActiveFilters = Boolean(
   qParam ||
-    effectiveMetroSlug ||
-    (rawCategoryParam && rawCategoryParam !== 'all') ||
-    isWeekendFilter ||
-    rawDateParam ||
-    venueParam ||
-    artistParam ||
-    savedParam === '1'
+  effectiveMetroSlug ||
+  (rawCategoryParam && rawCategoryParam !== 'all') ||
+  isWeekendFilter ||
+  rawDateParam ||
+  venueParam ||
+  artistParam ||
+  savedParam === '1',
 );
 
 const pageTitle = selectedMetro
   ? `Christian Concerts & Worship Events in ${selectedMetro.displayLabel}`
   : 'Discover Christian Concerts & Worship Events Across the U.S.';
 const pageDescription = selectedMetro
-  ? clampDescription(selectedMetro.introCopy.length < 120 ? `${selectedMetro.introCopy} Dates, venues and details on Gamo Live.` : selectedMetro.introCopy)
+  ? clampDescription(
+      selectedMetro.introCopy.length < 120
+        ? `${selectedMetro.introCopy} Dates, venues and details on Gamo Live.`
+        : selectedMetro.introCopy,
+    )
   : 'Find verified Christian concerts, arena worship nights and live ministry gatherings in Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston and more.';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 ---
@@ -147,9 +146,7 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
   <section id="discovery-search" class="bg-[#FBF7F1] min-h-[75vh] pt-6 pb-14">
     <div class="mx-auto max-w-[1340px] px-4 sm:px-6 lg:px-8">
       <!-- Accessible Page Heading (Preserves E2E & Screen Reader Context without a Marketing Hero) -->
-      <h1 class="sr-only">
-        Find a gathering worth showing up for. — {pageTitle}
-      </h1>
+      <h1 class="sr-only">Find a gathering worth showing up for. — {pageTitle}</h1>
 
       <!-- Row 1: 5-Pill Horizontal Marketplace Filter Bar -->
       <form
@@ -160,10 +157,23 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       >
         <!-- Pill 1: Search Input -->
         <div class="sm:col-span-2 lg:col-span-1 flex items-center gap-3 rounded-[16px] border border-[#EAE2D6] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] focus-within:border-[#C85A28] transition-colors">
-          <svg class="w-5 h-5 text-[#191817] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          <svg
+            class="w-5 h-5 text-[#191817] shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+            />
           </svg>
-          <label for="events-search-q" class="sr-only">Search events, artists, or venues</label>
+          <label for="events-search-q" class="sr-only">
+            Search events, artists, or venues
+          </label>
           <input
             id="events-search-q"
             type="search"
@@ -176,11 +186,24 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
 
         <!-- Pill 2: Location Dropdown -->
         <div class="relative flex items-center gap-2.5 rounded-[16px] border border-[#EAE2D6] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-[#D5C7B2] transition-colors">
-          <svg class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+          <svg
+            class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+            />
           </svg>
-          <label for="events-filter-metro" class="sr-only">Metro area</label>
+          <label for="events-filter-metro" class="sr-only">
+            Metro area
+          </label>
           <select
             id="events-filter-metro"
             name="metro"
@@ -196,54 +219,121 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
               All U.S. Cities
             </option>
           </select>
-          <svg class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg
+            class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
           </svg>
         </div>
 
         <!-- Pill 3: Date Window Dropdown -->
         <div class="relative flex items-center gap-2.5 rounded-[16px] border border-[#EAE2D6] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-[#D5C7B2] transition-colors">
-          <svg class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          <svg
+            class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+            />
           </svg>
-          <label for="events-filter-date" class="sr-only">Date range</label>
+          <label for="events-filter-date" class="sr-only">
+            Date range
+          </label>
           <select
             id="events-filter-date"
             name="date"
             data-auto-submit-select
             class="w-full appearance-none bg-transparent pr-6 text-[14.5px] font-normal text-[#5C554D] focus:outline-none cursor-pointer"
           >
-            <option value="" selected={!rawDateParam && !isWeekendFilter}>Any date</option>
-            <option value="weekend" selected={rawDateParam === 'weekend' || isWeekendFilter}>This weekend</option>
-            <option value="month" selected={rawDateParam === 'month'}>This month</option>
-            <option value="2026" selected={rawDateParam === '2026'}>2026</option>
-            <option value="2027" selected={rawDateParam === '2027'}>2027</option>
+            <option value="" selected={!rawDateParam && !isWeekendFilter}>
+              Any date
+            </option>
+            <option value="weekend" selected={rawDateParam === 'weekend' || isWeekendFilter}>
+              This weekend
+            </option>
+            <option value="month" selected={rawDateParam === 'month'}>
+              This month
+            </option>
+            <option value="2026" selected={rawDateParam === '2026'}>
+              2026
+            </option>
+            <option value="2027" selected={rawDateParam === '2027'}>
+              2027
+            </option>
           </select>
-          <svg class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg
+            class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
           </svg>
         </div>
 
         <!-- Pill 4: Category Dropdown -->
         <div class="relative flex items-center gap-2.5 rounded-[16px] border border-[#EAE2D6] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-[#D5C7B2] transition-colors">
-          <svg class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+          <svg
+            class="w-5 h-5 text-[#191817] shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+            />
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
           </svg>
-          <label for="events-filter-category" class="sr-only">Category</label>
+          <label for="events-filter-category" class="sr-only">
+            Category
+          </label>
           <select
             id="events-filter-category"
             name="category"
             data-auto-submit-select
             class="w-full appearance-none bg-transparent pr-6 text-[14.5px] font-normal text-[#5C554D] focus:outline-none cursor-pointer"
           >
-            <option value="" selected={!rawCategoryParam || rawCategoryParam === 'all'}>All categories</option>
-            <option value="concert" selected={rawCategoryParam === 'concert'}>Concerts</option>
-            <option value="worship" selected={rawCategoryParam === 'worship'}>Worship Nights</option>
-            <option value="conference" selected={rawCategoryParam === 'conference'}>Conferences</option>
-            <option value="youth" selected={rawCategoryParam === 'youth'}>Youth &amp; Young Adult</option>
+            <option value="" selected={!rawCategoryParam || rawCategoryParam === 'all'}>
+              All categories
+            </option>
+            <option value="concert" selected={rawCategoryParam === 'concert'}>
+              Concerts
+            </option>
+            <option value="worship" selected={rawCategoryParam === 'worship'}>
+              Worship Nights
+            </option>
+            <option value="conference" selected={rawCategoryParam === 'conference'}>
+              Conferences
+            </option>
+            <option value="youth" selected={rawCategoryParam === 'youth'}>
+              Youth &amp; Young Adult
+            </option>
           </select>
-          <svg class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <svg
+            class="w-4 h-4 text-[#5C554D] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
           </svg>
         </div>
@@ -256,8 +346,19 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           aria-controls="more-filters-drawer"
           class="inline-flex items-center justify-center gap-2 rounded-[16px] border border-[#DFC0B0] bg-[#FCF9F4] hover:bg-white px-5 py-3 text-[14.5px] font-semibold text-[#191817] shadow-[0_1px_2px_rgba(25,24,23,0.03)] transition-colors cursor-pointer shrink-0"
         >
-          <svg class="w-4 h-4 text-[#191817]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+          <svg
+            class="w-4 h-4 text-[#191817]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+            />
           </svg>
           <span>Filters</span>
         </button>
@@ -266,7 +367,11 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       <!-- Expandable Secondary Filters Drawer (Geolocation, Saved Events, Metro City Guides) -->
       <div
         id="more-filters-drawer"
-        class={hasActiveFilters || nearestResolution ? 'mt-3 rounded-2xl border border-[#EAE2D6] bg-white p-4 shadow-sm' : 'hidden mt-3 rounded-2xl border border-[#EAE2D6] bg-white p-4 shadow-sm'}
+        class={
+          hasActiveFilters || nearestResolution
+            ? 'mt-3 rounded-2xl border border-[#EAE2D6] bg-white p-4 shadow-sm'
+            : 'hidden mt-3 rounded-2xl border border-[#EAE2D6] bg-white p-4 shadow-sm'
+        }
       >
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
@@ -276,8 +381,19 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
               type="button"
               class="inline-flex items-center gap-1.5 rounded-full border border-[#EAE2D6] bg-[#FBF7F1] hover:border-[#B34B1E] px-3.5 py-1.5 text-xs font-semibold text-[#191817] transition-colors cursor-pointer"
             >
-              <svg class="w-3.5 h-3.5 text-[#B34B1E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 4v2m0 8v2m-6-6h2m8 0h2" />
+              <svg
+                class="w-3.5 h-3.5 text-[#B34B1E]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 4v2m0 8v2m-6-6h2m8 0h2"
+                />
               </svg>
               <span id="use-my-location-label">Use my location</span>
             </button>
@@ -289,11 +405,27 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
               data-saved-active={savedParam === '1' ? 'true' : 'false'}
               class="inline-flex items-center gap-1.5 rounded-full border border-[#EAE2D6] bg-[#FBF7F1] hover:border-[#B34B1E] px-3.5 py-1.5 text-xs font-semibold text-[#191817] transition-colors cursor-pointer"
             >
-              <svg class="w-3.5 h-3.5 text-[#B34B1E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              <svg
+                class="w-3.5 h-3.5 text-[#B34B1E]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
               </svg>
               <span>Saved Events</span>
-              <span id="saved-events-count-badge" class="px-1.5 py-0.5 rounded-full bg-[#EFE7DA] text-[10px] font-bold">0</span>
+              <span
+                id="saved-events-count-badge"
+                class="px-1.5 py-0.5 rounded-full bg-[#EFE7DA] text-[10px] font-bold"
+              >
+                0
+              </span>
             </button>
 
             <!-- Weekend Quick Filter -->
@@ -313,21 +445,25 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           </div>
 
           {hasActiveFilters && (
-            <a
-              href="/events"
-              class="text-xs font-semibold text-[#B34B1E] hover:underline"
-            >
+            <a href="/events" class="text-xs font-semibold text-[#B34B1E] hover:underline">
               Reset all filters
             </a>
           )}
         </div>
 
-        <p id="location-status-msg" class="text-xs text-[#8C421E] mt-2 hidden" role="status" aria-live="polite"></p>
+        <p
+          id="location-status-msg"
+          class="text-xs text-[#8C421E] mt-2 hidden"
+          role="status"
+          aria-live="polite"
+        ></p>
 
         {nearestResolution && selectedMetro && (
           <div class="mt-2.5 inline-flex flex-wrap items-center gap-2 text-xs text-[#5C554D]">
             <span>
-              Matched nearest curated metro: <strong class="text-[#191817]">{selectedMetro.displayLabel}</strong> (~{nearestResolution.distanceKm} km)
+              Matched nearest curated metro:{' '}
+              <strong class="text-[#191817]">{selectedMetro.displayLabel}</strong> (~
+              {nearestResolution.distanceKm} km)
             </span>
             <a href="/events?metro=all" class="underline font-semibold text-[#B34B1E]">
               Switch to All U.S. Cities
@@ -336,7 +472,10 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
         )}
 
         <!-- Metro City Landing Page Links -->
-        <nav aria-label="Curated U.S. Metro Markets" class="mt-3 pt-3 border-t border-[#F2ECE1] flex items-center gap-2 overflow-x-auto">
+        <nav
+          aria-label="Curated U.S. Metro Markets"
+          class="mt-3 pt-3 border-t border-[#F2ECE1] flex items-center gap-2 overflow-x-auto"
+        >
           <span class="text-[11px] font-semibold uppercase tracking-wider text-[#7A7267] shrink-0">
             City Pages:
           </span>
@@ -370,14 +509,16 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           </h2>
           {selectedMetro && (
             <span class="text-sm text-[#6E675F]">
-              in <a href={`/events/${selectedMetro.slug}`} class="font-semibold text-[#191817] hover:text-[#B34B1E] underline">{selectedMetro.displayLabel}</a>
+              in{' '}
+              <a
+                href={`/events/${selectedMetro.slug}`}
+                class="font-semibold text-[#191817] hover:text-[#B34B1E] underline"
+              >
+                {selectedMetro.displayLabel}
+              </a>
             </span>
           )}
-          {qParam && (
-            <span class="text-sm text-[#6E675F]">
-              matching &ldquo;{qParam}&rdquo;
-            </span>
-          )}
+          {qParam && <span class="text-sm text-[#6E675F]">matching &ldquo;{qParam}&rdquo;</span>}
         </div>
 
         <!-- Sort By Control -->
@@ -390,12 +531,27 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
               id="events-sort-select"
               class="appearance-none rounded-full border border-[#EAE2D6] bg-white pl-4 pr-9 py-2 text-[14px] font-medium text-[#191817] shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-[#D5C7B2] focus:outline-none focus:border-[#C85A28] cursor-pointer"
             >
-              <option value="date-asc" selected={rawSortParam === 'date-asc'}>Date (soonest)</option>
-              <option value="date-desc" selected={rawSortParam === 'date-desc'}>Date (latest)</option>
-              <option value="city-asc" selected={rawSortParam === 'city-asc'}>City (A–Z)</option>
-              <option value="title-asc" selected={rawSortParam === 'title-asc'}>Title (A–Z)</option>
+              <option value="date-asc" selected={rawSortParam === 'date-asc'}>
+                Date (soonest)
+              </option>
+              <option value="date-desc" selected={rawSortParam === 'date-desc'}>
+                Date (latest)
+              </option>
+              <option value="city-asc" selected={rawSortParam === 'city-asc'}>
+                City (A–Z)
+              </option>
+              <option value="title-asc" selected={rawSortParam === 'title-asc'}>
+                Title (A–Z)
+              </option>
             </select>
-            <svg class="w-4 h-4 text-[#5C554D] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg
+              class="w-4 h-4 text-[#5C554D] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </div>
@@ -409,7 +565,8 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       >
         <h3 class="text-lg font-bold text-[#191817]">No saved events on this device yet</h3>
         <p class="text-sm text-[#6E675F] mt-2 max-w-md mx-auto">
-          Tap the heart icon on any concert or worship night card to save it to your browser for quick access later.
+          Tap the heart icon on any concert or worship night card to save it to your browser for quick access
+          later.
         </p>
         <button
           id="clear-saved-filter-btn"
@@ -429,10 +586,7 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           </p>
         </div>
       ) : orderedEvents.length > 0 ? (
-        <div
-          id="events-grid"
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
-        >
+        <div id="events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {orderedEvents.map((event, idx) => (
             <LiveDiscoveryCard event={event} index={idx} />
           ))}
@@ -440,15 +594,25 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       ) : (
         <div class="bg-white rounded-2xl border border-[#EAE2D6] p-8 sm:p-12 text-center shadow-sm max-w-2xl mx-auto my-4">
           <div class="w-12 h-12 rounded-2xl bg-[#F5EFE6] text-[#B34B1E] flex items-center justify-center mx-auto mb-4">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-[#191817]">
-            No verified events match your current filters
-          </h3>
+          <h3 class="text-xl font-bold text-[#191817]">No verified events match your current filters</h3>
           <p class="text-sm text-[#6E675F] mt-2 leading-relaxed">
-            We only publish events with verified venues, confirmed schedules, and official HTTPS ticket or organizer links. Try clearing a filter or exploring one of our curated metro markets below.
+            We only publish events with verified venues, confirmed schedules, and official HTTPS ticket or
+            organizer links. Try clearing a filter or exploring one of our curated metro markets below.
           </p>
           <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
@@ -489,16 +653,16 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
     (function () {
       const STORAGE_KEY = 'gamo_live_saved_events';
       const METROS = [
-    { slug: 'phoenix-az', name: 'Phoenix, AZ', lat: 33.4484, lng: -112.074 },
-    { slug: 'atlanta-ga', name: 'Atlanta, GA', lat: 33.749, lng: -84.388 },
-    { slug: 'nashville-tn', name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
-    { slug: 'orlando-fl', name: 'Orlando, FL', lat: 28.5383, lng: -81.3792 },
-    { slug: 'los-angeles-ca', name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
-    { slug: 'houston-tx', name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
-    { slug: 'seattle-wa', name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
-    { slug: 'new-york-ny', name: 'New York, NY', lat: 40.6782, lng: -73.9442 },
-    { slug: 'oklahoma-city-ok', name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 }
-  ];
+        { slug: 'phoenix-az', name: 'Phoenix, AZ', lat: 33.4484, lng: -112.074 },
+        { slug: 'atlanta-ga', name: 'Atlanta, GA', lat: 33.749, lng: -84.388 },
+        { slug: 'nashville-tn', name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
+        { slug: 'orlando-fl', name: 'Orlando, FL', lat: 28.5383, lng: -81.3792 },
+        { slug: 'los-angeles-ca', name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+        { slug: 'houston-tx', name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+        { slug: 'seattle-wa', name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
+        { slug: 'new-york-ny', name: 'New York, NY', lat: 40.6782, lng: -73.9442 },
+        { slug: 'oklahoma-city-ok', name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 },
+      ];
 
       const discoveryForm = document.getElementById('events-discovery-form');
       const autoSubmitSelects = document.querySelectorAll('[data-auto-submit-select]');
@@ -573,8 +737,7 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       const clearSavedBtn = document.getElementById('clear-saved-filter-btn');
       const visibleCountEl = document.getElementById('visible-events-count');
       const visibleUnitEl = document.getElementById('visible-events-unit');
-      let savedOnlyActive =
-        savedFilterBtn && savedFilterBtn.getAttribute('data-saved-active') === 'true';
+      let savedOnlyActive = savedFilterBtn && savedFilterBtn.getAttribute('data-saved-active') === 'true';
 
       function syncFavoriteUi() {
         const saved = readSavedSlugs();
@@ -673,7 +836,9 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
       const locStatus = document.getElementById('location-status-msg');
 
       function nearestMetro(lat, lng) {
-        const toRad = function (d) { return (d * Math.PI) / 180; };
+        const toRad = function (d) {
+          return (d * Math.PI) / 180;
+        };
         let best = METROS[0];
         let bestDist = Infinity;
         for (let i = 0; i < METROS.length; i++) {
@@ -681,8 +846,8 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
           const dLat = toRad(m.lat - lat);
           const dLng = toRad(m.lng - lng);
           const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat)) * Math.cos(toRad(m.lat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat)) * Math.cos(toRad(m.lat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
           const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
           if (dist < bestDist) {
             bestDist = dist;
@@ -696,7 +861,8 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
         locBtn.addEventListener('click', function () {
           if (!navigator.geolocation) {
             if (locStatus) {
-              locStatus.textContent = 'Geolocation is not supported by your browser. Please select a city from the menu.';
+              locStatus.textContent =
+                'Geolocation is not supported by your browser. Please select a city from the menu.';
               locStatus.classList.remove('hidden');
             }
             return;
@@ -720,11 +886,12 @@ import { clampDescription } from '@studio-gamo/ui/lib/seo';
             function () {
               if (locLabel) locLabel.textContent = 'Use my location';
               if (locStatus) {
-                locStatus.textContent = 'Location permission declined or unavailable. Browse all U.S. cities or choose a metro manually.';
+                locStatus.textContent =
+                  'Location permission declined or unavailable. Browse all U.S. cities or choose a metro manually.';
                 locStatus.classList.remove('hidden');
               }
             },
-            { timeout: 8000, maximumAge: 300000 }
+            { timeout: 8000, maximumAge: 300000 },
           );
         });
       }

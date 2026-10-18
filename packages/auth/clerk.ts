@@ -28,12 +28,7 @@ import {
   auditLogs,
   type GamoDatabase,
 } from '@gamo/db';
-import {
-  AuthError,
-  PRODUCT_DISPLAY_NAMES,
-  type ProductKey,
-  type SessionData,
-} from './index.ts';
+import { AuthError, PRODUCT_DISPLAY_NAMES, type ProductKey, type SessionData } from './index.ts';
 
 export interface ProductClerkAppSpec {
   product: ProductKey;
@@ -250,7 +245,7 @@ export const GAMO_LIVE_CLERK_APP_ID = 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt';
  */
 export function resolveProductClerkConfig(
   product: ProductKey,
-  env?: Record<string, any>
+  env?: Record<string, any>,
 ): ResolvedProductClerkConfig {
   const spec = CLERK_PRODUCT_APPS[product];
   const suffix = product.toUpperCase();
@@ -259,8 +254,7 @@ export function resolveProductClerkConfig(
   const allowGenericKeys = !configuredProduct || configuredProduct === product;
 
   const rawConfiguredAppId =
-    env?.[spec.envVarNames.appId] ||
-    (allowGenericKeys ? env?.['CLERK_APP_ID'] : undefined);
+    env?.[spec.envVarNames.appId] || (allowGenericKeys ? env?.['CLERK_APP_ID'] : undefined);
 
   // Hard guard: Never allow Gamo Live's Clerk application ID to be configured on non-Live products
   if (
@@ -271,7 +265,7 @@ export function resolveProductClerkConfig(
     throw new AuthError(
       'FORBIDDEN',
       `Clerk application ${CLERK_PRODUCT_APPS.live.clerkAppId} belongs exclusively to Gamo Live and cannot be reused for ${spec.programName}.`,
-      403
+      403,
     );
   }
 
@@ -309,7 +303,7 @@ export function resolveProductClerkConfig(
       throw new AuthError(
         'FORBIDDEN',
         `Gamo Live Clerk credentials cannot be reused for ${spec.programName}. Each product requires its own independent Clerk application.`,
-        403
+        403,
       );
     }
   }
@@ -339,15 +333,13 @@ export function resolveProductClerkConfig(
           rawParties
             .split(',')
             .map((p) => p.trim())
-            .filter(Boolean)
-        )
+            .filter(Boolean),
+        ),
       )
     : defaultParties;
 
   const isConfigured = Boolean(
-    publishableKey &&
-      (secretKey || jwtKey) &&
-      !appId.startsWith('pending_clerk_app_')
+    publishableKey && (secretKey || jwtKey) && !appId.startsWith('pending_clerk_app_'),
   );
 
   return {
@@ -419,7 +411,7 @@ export function extractClerkJwtFromRequest(request: Request): string | null {
 export async function verifyClerkProductToken(
   token: string,
   product: ProductKey,
-  env?: Record<string, any>
+  env?: Record<string, any>,
 ): Promise<VerifiedClerkIdentity | null> {
   const config = resolveProductClerkConfig(product, env);
   if (!config.isConfigured) {
@@ -475,15 +467,22 @@ export async function verifyClerkProductToken(
   if (typeof customProduct === 'string' && customProduct !== product) {
     return null;
   }
-  const customAppId = (payload as Record<string, any>).app_id || (payload as Record<string, any>).clerk_app_id;
+  const customAppId =
+    (payload as Record<string, any>).app_id || (payload as Record<string, any>).clerk_app_id;
   if (typeof customAppId === 'string' && customAppId !== config.clerkAppId) {
     return null;
   }
 
   const clerkUserId = payload.sub;
-  const clerkSessionId = typeof payload.sid === 'string' && payload.sid ? payload.sid : `clerk_sess_${clerkUserId}`;
+  const clerkSessionId =
+    typeof payload.sid === 'string' && payload.sid ? payload.sid : `clerk_sess_${clerkUserId}`;
 
-  let email = typeof (payload as Record<string, any>).email === 'string' ? String((payload as Record<string, any>).email).toLowerCase().trim() : '';
+  let email =
+    typeof (payload as Record<string, any>).email === 'string'
+      ? String((payload as Record<string, any>).email)
+          .toLowerCase()
+          .trim()
+      : '';
   let emailVerified =
     (payload as Record<string, any>).email_verified === true ||
     (payload as Record<string, any>).email_verified === 'true';
@@ -555,7 +554,7 @@ export async function verifyClerkProductToken(
 export async function resolveOrProvisionClerkProductSession(
   db: GamoDatabase,
   identity: VerifiedClerkIdentity,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): Promise<SessionData> {
   if (!identity.emailVerified) {
     throw new AuthError('FORBIDDEN', 'Verified email address required for this operation.', 403);
@@ -568,8 +567,8 @@ export async function resolveOrProvisionClerkProductSession(
     .where(
       and(
         eq(clerkIdentityLinks.product, identity.product),
-        eq(clerkIdentityLinks.clerkUserId, identity.clerkUserId)
-      )
+        eq(clerkIdentityLinks.clerkUserId, identity.clerkUserId),
+      ),
     )
     .limit(1);
 
@@ -580,11 +579,7 @@ export async function resolveOrProvisionClerkProductSession(
       throw new AuthError('FORBIDDEN', 'This product account has been suspended or revoked.', 403);
     }
     if (existingLink.clerkIssuer !== identity.issuer) {
-      throw new AuthError(
-        'FORBIDDEN',
-        'Clerk issuer mismatch for this product identity.',
-        403
-      );
+      throw new AuthError('FORBIDDEN', 'Clerk issuer mismatch for this product identity.', 403);
     }
     targetUserId = existingLink.userId;
   } else {
@@ -595,8 +590,8 @@ export async function resolveOrProvisionClerkProductSession(
       .where(
         and(
           eq(clerkIdentityLinks.clerkIssuer, identity.issuer),
-          eq(clerkIdentityLinks.clerkUserId, identity.clerkUserId)
-        )
+          eq(clerkIdentityLinks.clerkUserId, identity.clerkUserId),
+        ),
       )
       .limit(1);
 
@@ -604,16 +599,12 @@ export async function resolveOrProvisionClerkProductSession(
       throw new AuthError(
         'FORBIDDEN',
         `Clerk token from ${crossProductLink.product} cannot authenticate against ${identity.product}.`,
-        403
+        403,
       );
     }
 
     const cleanEmail = identity.email.toLowerCase().trim();
-    const [legacyUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, cleanEmail))
-      .limit(1);
+    const [legacyUser] = await db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
 
     let legacySameProductAccount: typeof productAccounts.$inferSelect | undefined;
     if (legacyUser) {
@@ -624,8 +615,8 @@ export async function resolveOrProvisionClerkProductSession(
           and(
             eq(productAccounts.userId, legacyUser.id),
             eq(productAccounts.product, identity.product),
-            isNull(productAccounts.clerkUserId)
-          )
+            isNull(productAccounts.clerkUserId),
+          ),
         )
         .limit(1);
       legacySameProductAccount = foundAccount;
@@ -700,11 +691,7 @@ export async function resolveOrProvisionClerkProductSession(
         ? `${cleanEmail}#${identity.product}:${sanitizedClerkId}`
         : cleanEmail;
 
-      const [existingTargetUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, targetUserId))
-        .limit(1);
+      const [existingTargetUser] = await db.select().from(users).where(eq(users.id, targetUserId)).limit(1);
 
       if (!existingTargetUser) {
         await db.insert(users).values({
@@ -780,12 +767,7 @@ export async function resolveOrProvisionClerkProductSession(
   const [productAccount] = await db
     .select()
     .from(productAccounts)
-    .where(
-      and(
-        eq(productAccounts.userId, targetUserId),
-        eq(productAccounts.product, identity.product)
-      )
-    )
+    .where(and(eq(productAccounts.userId, targetUserId), eq(productAccounts.product, identity.product)))
     .limit(1);
 
   if (!productAccount || productAccount.status !== 'active') {
@@ -806,9 +788,7 @@ export async function resolveOrProvisionClerkProductSession(
 
   const roleCodes = userRoleRows
     .filter(
-      (r) =>
-        (!r.scopeType && !r.scopeId) ||
-        (r.scopeType === 'program' && r.scopeId === identity.product)
+      (r) => (!r.scopeType && !r.scopeId) || (r.scopeType === 'program' && r.scopeId === identity.product),
     )
     .map((r) => r.code);
 
@@ -828,8 +808,8 @@ export async function resolveOrProvisionClerkProductSession(
       and(
         eq(organizationMembers.userId, userRecord.id),
         eq(organizationMembers.status, 'active'),
-        eq(organizations.status, 'active')
-      )
+        eq(organizations.status, 'active'),
+      ),
     );
 
   // Expose clean email (stripping any internal `#<product>:<clerkId>` storage suffix)

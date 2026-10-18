@@ -9,19 +9,42 @@ interface Props {
 }
 const { steps, current, class: className } = Astro.props;
 ---
+
 <nav aria-label="Progress" class={className}>
   <ol class="flex flex-wrap items-center gap-2 sm:gap-3">
     {steps.map((s, i) => {
       const state = i < current ? 'done' : i === current ? 'current' : 'todo';
       const inner = (
-        <span class:list={['inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium', state === 'current' ? 'bg-charcoal text-cream' : state === 'done' ? 'bg-white text-charcoal ring-1 ring-sand' : 'text-charcoal/50']}>
-          <span class:list={['flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold', state === 'current' ? 'bg-terracotta text-white' : state === 'done' ? 'bg-emerald-600 text-white' : 'bg-charcoal/10']}>
+        <span
+          class:list={[
+            'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium',
+            state === 'current'
+              ? 'bg-charcoal text-cream'
+              : state === 'done'
+                ? 'bg-white text-charcoal ring-1 ring-sand'
+                : 'text-charcoal/50',
+          ]}
+        >
+          <span
+            class:list={[
+              'flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold',
+              state === 'current'
+                ? 'bg-terracotta text-white'
+                : state === 'done'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-charcoal/10',
+            ]}
+          >
             {state === 'done' ? <Icon name="check" class="h-3 w-3" strokeWidth={3} /> : i + 1}
           </span>
           <span class:list={[state !== 'current' && 'max-sm:sr-only']}>{s.label}</span>
         </span>
       );
-      return <li aria-current={state === 'current' ? 'step' : undefined}>{s.href && state === 'done' ? <a href={s.href}>{inner}</a> : inner}</li>;
+      return (
+        <li aria-current={state === 'current' ? 'step' : undefined}>
+          {s.href && state === 'done' ? <a href={s.href}>{inner}</a> : inner}
+        </li>
+      );
     })}
   </ol>
 </nav>

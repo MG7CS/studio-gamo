@@ -5,8 +5,36 @@ import PartnershipOpportunities from '../../components/organization/PartnershipO
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
-<SiteLayout title="Partnerships | Gamo Studios" description="Explore how churches and community partners can help Gamo Studios expand music education, develop musicians and support Christian gatherings.">
-  <OrganizationHero eyebrow="Churches & mission-aligned organizations" title="Shared resources." accent="Stronger communities." body="Explore how churches and community partners can help expand music education, develop musicians and support Christian gatherings." photo="churchModernDay" inset="youngPianist" variant="collage"><ButtonLink href="#opportunities" arrow>Explore possibilities</ButtonLink><ButtonLink href="/partners/interest" variant="secondary">Start an inquiry</ButtonLink></OrganizationHero>
+
+<SiteLayout
+  title="Partnerships | Gamo Studios"
+  description="Explore how churches and community partners can help Gamo Studios expand music education, develop musicians and support Christian gatherings."
+>
+  <OrganizationHero
+    eyebrow="Churches & mission-aligned organizations"
+    title="Shared resources."
+    accent="Stronger communities."
+    body="Explore how churches and community partners can help expand music education, develop musicians and support Christian gatherings."
+    photo="churchModernDay"
+    inset="youngPianist"
+    variant="collage"
+  >
+    <ButtonLink href="#opportunities" arrow>
+      Explore possibilities
+    </ButtonLink>
+    <ButtonLink href="/partners/interest" variant="secondary">
+      Start an inquiry
+    </ButtonLink>
+  </OrganizationHero>
   <PartnershipOpportunities />
-  <CtaInvitation eyebrow="A conversation worth starting" title="Bring your community into the picture." body="Tell us what collaboration could look like for your church or organization." photo="chapelSpring"><ButtonLink href="/partners/interest" arrow>Start a partnership inquiry</ButtonLink></CtaInvitation>
+  <CtaInvitation
+    eyebrow="A conversation worth starting"
+    title="Bring your community into the picture."
+    body="Tell us what collaboration could look like for your church or organization."
+    photo="chapelSpring"
+  >
+    <ButtonLink href="/partners/interest" arrow>
+      Start a partnership inquiry
+    </ButtonLink>
+  </CtaInvitation>
 </SiteLayout>

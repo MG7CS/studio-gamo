@@ -13,8 +13,7 @@ export const prerender = false;
 
 const url = Astro.url;
 const metroParam = (url.searchParams.get('metro') || '').trim().toLowerCase();
-const activeMetro =
-  metroParam && metroParam !== 'all' ? resolveMetroBySlug(metroParam) : null;
+const activeMetro = metroParam && metroParam !== 'all' ? resolveMetroBySlug(metroParam) : null;
 
 let venues: Awaited<ReturnType<LiveService['listDiscoverableVenues']>> = [];
 let unavailable = false;
@@ -53,7 +52,8 @@ const pageDescription = activeMetro
               : 'Verified Concert Venues & Host Churches'}
           </h1>
           <p class="mt-1.5 text-sm sm:text-base text-[#5C554E]">
-            Browse arenas, theaters, and church sanctuaries hosting upcoming Christian concerts and worship gatherings.
+            Browse arenas, theaters, and church sanctuaries hosting upcoming Christian concerts and worship
+            gatherings.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ const pageDescription = activeMetro
           {venues.map((venue) => {
             const metroObj = venue.metroSlug ? resolveMetroBySlug(venue.metroSlug) : null;
             const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              [venue.venueName, venue.address, venue.city, venue.state].filter(Boolean).join(', ')
+              [venue.venueName, venue.address, venue.city, venue.state].filter(Boolean).join(', '),
             )}`;
             return (
               <article class="bg-white rounded-2xl border border-[#EAE2D6] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
@@ -146,7 +146,9 @@ const pageDescription = activeMetro
 
                   <div class="mt-2 text-xs text-[#5C554D] space-y-0.5">
                     {venue.address && <p class="font-medium text-[#191817]">{venue.address}</p>}
-                    <p>{venue.city}, {venue.state}</p>
+                    <p>
+                      {venue.city}, {venue.state}
+                    </p>
                   </div>
 
                   <!-- Upcoming Events at this Venue -->
@@ -160,7 +162,7 @@ const pageDescription = activeMetro
                           evt.startDateLocal,
                           evt.startTimeLocal,
                           evt.timezone,
-                          evt.startsAt
+                          evt.startsAt,
                         );
                         return (
                           <li class="bg-[#FDFBF8] rounded-xl p-3 border border-[#F2ECE1]">
