@@ -1,0 +1,25 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      eventId:
+        type: string
+      slug:
+        type: string
+      status:
+        enum:
+          - approved
+          - pending_review
+      message:
+        type: string
+    required:
+      - eventId
+      - message
+required:
+  - success
+  - data

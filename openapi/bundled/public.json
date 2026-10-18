@@ -652,8 +652,8 @@
         "tags": [
           "Live"
         ],
-        "summary": "Submit event for review",
-        "description": "Submit event for review",
+        "summary": "Create an event (organizer)",
+        "description": "Two request shapes. The organizer form (EventEditInput: venue-local start date and time in an IANA zone, policies within bounds, ticket categories) creates the event, its policies and categories in one batch: the organizer's first event goes to pending_review, later ones publish once an event of that organizer was approved (unless staff set always_review). The older shape (CreateEvent with startsAt) is still accepted and always goes to review.",
         "security": [
           {
             "BrowserSession": []
@@ -671,22 +671,85 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateEventResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CreateEventResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EventSavedResponse"
+                    }
+                  ]
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/LegacyError"
+            "description": "Documented API failure. Internal details are suppressed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LegacyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TicketingError"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
-            "$ref": "#/components/responses/LegacyError"
+            "description": "Documented API failure. Internal details are suppressed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LegacyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TicketingError"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "403": {
-            "$ref": "#/components/responses/LegacyError"
+            "description": "Documented API failure. Internal details are suppressed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LegacyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TicketingError"
+                    }
+                  ]
+                }
+              }
+            }
           },
           "500": {
-            "$ref": "#/components/responses/LegacyError"
+            "description": "Documented API failure. Internal details are suppressed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LegacyError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/TicketingError"
+                    }
+                  ]
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -694,7 +757,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateEvent"
+                "$ref": "#/components/schemas/EventCreateRequest"
               }
             }
           }
@@ -747,6 +810,69 @@
             "$ref": "#/components/responses/LegacyError"
           }
         }
+      },
+      "patch": {
+        "operationId": "updateEvent",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Edit an event (organizer)",
+        "description": "Edits details, policies and ticket categories (edit_content; categories also need manage_ticketing). Once tickets exist the date and venue change only through POST /api/events/{id}/changes so holders are told; capacity never goes below what is reserved; existing orders keep their policy snapshot and price.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with edit_content and manage_ticketing permissions on the event.",
+        "x-idempotency": "Last write wins; the same body twice is harmless.",
+        "x-source": "apps/live/src/pages/api/events/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSavedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "401": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventEditInput"
+              }
+            }
+          }
+        }
       }
     },
     "/api/events/{id}/register": {
@@ -761,13 +887,13 @@
         "tags": [
           "Live"
         ],
-        "summary": "Register for a free event",
-        "description": "Public free registration. Never returns admission tokens or attendee records. Database enforces capacity and duplicate email/event uniqueness; confirmation is queued durably.",
+        "summary": "Reserve free tickets (email verification required)",
+        "description": "Free RSVP (design 4.2): Turnstile, per-IP and per-email limits, validation, one atomic hold batch, then an email with a 6-digit code and a confirm link. Tickets are issued only after the email is confirmed (POST /api/orders/confirm or the link). The answer is identical whether or not the address already has tickets. Sold out returns 409 with remaining counts per category.",
         "security": [],
         "x-application": "live",
         "x-status": "implemented",
-        "x-authorization": "Public",
-        "x-idempotency": "Normalized email plus event; duplicate response contains no pass or personal data.",
+        "x-authorization": "Public (Turnstile and rate limits).",
+        "x-idempotency": "idempotencyKey (rendered into the form) returns the same order.",
         "x-source": "apps/live/src/pages/api/events/[id]/register.ts",
         "parameters": [
           {
@@ -775,40 +901,39 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful response",
+          "202": {
+            "description": "Verification email sent (or the identical answer)",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegistrationResponse"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegistrationResponse"
+                  "$ref": "#/components/schemas/VerificationRequired"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "403": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "404": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "409": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
-          "500": {
-            "$ref": "#/components/responses/LegacyError"
+          "413": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "415": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
           }
         },
         "requestBody": {
@@ -816,7 +941,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterAttendee"
+                "$ref": "#/components/schemas/OrderInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The same fields from the server-rendered form (quantities as qty.<categoryId>[.<sectionId>])."
               }
             }
           }
@@ -1014,44 +1146,47 @@
         }
       ],
       "post": {
-        "operationId": "lookupVerifiedTickets",
+        "operationId": "lookupTicketRecords",
         "tags": [
           "Live"
         ],
-        "summary": "Self-service verified ticket and order lookup",
-        "description": "Returns attendee registrations, orders, receipts, and QR passes only after verifying a 6-digit email challenge code. Knowing an email address alone is insufficient.",
+        "summary": "Email a link to my tickets",
+        "description": "Always answers the same. When the address has tickets it receives a customer:all link (30 minutes) that opens the same tickets; recovery never issues new ones. Every lookup that finds an order is logged in ticket_access_log.",
         "security": [],
         "x-application": "live",
         "x-status": "implemented",
-        "x-authorization": "Public with mandatory verified email challenge code.",
-        "x-idempotency": "One-time challenge code consumption.",
+        "x-authorization": "Public (Turnstile and rate limits).",
+        "x-idempotency": "Not needed; repeated requests are rate limited.",
         "x-source": "apps/live/src/pages/api/tickets/lookup.ts",
         "parameters": [],
         "responses": {
-          "200": {
-            "description": "Successful response",
+          "202": {
+            "description": "Same answer for every address",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TicketLookupResponse"
+                  "$ref": "#/components/schemas/AcceptedMessage"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/LegacyError"
-          },
-          "401": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "403": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "413": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "415": {
+            "$ref": "#/components/responses/TicketingError"
           },
           "429": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
-          "500": {
-            "$ref": "#/components/responses/LegacyError"
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
           }
         },
         "requestBody": {
@@ -1059,7 +1194,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TicketLookupInput"
+                "$ref": "#/components/schemas/RecoveryInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The same fields from the server-rendered form (quantities as qty.<categoryId>[.<sectionId>])."
               }
             }
           }
@@ -1574,8 +1716,8 @@
         "tags": [
           "Payments"
         ],
-        "summary": "Approve and process ticket order refund",
-        "description": "Requires explicit approve_refunds authority on the order's event (publishing/content authority alone is insufficient). Voids issued tickets, releases reserved capacity, and records refund ledger entry.",
+        "summary": "Refund (paid) or cancel (free) chosen tickets",
+        "description": "Requires approve_refunds on the event. Only the chosen tickets (all valid ones when none are given) change; refunds accumulate and never exceed the total; card refunds go through Stripe test mode.",
         "security": [
           {
             "BrowserSession": []
@@ -1584,7 +1726,7 @@
         "x-application": "live",
         "x-status": "implemented",
         "x-authorization": "Verified session with approve_refunds permission on the event.",
-        "x-idempotency": "Rejects duplicate full refund with 409.",
+        "x-idempotency": "Repeating a refund of the same tickets changes nothing; Stripe key refund_<recordId>.",
         "x-source": "apps/live/src/pages/api/orders/[id]/refund.ts",
         "parameters": [
           {
@@ -1597,28 +1739,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderRefundResponse"
+                  "$ref": "#/components/schemas/RefundResponse"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "401": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "403": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "404": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "409": {
-            "$ref": "#/components/responses/LegacyError"
+            "$ref": "#/components/responses/TicketingError"
           },
-          "500": {
-            "$ref": "#/components/responses/LegacyError"
+          "502": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
           }
         },
         "requestBody": {
@@ -1626,7 +1771,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrderRefundInput"
+                "$ref": "#/components/schemas/RefundInput"
               }
             }
           }
@@ -1645,13 +1790,13 @@
         "tags": [
           "Payments"
         ],
-        "summary": "Create sandbox checkout",
-        "description": "Creates a Stripe test-mode Checkout session for an authoritative ticket order. Returns 503 when paid checkout is not configured (no test-mode Stripe key outside local development) or when the event's order, inventory or organizer-authorization gate is not satisfied; no hold is created when Stripe is unconfigured. Cross-origin browser requests are rejected (403).",
+        "summary": "Start paid checkout (Stripe test mode)",
+        "description": "Same order form as free RSVPs. 503 unless ENVIRONMENT is local or preview, STRIPE_TEST_CHECKOUT is true and a test key is set (production is always 503, in code); local without a key uses the local mock page. Holds the tickets in one batch and creates a Checkout Session whose expires_at covers the hold. An order whose total is 0 takes the free flow (202).",
         "security": [],
         "x-application": "live",
         "x-status": "implemented",
-        "x-authorization": "Public",
-        "x-idempotency": "Optional idempotencyKey is passed to order creation.",
+        "x-authorization": "Public (Turnstile and rate limits).",
+        "x-idempotency": "idempotencyKey returns the same order; Stripe key checkout_<orderId>.",
         "x-source": "apps/live/src/pages/api/checkout/session.ts",
         "parameters": [],
         "responses": {
@@ -1660,25 +1805,47 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckoutResponse"
+                  "$ref": "#/components/schemas/CheckoutStarted"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Free order; verification email sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationRequired"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "403": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
           },
           "409": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
           },
-          "500": {
-            "$ref": "#/components/responses/SimpleError"
+          "413": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "415": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "502": {
+            "$ref": "#/components/responses/TicketingError"
           },
           "503": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
           }
         },
         "requestBody": {
@@ -1686,7 +1853,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckoutInput"
+                "$ref": "#/components/schemas/TicketCheckoutInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The same fields from the server-rendered form (quantities as qty.<categoryId>[.<sectionId>])."
               }
             }
           }
@@ -1705,8 +1879,8 @@
         "tags": [
           "Payments"
         ],
-        "summary": "Receive signed test Stripe event",
-        "description": "Raw signature and sandbox verified. Financial events return 503 without marking processed; unsupported events safely deduplicated. No ticket or refund fulfillment.",
+        "summary": "Receive a signed Stripe test event",
+        "description": "Signature and test mode verified. Claims the event id (409 while another delivery is processing) and dispatches checkout.session.completed and async_payment_succeeded (issue tickets once; amount, currency and payment status checked; paid after the stock is gone becomes paid_unfulfillable with an automatic test refund), checkout.session.expired, charge.refunded, refund.updated and charge.dispute.created; other types are recorded as ignored. Failures answer 500 so Stripe retries; 503 without STRIPE_WEBHOOK_SECRET.",
         "security": [
           {
             "StripeSignature": []
@@ -1714,8 +1888,8 @@
         ],
         "x-application": "live",
         "x-status": "implemented",
-        "x-authorization": "Public",
-        "x-idempotency": "Stripe event ID in D1; failure retry and concurrent claim correctness remain blockers.",
+        "x-authorization": "Public (Stripe signature).",
+        "x-idempotency": "Stripe event id claimed in D1; per-seat issuance is idempotent.",
         "x-source": "apps/live/src/pages/api/webhook/stripe.ts",
         "parameters": [],
         "responses": {
@@ -1724,19 +1898,22 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookResponse"
+                  "$ref": "#/components/schemas/StripeWebhookResponse"
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
           },
           "500": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
           },
           "503": {
-            "$ref": "#/components/responses/SimpleError"
+            "$ref": "#/components/responses/TicketingError"
           }
         },
         "requestBody": {
@@ -1745,6 +1922,413 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/StripeEvent"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders/confirm": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "confirmOrder",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Confirm a free order with the emailed code",
+        "description": "Issues the tickets (one per seat, signed QR) and opens a customer session for the order. Five wrong codes per order per 30 minutes; a token for an order that does not exist behaves like a wrong code.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public (code from the email).",
+        "x-idempotency": "Confirming twice issues nothing new.",
+        "x-source": "apps/live/src/pages/api/orders/confirm.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "410": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmOrderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/{id}/transfer": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "transferTicket",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Transfer a ticket to another person",
+        "description": "The current holder only (customer session), within the order's policy snapshot. Bumps the version so every old QR stops working. Of two concurrent transfers of one ticket exactly one succeeds (409 for the other).",
+        "security": [
+          {
+            "CustomerSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Customer session holding the ticket.",
+        "x-idempotency": "Conditional on the ticket version the holder saw.",
+        "x-source": "apps/live/src/pages/api/tickets/[id]/transfer.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketVersionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "401": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/{id}/reissue": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "reissueTicket",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Reissue a ticket with a new code",
+        "description": "Organizer with manage_ticketing on the event (or staff). A reason is required; the old QR dies and the holder is emailed the new ticket.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with manage_ticketing permission.",
+        "x-idempotency": "Conditional on the current version.",
+        "x-source": "apps/live/src/pages/api/tickets/[id]/reissue.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketVersionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "401": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReissueInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}/changes": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "changeEvent",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Cancel, reschedule or move an event",
+        "description": "cancelled (manage_ticketing and approve_refunds) voids every ticket, refunds paid orders in full (test mode) and emails everyone. rescheduled and venue_changed (edit_content) keep tickets valid and email everyone an updated .ics (same UID, higher SEQUENCE).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with the permissions above.",
+        "x-idempotency": "Notifications are keyed per change, order and address.",
+        "x-source": "apps/live/src/pages/api/events/[id]/changes.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventChangeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "401": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "409": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventChangeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{id}/waitlist": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "joinWaitlist",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Join the waitlist of a sold-out event",
+        "description": "Same answer whether or not the address was already waiting. When tickets are released the earliest entries are emailed; nothing is reserved or charged.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public (Turnstile and rate limits).",
+        "x-idempotency": "One entry per event, category and address.",
+        "x-source": "apps/live/src/pages/api/events/[id]/waitlist.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "403": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "404": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "413": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "415": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "429": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaitlistInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "The same fields from the server-rendered form (quantities as qty.<categoryId>[.<sectionId>])."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhook/resend": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "receiveResendWebhook",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Receive a signed Resend event",
+        "description": "Svix signature with RESEND_WEBHOOK_SECRET (503 without it). Updates the email_log status; hard bounces and complaints add the address hash to email_suppressions.",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public (Svix signature).",
+        "x-idempotency": "Statuses never move backwards; repeated events change nothing.",
+        "x-source": "apps/live/src/pages/api/webhook/resend.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResendWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TicketingError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TicketingError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendEvent"
               }
             }
           }
@@ -1825,18 +2409,6 @@
         },
         "required": [
           "success",
-          "error"
-        ]
-      },
-      "SimpleError": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
           "error"
         ]
       },
@@ -2462,109 +3034,6 @@
           "startsAt"
         ]
       },
-      "RegisterAttendee": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "attendeeName": {
-            "type": "string",
-            "minLength": 2
-          },
-          "attendeeEmail": {
-            "type": "string",
-            "format": "email"
-          },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10,
-            "default": 1
-          },
-          "tierId": {
-            "$ref": "#/components/schemas/Identifier"
-          }
-        },
-        "required": [
-          "attendeeName",
-          "attendeeEmail"
-        ]
-      },
-      "CheckoutInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "eventId": {
-            "$ref": "#/components/schemas/Identifier"
-          },
-          "tierIndex": {
-            "type": "integer",
-            "minimum": 0,
-            "default": 0
-          },
-          "quantity": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10,
-            "default": 1
-          },
-          "customerEmail": {
-            "type": "string",
-            "format": "email"
-          },
-          "customerName": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 120
-          },
-          "idempotencyKey": {
-            "type": "string",
-            "minLength": 4,
-            "maxLength": 120
-          }
-        },
-        "required": [
-          "eventId"
-        ]
-      },
-      "CheckoutResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "success": {
-            "const": true
-          },
-          "sessionId": {
-            "type": "string"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "mock": {
-            "type": "boolean"
-          },
-          "orderId": {
-            "type": "string"
-          },
-          "orderNumber": {
-            "type": "string"
-          },
-          "holdExpiresAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "sessionId",
-          "url"
-        ]
-      },
       "StripeEvent": {
         "type": "object",
         "additionalProperties": true,
@@ -2603,34 +3072,6 @@
           "type",
           "data",
           "livemode"
-        ]
-      },
-      "WebhookResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "received": {
-            "const": true
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "deduplicated": {
-            "const": true
-          },
-          "orderId": {
-            "type": "string"
-          },
-          "ticketsIssued": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "received",
-          "eventId"
         ]
       },
       "Event": {
@@ -3434,35 +3875,6 @@
           "data"
         ]
       },
-      "RegistrationResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "success": {
-            "const": true
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "isDuplicate": {
-                "type": "boolean"
-              },
-              "message": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "isDuplicate",
-              "message"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
       "AssignEventTeamInput": {
         "type": "object",
         "additionalProperties": false,
@@ -3564,76 +3976,6 @@
               "eventId",
               "userId",
               "role"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "TicketLookupInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "verificationCode": {
-            "type": "string",
-            "pattern": "^[0-9]{6}$"
-          }
-        },
-        "required": [
-          "email",
-          "verificationCode"
-        ]
-      },
-      "TicketLookupResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "success": {
-            "const": true
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "email": {
-                "type": "string"
-              },
-              "registrations": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              },
-              "orders": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              },
-              "tickets": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": true
-                }
-              },
-              "operatorDisclosure": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "email",
-              "registrations",
-              "orders",
-              "tickets"
             ]
           }
         },
@@ -4148,65 +4490,6 @@
           "data"
         ]
       },
-      "OrderRefundInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 500
-          },
-          "amountCents": {
-            "type": "integer",
-            "minimum": 1
-          }
-        },
-        "required": [
-          "reason"
-        ]
-      },
-      "OrderRefundResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "success": {
-            "const": true
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": true,
-            "properties": {
-              "refundId": {
-                "type": "string"
-              },
-              "orderId": {
-                "type": "string"
-              },
-              "amountCents": {
-                "type": "integer"
-              },
-              "status": {
-                "type": "string"
-              },
-              "ticketsVoided": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "refundId",
-              "orderId",
-              "amountCents",
-              "status",
-              "ticketsVoided"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
       "CreateEventProductionRequestInput": {
         "type": "object",
         "additionalProperties": false,
@@ -4515,6 +4798,1214 @@
           }
         }
       },
+      "TicketingError": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Ticketing failure. `message` always says what to do next. `details` is a list of field errors (public form guard) or an object with field errors, remaining counts (409 SOLD_OUT) and a wait time (429).",
+        "properties": {
+          "success": {
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "message"
+                      ]
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "field": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "field",
+                            "message"
+                          ]
+                        }
+                      },
+                      "remaining": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "categoryId": {
+                              "type": "string"
+                            },
+                            "sectionId": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "remaining": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "categoryId",
+                            "sectionId",
+                            "name",
+                            "remaining"
+                          ]
+                        }
+                      },
+                      "retryAfterSeconds": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "OrderItemInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "categoryId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "sectionId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "categoryId",
+          "quantity"
+        ]
+      },
+      "TermsDocumentRef": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "slug",
+          "version"
+        ]
+      },
+      "OrderInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "One form for free RSVPs and paid checkout. The JSON form of the server-rendered order form (which posts the same fields form-encoded as qty.<categoryId>[.<sectionId>]).",
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/OrderItemInput"
+            }
+          },
+          "purchaserName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "emailConfirm": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "attendeeNames": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "termsAccepted": {
+            "type": "boolean"
+          },
+          "termsDocuments": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/TermsDocumentRef"
+            }
+          },
+          "marketingOptIn": {
+            "type": "boolean"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,100}$"
+          },
+          "cf-turnstile-response": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "items",
+          "purchaserName",
+          "email",
+          "emailConfirm",
+          "termsAccepted",
+          "termsDocuments",
+          "idempotencyKey"
+        ]
+      },
+      "TicketCheckoutInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "One form for free RSVPs and paid checkout. The JSON form of the server-rendered order form (which posts the same fields form-encoded as qty.<categoryId>[.<sectionId>]).",
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/OrderItemInput"
+            }
+          },
+          "purchaserName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "emailConfirm": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "attendeeNames": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "termsAccepted": {
+            "type": "boolean"
+          },
+          "termsDocuments": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/TermsDocumentRef"
+            }
+          },
+          "marketingOptIn": {
+            "type": "boolean"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,100}$"
+          },
+          "cf-turnstile-response": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "eventId",
+          "items",
+          "purchaserName",
+          "email",
+          "emailConfirm",
+          "termsAccepted",
+          "termsDocuments",
+          "idempotencyKey"
+        ]
+      },
+      "VerificationRequired": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Same answer whether or not the address already has tickets.",
+            "properties": {
+              "status": {
+                "const": "verification_required"
+              },
+              "confirmToken": {
+                "type": "string",
+                "description": "Signed reference for the code page (/tickets/confirm?t=…). Not a credential."
+              },
+              "expiresAt": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "confirmToken",
+              "expiresAt",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CheckoutStarted": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "checkout"
+              },
+              "orderId": {
+                "type": "string"
+              },
+              "orderReference": {
+                "type": "string"
+              },
+              "checkoutUrl": {
+                "type": "string",
+                "description": "Stripe Checkout (test mode) or, in local development only, the local mock page."
+              },
+              "mock": {
+                "type": "boolean"
+              },
+              "holdExpiresAt": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "status",
+              "orderId",
+              "orderReference",
+              "checkoutUrl",
+              "mock",
+              "holdExpiresAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ConfirmOrderInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confirmToken": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 300
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9 ]{6,8}$"
+          }
+        },
+        "required": [
+          "confirmToken",
+          "code"
+        ]
+      },
+      "ConfirmOrderResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "orderId": {
+                "type": "string"
+              },
+              "ticketsIssued": {
+                "type": "integer"
+              },
+              "alreadyConfirmed": {
+                "type": "boolean"
+              },
+              "orderUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "orderId",
+              "ticketsIssued",
+              "alreadyConfirmed",
+              "orderUrl"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "RecoveryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "cf-turnstile-response": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "AcceptedMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "TransferInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "toName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "toEmail": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "toEmailConfirm": {
+            "type": "string",
+            "maxLength": 320
+          }
+        },
+        "required": [
+          "toName",
+          "toEmail",
+          "toEmailConfirm"
+        ]
+      },
+      "TicketVersionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ticketId": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 2
+              }
+            },
+            "required": [
+              "ticketId",
+              "version"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ReissueInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RefundInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticketIds": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RefundResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "refundId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ticketIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "amountCents": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "processed",
+                  "cancelled_free",
+                  "refund_pending",
+                  "nothing_to_do"
+                ]
+              }
+            },
+            "required": [
+              "refundId",
+              "ticketIds",
+              "amountCents",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "EventChangeInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "cancelled",
+              "rescheduled",
+              "venue_changed"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "startTime": {
+            "type": "string",
+            "pattern": "^\\d{2}:\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "pattern": "^(\\d{4}-\\d{2}-\\d{2})?$"
+          },
+          "endTime": {
+            "type": "string",
+            "pattern": "^(\\d{2}:\\d{2})?$"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "venueName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "EventChangeResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "changeId": {
+                "type": "string"
+              },
+              "notified": {
+                "type": "integer"
+              },
+              "ticketsVoided": {
+                "type": "integer"
+              },
+              "ordersRefunded": {
+                "type": "integer"
+              },
+              "refundsPending": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "changeId",
+              "notified"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "WaitlistInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "categoryId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "cf-turnstile-response": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CategoryInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "A ticket category (\"ticket type\"). Price in dollars as typed or integer cents.",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "kind": {
+            "enum": [
+              "general",
+              "vip",
+              "child",
+              "companion",
+              "accessible",
+              "group",
+              "table",
+              "day_pass",
+              "multi_day"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12
+              },
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ]
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 7
+              },
+              {
+                "type": "integer",
+                "minimum": 1
+              }
+            ]
+          },
+          "perOrderLimit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20
+              },
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxAge": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seatsPerTicket": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validDays": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "array",
+                "maxItems": 31,
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "salesStart": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalDateTime"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "salesEnd": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalDateTime"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "companionOf": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "active",
+              "hidden",
+              "sold_out",
+              "closed"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "price",
+          "capacity"
+        ]
+      },
+      "LocalDateTime": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Venue-local date and time (converted with the event's IANA time zone, DST-safe).",
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "time": {
+            "type": "string",
+            "pattern": "^(\\d{2}:\\d{2})?$"
+          }
+        },
+        "required": [
+          "date"
+        ]
+      },
+      "EventPolicyInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Event policies within the platform bounds (design §5.4). Missing fields take the defaults.",
+        "properties": {
+          "reentryAllowed": {
+            "type": "boolean"
+          },
+          "reentryLimit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 20
+          },
+          "refundPolicy": {
+            "enum": [
+              "none",
+              "until_start",
+              "until_24h",
+              "until_48h",
+              "until_7d",
+              "organizer_discretion"
+            ]
+          },
+          "transferAllowed": {
+            "type": "boolean"
+          },
+          "transferCutoffHours": {
+            "type": "integer"
+          },
+          "maxTransfersPerTicket": {
+            "type": "integer"
+          },
+          "attendeeNamesRequired": {
+            "type": "boolean"
+          },
+          "maxTicketsPerOrder": {
+            "type": "integer"
+          },
+          "doorSalesEnabled": {
+            "type": "boolean"
+          },
+          "doorSalesMethods": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "enum": [
+                "free_issue",
+                "cash_recorded"
+              ]
+            }
+          },
+          "agePolicy": {
+            "enum": [
+              "all_ages",
+              "min_age"
+            ]
+          },
+          "minAge": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "scanOpensMinutesBefore": {
+            "type": "integer"
+          }
+        }
+      },
+      "EventCreateRequest": {
+        "description": "Either the organizer form (EventEditInput with organizationId) or the older CreateEvent shape.",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/CreateEvent"
+          },
+          {
+            "$ref": "#/components/schemas/EventEditInput"
+          }
+        ]
+      },
+      "EventEditInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Organizer event create/edit with venue-local date/time, policies and categories.",
+        "properties": {
+          "organizationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 150
+          },
+          "category": {
+            "enum": [
+              "concert",
+              "worship",
+              "bible",
+              "conference",
+              "youth"
+            ]
+          },
+          "tagline": {
+            "type": "string",
+            "maxLength": 250
+          },
+          "description": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 10000
+          },
+          "venueName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "city": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "state": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "start": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocalDateTime"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "admissionType": {
+            "enum": [
+              "free",
+              "paid"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "$ref": "#/components/schemas/CategoryInput"
+            }
+          },
+          "policy": {
+            "$ref": "#/components/schemas/EventPolicyInput"
+          }
+        },
+        "required": [
+          "title",
+          "category",
+          "description",
+          "venueName",
+          "city",
+          "state",
+          "timezone",
+          "start",
+          "admissionType",
+          "categories"
+        ]
+      },
+      "EventSavedResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "eventId": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "approved",
+                  "pending_review"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ResendEvent": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Resend webhook payload (Svix-signed).",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ]
+      },
+      "ResendWebhookResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "const": true
+          },
+          "applied": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "received",
+          "applied"
+        ]
+      },
+      "StripeWebhookResponse": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Outcome of one Stripe event (`outcome` names what happened; extra fields per type).",
+        "properties": {
+          "received": {
+            "const": true
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "deduplicated": {
+            "const": true
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "ticketsIssued": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "received",
+          "eventId"
+        ]
+      },
       "category": {
         "type": "string",
         "enum": [
@@ -4575,6 +6066,12 @@
         "in": "header",
         "name": "Stripe-Signature",
         "description": "HMAC SHA256 over timestamp and exact raw request body. Replay tolerance enforced. Test events only."
+      },
+      "CustomerSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__gamo_customer",
+        "description": "Signed customer session opened from an emailed link (scoped to the customer, an order or a ticket; at most 2 hours). Customers have no account."
       }
     },
     "responses": {
@@ -4588,12 +6085,12 @@
           }
         }
       },
-      "SimpleError": {
-        "description": "Documented API failure. Internal details are suppressed.",
+      "TicketingError": {
+        "description": "Ticketing failure; the message says what to do next. Internal details are suppressed.",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/SimpleError"
+              "$ref": "#/components/schemas/TicketingError"
             }
           }
         }

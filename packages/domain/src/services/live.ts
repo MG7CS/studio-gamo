@@ -25,22 +25,18 @@ import {
   eventOrganizations,
   eventTeamMembers,
   eventPerformers,
-  ticketHolds,
   ticketOrders,
   tickets,
   ticketScans,
   refundRecords,
   settlementRecords,
   productionRequests,
-  paymentRecords,
-  ledgerEntries,
   auditLogs,
   musicianProfiles,
   externalListingRevisions,
   externalOutboundClicks,
   type GamoDatabase,
   type LiveEvent,
-  type TicketTier,
   type ContractEvent,
   type ContractTicketTier,
   toContractEvent,
@@ -49,18 +45,14 @@ import {
 } from '@gamo/db';
 import type {
   CreateEventInput,
-  RegisterAttendeeInput,
   AssignEventTeamMemberInput,
   TicketScanInput,
   CreateArtistProfileInput,
   AuthorizeRepresentativeInput,
   CreateBookingInquiryInput,
   ProposeBookingOfferInput,
-  OrderRefundInput,
   CreateEventProductionRequestInput,
 } from '../api/validation.ts';
-import { IdentityService } from './identity.ts';
-import { getPlatformBrandConfig } from '@gamo/config/brand';
 import {
   GAMO_LIVE_METROS,
   GAMO_LIVE_PUBLISHER_EMAIL,
@@ -108,16 +100,6 @@ export interface RegisterAttendeeResult {
   registration: EventRegistration;
   event: LiveEvent;
   isDuplicate: boolean;
-}
-
-/**
- * Generates an unpredictable QR token for event admission.
- */
-function generateQrToken(eventId: string): string {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  return `gamt_${eventId.slice(0, 8)}_${hex}`;
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -383,9 +365,11 @@ export class LiveService {
       const tiers = await this.db.select().from(ticketTiers).where(eq(ticketTiers.eventId, row.event.id));
 
       const [regStats] = await this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(eventRegistrations)
-        .where(eq(eventRegistrations.eventId, row.event.id));
+        .select({
+          count: sql<number>`(SELECT count(*) FROM event_registrations WHERE event_id = ${row.event.id}) + (SELECT count(*) FROM tickets WHERE event_id = ${row.event.id} AND order_item_id IS NOT NULL AND status = 'valid')`,
+        })
+        .from(events)
+        .where(eq(events.id, row.event.id));
 
       const past = isEventPast(row.event);
       const lifecycleStatus = getEventLifecycleStatus(row.event);
@@ -452,9 +436,11 @@ export class LiveService {
       .orderBy(eventPerformers.billingOrder);
 
     const [regStats] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(eventRegistrations)
-      .where(eq(eventRegistrations.eventId, row.event.id));
+      .select({
+        count: sql<number>`(SELECT count(*) FROM event_registrations WHERE event_id = ${row.event.id}) + (SELECT count(*) FROM tickets WHERE event_id = ${row.event.id} AND order_item_id IS NOT NULL AND status = 'valid')`,
+      })
+      .from(events)
+      .where(eq(events.id, row.event.id));
 
     const past = isEventPast(row.event);
     const lifecycleStatus = getEventLifecycleStatus(row.event);
@@ -469,148 +455,6 @@ export class LiveService {
       isPast: past,
       isClosed: past || row.event.status === 'canceled',
       lifecycleStatus,
-    };
-  }
-
-  /**
-   * Registers an attendee for a free Christian event with duplicate prevention,
-   * and issues a corresponding durable ticket_orders and tickets record.
-   */
-  async registerFreeAttendee(eventId: string, input: RegisterAttendeeInput): Promise<RegisterAttendeeResult> {
-    const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
-
-    if (!event) {
-      throw new Error('NOT_FOUND: Event not found.');
-    }
-
-    if (event.status !== 'approved') {
-      throw new Error('CONFLICT: Event is not open for registration.');
-    }
-
-    if (event.startsAt <= new Date()) throw new Error('CONFLICT: Registration has closed.');
-    if (event.admissionType !== 'free' || event.listingType === 'external_discovery' || event.externalOnly) {
-      throw new Error('CONFLICT: Free registration is unavailable for this event.');
-    }
-
-    const cleanEmail = input.attendeeEmail.toLowerCase().trim();
-    const cleanName = input.attendeeName.trim();
-
-    const [existing] = await this.db
-      .select()
-      .from(eventRegistrations)
-      .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attendeeEmail, cleanEmail)))
-      .limit(1);
-
-    if (existing) {
-      return {
-        registration: existing,
-        event,
-        isDuplicate: true,
-      };
-    }
-
-    let tierId = input.tierId;
-    if (!tierId) {
-      const [firstTier] = await this.db
-        .select()
-        .from(ticketTiers)
-        .where(eq(ticketTiers.eventId, eventId))
-        .limit(1);
-      tierId = firstTier?.id;
-    }
-
-    if (tierId) {
-      const [tier] = await this.db
-        .select()
-        .from(ticketTiers)
-        .where(and(eq(ticketTiers.id, tierId), eq(ticketTiers.eventId, eventId)))
-        .limit(1);
-      if (!tier || tier.priceCents !== 0) throw new Error('CONFLICT: Invalid free event tier.');
-    }
-
-    const regId = `reg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const qrToken = generateQrToken(eventId);
-    const now = new Date();
-
-    try {
-      await this.db.insert(eventRegistrations).values({
-        id: regId,
-        eventId,
-        tierId: tierId || null,
-        userId: null,
-        attendeeName: cleanName,
-        attendeeEmail: cleanEmail,
-        quantity: input.quantity,
-        qrToken,
-        status: 'confirmed',
-        createdAt: now,
-      });
-    } catch (error) {
-      const [duplicate] = await this.db
-        .select()
-        .from(eventRegistrations)
-        .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attendeeEmail, cleanEmail)))
-        .limit(1);
-      if (duplicate) return { registration: duplicate, event, isDuplicate: true };
-      const cause = String((error as Error)?.cause ?? error);
-      if (cause.includes('REGISTRATION_'))
-        throw new Error('CONFLICT: Registration unavailable.', { cause: error });
-      throw error;
-    }
-
-    // Also persist durable free ticket_orders and tickets records for unified self-service lookup & scanning
-    const orderId = `ord_free_${regId}`;
-    const orderNumber = `GL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const sigHash = await sha256Hex(`${qrToken}:${orderId}`);
-
-    await this.db.insert(ticketOrders).values({
-      id: orderId,
-      orderNumber,
-      eventId,
-      tierId: tierId || null,
-      holdId: null,
-      purchaserUserId: null,
-      purchaserName: cleanName,
-      purchaserEmail: cleanEmail,
-      quantity: input.quantity,
-      orderKind: 'free',
-      subtotalCents: 0,
-      processingFeeCents: 0,
-      platformAdminAllocationCents: 0,
-      taxCents: 0,
-      totalCents: 0,
-      organizerProceedsCents: 0,
-      currency: 'usd',
-      idempotencyKey: `free_reg_${eventId}_${cleanEmail}`,
-      status: 'confirmed',
-      confirmedAt: now,
-      createdAt: now,
-    });
-
-    await this.db.insert(tickets).values({
-      id: `tkt_${regId}`,
-      orderId,
-      eventId,
-      tierId: tierId || null,
-      registrationId: regId,
-      holderName: cleanName,
-      holderEmail: cleanEmail,
-      qrToken,
-      qrSignatureHash: sigHash,
-      status: 'valid',
-      createdAt: now,
-    });
-
-    const [createdReg] = await this.db
-      .select()
-      .from(eventRegistrations)
-      .where(eq(eventRegistrations.id, regId))
-      .limit(1);
-
-    return {
-      registration: createdReg,
-      event,
-      isDuplicate: false,
     };
   }
 
@@ -834,75 +678,6 @@ export class LiveService {
       userId: input.userId,
       role: input.role,
       ...flags,
-    };
-  }
-
-  /**
-   * Self-service ticket, order, and receipt lookup after strong email challenge verification.
-   * Knowing an email address alone is insufficient.
-   */
-  async lookupVerifiedAttendeeRecords(email: string, verificationCode: string) {
-    const identityService = new IdentityService(this.db);
-    const verifiedUser = await identityService.verifyEmailChallenge(email, verificationCode);
-    const cleanEmail = verifiedUser.email.toLowerCase().trim();
-
-    const regs = await this.db
-      .select()
-      .from(eventRegistrations)
-      .where(eq(eventRegistrations.attendeeEmail, cleanEmail))
-      .orderBy(desc(eventRegistrations.createdAt));
-
-    const orders = await this.db
-      .select()
-      .from(ticketOrders)
-      .where(eq(ticketOrders.purchaserEmail, cleanEmail))
-      .orderBy(desc(ticketOrders.createdAt));
-
-    const passList = await this.db
-      .select()
-      .from(tickets)
-      .where(eq(tickets.holderEmail, cleanEmail))
-      .orderBy(desc(tickets.createdAt));
-
-    const brand = getPlatformBrandConfig();
-
-    return {
-      email: cleanEmail,
-      registrations: regs.map((r) => ({
-        id: r.id,
-        eventId: r.eventId,
-        tierId: r.tierId,
-        attendeeName: r.attendeeName,
-        quantity: r.quantity,
-        qrToken: r.qrToken,
-        status: r.status,
-        createdAt: r.createdAt.toISOString(),
-      })),
-      orders: orders.map((o) => ({
-        id: o.id,
-        orderNumber: o.orderNumber,
-        eventId: o.eventId,
-        orderKind: o.orderKind,
-        quantity: o.quantity,
-        subtotalCents: o.subtotalCents,
-        processingFeeCents: o.processingFeeCents,
-        platformAdminAllocationCents: o.platformAdminAllocationCents,
-        taxCents: o.taxCents,
-        totalCents: o.totalCents,
-        organizerProceedsCents: o.organizerProceedsCents,
-        status: o.status,
-        createdAt: o.createdAt.toISOString(),
-      })),
-      tickets: passList.map((t) => ({
-        id: t.id,
-        orderId: t.orderId,
-        eventId: t.eventId,
-        holderName: t.holderName,
-        qrToken: t.qrToken,
-        status: t.status,
-        checkedInAt: t.checkedInAt ? t.checkedInAt.toISOString() : null,
-      })),
-      operatorDisclosure: brand.operatorDisclosure,
     };
   }
 
@@ -1692,163 +1467,6 @@ export class LiveService {
     };
   }
 
-  /**
-   * Reserves an expiring ticket hold and creates a pending paid ticket order
-   * ONLY when the event is approved, paid, and its organizer is verified and ticketing-authorized.
-   * Returns `{ gateBlocked: true }` when those prerequisites are not met so callers fail closed (503).
-   */
-  async createPaidTicketHoldAndOrder(params: {
-    eventId: string;
-    tierIndex: number;
-    quantity: number;
-    customerEmail?: string;
-    customerName?: string;
-    idempotencyKey?: string;
-  }): Promise<
-    | { gateBlocked: true; reason: string }
-    | {
-        gateBlocked: false;
-        orderId: string;
-        orderNumber: string;
-        holdId: string;
-        holdExpiresAt: Date;
-        tier: TicketTier;
-        event: LiveEvent;
-        subtotalCents: number;
-        totalCents: number;
-      }
-  > {
-    const [event] = await this.db.select().from(events).where(eq(events.id, params.eventId)).limit(1);
-
-    if (
-      !event ||
-      event.status !== 'approved' ||
-      event.admissionType !== 'paid' ||
-      event.listingType === 'external_discovery' ||
-      event.externalOnly
-    ) {
-      return {
-        gateBlocked: true,
-        reason:
-          'Paid ticket checkout is unavailable until authoritative order, inventory, and organizer permissions are active.',
-      };
-    }
-
-    const [organizer] = await this.db
-      .select()
-      .from(organizerProfiles)
-      .where(eq(organizerProfiles.id, event.organizerId))
-      .limit(1);
-
-    if (!organizer || organizer.verificationStatus !== 'verified' || !organizer.ticketingAuthorizedAt) {
-      return {
-        gateBlocked: true,
-        reason:
-          'Paid ticket checkout is disabled until the organizer is verified and authorized for ticketing.',
-      };
-    }
-
-    const tiers = await this.db.select().from(ticketTiers).where(eq(ticketTiers.eventId, event.id));
-
-    const tier = tiers[params.tierIndex];
-    if (!tier || tier.priceCents <= 0) {
-      return {
-        gateBlocked: true,
-        reason: 'Requested paid ticket tier is unavailable.',
-      };
-    }
-
-    const now = new Date();
-    // Release any expired holds on this tier before checking capacity
-    const expiredHolds = await this.db
-      .select()
-      .from(ticketHolds)
-      .where(and(eq(ticketHolds.tierId, tier.id), eq(ticketHolds.status, 'held')));
-
-    for (const h of expiredHolds) {
-      if (h.expiresAt.getTime() <= now.getTime()) {
-        await this.db.update(ticketHolds).set({ status: 'expired' }).where(eq(ticketHolds.id, h.id));
-        await this.db
-          .update(ticketTiers)
-          .set({
-            reservedCount: sql`max(0, ${ticketTiers.reservedCount} - ${h.quantity})`,
-          })
-          .where(eq(ticketTiers.id, tier.id));
-      }
-    }
-
-    const [freshTier] = await this.db.select().from(ticketTiers).where(eq(ticketTiers.id, tier.id)).limit(1);
-
-    if (!freshTier || freshTier.reservedCount + params.quantity > freshTier.capacity) {
-      throw new Error('CONFLICT: Requested ticket tier does not have sufficient remaining capacity.');
-    }
-
-    // Reserve capacity on the tier
-    await this.db
-      .update(ticketTiers)
-      .set({
-        reservedCount: freshTier.reservedCount + params.quantity,
-      })
-      .where(eq(ticketTiers.id, freshTier.id));
-
-    const holdId = `hld_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const holdExpiresAt = new Date(now.getTime() + 15 * 60 * 1000);
-    const cleanEmail = (params.customerEmail || 'guest@live.gamostudios.local').toLowerCase().trim();
-    const cleanName = (params.customerName || 'Event Guest').trim();
-    const idemKey = params.idempotencyKey || `chk_${holdId}`;
-
-    await this.db.insert(ticketHolds).values({
-      id: holdId,
-      eventId: event.id,
-      tierId: freshTier.id,
-      purchaserEmail: cleanEmail,
-      quantity: params.quantity,
-      idempotencyKey: `hold_${idemKey}`,
-      status: 'held',
-      expiresAt: holdExpiresAt,
-      createdAt: now,
-    });
-
-    const orderId = `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const orderNumber = `GL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const subtotalCents = freshTier.priceCents * params.quantity;
-
-    await this.db.insert(ticketOrders).values({
-      id: orderId,
-      orderNumber,
-      eventId: event.id,
-      tierId: freshTier.id,
-      holdId,
-      purchaserUserId: null,
-      purchaserName: cleanName,
-      purchaserEmail: cleanEmail,
-      quantity: params.quantity,
-      orderKind: 'paid',
-      subtotalCents,
-      processingFeeCents: 0,
-      platformAdminAllocationCents: 0,
-      taxCents: 0,
-      totalCents: subtotalCents,
-      organizerProceedsCents: subtotalCents,
-      currency: 'usd',
-      idempotencyKey: idemKey,
-      status: 'pending_payment',
-      createdAt: now,
-    });
-
-    return {
-      gateBlocked: false,
-      orderId,
-      orderNumber,
-      holdId,
-      holdExpiresAt,
-      tier: freshTier,
-      event,
-      subtotalCents,
-      totalCents: subtotalCents,
-    };
-  }
-
   async getBookingInquiryContext(inquiryId: string) {
     const [inquiry] = await this.db
       .select()
@@ -1879,232 +1497,6 @@ export class LiveService {
       .where(eq(organizerProfiles.id, inquiry.organizerId))
       .limit(1);
     return { offer, inquiry, organizer };
-  }
-
-  async getTicketOrder(orderId: string) {
-    const [order] = await this.db.select().from(ticketOrders).where(eq(ticketOrders.id, orderId)).limit(1);
-    return order ?? null;
-  }
-
-  async attachCheckoutSessionToOrder(orderId: string, sessionId: string) {
-    await this.db
-      .update(ticketOrders)
-      .set({ stripeCheckoutSessionId: sessionId })
-      .where(eq(ticketOrders.id, orderId));
-  }
-
-  /**
-   * Fulfills a paid ticket order upon receiving a provider-confirmed Stripe webhook event.
-   * Never trusts browser redirects; requires a matching authoritative `ticket_orders` record in D1.
-   * If no backing `ticket_orders` record exists, returns `{ gateBlocked: true }` so the webhook fails closed (503).
-   */
-  async fulfillWebhookFinancialEvent(stripeEvent: {
-    id: string;
-    type: string;
-    data?: { object?: unknown };
-  }): Promise<
-    | { gateBlocked: true }
-    | { gateBlocked: false; orderId: string; ticketsIssued: number; deduplicated: boolean }
-  > {
-    const raw = stripeEvent.data?.object;
-    const obj: { id?: unknown; payment_intent?: unknown; metadata?: { orderId?: unknown } | null } =
-      raw && typeof raw === 'object' ? raw : {};
-    const sessionId = typeof obj.id === 'string' ? obj.id : undefined;
-    const metaOrderId = typeof obj.metadata?.orderId === 'string' ? obj.metadata.orderId : undefined;
-
-    if (stripeEvent.type === 'checkout.session.completed') {
-      let [order] = sessionId
-        ? await this.db
-            .select()
-            .from(ticketOrders)
-            .where(eq(ticketOrders.stripeCheckoutSessionId, sessionId))
-            .limit(1)
-        : [];
-
-      if (!order && metaOrderId) {
-        const [byMeta] = await this.db
-          .select()
-          .from(ticketOrders)
-          .where(eq(ticketOrders.id, metaOrderId))
-          .limit(1);
-        order = byMeta;
-      }
-
-      if (!order) {
-        return { gateBlocked: true };
-      }
-
-      if (order.status === 'confirmed') {
-        const existingTickets = await this.db.select().from(tickets).where(eq(tickets.orderId, order.id));
-        return {
-          gateBlocked: false,
-          orderId: order.id,
-          ticketsIssued: existingTickets.length,
-          deduplicated: true,
-        };
-      }
-
-      const now = new Date();
-      await this.db
-        .update(ticketOrders)
-        .set({
-          status: 'confirmed',
-          confirmedAt: now,
-          stripePaymentIntentId: typeof obj.payment_intent === 'string' ? obj.payment_intent : null,
-        })
-        .where(eq(ticketOrders.id, order.id));
-
-      if (order.holdId) {
-        await this.db
-          .update(ticketHolds)
-          .set({ status: 'converted' })
-          .where(eq(ticketHolds.id, order.holdId));
-      }
-
-      for (let i = 0; i < order.quantity; i++) {
-        const qrToken = generateQrToken(order.eventId);
-        const sigHash = await sha256Hex(`${qrToken}:${order.id}:${i}`);
-        await this.db.insert(tickets).values({
-          id: `tkt_${order.id}_${i}`,
-          orderId: order.id,
-          eventId: order.eventId,
-          tierId: order.tierId,
-          registrationId: null,
-          holderName: order.purchaserName,
-          holderEmail: order.purchaserEmail,
-          qrToken,
-          qrSignatureHash: sigHash,
-          status: 'valid',
-          createdAt: now,
-        });
-      }
-
-      await this.db.insert(paymentRecords).values({
-        id: `pay_${order.id}`,
-        sessionId: sessionId ?? order.stripeCheckoutSessionId,
-        paymentIntentId: typeof obj.payment_intent === 'string' ? obj.payment_intent : null,
-        amountCents: order.totalCents,
-        currency: order.currency,
-        status: 'succeeded',
-        sourceType: 'event_ticket',
-        sourceId: order.id,
-        customerEmail: order.purchaserEmail,
-        createdAt: now,
-      });
-
-      await this.db.insert(ledgerEntries).values({
-        id: `led_${order.id}_receipt`,
-        category: 'program_service_receipt',
-        program: 'live',
-        amountCents: order.subtotalCents,
-        currency: order.currency,
-        sourceType: 'event_ticket',
-        sourceId: order.id,
-        notes: `Paid ticket order ${order.orderNumber} (${order.quantity} tickets)`,
-        createdAt: now,
-      });
-
-      await this.reconcileEventSettlement(order.eventId);
-
-      return {
-        gateBlocked: false,
-        orderId: order.id,
-        ticketsIssued: order.quantity,
-        deduplicated: false,
-      };
-    }
-
-    return { gateBlocked: true };
-  }
-
-  /**
-   * Processes an authorized ticket order refund, voids issued tickets, releases tier capacity,
-   * and updates settlement and ledger records.
-   */
-  async refundTicketOrder(orderId: string, approvedByUserId: string, input: OrderRefundInput) {
-    const [order] = await this.db.select().from(ticketOrders).where(eq(ticketOrders.id, orderId)).limit(1);
-
-    if (!order) {
-      throw new Error(`NOT_FOUND: Ticket order ${orderId} not found.`);
-    }
-
-    if (order.status === 'refunded') {
-      throw new Error('CONFLICT: Order has already been refunded.');
-    }
-
-    const refundAmount = input.amountCents ?? order.totalCents;
-    if (refundAmount > order.totalCents) {
-      throw new Error('CONFLICT: Refund amount cannot exceed order total.');
-    }
-
-    const now = new Date();
-    const refundId = `ref_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-
-    await this.db.insert(refundRecords).values({
-      id: refundId,
-      orderId: order.id,
-      eventId: order.eventId,
-      requestedByEmail: order.purchaserEmail,
-      approvedByUserId,
-      amountCents: refundAmount,
-      reason: input.reason.trim(),
-      stripeRefundId: `re_test_mock_${refundId}`,
-      status: 'processed',
-      processedAt: now,
-      createdAt: now,
-    });
-
-    await this.db
-      .update(ticketOrders)
-      .set({
-        status: refundAmount === order.totalCents ? 'refunded' : 'partially_refunded',
-      })
-      .where(eq(ticketOrders.id, order.id));
-
-    const orderTickets = await this.db.select().from(tickets).where(eq(tickets.orderId, order.id));
-
-    await this.db.update(tickets).set({ status: 'refunded' }).where(eq(tickets.orderId, order.id));
-
-    if (order.tierId) {
-      await this.db
-        .update(ticketTiers)
-        .set({
-          reservedCount: sql`max(0, ${ticketTiers.reservedCount} - ${order.quantity})`,
-        })
-        .where(eq(ticketTiers.id, order.tierId));
-    }
-
-    await this.db.insert(ledgerEntries).values({
-      id: `led_${refundId}`,
-      category: 'refund',
-      program: 'live',
-      amountCents: refundAmount,
-      currency: order.currency,
-      sourceType: 'event_ticket',
-      sourceId: order.id,
-      notes: `Refund for order ${order.orderNumber}: ${input.reason.trim()}`,
-      createdAt: now,
-    });
-
-    await this.reconcileEventSettlement(order.eventId);
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId: approvedByUserId,
-      action: 'order.refunded',
-      entityType: 'ticket_order',
-      entityId: order.id,
-      payloadJson: JSON.stringify({ refundId, amountCents: refundAmount, reason: input.reason }),
-      createdAt: now,
-    });
-
-    return {
-      refundId,
-      orderId: order.id,
-      amountCents: refundAmount,
-      status: 'processed',
-      ticketsVoided: orderTickets.length,
-    };
   }
 
   /**
@@ -2317,12 +1709,13 @@ export class LiveService {
     const eventsWithStats = [];
 
     for (const evt of orgEvents) {
+      // Pre-0013 RSVPs (event_registrations) plus valid tickets issued by the ticketing services.
       const [stats] = await this.db
         .select({
-          headcount: sql<number>`coalesce(sum(${eventRegistrations.quantity}), 0)`,
+          headcount: sql<number>`coalesce((SELECT sum(quantity) FROM event_registrations WHERE event_id = ${evt.id}), 0) + (SELECT count(*) FROM tickets WHERE event_id = ${evt.id} AND order_item_id IS NOT NULL AND status = 'valid')`,
         })
-        .from(eventRegistrations)
-        .where(eq(eventRegistrations.eventId, evt.id));
+        .from(events)
+        .where(eq(events.id, evt.id));
 
       const count = Number(stats?.headcount ?? 0);
       totalHeadcount += count;

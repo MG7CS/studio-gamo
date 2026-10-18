@@ -158,8 +158,8 @@ export interface paths {
         get: operations["listEvents"];
         put?: never;
         /**
-         * Submit event for review
-         * @description Submit event for review
+         * Create an event (organizer)
+         * @description Two request shapes. The organizer form (EventEditInput: venue-local start date and time in an IANA zone, policies within bounds, ticket categories) creates the event, its policies and categories in one batch: the organizer's first event goes to pending_review, later ones publish once an event of that organizer was approved (unless staff set always_review). The older shape (CreateEvent with startsAt) is still accepted and always goes to review.
          */
         post: operations["proposeEvent"];
         delete?: never;
@@ -185,7 +185,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Edit an event (organizer)
+         * @description Edits details, policies and ticket categories (edit_content; categories also need manage_ticketing). Once tickets exist the date and venue change only through POST /api/events/{id}/changes so holders are told; capacity never goes below what is reserved; existing orders keep their policy snapshot and price.
+         */
+        patch: operations["updateEvent"];
         trace?: never;
     };
     "/api/events/{id}/register": {
@@ -198,8 +202,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Register for a free event
-         * @description Public free registration. Never returns admission tokens or attendee records. Database enforces capacity and duplicate email/event uniqueness; confirmation is queued durably.
+         * Reserve free tickets (email verification required)
+         * @description Free RSVP (design 4.2): Turnstile, per-IP and per-email limits, validation, one atomic hold batch, then an email with a 6-digit code and a confirm link. Tickets are issued only after the email is confirmed (POST /api/orders/confirm or the link). The answer is identical whether or not the address already has tickets. Sold out returns 409 with remaining counts per category.
          */
         post: operations["registerAttendee"];
         delete?: never;
@@ -262,10 +266,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Self-service verified ticket and order lookup
-         * @description Returns attendee registrations, orders, receipts, and QR passes only after verifying a 6-digit email challenge code. Knowing an email address alone is insufficient.
+         * Email a link to my tickets
+         * @description Always answers the same. When the address has tickets it receives a customer:all link (30 minutes) that opens the same tickets; recovery never issues new ones. Every lookup that finds an order is logged in ticket_access_log.
          */
-        post: operations["lookupVerifiedTickets"];
+        post: operations["lookupTicketRecords"];
         delete?: never;
         options?: never;
         head?: never;
@@ -426,8 +430,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Approve and process ticket order refund
-         * @description Requires explicit approve_refunds authority on the order's event (publishing/content authority alone is insufficient). Voids issued tickets, releases reserved capacity, and records refund ledger entry.
+         * Refund (paid) or cancel (free) chosen tickets
+         * @description Requires approve_refunds on the event. Only the chosen tickets (all valid ones when none are given) change; refunds accumulate and never exceed the total; card refunds go through Stripe test mode.
          */
         post: operations["processOrderRefund"];
         delete?: never;
@@ -446,8 +450,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create sandbox checkout
-         * @description Creates a Stripe test-mode Checkout session for an authoritative ticket order. Returns 503 when paid checkout is not configured (no test-mode Stripe key outside local development) or when the event's order, inventory or organizer-authorization gate is not satisfied; no hold is created when Stripe is unconfigured. Cross-origin browser requests are rejected (403).
+         * Start paid checkout (Stripe test mode)
+         * @description Same order form as free RSVPs. 503 unless ENVIRONMENT is local or preview, STRIPE_TEST_CHECKOUT is true and a test key is set (production is always 503, in code); local without a key uses the local mock page. Holds the tickets in one batch and creates a Checkout Session whose expires_at covers the hold. An order whose total is 0 takes the free flow (202).
          */
         post: operations["createTestCheckout"];
         delete?: never;
@@ -466,10 +470,130 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Receive signed test Stripe event
-         * @description Raw signature and sandbox verified. Financial events return 503 without marking processed; unsupported events safely deduplicated. No ticket or refund fulfillment.
+         * Receive a signed Stripe test event
+         * @description Signature and test mode verified. Claims the event id (409 while another delivery is processing) and dispatches checkout.session.completed and async_payment_succeeded (issue tickets once; amount, currency and payment status checked; paid after the stock is gone becomes paid_unfulfillable with an automatic test refund), checkout.session.expired, charge.refunded, refund.updated and charge.dispute.created; other types are recorded as ignored. Failures answer 500 so Stripe retries; 503 without STRIPE_WEBHOOK_SECRET.
          */
         post: operations["receiveStripeWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a free order with the emailed code
+         * @description Issues the tickets (one per seat, signed QR) and opens a customer session for the order. Five wrong codes per order per 30 minutes; a token for an order that does not exist behaves like a wrong code.
+         */
+        post: operations["confirmOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/{id}/transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transfer a ticket to another person
+         * @description The current holder only (customer session), within the order's policy snapshot. Bumps the version so every old QR stops working. Of two concurrent transfers of one ticket exactly one succeeds (409 for the other).
+         */
+        post: operations["transferTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/{id}/reissue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reissue a ticket with a new code
+         * @description Organizer with manage_ticketing on the event (or staff). A reason is required; the old QR dies and the holder is emailed the new ticket.
+         */
+        post: operations["reissueTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel, reschedule or move an event
+         * @description cancelled (manage_ticketing and approve_refunds) voids every ticket, refunds paid orders in full (test mode) and emails everyone. rescheduled and venue_changed (edit_content) keep tickets valid and email everyone an updated .ics (same UID, higher SEQUENCE).
+         */
+        post: operations["changeEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/waitlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join the waitlist of a sold-out event
+         * @description Same answer whether or not the address was already waiting. When tickets are released the earliest entries are emailed; nothing is reserved or charged.
+         */
+        post: operations["joinWaitlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/webhook/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive a signed Resend event
+         * @description Svix signature with RESEND_WEBHOOK_SECRET (503 without it). Updates the email_log status; hard bounces and complaints add the address hash to email_suppressions.
+         */
+        post: operations["receiveResendWebhook"];
         delete?: never;
         options?: never;
         head?: never;
@@ -499,9 +623,6 @@ export interface components {
                     code: string;
                 }[];
             };
-        };
-        SimpleError: {
-            error: string;
         };
         User: {
             id: components["schemas"]["Identifier"];
@@ -655,35 +776,6 @@ export interface components {
             externalUrl?: string | "";
             tiers?: components["schemas"]["TierInput"][];
         };
-        RegisterAttendee: {
-            attendeeName: string;
-            /** Format: email */
-            attendeeEmail: string;
-            /** @default 1 */
-            quantity: number;
-            tierId?: components["schemas"]["Identifier"];
-        };
-        CheckoutInput: {
-            eventId: components["schemas"]["Identifier"];
-            /** @default 0 */
-            tierIndex: number;
-            /** @default 1 */
-            quantity: number;
-            /** Format: email */
-            customerEmail?: string;
-            customerName?: string;
-            idempotencyKey?: string;
-        };
-        CheckoutResponse: {
-            /** @constant */
-            success: true;
-            sessionId: string;
-            url: string | null;
-            mock?: boolean;
-            orderId?: string;
-            orderNumber?: string;
-            holdExpiresAt?: string;
-        };
         StripeEvent: {
             id: string;
             /** @constant */
@@ -701,16 +793,6 @@ export interface components {
             };
         } & {
             [key: string]: unknown;
-        };
-        WebhookResponse: {
-            /** @constant */
-            received: true;
-            eventId: string;
-            type?: string;
-            /** @constant */
-            deduplicated?: true;
-            orderId?: string;
-            ticketsIssued?: number;
         };
         Event: {
             id: components["schemas"]["Identifier"];
@@ -844,14 +926,6 @@ export interface components {
                 message: string;
             };
         };
-        RegistrationResponse: {
-            /** @constant */
-            success: true;
-            data: {
-                isDuplicate: boolean;
-                message: string;
-            };
-        };
         AssignEventTeamInput: {
             userId: components["schemas"]["Identifier"];
             organizationId?: components["schemas"]["Identifier"];
@@ -880,28 +954,6 @@ export interface components {
                 canNegotiateBooking?: boolean;
                 canCoordinateProduction?: boolean;
                 canScanTickets?: boolean;
-            };
-        };
-        TicketLookupInput: {
-            /** Format: email */
-            email: string;
-            verificationCode: string;
-        };
-        TicketLookupResponse: {
-            /** @constant */
-            success: true;
-            data: {
-                email: string;
-                registrations: {
-                    [key: string]: unknown;
-                }[];
-                orders: {
-                    [key: string]: unknown;
-                }[];
-                tickets: {
-                    [key: string]: unknown;
-                }[];
-                operatorDisclosure?: string;
             };
         };
         TicketScanInput: {
@@ -1052,23 +1104,6 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        OrderRefundInput: {
-            reason: string;
-            amountCents?: number;
-        };
-        OrderRefundResponse: {
-            /** @constant */
-            success: true;
-            data: {
-                refundId: string;
-                orderId: string;
-                amountCents: number;
-                status: string;
-                ticketsVoided: number;
-            } & {
-                [key: string]: unknown;
-            };
-        };
         CreateEventProductionRequestInput: {
             /** @enum {string} */
             category: "audio" | "livestream" | "lighting" | "acoustic" | "training";
@@ -1144,6 +1179,286 @@ export interface components {
                 inquiries: components["schemas"]["ParticipationInquiry"][];
             };
         };
+        /** @description Ticketing failure. `message` always says what to do next. `details` is a list of field errors (public form guard) or an object with field errors, remaining counts (409 SOLD_OUT) and a wait time (429). */
+        TicketingError: {
+            /** @constant */
+            success: false;
+            error: {
+                code: string;
+                message: string;
+                details?: {
+                    field: string;
+                    message: string;
+                    code?: string;
+                }[] | {
+                    fields?: {
+                        field: string;
+                        message: string;
+                    }[];
+                    remaining?: {
+                        categoryId: string;
+                        sectionId: string | null;
+                        name: string;
+                        remaining: number;
+                    }[];
+                    retryAfterSeconds?: number;
+                };
+            };
+        };
+        OrderItemInput: {
+            categoryId: components["schemas"]["Identifier"];
+            sectionId?: components["schemas"]["Identifier"] | null;
+            quantity: number;
+        };
+        TermsDocumentRef: {
+            slug: string;
+            version: string;
+        };
+        /** @description One form for free RSVPs and paid checkout. The JSON form of the server-rendered order form (which posts the same fields form-encoded as qty.<categoryId>[.<sectionId>]). */
+        OrderInput: {
+            items: components["schemas"]["OrderItemInput"][];
+            purchaserName: string;
+            email: string;
+            emailConfirm: string;
+            attendeeNames?: string[];
+            termsAccepted: boolean;
+            termsDocuments: components["schemas"]["TermsDocumentRef"][];
+            marketingOptIn?: boolean;
+            idempotencyKey: string;
+            "cf-turnstile-response"?: string;
+        };
+        /** @description One form for free RSVPs and paid checkout. The JSON form of the server-rendered order form (which posts the same fields form-encoded as qty.<categoryId>[.<sectionId>]). */
+        TicketCheckoutInput: {
+            eventId: components["schemas"]["Identifier"];
+            items: components["schemas"]["OrderItemInput"][];
+            purchaserName: string;
+            email: string;
+            emailConfirm: string;
+            attendeeNames?: string[];
+            termsAccepted: boolean;
+            termsDocuments: components["schemas"]["TermsDocumentRef"][];
+            marketingOptIn?: boolean;
+            idempotencyKey: string;
+            "cf-turnstile-response"?: string;
+        };
+        VerificationRequired: {
+            /** @constant */
+            success: true;
+            /** @description Same answer whether or not the address already has tickets. */
+            data: {
+                /** @constant */
+                status: "verification_required";
+                /** @description Signed reference for the code page (/tickets/confirm?t=…). Not a credential. */
+                confirmToken: string;
+                expiresAt: number;
+                message: string;
+            };
+        };
+        CheckoutStarted: {
+            /** @constant */
+            success: true;
+            data: {
+                /** @constant */
+                status: "checkout";
+                orderId: string;
+                orderReference: string;
+                /** @description Stripe Checkout (test mode) or, in local development only, the local mock page. */
+                checkoutUrl: string;
+                mock: boolean;
+                holdExpiresAt: number;
+            };
+        };
+        ConfirmOrderInput: {
+            confirmToken: string;
+            code: string;
+        };
+        ConfirmOrderResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                orderId: string;
+                ticketsIssued: number;
+                alreadyConfirmed: boolean;
+                orderUrl: string;
+            };
+        };
+        RecoveryInput: {
+            email: string;
+            "cf-turnstile-response"?: string;
+        };
+        AcceptedMessage: {
+            /** @constant */
+            success: true;
+            data: {
+                message: string;
+            };
+        };
+        TransferInput: {
+            toName: string;
+            toEmail: string;
+            toEmailConfirm: string;
+        };
+        TicketVersionResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                ticketId: string;
+                version: number;
+            };
+        };
+        ReissueInput: {
+            reason: string;
+        };
+        RefundInput: {
+            ticketIds?: components["schemas"]["Identifier"][];
+            reason: string;
+        };
+        RefundResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                refundId: string | null;
+                ticketIds: string[];
+                amountCents: number;
+                /** @enum {unknown} */
+                status: "processed" | "cancelled_free" | "refund_pending" | "nothing_to_do";
+            };
+        };
+        EventChangeInput: {
+            /** @enum {unknown} */
+            kind: "cancelled" | "rescheduled" | "venue_changed";
+            reason?: string;
+            startDate?: string;
+            startTime?: string;
+            endDate?: string;
+            endTime?: string;
+            timezone?: string;
+            venueName?: string;
+            address?: string;
+            city?: string;
+            state?: string;
+        };
+        EventChangeResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                changeId: string;
+                notified: number;
+                ticketsVoided?: number;
+                ordersRefunded?: number;
+                refundsPending?: number;
+            };
+        };
+        WaitlistInput: {
+            email: string;
+            categoryId?: components["schemas"]["Identifier"];
+            quantity?: number;
+            "cf-turnstile-response"?: string;
+        };
+        /** @description A ticket category ("ticket type"). Price in dollars as typed or integer cents. */
+        CategoryInput: {
+            id?: components["schemas"]["Identifier"];
+            name: string;
+            /** @enum {unknown} */
+            kind: "general" | "vip" | "child" | "companion" | "accessible" | "group" | "table" | "day_pass" | "multi_day";
+            description?: string;
+            price: string | number;
+            capacity: string | number;
+            perOrderLimit?: number | string | null;
+            maxAge?: number | string | null;
+            seatsPerTicket?: number | string | null;
+            validDays?: string | string[] | null;
+            salesStart?: components["schemas"]["LocalDateTime"] | null;
+            salesEnd?: components["schemas"]["LocalDateTime"] | null;
+            companionOf?: number | string | null;
+            /** @enum {unknown} */
+            status?: "active" | "hidden" | "sold_out" | "closed";
+        };
+        /** @description Venue-local date and time (converted with the event's IANA time zone, DST-safe). */
+        LocalDateTime: {
+            date: string;
+            time?: string;
+        };
+        /** @description Event policies within the platform bounds (design §5.4). Missing fields take the defaults. */
+        EventPolicyInput: {
+            reentryAllowed?: boolean;
+            reentryLimit?: number | null;
+            /** @enum {unknown} */
+            refundPolicy?: "none" | "until_start" | "until_24h" | "until_48h" | "until_7d" | "organizer_discretion";
+            transferAllowed?: boolean;
+            transferCutoffHours?: number;
+            maxTransfersPerTicket?: number;
+            attendeeNamesRequired?: boolean;
+            maxTicketsPerOrder?: number;
+            doorSalesEnabled?: boolean;
+            doorSalesMethods?: ("free_issue" | "cash_recorded")[];
+            /** @enum {unknown} */
+            agePolicy?: "all_ages" | "min_age";
+            minAge?: number | null;
+            scanOpensMinutesBefore?: number;
+        };
+        /** @description Either the organizer form (EventEditInput with organizationId) or the older CreateEvent shape. */
+        EventCreateRequest: components["schemas"]["CreateEvent"] | components["schemas"]["EventEditInput"];
+        /** @description Organizer event create/edit with venue-local date/time, policies and categories. */
+        EventEditInput: {
+            organizationId?: components["schemas"]["Identifier"];
+            title: string;
+            /** @enum {unknown} */
+            category: "concert" | "worship" | "bible" | "conference" | "youth";
+            tagline?: string;
+            description: string;
+            venueName: string;
+            address?: string;
+            city: string;
+            state: string;
+            timezone: string;
+            start: components["schemas"]["LocalDateTime"];
+            end?: components["schemas"]["LocalDateTime"] | null;
+            /** @enum {unknown} */
+            admissionType: "free" | "paid";
+            categories: components["schemas"]["CategoryInput"][];
+            policy?: components["schemas"]["EventPolicyInput"];
+        };
+        EventSavedResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                eventId: string;
+                slug?: string;
+                /** @enum {unknown} */
+                status?: "approved" | "pending_review";
+                message: string;
+            };
+        };
+        /** @description Resend webhook payload (Svix-signed). */
+        ResendEvent: {
+            type: string;
+            created_at?: string;
+            data: {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        ResendWebhookResponse: {
+            /** @constant */
+            received: true;
+            applied: boolean;
+        };
+        /** @description Outcome of one Stripe event (`outcome` names what happened; extra fields per type). */
+        StripeWebhookResponse: {
+            /** @constant */
+            received: true;
+            eventId: string;
+            type?: string;
+            /** @constant */
+            deduplicated?: true;
+            outcome?: string;
+            orderId?: string;
+            ticketsIssued?: number;
+        } & {
+            [key: string]: unknown;
+        };
         /** @enum {string} */
         category: "concert" | "worship" | "bible" | "conference" | "youth";
         city: string;
@@ -1166,13 +1481,13 @@ export interface components {
                 "application/json": components["schemas"]["LegacyError"];
             };
         };
-        /** @description Documented API failure. Internal details are suppressed. */
-        SimpleError: {
+        /** @description Ticketing failure; the message says what to do next. Internal details are suppressed. */
+        TicketingError: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
-                "application/json": components["schemas"]["SimpleError"];
+                "application/json": components["schemas"]["TicketingError"];
             };
         };
     };
@@ -1449,7 +1764,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateEvent"];
+                "application/json": components["schemas"]["EventCreateRequest"];
             };
         };
         responses: {
@@ -1459,13 +1774,45 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CreateEventResponse"];
+                    "application/json": components["schemas"]["CreateEventResponse"] | components["schemas"]["EventSavedResponse"];
                 };
             };
-            400: components["responses"]["LegacyError"];
-            401: components["responses"]["LegacyError"];
-            403: components["responses"]["LegacyError"];
-            500: components["responses"]["LegacyError"];
+            /** @description Documented API failure. Internal details are suppressed. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegacyError"] | components["schemas"]["TicketingError"];
+                };
+            };
+            /** @description Documented API failure. Internal details are suppressed. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegacyError"] | components["schemas"]["TicketingError"];
+                };
+            };
+            /** @description Documented API failure. Internal details are suppressed. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegacyError"] | components["schemas"]["TicketingError"];
+                };
+            };
+            /** @description Documented API failure. Internal details are suppressed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegacyError"] | components["schemas"]["TicketingError"];
+                };
+            };
         };
     };
     getEvent: {
@@ -1494,6 +1841,39 @@ export interface operations {
             500: components["responses"]["LegacyError"];
         };
     };
+    updateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventEditInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventSavedResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            401: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
     registerAttendee: {
         parameters: {
             query?: never;
@@ -1506,33 +1886,30 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegisterAttendee"];
+                "application/json": components["schemas"]["OrderInput"];
+                "application/x-www-form-urlencoded": {
+                    [key: string]: unknown;
+                };
             };
         };
         responses: {
-            /** @description Successful response */
-            200: {
+            /** @description Verification email sent (or the identical answer) */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RegistrationResponse"];
+                    "application/json": components["schemas"]["VerificationRequired"];
                 };
             };
-            /** @description Successful response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RegistrationResponse"];
-                };
-            };
-            400: components["responses"]["LegacyError"];
-            403: components["responses"]["LegacyError"];
-            404: components["responses"]["LegacyError"];
-            409: components["responses"]["LegacyError"];
-            500: components["responses"]["LegacyError"];
+            400: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            413: components["responses"]["TicketingError"];
+            415: components["responses"]["TicketingError"];
+            429: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
         };
     };
     assignEventTeamMember: {
@@ -1626,7 +2003,7 @@ export interface operations {
             500: components["responses"]["LegacyError"];
         };
     };
-    lookupVerifiedTickets: {
+    lookupTicketRecords: {
         parameters: {
             query?: never;
             header?: never;
@@ -1635,24 +2012,28 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TicketLookupInput"];
+                "application/json": components["schemas"]["RecoveryInput"];
+                "application/x-www-form-urlencoded": {
+                    [key: string]: unknown;
+                };
             };
         };
         responses: {
-            /** @description Successful response */
-            200: {
+            /** @description Same answer for every address */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TicketLookupResponse"];
+                    "application/json": components["schemas"]["AcceptedMessage"];
                 };
             };
-            400: components["responses"]["LegacyError"];
-            401: components["responses"]["LegacyError"];
-            403: components["responses"]["LegacyError"];
-            429: components["responses"]["LegacyError"];
-            500: components["responses"]["LegacyError"];
+            400: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            413: components["responses"]["TicketingError"];
+            415: components["responses"]["TicketingError"];
+            429: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
         };
     };
     scanTicketPass: {
@@ -1903,7 +2284,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OrderRefundInput"];
+                "application/json": components["schemas"]["RefundInput"];
             };
         };
         responses: {
@@ -1913,15 +2294,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrderRefundResponse"];
+                    "application/json": components["schemas"]["RefundResponse"];
                 };
             };
-            400: components["responses"]["LegacyError"];
-            401: components["responses"]["LegacyError"];
-            403: components["responses"]["LegacyError"];
-            404: components["responses"]["LegacyError"];
-            409: components["responses"]["LegacyError"];
-            500: components["responses"]["LegacyError"];
+            400: components["responses"]["TicketingError"];
+            401: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            502: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
         };
     };
     createTestCheckout: {
@@ -1933,7 +2315,10 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CheckoutInput"];
+                "application/json": components["schemas"]["TicketCheckoutInput"];
+                "application/x-www-form-urlencoded": {
+                    [key: string]: unknown;
+                };
             };
         };
         responses: {
@@ -1943,14 +2328,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CheckoutResponse"];
+                    "application/json": components["schemas"]["CheckoutStarted"];
                 };
             };
-            400: components["responses"]["SimpleError"];
-            403: components["responses"]["SimpleError"];
-            409: components["responses"]["SimpleError"];
-            500: components["responses"]["SimpleError"];
-            503: components["responses"]["SimpleError"];
+            /** @description Free order; verification email sent */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationRequired"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            413: components["responses"]["TicketingError"];
+            415: components["responses"]["TicketingError"];
+            429: components["responses"]["TicketingError"];
+            502: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
         };
     };
     receiveStripeWebhook: {
@@ -1972,12 +2370,206 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WebhookResponse"];
+                    "application/json": components["schemas"]["StripeWebhookResponse"];
                 };
             };
-            400: components["responses"]["SimpleError"];
-            500: components["responses"]["SimpleError"];
-            503: components["responses"]["SimpleError"];
+            400: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            500: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    confirmOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmOrderInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOrderResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            410: components["responses"]["TicketingError"];
+            429: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    transferTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketVersionResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            401: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    reissueTicket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReissueInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketVersionResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            401: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    changeEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventChangeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventChangeResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            401: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            409: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    joinWaitlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaitlistInput"];
+                "application/x-www-form-urlencoded": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedMessage"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            403: components["responses"]["TicketingError"];
+            404: components["responses"]["TicketingError"];
+            413: components["responses"]["TicketingError"];
+            415: components["responses"]["TicketingError"];
+            429: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
+        };
+    };
+    receiveResendWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResendWebhookResponse"];
+                };
+            };
+            400: components["responses"]["TicketingError"];
+            503: components["responses"]["TicketingError"];
         };
     };
 }

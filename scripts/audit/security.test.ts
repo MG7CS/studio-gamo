@@ -3,7 +3,16 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
-import { IdentityService, LiveService, AdminService } from '../../packages/domain/index.ts';
+import {
+  IdentityService,
+  LiveService,
+  AdminService,
+  placeOrder,
+  readConfirmToken,
+  confirmFreeOrder,
+  refundTickets,
+  getTermsDocument,
+} from '../../packages/domain/index.ts';
 import {
   createSession,
   validateSession,
@@ -30,6 +39,35 @@ const migrations = () =>
     .sort()
     .map((x) => readFileSync(`packages/db/migrations/${x}`, 'utf8'));
 const secret = 'audit-only-not-a-real-secret-32-characters';
+/** A free order through the ticketing service (local env: simulated email, development keys). */
+function rsvp(f: Awaited<ReturnType<typeof fixture>>, email: string, quantity: number, key?: string) {
+  return placeOrder(
+    f.d1,
+    { DB: f.d1, ENVIRONMENT: 'local' },
+    {
+      request: {
+        eventId: f.event.id,
+        items: [{ categoryId: f.tier.id, sectionId: null, quantity }],
+        purchaserName: 'Sample Attendee',
+        email,
+        emailConfirm: email,
+        attendeeNames: [],
+        termsAccepted: true,
+        termsDocuments: ['ticket-terms', 'privacy-policy'].map((slug) => ({
+          slug,
+          version: getTermsDocument(slug)!.version,
+        })),
+        marketingOptIn: false,
+        idempotencyKey: key ?? `idem_${email.replace(/[^a-z0-9]/gi, '_')}_${quantity}_x`,
+      },
+      allow: 'free',
+      ipHash: null,
+      origin: 'https://live.example.test',
+      https: true,
+      now: Math.floor(Date.now() / 1000),
+    },
+  );
+}
 async function fixture() {
   const d1 = createInMemoryD1();
   await applyMigrations(d1, migrations());
@@ -158,13 +196,7 @@ test('registration races enforce capacity, duplicate uniqueness, outbox atomicit
   const f = await fixture();
   try {
     const outcomes = await Promise.allSettled(
-      Array.from({ length: 12 }, (_, n) =>
-        f.live.registerFreeAttendee(f.event.id, {
-          attendeeName: 'Sample Attendee',
-          attendeeEmail: `sample${n}@example.invalid`,
-          quantity: 1,
-        }),
-      ),
+      Array.from({ length: 12 }, (_, n) => rsvp(f, `sample${n}@example.org`, 1)),
     );
     assert.equal(outcomes.filter((x) => x.status === 'fulfilled').length, 3);
     assert.equal(
@@ -172,17 +204,18 @@ test('registration races enforce capacity, duplicate uniqueness, outbox atomicit
         .reserved_count,
       3,
     );
-    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM notification_jobs').get() as any).n, 3);
-    const duplicates = await Promise.all(
-      Array.from({ length: 8 }, () =>
-        f.live.registerFreeAttendee(f.event.id, {
-          attendeeName: 'Different Name',
-          attendeeEmail: ' SAMPLE0@example.invalid ',
-          quantity: 10,
-        }),
-      ),
+    assert.equal(
+      (f.d1.sqlite.prepare("SELECT count(*) n FROM email_log WHERE kind = 'order_verification'").get() as any)
+        .n,
+      3,
     );
-    assert.ok(duplicates.every((x) => x.isDuplicate));
+    // The same idempotency key (double submit) never holds a second time.
+    const winner = outcomes.findIndex((x) => x.status === 'fulfilled');
+    const duplicates = await Promise.all(
+      Array.from({ length: 8 }, () => rsvp(f, `sample${winner}@example.org`, 1)),
+    );
+    assert.ok(duplicates.every((x) => x.type === 'verify'));
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM ticket_orders').get() as any).n, 3);
     assert.deepEqual(f.d1.sqlite.prepare('PRAGMA foreign_key_check').all() as any, []);
     assert.equal((f.d1.sqlite.prepare('PRAGMA integrity_check').get() as any).integrity_check, 'ok');
     await assert.rejects(
@@ -223,14 +256,7 @@ test('moderation rejects normal users, self-approval, repeat decisions and inval
     await assert.rejects(f.live.createEvent(f.org.id, { ...f.input, startsAt: new Date(0) }), /schedule/);
     await assert.rejects(f.live.createEvent(f.org.id, { ...f.input, endsAt: new Date(0) }), /schedule/);
     f.d1.sqlite.prepare("UPDATE events SET status='canceled' WHERE id=?").run(f.event.id);
-    await assert.rejects(
-      f.live.registerFreeAttendee(f.event.id, {
-        attendeeName: 'Sample',
-        attendeeEmail: 'x@example.invalid',
-        quantity: 1,
-      }),
-      /CONFLICT/,
-    );
+    await assert.rejects(rsvp(f, 'x@example.org', 1), (e: { code?: string }) => e.code === 'CLOSED');
   } finally {
     f.d1.sqlite.close();
   }
@@ -300,39 +326,41 @@ test('scoped system role rows never grant global staff permissions', async () =>
     f.d1.sqlite.close();
   }
 });
-test('registration insert failure rolls back inventory and notification; cancellation releases capacity', async () => {
+test('order insert failure rolls back the whole hold batch; cancelling tickets releases capacity', async () => {
   const f = await fixture();
   try {
     f.d1.sqlite.exec(
-      "CREATE TRIGGER fail_notice BEFORE INSERT ON notification_jobs BEGIN SELECT RAISE(ABORT,'injected failure'); END;",
+      "CREATE TRIGGER fail_item BEFORE INSERT ON order_items BEGIN SELECT RAISE(ABORT,'injected failure'); END;",
     );
-    await assert.rejects(
-      f.live.registerFreeAttendee(f.event.id, {
-        attendeeName: 'Sample',
-        attendeeEmail: 'rollback@example.invalid',
-        quantity: 2,
-      }),
-    );
-    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM event_registrations').get() as any).n, 0);
+    await assert.rejects(rsvp(f, 'rollback@example.org', 2));
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM ticket_orders').get() as any).n, 0);
+    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM ticket_holds').get() as any).n, 0);
     assert.equal(
       (f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get() as any).reserved_count,
       0,
     );
-    f.d1.sqlite.exec('DROP TRIGGER fail_notice');
-    const first = await f.live.registerFreeAttendee(f.event.id, {
-      attendeeName: 'Sample',
-      attendeeEmail: 'cancel@example.invalid',
-      quantity: 2,
+    f.d1.sqlite.exec('DROP TRIGGER fail_item');
+    const env = { DB: f.d1, ENVIRONMENT: 'local' };
+    const placed = (await rsvp(f, 'cancel@example.org', 2)) as { confirmToken: string };
+    const orderId = (await readConfirmToken(env, placed.confirmToken, Math.floor(Date.now() / 1000)))!;
+    await confirmFreeOrder(f.d1, env, {
+      orderId,
+      now: Math.floor(Date.now() / 1000),
+      origin: 'https://live.example.test',
     });
-    f.d1.sqlite
-      .prepare("UPDATE event_registrations SET status='canceled' WHERE id=?")
-      .run(first.registration.id);
+    await refundTickets(f.d1, env, {
+      orderId,
+      reason: 'Sample cancellation',
+      actorUserId: f.owner.id,
+      now: Math.floor(Date.now() / 1000),
+      origin: 'https://live.example.test',
+    });
     assert.equal(
       (f.d1.sqlite.prepare('SELECT reserved_count FROM ticket_tiers').get() as any).reserved_count,
       0,
     );
     assert.throws(() =>
-      f.d1.sqlite.prepare('UPDATE event_registrations SET quantity=5 WHERE id=?').run(first.registration.id),
+      f.d1.sqlite.prepare('UPDATE order_items SET quantity=5 WHERE order_id=?').run(orderId),
     );
   } finally {
     f.d1.sqlite.close();
@@ -464,7 +492,7 @@ test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejec
     f.d1.sqlite.close();
   }
 });
-test('Stripe webhook route enforces signature timestamp tolerance, gates financial events with 503, and deduplicates unsupported events', async () => {
+test('Stripe webhook route enforces signature timestamp tolerance, processes financial events idempotently, and deduplicates unsupported events', async () => {
   const { POST: webhook } = await import('../../apps/live/src/pages/api/webhook/stripe.ts');
   const f = await fixture();
   try {
@@ -504,22 +532,38 @@ test('Stripe webhook route enforces signature timestamp tolerance, gates financi
       900,
     );
     assert.equal(future.status, 400);
-    // Financial events (checkout, charge, payment_intent, refund) gated with 503 and NOT recorded as processed
-    for (const finType of [
-      'checkout.session.completed',
-      'charge.refunded',
-      'payment_intent.succeeded',
-      'refund.created',
-    ]) {
+    // Financial events for orders this database does not know are processed (and recorded) without effect.
+    for (const finType of ['checkout.session.completed', 'charge.refunded', 'charge.dispute.created']) {
       const res = await sendWebhook({
-        id: `evt_${finType}`,
+        id: `evt_${finType.replace(/\./g, '_')}`,
         type: finType,
         livemode: false,
-        data: { object: { id: 'obj_1' } },
+        data: {
+          object: { id: 'cs_test_unknown', payment_status: 'paid', metadata: { orderId: 'ord_missing' } },
+        },
       });
-      assert.equal(res.status, 503);
+      assert.equal(res.status, 200);
+      assert.equal((await res.json()).outcome, 'unknown_order');
     }
-    assert.equal((f.d1.sqlite.prepare('SELECT count(*) n FROM stripe_webhook_events').get() as any).n, 0);
+    assert.equal(
+      (
+        f.d1.sqlite
+          .prepare("SELECT count(*) n FROM stripe_webhook_events WHERE status = 'processed'")
+          .get() as any
+      ).n,
+      3,
+    );
+    // Without a webhook secret outside local the route fails closed.
+    const unsigned = await webhook({
+      request: new Request('https://live.gamostudio.org/api/webhook/stripe', {
+        method: 'POST',
+        headers: { 'stripe-signature': 't=1,v1=00' },
+        body: '{}',
+      }),
+      params: {},
+      locals: { runtime: { env: { DB: f.d1, ENVIRONMENT: 'production' } } },
+    } as any);
+    assert.equal(unsigned.status, 503);
     // Unsupported non-financial event recorded idempotently as ignored
     const nonFin = {
       id: 'evt_nonfin_1',
@@ -787,11 +831,13 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
       '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;',
     );
     // Register attendee with HTML payload in name
-    const reg = await f.live.registerFreeAttendee(f.event.id, {
-      attendeeName: '<b>Sample & <script>evil()</script></b>',
-      attendeeEmail: 'outbox@example.invalid',
-      quantity: 1,
-    });
+    // A pre-0013 registration row (the legacy table and its outbox trigger remain for old RSVPs).
+    f.d1.sqlite
+      .prepare(
+        "INSERT INTO event_registrations (id, event_id, tier_id, attendee_name, attendee_email, quantity, qr_token, status, created_at) VALUES ('reg_legacy_outbox', ?, ?, ?, 'outbox@example.invalid', 1, 'gamt_audit000_0123456789abcdef0123456789abcdef', 'confirmed', unixepoch())",
+      )
+      .run(f.event.id, f.tier.id, '<b>Sample & <script>evil()</script></b>');
+    const reg = { registration: { id: 'reg_legacy_outbox' } };
     let capturedPayload: any = null;
     let shouldFail = true;
     globalThis.fetch = (async (_url: any, init: any) => {

@@ -1,0 +1,21 @@
+type: object
+additionalProperties: true
+description: Outcome of one Stripe event (`outcome` names what happened; extra fields per type).
+properties:
+  received:
+    const: true
+  eventId:
+    type: string
+  type:
+    type: string
+  deduplicated:
+    const: true
+  outcome:
+    type: string
+  orderId:
+    type: string
+  ticketsIssued:
+    type: integer
+required:
+  - received
+  - eventId

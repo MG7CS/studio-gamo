@@ -1,69 +1,19 @@
-import { readContract, validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
-import { requireSameOrigin } from '@gamo/auth';
-import { getDb } from '@gamo/db';
-import {
-  LiveService,
-  NotificationService,
-  registerAttendeeSchema,
-  jsonResponse,
-  handleApiError,
-  getRuntimeEnv,
-} from '@gamo/domain';
+import { validateContract } from '@gamo/api-contracts/runtime';
+import { ticketingErrorResponse } from '@gamo/domain';
+import { handleOrderPost } from '../../../../lib/ticketing-api';
 
 export const prerender = false;
 
 /**
- * POST /api/events/[id]/register — Registers an attendee for a free Christian event.
- *
- * Requirements:
- * 1. Validates input schema (attendeeName, attendeeEmail, quantity).
- * 2. Enforces event is in `approved` status.
- * 3. Prevents duplicate registration for the same email/event.
- * 4. Records registration in D1 with cryptographically secure QR admission token and durable notification_jobs row.
- * 5. Processes the queued notification_jobs entry via NotificationService (with HTML escaping and retry backoff).
+ * POST /api/events/{id}/register — free RSVP (design §4.2): holds the tickets and emails a code and a
+ * confirm link; tickets are issued on confirmation. Same answer whether or not the address has tickets.
  */
 export const POST: APIRoute = async (context) => {
   try {
     const eventId = validateContract('Identifier', context.params.id) as string;
-
-    requireSameOrigin(context.request);
-    const runtimeEnv = await getRuntimeEnv(context);
-    const db = getDb(runtimeEnv.DB);
-    const liveService = new LiveService(db);
-
-    const body = await readContract(context.request, 'RegisterAttendee');
-    const validated = registerAttendeeSchema.parse(body);
-
-    // 1. Process free registration in D1 (trigger atomically reserves capacity and inserts notification_jobs row)
-    const { registration, isDuplicate } = await liveService.registerFreeAttendee(eventId, validated);
-
-    let message = 'Registration request received.';
-    if (!isDuplicate) {
-      const notificationService = new NotificationService(
-        db,
-        {
-          apiKey: runtimeEnv.RESEND_API_KEY,
-          defaultFrom: runtimeEnv.EMAIL_FROM,
-          allowMock: runtimeEnv.ENVIRONMENT === 'local',
-        },
-        { brandEnv: runtimeEnv },
-      );
-      const jobOutcome = await notificationService.processRegistrationJob(registration.id);
-      message =
-        jobOutcome?.status === 'sent'
-          ? 'Registration confirmed and confirmation notification processed.'
-          : 'Registration confirmed. Confirmation notification is queued for retry.';
-    }
-
-    return jsonResponse(
-      {
-        isDuplicate,
-        message,
-      },
-      isDuplicate ? 200 : 201,
-    );
+    return handleOrderPost(context, { eventId, allow: 'free', contract: 'OrderInput' });
   } catch (err) {
-    return handleApiError(err);
+    return ticketingErrorResponse(err);
   }
 };

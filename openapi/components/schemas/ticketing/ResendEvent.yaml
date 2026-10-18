@@ -1,0 +1,14 @@
+type: object
+additionalProperties: true
+description: Resend webhook payload (Svix-signed).
+properties:
+  type:
+    type: string
+  created_at:
+    type: string
+  data:
+    type: object
+    additionalProperties: true
+required:
+  - type
+  - data

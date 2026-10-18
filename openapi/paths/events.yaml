@@ -76,8 +76,13 @@ post:
   operationId: proposeEvent
   tags:
     - Live
-  summary: Submit event for review
-  description: Submit event for review
+  summary: Create an event (organizer)
+  description: >-
+    Two request shapes. The organizer form (EventEditInput: venue-local start date and time in an IANA
+    zone, policies within bounds, ticket categories) creates the event, its policies and categories in one
+    batch: the organizer's first event goes to pending_review, later ones publish once an event of that
+    organizer was approved (unless staff set always_review). The older shape (CreateEvent with startsAt)
+    is still accepted and always goes to review.
   security:
     - BrowserSession: []
   x-application: live
@@ -93,18 +98,44 @@ post:
       content:
         application/json:
           schema:
-            $ref: ../components/schemas/live/CreateEventResponse.yaml
+            anyOf:
+              - $ref: ../components/schemas/live/CreateEventResponse.yaml
+              - $ref: ../components/schemas/ticketing/EventSavedResponse.yaml
     '400':
-      $ref: ../components/responses/LegacyError.yaml
+      description: Documented API failure. Internal details are suppressed.
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: ../components/schemas/shared/LegacyError.yaml
+              - $ref: ../components/schemas/ticketing/TicketingError.yaml
     '401':
-      $ref: ../components/responses/LegacyError.yaml
+      description: Documented API failure. Internal details are suppressed.
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: ../components/schemas/shared/LegacyError.yaml
+              - $ref: ../components/schemas/ticketing/TicketingError.yaml
     '403':
-      $ref: ../components/responses/LegacyError.yaml
+      description: Documented API failure. Internal details are suppressed.
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: ../components/schemas/shared/LegacyError.yaml
+              - $ref: ../components/schemas/ticketing/TicketingError.yaml
     '500':
-      $ref: ../components/responses/LegacyError.yaml
+      description: Documented API failure. Internal details are suppressed.
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: ../components/schemas/shared/LegacyError.yaml
+              - $ref: ../components/schemas/ticketing/TicketingError.yaml
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/live/CreateEvent.yaml
+          $ref: ../components/schemas/ticketing/EventCreateRequest.yaml

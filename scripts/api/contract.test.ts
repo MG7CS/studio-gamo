@@ -13,6 +13,10 @@ import {
   AdminService,
   createEventSchema,
   handleApiError,
+  orderVerificationCode,
+  readConfirmToken,
+  svixSignature,
+  getTermsDocument,
 } from '../../packages/domain/index.ts';
 import { createSession } from '../../packages/auth/index.ts';
 import { validateContract } from '../../packages/api-contracts/src/runtime.ts';
@@ -37,6 +41,8 @@ const env: Record<string, unknown> = {
   ALLOW_AUTH_SIMULATION: 'true',
   STRIPE_SECRET_KEY: 'mock_test_key',
   STRIPE_WEBHOOK_SECRET: 'contract-test-webhook-material',
+  STRIPE_TEST_CHECKOUT: 'true',
+  RESEND_WEBHOOK_SECRET: 'whsec_Y29udHJhY3QtdGVzdC1yZXNlbmQtd2ViaG9vaw==',
   RESEND_API_KEY: 're_mock_contract',
   ENABLE_BREAK_GLASS_AUTH: 'true',
   ADMIN_ACCESS_TOKEN: 'contract-test-emergency-material',
@@ -138,6 +144,7 @@ before(async () => {
                 ...(req.headers['x-contract-production']
                   ? { ENVIRONMENT: 'production', ALLOW_DEMO_SESSION: 'false' }
                   : {}),
+                ...(req.headers['x-contract-no-resend'] ? { RESEND_WEBHOOK_SECRET: undefined } : {}),
               },
             },
           },
@@ -387,84 +394,176 @@ test('admin routes deny unauthenticated HTTP; documented boundary-only success w
   const listed = await call('live', 'GET', '/api/events?city=Phoenix&category=worship', 200);
   assert.equal(listed.body.data.length, 1);
 });
-test('registration rejects invalid fields and tiers; sequential duplicate response is documented', async () => {
+const TURNSTILE = { 'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX' };
+const TERMS = ['ticket-terms', 'privacy-policy'].map((slug) => ({
+  slug,
+  version: getTermsDocument(slug)!.version,
+}));
+let orderSeq = 0;
+function orderBody(categoryId: string, email: string, quantity = 1, extra: Record<string, unknown> = {}) {
+  orderSeq++;
+  return {
+    items: [{ categoryId, quantity }],
+    purchaserName: 'Sample Buyer',
+    email,
+    emailConfirm: email,
+    termsAccepted: true,
+    termsDocuments: TERMS,
+    idempotencyKey: `idem_contract_${orderSeq}_${'x'.repeat(12)}`,
+    ...TURNSTILE,
+    ...extra,
+  };
+}
+let customerCookie = '';
+let freeOrderId = '';
+test('free RSVP: validation, sold-out counts, identical answers, email-code confirmation and customer cookie', async () => {
+  const tierId = `tier_${eventId}_0`;
   await call('live', 'POST', `/api/events/${eventId}/register`, 400, {
-    attendeeName: 'S',
-    attendeeEmail: 'no',
-    quantity: 11,
+    ...orderBody(tierId, 'no'),
+    emailConfirm: 'no',
   });
-  await call('live', 'POST', '/api/events/evt_missing/register', 404, {
-    attendeeName: 'Sample attendee',
-    attendeeEmail: 'sample@example.invalid',
+  await call('live', 'POST', `/api/events/${eventId}/register`, 400, {
+    ...orderBody(tierId, 'a@example.org'),
+    extra: 1,
   });
-  await call('live', 'POST', `/api/events/${eventId}/register`, 409, {
-    attendeeName: 'Sample attendee',
-    attendeeEmail: 'sample@example.invalid',
-    tierId: 'tier_missing',
-  });
-  const body = { attendeeName: 'Sample attendee', attendeeEmail: 'sample@example.invalid', quantity: 10 };
-  const first = await call('live', 'POST', `/api/events/${eventId}/register`, 201, body);
-  const second = await call('live', 'POST', `/api/events/${eventId}/register`, 200, body);
-  assert.equal(first.body.data.registration, undefined);
-  assert.equal(second.body.data.registration, undefined);
-  assert.equal(second.body.data.isDuplicate, true);
-});
-test('checkout validates quantities, lookup, price authority and isolated mock success', async () => {
-  await call('live', 'POST', '/api/checkout/session', 400, {});
-  await call('live', 'POST', '/api/checkout/session', 400, { eventId, quantity: 11 });
-  await call('live', 'POST', '/api/checkout/session', 400, { eventId, quantity: '2' });
-  await call('live', 'POST', '/api/checkout/session', 400, { eventId, amount: 1 });
-  await call('live', 'POST', '/api/checkout/session', 503, { eventId: 'evt_missing' });
-  await call('live', 'POST', '/api/checkout/session', 503, { eventId });
-  const paid = await services.live.createEvent(
-    orgId,
-    createEventSchema.parse({
-      ...input,
-      admissionType: 'paid',
-      tiers: [{ name: 'Sample paid tier', priceCents: 2500, capacity: 10 }],
-    }),
-  );
-  await services.admin.reviewEvent('staff_reviewer_demo', paid.event.id, { decision: 'approved' });
-  await call('live', 'POST', `/api/events/${paid.event.id}/register`, 409, {
-    attendeeName: 'Sample attendee',
-    attendeeEmail: 'sample@example.invalid',
-  });
-  await call('live', 'POST', '/api/checkout/session', 503, { eventId: paid.event.id, tierIndex: 10 });
-  const checkout = await call('live', 'POST', '/api/checkout/session', 503, {
-    eventId: paid.event.id,
-    quantity: 2,
-  });
-  assert.match(checkout.body.error, /disabled/);
-  // Outside local development a mock_/missing key means paid checkout is unavailable, and the
-  // request is refused before any hold or order is created.
-  const holdsBefore = (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n;
-  const unconfigured = await call(
-    'live',
-    'POST',
-    '/api/checkout/session',
-    503,
-    { eventId: paid.event.id, quantity: 1 },
-    { 'x-contract-production': '1' },
-  );
-  assert.match(unconfigured.body.error, /not available/);
-  assert.equal((d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n, holdsBefore);
-  // Cross-origin browser requests are rejected.
-  await call(
-    'live',
-    'POST',
-    '/api/checkout/session',
-    403,
-    { eventId: paid.event.id },
-    { origin: 'https://evil.example' },
-  );
   await call(
     'live',
     'POST',
     `/api/events/${eventId}/register`,
-    403,
-    { attendeeName: 'Sample attendee', attendeeEmail: 'cross@example.invalid' },
-    { 'sec-fetch-site': 'cross-site' },
+    400,
+    orderBody('tier_missing', 'a@example.org'),
   );
+  await call('live', 'POST', `/api/events/${eventId}/register`, 400, {
+    ...orderBody(tierId, 'a@example.org'),
+    termsAccepted: false,
+  });
+  await call('live', 'POST', `/api/events/${eventId}/register`, 400, orderBody(tierId, 'a@example.org', 11));
+  await call('live', 'POST', '/api/events/evt_missing/register', 404, orderBody(tierId, 'a@example.org'));
+  await call('live', 'POST', `/api/events/${eventId}/register`, 403, orderBody(tierId, 'cross@example.org'), {
+    'sec-fetch-site': 'cross-site',
+  });
+  const body = orderBody(tierId, 'sample@example.invalid', 2);
+  const first = await call('live', 'POST', `/api/events/${eventId}/register`, 202, body);
+  const again = await call('live', 'POST', `/api/events/${eventId}/register`, 202, body);
+  assert.equal(first.body.data.confirmToken, again.body.data.confirmToken);
+  assert.equal(first.body.data.registration, undefined);
+  // Wrong code, then the right one (derived with the local development key).
+  freeOrderId = (await readConfirmToken(env, first.body.data.confirmToken, Math.floor(Date.now() / 1000)))!;
+  const code = await orderVerificationCode(env, freeOrderId);
+  await call('live', 'POST', '/api/orders/confirm', 400, {
+    confirmToken: first.body.data.confirmToken,
+    code: code === '000000' ? '111111' : '000000',
+  });
+  const confirmed = await call('live', 'POST', '/api/orders/confirm', 200, {
+    confirmToken: first.body.data.confirmToken,
+    code,
+  });
+  assert.equal(confirmed.body.data.ticketsIssued, 2);
+  customerCookie = confirmed.response.headers.get('set-cookie')!.split(';')[0];
+  assert.match(customerCookie, /^__gamo_customer=/);
+  const replay = await call('live', 'POST', '/api/orders/confirm', 200, {
+    confirmToken: first.body.data.confirmToken,
+    code,
+  });
+  assert.equal(replay.body.data.ticketsIssued, 0);
+  // Sold out answers 409 with remaining counts.
+  const small = await services.live.createEvent(
+    orgId,
+    createEventSchema.parse({
+      ...input,
+      title: 'Sample small RSVP',
+      tiers: [{ name: 'Only two', priceCents: 0, capacity: 2 }],
+    }),
+  );
+  await services.admin.reviewEvent('staff_reviewer_demo', small.event.id, { decision: 'approved' });
+  await call(
+    'live',
+    'POST',
+    `/api/events/${small.event.id}/register`,
+    202,
+    orderBody(small.tiers[0].id, 'b1@example.org', 2),
+  );
+  const soldOut = await call(
+    'live',
+    'POST',
+    `/api/events/${small.event.id}/register`,
+    409,
+    orderBody(small.tiers[0].id, 'b2@example.org', 1),
+  );
+  assert.deepEqual(
+    soldOut.body.error.details.remaining.map((r: any) => r.remaining),
+    [0],
+  );
+  await call('live', 'POST', `/api/events/${small.event.id}/waitlist`, 202, {
+    email: 'b2@example.org',
+    categoryId: small.tiers[0].id,
+    quantity: 1,
+    ...TURNSTILE,
+  });
+  await call('live', 'POST', `/api/events/${small.event.id}/waitlist`, 400, {
+    email: 'b2@example.org',
+    quantity: 50,
+    ...TURNSTILE,
+  });
+});
+let paidEventId = '';
+let paidOrderId = '';
+test('paid checkout: production always 503, local mock session, cross-origin refused, free total takes the free flow', async () => {
+  const paid = await services.live.createEvent(
+    orgId,
+    createEventSchema.parse({
+      ...input,
+      title: 'Sample paid concert',
+      admissionType: 'paid',
+      tiers: [{ name: 'Seat', priceCents: 2500, capacity: 10 }],
+    }),
+  );
+  await services.admin.reviewEvent('staff_reviewer_demo', paid.event.id, { decision: 'approved' });
+  paidEventId = paid.event.id;
+  const tierId = paid.tiers[0].id;
+  await call('live', 'POST', '/api/checkout/session', 400, {});
+  await call(
+    'live',
+    'POST',
+    `/api/events/${paidEventId}/register`,
+    400,
+    orderBody(tierId, 'payer@example.org'),
+  );
+  const holdsBefore = (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n;
+  const closed = await call(
+    'live',
+    'POST',
+    '/api/checkout/session',
+    503,
+    { eventId: paidEventId, ...orderBody(tierId, 'payer@example.org') },
+    { 'x-contract-production': '1' },
+  );
+  assert.match(closed.body.error.message, /not available|unavailable/);
+  assert.equal((d1.sqlite.prepare('SELECT COUNT(*) AS n FROM ticket_holds').get() as any).n, holdsBefore);
+  await call(
+    'live',
+    'POST',
+    '/api/checkout/session',
+    403,
+    { eventId: paidEventId, ...orderBody(tierId, 'payer@example.org') },
+    { origin: 'https://evil.example' },
+  );
+  const started = await call('live', 'POST', '/api/checkout/session', 200, {
+    eventId: paidEventId,
+    ...orderBody(tierId, 'payer@example.org', 2),
+  });
+  assert.equal(started.body.data.mock, true);
+  assert.match(started.body.data.checkoutUrl, /\/local-test\/stripe-checkout\/cs_test_local_/);
+  paidOrderId = started.body.data.orderId;
+  assert.equal(
+    (d1.sqlite.prepare('SELECT total_cents AS t FROM ticket_orders WHERE id = ?').get(paidOrderId) as any).t,
+    5000,
+  );
+  const freeTotal = await call('live', 'POST', '/api/checkout/session', 202, {
+    eventId,
+    ...orderBody(`tier_${eventId}_0`, 'freebie@example.org'),
+  });
+  assert.equal(freeTotal.body.data.status, 'verification_required');
 });
 async function signed(event: any, expected = event.livemode ? 400 : 200) {
   const body = JSON.stringify(event),
@@ -507,31 +606,38 @@ test('webhook verifies raw signature, rejects live events, accepts ignored test 
   const duplicate = await signed(event);
   assert.equal(duplicate.body.deduplicated, true);
 });
-test('sandbox completion never applies unapproved allocations or estimated fees', async () => {
-  await signed(
-    {
-      id: 'evt_contract_completion',
-      type: 'checkout.session.completed',
-      livemode: false,
-      data: {
-        object: {
-          id: 'cs_contract_test',
-          payment_status: 'paid',
-          amount_total: 5000,
-          currency: 'usd',
-          metadata: { eventId },
-        },
+test('sandbox completion issues the paid tickets once, never applies allocations, and a mismatch is never fulfilled', async () => {
+  const sessionId = (
+    d1.sqlite
+      .prepare('SELECT stripe_checkout_session_id AS s FROM ticket_orders WHERE id = ?')
+      .get(paidOrderId) as any
+  ).s;
+  const completion = {
+    id: 'evt_contract_completion',
+    type: 'checkout.session.completed',
+    livemode: false,
+    data: {
+      object: {
+        id: sessionId,
+        payment_status: 'paid',
+        amount_total: 5000,
+        currency: 'usd',
+        payment_intent: 'pi_test_contract_1',
+        metadata: { orderId: paidOrderId },
       },
     },
-    503,
+  };
+  const done = await signed(completion);
+  assert.equal(done.body.ticketsIssued, 2);
+  assert.equal((await signed(completion)).body.deduplicated, true);
+  assert.equal(
+    (d1.sqlite.prepare('SELECT count(*) AS n FROM tickets WHERE order_id = ?').get(paidOrderId) as any).n,
+    2,
   );
   const rows = d1.sqlite
-    .prepare('SELECT category,amount_cents FROM ledger_entries WHERE source_id=?')
-    .all(eventId) as any;
-  assert.deepEqual(
-    rows.map((row: any) => ({ ...row })),
-    [],
-  );
+    .prepare('SELECT category FROM ledger_entries WHERE source_id IN (?, ?)')
+    .all(paidEventId, paidOrderId) as any;
+  assert.deepEqual(rows, []);
 });
 test('standalone Live platform workflows: teams, verified ticket lookup, QR scan replay protection, artists, agents, bookings, paid sandbox fulfillment, refunds, and linked production', async () => {
   const nowSec = Math.floor(Date.now() / 1000);
@@ -566,19 +672,23 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
     { cookie: coOrgCookie },
   );
 
-  // 2. Verified self-service ticket lookup (email alone is insufficient; wrong code -> 401)
-  await call('live', 'POST', '/api/tickets/lookup', 401, {
-    email: 'sample@example.invalid',
-    verificationCode: '000000',
+  // 2. Ticket recovery: one answer for every address (a link is emailed only when tickets exist).
+  const unknownLookup = await call('live', 'POST', '/api/tickets/lookup', 202, {
+    email: 'nobody@example.org',
+    ...TURNSTILE,
   });
-  const lookupChal = await services.identity.issueEmailChallenge('sample@example.invalid');
-  const lookedUp = await call('live', 'POST', '/api/tickets/lookup', 200, {
+  const knownLookup = await call('live', 'POST', '/api/tickets/lookup', 202, {
     email: 'sample@example.invalid',
-    verificationCode: lookupChal.code,
+    ...TURNSTILE,
   });
-  assert.equal(lookedUp.body.data.registrations.length, 1);
-  assert.equal(lookedUp.body.data.tickets.length, 1);
-  const freeQrToken = lookedUp.body.data.tickets[0].qrToken;
+  assert.equal(unknownLookup.body.data.message, knownLookup.body.data.message);
+  await call('live', 'POST', '/api/tickets/lookup', 400, { email: 'x@example.org' });
+  // A pre-0013 RSVP pass (legacy gamt_ token) stays scannable through the legacy path.
+  const freeQrToken = 'gamt_contract_0123456789abcdef0123456789abcdef'.replace('contract', 'evtlegcy');
+  d1.sqlite.exec(
+    `INSERT INTO ticket_orders (id, order_number, event_id, purchaser_name, purchaser_email, quantity, order_kind, idempotency_key, status, created_at) VALUES ('ord_contract_legacy', 'GL-LEGACY-C1', '${eventId}', 'Sample Legacy', 'legacy@example.invalid', 1, 'free', 'legacy_contract', 'confirmed', ${nowSec});
+     INSERT INTO tickets (id, order_id, event_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at) VALUES ('tkt_contract_legacy', 'ord_contract_legacy', '${eventId}', 'Sample Legacy', 'legacy@example.invalid', '${freeQrToken}', 'x', 'valid', ${nowSec});`,
+  );
 
   // 3. Door QR pass scan & replay protection
   await call(
@@ -735,13 +845,15 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
 
   const paidCheckout = await call('live', 'POST', '/api/checkout/session', 200, {
     eventId: paidEvent.event.id,
-    tierIndex: 0,
-    quantity: 2,
-    customerEmail: 'buyer@example.invalid',
-    customerName: 'Ticket Buyer',
+    ...orderBody(paidEvent.tiers[0].id, 'buyer@example.org', 2),
   });
-  assert.ok(paidCheckout.body.orderId);
-  const paidOrderId = paidCheckout.body.orderId;
+  const workflowOrderId = paidCheckout.body.data.orderId;
+  const buyerCookie = paidCheckout.response.headers.get('set-cookie')!.split(';')[0];
+  const workflowSession = (
+    d1.sqlite
+      .prepare('SELECT stripe_checkout_session_id AS s FROM ticket_orders WHERE id = ?')
+      .get(workflowOrderId) as any
+  ).s;
 
   // Fulfill via signed sandbox webhook
   const fulfilled = await signed(
@@ -751,19 +863,23 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
       livemode: false,
       data: {
         object: {
-          id: paidCheckout.body.sessionId,
+          id: workflowSession,
           payment_status: 'paid',
           amount_total: 6000,
           currency: 'usd',
-          metadata: { orderId: paidOrderId, eventId: paidEvent.event.id },
+          payment_intent: 'pi_test_contract_workflow',
+          metadata: { orderId: workflowOrderId, eventId: paidEvent.event.id },
         },
       },
     },
     200,
   );
   assert.equal(fulfilled.body.ticketsIssued, 2);
+  const [firstTicket, secondTicket] = d1.sqlite
+    .prepare('SELECT id FROM tickets WHERE order_id = ? ORDER BY seq')
+    .all(workflowOrderId) as Array<{ id: string }>;
 
-  // Co-organizer without approve_refunds cannot refund (403); primary owner can refund (200)
+  // Co-organizer without approve_refunds cannot refund (403); primary owner refunds one ticket (200)
   await call(
     'live',
     'POST',
@@ -772,10 +888,13 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
     { userId: coOrgUser.id, role: 'co_organizer' },
     { cookie },
   );
+  await call('live', 'POST', `/api/orders/${workflowOrderId}/refund`, 401, {
+    reason: 'Anonymous refund attempt',
+  });
   await call(
     'live',
     'POST',
-    `/api/orders/${paidOrderId}/refund`,
+    `/api/orders/${workflowOrderId}/refund`,
     403,
     { reason: 'Unauthorized refund attempt' },
     { cookie: coOrgCookie },
@@ -783,12 +902,162 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
   const refunded = await call(
     'live',
     'POST',
-    `/api/orders/${paidOrderId}/refund`,
+    `/api/orders/${workflowOrderId}/refund`,
     200,
-    { reason: 'Attendee requested full refund' },
+    { reason: 'Attendee requested a refund for one ticket', ticketIds: [firstTicket.id] },
     { cookie },
   );
-  assert.equal(refunded.body.data.ticketsVoided, 2);
+  assert.deepEqual([refunded.body.data.status, refunded.body.data.amountCents], ['processed', 3000]);
+  const repeat = await call(
+    'live',
+    'POST',
+    `/api/orders/${workflowOrderId}/refund`,
+    200,
+    { reason: 'Repeat', ticketIds: [firstTicket.id] },
+    { cookie },
+  );
+  assert.equal(repeat.body.data.status, 'nothing_to_do');
+
+  // The buyer transfers the other ticket (customer cookie); a stale transfer of it later is refused.
+  await call('live', 'POST', `/api/tickets/${secondTicket.id}/transfer`, 401, {
+    toName: 'Jo Sample',
+    toEmail: 'jo@example.org',
+    toEmailConfirm: 'jo@example.org',
+  });
+  await call(
+    'live',
+    'POST',
+    `/api/tickets/${secondTicket.id}/transfer`,
+    400,
+    { toName: 'Jo Sample', toEmail: 'jo@example.org', toEmailConfirm: 'other@example.org' },
+    { cookie: buyerCookie },
+  );
+  const moved = await call(
+    'live',
+    'POST',
+    `/api/tickets/${secondTicket.id}/transfer`,
+    200,
+    { toName: 'Jo Sample', toEmail: 'jo@example.org', toEmailConfirm: 'jo@example.org' },
+    { cookie: buyerCookie },
+  );
+  assert.equal(moved.body.data.version, 2);
+  await call(
+    'live',
+    'POST',
+    `/api/tickets/${secondTicket.id}/transfer`,
+    404,
+    { toName: 'Al Sample', toEmail: 'al@example.org', toEmailConfirm: 'al@example.org' },
+    { cookie: buyerCookie },
+  );
+  // Organizer reissue (manage_ticketing) needs a reason.
+  await call('live', 'POST', `/api/tickets/${secondTicket.id}/reissue`, 400, { reason: '' }, { cookie });
+  await call(
+    'live',
+    'POST',
+    `/api/tickets/${secondTicket.id}/reissue`,
+    403,
+    { reason: 'Lost phone' },
+    { cookie: agentCookie },
+  );
+  const reissued = await call(
+    'live',
+    'POST',
+    `/api/tickets/${secondTicket.id}/reissue`,
+    200,
+    { reason: 'Lost phone' },
+    { cookie },
+  );
+  assert.equal(reissued.body.data.version, 3);
+
+  // Event changes: reschedule notifies holders; anonymous and unauthorised callers are refused.
+  const newDate = new Date(Date.now() + 60 * 86400_000).toISOString().slice(0, 10);
+  const reschedule = {
+    kind: 'rescheduled',
+    startDate: newDate,
+    startTime: '19:30',
+    timezone: 'America/Phoenix',
+  };
+  await call('live', 'POST', `/api/events/${paidEvent.event.id}/changes`, 401, reschedule);
+  await call('live', 'POST', `/api/events/${paidEvent.event.id}/changes`, 403, reschedule, {
+    cookie: agentCookie,
+  });
+  await call(
+    'live',
+    'POST',
+    `/api/events/${paidEvent.event.id}/changes`,
+    400,
+    { ...reschedule, startTime: '7pm' },
+    { cookie },
+  );
+  const changed = await call('live', 'POST', `/api/events/${paidEvent.event.id}/changes`, 200, reschedule, {
+    cookie,
+  });
+  assert.ok(changed.body.data.changeId);
+
+  // Organizer form shape: create (first approved event exists → publishes) and edit with policies.
+  const formEvent = {
+    organizationId: orgId,
+    title: 'Sample organizer form event',
+    category: 'worship',
+    description: 'A sample worship gathering created through the organizer form.',
+    venueName: 'Sample Hall',
+    city: 'Phoenix',
+    state: 'AZ',
+    timezone: 'America/Phoenix',
+    start: { date: newDate, time: '18:00' },
+    admissionType: 'free',
+    categories: [{ name: 'General', kind: 'general', price: '0', capacity: '40' }],
+    policy: { maxTicketsPerOrder: 6, refundPolicy: 'until_24h' },
+  };
+  await call(
+    'live',
+    'POST',
+    '/api/events',
+    400,
+    { ...formEvent, policy: { maxTicketsPerOrder: 99 } },
+    { cookie },
+  );
+  const createdForm = await call('live', 'POST', '/api/events', 201, formEvent, { cookie });
+  const formEventId = createdForm.body.data.eventId;
+  await call('live', 'PATCH', `/api/events/${formEventId}`, 401, formEvent);
+  await call('live', 'PATCH', `/api/events/${formEventId}`, 403, formEvent, { cookie: agentCookie });
+  const edited = await call(
+    'live',
+    'PATCH',
+    `/api/events/${formEventId}`,
+    200,
+    { ...formEvent, title: 'Sample organizer form event (edited)' },
+    { cookie },
+  );
+  assert.equal(edited.body.data.message, 'Changes saved.');
+
+  // Resend webhook: 503 without the secret; signed events update email_log.
+  await call(
+    'live',
+    'POST',
+    '/api/webhook/resend',
+    503,
+    { type: 'email.delivered', data: {} },
+    { 'x-contract-production': '1', 'x-contract-no-resend': '1' },
+  );
+  const resendBody = JSON.stringify({
+    type: 'email.bounced',
+    created_at: new Date().toISOString(),
+    data: { email_id: 'msg_contract_missing', bounce: { type: 'Permanent' } },
+  });
+  const ts = String(Math.floor(Date.now() / 1000));
+  const sig = await svixSignature(env.RESEND_WEBHOOK_SECRET as string, 'msg_svix_1', ts, resendBody);
+  const resend = await call('live', 'POST', '/api/webhook/resend', 200, resendBody, {
+    'svix-id': 'msg_svix_1',
+    'svix-timestamp': ts,
+    'svix-signature': `v1,${sig}`,
+  });
+  assert.equal(resend.body.applied, false);
+  await call('live', 'POST', '/api/webhook/resend', 400, resendBody, {
+    'svix-id': 'msg_svix_1',
+    'svix-timestamp': ts,
+    'svix-signature': 'v1,AAAA',
+  });
 
   // 7. Linked Gamo Production requests
   const prodReq = await call(
@@ -828,10 +1097,10 @@ test('legacy list cap, stable ordering and response schema negative controls', a
   assert.throws(() => validateContract('EventDetails', { ...value, unexpected: true }));
   delete value.title;
   assert.throws(() => validateContract('EventDetails', value));
-  assert.throws(() => validateContract('CheckoutInput', { eventId, quantity: null }));
+  assert.throws(() => validateContract('TicketCheckoutInput', { eventId, quantity: null }));
   const response = handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
-  assert.equal(covered.size, 28);
+  assert.equal(covered.size, 35);
 });
 
 test('all public apps expose the same isolated auth and organization contract, and participation inquiries match OpenAPI contracts', async () => {
@@ -894,5 +1163,5 @@ test('all public apps expose the same isolated auth and organization contract, a
     headers,
   );
   assert.equal(reviewed.body.data.inquiry.status, 'reviewed');
-  assert.equal(covered.size, 56);
+  assert.equal(covered.size, 63);
 });

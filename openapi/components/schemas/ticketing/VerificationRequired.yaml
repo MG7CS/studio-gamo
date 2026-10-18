@@ -1,0 +1,27 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    description: Same answer whether or not the address already has tickets.
+    properties:
+      status:
+        const: verification_required
+      confirmToken:
+        type: string
+        description: Signed reference for the code page (/tickets/confirm?t=…). Not a credential.
+      expiresAt:
+        type: integer
+      message:
+        type: string
+    required:
+      - status
+      - confirmToken
+      - expiresAt
+      - message
+required:
+  - success
+  - data

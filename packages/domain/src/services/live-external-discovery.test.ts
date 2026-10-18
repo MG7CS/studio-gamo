@@ -5,6 +5,8 @@ import { describe, it } from 'node:test';
 import { createDb, events, ticketOrders, ticketTiers } from '@gamo/db';
 import { createInMemoryD1 } from '@gamo/db/testing';
 import { LiveService } from './live.ts';
+import { placeOrder } from './ticketing/checkout.ts';
+import { type TicketingError } from './ticketing/orders-shared.ts';
 import { GAMO_LIVE_VERIFIED_CATALOG_2026_10_15 } from './verified-catalog-2026-10-15.ts';
 import { resolveNearestMetroByCoordinates } from './live-external-discovery.ts';
 
@@ -232,21 +234,39 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
   });
 
   it('enforces database triggers blocking internal checkout, tiers, orders, and non-HTTPS URLs on external_discovery listings', async () => {
-    const { db, liveService } = await setupMigratedD1();
+    const { d1, db, liveService } = await setupMigratedD1();
     await liveService.ensureVerifiedCatalogSeeded();
 
     const cain = await liveService.getEvent('cain-phoenix-2026-11-07');
     assert.ok(cain);
 
-    // 1. Service-level registration block
+    // 1. Service-level registration block: an external listing is never ticketed by Gamo Live.
     await assert.rejects(
       () =>
-        liveService.registerFreeAttendee(cain.id, {
-          attendeeName: 'Test User',
-          attendeeEmail: 'test@example.com',
-          quantity: 1,
-        }),
-      /CONFLICT: Free registration is unavailable for this event/,
+        placeOrder(
+          d1,
+          { DB: d1, ENVIRONMENT: 'local' },
+          {
+            request: {
+              eventId: cain.id,
+              items: [{ categoryId: 'tier_any', sectionId: null, quantity: 1 }],
+              purchaserName: 'Sample User',
+              email: 'sample@example.org',
+              emailConfirm: 'sample@example.org',
+              attendeeNames: [],
+              termsAccepted: true,
+              termsDocuments: [],
+              marketingOptIn: false,
+              idempotencyKey: 'idem_external_listing_check',
+            },
+            allow: 'any',
+            ipHash: null,
+            origin: 'http://127.0.0.1:4324',
+            https: false,
+            now: Math.floor(Date.now() / 1000),
+          },
+        ),
+      (e: TicketingError) => e.code === 'NOT_FOUND',
     );
 
     // 2. DB trigger blocks inserting ticket_tiers for external_discovery event
