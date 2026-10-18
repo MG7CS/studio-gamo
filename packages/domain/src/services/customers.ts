@@ -4,7 +4,7 @@
  *
  * Shared by Gamo Live (ticketing) and Gamo Academy (guest registration). All times are epoch seconds.
  *
- *   const profile = await upsertCustomerProfile(db, { email, displayName, now });
+ *   const profile = await upsertCustomerProfile(db, { email, now });   // names go on the order, not here
  *   const link = await issueCustomerLink(db, env, { customerProfileId: profile.id, scope: 'customer:all',
  *     purpose: 'recovery', expiresAt: recoveryLinkExpiresAt(now), now, ipHash, openPath: '/tickets/open' });
  *   // email siteUrl('live', link.path)
@@ -127,23 +127,25 @@ export async function findCustomerProfileByEmail(
 }
 
 /**
- * Finds or creates the guest profile for an email (normalised). An existing profile is returned as it is,
- * except that an empty display name is filled in; verification, the person link and an erased profile are
- * never changed here. Callers must check `erasedAt` before using an existing profile.
+ * Finds or creates the guest profile for an email (normalised). An existing profile is returned unchanged.
+ *
+ * Names (design D-77): an unauthenticated form never sets or changes a profile's display name — anyone can
+ * type anyone's address. Purchaser and attendee names belong on the order/tickets/registration. The profile
+ * name comes only from the verified customer (`setVerifiedCustomerName`, behind a customer session).
+ * Callers must check `erasedAt` before using an existing profile.
  */
 export async function upsertCustomerProfile(
   db: SqlDatabase,
-  input: { email: string; displayName?: string | null; now: number },
+  input: { email: string; now: number },
 ): Promise<CustomerProfile> {
   const email = requireEmail(input.email);
   const row = (await db
     .prepare(
-      `INSERT INTO customer_profiles (id, email_normalized, display_name, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?4)
-       ON CONFLICT(email_normalized) DO UPDATE SET display_name = excluded.display_name, updated_at = excluded.updated_at
-       WHERE customer_profiles.display_name IS NULL AND excluded.display_name IS NOT NULL AND customer_profiles.erased_at IS NULL
+      `INSERT INTO customer_profiles (id, email_normalized, created_at, updated_at) VALUES (?1, ?2, ?3, ?3)
+       ON CONFLICT(email_normalized) DO NOTHING
        RETURNING ${PROFILE_COLUMNS}`,
     )
-    .bind(newPrefixedId('cus'), email, cleanName(input.displayName), input.now)
+    .bind(newPrefixedId('cus'), email, input.now)
     .first()) as ProfileRow | null;
   if (row) return toProfile(row);
   const existing = await findCustomerProfileByEmail(db, email);
@@ -152,9 +154,46 @@ export async function upsertCustomerProfile(
 }
 
 /**
+ * Sets the profile's display name from the verified customer's own input (a page behind
+ * `readCustomerSession`). Refused for an unverified or erased profile.
+ */
+export async function setVerifiedCustomerName(
+  db: SqlDatabase,
+  input: { customerProfileId: string; displayName: string; now: number },
+): Promise<CustomerProfile> {
+  const row = (await db
+    .prepare(
+      `UPDATE customer_profiles SET display_name = ?2, updated_at = ?3
+        WHERE id = ?1 AND email_verified_at IS NOT NULL AND erased_at IS NULL
+        RETURNING ${PROFILE_COLUMNS}`,
+    )
+    .bind(input.customerProfileId, cleanName(input.displayName), input.now)
+    .first()) as ProfileRow | null;
+  if (!row) throw new CustomerInputError('NOT_FOUND', 'We could not find that registration.');
+  return toProfile(row);
+}
+
+/** Thrown when a verified email belongs to an erased person whose row still holds the address. */
+export class PersonErasedError extends Error {
+  readonly code = 'PERSON_ERASED';
+  constructor() {
+    super('PERSON_ERASED');
+    this.name = 'PersonErasedError';
+  }
+}
+
+/**
  * The `persons` row for an email that the caller has **already verified** (product sign-in code, Clerk
  * verified email, opened customer link). Creates it when missing; safe under concurrency. Agent A uses this
  * to link `users.person_id`; this module only links customer profiles.
+ *
+ * Erased persons (D-76) are never returned or reattached. Erasure must replace `persons.email_normalized`
+ * with a non-address marker (e.g. `erased:<hash>`), after which a re-registration creates a fresh person; if
+ * an erased row still holds the address, this throws `PersonErasedError` (staff must finish the erasure).
+ *
+ * `displayName` (D-77) is written only when the person is created, and only from a verified flow: the name
+ * entered in the same sign-up whose code was just verified, or the person's own input while signed in.
+ * Never pass a name from a guest form, an order or a ticket.
  */
 export async function findOrCreatePersonForVerifiedEmail(
   db: SqlDatabase,
@@ -171,7 +210,7 @@ export async function findOrCreatePersonForVerifiedEmail(
     .run();
   const row = (await db
     .prepare(
-      'SELECT id, email_normalized, email_verified_at, display_name FROM persons WHERE email_normalized = ?1',
+      'SELECT id, email_normalized, email_verified_at, display_name, erased_at FROM persons WHERE email_normalized = ?1',
     )
     .bind(e)
     .first()) as {
@@ -179,8 +218,10 @@ export async function findOrCreatePersonForVerifiedEmail(
     email_normalized: string;
     email_verified_at: number;
     display_name: string | null;
+    erased_at: number | null;
   } | null;
   if (!row) throw new Error('findOrCreatePersonForVerifiedEmail: person vanished');
+  if (row.erased_at !== null && row.erased_at !== undefined) throw new PersonErasedError();
   return {
     id: row.id,
     emailNormalized: row.email_normalized,
@@ -192,7 +233,8 @@ export async function findOrCreatePersonForVerifiedEmail(
 /**
  * Records that the customer proved control of their inbox: sets `email_verified_at` (first time only) and
  * links the profile to the (found or created) person for that email, in one batch. Idempotent. An erased
- * person is never linked. Throws `CustomerInputError` for a missing or erased profile.
+ * person is never linked (the profile is then verified but stays unlinked). No name is copied to the
+ * person (D-77). Throws `CustomerInputError` for a missing or erased profile.
  */
 export async function markCustomerEmailVerified(
   db: SqlDatabase,
@@ -205,7 +247,7 @@ export async function markCustomerEmailVerified(
   const [, updated] = await runBatch(db, [
     {
       sql: 'INSERT INTO persons (id, email_normalized, email_verified_at, display_name, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?3, ?3) ON CONFLICT(email_normalized) DO NOTHING',
-      params: [newPrefixedId('per'), profile.emailNormalized, input.now, profile.displayName],
+      params: [newPrefixedId('per'), profile.emailNormalized, input.now, null],
     },
     {
       sql: `UPDATE customer_profiles SET
@@ -364,7 +406,7 @@ export async function openCustomerLink(
 
 /**
  * The customer session behind the request's cookie, or null (missing, bad signature, expired, revoked,
- * erased profile). Refreshes `last_seen_at` at most every 5 minutes.
+ * originating link revoked, erased profile). Refreshes `last_seen_at` at most every 5 minutes.
  */
 export async function readCustomerSession(
   db: SqlDatabase,
@@ -380,8 +422,11 @@ export async function readCustomerSession(
   const row = (await db
     .prepare(
       `SELECT s.id, s.customer_profile_id, s.scope, s.expires_at, s.last_seen_at
-         FROM customer_sessions s JOIN customer_profiles p ON p.id = s.customer_profile_id
-        WHERE s.id = ?1 AND s.revoked_at IS NULL AND s.expires_at > ?2 AND p.erased_at IS NULL`,
+         FROM customer_sessions s
+         JOIN customer_profiles p ON p.id = s.customer_profile_id
+         JOIN customer_access_tokens t ON t.id = s.token_id
+        WHERE s.id = ?1 AND s.revoked_at IS NULL AND s.expires_at > ?2 AND p.erased_at IS NULL
+          AND t.revoked_at IS NULL`,
     )
     .bind(verified.value, now)
     .first()) as {

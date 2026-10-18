@@ -12,6 +12,8 @@ import {
   openCustomerLink,
   readCustomerSession,
   revokeCustomerSessions,
+  setVerifiedCustomerName,
+  PersonErasedError,
   upsertCustomerProfile,
 } from './customers.ts';
 import { CUSTOMER_SESSION_TTL_SECONDS, CustomerLinkTokens } from '../security/link-tokens.ts';
@@ -27,40 +29,59 @@ const withCookie = (setCookie: string) =>
     headers: { cookie: `other=1; ${CUSTOMER_COOKIE_NAME}=${cookieValue(setCookie)}` },
   });
 
-test('upsertCustomerProfile: normalised email is the key; fills an empty name; never changes verification', async () => {
+test('upsertCustomerProfile: normalised email is the key; a guest form never sets or changes the name', async () => {
   const db = await createMigratedD1();
   const a = await upsertCustomerProfile(db, { email: ' Sam@Example.org ', now: NOW });
   assert.equal(a.emailNormalized, 'sam@example.org');
   assert.equal(a.displayName, null);
-  const b = await upsertCustomerProfile(db, {
-    email: 'sam@example.org',
-    displayName: '  Sam   Lee ',
-    now: NOW + 1,
-  });
+  const b = await upsertCustomerProfile(db, { email: 'SAM@example.org', now: NOW + 1 });
   assert.equal(b.id, a.id);
-  assert.equal(b.displayName, 'Sam Lee');
-  const c = await upsertCustomerProfile(db, {
-    email: 'SAM@example.org',
-    displayName: 'Someone Else',
-    now: NOW + 2,
-  });
-  assert.equal(c.displayName, 'Sam Lee', 'an existing name is not overwritten by a guest form');
+  assert.equal(b.updatedAt, NOW, 'an existing profile is returned unchanged');
+  await assert.rejects(
+    setVerifiedCustomerName(db, { customerProfileId: a.id, displayName: 'Mallory', now: NOW + 2 }),
+    CustomerInputError,
+    'no name before the email is verified',
+  );
   await markCustomerEmailVerified(db, { customerProfileId: a.id, now: NOW + 3 });
-  const d = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW + 4 });
+  const named = await setVerifiedCustomerName(db, {
+    customerProfileId: a.id,
+    displayName: '  Sam   Lee ',
+    now: NOW + 4,
+  });
+  assert.equal(named.displayName, 'Sam Lee');
+  const d = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW + 5 });
   assert.equal(d.emailVerifiedAt, NOW + 3);
+  assert.equal(d.displayName, 'Sam Lee');
   assert.ok(d.personId);
+  const person = db.sqlite.prepare('SELECT display_name FROM persons WHERE id = ?').get(d.personId) as any;
+  assert.equal(person.display_name, null, 'a customer verification never copies a name into persons');
   await assert.rejects(upsertCustomerProfile(db, { email: 'not-an-email', now: NOW }), CustomerInputError);
+});
+
+test('erased persons are never reattached; after erasure rewrites the email a fresh person is created', async () => {
+  const db = await createMigratedD1();
+  const first = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW, 'Sam');
+  assert.equal(first.displayName, 'Sam');
+  const again = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 1, 'Someone Else');
+  assert.equal(again.displayName, 'Sam', 'the name is written only when the person is created');
+  // Incomplete erasure: the row still holds the address → refused, never returned.
+  db.sqlite.prepare('UPDATE persons SET erased_at = ? WHERE id = ?').run(NOW + 2, first.id);
+  await assert.rejects(findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 3), PersonErasedError);
+  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW + 3 });
+  const verified = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 4 });
+  assert.equal(verified.personId, null, 'a customer is not linked to an erased person');
+  // Completed erasure keeps only a marker: a re-registration gets a fresh person.
+  db.sqlite.prepare("UPDATE persons SET email_normalized = 'erased:0123abcd' WHERE id = ?").run(first.id);
+  const fresh = await findOrCreatePersonForVerifiedEmail(db, 'sam@example.org', NOW + 5);
+  assert.notEqual(fresh.id, first.id);
+  assert.equal(fresh.displayName, null);
 });
 
 test('erased profiles are returned unchanged and cannot be verified or sent links', async () => {
   const db = await createMigratedD1();
   const p = await upsertCustomerProfile(db, { email: 'gone@example.org', now: NOW });
   db.sqlite.prepare('UPDATE customer_profiles SET erased_at = ? WHERE id = ?').run(NOW + 1, p.id);
-  const again = await upsertCustomerProfile(db, {
-    email: 'gone@example.org',
-    displayName: 'New',
-    now: NOW + 2,
-  });
+  const again = await upsertCustomerProfile(db, { email: 'gone@example.org', now: NOW + 2 });
   assert.equal(again.erasedAt, NOW + 1);
   assert.equal(again.displayName, null);
   await assert.rejects(
@@ -81,7 +102,7 @@ test('erased profiles are returned unchanged and cannot be verified or sent link
 
 test('markCustomerEmailVerified links the person (created once), is idempotent, and leaves users alone', async () => {
   const db = await createMigratedD1();
-  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', displayName: 'Sam', now: NOW });
+  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
   const v1 = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 10 });
   const v2 = await markCustomerEmailVerified(db, { customerProfileId: p.id, now: NOW + 20 });
   assert.equal(v1.emailVerifiedAt, NOW + 10);
@@ -90,7 +111,7 @@ test('markCustomerEmailVerified links the person (created once), is idempotent, 
   const persons = db.sqlite.prepare('SELECT email_normalized, display_name FROM persons').all();
   assert.deepEqual(
     persons.map((r) => ({ ...r })),
-    [{ email_normalized: 'sam@example.org', display_name: 'Sam' }],
+    [{ email_normalized: 'sam@example.org', display_name: null }],
   );
   const person = await findOrCreatePersonForVerifiedEmail(db, 'SAM@example.org', NOW + 30);
   assert.equal(person.id, v1.personId, 'Agent A gets the same person for the same verified email');
@@ -247,4 +268,45 @@ test('CUSTOMER_LINK_SECRET: missing outside local throws SecretNotConfiguredErro
   assert.ok(await readCustomerSession(db, local, withCookie(opened.cookie), NOW + 2));
   const prod = await openCustomerLink(db, ENV, { token: link.token, now: NOW + 3, https: true });
   assert.equal(prod.ok, false, 'a token issued with the local key is useless with a real secret');
+});
+
+test('revoking the link revokes the sessions opened from it (revokeForScope and revoke)', async () => {
+  const db = await createMigratedD1();
+  const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
+  const tokens = new CustomerLinkTokens(db, SECRET);
+  const open = async (scope: 'order:ord_1' | 'customer:all') => {
+    const link = await issueCustomerLink(db, ENV, {
+      customerProfileId: p.id,
+      scope,
+      purpose: scope === 'customer:all' ? 'recovery' : 'order',
+      expiresAt: NOW + 86400,
+      now: NOW,
+    });
+    const opened = await openCustomerLink(db, ENV, { token: link.token, now: NOW + 1, https: true });
+    assert.ok(opened.ok);
+    return { link, opened };
+  };
+  const order = await open('order:ord_1');
+  const other = await open('customer:all');
+  assert.ok(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 2));
+  assert.equal(await tokens.revokeForScope('order:ord_1', NOW + 3), 1);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 4), null);
+  const row = db.sqlite
+    .prepare('SELECT revoked_at FROM customer_sessions WHERE id = ?')
+    .get(order.opened.session.sessionId) as any;
+  assert.equal(row.revoked_at, NOW + 3, 'the session row is revoked in the same batch');
+  assert.ok(
+    await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 4),
+    'other scopes keep working',
+  );
+
+  // A token revoked without touching its session row (e.g. by an older code path) is still refused.
+  db.sqlite
+    .prepare('UPDATE customer_access_tokens SET revoked_at = ? WHERE id = ?')
+    .run(NOW + 5, other.link.id);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 6), null);
+
+  const third = await open('customer:all');
+  assert.equal(await tokens.revoke(third.link.id, NOW + 7), true);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(third.opened.cookie), NOW + 8), null);
 });
