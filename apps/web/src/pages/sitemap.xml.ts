@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildSitemapXml, xmlResponse } from '@studio-gamo/ui/lib/crawlers';
+import { TERMS_DOCUMENTS } from '@gamo/domain/terms';
 
 export const prerender = false;
 
@@ -17,5 +18,6 @@ export const GET: APIRoute = () =>
       { path: '/contact', priority: '0.8', changefreq: 'monthly' },
       { path: '/partners/interest', priority: '0.8', changefreq: 'monthly' },
       { path: '/legal', priority: '0.3', changefreq: 'yearly' },
+      ...TERMS_DOCUMENTS.map((doc) => ({ path: doc.path, priority: '0.3', changefreq: 'yearly' as const })),
     ]),
   );

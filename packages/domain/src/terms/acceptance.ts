@@ -11,7 +11,8 @@ import { PRODUCTS, type Product, type TermsSlug } from '../types/enums.ts';
 import { newPrefixedId } from '../security/ids.ts';
 import { isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
 import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
-import { getTermsDocument, termsContentHash } from './registry.ts';
+import { getTermsDocument } from './registry.ts';
+import { termsDocumentInsertStatement } from './sync.ts';
 
 export type TermsAcceptanceErrorCode =
   'UNKNOWN_TERMS' | 'OUTDATED_TERMS' | 'NO_DOCUMENTS' | 'NO_SUBJECT' | 'INVALID_CONTEXT';
@@ -88,17 +89,7 @@ export async function recordTermsAcceptance(
   const specs: SqlStatementSpec[] = [];
   const recorded: RecordedAcceptance[] = [];
   for (const doc of docs) {
-    specs.push({
-      sql: "INSERT INTO terms_documents (id, slug, version, title, status, content_hash, legal_review_status, created_at) VALUES (?1, ?2, ?3, ?4, 'draft', ?5, 'draft_requires_review', ?6) ON CONFLICT(slug, version) DO NOTHING",
-      params: [
-        newPrefixedId('tdoc'),
-        doc.slug,
-        doc.version,
-        doc.title,
-        await termsContentHash(doc),
-        input.now,
-      ],
-    });
+    specs.push(await termsDocumentInsertStatement(doc, input.now));
     const id = newPrefixedId('tacc');
     specs.push({
       sql: 'INSERT INTO terms_acceptances (id, document_slug, document_version, person_id, user_id, customer_profile_id, email_normalized, context, ip_hash, accepted_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)',
