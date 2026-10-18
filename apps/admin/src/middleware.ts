@@ -11,6 +11,7 @@ import {
   buildSessionCookie,
   buildClearSessionCookie,
   requireSameOrigin,
+  constantTimeCompare,
 } from '@gamo/auth';
 import { getRuntimeEnv, escapeHtml, withSecurityHeaders } from '@gamo/domain';
 import { verifyCloudflareAccessJwt } from './lib/cf-access';
@@ -350,31 +351,35 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
     });
   }
 
-  const requireAuth =
-    runtimeEnv.REQUIRE_ADMIN_AUTH === 'true' || import.meta.env?.REQUIRE_ADMIN_AUTH === 'true' || isProd;
+  const requireAuth = runtimeEnv.REQUIRE_ADMIN_AUTH === 'true' || isProd;
 
   // 1. In local dev mode without explicit auth requirement, permit testing
   if (isDev && !requireAuth && !url.pathname.startsWith('/api/')) {
     return next();
   }
 
-  // 2. Cryptographic Cloudflare Access / Zero Trust Verification
+  // 2. Cloudflare Access (Zero Trust). An assertion that is present but invalid is never trusted.
   const cfJwt = context.request.headers.get('cf-access-jwt-assertion');
-  const expectedAud = runtimeEnv.CF_ACCESS_AUD || import.meta.env?.CF_ACCESS_AUD;
-  const teamName = runtimeEnv.CF_ACCESS_TEAM_NAME || import.meta.env?.CF_ACCESS_TEAM_NAME;
-
+  let accessClaims: { email: string; sub: string } | null = null;
   if (cfJwt) {
-    const result = await verifyCloudflareAccessJwt(cfJwt, expectedAud, teamName);
+    const result = await verifyCloudflareAccessJwt(
+      cfJwt,
+      runtimeEnv.CF_ACCESS_AUD,
+      runtimeEnv.CF_ACCESS_TEAM_NAME,
+    );
     if (result.valid && result.claims) {
-      // Cryptographically verified: attach staff identity
-      context.locals.staffEmail = result.claims.email;
-      context.locals.staffSubject = result.claims.sub;
-      return next();
+      accessClaims = { email: result.claims.email, sub: result.claims.sub };
+      context.locals.staffEmail = accessClaims.email;
+      context.locals.staffSubject = accessClaims.sub;
     } else {
-      console.error(`[Cloudflare Access Rejected] ${result.error}`);
+      console.error('[admin] Cloudflare Access assertion rejected');
     }
-  } else if (runtimeEnv.DB && signingSecret && signingSecret.length >= 32) {
-    // 2b. Verify D1 Admin Password Gateway session (__session + signed __admin_gate cookie)
+  }
+
+  // 2b. Admin gateway session (D1 __session + signed __admin_gate cookie). Required for the
+  // workspace pages behind Access too: Access proves the boundary, the gateway session is the
+  // staff identity the pages and APIs act as.
+  if ((!cfJwt || accessClaims) && runtimeEnv.DB && signingSecret && signingSecret.length >= 32) {
     try {
       const db = getDb(runtimeEnv.DB);
       const sessionAuth = await resolveAuth(context.request, db, signingSecret);
@@ -389,7 +394,13 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
           signingSecret,
         ))
       ) {
-        context.locals.staffEmail = sessionAuth.user.email;
+        if (accessClaims && accessClaims.email.toLowerCase() !== sessionAuth.user.email.toLowerCase()) {
+          return new Response('Signed-in staff account does not match your Cloudflare Access identity.', {
+            status: 403,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+          });
+        }
+        context.locals.staffEmail = accessClaims?.email ?? sessionAuth.user.email;
         context.locals.adminAuthSession = sessionAuth;
 
         // Handle authenticated password change submission
@@ -433,48 +444,63 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
         return next();
       }
     } catch (err) {
-      console.error('[Admin Session Verification Error]', err);
+      console.error(
+        '[admin] session verification failed:',
+        err instanceof Error ? err.name : 'unknown error',
+      );
     }
   }
 
+  if (accessClaims) {
+    // Behind Access but not yet signed in to the gateway: API handlers enforce staff sessions
+    // themselves (requireStaff → 401); pages show the gateway sign-in instead of looping.
+    if (url.pathname.startsWith('/api/')) return next();
+    return new Response(renderAdminGatewaySignInHtml({ email: accessClaims.email }), {
+      status: 401,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive',
+      },
+    });
+  }
+
   // 3. Alternative credentials policy (Emergency Break-Glass or Staging only)
-  const allowBreakGlass =
-    !isProd ||
-    runtimeEnv.ENABLE_BREAK_GLASS_AUTH === 'true' ||
-    import.meta.env?.ENABLE_BREAK_GLASS_AUTH === 'true';
+  const allowBreakGlass = !isProd || runtimeEnv.ENABLE_BREAK_GLASS_AUTH === 'true';
 
   if (allowBreakGlass) {
     // Check for Bearer token or x-admin-key
-    const adminSecret =
-      runtimeEnv.ADMIN_ACCESS_TOKEN ||
-      import.meta.env?.ADMIN_ACCESS_TOKEN ||
-      runtimeEnv.ADMIN_SECRET_KEY ||
-      import.meta.env?.ADMIN_SECRET_KEY;
+    const adminSecret = runtimeEnv.ADMIN_ACCESS_TOKEN || runtimeEnv.ADMIN_SECRET_KEY;
 
     const authHeader = context.request.headers.get('authorization') || '';
     const xAdminKey = context.request.headers.get('x-admin-key');
 
     if (adminSecret && adminSecret.length >= 16) {
-      if (xAdminKey && xAdminKey === adminSecret) {
+      if (xAdminKey && constantTimeCompare(xAdminKey, adminSecret)) {
         console.warn('[Admin Security] Authenticated via break-glass x-admin-key header.');
         return next();
       }
-      if (authHeader.startsWith('Bearer ') && authHeader.slice(7) === adminSecret) {
+      if (authHeader.startsWith('Bearer ') && constantTimeCompare(authHeader.slice(7), adminSecret)) {
         console.warn('[Admin Security] Authenticated via break-glass Bearer token.');
         return next();
       }
     }
 
     // Check for Basic Auth
-    const basicAuthUser = runtimeEnv.ADMIN_BASIC_AUTH_USER || import.meta.env?.ADMIN_BASIC_AUTH_USER;
-    const basicAuthPass = runtimeEnv.ADMIN_BASIC_AUTH_PASS || import.meta.env?.ADMIN_BASIC_AUTH_PASS;
+    const basicAuthUser = runtimeEnv.ADMIN_BASIC_AUTH_USER;
+    const basicAuthPass = runtimeEnv.ADMIN_BASIC_AUTH_PASS;
 
     if (basicAuthUser && basicAuthPass && authHeader.startsWith('Basic ')) {
       try {
         const b64 = authHeader.slice(6);
         const decoded = atob(b64);
-        const [u, p] = decoded.split(':');
-        if (u === basicAuthUser && p === basicAuthPass) {
+        const sep = decoded.indexOf(':');
+        const u = sep === -1 ? decoded : decoded.slice(0, sep);
+        const p = sep === -1 ? '' : decoded.slice(sep + 1);
+        // Evaluate both comparisons (no short-circuit) so timing does not reveal which part matched.
+        const userOk = constantTimeCompare(u, basicAuthUser);
+        const passOk = constantTimeCompare(p, basicAuthPass);
+        if (userOk && passOk) {
           console.warn('[Admin Security] Authenticated via break-glass Basic Auth.');
           return next();
         }
