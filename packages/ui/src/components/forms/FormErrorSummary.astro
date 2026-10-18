@@ -1,0 +1,66 @@
+---
+/**
+ * FormErrorSummary — the box at the top of a form after a failed (server-rendered, no-JS) submit.
+ * Renders nothing when there are no errors. `role="alert"` announces it; with JS it also takes focus.
+ *
+ * Props
+ * - errors: { message: string; fieldId?: string }[] — each with a `fieldId` becomes a link to `#fieldId`
+ *   (use the field's `id`; for the security check use the guard error's `fieldId`).
+ * - title?: string (default "There's a problem with the form").
+ * - id?: string (default 'form-error-summary').
+ * - class?: string.
+ */
+interface Props {
+  errors: { message: string; fieldId?: string }[];
+  title?: string;
+  id?: string;
+  class?: string;
+}
+
+const {
+  errors,
+  title = "There's a problem with the form",
+  id = 'form-error-summary',
+  class: className,
+} = Astro.props;
+const titleId = `${id}-title`;
+---
+
+{errors.length > 0 && (
+  <div
+    id={id}
+    role="alert"
+    tabindex="-1"
+    aria-labelledby={titleId}
+    data-error-summary
+    class:list={[
+      'rounded-2xl border-2 border-terracotta-deep bg-white p-5 text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
+      className,
+    ]}
+  >
+    <h2 id={titleId} class="text-base font-bold">
+      {title}
+    </h2>
+    <ul class="mt-2 space-y-1">
+      {errors.map((e) => (
+        <li class="text-[15px]">
+          {e.fieldId ? (
+            <a
+              href={`#${e.fieldId}`}
+              class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink"
+            >
+              {e.message}
+            </a>
+          ) : (
+            <span class="font-semibold text-terracotta-deep">{e.message}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+<script>
+  import { initForms } from '../../lib/forms-client';
+  initForms();
+</script>

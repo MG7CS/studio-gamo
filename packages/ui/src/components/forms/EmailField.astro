@@ -1,0 +1,79 @@
+---
+/**
+ * EmailField — email input with a "Did you mean …?" suggestion (never an automatic correction).
+ *
+ * Props
+ * - id?: string (default 'email'); name?: string (default 'email'); label?: string (default 'Email').
+ * - value?: string; hint?: string; error?: string; required?: boolean (default true).
+ * - suggestion?: string — a server-side suggestion (`emailTypoSuggestion()` from `lib/email-typo`) shown
+ *   as text after a failed submit; with JS the same hint appears live as a button that fills the field.
+ * - class?: string.
+ *
+ * Pair with ConfirmEmailField (`emailId` = this id). The browser behaviour lives in `lib/forms-client.ts`.
+ */
+import TextField from './TextField.astro';
+
+interface Props {
+  id?: string;
+  name?: string;
+  label?: string;
+  value?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  suggestion?: string | null;
+  class?: string;
+}
+
+const {
+  id = 'email',
+  name = 'email',
+  label = 'Email',
+  value,
+  hint,
+  error,
+  required = true,
+  suggestion,
+  class: className,
+} = Astro.props;
+---
+
+<TextField
+  id={id}
+  name={name}
+  label={label}
+  type="email"
+  value={value}
+  hint={hint}
+  error={error}
+  required={required}
+  autocomplete="email"
+  inputmode="email"
+  autocapitalize="off"
+  spellcheck={false}
+  maxlength={320}
+  data={{ emailTypo: '' }}
+  class={className}
+>
+  <Fragment slot="after">
+    {suggestion && (
+      <p class="mt-1.5 text-sm text-ink">
+        Did you mean <strong class="font-semibold">{suggestion}</strong>? Check the address, then send the
+        form again.
+      </p>
+    )}
+    <p data-email-suggestion-for={id} class="mt-1.5 text-sm text-ink" aria-live="polite" hidden>
+      <button
+        type="button"
+        class="inline-flex min-h-11 items-center rounded-lg px-1 text-left font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:outline-none"
+      >
+        Did you mean&nbsp;<span data-suggestion-value></span>?
+      </button>
+    </p>
+  </Fragment>
+</TextField>
+
+<script>
+  import { initForms } from '../../lib/forms-client';
+  initForms();
+</script>

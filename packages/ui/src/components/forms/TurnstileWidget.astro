@@ -1,0 +1,86 @@
+---
+/**
+ * TurnstileWidget — Cloudflare Turnstile for a public form (verified on the server by `guardPublicForm`).
+ *
+ * Props
+ * - action: string — the widget `data-action` (must match the guard's `turnstileAction`), e.g. 'rsvp'.
+ * - id?: string — container id (default 'turnstile-widget'; `TURNSTILE_WIDGET_ID` in the guard, so the
+ *   error summary can link to it).
+ * - siteKey?: string — defaults to `PUBLIC_TURNSTILE_SITE_KEY` from the runtime env (`Astro.locals.runtimeEnv`).
+ * - environment?: string — defaults to `ENVIRONMENT` from the runtime env.
+ * - error?: string — server-rendered message for the security check.
+ * - class?: string.
+ *
+ * Rendering
+ * - Site key set: the widget container (`cf-turnstile`, light theme, flexible width, token in the
+ *   `cf-turnstile-response` field) and Cloudflare's `api.js` as a normal external script. The page
+ *   middleware allows `https://challenges.cloudflare.com` in script-src/frame-src whenever the key is set.
+ *   Use one widget per page. The widget is an iframe Cloudflare keeps WCAG 2.2 AA; it never traps focus.
+ * - No key with ENVIRONMENT=local: a hidden dummy token (accepted by the server only in local) and a small
+ *   visible "Bot check skipped (local)" note.
+ * - No key elsewhere: a notice that the form can't be sent right now (the server answers 503 anyway).
+ */
+interface Props {
+  action: string;
+  id?: string;
+  siteKey?: string;
+  environment?: string;
+  error?: string;
+  class?: string;
+}
+
+/** Same value as `TURNSTILE_DUMMY_TOKEN` in `@gamo/domain/security` (checked by scripts/audit/forms-kit.test.ts). */
+const TURNSTILE_DUMMY_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
+const TURNSTILE_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+
+const env = Astro.locals.runtimeEnv ?? {};
+const {
+  action,
+  id = 'turnstile-widget',
+  siteKey = typeof env.PUBLIC_TURNSTILE_SITE_KEY === 'string' ? env.PUBLIC_TURNSTILE_SITE_KEY.trim() : '',
+  environment = typeof env.ENVIRONMENT === 'string' ? env.ENVIRONMENT : undefined,
+  error,
+  class: className,
+} = Astro.props;
+const errorId = `${id}-error`;
+const mode = siteKey ? 'widget' : environment === 'local' ? 'local' : 'unavailable';
+---
+
+<div class:list={['gamo-turnstile', className]}>
+  {mode === 'widget' && (
+    <>
+      <div
+        id={id}
+        class="cf-turnstile min-h-[65px]"
+        data-sitekey={siteKey}
+        data-action={action}
+        data-theme="light"
+        data-size="flexible"
+        data-response-field-name="cf-turnstile-response"
+        aria-describedby={errorId}
+      />
+      <script is:inline src={TURNSTILE_SCRIPT} async defer />
+      <noscript>
+        <p class="mt-2 text-sm text-ink">
+          This form uses a security check that needs JavaScript. Please turn JavaScript on, then reload the
+          page to send it.
+        </p>
+      </noscript>
+    </>
+  )}
+  {mode === 'local' && (
+    <p id={id} class="text-sm text-muted">
+      <input type="hidden" name="cf-turnstile-response" value={TURNSTILE_DUMMY_TOKEN} />
+      Bot check skipped (local)
+    </p>
+  )}
+  {mode === 'unavailable' && (
+    <p id={id} class="rounded-xl border border-ink/50 bg-sand/50 px-4 py-3 text-sm text-ink">
+      The security check isn't available right now, so this form can't be sent. Please try again later.
+    </p>
+  )}
+  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
+    <span class="sr-only">Error: </span>
+    <span data-error-text>{error}</span>
+  </p>
+</div>
