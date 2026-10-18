@@ -98,6 +98,8 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
             email,
             code,
             expiresAt,
+            programName: PRODUCT_DISPLAY_NAMES[product],
+            challengeId,
           });
 
       if (!delivery.sent || (!simulated && delivery.deliveryStatus === 'simulated')) {

@@ -40,11 +40,15 @@ export const POST: APIRoute = async (context) => {
 
     let message = 'Registration request received.';
     if (!isDuplicate) {
-      const notificationService = new NotificationService(db, {
-        apiKey: runtimeEnv.RESEND_API_KEY,
-        defaultFrom: runtimeEnv.EMAIL_FROM,
-        allowMock: runtimeEnv.ENVIRONMENT === 'local',
-      });
+      const notificationService = new NotificationService(
+        db,
+        {
+          apiKey: runtimeEnv.RESEND_API_KEY,
+          defaultFrom: runtimeEnv.EMAIL_FROM,
+          allowMock: runtimeEnv.ENVIRONMENT === 'local',
+        },
+        { brandEnv: runtimeEnv },
+      );
       const jobOutcome = await notificationService.processRegistrationJob(registration.id);
       message =
         jobOutcome?.status === 'sent'

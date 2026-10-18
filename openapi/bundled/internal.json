@@ -1178,6 +1178,9 @@
           "403": {
             "$ref": "#/components/responses/LegacyError"
           },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
           "500": {
             "$ref": "#/components/responses/LegacyError"
           }

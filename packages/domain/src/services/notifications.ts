@@ -9,9 +9,27 @@
 import { eq, and, lt, or, isNull, lte, asc } from 'drizzle-orm';
 import { notificationJobs, eventRegistrations, events, type GamoDatabase } from '@gamo/db';
 import { createResendClient, type ResendConfig } from '@studio-gamo/integrations/resend';
-import { getPlatformBrandConfig } from '@gamo/config/brand';
+import { getPlatformBrandConfig, type PlatformBrandEnv } from '@gamo/config/brand';
 
 const MAX_NOTIFICATION_ATTEMPTS = 5;
+
+/** Event start in the event's own timezone, e.g. "Tuesday, October 20, 2026, 7:00 PM EDT". */
+export function formatEventStart(startsAt: Date, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    }).format(startsAt);
+  } catch {
+    return startsAt.toUTCString();
+  }
+}
 
 /**
  * Escapes HTML special characters to prevent HTML/script injection in transactional emails.
@@ -39,10 +57,13 @@ export interface ProcessNotificationResult {
 export class NotificationService {
   db: GamoDatabase;
   resendConfig?: ResendConfig;
+  /** Worker env used for the Gamo Live brand configuration in registration emails. */
+  brandEnv?: PlatformBrandEnv;
 
-  constructor(db: GamoDatabase, resendConfig?: ResendConfig) {
+  constructor(db: GamoDatabase, resendConfig?: ResendConfig, options?: { brandEnv?: PlatformBrandEnv }) {
     this.db = db;
     this.resendConfig = resendConfig;
+    this.brandEnv = options?.brandEnv;
   }
 
   /**
@@ -52,39 +73,46 @@ export class NotificationService {
     email: string;
     code: string;
     expiresAt: Date;
+    /** Product the person is signing in to, e.g. "Gamo Live" (default "Gamo Studios"). */
+    programName?: string;
+    /** Challenge id: sent as the email idempotency key. */
+    challengeId?: string;
   }): Promise<{ sent: boolean; deliveryStatus: 'sent' | 'simulated'; messageId?: string; error?: string }> {
     const client = createResendClient(this.resendConfig);
     const safeCode = escapeHtml(params.code);
     const safeEmail = escapeHtml(params.email);
     const expiresMinutes = Math.max(1, Math.round((params.expiresAt.getTime() - Date.now()) / 60000));
+    const program = params.programName ?? 'Gamo Studios';
+    const safeProgram = escapeHtml(program);
 
     const html = `<!DOCTYPE html>
 <html lang="en">
-<body style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background:#F4EDE3; color:#1A1A18; padding:24px;">
-  <div style="max-width:520px; margin:0 auto; background:#FFFFFF; border:1px solid #E2DCD3; border-radius:12px; padding:28px;">
-    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F432A; font-weight:600; margin:0 0 8px;">Gamo Studios · Identity Verification</p>
+<body style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background:#F9F6F0; color:#18181B; padding:24px;">
+  <div style="max-width:520px; margin:0 auto; background:#FFFFFF; border:1px solid #EDE6DA; border-radius:12px; padding:28px;">
+    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F3B18; font-weight:600; margin:0 0 8px;">${safeProgram} · Identity Verification</p>
     <h1 style="font-size:22px; margin:0 0 12px;">Your verification code</h1>
-    <p style="font-size:15px; line-height:1.5; color:#3D3B38; margin:0 0 20px;">
+    <p style="font-size:15px; line-height:1.5; color:#3F3F46; margin:0 0 20px;">
       Enter the 6-digit code below to verify <strong>${safeEmail}</strong>. This code expires in ${expiresMinutes} minutes.
     </p>
-    <div style="background:#1A1A18; color:#F4EDE3; font-size:28px; font-weight:700; letter-spacing:0.25em; text-align:center; padding:16px; border-radius:8px; margin:0 0 20px;">
+    <div style="background:#18181B; color:#F9F6F0; font-size:28px; font-weight:700; letter-spacing:0.25em; text-align:center; padding:16px; border-radius:8px; margin:0 0 20px;">
       ${safeCode}
     </div>
-    <p style="font-size:12px; color:#6E6A64; margin:0;">
+    <p style="font-size:12px; color:#57534E; margin:0;">
       If you did not request this code, you can safely ignore this message.
     </p>
   </div>
 </body>
 </html>`;
 
-    const text = `Gamo Studios Verification Code: ${params.code}\n\nUse this 6-digit code to verify ${params.email}. It expires in ${expiresMinutes} minutes.`;
+    const text = `${program} verification code: ${params.code}\n\nUse this 6-digit code to verify ${params.email}. It expires in ${expiresMinutes} minutes.\n\nIf you did not request this code, you can safely ignore this message.`;
 
     const res = await client.send({
       to: params.email,
-      subject: 'Your Gamo Studios verification code',
+      subject: `Your ${program} verification code`,
       html,
       text,
       tags: [{ name: 'category', value: 'auth_verification' }],
+      idempotencyKey: params.challengeId ? `auth_challenge_${params.challengeId}` : undefined,
     });
 
     return {
@@ -182,27 +210,27 @@ export class NotificationService {
     const safeCity = escapeHtml(event.city);
     const safeState = escapeHtml(event.state);
     const safeQrToken = escapeHtml(registration.qrToken);
-    const formattedDate = escapeHtml(event.startsAt.toUTCString());
+    const formattedDate = escapeHtml(formatEventStart(event.startsAt, event.timezone));
 
-    const brand = getPlatformBrandConfig();
+    const brand = getPlatformBrandConfig(this.brandEnv);
     const safePassHeader = escapeHtml(brand.ticketPassHeader);
     const safeDisclosure = escapeHtml(brand.operatorDisclosure);
 
     const html = `<!DOCTYPE html>
 <html lang="en">
-<body style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background:#F4EDE3; color:#1A1A18; padding:24px;">
-  <div style="max-width:560px; margin:0 auto; background:#FFFFFF; border:1px solid #E2DCD3; border-radius:12px; padding:28px;">
-    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F432A; font-weight:600; margin:0 0 8px;">${safePassHeader}</p>
+<body style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background:#F9F6F0; color:#18181B; padding:24px;">
+  <div style="max-width:560px; margin:0 auto; background:#FFFFFF; border:1px solid #EDE6DA; border-radius:12px; padding:28px;">
+    <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#8F3B18; font-weight:600; margin:0 0 8px;">${safePassHeader}</p>
     <h1 style="font-size:22px; margin:0 0 12px;">${safeEventTitle}</h1>
-    <p style="font-size:15px; line-height:1.5; color:#3D3B38; margin:0 0 16px;">
+    <p style="font-size:15px; line-height:1.5; color:#3F3F46; margin:0 0 16px;">
       Hello ${safeAttendeeName}, your registration (${registration.quantity} ${registration.quantity === 1 ? 'guest' : 'guests'}) is confirmed.
     </p>
-    <div style="background:#F8F5F0; border:1px solid #E2DCD3; border-radius:8px; padding:16px; margin:0 0 18px; font-size:14px; line-height:1.6;">
+    <div style="background:#F9F6F0; border:1px solid #EDE6DA; border-radius:8px; padding:16px; margin:0 0 18px; font-size:14px; line-height:1.6;">
       <div><strong>Venue:</strong> ${safeVenue} (${safeCity}, ${safeState})</div>
       <div><strong>Starts:</strong> ${formattedDate}</div>
       <div><strong>Admission Pass Token:</strong> <code>${safeQrToken}</code></div>
     </div>
-    <p style="font-size:11px; line-height:1.5; color:#6E6A64; margin:0;">${safeDisclosure}</p>
+    <p style="font-size:11px; line-height:1.5; color:#57534E; margin:0;">${safeDisclosure}</p>
   </div>
 </body>
 </html>`;
@@ -211,7 +239,7 @@ export class NotificationService {
       `${brand.displayName} Registration Confirmed: ${event.title}`,
       `Attendee: ${registration.attendeeName} (${registration.quantity})`,
       `Venue: ${event.venueName}, ${event.city}, ${event.state}`,
-      `Starts: ${event.startsAt.toUTCString()}`,
+      `Starts: ${formatEventStart(event.startsAt, event.timezone)}`,
       `Admission Pass Token: ${registration.qrToken}`,
       ``,
       brand.operatorDisclosure,
@@ -227,6 +255,7 @@ export class NotificationService {
         { name: 'category', value: 'event_registration' },
         { name: 'event_id', value: event.id },
       ],
+      idempotencyKey: `notification_job_${job.id}`,
     });
 
     if (sendResult.success) {
