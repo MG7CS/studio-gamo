@@ -10,6 +10,8 @@
  * - id?: string (default 'terms-accept'); name?: string (default 'terms_accept'; value 'yes').
  * - error?: string — server-rendered "Please agree to the terms to continue."
  * - newTab?: boolean — open the documents in a new tab (default false: same tab).
+ * - required?: boolean — native `required` (default true). Pass false only when the server decides
+ *   whether the box is needed (e.g. guardian consent only for a student under 18).
  * - class?: string.
  *
  * Never pre-checked (there is no `checked` prop).
@@ -22,6 +24,7 @@ interface Props {
   name?: string;
   error?: string;
   newTab?: boolean;
+  required?: boolean;
   class?: string;
 }
 
@@ -31,6 +34,7 @@ const {
   name = 'terms_accept',
   error,
   newTab = false,
+  required = true,
   class: className,
 } = Astro.props;
 const errorId = `${id}-error`;
@@ -50,7 +54,7 @@ const joiner = (i: number) => (i === 0 ? '' : i === documents.length - 1 ? ' and
       name={name}
       type="checkbox"
       value="yes"
-      required
+      required={required}
       aria-describedby={errorId}
       aria-invalid={error ? 'true' : undefined}
       data-server-error={error ? 'true' : undefined}

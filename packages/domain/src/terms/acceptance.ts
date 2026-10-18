@@ -78,13 +78,14 @@ function validate(input: RecordTermsAcceptanceInput) {
 }
 
 /**
- * Writes one acceptance per document (and the document rows on first use) in one transaction.
- * Throws `TermsAcceptanceError` for unknown slugs, stale versions or a missing subject.
+ * The statements that record one acceptance per document (and insert the document rows on first use),
+ * for callers that must write them in the same D1 batch as their own rows (e.g. an Academy registration
+ * that references the acceptance ids). Validates exactly like `recordTermsAcceptance`; throws
+ * `TermsAcceptanceError` for unknown slugs, stale versions or a missing subject.
  */
-export async function recordTermsAcceptance(
-  db: SqlDatabase,
+export async function buildTermsAcceptanceStatements(
   input: RecordTermsAcceptanceInput,
-): Promise<RecordedAcceptance[]> {
+): Promise<{ specs: SqlStatementSpec[]; recorded: RecordedAcceptance[] }> {
   const { docs, email, personId, userId, customerProfileId } = validate(input);
   const specs: SqlStatementSpec[] = [];
   const recorded: RecordedAcceptance[] = [];
@@ -108,6 +109,18 @@ export async function recordTermsAcceptance(
     });
     recorded.push({ id, slug: doc.slug, version: doc.version });
   }
+  return { specs, recorded };
+}
+
+/**
+ * Writes one acceptance per document (and the document rows on first use) in one transaction.
+ * Throws `TermsAcceptanceError` for unknown slugs, stale versions or a missing subject.
+ */
+export async function recordTermsAcceptance(
+  db: SqlDatabase,
+  input: RecordTermsAcceptanceInput,
+): Promise<RecordedAcceptance[]> {
+  const { specs, recorded } = await buildTermsAcceptanceStatements(input);
   await runBatch(db, specs);
   return recorded;
 }

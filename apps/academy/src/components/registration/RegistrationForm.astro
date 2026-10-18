@@ -1,0 +1,40 @@
+---
+/**
+ * The guest registration form (no account, no JavaScript needed): POSTs to the page itself, which answers
+ * 303 to the receipt or re-renders with errors. Turnstile and a hidden idempotency key protect it.
+ */
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import TurnstileWidget from '@studio-gamo/ui/components/forms/TurnstileWidget.astro';
+import type { TermsConsentDocument } from '@studio-gamo/ui/lib/terms-links';
+import StudentFields from './StudentFields.astro';
+import ContactFields from './ContactFields.astro';
+import ConsentFields from './ConsentFields.astro';
+import RegistrationChoice from './RegistrationChoice.astro';
+
+interface Props {
+  idempotencyKey: string;
+  values: Record<string, string>;
+  errors: Record<string, string>;
+  summary: { message: string; fieldId?: string }[];
+  documents: {
+    base: TermsConsentDocument[];
+    guardian: TermsConsentDocument[];
+    safety: TermsConsentDocument[];
+  };
+  payAvailable: boolean;
+  amountLabel?: string | null;
+  turnstileError?: string;
+}
+const { idempotencyKey, values, errors, summary, documents, payAvailable, amountLabel, turnstileError } =
+  Astro.props;
+---
+
+<form method="post" class="space-y-8" data-registration-form>
+  <FormErrorSummary errors={summary} />
+  <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+  <StudentFields values={values} errors={errors} />
+  <ContactFields values={values} errors={errors} />
+  <ConsentFields documents={documents} errors={errors} />
+  <TurnstileWidget action="academy_register" error={turnstileError} />
+  <RegistrationChoice payAvailable={payAvailable} amountLabel={amountLabel} />
+</form>
