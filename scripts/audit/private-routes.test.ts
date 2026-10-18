@@ -59,6 +59,13 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/lessons/[slug]',
     '/instructors/[slug]',
     '/sponsored',
+    // Guest registration (no account, design §4.7): the receipt needs a signed reference and the manage
+    // page a customer cookie from an emailed link; both are noindex and disallowed in robots.txt.
+    '/register/[lesson]',
+    '/registrations/find',
+    '/registrations/open',
+    '/registrations/receipt',
+    '/registrations/manage',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
     ...ERROR_PAGES,

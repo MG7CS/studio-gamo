@@ -1,0 +1,186 @@
+---
+/**
+ * Manage registrations (behind the customer cookie set by `/registrations/open`). Shows the registrations
+ * the link covers (`registration:<id>` → that one; `customer:all` → every registration of that email),
+ * and handles the POST actions: update phone, cancel. No account and no password: without a valid session
+ * the page offers a new emailed link. Offers "Create a Gamo Academy account" (claim, handled by sign-up).
+ */
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  AcademyRegistrationError,
+  cancelAcademyRegistration,
+  getRuntimeEnv,
+  listCustomerRegistrations,
+  readCustomerSession,
+  readPublicFormBody,
+  type CustomerSession,
+  updateRegistrationPhone,
+} from '@gamo/domain';
+import { scopeCovers } from '@gamo/domain/security';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
+import ManageRegistrationCard from '../../components/registration/ManageRegistrationCard.astro';
+import { findLesson, nowSeconds, registrationDb } from '../../lib/registration';
+
+export const prerender = false;
+
+const env = Astro.locals.runtimeEnv ?? (await getRuntimeEnv(Astro));
+const now = nowSeconds();
+const done = Astro.url.searchParams.get('done');
+let session: CustomerSession | null = null;
+let unavailable = false;
+let problem: string | null = null;
+let phoneError: { id: string; message: string } | null = null;
+let registrations: Awaited<ReturnType<typeof listCustomerRegistrations>> = [];
+
+try {
+  const db = registrationDb(env);
+  session = await readCustomerSession(db, env as never, Astro.request, now);
+  const active = session;
+  const covered = (id: string) => active !== null && scopeCovers(active.scope, { kind: 'registration', id });
+
+  if (Astro.request.method === 'POST') {
+    requireSameOrigin(Astro.request);
+    if (!session) {
+      Astro.response.status = 401;
+    } else {
+      const parsed = await readPublicFormBody(Astro.request);
+      const field = (name: string) => (parsed.ok ? (parsed.body.get(name) ?? '') : '');
+      const intent = field('intent');
+      const registrationId = field('registration_id');
+      try {
+        if (!parsed.ok) throw new AcademyRegistrationError('VALIDATION', parsed.error.message);
+        if (!covered(registrationId))
+          throw new AcademyRegistrationError('NOT_FOUND', 'We could not find that registration.', 404);
+        if (intent === 'cancel') {
+          const result = await cancelAcademyRegistration(db, {
+            registrationId,
+            customerProfileId: session.customerProfileId,
+            now,
+          });
+          return Astro.redirect(
+            `/registrations/manage?done=${result.refundRequested ? 'refund-requested' : 'cancelled'}`,
+            303,
+          );
+        }
+        if (intent === 'phone') {
+          await updateRegistrationPhone(db, {
+            registrationId,
+            customerProfileId: session.customerProfileId,
+            phone: field('phone'),
+            now,
+          });
+          return Astro.redirect('/registrations/manage?done=phone', 303);
+        }
+        throw new AcademyRegistrationError(
+          'NOT_ALLOWED',
+          'That action is not available. Please reload the page.',
+        );
+      } catch (err) {
+        if (!(err instanceof AcademyRegistrationError)) throw err;
+        Astro.response.status = err.status;
+        if (intent === 'phone' && err.code === 'VALIDATION')
+          phoneError = { id: registrationId, message: err.message };
+        else problem = err.message;
+      }
+    }
+  }
+  if (session) {
+    registrations = (await listCustomerRegistrations(db, session.customerProfileId)).filter((r) =>
+      covered(r.id),
+    );
+  } else if (Astro.response.status === 200) {
+    Astro.response.status = 401;
+  }
+} catch (err) {
+  console.error(`[academy.registrations.manage] ${(err as Error)?.name ?? 'Error'}`);
+  unavailable = true;
+  Astro.response.status = (err as { status?: number })?.status === 403 ? 403 : 503;
+}
+
+const doneMessages: Record<string, [string, string]> = {
+  cancelled: ['Registration cancelled', 'The registration is cancelled. Nothing was charged.'],
+  'refund-requested': [
+    'Registration cancelled — refund requested',
+    'The registration is cancelled. Because it was paid, our team will arrange the refund and email you.',
+  ],
+  phone: ['Phone number saved', 'The instructor will use the new number.'],
+};
+const doneMessage = done ? doneMessages[done] : undefined;
+---
+
+<Layout
+  title="Manage your registration"
+  description="View, update or cancel a Gamo Academy registration."
+  noindex
+>
+  <PageHero
+    eyebrow="Gamo Academy · Registration"
+    title="Manage your registration"
+    lede="View the details, update the contact phone or cancel. This page is private to you."
+  />
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <div class="mx-auto max-w-3xl space-y-6">
+      {unavailable && (
+        <RegistrationNotice tone="problem" title="This page is temporarily unavailable">
+          <p>Please try again in a few minutes, or write to hello@gamostudio.org.</p>
+        </RegistrationNotice>
+      )}
+      {!unavailable && !session && (
+        <RegistrationNotice tone="problem" title="Your link has expired">
+          <p>For your privacy, registration links stop working after a while. We can email you a new one.</p>
+          <p>
+            <a
+              href="/registrations/find"
+              class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4"
+            >
+              Email me a new link
+            </a>
+          </p>
+        </RegistrationNotice>
+      )}
+      {doneMessage && session && (
+        <RegistrationNotice tone="success" title={doneMessage[0]}>
+          <p>{doneMessage[1]}</p>
+        </RegistrationNotice>
+      )}
+      {problem && (
+        <RegistrationNotice tone="problem" title="That didn't work">
+          <p>{problem}</p>
+        </RegistrationNotice>
+      )}
+      {session && registrations.length === 0 && (
+        <RegistrationNotice title="No registrations found">
+          <p>
+            <a href="/lessons" class="font-semibold text-terracotta-deep underline underline-offset-4">
+              Browse lessons
+            </a>
+          </p>
+        </RegistrationNotice>
+      )}
+      {registrations.map((r) => (
+        <ManageRegistrationCard
+          registration={r}
+          lessonTitle={findLesson(r.lessonSlug ?? undefined)?.title ?? 'Lesson'}
+          phoneError={phoneError?.id === r.id ? phoneError.message : undefined}
+        />
+      ))}
+      {session && (
+        <section aria-labelledby="claim-title" class="rounded-[28px] bg-ivory p-6 ring-1 ring-sand sm:p-7">
+          <h2 id="claim-title" class="text-lg font-bold">
+            Want an account? (optional)
+          </h2>
+          <p class="mt-2 text-[15px] text-muted">
+            You never need an account to manage a registration. If you would like one, create it with the same
+            email address and your registrations will appear in it.
+          </p>
+          <ButtonLink href="/account/signup?claim=registration" variant="secondary" class="mt-4">
+            Create a Gamo Academy account with this email
+          </ButtonLink>
+        </section>
+      )}
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,145 @@
+---
+/**
+ * Registration receipt, reached by the 303 after the form (or Stripe's success URL). `r` is a signed,
+ * 2-hour reference to the registration (proof the visitor just submitted it); without it the page only
+ * explains how to find a registration. Shows lesson, location, schedule, status and whether the email went
+ * out. In local development with simulated email it also shows the manage link ("Local preview only").
+ */
+import {
+  getAcademyRegistration,
+  getRuntimeEnv,
+  issueCustomerLink,
+  registrationLinkExpiresAt,
+} from '@gamo/domain';
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
+import RegistrationDetails from '../../components/registration/RegistrationDetails.astro';
+import {
+  emailIsSimulated,
+  findLesson,
+  lessonRef,
+  nowSeconds,
+  readReceiptReference,
+  registrationDb,
+} from '../../lib/registration';
+
+export const prerender = false;
+
+const env = Astro.locals.runtimeEnv ?? (await getRuntimeEnv(Astro));
+const now = nowSeconds();
+let registration = null;
+let emailStatus: string | null = null;
+let previewLink: string | null = null;
+let unavailable = false;
+try {
+  const id = await readReceiptReference(env, Astro.url.searchParams.get('r'), now);
+  if (id) {
+    const db = registrationDb(env);
+    registration = await getAcademyRegistration(db, id);
+    if (registration) {
+      const row = (await db
+        .prepare(
+          "SELECT status FROM email_log WHERE kind = 'academy_receipt' AND related_type = 'academy_registration' AND related_id = ?1",
+        )
+        .bind(registration.id)
+        .first()) as { status: string } | null;
+      emailStatus = row?.status ?? null;
+      const lesson = findLesson(registration.lessonSlug ?? undefined);
+      if (emailIsSimulated(env) && lesson && registration.status !== 'cancelled') {
+        const link = await issueCustomerLink(db, env as never, {
+          customerProfileId: registration.customerProfileId,
+          scope: `registration:${registration.id}`,
+          purpose: 'registration',
+          expiresAt: registrationLinkExpiresAt(lessonRef(lesson), now),
+          now,
+          openPath: '/registrations/open',
+        });
+        previewLink = link.path;
+      }
+    }
+  }
+} catch (err) {
+  console.error(`[academy.receipt] ${(err as Error)?.name ?? 'Error'}`);
+  unavailable = true;
+}
+if (unavailable) Astro.response.status = 503;
+const lesson = registration ? findLesson(registration.lessonSlug ?? undefined) : null;
+const simulated = emailIsSimulated(env);
+const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'delivered');
+---
+
+<Layout title="Registration received" description="Your Gamo Academy registration receipt." noindex>
+  <PageHero
+    eyebrow="Gamo Academy · Registration"
+    title={registration ? 'Registration received' : 'Registration receipt'}
+    lede={
+      registration
+        ? 'Thank you. Keep the reference below; the email has a private link to manage the registration.'
+        : 'This receipt link has expired. Your registration is safe — find it again with your email address.'
+    }
+  />
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <div class="mx-auto max-w-3xl space-y-6">
+      {unavailable && (
+        <RegistrationNotice tone="problem" title="We couldn't load the receipt">
+          <p>Please reload the page in a moment. Your registration was saved if you saw no error before.</p>
+        </RegistrationNotice>
+      )}
+      {registration && (
+        <>
+          {registration.status === 'pending_payment' && (
+            <RegistrationNotice title="Payment is being confirmed (test mode)">
+              <p>
+                Your spot is held. The registration shows as paid once Stripe confirms the test payment; until
+                then it stays "payment pending". No real card is charged.
+              </p>
+            </RegistrationNotice>
+          )}
+          {simulated ? (
+            <RegistrationNotice title="Email simulated (local development)">
+              <p>No email was sent: email delivery is simulated on this local preview.</p>
+            </RegistrationNotice>
+          ) : emailSent ? (
+            <RegistrationNotice tone="success" title="Receipt emailed">
+              <p>
+                We emailed the receipt and a private link to manage the registration. If you can't find it,
+                check your spam folder.
+              </p>
+            </RegistrationNotice>
+          ) : (
+            <RegistrationNotice title="We couldn't email the receipt yet">
+              <p>
+                Your registration is saved. Write down the reference below. You can ask for a new link at any
+                time on the "Find your registration" page.
+              </p>
+            </RegistrationNotice>
+          )}
+          <RegistrationDetails registration={registration} lessonTitle={lesson?.title ?? 'Lesson'} />
+          {previewLink && (
+            <RegistrationNotice title="Local preview only">
+              <p>
+                Email is simulated in local development, so the manage link is shown here instead:{' '}
+                <a
+                  href={previewLink}
+                  data-preview-manage-link
+                  class="font-semibold text-terracotta-deep underline underline-offset-4"
+                >
+                  Open the manage page
+                </a>
+              </p>
+            </RegistrationNotice>
+          )}
+        </>
+      )}
+      <p class="text-[15px]">
+        <a
+          href="/registrations/find"
+          class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4"
+        >
+          Find your registration
+        </a>
+      </p>
+    </div>
+  </section>
+</Layout>
