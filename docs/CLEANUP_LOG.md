@@ -72,8 +72,32 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-05 | Local D1 sharing between apps | one shared state dir; isolated per app | Isolated per app (as requested), documented | Two workerd processes writing one SQLite file risk lock errors/corruption. Consequence: locally, admin cannot see events created in live unless both are seeded — documented in RUNBOOK. |
 | D-06 | `apps/*/.gitignore` duplicated the root file | keep; delete | Deleted; root `.gitignore` extended (test output, `*.tsbuildinfo`, `.eslintcache`, editor dirs) | One source of truth. |
 | D-07 | `astro.config.mjs` imported `../../packages/config/env-loader.ts` by relative path | keep; package import | `@gamo/config/env-loader` with `exports` map + `workspace:*` devDependency in every app | Removes cross-package relative imports; dependency is now declared. |
+| D-08 | Prettier on the whole workspace (367 files) | format only touched files; format everything once | One isolated `style:` commit `c0711c3`, listed in `.git-blame-ignore-revs`. Markdown/docs, generated files and data excluded. | Consistent baseline; isolating it keeps every other diff readable. Rendered text of 12 pages compared before/after: identical except collapsible whitespace. |
+| D-09 | `typecheck` ran `tsc` per app (skips `.astro`) | keep tsc; `astro check` | `astro check` per app + `tsc -p` per package + `tsc -p scripts` | `astro check` immediately found 6 real errors (see F-55). |
+| D-10 | ~150 `no-explicit-any` hits | fix now; warn now, fix in Phase 2 | `warn` in Phase 1; Phase 2 types them and sets the rule (and `--max-warnings 0`) back to error | Kept Phase 1 to hygiene; typing touches auth/DB code that deserves its own commit. |
+| D-11 | Orphaned tests (`scripts/audit/*.test.ts`, contract test) | leave; wire in | `pnpm test` = `tsx --test` over `packages/**` and `scripts/**` test files (105 → 110 tests) | They were green except one wrong expectation; they now run in CI. Browser/Miniflare e2e files (`*.test.mjs`) stay out until Phase 7. |
+| D-12 | Env templates: both `.env.example` and `.dev.vars.example` per app, with values | keep both; one per location | Root `.env.example` (shared, loaded by env-loader) + `apps/<app>/.dev.vars.example` (per-app secrets; Cloudflare's convention, also read natively by the adapter). Names, required/optional and purpose only; no values. | Two templates per app were near-duplicates and drifted. Removed variables no code reads (F-52). |
+| D-13 | 41 redirect-stub page files | keep files; delete files and links; central table | Links now point at real destinations; stubs replaced by per-app `src/lib/legacy-redirects.ts` tables consumed by `applicationPages(app, { legacyRedirects })` | Old bookmarks keep working, nothing renders a page just to redirect, and the routing rules are testable. Statuses preserved from the stubs (302 by default, 301 for consolidated routes, 303 where the stub used it). |
+| D-14 | Commit `1d17ee6` ("remove demo mode banners, sample tags … for pilot phase") vs AGENTS.md "fictional examples visibly labeled" | follow the commit; follow AGENTS.md | Follow AGENTS.md (the task brief repeats the rule); targeted sample labels added in Phase 2 | Owner decision recorded as O-03. |
+| D-15 | Four domain services (`Academy`, `Worship`, `Production`, `Partnership`) and six zod schemas never used | keep as "foundation"; delete | Deleted (recoverable from `35d233d`) | Dead code with no route, test or caller; they implied functionality that does not exist. `MediaService` kept (tested). `createApiClient` kept (documented in `docs/OPENAPI_ARCHITECTURE.md`). |
 
 ## 2. Done
+
+### Phase 1 — Repo hygiene and tooling
+
+- **Hygiene files:** `.editorconfig`, `.gitattributes` (LF, binaries, generated files marked), `.nvmrc` (22.22.3), root `packageManager: pnpm@11.28.5`, `engines`, `private: true`; dropped bogus `main`/`license` fields. Files: root.
+- **`.gitignore`** consolidated at the root (test output, `*.tsbuildinfo`, `.eslintcache`, editor dirs, generated screenshots); 6 duplicate `apps/*/.gitignore` deleted; `.DS_Store`, `docs/screenshots/` (1,273 PNGs, 627 MB), `artifacts/` untracked (kept on disk).
+- **dev:all fixed** (F-07/F-08): `packages/config/apps.ts` (ports, inspector ports 9321–9326, `127.0.0.1`), `createGamoCloudflareConfig()` sets `inspectorPort` + `persistState`, new `createGamoDevServer()`. All six `astro.config.mjs` rewritten identically. Verified: all six apps up at once.
+- **Linting/formatting:** `eslint.config.js` (typescript-eslint, eslint-plugin-astro, a11y rules), `.prettierrc.json`, `.prettierignore`, `knip.json`. Fixed: unused imports/vars, empty `catch {}` (now commented), lost `cause` on rethrown errors, a `prefer-const`, fragile multi-line member calls in `scripts/optimize-images.mjs`, an unnecessary regex escape. Justified disables: control-char regex in `safeReturnPath`, `tabindex` on the scrollable `ContentRail` region.
+- **Dead code deleted** (each verified with an import resolver, see D-15): web old homepage sections (10) and `editorial/*` (10), `account/{OnboardingSteps,VerifiedAuthPanel}`, `organization/{AccountEntry,MissionPurpose,MissionValues,ProgramCollection}`, `page/SplitFeature`, `pages/preview/hero-2026` + `HeroBrightSection`/`HeroProgramCards`; web `data/workspaces/{account,partner}.ts`; live `data/events.ts` (fictional events) and `data/workspaces/{organizer,artist,agent,attendee}.ts`; worship `flow/{ChipGroup,DemoForm,NoticePanel,ProposalBreakdown,ScheduleStep,StatusTimeline}`, `dashboard/ChurchRoster`; academy `forms/DemoStepForm`, `dashboard/DashboardOverview`; production `AssessmentFlow`; admin `layouts/Layout`; ui `Badge`, `Button`, `Container`, `auth/AuthSplitLayout`, `auth/AuthStatusBanner`, `account/VerifiedAuthPanel`, `DemoNotice`, `dashboard/DemoModeBanner`; `packages/integrations/index.ts`; domain `services/{academy,worship,production,partnerships}.ts`; 6 unused zod schemas; unused data exports (`lessonBySlug`, `assessmentSteps`, `getEvent`, `eventsBy`, `cities`, `programs`, worship `roster`/`applySteps`/`hireSteps`).
+- **Throwaway scripts deleted:** `scripts/{screenshot,capture-review-sections,generate-index,verify-responsive-refinement,dashboard-shots,verify-zoom-layout,verify-zoom-out,verify-dashboards-all-viewports,verify-dashboard-navigation,verify-live-discovery-launch}.mjs`, `scripts/audit/runtime-probe.mjs`, `apps/{live,production}/scripts/verify-ui.mjs`, `apps/worship/scripts/verify-frontends.mjs` (all unreferenced; several targeted retired routes; `generate-index.mjs` would overwrite the homepage).
+- **Duplicate data:** removed root `gamo_live_verified_events_2026-10-15.json` and `data/gamo_live_events.json` (byte-identical to `data/gamo_live_verified_events_2026-10-15.json`); editorial CLI looks only in `data/`. Removed stale `docs/homepage-{desktop,mobile}.png`.
+- **Unused dependencies removed:** `@clerk/astro` (8 workspaces), `@clerk/backend`/`@clerk/clerk-js` from apps (only packages import them), `@clerk/clerk-js` from auth, `@clerk/backend` from ui, `@studio-gamo/integrations` from admin, root `openapi-fetch`. Declared the missing `@gamo/domain` (worship/academy/production) and `@gamo/config` (all apps).
+- **Redirect stubs:** 41 files replaced by legacy redirect tables (D-13); ~50 links updated to real destinations via new `inquiryUrl()`.
+- **Env templates** rewritten (D-12): `.env.example`, `apps/*/.dev.vars.example`.
+- **Root scripts:** `dev`, `dev:all`, `typecheck` (`typecheck:apps` = astro check, `typecheck:packages`), `lint`, `lint:fix`, `format`, `format:check`, `test`, `knip`, **`check`**. Makefile `check`/`lint`/`typecheck`/`format` call them.
+- **CI:** `.github/workflows/ci.yml` replaces `api-contract.yml`: install (frozen), `api:docs`, `pnpm check`, OpenAPI compatibility review. Uses `.nvmrc` and the pinned pnpm (CI previously used pnpm 11.6.0).
+- **Bugs fixed on the way** (found by `astro check`/tsc, F-55): live `/artists` date chip rendered `undefined`; admin `/security` crashed on a failed password change and dropped a panel description; admin `/security` displayed the bootstrap password (F-43, fixed); `auth.test.ts` fixtures used non-existent columns; `auth-journeys` expectation corrected (401, not 403, for a foreign-product session); admin `[...slug]` D1 enrichment that could never render removed (F-47 partially).
 
 ## 3. Findings
 
@@ -130,6 +154,11 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-47 | P2 | Admin workspace fixtures (~4,300 lines) can never render (`isolatedDemo` is never set in admin), and `[...slug].astro` prepends real D1 rows to fake rows. | `apps/admin/src/data/**`, `apps/admin/src/pages/[...slug].astro:14-60` | open (Phase 2) |
 | F-48 | P2 | `scripts/generate-index.mjs` would overwrite the current homepage with an old layout. | `scripts/generate-index.mjs:396` | open (Phase 1) |
 | F-49 | P2 | `@clerk/astro` declared in 8 packages, imported nowhere; `@clerk/backend`/`@clerk/clerk-js` declared in all apps but imported only by packages. | package.json files | open (Phase 1/2) |
+| F-51 | P1 | Storage ticket signing falls back to a hard-coded secret constant when none is configured (forgeable upload/download tickets). No app route uses the R2 client yet. | `packages/integrations/src/storage.ts:119` | open (Phase 3) |
+| F-52 | P3 | Variables set in templates/wrangler but read by no code: `ALLOW_TEST_CHALLENGE_OUTBOX`, `ADMIN_INITIAL_PASSWORD`, `CLERK_KEYLESS_DISABLED`, `PUBLIC_CLERK_KEYLESS_DISABLED`, `STRIPE_SANDBOX_ENABLED`. | templates, `apps/*/wrangler.toml` | templates **fixed**; wrangler vars left (deploy config) |
+| F-53 | P1 | `siteOrigin()` reads `PUBLIC_SITE_URL_*`/`PUBLIC_ROOT_DOMAIN` from `import.meta.env` (build time); preview builds may therefore link to production origins, and the workers.dev pattern (`gamo-<app>.<root>`) does not match the real preview Worker names (`gamo-<app>-preview`). Duplicates the port table. | `packages/ui/src/lib/sites.ts` | open (Phase 4, verify with a preview build) |
+| F-54 | P3 | Cloudflare account ID is committed in `Makefile` and every `wrangler.toml` although README says not to commit account identifiers (it is not a secret). | — | left; noted |
+| F-55 | P1 | Real bugs hidden by the old typecheck: see Phase 1 Done "Bugs fixed on the way". | — | **fixed** |
 | F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | open (Phase 1) |
 
 ## 4. Needs owner decision
@@ -171,8 +200,23 @@ Nothing in this section was changed in code unless the row says so.
 
 ## 6. Verification
 
+### After Phase 1
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` (typecheck → lint → format:check → test → api:check → build) | **pass**, ~80 s |
+| `pnpm typecheck` | 6 apps `astro check`: 0 errors / 0 warnings; 6 packages + scripts `tsc`: 0 errors |
+| `pnpm lint` | 0 errors, 150 warnings (all `no-explicit-any`, D-10) |
+| `pnpm test` | 110/110 pass (was 61 + 44 orphaned, 1 failing) |
+| `pnpm api:check` | pass (12 contract tests, 58 operations matched) |
+| `pnpm build` | all 6 apps build |
+| `pnpm dev:all` (agent env vars unset = normal terminal) | all six respond: web/worship/academy/live/production 200, admin 401 (staff gate) |
+| Redirect smoke on dev servers (17 URLs) | every legacy URL → intended target with intended status; real routes unaffected |
+| Rendered-text diff before/after Prettier (12 pages) | no text change |
+
 ## 7. How to revert
 
 | Phase | Commit | Revert |
 | --- | --- | --- |
 | Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
+| Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · (log commit follows) | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
