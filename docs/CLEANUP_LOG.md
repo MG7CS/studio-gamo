@@ -207,6 +207,14 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **Removed:** `scripts/verify-public-ui.mjs`, `scripts/audit/verify-auth-ui.mjs` (screenshot scripts for retired routes, superseded), `test:web` script.
 - `pnpm check` = typecheck → lint → format:check → test → api:check → build → test:journeys → test:e2e. CI installs Chromium first.
 
+### Phase 8 — Documentation
+
+- **`README.md`** rewritten: what the repo is (approved PBC sentence only), the six apps with hosts and local ports, packages, stack, quick start, every root command, deploy pointer, doc index. Every command and file it names was checked against `package.json`, the Makefile and the tree.
+- **`docs/ARCHITECTURE.md`** (new): apps/Workers/domains, packages, request flow through `applicationPages`, auth and account independence, payments (fail closed), D1/KV/R2, Live catalog, front-end rules, test suites.
+- **`docs/RUNBOOK.md`** (new): pre-deploy checks, preview → production via `make`, the `CLOUDFLARE_ENV` requirement, rollback (`wrangler deployments list` / `rollback`), vars vs secrets per app (names only), remote D1 backup → migrate → time-travel, Live catalog import (local CLI; remote only via `LIVE_CATALOG_AUTOSEED` because the CLI refuses remote `--apply`), Cloudflare checks, post-deploy checks, first staff account (gap → H-07).
+- **`AGENTS.md`**: new "Established conventions" subsection (pnpm check, hosts/ports, typed env/locals, middleware order, private routes + robots, legacy redirects, API order, fail-closed/`allowMock`, CSP rules, UI tokens/targets/a11y, sample labels, migrations, logging).
+- **Stale docs marked** with a status banner (`<!-- status-banner: 2026-10 foundation pass -->`): historical — `docs/RESUME_LIVE.md`, `RESUME_PRODUCTION.md`, `RESUME_WORSHIP_ACADEMY.md`, `MULTIPAGE_DESIGN_REVIEW.md`, `HOMEPAGE_VISUAL_REVIEW.md`, `DESIGN_REVIEW_WEB.md`, `prompts/MASTER-PROMPT.md`; partly stale — `COMPONENT_ARCHITECTURE.md`, `DASHBOARD_ARCHITECTURE.md`; superseded — `docs/DEPLOYMENT.md` (→ RUNBOOK), root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` (→ docs/ARCHITECTURE.md); PBC-statement-prevails banner on `ROADMAP.md`, `SECURITY.md`, `DESIGN.md`, `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md` (their body text still says "legal-structure-neutral"/"nonprofit"; rewriting legal/governance text is left to the owner, O-20).
+
 ## 3. Findings
 
 Ranked: **P0** = security/data-integrity risk in production, **P1** = correctness bug or broken user path, **P2** = quality/maintainability, **P3** = cosmetic. Status is updated as items are fixed.
@@ -270,6 +278,7 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-56 | P1 | gamostudio.org/live fallback approved two listings the editorial import holds (unverified ticket URL), linking to Live pages that 404. | `apps/web/src/data/live-marketing.ts` | **fixed** (Phase 4) |
 | F-57 | P2 | Building while dev servers run failed (build bound the dev inspector port). | `packages/config/env-loader.ts` | **fixed** (Phase 4) |
 | F-58 | P1 | Prerendered Academy/Production detail pages were served as static files without the CSP, security headers or the page cache rule. | `apps/academy/src/pages/{instruments,lessons,instructors}/[slug].astro`, `apps/production/src/pages/services/[slug].astro` | **fixed** (Phase 7) |
+| F-59 | P1 | No supported way to create the first staff/admin account in preview or production: `ensureBootstrapAdminAccount` is (correctly) local-demo only. A small owner-run provisioning script (hash locally, emit SQL) would close this. | `packages/auth/index.ts:815` | open → H-07 |
 | F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | open (Phase 1) |
 
 ## 4. Needs owner decision
@@ -296,6 +305,7 @@ Nothing in this section was changed in code unless the row says so.
 | O-17 | **Homepage sample events** (`HomeLiveSpotlight.astro`) are now labeled "Sample", but the AGENTS.md Live rule says Live surfaces must show real database events. | label (done); replace with the same DB-backed list as gamostudio.org/live | Replace with real events (small code change once approved). |
 | O-18 | **Name of the musician pool** varies: "Musician Collection" (footer), "musician collection" (`organization.ts`, `GetStartedRoutes.astro`, `JoinSection.astro`), "a vetted collection" (`programs.ts`), "our reviewed network" (worship layout). | pick one term | Pick one; then a one-line copy pass. |
 | O-19 | **Sending queued emails.** Registration confirmations that fail (or are queued while email is unconfigured) are never retried: nothing runs `NotificationService.processPendingJobs`. | (a) cron trigger on the live Worker (custom Worker entry with a `scheduled` handler calling `processPendingJobs`, `[triggers] crons = ["*/10 * * * *"]`); (b) Cloudflare Queues; (c) leave manual | (a): smallest change; it sends real emails, so it needs approval and a configured Resend key. |
+| O-20 | **Internal docs still use "legal-structure-neutral"/"nonprofit" wording** in their body text (`ROADMAP.md`, `SECURITY.md` §legal, `DESIGN.md`, root `ARCHITECTURE.md`, `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md`, `prompts/MASTER-PROMPT.md`), and SECURITY.md ties donation processing to "tax-exempt recognition". Each now carries a banner that the PBC statement prevails. | rewrite the governance docs for a PBC; keep text + banner | Banner only (Phase 8): these are governance/legal documents, so the rewrite is the owner's (and counsel's) call. |
 | O-14 | **Admin nav labels use `/nonprofit/*` URLs** and "Fund reconciliation", "Stewardship reports" (`apps/admin/src/data/workspace.ts:96-102`); admin data says tax status "under evaluation" (`apps/admin/src/data/admin/nonprofit.ts:87`). Staff-only, but contradicts the PBC statement. | rename routes; keep | Rename to `/organization/*` when admin is next worked on. Not changed. |
 
 **O-04 detail — every program-status phrase found (unchanged):**
@@ -317,6 +327,7 @@ Nothing in this section was changed in code unless the row says so.
 | H-04 | In preview and production D1, remove the global role from the listings publisher and demote it: `DELETE FROM user_roles WHERE user_id = 'usr_gamo_live_listings_editorial'; UPDATE users SET status = 'system' WHERE id = 'usr_gamo_live_listings_editorial';` (`wrangler d1 execute gamo-db-<env> --remote --command "…"`). | F-24: code no longer grants it, but existing rows remain. |
 | H-05 | Verify in a browser on preview that Clerk sign-in works under the new CSP for each product with Clerk keys (the policy allows the product's Clerk Frontend API derived from its publishable key, `img.clerk.com`, `clerk-telemetry.com`, `challenges.cloudflare.com`). If a product uses a Clerk custom domain, confirm it is the issuer. | D-28; Clerk was not configured locally, so this path was not exercised. |
 | H-06 | ~~Confirm wrangler's splitter accepts all migrations from scratch.~~ **Done** in Phase 6 (into a scratch directory). Existing local databases created by the old CLI need `pnpm db:reset:local` once. | — |
+| H-07 | Create the first preview/production staff account (Access identity + D1 user, `superadmin` role, `admin_credentials` with `must_change_password = 1`) with `wrangler d1 execute --remote`; `docs/RUNBOOK.md` §8. Owner to confirm the address (O-05). | F-59: no supported command exists; bootstrap is local-only by design. |
 
 ## 6. Verification
 

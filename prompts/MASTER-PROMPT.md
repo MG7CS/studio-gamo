@@ -1,5 +1,8 @@
 # GAMO STUDIOS — COMPLETE NONPROFIT TRANSFORMATION
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical founder prompt (2026-10-12).** Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+
 ## Master Instructions for Antigravity
 
 We are making a foundational strategic decision that supersedes the previous commercial business model of Gamo Studios.

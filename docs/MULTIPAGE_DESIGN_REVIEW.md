@@ -1,5 +1,8 @@
 # Gamo Studios — Multi-page frontend review
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical document** (design review snapshot). It is kept for the record and is not maintained; it may describe code, routes or decisions that no longer exist. Current reference: [DESIGN.md](../DESIGN.md), the browser smoke suite `tests/e2e/smoke.spec.ts`.
+
 ## Current deliverable
 
 Recovered the interrupted Bright Cinematic Editorial public website phase on 2026-10-12. Asset processing/shared foundation, organization pages and all four public program applications have implemented frontend screens. No backend milestone or production launch is claimed. The organizational source of truth remains [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md).

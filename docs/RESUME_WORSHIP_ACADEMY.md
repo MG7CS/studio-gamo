@@ -1,5 +1,8 @@
 # Worship and Academy interrupted-work recovery — 2026-10-12
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Historical document** (2026-10-12 work-resumption notes). It is kept for the record and is not maintained; it may describe code, routes or decisions that no longer exist. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md), [CLEANUP_LOG.md](CLEANUP_LOG.md).
+
 The existing landing-page sections, photographic compositions, typed demo catalogs and Academy route work were preserved. No backend, payment, dispatch, identity provider or external integration was added.
 
 ## Completed work

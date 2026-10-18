@@ -1,5 +1,8 @@
 # Gamo Studios — Security, Trust and Safety Rules
 
+<!-- status-banner: 2026-10 foundation pass -->
+> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails. The implemented controls (headers, CSRF, private routes, fail-closed payments) are summarized in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 **Mandatory for all contributors and autonomous agents.** Security gates outrank speed and visual fidelity.
 
 ## Identity and access

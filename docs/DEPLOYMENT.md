@@ -1,5 +1,8 @@
 # Gamo Studios — Cloudflare Deployment Guide
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Superseded by [RUNBOOK.md](RUNBOOK.md)** (deploy, rollback, secrets per app, migrations, Live catalog). Some details below are out of date (migration file names, the demo-banner check).
+
 **Canonical Production Domain:** `gamostudio.org`  
 **Active Cloudflare Account:** `gamostudios` (Account ID: `ebae7bded6ab45950aeba1d6cf51eb7f`)  
 **Active Cloudflare Zone:** `gamostudio.org` (Zone ID: `5dd92c18b4c722d5d15d66bda4f94979`, Active)  

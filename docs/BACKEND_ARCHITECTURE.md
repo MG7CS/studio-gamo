@@ -1,5 +1,8 @@
 # Gamo Studios — Cloudflare Backend & API Architecture
 
+<!-- status-banner: 2026-10 foundation pass -->
+> **Design notes.** For what the code does today see [ARCHITECTURE.md](ARCHITECTURE.md) and `openapi/root.yaml`.
+
 **Status:** Authoritative Backend & API Architecture  
 **Author:** Gamo Studios Engineering Team  
 **Updated:** 2026-10-13  
