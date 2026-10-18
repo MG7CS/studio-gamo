@@ -54,7 +54,7 @@ export const familyWorkspace: Workspace = {
         ] },
         { type: 'list', title: 'Notes from Ava’s instructor', items: [
           { title: 'Great progress on the C-major scale', body: 'Try it hands together this week.', icon: 'book', meta: 'Oct 10' },
-          { title: 'Practise “Ode to Joy” slowly', body: '3 times a day, focusing on even rhythm.', icon: 'music', meta: 'Oct 10' },
+          { title: 'Practice “Ode to Joy” slowly', body: '3 times a day, focusing on even rhythm.', icon: 'music', meta: 'Oct 10' },
         ] },
         { type: 'progress', span: 2, title: 'Milestones — Ava, Piano', items: [
           { label: 'Found middle C', value: 100 },

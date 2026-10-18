@@ -33,7 +33,7 @@ const listings = profileIds.length
 const artists = await db.query.artistProfiles.findMany({ where: (a, { eq }) => eq(a.userId, auth.user.id) });
 ---
 
-<Layout title="Your workspace">
+<Layout title="Your Workspace">
   <PageHeader
     title={auth.user.displayName ? `Welcome, ${auth.user.displayName}.` : 'Welcome to Gamo Live.'}
     lede="Manage your submitted events, organizations, and artist profiles."

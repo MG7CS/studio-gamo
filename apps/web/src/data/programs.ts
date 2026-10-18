@@ -21,7 +21,7 @@ export const programs: Program[] = [
     href: siteUrl('worship'), photo: 'worshipBand', icon: 'music', accent: 'var(--color-tan)',
   },
   {
-    key: 'academy', name: 'Gamo Academy', short: 'Learn to play the instrument you love',
+    key: 'academy', name: 'Gamo Academy', short: 'Learn to Play the Instrument You Love.',
     summary: 'Music lessons for students and families, taught by caring instructors, with community and church-hosted programs being planned.',
     href: siteUrl('academy'), photo: 'boyGuitar', icon: 'school', accent: 'var(--color-sand)',
   },

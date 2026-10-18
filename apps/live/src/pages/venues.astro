@@ -38,7 +38,7 @@ const pageDescription = activeMetro
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
-  <!-- Compact Operational Venues Directory Header -->
+  {/* Compact Operational Venues Directory Header */}
   <section class="bg-ivory border-b border-sand pt-8 pb-6">
     <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
@@ -66,7 +66,7 @@ const pageDescription = activeMetro
         </a>
       </div>
 
-      <!-- Metro Filter Bar -->
+      {/* Metro Filter Bar */}
       <div class="mt-5 pt-4 border-t border-sand flex items-center gap-2 overflow-x-auto pb-1">
         <a
           href="/venues"
@@ -94,7 +94,7 @@ const pageDescription = activeMetro
     </div>
   </section>
 
-  <!-- Venues Directory Grid -->
+  {/* Venues Directory Grid */}
   <section class="py-12 bg-ivory min-h-[60vh]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {unavailable ? (
@@ -149,7 +149,7 @@ const pageDescription = activeMetro
                     </p>
                   </div>
 
-                  <!-- Upcoming Events at this Venue -->
+                  {/* Upcoming Events at this Venue */}
                   <div class="mt-4 pt-4 border-t border-cream">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-muted mb-2.5">
                       Upcoming Published Events
@@ -181,7 +181,7 @@ const pageDescription = activeMetro
                   </div>
                 </div>
 
-                <!-- Card Footer Actions -->
+                {/* Card Footer Actions */}
                 <div class="mt-5 pt-4 border-t border-cream flex items-center justify-between gap-3 text-xs">
                   <a
                     href={`/events?venue=${encodeURIComponent(venue.venueName)}`}

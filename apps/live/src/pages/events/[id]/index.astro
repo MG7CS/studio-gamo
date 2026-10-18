@@ -217,10 +217,10 @@ const pageDescription = metro
        CASE A: METRO CITY CONCERT DISCOVERY LANDING PAGE (/events/phoenix-az)
        ======================================================================= */
     <div>
-      <!-- Metro Hero -->
+      {/* Metro Hero */}
       <section class="bg-ink text-ivory pt-8 pb-12 border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Breadcrumbs -->
+          {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" class="text-xs text-cream/70 mb-5 flex items-center gap-2">
             <a href="/" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
               Home
@@ -293,7 +293,7 @@ const pageDescription = metro
         </div>
       </section>
 
-      <!-- Metro Events Grid -->
+      {/* Metro Events Grid */}
       <section class="py-12 bg-ivory">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -335,7 +335,7 @@ const pageDescription = metro
             </div>
           )}
 
-          <!-- Verified Venues in this Metro -->
+          {/* Verified Venues in this Metro */}
           {metroVenues.length > 0 && (
             <div class="mt-14 pt-10 border-t border-sand">
               <div class="flex items-center justify-between gap-4 mb-6">
@@ -411,7 +411,7 @@ const pageDescription = metro
             </div>
           )}
 
-          <!-- Explore Other U.S. Metros -->
+          {/* Explore Other U.S. Metros */}
           <div class="mt-14 pt-10 border-t border-sand">
             <h2 class="text-lg font-bold text-ink mb-4">Explore Christian Concerts in Other U.S. Cities</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -441,7 +441,7 @@ const pageDescription = metro
             </div>
           </div>
 
-          <!-- Organizer CTA Card -->
+          {/* Organizer CTA Card */}
           <div class="mt-12 bg-ink text-ivory rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div class="max-w-2xl">
               <span class="text-xs font-bold uppercase tracking-wider text-terracotta-soft">
@@ -470,10 +470,10 @@ const pageDescription = metro
        CASE B: INDIVIDUAL EVENT DETAIL PAGE (/events/<slug> or /events/<id>)
        ======================================================================= */
     <div>
-      <!-- Event Detail Header -->
+      {/* Event Detail Header */}
       <section class="bg-ink text-ivory pt-8 pb-12 border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Breadcrumbs -->
+          {/* Breadcrumbs */}
           <nav aria-label="Breadcrumb" class="text-xs text-muted mb-6 flex flex-wrap items-center gap-2">
             <a href="/" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
               Home
@@ -498,7 +498,7 @@ const pageDescription = metro
           </nav>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left 7 Columns: Event Core Details -->
+            {/* Left 7 Columns: Event Core Details */}
             <div class="lg:col-span-7">
               <div class="flex flex-wrap items-center gap-2 mb-3">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-terracotta/25 text-terracotta-soft border border-terracotta/40">
@@ -525,7 +525,7 @@ const pageDescription = metro
                 <p class="mt-3 text-base sm:text-lg text-line leading-relaxed">{event.tagline}</p>
               )}
 
-              <!-- Performers Badges -->
+              {/* Performers Badges */}
               {event.performers && event.performers.length > 0 && (
                 <div class="mt-5">
                   <p class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">
@@ -557,7 +557,7 @@ const pageDescription = metro
                 </div>
               )}
 
-              <!-- Key Schedule & Venue Facts Box -->
+              {/* Key Schedule & Venue Facts Box */}
               <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-ink border border-white/10 rounded-2xl p-5">
                 <div>
                   <div class="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -596,7 +596,7 @@ const pageDescription = metro
               </div>
             </div>
 
-            <!-- Right 5 Columns: Sticky / Prominent Action Card -->
+            {/* Right 5 Columns: Sticky / Prominent Action Card */}
             <div class="lg:col-span-5">
               {isClosed ? (
                 <div
@@ -650,7 +650,7 @@ const pageDescription = metro
                     )}
                   </div>
 
-                  <!-- Pricing / Availability Note (Truthful — never invented) -->
+                  {/* Pricing / Availability Note (Truthful — never invented) */}
                   <div class="py-4 border-b border-cream">
                     <div class="text-xs font-semibold uppercase tracking-wider text-muted">
                       Pricing & Seat Availability
@@ -666,7 +666,7 @@ const pageDescription = metro
                     )}
                   </div>
 
-                  <!-- Primary External Outbound CTA -->
+                  {/* Primary External Outbound CTA */}
                   {event.externalUrl && (
                     <div class="mt-5">
                       <a
@@ -698,7 +698,7 @@ const pageDescription = metro
                     </div>
                   )}
 
-                  <!-- Save & Share Secondary Actions -->
+                  {/* Save & Share Secondary Actions */}
                   <div class="mt-4 pt-4 border-t border-cream flex items-center justify-between gap-3">
                     <button
                       type="button"
@@ -789,12 +789,12 @@ const pageDescription = metro
         </div>
       </section>
 
-      <!-- Event Body & Editorial Summary -->
+      {/* Event Body & Editorial Summary */}
       <section class="py-12 bg-ivory">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-7 space-y-8">
-              <!-- Visual Stage Atmosphere Banner -->
+              {/* Visual Stage Atmosphere Banner */}
               <div class="relative rounded-2xl overflow-hidden border border-sand aspect-[16/9] bg-ink">
                 <img
                   src={heroImage}
@@ -812,7 +812,7 @@ const pageDescription = metro
                 )}
               </div>
 
-              <!-- About this Gathering -->
+              {/* About this Gathering */}
               <div class="bg-white rounded-2xl border border-sand p-6 sm:p-8 shadow-sm">
                 <h2 class="text-xl font-bold text-ink">About This Event</h2>
                 <p class="mt-3 text-base text-muted leading-relaxed whitespace-pre-line">
@@ -832,14 +832,14 @@ const pageDescription = metro
                       <strong>External Ticketing Notice:</strong> Clicking "{externalCtaLabel}" takes you
                       directly to <span class="font-mono">{externalDomain || 'the external event page'}</span>
                       . Always verify final door times, bag policies, and seat prices on the official ticket
-                      page before travelling.
+                      page before traveling.
                     </p>
                   </div>
                 )}
               </div>
             </div>
 
-            <!-- Right 5 Columns: Venue Details Card -->
+            {/* Right 5 Columns: Venue Details Card */}
             <div class="lg:col-span-5 space-y-6">
               <div class="bg-white rounded-2xl border border-sand p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-ink">Venue & Directions</h2>
@@ -892,7 +892,7 @@ const pageDescription = metro
             </div>
           </div>
 
-          <!-- Related Upcoming Events -->
+          {/* Related Upcoming Events */}
           {relatedEvents.length > 0 && (
             <div class="mt-14 pt-10 border-t border-sand">
               <div class="flex items-center justify-between gap-4 mb-6">

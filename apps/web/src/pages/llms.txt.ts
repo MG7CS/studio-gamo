@@ -13,7 +13,7 @@ export const GET: APIRoute = () => {
 
 ## Programs
 
-- [Gamo Worship](${siteOrigin('worship')}): a developing program helping churches find prepared, vetted musicians, and musicians serve congregations with dependable scheduling and fair pay.
+- [Gamo Worship](${siteOrigin('worship')}): a developing program helping churches find prepared, vetted musicians, and helping musicians serve congregations with dependable scheduling and fair pay.
 - [Gamo Academy](${siteOrigin('academy')}): friendly, patient music lessons for students and families, private or in small groups, online or close to home, including planned church-hosted and sponsored programs.
 - [Gamo Live](${siteOrigin('live')}): concerts, worship nights and gatherings, with every listing reviewed before publishing. Browse events at ${siteOrigin('live')}/events.
 - [Gamo Production](${siteOrigin('production')}): a proposed program helping churches grow in worship audio, video, lighting and livestreaming, and the volunteers who serve behind the board.

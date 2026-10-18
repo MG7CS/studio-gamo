@@ -57,9 +57,9 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     notificationService = new NotificationService(db, { allowMock: true });
 
     // 3. Issue and verify email challenge for organizer user, then onboard organization
-    const challenge = await identityService.issueEmailChallenge('organizer@riversidefellowship.org');
+    const challenge = await identityService.issueEmailChallenge('organizer@riverside.example');
     const organizerUser = await identityService.verifyEmailChallenge(
-      'organizer@riversidefellowship.org',
+      'organizer@riverside.example',
       challenge.code,
       { displayName: 'Pastor David' },
     );
@@ -74,10 +74,10 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     organizerOrgId = org.id;
 
     // 4. Provision staff reviewer identity with immutable Cloudflare Access sub
-    const superAdmin = await identityService.findOrCreateUser('super@gamostudio.org', 'Super Admin');
+    const superAdmin = await identityService.findOrCreateUser('super@example.invalid', 'Super Admin');
     await identityService.assignSystemRole(superAdmin.id, 'superadmin');
     const provisioned = await identityService.provisionStaffIdentity(superAdmin.id, {
-      email: 'jordan.avery@gamostudio.org',
+      email: 'jordan.avery@example.invalid',
       displayName: 'Jordan Avery',
       role: 'staff_reviewer',
       accessSubject: 'cf-sub-jordan-avery-1',

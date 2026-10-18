@@ -267,7 +267,7 @@ export function initialsFromName(name: string, fallbackEmail?: string): string {
 export const DEMO_PERSONA: ViewerPersona = {
   name: 'Jordan Avery',
   initials: 'JA',
-  email: 'jordan.avery@gamostudio.org',
+  email: 'jordan.avery@example.invalid',
   note: 'Member account',
   authenticated: false,
 };
