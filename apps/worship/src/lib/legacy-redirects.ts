@@ -6,5 +6,8 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/hire/*', to: () => inquiryUrl('Church musician request') },
   { from: '/apply/*', to: () => inquiryUrl('Musician application') },
   { from: '/church/roster', to: '/church/musicians', status: 301 },
+  // Former fake confirmation pages: online check-in is not available yet.
+  { from: '/check-in/success', to: '/musician' },
+  { from: '/check-in/standby-notified', to: '/musician' },
   { from: '/admin/*', to: () => siteUrl('admin', '/worship/placement'), status: 301 },
 ];

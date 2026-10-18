@@ -1,5 +1,18 @@
 # API compatibility decisions
 
+## 2.0.0
+
+Base: 1d4bbad
+Base: 35d233d
+Base: HEAD
+
+Breaking removal of two demo stubs (cleanup pass, `docs/CLEANUP_LOG.md` F-33/F-46):
+- Removed `POST /api/check-in/confirm` (`demoCheckinConfirm`) and `POST /api/check-in/fail` (`demoCheckinFail`) from `apps/worship`. Both were `x-status: demo-stub`: unauthenticated, ignored their input, persisted nothing and only answered `303`. The UI never called them (the check-in pages linked with plain `GET` links).
+- Affected consumers: none found in the repository; no external client is known.
+- Replacement: none yet. The `/check-in/[id]` page now states that online check-in is not available and that arrival is confirmed with the on-site coordinator. A real check-in endpoint must be designed with authentication, assignment ownership and idempotency before it is added back.
+- Also corrected `info.description` to the approved Public Benefit Corporation wording.
+- Verification: `pnpm api:check` (regenerated bundles, types and validators; contract tests updated: the stub test removed, coverage counts reduced by the two operations).
+
 ## 1.5.0
 
 Base: 2be582c

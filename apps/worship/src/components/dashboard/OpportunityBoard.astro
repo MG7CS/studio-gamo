@@ -17,13 +17,14 @@ const roles = [...new Set(opportunities.map((o) => o.role))];
     </select>
   </label>
   <p class="mt-4 text-sm text-ink-soft" aria-live="polite">
-    <span data-count>{opportunities.length}</span> open opportunities
+    <span data-count>{opportunities.length}</span> sample opportunities (fictional examples of how listings
+    will look)
   </p>
   <div class="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
     {opportunities.map((o) => (
       <article data-opportunity data-role={o.role} class="rounded-[2rem] border border-sand bg-white p-6">
         <div class="flex flex-wrap gap-2">
-          <StatusPill kind="verified">Open service</StatusPill>
+          <StatusPill kind="sample">Sample · Open service</StatusPill>
           {o.standby && <StatusPill>Standby role</StatusPill>}
         </div>
         <h2 class="mt-5 text-2xl font-semibold">{o.role}</h2>

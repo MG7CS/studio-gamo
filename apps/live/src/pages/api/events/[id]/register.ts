@@ -45,6 +45,7 @@ export const POST: APIRoute = async (context) => {
       const notificationService = new NotificationService(db, {
         apiKey: runtimeEnv.RESEND_API_KEY,
         defaultFrom: runtimeEnv.EMAIL_FROM,
+        allowMock: runtimeEnv.ENVIRONMENT === 'local',
       });
       const jobOutcome = await notificationService.processRegistrationJob(registration.id);
       message =

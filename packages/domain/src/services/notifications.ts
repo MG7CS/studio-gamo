@@ -251,6 +251,23 @@ export class NotificationService {
       };
     }
 
+    if (sendResult.notConfigured) {
+      // Nothing was attempted: keep the job queued without consuming a retry.
+      await this.db
+        .update(notificationJobs)
+        .set({ status: 'pending', lastError: 'Email delivery is not configured.' })
+        .where(eq(notificationJobs.id, job.id));
+      return {
+        jobId: job.id,
+        registrationId: registration.id,
+        status: 'pending',
+        attempts: job.attempts,
+        providerMessageId: null,
+        mock: false,
+        error: 'Email delivery is not configured.',
+      };
+    }
+
     const terminalFailure = nextAttempts >= MAX_NOTIFICATION_ATTEMPTS;
     const backoffSeconds = Math.pow(2, nextAttempts) * 30;
     const nextAttemptAt = terminalFailure ? now : new Date(now.getTime() + backoffSeconds * 1000);

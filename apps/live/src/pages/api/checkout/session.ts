@@ -2,7 +2,7 @@ import { readContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import { LiveService, getRuntimeEnv } from '@gamo/domain';
-import { createStripeTestClient } from '@studio-gamo/integrations';
+import { createStripeTestClient, StripeNotConfiguredError } from '@studio-gamo/integrations';
 
 export const prerender = false;
 
@@ -23,6 +23,15 @@ export const POST: APIRoute = async (context) => {
 
   try {
     const runtimeEnv = await getRuntimeEnv(context);
+    // Fail closed before reserving inventory: without a real test-mode key, paid checkout is
+    // unavailable everywhere except local development (which may simulate a session).
+    const stripeClient = createStripeTestClient({
+      secretKey: runtimeEnv.STRIPE_SECRET_KEY,
+      allowMock: runtimeEnv.ENVIRONMENT === 'local',
+    });
+    if (!stripeClient.isConfigured()) {
+      return Response.json({ error: 'Paid checkout is not available.' }, { status: 503 });
+    }
     const db = getDb(runtimeEnv.DB);
     const liveService = new LiveService(db);
 
@@ -41,10 +50,6 @@ export const POST: APIRoute = async (context) => {
         { status: 503 },
       );
     }
-
-    const stripeClient = createStripeTestClient({
-      secretKey: runtimeEnv.STRIPE_SECRET_KEY,
-    });
 
     const session = await stripeClient.createTestCheckoutSession({
       mode: 'payment',
@@ -76,6 +81,9 @@ export const POST: APIRoute = async (context) => {
       { status: 200 },
     );
   } catch (err) {
+    if (err instanceof StripeNotConfiguredError) {
+      return Response.json({ error: 'Paid checkout is not available.' }, { status: 503 });
+    }
     const msg = err instanceof Error ? err.message : '';
     if (msg.startsWith('CONFLICT:')) {
       return Response.json({ error: 'Requested ticket tier capacity is unavailable.' }, { status: 409 });

@@ -2,8 +2,8 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "1.5.0",
-    "description": "Authoritative contract for Gamo Studios, a Christian mission-driven organization whose final legal incorporation structure and tax status remain undecided. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
+    "version": "2.0.0",
+    "description": "Authoritative contract for Gamo Studios, a Christian, mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
     }
@@ -1864,80 +1864,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/StripeEvent"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/check-in/confirm": {
-      "servers": [
-        {
-          "url": "http://127.0.0.1:4322",
-          "description": "Local worship application"
-        }
-      ],
-      "post": {
-        "operationId": "demoCheckinConfirm",
-        "tags": [
-          "Worship"
-        ],
-        "summary": "Demo check-in redirect",
-        "description": "Local UI demo. Ignores input, no persistence, authentication, authorization, or dispatch. Production functionality deferred.",
-        "security": [],
-        "x-application": "worship",
-        "x-status": "demo-stub",
-        "x-authorization": "Public",
-        "x-idempotency": "Unsupported; client keys are ignored.",
-        "x-source": "apps/worship/src/pages/api/check-in/confirm.ts",
-        "parameters": [],
-        "responses": {
-          "303": {
-            "description": "Demo redirect; no API JSON body.",
-            "headers": {
-              "Location": {
-                "description": "Demo destination",
-                "schema": {
-                  "type": "string",
-                  "const": "/check-in/success"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/check-in/fail": {
-      "servers": [
-        {
-          "url": "http://127.0.0.1:4322",
-          "description": "Local worship application"
-        }
-      ],
-      "post": {
-        "operationId": "demoCheckinFail",
-        "tags": [
-          "Worship"
-        ],
-        "summary": "Demo check-in redirect",
-        "description": "Local UI demo. Ignores input, no persistence, authentication, authorization, or dispatch. Production functionality deferred.",
-        "security": [],
-        "x-application": "worship",
-        "x-status": "demo-stub",
-        "x-authorization": "Public",
-        "x-idempotency": "Unsupported; client keys are ignored.",
-        "x-source": "apps/worship/src/pages/api/check-in/fail.ts",
-        "parameters": [],
-        "responses": {
-          "303": {
-            "description": "Demo redirect; no API JSON body.",
-            "headers": {
-              "Location": {
-                "description": "Demo destination",
-                "schema": {
-                  "type": "string",
-                  "const": "/check-in/standby-notified"
-                }
               }
             }
           }

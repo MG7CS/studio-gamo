@@ -372,7 +372,7 @@ export const worshipScreens: DashScreen[] = [
           { label: 'Checked in on time', value: '7 / 9', delta: '2 en route / alerted', deltaTone: 'up', icon: 'check' },
           { label: 'Active standby alerts', value: '1', delta: 'Riverside Bass', deltaTone: 'neutral', icon: 'bell' },
           { label: 'Missed services', value: '0', delta: '100% congregation coverage', deltaTone: 'up', icon: 'shield' },
-          { label: 'Check-in API health', value: 'Operational', delta: '/api/check-in/confirm', deltaTone: 'up', icon: 'verified' },
+          { label: 'Online check-in', value: 'Not built', delta: 'Coordinators confirm arrival on site', deltaTone: 'neutral', icon: 'clock' },
         ],
       },
       queue(
