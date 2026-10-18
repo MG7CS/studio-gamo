@@ -95,10 +95,13 @@ const PUBLIC_API = new Set([
   'GET /api/events',
   'GET /api/events/[id]',
   'GET /api/artists',
-  'POST /api/events/[id]/register', // free RSVP
-  'POST /api/tickets/lookup', // requires an emailed one-time code
+  'POST /api/events/[id]/register', // free RSVP (Turnstile + limits; tickets after email confirmation)
+  'POST /api/tickets/lookup', // emails a link; same answer for every address
   'POST /api/checkout/session', // guest checkout; fails closed without Stripe
   'POST /api/webhook/stripe', // Stripe signature
+  'POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
+  'POST /api/orders/confirm', // emailed one-time code, limited per order
+  'POST /api/events/[id]/waitlist', // Turnstile + rate limits; same answer for every address
 ]);
 
 function walk(dir: string, base = ''): string[] {

@@ -1,0 +1,12 @@
+type: object
+additionalProperties: false
+properties:
+  slug:
+    type: string
+    maxLength: 64
+  version:
+    type: string
+    maxLength: 32
+required:
+  - slug
+  - version

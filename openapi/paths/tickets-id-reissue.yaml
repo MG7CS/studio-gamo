@@ -1,0 +1,44 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: reissueTicket
+  tags:
+    - Live
+  summary: Reissue a ticket with a new code
+  description: >-
+    Organizer with manage_ticketing on the event (or staff). A reason is required; the old QR dies and the holder is emailed the new ticket.
+  security:
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: Verified session with manage_ticketing permission.
+  x-idempotency: Conditional on the current version.
+  x-source: apps/live/src/pages/api/tickets/[id]/reissue.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ticketing/TicketVersionResponse.yaml
+    '400':
+      $ref: ../components/responses/TicketingError.yaml
+    '401':
+      $ref: ../components/responses/TicketingError.yaml
+    '403':
+      $ref: ../components/responses/TicketingError.yaml
+    '404':
+      $ref: ../components/responses/TicketingError.yaml
+    '409':
+      $ref: ../components/responses/TicketingError.yaml
+    '503':
+      $ref: ../components/responses/TicketingError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ticketing/ReissueInput.yaml

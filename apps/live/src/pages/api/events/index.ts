@@ -1,8 +1,20 @@
 import { readContract, validateContract, ContractValidationError } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
-import { LiveService, createEventSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
-import { requireOrgAccess, requireProductAuth } from '@gamo/auth';
+import {
+  LiveService,
+  TicketingError,
+  createEventSchema,
+  createOrganizerEvent,
+  jsonResponse,
+  handleApiError,
+  getRuntimeEnv,
+  nowSeconds,
+  ticketingDb,
+  ticketingErrorResponse,
+  type EventInput,
+} from '@gamo/domain';
+import { requireOrgAccess, requireProductAuth, requireSameOrigin } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -69,38 +81,57 @@ export const GET: APIRoute = async (context) => {
 };
 
 /**
- * POST /api/events — Creates a new Christian event proposal in `pending_review` status.
- *
- * Requirements:
- * - Validates input with Zod schema.
- * - Authenticates the verified organization owner or administrator.
- * - Persists event and ticket tiers to D1.
- * - Enters `pending_review` status awaiting staff moderation.
+ * POST /api/events — creates an event. The organizer form shape (venue-local `start`, `policy`,
+ * `categories`) goes through `createOrganizerEvent` (first event → review, later ones publish once an
+ * earlier event was approved); the older `startsAt` shape still goes to staff review.
  */
 export const POST: APIRoute = async (context) => {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
     const db = getDb(runtimeEnv.DB);
-    const liveService = new LiveService(db);
     const authOpts = { secret: runtimeEnv.SESSION_SECRET, product: 'live' as const, env: runtimeEnv };
     await requireProductAuth(context.request, db, 'live', authOpts);
+    requireSameOrigin(context.request);
 
-    const body = await readContract(context.request, 'CreateEvent');
+    const body = (await readContract(context.request, 'EventCreateRequest')) as unknown as Record<
+      string,
+      unknown
+    >;
+    if (body && typeof body === 'object' && 'start' in body) {
+      const input = body as unknown as EventInput & { organizationId?: string };
+      if (!input.organizationId)
+        throw new TicketingError('VALIDATION', 'Choose the organization this event belongs to.');
+      const auth = await requireOrgAccess(
+        context.request,
+        db,
+        input.organizationId,
+        ['owner', 'admin'],
+        authOpts,
+      );
+      const saved = await createOrganizerEvent(ticketingDb(runtimeEnv as Record<string, unknown>), {
+        event: { ...input, policy: input.policy ?? {}, organizationId: input.organizationId },
+        actorUserId: auth.user.id,
+        now: nowSeconds(),
+      });
+      return jsonResponse(
+        {
+          ...saved,
+          message:
+            saved.status === 'approved'
+              ? 'Event published.'
+              : 'Event submitted. Staff review your first event before it is published.',
+        },
+        201,
+      );
+    }
     const validated = createEventSchema.parse(body);
-
     await requireOrgAccess(context.request, db, validated.organizationId, ['owner', 'admin'], authOpts);
-
-    const { event, tiers } = await liveService.createEvent(validated.organizationId, validated);
-
+    const { event, tiers } = await new LiveService(db).createEvent(validated.organizationId, validated);
     return jsonResponse(
-      {
-        event,
-        tiers,
-        message: 'Event submitted successfully. Awaiting staff review before publication.',
-      },
+      { event, tiers, message: 'Event submitted successfully. Awaiting staff review before publication.' },
       201,
     );
   } catch (err) {
-    return handleApiError(err);
+    return ticketingErrorResponse(err);
   }
 };

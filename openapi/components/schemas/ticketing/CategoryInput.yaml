@@ -1,0 +1,91 @@
+type: object
+additionalProperties: false
+description: A ticket category ("ticket type"). Price in dollars as typed or integer cents.
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  name:
+    type: string
+    minLength: 1
+    maxLength: 80
+  kind:
+    enum:
+      - general
+      - vip
+      - child
+      - companion
+      - accessible
+      - group
+      - table
+      - day_pass
+      - multi_day
+  description:
+    type: string
+    maxLength: 300
+  price:
+    anyOf:
+      - type: string
+        maxLength: 12
+      - type: integer
+        minimum: 0
+  capacity:
+    anyOf:
+      - type: string
+        maxLength: 7
+      - type: integer
+        minimum: 1
+  perOrderLimit:
+    anyOf:
+      - type: integer
+        minimum: 1
+        maximum: 20
+      - type: string
+        maxLength: 3
+      - type: 'null'
+  maxAge:
+    anyOf:
+      - type: integer
+      - type: string
+        maxLength: 3
+      - type: 'null'
+  seatsPerTicket:
+    anyOf:
+      - type: integer
+      - type: string
+        maxLength: 3
+      - type: 'null'
+  validDays:
+    anyOf:
+      - type: string
+        maxLength: 400
+      - type: array
+        maxItems: 31
+        items:
+          type: string
+      - type: 'null'
+  salesStart:
+    anyOf:
+      - $ref: LocalDateTime.yaml
+      - type: 'null'
+  salesEnd:
+    anyOf:
+      - $ref: LocalDateTime.yaml
+      - type: 'null'
+  companionOf:
+    anyOf:
+      - type: integer
+        minimum: 0
+      - type: string
+        maxLength: 3
+      - type: 'null'
+  status:
+    enum:
+      - active
+      - hidden
+      - sold_out
+      - closed
+required:
+  - name
+  - kind
+  - price
+  - capacity
