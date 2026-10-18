@@ -137,13 +137,12 @@ const pageTitle = selectedMetro
   ? `Christian Concerts & Worship Events in ${selectedMetro.displayLabel}`
   : 'Discover Christian Concerts & Worship Events Across the U.S.';
 const pageDescription = selectedMetro
-  ? selectedMetro.introCopy
-  : 'Find verified Christian concerts, arena worship nights, and live ministry gatherings across Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston, Seattle, New York, and Oklahoma City.';
+  ? clampDescription(selectedMetro.introCopy.length < 120 ? `${selectedMetro.introCopy} Dates, venues and details on Gamo Live.` : selectedMetro.introCopy)
+  : 'Find verified Christian concerts, arena worship nights and live ministry gatherings in Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston and more.';
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 ---
 
 <Layout title={pageTitle} description={pageDescription}>
-  <link slot="head" rel="canonical" href="https://live.gamostudio.org/events" />
-
   <!-- Marketplace Directory Section (Matches GAMO LIVE Events Grid.png) -->
   <section id="discovery-search" class="bg-[#FBF7F1] min-h-[75vh] pt-6 pb-14">
     <div class="mx-auto max-w-[1340px] px-4 sm:px-6 lg:px-8">

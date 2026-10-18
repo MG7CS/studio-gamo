@@ -379,7 +379,7 @@ export const nonprofitScreens: DashScreen[] = [
         type: 'notice',
         tone: 'warning',
         title: 'Owner-only legal & formation prerequisites',
-        body: 'Gamo Studios is a Christian, mission-driven organization whose final legal incorporation and tax status remain under evaluation. The items below track mandatory formation dependencies in docs/NONPROFIT_TRANSITION_CHECKLIST.md that require founder and legal counsel execution.',
+        body: 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation. The items below track mandatory formation dependencies in docs/NONPROFIT_TRANSITION_CHECKLIST.md that require founder and legal counsel execution.',
       },
       {
         type: 'steps',

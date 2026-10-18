@@ -23,7 +23,11 @@ export const POST: APIRoute = async (context) => {
     const db = getDb(runtimeEnv.DB);
     const offerId = validateContract('Identifier', context.params.id) as string;
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const liveService = new LiveService(db);
     const ctx = await liveService.getBookingOfferContext(offerId);
 

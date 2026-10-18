@@ -207,6 +207,100 @@ export function initAuthFlow(scope: ParentNode = document): void {
       status.textContent = text;
     };
 
+    const clerkPublishableKey = (root.dataset.clerkPublishableKey || '').trim();
+    const isClerkConfigured =
+      (clerkPublishableKey.startsWith('pk_test_') || clerkPublishableKey.startsWith('pk_live_')) &&
+      !clerkPublishableKey.includes('REPLACE_WITH') &&
+      !clerkPublishableKey.includes('YOUR_') &&
+      !clerkPublishableKey.includes('placeholder');
+
+    let clerkInstancePromise: Promise<any> | null = null;
+    let activeClerkFlow: 'signup' | 'signin' | null = null;
+
+    const getClerkInstance = async (): Promise<any> => {
+      if (!isClerkConfigured) return null;
+      if (!clerkInstancePromise) {
+        clerkInstancePromise = (async () => {
+          const w = window as unknown as { Clerk?: any };
+          if (w.Clerk && typeof w.Clerk.load === 'function') {
+            await w.Clerk.load();
+            return w.Clerk;
+          }
+          const mod = await import('@clerk/clerk-js');
+          const ClerkCtor = (mod as any).Clerk || (mod as any).default;
+          const clerk = new ClerkCtor(clerkPublishableKey);
+          await clerk.load();
+          w.Clerk = clerk;
+          return clerk;
+        })();
+      }
+      return clerkInstancePromise;
+    };
+
+    const extractClerkErrorMessage = (err: unknown, fallback: string): string => {
+      if (err && typeof err === 'object') {
+        const maybeErrors = (err as { errors?: Array<{ longMessage?: string; message?: string }> }).errors;
+        if (Array.isArray(maybeErrors) && maybeErrors.length > 0) {
+          return maybeErrors[0]?.longMessage || maybeErrors[0]?.message || fallback;
+        }
+        if ('message' in err && typeof (err as { message?: unknown }).message === 'string') {
+          return (err as { message: string }).message;
+        }
+      }
+      return fallback;
+    };
+
+    const requestClerkEmailOtp = async (
+      clerk: any,
+      targetEmail: string,
+      firstName: string,
+      lastName: string
+    ): Promise<void> => {
+      const intent = intentForRequest();
+      if (intent === 'signup') {
+        activeClerkFlow = 'signup';
+        await clerk.client.signUp.create({
+          emailAddress: targetEmail,
+          ...(firstName ? { firstName } : {}),
+          ...(lastName ? { lastName } : {}),
+        });
+        await clerk.client.signUp.prepareEmailAddressVerification({
+          strategy: 'email_code',
+        });
+        return;
+      }
+
+      activeClerkFlow = 'signin';
+      const signInAttempt = await clerk.client.signIn.create({
+        identifier: targetEmail,
+      });
+      const emailCodeFactor = (signInAttempt.supportedFirstFactors || []).find(
+        (factor: any) => factor?.strategy === 'email_code'
+      );
+      if (!emailCodeFactor?.emailAddressId) {
+        throw new Error(`Email verification code sign-in is not enabled for this ${program} account.`);
+      }
+      await clerk.client.signIn.prepareFirstFactor({
+        strategy: 'email_code',
+        emailAddressId: emailCodeFactor.emailAddressId,
+      });
+    };
+
+    const completeRedirect = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const next = searchParams.get('next') || searchParams.get('returnTo');
+      const target = next ? new URL(next, window.location.origin) : null;
+      window.location.assign(
+        target &&
+          next?.startsWith('/') &&
+          !next.startsWith('//') &&
+          target.origin === window.location.origin &&
+          !target.pathname.startsWith('/api/')
+          ? target.pathname + target.search
+          : '/account'
+      );
+    };
+
     const submitJson = async (form: HTMLFormElement, url: string, payload: Record<string, string>) => {
       const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
       button.disabled = true;
@@ -239,7 +333,18 @@ export function initAuthFlow(scope: ParentNode = document): void {
         String(fields.get('displayName') || '').trim();
 
       message('Requesting your code…');
+      const submitBtn = challenge.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
       try {
+        if (isClerkConfigured) {
+          const clerk = await getClerkInstance();
+          await requestClerkEmailOtp(clerk, email, firstName, lastName);
+          setView('verify');
+          message('Your verification code has been sent. Check your email.');
+          codeInput.focus();
+          return;
+        }
+
         const data = await submitJson(challenge, '/api/auth/challenge', {
           email,
           intent: intentForRequest(),
@@ -254,7 +359,9 @@ export function initAuthFlow(scope: ParentNode = document): void {
         );
         codeInput.focus();
       } catch (error) {
-        message(error instanceof Error ? error.message : 'Unable to request a code. Please try again.');
+        message(extractClerkErrorMessage(error, 'Unable to request a code. Please try again.'));
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
 
@@ -270,6 +377,20 @@ export function initAuthFlow(scope: ParentNode = document): void {
       resendBtn.disabled = true;
       message('Sending a new verification code…');
       try {
+        if (isClerkConfigured) {
+          const clerk = await getClerkInstance();
+          await requestClerkEmailOtp(
+            clerk,
+            email,
+            firstNameInput?.value.trim() || '',
+            lastNameInput?.value.trim() || ''
+          );
+          verifyEmailLabel.textContent = maskEmailAddress(email);
+          message('A new verification code has been sent. Check your email.');
+          codeInput.focus();
+          return;
+        }
+
         const res = await fetch('/api/auth/challenge', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -292,7 +413,7 @@ export function initAuthFlow(scope: ParentNode = document): void {
         );
         codeInput.focus();
       } catch (error) {
-        message(error instanceof Error ? error.message : 'Unable to resend code. Please try again.');
+        message(extractClerkErrorMessage(error, 'Unable to resend code. Please try again.'));
       } finally {
         resendBtn.disabled = false;
       }
@@ -310,29 +431,46 @@ export function initAuthFlow(scope: ParentNode = document): void {
         return;
       }
       if (!verify.reportValidity()) return;
+      const code = String(new FormData(verify).get('code') || '').trim();
       message('Verifying your code…');
+      const submitBtn = verify.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
       try {
+        if (isClerkConfigured) {
+          const clerk = await getClerkInstance();
+          const flow = activeClerkFlow || (intentForRequest() === 'signup' ? 'signup' : 'signin');
+          if (flow === 'signup') {
+            const res = await clerk.client.signUp.attemptEmailAddressVerification({ code });
+            if (res.status !== 'complete' || !res.createdSessionId) {
+              throw new Error('Additional verification steps are required to complete registration.');
+            }
+            await clerk.setActive({ session: res.createdSessionId });
+          } else {
+            const res = await clerk.client.signIn.attemptFirstFactor({
+              strategy: 'email_code',
+              code,
+            });
+            if (res.status !== 'complete' || !res.createdSessionId) {
+              throw new Error('Unable to complete verification. Please check your 6-digit code.');
+            }
+            await clerk.setActive({ session: res.createdSessionId });
+          }
+          completeRedirect();
+          return;
+        }
+
         await submitJson(verify, '/api/auth/verify', {
           email,
-          code: String(new FormData(verify).get('code') || '').trim(),
+          code,
           intent: intentForRequest(),
           ...(productKey ? { product: productKey } : {}),
           ...(displayName ? { displayName } : {}),
         });
-        const searchParams = new URLSearchParams(window.location.search);
-        const next = searchParams.get('next') || searchParams.get('returnTo');
-        const target = next ? new URL(next, window.location.origin) : null;
-        window.location.assign(
-          target &&
-            next?.startsWith('/') &&
-            !next.startsWith('//') &&
-            target.origin === window.location.origin &&
-            !target.pathname.startsWith('/api/')
-            ? target.pathname + target.search
-            : '/account'
-        );
+        completeRedirect();
       } catch (error) {
-        message(error instanceof Error ? error.message : 'Unable to verify. Please try again.');
+        message(extractClerkErrorMessage(error, 'Unable to verify. Please try again.'));
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
 

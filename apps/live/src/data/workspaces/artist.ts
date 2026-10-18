@@ -350,7 +350,7 @@ export const artistWorkspace: Workspace = {
           items: [
             ['Deposit collection', b('Disabled pending policy', 'proposal')],
             ['Bank / tax details', 'Scoped to artist owner only — hidden from agents & organizers'],
-            ['Tax status disclosure', 'Legal incorporation & federal tax status under evaluation'],
+            ['Organization status', 'Gamo Studios is a Christian, mission-driven Public Benefit Corporation'],
           ],
         },
       ],

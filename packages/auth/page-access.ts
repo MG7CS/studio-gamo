@@ -14,6 +14,19 @@ export function isPrivatePage(app: PublicApp, path: string): boolean {
   };
   return roots[app].some(base => within(path, base));
 }
+/**
+ * Cache-Control for rendered (non-API) pages. Private, account and personalized pages must
+ * never carry a public directive. Marketing pages are still private/no-store because the shared
+ * site header and the inquiry forms render the visitor's session (see docs/BUILD_LOG.md); flip
+ * MARKETING_PAGES_CACHEABLE only after that state moves client-side.
+ */
+export const MARKETING_PAGES_CACHEABLE = false;
+export const PUBLIC_PAGE_CACHE = 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600';
+export const PRIVATE_PAGE_CACHE = 'private, no-store';
+export function pageCacheControl(app: PublicApp, path: string): string {
+  if (!MARKETING_PAGES_CACHEABLE || isPrivatePage(app, path) || within(path, '/account') || within(path, '/api')) return PRIVATE_PAGE_CACHE;
+  return PUBLIC_PAGE_CACHE;
+}
 export function canAccessPage(app: PublicApp, path: string, auth: SessionData): boolean {
   if (!auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
   const role = (...roles: string[]) => auth.roles.includes('superadmin') || roles.some(r => auth.roles.includes(r));

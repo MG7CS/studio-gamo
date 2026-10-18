@@ -83,23 +83,14 @@ const freeOrChurchEvents =
 
 const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0, 5);
 
-const canonicalUrl = siteUrl('web', '/live');
 ---
 
 <SiteLayout
   title="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios"
-  description="Explore verified Christian concerts, worship nights, and ministry gatherings from our live database across Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston, Seattle, and nationwide."
+  description="Find verified Christian concerts, worship nights and ministry gatherings across the U.S., or submit your own Christian event to Gamo Live for review."
   current="live"
   headerTheme="dark"
 >
-  <Fragment slot="head">
-    <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:title" content="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios" />
-    <meta property="og:description" content="Explore verified Christian concerts, worship nights, and ministry gatherings from our live database across Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston, Seattle, and nationwide." />
-    <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:type" content="website" />
-  </Fragment>
-
   <EventSpotlightHero slides={spotlightSlides} organizers={organizers} />
   <NearbyRail events={nearbyEvents} />
   <BrowsePlaceDate events={liveEvents} />

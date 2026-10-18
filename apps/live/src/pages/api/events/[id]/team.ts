@@ -25,7 +25,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'AssignEventTeamInput');
     const validated = assignEventTeamMemberSchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     await requireEventPermission(db, auth, eventId, 'edit_content');
 
     // Only someone who already holds approve_refunds AND view_settlement (e.g. primary owner or superadmin)

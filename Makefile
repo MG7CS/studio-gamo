@@ -1,4 +1,4 @@
-.PHONY: help dev dev-all build check lint test images clean install status \
+.PHONY: help dev dev-all build check lint test images print clean install status \
         dev-web dev-worship dev-academy dev-live dev-production dev-admin \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-admin preview-all \
@@ -46,6 +46,7 @@ help:
 	@echo ""
 	@echo "\033[1;32mAssets & Utilities\033[0m"
 	@echo "  \033[36mmake images\033[0m            - Optimize images using the image optimization script"
+	@echo "  \033[36mmake print\033[0m             - Build the print-ready booklet PDF into ~/Downloads (design-reference/make_print_pdf.mjs)"
 	@echo "  \033[36mmake clean\033[0m             - Remove generated build artifacts"
 	@echo "  \033[36mmake status\033[0m            - Show Git status"
 	@echo ""
@@ -90,6 +91,11 @@ test:
 
 images:
 	@pnpm run images:optimize
+
+# Booklet: 16 single 8.5x11in pages -> ~/Downloads/gamo-studios-booklet-print.pdf
+# Extra options: make print ARGS="--cmyk" (or --out PATH, --html PATH)
+print:
+	@node design-reference/make_print_pdf.mjs $(ARGS)
 
 clean:
 	@find . -name "dist" -type d -prune -exec rm -rf '{}' + || true

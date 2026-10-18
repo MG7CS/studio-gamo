@@ -8883,7 +8883,7 @@ return errors === 0;
 validate60.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventDetails = validate61;
-const schema103 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+const schema103 = {"$id":"schema_EventDetails","type":"object","additionalProperties":false,"properties":{"id":{"$ref":"gamo#/components/schemas/Identifier"},"organizerId":{"$ref":"gamo#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"gamo#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"gamo#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"gamo#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"gamo#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
 const schema109 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"eventId":{"$ref":"#/components/schemas/Identifier"},"name":{"type":"string"},"priceCents":{"type":"integer","minimum":0},"capacity":{"type":"integer","minimum":1},"reservedCount":{"type":"integer","minimum":0},"note":{"anyOf":[{"type":"string"},{"type":"null"}]}},"required":["id","eventId","name","priceCents","capacity","reservedCount","note"]};
 
 function validate62(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
@@ -11117,14 +11117,61 @@ vErrors.push(err134);
 errors++;
 }
 }
-}
-else {
-const err135 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.isPast !== undefined){
+if(typeof data.isPast !== "boolean"){
+const err135 = {instancePath:instancePath+"/isPast",schemaPath:"#/properties/isPast/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err135];
 }
 else {
 vErrors.push(err135);
+}
+errors++;
+}
+}
+if(data.isClosed !== undefined){
+if(typeof data.isClosed !== "boolean"){
+const err136 = {instancePath:instancePath+"/isClosed",schemaPath:"#/properties/isClosed/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+if(data.lifecycleStatus !== undefined){
+let data55 = data.lifecycleStatus;
+if(typeof data55 !== "string"){
+const err137 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema103.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+}
+}
+else {
+const err139 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
 }
 errors++;
 }
@@ -11136,7 +11183,7 @@ validate61.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 export const schema_EventListResponse = validate64;
 const schema113 = {"$id":"schema_EventListResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"array","items":{"$ref":"gamo#/components/schemas/EventDetails"}},"meta":{"$ref":"gamo#/components/schemas/ListMeta"}},"required":["success","data","meta"]};
 const schema124 = {"type":"object","additionalProperties":false,"properties":{"total":{"type":"integer","minimum":0}},"required":["total"]};
-const schema114 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
+const schema114 = {"type":"object","additionalProperties":false,"properties":{"id":{"$ref":"#/components/schemas/Identifier"},"organizerId":{"$ref":"#/components/schemas/Identifier"},"title":{"type":"string"},"slug":{"type":"string"},"category":{"type":"string","enum":["concert","worship","bible","conference","youth"]},"tagline":{"anyOf":[{"type":"string"},{"type":"null"}]},"description":{"type":"string"},"venueName":{"type":"string"},"address":{"anyOf":[{"type":"string"},{"type":"null"}]},"city":{"type":"string"},"state":{"type":"string"},"startsAt":{"$ref":"#/components/schemas/Timestamp"},"endsAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"timezone":{"type":"string"},"admissionType":{"type":"string","enum":["free","paid","external"]},"photoKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"status":{"type":"string","enum":["draft","pending_review","approved","rejected","canceled"]},"createdAt":{"$ref":"#/components/schemas/Timestamp"},"organizerName":{"type":"string"},"organizerKind":{"type":"string"},"tiers":{"type":"array","items":{"$ref":"#/components/schemas/Tier"}},"totalRegistered":{"type":"integer","minimum":0},"listingType":{"type":"string","enum":["organizer_submitted","external_discovery"]},"importKey":{"anyOf":[{"type":"string"},{"type":"null"}]},"metroSlug":{"anyOf":[{"type":"string"},{"type":"null"}]},"startDateLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"startTimeLocal":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByLabel":{"anyOf":[{"type":"string"},{"type":"null"}]},"publishedByUserId":{"anyOf":[{"type":"string"},{"type":"null"}]},"originalOrganizerName":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalDestinationKind":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalTicketProvider":{"anyOf":[{"type":"string"},{"type":"null"}]},"externalOnly":{"type":"boolean"},"priceMinCents":{"anyOf":[{"type":"integer"},{"type":"null"}]},"currency":{"type":"string"},"ticketAvailability":{"type":"string"},"sourceUrlsJson":{"anyOf":[{"type":"string"},{"type":"null"}]},"lastVerifiedAt":{"anyOf":[{"$ref":"#/components/schemas/Timestamp"},{"type":"null"}]},"artworkUrl":{"anyOf":[{"type":"string"},{"type":"null"}]},"artworkRightsVerified":{"type":"boolean"},"artworkLicenseCredit":{"anyOf":[{"type":"string"},{"type":"null"}]},"editorialStatus":{"type":"string","enum":["draft","verified","approved","published","archived","canceled","rejected"]},"editorialNotes":{"anyOf":[{"type":"string"},{"type":"null"}]},"independentDisclosure":{"anyOf":[{"type":"string"},{"type":"null"}]},"isFeatured":{"type":"boolean"},"performers":{"type":"array","items":{"type":"object","additionalProperties":false,"properties":{"id":{"type":"string"},"displayName":{"type":"string"},"billingOrder":{"type":"integer"},"roleLabel":{"type":"string"}},"required":["id","displayName","billingOrder","roleLabel"]}},"isPast":{"type":"boolean"},"isClosed":{"type":"boolean"},"lifecycleStatus":{"type":"string","enum":["scheduled","past","canceled"]}},"required":["id","organizerId","title","slug","category","tagline","description","venueName","address","city","state","startsAt","endsAt","timezone","admissionType","photoKey","externalUrl","status","createdAt","organizerName","organizerKind","tiers","totalRegistered"]};
 
 function validate66(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 let vErrors = null;
@@ -13368,14 +13415,61 @@ vErrors.push(err134);
 errors++;
 }
 }
-}
-else {
-const err135 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.isPast !== undefined){
+if(typeof data.isPast !== "boolean"){
+const err135 = {instancePath:instancePath+"/isPast",schemaPath:"#/properties/isPast/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err135];
 }
 else {
 vErrors.push(err135);
+}
+errors++;
+}
+}
+if(data.isClosed !== undefined){
+if(typeof data.isClosed !== "boolean"){
+const err136 = {instancePath:instancePath+"/isClosed",schemaPath:"#/properties/isClosed/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+if(data.lifecycleStatus !== undefined){
+let data55 = data.lifecycleStatus;
+if(typeof data55 !== "string"){
+const err137 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+}
+}
+else {
+const err139 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
 }
 errors++;
 }
@@ -15485,14 +15579,61 @@ vErrors.push(err134);
 errors++;
 }
 }
-}
-else {
-const err135 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data.isPast !== undefined){
+if(typeof data.isPast !== "boolean"){
+const err135 = {instancePath:instancePath+"/isPast",schemaPath:"#/properties/isPast/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err135];
 }
 else {
 vErrors.push(err135);
+}
+errors++;
+}
+}
+if(data.isClosed !== undefined){
+if(typeof data.isClosed !== "boolean"){
+const err136 = {instancePath:instancePath+"/isClosed",schemaPath:"#/properties/isClosed/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
+if(vErrors === null){
+vErrors = [err136];
+}
+else {
+vErrors.push(err136);
+}
+errors++;
+}
+}
+if(data.lifecycleStatus !== undefined){
+let data55 = data.lifecycleStatus;
+if(typeof data55 !== "string"){
+const err137 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err137];
+}
+else {
+vErrors.push(err137);
+}
+errors++;
+}
+if(!(((data55 === "scheduled") || (data55 === "past")) || (data55 === "canceled"))){
+const err138 = {instancePath:instancePath+"/lifecycleStatus",schemaPath:"#/properties/lifecycleStatus/enum",keyword:"enum",params:{allowedValues: schema114.properties.lifecycleStatus.enum},message:"must be equal to one of the allowed values"};
+if(vErrors === null){
+vErrors = [err138];
+}
+else {
+vErrors.push(err138);
+}
+errors++;
+}
+}
+}
+else {
+const err139 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err139];
+}
+else {
+vErrors.push(err139);
 }
 errors++;
 }

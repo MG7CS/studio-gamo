@@ -122,15 +122,8 @@ if (unavailable) {
       ? `Upcoming Christian concert dates and worship gatherings featuring ${artist.stageName} on Gamo Live.`
       : 'Browse artist profiles and upcoming Christian concert dates on Gamo Live.'
   }
+  noindex={!artist}
 >
-  {artist && (
-    <link
-      slot="head"
-      rel="canonical"
-      href={`https://live.gamostudio.org/artists/${artist.slug}`}
-    />
-  )}
-
   {artist ? (
     <div>
       <!-- Compact Artist Profile Header -->

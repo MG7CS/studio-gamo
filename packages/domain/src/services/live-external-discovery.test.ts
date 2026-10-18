@@ -249,32 +249,37 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     const cain = await liveService.getEvent('cain-phoenix-2026-11-07');
     assert.ok(cain);
 
-    // Insert a past approved event
-    const pastStart = new Date(Date.now() - 7 * 86400000);
-    await db.insert(events).values({
-      id: 'evt_past_test_1',
+    // Both fixture events are built relative to "now" so the test never depends on today's date
+    // or on how many seeded catalog events have already passed.
+    const DAY = 86400000;
+    const pastStart = new Date(Date.now() - 7 * DAY);
+    const futureStart = new Date(Date.now() + 30 * DAY);
+    const fixture = (id: string, slug: string, startsAt: Date) => ({
+      id,
       organizerId: cain.organizerId,
-      slug: 'past-worship-night-2025',
-      title: 'Past Worship Night 2025',
+      slug,
+      title: slug,
       category: 'worship',
-      tagline: 'Past gathering',
-      description: 'An event that already took place.',
+      tagline: 'Fixture gathering',
+      description: 'A fixture event for date-ordering checks.',
       venueName: 'Dream City Church',
       city: 'Phoenix',
       state: 'AZ',
       metroSlug: 'phoenix-az',
-      startsAt: pastStart,
-      startDateLocal: '2025-05-10',
+      startsAt,
+      startDateLocal: startsAt.toISOString().slice(0, 10),
       startTimeLocal: '19:00',
       timezone: 'America/Phoenix',
-      admissionType: 'external',
-      externalUrl: 'https://www.ticketmaster.com/event/past-2025',
-      status: 'approved',
-      listingType: 'external_discovery',
+      admissionType: 'external' as const,
+      externalUrl: `https://www.ticketmaster.com/event/${slug}`,
+      status: 'approved' as const,
+      listingType: 'external_discovery' as const,
       externalOnly: true,
-      editorialStatus: 'published',
+      editorialStatus: 'published' as const,
       createdAt: new Date(),
     });
+    await db.insert(events).values(fixture('evt_past_test_1', 'past-worship-night-2025', pastStart));
+    await db.insert(events).values(fixture('evt_future_test_1', 'future-worship-night', futureStart));
 
     const pastLoaded = await liveService.getEvent('past-worship-night-2025');
     assert.ok(pastLoaded);
@@ -282,14 +287,20 @@ describe('Gamo Live External Concert Discovery & Editorial Publishing Workflow',
     assert.equal(pastLoaded.isClosed, true);
     assert.equal(pastLoaded.lifecycleStatus, 'past');
 
-    const allEvents = await liveService.listDiscoverableEvents({ limit: 50 });
-    const firstEvent = allEvents[0];
-    const lastEvent = allEvents[allEvents.length - 1];
-    assert.equal(firstEvent?.isPast, false, 'Expected upcoming events to be sorted before past events');
-    assert.equal(lastEvent?.slug, 'past-worship-night-2025');
-    assert.equal(lastEvent?.isPast, true);
-    assert.equal(lastEvent?.isClosed, true);
-    assert.equal(lastEvent?.lifecycleStatus, 'past');
+    const allEvents = await liveService.listDiscoverableEvents({ limit: 200 });
+    const firstPastIndex = allEvents.findIndex((e) => e.isPast);
+    const lastUpcomingIndex = allEvents.map((e) => e.isPast).lastIndexOf(false);
+    assert.ok(lastUpcomingIndex >= 0, 'Expected at least one upcoming event');
+    assert.ok(firstPastIndex >= 0, 'Expected at least one past event');
+    assert.ok(lastUpcomingIndex < firstPastIndex, 'Expected upcoming events to be sorted before past events');
+    assert.equal(allEvents[0]?.isPast, false);
+
+    const pastListed = allEvents.find((e) => e.slug === 'past-worship-night-2025');
+    assert.ok(pastListed);
+    assert.equal(pastListed.isPast, true);
+    assert.equal(pastListed.isClosed, true);
+    assert.equal(pastListed.lifecycleStatus, 'past');
+    assert.equal(allEvents.find((e) => e.slug === 'future-worship-night')?.isPast, false);
   });
 });
 

@@ -25,7 +25,11 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'CreateBookingInquiryInput');
     const validated = createBookingInquirySchema.parse(body);
 
-    const auth = await requireVerifiedAuth(context.request, db, runtimeEnv.SESSION_SECRET);
+    const auth = await requireVerifiedAuth(context.request, db, {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
     const orgAllowed = hasOrgRole(auth, validated.organizationId, ['owner', 'admin']);
     const eventAllowed = validated.eventId
       ? await hasEventPermission(db, auth, validated.eventId, 'negotiate_booking')

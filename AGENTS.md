@@ -4,11 +4,13 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 
 ## Organizational mission (permanent — read first)
 
-**We are building a Christian, mission-driven organization and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Its final legal incorporation structure and tax status remain undecided (legal-structure-neutral). Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are interconnected programs serving one religious and educational mission, not independent profit centers. The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
+**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Studios is a **Public Benefit Corporation** (confirmed by the owner), formed to be mission-driven and not only profit-seeking. Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are interconnected programs serving one religious and educational mission, not independent profit centers. The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
 
 - Evaluate success by religious and educational impact, program accessibility, service reliability, musician and instructor fairness, community trust, church collaboration, responsible stewardship, financial sustainability and long-term mission effectiveness.
 - **Do not**, without explicit founder/board authorization: introduce commercialization strategies, maximize or add fees, turn free/sponsored programs into paid services, deduct from musician or instructor pay, or let payment/sponsorship/partnership affect vetting, rankings or trust signals.
-- Describe Gamo Studios as a **Christian, mission-driven organization** whose final legal incorporation and tax status remain under evaluation. Never claim 501(c)(3) status, IRS approval, tax-deductible contributions, registration numbers, committed board members, sponsors, donors or partner churches.
+- **Legal status (approved by the owner):** Gamo Studios is a **Christian, mission-driven Public Benefit Corporation**, formed to be mission-driven and not only profit-seeking. This PBC statement is approved wording and may be used on public pages, emails, llms.txt and structured data. A PBC is a for-profit company type: Gamo Studios is **NOT a nonprofit** and is **NOT tax-exempt**.
+- **Never** write or imply "nonprofit", "non-profit", "not-for-profit", "501(c)(3)", "tax-exempt", "tax-deductible", "charitable", "charity" (for Gamo itself), or "donation/donor" language, on any public page, email, metadata or structured data. Do not add sentences about tax-exempt recognition, "legal status under evaluation" or deductible gifts. Also never claim IRS approval, registration numbers, committed board members, sponsors, donors or partner churches.
+- Existing docs and file names that say "nonprofit" (for example `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md`) are historical names; where their text says nonprofit or tax-exempt, this PBC statement prevails.
 - Gamo Live serves **Christian events nationwide**; never define eligibility by ethnicity or nationality.
 - Gamo Academy speaks first to students, parents and families. The approved headline is **"Learn to Play the Instrument You Love."**
 - Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
@@ -137,13 +139,6 @@ When developing a new application or authentication route, reuse the existing sh
 
 - **Canonical Shared Package Directory**: `packages/ui/src/components/auth/` (`@studio-gamo/ui/components/auth/*`)
   - `GamoAuthExperience.astro` — Top-level full-screen 4-mode authentication experience (`mode="signin" | "signup" | "verify" | "recover"`, `program`, `brandHref`, `brandLabel`, `photos`).
-  - `AuthLayout.astro` (aliased as `AuthSplitLayout.astro`) — Full-viewport desktop split-screen composition and mobile photographic header with `AuthPhotoPanel.astro` and `AuthCurvedDivider.astro`.
-  - `AuthForm.astro` — Shared form presentation and responsive spacing composing `AuthNavBar.astro`, `AuthFormHeader.astro`, `AuthFeedback.astro`, `AuthEmailInput.astro`, `AuthCodeInput.astro`, and `AuthActions.astro`.
-  - `AuthEmailInput.astro` / `AuthTextField.astro` — Accessible email and text field presentation.
-  - `AuthCodeInput.astro` — Accessible 6-digit OTP verification code input (`[data-otp-slot="0..5"]`).
-  - `AuthActions.astro` / `AuthPrimaryButton.astro` — Primary CTA buttons, secondary mode-switching links, and loading states.
-  - `AuthFeedback.astro` (aliased as `AuthStatusBanner.astro`) — `role="status" aria-live="polite" data-auth-status` feedback banner.
-  - `packages/ui/src/lib/auth-flow-client.ts` — Centralized client controller (`initAuthFlow`) preserving `?next=` / `?returnTo=` safe redirects, challenge/verify requests, OTP paste/focus synchronization, and resend flows.
 - **Route Usage Convention**:
   - Every application's `/account/signin.astro`, `/account/signup.astro`, `/account/verify.astro`, and `/account/recover.astro` must wrap `<GamoAuthExperience mode="..." program="..." />` inside the app layout with `chrome={false}` so no marketing navigation header or footer surrounds the authentication screen.
 
@@ -165,5 +160,14 @@ Any cross-product identity linking, enrollment, or integration must be explicitl
   - Disable or replace active ticket purchase / free registration buttons on past events with a closed notice (`"Past · Closed"` / `"This event has already taken place. Ticket purchases and attendee registration are closed."`).
   - Sort upcoming events ahead of past events in discovery feeds and featured hero carousels.
 
+## Independent Clerk Authentication Rule
 
+Every Gamo Studios product uses its own Clerk application and independent authentication accounts and sessions.
 
+All products reuse the approved shared authentication UI components.
+
+Never reuse one product's Clerk credentials in another product. Never automatically link users, grant memberships, or authorize cross-product access based on matching email addresses.
+
+Authentication and business authorization are separate responsibilities.
+
+Do not introduce shared single sign-on or alter product-account independence without explicit founder approval.

@@ -797,6 +797,10 @@ export interface components {
                 billingOrder: number;
                 roleLabel: string;
             }[];
+            isPast?: boolean;
+            isClosed?: boolean;
+            /** @enum {string} */
+            lifecycleStatus?: "scheduled" | "past" | "canceled";
         };
         EventListResponse: {
             /** @constant */

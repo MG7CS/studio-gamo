@@ -14,6 +14,9 @@ export type NewSession = InferInsertModel<typeof schema.sessions>;
 export type ProductAccount = InferSelectModel<typeof schema.productAccounts>;
 export type NewProductAccount = InferInsertModel<typeof schema.productAccounts>;
 
+export type ClerkIdentityLink = InferSelectModel<typeof schema.clerkIdentityLinks>;
+export type NewClerkIdentityLink = InferInsertModel<typeof schema.clerkIdentityLinks>;
+
 export type Organization = InferSelectModel<typeof schema.organizations>;
 export type NewOrganization = InferInsertModel<typeof schema.organizations>;
 

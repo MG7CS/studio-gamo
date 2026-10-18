@@ -210,7 +210,7 @@ export const organizationScreens: DashScreen[] = [
         type: 'notice',
         tone: 'warning',
         title: 'Protected financial & legal release gates',
-        body: 'Live card charging, artist booking deposits, and charitable contribution processing remain fail-closed (HTTP 503) at the Worker runtime layer until legal formation and board prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are verified.',
+        body: 'Live card charging, artist booking deposits, and contribution processing remain fail-closed (HTTP 503) at the Worker runtime layer until legal formation and board prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are verified.',
       },
       {
         type: 'stats',
@@ -269,8 +269,8 @@ export const organizationScreens: DashScreen[] = [
                 on: true,
               },
               {
-                label: 'Lock charitable contribution & sponsorship collection',
-                description: 'Required until final legal incorporation and tax status prerequisites are completed.',
+                label: 'Lock contribution & sponsorship collection',
+                description: 'Required until the legal prerequisites are completed.',
                 on: true,
               },
             ],
@@ -363,9 +363,9 @@ export const organizationScreens: DashScreen[] = [
           },
           {
             gateId: 'GATE-ORG-DONATIONS',
-            subsystem: 'Charitable Contributions & Sponsorship Processing',
+            subsystem: 'Contributions & Sponsorship Processing',
             mode: 'Proposal display only · Collection disabled',
-            authority: 'Nonprofit Transition Checklist Completion',
+            authority: 'Legal Transition Checklist Completion',
             status: b('Locked safe', 'verified'),
           },
           {

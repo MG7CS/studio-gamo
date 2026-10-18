@@ -32,12 +32,38 @@ export const productAccounts = sqliteTable('product_accounts', {
   product: text('product').notNull(), // 'web' | 'worship' | 'academy' | 'live' | 'production'
   status: text('status').notNull().default('active'), // 'active' | 'suspended' | 'archived'
   onboardingStatus: text('onboarding_status').notNull().default('pending'), // 'pending' | 'completed'
+  clerkAppId: text('clerk_app_id'),
+  clerkUserId: text('clerk_user_id'),
+  clerkIssuer: text('clerk_issuer'),
+  clerkLinkedAt: integer('clerk_linked_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 }, (t) => [
   uniqueIndex('product_account_user_product_unique').on(t.userId, t.product),
   index('product_account_user_idx').on(t.userId),
   index('product_account_product_idx').on(t.product),
+  index('product_account_clerk_user_idx').on(t.clerkUserId),
+]);
+
+export const clerkIdentityLinks = sqliteTable('clerk_identity_links', {
+  id: text('id').primaryKey(),
+  product: text('product').notNull(), // 'web' | 'worship' | 'academy' | 'live' | 'production'
+  clerkAppId: text('clerk_app_id').notNull(),
+  clerkIssuer: text('clerk_issuer').notNull(),
+  clerkUserId: text('clerk_user_id').notNull(),
+  clerkEmail: text('clerk_email').notNull(),
+  clerkEmailVerified: integer('clerk_email_verified', { mode: 'boolean' }).notNull().default(true),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  productAccountId: text('product_account_id').notNull().references(() => productAccounts.id, { onDelete: 'cascade' }),
+  migrationSource: text('migration_source').notNull().default('clerk_registration'), // 'clerk_registration' | 'verified_domain_claim' | 'admin_migration'
+  status: text('status').notNull().default('active'), // 'active' | 'suspended' | 'revoked'
+  linkedAt: integer('linked_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+}, (t) => [
+  uniqueIndex('clerk_identity_product_user_unique').on(t.product, t.clerkUserId),
+  uniqueIndex('clerk_identity_issuer_user_unique').on(t.clerkIssuer, t.clerkUserId),
+  uniqueIndex('clerk_identity_product_account_unique').on(t.productAccountId),
+  index('clerk_identity_user_idx').on(t.userId, t.product),
 ]);
 
 export const roles = sqliteTable('roles', {

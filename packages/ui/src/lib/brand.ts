@@ -92,7 +92,7 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
     ticketPassHeader: `${displayName} · Official Admission Pass`,
     receiptHeader: `${displayName} · Order Confirmation & Receipt`,
     operatorDisclosure:
-      'Operated by the Gamo Live division of Gamo Studios, a Christian, mission-driven organization. Final legal incorporation and federal tax status remain under evaluation; ticket purchases, fees, and contributions are not tax-deductible.',
+      'Operated by the Gamo Live division of Gamo Studios, a Christian, mission-driven Public Benefit Corporation.',
     paymentDisclosure:
       'Ticket orders and booking terms are facilitated by the Gamo Live division of Gamo Studios. Organizer proceeds, performer payables, agent commissions, processing costs, and platform administrative allocations are tracked as separate line items. The platform is not a bank, escrow agent, or fiduciary.',
   };

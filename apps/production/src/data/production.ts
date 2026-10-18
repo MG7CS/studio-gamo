@@ -1,6 +1,6 @@
 /**
  * Gamo Production — design-phase content.
- * Gamo Production is a proposed program of a developing Christian nonprofit.
+ * Gamo Production is a proposed program of a developing Christian, mission-driven Public Benefit Corporation.
  * Nothing here describes completed projects, clients or partner churches.
  */
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';

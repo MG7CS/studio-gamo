@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gamo Studios — Editable Booklet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--terra:#B34E24;--deep:#8F3B18;--soft:#D98B62;--ink:#18181B;--cream:#F9F6F0;--sand:#EDE6DA;--tan:#D8C5AE;--muted:#57534E;--line:#DCD3C6}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+body{background:#B3A99A;font-family:'Inter',sans-serif;color:#221F1D;padding:28px;display:flex;flex-direction:column;align-items:center;gap:36px}
+.spread{width:1224px;height:792px;position:relative;display:grid;grid-template-columns:612px 612px;background:var(--cream);box-shadow:0 22px 50px rgba(0,0,0,.35);break-after:page}
+.spread::after{content:"";position:absolute;left:572px;width:80px;top:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,.09) 50%,transparent);pointer-events:none;z-index:60}
+.page{width:612px;height:792px;position:relative;overflow:hidden;background:var(--cream)}
+.page>*,.spread>.x{position:absolute}
+.solo{box-shadow:0 22px 50px rgba(0,0,0,.35);break-after:page;page:solo}
+i{display:block}
+.x{z-index:20}
+
+/* chrome */
+.hdr{top:34px;left:42px;right:42px;display:flex;justify-content:space-between;align-items:center;font:700 7.5px/1 Inter;letter-spacing:1.2px;text-transform:uppercase;z-index:10}
+.hdr.w{color:#fff}
+.badge{width:20px;height:20px;border-radius:50%;background:var(--terra);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800}
+.w .badge{background:#fff;color:var(--terra)}
+.ftr{left:42px;right:42px;bottom:28px;border-top:1px solid var(--line);padding-top:9px;display:flex;justify-content:space-between;font:800 8px Inter;letter-spacing:.9px;text-transform:uppercase;color:var(--ink);z-index:10}
+.ftr.w{color:#fff;border-top-color:rgba(255,255,255,.4)}
+.ph{background:var(--sand);outline:2px dashed #B8AB98;outline-offset:-10px;color:#8A7E70;display:flex;align-items:center;justify-content:center;text-align:center;font:700 9px/1.6 Inter;letter-spacing:1px;text-transform:uppercase}
+.ph.d{background:#2B2B30;outline-color:#6C6C75;color:#9A9AA3}
+.ph.has{outline:none;background-color:var(--sand);background-size:cover;background-repeat:no-repeat}
+.ttl{font-weight:900;text-transform:uppercase;line-height:1.08;letter-spacing:-.4px}
+.sm{font-size:10.5px;line-height:1.6;color:var(--muted)}
+.circ{border-radius:50%}
+.brand{display:inline-flex;align-items:center;gap:8px;font-weight:900;font-size:8px;letter-spacing:1px}
+
+/* cover */
+.cover h1{font-size:38px;font-weight:900;line-height:1.05;letter-spacing:-1px;text-transform:uppercase;color:var(--ink)}
+.cover .sub{font-size:12.5px;font-weight:800;letter-spacing:.8px;color:var(--ink)}.cover .sub b{color:var(--terra)}
+
+/* toc */
+.toc{left:72px;right:72px;top:448px}
+.toc div{display:flex;gap:16px;font-size:13.5px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);padding:8px 0}
+.toc b{color:var(--terra);font-weight:800;width:20px}
+
+/* commitments */
+.ic{width:84px;height:84px;border-radius:50%;border:2px solid var(--terra);background:var(--terra);box-shadow:0 0 0 8px var(--cream),0 0 0 9.5px rgba(179,78,36,.4);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;margin:0 auto 14px}
+.col3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:center}
+.col3 h4{font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:6px;line-height:1.25}
+.col3 p{font-size:10.5px;line-height:1.55;color:var(--muted)}
+.chk{display:flex;gap:10px;align-items:flex-start}
+.chk s{width:20px;height:20px;border-radius:50%;border:2px solid var(--terra);color:var(--terra);flex:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;text-decoration:none}
+.chk h5{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:5px}
+
+/* gap */
+.br{border-left:2.5px solid var(--terra);border-top:2.5px solid var(--terra);padding:12px 0 0 14px;border-top-left-radius:8px}
+.br h5{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:5px}
+
+/* sunday */
+.qc{background:#fff;border-radius:12px;padding:20px 24px;font-size:10.5px;line-height:1.6;color:var(--ink);font-style:italic}
+.qc::before{content:"\201C";position:absolute;left:10px;top:-2px;font:900 44px/1 Inter;color:var(--terra)}
+.stat b{display:block;font-size:46px;font-weight:900;line-height:1;color:#fff}
+.stat span{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#fff;margin-top:6px}
+.rg{width:84px;height:84px;border-radius:50%;border:7px solid var(--sand);border-top-color:var(--terra);border-right-color:var(--terra);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--ink);margin:0 auto 10px}
+.rgs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:center}
+.rgs h4{font-size:11px;font-weight:800;color:var(--ink)}.rgs p{font-size:9px;color:var(--muted);margin-top:3px}
+
+/* nested rings */
+.nr{border-radius:50%;border-style:solid;border-width:26px}
+.cen{border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;text-transform:uppercase;color:var(--ink);line-height:1.25}
+
+/* divisions */
+.dv{text-align:left}
+.dv .ic2{width:72px;height:72px;border-radius:50%;background:var(--terra);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:14px}
+.dv h4{font-size:22px;font-weight:900;color:var(--ink);line-height:1.1;margin-bottom:10px}
+.dv ul{list-style:none}.dv li{font-size:11px;line-height:1.5;color:var(--muted);padding-left:14px;position:relative;margin-bottom:5px}
+.dv li::before{content:"";position:absolute;left:0;top:6px;width:5px;height:5px;border-radius:50%;background:var(--terra)}
+
+/* ecosystem */
+.lbl{font-size:11px;font-weight:800;color:var(--ink);text-align:center;text-shadow:0 0 3px var(--cream),0 0 3px var(--cream),0 0 6px var(--cream),0 0 6px var(--cream),0 0 8px var(--cream)}
+
+/* how */
+.card{border:1.5px solid var(--terra);border-radius:12px;padding:62px 18px 20px;text-align:center;background:var(--cream)}
+.card h4{font-size:21px;font-weight:900;color:var(--ink);margin-bottom:8px}
+.card p{font-size:10px;line-height:1.55;color:var(--muted)}
+.lt{width:68px;height:68px;border-radius:50%;color:#fff;font-size:30px;font-weight:900;display:flex;align-items:center;justify-content:center}
+
+body.single .spread{width:612px;grid-template-columns:612px;height:auto}
+@media print{body{background:none;padding:0;gap:0;zoom:1.3333}.spread,.solo{box-shadow:none}@page{size:17in 11in;margin:0}@page solo{size:8.5in 11in;margin:0}}
+
+/* editing layer */
+i{pointer-events:none}
+[contenteditable]{cursor:text;outline:1px dashed transparent;outline-offset:2px}
+[contenteditable]:hover{outline-color:rgba(37,99,235,.55)}
+[contenteditable]:focus{outline:2px solid #2563eb;background:rgba(37,99,235,.06)}
+#book{display:flex;flex-direction:column;align-items:center;gap:36px}
+@media print{[contenteditable]{outline:none!important;background:none!important}}
+</style>
+</head>
+<body>
+
+<main id="book">
+<!-- COVER -->
+<section class="page solo">
+  <i style="left:0;top:0;bottom:0;width:38px;background:var(--terra)"></i>
+  <i style="left:38px;right:0;top:175px;height:100px;background:var(--ink)"></i>
+  <i style="left:38px;top:275px;width:430px;height:20px;background:var(--tan)"></i>
+  <i style="left:86px;top:92px;width:372px;height:372px;border-radius:50%;border:26px solid var(--terra);border-color:var(--terra) transparent var(--terra) var(--terra);z-index:3"></i>
+  <img src="branding/svg/gamo-studios-horizontal-primary.svg" alt="Gamo Studios" style="left:70px;top:56px;width:160px;height:auto">
+  <div class="ph circ has" role="img" aria-label="Worship vocalist" style="left:122px;top:128px;width:300px;height:300px;border:10px solid var(--cream);z-index:2;background-image:url(booklet-images/cover-worship-vocalist.png);background-position:55% 30%"></div>
+  <div class="cover" style="left:70px;top:505px;z-index:5"><h1>Empowering<br>Christian worship,<br>learning &amp;<br>community.</h1><div class="sub" style="margin-top:16px"><b>COMPANY OVERVIEW</b></div><div style="margin-top:10px;font-size:10.5px;font-weight:600;color:var(--muted)">A Christian, mission-driven music and technology company.</div></div>
+</section>
+
+<!-- SPREAD 1: welcome + contents -->
+<div class="spread">
+  <section class="page">
+    <i style="left:0;top:0;right:0;height:545px;background:var(--terra)"></i>
+    <i style="left:20px;top:48px;width:470px;height:470px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6)"></i>
+    <i style="left:40px;top:70px;width:430px;height:430px;border-radius:50%;border:22px solid var(--deep);border-color:transparent transparent var(--deep) var(--deep)"></i>
+    <div class="ph circ has" role="img" aria-label="Church at golden hour" style="left:70px;top:100px;width:370px;height:370px;border:10px solid var(--cream);background-image:url(booklet-images/church-golden-hour.png);background-position:60% 45%"></div>
+    <div class="hdr w"><span style="display:flex;gap:10px;align-items:center"><span class="badge">1</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <p style="left:42px;top:576px;width:528px;font-size:19px;line-height:1.3;text-transform:uppercase;color:var(--ink)">Gamo Studios <b>strengthens Christian worship and empowers future church musicians.</b></p>
+    <p class="sm" style="left:42px;top:639px;width:528px;font-size:11px">By combining purpose-built technology with trusted local relationships, we connect churches needing dependable musicians, students seeking accessible instrument education, audiences discovering Christian events, and ministries needing professional audio/video.</p>
+  </section>
+  <section class="page">
+    <i style="left:0;top:0;right:0;height:430px;background:var(--terra);border-bottom-right-radius:220px"></i>
+    <i style="left:-6px;top:94px;width:310px;height:310px;border-radius:50%;border:1.5px solid rgba(255,255,255,.65)"></i>
+    <i style="left:140px;top:86px;width:14px;height:14px;border-radius:50%;background:#fff"></i>
+    <i style="left:104px;top:68px;width:12px;height:12px;border-radius:50%;border:1.5px solid #fff"></i>
+    <div class="ph circ has" role="img" aria-label="Vintage stage microphone in a church" style="left:56px;top:148px;width:200px;height:200px;border:9px solid var(--cream);background-image:url(booklet-images/vintage-stage-microphone.jpg);background-position:50% 35%"></div>
+    <div class="hdr w"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">2</span></span></div>
+    <h2 class="ttl" style="left:324px;top:218px;font-size:27px;color:#fff;width:240px">Table of<br>Contents</h2>
+    <div class="toc">
+      <div><b>01</b>Who we are</div><div><b>02</b>Mission, vision &amp; values</div><div><b>03</b>Four connected ways we serve</div><div><b>04</b>Gamo Worship</div>
+      <div><b>05</b>Gamo Academy</div><div><b>06</b>Gamo Live</div><div><b>07</b>Gamo Production</div><div><b>08</b>How it works</div>
+    </div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+</div>
+
+<!-- SPREAD 2: about + commitments -->
+<div class="spread">
+  <section class="page" style="background:var(--ink)">
+    <i style="left:0;top:0;width:560px;height:430px;background:var(--terra);border-bottom-right-radius:280px;z-index:1"></i>
+    <div class="ph d has" role="img" aria-label="Guitarist on stage" style="left:0;bottom:0;width:440px;height:470px;border-top-right-radius:250px;z-index:2;background-image:url(booklet-images/guitarist-on-stage.png);background-position:50% 28%"></div>
+    <i aria-hidden="true" style="left:-76px;top:306px;width:532px;height:532px;border-radius:50%;border:30px solid var(--soft);background:transparent;clip-path:inset(0 0 50% 50%);pointer-events:none;z-index:3"></i>
+    <i style="right:0;bottom:0;width:290px;height:250px;background:var(--cream);border-top-left-radius:200px;z-index:4"></i>
+    <div class="hdr w"><span style="display:flex;gap:10px;align-items:center"><span class="badge">3</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <p style="left:42px;top:75px;font:800 10px Inter;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);z-index:5">A Public Benefit Corporation</p>
+    <h2 class="ttl" style="left:42px;top:96px;font-size:27px;color:#F6C7A6;width:300px;z-index:5">Our<br>mission</h2>
+    <p style="left:42px;top:178px;width:290px;font-size:10.5px;line-height:1.65;color:#fff;z-index:5"><b style="font-weight:800">To strengthen Christian worship and community life</b> by expanding access to musical instrument education, supporting musicians and faith communities, facilitating Christian gatherings, and providing educational and technical resources that promote musical worship, opportunity, and community well-being.</p>
+    <p style="left:352px;top:178px;width:168px;font-size:12px;line-height:1.55;color:#fff;font-style:italic;border-left:3px solid var(--soft);padding-left:12px;z-index:5">We are structured as a Public Benefit Corporation so that our work can be led by mission, not by profit alone.</p>
+    <div style="right:42px;bottom:52px;width:190px;z-index:5"><h3 class="ttl" style="font-size:17px;color:var(--ink);margin-bottom:8px;letter-spacing:0;text-transform:none">Built for People, Powered by Technology</h3><p class="sm" style="font-size:10.5px">Gamo Studios pairs purpose-built technology with trusted local relationships, keeping faith, education and community at the center.</p></div>
+    <div class="ftr w" style="right:auto;width:200px;border-top:0"><span>gamostudio.org</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">4</span></span></div>
+    <p style="left:42px;top:74px;font:800 9px Inter;letter-spacing:1.2px;text-transform:uppercase;color:var(--terra)">Our values</p><h2 class="ttl" style="left:42px;top:96px;font-size:28px;color:var(--ink)">What guides<br>how we serve</h2>
+    <p class="sm" style="left:42px;top:172px;width:470px">Seven values guide every program we build, from how we vet musicians to how we care for every gift and resource entrusted to us.</p>
+    <i style="left:125px;width:362px;top:303px;height:1.5px;background:rgba(179,78,36,.4)"></i>
+    <div class="col3" style="left:42px;right:42px;top:262px">
+      <div><div class="ic">&#10013;</div><h4><span style="display:block;font-size:9px;letter-spacing:1px;color:var(--terra);margin-bottom:3px">01</span>Faith</h4><p>We serve Christ and the church first, and every program begins with that purpose.</p></div>
+      <div><div class="ic">&#9998;</div><h4><span style="display:block;font-size:9px;letter-spacing:1px;color:var(--terra);margin-bottom:3px">02</span>Education</h4><p>We invest in learning that lasts a lifetime, for students, families and instructors alike.</p></div>
+      <div><div class="ic">&#10003;</div><h4><span style="display:block;font-size:9px;letter-spacing:1px;color:var(--terra);margin-bottom:3px">03</span>Excellence</h4><p>We offer our best work as an act of worship, in every lesson, service and event.</p></div>
+    </div>
+    <div style="left:42px;right:42px;top:478px;background:var(--terra);border-radius:10px;padding:28px 28px;color:#fff;font-size:10.5px;line-height:1.55"><div style="display:grid;grid-template-columns:1fr 1fr;gap:24px"><div><div style="font-size:12.5px;font-weight:800"><span style="opacity:.75;margin-right:6px">04</span>Community</div><p style="font-size:10.5px;line-height:1.55;margin-top:5px">We grow stronger by serving together, with churches, families and partners.</p></div><div><div style="font-size:12.5px;font-weight:800"><span style="opacity:.75;margin-right:6px">05</span>Trust</div><p style="font-size:10.5px;line-height:1.55;margin-top:5px">We earn confidence through honesty, clear communication and careful vetting.</p></div></div></div>
+    <div style="left:42px;right:42px;top:628px;display:grid;grid-template-columns:1fr 1fr;gap:26px">
+      <div class="chk"><s>&#10003;</s><div><h5><span style="color:var(--terra);margin-right:6px">06</span>Fairness</h5><p class="sm" style="font-size:10.5px">We treat musicians and instructors with respect, clear terms and transparent pay.</p></div></div>
+      <div class="chk"><s>&#10003;</s><div><h5><span style="color:var(--terra);margin-right:6px">07</span>Stewardship</h5><p class="sm" style="font-size:10.5px">We handle every gift and resource responsibly, and aim to be open about how we use them.</p></div></div>
+    </div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+</div>
+
+<!-- SPREAD 3: coordination gap -->
+<div class="spread">
+  <section class="page" style="background:var(--terra)">
+    <div class="ph has" role="img" aria-label="Worship vocalist" style="left:70px;top:120px;width:300px;height:672px;border-radius:150px 150px 0 0;box-shadow:0 0 0 12px var(--terra),0 0 0 24px var(--ink),0 0 0 36px var(--terra),0 0 0 48px var(--ink);z-index:2;background-image:url(booklet-images/arch-vocalist.png);background-position:35% 50%"></div>
+    <i style="right:0;top:0;width:200px;height:200px;border-bottom-left-radius:200px;background:var(--deep);opacity:.55"></i>
+    <div class="hdr w"><span style="display:flex;gap:10px;align-items:center"><span class="badge">5</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <div class="ftr w" style="left:432px;right:auto;width:138px;border-top:0;z-index:12"><span>gamostudio.org</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">6</span></span></div>
+    <h2 class="ttl" style="left:42px;top:96px;font-size:28px;color:var(--ink);width:520px">Solving the ministry<br>coordination gap</h2>
+    <p class="sm" style="left:42px;top:190px;width:500px">Ministry life runs on people and gatherings, yet the churches, musicians, families and organizers who depend on each other are rarely connected in one trusted place.</p>
+    <div style="left:42px;right:42px;top:262px;display:grid;grid-template-columns:1fr 1fr;gap:26px 28px">
+      <div class="br"><h5>Churches</h5><p class="sm" style="font-size:9.8px">Music teams face unpredictable volunteer availability, last-minute vacancies, variable quality, and time-consuming scheduling.</p></div>
+      <div class="br"><h5>Musicians &amp; technicians</h5><p class="sm" style="font-size:9.8px">Talented instrumentalists, vocalists, and audio/video specialists struggle to find consistent, fairly paid ministry opportunities.</p></div>
+      <div class="br"><h5>Families &amp; students</h5><p class="sm" style="font-size:9.8px">Aspiring musicians need affordable, values-aligned instructors who teach instruments and church production gear.</p></div>
+      <div class="br"><h5>Christian concerts &amp; events</h5><p class="sm" style="font-size:9.8px">Artists, choirs and organizers lack a Christian-led platform to publish events, reach faith-based audiences and sell tickets in one place.</p></div>
+    </div>
+    <div style="left:0;right:0;top:542px;height:150px;background:var(--ink);padding:44px 42px 0 100px;color:#fff;font-size:23px;font-weight:800;line-height:1.25">Four connected ways<br>we serve, nationwide.</div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <i class="x circ" style="left:559px;top:584px;width:106px;height:106px;background:var(--terra);border:6px solid var(--cream)"></i>
+</div>
+
+<!-- SPREAD 4: every Sunday + rings -->
+<div class="spread">
+  <section class="page" style="background:var(--terra)">
+    <div class="hdr w"><span style="display:flex;gap:10px;align-items:center"><span class="badge">7</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <h2 class="ttl" style="left:42px;top:96px;font-size:29px;color:#fff;width:420px">Our<br>vision.</h2>
+    <div class="ph has" role="img" aria-label="Worship leader singing" style="left:42px;right:42px;top:178px;height:250px;border-radius:16px;align-items:flex-start;padding-top:70px;background-image:url(booklet-images/worship-leader-singing.png);background-position:50% 30%"></div>
+    <div class="qc" style="left:68px;right:68px;top:388px;z-index:6">A future in which churches of every size can access excellent worship support, musical and technical talent can develop and earn sustainably, and Christian communities can learn, gather, and produce high-quality experiences without unnecessary barriers of talent and skill.</div>
+    <div style="left:42px;right:42px;top:512px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;color:#fff">
+      <div style="border-top:1px solid rgba(255,255,255,.45);padding-top:10px"><div style="font-size:11px;font-weight:800;margin-bottom:4px">Churches of every size</div><p style="font-size:9.6px;line-height:1.5">Excellent worship support, whatever the congregation&rsquo;s size.</p></div>
+      <div style="border-top:1px solid rgba(255,255,255,.45);padding-top:10px"><div style="font-size:11px;font-weight:800;margin-bottom:4px">Talent that earns</div><p style="font-size:9.6px;line-height:1.5">Musical and technical talent can develop and earn sustainably.</p></div>
+      <div style="border-top:1px solid rgba(255,255,255,.45);padding-top:10px"><div style="font-size:11px;font-weight:800;margin-bottom:4px">Barrier-free communities</div><p style="font-size:9.6px;line-height:1.5">Communities learn, gather and produce high-quality experiences.</p></div>
+    </div>
+    <div style="left:42px;right:42px;top:624px;display:flex;gap:30px;align-items:center">
+      <div class="stat" style="flex:1"><b>4</b><span>Connected divisions</span></div>
+      <i style="width:1px;height:70px;background:rgba(255,255,255,.55)"></i>
+      <div class="stat" style="flex:1"><b>1</b><span>Shared mission</span></div>
+    </div>
+    <div class="ftr w"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">8</span></span></div>
+    <p class="sm" style="left:42px;top:76px;width:480px;font-size:10.5px"><b style="font-weight:800;color:var(--ink)">Four divisions, one ministry lifecycle:</b> learning an instrument, serving on a worship team, producing services, and gathering.</p>
+    <div class="rgs" style="left:42px;right:42px;top:134px;grid-template-columns:repeat(4,1fr);gap:10px">
+      <div><div class="rg">&#9835;</div><h4>Worship</h4><p>Vetted musicians and vocalists for church services</p></div>
+      <div><div class="rg">&#9998;</div><h4>Academy</h4><p>In-person instrument and tech lessons</p></div>
+      <div><div class="rg">&#9728;</div><h4>Live</h4><p>Discover and publish Christian events</p></div>
+      <div><div class="rg">&#9881;</div><h4>Production</h4><p>Live sound, video and livestreaming</p></div>
+    </div>
+    <div class="nr" style="left:106px;top:306px;width:400px;height:400px;border-color:var(--terra) var(--ink) var(--terra) var(--terra)"></div>
+    <div class="nr" style="left:148px;top:348px;width:316px;height:316px;border-color:var(--ink) var(--terra) var(--soft) var(--ink);border-width:22px"></div>
+    <div class="nr" style="left:186px;top:386px;width:240px;height:240px;border-color:var(--soft) var(--tan) var(--terra) var(--soft);border-width:20px"></div>
+    <div class="cen" style="left:236px;top:436px;width:140px;height:140px;font-size:12px;padding:20px">Four ways to serve</div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+</div>
+
+<!-- SPREAD 5: arcs + divisions -->
+<div class="spread">
+  <section class="page">
+    <div class="hdr"><span style="display:flex;gap:10px;align-items:center"><span class="badge">9</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <p style="left:42px;top:74px;font:800 9px Inter;letter-spacing:1.2px;text-transform:uppercase;color:var(--terra)">The Gamo lifecycle</p>
+    <p class="sm" style="left:42px;top:92px;width:528px;font-size:13px;line-height:1.45"><b style="font-weight:800;color:var(--ink)">From learning an instrument, to serving on a worship team,</b> to producing and attending Christian gatherings, Gamo Studios supports the whole ministry lifecycle.</p>
+    <div class="nr" style="left:-60px;top:160px;width:540px;height:540px;border-width:34px;border-color:var(--terra) transparent var(--terra) var(--terra)"></div>
+    <div class="nr" style="left:-20px;top:200px;width:460px;height:460px;border-width:30px;border-color:var(--soft) transparent var(--soft) var(--soft)"></div>
+    <div class="nr" style="left:20px;top:240px;width:380px;height:380px;border-width:30px;border-color:var(--ink) transparent var(--ink) var(--ink)"></div>
+    <div class="nr" style="left:60px;top:280px;width:300px;height:300px;border-width:28px;border-color:var(--tan) transparent var(--tan) var(--tan)"></div>
+    <div class="cen" style="left:104px;top:324px;width:212px;height:212px;font-size:17px;padding:30px;background:transparent">Worship.<br>Learn.<br>Gather.<br>Serve.</div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">10</span></span></div>
+    <div style="left:50px;right:50px;top:150px;display:grid;grid-template-columns:1fr 1fr;gap:30px 34px">
+      <div class="dv"><div class="ic2">&#9835;</div><h4>Gamo<br>Worship</h4><p style="font-size:10px;font-weight:700;line-height:1.4;color:var(--terra);margin-bottom:8px">Dependable coverage and peace of mind.</p><ul><li>Vetted musicians and vocalists</li><li>Matched by style, charts &amp; radius</li><li>Single, monthly &amp; quarterly plans</li><li>Paid standby for last-minute needs</li></ul></div>
+      <div class="dv"><div class="ic2">&#9998;</div><h4>Gamo<br>Academy</h4><p style="font-size:10px;font-weight:700;line-height:1.4;color:var(--terra);margin-bottom:8px">Learn the instrument or board you love.</p><ul><li>In-person 1-on-1 lessons &amp; groups</li><li>Piano, guitar, drums, bass &amp; voice</li><li>Live sound, lighting &amp; livestreaming</li><li>Safeguarding &amp; scholarships</li></ul></div>
+      <div class="dv"><div class="ic2">&#9728;</div><h4>Gamo<br>Live</h4><p style="font-size:10px;font-weight:700;line-height:1.4;color:var(--terra);margin-bottom:8px">Gatherings worth sharing, found nationwide.</p><ul><li>Christian concerts &amp; worship nights</li><li>Free public browsing, no sign-in</li><li>Verified dates, venues &amp; ticketing</li><li>Organizer tools to publish &amp; sell</li></ul></div>
+      <div class="dv"><div class="ic2">&#9881;</div><h4>Gamo<br>Production</h4><p style="font-size:10px;font-weight:700;line-height:1.4;color:var(--terra);margin-bottom:8px">Better tools for the team behind the board.</p><ul><li>Live sound &amp; audio engineering</li><li>Camera recording &amp; livestreams</li><li>Livestream consults &amp; roadmaps</li><li>Event photography &amp; workshops</li></ul></div>
+    </div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+</div>
+
+<!-- SPREAD 6: ecosystem -->
+<div class="spread">
+  <section class="page">
+    <div class="hdr"><span style="display:flex;gap:10px;align-items:center"><span class="badge">11</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <h2 class="ttl" style="left:42px;top:96px;font-size:29px;color:var(--ink)">Meet our<br>ecosystem</h2>
+    <p class="sm" style="left:42px;top:176px;width:370px;font-size:12px;line-height:1.6;background:var(--cream);z-index:30;padding:2px 8px;margin-left:-8px;box-sizing:content-box"><b style="color:var(--ink)">High-trust vetting.</b> Every musician, instructor, and technician is personally interviewed, then reviewed for instrument proficiency, genre fluency, and audition video. Clear cancellation and standby procedures and verified organizer reviews keep every partnership accountable.</p>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">12</span></span></div>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <svg class="x" style="left:0;top:0;z-index:15;pointer-events:none" width="1224" height="736" fill="none" stroke="#B34E24" stroke-width="1.5" opacity=".7">
+    <circle cx="860" cy="430" r="150"/><circle cx="860" cy="430" r="270"/><path d="M596.2 712 A360 360 0 1 1 1043.8 712"/>
+    <circle cx="860" cy="280" r="7" fill="#B34E24"/><circle cx="1050" cy="520" r="6" fill="#B34E24"/><circle cx="470" cy="300" r="6" fill="#B34E24"/><circle cx="640" cy="620" r="6" fill="#B34E24"/><circle cx="596.2" cy="712" r="5" fill="#B34E24" stroke="none"/><circle cx="1043.8" cy="712" r="5" fill="#B34E24" stroke="none"/>
+  </svg>
+  <div class="x circ" style="left:812px;top:382px;width:96px;height:96px;background:var(--cream);border:4px solid var(--terra);display:flex;align-items:center;justify-content:center;z-index:24"><img src="branding/svg/gamo-studios-horizontal-primary-cropped.svg" alt="Gamo Studios logo" style="display:block;width:70px;height:auto"></div>
+  <div class="x ph circ has" role="img" aria-label="Worship keyboardist" style="left:40px;top:355px;width:190px;height:190px;border:6px solid var(--terra);z-index:25;background-image:url(booklet-images/musician-keyboardist.png);background-position:45% 20%"></div>
+  <div class="x ph circ d has" role="img" aria-label="Worship guitarist" style="left:374.5px;top:335px;width:171px;height:171px;border:6px solid var(--ink);z-index:26;background-image:url(booklet-images/worship-band-vocalist-guitar.png);background-size:auto 280%;background-position:100% 52%"></div>
+  <div class="x lbl" style="left:292px;top:560px;transform:translateX(-50%);white-space:nowrap;background:var(--cream);padding:2px 8px;border-radius:4px;z-index:25"><div style="font-size:12px;font-weight:800;color:var(--ink);line-height:1.25">Gamo Worship</div><div style="font-size:10px;font-weight:500;color:var(--muted);line-height:1.3">Worship musicians</div></div>
+  <div class="x ph circ has" role="img" aria-label="Academy instructor" style="left:780px;top:170px;width:170px;height:170px;border:6px solid var(--terra);z-index:25;background-image:url(booklet-images/academy-instructor.png);background-position:78% 30%"></div>
+  <div class="x lbl" style="left:865px;top:350px;transform:translateX(-50%);white-space:nowrap;background:var(--cream);padding:2px 8px;border-radius:4px;z-index:25"><div style="font-size:12px;font-weight:800;color:var(--ink);line-height:1.25">Gamo Academy</div><div style="font-size:10px;font-weight:500;color:var(--muted);line-height:1.3">Academy instructors</div></div>
+  <div class="x ph circ d has" role="img" aria-label="Production crew" style="left:1000px;top:390px;width:150px;height:150px;border:6px solid var(--ink);z-index:25;background-image:url(booklet-images/production-crew.png);background-position:50% 40%"></div>
+  <div class="x lbl" style="left:1075px;top:550px;transform:translateX(-50%);white-space:nowrap;background:var(--cream);padding:2px 8px;border-radius:4px;z-index:25"><div style="font-size:12px;font-weight:800;color:var(--ink);line-height:1.25">Gamo Production</div><div style="font-size:10px;font-weight:500;color:var(--muted);line-height:1.3">Production specialists</div></div>
+  <div class="x ph circ d has" role="img" aria-label="Event organizer" style="left:700px;top:520px;width:150px;height:150px;border:6px solid var(--terra);z-index:25;background-image:url(booklet-images/event-organizer-checkin.png);background-position:50% 35%"></div>
+  <div class="x lbl" style="left:775px;top:680px;transform:translateX(-50%);white-space:nowrap;background:var(--cream);padding:2px 8px;border-radius:4px;z-index:25"><div style="font-size:12px;font-weight:800;color:var(--ink);line-height:1.25">Gamo Live</div><div style="font-size:10px;font-weight:500;color:var(--muted);line-height:1.3">Event organizers</div></div>
+</div>
+
+<!-- SPREAD 7: how it works -->
+<div class="spread">
+  <section class="page">
+    <div class="hdr"><span style="display:flex;gap:10px;align-items:center"><span class="badge">13</span>GAMO STUDIOS</span><span>Company overview</span></div>
+    <h2 class="ttl" style="left:42px;top:66px;font-size:30px;color:var(--ink)">How it works</h2>
+    <i style="left:42px;top:110.4px;width:44px;height:3px;background:var(--terra)"></i>
+    <p style="left:42px;top:125.4px;width:528px;font-size:15px;font-weight:500;line-height:1.45;color:var(--ink)"><b style="font-weight:800">Getting started is simple and personal.</b> Whether you&rsquo;re a church, family, organizer or musician, just email or call/text us. We&rsquo;ll take it from there.</p>
+    <div class="ftr"><span>gamostudio.org</span><span>Serving communities nationwide</span></div>
+  </section>
+  <section class="page">
+    <div class="hdr"><span>Company overview</span><span style="display:flex;gap:10px;align-items:center">GAMO STUDIOS<span class="badge">14</span></span></div>
+    <h2 class="ttl" style="left:42px;right:42px;top:90px;font-size:22px;color:var(--ink)">Ready to take your first step?</h2>
+    <div style="left:42px;right:42px;top:128.24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div><h5 style="font-size:11px;font-weight:800;color:var(--ink);margin-bottom:3px">Churches &amp; Ministries</h5><p class="sm" style="font-size:11px;line-height:1.45">List your church free, request a musician or host a clinic.</p></div>
+      <div><h5 style="font-size:11px;font-weight:800;color:var(--ink);margin-bottom:3px">Musicians &amp; Crew</h5><p class="sm" style="font-size:10px;line-height:1.45">Contact us to interview and join our vetted roster.</p></div>
+      <div><h5 style="font-size:11px;font-weight:800;color:var(--ink);margin-bottom:3px">Students &amp; Audiences</h5><p class="sm" style="font-size:10px;line-height:1.45">Sign up for lessons or discover Christian events nationwide.</p></div>
+    </div>
+    <div class="ftr"><span>gamostudio.org</span><span>hello@gamostudios.org &middot; 401-572-8574</span></div>
+  </section>
+  <div class="x ph d has" role="img" aria-label="Worship night crowd" style="left:0;right:0;top:212px;height:190px;z-index:25;background-image:url(booklet-images/worship-night-crowd-wide.png);background-position:50% 60%"></div>
+  <div class="x card" style="left:42px;top:450px;width:270px;height:144px;z-index:25"><h4>Reach out</h4><p>Email us or call/text to request support or apply to join our roster.</p></div>
+  <div class="x card" style="left:332px;top:450px;width:270px;height:144px;z-index:25"><h4>Meet</h4><p>We schedule a brief meeting to discuss your needs or interview you.</p></div>
+  <div class="x card" style="left:622px;top:450px;width:270px;height:144px;z-index:25"><h4>Align</h4><p>Once aligned, we set up your division account and finalize agreements.</p></div>
+  <div class="x card" style="left:912px;top:450px;width:270px;height:144px;z-index:25"><h4>Begin</h4><p>We start working together, serving ministry and community.</p></div>
+  <div class="x" style="left:42px;top:618px;width:560px;background:var(--sand);border-radius:14px;overflow:hidden;padding:10px 20px 10px 24px;display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:center">
+    <i style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--terra)"></i>
+    <div><div style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--terra);margin-bottom:5px">Not needing us today?</div><div style="font-size:20px;font-weight:900;line-height:1.1;color:var(--ink)">List your church.<br>It&rsquo;s free.</div></div>
+    <p style="font-size:11px;line-height:1.4;color:var(--muted)">Add your service times, ministries and events to gamostudio.org at no cost and with no obligation, so visitors and families can find you. When you do need a musician, a sound team or an Academy clinic, you&rsquo;re already part of the network.</p>
+  </div>
+  <div class="x" style="left:654px;top:618px;width:528px;height:97px;background:var(--ink);border-radius:14px;overflow:hidden;padding:10px 20px 10px 24px;display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:center">
+    <i style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--terra)"></i>
+    <div><div style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--soft);margin-bottom:5px">Musicians &amp; technicians</div><div style="font-size:20px;font-weight:900;line-height:1.1;color:var(--cream)">Join the roster.<br>Get booked.</div></div>
+    <p style="font-size:11px;line-height:1.4;color:rgba(249,246,240,.85)">Apply to join our vetted network of musicians and sound and production technicians. We connect you with churches, events and students, with clear terms and transparent pay.</p>
+  </div>
+  <div class="x lt" style="left:143px;top:416px;background:var(--terra);z-index:30">A</div>
+  <div class="x lt" style="left:433px;top:416px;background:var(--ink);z-index:30">B</div>
+  <div class="x lt" style="left:723px;top:416px;background:var(--terra);z-index:30">C</div>
+  <div class="x lt" style="left:1013px;top:416px;background:var(--ink);z-index:30">D</div>
+</div>
+
+<!-- BACK COVER -->
+<section class="page solo" style="background:var(--terra)">
+  <i class="circ" style="left:-300px;top:492px;width:600px;height:600px;border:34px solid var(--soft)"></i>
+  <i class="circ" style="left:-250px;top:542px;width:500px;height:500px;border:30px solid var(--ink)"></i>
+  <i class="circ" style="left:-205px;top:587px;width:410px;height:410px;border:28px solid var(--tan)"></i>
+  <i class="circ" style="left:-165px;top:627px;width:330px;height:330px;border:26px solid var(--cream)"></i>
+  <div class="circ" style="left:211px;top:95px;width:190px;height:190px;background:var(--cream);border:6px solid var(--soft);display:flex;align-items:center;justify-content:center"><img src="branding/svg/gamo-studios-horizontal-primary-cropped.svg" alt="Gamo Studios logo" style="display:block;width:150px;height:auto;object-fit:contain"></div>
+  <h2 class="ttl" style="left:0;right:0;top:318px;text-align:center;color:#fff;font-size:22px;letter-spacing:-.3px;white-space:nowrap">Worship. Learn. Gather. Serve.</h2>
+  <p style="left:0;right:0;top:360px;text-align:center;color:var(--cream);font-size:10.5px;font-weight:600">A Christian, mission-driven music and technology company.</p>
+  <div style="left:0;right:0;top:398px;display:flex;justify-content:center;gap:10px">
+    <span style="border:1.5px solid #fff;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:99px">Worship</span>
+    <span style="border:1.5px solid #fff;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:99px">Academy</span>
+    <span style="border:1.5px solid #fff;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:99px">Live</span>
+    <span style="border:1.5px solid #fff;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:8px 16px;border-radius:99px">Production</span>
+  </div>
+  <i style="left:322px;right:0;top:560px;bottom:0;background:var(--cream);border-top-left-radius:180px"></i>
+  <div style="left:362px;top:650px;display:grid;gap:8px;color:var(--ink)">
+    <div style="color:var(--terra);font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase">Get in touch</div>
+    <div style="font-size:12px;font-weight:800">gamostudio.org</div>
+    <div style="font-size:11px;font-weight:600">hello@gamostudios.org</div>
+    <div style="font-size:11px;font-weight:600">401-572-8574</div>
+  </div>
+</section>
+
+</main>
+<script>
+(function(){
+var book=document.getElementById('book');
+book.querySelectorAll('*').forEach(function(el){
+  if(el.closest('.ph')||el.tagName==='svg'||el.closest('svg'))return;
+  var own=Array.prototype.some.call(el.childNodes,function(n){return n.nodeType===3&&n.textContent.trim()});
+  if(own&&!el.closest('[contenteditable]'))el.setAttribute('contenteditable','true');
+});
+book.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.isContentEditable){e.preventDefault();document.execCommand('insertLineBreak')}});
+book.addEventListener('paste',function(e){
+  if(!e.target.isContentEditable)return;
+  e.preventDefault();
+  var tx=(e.clipboardData||window.clipboardData).getData('text/plain');
+  document.execCommand('insertText',false,tx)});
+})();
+</script>
+</body>
+</html>

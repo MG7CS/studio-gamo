@@ -1,16 +1,11 @@
-# Gamo Admin (apps/admin) Local Worker Variables & Secrets Example
-# Copy to .dev.vars for local testing. NEVER commit real credentials.
+# Gamo Admin (apps/admin) — Internal Staff Boundary Secrets Example (.dev.vars.example)
+# Public product Clerk accounts NEVER grant access to apps/admin.
+# Admin access requires Cloudflare Zero Trust Access RS256 JWT or PBKDF2 Admin Gateway password auth + staff/superadmin D1 role.
+# Shared local settings (ENVIRONMENT, SESSION_SECRET, REQUIRE_ADMIN_AUTH) are inherited from root .dev.vars / .env.
 
-ENVIRONMENT=local
-PUBLIC_ROOT_DOMAIN=gamostudio.org
-REQUIRE_ADMIN_AUTH=false
+# Cloudflare Zero Trust Access
+CF_ACCESS_TEAM_NAME="your-cf-access-team"
+CF_ACCESS_AUD="your-cf-access-application-aud-tag"
 
-# Admin Protection Secrets (Worker Secrets)
-# For local testing, configure an access token or basic auth credentials:
-# ADMIN_ACCESS_TOKEN=local_staff_secret_token
-# ADMIN_BASIC_AUTH_USER=admin
-# ADMIN_BASIC_AUTH_PASS=local_development_password
-
-# Cloudflare Zero Trust / Access (Used in production)
-# CF_ACCESS_TEAM_NAME=gamostudios
-# CF_ACCESS_AUD=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Optional initial bootstrap password for local/first-time admin setup (stored as PBKDF2-SHA256 in D1)
+ADMIN_INITIAL_PASSWORD=""
