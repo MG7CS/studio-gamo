@@ -95,6 +95,12 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-29 | `requireSameOrigin` with no `Origin` header | reject; allow | Allow, but also reject `Sec-Fetch-Site: same-site` and a mismatched `Referer` | Browsers always send `Origin` on cross-origin non-GET requests; a request with neither header is not a browser and cannot carry a victim's cookies. Rejecting it would break server-to-server/API clients and tests. |
 | D-30 | Admin logout via GET links | keep GET; POST only + change links; GET confirm page | GET renders a confirm page with a POST form; POST (same-origin) signs out | Closes logout CSRF without touching the two links. |
 | D-31 | Applied D1 migrations are not idempotent (`CREATE TABLE` without `IF NOT EXISTS`) | rewrite them; leave | Leave applied migrations untouched; new migrations must be additive and use `IF NOT EXISTS` (documented in RUNBOOK) | Wrangler tracks applied migrations in `d1_migrations`; editing already-applied files is riskier than the theoretical re-run problem. The `0007` gap is harmless (applied in name order). |
+| D-32 | Brand values | keep app values; booklet values | Booklet values (`design-reference/gamo-studios-booklet.html` `:root` and `.ttl`) for every token; old token names kept as aliases (`charcoal`→ink, `terracotta-dark`→deep, `ink-soft`→muted, `gold`→tan); only `ivory`/`night` are derived surfaces | One source of truth; aliases avoid a risky 700-file rename. |
+| D-33 | Title style | utilities only; all headings | Display/section utilities + Live/auth `h1`/`h2` at `text-2xl`+ are 900 uppercase; panel headings (`text-lg`/`xl`) unchanged | Matches the booklet `.ttl`; small UI headings in uppercase would hurt scanning. Long sentence-style `h1`s now read heavy (O-16). |
+| D-34 | Off-brand colors | map automatically by nearest color; curated role mapping | Curated role table (terracotta/deep/soft/ink/night/muted/cream/ivory/sand/line/tan) applied only to Tailwind color utilities; semantic status (green/red/amber) and chart series colors left as is | A nearest-color pass would turn status greens brown; curated mapping is reviewable in the commit. |
+| D-35 | Self-hosting Inter | download files into `public/`; `@fontsource-variable/inter` | `@fontsource-variable/inter` (OFL) imported from tokens.css; Latin subset preloaded via `FontPreload.astro` | Versioned, fingerprinted by Vite, `font-display: swap`, weights 100–900 (makes `font-black` real), no runtime third party. |
+| D-36 | Tap targets | 44 px everywhere; 44 px on touch widths | 44 px for every control at 360/768; shared header controls 44 px at all widths; desktop pointer-only nav pills unchanged; WCAG 2.5.8 exceptions honored (inline links in text, equivalent same-href control, stretched-link cards) | "Tap" targets are a touch concern; forcing 44 px desktop nav pills would break the header bar. |
+| D-37 | Decorative text failing contrast | darken; aria-hidden; pseudo-element | Render purely decorative glyphs (giant initials, step numerals in ordered lists) via `::after { content: attr(data-glyph) }` | Keeps the design; not exposed as text to assistive tech or the contrast check; meaning is conveyed by the list order and headings. |
 | D-15 | Four domain services (`Academy`, `Worship`, `Production`, `Partnership`) and six zod schemas never used | keep as "foundation"; delete | Deleted (recoverable from `35d233d`) | Dead code with no route, test or caller; they implied functionality that does not exist. `MediaService` kept (tested). `createApiClient` kept (documented in `docs/OPENAPI_ARCHITECTURE.md`). |
 
 ## 2. Done
@@ -149,6 +155,19 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **Secret scan** (tree + full history, names only): no real secret values found. Test fixtures use obviously fake keys (`sk_live_1234567890abcdef` to prove live keys are refused). Historical `.env.example`/`.dev.vars.example` values are all placeholder-shaped (17–30 chars, e.g. `sk_test_…placeholder`). No real `.dev.vars`/`.env`/key file was ever committed. **One real credential is in history:** the bootstrap admin temporary password and a personal email (first seen `b883c96`; files: `packages/auth/index.ts`, `apps/admin/src/pages/security.astro`, `docs/BUILD_LOG.md`, `scripts/audit/security.test.ts`) — see H-02.
 - **Not done:** applying the migrations from scratch with `wrangler d1 migrations apply --local` (the command was declined in this session); the tests apply all 11 migrations in order to node:sqlite on every run instead.
 
+### Phase 4 — Frontend, design consistency, accessibility, performance
+
+- **Tokens** (D-32): `packages/ui/src/styles/tokens.css` — booklet palette, aliases, title utilities 900/uppercase (D-33), focus ring via tokens, `[tabindex]` focus ring.
+- **Colors** (D-34, F-38 fixed): 741 arbitrary color classes → tokens in 38 files; admin gateway CSS, Live form CSS, chart series 1–2, program accents (lavender/blue/green → brand tints) and favicon colors moved to the palette. Remaining literals are semantic status colors, chart series 3–4 and neutral shadow tints.
+- **Fonts** (D-35, F-37 partly): `@fontsource-variable/inter`, `FontPreload.astro`; all Google Fonts links removed (3 heads); CSP tightened accordingly.
+- **Responsive** (D-36): scanner (Playwright) over 59 pages × 360/768/1280/1920: 0 horizontal overflow before and after the title change; small targets at touch widths 600+ → 0 (shared header/footer, Live header, cards, chips, selects, inputs, breadcrumbs).
+- **Error pages** (F-37): `packages/ui/src/components/ErrorPage.astro`; `src/pages/404.astro` + `500.astro` in all public apps, `500.astro` in admin (its catch-all already returns 404). Verified 404 status and branded page on 5 apps.
+- **Icons/manifest** (F-37): `HeadIcons.astro` (ico 32×32 declared correctly, svg, apple-touch, `site.webmanifest`, light/dark `theme-color`) in all three document heads; `icon-192.png` generated; admin gets `logo-512.png`; favicons regenerated in brand colors by `scripts/generate-favicons.mjs`; unused 16/32 PNGs removed.
+- **Accessibility** (F-40 fixed): axe WCAG 2.0/2.1/2.2 A+AA on 59 pages × 2 widths: 80 → 0 violation entries (contrast on dark surfaces, decorative glyphs D-37, invalid `<dl>`s, Live wordmark name). One `<h1>` per page (web `/live` carousel had 4). Skip link on chrome-less pages; admin gateway `<main>`; Live logo/select focus rings restored; form field borders 3.3:1 (WCAG 1.4.11). Reduced-motion handling already existed (verified).
+- **Images**: Live card images lazy + `decoding=async` + dimensions (were forced eager/sync on every card); mid-page Live image lazy. All other photos already use `<picture>` with AVIF/WebP and dimensions via `Photo.astro`.
+- **Links** (F-53 resolved): 666 unique internal/cross-app link and image targets from 59 pages: 3 broken → 0. Real bug fixed: web `/live` fallback approved two editorially held listings. Preview/production builds inline correct sibling origins; `workers.dev` fallback pattern corrected.
+- **Build**: builds no longer bind the dev inspector port (building while dev servers ran failed).
+
 ## 3. Findings
 
 Ranked: **P0** = security/data-integrity risk in production, **P1** = correctness bug or broken user path, **P2** = quality/maintainability, **P3** = cosmetic. Status is updated as items are fixed.
@@ -191,11 +210,11 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-34 | P2 | Default top-level wrangler env is `ENVIRONMENT="local"` — a `wrangler deploy` without `--env` ships "local" flags (demo gates still need a loopback hostname, so not exploitable on real hosts). | `apps/*/wrangler.toml` | open (Phase 2) |
 | F-35 | P2 | Demo session endpoint (local + loopback only) can impersonate any existing user, incl. superadmin, without verification. Acceptable for local, but should be documented. | `packages/domain/src/http/auth.ts:164-220` | document |
 | F-36 | P2 | No test exercises the `applicationPages` page middleware end to end; `scripts/audit/*` security tests are not in CI. | — | open (Phase 7) |
-| F-37 | P1 | No `404.astro`/`500.astro` in any app; no web manifest or `theme-color`; Inter 900 never loaded although `font-black` is used; Google Fonts loaded at runtime. | all apps, `packages/ui/src/components/BaseLayout.astro:58-60` | open (Phase 4) |
-| F-38 | P2 | Design tokens exist in one place (`packages/ui/src/styles/tokens.css`) but none matches the booklet values; ~945 arbitrary color classes and ~1,100 hex literals bypass them (worst: Live, which re-implements header/footer/logo with hex only). Auth CTA is purple/indigo. | `packages/ui/src/styles/tokens.css`, `apps/live/**`, `packages/ui/src/components/auth/*` | open (Phase 4) |
-| F-39 | P2 | Admin login gateway is a hand-written HTML page inside middleware with its own palette and no skip link/landmarks. | `apps/admin/src/middleware.ts:55-200` | open (Phase 4) |
-| F-40 | P2 | 18 `outline-none` without replacement; `AudienceSwitch` tabpanel loses focus ring; plain `<img>` without width/height in 5 Live spots (`LiveDiscoveryCard` also forces `loading=eager decoding=sync` on every card). | see Phase 4 | open (Phase 4) |
-| F-41 | P2 | Optimized image set copied byte-identical into 5 apps' `public/` (≈6.9 MB each). | `apps/*/public/images/optimized` | open (Phase 4) |
+| F-37 | P1 | No `404.astro`/`500.astro` in any app; no web manifest or `theme-color`; Inter 900 never loaded although `font-black` is used; Google Fonts loaded at runtime. | all apps, `packages/ui/src/components/BaseLayout.astro:58-60` | **fixed** (Phase 4) |
+| F-38 | P2 | Design tokens exist in one place (`packages/ui/src/styles/tokens.css`) but none matches the booklet values; ~945 arbitrary color classes and ~1,100 hex literals bypass them (worst: Live, which re-implements header/footer/logo with hex only). Auth CTA is purple/indigo. | `packages/ui/src/styles/tokens.css`, `apps/live/**`, `packages/ui/src/components/auth/*` | **fixed** (Phase 4) |
+| F-39 | P2 | Admin login gateway is a hand-written HTML page inside middleware with its own palette and no skip link/landmarks. | `apps/admin/src/middleware.ts:55-200` | partly fixed: palette, landmark, icons (Phase 4); still hand-written HTML |
+| F-40 | P2 | 18 `outline-none` without replacement; `AudienceSwitch` tabpanel loses focus ring; plain `<img>` without width/height in 5 Live spots (`LiveDiscoveryCard` also forces `loading=eager decoding=sync` on every card). | see Phase 4 | **fixed** (Phase 4) |
+| F-41 | P2 | Optimized image set copied byte-identical into 5 apps' `public/` (≈6.9 MB each). | `apps/*/public/images/optimized` | open (left: duplicated optimized images; pipeline change) |
 | F-42 | P2 | `packages/ui/src/lib/brand.ts` and `packages/domain/src/brand.ts` are duplicates. Brand emails use `*.gamostudios.local`. | — | **fixed** (Phase 2) |
 | F-43 | P0 | Admin `/security` page **displays** the hard-coded bootstrap password (`security.astro:79,111`), ungated by environment. | `apps/admin/src/pages/security.astro` | **fixed** (Phase 2) |
 | F-44 | P1 | `DemoNotice.astro` and `DemoModeBanner.astro` render nothing, so fictional content is unlabeled on public pages: Academy instructors (with "verified" pill, also in sitemap), Academy lessons "Open enrollment" with prices, Worship `/opportunities` (5 fictional churches with pay amounts), Worship roster card. `DashForm`/`DashDialog` strip "(demo)"/"(sample)" from labels. Violates the AGENTS.md labeling rule. | `packages/ui/src/components/{DemoNotice,dashboard/DemoModeBanner,dashboard/DashForm,dashboard/DashDialog}.astro` | **fixed** (labels, Phase 2); content decision O-03 |
@@ -206,9 +225,11 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-49 | P2 | `@clerk/astro` declared in 8 packages, imported nowhere; `@clerk/backend`/`@clerk/clerk-js` declared in all apps but imported only by packages. | package.json files | open (Phase 1/2) |
 | F-51 | P1 | Storage ticket signing falls back to a hard-coded secret constant when none is configured (forgeable upload/download tickets). No app route uses the R2 client yet. | `packages/integrations/src/storage.ts:119` | **fixed** (Phase 2) |
 | F-52 | P3 | Variables set in templates/wrangler but read by no code: `ALLOW_TEST_CHALLENGE_OUTBOX`, `ADMIN_INITIAL_PASSWORD`, `CLERK_KEYLESS_DISABLED`, `PUBLIC_CLERK_KEYLESS_DISABLED`, `STRIPE_SANDBOX_ENABLED`. | templates, `apps/*/wrangler.toml` | templates **fixed**; wrangler vars left (deploy config) |
-| F-53 | P1 | `siteOrigin()` reads `PUBLIC_SITE_URL_*`/`PUBLIC_ROOT_DOMAIN` from `import.meta.env` (build time); preview builds may therefore link to production origins, and the workers.dev pattern (`gamo-<app>.<root>`) does not match the real preview Worker names (`gamo-<app>-preview`). Duplicates the port table. | `packages/ui/src/lib/sites.ts` | open (Phase 4, verify with a preview build) |
+| F-53 | P1 | `siteOrigin()` reads `PUBLIC_SITE_URL_*`/`PUBLIC_ROOT_DOMAIN` from `import.meta.env` (build time); preview builds may therefore link to production origins, and the workers.dev pattern (`gamo-<app>.<root>`) does not match the real preview Worker names (`gamo-<app>-preview`). Duplicates the port table. | `packages/ui/src/lib/sites.ts` | **not a bug** in preview/production builds (explicit vars); fallback pattern fixed (Phase 4) |
 | F-54 | P3 | Cloudflare account ID is committed in `Makefile` and every `wrangler.toml` although README says not to commit account identifiers (it is not a secret). | — | left; noted |
 | F-55 | P1 | Real bugs hidden by the old typecheck: see Phase 1 Done "Bugs fixed on the way". | — | **fixed** |
+| F-56 | P1 | gamostudio.org/live fallback approved two listings the editorial import holds (unverified ticket URL), linking to Live pages that 404. | `apps/web/src/data/live-marketing.ts` | **fixed** (Phase 4) |
+| F-57 | P2 | Building while dev servers run failed (build bound the dev inspector port). | `packages/config/env-loader.ts` | **fixed** (Phase 4) |
 | F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | open (Phase 1) |
 
 ## 4. Needs owner decision
@@ -231,6 +252,8 @@ Nothing in this section was changed in code unless the row says so.
 | O-12 | **Live private APIs and admin sessions** (F-25/F-26): should staff be able to act in Gamo Live without a Live product account? | require a Live product account; allow staff override | Implemented: require Live product access; superadmin/staff keep access only through admin APIs (Phase 3). Confirm. |
 | O-13 | **Request-path catalog seeding** (F-02/F-24): the bundled catalog published itself on first visit. | keep auto-seed; seed only via the editorial CLI/admin | Implemented: seeding is disabled outside `ENVIRONMENT=local`; production listings must come from the CLI/admin review (Phase 3). Owner must decide whether production should be seeded, and run it deliberately (H-03). |
 | O-15 | **Newsletter.** The footer had an email signup that stored and sent nothing (now a "Contact us for updates" link). | choose a mailing-list provider (needs approval: new external service); keep the link | Keep the link until a provider is approved. |
+| O-16 | **Uppercase titles.** Per the booklet, page and section titles are now 900 uppercase. Some `h1`s are full sentences (e.g. Academy instructor pages: "A patient piano and voice teacher who loves…") and read heavy in uppercase. | keep; sentence-case long statements; shorten those headings | Keep the rule and shorten sentence-style headings (copy decision). |
+| O-17 | **Homepage sample events** (`HomeLiveSpotlight.astro`) are now labeled "Sample", but the AGENTS.md Live rule says Live surfaces must show real database events. | label (done); replace with the same DB-backed list as gamostudio.org/live | Replace with real events (small code change once approved). |
 | O-14 | **Admin nav labels use `/nonprofit/*` URLs** and "Fund reconciliation", "Stewardship reports" (`apps/admin/src/data/workspace.ts:96-102`); admin data says tax status "under evaluation" (`apps/admin/src/data/admin/nonprofit.ts:87`). Staff-only, but contradicts the PBC statement. | rename routes; keep | Rename to `/organization/*` when admin is next worked on. Not changed. |
 
 **O-04 detail — every program-status phrase found (unchanged):**
@@ -291,11 +314,23 @@ Nothing in this section was changed in code unless the row says so.
 | Secret scan (tree + `git log --all -p`) | no real secrets; one historical credential (H-02) |
 | Mutation check: make `/workspaces` public | private-route test fails as expected |
 
+### After Phase 4
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` | **pass** |
+| Layout scan (59 pages × 360/768/1280/1920, Playwright) | 0 overflow; 0 controls < 44 px at 360/768; one `<h1>` per page |
+| axe WCAG 2.2 AA (59 pages × 390/1280) | 0 violations (was 80 entries) |
+| Link check (666 unique targets) | 0 broken |
+| 404 on 5 public apps | branded page, status 404 |
+| Preview/production builds of web | correct sibling origins inlined |
+
 ## 7. How to revert
 
 | Phase | Commit | Revert |
 | --- | --- | --- |
 | Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
 | Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
-| Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · (log commit follows) | `git revert` newest first, or `git reset --hard 062aa98` |
+| Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · (log commit follows) | `git revert` newest first, or `git reset --hard accea2b` |
+| Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `git revert` newest first, or `git reset --hard 062aa98` |
 | Phase 2 | `8d47e01` types · `13d54a7` fail closed + sample labels + stub removal · `174fef0` dedupe · `5b00c0d` env validation · `062aa98` log | `git revert` newest first, or `git reset --hard c01cf18` (end of Phase 1) |
