@@ -14,6 +14,9 @@
   },
   "exports": {
     ".": "./index.ts",
-    "./page-middleware": "./src/api/page-middleware.ts"
+    "./page-middleware": "./src/api/page-middleware.ts",
+    "./security": "./src/security/index.ts",
+    "./types": "./src/types/index.ts",
+    "./ticketing": "./src/ticketing/index.ts"
   }
 }
