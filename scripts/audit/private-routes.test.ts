@@ -99,6 +99,7 @@ const PUBLIC_API = new Set([
   'POST /api/tickets/lookup', // requires an emailed one-time code
   'POST /api/checkout/session', // guest checkout; fails closed without Stripe
   'POST /api/webhook/stripe', // Stripe signature
+  'GET /api/venue-maps/[id]', // venue blueprint image (random id, sandboxed image response)
 ]);
 
 function walk(dir: string, base = ''): string[] {

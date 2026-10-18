@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: scanTicketAtDoor
+  tags:
+    - Live
+  summary: 'Scan a ticket in or out at the door'
+  description: 'Verifies a GL1 code (or a legacy gamt_ pass) and lets the database decide admission (one conditional presence upsert). Results expose first name and last initial, category, section and zone only. Rate-limited per device.'
+  security:
+    - ScannerDevice: []
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: 'Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId. Same-origin required for POST.'
+  x-idempotency: 'clientScanId is recorded once per scanner session; a repeat answers the stored result with repeated=true.'
+  x-source: apps/live/src/pages/api/scanner/scan.ts
+  parameters: []
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/scanner/ScannerScanResponse.yaml
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '429':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/live/scanner/ScannerScanInput.yaml

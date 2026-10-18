@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: overrideAdmitAtDoor
+  tags:
+    - Live
+  summary: 'Admit a ticket without its code, with a reason'
+  description: 'Supervisor override: lifts the entry limit but never admits someone already inside; zones and the scan window still apply. Recorded as override_admitted with the reason and in ticket_access_log.'
+  security:
+    - ScannerDevice: []
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: 'Supervisor scanner device for this event or a verified Gamo Live session with scan_tickets on eventId.'
+  x-idempotency: 'clientScanId is recorded once per scanner session.'
+  x-source: apps/live/src/pages/api/scanner/override.ts
+  parameters: []
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/scanner/ScannerScanResponse.yaml
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '429':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/live/scanner/ScannerOverrideInput.yaml
