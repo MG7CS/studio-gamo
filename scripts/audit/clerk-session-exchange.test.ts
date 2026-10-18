@@ -51,6 +51,7 @@ const baseEnv = (d1: unknown, over: Record<string, unknown> = {}) => ({
   CLERK_JWT_KEY_ACADEMY: academyKeys.publicKey,
   CLERK_ISSUER_ACADEMY: `https://${HOST}`,
   CLERK_AUTHORIZED_PARTIES_ACADEMY: 'https://academy.gamostudio.org',
+  PII_HASH_SECRET: 'clerk-exchange-test-pii-secret-0123456789abcdef',
   ...over,
 });
 

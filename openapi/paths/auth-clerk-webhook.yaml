@@ -1,0 +1,45 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local web application
+post:
+  operationId: receiveClerkWebhook
+  tags:
+    - Identity and Accounts
+  summary: Receive a Svix-signed event from this product's own Clerk application
+  description: >-
+    Verified with CLERK_WEBHOOK_SECRET_<APP> (Svix scheme, 5-minute timestamp tolerance).
+    session.ended, session.revoked and session.removed revoke the D1 sessions exchanged from that Clerk
+    session id in this product; user.deleted and user.banned revoke every D1 session of the linked user
+    in this product, and user.deleted also suspends the Clerk identity link. Other events are ignored
+    with 200. Answers 503 when the secret is not configured.
+  security: []
+  x-application: web
+  x-replicated-applications: [live, worship, academy, production]
+  x-status: implemented
+  x-authorization: Svix signature with this product's Clerk webhook secret.
+  x-idempotency: Revocations are conditional; replays change nothing.
+  x-source: apps/web/src/pages/api/auth/clerk-webhook.ts
+  parameters: []
+  responses:
+    '200':
+      description: Event verified and applied (or ignored).
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/identity/ClerkWebhookResponse.yaml
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '413':
+      $ref: ../components/responses/LegacyError.yaml
+    '500':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/identity/ClerkWebhookEvent.yaml

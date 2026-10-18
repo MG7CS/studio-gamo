@@ -1,0 +1,60 @@
+---
+/**
+ * The publish gates of a provider profile as a checklist: each item says whether it is met and, if not,
+ * what is missing and where to fix it. State is text + icon, never colour alone.
+ */
+export interface PublishGateProp {
+  id: string;
+  label: string;
+  met: boolean;
+  blocking: boolean;
+  help: string;
+  href?: string;
+}
+interface Props {
+  gates: PublishGateProp[];
+  headingLevel?: 'h2' | 'h3';
+}
+const { gates, headingLevel = 'h3' } = Astro.props;
+const Heading = headingLevel;
+---
+
+<div>
+  <Heading class="text-lg font-bold text-ink">Before your profile can go public</Heading>
+  <ul class="mt-3 space-y-3">
+    {gates.map((gate) => (
+      <li class="flex items-start gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-ink/15">
+        <span
+          aria-hidden="true"
+          class:list={[
+            'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+            gate.met
+              ? 'bg-ink text-cream'
+              : gate.blocking
+                ? 'bg-terracotta-deep text-white'
+                : 'bg-sand text-ink',
+          ]}
+        >
+          {gate.met ? '✓' : gate.blocking ? '!' : 'i'}
+        </span>
+        <div class="min-w-0">
+          <p class="text-[15px] font-semibold text-ink">
+            {gate.label}
+            <span class="ml-1 text-sm font-medium text-muted">
+              — {gate.met ? 'Done' : gate.blocking ? 'To do' : 'Not required now'}
+            </span>
+          </p>
+          <p class="mt-0.5 text-sm text-ink">{gate.help}</p>
+          {!gate.met && gate.blocking && gate.href && (
+            <a
+              href={gate.href}
+              class="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-terracotta-deep underline underline-offset-4"
+            >
+              Fix this
+            </a>
+          )}
+        </div>
+      </li>
+    ))}
+  </ul>
+</div>

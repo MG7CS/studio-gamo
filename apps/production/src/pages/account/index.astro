@@ -1,8 +1,15 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import AccountHub from '@studio-gamo/ui/components/account/AccountHub.astro';
+import AccountIdentityPanels from '@studio-gamo/ui/components/account/AccountIdentityPanels.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { loadAccountExtras } from '@gamo/domain';
+
+const extras = await loadAccountExtras(Astro.locals, Astro.url, (product, path) => siteUrl(product, path));
 ---
 
 <Layout title="Your Account">
-  <AccountHub program="Gamo Production" />
+  <AccountHub program="Gamo Production">
+    {extras && <AccountIdentityPanels program="Gamo Production" extras={extras} />}
+  </AccountHub>
 </Layout>

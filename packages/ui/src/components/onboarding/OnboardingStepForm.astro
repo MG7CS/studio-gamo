@@ -1,0 +1,139 @@
+---
+/**
+ * One onboarding step as a plain HTML form (POST /api/account/providers, action=save → 303 to the next
+ * step). Every field kind of the step schema renders with a visible label, hint and server error.
+ * Saving is always allowed: it is a draft.
+ */
+import TextField from '../forms/TextField.astro';
+import FormErrorSummary from '../forms/FormErrorSummary.astro';
+import SubmitButton from '../forms/SubmitButton.astro';
+import TextAreaField from './TextAreaField.astro';
+
+export interface OnboardingFieldProp {
+  id: string;
+  name: string;
+  label: string;
+  kind: 'text' | 'textarea' | 'list' | 'urls' | 'email' | 'tel' | 'url' | 'select' | 'checkbox';
+  required: boolean;
+  hint?: string;
+  maxLength?: number;
+  options?: readonly { value: string; label: string }[];
+  autocomplete?: string;
+  value: string;
+  checked: boolean;
+  error?: string;
+}
+interface Props {
+  role: string;
+  step: { id: string; label: string; description: string; fields: OnboardingFieldProp[] };
+  editable: boolean;
+}
+const { role, step, editable } = Astro.props;
+const errors = step.fields.filter((f) => f.error).map((f) => ({ message: f.error!, fieldId: f.id }));
+const inputType = (kind: OnboardingFieldProp['kind']) =>
+  kind === 'email' ? 'email' : kind === 'tel' ? 'tel' : kind === 'url' ? 'url' : 'text';
+---
+
+<form method="post" action="/api/account/providers" class="space-y-6" novalidate>
+  <input type="hidden" name="action" value="save" />
+  <input type="hidden" name="role" value={role} />
+  <input type="hidden" name="step" value={step.id} />
+  <div>
+    <h2 class="text-2xl font-black uppercase tracking-tight text-ink">{step.label}</h2>
+    <p class="mt-1 text-[15px] text-muted">{step.description}</p>
+  </div>
+  {errors.length > 0 && <FormErrorSummary errors={errors} title="Check these fields" />}
+  <fieldset disabled={!editable} class="space-y-5">
+    {step.fields.map((field) =>
+      field.kind === 'checkbox' ? (
+        <div class="flex min-h-11 items-start gap-3">
+          <input
+            id={field.id}
+            name={field.name}
+            type="checkbox"
+            value="on"
+            checked={field.checked}
+            aria-describedby={`${field.id}-error`}
+            aria-invalid={field.error ? 'true' : undefined}
+            class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/60 accent-terracotta focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2"
+          />
+          <div>
+            <label for={field.id} class="text-[15px] leading-6 text-ink">
+              {field.label}
+            </label>
+            <p
+              id={`${field.id}-error`}
+              class="mt-1 text-sm font-semibold text-terracotta-deep"
+              hidden={!field.error}
+            >
+              <span class="sr-only">Error: </span>
+              {field.error}
+            </p>
+          </div>
+        </div>
+      ) : field.kind === 'select' ? (
+        <div class="gamo-field">
+          <label for={field.id} class="block text-[15px] font-semibold text-ink">
+            {field.label}
+          </label>
+          <select
+            id={field.id}
+            name={field.name}
+            required={field.required}
+            aria-describedby={`${field.id}-error`}
+            aria-invalid={field.error ? 'true' : undefined}
+            class="mt-2 block min-h-11 w-full rounded-xl border border-ink/50 bg-white px-4 py-2.5 text-base text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
+          >
+            <option value="">Choose…</option>
+            {field.options?.map((o) => (
+              <option value={o.value} selected={o.value === field.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <p
+            id={`${field.id}-error`}
+            class="mt-1.5 text-sm font-semibold text-terracotta-deep"
+            hidden={!field.error}
+          >
+            <span class="sr-only">Error: </span>
+            {field.error}
+          </p>
+        </div>
+      ) : ['textarea', 'list', 'urls'].includes(field.kind) ? (
+        <TextAreaField
+          id={field.id}
+          name={field.name}
+          label={field.label}
+          value={field.value}
+          hint={field.hint}
+          error={field.error}
+          required={field.required}
+          maxlength={field.maxLength}
+          rows={field.kind === 'textarea' ? 5 : 3}
+        />
+      ) : (
+        <TextField
+          id={field.id}
+          name={field.name}
+          label={field.label}
+          type={inputType(field.kind)}
+          value={field.value}
+          hint={field.hint}
+          error={field.error}
+          required={field.required}
+          maxlength={field.maxLength}
+          autocomplete={field.autocomplete}
+        />
+      ),
+    )}
+  </fieldset>
+  {editable ? (
+    <SubmitButton label="Save and continue" pendingLabel="Saving…" />
+  ) : (
+    <p class="rounded-xl bg-sand/60 px-4 py-3 text-[15px] text-ink">
+      Staff are reviewing this profile, so it cannot be changed right now. You will get an email when they
+      finish.
+    </p>
+  )}
+</form>

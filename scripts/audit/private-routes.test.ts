@@ -23,6 +23,8 @@ const AUTH_PAGES = [
   '/account/verify',
   '/account/recover',
   '/account/access-denied',
+  '/account/signed-out',
+  '/account/sso-callback',
 ];
 const CRAWLER_FILES = ['/robots.txt', '/sitemap.xml'];
 /** Error pages render for any path (Astro uses them for unmatched routes and server errors). */
@@ -42,7 +44,6 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/contact',
     '/partners',
     '/partners/interest',
-    '/account/signed-out',
     '/llms.txt',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
@@ -99,6 +100,7 @@ const PUBLIC_API = new Set([
   'POST /api/tickets/lookup', // requires an emailed one-time code
   'POST /api/checkout/session', // guest checkout; fails closed without Stripe
   'POST /api/webhook/stripe', // Stripe signature
+  'POST /api/auth/clerk-webhook', // Svix signature with this product's CLERK_WEBHOOK_SECRET_<APP>
 ]);
 
 function walk(dir: string, base = ''): string[] {

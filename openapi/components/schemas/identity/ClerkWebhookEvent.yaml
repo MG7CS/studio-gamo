@@ -1,0 +1,12 @@
+type: object
+description: Clerk webhook payload (only type and data.id are read).
+additionalProperties: true
+properties:
+  type:
+    type: string
+    maxLength: 100
+  data:
+    type: object
+    additionalProperties: true
+required:
+  - type

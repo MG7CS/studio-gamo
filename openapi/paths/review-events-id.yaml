@@ -1,0 +1,48 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: reviewOrganizerEvent
+  tags:
+    - Administration
+  summary: Staff decision on an event waiting for review (organizer first-event review)
+  description: >-
+    Plain HTML form wrapper over AdminService.reviewEvent. On the organizer's first approval it
+    sets organizer_profiles.first_event_approved_at (once) and records a verification_records row for the
+    event. Self-moderation and already-reviewed events are refused. Redirects 303 to /review/events.
+  security:
+    - CloudflareAccess: []
+      BrowserSession: []
+  x-application: admin
+  x-status: implemented
+  x-authorization: Staff boundary plus staff session (staff_reviewer or superadmin).
+  x-idempotency: Only an event still pending review can be decided.
+  x-source: apps/admin/src/pages/api/review/events/[id].ts
+  x-internal: true
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '303':
+      description: Form handled; redirects back to the page with the outcome in the query string.
+      headers:
+        Location:
+          schema:
+            type: string
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '415':
+      $ref: ../components/responses/LegacyError.yaml
+    '500':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/administration/EventReviewForm.yaml
