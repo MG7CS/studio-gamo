@@ -15,7 +15,8 @@ import {
   organizerProfiles,
   organizations,
   type GamoDatabase,
-  type LiveEvent,
+  type ContractEvent,
+  toContractEvent,
 } from '@gamo/db';
 import type { ReviewDecisionInput } from '../api/validation.ts';
 
@@ -53,7 +54,7 @@ export class AdminService {
    */
   async getPendingReviewEvents(): Promise<
     Array<{
-      event: LiveEvent;
+      event: ContractEvent;
       organizationName: string;
       organizationType: string;
     }>
@@ -70,7 +71,7 @@ export class AdminService {
       .where(eq(events.status, 'pending_review'))
       .orderBy(desc(events.createdAt));
 
-    return rows;
+    return rows.map((row) => ({ ...row, event: toContractEvent(row.event) }));
   }
 
   /**
@@ -80,7 +81,7 @@ export class AdminService {
     reviewerUserId: string,
     eventId: string,
     input: ReviewDecisionInput,
-  ): Promise<{ event: LiveEvent; reviewId: string }> {
+  ): Promise<{ event: ContractEvent; reviewId: string }> {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     if (!event) {
@@ -149,7 +150,7 @@ export class AdminService {
     const [updatedEvent] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     return {
-      event: updatedEvent,
+      event: toContractEvent(updatedEvent),
       reviewId,
     };
   }

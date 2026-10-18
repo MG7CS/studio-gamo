@@ -1,10 +1,14 @@
 /** Test-only SQLite D1 adapter. Never import into Workers. */
 import { DatabaseSync } from 'node:sqlite';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { AnyD1Database } from 'drizzle-orm/d1';
 type SqlValue = null | number | bigint | string | Uint8Array;
 
 export interface SqliteD1Statement {
   bind(...params: SqlValue[]): SqliteD1Statement;
+  /** Runs the statement synchronously (used by `batch()` so a batch never interleaves with another). */
+  allSync(): { results: Record<string, SqlValue>[]; success: true };
   all(): Promise<{ results: Record<string, SqlValue>[]; success: true }>;
   run(): Promise<{ success: true; meta: { changes: number | bigint; last_row_id: number } }>;
   first(col?: string): Promise<unknown>;
@@ -35,9 +39,12 @@ export function createSqliteD1(path = ':memory:'): SqliteD1 {
         boundParams = params;
         return stmtObj;
       },
-      async all() {
+      allSync() {
         const rows = sqlite.prepare(query).all(...boundParams) as Record<string, SqlValue>[];
         return { results: rows, success: true };
+      },
+      async all() {
+        return stmtObj.allSync();
       },
       async run() {
         const info = sqlite.prepare(query).run(...boundParams);
@@ -60,11 +67,13 @@ export function createSqliteD1(path = ':memory:'): SqliteD1 {
   return {
     sqlite,
     prepare: createStatement,
+    // Like D1: a batch is one transaction, applied whole or not at all, and never interleaved with
+    // another batch (statements run synchronously between BEGIN and COMMIT).
     async batch(statements) {
       const results: unknown[] = [];
-      sqlite.exec('BEGIN');
+      sqlite.exec('BEGIN IMMEDIATE');
       try {
-        for (const s of statements) results.push(await s.all());
+        for (const s of statements) results.push(s.allSync());
         sqlite.exec('COMMIT');
         return results;
       } catch (error) {
@@ -105,4 +114,28 @@ export async function applyMigrations(d1: Pick<SqliteD1, 'exec'>, migrationSqls:
       }
     }
   }
+}
+
+/** Absolute path of `packages/db/migrations`. */
+export const MIGRATIONS_DIR = fileURLToPath(new URL('./migrations/', import.meta.url));
+
+/** Migration file names in apply order (Wrangler applies them by name). */
+export function migrationFileNames(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith('.sql'))
+    .sort();
+}
+
+/** SQL text of every migration, optionally only those whose file name sorts before `beforeFile` (e.g. '0012'). */
+export function readMigrations(beforeFile?: string): string[] {
+  return migrationFileNames()
+    .filter((f) => beforeFile === undefined || f < beforeFile)
+    .map((f) => readFileSync(`${MIGRATIONS_DIR}${f}`, 'utf8'));
+}
+
+/** A database with every migration applied (`:memory:` by default). */
+export async function createMigratedD1(path = ':memory:'): Promise<SqliteD1> {
+  const d1 = createSqliteD1(path);
+  await applyMigrations(d1, readMigrations());
+  return d1;
 }
