@@ -101,7 +101,10 @@ export const textResponse = (body: string) =>
     headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
   });
 
-export const xmlResponse = (body: string) =>
+export const xmlResponse = (body: string, maxAgeSeconds = 3600) =>
   new Response(body, {
-    headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': `public, max-age=${maxAgeSeconds}`,
+    },
   });

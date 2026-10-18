@@ -9,7 +9,7 @@
 import { eq, and, lt, or, isNull, lte, asc } from 'drizzle-orm';
 import { notificationJobs, eventRegistrations, events, type GamoDatabase } from '@gamo/db';
 import { createResendClient, type ResendConfig } from '@studio-gamo/integrations/resend';
-import { getPlatformBrandConfig } from '../brand.ts';
+import { getPlatformBrandConfig } from '@gamo/config/brand';
 
 const MAX_NOTIFICATION_ATTEMPTS = 5;
 

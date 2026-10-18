@@ -7,6 +7,7 @@
     ".": "./index.ts",
     "./apps": "./apps.ts",
     "./env-loader": "./env-loader.ts",
-    "./env": "./env.ts"
+    "./env": "./env.ts",
+    "./brand": "./brand.ts"
   }
 }

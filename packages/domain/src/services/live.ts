@@ -56,7 +56,7 @@ import type {
   CreateEventProductionRequestInput,
 } from '../api/validation.ts';
 import { IdentityService } from './identity.ts';
-import { getPlatformBrandConfig } from '../brand.ts';
+import { getPlatformBrandConfig } from '@gamo/config/brand';
 import {
   GAMO_LIVE_METROS,
   GAMO_LIVE_PUBLISHER_EMAIL,

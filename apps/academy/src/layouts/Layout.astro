@@ -1,44 +1,14 @@
 ---
-/** Gamo Academy layout: shared document shell + app stylesheet. Pages pass a page title. */
+/** Gamo Academy page shell: shared ProgramLayout + this app's stylesheet. */
 import '../app.css';
-import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
+import ProgramLayout, {
+  type Props as ProgramLayoutProps,
+} from '@studio-gamo/ui/components/ProgramLayout.astro';
 
-interface Props {
-  title?: string;
-  description?: string;
-  headerTheme?: 'light' | 'dark';
-  bodyClass?: string;
-  chrome?: boolean;
-  ogImage?: string;
-  ogType?: 'website' | 'article' | 'event';
-  noindex?: boolean;
-  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
-}
-const {
-  title,
-  description,
-  headerTheme = 'light',
-  bodyClass = 'bg-cream text-charcoal',
-  chrome = true,
-  ogImage,
-  ogType,
-  noindex,
-  jsonLd,
-} = Astro.props;
+type Props = Omit<ProgramLayoutProps, 'program'>;
 ---
 
-<BaseLayout
-  title={title ? `${title} | Gamo Academy` : 'Gamo Academy | Gamo Studios'}
-  description={description}
-  current="academy"
-  headerTheme={headerTheme}
-  bodyClass={bodyClass}
-  chrome={chrome}
-  ogImage={ogImage}
-  ogType={ogType}
-  noindex={noindex}
-  jsonLd={jsonLd}
->
+<ProgramLayout program="academy" {...Astro.props}>
   <slot name="head" slot="head" />
   <slot />
-</BaseLayout>
+</ProgramLayout>

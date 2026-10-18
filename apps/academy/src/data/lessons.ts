@@ -1,3 +1,4 @@
+import { formatUsd } from '@studio-gamo/ui/lib/format';
 /**
  * SAMPLE lesson listings for the design phase. Tuition amounts are proposals only
  * and stored as integer minor units (cents). No booking or payment exists yet.
@@ -69,4 +70,4 @@ export const lessons: Lesson[] = [
 ];
 
 export const formatTuition = (cents: number | null) =>
-  cents === null ? 'Sponsorship planned' : `$${(cents / 100).toFixed(0)} / session (proposed)`;
+  cents === null ? 'Sponsorship planned' : `${formatUsd(cents, { whole: true })} / session (proposed)`;
