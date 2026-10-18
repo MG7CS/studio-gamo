@@ -77,7 +77,7 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-10 | ~150 `no-explicit-any` hits | fix now; warn now, fix in Phase 2 | `warn` in Phase 1; Phase 2 types them and sets the rule (and `--max-warnings 0`) back to error | Kept Phase 1 to hygiene; typing touches auth/DB code that deserves its own commit. |
 | D-11 | Orphaned tests (`scripts/audit/*.test.ts`, contract test) | leave; wire in | `pnpm test` = `tsx --test` over `packages/**` and `scripts/**` test files (105 → 110 tests) | They were green except one wrong expectation; they now run in CI. Browser/Miniflare e2e files (`*.test.mjs`) stay out until Phase 7. |
 | D-12 | Env templates: both `.env.example` and `.dev.vars.example` per app, with values | keep both; one per location | Root `.env.example` (shared, loaded by env-loader) + `apps/<app>/.dev.vars.example` (per-app secrets; Cloudflare's convention, also read natively by the adapter). Names, required/optional and purpose only; no values. | Two templates per app were near-duplicates and drifted. Removed variables no code reads (F-52). |
-| D-13 | 41 redirect-stub page files | keep files; delete files and links; central table | Links now point at real destinations; stubs replaced by per-app `src/lib/legacy-redirects.ts` tables consumed by `applicationPages(app, { legacyRedirects })` | Old bookmarks keep working, nothing renders a page just to redirect, and the routing rules are testable. Statuses preserved from the stubs (302 by default, 301 for consolidated routes, 303 where the stub used it). |
+| D-13 | 41 redirect-stub page files | keep files; delete files and links; central table | Links now point at real destinations; stubs replaced by per-app `src/lib/legacy-redirects.ts` tables consumed by `applicationPages(app, { legacyRedirects })` | Old bookmarks keep working, nothing renders a page just to redirect, and the routing rules are testable. Statuses preserved from the stubs (302 by default, 301 for consolidated routes, 303 where the stub used it). **Correction (Phase 7):** the first version used 302 for the Worship/Academy/Production form stubs that answered 303, and redirected retired *private* URLs before the sign-in guard; both fixed in `ae5184a` and covered by tests. |
 | D-14 | Commit `1d17ee6` ("remove demo mode banners, sample tags … for pilot phase") vs AGENTS.md "fictional examples visibly labeled" | follow the commit; follow AGENTS.md | Follow AGENTS.md (the task brief repeats the rule); targeted sample labels added in Phase 2 | Owner decision recorded as O-03. |
 | D-16 | Typing the Worker env | install `@cloudflare/workers-types`; generate `wrangler types` per app; hand-written `GamoEnv` | `GamoEnv` in `@gamo/config/env` with bindings typed `unknown` and validated at use (`getDb()` checks for `prepare`) | No new dependency, one type shared by six apps and the packages; ambient Workers types conflict with DOM lib types in Astro projects. |
 | D-17 | `any` in tests | ban everywhere; allow in tests | `no-explicit-any` is an error everywhere except `*.test.*` and the Miniflare test worker | Tests build partial `APIContext`/row doubles; typing them adds noise without catching bugs. Source has zero `any`. |
@@ -107,6 +107,9 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 | D-41 | Retries on external calls | none; always retry; retry only when idempotent | One retry on network error/429/5xx only when an idempotency key is sent (Stripe `checkout_session_<orderId>`, Resend `notification_job_<id>` / `auth_challenge_<id>`); 10 s timeouts | Retrying a non-idempotent POST could create duplicate sessions or emails. |
 | D-42 | Two API error formats (`{success:false,error:{…}}` and `{error}` on checkout/webhook) | unify (breaking); keep | Keep, documented | Changing the shape is a breaking contract change for no current consumer benefit; Stripe ignores webhook bodies. RFC 7807 `Problem` stays unused. Revisit when a real client consumes checkout. |
 | D-43 | Outbox consumer (F-09) | add cron `scheduled` handler; leave | Leave disabled; documented design (O-19) | A cron trigger would start sending real emails from production queues — an operational decision for the owner. |
+| D-44 | Browser tests: dev server or production build | dev; build + `astro preview` | Production build via `astro preview` (Playwright `webServer`) | Tests what ships: enforced CSP, built assets, prerender/static behavior. It immediately found that prerendered pages bypassed the middleware. |
+| D-45 | Prerendered detail pages (Academy instruments/lessons/instructors, Production services) | keep static and duplicate headers in `_headers`; render on demand | Render on demand; unknown slugs `Astro.rewrite('/404')` | One header/cache policy for every HTML response; the CSP needs the per-product Clerk origin, which static `_headers` cannot vary. Cost: a few ms of Worker time per view. |
+| D-46 | Older Miniflare browser suites (`browser-e2e`, `phase1-journeys-e2e`) | delete; fix and run | Fix and run in `pnpm check` (`test:journeys`, 16 s) | They cover real sign-up/verify/workspace flows in a browser and caught two regressions of mine. |
 | D-15 | Four domain services (`Academy`, `Worship`, `Production`, `Partnership`) and six zod schemas never used | keep as "foundation"; delete | Deleted (recoverable from `35d233d`) | Dead code with no route, test or caller; they implied functionality that does not exist. `MediaService` kept (tested). `createApiClient` kept (documented in `docs/OPENAPI_ARCHITECTURE.md`). |
 
 ## 2. Done
@@ -194,6 +197,16 @@ All six Workers bind the **same** D1 database and the **same** KV namespace per 
 - **Database** (F-14 fixed): CLI requires a Wrangler-migrated local DB; `db:migrate:local`, `db:seed:local`, `db:reset:local`; `scripts/db/reset-local.mjs`; `docs/DATABASE.md` (tables, triggers, migrations, rules for new migrations, drift F-15, local vs remote). Verified all migrations apply from scratch with `wrangler d1 migrations apply --local` (H-06 resolved).
 - **Not done:** outbox consumer (D-43/O-19); error format unification (D-42); schema drift reconciliation (F-15, needs table rebuilds).
 
+### Phase 7 — Testing
+
+- **Browser smoke suite** (`playwright.config.ts`, `tests/e2e/smoke.spec.ts`, D-44): all five public apps from production builds; every sitemap URL plus sign-in/ticket-recovery pages; per page: 200, one `<h1>`, no console/page/CSP errors, no broken images (lazy images forced to load), valid JSON-LD (`schema.org` `@context` + `@type`), `Cache-Control: private, no-store`, no 360 px overflow, no serious/critical axe WCAG 2.2 AA violations; every same-site/cross-app link fetched once (no ≥400); branded 404 per app; robots/sitemap headers. 15 tests, ~1 min.
+- **Crawler files** (`scripts/audit/crawler-files.test.ts`): robots disallows `/api/`, `/account` and every private root in all three bot groups (checked against `isPrivatePage`), allows `/`, points at the sitemap; sitemaps are well-formed, same-origin, duplicate-free, public-only; `llms.txt` uses the approved PBC sentence and no prohibited words. 16 tests.
+- **Private-route denial** (Phase 3) and **page cache rules** (`page-cache.test.ts` + smoke header check) included.
+- **Journeys** (D-46): `test:journeys` fixed and wired in; regressions found and fixed: redirect statuses, redirect-before-auth on private legacy URLs.
+- **Fixed from production-build testing** (D-45): prerendered pages bypassed middleware (no CSP/security headers); Live event hero label and breadcrumb contrast; metro venue link targets.
+- **Removed:** `scripts/verify-public-ui.mjs`, `scripts/audit/verify-auth-ui.mjs` (screenshot scripts for retired routes, superseded), `test:web` script.
+- `pnpm check` = typecheck → lint → format:check → test → api:check → build → test:journeys → test:e2e. CI installs Chromium first.
+
 ## 3. Findings
 
 Ranked: **P0** = security/data-integrity risk in production, **P1** = correctness bug or broken user path, **P2** = quality/maintainability, **P3** = cosmetic. Status is updated as items are fixed.
@@ -256,6 +269,7 @@ Ranked: **P0** = security/data-integrity risk in production, **P1** = correctnes
 | F-55 | P1 | Real bugs hidden by the old typecheck: see Phase 1 Done "Bugs fixed on the way". | — | **fixed** |
 | F-56 | P1 | gamostudio.org/live fallback approved two listings the editorial import holds (unverified ticket URL), linking to Live pages that 404. | `apps/web/src/data/live-marketing.ts` | **fixed** (Phase 4) |
 | F-57 | P2 | Building while dev servers run failed (build bound the dev inspector port). | `packages/config/env-loader.ts` | **fixed** (Phase 4) |
+| F-58 | P1 | Prerendered Academy/Production detail pages were served as static files without the CSP, security headers or the page cache rule. | `apps/academy/src/pages/{instruments,lessons,instructors}/[slug].astro`, `apps/production/src/pages/services/[slug].astro` | **fixed** (Phase 7) |
 | F-50 | P2 | ~30 redirect-stub page files (worship `/hire/*`, `/apply/*`; academy `/register`, `/host-apply`; production `/assessment`, `/consultation*`, `/contact`; live `/organizer/*`, etc.), many still linked from live pages and the shared footer. | see Phase 1 Done | open (Phase 1) |
 
 ## 4. Needs owner decision
@@ -369,13 +383,24 @@ Nothing in this section was changed in code unless the row says so.
 | `wrangler d1 migrations apply gamo-db-local --local --persist-to <scratch>` | all 11 migrations ✅ |
 | `pnpm live:events:import --env staging --dry-run` | 18 approved, 2 held, 1 rejected (in memory) |
 
+### After Phase 7
+
+| Command | Result |
+| --- | --- |
+| `pnpm check` (full, incl. builds and browsers) | **pass**, 2 min 44 s |
+| `pnpm test` | 158/158 |
+| `pnpm api:check` | 12/12 contract tests |
+| `pnpm test:journeys` | 2/2 (Miniflare + Chromium) |
+| `pnpm test:e2e` | 15/15 (production builds) |
+
 ## 7. How to revert
 
 | Phase | Commit | Revert |
 | --- | --- | --- |
 | Checkpoint (pre-cleanup state) | `35d233d` | `git checkout 35d233d` or `git reset --hard 35d233d` on this branch |
 | Phase 1 | `d98b1f3` hygiene + dev:all · `0b26712` dead code/deps · `c0711c3` Prettier · `7d8ec12` blame-ignore · `2360897` redirects, tooling, astro-check fixes · `c01cf18` log | `git revert <sha>` per commit, newest first; or `git reset --hard 35d233d` |
-| Phase 6 | `0d7a384` integrations/DB workflow · contract tests (next commit) · log | `git revert` newest first, or `git reset --hard 0cfd416` |
+| Phase 7 | `713de6c` smoke + crawler tests · `ae5184a` journeys + regressions · (log commit follows) | `git revert` newest first, or `git reset --hard 3323c85` |
+| Phase 6 | `0d7a384` integrations/DB workflow · `fb5e91d` contract tests · `3323c85` log | `git revert` newest first, or `git reset --hard 0cfd416` |
 | Phase 5 | `f9d4a1f` content · `0cfd416` log | `git revert f9d4a1f` |
 | Phase 4 | `e202466` tokens/fonts/targets/error pages/icons · `4ee038a` links · `754c5dd` axe · `962847f` field borders · `c933bc2` log | `git revert` newest first, or `git reset --hard accea2b` |
 | Phase 3 | `78f7584` privilege/credentials/CSRF · `be73cc4` headers + route tests · `3d91248` admin Access fix · `accea2b` log | `git revert` newest first, or `git reset --hard 062aa98` |
