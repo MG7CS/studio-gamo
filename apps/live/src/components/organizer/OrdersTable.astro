@@ -1,0 +1,92 @@
+---
+/** Orders (reference, status, quantity, total; purchaser masked unless the viewer may see it). */
+import { formatMinorUnits, type OrderRow } from '@gamo/domain/scanner';
+
+interface Props {
+  caption: string;
+  orders: OrderRow[];
+  timeZone: string;
+  showRefunds?: boolean;
+  empty: string;
+}
+const { caption, orders, timeZone, showRefunds = false, empty } = Astro.props;
+const fmt = (s: number) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(s * 1000));
+const statusText = (s: string) => s.replaceAll('_', ' ');
+---
+
+<div class="overflow-x-auto rounded-[20px] bg-white ring-1 ring-sand">
+  <table class="w-full min-w-[640px] text-left text-sm">
+    <caption class="px-4 pt-4 text-left text-base font-black text-ink uppercase">{caption}</caption>
+    <thead>
+      <tr class="border-b border-sand text-xs tracking-wider text-muted uppercase">
+        <th scope="col" class="px-4 py-3">
+          Reference
+        </th>
+        <th scope="col" class="px-4 py-3">
+          Purchaser
+        </th>
+        <th scope="col" class="px-4 py-3">
+          Status
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Tickets
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Total
+        </th>
+        {showRefunds && (
+          <th scope="col" class="px-4 py-3 text-right">
+            Refunded
+          </th>
+        )}
+        <th scope="col" class="px-4 py-3">
+          Placed
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {orders.length === 0 ? (
+        <tr>
+          <td colspan={showRefunds ? 7 : 6} class="px-4 py-4 text-muted">
+            {empty}
+          </td>
+        </tr>
+      ) : (
+        orders.map((o) => (
+          <tr class="border-b border-sand last:border-0">
+            <th scope="row" class="px-4 py-3 font-mono font-semibold">
+              {o.reference}
+            </th>
+            <td class="px-4 py-3">
+              {o.purchaserName}
+              <span class="block text-xs text-muted">{o.purchaserEmail}</span>
+            </td>
+            <td class="px-4 py-3 capitalize">
+              {statusText(o.status)}
+              {o.source !== 'online' && (
+                <span class="block text-xs text-muted">
+                  {o.source === 'door' ? 'Door sale' : 'Issued by organizer'}
+                </span>
+              )}
+            </td>
+            <td class="px-4 py-3 text-right tabular-nums">{o.quantity}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{o.totalText}</td>
+            {showRefunds && (
+              <td class="px-4 py-3 text-right tabular-nums">
+                {formatMinorUnits(o.refundedCents, o.currency)}
+              </td>
+            )}
+            <td class="px-4 py-3 whitespace-nowrap">{fmt(o.createdAt)}</td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>

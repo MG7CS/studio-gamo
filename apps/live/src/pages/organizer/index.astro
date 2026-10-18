@@ -1,0 +1,82 @@
+---
+/** Organizer home: the events this account can manage or scan (organizer org owner/admin or event team). */
+import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/shared/PageHeader.astro';
+import OrganizerNotice from '../../components/organizer/OrganizerNotice.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/domain/security';
+import { organizerEvents } from '@gamo/domain/scanner';
+import type { SessionData } from '@gamo/auth';
+
+export const prerender = false;
+
+const auth = Astro.locals.auth as SessionData | null;
+const env = await getRuntimeEnv(Astro);
+const events =
+  auth && env.DB
+    ? await organizerEvents(asSqlDatabase(env.DB), {
+        userId: auth.user.id,
+        organizationIds: auth.memberships
+          .filter((m) => ['owner', 'admin'].includes(m.role))
+          .map((m) => m.organizationId),
+        superadmin: auth.roles.includes('superadmin'),
+      })
+    : [];
+const when = (e: { starts_at: number; timezone: string }) => {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: e.timezone,
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(Number(e.starts_at) * 1000));
+  } catch {
+    return new Date(Number(e.starts_at) * 1000).toUTCString();
+  }
+};
+---
+
+<Layout title="Your events" noindex>
+  <PageHeader
+    eyebrow="Organizer"
+    title="Your events"
+    lede="Sales, attendance, door scanners and venue maps for the events you run."
+  />
+  <div class="mx-auto max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8">
+    {events.length === 0 ? (
+      <OrganizerNotice kind="info" title="No events yet">
+        Events you organize appear here.{' '}
+        <a class="font-semibold underline" href="/promote/create">
+          List an event
+        </a>{' '}
+        to get started.
+      </OrganizerNotice>
+    ) : (
+      <ul class="divide-y divide-sand rounded-[24px] bg-white ring-1 ring-sand">
+        {events.map((e) => (
+          <li class="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="font-semibold text-ink">{e.title}</p>
+              <p class="text-sm text-muted">
+                {when(e)} · {e.status.replaceAll('_', ' ')} · {e.admission_type}
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a
+                href={`/organizer/events/${encodeURIComponent(e.id)}`}
+                class="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-cream hover:bg-terracotta-deep"
+              >
+                Manage <span class="sr-only">{e.title}</span>
+              </a>
+              <a
+                href={`/scan/${encodeURIComponent(e.id)}`}
+                class="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold text-ink ring-1 ring-ink/40 hover:bg-sand"
+              >
+                Scan <span class="sr-only">{e.title}</span>
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,15 @@
+---
+/** One number with its label (dashboard summaries). */
+interface Props {
+  label: string;
+  value: string | number;
+  hint?: string;
+}
+const { label, value, hint } = Astro.props;
+---
+
+<div class="rounded-2xl bg-white p-4 ring-1 ring-sand">
+  <p class="text-xs font-bold tracking-wider text-muted uppercase">{label}</p>
+  <p class="mt-1 text-2xl font-black text-ink tabular-nums">{value}</p>
+  {hint && <p class="mt-0.5 text-xs text-muted">{hint}</p>}
+</div>

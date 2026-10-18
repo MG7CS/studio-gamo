@@ -88,6 +88,20 @@ export async function loadScanEvent(db: SqlDatabase, eventId: string): Promise<S
   };
 }
 
+/** Zone codes used by an event's categories and sections (offered when creating a gate). */
+export async function eventZoneCodes(db: SqlDatabase, eventId: string): Promise<string[]> {
+  const rows = await allRows<{ zone_codes_json: string | null; zone_code: string | null }>(db, {
+    sql: 'SELECT zone_codes_json, NULL AS zone_code FROM ticket_tiers WHERE event_id = ?1 UNION ALL SELECT NULL, zone_code FROM venue_sections WHERE event_id = ?1',
+    params: [eventId],
+  });
+  const zones = new Set<string>();
+  for (const r of rows) {
+    for (const z of parseStringArray(r.zone_codes_json) ?? []) zones.add(z);
+    if (r.zone_code) zones.add(r.zone_code);
+  }
+  return [...zones].sort();
+}
+
 /** Finds an event by id or slug (scanner URLs accept either). */
 export async function resolveEventIdOrSlug(db: SqlDatabase, idOrSlug: string): Promise<string | null> {
   if (!idOrSlug || idOrSlug.length > 200) return null;
