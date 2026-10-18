@@ -1,0 +1,51 @@
+---
+/** Part 2: who we contact. For a student under 18 that is the parent or guardian (all fields required). */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
+import ConfirmEmailField from '@studio-gamo/ui/components/forms/ConfirmEmailField.astro';
+import { emailTypoSuggestion } from '@studio-gamo/ui/lib/email-typo';
+
+interface Props {
+  values: Record<string, string>;
+  errors: Record<string, string>;
+}
+const { values, errors } = Astro.props;
+const suggestion = errors.email && values.email ? emailTypoSuggestion(values.email) : null;
+---
+
+<fieldset class="space-y-5">
+  <legend class="text-lg font-bold">Contact</legend>
+  <p class="text-[15px] text-muted">
+    If the student is under 18, a parent or guardian fills in this part and every field is required.
+  </p>
+  <TextField
+    id="guardian-name"
+    name="guardian_name"
+    label="Parent or guardian's full name"
+    hint="Required when the student is under 18."
+    autocomplete="name"
+    maxlength={120}
+    value={values.guardian_name}
+    error={errors.guardian_name}
+  />
+  <EmailField
+    label="Email for the receipt"
+    hint="The parent or guardian's email when the student is under 18. We send the receipt and a link to manage the registration here."
+    value={values.email}
+    error={errors.email}
+    suggestion={suggestion}
+  />
+  <ConfirmEmailField value={values.email_confirm} error={errors.email_confirm} />
+  <TextField
+    id="phone"
+    name="phone"
+    type="tel"
+    label="Phone"
+    hint="Required when the student is under 18, so the instructor can reach the family."
+    autocomplete="tel"
+    inputmode="tel"
+    maxlength={24}
+    value={values.phone}
+    error={errors.phone}
+  />
+</fieldset>

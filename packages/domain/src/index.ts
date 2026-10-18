@@ -5,6 +5,7 @@ export * from './api/public-form-guard.ts';
 export * from './services/identity.ts';
 export * from './services/customers.ts';
 export * from './services/email-outbox.ts';
+export * from './services/academy-registrations.ts';
 export * from './services/live.ts';
 export * from './services/payments.ts';
 export * from './services/media.ts';
