@@ -1,0 +1,122 @@
+---
+/** B2: first sign-in. Create the organization you list events for. Owners can invite others later. */
+import Layout from '../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import OrganizationForm from '../../components/organizer/OrganizationForm.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { TERMS_DRAFT_VERSION, createOrganization } from '@gamo/domain';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { ORGANIZATION_COOKIE, cookieHeader, organizerPage } from '../../lib/organizer-session';
+import { fieldErrors, readOrganizationForm } from '../../lib/organizer-forms';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro, { needOrganization: false });
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (ctx?.active) return Astro.redirect('/organizer', 303);
+
+let values: Record<string, string> = { kind: 'church' };
+let errors: Record<string, string> = {};
+let notice: string | undefined;
+
+if (!ctx) {
+  Astro.response.status = 503;
+  notice = 'Gamo Live is temporarily unavailable. Please try again later.';
+} else if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  const profile = readOrganizationForm(form);
+  values = { ...profile } as Record<string, string>;
+  if (form.get('terms') !== 'yes') errors.terms = 'Please accept the organizer terms to continue.';
+  else {
+    try {
+      const created = await createOrganization(ctx.live.db, {
+        organizerId: ctx.organizer.id,
+        profile,
+        termsVersion: TERMS_DRAFT_VERSION,
+        now: ctx.now,
+      });
+      const headers = new Headers({ location: '/organizer' });
+      headers.append(
+        'set-cookie',
+        cookieHeader(
+          ORGANIZATION_COOKIE,
+          created.organizationId,
+          30 * 86400,
+          Astro.url.protocol === 'https:',
+        ),
+      );
+      return new Response(null, { status: 303, headers });
+    } catch (error) {
+      errors = fieldErrors(error);
+      if (Object.keys(errors).length === 0) {
+        console.error('[live:start] failed', (error as Error)?.name);
+        notice = 'We could not save your organization. Please try again.';
+      }
+    }
+  }
+}
+---
+
+<Layout title="Set up your organization" chrome={false} noindex>
+  <SplitScreenLayout photo="concertCrowdWide" position="46% 34%" program="Gamo Live" brandHref="/">
+    <SplitHeading
+      title="Set up your organization"
+      subtext="Events are listed under an organization: your church, ministry, band or group. You can edit this later."
+    />
+    {notice && <SplitNotice tone="error">{notice}</SplitNotice>}
+    {ctx && (
+      <form method="post" class="space-y-6" novalidate>
+        <OrganizationForm values={values} errors={errors} />
+        <div>
+          <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+            <input
+              type="checkbox"
+              name="terms"
+              value="yes"
+              required
+              aria-invalid={errors.terms ? 'true' : undefined}
+              class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
+            />
+            <span>
+              I agree to the{' '}
+              <a
+                class="font-semibold text-terracotta underline"
+                href={siteUrl('web', '/legal/organizer-terms')}
+              >
+                Organizer Terms
+              </a>{' '}
+              and the
+              <a
+                class="font-semibold text-terracotta underline"
+                href={siteUrl('web', '/legal/privacy-policy')}
+              >
+                Privacy Policy
+              </a>{' '}
+              (drafts, under legal review).
+            </span>
+          </label>
+          {errors.terms && (
+            <p class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">{errors.terms}</p>
+          )}
+        </div>
+        <SplitButton label="Create organization" />
+      </form>
+    )}
+    <p class="mt-6 text-center text-[14px] text-muted">
+      Joining an existing organization? Open the invitation link from your email.
+    </p>
+  </SplitScreenLayout>
+</Layout>

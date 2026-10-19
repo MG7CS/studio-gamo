@@ -17,8 +17,8 @@ export interface SecretRequirements {
 }
 
 /**
- * The admin needs its Access settings. The public apps are marketing-only during the rebuild
- * (docs/REBUILD_PLAN.md) and need no secrets; each rebuilt product adds its own list here.
+ * The admin needs its Access settings. Gamo Live (rebuilt) needs its hash secret, email and its own Clerk keys.
+ * The other public apps are marketing-only during the rebuild (docs/REBUILD_PLAN.md) and need no secrets.
  */
 export function requirementsFor(app: PreflightApp): SecretRequirements {
   if (app === 'admin') {
@@ -26,6 +26,18 @@ export function requirementsFor(app: PreflightApp): SecretRequirements {
       required: ['CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD', 'ADMIN_EMAIL'],
       recommended: [],
       optional: [],
+    };
+  }
+  if (app === 'live') {
+    return {
+      required: ['PII_HASH_SECRET'],
+      recommended: [
+        'RESEND_API_KEY',
+        'EMAIL_FROM',
+        'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+        'CLERK_SECRET_KEY_LIVE',
+      ],
+      optional: ['CLERK_JWT_KEY_LIVE', 'CLERK_AUTHORIZED_PARTIES_LIVE'],
     };
   }
   return { required: [], recommended: [], optional: [] };

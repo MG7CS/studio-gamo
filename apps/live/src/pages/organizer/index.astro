@@ -1,0 +1,94 @@
+---
+/** B3: overview of the signed-in organizer's organization. Every number is counted from the database. */
+import OrganizerLayout from '../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../components/organizer/PageTitle.astro';
+import StatCard from '../../components/organizer/StatCard.astro';
+import Panel from '../../components/organizer/Panel.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import { organizationCounts } from '@gamo/domain';
+import { organizerPage } from '../../lib/organizer-session';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active } = ctx;
+const counts = await organizationCounts(ctx.live.db, active.organizationId, ctx.now);
+const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsByStatus.changes_requested ?? 0);
+---
+
+<OrganizerLayout
+  title="Overview"
+  current="overview"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle
+    title={`Welcome, ${organizer.displayName?.split(' ')[0] || 'organizer'}`}
+    subtext={`Here is where ${active.name} stands on Gamo Live.`}
+  />
+  {active.status === 'suspended' && (
+    <SplitNotice tone="error">
+      This organization is suspended, so its events are hidden. Write to hello@gamostudio.org to ask why and
+      what to do next.
+    </SplitNotice>
+  )}
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <StatCard label="Published events" value={counts.eventsByStatus.published ?? 0} />
+    <StatCard label="Waiting for Gamo" value={waiting} hint="In review or needing changes" />
+    <StatCard label="Upcoming dates" value={counts.upcomingOccurrences} />
+    <StatCard
+      label="People registered"
+      value={counts.confirmedRegistrations}
+      hint="Confirmed, across all events"
+    />
+  </div>
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <Panel id="status" title="Your organization" description="How people see you on your events.">
+      <dl class="space-y-3 text-[15px]">
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">Name</dt>
+          <dd class="text-right font-semibold text-ink">{active.name}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">Your role</dt>
+          <dd class="font-semibold text-ink">{active.role === 'owner' ? 'Owner' : 'Member'}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">Verification</dt>
+          <dd class="font-semibold text-ink">{active.verified ? 'Verified by Gamo' : 'Not yet verified'}</dd>
+        </div>
+      </dl>
+      {!active.verified && (
+        <p class="mt-4 text-[14px] leading-relaxed text-muted">
+          Unverified organizations are labeled as such on their events. Gamo verifies organizations after
+          review.
+        </p>
+      )}
+      <a
+        href="/organizer/organization"
+        class="mt-5 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+      >
+        Edit organization
+      </a>
+    </Panel>
+    <Panel
+      id="events"
+      title="Events"
+      description="Your first event is reviewed by Gamo before it appears; later ones publish directly unless Gamo asks to review every event."
+    >
+      <p class="text-[15px] leading-relaxed text-ink">
+        {(counts.eventsByStatus.published ?? 0) + waiting === 0
+          ? 'You have no events yet. Creating events opens soon.'
+          : 'Your events are listed on the public event pages.'}
+      </p>
+    </Panel>
+  </div>
+</OrganizerLayout>

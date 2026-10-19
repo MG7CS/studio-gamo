@@ -9,5 +9,10 @@ export interface GamoLocals {
   product?: PublicApp;
   runtimeEnv?: GamoEnv;
   /** Per-page header additions requested with `requestSecurityHeaders(Astro.locals, …)`. */
-  securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean; noReferrer?: boolean };
+  securityRequest?: {
+    formActionOrigins?: readonly string[];
+    camera?: boolean;
+    noReferrer?: boolean;
+    clerkFrontendApi?: string;
+  };
 }

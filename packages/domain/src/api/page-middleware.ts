@@ -59,6 +59,7 @@ export function pageSecurityHeaderOptions(
     enforceCsp,
     https: context.url.protocol === 'https:',
     allowGeolocation: app === 'live',
+    clerkFrontendApi: requested?.clerkFrontendApi,
     formActionOrigins: requested?.formActionOrigins,
     noReferrer: requested?.noReferrer === true,
   };

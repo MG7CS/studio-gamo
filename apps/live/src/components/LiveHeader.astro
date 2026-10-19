@@ -1,6 +1,5 @@
 ---
 import { GAMO_LIVE_METROS, resolveMetroBySlug } from '@gamo/domain';
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
 const pathname = Astro.url.pathname;
 const urlMetroParam = Astro.url.searchParams.get('metro');
@@ -32,7 +31,7 @@ const navItems = [
   },
   {
     label: 'Organizers',
-    href: inquiryUrl('Event listing'),
+    href: '/promote',
     match: (p: string) => p.startsWith('/promote') || p.startsWith('/submit') || p.startsWith('/organizer'),
   },
 ];

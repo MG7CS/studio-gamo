@@ -8,7 +8,7 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { LiveCatalog, asSqlDatabase, getRuntimeEnv } from '@gamo/domain';
 import EventSpotlightHero from '../components/live/EventSpotlightHero.astro';
 import NearbyRail from '../components/live/NearbyRail.astro';
@@ -108,7 +108,7 @@ const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0,
     body="Submit your gathering, manage ticket tiers and door check-in, or coordinate artist bookings and event production. Every listing is reviewed before publishing."
     photo="worshipBand"
   >
-    <ButtonLink href={inquiryUrl('Event listing')} arrow>
+    <ButtonLink href={siteUrl('live', '/promote')} arrow>
       List an event
     </ButtonLink>
     <ButtonLink href={siteUrl('live', '/artists')} variant="secondary">

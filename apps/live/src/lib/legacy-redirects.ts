@@ -1,15 +1,25 @@
 import type { LegacyRedirect } from '@gamo/domain/page-middleware';
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
-/** Retired Gamo Live URLs (accounts, organizer tools and ticketing were removed in the rebuild). */
+/** Retired Gamo Live URLs (the old organizer tools, ticketing and account pages were replaced in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [
-  { from: '/promote/*', to: () => inquiryUrl('Event listing'), status: 303 },
-  { from: '/organizer/*', to: () => inquiryUrl('Event listing') },
+  // The old Promote flow lives on as the Promote page and the organizer area.
+  { from: '/promote/create', to: '/promote', status: 303 },
+  { from: '/promote/status', to: '/organizer' },
+  { from: '/promote/events', to: '/organizer' },
+  { from: '/workspaces', to: '/organizer' },
+  { from: '/organizer/events/new', to: '/organizer' },
+  { from: '/organizer/scan', to: '/organizer' },
   { from: '/artist/*', to: '/artists' },
   { from: '/agent/*', to: '/artists' },
   { from: '/me/*', to: '/events' },
-  { from: '/workspaces', to: '/events' },
-  { from: '/account/*', to: '/events' },
+  // Old account pages that no longer exist (sign-in, sign-up and signed-out are real pages again).
+  { from: '/account/verify', to: '/account/signin' },
+  { from: '/account/recover', to: '/account/signin' },
+  { from: '/account/sso-callback', to: '/account/signin' },
+  { from: '/account/access-denied', to: '/account/signin' },
+  { from: '/account/profile', to: '/organizer/account' },
+  { from: '/account/onboarding', to: '/organizer/start' },
+  { from: '/account', to: '/organizer' },
   { from: '/tickets/*', to: '/events' },
   { from: '/ticket', to: '/events' },
   { from: '/my-tickets', to: '/events', status: 301 },

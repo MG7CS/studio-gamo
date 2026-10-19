@@ -1,0 +1,97 @@
+---
+/** Members and pending invitations of an organization. Owners invite and remove; anyone can leave. */
+import Panel from './Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import type { InvitationView, MemberView } from '@gamo/domain';
+
+interface Props {
+  members: MemberView[];
+  invitations: InvitationView[];
+  isOwner: boolean;
+  selfId: string;
+  inviteError?: string;
+}
+const { members, invitations, isOwner, selfId, inviteError } = Astro.props;
+const days = (expiresAt: number) => Math.max(1, Math.ceil((expiresAt * 1000 - Date.now()) / 86_400_000));
+---
+
+<Panel
+  id="members"
+  title="Members"
+  description="Everyone here can create and edit this organization’s events. Only owners edit the profile and the members."
+>
+  <ul class="divide-y divide-sand">
+    {members.map((m) => (
+      <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-[15px]">
+        <span class="min-w-0">
+          <span class="block truncate font-semibold text-ink">{m.displayName ?? m.email}</span>
+          {m.displayName && <span class="block truncate text-[13px] text-muted">{m.email}</span>}
+        </span>
+        <span class="flex items-center gap-3">
+          <span class="rounded-full bg-sand px-3 py-1 text-[12px] font-semibold text-ink">
+            {m.role === 'owner' ? 'Owner' : 'Member'}
+          </span>
+          {(isOwner || m.organizerId === selfId) && (
+            <form method="post">
+              <input type="hidden" name="action" value="remove" />
+              <input type="hidden" name="member" value={m.organizerId} />
+              <button
+                type="submit"
+                class="min-h-11 rounded-full px-4 text-[14px] font-semibold text-terracotta-deep hover:bg-sand"
+              >
+                {m.organizerId === selfId ? 'Leave' : 'Remove'}
+                <span class="sr-only"> {m.displayName ?? m.email}</span>
+              </button>
+            </form>
+          )}
+        </span>
+      </li>
+    ))}
+  </ul>
+  {isOwner && (
+    <div class="mt-8 border-t border-sand pt-6">
+      <h3 class="text-[16px] font-bold text-ink">Invite someone</h3>
+      <form method="post" class="mt-3 max-w-md space-y-4" novalidate>
+        <input type="hidden" name="action" value="invite" />
+        <SplitField
+          id="invite-email"
+          name="email"
+          type="email"
+          label="Their email address"
+          required
+          error={inviteError}
+          hint="They sign in with this address to accept."
+        />
+        <SplitButton label="Send invitation" />
+      </form>
+      {invitations.length > 0 && (
+        <div class="mt-6">
+          <h3 class="text-[16px] font-bold text-ink">Waiting to accept</h3>
+          <ul class="mt-2 divide-y divide-sand">
+            {invitations.map((i) => (
+              <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-[15px]">
+                <span class="min-w-0">
+                  <span class="block truncate font-semibold text-ink">{i.email}</span>
+                  <span class="text-[13px] text-muted">
+                    Expires in {days(i.expiresAt)} {days(i.expiresAt) === 1 ? 'day' : 'days'}
+                  </span>
+                </span>
+                <form method="post">
+                  <input type="hidden" name="action" value="revoke" />
+                  <input type="hidden" name="invitation" value={i.id} />
+                  <button
+                    type="submit"
+                    class="min-h-11 rounded-full px-4 text-[14px] font-semibold text-terracotta-deep hover:bg-sand"
+                  >
+                    Remove<span class="sr-only"> invitation for {i.email}</span>
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )}
+</Panel>

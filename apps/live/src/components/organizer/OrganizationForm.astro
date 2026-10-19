@@ -1,0 +1,97 @@
+---
+/** The organization profile fields, used when setting up an organization and when an owner edits it. */
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import { ORGANIZATION_KINDS, ORGANIZATION_KIND_LABELS } from '@gamo/domain';
+
+interface Props {
+  values: Partial<
+    Record<'name' | 'kind' | 'city' | 'state' | 'website' | 'contactEmail' | 'description', string>
+  >;
+  errors?: Record<string, string>;
+  /** Members see the profile but cannot change it. */
+  readOnly?: boolean;
+}
+const { values, errors = {}, readOnly = false } = Astro.props;
+---
+
+<div class="space-y-5">
+  <SplitField
+    id="name"
+    name="name"
+    label="Organization name"
+    required
+    value={values.name}
+    error={errors.name}
+    disabled={readOnly}
+    autocomplete="organization"
+  />
+  <SplitField
+    id="kind"
+    name="kind"
+    label="What kind of organization is this?"
+    as="select"
+    required
+    error={errors.kind}
+    disabled={readOnly}
+  >
+    {ORGANIZATION_KINDS.map((k) => (
+      <option value={k} selected={values.kind === k}>
+        {ORGANIZATION_KIND_LABELS[k]}
+      </option>
+    ))}
+  </SplitField>
+  <div class="grid gap-5 sm:grid-cols-[1fr_120px]">
+    <SplitField
+      id="city"
+      name="city"
+      label="City"
+      value={values.city}
+      error={errors.city}
+      disabled={readOnly}
+      autocomplete="address-level2"
+    />
+    <SplitField
+      id="state"
+      name="state"
+      label="State"
+      value={values.state}
+      error={errors.state}
+      disabled={readOnly}
+      maxlength={2}
+      placeholder="AZ"
+      autocomplete="address-level1"
+    />
+  </div>
+  <SplitField
+    id="website"
+    name="website"
+    label="Website"
+    value={values.website}
+    error={errors.website}
+    disabled={readOnly}
+    placeholder="https://example.org"
+    inputmode="text"
+    hint="Shown on your events so people can check who you are."
+  />
+  <SplitField
+    id="contactEmail"
+    name="contactEmail"
+    type="email"
+    label="Public contact email"
+    value={values.contactEmail}
+    error={errors.contactEmail}
+    disabled={readOnly}
+    hint="Optional. People can write here with questions about your events."
+  />
+  <SplitField
+    id="description"
+    name="description"
+    label="About your organization"
+    as="textarea"
+    rows={4}
+    maxlength={1000}
+    value={values.description}
+    error={errors.description}
+    disabled={readOnly}
+  />
+</div>

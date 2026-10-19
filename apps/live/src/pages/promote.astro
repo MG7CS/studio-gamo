@@ -1,0 +1,76 @@
+---
+/** A10: Promote an event. What organizers get, how review works, and the way in. */
+import Layout from '../layouts/Layout.astro';
+import PromoteSteps from '../components/promote/PromoteSteps.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+---
+
+<Layout
+  title="Promote an event"
+  description="List a Christian concert, worship night, conference or church gathering on Gamo Live. Free to list; your first event is reviewed by Gamo."
+>
+  <section class="bg-cream px-6 pb-12 pt-32 sm:px-12 sm:pt-40">
+    <div class="mx-auto max-w-[1100px]">
+      <p class="eyebrow text-terracotta">For churches, ministries, artists and organizers</p>
+      <h1 class="promote-hero-title mt-4 font-black uppercase leading-[1.02] tracking-[-0.03em] text-ink">
+        Promote your event
+      </h1>
+      <p class="mt-5 max-w-2xl text-[18px] leading-relaxed text-ink-soft">
+        Gamo Live lists Christian events across the country. Tell people about your concert, worship night,
+        conference, retreat or gathering, and let them find it, register for it free, or follow your link to
+        buy tickets.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a
+          href="/account/signup?next=%2Forganizer"
+          class="inline-flex min-h-12 items-center rounded-full bg-terracotta px-7 text-[16px] font-semibold text-white hover:bg-terracotta-deep"
+        >
+          Create an account
+        </a>
+        <a
+          href="/account/signin?next=%2Forganizer"
+          class="inline-flex min-h-12 items-center rounded-full border border-ink/25 bg-white px-7 text-[16px] font-semibold text-ink hover:bg-sand"
+        >
+          Sign in
+        </a>
+      </div>
+    </div>
+  </section>
+  <section class="bg-sand/50 px-6 py-14 sm:px-12">
+    <div class="mx-auto max-w-[1100px]">
+      <h2 class="text-[26px] font-black uppercase tracking-[-0.02em] text-ink">How it works</h2>
+      <div class="mt-6">
+        <PromoteSteps />
+      </div>
+    </div>
+  </section>
+  <section class="bg-cream px-6 py-14 sm:px-12">
+    <div class="mx-auto grid max-w-[1100px] gap-8 md:grid-cols-2">
+      <div>
+        <h2 class="text-[22px] font-extrabold text-ink">What we look for</h2>
+        <p class="mt-2 text-[15px] leading-relaxed text-muted">
+          Events with a Christian purpose: gospel concerts, worship nights, choir festivals, church
+          conferences, prayer gatherings, Bible studies, youth events, retreats and community events. We do
+          not list non-Christian, political-campaign or purely commercial events.
+        </p>
+      </div>
+      <div>
+        <h2 class="text-[22px] font-extrabold text-ink">Fair and honest</h2>
+        <p class="mt-2 text-[15px] leading-relaxed text-muted">
+          Listing is free. Payment, sponsorship or partnership never changes whether an organization is
+          verified or how its events are ordered. Paid placements, if they ever exist, are always labeled.
+          Read the
+          <a
+            class="font-semibold text-terracotta-deep underline"
+            href={siteUrl('web', '/legal/organizer-terms')}
+          >
+            Organizer Terms
+          </a>
+          (draft, under legal review).
+        </p>
+      </div>
+    </div>
+  </section>
+</Layout>

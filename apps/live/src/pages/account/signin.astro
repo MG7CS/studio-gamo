@@ -1,0 +1,45 @@
+---
+/** signin for organizers (docs/LIVE_SCREENS.md B1). Already signed in? Straight to where you were going. */
+import Layout from '../../layouts/Layout.astro';
+import AuthScreen from '../../components/account/AuthScreen.astro';
+import {
+  liveClerkConfig,
+  localSimulatedSignInAllowed,
+  requestSecurityHeaders,
+  resolveOrganizerSession,
+} from '@gamo/domain';
+import { SESSION_COOKIE, readCookie, safeNext } from '../../lib/organizer-session';
+import { openLive } from '../../lib/registration';
+
+export const prerender = false;
+
+const next = safeNext(Astro.url.searchParams.get('next'));
+let clerk: { publishableKey: string; frontendApi: string } | null = null;
+let simulation = false;
+let error: string | undefined;
+let status = 200;
+
+try {
+  const live = await openLive(Astro);
+  const now = Math.floor(Date.now() / 1000);
+  if (await resolveOrganizerSession(live.db, readCookie(Astro.request, SESSION_COOKIE), now)) {
+    return Astro.redirect(next, 303);
+  }
+  const config = liveClerkConfig(live.env);
+  if (config) {
+    clerk = { publishableKey: config.publishableKey, frontendApi: config.frontendApi };
+    // Only these pages load Clerk, so only these pages allow its origin.
+    requestSecurityHeaders(Astro.locals, { clerkFrontendApi: config.frontendApi });
+  }
+  simulation = localSimulatedSignInAllowed(live.env);
+  if (Astro.url.searchParams.get('error') === 'invalid') error = 'Enter your email address.';
+} catch {
+  status = 503;
+}
+if (!clerk && !simulation) status = 503;
+Astro.response.status = status;
+---
+
+<Layout title="Sign in" chrome={false} noindex>
+  <AuthScreen mode="signin" next={next} clerk={clerk} simulation={simulation} error={error} />
+</Layout>

@@ -1,0 +1,177 @@
+---
+/**
+ * B9: the organization profile, its members and invitations. Owners edit; members read. Verification is set
+ * only by Gamo and is shown here, never editable.
+ */
+import OrganizerLayout from '../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../components/organizer/PageTitle.astro';
+import Panel from '../../components/organizer/Panel.astro';
+import OrganizationForm from '../../components/organizer/OrganizationForm.astro';
+import MembersPanel from '../../components/organizer/MembersPanel.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  EmailUnavailableError,
+  OrganizerError,
+  SecretNotConfiguredError,
+  createInvitation,
+  getOrganization,
+  invitationEmail,
+  listInvitations,
+  listMembers,
+  removeMember,
+  revokeInvitation,
+  sendLiveEmail,
+  updateOrganization,
+} from '@gamo/domain';
+import { organizerPage } from '../../lib/organizer-session';
+import { fieldErrors, readOrganizationForm } from '../../lib/organizer-forms';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { live, organizer, memberships, active, now } = ctx;
+const isOwner = active.role === 'owner';
+const orgId = active.organizationId;
+
+let notice: { tone: 'info' | 'error'; text: string } | null = null;
+let profileErrors: Record<string, string> = {};
+let inviteError: string | undefined;
+let formValues: Record<string, string> | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  const action = String(form.get('action') ?? '');
+  try {
+    if (action === 'save') {
+      const profile = readOrganizationForm(form);
+      formValues = { ...profile } as Record<string, string>;
+      await updateOrganization(live.db, { organizationId: orgId, organizerId: organizer.id, profile, now });
+      formValues = null;
+      notice = { tone: 'info', text: 'Saved.' };
+    } else if (action === 'invite') {
+      const invite = await createInvitation(live.db, live.env, {
+        organizationId: orgId,
+        organizerId: organizer.id,
+        email: String(form.get('email') ?? ''),
+        now,
+      });
+      const link = `${new URL(Astro.request.url).origin}/organizer/invite/${invite.token}`;
+      try {
+        await sendLiveEmail(
+          live.env,
+          invitationEmail(invite.email, active.name, organizer.displayName ?? organizer.email, link),
+        );
+        notice = { tone: 'info', text: `Invitation sent to ${invite.email}. It works for 7 days.` };
+      } catch (mailError) {
+        if (!(mailError instanceof EmailUnavailableError)) throw mailError;
+        notice = {
+          tone: 'error',
+          text: 'The invitation was saved but the email could not be sent. Please try again later.',
+        };
+      }
+    } else if (action === 'revoke') {
+      await revokeInvitation(live.db, {
+        organizationId: orgId,
+        organizerId: organizer.id,
+        invitationId: String(form.get('invitation') ?? ''),
+      });
+      notice = { tone: 'info', text: 'Invitation removed.' };
+    } else if (action === 'remove') {
+      const target = String(form.get('member') ?? '');
+      await removeMember(live.db, { organizationId: orgId, actorId: organizer.id, targetId: target });
+      if (target === organizer.id) return Astro.redirect('/organizer', 303);
+      notice = { tone: 'info', text: 'Member removed.' };
+    }
+  } catch (error) {
+    if (error instanceof OrganizerError) {
+      if (error.code === 'invalid' && action === 'invite') inviteError = 'Enter a valid email address.';
+      else if (error.code === 'invalid') profileErrors = fieldErrors(error);
+      else if (error.code === 'forbidden') notice = { tone: 'error', text: 'Only owners can do that.' };
+      else if (error.code === 'last_owner')
+        notice = { tone: 'error', text: 'An organization needs at least one owner.' };
+      else if (error.code === 'rate_limited')
+        notice = { tone: 'error', text: 'Too many invitations today. Please try again tomorrow.' };
+      else notice = { tone: 'error', text: 'That could not be done.' };
+    } else if (error instanceof SecretNotConfiguredError) {
+      notice = { tone: 'error', text: 'This is temporarily unavailable. Please try again later.' };
+    } else throw error;
+  }
+}
+
+const organization = await getOrganization(live.db, orgId);
+const members = await listMembers(live.db, orgId);
+const invitations = isOwner ? await listInvitations(live.db, orgId, now) : [];
+const values: Record<string, string> =
+  formValues ??
+  ({
+    name: organization?.name ?? '',
+    kind: organization?.kind ?? 'church',
+    city: organization?.city ?? '',
+    state: organization?.state ?? '',
+    website: organization?.website ?? '',
+    contactEmail: organization?.contactEmail ?? '',
+    description: organization?.description ?? '',
+  } as Record<string, string>);
+---
+
+<OrganizerLayout
+  title="Organization"
+  current="organization"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle
+    title="Organization"
+    subtext="How your organization appears on its events, and who can manage them."
+  />
+  {notice && <SplitNotice tone={notice.tone}>{notice.text}</SplitNotice>}
+  <div class="space-y-4">
+    <Panel
+      id="profile"
+      title="Profile"
+      description={
+        isOwner
+          ? 'Changing the profile does not change your verification.'
+          : 'Only owners can edit the profile.'
+      }
+    >
+      <form method="post" class="space-y-6" novalidate>
+        <input type="hidden" name="action" value="save" />
+        <OrganizationForm values={values} errors={profileErrors} readOnly={!isOwner} />
+        {isOwner && (
+          <div class="max-w-xs">
+            <SplitButton label="Save changes" />
+          </div>
+        )}
+      </form>
+      <p class="mt-6 text-[14px] text-muted">
+        Verification:{' '}
+        {organization?.verified
+          ? 'Verified by Gamo.'
+          : 'Not yet verified. Events show that label until Gamo verifies the organization.'}
+      </p>
+    </Panel>
+    <MembersPanel
+      members={members}
+      invitations={invitations}
+      isOwner={isOwner}
+      selfId={organizer.id}
+      inviteError={inviteError}
+    />
+  </div>
+</OrganizerLayout>

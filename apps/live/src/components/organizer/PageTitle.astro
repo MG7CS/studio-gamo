@@ -1,0 +1,15 @@
+---
+/** The page's one <h1> in the organizer area. */
+interface Props {
+  title: string;
+  subtext?: string;
+}
+const { title, subtext } = Astro.props;
+---
+
+<div class="pb-6 pt-2">
+  <h1 class="text-[28px] font-black uppercase leading-tight tracking-[-0.02em] text-ink sm:text-[34px]">
+    {title}
+  </h1>
+  {subtext && <p class="mt-1 max-w-2xl text-[15px] leading-relaxed text-muted">{subtext}</p>}
+</div>

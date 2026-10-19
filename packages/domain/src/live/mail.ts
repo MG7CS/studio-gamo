@@ -86,3 +86,20 @@ export function canceledEmail(to: string, name: string, e: WhenWhere): LiveEmail
       footer,
   };
 }
+
+export function invitationEmail(
+  to: string,
+  organizationName: string,
+  inviterName: string,
+  acceptUrl: string,
+): LiveEmail {
+  return {
+    to,
+    subject: `${inviterName} invited you to ${organizationName} on Gamo Live`,
+    text:
+      `${inviterName} invited you to help manage events for ${organizationName} on Gamo Live.\n\n` +
+      `Open this link, sign in with this email address (${to}) and accept the invitation:\n${acceptUrl}\n\n` +
+      `The link works for 7 days. If you do not know ${inviterName}, ignore this email.` +
+      footer,
+  };
+}
