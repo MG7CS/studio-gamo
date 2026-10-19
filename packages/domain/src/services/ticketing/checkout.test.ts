@@ -655,3 +655,53 @@ describe('editing published events (D-168)', () => {
     assert.equal(a.movedToReview, true);
   });
 });
+
+describe('review gate covers every public field (D-168)', () => {
+  type Input = ReturnType<typeof sampleEventInput>;
+  type Mod = (input: Input, catId: string) => void;
+  const base = (id: string) => ({
+    id,
+    name: 'General admission',
+    kind: 'general',
+    price: '0',
+    capacity: '50',
+  });
+  const cases: Array<[string, Mod]> = [
+    ['title', (i) => void (i.title = 'Changed title')],
+    ['description', (i) => void (i.description = 'A completely rewritten description of the gathering.')],
+    ['category name', (i, id) => void (i.categories = [{ ...base(id), name: 'Renamed ticket' }])],
+    ['category description', (i, id) => void (i.categories = [{ ...base(id), description: 'New promise' }])],
+    ['capacity', (i, id) => void (i.categories = [{ ...base(id), capacity: '80' }])],
+    [
+      'added category',
+      (i, id) => void (i.categories = [base(id), { name: 'VIP', kind: 'vip', price: '0', capacity: '5' }]),
+    ],
+    ['hidden category', (i, id) => void (i.categories = [{ ...base(id), status: 'hidden' }])],
+    [
+      'removed category',
+      (i) => void (i.categories = [{ name: 'Other', kind: 'general', price: '0', capacity: '10' }]),
+    ],
+    ['refund policy', (i) => void (i.policy = { refundPolicy: 'none' })],
+    ['transfer policy', (i) => void (i.policy = { transferAllowed: false })],
+    ['re-entry policy', (i) => void (i.policy = { reentryAllowed: false })],
+    ['age policy', (i) => void (i.policy = { agePolicy: 'min_age', minAge: 18 })],
+    ['time zone', (i) => void (i.timezone = 'America/Denver')],
+    ['start date', (i) => void (i.start = { date: i.start.date.replace(/\d\d$/, '28'), time: '19:00' })],
+    ['venue', (i) => void (i.venueName = 'Another hall')],
+  ];
+  for (const [name, mod] of cases) {
+    test(`a changed ${name} on an unverified organizer's approved event goes back to review`, async () => {
+      const f = await ticketingFixture();
+      const ev = await publishedEvent(f);
+      const input: Input = { ...sampleEventInput(f), categories: [base(ev.categories[0].id)] };
+      mod(input, ev.categories[0].id);
+      const r = await updateOrganizerEvent(f.d1, {
+        eventId: ev.eventId,
+        event: input,
+        actorUserId: f.userId,
+        now: now(),
+      });
+      assert.equal(r.movedToReview, true, name);
+    });
+  }
+});

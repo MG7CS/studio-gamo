@@ -25,6 +25,7 @@ import {
   TicketingError,
   loadCategories,
   loadEvent,
+  loadPolicy,
   type CategoryRow,
   type FieldError,
 } from './orders-shared.ts';
@@ -608,6 +609,24 @@ export async function updateOrganizerEvent(
   // whose organizer still needs review (first event, always_review). Those go back to pending_review
   // (sales pause because holds require an approved event; tickets already issued stay valid). For
   // verified organizers the before/after is recorded in event_changes (kind 'details') for audit.
+  const priorPolicy = await loadPolicy(db, event.id);
+  const categoryView = (c: {
+    id: string;
+    name: string;
+    description: string | null;
+    kind: string;
+    priceCents: number;
+    tickets: number;
+    perOrderLimit: number | null;
+    maxAge: number | null;
+    seatsPerTicket: number;
+    validDays: string | null;
+    salesStartAt: number | null;
+    salesEndAt: number | null;
+    companionOf: string | null;
+    status: string;
+  }) => c;
+  const normalizedPolicy = (p: EventPolicy) => ({ ...p, doorSalesMethods: [...p.doorSalesMethods].sort() });
   const publicBefore = {
     title: event.title,
     tagline: event.tagline ?? null,
@@ -617,7 +636,33 @@ export async function updateOrganizerEvent(
     address: event.address ?? null,
     city: event.city,
     state: event.state,
+    startsAt: Number(event.starts_at),
+    endsAt: event.ends_at === null ? null : Number(event.ends_at),
+    timezone: event.timezone,
+    admissionType: event.admission_type,
+    policy: normalizedPolicy(priorPolicy),
+    categories: existing
+      .map((c) =>
+        categoryView({
+          id: c.id,
+          name: c.name,
+          description: c.description ?? null,
+          kind: c.kind,
+          priceCents: Number(c.price_cents),
+          tickets: Math.floor(Number(c.capacity) / Math.max(1, Number(c.seats_per_ticket))),
+          perOrderLimit: c.per_order_limit === null ? null : Number(c.per_order_limit),
+          maxAge: c.max_age === null ? null : Number(c.max_age),
+          seatsPerTicket: Number(c.seats_per_ticket),
+          validDays: c.valid_days_json ?? null,
+          salesStartAt: c.sales_start_at === null ? null : Number(c.sales_start_at),
+          salesEndAt: c.sales_end_at === null ? null : Number(c.sales_end_at),
+          companionOf: c.requires_companion_of ?? null,
+          status: c.status,
+        }),
+      )
+      .sort((a, b) => a.id.localeCompare(b.id)),
   };
+  const submittedIds = new Set(v.categories.map((c) => c.id));
   const publicAfter = {
     title: v.title,
     tagline: v.tagline,
@@ -627,6 +672,52 @@ export async function updateOrganizerEvent(
     address: v.address,
     city: v.city,
     state: v.state,
+    startsAt: v.startsAt,
+    endsAt: v.endsAt,
+    timezone: v.timezone,
+    admissionType: v.admissionType,
+    policy: normalizedPolicy(v.policy),
+    categories: [
+      ...v.categories.map((c) =>
+        categoryView({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          kind: c.kind,
+          priceCents: c.priceCents,
+          tickets: Math.floor(c.capacity / Math.max(1, c.seatsPerTicket)),
+          perOrderLimit: c.perOrderLimit,
+          maxAge: c.maxAge,
+          seatsPerTicket: c.seatsPerTicket,
+          validDays: c.validDaysJson,
+          salesStartAt: c.salesStartAt,
+          salesEndAt: c.salesEndAt,
+          companionOf: c.requiresCompanionOf,
+          status: c.status,
+        }),
+      ),
+      // Categories left out of the form are closed.
+      ...existing
+        .filter((c) => !submittedIds.has(c.id))
+        .map((c) =>
+          categoryView({
+            id: c.id,
+            name: c.name,
+            description: c.description ?? null,
+            kind: c.kind,
+            priceCents: Number(c.price_cents),
+            tickets: Math.floor(Number(c.capacity) / Math.max(1, Number(c.seats_per_ticket))),
+            perOrderLimit: c.per_order_limit === null ? null : Number(c.per_order_limit),
+            maxAge: c.max_age === null ? null : Number(c.max_age),
+            seatsPerTicket: Number(c.seats_per_ticket),
+            validDays: c.valid_days_json ?? null,
+            salesStartAt: c.sales_start_at === null ? null : Number(c.sales_start_at),
+            salesEndAt: c.sales_end_at === null ? null : Number(c.sales_end_at),
+            companionOf: c.requires_companion_of ?? null,
+            status: 'closed',
+          }),
+        ),
+    ].sort((a, b) => a.id.localeCompare(b.id)),
   };
   const contentChanged = JSON.stringify(publicBefore) !== JSON.stringify(publicAfter);
   const needsReview =
