@@ -15,7 +15,13 @@ import { GET as pending } from '../../apps/admin/src/pages/api/events/pending';
 import { POST as provisionStaff } from '../../apps/admin/src/pages/api/staff/provision';
 import { POST as checkout } from '../../apps/live/src/pages/api/checkout/session';
 import { POST as webhook } from '../../apps/live/src/pages/api/webhook/stripe';
+import { termsDocumentsFor } from '../../packages/domain/src/terms/registry';
 import { createR2StorageClient } from '../../packages/integrations/src/storage';
+
+const SIGNUP_TERMS = termsDocumentsFor(['site-terms', 'privacy-policy']).map((d) => ({
+  slug: d.slug,
+  version: d.version,
+}));
 
 function renderSignInHtml(): string {
   return `<!doctype html>
@@ -61,6 +67,7 @@ function renderSignInHtml(): string {
     </div>
   </main>
   <script>
+    const SIGNUP_TERMS = ${JSON.stringify(SIGNUP_TERMS)};
     const root = document.querySelector('[data-verified-auth]');
     const statusBox = root.querySelector('[data-auth-status]');
     const stepChallenge = root.querySelector('[data-step-challenge]');
@@ -114,7 +121,7 @@ function renderSignInHtml(): string {
       const fd = new FormData(stepChallenge);
       pendingEmail = String(fd.get('email') || '').trim();
       pendingDisplayName = String(fd.get('displayName') || '').trim();
-      const payload = { email: pendingEmail };
+      const payload = { email: pendingEmail, intent: 'signup', 'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX' };
       if (pendingDisplayName) payload.displayName = pendingDisplayName;
       const res = await fetch('/api/auth/challenge', {
         method: 'POST',
@@ -136,7 +143,7 @@ function renderSignInHtml(): string {
       ev.preventDefault();
       const fd = new FormData(stepVerify);
       const code = String(fd.get('code') || '').trim();
-      const payload = { email: pendingEmail, code };
+      const payload = { email: pendingEmail, code, intent: 'signup', terms: SIGNUP_TERMS };
       if (pendingDisplayName) payload.displayName = pendingDisplayName;
       const res = await fetch('/api/auth/verify', {
         method: 'POST',

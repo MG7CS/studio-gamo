@@ -50,10 +50,15 @@ const mf = new Miniflare({
 
 const browser = await chromium.launch({ headless: true });
 
+// Current terms version, read from the registry source (this .mjs test cannot import TypeScript).
+const TERMS_VERSION = /TERMS_DRAFT_VERSION = '([^']+)'/.exec(
+  readFileSync('packages/domain/src/terms/registry.ts', 'utf8'),
+)[1];
+const signupTerms = () => ['site-terms', 'privacy-policy'].map((slug) => ({ slug, version: TERMS_VERSION }));
 const hashOtp = async (email, code) => {
   const buf = await crypto.subtle.digest(
     'SHA-256',
-    new TextEncoder().encode(`${email.toLowerCase()}:signin:${code}`),
+    new TextEncoder().encode(`${email.toLowerCase()}:signin:live:signup:${code}`),
   );
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
 };
@@ -145,7 +150,12 @@ try {
   await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'root@gamostudio.org', displayName: 'Root Superadmin' }),
+    body: JSON.stringify({
+      email: 'root@gamostudio.org',
+      displayName: 'Root Superadmin',
+      intent: 'signup',
+      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
+    }),
   });
   const superCodeHash = await hashOtp('root@gamostudio.org', '111222');
   await db
@@ -155,7 +165,13 @@ try {
   const superVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'root@gamostudio.org', code: '111222', displayName: 'Root Superadmin' }),
+    body: JSON.stringify({
+      email: 'root@gamostudio.org',
+      code: '111222',
+      displayName: 'Root Superadmin',
+      intent: 'signup',
+      terms: signupTerms(),
+    }),
   });
   const superCookie = superVerify.headers.get('set-cookie').split(';')[0];
   const superBody = await superVerify.json();
@@ -194,7 +210,11 @@ try {
   await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'reviewer-e2e@gamostudio.org' }),
+    body: JSON.stringify({
+      email: 'reviewer-e2e@gamostudio.org',
+      intent: 'signup',
+      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
+    }),
   });
   const staffCodeHash = await hashOtp('reviewer-e2e@gamostudio.org', '333444');
   await db
@@ -204,7 +224,12 @@ try {
   const staffVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'reviewer-e2e@gamostudio.org', code: '333444' }),
+    body: JSON.stringify({
+      email: 'reviewer-e2e@gamostudio.org',
+      code: '333444',
+      intent: 'signup',
+      terms: signupTerms(),
+    }),
   });
   const staffCookie = staffVerify.headers.get('set-cookie').split(';')[0];
 
