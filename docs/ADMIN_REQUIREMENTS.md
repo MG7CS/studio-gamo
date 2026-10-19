@@ -64,7 +64,8 @@ Remove: `admin_credentials` use and the admin-password code, the gate cookie, st
 4. ~~First-event review~~ (done 2026-10-19).
 5. ~~Participation requests~~ (done 2026-10-19).
 6. ~~Legal~~ (done 2026-10-19).
-7. Preview deployment, owner signs in through real Access, then cutover (delete the old worker).
+7. ~~Built-worker checks~~ (done 2026-10-19: `tests/e2e/admin.spec.ts`).
+8. Preview deployment, owner signs in through real Access, then cutover (delete the old worker).
 
 Each step: screenshots from the running UI compared with the design, axe and 360 px checks, tests written alongside (run only when the owner asks).
 
