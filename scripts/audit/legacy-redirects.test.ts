@@ -36,7 +36,10 @@ test('Gamo Live legacy routes keep working and never shadow real routes', () => 
   assert.equal(redirect(live, '/events/abc-123/tickets')?.location, '/events/abc-123');
   assert.equal(redirect(live, '/events/abc-123'), null);
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
-  assert.equal(redirect(live, '/my-tickets'), null);
+  assert.equal(redirect(live, '/my-tickets')?.location, '/tickets/find');
+  assert.equal(redirect(live, '/my-tickets')?.status, 301);
+  assert.equal(redirect(live, '/checkout')?.location, '/events');
+  assert.equal(redirect(live, '/tickets/find'), null);
 });
 
 test('program demo flows keep the original 303 status of their stubs', () => {

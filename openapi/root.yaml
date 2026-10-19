@@ -121,6 +121,20 @@ paths:
   /api/venue-maps/{id}:
     $ref: paths/venue-maps-id.yaml
   # --- end agent C ---
+  # --- agent B --- (Gamo Live ticketing)
+  /api/orders/confirm:
+    $ref: paths/orders-confirm.yaml
+  /api/tickets/{id}/transfer:
+    $ref: paths/tickets-id-transfer.yaml
+  /api/tickets/{id}/reissue:
+    $ref: paths/tickets-id-reissue.yaml
+  /api/events/{id}/changes:
+    $ref: paths/events-id-changes.yaml
+  /api/events/{id}/waitlist:
+    $ref: paths/events-id-waitlist.yaml
+  /api/webhook/resend:
+    $ref: paths/webhook-resend.yaml
+  # --- end agent B ---
 components:
   schemas:
     Identifier:
@@ -295,6 +309,62 @@ components:
     ScannerHeadcountResponse:
       $ref: components/schemas/live/scanner/ScannerHeadcountResponse.yaml
     # --- end agent C ---
+    # --- agent B --- (Gamo Live ticketing)
+    TicketingError:
+      $ref: components/schemas/ticketing/TicketingError.yaml
+    OrderItemInput:
+      $ref: components/schemas/ticketing/OrderItemInput.yaml
+    OrderInput:
+      $ref: components/schemas/ticketing/OrderInput.yaml
+    TicketCheckoutInput:
+      $ref: components/schemas/ticketing/TicketCheckoutInput.yaml
+    VerificationRequired:
+      $ref: components/schemas/ticketing/VerificationRequired.yaml
+    CheckoutStarted:
+      $ref: components/schemas/ticketing/CheckoutStarted.yaml
+    ConfirmOrderInput:
+      $ref: components/schemas/ticketing/ConfirmOrderInput.yaml
+    ConfirmOrderResponse:
+      $ref: components/schemas/ticketing/ConfirmOrderResponse.yaml
+    RecoveryInput:
+      $ref: components/schemas/ticketing/RecoveryInput.yaml
+    AcceptedMessage:
+      $ref: components/schemas/ticketing/AcceptedMessage.yaml
+    TransferInput:
+      $ref: components/schemas/ticketing/TransferInput.yaml
+    TicketVersionResponse:
+      $ref: components/schemas/ticketing/TicketVersionResponse.yaml
+    ReissueInput:
+      $ref: components/schemas/ticketing/ReissueInput.yaml
+    RefundInput:
+      $ref: components/schemas/ticketing/RefundInput.yaml
+    RefundResponse:
+      $ref: components/schemas/ticketing/RefundResponse.yaml
+    EventChangeInput:
+      $ref: components/schemas/ticketing/EventChangeInput.yaml
+    EventChangeResponse:
+      $ref: components/schemas/ticketing/EventChangeResponse.yaml
+    WaitlistInput:
+      $ref: components/schemas/ticketing/WaitlistInput.yaml
+    CategoryInput:
+      $ref: components/schemas/ticketing/CategoryInput.yaml
+    LocalDateTime:
+      $ref: components/schemas/ticketing/LocalDateTime.yaml
+    EventPolicyInput:
+      $ref: components/schemas/ticketing/EventPolicyInput.yaml
+    EventCreateRequest:
+      $ref: components/schemas/ticketing/EventCreateRequest.yaml
+    EventEditInput:
+      $ref: components/schemas/ticketing/EventEditInput.yaml
+    EventSavedResponse:
+      $ref: components/schemas/ticketing/EventSavedResponse.yaml
+    ResendEvent:
+      $ref: components/schemas/ticketing/ResendEvent.yaml
+    ResendWebhookResponse:
+      $ref: components/schemas/ticketing/ResendWebhookResponse.yaml
+    StripeWebhookResponse:
+      $ref: components/schemas/ticketing/StripeWebhookResponse.yaml
+    # --- end agent B ---
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml
@@ -312,3 +382,7 @@ components:
       $ref: components/security/EmergencyKey.yaml
     EmergencyBasic:
       $ref: components/security/EmergencyBasic.yaml
+    # --- agent B ---
+    CustomerSession:
+      $ref: components/security/CustomerSession.yaml
+    # --- end agent B ---

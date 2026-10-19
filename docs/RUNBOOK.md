@@ -234,3 +234,13 @@ Details: `docs/TICKETING_SCANNER.md`.
 - **Overrides and lookups** are in `ticket_access_log` (actions `lookup`, `override`); scan results are in `ticket_scan_events` (retain 13 months per `docs/DATABASE.md`).
 - **Offline conflicts:** `/organizer/events/<id>/scans?conflicts=1`, "Mark reviewed" sets `reviewed_at`.
 - **Browser tests:** `pnpm test:e2e` runs `tests/e2e/scanner-*.spec.ts` against the built app in Miniflare (no `.dev.vars` needed; `pnpm build` first).
+
+## 11. Gamo Live ticketing
+
+Details and owner actions: [`docs/TICKETING.md`](TICKETING.md) §5.
+
+- Paid checkout is test mode only and always `503` in production. On **preview** set `STRIPE_TEST_CHECKOUT=true` and a `sk_test_…` key; the local-only pages under `/local-test/*` answer 404 unless `ENVIRONMENT=local` (never set `STRIPE_TEST_CHECKOUT` in production: the startup check treats it as fatal).
+- Webhooks: `/api/webhook/stripe` (secret `STRIPE_WEBHOOK_SECRET`) and `/api/webhook/resend` (`RESEND_WEBHOOK_SECRET`); both answer `503` until their secret is set.
+- A failed card refund stays `approved` in `refund_records` and sends a staff alert email; retry it from the organizer order page.
+- Local ticket tests: `pnpm test:e2e -g "Gamo Live tickets"`; the organizer test also needs `SESSION_SECRET` in `apps/live/.dev.vars` and `astro dev`.
+

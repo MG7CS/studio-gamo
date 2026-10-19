@@ -19,8 +19,7 @@ export function isPrivatePage(app: PublicApp, path: string): boolean {
       '/workspaces',
       '/promote/create',
       '/promote/status',
-      '/ticket',
-      '/checkout',
+      '/promote/events',
     ],
     production: ['/client', '/crew'],
   };

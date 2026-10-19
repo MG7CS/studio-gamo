@@ -27,6 +27,8 @@ export interface StripeConfig {
    * ENVIRONMENT=local; everywhere else an unconfigured client throws StripeNotConfiguredError.
    */
   allowMock?: boolean;
+  /** Injected fetch (tests); defaults to the global fetch. */
+  fetchImpl?: typeof fetch;
 }
 
 /** Thrown when a Stripe call is attempted without a real (test-mode) key and mocks are not allowed. */
@@ -37,7 +39,8 @@ export class StripeNotConfiguredError extends Error {
   }
 }
 
-const isRealTestKey = (key?: string): key is string =>
+/** A real Stripe test-mode key (`sk_test_` / `rk_test_`, not a placeholder). */
+export const isRealTestKey = (key?: string): key is string =>
   Boolean(key && (key.startsWith('sk_test_') || key.startsWith('rk_test_')) && !key.includes('placeholder'));
 
 const STRIPE_API = 'https://api.stripe.com/v1';
@@ -58,27 +61,30 @@ export class StripeApiError extends Error {
  * POST to the Stripe API with a timeout. With an idempotency key, one retry is made on network
  * errors, 429 and 5xx (Stripe replays the original result for a repeated key).
  */
-async function stripePost(
+async function stripePost<T = { id: string; url: string }>(
   secretKey: string,
   path: string,
-  params: URLSearchParams,
+  params: URLSearchParams | null,
   idempotencyKey?: string,
-): Promise<{ id: string; url: string }> {
-  const attempts = idempotencyKey ? 2 : 1;
+  fetchImpl: typeof fetch = (...args) => fetch(...args),
+  method: 'POST' | 'GET' = 'POST',
+): Promise<T> {
+  // GETs are safe to retry; POSTs only with an idempotency key (Stripe replays the original result).
+  const attempts = idempotencyKey || method === 'GET' ? 2 : 1;
   let lastError: unknown;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      const res = await fetch(`${STRIPE_API}${path}`, {
-        method: 'POST',
+      const res = await fetchImpl(`${STRIPE_API}${path}`, {
+        method,
         headers: {
           Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
+          ...(method === 'POST' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
           ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
         },
-        body: params.toString(),
+        ...(method === 'POST' ? { body: (params ?? new URLSearchParams()).toString() } : {}),
         signal: AbortSignal.timeout(STRIPE_TIMEOUT_MS),
       });
-      if (res.ok) return (await res.json()) as { id: string; url: string };
+      if (res.ok) return (await res.json()) as T;
       const body = (await res.json().catch(() => null)) as {
         error?: { code?: string; type?: string };
       } | null;
@@ -292,6 +298,7 @@ export async function verifyStripeWebhookSignature(
  */
 export function createStripeTestClient(config?: StripeConfig) {
   const secretKey = config?.secretKey;
+  const fetchImpl = config?.fetchImpl;
   const allowMock = config?.allowMock === true;
   assertStripeTestMode(secretKey);
 
@@ -385,7 +392,13 @@ export function createStripeTestClient(config?: StripeConfig) {
         }
       }
 
-      const data = await stripePost(secretKey!, '/checkout/sessions', params, options.idempotencyKey);
+      const data = await stripePost(
+        secretKey!,
+        '/checkout/sessions',
+        params,
+        options.idempotencyKey,
+        fetchImpl,
+      );
       return {
         id: data.id,
         url: data.url,
@@ -412,12 +425,122 @@ export function createStripeTestClient(config?: StripeConfig) {
       params.append('customer', options.customerId);
       params.append('return_url', options.returnUrl);
 
-      const data = await stripePost(secretKey!, '/billing_portal/sessions', params);
+      const data = await stripePost(secretKey!, '/billing_portal/sessions', params, undefined, fetchImpl);
       return {
         id: data.id,
         url: data.url,
         mock: false,
       };
     },
+
+    /**
+     * Gamo Live ticket checkout (test mode only; no simulation here — local mocks live in the caller).
+     * One line item per order item, `expires_at` (Stripe allows 30 min – 24 h after creation),
+     * `metadata` + `client_reference_id` for reconciliation, and the idempotency key.
+     */
+    async createTicketCheckoutSession(options: TicketCheckoutOptions): Promise<TicketCheckoutResult> {
+      assertStripeTestMode(secretKey);
+      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
+      const params = new URLSearchParams();
+      params.append('mode', 'payment');
+      params.append('success_url', options.successUrl);
+      params.append('cancel_url', options.cancelUrl);
+      params.append('expires_at', String(Math.floor(options.expiresAt)));
+      if (options.customerEmail) params.append('customer_email', options.customerEmail);
+      if (options.clientReferenceId) params.append('client_reference_id', options.clientReferenceId);
+      options.lineItems.forEach((item, i) => {
+        params.append(`line_items[${i}][price_data][currency]`, options.currency);
+        params.append(`line_items[${i}][price_data][product_data][name]`, item.name.slice(0, 250));
+        params.append(`line_items[${i}][price_data][unit_amount]`, String(item.unitAmount));
+        params.append(`line_items[${i}][quantity]`, String(item.quantity));
+      });
+      for (const [k, v] of Object.entries(options.metadata ?? {})) {
+        params.append(`metadata[${k}]`, v);
+        params.append(`payment_intent_data[metadata][${k}]`, v);
+      }
+      const data = await stripePost<{ id: string; url: string; expires_at?: number }>(
+        secretKey,
+        '/checkout/sessions',
+        params,
+        options.idempotencyKey,
+        fetchImpl,
+      );
+      return { id: data.id, url: data.url, expiresAt: data.expires_at ?? options.expiresAt };
+    },
+
+    /** Reads a Checkout Session (payment status, amount, payment intent). */
+    async retrieveCheckoutSession(sessionId: string): Promise<StripeCheckoutSessionObject> {
+      assertStripeTestMode(secretKey);
+      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
+      if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) throw new StripeApiError(400, 'invalid_session_id');
+      return stripePost<StripeCheckoutSessionObject>(
+        secretKey,
+        `/checkout/sessions/${sessionId}`,
+        null,
+        undefined,
+        fetchImpl,
+        'GET',
+      );
+    },
+
+    /** Refunds part or all of a payment (test mode). The idempotency key makes a retry safe. */
+    async createRefund(options: RefundOptions): Promise<StripeRefundObject> {
+      assertStripeTestMode(secretKey);
+      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
+      const params = new URLSearchParams();
+      params.append('payment_intent', options.paymentIntentId);
+      params.append('amount', String(options.amountMinorUnits));
+      params.append('reason', options.reason ?? 'requested_by_customer');
+      for (const [k, v] of Object.entries(options.metadata ?? {})) params.append(`metadata[${k}]`, v);
+      return stripePost<StripeRefundObject>(secretKey, '/refunds', params, options.idempotencyKey, fetchImpl);
+    },
   };
+}
+
+export interface TicketCheckoutOptions {
+  lineItems: Array<{ name: string; unitAmount: number; quantity: number }>;
+  currency: string;
+  customerEmail?: string;
+  successUrl: string;
+  cancelUrl: string;
+  /** Epoch seconds; 30 minutes to 24 hours after creation. */
+  expiresAt: number;
+  metadata?: Record<string, string>;
+  clientReferenceId?: string;
+  idempotencyKey: string;
+}
+
+export interface TicketCheckoutResult {
+  id: string;
+  url: string;
+  expiresAt: number;
+}
+
+export interface StripeCheckoutSessionObject {
+  id: string;
+  object?: 'checkout.session';
+  status?: 'open' | 'complete' | 'expired';
+  payment_status?: 'paid' | 'unpaid' | 'no_payment_required';
+  amount_total?: number | null;
+  currency?: string | null;
+  payment_intent?: string | null;
+  client_reference_id?: string | null;
+  metadata?: Record<string, string> | null;
+  expires_at?: number;
+  livemode?: boolean;
+}
+
+export interface RefundOptions {
+  paymentIntentId: string;
+  amountMinorUnits: number;
+  idempotencyKey: string;
+  reason?: 'requested_by_customer' | 'duplicate' | 'fraudulent';
+  metadata?: Record<string, string>;
+}
+
+export interface StripeRefundObject {
+  id: string;
+  status?: string;
+  amount?: number;
+  payment_intent?: string | null;
 }

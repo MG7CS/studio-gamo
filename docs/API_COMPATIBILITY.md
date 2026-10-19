@@ -1,5 +1,18 @@
 # API compatibility decisions
 
+## Unreleased — Gamo Live ticketing (Phase 12c, Agent B; the lead assigns the version)
+
+Breaking changes (no external client is known; the Live UI is the only consumer and was rewritten with them):
+- `POST /api/events/{id}/register` (`registerAttendee`): the body is now `OrderInput` (`items[]` of `categoryId`/`sectionId`/`quantity`, `purchaserName`, `email`, `emailConfirm`, `termsAccepted`, `termsDocuments`, `idempotencyKey`, Turnstile token) instead of `{ attendeeName, attendeeEmail, quantity }`. It answers `202` with a `confirmToken` (identical for every address, no `201`/`200` split) instead of `201`/`200` + `isDuplicate`; tickets are issued only after `POST /api/orders/confirm`. New errors: `403` (security check), `413`, `415`, `429`, `503`; `409` carries `details.remaining`.
+- `POST /api/checkout/session` (`createTestCheckout`): body is `TicketCheckoutInput` (`eventId` + `OrderInput`) instead of `{ eventId, tierIndex, quantity, customerEmail, … }`; answers `200 { status: 'checkout', checkoutUrl, … }` or `202` for a free total. Always `503` in production (code path); error envelope is `TicketingError`.
+- `POST /api/tickets/lookup` (`lookupTicketRecords`): no longer returns tickets or accepts a sign-in code; it always answers `202` with the same message and emails a 30-minute link. The old response (`registrations`, `tickets`, raw `qrToken`) is gone.
+- `POST /api/orders/{id}/refund` (`processOrderRefund`): body is `{ ticketIds?, reason }` (per-ticket, cumulative) instead of `{ reason, amountCents? }`; response `RefundResponse`.
+- `POST /api/webhook/stripe`: financial events are now processed (no more blanket `503`); `409` while another delivery of the same event is in flight; `503` only without `STRIPE_WEBHOOK_SECRET`; errors use the standard envelope.
+- `POST /api/events` (`proposeEvent`): additionally accepts the organizer form shape (`EventEditInput`: venue-local `start`, `policy`, `categories`) and answers `201 { eventId, slug, status, message }`; the old shape (`startsAt`) still works and always goes to review.
+
+Additive: `POST /api/orders/confirm`, `POST /api/tickets/{id}/transfer`, `POST /api/tickets/{id}/reissue`, `POST /api/events/{id}/changes`, `POST /api/events/{id}/waitlist`, `POST /api/webhook/resend`, `PATCH /api/events/{id}`; security scheme `CustomerSession` (cookie `__gamo_customer`).
+- Verification: `pnpm api:check`, contract tests (63 operations over loopback HTTP).
+
 ## 2.1.0
 
 Base: 1d4bbad

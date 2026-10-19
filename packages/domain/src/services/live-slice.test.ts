@@ -23,7 +23,9 @@ import { createDb, type GamoDatabase } from '@gamo/db';
 import { LiveService } from './live.ts';
 import { AdminService } from './admin.ts';
 import { IdentityService } from './identity.ts';
-import { NotificationService } from './notifications.ts';
+import { orderVerificationCode, placeOrder, readConfirmToken } from './ticketing/checkout.ts';
+import { confirmFreeOrder, confirmOrderByCode } from './ticketing/issuance.ts';
+import { getTermsDocument } from '../terms/registry.ts';
 import { getPlatformBrandConfig } from '@gamo/config/brand';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -34,7 +36,6 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
   let liveService: LiveService;
   let adminService: AdminService;
   let identityService: IdentityService;
-  let notificationService: NotificationService;
   let organizerOrgId: string;
   let staffUserId: string;
 
@@ -54,7 +55,6 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     liveService = new LiveService(db);
     adminService = new AdminService(db);
     identityService = new IdentityService(db);
-    notificationService = new NotificationService(db, { allowMock: true });
 
     // 3. Issue and verify email challenge for organizer user, then onboard organization
     const challenge = await identityService.issueEmailChallenge('organizer@riverside.example');
@@ -153,46 +153,66 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(publicEvents[0].title, 'Community Worship Night & Fellowship');
   });
 
-  test('Step 6 & 7: Attendee registers for the free event with QR token and durable notification outbox processing', async () => {
+  test('Step 6 & 7: Attendee reserves 2 free tickets, confirms the emailed code and gets 2 signed tickets', async () => {
     const [event] = await liveService.listDiscoverableEvents();
     assert.ok(event);
-
-    const regResult = await liveService.registerFreeAttendee(event.id, {
-      attendeeName: 'Hannah Clark',
-      attendeeEmail: 'hannah.clark@example.org',
-      quantity: 2,
+    const env = { DB: d1, ENVIRONMENT: 'local' };
+    const email = 'hannah.clark@example.org';
+    const placed = await placeOrder(d1, env, {
+      request: {
+        eventId: event.id,
+        items: [{ categoryId: event.tiers[0].id, sectionId: null, quantity: 2 }],
+        purchaserName: 'Hannah Clark',
+        email,
+        emailConfirm: email,
+        attendeeNames: [],
+        termsAccepted: true,
+        termsDocuments: ['ticket-terms', 'privacy-policy'].map((slug) => ({
+          slug,
+          version: getTermsDocument(slug)!.version,
+        })),
+        marketingOptIn: false,
+        idempotencyKey: 'idem_live_slice_step_6_hannah',
+      },
+      allow: 'free',
+      ipHash: null,
+      origin: 'http://127.0.0.1:4324',
+      https: false,
+      now: Math.floor(Date.now() / 1000),
     });
-
-    assert.equal(regResult.isDuplicate, false);
-    assert.ok(regResult.registration.id.startsWith('reg_'));
-    assert.ok(regResult.registration.qrToken.startsWith('gamt_'));
-    assert.equal(regResult.registration.quantity, 2);
-    assert.equal(regResult.registration.status, 'confirmed');
-
-    // Without an email provider (and outside local simulation) nothing is sent and no retry is spent.
-    const unconfigured = await new NotificationService(db).processRegistrationJob(regResult.registration.id);
-    assert.ok(unconfigured);
-    assert.equal(unconfigured.status, 'pending');
-    assert.equal(unconfigured.attempts, 0);
-
-    // Process durable notification_jobs outbox row created by the registration trigger
-    const jobOutcome = await notificationService.processRegistrationJob(regResult.registration.id);
-    assert.ok(jobOutcome);
-    assert.equal(jobOutcome.status, 'sent');
-    assert.equal(jobOutcome.attempts, 1);
+    assert.equal(placed.type, 'verify');
+    const orderId = (await readConfirmToken(
+      env,
+      (placed as { confirmToken: string }).confirmToken,
+      Math.floor(Date.now() / 1000),
+    ))!;
+    const confirmed = await confirmOrderByCode(d1, env, {
+      confirmToken: (placed as { confirmToken: string }).confirmToken,
+      code: await orderVerificationCode(env, orderId),
+      now: Math.floor(Date.now() / 1000),
+      origin: 'http://127.0.0.1:4324',
+    });
+    assert.equal(confirmed.issued, 2);
   });
 
-  test('Step 8: Duplicate registration for the same attendee email is prevented', async () => {
-    const [event] = await liveService.listDiscoverableEvents();
-
-    const secondAttempt = await liveService.registerFreeAttendee(event.id, {
-      attendeeName: 'Hannah Clark',
-      attendeeEmail: 'hannah.clark@example.org',
-      quantity: 2,
-    });
-
-    assert.equal(secondAttempt.isDuplicate, true);
-    assert.ok(secondAttempt.registration.qrToken.startsWith('gamt_'));
+  test('Step 8: Confirming again issues no second set of tickets', async () => {
+    const order = d1.sqlite
+      .prepare("SELECT id FROM ticket_orders WHERE purchaser_email = 'hannah.clark@example.org'")
+      .get() as { id: string };
+    const again = await confirmFreeOrder(
+      d1,
+      { DB: d1, ENVIRONMENT: 'local' },
+      { orderId: order.id, now: Math.floor(Date.now() / 1000), origin: 'http://127.0.0.1:4324' },
+    );
+    assert.equal(again.issued, 0);
+    assert.equal(
+      (
+        d1.sqlite.prepare('SELECT count(*) AS n FROM tickets WHERE order_id = ?').get(order.id) as {
+          n: number;
+        }
+      ).n,
+      2,
+    );
   });
 
   test('Step 9: Organizer dashboard reflects live registration totals', async () => {
@@ -201,7 +221,7 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     assert.equal(dashboard.totalEvents, 1);
     assert.equal(dashboard.publishedEvents, 1);
     assert.equal(dashboard.pendingReviewEvents, 0);
-    // 2 tickets reserved in Step 6
+    // 2 tickets issued in Step 6
     assert.equal(dashboard.totalRegistrations, 2);
     assert.equal(dashboard.events[0].registrationCount, 2);
   });

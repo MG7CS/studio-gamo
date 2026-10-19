@@ -220,34 +220,51 @@ try {
   });
   assert.equal(approveRes.status, 200);
 
-  // 6. Open /events/{id}/register in browser and complete free registration for quantity = 2
+  // 6. Reserve 2 free tickets in the browser, confirm the emailed code, and get 2 signed tickets
   await page.goto(`${baseUrl}/events/${eventId}/register`, { waitUntil: 'networkidle' });
   await page.fill('[data-reg-form] input[name="attendeeName"]', 'Hannah Attendee');
   await page.fill('[data-reg-form] input[name="attendeeEmail"]', 'hannah@example.org');
   await page.fill('[data-reg-form] input[name="quantity"]', '2');
   await page.click('[data-reg-submit]');
+  await page.waitForSelector('[data-confirm-form]:not([hidden])');
+  const confirmToken = await page.getAttribute('[data-free-registration]', 'data-confirm-token');
+  const { code } = await (
+    await mf.dispatchFetch(`${baseUrl}/test/order-code?t=${encodeURIComponent(confirmToken)}`)
+  ).json();
+  assert.match(code, /^\d{6}$/);
+  // Nothing is issued before the email is confirmed; the seats are held.
+  assert.equal((await db.prepare('SELECT count(*) n FROM tickets').first()).n, 0);
+  await page.fill('[data-confirm-form] input[name="code"]', code);
+  await page.click('[data-confirm-submit]');
+  await page.waitForFunction(() =>
+    (document.querySelector('[data-reg-status]')?.textContent || '').includes('Tickets issued: 2'),
+  );
 
-  await page.waitForSelector('[data-reg-status]:not([hidden])');
-  const regStatusText = await page.textContent('[data-reg-status]');
-  assert.match(regStatusText || '', /Registration confirmed and confirmation notification processed/);
+  const orderRow = await db
+    .prepare("SELECT status, quantity FROM ticket_orders WHERE purchaser_email = 'hannah@example.org'")
+    .first();
+  assert.deepEqual(
+    { status: orderRow.status, quantity: orderRow.quantity },
+    { status: 'confirmed', quantity: 2 },
+  );
+  assert.equal((await db.prepare("SELECT count(*) n FROM tickets WHERE status = 'valid'").first()).n, 2);
+  // The ticket email went through the outbox (simulated locally).
+  const emailRow = await db
+    .prepare("SELECT status FROM email_log WHERE kind = 'ticket_confirmation'")
+    .first();
+  assert.ok(['sent', 'not_configured'].includes(emailRow.status));
 
-  // Verify notification_jobs row in D1 was processed to status = 'sent'
-  const notifRow = await db.prepare('SELECT status, attempts FROM notification_jobs LIMIT 1').first();
-  assert.equal(notifRow.status, 'sent');
-  assert.equal(notifRow.attempts, 1);
-
-  // 7. Verify over-capacity registration in browser returns 409 Conflict message
+  // 7. A registration that does not fit the remaining capacity is refused with an explanation
+  await page.goto(`${baseUrl}/events/${eventId}/register`, { waitUntil: 'networkidle' });
   await page.fill('[data-reg-form] input[name="attendeeName"]', 'Late Guest');
   await page.fill('[data-reg-form] input[name="attendeeEmail"]', 'late@example.org');
-  await page.fill('[data-reg-form] input[name="quantity"]', '1');
+  await page.fill('[data-reg-form] input[name="quantity"]', '2');
   await page.click('[data-reg-submit]');
-
-  await page.waitForFunction(() => {
-    const el = document.querySelector('[data-reg-status]');
-    return el && (el.textContent || '').includes('conflicts with the current resource state');
-  });
+  await page.waitForFunction(() =>
+    (document.querySelector('[data-reg-status]')?.textContent || '').includes('Not enough tickets'),
+  );
   const capErrorText = await page.textContent('[data-reg-status]');
-  assert.match(capErrorText || '', /conflicts with the current resource state/);
+  assert.match(capErrorText || '', /Not enough tickets are left/);
 
   // 8. Navigate back to /account/signin, click Sign out, and verify session termination in browser
   await page.goto(`${baseUrl}/account/signin`, { waitUntil: 'networkidle' });

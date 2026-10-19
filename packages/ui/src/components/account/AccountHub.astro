@@ -36,7 +36,7 @@ const isProduction = program === 'Gamo Production';
   <nav class="mt-6 flex flex-wrap gap-6 text-sm font-medium text-terracotta" aria-label="Account actions">
     {workspaceHref && <a href={workspaceHref}>Open {program} workspace →</a>}
     {isLive && <a href="/promote/create">List a Christian event →</a>}
-    {isLive && <a href="/my-tickets">My tickets & passes →</a>}
+    {isLive && <a href="/tickets/find">My tickets & passes →</a>}
     {isAcademy && <a href="/family">Family enrollment workspace →</a>}
     {isWorship && <a href="/account/onboarding?role=musician">Musician application →</a>}
     {isProduction && <a href="/client">Ministry production requests →</a>}

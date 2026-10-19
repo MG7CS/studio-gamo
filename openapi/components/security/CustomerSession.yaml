@@ -1,0 +1,5 @@
+type: apiKey
+in: cookie
+name: __gamo_customer
+description: Signed customer session opened from an emailed link (scoped to the customer, an order or
+  a ticket; at most 2 hours). Customers have no account.

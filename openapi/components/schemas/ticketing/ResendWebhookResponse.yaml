@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  received:
+    const: true
+  applied:
+    type: boolean
+required:
+  - received
+  - applied

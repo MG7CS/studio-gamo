@@ -14,7 +14,7 @@ const PRIVATE_ROOTS: Record<PublicApp, string[]> = {
   web: ['/partner'],
   worship: ['/church', '/musician', '/check-in', '/admin'],
   academy: ['/family', '/instructor', '/host'],
-  live: ['/organizer', '/artist', '/agent', '/me', '/workspaces', '/promote', '/ticket', '/checkout'],
+  live: ['/organizer', '/artist', '/agent', '/me', '/workspaces', '/promote'],
   production: ['/client', '/crew'],
 };
 // Partial APIContext: the crawler routes only read request/url/locals.

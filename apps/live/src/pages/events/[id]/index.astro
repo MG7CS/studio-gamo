@@ -769,19 +769,12 @@ const pageDescription = metro
                     Organized by <strong>{event.organizerName}</strong>
                   </p>
 
-                  {event.admissionType === 'free' ? (
-                    <a
-                      class="mt-6 w-full inline-flex items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
-                      href={`/events/${event.id}/register`}
-                    >
-                      Register for free
-                    </a>
-                  ) : (
-                    <p class="mt-6 text-sm text-muted bg-cream p-4 rounded-xl">
-                      Paid ticketing is not available through Gamo Live at this time. Contact the organizer
-                      for attendance information.
-                    </p>
-                  )}
+                  <a
+                    class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
+                    href={`/events/${event.slug}/register`}
+                  >
+                    {event.admissionType === 'free' ? 'Register for free' : 'Get tickets'}
+                  </a>
                 </div>
               )}
             </div>

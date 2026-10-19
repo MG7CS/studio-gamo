@@ -56,7 +56,7 @@ test('all application private route families are gated without gating public lea
     ['live', '/organizer/scan'],
     ['live', '/workspaces'],
     ['live', '/promote/create'],
-    ['live', '/ticket'],
+    ['live', '/promote/events/evt_1/orders'],
     ['production', '/crew'],
     ['production', '/client'],
   ] as const)

@@ -358,7 +358,7 @@ export function workspaceDirectory(): WorkspaceLink[] {
       program: 'Gamo Live',
       label: 'Ticket & pass lookup',
       role: 'Attendee self-service',
-      href: siteUrl('live', '/my-tickets'),
+      href: siteUrl('live', '/tickets/find'),
     },
     {
       id: 'client',

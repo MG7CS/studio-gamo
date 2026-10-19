@@ -1,0 +1,33 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      refundId:
+        type:
+          - string
+          - 'null'
+      ticketIds:
+        type: array
+        items:
+          type: string
+      amountCents:
+        type: integer
+      status:
+        enum:
+          - processed
+          - cancelled_free
+          - refund_pending
+          - nothing_to_do
+    required:
+      - refundId
+      - ticketIds
+      - amountCents
+      - status
+required:
+  - success
+  - data

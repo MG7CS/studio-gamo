@@ -1,0 +1,20 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      ticketId:
+        type: string
+      version:
+        type: integer
+        minimum: 2
+    required:
+      - ticketId
+      - version
+required:
+  - success
+  - data
