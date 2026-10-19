@@ -8,6 +8,8 @@ compatibility_flags = ["nodejs_compat"]
 ENVIRONMENT = "local"
 ALLOW_DEMO_SESSION = "false"
 STRIPE_SANDBOX_ENABLED = "true"
+# Local only: the mock Stripe checkout page (docs/TICKETING.md). Never set in production.
+STRIPE_TEST_CHECKOUT = "true"
 PLATFORM_BRAND = "Gamo Live"
 PLATFORM_IS_LIVE_DOMAIN = "false"
 PLATFORM_SUPPORT_EMAIL = "hello@gamostudio.org"

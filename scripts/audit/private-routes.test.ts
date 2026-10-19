@@ -76,7 +76,20 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/events/[id]',
     // Free RSVP and email-verified ticket recovery are public by design.
     '/events/[id]/register',
-    '/my-tickets',
+    '/link',
+    '/tickets/find',
+    '/tickets/confirm',
+    '/tickets/manage',
+    '/tickets/orders/[id]',
+    '/tickets/orders/[id]/tickets.pdf',
+    '/tickets/orders/[id]/event.ics',
+    '/tickets/[id]/transfer',
+    '/tickets/[id]/ticket.svg',
+    '/tickets/[id]/ticket.pdf',
+    '/tickets/[id]/qr.png',
+    '/local-test/inbox',
+    '/local-test/fixtures',
+    '/local-test/stripe-checkout/[session]',
     '/venues',
     '/artists',
     '/artists/[slug]',
@@ -111,12 +124,15 @@ const PUBLIC_API = new Set([
   'GET /api/events',
   'GET /api/events/[id]',
   'GET /api/artists',
-  'POST /api/events/[id]/register', // free RSVP
-  'POST /api/tickets/lookup', // requires an emailed one-time code
+  'POST /api/events/[id]/register', // free RSVP (Turnstile + limits; tickets after email confirmation)
+  'POST /api/tickets/lookup', // emails a link; same answer for every address
   'POST /api/checkout/session', // guest checkout; fails closed without Stripe
   'POST /api/webhook/stripe', // Stripe signature
   'POST /api/auth/clerk-webhook', // Svix signature with this product's CLERK_WEBHOOK_SECRET_<APP>
   'GET /api/venue-maps/[id]', // venue blueprint image (random id, sandboxed image response)
+  'POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
+  'POST /api/orders/confirm', // emailed one-time code, limited per order
+  'POST /api/events/[id]/waitlist', // Turnstile + rate limits; same answer for every address
 ]);
 
 function walk(dir: string, base = ''): string[] {

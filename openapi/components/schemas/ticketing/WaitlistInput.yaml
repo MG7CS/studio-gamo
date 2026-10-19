@@ -1,0 +1,17 @@
+type: object
+additionalProperties: false
+properties:
+  email:
+    type: string
+    maxLength: 320
+  categoryId:
+    $ref: ../shared/Identifier.yaml
+  quantity:
+    type: integer
+    minimum: 1
+    maximum: 20
+  cf-turnstile-response:
+    type: string
+    maxLength: 2048
+required:
+  - email

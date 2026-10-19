@@ -1,83 +1,62 @@
-import { validateContract } from '@gamo/api-contracts/runtime';
 import type { APIRoute } from 'astro';
-import { verifyStripeWebhookSignature, type StripeWebhookEvent } from '@studio-gamo/integrations';
-import { getDb } from '@gamo/db';
-import { PaymentService, LiveService, getRuntimeEnv } from '@gamo/domain';
+import {
+  errorResponse,
+  getRuntimeEnv,
+  handleStripeWebhook,
+  nowSeconds,
+  readBoundedBody,
+  requestOrigin,
+  ticketingDb,
+  ticketingErrorResponse,
+} from '@gamo/domain';
 
 export const prerender = false;
 
+const MAX_BYTES = 256 * 1024;
+
+/** POST /api/webhook/stripe — signed Stripe test events (design §5.2). */
 export const POST: APIRoute = async (context) => {
   try {
-    const runtimeEnv = await getRuntimeEnv(context);
-    const webhookSecret = runtimeEnv.STRIPE_WEBHOOK_SECRET;
-
-    if (!webhookSecret) {
-      return new Response(JSON.stringify({ error: 'Webhook secret unconfigured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const rawBody = await context.request.text().catch(() => '');
-    const signatureHeader = context.request.headers.get('stripe-signature');
-
-    const verification = await verifyStripeWebhookSignature(rawBody, signatureHeader, webhookSecret);
-
-    if (!verification.valid || !verification.event) {
-      return new Response(JSON.stringify({ error: verification.error || 'Invalid webhook signature' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const event: StripeWebhookEvent = verification.event;
-    if (event.livemode !== false) {
-      return new Response(JSON.stringify({ error: 'Only sandbox events are accepted.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
+    const env = await getRuntimeEnv(context);
+    const read = await readBoundedBody(context.request, MAX_BYTES);
+    if (!read.ok) return errorResponse('BAD_REQUEST', 'Invalid webhook payload.', 400);
+    let rawBody: string;
     try {
-      validateContract('StripeEvent', event);
+      rawBody = new TextDecoder('utf-8', { fatal: true }).decode(read.bytes);
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid sandbox webhook payload.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return errorResponse('BAD_REQUEST', 'Invalid webhook payload.', 400);
     }
-
-    const db = getDb(runtimeEnv.DB);
-    if (/^(checkout\.|charge\.|payment_intent\.|refund\.)/.test(event.type)) {
-      const liveService = new LiveService(db);
-      const fulfillment = await liveService.fulfillWebhookFinancialEvent(event);
-      if (fulfillment.gateBlocked) {
-        return Response.json(
-          { error: 'Financial fulfillment is disabled pending verified order processing.' },
-          { status: 503 },
-        );
-      }
-
-      const paymentService = new PaymentService(db);
-      const { isDuplicate } = await paymentService.recordWebhookEventIdempotent(event.id, event.type);
-      return Response.json({
-        received: true,
-        eventId: event.id,
-        type: event.type,
-        orderId: fulfillment.orderId,
-        ticketsIssued: fulfillment.ticketsIssued,
-        ...(isDuplicate || fulfillment.deduplicated ? { deduplicated: true } : {}),
-      });
+    const signature = context.request.headers.get('stripe-signature');
+    // Reject unsigned requests before touching the database.
+    if (!signature) return errorResponse('BAD_REQUEST', 'Invalid webhook signature.', 400);
+    const result = await handleStripeWebhook(
+      ticketingDb(env as Record<string, unknown>),
+      env as Record<string, unknown>,
+      {
+        rawBody,
+        signature,
+        ctx: { now: nowSeconds(), origin: requestOrigin(context.request) },
+      },
+    );
+    if (result.status !== 200) {
+      const code =
+        result.status === 503
+          ? 'UNAVAILABLE'
+          : result.status === 409
+            ? 'CONFLICT'
+            : result.status === 500
+              ? 'INTERNAL_ERROR'
+              : 'BAD_REQUEST';
+      return errorResponse(
+        code,
+        String(result.body.error ?? 'Webhook processing failed.'),
+        result.status,
+        undefined,
+        { 'Cache-Control': 'no-store' },
+      );
     }
-
-    const paymentService = new PaymentService(db);
-    const { isDuplicate } = await paymentService.recordWebhookEventIdempotent(event.id, event.type);
-    return Response.json({
-      received: true,
-      eventId: event.id,
-      ...(isDuplicate ? { deduplicated: true } : {}),
-    });
-  } catch {
-    return Response.json({ error: 'Webhook processing failed.' }, { status: 500 });
+    return Response.json(result.body, { status: 200, headers: { 'Cache-Control': 'no-store' } });
+  } catch (err) {
+    return ticketingErrorResponse(err);
   }
 };

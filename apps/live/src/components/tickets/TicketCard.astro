@@ -1,0 +1,135 @@
+---
+/**
+ * One ticket on the order page: the server-rendered SVG ticket as an <img> (works without JS; long-press
+ * saves it), downloads (PDF always; PNG via a small island that draws the SVG on a canvas — and swaps the
+ * image for the PNG so long-press on iPhone saves a PNG), and the transfer link for the current holder.
+ * A ticket that left this customer shows "transferred to j•••@…" and no code.
+ */
+import type { TicketView } from '@gamo/domain';
+
+interface Props {
+  ticket: TicketView;
+  index: number;
+  eventTitle: string;
+}
+const { ticket, index, eventTitle } = Astro.props;
+const label = `Ticket ${index + 1}`;
+const alt = `${label} for ${eventTitle}, ${ticket.holderName}, ${ticket.categoryName}. Shows a QR code to scan at the door.`;
+---
+
+<article
+  class="rounded-3xl bg-white p-4 ring-1 ring-sand sm:p-5"
+  data-ticket-card
+  aria-labelledby={`t-${ticket.id}`}
+>
+  <h3 id={`t-${ticket.id}`} class="text-base font-black uppercase text-ink">
+    {label} · {ticket.holderName}
+    {ticket.state !== 'valid' && (
+      <span class="ml-2 rounded-full bg-sand px-2.5 py-0.5 text-xs font-bold normal-case text-ink">
+        {ticket.state === 'transferred_away'
+          ? 'Transferred'
+          : ticket.state === 'refunded'
+            ? 'Refunded'
+            : 'Cancelled'}
+      </span>
+    )}
+  </h3>
+  {ticket.state === 'transferred_away' ? (
+    <p class="mt-3 text-ink">
+      This ticket was transferred to <strong>{ticket.transferredTo}</strong>. Its old QR code no longer works
+      and is not shown here.
+    </p>
+  ) : (
+    <>
+      <img
+        src={`/tickets/${ticket.id}/ticket.svg`}
+        alt={alt}
+        width="360"
+        height="640"
+        class="mx-auto mt-3 h-auto w-full max-w-[360px] rounded-2xl"
+        data-ticket-image
+        loading="lazy"
+      />
+      <ul class="mt-4 flex flex-wrap gap-3">
+        {ticket.state === 'valid' && (
+          <>
+            <li>
+              <a
+                class="inline-flex min-h-11 items-center rounded-full bg-terracotta px-5 py-2.5 text-sm font-bold text-white hover:bg-terracotta-deep"
+                href={`/tickets/${ticket.id}/ticket.svg`}
+                download={`ticket-${index + 1}.svg`}
+                data-ticket-png
+              >
+                Download image
+              </a>
+            </li>
+            <li>
+              <a
+                class="inline-flex min-h-11 items-center rounded-full border border-ink px-5 py-2.5 text-sm font-bold text-ink hover:bg-sand"
+                href={`/tickets/${ticket.id}/ticket.pdf`}
+              >
+                Download PDF
+              </a>
+            </li>
+            <li>
+              {ticket.canTransfer ? (
+                <a
+                  class="inline-flex min-h-11 items-center rounded-full border border-ink px-5 py-2.5 text-sm font-bold text-ink hover:bg-sand"
+                  href={`/tickets/${ticket.id}/transfer`}
+                >
+                  Transfer to someone else
+                </a>
+              ) : (
+                <span class="inline-flex min-h-11 items-center text-sm text-muted">
+                  {ticket.transferBlockedReason}
+                </span>
+              )}
+            </li>
+          </>
+        )}
+      </ul>
+    </>
+  )}
+</article>
+
+<script>
+  // Progressive enhancement: turn the SVG ticket into a PNG so iPhone long-press / "Download image" give a PNG.
+  async function toPng(img: HTMLImageElement, link: HTMLAnchorElement | null) {
+    try {
+      const res = await fetch(img.src, { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const svgUrl = URL.createObjectURL(await res.blob());
+      const source = new Image();
+      source.decoding = 'async';
+      await new Promise<void>((ok, fail) => {
+        source.onload = () => ok();
+        source.onerror = () => fail(new Error('image'));
+        source.src = svgUrl;
+      });
+      const scale = 3;
+      const canvas = document.createElement('canvas');
+      canvas.width = 360 * scale;
+      canvas.height = 640 * scale;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(svgUrl);
+      const blob = await new Promise<Blob | null>((ok) => canvas.toBlob(ok, 'image/png'));
+      if (!blob) return;
+      const pngUrl = URL.createObjectURL(blob);
+      img.src = pngUrl;
+      img.dataset.png = 'ready';
+      if (link) {
+        link.href = pngUrl;
+        link.download = (link.download || 'ticket').replace(/\.svg$/, '.png');
+        link.textContent = 'Download PNG';
+      }
+    } catch {
+      // Keep the SVG: still visible, still downloadable.
+    }
+  }
+  document.querySelectorAll<HTMLElement>('[data-ticket-card]').forEach((card) => {
+    const img = card.querySelector<HTMLImageElement>('[data-ticket-image]');
+    if (img) void toPng(img, card.querySelector<HTMLAnchorElement>('[data-ticket-png]'));
+  });
+</script>

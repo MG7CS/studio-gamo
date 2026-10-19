@@ -5,17 +5,15 @@ post:
   operationId: receiveStripeWebhook
   tags:
     - Payments
-  summary: Receive signed test Stripe event
-  description: Raw signature and sandbox verified. Financial events return 503
-    without marking processed; unsupported events safely deduplicated. No ticket
-    or refund fulfillment.
+  summary: Receive a signed Stripe test event
+  description: >-
+    Signature and test mode verified. Claims the event id (409 while another delivery is processing) and dispatches checkout.session.completed and async_payment_succeeded (issue tickets once; amount, currency and payment status checked; paid after the stock is gone becomes paid_unfulfillable with an automatic test refund), checkout.session.expired, charge.refunded, refund.updated and charge.dispute.created; other types are recorded as ignored. Failures answer 500 so Stripe retries; 503 without STRIPE_WEBHOOK_SECRET.
   security:
     - StripeSignature: []
   x-application: live
   x-status: implemented
-  x-authorization: Public
-  x-idempotency: Stripe event ID in D1; failure retry and concurrent claim
-    correctness remain blockers.
+  x-authorization: Public (Stripe signature).
+  x-idempotency: Stripe event id claimed in D1; per-seat issuance is idempotent.
   x-source: apps/live/src/pages/api/webhook/stripe.ts
   parameters: []
   responses:
@@ -24,13 +22,15 @@ post:
       content:
         application/json:
           schema:
-            $ref: ../components/schemas/payments/WebhookResponse.yaml
+            $ref: ../components/schemas/ticketing/StripeWebhookResponse.yaml
     '400':
-      $ref: ../components/responses/SimpleError.yaml
+      $ref: ../components/responses/TicketingError.yaml
+    '409':
+      $ref: ../components/responses/TicketingError.yaml
     '500':
-      $ref: ../components/responses/SimpleError.yaml
+      $ref: ../components/responses/TicketingError.yaml
     '503':
-      $ref: ../components/responses/SimpleError.yaml
+      $ref: ../components/responses/TicketingError.yaml
   requestBody:
     required: true
     content:

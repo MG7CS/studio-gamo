@@ -146,40 +146,62 @@ try {
   await call('/api/events/pending', 200, undefined, staffCookie);
   await call(`/api/events/${id}/review`, 200, { decision: 'approved' }, staffCookie);
   await call(`/api/events/${id}`, 200);
+  const detail = await call(`/api/events/${id}`, 200);
+  const categoryId = detail.json.data.tiers[0].id;
+  const termsVersion = '2026-10-18-draft.1';
+  const orderBody = (email, idempotencyKey, quantity = 1) => ({
+    items: [{ categoryId, quantity }],
+    purchaserName: 'Sample Attendee',
+    email,
+    emailConfirm: email,
+    termsAccepted: true,
+    termsDocuments: [
+      { slug: 'ticket-terms', version: termsVersion },
+      { slug: 'privacy-policy', version: termsVersion },
+    ],
+    idempotencyKey,
+    'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
+  });
+  // 12 parallel RSVPs for 3 seats under workerd: exactly 3 hold seats, 9 are told what is left.
   const attempts = await Promise.all(
     Array.from({ length: 12 }, (_, n) =>
       mf.dispatchFetch(`http://localhost/api/events/${id}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          attendeeName: 'Sample Attendee',
-          attendeeEmail: `sample${n}@example.invalid`,
-          quantity: 1,
-        }),
+        body: JSON.stringify(orderBody(`sample${n}@example.invalid`, `idem_workerd_audit_${n}_xxxxxxxx`)),
       }),
     ),
   );
-  assert.equal(attempts.filter((x) => x.status === 201).length, 3);
+  assert.equal(attempts.filter((x) => x.status === 202).length, 3);
   assert.equal(attempts.filter((x) => x.status === 409).length, 9);
   for (const response of attempts) {
     const body = await response.json();
     assert.equal(body.data?.registration, undefined);
   }
-  assert.equal((await db.prepare('SELECT sum(quantity) n FROM event_registrations').first()).n, 3);
   assert.equal(
-    (await db.prepare("SELECT count(*) n FROM notification_jobs WHERE status='sent'").first()).n,
+    (await db.prepare("SELECT count(*) n FROM ticket_orders WHERE status = 'pending_verification'").first())
+      .n,
     3,
   );
-  const stored = await db.prepare('SELECT attendee_email FROM event_registrations LIMIT 1').first();
-  const duplicate = await call(`/api/events/${id}/register`, 200, {
-    attendeeName: 'Attacker',
-    attendeeEmail: stored.attendee_email,
-  });
-  assert.equal(duplicate.json.data.registration, undefined);
+  assert.equal(
+    (await db.prepare('SELECT reserved_count n FROM ticket_tiers WHERE id = ?').bind(categoryId).first()).n,
+    3,
+  );
+  // A double submit (same idempotency key) answers the same and holds nothing more.
+  const winner = (await Promise.all(attempts.map(async (r, n) => [r.status, n]))).find(
+    ([st]) => st === 202,
+  )[1];
+  const again = await call(
+    `/api/events/${id}/register`,
+    202,
+    orderBody(`sample${winner}@example.invalid`, `idem_workerd_audit_${winner}_xxxxxxxx`),
+  );
+  assert.equal(again.json.data.registration, undefined);
+  assert.equal((await db.prepare('SELECT count(*) n FROM ticket_orders').first()).n, 3);
   assert.deepEqual((await db.prepare('PRAGMA foreign_key_check').all()).results, []);
   const r2 = await call('/test/r2', 200);
   assert.deepEqual(r2.json, { denied: true, owner: true });
-  await call('/api/checkout/session', 503, { eventId: id });
+  await call('/api/checkout/session', 400, { eventId: id });
   await call('/api/auth/session', 200, undefined, cookie, 'DELETE');
   await call('/api/events', 401, input, cookie);
 } finally {

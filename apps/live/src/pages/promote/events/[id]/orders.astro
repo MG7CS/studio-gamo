@@ -1,0 +1,212 @@
+---
+/**
+ * Orders for one event (organizer): per-ticket refunds / cancellations (approve_refunds) and reissue
+ * (manage_ticketing, reason required). Emails are masked; every action is audited.
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import PageHeader from '../../../../components/shared/PageHeader.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import { getDb } from '@gamo/db';
+import { requireSameOrigin, hasEventPermission } from '@gamo/auth';
+import {
+  TicketingError,
+  formatMoney,
+  loadOrder,
+  loadTicket,
+  maskEmail,
+  nowSeconds,
+  refundTickets,
+  reissueTicket,
+} from '@gamo/domain';
+import { allRows } from '@gamo/domain/security';
+import { organizerEventGate } from '../../../../lib/organizer-event';
+import { problemFromError, type FormProblem } from '../../../../lib/page-forms';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const gate = await organizerEventGate(Astro, ['manage_ticketing']);
+if (gate instanceof Response) return gate;
+const { auth, env, db, event } = gate;
+const canRefund = await hasEventPermission(getDb(env.DB), auth, event.id, 'approve_refunds');
+let problem: FormProblem | null = null;
+let notice: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+    const form = await Astro.request.formData();
+    const intent = String(form.get('intent') ?? '');
+    const reason = String(form.get('reason') ?? '');
+    const now = nowSeconds();
+    if (intent === 'refund') {
+      if (!canRefund) throw Object.assign(new Error('FORBIDDEN'), { code: 'FORBIDDEN' });
+      const orderId = String(form.get('orderId') ?? '');
+      // The order must belong to THIS event (the permission was checked for this event only).
+      if ((await loadOrder(db, orderId))?.event_id !== event.id)
+        throw new TicketingError('NOT_FOUND', 'Order not found for this event.');
+      const result = await refundTickets(db, env, {
+        orderId,
+        ticketIds: form.getAll('ticket').map(String),
+        reason,
+        actorUserId: auth.user.id,
+        now,
+        origin: Astro.url.origin,
+      });
+      notice =
+        result.status === 'nothing_to_do'
+          ? 'Nothing changed: those tickets were already refunded or cancelled.'
+          : result.status === 'refund_pending'
+            ? 'Tickets cancelled, but the card refund is pending. Staff were alerted; try again shortly.'
+            : `Done: ${result.ticketIds.length} ticket${result.ticketIds.length === 1 ? '' : 's'} ${result.amountCents > 0 ? `refunded (${formatMoney(result.amountCents)}, test mode)` : 'cancelled'}.`;
+    } else if (intent === 'reissue') {
+      const ticketId = String(form.get('ticketId') ?? '');
+      if ((await loadTicket(db, ticketId))?.event_id !== event.id)
+        throw new TicketingError('NOT_FOUND', 'Ticket not found for this event.');
+      const r = await reissueTicket(db, env, {
+        ticketId,
+        reason,
+        actorUserId: auth.user.id,
+        actorType: auth.roles.includes('superadmin') ? 'staff' : 'organizer',
+        origin: Astro.url.origin,
+        now,
+      });
+      notice = `Ticket reissued (version ${r.version}). The old QR code no longer works and the holder was emailed.`;
+    }
+  } catch (err) {
+    problem =
+      (err as { code?: string }).code === 'FORBIDDEN'
+        ? {
+            status: 403,
+            message: 'You need the refund permission for this event.',
+            summary: [{ message: 'You need the refund permission for this event.' }],
+            fields: {},
+            remaining: [],
+            headers: {},
+          }
+        : problemFromError(err);
+    Astro.response.status = problem.status;
+  }
+}
+
+const orders = await allRows<{
+  id: string;
+  reference: string | null;
+  number: string;
+  name: string;
+  email: string;
+  status: string;
+  total: number;
+  refunded: number;
+  source: string;
+}>(db, {
+  sql: "SELECT id, order_reference AS reference, order_number AS number, purchaser_name AS name, purchaser_email AS email, status, total_cents AS total, amount_refunded_cents AS refunded, source FROM ticket_orders WHERE event_id = ?1 AND status NOT IN ('expired') ORDER BY created_at DESC LIMIT 200",
+  params: [event.id],
+});
+const tickets = await allRows<{
+  id: string;
+  order_id: string;
+  holder: string;
+  status: string;
+  version: number;
+  category: string;
+}>(db, {
+  sql: 'SELECT t.id, t.order_id, t.holder_name AS holder, t.status, t.version, coalesce(c.name, ?2) AS category FROM tickets t LEFT JOIN ticket_tiers c ON c.id = t.tier_id WHERE t.event_id = ?1 ORDER BY t.order_id, t.seq LIMIT 1000',
+  params: [event.id, 'General admission'],
+});
+---
+
+<Layout title={`Orders — ${event.title}`} noindex>
+  <PageHeader
+    eyebrow="Organizer"
+    title="Orders and tickets"
+    lede={event.title}
+    back={{ href: `/promote/events/${event.id}/edit`, label: 'Edit event' }}
+  />
+  <section class="bg-cream px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-[1100px] space-y-6 py-8">
+      {notice && (
+        <p role="status" class="rounded-2xl bg-white p-4 font-semibold text-ink ring-1 ring-sand">
+          {notice}
+        </p>
+      )}
+      <FormErrorSummary errors={problem?.summary ?? []} />
+      {orders.length === 0 && <p class="text-ink">No orders yet.</p>}
+      <ul class="space-y-6">
+        {orders.map((o) => {
+          const list = tickets.filter((t) => t.order_id === o.id);
+          return (
+            <li class="rounded-3xl bg-white p-5 ring-1 ring-sand" data-order={o.id}>
+              <h2 class="text-lg font-black text-ink">
+                {o.reference ?? o.number} · {o.name}
+              </h2>
+              <p class="text-sm text-ink">
+                {maskEmail(o.email)} · {o.status.replaceAll('_', ' ')} ·{' '}
+                {o.total === 0 ? 'Free' : formatMoney(o.total)}
+                {o.refunded > 0 && ` · refunded ${formatMoney(o.refunded)}`}
+                {o.source !== 'online' && ` · ${o.source.replace('_', ' ')}`}
+              </p>
+              <ul class="mt-3 divide-y divide-sand">
+                {list.map((t) => (
+                  <li class="flex flex-wrap items-center justify-between gap-3 py-2">
+                    <span class="text-ink">
+                      {t.holder} — {t.category} · v{t.version} · <strong>{t.status}</strong>
+                    </span>
+                    {t.status === 'valid' && (
+                      <form method="post" class="flex flex-wrap items-end gap-2">
+                        <input type="hidden" name="intent" value="reissue" />
+                        <input type="hidden" name="ticketId" value={t.id} />
+                        <TextField
+                          id={`reissue-${t.id}`}
+                          name="reason"
+                          label="Reissue reason"
+                          required
+                          maxlength={500}
+                          class="w-56"
+                        />
+                        <SubmitButton label="Reissue" variant="secondary" />
+                      </form>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {canRefund && list.some((t) => t.status === 'valid') && (
+                <form method="post" class="mt-4 space-y-3 rounded-2xl bg-cream p-4">
+                  <input type="hidden" name="intent" value="refund" />
+                  <input type="hidden" name="orderId" value={o.id} />
+                  <fieldset>
+                    <legend class="font-semibold text-ink">
+                      {o.total > 0 ? 'Refund' : 'Cancel'} these tickets (none selected = all valid)
+                    </legend>
+                    {list
+                      .filter((t) => t.status === 'valid')
+                      .map((t) => (
+                        <label class="flex min-h-11 items-center gap-3">
+                          <input
+                            type="checkbox"
+                            name="ticket"
+                            value={t.id}
+                            class="h-6 w-6 accent-terracotta"
+                          />
+                          <span>
+                            {t.holder} — {t.category}
+                          </span>
+                        </label>
+                      ))}
+                  </fieldset>
+                  <TextField id={`refund-${o.id}`} name="reason" label="Reason" required maxlength={500} />
+                  <SubmitButton
+                    label={o.total > 0 ? 'Refund selected (test mode)' : 'Cancel selected'}
+                    variant="secondary"
+                  />
+                </form>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  </section>
+</Layout>

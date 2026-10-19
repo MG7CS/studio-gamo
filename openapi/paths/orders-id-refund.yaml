@@ -5,16 +5,15 @@ post:
   operationId: processOrderRefund
   tags:
     - Payments
-  summary: Approve and process ticket order refund
-  description: Requires explicit approve_refunds authority on the order's event
-    (publishing/content authority alone is insufficient). Voids issued tickets,
-    releases reserved capacity, and records refund ledger entry.
+  summary: Refund (paid) or cancel (free) chosen tickets
+  description: >-
+    Requires approve_refunds on the event. Only the chosen tickets (all valid ones when none are given) change; refunds accumulate and never exceed the total; card refunds go through Stripe test mode.
   security:
     - BrowserSession: []
   x-application: live
   x-status: implemented
   x-authorization: Verified session with approve_refunds permission on the event.
-  x-idempotency: Rejects duplicate full refund with 409.
+  x-idempotency: Repeating a refund of the same tickets changes nothing; Stripe key refund_<recordId>.
   x-source: apps/live/src/pages/api/orders/[id]/refund.ts
   parameters:
     - $ref: ../components/parameters/id.yaml
@@ -24,22 +23,24 @@ post:
       content:
         application/json:
           schema:
-            $ref: ../components/schemas/live/OrderRefundResponse.yaml
+            $ref: ../components/schemas/ticketing/RefundResponse.yaml
     '400':
-      $ref: ../components/responses/LegacyError.yaml
+      $ref: ../components/responses/TicketingError.yaml
     '401':
-      $ref: ../components/responses/LegacyError.yaml
+      $ref: ../components/responses/TicketingError.yaml
     '403':
-      $ref: ../components/responses/LegacyError.yaml
+      $ref: ../components/responses/TicketingError.yaml
     '404':
-      $ref: ../components/responses/LegacyError.yaml
+      $ref: ../components/responses/TicketingError.yaml
     '409':
-      $ref: ../components/responses/LegacyError.yaml
-    '500':
-      $ref: ../components/responses/LegacyError.yaml
+      $ref: ../components/responses/TicketingError.yaml
+    '502':
+      $ref: ../components/responses/TicketingError.yaml
+    '503':
+      $ref: ../components/responses/TicketingError.yaml
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/live/OrderRefundInput.yaml
+          $ref: ../components/schemas/ticketing/RefundInput.yaml

@@ -8,6 +8,8 @@ import { POST as createOrg } from '../../apps/live/src/pages/api/organizations/i
 import { GET as list, POST as create } from '../../apps/live/src/pages/api/events/index';
 import { GET as detail } from '../../apps/live/src/pages/api/events/[id]/index';
 import { POST as register } from '../../apps/live/src/pages/api/events/[id]/register';
+import { POST as confirmOrder } from '../../apps/live/src/pages/api/orders/confirm';
+import { getTermsDocument, orderVerificationCode, readConfirmToken } from '../../packages/domain/index';
 import { POST as review } from '../../apps/admin/src/pages/api/events/[id]/review';
 import { GET as pending } from '../../apps/admin/src/pages/api/events/pending';
 import { POST as provisionStaff } from '../../apps/admin/src/pages/api/staff/provision';
@@ -185,17 +187,24 @@ function renderSignInHtml(): string {
 }
 
 function renderRegisterHtml(eventId: string): string {
+  const terms = JSON.stringify(
+    ['ticket-terms', 'privacy-policy'].map((slug) => ({ slug, version: getTermsDocument(slug)!.version })),
+  );
   return `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Register · Gamo Live</title></head>
 <body>
   <main data-free-registration data-event-id="${eventId}">
-    <h1>Complete your free registration</h1>
+    <h1>Reserve your free tickets</h1>
     <form data-reg-form>
       <input type="text" name="attendeeName" required minlength="2" placeholder="Grace Walker" />
       <input type="email" name="attendeeEmail" required placeholder="grace@example.org" />
       <input type="number" name="quantity" min="1" max="10" value="1" required />
-      <button type="submit" data-reg-submit>Confirm free registration</button>
+      <button type="submit" data-reg-submit>Reserve my tickets</button>
+    </form>
+    <form data-confirm-form hidden>
+      <input type="text" name="code" inputmode="numeric" placeholder="123456" />
+      <button type="submit" data-confirm-submit>Confirm my tickets</button>
     </form>
     <div data-reg-status hidden role="status" aria-live="polite"></div>
   </main>
@@ -203,15 +212,26 @@ function renderRegisterHtml(eventId: string): string {
     const root = document.querySelector('[data-free-registration]');
     const eventId = root.dataset.eventId || '';
     const form = root.querySelector('[data-reg-form]');
+    const confirmForm = root.querySelector('[data-confirm-form]');
     const statusEl = root.querySelector('[data-reg-status]');
+    const terms = ${terms};
+    let confirmToken = '';
+    const show = (text) => { statusEl.hidden = false; statusEl.textContent = text; };
 
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const fd = new FormData(form);
+      const event = await (await fetch('/api/events/' + encodeURIComponent(eventId))).json();
+      const email = String(fd.get('attendeeEmail') || '').trim();
       const payload = {
-        attendeeName: String(fd.get('attendeeName') || '').trim(),
-        attendeeEmail: String(fd.get('attendeeEmail') || '').trim(),
-        quantity: Number(fd.get('quantity') || 1),
+        items: [{ categoryId: event.data.tiers[0].id, quantity: Number(fd.get('quantity') || 1) }],
+        purchaserName: String(fd.get('attendeeName') || '').trim(),
+        email,
+        emailConfirm: email,
+        termsAccepted: true,
+        termsDocuments: terms,
+        idempotencyKey: 'idem_browser_' + Math.random().toString(36).slice(2) + '_' + Date.now(),
+        'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
       };
       const res = await fetch('/api/events/' + encodeURIComponent(eventId) + '/register', {
         method: 'POST',
@@ -219,12 +239,23 @@ function renderRegisterHtml(eventId: string): string {
         body: JSON.stringify(payload),
       });
       const body = await res.json();
-      statusEl.hidden = false;
-      if (!res.ok) {
-        statusEl.textContent = body.error?.message || body.message || 'Registration failed';
-        return;
-      }
-      statusEl.textContent = body.data?.message || 'Registration confirmed.';
+      if (!res.ok) { show(body.error?.message || 'Registration failed'); return; }
+      confirmToken = body.data.confirmToken;
+      root.dataset.confirmToken = confirmToken;
+      confirmForm.hidden = false;
+      show('Check your email for a 6-digit code.');
+    });
+
+    confirmForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const res = await fetch('/api/orders/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmToken, code: String(new FormData(confirmForm).get('code') || '') }),
+      });
+      const body = await res.json();
+      if (!res.ok) { show(body.error?.message || 'Confirmation failed'); return; }
+      show('Tickets issued: ' + body.data.ticketsIssued);
     });
   </script>
 </body>
@@ -237,6 +268,12 @@ export default {
     if (request.method === 'GET' && path === '/account/signin') {
       return new Response(renderSignInHtml(), { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
+    if (request.method === 'GET' && path === '/test/order-code') {
+      // Test-only: the 6-digit code an email would carry (derived with the local development key).
+      const token = new URL(request.url).searchParams.get('t') ?? '';
+      const orderId = await readConfirmToken(env, token, Math.floor(Date.now() / 1000));
+      return Response.json({ code: orderId ? await orderVerificationCode(env, orderId) : null });
+    }
     const pageRegMatch = path.match(/^\/events\/([^/]+)\/register$/);
     if (request.method === 'GET' && pageRegMatch) {
       return new Response(renderRegisterHtml(pageRegMatch[1]), {
@@ -245,37 +282,39 @@ export default {
     }
     const match = path.match(/^\/api\/events\/([^/]+)(?:\/(register|review))?$/);
     const handler =
-      path === '/api/auth/session'
-        ? request.method === 'DELETE'
-          ? logout
-          : login
-        : path === '/api/auth/challenge'
-          ? challenge
-          : path === '/api/auth/verify'
-            ? verify
-            : path === '/api/auth/me'
-              ? me
-              : path === '/api/organizations'
-                ? createOrg
-                : path === '/api/staff/provision'
-                  ? provisionStaff
-                  : path === '/api/events'
-                    ? request.method === 'POST'
-                      ? create
-                      : list
-                    : path === '/api/events/pending'
-                      ? pending
-                      : path === '/api/checkout/session'
-                        ? checkout
-                        : path === '/api/webhook/stripe'
-                          ? webhook
-                          : match
-                            ? match[2] === 'register'
-                              ? register
-                              : match[2] === 'review'
-                                ? review
-                                : detail
-                            : null;
+      path === '/api/orders/confirm'
+        ? confirmOrder
+        : path === '/api/auth/session'
+          ? request.method === 'DELETE'
+            ? logout
+            : login
+          : path === '/api/auth/challenge'
+            ? challenge
+            : path === '/api/auth/verify'
+              ? verify
+              : path === '/api/auth/me'
+                ? me
+                : path === '/api/organizations'
+                  ? createOrg
+                  : path === '/api/staff/provision'
+                    ? provisionStaff
+                    : path === '/api/events'
+                      ? request.method === 'POST'
+                        ? create
+                        : list
+                      : path === '/api/events/pending'
+                        ? pending
+                        : path === '/api/checkout/session'
+                          ? checkout
+                          : path === '/api/webhook/stripe'
+                            ? webhook
+                            : match
+                              ? match[2] === 'register'
+                                ? register
+                                : match[2] === 'review'
+                                  ? review
+                                  : detail
+                              : null;
     if (path === '/test/r2') {
       const storage = createR2StorageClient(env.ASSETS, { signingSecret: env.SESSION_SECRET });
       await storage.putObject(

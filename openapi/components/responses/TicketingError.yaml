@@ -1,0 +1,5 @@
+description: Ticketing failure; the message says what to do next. Internal details are suppressed.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/ticketing/TicketingError.yaml

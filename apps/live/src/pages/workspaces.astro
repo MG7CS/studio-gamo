@@ -59,6 +59,26 @@ const artists = await db.query.artistProfiles.findMany({ where: (a, { eq }) => e
             <p class="mt-1 text-sm text-ink-soft">
               {event.startsAt.toLocaleString('en-US', { timeZone: event.timezone })} ({event.timezone})
             </p>
+            <p class="mt-2 flex flex-wrap gap-4 text-sm font-semibold">
+              <a
+                class="inline-flex min-h-11 items-center text-terracotta-deep underline"
+                href={`/promote/events/${event.id}/edit`}
+              >
+                Edit<span class="sr-only"> {event.title}</span>
+              </a>
+              <a
+                class="inline-flex min-h-11 items-center text-terracotta-deep underline"
+                href={`/promote/events/${event.id}/orders`}
+              >
+                Orders<span class="sr-only"> for {event.title}</span>
+              </a>
+              <a
+                class="inline-flex min-h-11 items-center text-terracotta-deep underline"
+                href={`/promote/events/${event.id}/changes`}
+              >
+                Event changes<span class="sr-only"> for {event.title}</span>
+              </a>
+            </p>
           </li>
         ))}
       </ul>

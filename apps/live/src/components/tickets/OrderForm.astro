@@ -1,0 +1,177 @@
+---
+/**
+ * The order form for /events/[id]/register: free RSVP and paid test checkout share it (design §4.2).
+ * Server-rendered, works without JS (POST + 303); the form kit adds the email-typo hint and the
+ * confirm-email check when JS is on.
+ *
+ * Props
+ * - options: ticket choices from `orderFormOptions()`.
+ * - values: what was typed before a failed submit (never the Turnstile token).
+ * - problem: the failed submit, rendered as summary + field messages.
+ * - idempotencyKey: UUID-like key, rendered as a hidden field so a double click holds once.
+ * - attendeeNames: policy requires a name per ticket; maxTickets = inputs to show.
+ * - paid: the primary action says "Continue to payment" instead of "Reserve my tickets".
+ */
+import { termsDocumentsFor } from '@gamo/domain/terms';
+import { emailTypoSuggestion } from '@studio-gamo/ui/lib/email-typo';
+import { termsConsentDocuments } from '@studio-gamo/ui/lib/terms-links';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
+import ConfirmEmailField from '@studio-gamo/ui/components/forms/ConfirmEmailField.astro';
+import TermsConsent from '@studio-gamo/ui/components/forms/TermsConsent.astro';
+import MarketingConsent from '@studio-gamo/ui/components/forms/MarketingConsent.astro';
+import TurnstileWidget from '@studio-gamo/ui/components/forms/TurnstileWidget.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { OrderFormOption } from '../../lib/order-form';
+import type { FormProblem } from '../../lib/page-forms';
+
+interface Props {
+  action: string;
+  options: OrderFormOption[];
+  values?: Record<string, string>;
+  problem?: FormProblem | null;
+  idempotencyKey: string;
+  attendeeNames?: boolean;
+  maxTickets?: number;
+  paid?: boolean;
+}
+const {
+  action,
+  options,
+  values = {},
+  problem = null,
+  idempotencyKey,
+  attendeeNames = false,
+  maxTickets = 10,
+  paid = false,
+} = Astro.props;
+const fields = problem?.fields ?? {};
+const terms = termsConsentDocuments(termsDocumentsFor(['ticket-terms', 'privacy-policy']));
+const email = values.email ?? '';
+const anyAvailable = options.some((o) => o.available);
+---
+
+<form method="post" action={action} id="order-form" class="space-y-8" novalidate>
+  <FormErrorSummary errors={problem?.summary ?? []} />
+  <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+
+  <fieldset id="ticket-options" class="space-y-3" aria-describedby="ticket-options-hint">
+    <legend class="text-lg font-black uppercase text-ink">1. Choose your tickets</legend>
+    <p id="ticket-options-hint" class="text-sm text-muted">
+      Enter how many of each you need. You can choose up to {maxTickets} tickets in one order.
+    </p>
+    {fields.tickets && (
+      <p class="text-sm font-semibold text-terracotta-deep">
+        <span class="sr-only">Error: </span>
+        {fields.tickets}
+      </p>
+    )}
+    <ul class="divide-y divide-sand rounded-2xl border border-sand bg-white">
+      {options.map((o) => (
+        <li class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="min-w-0">
+            <p class="font-bold text-ink">
+              {o.title}
+              {o.badge && o.badge !== o.title && (
+                <span class="ml-2 rounded-full bg-sand px-2.5 py-0.5 text-xs font-bold text-ink">
+                  {o.badge}
+                </span>
+              )}
+            </p>
+            <p class="text-sm text-ink">
+              <strong>{o.priceLabel}</strong>
+              {o.available ? ` · ${o.remaining} left` : ` · ${o.unavailableReason}`}
+            </p>
+            {o.description && <p class="text-sm text-muted">{o.description}</p>}
+            {o.notes.map((n) => (
+              <p class="text-sm text-muted">{n}</p>
+            ))}
+          </div>
+          {o.available ? (
+            <div class="w-full shrink-0 sm:w-auto">
+              <TextField
+                id={o.field}
+                name={o.field}
+                label={`Quantity — ${o.title}`}
+                type="number"
+                inputmode="numeric"
+                value={values[o.field] ?? '0'}
+                error={fields[o.field]}
+                class="w-full sm:w-64"
+              />
+            </div>
+          ) : (
+            <span class="shrink-0 rounded-full border border-ink/50 px-3 py-1 text-sm font-bold text-ink">
+              {o.unavailableReason}
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+    {!anyAvailable && (
+      <p class="text-sm font-semibold text-ink">All ticket types are unavailable right now.</p>
+    )}
+  </fieldset>
+
+  {attendeeNames && (
+    <fieldset class="space-y-3">
+      <legend class="text-lg font-black uppercase text-ink">Names on the tickets</legend>
+      <p class="text-sm text-muted">
+        The organizer asks for a name on every ticket. Fill them in order, one per ticket you chose, each
+        different.
+      </p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: maxTickets }, (_, i) => (
+          <TextField
+            id={`attendee-${i}`}
+            name="attendee_name"
+            label={`Ticket ${i + 1} name`}
+            autocomplete="off"
+            maxlength={120}
+            value={values[`attendee_${i}`] ?? ''}
+            error={i === 0 ? fields.attendee_name : undefined}
+          />
+        ))}
+      </div>
+    </fieldset>
+  )}
+
+  <fieldset class="space-y-4">
+    <legend class="text-lg font-black uppercase text-ink">2. Your details</legend>
+    <TextField
+      id="purchaser-name"
+      name="purchaserName"
+      label="Full name"
+      required
+      autocomplete="name"
+      maxlength={120}
+      value={values.purchaserName}
+      error={fields.purchaserName}
+    />
+    <EmailField
+      value={email}
+      error={fields.email}
+      suggestion={email ? emailTypoSuggestion(email) : null}
+      hint={
+        paid
+          ? 'Your receipt and tickets are sent here.'
+          : 'We email a 6-digit code here. Your tickets are issued once you confirm it.'
+      }
+    />
+    <ConfirmEmailField value={values.email_confirm} error={fields.emailConfirm} />
+  </fieldset>
+
+  <fieldset class="space-y-4">
+    <legend class="text-lg font-black uppercase text-ink">3. Agree and send</legend>
+    <TermsConsent documents={terms} error={fields.terms_accept} />
+    <MarketingConsent product="live" />
+    <TurnstileWidget action="order" error={fields['cf-turnstile-response']} />
+    <SubmitButton label={paid ? 'Continue to payment' : 'Reserve my tickets'} pendingLabel="Sending…" />
+    <p class="text-sm text-muted">
+      {paid
+        ? 'Payment uses Stripe in test mode. No real money moves.'
+        : 'Free tickets. We hold them for 30 minutes while you confirm your email.'}
+    </p>
+  </fieldset>
+</form>

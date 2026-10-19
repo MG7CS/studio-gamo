@@ -1,0 +1,13 @@
+type: object
+additionalProperties: false
+properties:
+  confirmToken:
+    type: string
+    minLength: 10
+    maxLength: 300
+  code:
+    type: string
+    pattern: '^[0-9 ]{6,8}$'
+required:
+  - confirmToken
+  - code

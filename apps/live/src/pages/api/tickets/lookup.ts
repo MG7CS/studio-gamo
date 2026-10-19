@@ -1,28 +1,40 @@
-import { readContract } from '@gamo/api-contracts/runtime';
-import { requireSameOrigin } from '@gamo/auth';
 import type { APIRoute } from 'astro';
-import { getDb } from '@gamo/db';
-import { LiveService, ticketLookupSchema, jsonResponse, handleApiError, getRuntimeEnv } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  TICKETING_FORMS,
+  getRuntimeEnv,
+  guardPublicForm,
+  jsonResponse,
+  nowSeconds,
+  requestOrigin,
+  requestTicketRecovery,
+  ticketingDb,
+  ticketingErrorResponse,
+} from '@gamo/domain';
+import { NO_STORE, validateJsonBody } from '../../../lib/ticketing-api';
 
 export const prerender = false;
 
+/** POST /api/tickets/lookup — email a link to my tickets; always the same answer. */
 export const POST: APIRoute = async (context) => {
   try {
     requireSameOrigin(context.request);
-    const runtimeEnv = await getRuntimeEnv(context);
-    const db = getDb(runtimeEnv.DB);
-
-    const body = await readContract(context.request, 'TicketLookupInput');
-    const validated = ticketLookupSchema.parse(body);
-
-    const liveService = new LiveService(db);
-    const result = await liveService.lookupVerifiedAttendeeRecords(
-      validated.email,
-      validated.verificationCode,
+    const env = await getRuntimeEnv(context);
+    const guard = await guardPublicForm({ request: context.request, env }, TICKETING_FORMS.recovery);
+    if (!guard.ok) return guard.response;
+    validateJsonBody('RecoveryInput', guard.body.json);
+    const result = await requestTicketRecovery(
+      ticketingDb(env as Record<string, unknown>),
+      env as Record<string, unknown>,
+      {
+        email: guard.body.get('email') ?? '',
+        ipHash: guard.ipHash,
+        origin: requestOrigin(context.request),
+        now: nowSeconds(),
+      },
     );
-
-    return jsonResponse(result, 200, undefined, { 'Cache-Control': 'private, no-store' });
+    return jsonResponse({ message: result.message }, 202, undefined, NO_STORE);
   } catch (err) {
-    return handleApiError(err);
+    return ticketingErrorResponse(err);
   }
 };
