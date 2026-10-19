@@ -142,7 +142,7 @@ export async function seedOrganizer(worker: LiveWorker, id = 'usr_e2e_owner') {
     sql("INSERT OR IGNORE INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_e2e', 'Sample Church', 'sample-church-e2e', 'church', 'active', ?1)", t),
     sql("INSERT OR IGNORE INTO organizer_profiles (id, organization_id, created_at) VALUES ('op_e2e', 'org_e2e', ?1)", t),
     sql("INSERT OR IGNORE INTO users (id, email, verified_email_at, status, created_at, display_name) VALUES (?1, ?2, ?3, 'active', ?3, 'Sample Organizer')", id, `${id}@example.org`, t),
-    sql("INSERT OR IGNORE INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES (?1, ?2, 'live', 'active', 'complete', ?3, ?3)", `pacc_${id}`, id, t),
+    sql("INSERT OR IGNORE INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES (?1, ?2, 'live', 'active', 'completed', ?3, ?3)", `pacc_${id}`, id, t),
     sql("INSERT OR IGNORE INTO organization_members (id, organization_id, user_id, role, status, created_at) VALUES (?1, 'org_e2e', ?2, 'owner', 'active', ?3)", `om_${id}`, id, t),
   ]);
   const sid = createHmac('sha256', 'sid').update(`${id}${Math.random()}`).digest('hex').slice(0, 48);
