@@ -92,6 +92,7 @@ routes = [
 ]
 [env.production.vars]
 ENVIRONMENT = "production"
+PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa5Jse4TTbIFvR9"
 STRIPE_TEST_CHECKOUT = "false"
 ALLOW_DEMO_SESSION = "false"
 STRIPE_SANDBOX_ENABLED = "true"
