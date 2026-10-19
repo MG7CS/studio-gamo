@@ -6,6 +6,7 @@ import type { GamoEnv } from '@gamo/config/env';
  * self-service verified order recovery, refunds, settlements, and linked production requests.
  */
 
+import { hasOrgRole } from '@gamo/auth';
 import { eq, and, or, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import {
   users,
@@ -467,6 +468,7 @@ export class LiveService {
     actorUserId: string,
     actorCanGrantFinancialAuthority: boolean,
     input: AssignEventTeamMemberInput,
+    actorIsOwnerOrAdmin: boolean,
   ) {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
     if (!event) {
@@ -591,6 +593,17 @@ export class LiveService {
       canScanTickets: input.canScanTickets ?? defaults.canScanTickets,
     };
 
+    // Ticketing, door-scanning and production authority are granted by an organization owner/admin only:
+    // a content editor cannot hand them out (or to themselves) through a role's defaults (D-122).
+    if (
+      (flags.canManageTicketing || flags.canScanTickets || flags.canCoordinateProduction) &&
+      !actorIsOwnerOrAdmin
+    ) {
+      throw new Error(
+        'FORBIDDEN: Only an organization owner or admin can grant ticketing, scanning or production access.',
+      );
+    }
+
     const now = new Date();
     const [existing] = await this.db
       .select()
@@ -603,6 +616,13 @@ export class LiveService {
         ),
       )
       .limit(1);
+
+    // Changing an existing row (lowering someone's flags, reactivating a revoked member) is an owner/admin
+    // action too; other editors may only add new members within the limits above (D-122).
+    if (existing && !actorIsOwnerOrAdmin)
+      throw new Error(
+        'FORBIDDEN: Only an organization owner or admin can change or reinstate an existing team member.',
+      );
 
     const memberId = existing?.id ?? `evteam_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
@@ -679,6 +699,59 @@ export class LiveService {
       role: input.role,
       ...flags,
     };
+  }
+
+  /** Organization owner/admin of the event's organizer (or superadmin): the only people who grant ticketing access. */
+  async isOrgOwnerOrAdmin(auth: Parameters<typeof hasOrgRole>[0], eventId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ orgId: organizerProfiles.organizationId })
+      .from(events)
+      .innerJoin(organizerProfiles, eq(events.organizerId, organizerProfiles.id))
+      .where(eq(events.id, eventId))
+      .limit(1);
+    return row ? hasOrgRole(auth, row.orgId, ['owner', 'admin']) : false;
+  }
+
+  /**
+   * Revokes a team member's role on an event (status `revoked`, audited). Only an organization owner/admin
+   * or someone holding financial authority may revoke; a content editor cannot remove other people.
+   */
+  async revokeEventTeamMember(
+    eventId: string,
+    actorUserId: string,
+    actorMayRevoke: boolean,
+    input: { userId: string; role: AssignEventTeamMemberInput['role'] },
+  ) {
+    if (!actorMayRevoke)
+      throw new Error('FORBIDDEN: Only an organization owner or admin can remove a team member.');
+    const [member] = await this.db
+      .select()
+      .from(eventTeamMembers)
+      .where(
+        and(
+          eq(eventTeamMembers.eventId, eventId),
+          eq(eventTeamMembers.userId, input.userId),
+          eq(eventTeamMembers.role, input.role),
+        ),
+      )
+      .limit(1);
+    if (!member) throw new Error('NOT_FOUND: That team member does not exist on this event.');
+    if (member.status !== 'revoked') {
+      await this.db
+        .update(eventTeamMembers)
+        .set({ status: 'revoked' })
+        .where(eq(eventTeamMembers.id, member.id));
+      await this.db.insert(auditLogs).values({
+        id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        actorUserId,
+        action: 'event.team.revoked',
+        entityType: 'event_team_member',
+        entityId: member.id,
+        payloadJson: JSON.stringify({ eventId, userId: input.userId, role: input.role }),
+        createdAt: new Date(),
+      });
+    }
+    return { id: member.id, eventId, userId: input.userId, role: input.role, status: 'revoked' as const };
   }
 
   /**

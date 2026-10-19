@@ -154,6 +154,8 @@ async function deliver(
   options: OutboxOptions,
 ): Promise<OutboxResult> {
   const { now } = message;
+  // Last line of defence before the provider: only a strict ASCII addr-spec ever reaches `to`.
+  if (!isPlausibleEmail(to) || to !== normalizeEmail(to)) throw new RangeError('outbox: invalid recipient');
   if (await isSuppressedHash(db, row.recipientHash)) {
     await db
       .prepare(

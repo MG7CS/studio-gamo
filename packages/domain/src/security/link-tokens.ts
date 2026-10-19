@@ -103,9 +103,20 @@ export function isWellFormedLinkToken(token: unknown): token is string {
   return base64UrlToBytes(token)?.length === LINK_TOKEN_BYTES;
 }
 
-/** HMAC-SHA256 hex of the token, keyed by CUSTOMER_LINK_SECRET (≥ 32 characters). */
-export async function hashLinkToken(token: string, secret: string): Promise<string> {
-  return hmacSha256Hex(requireSecret('CUSTOMER_LINK_SECRET', secret), `customer-link|${token}`);
+/** Products whose customers use emailed links (Live tickets, Academy registrations). */
+export const LINK_PRODUCTS = ['live', 'academy'] as const;
+export type LinkProduct = (typeof LINK_PRODUCTS)[number];
+export function isLinkProduct(value: unknown): value is LinkProduct {
+  return value === 'live' || value === 'academy';
+}
+
+/**
+ * HMAC-SHA256 hex of the token, keyed by CUSTOMER_LINK_SECRET (≥ 32 characters) and bound to the product
+ * (`customer-link|<product>|<token>`): a link issued for Academy hashes differently in Live and vice versa.
+ */
+export async function hashLinkToken(token: string, secret: string, product: LinkProduct): Promise<string> {
+  if (!isLinkProduct(product)) throw new RangeError('hashLinkToken: product');
+  return hmacSha256Hex(requireSecret('CUSTOMER_LINK_SECRET', secret), `customer-link|${product}|${token}`);
 }
 
 export interface CustomerLinkRecord {
@@ -156,8 +167,10 @@ export class CustomerLinkTokens {
   constructor(
     private readonly db: SqlDatabase,
     secret: string | undefined,
+    readonly product: LinkProduct,
   ) {
     this.secret = requireSecret('CUSTOMER_LINK_SECRET', secret);
+    if (!isLinkProduct(product)) throw new RangeError('CustomerLinkTokens: product');
   }
 
   /** Creates a link token. Returns the plaintext token exactly once (put it in the email, nowhere else). */
@@ -176,18 +189,19 @@ export class CustomerLinkTokens {
     const id = newPrefixedId('clt');
     await this.db
       .prepare(
-        'INSERT INTO customer_access_tokens (id, customer_profile_id, token_hash, scope, purpose, expires_at, use_count, max_uses, created_ip_hash, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7, ?8, ?9)',
+        'INSERT INTO customer_access_tokens (id, customer_profile_id, token_hash, scope, purpose, expires_at, use_count, max_uses, created_ip_hash, created_at, product) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7, ?8, ?9, ?10)',
       )
       .bind(
         id,
         input.customerProfileId,
-        await hashLinkToken(token, this.secret),
+        await hashLinkToken(token, this.secret, this.product),
         input.scope,
         input.purpose,
         input.expiresAt,
         input.maxUses ?? null,
         input.createdIpHash ?? null,
         input.now,
+        this.product,
       )
       .run();
     return { id, token, expiresAt: input.expiresAt };
@@ -200,19 +214,19 @@ export class CustomerLinkTokens {
    */
   async consume(token: string, now: number): Promise<VerifyLinkResult> {
     if (!isWellFormedLinkToken(token)) return { ok: false, reason: 'invalid' };
-    const hash = await hashLinkToken(token, this.secret);
+    const hash = await hashLinkToken(token, this.secret, this.product);
     const row = (await this.db
       .prepare(
-        'UPDATE customer_access_tokens SET use_count = use_count + 1, last_used_at = ?2 WHERE token_hash = ?1 AND revoked_at IS NULL AND expires_at > ?2 AND (max_uses IS NULL OR use_count < max_uses) RETURNING id, customer_profile_id, scope, purpose, expires_at, use_count, max_uses',
+        `UPDATE customer_access_tokens SET use_count = use_count + 1, last_used_at = ?2 WHERE token_hash = ?1 AND product = '${this.product}' AND revoked_at IS NULL AND expires_at > ?2 AND (max_uses IS NULL OR use_count < max_uses) RETURNING id, customer_profile_id, scope, purpose, expires_at, use_count, max_uses`,
       )
       .bind(hash, now)
       .first()) as TokenRow | null;
     if (row) return { ok: true, record: toRecord(row) };
     const existing = (await this.db
       .prepare(
-        'SELECT id, customer_profile_id, scope, purpose, expires_at, use_count, max_uses, revoked_at FROM customer_access_tokens WHERE token_hash = ?1',
+        'SELECT id, customer_profile_id, scope, purpose, expires_at, use_count, max_uses, revoked_at FROM customer_access_tokens WHERE token_hash = ?1 AND product = ?2',
       )
-      .bind(hash)
+      .bind(hash, this.product)
       .first()) as TokenRow | null;
     if (!existing) return { ok: false, reason: 'invalid' };
     if (existing.revoked_at !== null && existing.revoked_at !== undefined)

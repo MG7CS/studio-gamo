@@ -20,6 +20,8 @@ import {
   CUSTOMER_SESSION_TTL_SECONDS,
   CustomerLinkTokens,
   isCustomerScope,
+  isLinkProduct,
+  type LinkProduct,
   type CustomerScope,
   type LinkTokenPurpose,
 } from '../security/link-tokens.ts';
@@ -29,8 +31,14 @@ import { isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
 import { signValue, verifySignedValue } from '../security/signed-value.ts';
 import { runBatch, type SqlDatabase } from '../security/sql-database.ts';
 
-export const CUSTOMER_COOKIE_NAME = '__gamo_customer';
-export const CUSTOMER_COOKIE_PURPOSE = 'customer_session';
+/** One cookie name and one signing purpose per product: a Live cookie is not an Academy cookie (D-116). */
+export function customerCookieName(product: LinkProduct): string {
+  if (!isLinkProduct(product)) throw new RangeError('customerCookieName: product');
+  return `__gamo_customer_${product}`;
+}
+export function customerCookiePurpose(product: LinkProduct): string {
+  return `customer_session_${product}`;
+}
 /** The only message a visitor sees when a link cannot be opened (the reason goes to a name-only log line). */
 export const CUSTOMER_LINK_INVALID_MESSAGE =
   'This link has expired or is no longer valid — request a new one.';
@@ -276,6 +284,8 @@ export interface IssueCustomerLinkInput {
   now: number;
   ipHash?: string | null;
   maxUses?: number | null;
+  /** The product whose customer this link is for (`live` | `academy`); a link opens only there. */
+  product: LinkProduct;
   /** Path of the product page that opens links (default `/link`); the token is added as `?t=`. */
   openPath?: string;
 }
@@ -289,7 +299,7 @@ export async function issueCustomerLink(
   env: SecretEnv,
   input: IssueCustomerLinkInput,
 ): Promise<{ id: string; token: string; path: string; expiresAt: number }> {
-  const tokens = new CustomerLinkTokens(db, linkSecret(env));
+  const tokens = new CustomerLinkTokens(db, linkSecret(env), input.product);
   const profile = await getCustomerProfile(db, input.customerProfileId);
   if (!profile || profile.erasedAt !== null)
     throw new CustomerInputError('NOT_FOUND', 'We could not find that registration.');
@@ -316,9 +326,14 @@ export interface CustomerSession {
 }
 
 /** `Set-Cookie` value for the customer session cookie. */
-export function buildCustomerCookie(value: string, maxAgeSeconds: number, https: boolean): string {
+export function buildCustomerCookie(
+  value: string,
+  maxAgeSeconds: number,
+  https: boolean,
+  product: LinkProduct,
+): string {
   return [
-    `${CUSTOMER_COOKIE_NAME}=${value}`,
+    `${customerCookieName(product)}=${value}`,
     'Path=/',
     `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`,
     'HttpOnly',
@@ -328,9 +343,9 @@ export function buildCustomerCookie(value: string, maxAgeSeconds: number, https:
 }
 
 /** `Set-Cookie` value that removes the customer session cookie. */
-export function buildClearCustomerCookie(https: boolean): string {
+export function buildClearCustomerCookie(https: boolean, product: LinkProduct): string {
   return [
-    `${CUSTOMER_COOKIE_NAME}=`,
+    `${customerCookieName(product)}=`,
     'Path=/',
     'Max-Age=0',
     'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
@@ -365,10 +380,13 @@ export type OpenCustomerLinkResult =
 export async function openCustomerLink(
   db: SqlDatabase,
   env: SecretEnv,
-  input: { token: string; now: number; https: boolean; markEmailVerified?: boolean },
+  input: { token: string; now: number; https: boolean; product: LinkProduct; markEmailVerified?: boolean },
 ): Promise<OpenCustomerLinkResult> {
   const secret = linkSecret(env);
-  const consumed = await new CustomerLinkTokens(db, secret).consume(String(input.token ?? ''), input.now);
+  const consumed = await new CustomerLinkTokens(db, secret, input.product).consume(
+    String(input.token ?? ''),
+    input.now,
+  );
   if (!consumed.ok) {
     console.warn(`[customer-link] open refused: ${consumed.reason}`);
     return { ok: false, message: CUSTOMER_LINK_INVALID_MESSAGE };
@@ -385,22 +403,22 @@ export async function openCustomerLink(
   const sessionId = newPrefixedId('csn');
   await db
     .prepare(
-      'INSERT INTO customer_sessions (id, customer_profile_id, scope, token_id, expires_at, last_seen_at, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6)',
+      'INSERT INTO customer_sessions (id, customer_profile_id, scope, token_id, expires_at, last_seen_at, created_at, product) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6, ?7)',
     )
-    .bind(sessionId, profile.id, record.scope, record.id, expiresAt, input.now)
+    .bind(sessionId, profile.id, record.scope, record.id, expiresAt, input.now, input.product)
     .run();
   const value = await signValue({
     value: sessionId,
     expiresAt,
     secret,
-    purpose: CUSTOMER_COOKIE_PURPOSE,
+    purpose: customerCookiePurpose(input.product),
     secretName: 'CUSTOMER_LINK_SECRET',
   });
   return {
     ok: true,
     purpose: record.purpose,
     session: { sessionId, customerProfileId: profile.id, scope: record.scope, expiresAt },
-    cookie: buildCustomerCookie(value, expiresAt - input.now, input.https),
+    cookie: buildCustomerCookie(value, expiresAt - input.now, input.https, input.product),
   };
 }
 
@@ -413,11 +431,12 @@ export async function readCustomerSession(
   env: SecretEnv,
   request: Request,
   now: number,
+  product: LinkProduct,
 ): Promise<CustomerSession | null> {
   const secret = linkSecret(env);
-  const signed = readCookie(request, CUSTOMER_COOKIE_NAME);
+  const signed = readCookie(request, customerCookieName(product));
   if (!signed) return null;
-  const verified = await verifySignedValue({ signed, now, secret, purpose: CUSTOMER_COOKIE_PURPOSE });
+  const verified = await verifySignedValue({ signed, now, secret, purpose: customerCookiePurpose(product) });
   if (!verified) return null;
   const row = (await db
     .prepare(
@@ -426,9 +445,9 @@ export async function readCustomerSession(
          JOIN customer_profiles p ON p.id = s.customer_profile_id
          JOIN customer_access_tokens t ON t.id = s.token_id
         WHERE s.id = ?1 AND s.revoked_at IS NULL AND s.expires_at > ?2 AND p.erased_at IS NULL
-          AND t.revoked_at IS NULL`,
+          AND t.revoked_at IS NULL AND s.product = ?3 AND t.product = ?3`,
     )
-    .bind(verified.value, now)
+    .bind(verified.value, now, product)
     .first()) as {
     id: string;
     customer_profile_id: string;
@@ -454,14 +473,15 @@ export async function endCustomerSession(
   request: Request,
   now: number,
   https: boolean,
+  product: LinkProduct,
 ): Promise<{ cookie: string; ended: boolean }> {
-  const session = await readCustomerSession(db, env, request, now);
+  const session = await readCustomerSession(db, env, request, now, product);
   if (session)
     await db
       .prepare('UPDATE customer_sessions SET revoked_at = ?2 WHERE id = ?1 AND revoked_at IS NULL')
       .bind(session.sessionId, now)
       .run();
-  return { cookie: buildClearCustomerCookie(https), ended: session !== null };
+  return { cookie: buildClearCustomerCookie(https, product), ended: session !== null };
 }
 
 /** Revokes every open session of a customer (e.g. after erasure or a staff reissue). Returns how many. */

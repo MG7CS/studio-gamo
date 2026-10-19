@@ -17,7 +17,7 @@ import {
   type AcademyLessonRef,
   type GuestRegistrationInput,
 } from './academy-registrations.ts';
-import { openCustomerLink, readCustomerSession, CUSTOMER_COOKIE_NAME } from './customers.ts';
+import { openCustomerLink, readCustomerSession, customerCookieName } from './customers.ts';
 import { getTermsDocument } from '../terms/registry.ts';
 import { scopeCovers } from '../security/link-tokens.ts';
 
@@ -294,13 +294,18 @@ test('receipt link opens a registration-scoped session; cancel reserved vs paid 
   assert.equal(expires.scope, `registration:${registration.id}`);
   assert.equal(registrationLinkExpiresAt({ termEndsAt: NOW + 100 }, NOW), NOW + 100 + 30 * 24 * 3600);
 
-  const opened = await openCustomerLink(db, LOCAL, { token, now: NOW + 10, https: false });
+  const opened = await openCustomerLink(db, LOCAL, {
+    product: 'academy',
+    token,
+    now: NOW + 10,
+    https: false,
+  });
   assert.ok(opened.ok);
   const request = new Request('http://127.0.0.1:4323/registrations/manage', {
     headers: { cookie: opened.cookie.split(';')[0] },
   });
-  assert.match(opened.cookie, new RegExp(`^${CUSTOMER_COOKIE_NAME}=`));
-  const session = await readCustomerSession(db, LOCAL, request, NOW + 20);
+  assert.match(opened.cookie, new RegExp(`^${customerCookieName('academy')}=`));
+  const session = await readCustomerSession(db, LOCAL, request, NOW + 20, 'academy');
   assert.ok(session);
   assert.equal(scopeCovers(session.scope, { kind: 'registration', id: registration.id }), true);
   assert.equal(scopeCovers(session.scope, { kind: 'registration', id: 'acr_someone_else' }), false);

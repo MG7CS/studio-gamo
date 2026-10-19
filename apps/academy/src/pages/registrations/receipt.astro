@@ -48,6 +48,7 @@ try {
       const lesson = findLesson(registration.lessonSlug ?? undefined);
       if (emailIsSimulated(env) && lesson && registration.status !== 'cancelled') {
         const link = await issueCustomerLink(db, env as never, {
+          product: 'academy',
           customerProfileId: registration.customerProfileId,
           scope: `registration:${registration.id}`,
           purpose: 'registration',

@@ -709,6 +709,7 @@ export async function placeOrder(
   const order = (await loadOrder(db, orderId))!;
   if (!paid) {
     const link = await issueCustomerLink(db, env, {
+      product: 'live',
       customerProfileId: profile.id,
       scope: formatScope('order', orderId),
       purpose: 'verification',
@@ -825,6 +826,7 @@ async function startCheckoutSession(
   let cookie: string | null = null;
   if (order.customer_profile_id) {
     const link = await issueCustomerLink(db, env, {
+      product: 'live',
       customerProfileId: order.customer_profile_id,
       scope: formatScope('order', order.id),
       purpose: 'order',
@@ -836,6 +838,7 @@ async function startCheckoutSession(
       ipHash: input.ipHash,
     });
     const opened = await openCustomerLink(db, env, {
+      product: 'live',
       token: link.token,
       now,
       https: input.https,

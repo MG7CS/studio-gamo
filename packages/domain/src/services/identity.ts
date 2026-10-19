@@ -3,7 +3,7 @@
  * Handles user provisioning, organizations, and multi-tenant memberships.
  */
 
-import { eq, and, gte, gt, lt, isNull, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, gt, lt, lte, isNull, desc, sql } from 'drizzle-orm';
 import {
   users,
   productAccounts,
@@ -24,12 +24,22 @@ import {
 } from '@gamo/db';
 import { AuthError, constantTimeCompare, type ProductKey } from '@gamo/auth';
 import { asSqlDatabase, type SqlDatabase } from '../security/sql-database.ts';
+import { hmacSha256Hex, requireSecret } from '../security/crypto.ts';
 import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from './persons.ts';
 
 const CHALLENGE_TTL_SECONDS = 10 * 60; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
-const CHALLENGE_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const CHALLENGE_RATE_LIMIT_MAX = 5;
+/**
+ * Codes per (address, IP): 3 per hour and 10 per day, and per address across all IPs: 6 per hour and 20 per
+ * day (D-120). Requesting codes never invalidates an outstanding one, so a stranger cannot lock the owner out
+ * by asking; the per-address ceiling still bounds how many live codes can exist.
+ */
+const CHALLENGE_HOUR_MS = 60 * 60 * 1000;
+const CHALLENGE_PAIR_HOUR_MAX = 3;
+const CHALLENGE_DAY_MS = 24 * CHALLENGE_HOUR_MS;
+const CHALLENGE_PAIR_DAY_MAX = 10;
+const CHALLENGE_EMAIL_HOUR_MAX = 6;
+const CHALLENGE_EMAIL_DAY_MAX = 20;
 
 function normalizeChallengePurpose(purpose?: string): 'signin' | 'verify_email' {
   return purpose === 'verify_email' ? 'verify_email' : 'signin';
@@ -60,10 +70,13 @@ export async function hashChallengeCode(
   code: string,
   purpose: string = 'signin',
   scope?: string | null,
+  hmacSecret?: string | null,
 ): Promise<string> {
   const dbPurpose = normalizeChallengePurpose(purpose);
   const base = `${email.toLowerCase().trim()}:${dbPurpose}`;
   const payload = scope ? `${base}:${scope}:${code.trim()}` : `${base}:${code.trim()}`;
+  // With PII_HASH_SECRET the stored hash is keyed (a leaked table cannot be brute-forced offline: 10^6 codes).
+  if (hmacSecret) return hmacSha256Hex(requireSecret('PII_HASH_SECRET', hmacSecret), `auth-code|${payload}`);
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 }
@@ -86,9 +99,12 @@ export function generateChallengeCode(): string {
 
 export class IdentityService {
   db: GamoDatabase;
+  /** PII_HASH_SECRET: keys the stored code hashes. Without it (direct service callers) SHA-256 is used. */
+  private readonly hmacSecret: string | null;
 
-  constructor(db: GamoDatabase) {
+  constructor(db: GamoDatabase, options: { hmacSecret?: string | null } = {}) {
     this.db = db;
+    this.hmacSecret = options.hmacSecret ?? null;
   }
 
   /**
@@ -267,19 +283,25 @@ export class IdentityService {
       if (!existing || existing.status !== 'active') return silent;
     }
 
-    const windowStart = new Date(now.getTime() - CHALLENGE_RATE_LIMIT_WINDOW_MS);
-    const recentChallenges = await this.db
-      .select({ id: authChallenges.id })
+    const recent = await this.db
+      .select({ createdAt: authChallenges.createdAt, ipHash: authChallenges.ipHash })
       .from(authChallenges)
       .where(
         and(
           eq(authChallenges.email, cleanEmail),
           eq(authChallenges.purpose, purpose),
-          gte(authChallenges.createdAt, windowStart),
+          gte(authChallenges.createdAt, new Date(now.getTime() - CHALLENGE_DAY_MS)),
         ),
       );
+    const inLastHour = (r: { createdAt: Date }) => r.createdAt.getTime() >= now.getTime() - CHALLENGE_HOUR_MS;
+    const pair = options?.ipHash ? recent.filter((r) => r.ipHash === options.ipHash) : recent;
+    const overPair =
+      pair.filter(inLastHour).length >= CHALLENGE_PAIR_HOUR_MAX || pair.length >= CHALLENGE_PAIR_DAY_MAX;
+    const overEmail =
+      recent.filter(inLastHour).length >= CHALLENGE_EMAIL_HOUR_MAX ||
+      recent.length >= CHALLENGE_EMAIL_DAY_MAX;
 
-    if (recentChallenges.length >= CHALLENGE_RATE_LIMIT_MAX) {
+    if (overPair || overEmail) {
       // Product-scoped (HTTP) callers answer like any other request — the per-email rate limit in the
       // route already gives the visitor an honest "wait" message — so this never reveals a known address.
       if (scoped) return silent;
@@ -294,6 +316,7 @@ export class IdentityService {
       code,
       purpose,
       challengeScope(options?.product, options?.intent),
+      this.hmacSecret,
     );
 
     await this.db.insert(authChallenges).values({
@@ -336,7 +359,11 @@ export class IdentityService {
     const flow = authFlowOf(options?.intent);
     const invalid = () => new AuthError('UNAUTHENTICATED', INVALID_CODE_MESSAGE, 401);
 
-    const candidates = await this.db
+    // Every unexpired, unconsumed challenge for this address/flow can be answered (an attacker asking for a
+    // new code does not kill the owner's), under a SHARED attempt budget: each guess takes one attempt from
+    // every open challenge atomically BEFORE the comparison, and a challenge accepts at most 5 guesses
+    // (D-120). The caller adds the global per-address failure ceiling.
+    const open = await this.db
       .select()
       .from(authChallenges)
       .where(
@@ -350,33 +377,38 @@ export class IdentityService {
       .orderBy(desc(authChallenges.createdAt), desc(authChallenges.id))
       .limit(10);
 
-    if (candidates.length === 0) throw invalid();
+    if (open.length === 0) throw invalid();
 
-    const expectedHash = await hashChallengeCode(
-      cleanEmail,
-      cleanCode,
-      purpose,
-      challengeScope(options?.product, options?.intent),
-    );
-    let challenge: (typeof candidates)[number] | undefined;
-    for (const candidate of candidates) {
-      // Compare against every candidate (no early exit), so timing does not tell which one matched.
-      const matches = constantTimeCompare(candidate.codeHash, expectedHash);
-      if (matches && candidate.attempts < CHALLENGE_MAX_ATTEMPTS && !challenge) challenge = candidate;
+    const scope = challengeScope(options?.product, options?.intent);
+    const expectedHashes = [await hashChallengeCode(cleanEmail, cleanCode, purpose, scope, this.hmacSecret)];
+    // Transitional: challenges issued before HMAC hashing hold a plain SHA-256 and expire within 10 minutes.
+    if (this.hmacSecret) expectedHashes.push(await hashChallengeCode(cleanEmail, cleanCode, purpose, scope));
+
+    let challenge: (typeof open)[number] | undefined;
+    const tookAttempt = new Set<string>();
+    for (const candidate of open) {
+      const taken = await this.db
+        .update(authChallenges)
+        .set({ attempts: sql`${authChallenges.attempts} + 1` })
+        .where(
+          and(
+            eq(authChallenges.id, candidate.id),
+            isNull(authChallenges.consumedAt),
+            lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
+          ),
+        )
+        .returning({ attempts: authChallenges.attempts });
+      if (taken.length !== 1) continue; // exhausted (or consumed meanwhile): it accepts no more guesses
+      tookAttempt.add(candidate.id);
+      let matches = false;
+      for (const h of expectedHashes) matches = constantTimeCompare(candidate.codeHash, h) || matches;
+      if (matches && !challenge) challenge = candidate;
     }
 
     if (!challenge) {
-      const open = candidates.filter((c) => c.attempts < CHALLENGE_MAX_ATTEMPTS);
-      for (const c of open) {
-        await this.db
-          .update(authChallenges)
-          .set({ attempts: sql`${authChallenges.attempts} + 1` })
-          .where(eq(authChallenges.id, c.id));
-      }
-      const newest = candidates[0];
-      if (newest.attempts + (open.includes(newest) ? 1 : 0) >= CHALLENGE_MAX_ATTEMPTS) {
+      // Locked once every open code has used its five guesses (this one included).
+      if (open.every((c) => c.attempts + (tookAttempt.has(c.id) ? 1 : 0) >= CHALLENGE_MAX_ATTEMPTS))
         throw new Error(LOCKED_CODE_MESSAGE);
-      }
       throw invalid();
     }
 
@@ -389,7 +421,7 @@ export class IdentityService {
           eq(authChallenges.id, challenge.id),
           isNull(authChallenges.consumedAt),
           gt(authChallenges.expiresAt, now),
-          lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
+          lte(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
         ),
       )
       .returning({ id: authChallenges.id });
