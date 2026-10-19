@@ -348,7 +348,7 @@ test('decisions work under the enforced CSP: reply, verify a church, approve eve
 
   // Organizations: the new organization is still waiting; verify it. Catalog: approve the listing.
   await page.goto(`${ADMIN_E2E_ORIGIN}/organizations`);
-  await page.getByRole('link', { name: new RegExp(REVIEW_FIXTURE_TITLES.organization) }).click();
+  await page.getByRole('link', { name: REVIEW_FIXTURE_TITLES.organization }).click();
   await page.getByRole('button', { name: 'Suspend' }).click();
   await expect(page.getByRole('alert')).toContainText('Add a note explaining the decision.');
   await page.getByRole('button', { name: 'Verify organization' }).click();

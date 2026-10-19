@@ -1,5 +1,5 @@
 /**
- * The admin gate: one admin, Cloudflare Access only. There are no accounts, passwords or sessions.
+ * The admin gate: one admin, Cloudflare Access only. The admin has no accounts or credentials of its own.
  * Every request must prove it belongs to exactly `ADMIN_EMAIL`; anything else, or any error, is denied.
  *
  *   outside local : a valid Access assertion (RS256, issuer + audience + signature + expiry) whose email is ADMIN_EMAIL

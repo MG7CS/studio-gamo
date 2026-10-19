@@ -67,6 +67,8 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     add('error', 'DB', 'D1 binding is missing; the admin cannot read its queues');
   if ((app === 'web' || app === 'live') && !env.LIVE_DB)
     add('error', 'LIVE_DB', 'Gamo Live database binding is missing; event pages are unavailable');
+  if (app === 'admin' && !env.LIVE_DB)
+    add('error', 'LIVE_DB', 'Gamo Live database binding is missing; the admin cannot review Gamo Live');
 
   if (app === 'admin') {
     if (!present(env.CF_ACCESS_TEAM_NAME))

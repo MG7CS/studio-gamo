@@ -7,7 +7,6 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/promote/status', to: '/organizer' },
   { from: '/promote/events', to: '/organizer' },
   { from: '/workspaces', to: '/organizer' },
-  { from: '/organizer/events/new', to: '/organizer' },
   { from: '/organizer/scan', to: '/organizer' },
   { from: '/artist/*', to: '/artists' },
   { from: '/agent/*', to: '/artists' },

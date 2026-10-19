@@ -145,7 +145,7 @@ const csvQuery = new URLSearchParams({
     {rows.length === 0 ? (
       <p class="mt-6 text-[15px] text-ink">No registrations yet.</p>
     ) : (
-      <div class="mt-4 overflow-x-auto">
+      <div class="relative mt-4 overflow-x-auto">
         <table class="w-full min-w-[640px] text-left text-[14px]">
           <caption class="sr-only">Registrations for {event.values.title}</caption>
           <thead>

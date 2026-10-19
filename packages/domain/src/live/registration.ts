@@ -19,7 +19,7 @@ import {
   normalizeEmail,
 } from '../security/pii-hash.ts';
 import { checkRateLimits, rateLimitBucket } from '../security/rate-limit.ts';
-import { allRows, changesOf, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
 
 export const HOLD_SECONDS = 15 * 60;
 export const CODE_SECONDS = 10 * 60;
@@ -365,23 +365,20 @@ export async function cancelRegistration(
   registrationId: string,
   now: number,
 ): Promise<void> {
-  const results = await db.batch([
-    db
-      .prepare(
-        `UPDATE event_occurrences
-            SET seats_taken = seats_taken - (SELECT party_size FROM registrations WHERE id = ?1 AND status IN ('pending', 'confirmed'))
-          WHERE id = (SELECT occurrence_id FROM registrations WHERE id = ?1 AND status IN ('pending', 'confirmed'))`,
-      )
-      .bind(registrationId),
-    db
-      .prepare(
-        `UPDATE registrations SET status = 'canceled', canceled_at = ?2, expires_at = NULL
-          WHERE id = ?1 AND status IN ('pending', 'confirmed')`,
-      )
-      .bind(registrationId, now),
+  const rows = await runBatch(db, [
+    {
+      sql: `UPDATE event_occurrences
+               SET seats_taken = seats_taken - (SELECT party_size FROM registrations WHERE id = ?1 AND status IN ('pending', 'confirmed'))
+             WHERE id = (SELECT occurrence_id FROM registrations WHERE id = ?1 AND status IN ('pending', 'confirmed'))`,
+      params: [registrationId],
+    },
+    {
+      sql: `UPDATE registrations SET status = 'canceled', canceled_at = ?2, expires_at = NULL
+             WHERE id = ?1 AND status IN ('pending', 'confirmed') RETURNING id`,
+      params: [registrationId, now],
+    },
   ]);
-  if (changesOf(results[1] as { meta?: { changes?: number | bigint } }) === 0)
-    throw new RegistrationError('already_canceled');
+  if (rows[1].length === 0) throw new RegistrationError('already_canceled');
 }
 
 export type CheckInResult =

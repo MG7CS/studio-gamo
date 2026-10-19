@@ -50,12 +50,10 @@ const orderedEvents = [...localMetroEvents, ...otherNationwideEvents];
 const phoenixCount = allEvents.filter((e) => e.metroSlug === 'phoenix-az').length;
 const activeMetroCount = selectedMetroSlug === 'all' ? allEvents.length : localMetroEvents.length;
 
-// Select Featured Event: CAIN in Phoenix on Nov 7, 2026
-const featuredEvent =
-  allEvents.find((e) => e.slug === 'cain-phoenix-2026-11-07') ||
-  allEvents.find((e) => e.isFeatured) ||
-  allEvents[0] ||
-  null;
+// Featured: an event the admin marked featured (editorial, always labeled), else the next upcoming one.
+// With no events the section is not drawn at all.
+const upcomingEvents = allEvents.filter((e) => !e.isPast && e.status === 'approved');
+const featuredEvent = upcomingEvents.find((e) => e.isFeatured) ?? upcomingEvents[0] ?? null;
 
 const featuredSchedule = featuredEvent
   ? formatLocalEventSchedule(
@@ -66,21 +64,28 @@ const featuredSchedule = featuredEvent
     )
   : null;
 
-const isCainFeatured = !featuredEvent || featuredEvent.slug === 'cain-phoenix-2026-11-07';
-const featuredPrimaryTitle = isCainFeatured ? 'CAIN Live and In Worship' : featuredEvent.title;
-const featuredSecondaryTitle = isCainFeatured
-  ? 'Tour with bodie'
-  : featuredEvent.tagline || `${featuredEvent.city}, ${featuredEvent.state}`;
+const featuredPrimaryTitle = featuredEvent?.title ?? '';
+const featuredSecondaryTitle = featuredEvent ? `${featuredEvent.city}, ${featuredEvent.state}` : '';
 const featuredDateLine = featuredSchedule
   ? `${featuredSchedule.shortDateLabel} · ${featuredSchedule.timeLabel}`
-  : 'Sat, Nov 7, 2026 · 7:00 PM MST';
+  : '';
 const featuredVenueLine = featuredEvent
   ? `${featuredEvent.venueName}${featuredEvent.address ? ` · ${featuredEvent.address}` : ''}, ${featuredEvent.city}, ${featuredEvent.state}`
-  : 'Dream City Church · 13613 N Cave Creek Rd, Phoenix, AZ';
-const featuredTicketUrl =
-  featuredEvent?.externalUrl ||
-  'https://www.ticketweb.com/event/cain-live-and-in-worship-dream-city-church-tickets/14954663?pl=TPR';
-const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/events/cain-phoenix-2026-11-07';
+  : '';
+const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/events';
+// What the main button does depends on how the event admits people.
+const featuredCta = !featuredEvent
+  ? null
+  : featuredEvent.admission === 'external_tickets' && featuredEvent.externalUrl
+    ? { label: 'Get tickets', href: featuredEvent.externalUrl, external: true }
+    : featuredEvent.registrationOpen
+      ? { label: 'Register free', href: `/events/${featuredEvent.slug}/register`, external: false }
+      : null;
+const featuredNote = !featuredEvent
+  ? ''
+  : featuredEvent.listingType === 'external_discovery'
+    ? `Published by Gamo Live Listings · Independent listing${featuredEvent.externalTicketProvider ? ` · Tickets sold by ${featuredEvent.externalTicketProvider}` : ''}`
+    : `Organized by ${featuredEvent.organizerName}${featuredEvent.organizerVerified ? '' : ' (not yet verified by Gamo)'}`;
 ---
 
 <Layout
@@ -459,113 +464,108 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
     </div>
   </section>
 
-  {/* SECTION 3: FEATURED EVENT BANNER */}
-  <section class="mx-auto max-w-[1340px] px-4 py-4 sm:px-6 lg:px-8">
-    <div class="relative overflow-hidden rounded-3xl bg-ink text-white shadow-xl border border-ink">
-      {/* Right Stage Visual with Seamless Dark Gradient Blend */}
-      <div class="absolute inset-0 z-0">
-        <img
-          src="/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp"
-          alt={`Live stage atmosphere for ${featuredPrimaryTitle}`}
-          loading="lazy"
-          decoding="async"
-          class="h-full w-full object-cover object-[center_20%] lg:object-right opacity-55 lg:opacity-90"
-        />
-        <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/20" aria-hidden="true"></div>
-        <div
-          class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40 lg:hidden"
-          aria-hidden="true"
-        ></div>
-      </div>
-
-      {/* Left Content Column */}
-      <div class="relative z-10 max-w-2xl p-7 sm:p-10 lg:p-14">
-        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-terracotta-soft">
-          FEATURED EVENT
-        </p>
-
-        <h2 class="mt-3 text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.06] uppercase">
-          <span class="block text-white">{featuredPrimaryTitle}</span>
-          <span class="block text-line mt-1">{featuredSecondaryTitle}</span>
-        </h2>
-
-        <div class="mt-6 space-y-2.5 text-sm sm:text-base text-sand">
-          {/* Calendar Schedule Line */}
-          <div class="flex items-center gap-3">
-            <svg
-              class="h-5 w-5 text-line shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="1.9"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-              />
-            </svg>
-            <span class="font-medium">{featuredDateLine}</span>
-          </div>
-
-          {/* Venue Pin Line */}
-          <div class="flex items-center gap-3">
-            <svg
-              class="h-5 w-5 text-line shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="1.9"
-              aria-hidden="true"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-              />
-            </svg>
-            <span class="font-medium">{featuredVenueLine}</span>
-          </div>
+  {/* SECTION 3: FEATURED EVENT BANNER (only when there is an event to show) */}
+  {featuredEvent && (
+    <section class="mx-auto max-w-[1340px] px-4 py-4 sm:px-6 lg:px-8">
+      <div class="relative overflow-hidden rounded-3xl bg-ink text-white shadow-xl border border-ink">
+        {/* Right Stage Visual with Seamless Dark Gradient Blend */}
+        <div class="absolute inset-0 z-0">
+          <img
+            src="/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp"
+            alt={`Live stage atmosphere for ${featuredPrimaryTitle}`}
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-cover object-[center_20%] lg:object-right opacity-55 lg:opacity-90"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/20"
+            aria-hidden="true"
+          ></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40 lg:hidden"
+            aria-hidden="true"
+          ></div>
         </div>
 
-        <p class="mt-4 text-xs text-line/90">
-          Published by Gamo Live Listings · Independent listing · Tickets sold by TicketWeb
-        </p>
+        {/* Left Content Column */}
+        <div class="relative z-10 max-w-2xl p-7 sm:p-10 lg:p-14">
+          <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-terracotta-soft">
+            {featuredEvent.isFeatured ? 'Featured event (editorial pick)' : 'Next up'}
+          </p>
 
-        {/* CTA Row */}
-        <div class="mt-7 flex flex-wrap items-center gap-3.5">
-          <a
-            href={featuredTicketUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2.5 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-lg transition-colors"
-            aria-label={`Get tickets for ${featuredPrimaryTitle} at TicketWeb (opens in a new tab)`}
-          >
-            <span>Get tickets</span>
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.2"
-              aria-hidden="true"
+          <h2 class="mt-3 text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.06] uppercase">
+            <span class="block text-white">{featuredPrimaryTitle}</span>
+            <span class="block text-line mt-1">{featuredSecondaryTitle}</span>
+          </h2>
+
+          <div class="mt-6 space-y-2.5 text-sm sm:text-base text-sand">
+            {/* Calendar Schedule Line */}
+            <div class="flex items-center gap-3">
+              <svg
+                class="h-5 w-5 text-line shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.9"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                />
+              </svg>
+              <span class="font-medium">{featuredDateLine}</span>
+            </div>
+
+            {/* Venue Pin Line */}
+            <div class="flex items-center gap-3">
+              <svg
+                class="h-5 w-5 text-line shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.9"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                />
+              </svg>
+              <span class="font-medium">{featuredVenueLine}</span>
+            </div>
+          </div>
+
+          <p class="mt-4 text-xs text-line/90">{featuredNote}</p>
+
+          {/* CTA Row */}
+          <div class="mt-7 flex flex-wrap items-center gap-3.5">
+            {featuredCta && (
+              <a
+                href={featuredCta.href}
+                target={featuredCta.external ? '_blank' : undefined}
+                rel={featuredCta.external ? 'noopener noreferrer' : undefined}
+                class="inline-flex items-center gap-2.5 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-lg transition-colors"
+                aria-label={`${featuredCta.label}: ${featuredPrimaryTitle}${featuredCta.external ? ' (opens in a new tab)' : ''}`}
+              >
+                <span>{featuredCta.label}</span>
+              </a>
+            )}
+
+            <a
+              href={featuredDetailUrl}
+              class="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 hover:bg-white/20 px-6 py-3.5 text-sm sm:text-[15px] font-semibold text-white backdrop-blur-sm transition-colors"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
-          </a>
-
-          <a
-            href={featuredDetailUrl}
-            class="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 hover:bg-white/20 px-6 py-3.5 text-sm sm:text-[15px] font-semibold text-white backdrop-blur-sm transition-colors"
-          >
-            <span>Event details</span>
-          </a>
+              <span>Event details</span>
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   {/* SECTION 4: FOR ORGANIZERS AND ARTISTS SPLIT CARD */}
   <section class="mx-auto max-w-[1340px] px-4 pt-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">

@@ -149,7 +149,15 @@ test('KV, D1 and placeholder problems are reported with the offending id', () =>
 });
 
 test('the real repository has no configuration errors other than the shared KV namespace (H-01)', () => {
-  const findings = analyzeConfigs(repoRoot, APPS, 'production').filter((f) => f.severity === 'error');
+  // The rebuilt admin has no production environment until cutover (apps/admin/wrangler.toml), so it is checked for preview.
+  const findings = [
+    ...analyzeConfigs(
+      repoRoot,
+      APPS.filter((app) => app !== 'admin'),
+      'production',
+    ),
+    ...analyzeConfigs(repoRoot, ['admin'], 'preview'),
+  ].filter((f) => f.severity === 'error');
   // Once H-01 is fixed this list is empty, which is also fine.
   assert.ok(
     findings.every((f) => f.code === 'kv-shared'),
@@ -261,7 +269,7 @@ test('CLI: skips the remote part when logged out, never prints a secret value, e
         ? { status: 0, stdout: 'Account', stderr: '' }
         : { status: 0, stdout: '[]', stderr: '' };
     assert.equal(
-      runPreflight(root, parseArgs(['web', '--env', 'preview']), missing, () => {}),
+      runPreflight(root, parseArgs(['live', '--env', 'preview']), missing, () => {}),
       1,
     );
   } finally {

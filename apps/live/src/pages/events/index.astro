@@ -66,7 +66,7 @@ if (rawDateParam === '2026') {
   computedDateFrom = new Date('2027-01-01T00:00:00Z');
   computedDateTo = new Date('2027-12-31T23:59:59Z');
 } else if (rawDateParam === 'month') {
-  const anchor = new Date('2026-10-15T00:00:00Z');
+  const anchor = new Date();
   computedDateFrom = anchor;
   computedDateTo = new Date(anchor.getTime() + 45 * 24 * 60 * 60 * 1000);
 }

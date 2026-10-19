@@ -37,6 +37,12 @@ test('only published and canceled events are public; drafts and suspended organi
   );
   assert.equal(await catalog.getEvent('evt_draft'), null);
   assert.equal((await catalog.getEvent('evt_canceled'))?.status, 'canceled');
+  // Canceling an event also cancels its dates; the event must still be found (so it can say it was canceled).
+  d1.sqlite.exec("UPDATE event_occurrences SET status = 'canceled' WHERE event_id = 'evt_canceled'");
+  const canceled = await catalog.getEvent('evt_canceled');
+  assert.equal(canceled?.status, 'canceled');
+  assert.equal(canceled?.isClosed, true);
+  assert.equal(canceled?.registrationOpen, false);
   d1.sqlite.exec("UPDATE organizations SET status = 'suspended'");
   assert.deepEqual(await catalog.listDiscoverableEvents(), []);
 });

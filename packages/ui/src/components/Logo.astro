@@ -4,9 +4,12 @@ interface Props {
   width?: string | number;
   height?: string | number;
   program?: string;
+  /** `onLight` darkens the Gamo Live accents ("LIVE", the bars) so they pass contrast on white and cream. */
+  tone?: 'onDark' | 'onLight';
 }
 
-const { class: className, width = 160, height = 30, program = 'Gamo Studios' } = Astro.props;
+const { class: className, width = 160, height = 30, program = 'Gamo Studios', tone = 'onDark' } = Astro.props;
+const accent = tone === 'onLight' ? 'text-terracotta-deep' : 'text-terracotta-soft';
 const isGamoLive = program.trim().toLowerCase() === 'gamo live';
 ---
 
@@ -18,7 +21,7 @@ const isGamoLive = program.trim().toLowerCase() === 'gamo live';
     class:list={['inline-flex items-center gap-2.5 select-none', className]}
   >
     <svg
-      class="h-[26px] w-[26px] shrink-0 text-terracotta-soft"
+      class:list={['h-[26px] w-[26px] shrink-0', accent]}
       viewBox="0 0 28 28"
       fill="none"
       aria-hidden="true"
@@ -33,7 +36,7 @@ const isGamoLive = program.trim().toLowerCase() === 'gamo live';
       <span aria-hidden="true" class="font-extrabold text-current">
         GAMO
       </span>{' '}
-      <span aria-hidden="true" class="font-normal text-terracotta-soft ml-1">
+      <span aria-hidden="true" class:list={['font-normal ml-1', accent]}>
         LIVE
       </span>
       <span class="sr-only">Gamo Live</span>
