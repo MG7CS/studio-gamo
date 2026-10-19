@@ -35,11 +35,22 @@ export interface InquiryRow {
   createdAt: number;
 }
 
+/**
+ * "Waiting for review" lists the pending inquiries this staff user can act on, the same rule as the sidebar
+ * badge (their own inquiry cannot be self-reviewed). It is still listed under "All".
+ */
 export async function loadInquiries(
   binding: unknown,
   filter: InquiryFilter,
+  staffUserId: string,
 ): Promise<{ items: InquiryRow[]; truncated: boolean }> {
-  const where = filter === 'all' ? '' : 'WHERE status = ?1';
+  const where =
+    filter === 'all'
+      ? ''
+      : filter === 'pending'
+        ? 'WHERE status = ?1 AND user_id <> ?2'
+        : 'WHERE status = ?1';
+  const params = filter === 'all' ? [] : filter === 'pending' ? [filter, staffUserId] : [filter];
   const rows = await allRows<{
     id: string;
     user_id: string;
@@ -55,7 +66,7 @@ export async function loadInquiries(
     sql: `SELECT id, user_id, kind, interest, name, organization, message, status, review_notes, created_at
             FROM participation_inquiries ${where}
            ORDER BY created_at DESC, id ASC LIMIT ${INQUIRY_LIMIT + 1}`,
-    params: filter === 'all' ? [] : [filter],
+    params,
   });
   return {
     truncated: rows.length > INQUIRY_LIMIT,
