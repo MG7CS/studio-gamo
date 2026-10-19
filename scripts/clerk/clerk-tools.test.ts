@@ -1,7 +1,9 @@
 /**
  * The Clerk variable names, the startup diagnosis, the .dev.vars reader and scripts/set-clerk-secrets.sh.
  * The shell script is run against a stub `wrangler` that records its arguments and stdin in a temp
- * directory, so nothing remote is called and the test can prove no value is ever printed.
+ * directory, so nothing remote is called and the test can prove no value is ever printed. The script
+ * refuses --env production (except --dry-run) under a test, so no run here can reach the prompt; every
+ * run has a timeout so a regression fails instead of waiting on the terminal.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -188,12 +190,16 @@ function harness() {
   writeFileSync(stub, `#!/usr/bin/env bash\necho "$*" >> "${log}/argv"\ncat > "${log}/stdin.$3"\n`);
   chmodSync(stub, 0o755);
   for (const app of CLERK_PRODUCTS) mkdirSync(join(dir, 'apps', app), { recursive: true });
-  const run = (args: string[]) =>
-    spawnSync('bash', [join(repoRoot, 'scripts/set-clerk-secrets.sh'), ...args], {
+  const run = (args: string[], env: Record<string, string | undefined> = {}) => {
+    const r = spawnSync('bash', [join(repoRoot, 'scripts/set-clerk-secrets.sh'), ...args], {
       encoding: 'utf8',
-      env: { ...process.env, WRANGLER_BIN: stub, CLERK_APPS_DIR: join(dir, 'apps') },
+      env: { ...process.env, WRANGLER_BIN: stub, CLERK_APPS_DIR: join(dir, 'apps'), ...env },
       stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 60_000,
     });
+    assert.equal(r.signal, null, 'the script never waits for input');
+    return r;
+  };
   return { dir, log, run, devVars: (app: string) => join(dir, 'apps', app, '.dev.vars') };
 }
 
@@ -211,7 +217,7 @@ function fileFor(host: string, kind: 'test' | 'live', extra: string[] = []) {
 test('set-clerk-secrets.sh sets the suffixed names from the un-suffixed file, prints only ok lines, never a value', () => {
   const h = harness();
   writeFileSync(h.devVars('web'), fileFor('clerk.gamostudio.org', 'live'));
-  const r = h.run(['--env', 'production', '--app', 'web', '--yes']);
+  const r = h.run(['--env', 'preview', '--app', 'web']);
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(r.stdout.trim().split('\n'), [
     'ok web PUBLIC_CLERK_PUBLISHABLE_KEY_WEB',
@@ -222,7 +228,11 @@ test('set-clerk-secrets.sh sets the suffixed names from the un-suffixed file, pr
   assert.ok(!(r.stdout + r.stderr).includes(SECRET), 'no secret value in output');
   assert.ok(!(r.stdout + r.stderr).includes('BEGIN PUBLIC KEY'), 'no key material in output');
   const argv = readFileSync(join(h.log, 'argv'), 'utf8');
-  assert.match(argv, /^secret put CLERK_SECRET_KEY_WEB --env production$/m);
+  assert.match(argv, /^secret put CLERK_SECRET_KEY_WEB --env preview$/m);
+  assert.doesNotMatch(
+    argv,
+    /^secret put (PUBLIC_CLERK_PUBLISHABLE_KEY|CLERK_SECRET_KEY|CLERK_JWT_KEY|CLERK_ISSUER) /m,
+  );
   assert.ok(!argv.includes(SECRET), 'value is never an argument');
   assert.equal(readFileSync(join(h.log, 'stdin.CLERK_SECRET_KEY_WEB'), 'utf8'), SECRET);
   assert.equal(
@@ -233,14 +243,22 @@ test('set-clerk-secrets.sh sets the suffixed names from the un-suffixed file, pr
   assert.equal(readFileSync(join(h.log, 'stdin.CLERK_ISSUER_WEB'), 'utf8'), 'https://clerk.gamostudio.org');
 });
 
-test('set-clerk-secrets.sh refuses development keys for production and sets nothing', () => {
+test('set-clerk-secrets.sh refuses anything but pk_live_/sk_live_ keys for production and sets nothing', () => {
   const h = harness();
   writeFileSync(h.devVars('worship'), fileFor('x.clerk.accounts.dev', 'test'));
-  const r = h.run(['--env', 'production', '--app', 'worship', '--yes']);
+  const r = h.run(['--env', 'production', '--app', 'worship', '--dry-run']);
   assert.notEqual(r.status, 0);
-  assert.match(r.stderr, /refused worship PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: development key/);
+  assert.match(r.stderr, /refused worship PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: .*Production instance key/);
+  assert.match(r.stderr, /refused worship CLERK_SECRET_KEY_WORSHIP: .*Production instance key/);
   assert.equal(r.stdout, '');
   assert.ok(!existsSync(join(h.log, 'argv')), 'wrangler was never called');
+  writeFileSync(
+    h.devVars('academy'),
+    fileFor('clerk.academy.gamostudio.org', 'live').replace(SECRET, 'not_a_clerk_prefix'),
+  );
+  const unprefixed = h.run(['--env', 'production', '--app', 'academy', '--dry-run']);
+  assert.notEqual(unprefixed.status, 0);
+  assert.match(unprefixed.stderr, /refused academy CLERK_SECRET_KEY_ACADEMY: .*Production instance key/);
   const preview = h.run(['--env', 'preview', '--app', 'worship']);
   assert.equal(preview.status, 0, preview.stderr);
   assert.match(preview.stdout, /^ok worship CLERK_SECRET_KEY_WORSHIP$/m);
@@ -250,7 +268,7 @@ test('set-clerk-secrets.sh refuses one key used by two products, and missing fil
   const h = harness();
   writeFileSync(h.devVars('web'), fileFor('clerk.gamostudio.org', 'live'));
   writeFileSync(h.devVars('academy'), fileFor('clerk.gamostudio.org', 'live'));
-  const dup = h.run(['--env', 'production', '--app', 'web', '--app', 'academy', '--yes']);
+  const dup = h.run(['--env', 'production', '--app', 'web', '--app', 'academy', '--dry-run']);
   assert.notEqual(dup.status, 0);
   assert.match(dup.stderr, /the same key is used by another product/);
   assert.ok(!existsSync(join(h.log, 'argv')));
@@ -273,11 +291,11 @@ test('set-clerk-secrets.sh refuses one key used by two products, and missing fil
       jwtLine,
     ].join('\n'),
   );
-  const jwtDup = sharedJwt.run(['--env', 'production', '--app', 'academy', '--app', 'live', '--yes']);
+  const jwtDup = sharedJwt.run(['--env', 'production', '--app', 'academy', '--app', 'live', '--dry-run']);
   assert.notEqual(jwtDup.status, 0);
   assert.match(jwtDup.stderr, /refused live CLERK_JWT_KEY_LIVE: the same key is used by another product/);
 
-  const missing = h.run(['--env', 'production', '--app', 'live', '--yes']);
+  const missing = h.run(['--env', 'production', '--app', 'live', '--dry-run']);
   assert.notEqual(missing.status, 0);
   assert.match(missing.stderr, /skip live: .* not found/);
 
@@ -287,7 +305,7 @@ test('set-clerk-secrets.sh refuses one key used by two products, and missing fil
   assert.match(partial.stderr, /needs CLERK_SECRET_KEY_PRODUCTION or CLERK_JWT_KEY_PRODUCTION/);
 });
 
-test('set-clerk-secrets.sh: --dry-run calls nothing, --file needs one app, production needs confirmation', () => {
+test('set-clerk-secrets.sh: --dry-run calls nothing, --file needs one app, production needs a person at a terminal', () => {
   const h = harness();
   const file = join(h.dir, 'custom.vars');
   writeFileSync(file, fileFor('clerk.gamostudio.org', 'live', ['CLERK_ISSUER=https://clerk.gamostudio.org']));
@@ -298,10 +316,38 @@ test('set-clerk-secrets.sh: --dry-run calls nothing, --file needs one app, produ
   assert.notEqual(h.run(['--env', 'production', '--file', file]).status, 0, '--file without --app');
   assert.notEqual(h.run(['--env', 'staging', '--app', 'web']).status, 0, 'unknown env');
   assert.notEqual(h.run(['--env', 'preview', '--app', 'admin']).status, 0, 'admin does not use Clerk');
-  const noTty = h.run(['--env', 'production', '--app', 'live', '--file', file]);
-  assert.notEqual(noTty.status, 0, 'production without --yes and without a terminal');
+  const underTest = h.run(['--env', 'production', '--app', 'live', '--file', file]);
+  assert.notEqual(underTest.status, 0);
+  assert.match(underTest.stderr, /started by a test or CI: --env production is refused/);
+  const yes = h.run(['--env', 'production', '--app', 'live', '--file', file, '--yes']);
+  assert.notEqual(yes.status, 0, '--yes no longer exists');
+  assert.match(yes.stderr, /unknown argument: --yes/);
+  // Outside a test marker but with stdin not a terminal: still refused before any prompt.
+  const noTty = h.run(['--env', 'production', '--app', 'live', '--file', file], {
+    NODE_TEST_CONTEXT: undefined,
+    CI: undefined,
+  });
+  assert.notEqual(noTty.status, 0);
+  assert.match(noTty.stderr, /needs a person at an interactive terminal/);
   assert.ok(!existsSync(join(h.log, 'argv')));
   assert.deepEqual(readdirSync(h.log), []);
+});
+
+test('set-clerk-secrets.sh under a test refuses to use anything but a temp-directory stub wrangler', () => {
+  const h = harness();
+  for (const WRANGLER_BIN of [
+    undefined,
+    '',
+    'pnpm exec wrangler',
+    join(repoRoot, 'node_modules/.bin/wrangler'),
+  ]) {
+    const r = h.run(['--env', 'preview', '--app', 'web'], { WRANGLER_BIN });
+    assert.notEqual(r.status, 0, String(WRANGLER_BIN));
+    assert.match(r.stderr, /started by a test or CI: WRANGLER_BIN must be a stub/);
+  }
+  const missingStub = h.run(['--env', 'preview', '--app', 'web'], { WRANGLER_BIN: join(h.dir, 'nope') });
+  assert.match(missingStub.stderr, /WRANGLER_BIN is not an executable stub/);
+  assert.ok(!existsSync(join(h.log, 'argv')));
 });
 
 test('startup validation: EMAIL_FROM must be on the verified sending domain', () => {
