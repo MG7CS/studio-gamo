@@ -13,7 +13,7 @@ import {
   requireSameOrigin,
   constantTimeCompare,
 } from '@gamo/auth';
-import { getRuntimeEnv, escapeHtml, withSecurityHeaders } from '@gamo/domain';
+import { generateCspNonce, getRuntimeEnv, escapeHtml, withSecurityHeaders } from '@gamo/domain';
 import { verifyCloudflareAccessJwt } from './lib/cf-access';
 import {
   authenticateAdminPassword,
@@ -374,7 +374,7 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
       context.locals.staffEmail = accessClaims.email;
       context.locals.staffSubject = accessClaims.sub;
     } else {
-      console.error('[admin] Cloudflare Access assertion rejected');
+      console.error('[admin] Cloudflare Access assertion rejected:', result.reason ?? 'unknown');
     }
   }
 
@@ -533,6 +533,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const secured = withSecurityHeaders(response, {
     enforceCsp: import.meta.env?.PROD === true,
     https: new URL(context.request.url).protocol === 'https:',
+    // Cloudflare injects an inline script (JavaScript Detections) whose content changes per request; it
+    // takes this nonce from the header. No admin page has an inline script of its own.
+    nonce: generateCspNonce(),
   });
   // Everything on admin is staff-only (including the gateway sign-in pages): never cache.
   if (!secured.headers.has('Cache-Control')) secured.headers.set('Cache-Control', 'no-store');

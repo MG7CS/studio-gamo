@@ -9,6 +9,10 @@
  * script and stylesheet as a file, so `script-src` needs no 'unsafe-inline'. JSON-LD blocks are
  * data, not script, and are unaffected. `style-src` keeps 'unsafe-inline' for the few style=""
  * attributes in components.
+ *
+ * An app behind Cloudflare features that inject an inline script into HTML (JavaScript Detections, which
+ * Bot Fight Mode turns on) passes a per-request `nonce`: Cloudflare reads it from this header and stamps it
+ * on the script it injects. The inline script's hash changes on every load, so a hash cannot allow it.
  */
 
 export interface SecurityHeaderOptions {
@@ -18,6 +22,11 @@ export interface SecurityHeaderOptions {
   enforceCsp: boolean;
   /** Request was served over HTTPS (enables HSTS and upgrade-insecure-requests). */
   https: boolean;
+  /**
+   * Per-request CSP nonce (`generateCspNonce()`), added to `script-src` as `'nonce-…'`. Never reuse one
+   * across responses. Values that are not plain base64/base64url are dropped.
+   */
+  nonce?: string;
   /** Allow `navigator.geolocation` for this origin (Gamo Live "near me"). */
   allowGeolocation?: boolean;
   /**
@@ -83,16 +92,28 @@ export function exactHttpsOrigins(values: readonly string[] | undefined): string
   return out;
 }
 
+const NONCE_PATTERN = /^[A-Za-z0-9+/_-]{16,}={0,2}$/;
+
+/** A fresh, unguessable nonce for one response (128 random bits, base64). */
+export function generateCspNonce(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return btoa(String.fromCharCode(...bytes));
+}
+
 export function buildContentSecurityPolicy(
-  options: Pick<SecurityHeaderOptions, 'clerkFrontendApi' | 'https' | 'turnstile' | 'formActionOrigins'>,
+  options: Pick<
+    SecurityHeaderOptions,
+    'clerkFrontendApi' | 'https' | 'turnstile' | 'formActionOrigins' | 'nonce'
+  >,
 ): string {
   const clerk = originOf(options.clerkFrontendApi);
   const withClerk = (...sources: string[]) => (clerk ? [...sources, clerk] : sources);
   // Turnstile (ours, or Clerk's bot protection) loads its script and frame from challenges.cloudflare.com.
   const captcha = clerk || options.turnstile ? [CLERK_SUPPORT_ORIGINS.captcha] : [];
+  const nonce = options.nonce && NONCE_PATTERN.test(options.nonce) ? options.nonce : undefined;
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': withClerk("'self'", ...captcha),
+    'script-src': withClerk("'self'", ...(nonce ? [`'nonce-${nonce}'`] : []), ...captcha),
     'style-src': ["'self'", "'unsafe-inline'"],
     'font-src': ["'self'", 'data:'],
     'img-src': ["'self'", 'data:', 'blob:', ...(clerk ? [CLERK_SUPPORT_ORIGINS.img] : [])],

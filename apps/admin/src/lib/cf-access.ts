@@ -33,10 +33,25 @@ export interface CfAccessClaims {
   country?: string;
 }
 
+/** Why an assertion was refused. Fixed names only, so a log line never carries token or config values. */
+export type VerificationFailure =
+  | 'not_configured'
+  | 'missing'
+  | 'malformed'
+  | 'algorithm'
+  | 'expired'
+  | 'not_yet_valid'
+  | 'issuer'
+  | 'audience'
+  | 'jwks_unavailable'
+  | 'unknown_key'
+  | 'bad_signature';
+
 export interface VerificationResult {
   valid: boolean;
   claims?: CfAccessClaims;
   error?: string;
+  reason?: VerificationFailure;
 }
 
 // In-memory JWKS cache per team domain to avoid redundant network roundtrips on edge
@@ -68,7 +83,9 @@ async function getJwksKeys(certsUrl: string): Promise<JwkKey[]> {
     return cached.keys;
   }
 
-  const res = await fetch(certsUrl, { redirect: 'error', signal: AbortSignal.timeout(5000) });
+  // `redirect: 'error'` is not implemented by the Workers runtime (fetch throws a TypeError, so no assertion
+  // would ever verify); 'manual' returns a redirect as a 3xx response, which `res.ok` rejects below.
+  const res = await fetch(certsUrl, { redirect: 'manual', signal: AbortSignal.timeout(5000) });
   if (!res.ok) {
     throw new Error(`Failed to fetch Cloudflare Access JWKS from ${certsUrl} (${res.status})`);
   }
@@ -92,14 +109,14 @@ export async function verifyCloudflareAccessJwt(
   teamName?: string,
 ): Promise<VerificationResult> {
   if (!expectedAud || !teamName || !/^[a-zA-Z0-9-]+$/.test(teamName))
-    return { valid: false, error: 'Access verification configuration unavailable' };
+    return { valid: false, reason: 'not_configured', error: 'Access verification configuration unavailable' };
   if (!token) {
-    return { valid: false, error: 'Missing cf-access-jwt-assertion token' };
+    return { valid: false, reason: 'missing', error: 'Missing cf-access-jwt-assertion token' };
   }
 
   const parts = token.split('.');
   if (parts.length !== 3) {
-    return { valid: false, error: 'Malformed JWT format' };
+    return { valid: false, reason: 'malformed', error: 'Malformed JWT format' };
   }
 
   const [headerB64, payloadB64, signatureB64] = parts;
@@ -111,11 +128,15 @@ export async function verifyCloudflareAccessJwt(
     header = parseJsonClaim<{ alg: string; kid: string }>(headerB64);
     payload = parseJsonClaim<CfAccessClaims>(payloadB64);
   } catch (err) {
-    return { valid: false, error: 'Failed to decode JWT header or payload' };
+    return { valid: false, reason: 'malformed', error: 'Failed to decode JWT header or payload' };
   }
 
   if (header.alg !== 'RS256') {
-    return { valid: false, error: `Unsupported algorithm: ${header.alg} (expected RS256)` };
+    return {
+      valid: false,
+      reason: 'algorithm',
+      error: `Unsupported algorithm: ${header.alg} (expected RS256)`,
+    };
   }
 
   // 1. Expiration validation
@@ -127,17 +148,21 @@ export async function verifyCloudflareAccessJwt(
     !payload.sub ||
     typeof payload.email !== 'string'
   ) {
-    return { valid: false, error: 'Token has expired' };
+    return { valid: false, reason: 'expired', error: 'Token has expired' };
   }
   if (payload.nbf && payload.nbf > nowSec + 60) {
-    return { valid: false, error: 'Token not yet valid (nbf)' };
+    return { valid: false, reason: 'not_yet_valid', error: 'Token not yet valid (nbf)' };
   }
 
   // 2. Issuer validation
   if (teamName) {
     const expectedIss = `https://${teamName}.cloudflareaccess.com`;
     if (payload.iss !== expectedIss) {
-      return { valid: false, error: `Invalid issuer: ${payload.iss} (expected ${expectedIss})` };
+      return {
+        valid: false,
+        reason: 'issuer',
+        error: `Invalid issuer: ${payload.iss} (expected ${expectedIss})`,
+      };
     }
   }
 
@@ -145,7 +170,7 @@ export async function verifyCloudflareAccessJwt(
   if (expectedAud) {
     const audArray = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
     if (!audArray.includes(expectedAud)) {
-      return { valid: false, error: `Audience mismatch for application ${expectedAud}` };
+      return { valid: false, reason: 'audience', error: `Audience mismatch for application ${expectedAud}` };
     }
   }
 
@@ -156,7 +181,11 @@ export async function verifyCloudflareAccessJwt(
     const jwkKey = keys.find((k) => k.kid === header.kid);
 
     if (!jwkKey) {
-      return { valid: false, error: `Public key with kid "${header.kid}" not found in JWKS` };
+      return {
+        valid: false,
+        reason: 'unknown_key',
+        error: `Public key with kid "${header.kid}" not found in JWKS`,
+      };
     }
 
     const cryptoKey = await crypto.subtle.importKey(
@@ -181,11 +210,11 @@ export async function verifyCloudflareAccessJwt(
     );
 
     if (!isSignatureValid) {
-      return { valid: false, error: 'Cryptographic signature verification failed' };
+      return { valid: false, reason: 'bad_signature', error: 'Cryptographic signature verification failed' };
     }
 
     return { valid: true, claims: payload };
   } catch {
-    return { valid: false, error: 'Signature verification failed.' };
+    return { valid: false, reason: 'jwks_unavailable', error: 'Signature verification failed.' };
   }
 }

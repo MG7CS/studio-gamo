@@ -16,6 +16,7 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 import { describeLiveKeyFindings, findLiveKeysInLocalEnv } from './packages/config/env-loader.ts';
+import { ADMIN_E2E_PORT } from './scripts/e2e/admin-fixture.ts';
 
 const apps = [
   ['web', 4321],
@@ -32,6 +33,10 @@ const wanted = (process.env.E2E_APPS ?? '')
   .map((a) => a.trim())
   .filter(Boolean);
 const selectedApps = wanted.length ? apps.filter(([app]) => wanted.includes(app)) : apps;
+// Admin is served differently: scripts/e2e/admin-server.ts runs the built admin worker as production does
+// (ENVIRONMENT=production, Cloudflare Access verified, Secure cookies, enforced CSP) with a seeded staff
+// account, so it has no `astro preview`, local .dev.vars or Clerk to blank. `E2E_APPS=admin` starts only it.
+const withAdmin = wanted.length === 0 || wanted.includes('admin');
 
 const liveKeys = selectedApps.flatMap(([app]) =>
   findLiveKeysInLocalEnv({ app, appDir: fileURLToPath(new URL(`apps/${app}`, import.meta.url)) }),
@@ -52,18 +57,33 @@ export default defineConfig({
   timeout: 600_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://127.0.0.1:4321' },
-  webServer: selectedApps.map(([app, port]) => ({
-    // A local DB made by the old editorial CLI has tables but no migration records; the apply then
-    // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
-    command:
-      `pnpm exec tsx scripts/e2e/test-servers.ts prepare ${app} && ` +
-      `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
-      `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
-      `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 GAMO_TEST_SERVER=1 pnpm --filter apps-${app} exec astro preview`,
-    url: `http://127.0.0.1:${port}/robots.txt`,
-    reuseExistingServer: false,
-    timeout: 120_000,
-    stdout: 'ignore',
-    stderr: 'pipe',
-  })),
+  webServer: [
+    ...(withAdmin
+      ? [
+          {
+            command: 'pnpm exec tsx scripts/e2e/admin-server.ts',
+            // The gateway answers 401 until someone signs in; Playwright accepts that as "up".
+            url: `http://127.0.0.1:${ADMIN_E2E_PORT}/`,
+            reuseExistingServer: false,
+            timeout: 120_000,
+            stdout: 'ignore' as const,
+            stderr: 'pipe' as const,
+          },
+        ]
+      : []),
+    ...selectedApps.map(([app, port]) => ({
+      // A local DB made by the old editorial CLI has tables but no migration records; the apply then
+      // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
+      command:
+        `pnpm exec tsx scripts/e2e/test-servers.ts prepare ${app} && ` +
+        `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
+        `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
+        `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 GAMO_TEST_SERVER=1 pnpm --filter apps-${app} exec astro preview`,
+      url: `http://127.0.0.1:${port}/robots.txt`,
+      reuseExistingServer: false,
+      timeout: 120_000,
+      stdout: 'ignore' as const,
+      stderr: 'pipe' as const,
+    })),
+  ],
 });

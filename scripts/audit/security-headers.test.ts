@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   buildContentSecurityPolicy,
   exactHttpsOrigins,
+  generateCspNonce,
   requestSecurityHeaders,
   securityHeaders,
   withSecurityHeaders,
@@ -182,4 +183,27 @@ test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page 
     directive(csp({}, scanner.locals), 'form-action'),
     "form-action 'self' https://checkout.stripe.com",
   );
+});
+
+test('a per-request nonce is added to script-src only, never with unsafe-inline, and bad values are dropped', () => {
+  const nonce = generateCspNonce();
+  assert.match(nonce, /^[A-Za-z0-9+/]{22}==$/);
+  assert.notEqual(nonce, generateCspNonce(), 'every call is fresh');
+  const csp = buildContentSecurityPolicy({ https: true, nonce });
+  assert.equal(directive(csp, 'script-src'), `script-src 'self' 'nonce-${nonce}'`);
+  assert.ok(!/script-src[^;]*unsafe-inline/.test(csp));
+  assert.ok(!/style-src[^;]*nonce/.test(csp), 'the nonce is for scripts only');
+  assert.equal(
+    securityHeaders({ enforceCsp: true, https: true, nonce })['Content-Security-Policy'],
+    csp,
+    'securityHeaders passes it through',
+  );
+  for (const bad of ["x' 'unsafe-inline", 'short', 'abc def ghi jkl mnop', 'a;b-c-d-e-f-g-h-i-j-k', '']) {
+    assert.equal(
+      directive(buildContentSecurityPolicy({ https: true, nonce: bad }), 'script-src'),
+      "script-src 'self'",
+      `rejects ${JSON.stringify(bad)}`,
+    );
+  }
+  assert.equal(directive(buildContentSecurityPolicy({ https: true }), 'script-src'), "script-src 'self'");
 });
