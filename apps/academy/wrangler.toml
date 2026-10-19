@@ -82,6 +82,7 @@ routes = [
 ]
 [env.production.vars]
 ENVIRONMENT = "production"
+PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa5Jse4TTbIFvR9"
 ALLOW_DEMO_SESSION = "false"
 PUBLIC_ROOT_DOMAIN = "gamostudio.org"
 PUBLIC_SITE_URL_WEB = "https://gamostudio.org"
