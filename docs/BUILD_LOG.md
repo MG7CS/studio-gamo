@@ -777,3 +777,8 @@
 - Branding: the shared Gamo Studios logo with an "Admin" label (page titles "· Gamo Studios Admin"); the collapsed rail shows the official Gamo symbol (`/favicon.svg`). The made-up chip mark and "Operations" wording were removed.
 - Fixed on the way: Tailwind only generates classes it can read literally, so the collapsed variants are written out in full in `Sidebar.astro`.
 - Checked in a real browser: 288 px expanded, 80 px collapsed, persists across pages, axe clean in both states, mobile uses the bottom bar with no toggle.
+
+## 2026-10-19 — Admin: app palette (not deployed, not pushed)
+
+- Owner review: the admin uses the app palette used by every other app. `apps/admin/src/styles/clay.css` now imports the shared `tokens.css` and maps the clay accent scale onto terracotta/sand/tan/cream; stat-card chips use brand tints; the unused `@fontsource-variable/inter` dependency was removed (Inter comes with the shared tokens). Status words keep green/amber/red.
+- Checked in a real browser: 9 pages at 1440 and 360 px, axe (WCAG 2.2 AA) clean, no overflow. A stale Vite dependency cache after `pnpm install` shows an "optimize deps" error until the dev server is restarted.
