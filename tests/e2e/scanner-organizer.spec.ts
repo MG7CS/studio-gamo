@@ -6,7 +6,14 @@ import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 import { createScannerSession } from '../../packages/domain/src/services/ticketing/scanner-sessions.ts';
 import { saveSection } from '../../packages/domain/src/services/ticketing/venue-maps.ts';
 import { expectAccessible, watchErrors } from './helpers/a11y.ts';
-import { count, seedEvent, seedOrganizer, seedTickets, startLiveWorker, type LiveWorker } from './helpers/live-worker.ts';
+import {
+  count,
+  seedEvent,
+  seedOrganizer,
+  seedTickets,
+  startLiveWorker,
+  type LiveWorker,
+} from './helpers/live-worker.ts';
 
 let worker: LiveWorker;
 let organizerCookie: string;
@@ -37,25 +44,43 @@ async function unlock(context: BrowserContext, eventId: string, label: string): 
   return page;
 }
 
-test('offline queue: scans while offline are saved, decided locally, and synced on reconnect', async ({ browser }) => {
-  await seedEvent(worker, { id: 'evt_off', title: 'Sample Offline Night', tiers: [{ id: 'tier_off', name: 'General', capacity: 30 }] });
-  const [ticket] = await seedTickets(worker, { eventId: 'evt_off', categoryId: 'tier_off', quantity: 1, holderName: 'Sample Offline Person' });
+test('offline queue: scans while offline are saved, decided locally, and synced on reconnect', async ({
+  browser,
+}) => {
+  await seedEvent(worker, {
+    id: 'evt_off',
+    title: 'Sample Offline Night',
+    tiers: [{ id: 'tier_off', name: 'General', capacity: 30 }],
+  });
+  const [ticket] = await seedTickets(worker, {
+    eventId: 'evt_off',
+    categoryId: 'tier_off',
+    quantity: 1,
+    holderName: 'Sample Offline Person',
+  });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await unlock(context, 'evt_off', 'Sample Offline gate');
   const errors = watchErrors(page);
   const result = page.locator('[data-result-panel]');
 
   // Let the manifest download (stored in IndexedDB) before the connection drops.
-  await expect.poll(async () => page.evaluate(() => new Promise<boolean>((resolve) => {
-    const req = indexedDB.open('gamo-scanner');
-    req.onsuccess = () => {
-      const tx = req.result.transaction('manifest');
-      const get = tx.objectStore('manifest').count();
-      get.onsuccess = () => resolve(get.result > 0);
-      get.onerror = () => resolve(false);
-    };
-    req.onerror = () => resolve(false);
-  }))).toBe(true);
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        () =>
+          new Promise<boolean>((resolve) => {
+            const req = indexedDB.open('gamo-scanner');
+            req.onsuccess = () => {
+              const tx = req.result.transaction('manifest');
+              const get = tx.objectStore('manifest').count();
+              get.onsuccess = () => resolve(get.result > 0);
+              get.onerror = () => resolve(false);
+            };
+            req.onerror = () => resolve(false);
+          }),
+      ),
+    )
+    .toBe(true);
 
   await context.setOffline(true);
   await page.getByRole('radio', { name: 'Entry' }).check();
@@ -69,11 +94,21 @@ test('offline queue: scans while offline are saved, decided locally, and synced 
   await page.getByLabel('Ticket code').fill(ticket.payload);
   await page.getByRole('button', { name: 'Check ticket' }).click();
   await expect(result).toContainText('Already inside');
-  expect(await count(worker, 'SELECT count(*) AS n FROM ticket_scan_events WHERE event_id = ?1', 'evt_off')).toBe(0);
+  expect(
+    await count(worker, 'SELECT count(*) AS n FROM ticket_scan_events WHERE event_id = ?1', 'evt_off'),
+  ).toBe(0);
 
   await context.setOffline(false);
   await expect
-    .poll(() => count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE event_id = ?1 AND offline = 1 AND result IN ('admitted', 'already_inside')", 'evt_off'), { timeout: 20_000 })
+    .poll(
+      () =>
+        count(
+          worker,
+          "SELECT count(*) AS n FROM ticket_scan_events WHERE event_id = ?1 AND offline = 1 AND result IN ('admitted', 'already_inside')",
+          'evt_off',
+        ),
+      { timeout: 20_000 },
+    )
     .toBe(2);
   await expect(page.locator('[data-connection]')).not.toContainText('waiting to sync');
   expect(errors.filter((e) => !/Failed to load resource|net::ERR/.test(e))).toEqual([]);
@@ -81,7 +116,11 @@ test('offline queue: scans while offline are saved, decided locally, and synced 
 });
 
 test('scanner is usable one-handed at 360 px with no horizontal overflow', async ({ browser }) => {
-  await seedEvent(worker, { id: 'evt_360', title: 'Sample Small Screen', tiers: [{ id: 'tier_360', name: 'General', capacity: 30 }] });
+  await seedEvent(worker, {
+    id: 'evt_360',
+    title: 'Sample Small Screen',
+    tiers: [{ id: 'tier_360', name: 'General', capacity: 30 }],
+  });
   const context = await browser.newContext({ viewport: { width: 360, height: 740 } });
   const page = await unlock(context, 'evt_360', 'Sample Gate 360');
   await expectAccessible(page, 'scanner 360');
@@ -93,9 +132,15 @@ test('scanner is usable one-handed at 360 px with no horizontal overflow', async
 });
 
 test('organizer creates a scanner link and PIN, then ends it', async ({ browser }) => {
-  await seedEvent(worker, { id: 'evt_org', title: 'Sample Organizer Event', tiers: [{ id: 'tier_org', name: 'General', capacity: 30 }] });
+  await seedEvent(worker, {
+    id: 'evt_org',
+    title: 'Sample Organizer Event',
+    tiers: [{ id: 'tier_org', name: 'General', capacity: 30 }],
+  });
   const context = await browser.newContext({ viewport: { width: 1100, height: 900 } });
-  await context.addCookies([{ name: '__session', value: encodeURIComponent(organizerCookie), url: worker.origin, httpOnly: true }]);
+  await context.addCookies([
+    { name: '__session', value: encodeURIComponent(organizerCookie), url: worker.origin, httpOnly: true },
+  ]);
   const page = await context.newPage();
   const errors = watchErrors(page);
   await page.goto(`${worker.origin}/organizer/events/evt_org/scanners`);
@@ -132,14 +177,46 @@ test('organizer creates a scanner link and PIN, then ends it', async ({ browser 
 });
 
 test('venue map: choosing a section through the list alternative (no map needed)', async ({ browser }) => {
-  await seedEvent(worker, { id: 'evt_map', title: 'Sample Seated Concert', tiers: [{ id: 'tier_vip', name: 'VIP', capacity: 12, price: 4000 }, { id: 'tier_ga2', name: 'General', capacity: 40, price: 1500 }] });
-  const b = await saveSection(worker.db, { eventId: 'evt_map', code: 'B', name: 'Section B', categoryId: 'tier_vip', priceCents: null, capacity: 12, accessible: true, now: now() });
-  const c = await saveSection(worker.db, { eventId: 'evt_map', code: 'C', name: 'Section C', categoryId: 'tier_ga2', priceCents: null, capacity: 1, now: now() });
+  await seedEvent(worker, {
+    id: 'evt_map',
+    title: 'Sample Seated Concert',
+    tiers: [
+      { id: 'tier_vip', name: 'VIP', capacity: 12, price: 4000 },
+      { id: 'tier_ga2', name: 'General', capacity: 40, price: 1500 },
+    ],
+  });
+  const b = await saveSection(worker.db, {
+    eventId: 'evt_map',
+    code: 'B',
+    name: 'Section B',
+    categoryId: 'tier_vip',
+    priceCents: null,
+    capacity: 12,
+    accessible: true,
+    now: now(),
+  });
+  const c = await saveSection(worker.db, {
+    eventId: 'evt_map',
+    code: 'C',
+    name: 'Section C',
+    categoryId: 'tier_ga2',
+    priceCents: null,
+    capacity: 1,
+    now: now(),
+  });
   expect(b.ok && c.ok).toBe(true);
-  await seedTickets(worker, { eventId: 'evt_map', categoryId: 'tier_ga2', sectionId: c.ok ? c.id : null, quantity: 1, holderName: 'Sample Seat Holder' });
+  await seedTickets(worker, {
+    eventId: 'evt_map',
+    categoryId: 'tier_ga2',
+    sectionId: c.ok ? c.id : null,
+    quantity: 1,
+    holderName: 'Sample Seat Holder',
+  });
 
   const context = await browser.newContext({ viewport: { width: 360, height: 800 } });
-  await context.addCookies([{ name: '__session', value: encodeURIComponent(organizerCookie), url: worker.origin, httpOnly: true }]);
+  await context.addCookies([
+    { name: '__session', value: encodeURIComponent(organizerCookie), url: worker.origin, httpOnly: true },
+  ]);
   const page = await context.newPage();
   await page.goto(`${worker.origin}/organizer/events/evt_map/venue-map`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Venue map/i);

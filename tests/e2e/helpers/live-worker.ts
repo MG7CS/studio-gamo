@@ -12,8 +12,16 @@ import { tmpdir } from 'node:os';
 import { extname, join, normalize, resolve } from 'node:path';
 import { newOrderReference, newPrefixedId, newTicketId } from '../../../packages/domain/src/security/ids.ts';
 import { newQrSalt, signTicketQr } from '../../../packages/domain/src/security/ticket-qr.ts';
-import { runBatch, type SqlDatabase, type SqlStatementSpec } from '../../../packages/domain/src/security/sql-database.ts';
-import { EVENT_POLICY_DEFAULTS, HOLD_DURATION_SECONDS, policySnapshotJson } from '../../../packages/domain/src/types/policy.ts';
+import {
+  runBatch,
+  type SqlDatabase,
+  type SqlStatementSpec,
+} from '../../../packages/domain/src/security/sql-database.ts';
+import {
+  EVENT_POLICY_DEFAULTS,
+  HOLD_DURATION_SECONDS,
+  policySnapshotJson,
+} from '../../../packages/domain/src/types/policy.ts';
 import {
   buildHoldBatch,
   convertOrderHoldsStatement,
@@ -24,7 +32,6 @@ import {
 const ROOT = resolve(import.meta.dirname, '../../..');
 const require = createRequire(join(ROOT, 'apps/live/package.json'));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare') as {
   Miniflare: new (options: never) => {
     ready: Promise<URL>;
@@ -34,8 +41,9 @@ const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare') as
   };
   convertV4MiniflareOptions(options: never): Record<string, unknown>;
 };
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { build } = wranglerRequire('esbuild') as typeof import('esbuild');
+const { build } = wranglerRequire('esbuild') as {
+  build(options: Record<string, unknown>): Promise<unknown>;
+};
 
 export const SECRETS = {
   SESSION_SECRET: 'e2e-scanner-session-secret-0123456789abcdef',
@@ -63,7 +71,10 @@ const MIME: Record<string, string> = {
 export interface LiveWorker {
   origin: string;
   db: SqlDatabase;
-  bucket: { put(key: string, value: Uint8Array, opts?: unknown): Promise<unknown>; get(key: string): Promise<unknown> };
+  bucket: {
+    put(key: string, value: Uint8Array, opts?: unknown): Promise<unknown>;
+    get(key: string): Promise<unknown>;
+  };
   env: Record<string, unknown>;
   dispose(): Promise<void>;
 }
@@ -114,11 +125,15 @@ export async function startLiveWorker(): Promise<LiveWorker> {
     resourcePersistencePath: join(dir, 'state'),
   } as never);
   const url = await mf.ready;
-  const db = (await mf.getD1Database('DB')) as unknown as SqlDatabase & { exec(sql: string): Promise<unknown> };
+  const db = (await mf.getD1Database('DB')) as unknown as SqlDatabase & {
+    exec(sql: string): Promise<unknown>;
+  };
   for (const file of readdirSync(join(ROOT, 'packages/db/migrations'))
     .filter((f) => f.endsWith('.sql'))
     .sort())
-    for (const raw of readFileSync(join(ROOT, 'packages/db/migrations', file), 'utf8').split('--> statement-breakpoint')) {
+    for (const raw of readFileSync(join(ROOT, 'packages/db/migrations', file), 'utf8').split(
+      '--> statement-breakpoint',
+    )) {
       const sql = raw.replace(/^\s*--.*$/gm, '').trim();
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
@@ -139,15 +154,42 @@ const sql = (s: string, ...params: Array<string | number | null>): SqlStatementS
 export async function seedOrganizer(worker: LiveWorker, id = 'usr_e2e_owner') {
   const t = now();
   await runBatch(worker.db, [
-    sql("INSERT OR IGNORE INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_e2e', 'Sample Church', 'sample-church-e2e', 'church', 'active', ?1)", t),
-    sql("INSERT OR IGNORE INTO organizer_profiles (id, organization_id, created_at) VALUES ('op_e2e', 'org_e2e', ?1)", t),
-    sql("INSERT OR IGNORE INTO users (id, email, verified_email_at, status, created_at, display_name) VALUES (?1, ?2, ?3, 'active', ?3, 'Sample Organizer')", id, `${id}@example.org`, t),
-    sql("INSERT OR IGNORE INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES (?1, ?2, 'live', 'active', 'completed', ?3, ?3)", `pacc_${id}`, id, t),
-    sql("INSERT OR IGNORE INTO organization_members (id, organization_id, user_id, role, status, created_at) VALUES (?1, 'org_e2e', ?2, 'owner', 'active', ?3)", `om_${id}`, id, t),
+    sql(
+      "INSERT OR IGNORE INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_e2e', 'Sample Church', 'sample-church-e2e', 'church', 'active', ?1)",
+      t,
+    ),
+    sql(
+      "INSERT OR IGNORE INTO organizer_profiles (id, organization_id, created_at) VALUES ('op_e2e', 'org_e2e', ?1)",
+      t,
+    ),
+    sql(
+      "INSERT OR IGNORE INTO users (id, email, verified_email_at, status, created_at, display_name) VALUES (?1, ?2, ?3, 'active', ?3, 'Sample Organizer')",
+      id,
+      `${id}@example.org`,
+      t,
+    ),
+    sql(
+      "INSERT OR IGNORE INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES (?1, ?2, 'live', 'active', 'completed', ?3, ?3)",
+      `pacc_${id}`,
+      id,
+      t,
+    ),
+    sql(
+      "INSERT OR IGNORE INTO organization_members (id, organization_id, user_id, role, status, created_at) VALUES (?1, 'org_e2e', ?2, 'owner', 'active', ?3)",
+      `om_${id}`,
+      id,
+      t,
+    ),
   ]);
   const sid = createHmac('sha256', 'sid').update(`${id}${Math.random()}`).digest('hex').slice(0, 48);
   await runBatch(worker.db, [
-    sql("INSERT INTO sessions (id, user_id, expires_at, created_at, product) VALUES (?1, ?2, ?3, ?4, 'live')", sid, id, t + 86400, t),
+    sql(
+      "INSERT INTO sessions (id, user_id, expires_at, created_at, product) VALUES (?1, ?2, ?3, ?4, 'live')",
+      sid,
+      id,
+      t + 86400,
+      t,
+    ),
   ]);
   const mac = createHmac('sha256', SECRETS.SESSION_SECRET).update(sid).digest('base64url');
   return `${sid}.${mac}`;
@@ -156,7 +198,11 @@ export async function seedOrganizer(worker: LiveWorker, id = 'usr_e2e_owner') {
 /** An approved paid event starting in an hour (scanning open), with categories. */
 export async function seedEvent(
   worker: LiveWorker,
-  input: { id: string; title: string; tiers: Array<{ id: string; name: string; capacity: number; price?: number }> },
+  input: {
+    id: string;
+    title: string;
+    tiers: Array<{ id: string; name: string; capacity: number; price?: number }>;
+  },
 ) {
   const t = now();
   await runBatch(worker.db, [
@@ -185,7 +231,13 @@ export async function seedEvent(
 /** Sells and issues tickets with the Phase 1 builders; returns ids and GL1 payloads. */
 export async function seedTickets(
   worker: LiveWorker,
-  input: { eventId: string; categoryId: string; sectionId?: string | null; quantity: number; holderName: string },
+  input: {
+    eventId: string;
+    categoryId: string;
+    sectionId?: string | null;
+    quantity: number;
+    holderName: string;
+  },
 ) {
   const t = now();
   const orderId = newPrefixedId('ord');
@@ -207,7 +259,17 @@ export async function seedTickets(
         policySnapshotJson: policySnapshotJson(EVENT_POLICY_DEFAULTS),
         now: t,
       },
-      items: [{ item: { id: itemId, categoryId: input.categoryId, sectionId: input.sectionId ?? null, quantity: input.quantity }, holdId: newPrefixedId('hold') }],
+      items: [
+        {
+          item: {
+            id: itemId,
+            categoryId: input.categoryId,
+            sectionId: input.sectionId ?? null,
+            quantity: input.quantity,
+          },
+          holdId: newPrefixedId('hold'),
+        },
+      ],
     }),
   );
   const issue: SqlStatementSpec[] = [
@@ -218,7 +280,10 @@ export async function seedTickets(
   for (let seq = 1; seq <= input.quantity; seq++) {
     const id = newTicketId();
     const salt = newQrSalt();
-    const signed = await signTicketQr({ ticketId: id, version: 1, eventId: input.eventId, salt }, { GL1: SECRETS.TICKET_QR_SECRET_GL1 });
+    const signed = await signTicketQr(
+      { ticketId: id, version: 1, eventId: input.eventId, salt },
+      { GL1: SECRETS.TICKET_QR_SECRET_GL1 },
+    );
     if (!signed.ok) throw new Error('sign');
     issue.push(
       insertTicketStatement({
@@ -244,6 +309,9 @@ export async function seedTickets(
 }
 
 export async function count(worker: LiveWorker, query: string, ...params: Array<string | number>) {
-  const row = (await worker.db.prepare(query).bind(...params).first()) as { n: number } | null;
+  const row = (await worker.db
+    .prepare(query)
+    .bind(...params)
+    .first()) as { n: number } | null;
   return Number(row?.n ?? 0);
 }
