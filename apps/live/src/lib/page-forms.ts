@@ -34,7 +34,8 @@ const FIELD_IDS: Record<string, string> = {
   'cf-turnstile-response': 'turnstile-widget',
 };
 
-export const fieldId = (field: string): string => FIELD_IDS[field] ?? field;
+export const fieldId = (field: string): string =>
+  FIELD_IDS[field] ?? (field.startsWith('policy.') ? `policy-${field.slice(7)}` : field);
 
 function fromFields(list: FieldError[]): Pick<FormProblem, 'summary' | 'fields'> {
   const fields: Record<string, string> = {};

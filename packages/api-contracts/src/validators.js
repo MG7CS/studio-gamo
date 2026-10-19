@@ -39870,7 +39870,7 @@ return errors === 0;
 validate147.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
 
 export const schema_EventSavedResponse = validate150;
-const schema272 = {"$id":"schema_EventSavedResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"eventId":{"type":"string"},"slug":{"type":"string"},"status":{"enum":["approved","pending_review"]},"message":{"type":"string"}},"required":["eventId","message"]}},"required":["success","data"]};
+const schema272 = {"$id":"schema_EventSavedResponse","type":"object","additionalProperties":false,"properties":{"success":{"const":true},"data":{"type":"object","additionalProperties":false,"properties":{"eventId":{"type":"string"},"slug":{"type":"string"},"status":{"enum":["approved","pending_review"]},"movedToReview":{"type":"boolean","description":"True when a change to public details sent the event back to staff review."},"message":{"type":"string"}},"required":["eventId","message"]}},"required":["success","data"]};
 
 function validate150(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
 /*# sourceURL="schema_EventSavedResponse" */;
@@ -39952,7 +39952,7 @@ vErrors.push(err5);
 errors++;
 }
 for(const key1 in data1){
-if(!((((key1 === "eventId") || (key1 === "slug")) || (key1 === "status")) || (key1 === "message"))){
+if(!(((((key1 === "eventId") || (key1 === "slug")) || (key1 === "status")) || (key1 === "movedToReview")) || (key1 === "message"))){
 const err6 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key1},message:"must NOT have additional properties"};
 if(vErrors === null){
 vErrors = [err6];
@@ -40000,9 +40000,9 @@ vErrors.push(err9);
 errors++;
 }
 }
-if(data1.message !== undefined){
-if(typeof data1.message !== "string"){
-const err10 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(data1.movedToReview !== undefined){
+if(typeof data1.movedToReview !== "boolean"){
+const err10 = {instancePath:instancePath+"/data/movedToReview",schemaPath:"#/properties/data/properties/movedToReview/type",keyword:"type",params:{type: "boolean"},message:"must be boolean"};
 if(vErrors === null){
 vErrors = [err10];
 }
@@ -40012,9 +40012,9 @@ vErrors.push(err10);
 errors++;
 }
 }
-}
-else {
-const err11 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(data1.message !== undefined){
+if(typeof data1.message !== "string"){
+const err11 = {instancePath:instancePath+"/data/message",schemaPath:"#/properties/data/properties/message/type",keyword:"type",params:{type: "string"},message:"must be string"};
 if(vErrors === null){
 vErrors = [err11];
 }
@@ -40026,12 +40026,24 @@ errors++;
 }
 }
 else {
-const err12 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+const err12 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
 if(vErrors === null){
 vErrors = [err12];
 }
 else {
 vErrors.push(err12);
+}
+errors++;
+}
+}
+}
+else {
+const err13 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err13];
+}
+else {
+vErrors.push(err13);
 }
 errors++;
 }

@@ -1,0 +1,49 @@
+---
+/** A labelled <select> with the same look as the shared TextField (plain HTML, works without JS). */
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  value?: string;
+  hint?: string;
+  error?: string;
+  class?: string;
+}
+const { id, name, label, options, value = '', hint, error, class: className } = Astro.props;
+const describedBy =
+  [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(' ') || undefined;
+---
+
+<div class:list={['gamo-field', className]}>
+  <label for={id} class="block text-[15px] font-semibold text-ink">
+    {label}
+  </label>
+  {hint && (
+    <p id={`${id}-hint`} class="mt-1 text-sm text-muted">
+      {hint}
+    </p>
+  )}
+  <select
+    id={id}
+    name={name}
+    aria-describedby={describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    class:list={[
+      'mt-2 block min-h-11 w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
+      error ? 'border-2 border-terracotta-deep' : 'border-ink/50',
+    ]}
+  >
+    {options.map((o) => (
+      <option value={o.value} selected={o.value === value}>
+        {o.label}
+      </option>
+    ))}
+  </select>
+  {error && (
+    <p id={`${id}-error`} class="mt-1.5 text-sm font-semibold text-terracotta-deep">
+      <span class="sr-only">Error: </span>
+      {error}
+    </p>
+  )}
+</div>

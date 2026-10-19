@@ -1,0 +1,195 @@
+---
+/**
+ * One ticket type (category) in the event form: kind, price, capacity and the kind-specific fields
+ * (child max age, group/table seats, day/multi-day dates, companion link), sales window and limit.
+ * A row with no name and no capacity is ignored on save, so spare rows are harmless.
+ */
+import { CATEGORY_KINDS } from '@gamo/domain/types';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import SelectField from './SelectField.astro';
+
+interface Props {
+  index: number;
+  values: Record<string, string>;
+  errors: Record<string, string>;
+  /** Names of the other rows, for the companion picker (index → name). */
+  siblings: Array<{ index: number; label: string }>;
+  reserved?: number;
+}
+const { index, values, errors, siblings, reserved = 0 } = Astro.props;
+const f = (n: string) => `cat.${index}.${n}`;
+const v = (n: string) => values[f(n)] ?? '';
+const err = (n: string) => errors[f(n)];
+const LABELS: Record<string, string> = {
+  general: 'General admission',
+  vip: 'VIP',
+  child: 'Child (up to a maximum age)',
+  companion: 'Companion (comes with an accessible ticket)',
+  accessible: 'Accessible seating',
+  group: 'Group ticket (one code admits several people)',
+  table: 'Table (one code admits a table)',
+  day_pass: 'Day pass (one date)',
+  multi_day: 'Multi-day pass (several dates)',
+};
+---
+
+<fieldset class="space-y-4 rounded-2xl border border-sand bg-white p-4 sm:p-5">
+  <legend class="px-2 text-base font-black uppercase text-ink">Ticket type {index + 1}</legend>
+  <input type="hidden" name={f('id')} value={v('id')} />
+  {reserved > 0 && (
+    <p class="text-sm text-muted">
+      {reserved} reserved or sold. Its kind can't change and capacity can't go below that.
+    </p>
+  )}
+  <div class="grid gap-4 sm:grid-cols-2">
+    <TextField
+      id={f('name')}
+      name={f('name')}
+      label="Name"
+      maxlength={80}
+      value={v('name')}
+      error={err('name')}
+    />
+    <SelectField
+      id={f('kind')}
+      name={f('kind')}
+      label="Kind"
+      value={v('kind') || 'general'}
+      error={err('kind')}
+      options={CATEGORY_KINDS.map((k) => ({ value: k, label: LABELS[k] ?? k }))}
+    />
+    <TextField
+      id={f('price')}
+      name={f('price')}
+      label="Price (US dollars)"
+      inputmode="decimal"
+      hint="0 for free"
+      value={v('price') || '0'}
+      error={err('price')}
+    />
+    <TextField
+      id={f('capacity')}
+      name={f('capacity')}
+      label="Tickets available"
+      inputmode="numeric"
+      value={v('capacity')}
+      error={err('capacity')}
+    />
+  </div>
+  <TextField
+    id={f('description')}
+    name={f('description')}
+    label="Short description (optional)"
+    maxlength={300}
+    value={v('description')}
+    error={err('description')}
+  />
+  <details
+    class="rounded-xl bg-cream p-3"
+    open={Boolean(
+      v('maxAge') ||
+      v('seatsPerTicket') ||
+      v('validDays') ||
+      v('companionOf') ||
+      v('salesStartDate') ||
+      v('salesEndDate') ||
+      v('perOrderLimit') ||
+      err('maxAge') ||
+      err('seatsPerTicket') ||
+      err('validDays') ||
+      err('companionOf'),
+    )}
+  >
+    <summary class="min-h-11 cursor-pointer py-2 font-semibold text-ink">
+      More options for this ticket type
+    </summary>
+    <div class="mt-3 grid gap-4 sm:grid-cols-2">
+      <TextField
+        id={f('perOrderLimit')}
+        name={f('perOrderLimit')}
+        label="Limit per order"
+        inputmode="numeric"
+        hint="1 to 20, empty = the event limit"
+        value={v('perOrderLimit')}
+        error={err('perOrderLimit')}
+      />
+      <TextField
+        id={f('maxAge')}
+        name={f('maxAge')}
+        label="Child: oldest age allowed"
+        inputmode="numeric"
+        value={v('maxAge')}
+        error={err('maxAge')}
+      />
+      <TextField
+        id={f('seatsPerTicket')}
+        name={f('seatsPerTicket')}
+        label="Group or table: people per ticket"
+        inputmode="numeric"
+        value={v('seatsPerTicket')}
+        error={err('seatsPerTicket')}
+      />
+      <TextField
+        id={f('validDays')}
+        name={f('validDays')}
+        label="Day or multi-day pass: valid dates"
+        hint="YYYY-MM-DD, separated by commas"
+        value={v('validDays')}
+        error={err('validDays')}
+      />
+      <SelectField
+        id={f('companionOf')}
+        name={f('companionOf')}
+        label="Companion of (accessible ticket type)"
+        value={v('companionOf')}
+        error={err('companionOf')}
+        options={[
+          { value: '', label: '— none —' },
+          ...siblings.map((s) => ({ value: String(s.index), label: s.label })),
+        ]}
+      />
+      <SelectField
+        id={f('status')}
+        name={f('status')}
+        label="Status"
+        value={v('status') || 'active'}
+        options={[
+          { value: 'active', label: 'On sale' },
+          { value: 'hidden', label: 'Hidden' },
+          { value: 'closed', label: 'Closed' },
+        ]}
+      />
+      <TextField
+        id={f('salesStartDate')}
+        name={f('salesStartDate')}
+        label="Sales start date"
+        type="text"
+        hint="YYYY-MM-DD, empty = now"
+        value={v('salesStartDate')}
+        error={err('salesStart')}
+      />
+      <TextField
+        id={f('salesStartTime')}
+        name={f('salesStartTime')}
+        label="Sales start time"
+        hint="HH:MM, venue time"
+        value={v('salesStartTime')}
+      />
+      <TextField
+        id={f('salesEndDate')}
+        name={f('salesEndDate')}
+        label="Sales end date"
+        hint="YYYY-MM-DD, empty = at the start"
+        value={v('salesEndDate')}
+        error={err('salesEnd')}
+      />
+      <TextField
+        id={f('salesEndTime')}
+        name={f('salesEndTime')}
+        label="Sales end time"
+        hint="HH:MM, venue time"
+        value={v('salesEndTime')}
+      />
+    </div>
+  </details>
+</fieldset>

@@ -1,0 +1,120 @@
+---
+/**
+ * Enter the 6-digit code from the email (design §4.2 step 3). `?t=` is a signed reference to the order
+ * (not a credential — the code is). Success: tickets are issued, a customer session cookie is set, and the
+ * browser goes to the order page. Five wrong codes per order per 30 minutes.
+ */
+import Layout from '../../layouts/Layout.astro';
+import PageHeader from '../../components/shared/PageHeader.astro';
+import JourneyPanel from '../../components/shared/JourneyPanel.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  TICKETING_FORMS,
+  confirmOrderByCode,
+  getRuntimeEnv,
+  guardPublicFormForPage,
+  nowSeconds,
+  openOrderSession,
+  requestSecurityHeaders,
+  ticketingDb,
+} from '@gamo/domain';
+import {
+  isHttpsRequest,
+  problemFromError,
+  problemFromGuard,
+  see,
+  type FormProblem,
+} from '../../lib/page-forms';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
+  Awaited<ReturnType<typeof getRuntimeEnv>>;
+const token = Astro.url.searchParams.get('t') ?? '';
+let problem: FormProblem | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+    const guard = await guardPublicFormForPage(
+      { request: Astro.request, env: env as never },
+      TICKETING_FORMS.confirm,
+    );
+    if (!guard.ok) problem = problemFromGuard(guard.error);
+    else {
+      const db = ticketingDb(env);
+      const now = nowSeconds();
+      const result = await confirmOrderByCode(db, env, {
+        confirmToken: token,
+        code: guard.body.get('code') ?? '',
+        now,
+        origin: Astro.url.origin,
+      });
+      const cookie = await openOrderSession(db, env, {
+        orderId: result.orderId,
+        ipHash: guard.ipHash,
+        https: isHttpsRequest(Astro.request),
+        now,
+      });
+      return see(`/tickets/orders/${result.orderId}`, [cookie]);
+    }
+  } catch (err) {
+    problem = problemFromError(err);
+  }
+  if (problem) {
+    Astro.response.status = problem.status;
+    for (const [k, v] of Object.entries(problem.headers)) Astro.response.headers.set(k, v);
+  }
+}
+---
+
+<Layout title="Confirm your tickets" noindex>
+  <PageHeader
+    eyebrow="Almost done"
+    title="Check your email."
+    lede="We sent a 6-digit code and a “Confirm my tickets” button. Either one issues your tickets. They work for 30 minutes."
+  />
+  {!token ? (
+    <JourneyPanel
+      title="This page needs the link from your email"
+      body="Open the confirmation email and use the button, or start again from the event page."
+      href="/events"
+      label="Browse events"
+    />
+  ) : (
+    <section class="bg-cream px-4 pb-20 sm:px-8">
+      <form
+        method="post"
+        action={`/tickets/confirm?t=${encodeURIComponent(token)}`}
+        class="mx-auto max-w-md space-y-5 rounded-[28px] bg-white p-6 ring-1 ring-sand"
+        novalidate
+      >
+        <FormErrorSummary errors={problem?.summary ?? []} />
+        <TextField
+          id="code"
+          name="code"
+          label="6-digit code"
+          required
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength={8}
+          error={problem?.fields.code}
+          hint="Not there? Check your spam folder. The code is in the latest email from Gamo Live."
+        />
+        <SubmitButton label="Confirm my tickets" pendingLabel="Checking…" fullWidth />
+        <p class="text-sm text-muted">
+          Typed the wrong address?{' '}
+          <a class="font-semibold text-terracotta-deep underline" href="/events">
+            Start again
+          </a>{' '}
+          — the held tickets are released after 30 minutes.
+        </p>
+      </form>
+    </section>
+  )}
+</Layout>

@@ -1,135 +1,270 @@
 ---
+/**
+ * Get tickets: free RSVP and paid test checkout in one form (design §4.2).
+ * GET renders the form; POST (plain HTML form, 303) places the order:
+ *   free  → email with a 6-digit code + confirm link → /tickets/confirm
+ *   paid  → Stripe Checkout (test mode) → 303 to Stripe (form-action allowed for that origin)
+ * Registration and sales close at the start time (UI and API agree).
+ */
 import Layout from '../../../layouts/Layout.astro';
 import PageHeader from '../../../components/shared/PageHeader.astro';
 import JourneyPanel from '../../../components/shared/JourneyPanel.astro';
-import FreeRegistrationForm from '../../../components/tickets/FreeRegistrationForm.astro';
-import { getDb } from '@gamo/db';
+import OrderForm from '../../../components/tickets/OrderForm.astro';
+import WaitlistForm from '../../../components/tickets/WaitlistForm.astro';
+import { requireSameOrigin } from '@gamo/auth';
 import {
-  LiveService,
-  getRuntimeEnv,
+  TICKETING_FORMS,
   extractExternalDomain,
+  formatEventDateTime,
+  getRuntimeEnv,
+  guardPublicFormForPage,
+  joinWaitlist,
+  loadSaleContext,
+  nowSeconds,
+  paidCheckoutMode,
+  parseOrderRequest,
+  placeOrder,
+  requestSecurityHeaders,
   resolveExternalCtaLabel,
-  isEventPast,
+  saleState,
+  ticketingDb,
+  type SaleContext,
 } from '@gamo/domain';
+import { orderFormOptions } from '../../../lib/order-form';
+import {
+  isHttpsRequest,
+  newFormKey,
+  problemFromError,
+  problemFromGuard,
+  see,
+  type FormProblem,
+} from '../../../lib/page-forms';
 
 export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
 
-let event: Awaited<ReturnType<LiveService['getEvent']>> = null;
+const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
+  Awaited<ReturnType<typeof getRuntimeEnv>>;
+const eventParam = Astro.params.id ?? '';
+const now = nowSeconds();
+let ctx: SaleContext | null = null;
 let unavailable = false;
-
+let externalEvent: {
+  title: string;
+  slug: string;
+  url: string | null;
+  provider: string | null;
+  label: string;
+  publishedBy: string;
+} | null = null;
 try {
-  const env = await getRuntimeEnv(Astro);
-  const liveService = new LiveService(getDb(env.DB));
-  await liveService.seedCatalogIfAllowed(env);
-  event = await liveService.getEvent(Astro.params.id || '');
+  const db = ticketingDb(env);
+  ctx = await loadSaleContext(db, eventParam);
+  if (!ctx) {
+    const row = (await db
+      .prepare(
+        "SELECT title, slug, external_url, external_ticket_provider, external_destination_kind, published_by_label, status FROM events WHERE (id = ?1 OR slug = ?1) AND status = 'approved' AND (listing_type = 'external_discovery' OR external_only = 1 OR admission_type = 'external')",
+      )
+      .bind(eventParam)
+      .first()) as Record<string, string | null> | null;
+    if (row)
+      externalEvent = {
+        title: String(row.title),
+        slug: String(row.slug),
+        url: row.external_url,
+        provider: row.external_ticket_provider,
+        label: resolveExternalCtaLabel({
+          externalTicketProvider: row.external_ticket_provider,
+          externalDestinationKind: row.external_destination_kind,
+        }),
+        publishedBy: row.published_by_label ?? 'Gamo Live Listings',
+      };
+  }
 } catch {
   unavailable = true;
 }
 
-if (event?.status !== 'approved') {
-  event = null;
+const paid = ctx?.event.admission_type === 'paid';
+// The Stripe redirect after the POST needs form-action for checkout.stripe.com on this page.
+if (paid) requestSecurityHeaders(Astro.locals, { formActionOrigins: ['https://checkout.stripe.com'] });
+
+let problem: FormProblem | null = null;
+let values: Record<string, string> = {};
+let waitlistDone = false;
+const isWaitlist = Astro.url.searchParams.get('waitlist') === '1';
+
+if (ctx && Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+    const db = ticketingDb(env);
+    const guard = await guardPublicFormForPage(
+      { request: Astro.request, env: env as never },
+      isWaitlist ? TICKETING_FORMS.waitlist : TICKETING_FORMS.order,
+    );
+    if (!guard.ok) problem = problemFromGuard(guard.error);
+    else if (isWaitlist) {
+      try {
+        await joinWaitlist(db, {
+          eventId: ctx.event.id,
+          categoryId: guard.body.get('categoryId') || null,
+          email: guard.body.get('email') ?? '',
+          quantity: Number(guard.body.get('quantity') ?? 1),
+          now,
+        });
+        waitlistDone = true;
+      } catch (err) {
+        problem = problemFromError(err);
+      }
+    } else {
+      const body = guard.body;
+      for (const [k, v] of body.form?.entries() ?? [])
+        if (typeof v === 'string' && k !== 'cf-turnstile-response' && k !== 'attendee_name') values[k] = v;
+      body.getAll('attendee_name').forEach((n, i) => (values[`attendee_${i}`] = n));
+      values.purchaserName = body.get('purchaserName') ?? '';
+      try {
+        const result = await placeOrder(db, env, {
+          request: parseOrderRequest(ctx.event.id, body),
+          allow: 'any',
+          ipHash: guard.ipHash,
+          origin: Astro.url.origin,
+          https: isHttpsRequest(Astro.request),
+          now,
+        });
+        if (result.type === 'verify')
+          return see(`/tickets/confirm?t=${encodeURIComponent(result.confirmToken)}`);
+        return see(result.checkoutUrl, [result.cookie]);
+      } catch (err) {
+        problem = problemFromError(err);
+      }
+    }
+  } catch (err) {
+    problem = problemFromError(err);
+  }
+  if (problem) Astro.response.status = problem.status;
+  for (const [k, v] of Object.entries(problem?.headers ?? {})) Astro.response.headers.set(k, v);
 }
 
-const isExternal = Boolean(
-  event &&
-  (event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external'),
-);
-
-if (event && !isExternal && event.admissionType !== 'free') {
-  event = null;
-}
-
-const isPast = Boolean(event && (typeof event.isPast === 'boolean' ? event.isPast : isEventPast(event)));
-
-if (!event) {
-  Astro.response.status = unavailable ? 503 : 404;
-}
-
-const externalProviderLabel = event?.externalTicketProvider || 'the official event page';
-const externalCtaLabel = event
-  ? resolveExternalCtaLabel({
-      externalTicketProvider: event.externalTicketProvider,
-      externalDestinationKind: event.externalDestinationKind,
-    })
-  : 'View official event';
-const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
+const state = ctx ? saleState(ctx, now) : null;
+if (!ctx && !externalEvent) Astro.response.status = unavailable ? 503 : 404;
+const options = ctx ? orderFormOptions(ctx, now) : [];
+const paidMode = paid ? paidCheckoutMode(env) : null;
+const idempotencyKey = values.idempotency_key || newFormKey();
+const pastOrClosed = state === 'closed' || state === 'cancelled';
+const eyebrow = pastOrClosed ? 'Past Event · Closed' : paid ? 'Tickets' : 'Free registration';
 ---
 
 <Layout
   title={
-    isPast && event
-      ? `Past Event (Closed) — ${event.title}`
-      : isExternal && event
-        ? `External Tickets — ${event.title}`
-        : 'Free event registration'
+    ctx
+      ? `Tickets — ${ctx.event.title}`
+      : externalEvent
+        ? `External tickets — ${externalEvent.title}`
+        : 'Tickets'
   }
+  noindex
 >
   <PageHeader
-    eyebrow={isPast ? 'Past Event · Closed' : isExternal ? 'External Event Listing' : 'Free registration'}
-    title={event?.title || 'Registration unavailable'}
+    eyebrow={externalEvent ? 'External Event Listing' : eyebrow}
+    title={ctx?.event.title ?? externalEvent?.title ?? 'Tickets unavailable'}
     lede={
-      isPast
-        ? 'This event has already taken place. Registration and ticket actions are closed.'
-        : isExternal
-          ? `Published by ${event?.publishedByLabel || 'Gamo Live Listings'} · Independent event listing.`
-          : 'Use your own contact information. Your confirmation will explain the next steps.'
+      ctx
+        ? `${formatEventDateTime(Number(ctx.event.starts_at), ctx.event.timezone)} · ${ctx.event.venue_name}, ${ctx.event.city}`
+        : externalEvent
+          ? `Published by ${externalEvent.publishedBy} · Independent event listing.`
+          : 'We could not find tickets for this event.'
+    }
+    back={
+      ctx
+        ? { href: `/events/${ctx.event.slug}`, label: 'Event details' }
+        : { href: '/events', label: 'All events' }
     }
   />
 
-  {event && isPast ? (
+  {externalEvent ? (
     <JourneyPanel
-      title="This event is in the past and registration is closed."
-      body="The scheduled date for this gathering has already passed. Browse upcoming events on Gamo Live."
-      href="/events"
-      label="Browse upcoming events"
-    />
-  ) : event && isExternal ? (
-    <section class="py-10 bg-ivory">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6">
-        <div class="bg-white rounded-2xl border border-sand p-6 sm:p-8 shadow-sm">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-cream text-terracotta">
-            External Ticketing & Registration Only
-          </span>
-          <h2 class="text-xl sm:text-2xl font-black text-ink mt-3 uppercase">
-            Tickets and registration for {event.title} are handled on {externalProviderLabel}
-          </h2>
-          <p class="text-sm text-muted mt-2 leading-relaxed">
-            This concert or worship gathering is an independent listing curated by{' '}
-            <strong>{event.publishedByLabel || 'Gamo Live Listings'}</strong>. Gamo Live does not issue
-            tickets or collect RSVPs for this event. Please use the verified link below to continue to{' '}
-            <strong>{externalDomain || externalProviderLabel}</strong>.
-          </p>
-
-          <div class="mt-6 flex flex-wrap items-center gap-3">
-            {event.externalUrl && (
-              <a
-                href={event.externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta hover:bg-terracotta-deep text-white text-sm font-bold transition-colors"
-              >
-                <span>{externalCtaLabel}</span>
-                <span aria-hidden="true">↗</span>
-              </a>
-            )}
-            <a
-              href={`/events/${event.slug}`}
-              class="inline-flex items-center px-5 py-3 rounded-full border border-line text-ink hover:border-ink text-sm font-semibold transition-colors"
-            >
-              Back to event details
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-  ) : event ? (
-    <FreeRegistrationForm eventId={event.id} eventTitle={event.title} />
-  ) : (
+      title={`Tickets are handled on ${externalEvent.provider ?? 'the official event page'}`}
+      body="Gamo Live does not issue tickets or collect RSVPs for this independent listing. Use the verified link to continue."
+      href={externalEvent.url ?? `/events/${externalEvent.slug}`}
+      label={externalEvent.label}
+    >
+      {externalEvent.url && (
+        <p class="mt-3 text-sm text-muted">Opens {extractExternalDomain(externalEvent.url)}</p>
+      )}
+    </JourneyPanel>
+  ) : !ctx ? (
     <JourneyPanel
-      title="Registration is not available for this event."
-      body="Only approved events with free registration can accept a registration here."
+      title={unavailable ? 'Tickets are temporarily unavailable' : 'Tickets are not available for this event'}
+      body={
+        unavailable
+          ? 'Please try again in a few minutes.'
+          : 'Only published events with Gamo Live ticketing can take registrations.'
+      }
       href="/events"
       label="Browse events"
     />
+  ) : state === 'cancelled' ? (
+    <JourneyPanel
+      title="This event has been cancelled"
+      body="Tickets are no longer available. If you hold tickets, we have emailed you."
+      href="/tickets/find"
+      label="Find my tickets"
+    />
+  ) : state === 'closed' ? (
+    <JourneyPanel
+      title="Past · Closed"
+      body="This event has already taken place. Ticket purchases and attendee registration are closed."
+      href="/events"
+      label="Browse upcoming events"
+    />
+  ) : state === 'not_on_sale' ? (
+    <JourneyPanel
+      title="Tickets are not on sale"
+      body="This event is waiting for review or is not open for registration yet."
+      href="/events"
+      label="Browse events"
+    />
+  ) : paid && paidMode && !paidMode.open ? (
+    <JourneyPanel
+      title="Paid checkout is not available yet"
+      body="No payment has been taken. Paid tickets open only after the required release approvals."
+      href={`/events/${ctx.event.slug}`}
+      label="Back to the event"
+    />
+  ) : waitlistDone ? (
+    <JourneyPanel
+      title="You're on the waitlist"
+      body="If tickets become available we'll email you. They are not reserved for you — first come, first served."
+      href={`/events/${ctx.event.slug}`}
+      label="Back to the event"
+    />
+  ) : (
+    <section class="bg-cream px-4 pb-20 sm:px-8">
+      <div class="mx-auto max-w-3xl rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-8">
+        {problem?.status === 409 && problem.remaining.length > 0 ? (
+          <WaitlistForm
+            action={`/events/${ctx.event.slug}/register?waitlist=1`}
+            remaining={problem.remaining}
+            message={problem.message}
+          />
+        ) : null}
+        <OrderForm
+          action={`/events/${ctx.event.slug}/register`}
+          options={options}
+          values={values}
+          problem={problem}
+          idempotencyKey={idempotencyKey}
+          attendeeNames={ctx.policy.attendeeNamesRequired}
+          maxTickets={ctx.policy.maxTicketsPerOrder}
+          paid={paid}
+        />
+        {options.every((o) => !o.available) && (
+          <WaitlistForm
+            action={`/events/${ctx.event.slug}/register?waitlist=1`}
+            remaining={[]}
+            message="Everything is sold out for now. Join the waitlist and we'll email you if tickets are released."
+          />
+        )}
+      </div>
+    </section>
   )}
 </Layout>

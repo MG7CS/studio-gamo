@@ -1,0 +1,263 @@
+---
+/**
+ * Organizer event form (create and edit), JS-light: one POST (303 on success), sections for the basics,
+ * date + time in the venue's time zone (pickers + a zone select; converted DST-safely on the server),
+ * venue, ticket types and policies. Errors are listed in a summary and next to each field.
+ *
+ * Props
+ * - action: where the form posts. values: flat field map (`title`, `startDate`, `cat.0.name`, `policy.x`…).
+ * - problem: summary + field errors. memberships: organizations the user can publish for (create only).
+ * - datesLocked: tickets exist, so date/time/zone/venue/admission change only through "Event changes".
+ * - reserved: units already reserved per category index.
+ */
+import { EVENT_TIME_ZONES, MAX_CATEGORIES } from '@gamo/domain';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import SelectField from './SelectField.astro';
+import TextAreaField from './TextAreaField.astro';
+import CategoryRow from './CategoryRow.astro';
+import PolicyFields from './PolicyFields.astro';
+import type { FormProblem } from '../../lib/page-forms';
+
+interface Props {
+  action: string;
+  values: Record<string, string>;
+  problem?: FormProblem | null;
+  memberships?: Array<{ organizationId: string; orgName: string }>;
+  datesLocked?: boolean;
+  reserved?: Record<number, number>;
+  submitLabel: string;
+  spareRows?: number;
+}
+const {
+  action,
+  values,
+  problem = null,
+  memberships = [],
+  datesLocked = false,
+  reserved = {},
+  submitLabel,
+  spareRows = 2,
+} = Astro.props;
+const errors = problem?.fields ?? {};
+const v = (n: string, d = '') => values[n] ?? d;
+const filledRows = Math.max(
+  0,
+  ...Object.keys(values)
+    .map((k) => /^cat\.(\d+)\./.exec(k))
+    .filter((m): m is RegExpExecArray => Boolean(m))
+    .map((m) => Number(m[1]) + 1),
+);
+const rows = Math.min(MAX_CATEGORIES, Math.max(1, filledRows) + (datesLocked ? 1 : spareRows));
+const siblings = Array.from({ length: rows }, (_, i) => ({
+  index: i,
+  label: values[`cat.${i}.name`] || `Ticket type ${i + 1}`,
+}));
+const zone = v('timezone', 'America/Phoenix');
+const zones = EVENT_TIME_ZONES.some((z) => z.id === zone)
+  ? EVENT_TIME_ZONES
+  : [{ id: zone, label: zone }, ...EVENT_TIME_ZONES];
+---
+
+<form method="post" action={action} id="event-form" class="mx-auto max-w-3xl space-y-10" novalidate>
+  <FormErrorSummary errors={problem?.summary ?? []} />
+
+  <section class="space-y-4" aria-labelledby="ef-basics">
+    <h2 id="ef-basics" class="text-xl font-black uppercase text-ink">
+      1. About the event
+    </h2>
+    {memberships.length > 0 && (
+      <SelectField
+        id="organizationId"
+        name="organizationId"
+        label="Organization"
+        value={v('organizationId')}
+        options={memberships.map((m) => ({ value: m.organizationId, label: m.orgName }))}
+      />
+    )}
+    <TextField
+      id="title"
+      name="title"
+      label="Event title"
+      required
+      maxlength={150}
+      value={v('title')}
+      error={errors.title}
+    />
+    <TextField id="tagline" name="tagline" label="Tagline (optional)" maxlength={250} value={v('tagline')} />
+    <SelectField
+      id="category"
+      name="category"
+      label="Kind of gathering"
+      value={v('category', 'worship')}
+      error={errors.category}
+      options={[
+        { value: 'worship', label: 'Worship gathering' },
+        { value: 'concert', label: 'Christian concert' },
+        { value: 'bible', label: 'Bible study' },
+        { value: 'conference', label: 'Conference' },
+        { value: 'youth', label: 'Youth & family' },
+      ]}
+    />
+    <TextAreaField
+      id="description"
+      name="description"
+      label="About your event"
+      required
+      value={v('description')}
+      error={errors.description}
+      hint="At least 20 characters. This is shown on the public event page."
+    />
+  </section>
+
+  <section class="space-y-4" aria-labelledby="ef-when">
+    <h2 id="ef-when" class="text-xl font-black uppercase text-ink">
+      2. When and where
+    </h2>
+    {datesLocked && (
+      <p class="rounded-2xl bg-cream p-4 text-ink">
+        People already have tickets, so the date and venue are locked here. Use <strong>Event changes</strong>{' '}
+        to move them — ticket holders are emailed automatically.
+      </p>
+    )}
+    <SelectField
+      id="timezone"
+      name="timezone"
+      label="Venue time zone"
+      value={zone}
+      error={errors.timezone}
+      options={zones.map((z) => ({ value: z.id, label: z.label }))}
+      hint="All times below are in the venue's time zone."
+    />
+    <div class="grid gap-4 sm:grid-cols-2">
+      <TextField
+        id="startDate"
+        name="startDate"
+        label="Start date"
+        type="text"
+        inputmode="numeric"
+        placeholder="2027-03-20"
+        hint="YYYY-MM-DD"
+        required
+        value={v('startDate')}
+        error={errors.startDate}
+        readonly={datesLocked}
+      />
+      <TextField
+        id="startTime"
+        name="startTime"
+        label="Start time"
+        type="text"
+        placeholder="19:00"
+        hint="HH:MM, 24-hour"
+        required
+        value={v('startTime')}
+        error={errors.startTime}
+        readonly={datesLocked}
+      />
+      <TextField
+        id="endDate"
+        name="endDate"
+        label="End date (optional)"
+        placeholder="2027-03-20"
+        value={v('endDate')}
+        error={errors.endDate}
+        readonly={datesLocked}
+      />
+      <TextField
+        id="endTime"
+        name="endTime"
+        label="End time (optional)"
+        placeholder="21:30"
+        value={v('endTime')}
+        readonly={datesLocked}
+      />
+    </div>
+    <TextField
+      id="venueName"
+      name="venueName"
+      label="Venue name"
+      required
+      maxlength={200}
+      value={v('venueName')}
+      error={errors.venueName}
+      readonly={datesLocked}
+    />
+    <TextField
+      id="address"
+      name="address"
+      label="Street address"
+      maxlength={300}
+      autocomplete="street-address"
+      value={v('address')}
+      readonly={datesLocked}
+    />
+    <div class="grid gap-4 sm:grid-cols-2">
+      <TextField
+        id="city"
+        name="city"
+        label="City"
+        required
+        value={v('city')}
+        error={errors.city}
+        autocomplete="address-level2"
+        readonly={datesLocked}
+      />
+      <TextField
+        id="state"
+        name="state"
+        label="State"
+        required
+        maxlength={50}
+        value={v('state')}
+        error={errors.state}
+        autocomplete="address-level1"
+        readonly={datesLocked}
+      />
+    </div>
+  </section>
+
+  <section class="space-y-4" aria-labelledby="ef-tickets">
+    <h2 id="ef-tickets" class="text-xl font-black uppercase text-ink">
+      3. Tickets
+    </h2>
+    <SelectField
+      id="admissionType"
+      name="admissionType"
+      label="Admission"
+      value={v('admissionType', 'free')}
+      error={errors.admissionType}
+      hint="Paid tickets use Stripe in test mode only for now; no real money moves."
+      options={[
+        { value: 'free', label: 'Free' },
+        { value: 'paid', label: 'Paid' },
+      ]}
+    />
+    {errors.categories && <p class="font-semibold text-terracotta-deep">{errors.categories}</p>}
+    {Array.from({ length: rows }, (_, i) => (
+      <CategoryRow
+        index={i}
+        values={values}
+        errors={errors}
+        siblings={siblings}
+        reserved={reserved[i] ?? 0}
+      />
+    ))}
+    <p class="text-sm text-muted">
+      Need more ticket types? Save, then edit the event to get more empty rows. Up to {MAX_CATEGORIES} types.
+    </p>
+  </section>
+
+  <section class="space-y-4" aria-labelledby="ef-policy">
+    <h2 id="ef-policy" class="text-xl font-black uppercase text-ink">
+      4. Policies
+    </h2>
+    <p class="text-ink">
+      Buyers see these rules before they get tickets. A change later never affects tickets already bought.
+    </p>
+    <PolicyFields values={values} errors={errors} />
+  </section>
+
+  <SubmitButton label={submitLabel} pendingLabel="Saving…" />
+</form>

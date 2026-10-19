@@ -58,22 +58,37 @@ export function orderFormOptions(ctx: SaleContext, now: number): OrderFormOption
     const base = (s: (typeof sections)[number] | null): OrderFormOption => {
       const remaining = ticketsLeft(c, s);
       const price = unitPrice(c, s);
-      const limit = Math.min(c.per_order_limit ?? ctx.policy.maxTicketsPerOrder, ctx.policy.maxTicketsPerOrder);
+      const limit = Math.min(
+        c.per_order_limit ?? ctx.policy.maxTicketsPerOrder,
+        ctx.policy.maxTicketsPerOrder,
+      );
       const available = availability.ok && remaining > 0;
       return {
         field: quantityFieldName(c.id, s?.id ?? null),
         categoryId: c.id,
         sectionId: s?.id ?? null,
         title: s ? `${c.name} — Section ${s.name}` : c.name,
-        badge: categoryBadge({ kind: c.kind, max_age: c.max_age, seats_per_ticket: Number(c.seats_per_ticket) }),
+        badge: categoryBadge({
+          kind: c.kind,
+          max_age: c.max_age,
+          seats_per_ticket: Number(c.seats_per_ticket),
+        }),
         description: c.description ?? c.note,
         priceLabel: price === 0 ? 'Free' : formatMoney(price, c.currency),
         priceCents: price,
         remaining,
         max: Math.max(0, Math.min(limit, remaining)),
         available,
-        unavailableReason: available ? null : availability.ok ? 'Sold out' : (REASONS[availability.reason] ?? 'Not available'),
-        notes: [...notes, ...(s?.gate_label ? [`Gate ${s.gate_label}`] : []), ...(s?.accessible ? ['Accessible section'] : [])],
+        unavailableReason: available
+          ? null
+          : availability.ok
+            ? 'Sold out'
+            : (REASONS[availability.reason] ?? 'Not available'),
+        notes: [
+          ...notes,
+          ...(s?.gate_label ? [`Gate ${s.gate_label}`] : []),
+          ...(s?.accessible ? ['Accessible section'] : []),
+        ],
       };
     };
     if (sections.length === 0) out.push(base(null));
