@@ -173,8 +173,8 @@ const EVENT_SELECT = `
     LEFT JOIN catalog_sources cs ON cs.event_id = e.id
     JOIN event_occurrences o ON o.id = (
       SELECT id FROM event_occurrences
-       WHERE event_id = e.id AND status = 'scheduled'
-       ORDER BY (starts_at < ?1), CASE WHEN starts_at >= ?1 THEN starts_at END ASC, starts_at DESC
+       WHERE event_id = e.id
+       ORDER BY (status = 'canceled'), (starts_at < ?1), CASE WHEN starts_at >= ?1 THEN starts_at END ASC, starts_at DESC
        LIMIT 1)
    WHERE e.status IN ('published', 'canceled') AND (g.id IS NULL OR g.status = 'active')`;
 

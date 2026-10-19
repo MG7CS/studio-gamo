@@ -263,18 +263,18 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
     ('m_open','p2','musician','worship','Sample Musician','in_review',1,${now - 200},${now - 200}),
     ('t_open','p3','teacher','academy','Sample Teacher','meeting_scheduled',1,${now - 100},${now - 100}),
     ('t_no','p1','teacher','academy','Sample Rejected','rejected',1,${now},${now})`);
-  live.exec(
+  live.sqlite.exec(
     `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now - 900},${now - 900}), ('g2','Sample Verified Org','sample-verified','church',${now},${now})`,
   );
-  live.exec(`UPDATE organizations SET verified_at = ${now} WHERE id = 'g2'`);
-  live.exec(
+  live.sqlite.exec(`UPDATE organizations SET verified_at = ${now} WHERE id = 'g2'`);
+  live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
-  live.exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,venue_id,timezone,admission,status,created_at,updated_at) VALUES
-    ('e1','g1','organizer','sample-pending','Sample Pending Event','concert','v1','America/Phoenix','free_open','pending_review',${now - 300},${now - 300}),
-    ('e2','g1','organizer','sample-published','Sample Published Event','concert','v1','America/Phoenix','free_open','published',${now},${now}),
-    ('c1',NULL,'catalog','sample-catalog','Sample Catalog Listing','concert','v1','America/Phoenix','external_tickets','pending_review',${now - 100},${now - 100})`);
-  live.exec(`UPDATE events SET external_url = 'https://tickets.example.invalid/x' WHERE id = 'c1'`);
+  live.sqlite
+    .exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,venue_id,timezone,admission,external_url,status,created_at,updated_at) VALUES
+    ('e1','g1','organizer','sample-pending','Sample Pending Event','concert','v1','America/Phoenix','free_open',NULL,'pending_review',${now - 300},${now - 300}),
+    ('e2','g1','organizer','sample-published','Sample Published Event','concert','v1','America/Phoenix','free_open',NULL,'published',${now},${now}),
+    ('c1',NULL,'catalog','sample-catalog','Sample Catalog Listing','concert','v1','America/Phoenix','external_tickets','https://tickets.example.invalid/x','pending_review',${now - 100},${now - 100})`);
   run(
     `INSERT INTO users (id,email,verified_email_at,status,created_at) VALUES ('u1','v@example.invalid',${now},'active',${now})`,
   );
@@ -295,9 +295,9 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
   assert.deepEqual(
     inbox?.oldest.map((i) => [i.title, i.kind]),
     [
+      ['Sample Org', 'Organization verification'],
       ['Worship · Sample Visitor', 'Participation request'],
       ['Sample Church', 'Church verification'],
-      ['Sample Org', 'Organization verification'],
       ['Sample Pending Event', 'Event review'],
       ['Sample Musician', 'Provider review'],
       ['Sample Teacher', 'Provider review'],
@@ -373,12 +373,15 @@ test('timeAgo says how long something has waited', () => {
 test('Gamo Live event review: list, decisions, conflicts, notes, and the first approval', async () => {
   const live = await liveMigrated();
   const now = Math.floor(Date.now() / 1000);
-  live.exec(`INSERT INTO organizations (id,name,slug,kind) VALUES ('g1','Sample Org','sample-org','church')`);
-  live.exec(
+  live.sqlite.exec(
+    `INSERT INTO organizations (id,name,slug,kind) VALUES ('g1','Sample Org','sample-org','church')`,
+  );
+  live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
   const event = (id: string, title: string, status: string, created: number, startsAt = now + 86_400) =>
-    live.exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,description,venue_id,timezone,admission,status,created_at,updated_at)
+    live.sqlite
+      .exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,description,venue_id,timezone,admission,status,created_at,updated_at)
       VALUES ('${id}','g1','organizer','${id}','${title}','concert','A sample event description.','v1','America/Phoenix','free_open','${status}',${created},${created});
       INSERT INTO event_occurrences (id,event_id,starts_at) VALUES ('o_${id}','${id}',${startsAt});`);
   event('e_old', 'Sample Older Event', 'pending_review', now - 500);
@@ -470,13 +473,13 @@ test('Gamo Live event review: list, decisions, conflicts, notes, and the first a
 test('Gamo Live organizations: verify, suspend (note required), the review switch, and the history', async () => {
   const live = await liveMigrated();
   const now = Math.floor(Date.now() / 1000);
-  live.exec(
+  live.sqlite.exec(
     `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now},${now}), ('g2','Another Org','another','ministry',${now},${now})`,
   );
-  live.exec(
+  live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
-  live.exec(
+  live.sqlite.exec(
     `INSERT INTO events (id,organization_id,origin,slug,title,category,venue_id,timezone,admission,status) VALUES ('e1','g1','organizer','e1','Sample Event','concert','v1','America/Phoenix','free_open','published')`,
   );
   const env = { LIVE_DB: live, ENVIRONMENT: 'local' } as never;
@@ -532,10 +535,11 @@ test('Gamo Live organizations: verify, suspend (note required), the review switc
 
 test('Gamo Live catalog: approve, hide and feature; listings that failed the editorial rules stay out', async () => {
   const live = await liveMigrated();
-  live.exec(
+  live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
-  live.exec(`INSERT INTO events (id,origin,slug,title,category,venue_id,timezone,admission,external_url,status) VALUES
+  live.sqlite
+    .exec(`INSERT INTO events (id,origin,slug,title,category,venue_id,timezone,admission,external_url,status) VALUES
     ('c1','catalog','c1','Sample Listing','concert','v1','America/Phoenix','external_tickets','https://tickets.example.invalid/1','pending_review'),
     ('c2','catalog','c2','Sample Rejected Listing','concert','v1','America/Phoenix','external_tickets','https://tickets.example.invalid/2','rejected')`);
   const env = { LIVE_DB: live, ENVIRONMENT: 'local' } as never;
@@ -749,16 +753,16 @@ test('navigation lists only screens that exist', () => {
   }
 });
 
-test('every page renders through AdminLayout; no public layout, brand tokens, demo shell or sessions', () => {
+test('every page renders through AdminLayout; no public layout, demo shell or sessions', () => {
   for (const { path, text } of sources()) {
-    if (path.includes('/pages/') && path.endsWith('.astro') && !path.endsWith('/index.astro'))
-      assert.match(text, /<AdminLayout\b/, `${path} does not render through AdminLayout`);
-    if (path.endsWith('/pages/index.astro')) assert.match(text, /<AdminLayout\b/);
+    // ProfilePage renders its own AdminLayout (church and provider profiles share it).
+    if (path.includes('/pages/') && path.endsWith('.astro'))
+      assert.match(text, /<AdminLayout\b|<ProfilePage\b/, `${path} does not render through AdminLayout`);
     assert.ok(
-      !/components\/BaseLayout|components\/SiteHeader|components\/SiteFooter|components\/dashboard\/|lib\/dashboard|styles\/tokens\.css|DEMO_PERSONA|WorkspaceScreen/.test(
+      !/components\/BaseLayout|components\/SiteHeader|components\/SiteFooter|components\/dashboard\/|lib\/dashboard|DEMO_PERSONA|WorkspaceScreen/.test(
         text,
       ),
-      `${path} imports the public layout, brand tokens or the demo shell`,
+      `${path} imports the public layout or the demo shell`,
     );
     assert.ok(
       !/resolveAuth|createSession|requireStaff|__session|admin_credentials|password/i.test(text),

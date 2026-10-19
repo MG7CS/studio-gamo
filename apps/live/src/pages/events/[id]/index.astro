@@ -47,10 +47,8 @@ try {
     metroVenues = await liveService.listDiscoverableVenues({ metro: metro.slug });
     allMetroSummaries = await liveService.getMetroSummaries();
   } else {
+    // Only published and canceled events are ever returned; a canceled one says so instead of disappearing.
     event = await liveService.getEvent(rawParam);
-    if (event?.status !== 'approved') {
-      event = null;
-    }
     if (event) {
       const candidates = await liveService.listDiscoverableEvents({ limit: 24 });
       relatedEvents = candidates
@@ -97,10 +95,10 @@ const externalCtaLabel = event
 const externalDomain = event ? extractExternalDomain(event.externalUrl) : null;
 
 const formattedVerifiedDate = (() => {
-  if (!event?.lastVerifiedAt) return 'Oct 15, 2026';
+  if (!event?.lastVerifiedAt) return null;
   try {
     const dt = new Date(event.lastVerifiedAt);
-    if (!Number.isFinite(dt.getTime())) return 'Oct 15, 2026';
+    if (!Number.isFinite(dt.getTime())) return null;
     return dt.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -108,7 +106,7 @@ const formattedVerifiedDate = (() => {
       timeZone: 'UTC',
     });
   } catch {
-    return 'Oct 15, 2026';
+    return null;
   }
 })();
 
@@ -691,8 +689,8 @@ const pageDescription = metro
                         </svg>
                       </a>
                       <p class="text-[11px] text-muted text-center mt-2">
-                        Opens <strong>{externalDomain || 'official site'}</strong> in a new tab · Last
-                        verified {formattedVerifiedDate}
+                        Opens <strong>{externalDomain || 'official site'}</strong> in a new tab
+                        {formattedVerifiedDate ? ` · Last verified ${formattedVerifiedDate}` : ''}
                       </p>
                     </div>
                   )}

@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 import { describeLiveKeyFindings, findLiveKeysInLocalEnv } from './packages/config/env-loader.ts';
 import { ADMIN_E2E_PORT } from './scripts/e2e/admin-fixture.ts';
+import { FLOW_LIVE_PORT } from './scripts/e2e/live-flow-fixture.ts';
 
 const apps = [
   ['web', 4321],
@@ -37,6 +38,13 @@ const selectedApps = wanted.length ? apps.filter(([app]) => wanted.includes(app)
 // (ENVIRONMENT=production, Cloudflare Access verified, enforced CSP) with labeled sample rows, on port 4327
 // (never 4326, the dev server). `E2E_APPS=admin` starts only it.
 const withAdmin = wanted.length === 0 || wanted.includes('admin');
+// The Gamo Live flow (tests/e2e/live-flow.spec.ts) runs the BUILT live and admin workers together on ports 4328 and
+// 4329 (scripts/e2e/live-flow-server.ts). `E2E_APPS=live-flow` starts only that.
+const withFlow = wanted.length === 0 || wanted.includes('live-flow');
+
+/** web, live and admin keep their local database in one shared folder (packages/config/env-loader.ts). */
+const persist = (app: string) =>
+  ['web', 'live'].includes(app) ? ' --persist-to ../../.wrangler/shared-state' : '';
 
 const liveKeys = selectedApps.flatMap(([app]) =>
   findLiveKeysInLocalEnv({ app, appDir: fileURLToPath(new URL(`apps/${app}`, import.meta.url)) }),
@@ -58,6 +66,18 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://127.0.0.1:4321' },
   webServer: [
+    ...(withFlow
+      ? [
+          {
+            command: 'pnpm exec tsx scripts/e2e/live-flow-server.ts',
+            url: `http://127.0.0.1:${FLOW_LIVE_PORT}/robots.txt`,
+            reuseExistingServer: false,
+            timeout: 180_000,
+            stdout: 'ignore' as const,
+            stderr: 'pipe' as const,
+          },
+        ]
+      : []),
     ...(withAdmin
       ? [
           {
@@ -76,8 +96,13 @@ export default defineConfig({
       // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
       command:
         `pnpm exec tsx scripts/e2e/test-servers.ts prepare ${app} && ` +
-        `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
+        `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local${persist(app)} >/dev/null 2>&1 || ` +
         `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
+        // web and live also read Gamo Live's own database (shared local state with the admin).
+        (app === 'web' || app === 'live'
+          ? `(pnpm --filter apps-${app} exec wrangler d1 migrations apply LIVE_DB --local${persist(app)} >/dev/null 2>&1 || ` +
+            `echo "[e2e] ${app}: Live database migrations could not be applied; run make live-db" >&2); `
+          : '') +
         `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 GAMO_TEST_SERVER=1 pnpm --filter apps-${app} exec astro preview`,
       url: `http://127.0.0.1:${port}/robots.txt`,
       reuseExistingServer: false,
