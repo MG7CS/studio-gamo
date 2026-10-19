@@ -552,23 +552,25 @@ try {
 
   // Return to /promote/create and submit a real event listing
   await livePage.goto(`${urls.live}/promote/create`, { waitUntil: 'networkidle' });
-  await livePage.fill('#event-submission input[name="title"]', 'Autumn Night of Worship & Prayer');
-  await livePage.selectOption('#event-submission select[name="category"]', 'worship');
+  const eventDay = new Date(Date.now() + 60 * 86400_000).toISOString().slice(0, 10);
+  await livePage.fill('#title', 'Autumn Night of Worship & Prayer');
+  await livePage.selectOption('#category', 'worship');
   await livePage.fill(
-    '#event-submission textarea[name="description"]',
+    '#description',
     'An evening of congregational worship, scripture reading, and prayer open to the community.',
   );
-  await livePage.fill('#event-submission input[name="venueName"]', 'New Jerusalem Sanctuary');
-  await livePage.fill('#event-submission input[name="city"]', 'Dallas');
-  await livePage.fill('#event-submission input[name="state"]', 'TX');
-  await livePage.fill('#event-submission input[name="startsAt"]', '2026-11-20T19:00:00-06:00');
-  await livePage.fill('#event-submission input[name="timezone"]', 'America/Chicago');
-  await livePage.fill('#event-submission input[name="capacity"]', '150');
-  await livePage.check('#event-submission input[type="checkbox"]');
-  await livePage.click('#event-submission button[type="submit"]');
-  await livePage.waitForSelector('#event-saved-link:not([hidden])');
-  await livePage.click('#event-saved-link');
-  await livePage.waitForURL(`${urls.live}/workspaces`);
+  await livePage.fill('#venueName', 'New Jerusalem Sanctuary');
+  await livePage.fill('#city', 'Dallas');
+  await livePage.fill('#state', 'TX');
+  await livePage.selectOption('#timezone', 'America/Chicago');
+  await livePage.fill('#startDate', eventDay);
+  await livePage.fill('#startTime', '19:00');
+  await livePage.fill('[id="cat.0.capacity"]', '150');
+  await Promise.all([
+    livePage.waitForURL(/\/promote\/events\/evt_.*\/edit\?saved=/),
+    livePage.click('#event-form button[type="submit"]'),
+  ]);
+  await livePage.goto(`${urls.live}/workspaces`, { waitUntil: 'networkidle' });
 
   // Verify /workspaces displays the pending event and allows creating an artist profile
   const workspacesText1 = await livePage.textContent('main#main-content');
