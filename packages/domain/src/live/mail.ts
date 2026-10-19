@@ -103,3 +103,19 @@ export function invitationEmail(
       footer,
   };
 }
+
+export function eventCanceledEmail(
+  to: string,
+  name: string,
+  e: { title: string; whenLabel: string; organizationName: string },
+  message: string,
+): LiveEmail {
+  return {
+    to,
+    subject: `Canceled: ${e.title}`,
+    text:
+      `Hi ${name},\n\n${e.organizationName} canceled ${e.title} (${e.whenLabel}). Your registration is canceled and nothing more is needed from you.` +
+      (message.trim() ? `\n\nA message from the organizer:\n${message.trim()}` : '') +
+      footer,
+  };
+}

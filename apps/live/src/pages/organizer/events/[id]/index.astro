@@ -1,0 +1,274 @@
+---
+/**
+ * B6: one event: its status, Gamo's note, dates with registration counts, and the actions that apply
+ * (edit, send for review, view public page, registrations, cancel).
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import Panel from '../../../../components/organizer/Panel.astro';
+import EventStatusPill from '../../../../components/organizer/EventStatusPill.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  CANCEL_EMAIL_LIMIT,
+  ADMISSIONS,
+  OrganizerError,
+  cancelEvent,
+  eventCanceledEmail,
+  getOrganizerEvent,
+  sendLiveEmail,
+  submitEvent,
+} from '@gamo/domain';
+import { organizerPage } from '../../../../lib/organizer-session';
+import { dateOnly, whenLabel } from '../../../../lib/organizer-format';
+import { STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+const id = Astro.params.id ?? '';
+let event = await getOrganizerEvent(live.db, active.organizationId, id);
+if (!event) return new Response(null, { status: 404 });
+
+let notice: { tone: 'info' | 'error'; text: string } | null = null;
+const saved = Astro.url.searchParams.get('saved');
+if (saved && STATUS_AFTER_SAVE[saved]) notice = { tone: 'info', text: STATUS_AFTER_SAVE[saved] };
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  const action = String(form.get('action') ?? '');
+  try {
+    if (action === 'submit') {
+      const status = await submitEvent(live.db, { organizationId: active.organizationId, eventId: id, now });
+      notice = { tone: 'info', text: STATUS_AFTER_SAVE[status] ?? 'Saved.' };
+    } else if (action === 'cancel') {
+      if (form.get('confirm') !== 'yes') {
+        notice = { tone: 'error', text: 'Tick the box to confirm that you want to cancel this event.' };
+      } else {
+        const message = String(form.get('message') ?? '').slice(0, 1000);
+        const affected = await cancelEvent(live.db, {
+          organizationId: active.organizationId,
+          eventId: id,
+          now,
+        });
+        let sent = 0;
+        for (const person of affected.slice(0, CANCEL_EMAIL_LIMIT)) {
+          try {
+            await sendLiveEmail(
+              live.env,
+              eventCanceledEmail(
+                person.email,
+                person.name,
+                {
+                  title: event.values.title,
+                  whenLabel: whenLabel(person.startsAt, event.values.timezone),
+                  organizationName: active.name,
+                },
+                message,
+              ),
+            );
+            sent++;
+          } catch {
+            // Counted below as not emailed.
+          }
+        }
+        const missed = affected.length - sent;
+        notice = {
+          tone: missed > 0 ? 'error' : 'info',
+          text:
+            affected.length === 0
+              ? 'The event is canceled.'
+              : `The event is canceled and ${affected.length} ${affected.length === 1 ? 'registration was' : 'registrations were'} canceled. ${sent} ${sent === 1 ? 'person was' : 'people were'} emailed.` +
+                (missed > 0
+                  ? ` ${missed} could not be emailed; download the registration list and tell them directly.`
+                  : ''),
+        };
+      }
+    }
+  } catch (error) {
+    if (!(error instanceof OrganizerError)) throw error;
+    notice = {
+      tone: 'error',
+      text:
+        error.code === 'suspended'
+          ? 'This organization is suspended.'
+          : error.code === 'status_locked'
+            ? 'That is not possible for this event right now. Events need a date that has not passed to be submitted.'
+            : 'That could not be done.',
+    };
+  }
+  event = (await getOrganizerEvent(live.db, active.organizationId, id)) ?? event;
+}
+
+const v = event.values;
+const tz = v.timezone;
+const canSubmit =
+  ['draft', 'changes_requested', 'rejected'].includes(event.status) && active.status === 'active';
+const canEdit =
+  ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
+  active.status === 'active';
+const canCancel = !['canceled', 'hidden'].includes(event.status) && active.status === 'active';
+const totalPeople = event.occurrences.reduce((a, o) => a + o.confirmedPeople, 0);
+const admissionLabel = ADMISSIONS.find((a) => a.value === event.admission)?.label ?? event.admission;
+const decisionLabel: Record<string, string> = {
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+  rejected: 'Rejected',
+};
+---
+
+<OrganizerLayout
+  title={v.title}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <PageTitle title={v.title} subtext={`${v.venueName}, ${v.city}, ${v.state}`} />
+    <EventStatusPill status={event.status} />
+  </div>
+  {notice && <SplitNotice tone={notice.tone}>{notice.text}</SplitNotice>}
+  {event.decision && event.decision.decision !== 'verified' && (
+    <SplitNotice tone={event.decision.decision === 'approved' ? 'info' : 'error'}>
+      <strong>Gamo’s decision: {decisionLabel[event.decision.decision] ?? event.decision.decision}</strong>
+      {event.decision.note ? <span class="block mt-1">{event.decision.note}</span> : null}
+    </SplitNotice>
+  )}
+  <div class="mb-4 flex flex-wrap gap-3">
+    {canEdit && (
+      <a
+        href={`/organizer/events/${id}/edit`}
+        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+      >
+        Edit event
+      </a>
+    )}
+    {event.status === 'published' && (
+      <a
+        href={`/events/${event.slug}`}
+        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+      >
+        View public page
+      </a>
+    )}
+    {event.admission === 'free_registration' && (
+      <a
+        href={`/organizer/events/${id}/registrations`}
+        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+      >
+        Registrations ({totalPeople})
+      </a>
+    )}
+  </div>
+  {canSubmit && (
+    <Panel
+      id="submit"
+      title="Ready to send?"
+      description="Submitting follows your organization’s review rule."
+    >
+      <form method="post" class="max-w-xs">
+        <input type="hidden" name="action" value="submit" />
+        <SplitButton label="Submit event" />
+      </form>
+    </Panel>
+  )}
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <Panel id="details" title="Details">
+      <dl class="space-y-3 text-[15px]">
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">Admission</dt>
+          <dd class="text-right font-semibold text-ink">{admissionLabel}</dd>
+        </div>
+        {event.capacity != null && (
+          <div class="flex justify-between gap-4">
+            <dt class="text-muted">Seats</dt>
+            <dd class="font-semibold text-ink">{event.capacity}</dd>
+          </div>
+        )}
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">QR check-in</dt>
+          <dd class="font-semibold text-ink">{event.qrCheckin ? 'On' : 'Off'}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">Time zone</dt>
+          <dd class="font-semibold text-ink">{tz}</dd>
+        </div>
+      </dl>
+    </Panel>
+    <Panel id="dates" title={`Dates (${event.occurrences.length})`}>
+      <ul class="divide-y divide-sand">
+        {event.occurrences.map((o) => (
+          <li class="flex flex-wrap items-center justify-between gap-2 py-3 text-[15px]">
+            <span>
+              <span class="block font-semibold text-ink">{whenLabel(o.startsAt, tz)}</span>
+              {o.canceled && <span class="text-[13px] text-muted">Canceled</span>}
+            </span>
+            {event.qrCheckin && !o.canceled && o.startsAt * 1000 > Date.now() - 12 * 3600 * 1000 && (
+              <a
+                href={`/organizer/check-in/${o.id}`}
+                class="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-4 text-[13px] font-semibold text-ink hover:bg-sand"
+              >
+                Check in
+              </a>
+            )}
+            {event.admission === 'free_registration' && (
+              <span class="text-[13px] text-muted">
+                {o.confirmedPeople} registered{event.capacity != null ? ` of ${event.capacity}` : ''}
+                {event.qrCheckin ? ` · ${o.checkedInPeople} checked in` : ''}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {event.occurrences.length > 0 && (
+        <p class="mt-3 text-[13px] text-muted">{dateOnly(event.occurrences[0].startsAt, tz)} onward</p>
+      )}
+    </Panel>
+  </div>
+  {canCancel && (
+    <Panel
+      id="cancel"
+      title="Cancel this event"
+      description="Everyone registered is told. This cannot be undone."
+      class="mt-4"
+    >
+      <form method="post" class="max-w-xl space-y-5">
+        <input type="hidden" name="action" value="cancel" />
+        <SplitField
+          id="message"
+          name="message"
+          label="Message to registrants (optional)"
+          as="textarea"
+          rows={3}
+          maxlength={1000}
+        />
+        <label class="flex min-h-11 items-start gap-3 text-[14px] text-ink">
+          <input
+            type="checkbox"
+            name="confirm"
+            value="yes"
+            class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
+          />
+          <span>Yes, cancel this event and every registration.</span>
+        </label>
+        <SplitButton label="Cancel event" variant="quiet" />
+      </form>
+    </Panel>
+  )}
+</OrganizerLayout>

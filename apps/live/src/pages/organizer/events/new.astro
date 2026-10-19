@@ -1,0 +1,60 @@
+---
+/** B5: create an event. Saving needs every field valid; "Save as draft" keeps it private. */
+import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import EventEditor from '../../../components/organizer/EventEditor.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { reviewRuleFor } from '@gamo/domain';
+import { organizerPage } from '../../../lib/organizer-session';
+import { EMPTY_EVENT, readEventForm, saveFromForm } from '../../../lib/event-editor';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+let values = EMPTY_EVENT;
+let errors: Record<string, string> = {};
+let notice: string | undefined;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  values = readEventForm(form);
+  const outcome = await saveFromForm(live.db, { organizationId: active.organizationId, form, now });
+  if (outcome.kind === 'saved')
+    return Astro.redirect(`/organizer/events/${outcome.eventId}?saved=${outcome.status}`, 303);
+  errors = outcome.errors;
+  notice = outcome.notice;
+}
+const rule = await reviewRuleFor(live.db, active.organizationId);
+---
+
+<OrganizerLayout
+  title="New event"
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle title="Create event" subtext="Fill in the details. You can save a draft and come back." />
+  {active.status === 'suspended' && (
+    <SplitNotice tone="error">This organization is suspended, so events cannot be created.</SplitNotice>
+  )}
+  {notice && <SplitNotice tone="error">{notice}</SplitNotice>}
+  {Object.keys(errors).length > 0 && (
+    <SplitNotice tone="error">Please fix the highlighted field: {Object.values(errors)[0]}</SplitNotice>
+  )}
+  <EventEditor values={values} errors={errors} rule={rule} readOnly={active.status === 'suspended'} />
+</OrganizerLayout>

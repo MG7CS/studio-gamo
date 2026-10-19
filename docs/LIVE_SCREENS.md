@@ -71,4 +71,4 @@ Next: the design pass for the organizer screens (B), the public registration scr
 
 ## H. Build status
 
-Built (2026-10-19): A1–A10 (public pages, registration flow, Promote), B1 sign-in and sign-up (Clerk), B2 organization setup, B3 overview, B9 organization profile, members and invitations, B10 account, the organizer shell (sidebar, top bar with organization switcher, phone tab bar). Not built: B4 events list, B5 editor, B6 event overview, B7 registrations, B8 check-in, all admin screens (C), emails for event decisions. The organizer menu lists only screens that exist.
+Built (2026-10-19): A1–A10, B1–B10 (sign-in and sign-up, organization setup, overview, events list, editor, event overview, registrations with CSV, check-in, organization and members, account) and the organizer shell. Not built: event photos, duplicate event, all admin screens (C), emails about review decisions. The organizer menu lists only screens that exist.

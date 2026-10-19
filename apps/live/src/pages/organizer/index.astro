@@ -86,9 +86,25 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
     >
       <p class="text-[15px] leading-relaxed text-ink">
         {(counts.eventsByStatus.published ?? 0) + waiting === 0
-          ? 'You have no events yet. Creating events opens soon.'
+          ? 'You have no events yet.'
           : 'Your events are listed on the public event pages.'}
       </p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        {active.status === 'active' && (
+          <a
+            href="/organizer/events/new"
+            class="inline-flex min-h-11 items-center rounded-full bg-terracotta px-5 text-[14px] font-semibold text-white hover:bg-terracotta-deep"
+          >
+            Create event
+          </a>
+        )}
+        <a
+          href="/organizer/events"
+          class="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+        >
+          All events
+        </a>
+      </div>
     </Panel>
   </div>
 </OrganizerLayout>
