@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '../../components/shared/PageHero.astro';
 import InstrumentOverview from '../../components/instruments/InstrumentOverview.astro';
@@ -36,7 +36,7 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
     ]}
   >
     <div class="mt-8 flex flex-wrap gap-3">
-      <ButtonLink href={inquiryUrl('Lesson interest')} size="lg" arrow>
+      <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" arrow>
         Register for {instrument.short.toLowerCase()}
       </ButtonLink>
       <ButtonLink href="/lessons" size="lg" variant="secondary">

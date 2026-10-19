@@ -8,7 +8,7 @@ import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro'
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 
 const coverageSteps = [
   {
@@ -78,10 +78,10 @@ const pillars = [
       </ul>
 
       <div class="mt-9 flex flex-wrap gap-3">
-        <ButtonLink href={inquiryUrl('Church musician request')} arrow>
+        <ButtonLink href={providerSignupUrl('worship', 'church')} arrow>
           Request a musician
         </ButtonLink>
-        <ButtonLink href={inquiryUrl('Musician application')} variant="secondary">
+        <ButtonLink href={providerSignupUrl('worship', 'musician')} variant="secondary">
           Apply as a musician
         </ButtonLink>
       </div>

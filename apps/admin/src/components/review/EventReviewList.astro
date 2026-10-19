@@ -1,0 +1,92 @@
+---
+/** Events waiting for review (organizers' first events, or every event with "always review"). */
+interface Props {
+  events: {
+    id: string;
+    title: string;
+    organizationName: string;
+    startsAt: Date | string | number;
+    timezone: string;
+    organizerId: string;
+    firstEvent: boolean;
+    alwaysReview: boolean;
+  }[];
+}
+const { events } = Astro.props;
+const when = (v: Date | string | number, zone: string) => {
+  const d = v instanceof Date ? v : new Date(typeof v === 'number' ? v * 1000 : v);
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: zone,
+      timeZoneName: 'short',
+    }).format(d);
+  } catch {
+    return d.toISOString();
+  }
+};
+const field =
+  'mt-1 block min-h-11 w-full rounded-xl border border-ink/50 bg-white px-3 py-2 text-sm text-charcoal';
+---
+
+{events.length === 0 ? (
+  <p class="rounded-2xl border border-sand bg-white p-6 text-sm text-ink-soft">
+    No events are waiting for review.
+  </p>
+) : (
+  <ul class="space-y-5">
+    {events.map((e) => (
+      <li class="rounded-2xl border border-sand bg-white p-5">
+        <h2 class="text-lg font-semibold text-charcoal">{e.title}</h2>
+        <p class="mt-1 text-sm text-ink-soft">
+          {e.organizationName} · {when(e.startsAt, e.timezone)} ·{' '}
+          {e.firstEvent ? 'first event of this organizer' : 'organizer set to always review'}
+        </p>
+        <form method="post" action={`/api/review/events/${encodeURIComponent(e.id)}`} class="mt-4 space-y-3">
+          <label class="block text-sm font-semibold text-charcoal" for={`notes-${e.id}`}>
+            Note to the organizer (required to reject or ask for changes)
+          </label>
+          <textarea id={`notes-${e.id}`} name="notes" rows="2" maxlength="2000" class={field} />
+          <div class="flex flex-wrap gap-3">
+            <button
+              name="decision"
+              value="approved"
+              class="inline-flex min-h-11 items-center rounded-full bg-terracotta-deep px-5 text-sm font-semibold text-white"
+            >
+              Approve
+            </button>
+            <button
+              name="decision"
+              value="revision_requested"
+              class="inline-flex min-h-11 items-center rounded-full bg-charcoal px-5 text-sm font-semibold text-cream"
+            >
+              Ask for changes
+            </button>
+            <button
+              name="decision"
+              value="rejected"
+              class="inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-terracotta-deep ring-2 ring-terracotta-deep"
+            >
+              Reject
+            </button>
+          </div>
+        </form>
+        {e.organizerId && (
+          <form
+            method="post"
+            action={`/api/review/organizers/${encodeURIComponent(e.organizerId)}`}
+            class="mt-4"
+          >
+            <input type="hidden" name="always_review" value={e.alwaysReview ? 'off' : 'on'} />
+            <button class="inline-flex min-h-11 items-center text-sm font-semibold text-charcoal underline">
+              {e.alwaysReview
+                ? 'Stop reviewing every event of this organizer'
+                : 'Review every event of this organizer'}
+            </button>
+          </form>
+        )}
+      </li>
+    ))}
+  </ul>
+)}

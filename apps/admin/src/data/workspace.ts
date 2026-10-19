@@ -37,6 +37,15 @@ export const adminWorkspace: Workspace = {
       ],
     },
     {
+      // Real, D1-backed staff review pages (Phase 2 identity); everything else here is demo data.
+      label: 'Verification & review',
+      items: [
+        { slug: 'review/churches', label: 'Church verification', shortLabel: 'Churches', icon: 'church' },
+        { slug: 'review/providers', label: 'Provider review', shortLabel: 'Providers', icon: 'verified' },
+        { slug: 'review/events', label: 'First-event review', shortLabel: 'Events', icon: 'ticket' },
+      ],
+    },
+    {
       label: 'Analytics & Reporting',
       items: [
         { slug: 'analytics', label: 'Executive analytics', shortLabel: 'Analytics', icon: 'chart' },
@@ -49,7 +58,7 @@ export const adminWorkspace: Workspace = {
     {
       label: 'Gamo Worship',
       items: [
-        { slug: 'worship/applications', label: 'Musician applications', icon: 'user', badge: '4' },
+        { slug: 'review/providers?role=musician', label: 'Musician applications', icon: 'user' },
         { slug: 'worship/review', label: 'Identity & audition review', icon: 'verified' },
         { slug: 'worship/requests', label: 'Church service requests', icon: 'church', badge: '2' },
         { slug: 'worship/placement', label: 'Musician placement', icon: 'music' },
@@ -60,7 +69,7 @@ export const adminWorkspace: Workspace = {
     {
       label: 'Gamo Academy',
       items: [
-        { slug: 'academy/instructors', label: 'Instructor applications', icon: 'school', badge: '3' },
+        { slug: 'review/providers?role=teacher', label: 'Instructor applications', icon: 'school' },
         { slug: 'academy/enrollments', label: 'Student enrollments', icon: 'users' },
         { slug: 'academy/classes', label: 'Classes & schedules', icon: 'calendar' },
         { slug: 'academy/hosted', label: 'Church-hosted campuses', icon: 'church' },
@@ -71,7 +80,7 @@ export const adminWorkspace: Workspace = {
     {
       label: 'Gamo Live',
       items: [
-        { slug: 'live/submissions', label: 'Event submissions', icon: 'ticket', badge: '3' },
+        { slug: 'review/events', label: 'Event submissions', icon: 'ticket' },
         { slug: 'live/organizers', label: 'Organizers & event teams', icon: 'verified' },
         { slug: 'live/artists', label: 'Artists & performers', icon: 'mic', badge: '2' },
         { slug: 'live/agents', label: 'Agents & mandates', icon: 'users' },

@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProviderProfileOverview from '@studio-gamo/ui/components/onboarding/ProviderProfileOverview.astro';
+import { loadProfileOverview } from '@gamo/domain';
+
+const view = await loadProfileOverview(Astro.locals, Astro.url);
+if (!view) return Astro.redirect('/account/signin?next=/account/profile', 303);
+---
+
+<Layout
+  title="Your Provider Profiles — Gamo Academy"
+  description="Status and publish checklist of your Gamo Academy provider profiles."
+>
+  <ProviderProfileOverview program="Gamo Academy" view={view} />
+</Layout>

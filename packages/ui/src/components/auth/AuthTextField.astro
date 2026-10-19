@@ -1,4 +1,9 @@
 ---
+/**
+ * One labelled field of the shared auth screens. The label is visible at every width (placeholders are
+ * examples only), and the error element `${id}-error` is bound with aria-describedby; the auth client sets
+ * `aria-invalid` and fills it when the server or Clerk reports a problem with this field.
+ */
 interface Props {
   id: string;
   name: string;
@@ -10,6 +15,7 @@ interface Props {
   icon?: 'mail' | 'none';
   accent?: 'terracotta' | 'lavender';
   dataVerifyEmailInput?: boolean;
+  hint?: string;
 }
 
 const {
@@ -21,20 +27,29 @@ const {
   placeholder = '',
   required = false,
   icon = 'none',
-  accent = 'terracotta',
   dataVerifyEmailInput = false,
+  hint,
 } = Astro.props;
-
-const focusClasses =
-  accent === 'lavender'
-    ? 'focus:border-terracotta focus:ring-2 focus:ring-terracotta/20'
-    : 'focus:border-terracotta focus:ring-2 focus:ring-terracotta/20';
+const hintId = `${id}-hint`;
+const errorId = `${id}-error`;
 ---
 
 <div>
-  <label for={id} class="sr-only lg:not-sr-only lg:block lg:text-[13px] lg:font-medium lg:text-ink lg:mb-2">
+  <label for={id} class="mb-2 block text-[14px] font-semibold text-ink">
     {label}
+    {required && (
+      <span class="font-normal text-muted">
+        {' '}
+        <span aria-hidden="true">*</span>
+        <span class="sr-only">(required)</span>
+      </span>
+    )}
   </label>
+  {hint && (
+    <p id={hintId} class="-mt-1 mb-2 text-[13px] text-muted">
+      {hint}
+    </p>
+  )}
   <div class="relative">
     {icon === 'mail' && (
       <span
@@ -60,12 +75,16 @@ const focusClasses =
       autocomplete={autocomplete}
       required={required}
       placeholder={placeholder}
+      aria-describedby={[hint ? hintId : null, errorId].filter(Boolean).join(' ')}
       data-verify-email-input={dataVerifyEmailInput ? '' : undefined}
       class:list={[
-        'w-full rounded-[14px] border border-ink/50 bg-white py-3.5 text-[15px] text-ink placeholder:text-muted shadow-[0_1px_2px_rgba(24,20,17,0.03)] transition-all focus:outline-none',
+        'min-h-11 w-full rounded-[14px] border border-ink/50 bg-white py-3.5 text-[15px] text-ink placeholder:text-muted shadow-[0_1px_2px_rgba(24,20,17,0.03)] transition-all focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep',
         icon === 'mail' ? 'pl-11 pr-4' : 'px-4',
-        focusClasses,
       ]}
     />
   </div>
+  <p id={errorId} class="mt-1.5 text-[13px] font-semibold text-terracotta-deep" hidden>
+    <span class="sr-only">Error: </span>
+    <span data-error-text></span>
+  </p>
 </div>

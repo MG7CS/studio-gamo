@@ -1,0 +1,223 @@
+---
+/**
+ * Guest registration for one lesson (design §4.7). No account: the contact email is the identity.
+ * GET renders the form; POST (same page, works without JavaScript) runs the public-form guard
+ * (same-origin, per-IP limit, Turnstile, per-email limit), writes the registration and answers 303 to the
+ * receipt, or to Stripe Checkout on the test path. Errors re-render the form with every field kept.
+ */
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  AcademyRegistrationError,
+  academyPaidCheckoutGate,
+  createGuestRegistration,
+  getRuntimeEnv,
+  guardPublicFormForPage,
+  requestSecurityHeaders,
+  sendRegistrationReceipt,
+  startRegistrationCheckout,
+  TURNSTILE_RESPONSE_FIELD,
+} from '@gamo/domain';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/shared/PageHero.astro';
+import RegistrationForm from '../../components/registration/RegistrationForm.astro';
+import RegistrationLessonSummary from '../../components/registration/RegistrationLessonSummary.astro';
+import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
+import {
+  findLesson,
+  formatAmount,
+  lessonRef,
+  nowSeconds,
+  registrationConsentDocuments,
+  registrationDb,
+  signReceiptReference,
+} from '../../lib/registration';
+
+export const prerender = false;
+
+const lesson = findLesson(Astro.params.lesson);
+if (!lesson) return Astro.rewrite('/404');
+const ref = lessonRef(lesson);
+const env = Astro.locals.runtimeEnv ?? (await getRuntimeEnv(Astro));
+const local = env.ENVIRONMENT === 'local';
+const sampleRefused = lesson.sample && !local;
+const payAvailable =
+  !sampleRefused && academyPaidCheckoutGate(env).open && (lesson.proposedTuitionCents ?? 0) > 0;
+const amountLabel = lesson.proposedTuitionCents ? formatAmount(lesson.proposedTuitionCents) : null;
+// The Pay button 303s to Stripe Checkout: the form's form-action must allow it (only when it can happen).
+if (payAvailable)
+  requestSecurityHeaders(Astro.locals, { formActionOrigins: ['https://checkout.stripe.com'] });
+
+const FIELDS = ['student_first_name', 'student_age_band', 'guardian_name', 'email', 'email_confirm', 'phone'];
+let values: Record<string, string> = {};
+let errors: Record<string, string> = {};
+let summary: { message: string; fieldId?: string }[] = [];
+let turnstileError: string | undefined;
+let pageProblem: string | null = null;
+let idempotencyKey: string = crypto.randomUUID();
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+    const guard = await guardPublicFormForPage(
+      { request: Astro.request, env, locals: Astro.locals },
+      {
+        route: 'academy.register',
+        turnstileAction: 'academy_register',
+        limits: {
+          // Families often register from one church or school network: generous per IP, tight per email.
+          perIp: { limit: 30, windowSeconds: 15 * 60 },
+          perEmail: { limit: 10, windowSeconds: 60 * 60 },
+        },
+      },
+    );
+    if (!guard.ok) {
+      Astro.response.status = guard.error.status;
+      for (const [k, v] of Object.entries(guard.error.headers)) Astro.response.headers.set(k, v);
+      if (guard.error.field === TURNSTILE_RESPONSE_FIELD) turnstileError = guard.error.message;
+      summary = [{ message: guard.error.message, fieldId: guard.error.fieldId }];
+    } else {
+      const body = guard.body;
+      values = Object.fromEntries(FIELDS.map((f) => [f, body.get(f) ?? '']));
+      const key = body.get('idempotency_key') ?? '';
+      if (/^[A-Za-z0-9-]{16,64}$/.test(key)) idempotencyKey = key;
+      const slugs = body.getAll('terms_slug');
+      const versions = body.getAll('terms_version');
+      const now = nowSeconds();
+      const db = registrationDb(env);
+      try {
+        const result = await createGuestRegistration(db, env, {
+          lesson: ref,
+          idempotencyKey: key,
+          studentFirstName: values.student_first_name,
+          studentAgeBand: values.student_age_band,
+          email: values.email,
+          emailConfirm: values.email_confirm,
+          guardianName: values.guardian_name,
+          phone: values.phone,
+          documents: slugs.map((slug, i) => ({ slug, version: versions[i] ?? '' })),
+          acceptedTerms: body.get('terms_accept') === 'yes',
+          acceptedGuardianConsent: body.get('guardian_consent') === 'yes',
+          acceptedChildSafety: body.get('child_safety_consent') === 'yes',
+          marketingOptIn: body.get('marketing_opt_in') === 'yes',
+          choice: body.get('choice') === 'pay' ? 'pay' : 'reserve',
+          ipHash: guard.ipHash,
+          now,
+        });
+        const receipt = `/registrations/receipt?r=${encodeURIComponent(
+          await signReceiptReference(env, result.registration.id, now),
+        )}`;
+        if (result.registration.status === 'pending_payment') {
+          const origin = siteOrigin('academy');
+          const checkout = await startRegistrationCheckout(db, env, {
+            registration: result.registration,
+            lesson: ref,
+            customerEmail: values.email,
+            successUrl: `${origin}${receipt}`,
+            cancelUrl: `${origin}/register/${lesson.slug}`,
+            now,
+          });
+          return new Response(null, {
+            status: 303,
+            headers: { Location: checkout.url, 'Cache-Control': 'no-store' },
+          });
+        }
+        if (result.created) {
+          try {
+            await sendRegistrationReceipt(db, env, {
+              registration: result.registration,
+              lesson: ref,
+              origin: siteOrigin('academy'),
+              to: values.email,
+              now,
+              ipHash: guard.ipHash,
+            });
+          } catch (err) {
+            // The registration stands; the receipt page says honestly that the email did not go out.
+            console.error(`[academy.register] receipt email failed: ${(err as Error)?.name ?? 'Error'}`);
+          }
+        }
+        return new Response(null, {
+          status: 303,
+          headers: { Location: receipt, 'Cache-Control': 'no-store' },
+        });
+      } catch (err) {
+        if (!(err instanceof AcademyRegistrationError)) throw err;
+        Astro.response.status = err.status;
+        errors = Object.fromEntries(err.fieldErrors.map((f) => [f.field, f.message]));
+        summary = err.fieldErrors.length
+          ? err.fieldErrors.map((f) => ({ message: f.message, fieldId: f.fieldId }))
+          : [{ message: err.message }];
+      }
+    }
+  } catch (err) {
+    console.error(`[academy.register] ${(err as Error)?.name ?? 'Error'}`);
+    Astro.response.status = (err as { status?: number })?.status === 403 ? 403 : 503;
+    pageProblem =
+      (err as { status?: number })?.status === 403
+        ? 'This form must be sent from the Gamo Academy website. Please reload the page and try again.'
+        : 'Registration is temporarily unavailable. Please try again in a few minutes, or write to hello@gamostudio.org.';
+  }
+}
+---
+
+<Layout
+  title={`Register — ${lesson.title}`}
+  description={`Register a student for ${lesson.title} at Gamo Academy. No account needed.`}
+  noindex
+>
+  <PageHero
+    eyebrow="Register · no account needed"
+    title={`Register for ${lesson.title}`}
+    lede="Tell us about the student and how to reach you. We email a receipt with a private link to view, update or cancel the registration."
+    crumbs={[
+      { label: 'Lessons', href: '/lessons' },
+      { label: lesson.title, href: `/lessons/${lesson.slug}` },
+      { label: 'Register', href: `/register/${lesson.slug}` },
+    ]}
+  />
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.3fr_0.7fr]">
+      <div class="min-w-0 space-y-6 rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-8">
+        {pageProblem && (
+          <RegistrationNotice tone="problem" title="We couldn't send the form">
+            <p>{pageProblem}</p>
+          </RegistrationNotice>
+        )}
+        {sampleRefused ? (
+          <RegistrationNotice title="Registration is not open for this lesson yet">
+            <p>
+              This is a sample lesson shown for preview; registration opens when real lessons are published.
+            </p>
+            <p>
+              <a href="/lessons" class="font-semibold text-terracotta-deep underline underline-offset-4">
+                Browse lessons
+              </a>
+            </p>
+          </RegistrationNotice>
+        ) : (
+          <RegistrationForm
+            idempotencyKey={idempotencyKey}
+            values={values}
+            errors={errors}
+            summary={summary}
+            documents={registrationConsentDocuments()}
+            payAvailable={payAvailable}
+            amountLabel={amountLabel}
+            turnstileError={turnstileError}
+          />
+        )}
+        <p class="text-sm text-muted">
+          Already registered?{' '}
+          <a
+            href="/registrations/find"
+            class="font-semibold text-terracotta-deep underline underline-offset-4"
+          >
+            Find your registration
+          </a>
+        </p>
+      </div>
+      <RegistrationLessonSummary lesson={lesson} class="lg:sticky lg:top-32 lg:self-start" />
+    </div>
+  </section>
+</Layout>

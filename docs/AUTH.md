@@ -199,10 +199,10 @@ Automated coverage of the same flows (all Clerk calls mocked): `packages/auth/cl
 
 ## 9. Known gaps and owner decisions
 
-1. **No Clerk webhook.** A user deleted or banned in Clerk, or a changed name, is not pushed to D1; deletion shows up only when the 7-day Gamo session expires or the link is suspended. A `user.deleted` / `user.updated` webhook (signed with a Svix secret) needs a new route, contract entry and secret: say if you want it.
-2. **No password, social or MFA flows** (§1.3). Adding Google means: a founder decision, Clerk production OAuth credentials, an OAuth callback page in the shared UI, contract and tests.
-3. **No per-IP rate limit and no CAPTCHA on the emailed-code endpoints.** Limits are per address. Add Cloudflare rate-limiting rules for `POST /api/auth/challenge` and `/api/auth/verify` on each host (owner action in the Cloudflare dashboard). Clerk's own protection covers Clerk sign-ups.
-4. **Account existence is visible** on emailed-code sign-in: signing in to a product the address has no account in answers "No <Product> account was found" (existing behaviour, product-level only).
+1. **Clerk webhook (built, needs the owner).** `POST /api/auth/clerk-webhook` on each app verifies Clerk's Svix signature with `CLERK_WEBHOOK_SECRET_<APP>` and ends this product's Gamo sessions on `session.ended|revoked|removed`, `user.deleted` and `user.banned` (`user.deleted` also suspends the identity link). Without the secret it answers 503 and the 7-day gap remains. Name or email changes are not pushed (`user.updated` is ignored).
+2. **Google sign-in (built, needs the owner).** "Continue with Google" appears only when the product's own Clerk is configured and `CLERK_GOOGLE_ENABLED_<APP>=true`; the redirect ends on `/account/sso-callback`. Owner steps are in `docs/IDENTITY.md` §9. No passwords or MFA.
+3. **Abuse protection (built).** Challenge, verify and clerk-session are limited per hashed IP and per hashed email; the challenge needs a Turnstile token outside local. Add Cloudflare rate rules on top if desired.
+4. **Account existence is no longer visible**: sign-in for an address without an account answers like any other and sends nothing (`docs/IDENTITY.md` §4).
 5. **Cookie scope of Clerk's own cookies** and **Clerk's real emails, bot challenge and browser SDK** need the live manual tests above.
 6. **Local files found during the audit (fix before re-running the script):** `CLERK_APP_ID` in web, worship, academy and production `.dev.vars` is Gamo Live's id, and academy's `CLERK_JWT_KEY` is Live's key (it is also on the production academy Worker). Each must come from that product's own Clerk application.
 7. **`app_3KsAGwTVJ38hAKcdP6Kv8u5R3ji`** (selected in the Clerk dashboard) is not assigned to any product yet; tell the agent which product it belongs to.

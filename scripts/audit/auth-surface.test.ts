@@ -17,6 +17,7 @@ import { buildContentSecurityPolicy } from '../../packages/domain/src/http/secur
 import { ClerkUnavailableError } from '../../packages/auth/clerk.ts';
 import type { PublicApp } from '../../packages/auth/page-access.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
+import { GUARD_SECRETS, siteverifyPass } from './auth-test-kit.ts';
 
 const APPS: PublicApp[] = ['web', 'worship', 'academy', 'live', 'production'];
 const SECRET = 'auth-surface-test-session-secret-0123456789';
@@ -151,55 +152,67 @@ for (const app of APPS) {
       SESSION_SECRET: SECRET,
       RESEND_API_KEY: 're_real_key',
       EMAIL_FROM: 'Gamo <hello@gamostudio.org>',
+      ...GUARD_SECRETS,
     };
     const handlers = createAuthHandlers(app);
     const ctx = (request: Request) => ({ request, locals: { runtime: { env }, product: app } });
     const origin = `https://${app}.example.test`;
-    const body = (extra: object) => JSON.stringify({ email: 'person@example.org', ...extra });
+    const body = (extra: object) =>
+      JSON.stringify({ email: 'person@example.org', 'cf-turnstile-response': 'test-token', ...extra });
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = siteverifyPass(realFetch);
+    try {
+      const me = await handlers.meGET(ctx(new Request(`${origin}/api/auth/me`)));
+      assert.equal(me.status, 401);
+      assert.equal(((await me.json()) as { error: { code: string } }).error.code, 'UNAUTHENTICATED');
 
-    const me = await handlers.meGET(ctx(new Request(`${origin}/api/auth/me`)));
-    assert.equal(me.status, 401);
-    assert.equal(((await me.json()) as { error: { code: string } }).error.code, 'UNAUTHENTICATED');
+      const crossOrigin = await handlers.challengePOST(
+        ctx(
+          new Request(`${origin}/api/auth/challenge`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', origin: 'https://evil.example' },
+            body: body({}),
+          }),
+        ),
+      );
+      assert.equal(crossOrigin.status, 403);
+      assert.equal(((await crossOrigin.json()) as { error: { code: string } }).error.code, 'FORBIDDEN');
 
-    const crossOrigin = await handlers.challengePOST(
-      ctx(
-        new Request(`${origin}/api/auth/challenge`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', origin: 'https://evil.example' },
-          body: body({}),
-        }),
-      ),
-    );
-    assert.equal(crossOrigin.status, 403);
-    assert.equal(((await crossOrigin.json()) as { error: { code: string } }).error.code, 'FORBIDDEN');
+      const otherProduct = APPS.find((p) => p !== app)!;
+      const hijack = await handlers.challengePOST(
+        ctx(
+          new Request(`${origin}/api/auth/challenge`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', origin },
+            body: body({ product: otherProduct, intent: 'signup' }),
+          }),
+        ),
+      );
+      assert.equal(hijack.status, 403, 'a body product other than the serving app is refused');
 
-    const otherProduct = APPS.find((p) => p !== app)!;
-    const hijack = await handlers.challengePOST(
-      ctx(
-        new Request(`${origin}/api/auth/challenge`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', origin },
-          body: body({ product: otherProduct, intent: 'signup' }),
-        }),
-      ),
-    );
-    assert.equal(hijack.status, 403, 'a body product other than the serving app is refused');
-
-    const verifyHijack = await handlers.verifyPOST(
-      ctx(
-        new Request(`${origin}/api/auth/verify`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', origin },
-          body: body({ code: '123456', product: otherProduct, intent: 'signup' }),
-        }),
-      ),
-    );
-    assert.equal(verifyHijack.status, 403);
-    assert.equal(
-      ((await d1.prepare('SELECT COUNT(*) AS n FROM product_accounts').first()) as { n: number } | null)?.n,
-      0,
-      'no account was created',
-    );
+      const verifyHijack = await handlers.verifyPOST(
+        ctx(
+          new Request(`${origin}/api/auth/verify`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', origin },
+            body: JSON.stringify({
+              email: 'person@example.org',
+              code: '123456',
+              product: otherProduct,
+              intent: 'signup',
+            }),
+          }),
+        ),
+      );
+      assert.equal(verifyHijack.status, 403);
+      assert.equal(
+        ((await d1.prepare('SELECT COUNT(*) AS n FROM product_accounts').first()) as { n: number } | null)?.n,
+        0,
+        'no account was created',
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+    }
   });
 }
 
@@ -247,10 +260,16 @@ test('emailed-code fallback: codes are rate limited per address and locked after
   const email = 'ratelimit@example.org';
   for (let i = 0; i < 5; i++)
     await service.issueEmailChallenge(email, { purpose: 'login', intent: 'signup', product: 'web' });
-  await assert.rejects(
-    () => service.issueEmailChallenge(email, { purpose: 'login', intent: 'signup', product: 'web' }),
-    /RATE_LIMITED/,
-  );
+  // Product-scoped (HTTP) callers get the same answer as any request (the route's per-email limit tells
+  // the visitor to wait); nothing is sent or stored past the limit, so a known address is not revealed.
+  const sixth = await service.issueEmailChallenge(email, {
+    purpose: 'login',
+    intent: 'signup',
+    product: 'web',
+  });
+  assert.equal(sixth.deliver, false);
+  assert.equal(sixth.code, '');
+  await assert.rejects(() => service.issueEmailChallenge(email, { purpose: 'login' }), /RATE_LIMITED/);
 
   const other = 'lockout@example.org';
   await service.issueEmailChallenge(other, { purpose: 'login', intent: 'signup', product: 'web' });
@@ -276,13 +295,14 @@ test('sign-in code email: sent from the verified domain with a reply-to; a faile
     SESSION_SECRET: SECRET,
     RESEND_API_KEY: 're_real_key',
     EMAIL_FROM: 'Gamo Studios <hello@gamostudio.org>',
+    ...GUARD_SECRETS,
   };
   const handlers = createAuthHandlers('web');
   const request = (email: string) =>
     new Request('https://gamostudio.org/api/auth/challenge', {
       method: 'POST',
       headers: { 'content-type': 'application/json', origin: 'https://gamostudio.org' },
-      body: JSON.stringify({ email, intent: 'signup' }),
+      body: JSON.stringify({ email, intent: 'signup', 'cf-turnstile-response': 'test-token' }),
     });
 
   const realFetch = globalThis.fetch;
@@ -294,13 +314,13 @@ test('sign-in code email: sent from the verified domain with a reply-to; a faile
   );
   let sent: { from: string; reply_to: string; to: string[]; html: string; text: string } | undefined;
   try {
-    globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
+    globalThis.fetch = siteverifyPass((async (_url: unknown, init?: RequestInit) => {
       sent = JSON.parse(String(init?.body));
       return new Response(JSON.stringify({ id: 'email_1' }), {
         status: 200,
         headers: { 'content-type': 'application/json' },
       });
-    }) as typeof fetch;
+    }) as typeof fetch);
     const ok = await handlers.challengePOST({
       request: request('first@example.org'),
       locals: { runtime: { env }, product: 'web' },
@@ -312,7 +332,9 @@ test('sign-in code email: sent from the verified domain with a reply-to; a faile
     assert.ok(code, 'the email carries the code');
     assert.ok(!(await ok.text()).includes(code), 'the API response does not echo the code');
 
-    globalThis.fetch = (async () => new Response('{"message":"boom"}', { status: 500 })) as typeof fetch;
+    globalThis.fetch = siteverifyPass(
+      (async () => new Response('{"message":"boom"}', { status: 500 })) as typeof fetch,
+    );
     const failed = await handlers.challengePOST({
       request: request('second@example.org'),
       locals: { runtime: { env }, product: 'web' },

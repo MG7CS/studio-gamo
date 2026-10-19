@@ -1139,7 +1139,8 @@ export class LiveService {
       homeState: input.homeState ?? null,
       repertoireSummary: input.repertoireSummary ?? null,
       availabilityStatus: 'open',
-      verificationStatus: 'verified',
+      // New artist profiles start as drafts: only staff review verifies them (design §4.4, Agent A).
+      verificationStatus: 'draft',
       allowSelfBooking: input.allowSelfBooking,
       createdAt: now,
     });
@@ -1160,7 +1161,7 @@ export class LiveService {
       stageName: input.stageName.trim(),
       slug,
       genre: input.genre,
-      verificationStatus: 'verified',
+      verificationStatus: 'draft',
       allowSelfBooking: input.allowSelfBooking,
     };
   }

@@ -4,7 +4,8 @@ import { hasProductAccess, type SessionData } from './index.ts';
 export type PublicApp = 'web' | 'worship' | 'academy' | 'live' | 'production';
 const within = (path: string, base: string) => path === base || path.startsWith(`${base}/`);
 export function isPrivatePage(app: PublicApp, path: string): boolean {
-  if (/^\/account\/(signin|signup|verify|recover|access-denied|signed-out)\/?$/.test(path)) return false;
+  if (/^\/account\/(signin|signup|verify|recover|access-denied|signed-out|sso-callback)\/?$/.test(path))
+    return false;
   if (within(path, '/account')) return true;
   const roots: Record<PublicApp, string[]> = {
     web: ['/partner'],
@@ -52,9 +53,14 @@ export function canAccessPage(app: PublicApp, path: string, auth: SessionData): 
   if (!hasProductAccess(auth, app)) return false;
   if (app === 'worship' && (within(path, '/musician') || within(path, '/check-in')))
     return role('approved_musician', 'musician');
+  // A church organization membership alone is not enough: staff must have verified (in person) the
+  // church profile for that organization (design §4.4, docs/IDENTITY.md "Provider gates").
   if (app === 'worship' && within(path, '/church'))
     return auth.memberships.some(
-      (m) => m.orgType === 'church' && ['owner', 'admin', 'coordinator'].includes(m.role),
+      (m) =>
+        m.orgType === 'church' &&
+        ['owner', 'admin', 'coordinator'].includes(m.role) &&
+        (auth.verifiedChurchOrganizationIds ?? []).includes(m.organizationId),
     );
   if (app === 'academy' && within(path, '/instructor')) return role('academy_instructor', 'instructor');
   if (app === 'academy' && within(path, '/host'))
@@ -82,7 +88,7 @@ export function safeReturnPath(value: string | null | undefined, fallback = '/ac
     if (
       url.origin !== 'https://gamo.invalid' ||
       url.pathname.startsWith('/api/') ||
-      /^\/account\/(signin|signup|verify|recover|signed-out)/.test(url.pathname)
+      /^\/account\/(signin|signup|verify|recover|signed-out|sso-callback)/.test(url.pathname)
     )
       return fallback;
     return url.pathname + url.search;

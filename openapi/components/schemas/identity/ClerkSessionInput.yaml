@@ -1,0 +1,28 @@
+type: object
+additionalProperties: false
+description: Optional body of the Clerk token exchange; carries what the sign-up screen collected.
+properties:
+  intent:
+    type: string
+    enum:
+      - signin
+      - signup
+      - recover
+  role:
+    type: string
+    description: Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).
+    enum:
+      - musician
+      - technician
+      - church
+      - agent
+      - organizer
+      - teacher
+      - artist
+  terms:
+    type: array
+    maxItems: 10
+    items:
+      $ref: ./TermsDocumentRef.yaml
+  marketingOptIn:
+    type: boolean

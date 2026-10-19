@@ -1,0 +1,21 @@
+---
+interface Props {
+  outcome: { tone: 'success' | 'error'; text: string } | null;
+}
+const { outcome } = Astro.props;
+---
+
+{outcome && (
+  <p
+    role={outcome.tone === 'error' ? 'alert' : 'status'}
+    class:list={[
+      'mb-5 rounded-xl px-4 py-3 text-sm font-medium',
+      outcome.tone === 'error'
+        ? 'bg-white text-terracotta-deep ring-2 ring-terracotta-deep'
+        : 'bg-white text-charcoal ring-1 ring-sand',
+    ]}
+  >
+    {outcome.tone === 'error' && <span class="sr-only">Error: </span>}
+    {outcome.text}
+  </p>
+)}

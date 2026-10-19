@@ -1,0 +1,40 @@
+---
+/** Provider review queue (musician, technician, teacher, artist, agent). */
+import '../../../app.css';
+import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
+import DashPageHeader from '@studio-gamo/ui/components/dashboard/DashPageHeader.astro';
+import { roleLabel } from '@gamo/domain';
+import { adminWorkspace } from '../../../data/workspace';
+import ReviewQueueTable from '../../../components/review/ReviewQueueTable.astro';
+import StaffSignInNotice from '../../../components/review/StaffSignInNotice.astro';
+import ReviewOutcome from '../../../components/review/ReviewOutcome.astro';
+import { PROVIDER_REVIEW_ROLES, loadQueue, outcomeFrom, staffContext } from '../../../lib/review-pages';
+
+const staff = await staffContext(Astro);
+const queue = staff ? await loadQueue(staff.env, PROVIDER_REVIEW_ROLES, Astro.url) : null;
+if (!staff) Astro.response.status = 401;
+const roles = PROVIDER_REVIEW_ROLES.map((r) => ({ value: r, label: roleLabel(r) }));
+---
+
+<DashboardShell workspace={adminWorkspace} current="review/providers" title="Provider review">
+  <DashPageHeader
+    workspace={adminWorkspace}
+    title="Provider review"
+    description="Musicians, technicians and teachers need staff verification before they are listed; artists and agents may ask for it."
+    path="/review/providers"
+  />
+  <ReviewOutcome outcome={outcomeFrom(Astro.url)} />
+  {queue ? (
+    <ReviewQueueTable
+      basePath="/review/providers"
+      filter={queue.filter}
+      filters={queue.filters}
+      roles={roles}
+      roleFilter={queue.roleFilter}
+      items={queue.items}
+      emptyText="No providers in this state."
+    />
+  ) : (
+    <StaffSignInNotice />
+  )}
+</DashboardShell>

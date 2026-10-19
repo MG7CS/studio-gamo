@@ -74,9 +74,22 @@ export function siteUrl(site: SiteKey, path = '/'): string {
 }
 
 /**
- * Program inquiries all go through the organization contact form, pre-selecting the topic.
- * (Musician applications, church requests, lesson interest and production consultations
- * are reviewed by staff; there is no self-service flow yet.)
+ * Provider sign-up on the product that owns the role (Phase 2 identity): the person creates that
+ * product's account, picks the role on the sign-up screen and continues in its onboarding. Musicians and
+ * churches join on Gamo Worship, teachers and church hosts on Gamo Academy, technicians on Gamo
+ * Production, organizers, artists and agents on Gamo Live.
+ */
+export type ProviderSignupRole =
+  'musician' | 'technician' | 'church' | 'agent' | 'organizer' | 'teacher' | 'artist';
+
+export function providerSignupUrl(site: Exclude<SiteKey, 'web' | 'admin'>, role: ProviderSignupRole): string {
+  return siteUrl(site, `/account/signup?role=${role}`);
+}
+
+/**
+ * General program inquiries go through the organization contact form, pre-selecting the topic. Roles
+ * with a self-service onboarding use `providerSignupUrl` instead; families register for lessons on
+ * Gamo Academy without an account; production consultations (clients, not a provider role) stay here.
  */
 export type InquiryTopic =
   | 'Church musician request'

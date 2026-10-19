@@ -1,0 +1,46 @@
+---
+/**
+ * Part 3: consents. Enrollment Terms and Privacy Policy always; Guardian Consent and Child-Safety Consent
+ * for a student under 18 (the server decides from the age group, so those two boxes are not `required`).
+ * Marketing is separate and never pre-ticked.
+ */
+import TermsConsent from '@studio-gamo/ui/components/forms/TermsConsent.astro';
+import MarketingConsent from '@studio-gamo/ui/components/forms/MarketingConsent.astro';
+import type { TermsConsentDocument } from '@studio-gamo/ui/lib/terms-links';
+
+interface Props {
+  documents: {
+    base: TermsConsentDocument[];
+    guardian: TermsConsentDocument[];
+    safety: TermsConsentDocument[];
+  };
+  errors: Record<string, string>;
+}
+const { documents, errors } = Astro.props;
+---
+
+<fieldset class="space-y-5">
+  <legend class="text-lg font-bold">Agreements</legend>
+  <p class="text-sm text-muted">These documents are drafts that still require legal review.</p>
+  <TermsConsent documents={documents.base} error={errors.terms_accept} />
+  <div class="rounded-2xl bg-ivory p-4 ring-1 ring-sand">
+    <p class="mb-3 text-[15px] font-semibold">For a student under 18 (parent or guardian)</p>
+    <div class="space-y-4">
+      <TermsConsent
+        id="guardian-consent"
+        name="guardian_consent"
+        required={false}
+        documents={documents.guardian}
+        error={errors.guardian_consent}
+      />
+      <TermsConsent
+        id="child-safety-consent"
+        name="child_safety_consent"
+        required={false}
+        documents={documents.safety}
+        error={errors.child_safety_consent}
+      />
+    </div>
+  </div>
+  <MarketingConsent product="academy" />
+</fieldset>

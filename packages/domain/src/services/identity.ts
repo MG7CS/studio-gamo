@@ -22,7 +22,9 @@ import {
   type Organization,
   type ProductAccount,
 } from '@gamo/db';
-import { AuthError, constantTimeCompare, PRODUCT_DISPLAY_NAMES, type ProductKey } from '@gamo/auth';
+import { AuthError, constantTimeCompare, type ProductKey } from '@gamo/auth';
+import { asSqlDatabase, type SqlDatabase } from '../security/sql-database.ts';
+import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from './persons.ts';
 
 const CHALLENGE_TTL_SECONDS = 10 * 60; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
@@ -33,15 +35,46 @@ function normalizeChallengePurpose(purpose?: string): 'signin' | 'verify_email' 
   return purpose === 'verify_email' ? 'verify_email' : 'signin';
 }
 
+/** Sign-up creates an account; sign-in and recovery never do (recovery is sign-in: there are no passwords). */
+export type AuthFlow = 'signin' | 'signup';
+export function authFlowOf(intent?: string | null): AuthFlow {
+  return intent === 'signup' ? 'signup' : 'signin';
+}
+
+/**
+ * The one message for every failed code check (wrong, expired, used, another product's, no account), so
+ * the code step never reveals whether an address has an account (design §4.3).
+ */
+export const INVALID_CODE_MESSAGE =
+  'Invalid or expired verification code. Check the newest email from us or request a new code. No account yet? Create one instead.';
+export const LOCKED_CODE_MESSAGE =
+  'RATE_LIMITED: This code is locked after too many wrong attempts. Request a new code and try again.';
+
+/**
+ * A challenge is bound to the product and flow it was issued for (`scope`, e.g. `worship:signup`), so a code
+ * sent by one product never signs in to another and a sign-in code never creates an account. Without a
+ * scope (direct service callers) the hash is the original email:purpose:code form.
+ */
 export async function hashChallengeCode(
   email: string,
   code: string,
   purpose: string = 'signin',
+  scope?: string | null,
 ): Promise<string> {
   const dbPurpose = normalizeChallengePurpose(purpose);
-  const payload = `${email.toLowerCase().trim()}:${dbPurpose}:${code.trim()}`;
+  const base = `${email.toLowerCase().trim()}:${dbPurpose}`;
+  const payload = scope ? `${base}:${scope}:${code.trim()}` : `${base}:${code.trim()}`;
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function challengeScope(product?: ProductKey, intent?: string | null): string | null {
+  return product ? `${product}:${authFlowOf(intent)}` : null;
+}
+
+/** The raw D1 binding behind a Drizzle D1 database (for the SQL-level services). */
+export function sqlDatabaseOf(db: GamoDatabase): SqlDatabase {
+  return asSqlDatabase((db as unknown as { $client?: unknown }).$client);
 }
 
 export function generateChallengeCode(): string {
@@ -179,8 +212,31 @@ export class IdentityService {
     return rows.map((r) => r.product as ProductKey);
   }
 
+  /** The user with an active account in `product` for this address (sign-in never creates one). */
+  async findProductUserByEmail(email: string, product: ProductKey): Promise<User | null> {
+    const cleanEmail = email.toLowerCase().trim();
+    const [row] = await this.db
+      .select({ user: users })
+      .from(users)
+      .innerJoin(productAccounts, eq(productAccounts.userId, users.id))
+      .where(
+        and(
+          eq(users.email, cleanEmail),
+          eq(productAccounts.product, product),
+          eq(productAccounts.status, 'active'),
+        ),
+      )
+      .limit(1);
+    return row?.user ?? null;
+  }
+
   /**
    * Issues a time-bounded 6-digit email verification challenge stored as a SHA-256 hash in D1.
+   *
+   * Sign-in/recovery for an address without an account in `product` creates nothing and sends nothing
+   * (`deliver: false`), but the caller answers exactly as for a known address (no enumeration, no
+   * unsolicited email to strangers). Sign-up always issues a code: the account is created only after the
+   * code is verified.
    */
   async issueEmailChallenge(
     email: string,
@@ -192,31 +248,26 @@ export class IdentityService {
       ttlSeconds?: number;
       now?: Date;
     },
-  ): Promise<{ challengeId: string; code: string; email: string; expiresAt: Date }> {
+  ): Promise<{ challengeId: string; code: string; email: string; expiresAt: Date; deliver: boolean }> {
     const cleanEmail = email.toLowerCase().trim();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       throw new Error('BAD_REQUEST: A valid email address is required.');
     }
 
-    if (options?.product && options?.intent === 'signin') {
-      const [existingUser] = await this.db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
-      if (existingUser) {
-        const existingProducts = await this.getProductAccounts(existingUser.id);
-        if (existingProducts.length > 0 && !existingProducts.includes(options.product)) {
-          const label = PRODUCT_DISPLAY_NAMES[options.product] || options.product;
-          throw new AuthError(
-            'FORBIDDEN',
-            `No ${label} account was found for this email address. Please create a ${label} account first.`,
-            403,
-          );
-        }
-      }
-    }
-
     const purpose = normalizeChallengePurpose(options?.purpose);
     const now = options?.now ?? new Date();
-    const windowStart = new Date(now.getTime() - CHALLENGE_RATE_LIMIT_WINDOW_MS);
+    const ttl = options?.ttlSeconds ?? CHALLENGE_TTL_SECONDS;
+    const expiresAt = new Date(now.getTime() + ttl * 1000);
+    const challengeId = `chl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const scoped = Boolean(options?.product);
+    const silent = { challengeId, code: '', email: cleanEmail, expiresAt, deliver: false };
 
+    if (options?.product && authFlowOf(options.intent) === 'signin') {
+      const existing = await this.findProductUserByEmail(cleanEmail, options.product);
+      if (!existing || existing.status !== 'active') return silent;
+    }
+
+    const windowStart = new Date(now.getTime() - CHALLENGE_RATE_LIMIT_WINDOW_MS);
     const recentChallenges = await this.db
       .select({ id: authChallenges.id })
       .from(authChallenges)
@@ -229,16 +280,21 @@ export class IdentityService {
       );
 
     if (recentChallenges.length >= CHALLENGE_RATE_LIMIT_MAX) {
+      // Product-scoped (HTTP) callers answer like any other request — the per-email rate limit in the
+      // route already gives the visitor an honest "wait" message — so this never reveals a known address.
+      if (scoped) return silent;
       throw new Error(
         'RATE_LIMITED: Too many verification requests for this email address. Please wait before requesting a new code.',
       );
     }
 
     const code = generateChallengeCode();
-    const codeHash = await hashChallengeCode(cleanEmail, code, purpose);
-    const ttl = options?.ttlSeconds ?? CHALLENGE_TTL_SECONDS;
-    const expiresAt = new Date(now.getTime() + ttl * 1000);
-    const challengeId = `chl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const codeHash = await hashChallengeCode(
+      cleanEmail,
+      code,
+      purpose,
+      challengeScope(options?.product, options?.intent),
+    );
 
     await this.db.insert(authChallenges).values({
       id: challengeId,
@@ -252,16 +308,15 @@ export class IdentityService {
       createdAt: now,
     });
 
-    return {
-      challengeId,
-      code,
-      email: cleanEmail,
-      expiresAt,
-    };
+    return { challengeId, code, email: cleanEmail, expiresAt, deliver: true };
   }
 
   /**
-   * Verifies an email challenge code, enforces expiry and attempt lockout, and marks the user's email as verified.
+   * Verifies an email challenge code, enforces expiry and attempt lockout, and marks the user's email as
+   * verified. Sign-up (`intent: 'signup'`) creates the user and this product's account; sign-in and
+   * recovery only sign in an existing account of this product and never create one. Every failure answers
+   * `INVALID_CODE_MESSAGE`. On success the user is linked to the shared person of this verified email
+   * (design §4.6; never grants anything in another product).
    */
   async verifyEmailChallenge(
     email: string,
@@ -278,8 +333,10 @@ export class IdentityService {
     const cleanCode = code.trim();
     const purpose = normalizeChallengePurpose(options?.purpose);
     const now = options?.now ?? new Date();
+    const flow = authFlowOf(options?.intent);
+    const invalid = () => new AuthError('UNAUTHENTICATED', INVALID_CODE_MESSAGE, 401);
 
-    const [challenge] = await this.db
+    const candidates = await this.db
       .select()
       .from(authChallenges)
       .where(
@@ -287,47 +344,40 @@ export class IdentityService {
           eq(authChallenges.email, cleanEmail),
           eq(authChallenges.purpose, purpose),
           isNull(authChallenges.consumedAt),
+          gt(authChallenges.expiresAt, now),
         ),
       )
       .orderBy(desc(authChallenges.createdAt), desc(authChallenges.id))
-      .limit(1);
+      .limit(10);
 
-    if (!challenge || challenge.expiresAt <= now) {
-      throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
+    if (candidates.length === 0) throw invalid();
+
+    const expectedHash = await hashChallengeCode(
+      cleanEmail,
+      cleanCode,
+      purpose,
+      challengeScope(options?.product, options?.intent),
+    );
+    let challenge: (typeof candidates)[number] | undefined;
+    for (const candidate of candidates) {
+      // Compare against every candidate (no early exit), so timing does not tell which one matched.
+      const matches = constantTimeCompare(candidate.codeHash, expectedHash);
+      if (matches && candidate.attempts < CHALLENGE_MAX_ATTEMPTS && !challenge) challenge = candidate;
     }
 
-    if (challenge.attempts >= CHALLENGE_MAX_ATTEMPTS) {
-      throw new Error('RATE_LIMITED: Verification code locked after too many failed attempts.');
-    }
-
-    const expectedHash = await hashChallengeCode(cleanEmail, cleanCode, purpose);
-    if (!constantTimeCompare(challenge.codeHash, expectedHash)) {
-      const nextAttempts = challenge.attempts + 1;
-      await this.db
-        .update(authChallenges)
-        .set({ attempts: sql`${authChallenges.attempts} + 1` })
-        .where(eq(authChallenges.id, challenge.id));
-
-      if (nextAttempts >= CHALLENGE_MAX_ATTEMPTS) {
-        throw new Error('RATE_LIMITED: Verification code locked after too many failed attempts.');
+    if (!challenge) {
+      const open = candidates.filter((c) => c.attempts < CHALLENGE_MAX_ATTEMPTS);
+      for (const c of open) {
+        await this.db
+          .update(authChallenges)
+          .set({ attempts: sql`${authChallenges.attempts} + 1` })
+          .where(eq(authChallenges.id, c.id));
       }
-      throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
-    }
-
-    // If signing in (not registering) on a product where an existing user has other product accounts but not this one, deny automatic cross-product creation.
-    if (options?.product && options?.intent === 'signin') {
-      const [existingUser] = await this.db.select().from(users).where(eq(users.email, cleanEmail)).limit(1);
-      if (existingUser) {
-        const existingProducts = await this.getProductAccounts(existingUser.id);
-        if (existingProducts.length > 0 && !existingProducts.includes(options.product)) {
-          const label = PRODUCT_DISPLAY_NAMES[options.product] || options.product;
-          throw new AuthError(
-            'FORBIDDEN',
-            `No ${label} account was found for this email address. Please create a ${label} account first.`,
-            403,
-          );
-        }
+      const newest = candidates[0];
+      if (newest.attempts + (open.includes(newest) ? 1 : 0) >= CHALLENGE_MAX_ATTEMPTS) {
+        throw new Error(LOCKED_CODE_MESSAGE);
       }
+      throw invalid();
     }
 
     // Claim this challenge atomically: concurrent verification must create at most one session.
@@ -343,9 +393,7 @@ export class IdentityService {
         ),
       )
       .returning({ id: authChallenges.id });
-    if (claimed.length !== 1) {
-      throw new AuthError('UNAUTHENTICATED', 'Invalid or expired verification code.', 401);
-    }
+    if (claimed.length !== 1) throw invalid();
     await this.db
       .update(authChallenges)
       .set({ consumedAt: now })
@@ -357,17 +405,28 @@ export class IdentityService {
         ),
       );
 
-    const user = await this.findOrCreateUser(cleanEmail, options?.displayName);
+    let user: User;
+    if (options?.product && flow === 'signin') {
+      const existing = await this.findProductUserByEmail(cleanEmail, options.product);
+      if (!existing) throw invalid();
+      user = existing;
+    } else {
+      user = await this.findOrCreateUser(cleanEmail, flow === 'signup' ? options?.displayName : undefined);
+    }
     if (user.status !== 'active') {
-      throw new AuthError('FORBIDDEN', 'User account is disabled.', 403);
+      throw new AuthError(
+        'FORBIDDEN',
+        'This account is disabled. Contact hello@gamostudio.org for help.',
+        403,
+      );
     }
 
     const verifiedEmailAt = user.verifiedEmailAt ?? now;
-    const displayName = user.displayName ?? (options?.displayName || null);
+    const displayName = user.displayName ?? (flow === 'signup' ? options?.displayName || null : null);
 
     await this.db.update(users).set({ verifiedEmailAt, displayName }).where(eq(users.id, user.id));
 
-    if (options?.product) {
+    if (options?.product && flow === 'signup') {
       await this.ensureProductAccount(user.id, options.product, { now });
     }
 
@@ -385,6 +444,24 @@ export class IdentityService {
       }),
       createdAt: now,
     });
+
+    // The product just verified this address itself: link (or keep) the shared person record.
+    if (options?.product) {
+      await linkUserToVerifiedPerson(sqlDatabaseOf(this.db), {
+        userId: user.id,
+        email: cleanEmail,
+        product: options.product,
+        source: 'email_code',
+        displayName: flow === 'signup' ? (options.displayName ?? null) : null,
+        now: Math.floor(now.getTime() / 1000),
+      });
+      // Customer account claim: guest orders/registrations with this (now proven) email join the person.
+      await attachCustomerProfileForVerifiedEmail(
+        sqlDatabaseOf(this.db),
+        cleanEmail,
+        Math.floor(now.getTime() / 1000),
+      );
+    }
 
     const [updatedUser] = await this.db.select().from(users).where(eq(users.id, user.id)).limit(1);
     return updatedUser;
