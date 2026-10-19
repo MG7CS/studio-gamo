@@ -41,7 +41,11 @@ async function check(page: Page, label: string, errors: string[]) {
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow, `${label}: overflow`).toBeLessThanOrEqual(1);
-  expect(errors, `${label}: console`).toEqual([]);
+  // The access-denied page is a deliberate 403 document; the browser logs that status itself.
+  const unexpected = label.includes('access-denied')
+    ? errors.filter((e) => !/status of 403/.test(e))
+    : errors;
+  expect(unexpected, `${label}: console`).toEqual([]);
 }
 
 for (const viewport of [
@@ -57,7 +61,7 @@ for (const viewport of [
       page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));
 
       await page.goto(`${origin}/account/signin`, { waitUntil: 'networkidle' });
-      const email = page.getByLabel('Email address');
+      const email = page.getByRole('textbox', { name: /^Email address/ }).first();
       await expect(email, 'visible label').toBeVisible();
       await expect(page.getByRole('button', { name: 'Email me a code' })).toBeVisible();
       await expect(page.getByRole('button', { name: /Google/ })).toHaveCount(0);
@@ -86,7 +90,10 @@ for (const viewport of [
       // Submitting without the terms is refused with the message tied to the checkbox.
       await page.getByLabel('First name').fill('Sample');
       await page.getByLabel('Last name').fill('Person');
-      await page.getByLabel('Email address').fill('sample.person@example.org');
+      await page
+        .getByRole('textbox', { name: /^Email address/ })
+        .first()
+        .fill('sample.person@example.org');
       await page.getByRole('button', { name: /^Create / }).click();
       await expect(terms).toHaveAttribute('required', '');
 
