@@ -123,6 +123,7 @@ export const EMAIL_KINDS = [
   'scanner_link',
   'provider_status',
   'staff_alert',
+  'academy_recovery',
 ] as const;
 export type EmailKind = (typeof EMAIL_KINDS)[number];
 

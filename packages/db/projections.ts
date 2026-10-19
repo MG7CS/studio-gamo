@@ -12,7 +12,10 @@ type UserRow = InferSelectModel<typeof users>;
 type EventRow = InferSelectModel<typeof events>;
 type TierRow = InferSelectModel<typeof ticketTiers>;
 
-export const USER_COLUMNS_NOT_IN_CONTRACT = ['personId'] as const satisfies readonly (keyof UserRow)[];
+export const USER_COLUMNS_NOT_IN_CONTRACT = [
+  'personId',
+  'personLinkOptOutAt',
+] as const satisfies readonly (keyof UserRow)[];
 export const EVENT_COLUMNS_NOT_IN_CONTRACT = [
   'venueId',
   'venueMapId',
