@@ -1,5 +1,8 @@
 # Gamo Studios — HTTP API inventory and reconciliation
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 Updated 2026-10-14. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v1.3.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
 
 The source baseline **cb97c37** / **1cb3434** / **6103121** was expanded in the Backend Stabilization Phase (`v1.2.0`) and Standalone Live Consumer Platform Evolution (`v1.3.0`) to **26 API source files and 30 method/path operations**: Web 6, Worship 2, Live 19, Admin 3; Academy and Production 0 (with linked Production requests routed via `POST/GET /api/events/{id}/production-requests` on Live). All 30 are specified in OpenAPI 3.1.1 (`v1.3.0`) and exercised over isolated loopback HTTP (`pnpm api:check`), adversarial Node SQLite tests (`scripts/audit/security.test.ts`), and domain slice tests (`pnpm test`).

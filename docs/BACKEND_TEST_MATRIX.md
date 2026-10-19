@@ -1,5 +1,8 @@
 # Gamo Studios — Backend Test Matrix & Evidence Register
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
 **Contract Version:** `1.2.0` ([`openapi/root.yaml`](../openapi/root.yaml))  

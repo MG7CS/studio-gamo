@@ -10,9 +10,6 @@ import { GET as detail } from '../../apps/live/src/pages/api/events/[id]/index';
 import { POST as register } from '../../apps/live/src/pages/api/events/[id]/register';
 import { POST as confirmOrder } from '../../apps/live/src/pages/api/orders/confirm';
 import { getTermsDocument, orderVerificationCode, readConfirmToken } from '../../packages/domain/index';
-import { POST as review } from '../../apps/admin/src/pages/api/events/[id]/review';
-import { GET as pending } from '../../apps/admin/src/pages/api/events/pending';
-import { POST as provisionStaff } from '../../apps/admin/src/pages/api/staff/provision';
 import { POST as checkout } from '../../apps/live/src/pages/api/checkout/session';
 import { POST as webhook } from '../../apps/live/src/pages/api/webhook/stripe';
 import { termsDocumentsFor } from '../../packages/domain/src/terms/registry';
@@ -287,7 +284,7 @@ export default {
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
       });
     }
-    const match = path.match(/^\/api\/events\/([^/]+)(?:\/(register|review))?$/);
+    const match = path.match(/^\/api\/events\/([^/]+)(?:\/(register))?$/);
     const handler =
       path === '/api/orders/confirm'
         ? confirmOrder
@@ -303,25 +300,19 @@ export default {
                 ? me
                 : path === '/api/organizations'
                   ? createOrg
-                  : path === '/api/staff/provision'
-                    ? provisionStaff
-                    : path === '/api/events'
-                      ? request.method === 'POST'
-                        ? create
-                        : list
-                      : path === '/api/events/pending'
-                        ? pending
-                        : path === '/api/checkout/session'
-                          ? checkout
-                          : path === '/api/webhook/stripe'
-                            ? webhook
-                            : match
-                              ? match[2] === 'register'
-                                ? register
-                                : match[2] === 'review'
-                                  ? review
-                                  : detail
-                              : null;
+                  : path === '/api/events'
+                    ? request.method === 'POST'
+                      ? create
+                      : list
+                    : path === '/api/checkout/session'
+                      ? checkout
+                      : path === '/api/webhook/stripe'
+                        ? webhook
+                        : match
+                          ? match[2] === 'register'
+                            ? register
+                            : detail
+                          : null;
     if (path === '/test/r2') {
       const storage = createR2StorageClient(env.ASSETS, { signingSecret: env.SESSION_SECRET });
       await storage.putObject(

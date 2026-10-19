@@ -1,6 +1,6 @@
 # Gamo Studios (`studio-gamo`)
 
-Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This repository holds the six web applications for its programs — **Gamo Worship**, **Gamo Academy**, **Gamo Live** and **Gamo Production** — plus the organization site and the staff admin app.
+Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This repository holds the five public web applications (the admin is being rebuilt) for its programs — **Gamo Worship**, **Gamo Academy**, **Gamo Live** and **Gamo Production** — plus the organization site and the staff admin app.
 
 > Read [`AGENTS.md`](AGENTS.md) before changing anything: it holds the organization's rules for copy, legal wording, payments and data. [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) is the organizational reference (its file name is historical; the PBC statement above prevails).
 
@@ -13,7 +13,7 @@ Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This rep
 | `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, family/instructor/host workspaces |
 | `apps/live` | live.gamostudio.org | http://127.0.0.1:4324 | Gamo Live: Christian event discovery, free registration, organizer tools, ticket APIs |
 | `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support areas and training |
-| `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | Staff operations, behind Cloudflare Access + an admin gateway |
+| _(admin)_ | admin.gamostudio.org | http://127.0.0.1:4326 (reserved) | **Removed 2026-10-19; a new admin is being designed from scratch.** No admin app exists in `apps/` today |
 
 Shared packages: `@studio-gamo/ui` (components, layouts, design tokens), `@gamo/domain` (services, API helpers, middleware), `@gamo/auth` (sessions, Clerk, page access), `@gamo/db` (Drizzle schema, migrations), `@studio-gamo/integrations` (Stripe, Resend, R2), `@gamo/config` (hosts, ports, env, brand), `@gamo/api-contracts` (generated from `openapi/`). See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -27,7 +27,7 @@ corepack enable               # pnpm 11.28.5 (package.json "packageManager")
 pnpm install
 cp .env.example .env          # fill in ENVIRONMENT=local and a 32+ char SESSION_SECRET
 pnpm db:migrate:local         # create each app's local D1 database
-pnpm dev:all                  # all six apps; or `pnpm dev` for apps/web only
+pnpm dev:all                  # all five apps; or `pnpm dev` for apps/web only
 ```
 
 Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.dev.vars` — see each `.dev.vars.example`. Everything works without them: sign-in falls back to emailed codes (with `ALLOW_AUTH_SIMULATION=true` the code is shown locally), paid checkout returns 503, email is simulated locally.
@@ -36,7 +36,7 @@ Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.
 
 | Command | Does |
 | --- | --- |
-| `pnpm dev` / `pnpm dev:all` | Dev server for web / all six apps (fixed ports, isolated local state) |
+| `pnpm dev` / `pnpm dev:all` | Dev server for web / all five apps (fixed ports, isolated local state) |
 | `pnpm check` | **Everything CI runs:** typecheck → lint → format check → unit/integration tests → OpenAPI checks → build → browser journeys → browser smoke tests |
 | `pnpm typecheck` | `astro check` for every app + `tsc` for packages and scripts |
 | `pnpm lint` / `pnpm lint:fix` | ESLint (TypeScript, Astro, a11y); zero warnings allowed |
@@ -45,7 +45,7 @@ Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.
 | `pnpm test:e2e` | Playwright smoke suite against production builds (`pnpm build` first) |
 | `pnpm test:journeys` | Browser sign-up/workspace journeys on built Workers (Miniflare) |
 | `pnpm api:check` | OpenAPI lint, generated-artifact drift, route coverage, HTTP contract tests |
-| `pnpm build` | Build all six apps (local configuration) |
+| `pnpm build` | Build all five apps (local configuration) |
 | `pnpm db:migrate:local` / `db:seed:local` / `db:reset:local` | Local D1 (see [`docs/DATABASE.md`](docs/DATABASE.md)) |
 | `pnpm live:events:import …` | Gamo Live editorial catalog import (dry run by default) |
 | `pnpm knip` | Report unused files, exports and dependencies |

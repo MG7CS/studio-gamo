@@ -1,5 +1,8 @@
 # Gamo Studios — Cloudflare Deployment Guide
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 <!-- status-banner: 2026-10 foundation pass -->
 > **Superseded by [RUNBOOK.md](RUNBOOK.md)** (deploy, rollback, secrets per app, migrations, Live catalog). Some details below are out of date (migration file names, the demo-banner check).
 
@@ -22,7 +25,7 @@ Gamo Studios is deployed as six discrete Cloudflare Workers corresponding to the
 | **Gamo Academy** | `apps/academy` | `academy.gamostudio.org` | `https://gamo-academy.gamostudio.workers.dev` | Public |
 | **Gamo Live** | `apps/live` | `live.gamostudio.org` | `https://gamo-live.gamostudio.workers.dev` | Public |
 | **Gamo Production** | `apps/production` | `production.gamostudio.org` | `https://gamo-production.gamostudio.workers.dev` | Public |
-| **Gamo Admin** | `apps/admin` | `admin.gamostudio.org` | *Disabled* (`workers_dev = false`) | **Restricted: Cloudflare Zero Trust Access Required** |
+| ~~Gamo Admin~~ | _removed 2026-10-19; rebuilding_ | `admin.gamostudio.org` | n/a | Cloudflare Zero Trust Access stays required for the rebuilt admin |
 
 ---
 
@@ -84,7 +87,7 @@ CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web ex
 
 ### 3.2 KV Namespaces (Sessions & Caching)
 
-All six applications bind the session KV namespace:
+All five applications bind the session KV namespace:
 - `SESSION` / `SESSION_KV`: `7d35f3e994d04c00a8a404a552978674`
 
 ---
@@ -127,14 +130,13 @@ Public variable:
 
 ### 4.3 Session & Admin Protection Secrets
 
-All six workers verify `__session` cookies against `SESSION_SECRET` and D1 `sessions`. Configure the shared `SESSION_SECRET` across every Worker sharing the D1 database:
+All five workers verify `__session` cookies against `SESSION_SECRET` and D1 `sessions`. Configure the shared `SESSION_SECRET` across every Worker sharing the D1 database:
 
 ```bash
-for app in apps-web apps-live apps-worship apps-academy apps-production apps-admin; do
+for app in apps-web apps-live apps-worship apps-academy apps-production; do
   pnpm --filter "$app" exec wrangler secret put SESSION_SECRET --env production
 done
 
-pnpm --filter apps-admin exec wrangler secret put ADMIN_ACCESS_TOKEN --env production
 ```
 
 ---
@@ -181,7 +183,7 @@ make check
 # 3. Run image policy and asset tests
 make test
 
-# 4. Perform dry-run deployment verification across all 6 applications
+# 4. Perform dry-run deployment verification across all 5 applications
 make verify-deployment
 ```
 
@@ -206,7 +208,6 @@ Deploy applications in this strict order:
 3. **`make deploy-academy`** — Gamo Academy (`academy.gamostudio.org`).
 4. **`make deploy-live`** — Gamo Live (`live.gamostudio.org`).
 5. **`make deploy-production`** — Gamo Production (`production.gamostudio.org`).
-6. **`make deploy-admin`** — Gamo Admin (`admin.gamostudio.org`). **Verify Cloudflare Zero Trust Access is armed before directing staff.**
 
 Or deploy all sequentially:
 

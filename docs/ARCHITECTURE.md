@@ -13,7 +13,7 @@ Six Astro 7 SSR apps, each built with `@astrojs/cloudflare` into its own Cloudfl
 | `apps/academy` | `gamo-academy` / `gamo-academy-preview` | academy.gamostudio.org | 4323 |
 | `apps/live` | `gamo-live` / `gamo-live-preview` | live.gamostudio.org | 4324 |
 | `apps/production` | `gamo-production` / `gamo-production-preview` | production.gamostudio.org | 4325 |
-| `apps/admin` | `gamo-admin` / `gamo-admin-preview` | admin.gamostudio.org (no workers.dev) | 4326 |
+| _(admin: removed 2026-10-19, being rebuilt)_ | `gamo-admin` / `gamo-admin-preview` still exist on Cloudflare | admin.gamostudio.org (no workers.dev) | 4326 reserved |
 
 Hosts, ports and inspector ports are defined once in `packages/config/apps.ts`; links between apps go through `packages/ui/src/lib/sites.ts` (`siteUrl`, `siteOrigin`, `inquiryUrl`), never hard-coded origins.
 
@@ -91,7 +91,7 @@ Details: `docs/TICKETING.md` (buying, tickets, email, webhooks) and `docs/TICKET
 
 ## Data and storage
 
-- **D1** (`DB`): one database per environment (`gamo-db-local`, `gamo-db-preview`, `gamo-db-production`) shared by all six apps; migrations in `packages/db/migrations`.
+- **D1** (`DB`): one database per environment (`gamo-db-local`, `gamo-db-preview`, `gamo-db-production`) shared by all five apps; migrations in `packages/db/migrations`.
 - **KV** (`SESSION`, `SESSION_KV`): Astro session storage. All environments currently point at the same namespace id — see CLEANUP_LOG H-01.
 - **R2** (`MEDIA_BUCKET`): `gamo-media-<env>`.
 - Locally, each app keeps its own Miniflare state in `apps/<app>/.wrangler/state`, so apps don't share a local database file.

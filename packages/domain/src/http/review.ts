@@ -1,5 +1,5 @@
 /**
- * Admin review form handlers (apps/admin, behind Cloudflare Access + the staff gateway session):
+ * Admin review form handlers (no route mounts them since the old admin was removed on 2026-10-19; the rebuilt admin will):
  *
  *   POST /api/review/providers/{id}   church verification and provider review decisions
  *   POST /api/review/events/{id}      organizer first-event review (wraps AdminService.reviewEvent)

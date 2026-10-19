@@ -1,7 +1,7 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
-        dev-web dev-worship dev-academy dev-live dev-production dev-admin \
-        deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin deploy-all \
-        preview-web preview-worship preview-academy preview-live preview-production preview-admin preview-all \
+        dev-web dev-worship dev-academy dev-live dev-production \
+        deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
+        preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
 
 # Default target
@@ -10,13 +10,12 @@ help:
 	@echo ""
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
-	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently"
+	@echo "  \033[36mmake dev-all\033[0m           - Start all 5 application development servers concurrently"
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
 	@echo "  \033[36mmake dev-live\033[0m          - Start apps/live development server"
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
-	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server"
 	@echo ""
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
@@ -43,7 +42,6 @@ help:
 	@echo "  \033[36mmake deploy-academy\033[0m    - Deploy apps/academy to academy.gamostudio.org"
 	@echo "  \033[36mmake deploy-live\033[0m       - Deploy apps/live to live.gamostudio.org"
 	@echo "  \033[36mmake deploy-production\033[0m - Deploy apps/production to production.gamostudio.org"
-	@echo "  \033[36mmake deploy-admin\033[0m      - Deploy apps/admin to admin.gamostudio.org (Zero Trust)"
 	@echo "  \033[36mmake deploy-all\033[0m        - Deploy all applications to production"
 	@echo ""
 	@echo "\033[1;32mAssets & Utilities\033[0m"
@@ -72,9 +70,6 @@ dev-live:
 
 dev-production:
 	@pnpm --filter apps-production run dev
-
-dev-admin:
-	@pnpm --filter apps-admin run dev
 
 install:
 	@pnpm install
@@ -167,12 +162,7 @@ deploy-production:
 	@CLOUDFLARE_ENV=production pnpm --filter apps-production build
 	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-production exec wrangler deploy
 
-deploy-admin:
-	@echo "Building and deploying apps/admin to production (admin.gamostudio.org)..."
-	@CLOUDFLARE_ENV=production pnpm --filter apps-admin build
-	@CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-admin exec wrangler deploy
-
-deploy-all: deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-admin
+deploy-all: deploy-web deploy-worship deploy-academy deploy-live deploy-production
 
 # Verification Targets
 verify-deployment:
@@ -182,8 +172,7 @@ verify-deployment:
 	@pnpm --filter apps-academy exec wrangler deploy --dry-run
 	@pnpm --filter apps-live exec wrangler deploy --dry-run
 	@pnpm --filter apps-production exec wrangler deploy --dry-run
-	@pnpm --filter apps-admin exec wrangler deploy --dry-run
-	@echo "\033[1;32mAll 6 application deployment configurations verified successfully.\033[0m"
+	@echo "\033[1;32mAll 5 application deployment configurations verified successfully.\033[0m"
 
 verify-config:
 	@pnpm --filter apps-web exec wrangler whoami

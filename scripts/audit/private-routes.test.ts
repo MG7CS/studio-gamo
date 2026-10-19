@@ -5,7 +5,7 @@
  * PUBLIC_PAGES (so a new private-looking page cannot ship public by accident); every other page
  * is run through the real `applicationPages()` middleware anonymously and must redirect to sign-in.
  * APIs: every exported method of every apps/<app>/src/pages/api route that is not in PUBLIC_API is
- * called anonymously and must answer 401 or 403. The admin app is checked through its middleware.
+ * called anonymously and must answer 401 or 403.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -242,39 +242,6 @@ for (const app of PUBLIC_APPS) {
     assert.ok(checked >= (app === 'live' ? 13 : 2), `${app}: only ${checked} private API methods exercised`);
   });
 }
-
-test('admin: pages and APIs reject anonymous requests through the admin middleware', async () => {
-  const env = {
-    ...(await migratedEnv()),
-    REQUIRE_ADMIN_AUTH: 'true',
-    CF_ACCESS_TEAM_NAME: 't',
-    CF_ACCESS_AUD: 'a',
-  };
-  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
-  const routes = [
-    ...walk('apps/admin/src/pages').map((f) => toRoute(f)),
-    '/live/submissions',
-    '/__admin_auth/password',
-  ];
-  for (const route of routes) {
-    const url = new URL(`https://admin.example.test${toSamplePath(route)}`);
-    for (const method of route.startsWith('/api/') ? ['GET', 'POST'] : ['GET']) {
-      const context = apiContext(url.href, method, env, {});
-      let rendered = false;
-      const response = (await onRequest(context as never, async () => {
-        rendered = true;
-        return new Response('ok');
-      })) as Response;
-      assert.equal(rendered, false, `admin ${method} ${route} reached the page/handler anonymously`);
-      assert.ok([401, 403].includes(response.status), `admin ${method} ${route} answered ${response.status}`);
-      assert.equal(
-        response.headers.get('cache-control'),
-        'no-store',
-        `admin ${method} ${route} is cacheable`,
-      );
-    }
-  }
-});
 
 test('Stripe webhook rejects unsigned and badly signed payloads before touching the database', async () => {
   const env = await migratedEnv();

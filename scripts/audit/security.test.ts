@@ -21,18 +21,8 @@ import {
   extractSessionCookie,
   requireSameOrigin,
 } from '../../packages/auth/index.ts';
-import { verifyCloudflareAccessJwt } from '../../apps/admin/src/lib/cf-access.ts';
 import { readContract } from '../../packages/api-contracts/src/runtime.ts';
 
-/** Admin middleware wrapped so every call resolves to a Response (the tests never call `next()` lazily). */
-async function loadAdminMiddleware() {
-  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
-  return async (context: any, next: () => Promise<Response>): Promise<Response> => {
-    const result = await onRequest(context, next);
-    assert.ok(result instanceof Response, 'admin middleware must return a Response');
-    return result;
-  };
-}
 const migrations = () =>
   readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
@@ -157,40 +147,6 @@ test('malformed cookie and sibling-origin mutation fail safely', () => {
       headers: { origin: 'https://live.gamostudio.org' },
     }),
   );
-});
-test('Access issuer configuration required before network; missing expiry denied', async () => {
-  const old = globalThis.fetch;
-  let called = false;
-  globalThis.fetch = async () => {
-    called = true;
-    throw Error('outbound forbidden');
-  };
-  try {
-    const jwt = (payload: any) =>
-      `${btoa(JSON.stringify({ alg: 'RS256', kid: 'evil' }))}.${btoa(JSON.stringify(payload))}.signature`;
-    assert.equal(
-      (await verifyCloudflareAccessJwt(jwt({ iss: 'https://attacker.invalid', exp: 9e9 }))).valid,
-      false,
-    );
-    assert.equal(
-      (
-        await verifyCloudflareAccessJwt(
-          jwt({
-            iss: 'https://sample.cloudflareaccess.com',
-            sub: 'x',
-            email: 'x@example.invalid',
-            aud: ['audit'],
-          }),
-          'audit',
-          'sample',
-        )
-      ).valid,
-      false,
-    );
-    assert.equal(called, false);
-  } finally {
-    globalThis.fetch = old;
-  }
 });
 test('registration races enforce capacity, duplicate uniqueness, outbox atomicity and FK integrity', async () => {
   const f = await fixture();
@@ -363,132 +319,6 @@ test('order insert failure rolls back the whole hold batch; cancelling tickets r
       f.d1.sqlite.prepare('UPDATE order_items SET quantity=5 WHERE order_id=?').run(orderId),
     );
   } finally {
-    f.d1.sqlite.close();
-  }
-});
-test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejects forged headers or mismatched staff identity', async () => {
-  const onRequest = await loadAdminMiddleware();
-  const { GET: pending } = await import('../../apps/admin/src/pages/api/events/pending.ts');
-  const f = await fixture();
-  const oldFetch = globalThis.fetch;
-  try {
-    const kp = await crypto.subtle.generateKey(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256',
-      },
-      true,
-      ['sign', 'verify'],
-    );
-    const jwk = await crypto.subtle.exportKey('jwk', kp.publicKey);
-    const kid = 'audit-key-1';
-    globalThis.fetch = (async (url: any) => {
-      assert.equal(String(url), 'https://gamoteam.cloudflareaccess.com/cdn-cgi/access/certs');
-      return Response.json({ keys: [{ ...jwk, kid, kty: 'RSA', alg: 'RS256', use: 'sig' }] });
-    }) as typeof fetch;
-    const b64u = (str: string) => btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    const signJwt = async (
-      claims: Record<string, unknown>,
-      key = kp.privateKey,
-      header: Record<string, unknown> = { alg: 'RS256', kid },
-    ) => {
-      const unsigned = `${b64u(JSON.stringify(header))}.${b64u(JSON.stringify(claims))}`;
-      const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned));
-      const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-      return `${unsigned}.${sigB64}`;
-    };
-    const now = Math.floor(Date.now() / 1000);
-    const staffSession = await createSession(f.db, f.staff.id, secret);
-    const staffCookie = `__session=${encodeURIComponent(staffSession.cookieValue)}`;
-    const env = {
-      DB: f.d1,
-      ENVIRONMENT: 'production',
-      REQUIRE_ADMIN_AUTH: 'true',
-      SESSION_SECRET: secret,
-      CF_ACCESS_AUD: 'aud-tag-123',
-      CF_ACCESS_TEAM_NAME: 'gamoteam',
-    };
-    const runMiddleware = async (headers: Record<string, string>) => {
-      const request = new Request('https://admin.gamostudio.org/api/events/pending', { headers });
-      const context: any = { request, params: {}, locals: { runtime: { env } } };
-      return onRequest(context, async () => pending(context));
-    };
-    // 1. Forged header without valid signature rejected with 401
-    const wrongKp = await crypto.subtle.generateKey(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256',
-      },
-      true,
-      ['sign', 'verify'],
-    );
-    const forgedJwt = await signJwt(
-      {
-        aud: ['aud-tag-123'],
-        email: 'reviewer@example.invalid',
-        sub: 'sub-1',
-        iss: 'https://gamoteam.cloudflareaccess.com',
-        exp: now + 300,
-        iat: now,
-        nbf: now,
-      },
-      wrongKp.privateKey,
-    );
-    assert.equal(
-      (await runMiddleware({ 'cf-access-jwt-assertion': forgedJwt, cookie: staffCookie })).status,
-      401,
-    );
-    // 2. Valid Access JWT signature but mismatched email vs D1 staff session rejected with 403
-    const mismatchJwt = await signJwt({
-      aud: ['aud-tag-123'],
-      email: 'other-staff@example.invalid',
-      sub: 'sub-2',
-      iss: 'https://gamoteam.cloudflareaccess.com',
-      exp: now + 300,
-      iat: now,
-      nbf: now,
-    });
-    assert.equal(
-      (await runMiddleware({ 'cf-access-jwt-assertion': mismatchJwt, cookie: staffCookie })).status,
-      403,
-    );
-    // 3. Valid Access JWT signature + matching D1 staff session succeeds with 200
-    const validJwt = await signJwt({
-      aud: ['aud-tag-123'],
-      email: 'reviewer@example.invalid',
-      sub: 'sub-1',
-      iss: 'https://gamoteam.cloudflareaccess.com',
-      exp: now + 300,
-      iat: now,
-      nbf: now,
-    });
-    assert.equal(
-      (await runMiddleware({ 'cf-access-jwt-assertion': validJwt, cookie: staffCookie })).status,
-      200,
-    );
-    // 4. Behind Access but not signed in to the gateway, a workspace PAGE shows the gateway
-    //    sign-in (401, email prefilled) instead of redirecting into a sign-in loop.
-    const pageRequest = new Request('https://admin.gamostudio.org/live/submissions', {
-      headers: { 'cf-access-jwt-assertion': validJwt },
-    });
-    const pageContext: any = { request: pageRequest, params: {}, locals: { runtime: { env } } };
-    let rendered = false;
-    const page = await onRequest(pageContext, async () => {
-      rendered = true;
-      return new Response('page');
-    });
-    assert.equal(rendered, false);
-    assert.equal(page.status, 401);
-    assert.match(await page.text(), /value="reviewer@example\.invalid"/);
-  } finally {
-    globalThis.fetch = oldFetch;
     f.d1.sqlite.close();
   }
 });
@@ -898,10 +728,8 @@ test('NotificationService outbox consumer escapes untrusted HTML, marks sent job
   }
 });
 test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation', async () => {
-  const onRequest = await loadAdminMiddleware();
-  const { GET: pending } = await import('../../apps/admin/src/pages/api/events/pending.ts');
   const { authenticateAdminPassword, changeAdminPassword, ensureBootstrapAdminAccount } =
-    await import('../../apps/admin/src/lib/admin-password-auth.ts');
+    await import('../../packages/auth/index.ts');
   // Test-only identity; real bootstrap identities are never committed.
   const BOOTSTRAP_ADMIN_EMAIL = 'bootstrap.admin@example.invalid';
   const BOOTSTRAP_ADMIN_TEMP_PASSWORD = 'temporary-test-password-1';
@@ -912,7 +740,6 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
   };
   const f = await fixture();
   try {
-    const env = { DB: f.d1, ENVIRONMENT: 'production', REQUIRE_ADMIN_AUTH: 'true', SESSION_SECRET: secret };
     // 1. Initial login with temporary password succeeds and flags mustChangePassword=true
     assert.equal(
       (await authenticateAdminPassword(f.db, BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_TEMP_PASSWORD)).ok,
@@ -931,39 +758,7 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
     );
     assert.equal(initial.ok, true);
     assert.equal(initial.mustChangePassword, true);
-    // 2.Middleware POST /__admin_auth/login issues __session + __admin_gate cookies and redirects to /security?welcome=1
-    const loginForm = new URLSearchParams({
-      email: BOOTSTRAP_ADMIN_EMAIL,
-      password: BOOTSTRAP_ADMIN_TEMP_PASSWORD,
-    });
-    const loginReq = new Request('https://admin.gamostudio.org/__admin_auth/login', {
-      method: 'POST',
-      headers: {
-        origin: 'https://admin.gamostudio.org',
-        'content-type': 'application/x-www-form-urlencoded',
-      },
-      body: loginForm,
-    });
-    const loginRes = await onRequest(
-      { request: loginReq, params: {}, locals: { runtime: { env } } } as any,
-      async () => new Response('ok'),
-    );
-    assert.equal(loginRes.status, 303);
-    assert.equal(loginRes.headers.get('location'), '/security?welcome=1');
-    const setCookies = loginRes.headers.getSetCookie
-      ? loginRes.headers.getSetCookie()
-      : [loginRes.headers.get('set-cookie') || ''].filter(Boolean);
-    const cookieHeader = setCookies.map((c) => c.split(';')[0]).join('; ');
-    assert.match(cookieHeader, /__session=/);
-    assert.match(cookieHeader, /__admin_gate=/);
-    // 3. Authenticated request with __session + __admin_gate accesses Admin API & UI
-    const apiReq = new Request('https://admin.gamostudio.org/api/events/pending', {
-      headers: { cookie: cookieHeader },
-    });
-    const apiCtx: any = { request: apiReq, params: {}, locals: { runtime: { env } } };
-    const apiRes = await onRequest(apiCtx, async () => pending(apiCtx));
-    assert.equal(apiRes.status, 200);
-    // 4. Changing password updates hash and disables temporary password
+    // 2. Changing password updates hash and disables temporary password
     const changed = await changeAdminPassword(
       f.db,
       initial.userId!,
@@ -982,7 +777,7 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
     );
     assert.equal(afterChange.ok, true);
     assert.equal(afterChange.mustChangePassword, false);
-    // 5. 5 failed attempts lock out the account even if the right password is provided afterward
+    // 3. 5 failed attempts lock out the account even if the right password is provided afterward
     for (let i = 0; i < 5; i++) {
       assert.equal((await authenticateAdminPassword(f.db, BOOTSTRAP_ADMIN_EMAIL, 'wrong-pass')).ok, false);
     }

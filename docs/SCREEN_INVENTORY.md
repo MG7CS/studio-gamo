@@ -1,5 +1,8 @@
 # Gamo Studios — Public frontend screen inventory
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial implementation. All five public apps are in the founder-approved scope. **UI ready** means implemented as a local frontend preview, not launched or connected. Engineering evidence is in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md); new screens await founder visual acceptance.
 
 ## Organization hub — apps/web — port 4321
