@@ -66,6 +66,18 @@ test('only an owner/admin grants ticketing, scanning or production access; revok
     false,
   );
   assert.equal(ok.canScanTickets, false);
+  // A non-admin editor cannot rewrite an existing row (strip flags) or reinstate a revoked one.
+  await assert.rejects(
+    () =>
+      live.assignEventTeamMember(
+        event.id,
+        editor.id,
+        false,
+        { userId: helper.id, role: 'co_organizer', canEditContent: false },
+        false,
+      ),
+    /FORBIDDEN/,
+  );
   // The owner/admin can grant scanning.
   const scanner = await live.assignEventTeamMember(
     event.id,
@@ -91,6 +103,18 @@ test('only an owner/admin grants ticketing, scanning or production access; revok
     .prepare("SELECT status FROM event_team_members WHERE user_id = ? AND role = 'door_scanner'")
     .get(helper.id) as { status: string };
   assert.equal(row.status, 'revoked');
+  await assert.rejects(
+    () =>
+      live.assignEventTeamMember(
+        event.id,
+        editor.id,
+        false,
+        { userId: helper.id, role: 'door_scanner', canScanTickets: false },
+        false,
+      ),
+    /FORBIDDEN/,
+    'a non-admin cannot flip a revoked row back to active',
+  );
   assert.equal(
     (
       d1.sqlite.prepare("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'event.team.revoked'").get() as {

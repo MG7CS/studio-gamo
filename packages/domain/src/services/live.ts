@@ -617,6 +617,13 @@ export class LiveService {
       )
       .limit(1);
 
+    // Changing an existing row (lowering someone's flags, reactivating a revoked member) is an owner/admin
+    // action too; other editors may only add new members within the limits above (D-122).
+    if (existing && !actorIsOwnerOrAdmin)
+      throw new Error(
+        'FORBIDDEN: Only an organization owner or admin can change or reinstate an existing team member.',
+      );
+
     const memberId = existing?.id ?? `evteam_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     if (existing) {

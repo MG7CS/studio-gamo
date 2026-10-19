@@ -41,11 +41,7 @@ async function check(page: Page, label: string, errors: string[]) {
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow, `${label}: overflow`).toBeLessThanOrEqual(1);
-  // The access-denied page is a deliberate 403 document; the browser logs that status itself.
-  const unexpected = label.includes('access-denied')
-    ? errors.filter((e) => !/status of 403/.test(e))
-    : errors;
-  expect(unexpected, `${label}: console`).toEqual([]);
+  expect(errors, `${label}: console`).toEqual([]);
 }
 
 for (const viewport of [
@@ -57,7 +53,12 @@ for (const viewport of [
       const context = await browser.newContext({ viewport });
       const page = await context.newPage();
       const errors: string[] = [];
-      page.on('console', (m) => m.type() === 'error' && errors.push(m.text().slice(0, 200)));
+      page.on('console', (m) => {
+        // The access-denied document is a deliberate 403; the browser logs that status against that URL,
+        // possibly after the next navigation has started, so it is ignored by URL rather than by page.
+        if (m.type() === 'error' && !m.location().url.endsWith('/account/access-denied'))
+          errors.push(m.text().slice(0, 200));
+      });
       page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));
 
       await page.goto(`${origin}/account/signin`, { waitUntil: 'networkidle' });
