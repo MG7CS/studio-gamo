@@ -156,6 +156,15 @@ test.describe('Gamo Live tickets', () => {
     const f = await fixture(request, 'kind=paid&capacity=10&price=25');
     const email = `payer-${Date.now()}@example.org`;
     await page.goto(`${LIVE}/events/${f.slug}/register`);
+    // Fail in seconds, with the reason, when the paid form is closed (instead of waiting out the test timeout).
+    const gate =
+      'paid checkout is closed on the test server: locally it needs STRIPE_TEST_CHECKOUT=true and STRIPE_SECRET_KEY ' +
+      'empty, mock_… or a real sk_test_/rk_test_ key (a placeholder closes it); rebuild apps/live after changing .dev.vars';
+    expect(
+      await page.getByRole('heading', { name: 'Paid checkout is not available yet' }).count(),
+      gate,
+    ).toBe(0);
+    await expect(page.locator(`[id="qty.${f.categoryId}"]`), gate).toBeVisible({ timeout: 15_000 });
     await check(page, 'paid register form');
     await fillOrderForm(page, email, 2, f.categoryId, 'Paul Sample');
     await page.getByRole('button', { name: 'Continue to payment' }).click();
