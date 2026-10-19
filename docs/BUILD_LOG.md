@@ -782,3 +782,8 @@
 
 - Owner review: the admin uses the app palette used by every other app. `apps/admin/src/styles/clay.css` now imports the shared `tokens.css` and maps the clay accent scale onto terracotta/sand/tan/cream; stat-card chips use brand tints; the unused `@fontsource-variable/inter` dependency was removed (Inter comes with the shared tokens). Status words keep green/amber/red.
 - Checked in a real browser: 9 pages at 1440 and 360 px, axe (WCAG 2.2 AA) clean, no overflow. A stale Vite dependency cache after `pnpm install` shows an "optimize deps" error until the dev server is restarted.
+
+## 2026-10-19 — Admin: flat background and phone layout (not deployed, not pushed)
+
+- No gradients anywhere (owner decision): one flat cream page, white cards and sidebar; a unit test fails if a gradient is added. Phone tab bar: short labels (Inbox, Requests, Church, Providers, Events, Legal) with the full name and waiting count as the accessible name, and the count badge outside the link text (axe `label-content-name-mismatch`).
+- Checked against the running dev server at 360, 390 and 430 px on 9 pages each: axe (WCAG 2.2 AA) clean, no horizontal overflow, every tap target at least 44 px, no clipped tab label. Not run: the unit tests.

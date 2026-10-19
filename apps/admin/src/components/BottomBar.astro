@@ -17,7 +17,7 @@ const { current, counts } = Astro.props;
 >
   <ul class="flex justify-around gap-1">
     {NAV_ITEMS.map((item) => (
-      <li class="min-w-0 flex-1">
+      <li class="relative min-w-0 flex-1">
         <a
           href={item.href}
           aria-label={`${item.shortLabel === item.label ? item.label : `${item.shortLabel}: ${item.label}`}${badgeFor(item, counts) !== null ? `, ${badgeFor(item, counts)} waiting` : ''}`}
@@ -27,19 +27,17 @@ const { current, counts } = Astro.props;
             item.key === current ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
           ]}
         >
-          <span class="relative">
-            <Icon name={item.icon} class="h-5 w-5" />
-            {badgeFor(item, counts) !== null && (
-              <span
-                class="absolute -right-3 -top-2 rounded-full bg-clay-700 px-1.5 text-[10px] font-bold leading-4 text-white"
-                aria-hidden="true"
-              >
-                {badgeFor(item, counts)}
-              </span>
-            )}
-          </span>
+          <Icon name={item.icon} class="h-5 w-5" />
           <span class="w-full truncate text-center text-[10px] font-semibold">{item.shortLabel}</span>
         </a>
+        {badgeFor(item, counts) !== null && (
+          <span
+            class="pointer-events-none absolute right-1.5 top-1 rounded-full bg-clay-700 px-1.5 text-[10px] font-bold leading-4 text-white"
+            aria-hidden="true"
+          >
+            {badgeFor(item, counts)}
+          </span>
+        )}
       </li>
     ))}
   </ul>
