@@ -36,8 +36,9 @@ const alt = `${label} for ${eventTitle}, ${ticket.holderName}, ${ticket.category
   </h3>
   {ticket.state === 'transferred_away' ? (
     <p class="mt-3 text-ink">
-      This ticket was transferred to <strong>{ticket.transferredTo}</strong>. Its old QR code no longer works
-      and is not shown here.
+      This ticket was transferred{ticket.transferredTo ? ' to ' : ''}
+      {ticket.transferredTo && <strong>{ticket.transferredTo}</strong>}. Its old QR code no longer works and
+      is not shown here.
     </p>
   ) : (
     <>

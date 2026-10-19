@@ -228,7 +228,9 @@ export async function getOrderView(
       sectionName: sections.find((s) => s.id === t.section_id)?.name ?? null,
       gateLabel: t.gate_label,
       state,
-      transferredTo: state === 'transferred_away' ? maskEmail(t.holder_email) : null,
+      // Only the first recipient is named; after a second hop the purchaser sees just "Transferred" (D-181).
+      transferredTo:
+        state === 'transferred_away' && Number(t.transfer_count) <= 1 ? maskEmail(t.holder_email) : null,
       canTransfer: mine && blocked === null,
       transferBlockedReason: mine ? blocked : null,
       version: Number(t.version),

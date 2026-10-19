@@ -137,10 +137,53 @@ export async function cancelEvent(
     );
   const event = await editableEvent(db, input.eventId);
   const changeId = newPrefixedId('evc');
-  // Paid orders are refunded ticket by ticket first (while the tickets are still valid, so the refund
-  // marks them refunded); everything left is voided in the cancellation batch.
+  // 1. The cancellation first, in one batch (CLEANUP_LOG D-176): the event is closed, open holds are released
+  //    and every valid ticket is voided. A payment that completes afterwards finds no sellable event, so it
+  //    becomes paid_unfulfillable and is refunded by the webhook. Only the request whose UPDATE changed the
+  //    event goes on to notify: a second concurrent cancel stops here.
+  const [cancelled, , voided] = await runBatch(db, [
+    {
+      sql: "UPDATE events SET cancelled_at = ?2, status = 'canceled' WHERE id = ?1 AND cancelled_at IS NULL RETURNING id",
+      params: [event.id, input.now],
+    },
+    {
+      sql: "UPDATE ticket_holds SET status = 'released', released_at = ?2 WHERE event_id = ?1 AND status = 'held' AND order_item_id IS NOT NULL RETURNING id",
+      params: [event.id, input.now],
+    },
+    voidEventTicketsStatement({ eventId: event.id, now: input.now }),
+    {
+      sql: "UPDATE ticket_orders SET status = 'cancelled', cancelled_at = ?2, updated_at = ?2 WHERE event_id = ?1 AND status IN ('pending_verification', 'pending_payment', 'confirmed') AND total_cents = 0",
+      params: [event.id, input.now],
+    },
+    {
+      sql: "INSERT INTO event_changes (id, event_id, kind, before_json, after_json, created_by_user_id, created_at) SELECT ?1, ?2, 'cancelled', ?3, ?4, ?5, ?6 WHERE EXISTS (SELECT 1 FROM events WHERE id = ?2 AND cancelled_at = ?6) AND NOT EXISTS (SELECT 1 FROM event_changes WHERE event_id = ?2 AND kind = 'cancelled')",
+      params: [
+        changeId,
+        event.id,
+        JSON.stringify(snapshot(event)),
+        JSON.stringify({ status: 'canceled', reason }),
+        input.actorUserId,
+        input.now,
+      ],
+    },
+    {
+      sql: "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) SELECT ?1, ?2, 'event.cancel', 'event', ?3, ?4, ?5 WHERE EXISTS (SELECT 1 FROM event_changes WHERE id = ?6)",
+      params: [
+        newPrefixedId('aud'),
+        input.actorUserId,
+        event.id,
+        JSON.stringify({ changeId, reason: reason.slice(0, 200) }),
+        input.now,
+        changeId,
+      ],
+    },
+  ]);
+  if (cancelled.length === 0)
+    throw new TicketingError('CONFLICT', 'This event was just cancelled by someone else.');
+
+  // 2. Then refund every paid order whose tickets were voided by the cancellation.
   const paidOrders = await allRows<{ id: string }>(db, {
-    sql: "SELECT id FROM ticket_orders WHERE event_id = ?1 AND total_cents > 0 AND status IN ('paid', 'confirmed', 'partially_refunded')",
+    sql: "SELECT DISTINCT o.id FROM ticket_orders o JOIN tickets t ON t.order_id = o.id WHERE o.event_id = ?1 AND o.total_cents > 0 AND o.status IN ('paid', 'confirmed', 'partially_refunded') AND t.status = 'voided' AND t.void_reason = 'event_cancelled' AND t.refunded_at IS NULL",
     params: [event.id],
   });
   let ordersRefunded = 0;
@@ -162,40 +205,6 @@ export async function cancelEvent(
       refundsPending++;
     }
   }
-  const [, , voided] = await runBatch(db, [
-    {
-      sql: "UPDATE events SET cancelled_at = ?2, status = 'canceled' WHERE id = ?1 AND cancelled_at IS NULL RETURNING id",
-      params: [event.id, input.now],
-    },
-    {
-      sql: "UPDATE ticket_holds SET status = 'released', released_at = ?2 WHERE event_id = ?1 AND status = 'held' AND order_item_id IS NOT NULL RETURNING id",
-      params: [event.id, input.now],
-    },
-    voidEventTicketsStatement({ eventId: event.id, now: input.now }),
-    {
-      sql: "UPDATE ticket_orders SET status = 'cancelled', cancelled_at = ?2, updated_at = ?2 WHERE event_id = ?1 AND status IN ('pending_verification', 'pending_payment', 'confirmed') AND total_cents = 0",
-      params: [event.id, input.now],
-    },
-    {
-      sql: "INSERT INTO event_changes (id, event_id, kind, before_json, after_json, created_by_user_id, created_at) VALUES (?1, ?2, 'cancelled', ?3, ?4, ?5, ?6)",
-      params: [
-        changeId,
-        event.id,
-        JSON.stringify(snapshot(event)),
-        JSON.stringify({ status: 'canceled', reason }),
-        input.actorUserId,
-        input.now,
-      ],
-    },
-    auditLogStatement({
-      actorUserId: input.actorUserId,
-      action: 'event.cancel',
-      entityType: 'event',
-      entityId: event.id,
-      payload: { changeId, reason: reason.slice(0, 200) },
-      now: input.now,
-    }),
-  ]);
   const note = paidOrders.length
     ? 'Paid tickets are refunded in full to the card used (test mode). It can take a few days to appear.'
     : undefined;

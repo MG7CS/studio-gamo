@@ -768,21 +768,26 @@ describe('event changes, waitlist and door sales', () => {
       https: false,
       now: now(),
     });
-    await joinWaitlist(f.d1, {
+    await joinWaitlist(f.d1, f.env, {
       eventId: ev.eventId,
       categoryId: ev.categories[0].id,
       email: 'wait@example.org',
       quantity: 1,
+      origin: ORIGIN,
       now: now(),
     });
-    await joinWaitlist(f.d1, {
+    await joinWaitlist(f.d1, f.env, {
       eventId: ev.eventId,
       categoryId: ev.categories[0].id,
       email: 'wait@example.org',
       quantity: 1,
+      origin: ORIGIN,
       now: now(),
     });
     assert.equal(f.q<{ n: number }>('SELECT count(*) AS n FROM waitlist_entries').n, 1);
+    // Double opt-in: the entry is inactive until the emailed link is confirmed (D-180).
+    assert.equal(f.q<{ s: string }>('SELECT status AS s FROM waitlist_entries').s, 'removed');
+    f.d1.sqlite.exec("UPDATE waitlist_entries SET status = 'waiting'");
     f.d1.sqlite.exec(
       'UPDATE ticket_holds SET expires_at = expires_at - 3600; UPDATE ticket_orders SET hold_expires_at = hold_expires_at - 3600',
     );

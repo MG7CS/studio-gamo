@@ -16,6 +16,7 @@ export const GET: APIRoute = () =>
         '/checkout',
         '/tickets/',
         '/link',
+        '/waitlist/',
         '/local-test/',
         '/workspaces',
         '/organizer/',

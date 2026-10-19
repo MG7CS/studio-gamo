@@ -10,7 +10,8 @@
  */
 import { runBatch, type SqlDatabase } from '../../security/sql-database.ts';
 import { CURRENT_QR_KEY_ID, newQrSalt, signTicketQr } from '../../security/ticket-qr.ts';
-import { isPlausibleEmail, normalizeEmail } from '../../security/pii-hash.ts';
+import { hashEmail, hashPii, isPlausibleEmail, normalizeEmail } from '../../security/pii-hash.ts';
+import { checkRateLimits, rateLimitBucket } from '../../security/rate-limit.ts';
 import { upsertCustomerProfile } from '../customers.ts';
 import { bumpTicketVersionStatement } from '../../ticketing/sql.ts';
 import { venueDayKey } from './events-time.ts';
@@ -26,6 +27,7 @@ import {
   loadOrder,
   loadTicket,
   orderPolicy,
+  requireTicketingSecret,
   ticketQrKeyring,
   type TicketingEnv,
 } from './orders-shared.ts';
@@ -114,26 +116,60 @@ export async function transferTicket(
       'This ticket was already scanned in today, so it cannot be transferred.',
     );
 
+  // Abuse limits (CLEANUP_LOG D-178): ten transfers an hour per customer session, three a day per recipient address.
+  const piiSecret = requireTicketingSecret(env, 'PII_HASH_SECRET');
+  const limit = await checkRateLimits(
+    db,
+    [
+      {
+        bucket: rateLimitBucket(
+          'live.transfer',
+          'session',
+          await hashPii(input.identity!.sessionId, piiSecret),
+        ),
+        limit: 10,
+        windowSeconds: 3600,
+      },
+      {
+        bucket: rateLimitBucket('live.transfer-to', 'email', await hashEmail(toEmail, piiSecret)),
+        limit: 3,
+        windowSeconds: 86400,
+      },
+    ],
+    input.now,
+  );
+  if (!limit.allowed)
+    throw new TicketingError(
+      'RATE_LIMITED',
+      'Too many transfers from here, or to that address, for now. Please wait and try again later.',
+      { retryAfterSeconds: limit.retryAfterSeconds },
+    );
+
   const recipient = await upsertCustomerProfile(db, { email: toEmail, now: input.now });
   if (recipient.erasedAt !== null)
     throw new TicketingError('VALIDATION', 'Please use another email address for the new holder.');
   const version = Number(ticket.version) + 1;
   const { salt, signed } = await newSignature(env, ticket, version);
   const [bumped] = await runBatch(db, [
-    bumpTicketVersionStatement({
-      ticketId: ticket.id,
-      expectedVersion: Number(ticket.version),
-      qrSalt: salt,
-      qrKeyId: signed.keyId,
-      qrSignatureHash: signed.macDigest,
-      now: input.now,
-      transfer: {
-        holderName: toName,
-        holderEmail: toEmail,
-        customerProfileId: recipient.id,
-        previousEmail: ticket.holder_email,
-      },
-    }),
+    {
+      // Conditional in SQL (CLEANUP_LOG D-177): the "not scanned in today" and "transfers left" checks happen in
+      // the same statement as the version bump, so a scanner admitting the ticket in between wins.
+      sql: "UPDATE tickets SET version = version + 1, qr_salt = ?3, qr_key_id = ?4, qr_signature_hash = ?5, updated_at = ?6, holder_name = ?7, holder_email = ?8, customer_profile_id = ?9, transferred_from_ticket_email = ?10, transfer_count = transfer_count + 1 WHERE id = ?1 AND version = ?2 AND status = 'valid' AND transfer_count < ?11 AND NOT EXISTS (SELECT 1 FROM ticket_presence p WHERE p.ticket_id = tickets.id AND p.day_key = ?12 AND p.entry_count > 0) RETURNING id, version, transfer_count",
+      params: [
+        ticket.id,
+        Number(ticket.version),
+        salt,
+        signed.keyId,
+        signed.macDigest,
+        input.now,
+        toName,
+        toEmail,
+        recipient.id,
+        ticket.holder_email,
+        policy.maxTransfersPerTicket,
+        day,
+      ],
+    },
     accessLogStatement({
       eventId: ticket.event_id,
       ticketId: ticket.id,
@@ -145,11 +181,21 @@ export async function transferTicket(
       now: input.now,
     }),
   ]);
-  if (bumped.length === 0)
+  if (bumped.length === 0) {
+    const scannedNow = await db
+      .prepare('SELECT 1 FROM ticket_presence WHERE ticket_id = ?1 AND day_key = ?2 AND entry_count > 0')
+      .bind(ticket.id, day)
+      .first();
+    if (scannedNow)
+      throw new TicketingError(
+        'CONFLICT',
+        'This ticket was just scanned in, so it cannot be transferred today.',
+      );
     throw new TicketingError(
       'CONFLICT',
       'This ticket was just changed. Reload the page to see its current state.',
     );
+  }
 
   await sendTicketEmail(db, env, {
     orderId: ticket.order_id,
@@ -171,12 +217,14 @@ export async function transferTicket(
   return { ticketId: ticket.id, version };
 }
 
-function shortSender(name: string): string {
-  return (
+/** First name for the transfer email: letters only, at most 20; anything URL- or address-like becomes "Someone". */
+export function shortSender(name: string): string {
+  const first =
     String(name ?? '')
       .trim()
-      .split(/\s+/)[0] || 'Someone'
-  );
+      .split(/\s+/)[0] ?? '';
+  if (/[/:.@\\]/.test(first)) return 'Someone';
+  return first.replace(/[^\p{L}\p{M}'-]/gu, '').slice(0, 20) || 'Someone';
 }
 
 /** Organizer/staff reissue: the caller has checked `manage_ticketing`. */

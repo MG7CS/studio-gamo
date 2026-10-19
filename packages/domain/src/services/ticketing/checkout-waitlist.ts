@@ -1,17 +1,33 @@
 /**
  * Waitlist (design §7 "Waitlist"): a sold-out buyer leaves an email; when held tickets are released
- * (expiry, cancelled checkout, refund, cancellation) the earliest entries whose quantity now fits are
+ * (expiry, cancelled checkout, refund, cancellation) the earliest CONFIRMED entries whose quantity now fits are
  * emailed "tickets available". First come, first served: nothing is reserved and nobody is charged.
+ *
+ * Double opt-in (CLEANUP_LOG D-180): joining only sends one confirmation email with a link; the entry stays
+ * inactive (`removed`, which the schema's status list allows without a migration) until the link is confirmed, so
+ * nobody can enrol a stranger's address and make us mail them repeatedly. Joining answers identically for every
+ * address.
  */
 import { allRows, type SqlDatabase } from '../../security/sql-database.ts';
 import { newPrefixedId } from '../../security/ids.ts';
-import { upsertCustomerProfile } from '../customers.ts';
-import { sendWaitlistAvailableEmail } from './email.ts';
-import { TicketingError, loadEvent, type TicketingEnv } from './orders-shared.ts';
+import { CustomerLinkTokens, formatScope, parseScope } from '../../security/link-tokens.ts';
+import { issueCustomerLink, upsertCustomerProfile } from '../customers.ts';
+import { sendWaitlistAvailableEmail, sendWaitlistConfirmEmail } from './email.ts';
+import { TicketingError, loadEvent, requireTicketingSecret, type TicketingEnv } from './orders-shared.ts';
+
+const CONFIRM_LINK_SECONDS = 3 * 24 * 60 * 60;
 
 export async function joinWaitlist(
   db: SqlDatabase,
-  input: { eventId: string; categoryId: string | null; email: string; quantity: number; now: number },
+  env: TicketingEnv,
+  input: {
+    eventId: string;
+    categoryId: string | null;
+    email: string;
+    quantity: number;
+    origin: string;
+    now: number;
+  },
 ): Promise<{ joined: true }> {
   const event = await loadEvent(db, input.eventId);
   if (!event || event.status !== 'approved' || event.cancelled_at !== null)
@@ -28,19 +44,87 @@ export async function joinWaitlist(
     });
     if (!ok.length) throw new TicketingError('VALIDATION', 'Please reload the page and try again.');
   }
+  requireTicketingSecret(env, 'CUSTOMER_LINK_SECRET');
   const profile = await upsertCustomerProfile(db, { email: input.email, now: input.now });
-  if (profile.erasedAt === null)
-    await db
-      .prepare(
-        "INSERT INTO waitlist_entries (id, event_id, tier_id, customer_profile_id, quantity, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, 'waiting', ?6, ?6) ON CONFLICT DO UPDATE SET quantity = excluded.quantity, status = 'waiting', updated_at = excluded.updated_at WHERE waitlist_entries.status IN ('waiting', 'notified', 'removed')",
-      )
-      .bind(newPrefixedId('wl'), event.id, input.categoryId, profile.id, quantity, input.now)
-      .run();
+  if (profile.erasedAt === null) {
+    const existing = (
+      await allRows<{ id: string; status: string }>(db, {
+        sql: "SELECT id, status FROM waitlist_entries WHERE event_id = ?1 AND coalesce(tier_id, '') = coalesce(?2, '') AND customer_profile_id = ?3",
+        params: [event.id, input.categoryId, profile.id],
+      })
+    )[0];
+    if (existing?.status !== 'waiting') {
+      let entryId = existing?.id;
+      if (entryId)
+        await db
+          .prepare(
+            "UPDATE waitlist_entries SET quantity = ?2, status = 'removed', notified_at = NULL, updated_at = ?3 WHERE id = ?1",
+          )
+          .bind(entryId, quantity, input.now)
+          .run();
+      else {
+        entryId = newPrefixedId('wl');
+        await db
+          .prepare(
+            "INSERT INTO waitlist_entries (id, event_id, tier_id, customer_profile_id, quantity, status, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, 'removed', ?6, ?6) ON CONFLICT DO NOTHING",
+          )
+          .bind(entryId, event.id, input.categoryId, profile.id, quantity, input.now)
+          .run();
+      }
+      const link = await issueCustomerLink(db, env, {
+        product: 'live',
+        customerProfileId: profile.id,
+        scope: formatScope('registration', entryId),
+        purpose: 'registration',
+        expiresAt: input.now + CONFIRM_LINK_SECONDS,
+        now: input.now,
+        openPath: '/waitlist/confirm',
+      });
+      await sendWaitlistConfirmEmail(db, env, {
+        to: profile.emailNormalized,
+        entryId,
+        event,
+        confirmUrl: `${input.origin}${link.path}`,
+        // One confirmation mail per entry per day: repeated sign-ups cannot be used to flood an address.
+        windowKey: String(Math.floor(input.now / 86400)),
+        now: input.now,
+      }).catch(() => console.error('[ticketing] waitlist confirmation email failed'));
+    }
+  }
   // Same answer whether or not the address was already on the list.
   return { joined: true };
 }
 
-/** Emails waiting entries whose quantity fits what is free now. Returns how many were notified. */
+/** Confirms a waitlist entry from its emailed link (called by the POST on `/waitlist/confirm`). */
+export async function confirmWaitlistEntry(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: { token: string; now: number },
+): Promise<{ ok: boolean; eventTitle?: string }> {
+  const consumed = await new CustomerLinkTokens(
+    db,
+    requireTicketingSecret(env, 'CUSTOMER_LINK_SECRET'),
+    'live',
+  ).consume(String(input.token ?? ''), input.now);
+  if (!consumed.ok) return { ok: false };
+  const scope = parseScope(consumed.record.scope);
+  if (scope?.kind !== 'registration') return { ok: false };
+  const row = (await db
+    .prepare(
+      "UPDATE waitlist_entries SET status = 'waiting', updated_at = ?2 WHERE id = ?1 AND customer_profile_id = ?3 AND status IN ('removed', 'waiting') RETURNING event_id",
+    )
+    .bind(scope.id, input.now, consumed.record.customerProfileId)
+    .first()) as { event_id: string } | null;
+  if (!row) return { ok: false };
+  const event = await loadEvent(db, row.event_id);
+  return { ok: true, eventTitle: event?.title };
+}
+
+/**
+ * Emails confirmed entries whose quantity fits what is free now. Returns how many were notified. An entry is
+ * claimed first (so two releases never email one person twice) and handed back to `waiting` if the email did
+ * not go out; one failing send never stops the rest.
+ */
 export async function notifyWaitlist(
   db: SqlDatabase,
   env: TicketingEnv,
@@ -65,7 +149,6 @@ export async function notifyWaitlist(
   });
   let notified = 0;
   for (const c of candidates) {
-    // Claim the entry first so two releases never email the same person twice.
     const claimed = await db
       .prepare(
         "UPDATE waitlist_entries SET status = 'notified', notified_at = ?2, updated_at = ?2 WHERE id = ?1 AND status = 'waiting' RETURNING id",
@@ -73,14 +156,28 @@ export async function notifyWaitlist(
       .bind(c.id, input.now)
       .first();
     if (!claimed) continue;
-    await sendWaitlistAvailableEmail(db, env, {
-      to: c.email,
-      entryId: `${c.id}:${input.now}`,
-      event,
-      origin: input.origin,
-      now: input.now,
-    });
-    notified++;
+    let sent: boolean;
+    try {
+      const r = await sendWaitlistAvailableEmail(db, env, {
+        to: c.email,
+        entryId: `${c.id}:${input.now}`,
+        event,
+        origin: input.origin,
+        now: input.now,
+      });
+      sent = ['sent', 'delivered', 'suppressed'].includes(r.status);
+    } catch {
+      sent = false;
+    }
+    if (sent) notified++;
+    else
+      await db
+        .prepare(
+          "UPDATE waitlist_entries SET status = 'waiting', notified_at = NULL, updated_at = ?2 WHERE id = ?1 AND status = 'notified'",
+        )
+        .bind(c.id, input.now)
+        .run()
+        .catch(() => undefined);
   }
   return notified;
 }
