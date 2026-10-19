@@ -764,3 +764,9 @@
 - `ParticipationService.review(id, input)` no longer takes a reviewer: no self-review rule, `reviewed_by_user_id` stays empty (one admin). `scripts/audit/participation.test.ts` updated (not run).
 - `/participation` in `apps/admin`: status filters (waiting oldest first, others newest first), each inquiry with who/what/when and the message, the admin's last reply, and a reply form (reply required; keep open or close). Plain same-origin POST, fixed result messages, honest empty state, truncation note. Nav item with a real badge; Inbox card and waiting-list rows link here.
 - Checked in a real browser against the local D1: reply keeps an inquiry open as "Replied", close removes the form, the queue empties to the honest empty state and the badge follows; axe clean, no overflow at 1440 or 390 px. Unit test added to `scripts/audit/admin.test.ts` (not run).
+
+## 2026-10-19 — Admin: legal registry (not deployed, not pushed)
+
+- `/legal` in `apps/admin`, read-only: documents in the registry, legal-review progress, recorded acceptances (all versions), and one card per document (slug, version, status, review status, acceptances of the current version, link to the public page). A "not finalized" notice shows while any document still requires legal review. The page never writes (the old page ran `syncTermsDocuments` on every view); if the count query fails it says "Unavailable" instead of zero.
+- Checked in a real browser: all 8 documents render, axe clean and no overflow at 1440 and 360 px. Unit test added to `scripts/audit/admin.test.ts` (not run).
+- v1 screens are done: Inbox, participation requests, church verification, provider review, first-event review, legal. Still to do before cutover: browser checks against the built worker (CSP headers, anonymous denial over HTTP, axe), preview deployment and sign-in through real Access, then replacing the old worker.

@@ -1,0 +1,73 @@
+---
+/** The terms registry: summary figures, then one card per document with its version, review status and acceptances. */
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { LegalSummary } from '../lib/legal-data';
+
+interface Props {
+  summary: LegalSummary;
+}
+const { summary } = Astro.props;
+const count = (n: number | null) => (n === null ? 'Unavailable' : String(n));
+const tile = 'rounded-clay-lg bg-surface p-5 shadow-soft';
+---
+
+<dl class="mb-8 grid gap-4 sm:grid-cols-3">
+  <div class={tile}>
+    <dt class="text-sm font-semibold text-body">Documents in the registry</dt>
+    <dd class="mt-1 text-3xl font-extrabold text-ink">{summary.documents}</dd>
+  </div>
+  <div class={tile}>
+    <dt class="text-sm font-semibold text-body">Legal review complete</dt>
+    <dd class="mt-1 text-3xl font-extrabold text-ink">
+      {summary.reviewed} of {summary.documents}
+    </dd>
+  </div>
+  <div class={tile}>
+    <dt class="text-sm font-semibold text-body">Recorded acceptances (all versions)</dt>
+    <dd class="mt-1 text-3xl font-extrabold text-ink">{count(summary.totalAcceptances)}</dd>
+  </div>
+</dl>
+
+<ul class="space-y-4">
+  {summary.rows.map(({ doc, accepted }) => (
+    <li class="rounded-clay-lg bg-surface p-6 shadow-soft">
+      <h2 class="text-lg font-extrabold">{doc.title}</h2>
+      <p class="mt-1 text-sm text-body">{doc.summary}</p>
+      <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+        <div>
+          <dt class="font-semibold text-ink">Slug</dt>
+          <dd class="break-all text-body">{doc.slug}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Version</dt>
+          <dd class="break-all text-body">{doc.version}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Status</dt>
+          <dd class="text-body">{doc.status === 'draft' ? 'Draft' : doc.status}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Legal review</dt>
+          <dd class="text-body">
+            {doc.legalReviewStatus === 'draft_requires_review' ? 'Requires review' : 'Reviewed'}
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Acceptances (this version)</dt>
+          <dd class="text-body">{count(accepted)}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Public page</dt>
+          <dd>
+            <a
+              href={siteUrl('web', doc.path)}
+              class="inline-flex min-h-11 items-center break-all font-semibold text-clay-700 underline underline-offset-4"
+            >
+              {siteUrl('web', doc.path)}
+            </a>
+          </dd>
+        </div>
+      </dl>
+    </li>
+  ))}
+</ul>

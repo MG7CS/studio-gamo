@@ -6,7 +6,7 @@
 import type { IconName } from '@studio-gamo/ui/lib/icons';
 import type { QueueCounts } from './inbox';
 
-export type NavKey = 'inbox' | 'participation' | 'churches' | 'providers' | 'events';
+export type NavKey = 'inbox' | 'participation' | 'churches' | 'providers' | 'events' | 'legal';
 
 export interface NavItem {
   key: NavKey;
@@ -29,6 +29,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: 'churches', label: 'Church verification', href: '/churches', icon: 'church', count: 'churches' },
   { key: 'providers', label: 'Provider review', href: '/providers', icon: 'verified', count: 'providers' },
   { key: 'events', label: 'First-event review', href: '/events', icon: 'ticket', count: 'events' },
+  { key: 'legal', label: 'Legal', href: '/legal', icon: 'file' },
 ];
 
 export function badgeFor(item: NavItem, counts: QueueCounts | null | undefined): number | null {
