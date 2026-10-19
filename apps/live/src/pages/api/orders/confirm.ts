@@ -7,17 +7,13 @@ import {
   getRuntimeEnv,
   guardPublicForm,
   isHttps,
-  issueCustomerLink,
   jsonResponse,
-  loadEvent,
-  loadOrder,
   nowSeconds,
-  openCustomerLink,
+  openOrderSession,
   requestOrigin,
   ticketingDb,
   ticketingErrorResponse,
 } from '@gamo/domain';
-import { formatScope, orderLinkExpiresAt } from '@gamo/domain/security';
 import { NO_STORE } from '../../../lib/ticketing-api';
 
 export const prerender = false;
@@ -50,30 +46,13 @@ export const POST: APIRoute = async (context) => {
       undefined,
       NO_STORE,
     );
-    const order = await loadOrder(db, result.orderId);
-    const event = order ? await loadEvent(db, order.event_id) : null;
-    if (order?.customer_profile_id && event) {
-      const link = await issueCustomerLink(db, env as Record<string, unknown>, {
-        customerProfileId: order.customer_profile_id,
-        scope: formatScope('order', order.id),
-        purpose: 'order',
-        expiresAt: orderLinkExpiresAt(
-          {
-            startsAt: Number(event.starts_at),
-            endsAt: event.ends_at === null ? null : Number(event.ends_at),
-          },
-          now,
-        ),
-        now,
-        ipHash: guard.ipHash,
-      });
-      const opened = await openCustomerLink(db, env as Record<string, unknown>, {
-        token: link.token,
-        now,
-        https: isHttps(context.request),
-      });
-      if (opened.ok) response.headers.append('Set-Cookie', opened.cookie);
-    }
+    const cookie = await openOrderSession(db, env as Record<string, unknown>, {
+      orderId: result.orderId,
+      ipHash: guard.ipHash,
+      https: isHttps(context.request),
+      now,
+    });
+    if (cookie) response.headers.append('Set-Cookie', cookie);
     return response;
   } catch (err) {
     return ticketingErrorResponse(err);

@@ -5,10 +5,17 @@
 import { errorResponse, handleApiError } from '../../api/response.ts';
 import { SecretNotConfiguredError } from '../../security/crypto.ts';
 import { TermsAcceptanceError } from '../../terms/acceptance.ts';
-import { CUSTOMER_COOKIE_NAME, CustomerInputError, readCustomerSession } from '../customers.ts';
+import {
+  CUSTOMER_COOKIE_NAME,
+  CustomerInputError,
+  issueCustomerLink,
+  openCustomerLink,
+  readCustomerSession,
+} from '../customers.ts';
+import { formatScope, orderLinkExpiresAt } from '../../security/link-tokens.ts';
 import type { SqlDatabase } from '../../security/sql-database.ts';
 import { customerIdentity, type CustomerIdentity } from './orders.ts';
-import { TicketingError, type TicketingEnv } from './orders-shared.ts';
+import { TicketingError, loadEvent, loadOrder, type TicketingEnv } from './orders-shared.ts';
 import type { PublicFormGuardOptions } from '../../api/public-form-guard.ts';
 
 /** Rate limits and Turnstile actions of the public ticketing forms (design T-08). */
@@ -94,3 +101,31 @@ export async function requestCustomer(
 
 export const requestOrigin = (request: Request): string => new URL(request.url).origin;
 export const isHttps = (request: Request): boolean => new URL(request.url).protocol === 'https:';
+
+/**
+ * Opens a customer session for the purchaser of an order (`order:<id>` scope) and returns its
+ * `Set-Cookie` value. Used after confirmation and right before the Stripe redirect, so the order page
+ * works without waiting for an email.
+ */
+export async function openOrderSession(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: { orderId: string; ipHash: string | null; https: boolean; now: number },
+): Promise<string | null> {
+  const order = await loadOrder(db, input.orderId);
+  const event = order ? await loadEvent(db, order.event_id) : null;
+  if (!order?.customer_profile_id || !event) return null;
+  const link = await issueCustomerLink(db, env, {
+    customerProfileId: order.customer_profile_id,
+    scope: formatScope('order', order.id),
+    purpose: 'order',
+    expiresAt: orderLinkExpiresAt(
+      { startsAt: Number(event.starts_at), endsAt: event.ends_at === null ? null : Number(event.ends_at) },
+      input.now,
+    ),
+    now: input.now,
+    ipHash: input.ipHash,
+  });
+  const opened = await openCustomerLink(db, env, { token: link.token, now: input.now, https: input.https });
+  return opened.ok ? opened.cookie : null;
+}
