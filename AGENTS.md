@@ -85,7 +85,9 @@ On each meaningful change:
 
 ## External operations require explicit permission
 
-**Do not** publish to production, change DNS, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations, change security policies, commit credentials, publish legal terms as finalized, or push to remotes without the owner's approval. Local commits and sandbox payment/webhook simulations are allowed.
+**Do not** publish to production, change DNS, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations, change security policies, commit credentials, publish legal terms as finalized, or push to remotes without the owner's approval. Sandbox payment/webhook simulations are allowed.
+
+**Commits (owner decision, 2026-10-19):** never run `git commit` yourself. When work is ready, give the owner a ready-to-paste command (`git add …` and `git commit -m "…"`) and let them run it. The commit message is always short: one line, no body, no attribution trailers.
 
 ## Blocker handling
 

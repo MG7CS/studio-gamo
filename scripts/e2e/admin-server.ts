@@ -17,7 +17,6 @@ import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hashAdminPassword } from '../../packages/auth/index.ts';
 import { buildFirstSuperadminSql } from '../admin/staff-account-sql.ts';
-import { buildReviewFixtureStatements } from './admin-review-fixtures.ts';
 import {
   ACCESS_AUD,
   ACCESS_KEY_FILE,
@@ -29,11 +28,9 @@ import {
 } from './admin-fixture.ts';
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..');
-// Which admin build to serve. Defaults to apps/admin; the rebuild is tried with ADMIN_E2E_APP=apps/admin-next.
-const appDir = process.env.ADMIN_E2E_APP ?? 'apps/admin';
-const clientDir = join(repoRoot, appDir, 'dist/client');
+const clientDir = join(repoRoot, 'apps/admin/dist/client');
 
-const require = createRequire(join(repoRoot, appDir, 'package.json'));
+const require = createRequire(join(repoRoot, 'apps/admin/package.json'));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -41,7 +38,7 @@ const { build } = wranglerRequire('esbuild');
 const dir = mkdtempSync(join(tmpdir(), 'gamo-admin-e2e-server-'));
 const outfile = join(dir, 'admin.mjs');
 await build({
-  entryPoints: [join(repoRoot, appDir, 'dist/server/entry.mjs')],
+  entryPoints: [join(repoRoot, 'apps/admin/dist/server/entry.mjs')],
   outfile,
   bundle: true,
   format: 'esm',
@@ -155,10 +152,6 @@ const seed = buildFirstSuperadminSql({
 for (const statement of seed.replace(/^\s*--.*$/gm, '').split(/;\s*\n/)) {
   const sql = statement.replace(/\s+/g, ' ').trim();
   if (sql) await db.exec(sql);
-}
-// Work-queue rows (all labeled samples) for the specs that check counts and queues against real data.
-if (process.env.ADMIN_E2E_SEED === 'review') {
-  for (const statement of buildReviewFixtureStatements()) await db.exec(statement);
 }
 console.log(
   `[admin-e2e] ready on http://127.0.0.1:${ADMIN_E2E_PORT} (ENVIRONMENT=production, Access mocked)`,
