@@ -1,0 +1,35 @@
+---
+/** One provider or church profile: what they entered, the history and the staff decision forms. */
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import Notice from '../../../components/Notice.astro';
+import ProviderDetail from '../../../components/ProviderDetail.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { loadProviderDetail, outcomeFrom } from '../../../lib/review-data';
+
+const staff = Astro.locals.adminAuthSession;
+if (!staff) return new Response('Staff sign-in required.', { status: 401 });
+
+const env = await getRuntimeEnv(Astro);
+const view = await loadProviderDetail(env.DB, String(Astro.params.id ?? ''));
+if (!view) Astro.response.status = 404;
+const isChurch = view?.profile.role === 'church';
+const back = isChurch ? '/review/churches' : '/review/providers';
+const staffName = staff.user.displayName?.trim() || staff.user.email;
+const outcome = outcomeFrom(Astro.url);
+---
+
+<AdminLayout title="Review profile" current={isChurch ? 'churches' : 'providers'}>
+  <PageHeader
+    title={view ? `Review: ${view.profile.displayName}` : 'Profile not found'}
+    description={view ? (isChurch ? 'In-person church verification.' : 'Provider review.') : undefined}
+  />
+  {outcome && <Notice tone={outcome.tone} text={outcome.text} />}
+  {!view && <Notice tone="info" text="That profile does not exist." />}
+  {view && (
+    <ProviderDetail view={view} staffName={staffName} errorField={Astro.url.searchParams.get('field')} />
+  )}
+  <a href={back} class="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-charcoal underline">
+    Back to the queue
+  </a>
+</AdminLayout>
