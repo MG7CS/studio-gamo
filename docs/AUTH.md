@@ -83,11 +83,11 @@ Setting production secrets from `apps/<app>/.dev.vars` (values never printed, ne
 
 ```sh
 scripts/set-clerk-secrets.sh --env production --dry-run     # checks only; calls nothing remote
-scripts/set-clerk-secrets.sh --env production               # asks you to type "production"
+scripts/set-clerk-secrets.sh --env production               # at a terminal: asks you to type "production"
 scripts/set-clerk-secrets.sh --env preview --app academy --file ~/clerk-academy.vars
 ```
 
-It refuses `pk_test_`/`sk_test_` for production, refuses one key used for two products, derives a missing issuer, converts literal `\n` and quoted PEM keys, and prints only `ok <app> <NAME>`. After an earlier hand-made upload with the un-suffixed names, remove those leftovers (each asks for confirmation):
+For production it accepts only Production instance keys (`pk_live_…`, `sk_live_…`) and always sets the `<APP>`-suffixed names; it refuses to write production without a person at an interactive terminal (there is no `--yes`), and when started by a test or CI it only accepts a stub `WRANGLER_BIN` in the temp directory and refuses `--env production` except `--dry-run`. It refuses one key used for two products, derives a missing issuer, converts literal `\n` and quoted PEM keys, and prints only `ok <app> <NAME>`. After an earlier hand-made upload with the un-suffixed names, remove those leftovers (each asks for confirmation):
 
 ```sh
 for a in web worship academy live production; do (cd apps/$a && for n in PUBLIC_CLERK_PUBLISHABLE_KEY CLERK_SECRET_KEY CLERK_JWT_KEY CLERK_ISSUER; do pnpm exec wrangler secret delete $n --env production; done); done
