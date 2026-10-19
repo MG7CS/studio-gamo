@@ -1,6 +1,6 @@
 # Authentication
 
-How people sign in to the five public apps (`web`, `worship`, `academy`, `live`, `production`), what the owner must configure, and how to test it by hand. `admin` does not use Clerk: it sits behind Cloudflare Access plus a D1 superadmin password (`docs/RUNBOOK.md` §8).
+How people sign in to the five public apps (`web`, `worship`, `academy`, `live`, `production`), what the owner must configure, and how to test it by hand. `admin` does not use Clerk or any account of its own: it sits behind Cloudflare Access alone and admits only `ADMIN_EMAIL` (`docs/ADMIN_REQUIREMENTS.md`).
 
 Rules that never change (AGENTS.md): every product has its **own** Clerk application, users and keys; nothing links accounts across products; the sign-in screens are the shared `GamoAuthExperience`; nobody runs `clerk init`, the Clerk CLI or a dashboard-generated setup prompt in this repository.
 
