@@ -1,35 +1,29 @@
 /**
  * Refunds and ticket cancellation (design §5.2 "Refunds"): per ticket, cumulative, only the chosen
- * tickets change. Sequence (no ticket is ever both valid and refunded, no money moves twice):
+ * tickets change. CLEANUP_LOG D-175:
  *
- *   1. one batch marks exactly the chosen tickets `refunded` (paid) or `voided` (free); each statement is
- *      conditional, so of two concurrent refunds of one ticket only one sees it change; the trigger gives
- *      the seats back once;
- *   2. a `refund_records` row (status `approved`) for the amount of the tickets that really changed;
- *   3. the Stripe test refund with idempotency key `refund_<recordId>` (paid only; local: simulated);
- *   4. one batch adds the amount to the order (trigger: never above the total), the refunded quantity to
- *      each item, and marks the record `processed`.
- * If step 3 fails, the record stays `approved` and `retryRefund` repeats it with the same key.
+ *   1. ONE batch: the `refund_records` row (amount computed in SQL from the tickets this batch will change,
+ *      capped by what is not yet refunded) → the conditional ticket updates (`refunded` for paid, `voided`
+ *      for free; of two concurrent refunds of one ticket only one finds it changeable) → derived refunded
+ *      quantities → the audit row. A crash cannot leave tickets refunded without a record.
+ *   2. The Stripe test refund with idempotency key `refund_<recordId>` (paid only; local: simulated).
+ *   3. ONE batch: record `processed` first, then `amount_refunded_cents = MIN(total, MAX(current, sum of
+ *      processed records, Stripe's figure))` — the `charge.refunded` webhook uses the same statement, so the
+ *      two paths can never add up to a double count.
+ * A record left `approved` (Stripe failed) is found by `retryPendingRefunds` and repeated with the same key.
+ * Eligible tickets: valid ones, and (paid orders only) tickets voided because the event was cancelled —
+ * never dispute-voided ones.
  */
 import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../../security/sql-database.ts';
 import { newPrefixedId, randomBase32 } from '../../security/index.ts';
-import {
-  addItemRefundedQuantityStatement,
-  addOrderRefundStatement,
-  refundTicketStatement,
-  transitionOrderStatement,
-  voidTicketStatement,
-} from '../../ticketing/sql.ts';
 import { createStripeTestClient } from '@studio-gamo/integrations/stripe';
 import { paidCheckoutMode } from './checkout.ts';
 import { notifyWaitlist } from './checkout-waitlist.ts';
 import { sendRefundNoticeEmail, sendStaffAlertEmail } from './email.ts';
 import {
   TicketingError,
-  auditLogStatement,
   loadEvent,
   loadOrder,
-  loadOrderItems,
   loadOrderTickets,
   type OrderRow,
   type TicketingEnv,
@@ -81,17 +75,37 @@ export interface RefundResult {
   status: 'processed' | 'cancelled_free' | 'refund_pending' | 'nothing_to_do';
 }
 
+/** New refunded amount: the order's own figure, processed records and Stripe's figure — never more than the total. */
+const NEW_REFUNDED =
+  "min(total_cents, max(amount_refunded_cents, coalesce((SELECT sum(r.amount_cents) FROM refund_records r WHERE r.order_id = ticket_orders.id AND r.status = 'processed'), 0), coalesce(?3, 0)))";
+
+/**
+ * Sets the order's refunded total (see the header). `stripeAmountCents` is the figure from a `charge.refunded`
+ * webhook, or null. Disputed / unfulfillable / cancelled / expired orders keep their status.
+ */
+export function settleOrderRefundStatement(input: {
+  orderId: string;
+  now: number;
+  stripeAmountCents?: number | null;
+}): SqlStatementSpec {
+  return {
+    sql: `UPDATE ticket_orders SET
+        status = CASE WHEN status IN ('disputed', 'paid_unfulfillable', 'cancelled', 'expired', 'pending_payment', 'pending_verification') THEN status
+          WHEN total_cents > 0 AND ${NEW_REFUNDED} >= total_cents THEN 'refunded'
+          WHEN ${NEW_REFUNDED} > 0 THEN 'partially_refunded' ELSE status END,
+        amount_refunded_cents = ${NEW_REFUNDED}, updated_at = ?2
+      WHERE id = ?1 RETURNING amount_refunded_cents, total_cents, status`,
+    params: [input.orderId, input.now, input.stripeAmountCents ?? null],
+  };
+}
+
+const PAID_ELIGIBLE =
+  "(t.status = 'valid' OR (t.status = 'voided' AND t.void_reason = 'event_cancelled' AND t.refunded_at IS NULL))";
+
 async function finishRefund(
   db: SqlDatabase,
   env: TicketingEnv,
-  input: {
-    order: OrderRow;
-    recordId: string;
-    amountCents: number;
-    itemCounts: Map<string, number>;
-    now: number;
-    fetchImpl?: typeof fetch;
-  },
+  input: { order: OrderRow; recordId: string; amountCents: number; now: number; fetchImpl?: typeof fetch },
 ): Promise<'processed' | 'refund_pending'> {
   let stripeId: string;
   try {
@@ -118,23 +132,18 @@ async function finishRefund(
     if (err instanceof TicketingError && err.code === 'UNAVAILABLE') throw err;
     return 'refund_pending';
   }
-  const specs: SqlStatementSpec[] = [];
-  for (const [itemId, n] of input.itemCounts)
-    specs.push(addItemRefundedQuantityStatement({ orderItemId: itemId, quantity: n, now: input.now }));
-  if (input.amountCents > 0)
-    specs.push(
-      addOrderRefundStatement({ orderId: input.order.id, amountCents: input.amountCents, now: input.now }),
-    );
-  specs.push({
-    sql: "UPDATE refund_records SET status = 'processed', stripe_refund_id = ?2, processed_at = ?3 WHERE id = ?1 AND status = 'approved'",
-    params: [input.recordId, stripeId, input.now],
-  });
-  await runBatch(db, specs);
+  await runBatch(db, [
+    {
+      sql: "UPDATE refund_records SET status = 'processed', stripe_refund_id = ?2, processed_at = ?3 WHERE id = ?1 AND status = 'approved'",
+      params: [input.recordId, stripeId, input.now],
+    },
+    settleOrderRefundStatement({ orderId: input.order.id, now: input.now }),
+  ]);
   return 'processed';
 }
 
 /**
- * Refunds (paid) or cancels (free) the chosen tickets of an order; all valid tickets when none are given.
+ * Refunds (paid) or cancels (free) the chosen tickets of an order; all eligible tickets when none are given.
  * The caller has checked the organizer's `approve_refunds` permission.
  */
 export async function refundTickets(
@@ -170,112 +179,108 @@ export async function refundTickets(
     );
   const paid = Number(order.total_cents) > 0;
   const eligible = chosen.filter(
-    (t) => t.status === 'valid' || (paid && t.status === 'voided' && t.refunded_at === null),
+    (t) =>
+      t.status === 'valid' ||
+      (paid && t.status === 'voided' && t.void_reason === 'event_cancelled' && t.refunded_at === null),
   );
   if (eligible.length === 0)
     return { refundId: null, ticketIds: [], amountCents: 0, status: 'nothing_to_do' };
 
-  // 1. Tickets first (conditional, one batch).
-  const results = await runBatch(
-    db,
-    eligible.map((t) =>
-      paid
-        ? refundTicketStatement({ ticketId: t.id, now: input.now })
-        : voidTicketStatement({ ticketId: t.id, reason: 'organizer', now: input.now }),
-    ),
-  );
-  const changed = eligible.filter((_, i) => results[i].length > 0);
-  if (changed.length === 0) return { refundId: null, ticketIds: [], amountCents: 0, status: 'nothing_to_do' };
-  const items = await loadOrderItems(db, order.id);
-  const itemCounts = new Map<string, number>();
-  let amount = 0;
-  for (const t of changed) {
-    const item = items.find((i) => i.id === t.order_item_id);
-    if (!item) continue;
-    itemCounts.set(item.id, (itemCounts.get(item.id) ?? 0) + 1);
-    amount += Number(item.unit_price_cents);
-  }
-  amount = Math.min(amount, Number(order.total_cents) - Number(order.amount_refunded_cents));
-  const event = await loadEvent(db, order.event_id);
-
-  // 2. The record (and audit) for exactly what changed.
   const recordId = newPrefixedId('rfd');
-  await runBatch(db, [
+  const ids = eligible.map((t) => t.id);
+  const inList = ids.map((_, i) => `?${7 + i}`).join(', ');
+  const eligibleSql = paid ? PAID_ELIGIBLE : "t.status = 'valid'";
+  const amount =
+    "max(0, min(x.s, o.total_cents - coalesce((SELECT sum(r.amount_cents) FROM refund_records r WHERE r.order_id = o.id AND r.status IN ('approved', 'processed')), 0)))";
+  const specs: SqlStatementSpec[] = [
     {
-      sql: 'INSERT INTO refund_records (id, order_id, event_id, requested_by_email, approved_by_user_id, amount_cents, reason, status, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)',
+      sql: `INSERT INTO refund_records (id, order_id, event_id, requested_by_email, approved_by_user_id, amount_cents, reason, status, created_at)
+        SELECT ?1, o.id, o.event_id, ?3, ?4, CASE WHEN o.total_cents > 0 THEN ${amount} ELSE 0 END, ?5,
+          CASE WHEN o.total_cents > 0 AND ${amount} > 0 THEN 'approved' ELSE 'processed' END, ?6
+        FROM ticket_orders o,
+          (SELECT count(*) AS c, coalesce(sum(oi.unit_price_cents), 0) AS s FROM tickets t JOIN order_items oi ON oi.id = t.order_item_id
+            WHERE t.order_id = ?2 AND t.id IN (${inList}) AND ${eligibleSql}) x
+        WHERE o.id = ?2 AND x.c > 0`,
       params: [
         recordId,
         order.id,
-        order.event_id,
         input.actorLabel ?? 'organizer',
         input.actorUserId,
-        amount,
         reason.slice(0, 500),
-        paid && amount > 0 ? 'approved' : 'processed',
         input.now,
+        ...ids,
       ],
     },
-    auditLogStatement({
-      actorUserId: input.actorUserId,
-      action: paid ? 'ticket.refund' : 'ticket.cancel',
-      entityType: 'order',
-      entityId: order.id,
-      payload: {
-        refundRecordId: recordId,
-        tickets: changed.map((t) => t.id),
-        amountCents: amount,
-        reason: reason.slice(0, 200),
-      },
-      now: input.now,
-    }),
-  ]);
-
-  let status: RefundResult['status'] = 'cancelled_free';
-  if (paid && amount > 0) {
+    ...ids.map((id): SqlStatementSpec =>
+      paid
+        ? {
+            sql: "UPDATE tickets SET status = 'refunded', refunded_at = ?2, updated_at = ?2 WHERE id = ?1 AND (status = 'valid' OR (status = 'voided' AND void_reason = 'event_cancelled' AND refunded_at IS NULL)) RETURNING id",
+            params: [id, input.now],
+          }
+        : {
+            sql: "UPDATE tickets SET status = 'voided', voided_at = ?2, void_reason = 'organizer', updated_at = ?2 WHERE id = ?1 AND status = 'valid' RETURNING id",
+            params: [id, input.now],
+          },
+    ),
+    {
+      sql: "UPDATE order_items SET refunded_quantity = min(quantity, max(refunded_quantity, (SELECT count(*) FROM tickets t WHERE t.order_item_id = order_items.id AND (t.status = 'refunded' OR (t.status = 'voided' AND t.void_reason IN ('organizer', 'event_cancelled')))))), updated_at = ?2 WHERE order_id = ?1",
+      params: [order.id, input.now],
+    },
+    {
+      sql: "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) SELECT ?1, ?2, ?3, 'order', ?4, ?5, ?6 WHERE EXISTS (SELECT 1 FROM refund_records WHERE id = ?7)",
+      params: [
+        newPrefixedId('aud'),
+        input.actorUserId,
+        paid ? 'ticket.refund' : 'ticket.cancel',
+        order.id,
+        JSON.stringify({ refundRecordId: recordId, tickets: ids, reason: reason.slice(0, 200) }),
+        input.now,
+        recordId,
+      ],
+    },
+  ];
+  if (!paid)
+    specs.push({
+      sql: "UPDATE ticket_orders SET status = 'cancelled', cancelled_at = ?2, updated_at = ?2 WHERE id = ?1 AND total_cents = 0 AND status IN ('confirmed', 'paid') AND NOT EXISTS (SELECT 1 FROM tickets WHERE order_id = ?1 AND status = 'valid') AND EXISTS (SELECT 1 FROM refund_records WHERE id = ?3)",
+      params: [order.id, input.now, recordId],
+    });
+  const results = await runBatch(db, specs);
+  const changed = ids.filter((_, i) => results[1 + i].length > 0);
+  const record = (
+    await allRows<{ amount_cents: number; status: string }>(db, {
+      sql: 'SELECT amount_cents, status FROM refund_records WHERE id = ?1',
+      params: [recordId],
+    })
+  )[0];
+  if (!record || changed.length === 0)
+    return { refundId: null, ticketIds: [], amountCents: 0, status: 'nothing_to_do' };
+  const recorded = Number(record.amount_cents);
+  const event = await loadEvent(db, order.event_id);
+  let status: RefundResult['status'] = paid ? 'processed' : 'cancelled_free';
+  if (record.status === 'approved')
     status = await finishRefund(db, env, {
       order,
       recordId,
-      amountCents: amount,
-      itemCounts,
+      amountCents: recorded,
       now: input.now,
       fetchImpl: input.fetchImpl,
     });
-  } else {
-    const specs: SqlStatementSpec[] = [...itemCounts].map(([itemId, n]) =>
-      addItemRefundedQuantityStatement({ orderItemId: itemId, quantity: n, now: input.now }),
-    );
-    await runBatch(db, specs);
-  }
-  // A free order with no valid ticket left is cancelled.
-  if (!paid) {
-    const left = (await loadOrderTickets(db, order.id)).filter((t) => t.status === 'valid').length;
-    if (left === 0)
-      await runBatch(db, [
-        transitionOrderStatement({
-          orderId: order.id,
-          from: ['confirmed'],
-          to: 'cancelled',
-          now: input.now,
-          set: { cancelledAt: input.now },
-        }),
-      ]);
-  }
   if (input.notify !== false && event)
     await sendRefundNoticeEmail(db, env, {
       order,
       eventTitle: event.title,
       ticketCount: changed.length,
-      amountCents: paid ? amount : 0,
+      amountCents: paid ? recorded : 0,
       refundId: recordId,
       now: input.now,
     }).catch(() => undefined);
   await notifyWaitlist(db, env, { eventId: order.event_id, now: input.now, origin: input.origin }).catch(
     () => undefined,
   );
-  return { refundId: recordId, ticketIds: changed.map((t) => t.id), amountCents: amount, status };
+  return { refundId: recordId, ticketIds: changed, amountCents: recorded, status };
 }
 
-/** Retries a refund whose card refund failed (record still `approved`), with the same idempotency key. */
+/** Retries one refund whose card refund failed (record still `approved`), with the same idempotency key. */
 export async function retryRefund(
   db: SqlDatabase,
   env: TicketingEnv,
@@ -289,33 +294,47 @@ export async function retryRefund(
   if (!record || record.status !== 'approved') return 'nothing_to_do';
   const order = await loadOrder(db, record.order_id);
   if (!order) return 'nothing_to_do';
-  // Item quantities were already counted from the refunded tickets; recompute them from the audit payload.
-  const audit = await allRows<{ payload_json: string }>(db, {
-    sql: "SELECT payload_json FROM audit_logs WHERE entity_type = 'order' AND entity_id = ?1 AND action = 'ticket.refund' ORDER BY created_at DESC",
-    params: [order.id],
-  });
-  const tickets = await loadOrderTickets(db, order.id);
-  const ids = new Set<string>();
-  for (const a of audit) {
-    try {
-      const p = JSON.parse(a.payload_json) as { refundRecordId?: string; tickets?: string[] };
-      if (p.refundRecordId === record.id) for (const t of p.tickets ?? []) ids.add(t);
-    } catch {
-      // ignore malformed audit payloads
-    }
-  }
-  const itemCounts = new Map<string, number>();
-  for (const t of tickets)
-    if (ids.has(t.id) && t.order_item_id)
-      itemCounts.set(t.order_item_id, (itemCounts.get(t.order_item_id) ?? 0) + 1);
   return finishRefund(db, env, {
     order,
     recordId: record.id,
     amountCents: Number(record.amount_cents),
-    itemCounts,
     now: input.now,
     fetchImpl: input.fetchImpl,
   });
+}
+
+/**
+ * Finds `approved` refund records (optionally of one order or event) and repeats them with their original
+ * idempotency keys. Records younger than `minAgeSeconds` (default 60) are skipped so a live request that is
+ * still talking to Stripe is not raced.
+ */
+export async function retryPendingRefunds(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: {
+    orderId?: string;
+    eventId?: string;
+    now: number;
+    minAgeSeconds?: number;
+    fetchImpl?: typeof fetch;
+  },
+): Promise<{ processed: number; pending: number }> {
+  const rows = await allRows<{ id: string }>(db, {
+    sql: "SELECT id FROM refund_records WHERE status = 'approved' AND created_at <= ?1 AND (?2 IS NULL OR order_id = ?2) AND (?3 IS NULL OR event_id = ?3) ORDER BY created_at LIMIT 50",
+    params: [input.now - (input.minAgeSeconds ?? 60), input.orderId ?? null, input.eventId ?? null],
+  });
+  let processed = 0;
+  let pending = 0;
+  for (const r of rows) {
+    const result = await retryRefund(db, env, {
+      refundRecordId: r.id,
+      now: input.now,
+      fetchImpl: input.fetchImpl,
+    }).catch(() => 'refund_pending' as const);
+    if (result === 'processed') processed++;
+    else if (result === 'refund_pending') pending++;
+  }
+  return { processed, pending };
 }
 
 /**

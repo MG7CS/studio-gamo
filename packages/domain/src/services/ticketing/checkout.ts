@@ -26,7 +26,6 @@ import {
   buildHoldBatch,
   expireStaleOrdersStatement,
   releaseExpiredHoldsStatement,
-  releaseOrderHoldsStatement,
   SOLD_OUT_CODES,
   ticketingErrorCode,
   transitionOrderStatement,
@@ -509,11 +508,74 @@ export interface PlaceOrderInput {
  * The new order's own holds are already inserted when it runs, so parallel orders cannot all pass a stale read.
  */
 export const EMAIL_CAP_ERROR = /malformed JSON/i;
-function emailCapGuardStatement(eventId: string, profileId: string, cap: number) {
+function emailCapGuardStatement(eventId: string, canonicalEmail: string, cap: number) {
+  const canon = canonSql('o.purchaser_email');
   return {
-    sql: "SELECT CASE WHEN ((SELECT count(*) FROM tickets WHERE event_id = ?1 AND customer_profile_id = ?2 AND status = 'valid') + (SELECT coalesce(sum(h.quantity), 0) FROM ticket_holds h JOIN ticket_orders o ON o.id = h.order_id WHERE h.event_id = ?1 AND h.status = 'held' AND o.customer_profile_id = ?2)) > ?3 THEN json_extract('{', '$') ELSE 0 END",
-    params: [eventId, profileId, cap],
+    sql: `SELECT CASE WHEN ((SELECT count(*) FROM tickets t JOIN ticket_orders o ON o.id = t.order_id WHERE t.event_id = ?1 AND t.status = 'valid' AND ${canon} = ?2) + (SELECT coalesce(sum(h.quantity), 0) FROM ticket_holds h JOIN ticket_orders o ON o.id = h.order_id WHERE h.event_id = ?1 AND h.status = 'held' AND ${canon} = ?2)) > ?3 THEN json_extract('{', '$') ELSE 0 END`,
+    params: [eventId, canonicalEmail, cap],
   };
+}
+
+/**
+ * Gmail ignores dots and "+tags" in the local part: for the per-event cap only, `a.b+x@gmail.com` and
+ * `ab@googlemail.com` count as one address (CLEANUP_LOG D-174). Everything else is compared as typed.
+ */
+export function canonicalEmailForCap(email: string): string {
+  const e = normalizeEmail(email);
+  const at = e.lastIndexOf('@');
+  if (at < 1) return e;
+  const domain = e.slice(at + 1);
+  if (domain !== 'gmail.com' && domain !== 'googlemail.com') return e;
+  return `${e.slice(0, at).split('+')[0].replaceAll('.', '')}@gmail.com`;
+}
+
+/** The same canonicalisation in SQL for a column holding a normalised email. */
+function canonSql(col: string): string {
+  const local = `substr(${col}, 1, instr(${col}, '@') - 1)`;
+  const bare = `CASE WHEN instr(${local}, '+') > 0 THEN substr(${local}, 1, instr(${local}, '+') - 1) ELSE ${local} END`;
+  return `CASE WHEN substr(${col}, instr(${col}, '@') + 1) IN ('gmail.com', 'googlemail.com') THEN replace(${bare}, '.', '') || '@gmail.com' ELSE ${col} END`;
+}
+
+/** Unverified free holds are short and capped (CLEANUP_LOG D-173): they extend only while the buyer enters the code. */
+export const UNVERIFIED_HOLD_SECONDS = 10 * 60;
+export const UNVERIFIED_PER_EVENT_SHARE = 0.25;
+export const UNVERIFIED_PER_EVENT_MIN = 10;
+export const UNVERIFIED_ERROR = /integer overflow/i;
+
+function unverifiedGuardStatements(
+  eventId: string,
+  ipHash: string | null,
+  perIpCap: number,
+  perEventCap: number,
+) {
+  const unverified =
+    "SELECT coalesce(sum(h.quantity), 0) FROM ticket_holds h JOIN ticket_orders o ON o.id = h.order_id WHERE h.event_id = ?1 AND h.status = 'held' AND o.status = 'pending_verification'";
+  const boom = 'abs(-9223372036854775808)';
+  return [
+    {
+      sql: `SELECT CASE WHEN ?2 IS NOT NULL AND (${unverified} AND json_extract(o.policy_snapshot_json, '$.ipHash') = ?2) > ?3 THEN ${boom} ELSE 0 END`,
+      params: [eventId, ipHash, perIpCap],
+    },
+    {
+      sql: `SELECT CASE WHEN (${unverified}) > ?2 THEN ${boom} ELSE 0 END`,
+      params: [eventId, perEventCap],
+    },
+  ];
+}
+
+/** Extends the short hold of a free order while its buyer is entering the code (bounded by the 5-guess limit). */
+export async function extendUnverifiedHold(db: SqlDatabase, orderId: string, now: number): Promise<void> {
+  const until = now + HOLD_DURATION_SECONDS;
+  await runBatch(db, [
+    {
+      sql: "UPDATE ticket_holds SET expires_at = ?2 WHERE order_id = ?1 AND status = 'held' AND expires_at < ?2 AND EXISTS (SELECT 1 FROM ticket_orders o WHERE o.id = ?1 AND o.status = 'pending_verification')",
+      params: [orderId, until],
+    },
+    {
+      sql: "UPDATE ticket_orders SET hold_expires_at = ?2, updated_at = ?3 WHERE id = ?1 AND status = 'pending_verification' AND coalesce(hold_expires_at, 0) < ?2",
+      params: [orderId, until, now],
+    },
+  ]);
 }
 
 /** What the buyer asked for, hashed: a replay of the same idempotency key must carry the same request. */
@@ -586,7 +648,7 @@ async function completeOrderSteps(
   }
   if (order.order_kind === 'free' || Number(order.total_cents) === 0) {
     if (profileId && !(await emailAlreadySent(db, `order_verification:${order.id}`))) {
-      const holdExpiresAt = Number(order.hold_expires_at ?? input.now + HOLD_DURATION_SECONDS);
+      const holdExpiresAt = Number(order.created_at) + HOLD_DURATION_SECONDS;
       const link = await issueCustomerLink(db, env, {
         customerProfileId: profileId,
         scope: formatScope('order', order.id),
@@ -655,9 +717,9 @@ async function resultForExistingOrder(
       confirmToken: await confirmTokenFor(
         env,
         order.id,
-        Number(order.hold_expires_at ?? input.now + HOLD_DURATION_SECONDS) + 60,
+        Number(order.created_at) + HOLD_DURATION_SECONDS + 60,
       ),
-      expiresAt: Number(order.hold_expires_at ?? input.now),
+      expiresAt: Number(order.created_at) + HOLD_DURATION_SECONDS,
     };
   }
   if (order.status !== 'pending_payment')
@@ -715,7 +777,13 @@ export async function placeOrder(
 
   const cap = ctx.policy.maxTicketsPerOrder * PER_EVENT_EMAIL_CAP_MULTIPLE;
 
-  const holdExpiresAt = now + HOLD_DURATION_SECONDS;
+  // Free orders hold seats for only 10 minutes until the email is confirmed (extended while the code is entered).
+  const holdExpiresAt = now + (paid ? HOLD_DURATION_SECONDS : UNVERIFIED_HOLD_SECONDS);
+  const totalUnits = ctx.categories.reduce((n, c) => n + Number(c.capacity), 0);
+  const perEventUnverifiedCap = Math.max(
+    Math.ceil(totalUnits * UNVERIFIED_PER_EVENT_SHARE),
+    UNVERIFIED_PER_EVENT_MIN,
+  );
   const items: HoldBatchItem[] = v.lines.map((l) => ({
     item: {
       id: newPrefixedId('oit'),
@@ -728,6 +796,7 @@ export async function placeOrder(
   const snapshot = JSON.stringify({
     ...(JSON.parse(policySnapshotJson(ctx.policy)) as object),
     reqHash: hash,
+    ipHash: input.ipHash ?? null,
   });
   let orderId = '';
 
@@ -764,7 +833,15 @@ export async function placeOrder(
               },
             ]
           : []),
-        emailCapGuardStatement(ctx.event.id, profile.id, cap),
+        emailCapGuardStatement(ctx.event.id, canonicalEmailForCap(v.email), cap),
+        ...(paid
+          ? []
+          : unverifiedGuardStatements(
+              ctx.event.id,
+              input.ipHash ?? null,
+              ctx.policy.maxTicketsPerOrder * 2,
+              perEventUnverifiedCap,
+            )),
       ]);
       break;
     } catch (err) {
@@ -774,6 +851,12 @@ export async function placeOrder(
         const raced = await loadOrderBy(db, 'idempotency_key', request.idempotencyKey);
         if (raced) return resultForExistingOrder(db, env, raced, { ...input, request }, hash);
       }
+      if (UNVERIFIED_ERROR.test(String((err as { message?: unknown })?.message ?? err)))
+        throw new TicketingError(
+          'RATE_LIMITED',
+          'Too many tickets are waiting for email confirmation right now. Confirm the email you already received, or try again in about 10 minutes.',
+          { retryAfterSeconds: UNVERIFIED_HOLD_SECONDS },
+        );
       if (EMAIL_CAP_ERROR.test(String((err as { message?: unknown })?.message ?? err))) {
         // Per event and email cap: answer exactly as for a new order (no enumeration) and email the address.
         const attemptId = newPrefixedId('ord');
@@ -805,8 +888,8 @@ export async function placeOrder(
   if (!paid)
     return {
       type: 'verify',
-      confirmToken: await confirmTokenFor(env, orderId, holdExpiresAt + 60),
-      expiresAt: holdExpiresAt,
+      confirmToken: await confirmTokenFor(env, orderId, now + HOLD_DURATION_SECONDS + 60),
+      expiresAt: now + HOLD_DURATION_SECONDS,
     };
   return startCheckoutSession(db, env, order, ctx.event, { ...input, request });
 }

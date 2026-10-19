@@ -8,6 +8,7 @@ import {
   joinWaitlist,
   jsonResponse,
   nowSeconds,
+  requestOrigin,
   ticketingDb,
   ticketingErrorResponse,
 } from '@gamo/domain';
@@ -16,7 +17,7 @@ import { NO_STORE, validateJsonBody } from '../../../../lib/ticketing-api';
 export const prerender = false;
 
 const WAITLIST_MESSAGE =
-  "You're on the waitlist. If tickets become available we'll email you — first come, first served.";
+  "Check your email and confirm to join the waitlist. If tickets become available we'll then email you — first come, first served.";
 
 /** POST /api/events/{id}/waitlist — same answer whether or not the address was already waiting. */
 export const POST: APIRoute = async (context) => {
@@ -27,7 +28,8 @@ export const POST: APIRoute = async (context) => {
     const guard = await guardPublicForm({ request: context.request, env }, TICKETING_FORMS.waitlist);
     if (!guard.ok) return guard.response;
     validateJsonBody('WaitlistInput', guard.body.json);
-    await joinWaitlist(ticketingDb(env as Record<string, unknown>), {
+    await joinWaitlist(ticketingDb(env as Record<string, unknown>), env as Record<string, unknown>, {
+      origin: requestOrigin(context.request),
       eventId,
       categoryId: guard.body.get('categoryId') || null,
       email: guard.body.get('email') ?? '',
