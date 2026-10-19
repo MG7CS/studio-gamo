@@ -25,14 +25,23 @@ import {
 } from '../../ticketing/sql.ts';
 import { HOLD_DURATION_SECONDS, policySnapshotJson } from '../../types/policy.ts';
 import type { OrderStatus } from '../../types/enums.ts';
-import { codeMatches, readConfirmToken, VERIFICATION_CODE_ATTEMPTS } from './checkout.ts';
+import type { DoorIssueInput, DoorIssueResult } from './scanning-door-sales.ts';
+import {
+  codeMatches,
+  extendUnverifiedHold,
+  readConfirmToken,
+  VERIFICATION_CODE_ATTEMPTS,
+} from './checkout.ts';
 import { sendTicketEmail } from './email.ts';
+import { loadTicketRenderModels } from './render-model.ts';
 import {
   TicketingError,
   keyHash,
   loadCategories,
   loadEvent,
   loadOrder,
+  loadOrderBy,
+  isDeliverableEmail,
   loadOrderItems,
   loadPolicy,
   loadSections,
@@ -270,6 +279,7 @@ export async function confirmOrderByCode(
       'Too many wrong codes. Use the "Confirm my tickets" button in the email instead, or start again later.',
       { retryAfterSeconds: limit.retryAfterSeconds },
     );
+  await extendUnverifiedHold(db, orderId, input.now);
   if (!(await codeMatches(env, orderId, input.code)) || !(await loadOrder(db, orderId)))
     throw new TicketingError(
       'INVALID_CODE',
@@ -297,6 +307,13 @@ export interface DoorTicketInput {
   amountCents: number;
   actorUserId?: string | null;
   scannerSessionId?: string | null;
+  /**
+   * Unique per form submission (CLEANUP_LOG D-179): a replay returns the same order and tickets and issues nothing
+   * new. Scoped to the event. Without a key every call issues new tickets.
+   */
+  idempotencyKey?: string;
+  /** Site origin for the ticket email (the manage link); the email is sent only with this and a holder email. */
+  origin?: string;
   now: number;
 }
 
@@ -304,6 +321,44 @@ export interface DoorTicketResult {
   orderId: string;
   orderReference: string;
   tickets: Array<{ ticketId: string; qrPayload: string; holderName: string }>;
+  /** True when a ticket email was queued (holder email and origin given, first issue only). */
+  emailQueued: boolean;
+  /** True when this call returned an earlier issue for the same idempotency key. */
+  replayed: boolean;
+}
+
+async function existingDoorIssue(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  orderKey: string,
+  input: DoorTicketInput,
+  quantity: number,
+): Promise<DoorTicketResult | null> {
+  const prior = await loadOrderBy(db, 'idempotency_key', orderKey);
+  if (!prior) return null;
+  const items = await loadOrderItems(db, prior.id);
+  if (
+    prior.event_id !== input.eventId ||
+    items.length !== 1 ||
+    items[0].tier_id !== input.categoryId ||
+    Number(prior.quantity) !== quantity
+  )
+    throw new TicketingError(
+      'CONFLICT',
+      'This door sale was already recorded with different details. Start a new sale.',
+    );
+  const models = await loadTicketRenderModels(db, env, { orderId: prior.id });
+  return {
+    orderId: prior.id,
+    orderReference: prior.order_reference ?? prior.order_number,
+    tickets: models.map((m) => ({
+      ticketId: m.ticketId,
+      qrPayload: m.qrPayload ?? '',
+      holderName: m.holderName,
+    })),
+    emailQueued: false,
+    replayed: true,
+  };
 }
 
 /**
@@ -323,6 +378,11 @@ export async function issueDoorTickets(
   if (isEventCancelled(event)) throw new TicketingError('CLOSED', 'This event has been cancelled.');
   const end = Number(event.ends_at ?? Number(event.starts_at) + 6 * 3600);
   if (input.now > end) throw new TicketingError('CLOSED', 'This event has ended.');
+  const orderKey = input.idempotencyKey ? `door:${event.id}:${input.idempotencyKey}`.slice(0, 200) : null;
+  if (orderKey) {
+    const replay = await existingDoorIssue(db, env, orderKey, input, Math.floor(Number(input.quantity)));
+    if (replay) return replay;
+  }
   const policy = await loadPolicy(db, event.id);
   if (!policy.doorSalesEnabled || !policy.doorSalesMethods.includes(input.method))
     throw new TicketingError(
@@ -369,7 +429,7 @@ export async function issueDoorTickets(
       kind: amount > 0 ? 'paid' : 'free',
       status: amount > 0 ? 'paid' : 'confirmed',
       source: 'door',
-      idempotencyKey: `door_${orderId}`,
+      idempotencyKey: orderKey ?? `door_${orderId}`,
       holdExpiresAt: input.now + HOLD_DURATION_SECONDS,
       policySnapshotJson: policySnapshotJson(policy),
       paymentStatus: amount > 0 ? 'paid' : 'no_payment_required',
@@ -443,13 +503,69 @@ export async function issueDoorTickets(
     await runBatch(db, specs);
   } catch (err) {
     const code = ticketingErrorCode(err);
+    if (code === 'DUPLICATE_ORDER' && orderKey) {
+      // Two submissions of the same sale raced: the other one won; return its tickets.
+      const replay = await existingDoorIssue(db, env, orderKey, input, quantity);
+      if (replay) return replay;
+    }
     if (code && SOLD_OUT_CODES.includes(code))
       throw new TicketingError('SOLD_OUT', 'Not enough tickets are left for this ticket type.');
     if (code === 'CATEGORY_NOT_ON_SALE' || code === 'SECTION_NOT_ON_SALE')
       throw new TicketingError('NOT_ON_SALE', 'That ticket type is not on sale.');
     throw err;
   }
-  return { orderId, orderReference: reference, tickets };
+  let emailQueued = false;
+  if (profile && email && input.origin && isDeliverableEmail(email)) {
+    const r = await sendTicketEmail(db, env, { orderId, origin: input.origin, now: input.now }).catch(
+      () => null,
+    );
+    emailQueued = r !== null;
+  }
+  return { orderId, orderReference: reference, tickets, emailQueued, replayed: false };
+}
+
+/**
+ * `issueDoorTickets` in the shape of Agent C's `DoorIssuer` seam (`scanning-door-sales.ts`): a drop-in for
+ * `issueDoorTicketsLocal`. The signing keyring comes from the environment (`input.keyring` is not used);
+ * `issuedBy` selects the audit actor; a replayed `idempotencyKey` returns the original sale.
+ */
+export async function issueDoorTicketsForScanner(
+  db: SqlDatabase,
+  env: Record<string, unknown>,
+  input: DoorIssueInput,
+): Promise<DoorIssueResult> {
+  const r = await issueDoorTickets(db, env, {
+    eventId: input.eventId,
+    categoryId: input.categoryId,
+    sectionId: input.sectionId ?? null,
+    quantity: input.quantity,
+    holderName: input.holderName ?? null,
+    holderEmail: input.holderEmail ?? null,
+    method: input.method,
+    amountCents:
+      input.method === 'free_issue' ? 0 : Math.floor(input.unitPriceCents) * Math.floor(input.quantity),
+    actorUserId: input.issuedBy.type === 'organizer' ? input.issuedBy.userId : null,
+    scannerSessionId: input.issuedBy.type === 'scanner' ? input.issuedBy.sessionId : null,
+    idempotencyKey: input.idempotencyKey,
+    origin: typeof env.PUBLIC_SITE_URL_LIVE === 'string' ? env.PUBLIC_SITE_URL_LIVE : undefined,
+    now: input.now,
+  });
+  const models = await loadTicketRenderModels(db, env, { orderId: r.orderId });
+  return {
+    orderId: r.orderId,
+    orderReference: r.orderReference,
+    emailQueued: r.emailQueued,
+    tickets: r.tickets.map((t) => {
+      const m = models.find((x) => x.ticketId === t.ticketId);
+      return {
+        ticketId: t.ticketId,
+        payload: t.qrPayload,
+        holderName: t.holderName,
+        category: m?.categoryName ?? 'Ticket',
+        section: m?.sectionName ?? null,
+      };
+    }),
+  };
 }
 
 export type { OrderRow };

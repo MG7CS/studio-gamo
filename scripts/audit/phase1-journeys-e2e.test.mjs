@@ -707,7 +707,11 @@ try {
     'same answer for every address',
   );
   const link = (await readInbox('ticket_recovery')).match(/(http:\/\/\S+\/link\?t=[A-Za-z0-9_-]+)/)[1];
-  await Promise.all([recoveryPage.waitForURL(`${urls.live}/tickets/manage`), recoveryPage.goto(link)]);
+  await recoveryPage.goto(link);
+  await Promise.all([
+    recoveryPage.waitForURL(`${urls.live}/tickets/manage`),
+    recoveryPage.click('button:has-text("Open my tickets")'),
+  ]);
   assert.match(
     (await recoveryPage.textContent('main#main-content')) || '',
     /Autumn Night of Worship & Prayer/,

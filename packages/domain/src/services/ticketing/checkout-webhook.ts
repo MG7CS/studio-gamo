@@ -20,18 +20,16 @@ import { verifyStripeWebhookSignature, type StripeWebhookEvent } from '@studio-g
 import { runBatch, type SqlDatabase } from '../../security/sql-database.ts';
 import { isLocalEnvironment, localDevelopmentSecret } from '../../security/env-secret.ts';
 import { newPrefixedId } from '../../security/ids.ts';
-import {
-  reconcileOrderRefundStatement,
-  releaseOrderHoldsStatement,
-  transitionOrderStatement,
-} from '../../ticketing/sql.ts';
+import { releaseOrderHoldsStatement, transitionOrderStatement } from '../../ticketing/sql.ts';
 import { issueOrderTickets } from './issuance.ts';
-import { refundUnfulfilledPayment } from './refunds.ts';
+import { refundUnfulfilledPayment, settleOrderRefundStatement } from './refunds.ts';
 import { notifyWaitlist } from './checkout-waitlist.ts';
 import { sendStaffAlertEmail, sendTicketEmail } from './email.ts';
 import { TicketingError, loadOrder, loadOrderBy, type OrderRow, type TicketingEnv } from './orders-shared.ts';
 
 const PROCESSING_LEASE_SECONDS = 5 * 60;
+/** A refund/dispute for a payment we cannot match yet is retried for this long (Stripe redelivers ~3 days). */
+const UNMATCHED_RETRY_WINDOW_SECONDS = 72 * 60 * 60;
 
 export interface WebhookResponse {
   status: number;
@@ -240,10 +238,15 @@ async function onChargeRefunded(
   const order = object.payment_intent
     ? await loadOrderBy(db, 'stripe_payment_intent_id', object.payment_intent)
     : null;
-  if (!order || typeof object.amount_refunded !== 'number') return { outcome: 'unknown_order' };
-  const amount = Math.min(Number(object.amount_refunded), Number(order.total_cents));
+  if (typeof object.amount_refunded !== 'number') return { outcome: 'ignored' };
+  // Not matched yet (Stripe can deliver this before checkout.session.completed): ask for a redelivery.
+  if (!order) return { outcome: 'unmatched', retry: true };
   await runBatch(db, [
-    reconcileOrderRefundStatement({ orderId: order.id, amountRefundedCents: amount, now: ctx.now }),
+    settleOrderRefundStatement({
+      orderId: order.id,
+      now: ctx.now,
+      stripeAmountCents: Math.max(0, Math.floor(object.amount_refunded)),
+    }),
   ]);
   return { orderId: order.id, outcome: 'reconciled' };
 }
@@ -279,7 +282,7 @@ async function onDispute(
   const order = object.payment_intent
     ? await loadOrderBy(db, 'stripe_payment_intent_id', object.payment_intent)
     : null;
-  if (!order) return { outcome: 'unknown_order' };
+  if (!order) return { outcome: 'unmatched', retry: true };
   const [, voided] = await runBatch(db, [
     transitionOrderStatement({
       orderId: order.id,
@@ -368,6 +371,14 @@ export async function handleStripeWebhook(
       default:
         ignored = true;
         result = { outcome: 'ignored' };
+    }
+    if (
+      result.retry === true &&
+      input.ctx.now - Number(event.created ?? input.ctx.now) < UNMATCHED_RETRY_WINDOW_SECONDS
+    ) {
+      // Retryable: Stripe redelivers for up to three days; the failed claim is taken again each time.
+      await mark(db, event.id, 'failed', input.ctx.now, 'unmatched');
+      return { status: 409, body: { error: 'This event does not match an order yet. Retry later.' } };
     }
     await mark(db, event.id, ignored ? 'ignored' : 'processed', input.ctx.now);
     return { status: 200, body: { received: true, eventId: event.id, type: event.type, ...result } };

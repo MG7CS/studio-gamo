@@ -12,6 +12,7 @@ import {
   ticketingErrorResponse,
 } from '@gamo/domain';
 import { NO_STORE, validateJsonBody } from '../../../lib/ticketing-api';
+import { deferWork } from '../../../lib/defer';
 
 export const prerender = false;
 
@@ -31,6 +32,7 @@ export const POST: APIRoute = async (context) => {
         ipHash: guard.ipHash,
         origin: requestOrigin(context.request),
         now: nowSeconds(),
+        defer: (work) => deferWork(context.locals, work),
       },
     );
     return jsonResponse({ message: result.message }, 202, undefined, NO_STORE);

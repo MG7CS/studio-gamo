@@ -19,6 +19,7 @@ import {
   ticketingDb,
 } from '@gamo/domain';
 import { problemFromError, problemFromGuard, type FormProblem } from '../../lib/page-forms';
+import { deferWork } from '../../lib/defer';
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'private, no-store');
@@ -44,6 +45,7 @@ if (Astro.request.method === 'POST') {
         ipHash: guard.ipHash,
         origin: Astro.url.origin,
         now: nowSeconds(),
+        defer: (work) => deferWork(Astro.locals, work),
       });
       answer = r.message;
     }

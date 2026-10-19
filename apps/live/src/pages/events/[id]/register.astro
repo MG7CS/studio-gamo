@@ -104,7 +104,8 @@ if (ctx && Astro.request.method === 'POST') {
     if (!guard.ok) problem = problemFromGuard(guard.error);
     else if (isWaitlist) {
       try {
-        await joinWaitlist(db, {
+        await joinWaitlist(db, env, {
+          origin: Astro.url.origin,
           eventId: ctx.event.id,
           categoryId: guard.body.get('categoryId') || null,
           email: guard.body.get('email') ?? '',
@@ -232,8 +233,8 @@ const eyebrow = pastOrClosed ? 'Past Event · Closed' : paid ? 'Tickets' : 'Free
     />
   ) : waitlistDone ? (
     <JourneyPanel
-      title="You're on the waitlist"
-      body="If tickets become available we'll email you. They are not reserved for you — first come, first served."
+      title="Check your email to join the waitlist"
+      body="We sent a message to confirm your address. Once you confirm, we'll email you if tickets become available. They are not reserved for you — first come, first served."
       href={`/events/${ctx.event.slug}`}
       label="Back to the event"
     />

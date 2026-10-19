@@ -16,14 +16,39 @@ import { accessLogStatement, requireTicketingSecret, type TicketingEnv } from '.
 export const RECOVERY_RESPONSE_MESSAGE =
   "If we have tickets for that address, we've emailed a link. It expires in 30 minutes. Check your spam folder if it doesn't arrive within a few minutes.";
 
+/** Runs work after the response (Cloudflare `waitUntil`); the route passes `deferWork(Astro.locals, …)`. */
+export type DeferWork = (work: Promise<unknown>) => void | Promise<void>;
+
+/**
+ * Same answer, same speed for every address (CLEANUP_LOG D-183): everything that differs between a known and an
+ * unknown address — the lookup, the token, the email — runs in `defer` after the answer is ready, and a failed
+ * send is logged, never shown. Without `defer` (tests, scripts) it is awaited and `sent` reports the result.
+ */
 export async function requestTicketRecovery(
   db: SqlDatabase,
   env: TicketingEnv,
-  input: { email: string; ipHash: string | null; origin: string; now: number },
+  input: { email: string; ipHash: string | null; origin: string; now: number; defer?: DeferWork },
 ): Promise<{ message: string; sent: boolean }> {
   requireTicketingSecret(env, 'CUSTOMER_LINK_SECRET');
   const email = normalizeEmail(input.email ?? '');
   if (!isPlausibleEmail(email)) return { message: RECOVERY_RESPONSE_MESSAGE, sent: false };
+  const work = deliverRecoveryLink(db, env, { ...input, email }).catch((err) => {
+    console.error(`[ticketing] recovery delivery failed: ${err instanceof Error ? err.name : 'error'}`);
+    return false;
+  });
+  if (input.defer) {
+    await input.defer(work);
+    return { message: RECOVERY_RESPONSE_MESSAGE, sent: false };
+  }
+  return { message: RECOVERY_RESPONSE_MESSAGE, sent: await work };
+}
+
+async function deliverRecoveryLink(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: { email: string; ipHash: string | null; origin: string; now: number },
+): Promise<boolean> {
+  const email = input.email;
   let profile = await findCustomerProfileByEmail(db, email);
   const rows = await allRows<{ id: string; event_id: string; title: string }>(db, {
     sql: `SELECT DISTINCT o.id, o.event_id, e.title FROM ticket_orders o JOIN events e ON e.id = o.event_id
@@ -33,10 +58,10 @@ export async function requestTicketRecovery(
            ORDER BY e.starts_at DESC LIMIT 50`,
     params: [profile?.id ?? null, email],
   });
-  if (rows.length === 0) return { message: RECOVERY_RESPONSE_MESSAGE, sent: false };
+  if (rows.length === 0) return false;
   // Pre-0013 RSVPs have no customer profile yet: create one so the link has an owner.
   if (!profile) profile = await upsertCustomerProfile(db, { email, now: input.now });
-  if (profile.erasedAt !== null) return { message: RECOVERY_RESPONSE_MESSAGE, sent: false };
+  if (profile.erasedAt !== null) return false;
   const link = await issueCustomerLink(db, env, {
     customerProfileId: profile.id,
     scope: formatScope('customer'),
@@ -67,5 +92,5 @@ export async function requestTicketRecovery(
     attemptId: newPrefixedId('rec'),
     now: input.now,
   });
-  return { message: RECOVERY_RESPONSE_MESSAGE, sent: result.status === 'sent' };
+  return result.status === 'sent';
 }

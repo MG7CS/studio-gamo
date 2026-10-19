@@ -539,11 +539,19 @@ test('Stripe webhook route enforces signature timestamp tolerance, processes fin
         type: finType,
         livemode: false,
         data: {
-          object: { id: 'cs_test_unknown', payment_status: 'paid', metadata: { orderId: 'ord_missing' } },
+          object: {
+            id: 'cs_test_unknown',
+            payment_status: 'paid',
+            payment_intent: 'pi_test_unknown',
+            amount_refunded: 100,
+            metadata: { orderId: 'ord_missing' },
+          },
         },
       });
-      assert.equal(res.status, 200);
-      assert.equal((await res.json()).outcome, 'unknown_order');
+      // A refund or dispute can arrive before its order is visible: answer 409 so Stripe retries (D-175).
+      const retryable = finType !== 'checkout.session.completed';
+      assert.equal(res.status, retryable ? 409 : 200);
+      if (!retryable) assert.equal((await res.json()).outcome, 'unknown_order');
     }
     assert.equal(
       (
@@ -551,7 +559,7 @@ test('Stripe webhook route enforces signature timestamp tolerance, processes fin
           .prepare("SELECT count(*) n FROM stripe_webhook_events WHERE status = 'processed'")
           .get() as any
       ).n,
-      3,
+      1,
     );
     // Without a webhook secret outside local the route fails closed.
     const unsigned = await webhook({

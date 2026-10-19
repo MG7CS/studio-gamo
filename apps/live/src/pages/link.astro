@@ -1,13 +1,18 @@
 ---
 /**
- * Landing page for every emailed customer link (design T-07): consumes the token, sets the short-lived
- * customer cookie and answers 303 to a token-free URL, so the token leaves the address bar at once.
- * `Referrer-Policy: no-referrer` keeps it out of any Referer header. A verification link also confirms
- * the free order it belongs to (opening it proves control of the inbox).
+ * Landing page for every emailed customer link (design T-07), in two steps so that mail scanners, link
+ * previews and prefetchers (which only GET) can never use the link up:
+ *   GET  /link?t=…  → a page with one button, "Open my tickets" (nothing is consumed; no-referrer so the token
+ *                     is not sent anywhere);
+ *   POST /link      → consumes the token, sets the short-lived customer cookie and answers 303 to a TOKEN-FREE
+ *                     URL. A verification link also confirms the free order it belongs to.
+ * The POST needs no same-origin check: the unguessable token in the body is the credential, and a page with
+ * `Referrer-Policy: no-referrer` posts `Origin: null` anyway.
  */
 import Layout from '../layouts/Layout.astro';
 import PageHeader from '../components/shared/PageHeader.astro';
 import JourneyPanel from '../components/shared/JourneyPanel.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
 import {
   CUSTOMER_LINK_INVALID_MESSAGE,
   confirmFreeOrder,
@@ -27,50 +32,84 @@ requestSecurityHeaders(Astro.locals, { noReferrer: true });
 
 const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
   Awaited<ReturnType<typeof getRuntimeEnv>>;
-const token = Astro.url.searchParams.get('t') ?? '';
-let message: string | null = token ? null : CUSTOMER_LINK_INVALID_MESSAGE;
+let token = Astro.url.searchParams.get('t') ?? '';
+let message: string | null = null;
 
-if (token) {
+if (Astro.request.method === 'POST') {
   try {
-    const db = ticketingDb(env);
-    const now = nowSeconds();
-    const opened = await openCustomerLink(db, env, { token, now, https: isHttpsRequest(Astro.request) });
-    if (!opened.ok) message = opened.message;
-    else {
-      const scope = parseScope(opened.session.scope);
-      let target = '/tickets/manage';
-      if (scope?.kind === 'order') {
-        if (opened.purpose === 'verification') {
-          try {
-            await confirmFreeOrder(db, env, { orderId: scope.id, now, origin: Astro.url.origin });
-          } catch {
-            // Expired or sold out: the order page explains the state.
-          }
-        }
-        target = `/tickets/orders/${scope.id}`;
-      } else if (scope?.kind === 'ticket') {
-        const ticket = await loadTicket(db, scope.id);
-        target = ticket ? `/tickets/orders/${ticket.order_id}` : '/tickets/manage';
-      }
-      return see(target, [opened.cookie]);
-    }
+    const form = await Astro.request.formData();
+    token = String(form.get('t') ?? '');
   } catch {
-    message = 'Your tickets are temporarily unavailable. Please try again in a few minutes.';
+    token = '';
+  }
+  if (!token) message = CUSTOMER_LINK_INVALID_MESSAGE;
+  else {
+    try {
+      const db = ticketingDb(env);
+      const now = nowSeconds();
+      const opened = await openCustomerLink(db, env, { token, now, https: isHttpsRequest(Astro.request) });
+      if (!opened.ok) message = opened.message;
+      else {
+        const scope = parseScope(opened.session.scope);
+        let target = '/tickets/manage';
+        if (scope?.kind === 'order') {
+          if (opened.purpose === 'verification') {
+            try {
+              await confirmFreeOrder(db, env, { orderId: scope.id, now, origin: Astro.url.origin });
+            } catch {
+              // Expired or sold out: the order page explains the state.
+            }
+          }
+          target = `/tickets/orders/${scope.id}`;
+        } else if (scope?.kind === 'ticket') {
+          const ticket = await loadTicket(db, scope.id);
+          target = ticket ? `/tickets/orders/${ticket.order_id}` : '/tickets/manage';
+        }
+        return see(target, [opened.cookie]);
+      }
+    } catch {
+      message = 'Your tickets are temporarily unavailable. Please try again in a few minutes.';
+    }
   }
   Astro.response.status = 410;
 }
+const showButton = Astro.request.method !== 'POST' && Boolean(token);
+if (Astro.request.method !== 'POST' && !token) message = CUSTOMER_LINK_INVALID_MESSAGE;
 ---
 
-<Layout title="Link expired" noindex>
-  <PageHeader
-    eyebrow="Your tickets"
-    title="This link can't be used."
-    lede={message ?? CUSTOMER_LINK_INVALID_MESSAGE}
-  />
-  <JourneyPanel
-    title="Get a new link"
-    body="Enter the email address you used and we'll send a fresh link that works for 30 minutes."
-    href="/tickets/find"
-    label="Find my tickets"
-  />
+<Layout title={showButton ? 'Open your tickets' : 'Link expired'} noindex>
+  {showButton ? (
+    <>
+      <PageHeader
+        eyebrow="Your tickets"
+        title="Open your tickets"
+        lede="Press the button to open the tickets from your email."
+      />
+      <section class="bg-cream px-4 pb-20 sm:px-8">
+        <form
+          method="post"
+          action="/link"
+          class="mx-auto max-w-md space-y-4 rounded-[28px] bg-white p-6 ring-1 ring-sand"
+        >
+          <input type="hidden" name="t" value={token} />
+          <SubmitButton label="Open my tickets" pendingLabel="Opening…" fullWidth />
+          <p class="text-sm text-muted">This extra step keeps email scanners from using up your link.</p>
+        </form>
+      </section>
+    </>
+  ) : (
+    <>
+      <PageHeader
+        eyebrow="Your tickets"
+        title="This link can't be used."
+        lede={message ?? CUSTOMER_LINK_INVALID_MESSAGE}
+      />
+      <JourneyPanel
+        title="Get a new link"
+        body="Enter the email address you used and we'll send a fresh link that works for 30 minutes."
+        href="/tickets/find"
+        label="Find my tickets"
+      />
+    </>
+  )}
 </Layout>
