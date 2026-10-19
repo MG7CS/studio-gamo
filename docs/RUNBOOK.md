@@ -211,3 +211,15 @@ Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-code
    - **The email is the same person who will be the first staff account** → do not disable it; create the account with `pnpm staff:account:sql --env production --email <that email> --reset-password`. That replaces the known password with a new random one and signs the account out everywhere.
 
 Generated files live only in `.staff-sql/` (git-ignored). Repeat for preview. The historical password stays in git history; rewriting history before the repository is ever public is a separate owner decision (H-02).
+
+## 9. Identity, onboarding and staff review (Phase 2, Agent A)
+
+Owner steps (nothing here was done remotely):
+
+1. **Turnstile.** Create one widget per public hostname; set `PUBLIC_TURNSTILE_SITE_KEY` (var) and `TURNSTILE_SECRET_KEY` (secret) on web, worship, academy, live and production. Without them the emailed-code sign-up/sign-in answers 503 outside local.
+2. **Hash key.** Set `PII_HASH_SECRET` (>= 32 random chars, different from other secrets) on every public app; consent recording and rate limits need it.
+3. **Clerk webhooks (only if a product uses Clerk).** In that product's Clerk application add an endpoint `https://<host>/api/auth/clerk-webhook` with events session.ended, session.revoked, session.removed, user.deleted, user.banned; put its signing secret in `CLERK_WEBHOOK_SECRET_<APP>`.
+4. **Google (only if Clerk is on).** Enable Google in each product's Clerk application (production needs its own Google OAuth client and consent screen), add `/account/sso-callback` as an allowed redirect, set `CLERK_GOOGLE_ENABLED_<APP>=true`.
+5. **Legal.** All terms are drafts ("DRAFT — requires legal review"); counsel must review before any version is marked active.
+6. **Staff.** Reviewers need a staff gateway account with the `staff_reviewer` role (section 8). Review pages: `/review/churches`, `/review/providers`, `/review/events`.
+7. **Erasure on request** (hello@gamostudio.org): see `docs/IDENTITY.md` section 8.
