@@ -1,14 +1,12 @@
 ---
 import { GAMO_LIVE_METROS } from '@gamo/domain';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { inquiryUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
 
 const primaryLinks = [
   { label: 'Events', href: '/events' },
   { label: 'Artists', href: '/artists' },
   { label: 'Venues', href: '/venues' },
-  { label: 'List an Event', href: '/promote/create' },
-  { label: 'My Tickets', href: '/tickets/find' },
-  { label: 'Workspaces', href: '/workspaces' },
+  { label: 'List an Event', href: inquiryUrl('Event listing') },
 ];
 ---
 
@@ -119,7 +117,7 @@ const primaryLinks = [
           </svg>
         </a>
         <a
-          href="/promote/create"
+          href={inquiryUrl('Event listing')}
           class="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sand hover:text-terracotta transition-colors"
           aria-label="Submit a Christian concert or worship event"
           title="List an event"

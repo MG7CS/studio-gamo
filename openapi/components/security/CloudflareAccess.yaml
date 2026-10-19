@@ -1,5 +1,0 @@
-type: apiKey
-in: header
-name: Cf-Access-Jwt-Assertion
-description: RS256 JWT verified against configured audience, issuer and JWKS.
-  Staff application boundary, not domain RBAC.

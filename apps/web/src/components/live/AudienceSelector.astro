@@ -1,6 +1,6 @@
 ---
 /** Primary audience selector on Gamo Live marketing page — Explore Events vs Promote Event. */
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 interface Props {
   current: 'explore' | 'promote';
   tone?: 'light' | 'dark';
@@ -8,7 +8,7 @@ interface Props {
 }
 const { current, tone = 'dark', class: className } = Astro.props;
 const items = [
-  { id: 'promote', label: 'Promote Event', href: siteUrl('live', '/promote/create') },
+  { id: 'promote', label: 'Promote Event', href: inquiryUrl('Event listing') },
   { id: 'explore', label: 'Explore Events', href: siteUrl('live', '/events') },
 ];
 const dark = tone === 'dark';

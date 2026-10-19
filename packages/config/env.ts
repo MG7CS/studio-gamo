@@ -73,36 +73,6 @@ export interface GamoEnv {
   /** Admin only: act as ADMIN_EMAIL without Cloudflare Access (loopback + ENVIRONMENT=local). */
   ALLOW_LOCAL_ADMIN_IDENTITY?: string;
 
-  // Clerk (`CLERK_*`, `CLERK_*_<PRODUCT>`, incl. `CLERK_WEBHOOK_SECRET_<APP>` and
-  // `CLERK_GOOGLE_ENABLED_<APP>` — see CLERK_WEBHOOK_SECRET_NAMES / CLERK_GOOGLE_ENABLED_NAMES)
-  // and public site URLs (`PUBLIC_*`)
-  [key: `CLERK_${string}`]: string | undefined;
+  // Public site URLs (`PUBLIC_*`)
   [key: `PUBLIC_${string}`]: string | undefined;
 }
-
-/** Svix signing secret for `POST /api/webhook/clerk`, one per product (design §4.3). */
-export const CLERK_WEBHOOK_SECRET_NAMES = [
-  'CLERK_WEBHOOK_SECRET_WEB',
-  'CLERK_WEBHOOK_SECRET_WORSHIP',
-  'CLERK_WEBHOOK_SECRET_ACADEMY',
-  'CLERK_WEBHOOK_SECRET_LIVE',
-  'CLERK_WEBHOOK_SECRET_PRODUCTION',
-] as const;
-
-/** `true` shows "Continue with Google" for that product (only when its Clerk app has Google enabled). */
-export const CLERK_GOOGLE_ENABLED_NAMES = [
-  'CLERK_GOOGLE_ENABLED_WEB',
-  'CLERK_GOOGLE_ENABLED_WORSHIP',
-  'CLERK_GOOGLE_ENABLED_ACADEMY',
-  'CLERK_GOOGLE_ENABLED_LIVE',
-  'CLERK_GOOGLE_ENABLED_PRODUCTION',
-] as const;
-
-/** Identity/ticketing secrets that must be ≥ 32 characters when set (design §10). */
-export const HMAC_SECRET_NAMES = [
-  'TICKET_QR_SECRET_GL1',
-  'TICKET_QR_SECRET_GL2',
-  'CUSTOMER_LINK_SECRET',
-  'PII_HASH_SECRET',
-  'SCANNER_SESSION_SECRET',
-] as const;

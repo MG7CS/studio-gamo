@@ -3,34 +3,11 @@ import { buildRobotsTxt, textResponse } from '@studio-gamo/ui/lib/crawlers';
 
 export const prerender = false;
 
-// Private: organizer/artist/agent workspaces, ticketing and checkout, Promote Event flow.
-// Public event, venue, artist and organizer pages stay open.
+// No product areas exist during the rebuild; /api/ and /account stay disallowed for every crawler.
 export const GET: APIRoute = () =>
   textResponse(
     buildRobotsTxt({
       app: 'live',
-      privatePaths: [
-        '/promote',
-        '/my-tickets',
-        '/ticket',
-        '/checkout',
-        '/tickets/',
-        '/link',
-        '/waitlist/',
-        '/local-test/',
-        '/workspaces',
-        '/organizer/',
-        '/organizer$',
-        '/artist/',
-        '/artist$',
-        '/agent/',
-        '/agent$',
-        '/me/',
-        '/me$',
-        '/events/*/tickets',
-        '/events/*/register',
-        // Door scanner pages and scanner links (Agent C).
-        '/scan',
-      ],
+      privatePaths: [],
     }),
   );

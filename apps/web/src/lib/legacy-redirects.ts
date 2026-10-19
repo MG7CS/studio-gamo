@@ -1,14 +1,8 @@
 import type { LegacyRedirect } from '@gamo/domain/page-middleware';
-import { safeReturnPath } from '@gamo/auth/page-access';
 
-/** Retired gamostudio.org URLs. */
+/** Retired gamostudio.org URLs (accounts and the partner area were removed in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [
-  { from: '/partner/*', to: '/account/inquiries' },
-  {
-    from: '/signin',
-    to: (url) => {
-      const next = url.searchParams.get('next');
-      return next ? `/account/signin?next=${encodeURIComponent(safeReturnPath(next))}` : '/account/signin';
-    },
-  },
+  { from: '/partner/*', to: '/contact' },
+  { from: '/signin', to: '/get-started' },
+  { from: '/account/*', to: '/get-started' },
 ];

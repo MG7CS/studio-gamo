@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@gamo/api-contracts": "workspace:*",
     "@gamo/auth": "workspace:*",
     "@gamo/config": "workspace:*",
     "@gamo/db": "workspace:*",

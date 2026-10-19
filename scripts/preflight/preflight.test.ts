@@ -157,46 +157,14 @@ test('the real repository has no configuration errors other than the shared KV n
   );
 });
 
-test('secret evaluation reports names only and distinguishes required, recommended and optional', () => {
-  const found = evaluateSecrets(
-    'live',
-    'production',
-    new Set(['SESSION_SECRET', 'CLERK_SECRET_KEY_LIVE']),
-    {},
-  );
-  const byCode = (c: string) => found.filter((f) => f.code === c).map((f) => f.message);
-  assert.deepEqual(byCode('secret-missing'), []);
-  assert.equal(byCode('secret-recommended').length, 2);
-  assert.match(byCode('clerk-partial')[0], /PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE/);
-  assert.ok(byCode('secret-optional').some((m) => m.includes('STRIPE_SECRET_KEY')));
-  for (const name of [
-    'TICKET_QR_SECRET_GL1',
-    'CUSTOMER_LINK_SECRET',
-    'PII_HASH_SECRET',
-    'SCANNER_SESSION_SECRET',
-    'TURNSTILE_SECRET_KEY',
-    'RESEND_WEBHOOK_SECRET',
-    'CLERK_WEBHOOK_SECRET_LIVE',
-  ])
-    assert.ok(
-      byCode('secret-optional').some((m) => m.startsWith(`${name} `)),
-      name,
-    );
-  const web = evaluateSecrets('web', 'production', new Set(['SESSION_SECRET', 'PII_HASH_SECRET']), {
-    PUBLIC_TURNSTILE_SITE_KEY: 'site',
-  });
-  assert.deepEqual(
-    web.filter((f) => f.code === 'secret-optional').map((f) => f.message.split(' ')[0]),
-    ['TURNSTILE_SECRET_KEY', 'CLERK_WEBHOOK_SECRET_WEB'],
-  );
-
-  const admin = evaluateSecrets('admin', 'production', new Set(['SESSION_SECRET']), {
-    CF_ACCESS_TEAM_NAME: 'team',
-  });
+test('secret evaluation reports names only; the admin needs its Access settings and the public apps need none', () => {
+  const admin = evaluateSecrets('admin', 'production', new Set(), { CF_ACCESS_TEAM_NAME: 'team' });
   assert.deepEqual(
     admin.filter((f) => f.severity === 'error').map((f) => f.message),
     ['CF_ACCESS_AUD is not set.', 'ADMIN_EMAIL is not set.'],
   );
+  for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const)
+    assert.deepEqual(evaluateSecrets(app, 'production', new Set(), {}), [], app);
 });
 
 const outputs =

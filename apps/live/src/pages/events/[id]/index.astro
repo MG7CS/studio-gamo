@@ -1,7 +1,7 @@
 ---
 import { formatUsd } from '@studio-gamo/ui/lib/format';
 import Layout from '../../../layouts/Layout.astro';
-import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { inquiryUrl, siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
 import { getDb } from '@gamo/db';
@@ -456,7 +456,7 @@ const pageDescription = metro
               </p>
             </div>
             <a
-              href="/promote/create"
+              href={inquiryUrl('Event listing')}
               class="shrink-0 inline-flex items-center px-6 py-3 rounded-full bg-terracotta hover:bg-terracotta-deep text-white text-sm font-bold transition-colors"
             >
               Submit an Event in {metro.name}
@@ -769,12 +769,10 @@ const pageDescription = metro
                     Organized by <strong>{event.organizerName}</strong>
                   </p>
 
-                  <a
-                    class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
-                    href={`/events/${event.slug}/register`}
-                  >
-                    {event.admissionType === 'free' ? 'Register for free' : 'Get tickets'}
-                  </a>
+                  <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink-soft">
+                    Registration and tickets on Gamo Live are being rebuilt. Please contact the organizer
+                    directly to attend.
+                  </p>
                 </div>
               )}
             </div>

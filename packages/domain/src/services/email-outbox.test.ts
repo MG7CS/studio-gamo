@@ -1,6 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHmac } from 'node:crypto';
 import { createMigratedD1 } from '@gamo/db/testing';
 import {
   applyProviderEvent,
@@ -11,7 +10,6 @@ import {
   purgeRecipientEmails,
   retryDueOutboxEmails,
   sendOutboxEmail,
-  verifyResendWebhook,
   type OutboxMessage,
 } from './email-outbox.ts';
 
@@ -264,84 +262,7 @@ test('retryDue re-renders due rows; unrenderable rows stop; purge nulls old addr
 
 // --- Svix webhook signatures -------------------------------------------------------------------
 
-const KEY = Buffer.from('gamo-test-webhook-signing-key-32b');
-const SECRET = `whsec_${KEY.toString('base64')}`;
 /** Independent reference implementation (node:crypto) of Svix's scheme. */
-const sign = (id: string, ts: number, body: string, key = KEY) =>
-  createHmac('sha256', key).update(`${id}.${ts}.${body}`).digest('base64');
-
-const webhook = (body: string, headers: Record<string, string>) =>
-  new Request('https://live.example.test/api/webhook/resend', { method: 'POST', body, headers });
-
-test('verifyResendWebhook accepts a valid Svix signature (any of several v1 entries) and returns the payload', async () => {
-  const body = JSON.stringify({ type: 'email.delivered', data: { email_id: 're_1' } });
-  const ts = NOW;
-  const good = sign('msg_1', ts, body);
-  const r = await verifyResendWebhook(
-    webhook(body, {
-      'svix-id': 'msg_1',
-      'svix-timestamp': String(ts),
-      'svix-signature': `v1,${sign('msg_1', ts, body, Buffer.from('old-rotated-key-old-rotated-key!'))} v1,${good}`,
-    }),
-    SECRET,
-    { now: NOW + 60 },
-  );
-  assert.ok(r.ok);
-  assert.equal(r.id, 'msg_1');
-  assert.deepEqual(r.payload, { type: 'email.delivered', data: { email_id: 're_1' } });
-});
-
-test('verifyResendWebhook refuses bad signatures, tampering, stale timestamps, missing headers and no secret', async () => {
-  const body = '{"type":"email.bounced"}';
-  const headers = (over: Record<string, string> = {}) => ({
-    'svix-id': 'msg_2',
-    'svix-timestamp': String(NOW),
-    'svix-signature': `v1,${sign('msg_2', NOW, body)}`,
-    ...over,
-  });
-  const check = async (req: Request, secret: string | null = SECRET, now = NOW) =>
-    verifyResendWebhook(req, secret, { now });
-  assert.deepEqual(await check(webhook('{"type":"email.delivered"}', headers())), {
-    ok: false,
-    reason: 'bad_signature',
-  });
-  assert.deepEqual(
-    await check(
-      webhook(body, headers()),
-      `whsec_${Buffer.from('another-key-another-key-another!').toString('base64')}`,
-    ),
-    {
-      ok: false,
-      reason: 'bad_signature',
-    },
-  );
-  assert.deepEqual(
-    await check(webhook(body, headers({ 'svix-signature': sign('msg_2', NOW, body) }))),
-    {
-      ok: false,
-      reason: 'bad_signature',
-    },
-    'the v1, prefix is required',
-  );
-  assert.deepEqual(await check(webhook(body, headers({ 'svix-id': 'msg_3' }))), {
-    ok: false,
-    reason: 'bad_signature',
-  });
-  assert.deepEqual(await check(webhook(body, headers()), SECRET, NOW + 301), {
-    ok: false,
-    reason: 'stale_timestamp',
-  });
-  assert.deepEqual(await check(webhook(body, headers()), SECRET, NOW - 301), {
-    ok: false,
-    reason: 'stale_timestamp',
-  });
-  const noId: Record<string, string> = headers();
-  delete noId['svix-id'];
-  assert.deepEqual(await check(webhook(body, noId)), { ok: false, reason: 'missing_headers' });
-  assert.deepEqual(await check(webhook(body, headers()), null), { ok: false, reason: 'not_configured' });
-  assert.deepEqual(await check(webhook(body, headers()), '  '), { ok: false, reason: 'not_configured' });
-});
-
 test('an idempotency key never sends to a different recipient; retries use the stored address only', async () => {
   const db = await createMigratedD1();
   await sendOutboxEmail(db, { ...ENV, RESEND_API_KEY: undefined }, message());

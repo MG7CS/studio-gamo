@@ -4,9 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@clerk/backend": "^3.23.2",
-    "@gamo/db": "workspace:*",
-    "drizzle-orm": "^0.45.4",
     "@gamo/config": "workspace:*"
   },
   "exports": {

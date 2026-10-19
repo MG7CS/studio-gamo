@@ -6,7 +6,7 @@
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { providerSignupUrl, siteUrl } from '../lib/sites';
+import { inquiryUrl, providerSignupUrl, siteUrl } from '../lib/sites';
 
 const columns = [
   {
@@ -25,7 +25,7 @@ const columns = [
       { label: 'Request a Musician', url: providerSignupUrl('worship', 'church') },
       { label: 'Join the Musician Collection', url: providerSignupUrl('worship', 'musician') },
       { label: 'Find a Lesson', url: siteUrl('academy', '/lessons') },
-      { label: 'Promote an Event', url: siteUrl('live', '/promote/create') },
+      { label: 'Promote an Event', url: inquiryUrl('Event listing') },
       { label: 'Partnerships', url: siteUrl('web', '/partners') },
     ],
   },

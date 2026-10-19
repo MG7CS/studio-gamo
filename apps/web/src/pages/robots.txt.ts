@@ -3,11 +3,11 @@ import { buildRobotsTxt, textResponse } from '@studio-gamo/ui/lib/crawlers';
 
 export const prerender = false;
 
-// Private: partner workspace, legacy /signin redirect, design previews.
+// No product areas exist during the rebuild; /api/ and /account stay disallowed for every crawler.
 export const GET: APIRoute = () =>
   textResponse(
     buildRobotsTxt({
       app: 'web',
-      privatePaths: ['/partner/', '/partner$', '/signin', '/preview/'],
+      privatePaths: [],
     }),
   );

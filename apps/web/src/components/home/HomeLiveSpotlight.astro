@@ -7,7 +7,7 @@ import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface FeaturedEvent {
@@ -79,7 +79,7 @@ const featuredEvents: FeaturedEvent[] = [
         <ButtonLink href={siteUrl('live')} arrow>
           Explore upcoming events
         </ButtonLink>
-        <ButtonLink href={siteUrl('live', '/promote/create')} variant="ghost-dark">
+        <ButtonLink href={inquiryUrl('Event listing')} variant="ghost-dark">
           Promote a Christian event
         </ButtonLink>
       </div>
@@ -136,7 +136,7 @@ const featuredEvents: FeaturedEvent[] = [
         event is reviewed before publishing. Any future sponsored placement is clearly labeled and never
         alters organizer verification.
       </p>
-      <a href={siteUrl('live', '/promote/create')} class="font-semibold text-gold hover:underline">
+      <a href={inquiryUrl('Event listing')} class="font-semibold text-gold hover:underline">
         Submit an event for review →
       </a>
     </div>

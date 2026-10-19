@@ -9,7 +9,6 @@ import {
   isAppVarAllowedForApp,
   resolveAppLocalEnv,
 } from './env-loader.ts';
-import { resolveProductClerkConfig, GAMO_LIVE_CLERK_APP_ID, AuthError } from '../auth/index.ts';
 
 describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)', () => {
   test('parses .env and .dev.vars syntax accurately without mutating values', () => {
@@ -156,41 +155,6 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
       // Web has no app .env yet and must NOT inherit root un-suffixed Clerk keys or Live's keys
       assert.equal(webEnv.PUBLIC_CLERK_PUBLISHABLE_KEY, undefined);
       assert.equal(webEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WEB, undefined);
-
-      // Verify @gamo/auth resolveProductClerkConfig works seamlessly with standard Clerk keys in apps/<app>/.env
-      const resolvedLiveClerk = resolveProductClerkConfig('live', liveEnv);
-      assert.equal(resolvedLiveClerk.isConfigured, true);
-      assert.equal(resolvedLiveClerk.clerkAppId, GAMO_LIVE_CLERK_APP_ID);
-      assert.equal(resolvedLiveClerk.publishableKey, livePubKey);
-      assert.equal(resolvedLiveClerk.issuer, 'https://live-app.clerk.accounts.dev');
-
-      const resolvedAcademyClerk = resolveProductClerkConfig('academy', academyEnv);
-      assert.equal(resolvedAcademyClerk.isConfigured, true);
-      assert.equal(resolvedAcademyClerk.publishableKey, academyPubKey);
-      assert.equal(resolvedAcademyClerk.issuer, 'https://academy-app.clerk.accounts.dev');
-      assert.notEqual(resolvedAcademyClerk.clerkAppId, GAMO_LIVE_CLERK_APP_ID);
-
-      // Unconfigured web app cleanly falls back to pre-cutover state (isConfigured = false)
-      const resolvedWebClerk = resolveProductClerkConfig('web', webEnv);
-      assert.equal(resolvedWebClerk.isConfigured, false);
-
-      // Template placeholder values ("pk_test_YOUR_ACADEMY_KEY") are treated as unconfigured
-      const templateAcademyClerk = resolveProductClerkConfig('academy', {
-        PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_YOUR_ACADEMY_KEY',
-        CLERK_SECRET_KEY: 'sk_test_YOUR_ACADEMY_SECRET',
-      });
-      assert.equal(templateAcademyClerk.isConfigured, false);
-
-      // Reusing Gamo Live's Clerk App ID in Academy via standard CLERK_APP_ID throws 403 FORBIDDEN
-      assert.throws(
-        () =>
-          resolveProductClerkConfig('academy', {
-            CLERK_APP_ID: GAMO_LIVE_CLERK_APP_ID,
-            PUBLIC_CLERK_PUBLISHABLE_KEY: academyPubKey,
-            CLERK_SECRET_KEY: 'sk_test_academy_isolated_secret',
-          }),
-        (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
-      );
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }

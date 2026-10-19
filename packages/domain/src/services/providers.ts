@@ -878,3 +878,18 @@ export async function verifiedChurchOrganizationIds(db: SqlDatabase, personId: s
   });
   return rows.map((r) => r.organization_id);
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted for review',
+  meeting_scheduled: 'Verification meeting scheduled',
+  in_review: 'In review',
+  changes_requested: 'Changes requested',
+  verified: 'Verified',
+  rejected: 'Not approved',
+  suspended: 'Suspended',
+};
+
+export function providerStatusLabel(status: string): string {
+  return STATUS_LABELS[status] ?? status;
+}

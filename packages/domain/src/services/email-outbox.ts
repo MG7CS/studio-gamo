@@ -24,12 +24,11 @@ import {
   type EmailAttachment,
   type EmailSendResult,
 } from '@studio-gamo/integrations/resend';
-import { bytesToBase64Url, constantTimeEqual, SecretNotConfiguredError } from '../security/crypto.ts';
+import { constantTimeEqual, SecretNotConfiguredError } from '../security/crypto.ts';
 import { resolveEnvSecret, isLocalEnvironment } from '../security/env-secret.ts';
 import { newPrefixedId } from '../security/ids.ts';
 import { hashEmail, isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
 import { allRows, changesOf, type SqlDatabase } from '../security/sql-database.ts';
-import { readBoundedBody } from '../api/public-form-guard.ts';
 
 export type OutboxStatus =
   | 'queued'
@@ -477,104 +476,3 @@ export const EmailOutbox = {
   isSuppressedHash,
   purgeRecipientEmails,
 } as const;
-
-// --- Resend webhooks (Svix signatures) ---------------------------------------------------------
-
-/** Svix's default tolerance between `svix-timestamp` and now. */
-export const WEBHOOK_TOLERANCE_SECONDS = 5 * 60;
-/** Resend webhook bodies are small JSON documents. */
-export const WEBHOOK_MAX_BYTES = 256 * 1024;
-
-export type ResendWebhookResult =
-  | { ok: true; id: string; timestamp: number; payload: unknown; rawBody: string }
-  | {
-      ok: false;
-      reason:
-        | 'not_configured'
-        | 'missing_headers'
-        | 'stale_timestamp'
-        | 'bad_signature'
-        | 'malformed'
-        | 'too_large';
-    };
-
-function base64ToBytes(text: string): Uint8Array<ArrayBuffer> | null {
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(text)) return null;
-  try {
-    const binary = atob(text);
-    const out = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
-    return out;
-  } catch {
-    return null;
-  }
-}
-
-/** Standard base64 (Svix signatures use `+/` with padding). */
-function bytesToBase64(bytes: Uint8Array): string {
-  const url = bytesToBase64Url(bytes).replace(/-/g, '+').replace(/_/g, '/');
-  return url + '='.repeat((4 - (url.length % 4)) % 4);
-}
-
-/** `v1,<base64 HMAC-SHA256(key, "${id}.${timestamp}.${body}")>` with the key = base64-decoded secret after `whsec_`. */
-export async function svixSignature(
-  secret: string,
-  id: string,
-  timestamp: string,
-  body: string,
-): Promise<string | null> {
-  const key = base64ToBytes(secret.startsWith('whsec_') ? secret.slice('whsec_'.length) : secret);
-  if (!key || key.length === 0) return null;
-  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, [
-    'sign',
-  ]);
-  const mac = new Uint8Array(
-    await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(`${id}.${timestamp}.${body}`)),
-  );
-  return bytesToBase64(mac);
-}
-
-/**
- * Verifies a Resend webhook (Svix): `svix-id`, `svix-timestamp` (± 5 min), `svix-signature` (space-separated
- * `v1,<sig>` entries; any match passes, compared in constant time). Reads the body once (bounded) and
- * returns it parsed. Without a secret → `not_configured` (answer 503).
- */
-export async function verifyResendWebhook(
-  request: Request,
-  secret: string | null | undefined,
-  options: { now?: number; toleranceSeconds?: number } = {},
-): Promise<ResendWebhookResult> {
-  if (typeof secret !== 'string' || !secret.trim()) return { ok: false, reason: 'not_configured' };
-  const id = request.headers.get('svix-id');
-  const timestamp = request.headers.get('svix-timestamp');
-  const signatures = request.headers.get('svix-signature');
-  if (!id || !timestamp || !signatures) return { ok: false, reason: 'missing_headers' };
-  const now = options.now ?? Math.floor(Date.now() / 1000);
-  if (
-    !/^\d{1,12}$/.test(timestamp) ||
-    Math.abs(now - Number(timestamp)) > (options.toleranceSeconds ?? WEBHOOK_TOLERANCE_SECONDS)
-  )
-    return { ok: false, reason: 'stale_timestamp' };
-  const read = await readBoundedBody(request, WEBHOOK_MAX_BYTES);
-  if (!read.ok) return { ok: false, reason: read.reason === 'too_large' ? 'too_large' : 'malformed' };
-  let rawBody: string;
-  try {
-    rawBody = new TextDecoder('utf-8', { fatal: true }).decode(read.bytes);
-  } catch {
-    return { ok: false, reason: 'malformed' };
-  }
-  const expected = await svixSignature(secret.trim(), id, timestamp, rawBody);
-  if (!expected) return { ok: false, reason: 'not_configured' };
-  let match = false;
-  for (const entry of signatures.split(' ')) {
-    const comma = entry.indexOf(',');
-    if (comma < 0 || entry.slice(0, comma) !== 'v1') continue;
-    if (constantTimeEqual(entry.slice(comma + 1), expected)) match = true;
-  }
-  if (!match) return { ok: false, reason: 'bad_signature' };
-  try {
-    return { ok: true, id, timestamp: Number(timestamp), payload: JSON.parse(rawBody), rawBody };
-  } catch {
-    return { ok: false, reason: 'malformed' };
-  }
-}

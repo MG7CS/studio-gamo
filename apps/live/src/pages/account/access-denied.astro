@@ -1,9 +1,0 @@
----
-import Layout from '../../layouts/Layout.astro';
-import AccessDenied from '@studio-gamo/ui/components/account/AccessDenied.astro';
-Astro.response.status = 403;
----
-
-<Layout title="Access Needed — Gamo Live" description="This part of Gamo Live needs a role or verification.">
-  <AccessDenied program="Gamo Live" reason={Astro.url.searchParams.get('reason')} />
-</Layout>

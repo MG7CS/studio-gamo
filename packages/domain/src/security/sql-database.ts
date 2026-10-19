@@ -1,3 +1,4 @@
+import type { GamoDatabase } from '@gamo/db';
 /**
  * The subset of the Cloudflare D1 API the security repositories and SQL statement builders use.
  * A Worker's `env.DB`, `db.$client` of a Drizzle D1 database, and the node:sqlite test adapter
@@ -57,4 +58,9 @@ export async function allRows<T = Record<string, unknown>>(
 
 export function changesOf(result: { meta?: { changes?: number | bigint } }): number {
   return Number(result.meta?.changes ?? 0);
+}
+
+/** The raw D1 binding behind a Drizzle D1 database (for the SQL-level services). */
+export function sqlDatabaseOf(db: GamoDatabase): SqlDatabase {
+  return asSqlDatabase((db as unknown as { $client?: unknown }).$client);
 }

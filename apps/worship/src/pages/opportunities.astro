@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import FlowShell from '../components/flow/FlowShell.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import OpportunityBoard from '../components/dashboard/OpportunityBoard.astro';
 ---
 
@@ -8,13 +8,19 @@ import OpportunityBoard from '../components/dashboard/OpportunityBoard.astro';
   title="Musician Opportunities"
   description="Explore open Sunday and special service needs across local congregations and find a place to serve as a worship musician with Gamo Worship."
 >
-  <FlowShell
-    eyebrow="For musicians · Service opportunities"
-    title="Find a place"
-    accent="to serve."
-    lede="Explore open Sunday and special service needs across local congregations."
-    wide
-  >
-    <OpportunityBoard />
-  </FlowShell>
+  <section class="bg-cream page-intro-space">
+    <div class="mx-auto max-w-7xl px-5 sm:px-8">
+      <EditorialHeading
+        as="h1"
+        size="section"
+        eyebrow="For musicians · Service opportunities"
+        title="Find a place"
+        accent="to serve."
+        lede="Explore open Sunday and special service needs across local congregations."
+      />
+      <div class="mt-8">
+        <OpportunityBoard />
+      </div>
+    </div>
+  </section>
 </Layout>

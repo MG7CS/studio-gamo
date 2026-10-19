@@ -2,7 +2,7 @@
 /** "I am a…" routing cards for /get-started. Each links to a real or documented planned route. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { providerSignupUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
+import { providerSignupUrl, siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
 const routes: { who: string; next: string; href: string; photo: PhotoKey; shape: string }[] = [
@@ -30,7 +30,7 @@ const routes: { who: string; next: string; href: string; photo: PhotoKey; shape:
   {
     who: 'an event organizer',
     next: 'Share a Christian event on Gamo Live',
-    href: siteUrl('live', '/promote/create'),
+    href: inquiryUrl('Event listing'),
     photo: 'gospelVocalists',
     shape: 'mask-pebble',
   },

@@ -74,29 +74,43 @@ export function siteUrl(site: SiteKey, path = '/'): string {
 }
 
 /**
- * Provider sign-up on the product that owns the role (Phase 2 identity): the person creates that
- * product's account, picks the role on the sign-up screen and continues in its onboarding. Musicians and
- * churches join on Gamo Worship, teachers and church hosts on Gamo Academy, technicians on Gamo
- * Production, organizers, artists and agents on Gamo Live.
+ * Roles that join a product (musician, church, technician, teacher, organizer, artist, agent). Until
+ * each product's accounts are rebuilt (docs/REBUILD_PLAN.md) interest goes to the web contact page.
  */
 export type ProviderSignupRole =
   'musician' | 'technician' | 'church' | 'agent' | 'organizer' | 'teacher' | 'artist';
 
-export function providerSignupUrl(site: Exclude<SiteKey, 'web' | 'admin'>, role: ProviderSignupRole): string {
-  return siteUrl(site, `/account/signup?role=${role}`);
+const ROLE_TOPIC: Record<ProviderSignupRole, InquiryTopic> = {
+  musician: 'Musician application',
+  technician: 'Production crew application',
+  church: 'Church musician request',
+  agent: 'Artist or agent interest',
+  organizer: 'Event listing',
+  teacher: 'Teacher application',
+  artist: 'Artist or agent interest',
+};
+
+export function providerSignupUrl(
+  _site: Exclude<SiteKey, 'web' | 'admin'>,
+  role: ProviderSignupRole,
+): string {
+  return inquiryUrl(ROLE_TOPIC[role]);
 }
 
-/**
- * General program inquiries go through the organization contact form, pre-selecting the topic. Roles
- * with a self-service onboarding use `providerSignupUrl` instead; families register for lessons on
- * Gamo Academy without an account; production consultations (clients, not a provider role) stay here.
- */
-export type InquiryTopic =
-  | 'Church musician request'
-  | 'Musician application'
-  | 'Lesson interest'
-  | 'Church-hosted lessons'
-  | 'Production consultation';
+/** Topics the contact page pre-fills in the email subject. */
+export const inquiryTopics = [
+  'Church musician request',
+  'Musician application',
+  'Lesson interest',
+  'Church-hosted lessons',
+  'Production consultation',
+  'Production crew application',
+  'Teacher application',
+  'Artist or agent interest',
+  'Event listing',
+] as const;
+
+export type InquiryTopic = (typeof inquiryTopics)[number];
 
 export function inquiryUrl(topic: InquiryTopic): string {
   return `${siteUrl('web', '/contact')}?interest=${encodeURIComponent(topic)}`;

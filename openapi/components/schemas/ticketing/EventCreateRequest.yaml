@@ -1,4 +1,0 @@
-description: Either the organizer form (EventEditInput with organizationId) or the older CreateEvent shape.
-anyOf:
-  - $ref: ../live/CreateEvent.yaml
-  - $ref: EventEditInput.yaml
