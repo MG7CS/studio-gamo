@@ -258,10 +258,10 @@ test('emailed-code fallback: codes are rate limited per address and locked after
   const db = createDb(await migratedD1());
   const service = new IdentityService(db);
   const email = 'ratelimit@example.org';
-  for (let i = 0; i < 5; i++)
+  for (let i = 0; i < 6; i++)
     await service.issueEmailChallenge(email, { purpose: 'login', intent: 'signup', product: 'web' });
   // Product-scoped (HTTP) callers get the same answer as any request (the route's per-email limit tells
-  // the visitor to wait); nothing is sent or stored past the limit, so a known address is not revealed.
+  // the visitor to wait); nothing is sent or stored past the limit (6 per hour), so a known address is not revealed.
   const sixth = await service.issueEmailChallenge(email, {
     purpose: 'login',
     intent: 'signup',
