@@ -490,17 +490,6 @@ export async function createDraftProviderProfile(
         input.now,
       ],
     },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, NULL, 'provider.draft_created', 'provider_profile', ?2, ?3, ?4
-             WHERE EXISTS (SELECT 1 FROM provider_profiles WHERE id = ?2)`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        id,
-        JSON.stringify({ role: input.role, product: input.product }),
-        input.now,
-      ],
-    },
   ]);
   const created = await findProviderProfile(db, input.personId, input.role);
   if (!created) throw new Error('createDraftProviderProfile: profile vanished');
@@ -624,8 +613,7 @@ export function isProfileComplete(role: ProviderRole, fields: Record<string, Pro
 
 /**
  * Saves one step (draft). Refused while staff are reviewing (submitted / meeting scheduled / in review)
- * and for suspended profiles. Editing a verified profile keeps it verified but, for review-required
- * roles, staff see the change in the audit log (D-105).
+ * and for suspended profiles. Editing a verified profile keeps it verified.
  */
 export async function saveOnboardingStep(
   db: SqlDatabase,
@@ -665,17 +653,6 @@ export async function saveOnboardingStep(
              WHERE id = ?1 AND status IN ('draft', 'changes_requested', 'verified', 'rejected')
              RETURNING ${COLUMNS}`,
       params: [profile.id, JSON.stringify({ fields }), displayName, input.now],
-    },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            VALUES (?1, ?2, 'provider.step_saved', 'provider_profile', ?3, ?4, ?5)`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        input.actorUserId,
-        profile.id,
-        JSON.stringify({ step: input.stepId, statusAtSave: profile.status }),
-        input.now,
-      ],
     },
   ]);
   const row = (updated as ProfileRow[])[0];
@@ -792,20 +769,6 @@ export function gatesAllowPublishing(gates: readonly PublishGate[]): boolean {
   return gates.every((g) => g.met || !g.blocking);
 }
 
-function auditSpec(
-  action: string,
-  profileId: string,
-  actorUserId: string | null,
-  payload: unknown,
-  now: number,
-) {
-  return {
-    sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-          VALUES (?1, ?2, ?3, 'provider_profile', ?4, ?5, ?6)`,
-    params: [`audit_${crypto.randomUUID()}`, actorUserId, action, profileId, JSON.stringify(payload), now],
-  };
-}
-
 /**
  * Provider submits for staff review: needs a verified email, a complete profile and the current terms.
  * Conditional on the status read, so a double submit or a stale tab never overwrites a staff decision.
@@ -844,7 +807,6 @@ export async function submitForReview(
              WHERE (SELECT status FROM provider_profiles WHERE id = ?2) = 'submitted'`,
       params: [newPrefixedId('ver'), profile.id, profile.status, input.now],
     },
-    auditSpec('provider.submitted', profile.id, input.ctx.userId, { from: profile.status }, input.now),
   ]);
   const row = (moved as ProfileRow[])[0];
   if (!row)
@@ -878,7 +840,6 @@ export async function publishProviderProfile(
              WHERE id = ?1 AND status = ?2 AND published_at IS NULL RETURNING ${COLUMNS}`,
       params: [profile.id, profile.status, input.now],
     },
-    auditSpec('provider.published', profile.id, input.ctx.userId, { status: profile.status }, input.now),
   ]);
   const row = (rows as ProfileRow[])[0];
   if (!row)
@@ -905,7 +866,6 @@ export async function unpublishProviderProfile(
       sql: 'UPDATE provider_profiles SET published_at = NULL, updated_at = ?2 WHERE id = ?1',
       params: [profile.id, input.now],
     },
-    auditSpec('provider.unpublished', profile.id, input.ctx.userId, {}, input.now),
   ]);
 }
 

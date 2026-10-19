@@ -76,17 +76,6 @@ export async function applyClerkWebhookEvent(
             },
           ]
         : []),
-      {
-        sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-              VALUES (?1, NULL, ?2, 'user', ?3, ?4, ?5)`,
-        params: [
-          `audit_${crypto.randomUUID()}`,
-          `clerk.${input.type}`,
-          link.user_id,
-          JSON.stringify({ product: input.product, linkSuspended: suspend }),
-          input.now,
-        ],
-      },
     ]);
     return {
       status: 'revoked',

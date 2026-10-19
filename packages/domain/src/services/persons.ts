@@ -12,8 +12,8 @@
  * grants a session, a product account, a staff role or a workspace in another product — those stay per
  * product (`product_accounts`, `sessions`, `user_roles`, `organization_members`).
  *
- * Unlinking ("Unlink this product" on the account page) sets `users.person_id = NULL` and writes a
- * `person.unlinked` audit row; automatic linking then stays off for that user until the person links again
+ * Unlinking ("Unlink this product" on the account page) sets `users.person_id = NULL` and sets
+ * `users.person_link_opt_out_at`; automatic linking then stays off for that user until the person links again
  * from the account page (`person.linked` with `explicit: true`). Note: with the emailed-code flow one
  * `users` row can back several products' accounts, so those products are unlinked together (the account
  * page names them).
@@ -52,10 +52,6 @@ const PRODUCT_NAMES: Record<Product, string> = {
   live: 'Gamo Live',
   production: 'Gamo Production',
 };
-
-function auditId(): string {
-  return `audit_${crypto.randomUUID()}`;
-}
 
 /**
  * True when the person unlinked this user: `users.person_link_opt_out_at` is set, or (legacy, before the
@@ -139,13 +135,6 @@ export async function linkUserToVerifiedPerson(
       return { linked: false, personId: user.person_id, reason: 'kept_existing' };
   }
 
-  const payload = JSON.stringify({
-    personId,
-    product: input.product,
-    source: input.source,
-    explicit: input.explicit === true,
-    previousPersonId: user.person_id ?? null,
-  });
   const expected = user.person_id ?? null;
   const [updated] = await runBatch(db, [
     {
@@ -155,11 +144,6 @@ export async function linkUserToVerifiedPerson(
                AND EXISTS (SELECT 1 FROM persons WHERE id = ?2 AND erased_at IS NULL)
              RETURNING person_id`,
       params: [user.id, personId, expected],
-    },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, ?2, 'person.linked', 'user', ?2, ?3, ?4 WHERE changes() = 1`,
-      params: [auditId(), user.id, payload, input.now],
     },
   ]);
   if ((updated as unknown[]).length === 1) return { linked: true, personId, changed: true };
@@ -173,21 +157,14 @@ export async function linkUserToVerifiedPerson(
 }
 
 /**
- * "Unlink this product": clears `users.person_id` for the signed-in user and records `person.unlinked`
- * (which also turns automatic re-linking off). Returns false when nothing was linked.
+ * "Unlink this product": clears `users.person_id` for the signed-in user and sets the opt-out time
+ * (which turns automatic re-linking off). Returns false when nothing was linked.
  */
 export async function unlinkUserFromPerson(
   db: SqlDatabase,
   input: { userId: string; product: Product; now: number },
 ): Promise<boolean> {
-  const [, cleared] = await runBatch(db, [
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, ?2, 'person.unlinked', 'user', ?2,
-                   json_object('personId', person_id, 'product', ?3), ?4
-              FROM users WHERE id = ?2 AND person_id IS NOT NULL`,
-      params: [auditId(), input.userId, input.product, input.now],
-    },
+  const [cleared] = await runBatch(db, [
     {
       sql: 'UPDATE users SET person_id = NULL, person_link_opt_out_at = ?2 WHERE id = ?1 AND person_id IS NOT NULL RETURNING id',
       params: [input.userId, input.now],

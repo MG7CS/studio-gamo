@@ -1,0 +1,27 @@
+---
+/** Provider review: musicians, technicians, teachers, artists and agents. */
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import ReviewQueue from '../../components/ReviewQueue.astro';
+import { getRuntimeEnv, roleLabel } from '@gamo/domain';
+import { loadQueue } from '../../lib/review-data';
+import { PROVIDER_REVIEW_ROLES } from '../../lib/review-scope';
+
+const env = await getRuntimeEnv(Astro);
+const queue = await loadQueue(env.DB, PROVIDER_REVIEW_ROLES, Astro.url);
+const roles = PROVIDER_REVIEW_ROLES.map((r) => ({ value: r, label: roleLabel(r) }));
+---
+
+<AdminLayout title="Provider review" current="providers">
+  <PageHeader
+    title="Provider review"
+    description="Musicians, technicians and teachers need verification before they are listed; artists and agents may ask for it."
+  />
+  <ReviewQueue
+    basePath="/providers"
+    itemBase="/providers"
+    queue={queue}
+    roles={roles}
+    emptyText="No providers in this state."
+  />
+</AdminLayout>

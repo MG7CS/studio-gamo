@@ -24,6 +24,7 @@ const LOCAL_ONLY_FLAGS = [
   'ALLOW_DEMO_SESSION',
   'ALLOW_AUTH_SIMULATION',
   'ALLOW_PUBLIC_DEMO_WORKSPACES',
+  'ALLOW_LOCAL_ADMIN_IDENTITY',
 ] as const;
 
 const present = (value: unknown): boolean => typeof value === 'string' && value.trim().length > 0;
@@ -62,7 +63,8 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     );
 
   if (!env.DB) add('error', 'DB', 'D1 binding is missing; accounts and data features are unavailable');
-  if (!present(env.SESSION_SECRET) || (env.SESSION_SECRET?.length ?? 0) < 32) {
+  // The admin has no sessions (Cloudflare Access is its only credential), so it needs no signing secret.
+  if (app !== 'admin' && (!present(env.SESSION_SECRET) || (env.SESSION_SECRET?.length ?? 0) < 32)) {
     add('error', 'SESSION_SECRET', 'must be set to at least 32 characters; sign-in is unavailable');
   }
 

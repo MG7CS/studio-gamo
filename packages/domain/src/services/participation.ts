@@ -1,5 +1,5 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
-import { auditLogs, participationInquiries, type GamoDatabase } from '@gamo/db';
+import { participationInquiries, type GamoDatabase } from '@gamo/db';
 import { z } from 'zod';
 
 export const participationInputSchema = z
@@ -38,14 +38,17 @@ export class ParticipationService {
       .limit(100);
     return rows.map((row) => this.publicRecord(row));
   }
-  async review(id: string, reviewerId: string, input: z.infer<typeof participationReviewSchema>) {
+  /**
+   * Records the admin's reply on an inquiry (visible to the person who sent it). There is one admin and no
+   * reviewer account, so `reviewed_by_user_id` stays empty.
+   */
+  async review(id: string, input: z.infer<typeof participationReviewSchema>) {
     const [existing] = await this.db
       .select()
       .from(participationInquiries)
       .where(eq(participationInquiries.id, id))
       .limit(1);
     if (!existing) throw new Error('NOT_FOUND');
-    if (existing.userId === reviewerId) throw new Error('FORBIDDEN: self-review is prohibited.');
     if (existing.status === 'closed') throw new Error('CONFLICT: inquiry is closed.');
     const now = new Date();
     const result = await this.db.batch([
@@ -54,20 +57,11 @@ export class ParticipationService {
         .set({
           status: input.status,
           reviewNotes: input.notes,
-          reviewedByUserId: reviewerId,
+          reviewedByUserId: null,
           reviewedAt: now,
         })
         .where(and(eq(participationInquiries.id, id), ne(participationInquiries.status, 'closed')))
         .returning(),
-      this.db.insert(auditLogs).values({
-        id: `audit_${crypto.randomUUID()}`,
-        actorUserId: reviewerId,
-        action: 'participation.reviewed',
-        entityType: 'participation_inquiry',
-        entityId: id,
-        payloadJson: JSON.stringify({ status: input.status }),
-        createdAt: now,
-      }),
     ]);
     const inquiry = result[0][0];
     if (!inquiry) throw new Error('CONFLICT: inquiry is closed.');

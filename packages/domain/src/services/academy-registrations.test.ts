@@ -371,13 +371,6 @@ test('receipt link opens a registration-scoped session; cancel reserved vs paid 
   assert.equal(refund.refundRequested, true);
   assert.equal(refund.registration.status, 'cancelled');
   assert.equal(refund.registration.paidAt, NOW);
-  const audit = db.sqlite
-    .prepare("SELECT entity_id FROM audit_logs WHERE action = 'academy_registration.refund_requested'")
-    .all() as any[];
-  assert.deepEqual(
-    audit.map((a) => a.entity_id),
-    [paid.registration.id],
-  );
   await assert.rejects(
     cancelAcademyRegistration(db, {
       registrationId: other.registration.id,

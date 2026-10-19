@@ -29,7 +29,7 @@ export const POST: APIRoute = async (context) => {
 
     await requireEventPermission(db, auth, eventId, 'edit_content');
 
-    // Only someone who already holds approve_refunds AND view_settlement (e.g. primary owner or superadmin)
+    // Only someone who already holds approve_refunds AND view_settlement (e.g. the primary owner)
     // can grant refund approval or settlement access to another team member.
     const actorCanGrantFinancialAuthority =
       (await hasEventPermission(db, auth, eventId, 'approve_refunds')) &&

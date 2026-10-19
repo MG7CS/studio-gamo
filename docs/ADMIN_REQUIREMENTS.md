@@ -55,7 +55,7 @@ The sheet's text colors fail WCAG 2.2 AA: body text `#a0a4c3` is 2.4:1 on white,
 |---|---|---|
 | main text | `#283354` | 12.4:1 |
 | body/secondary text | `#5a6283` | 6.0:1 (5.4:1 on page background) |
-| muted/caption text | `#6b7194` | 4.8:1 |
+| muted/caption text | `#646a8c` | 5.3:1 |
 | primary button fill and links | `#6d59d6`, white text | 5.2:1 |
 | status text | success `#1f7a52`, warning `#8a5a00`, danger `#b3303c` | 5.3 / 5.9 / 6.2:1 |
 
@@ -73,17 +73,17 @@ This is an owner-approved exception to the repo's single-palette UI rule (AGENTS
 
 ## 5. Backend cleanup that goes with it (separate commits)
 
-**Done 2026-10-19:** admin-password and gate-cookie code, `requireStaff`/`requireSuperadmin`/`verifyStaffBoundaryIdentity`, `provisionStaffIdentity` and its schema and OpenAPI schemas, the review form handlers (the meeting-time helper moved to `services/meeting-time.ts`), break-glass and `ADMIN_*` variables (`ADMIN_EMAIL` added). **Still to do:** the items below that are not listed here, decided with each screen.
+**Done 2026-10-19:** admin-password and gate-cookie code, `requireStaff`/`requireSuperadmin`/`verifyStaffBoundaryIdentity`, `provisionStaffIdentity` and its schema and OpenAPI schemas, the review form handlers (the meeting-time helper moved to `services/meeting-time.ts`), break-glass and `ADMIN_*` variables (`ADMIN_EMAIL` added). Also done: product-level `superadmin` overrides and `isStaffOrAdmin`, and every `audit_logs` write (tables stay until an approved drop migration). **Still to do:** the `staff_reviewer` role check, self-review rules and actor signatures (decided with each screen), a one-time backfill of `users.person_link_opt_out_at` from old `person.unlinked` audit rows before `audit_logs` is dropped, and the drop migration for `audit_logs` and `admin_credentials`.
 
 Remove: `admin_credentials` use and the admin-password code, the gate cookie, staff roles and provisioning (`staff_reviewer`, `superadmin`, `provisionStaffIdentity`, `requireStaff`, `requireSuperadmin`, `verifyStaffBoundaryIdentity` and Access-subject bindings), break-glass and `ADMIN_*` variables, `audit_logs` writes in services, self-review rules. Change: review services take the admin's email as the actor name instead of a staff user ID. Keep: `verification_records` (providers see their decision history). Migrations already applied are never edited; dropping tables or columns, if wanted, is a new migration.
 
 ## 6. Build order
 
-1. Gate and shell in the clay style (tokens, layout, components, 404/500, deny-by-default test).
-2. Inbox and the real counts.
-3. Church verification and provider review.
-4. First-event review.
-5. Participation requests.
+1. ~~Gate and shell in the clay style~~ (done 2026-10-19).
+2. ~~Inbox and the real counts~~ (done 2026-10-19; links to the queues are added as each queue page is built).
+3. ~~Church verification and provider review~~ (done 2026-10-19).
+4. ~~First-event review~~ (done 2026-10-19).
+5. ~~Participation requests~~ (done 2026-10-19).
 6. Legal.
 7. Preview deployment, owner signs in through real Access, then cutover (delete the old worker).
 

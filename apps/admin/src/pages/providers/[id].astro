@@ -1,0 +1,36 @@
+---
+/** One profile page: details, history and decisions. POST applies a decision. */
+import ProfilePage from '../../components/ProfilePage.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { decideProfile } from '../../lib/provider-actions';
+import { getAdminEmail } from '../../lib/gate';
+import { loadProviderDetail, outcomeFrom } from '../../lib/review-data';
+
+const adminName = getAdminEmail(Astro.locals) ?? '';
+const env = await getRuntimeEnv(Astro);
+const id = String(Astro.params.id ?? '');
+
+let error: { message: string; field?: string } | null = null;
+if (Astro.request.method === 'POST') {
+  const outcome = await decideProfile(Astro.request, env, id, adminName);
+  if (outcome.ok) return Astro.redirect(outcome.location, 303);
+  error = { message: outcome.message, field: outcome.field };
+  Astro.response.status = outcome.status;
+}
+
+const view = await loadProviderDetail(env.DB, id);
+// A profile belongs on its own queue's URL.
+const isChurch = view?.profile.role === 'church';
+if (view && isChurch)
+  return Astro.redirect(`${isChurch ? '/churches' : '/providers'}/${encodeURIComponent(id)}`, 303);
+if (!view && Astro.response.status === 200) Astro.response.status = 404;
+---
+
+<ProfilePage
+  view={view}
+  adminName={adminName}
+  nav="providers"
+  back={{ href: '/providers', label: 'Back to provider review' }}
+  outcome={outcomeFrom(Astro.url)}
+  error={error}
+/>

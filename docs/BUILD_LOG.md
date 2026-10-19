@@ -738,3 +738,29 @@
 - Fix: `redirect: 'manual'` (a redirect is a non-2xx response and is refused). Refusals now log a fixed reason code (`[admin] Cloudflare Access assertion rejected: <reason>`), never token or config values; `VerificationResult.reason` is new and additive.
 - Tests: `scripts/audit/cf-access.test.ts` (redirect mode, reason codes), `tests/e2e/admin-signin.spec.ts` (wrong password; temporary password → forced change → workspace → sign out → old password refused; JavaScript disabled; tampered assertion), run with `pnpm --filter apps-admin build && E2E_APPS=admin pnpm exec playwright test tests/e2e/admin-signin.spec.ts --workers=1`. With `redirect: 'error'` put back, the spec fails.
 - Playwright now starts the admin server for `E2E_APPS=admin` (and in the default full run).
+
+## 2026-10-19 — Admin rebuilt from scratch: gate and clay shell (not deployed, not pushed)
+
+- New `apps/admin` (Astro 7 + Cloudflare adapter, worker name `gamo-admin-next`, no production environment until cutover; the old `gamo-admin` worker stays live). Plan: `docs/ADMIN_REQUIREMENTS.md`.
+- Gate: Cloudflare Access only. Every request needs a valid Access assertion whose email is `ADMIN_EMAIL`; anything else is a plain 401/403/503 (no sign-in page, accounts, sessions, passwords or emergency credentials). Local development only: `ALLOW_LOCAL_ADMIN_IDENTITY=true` on a loopback host with `ENVIRONMENT=local` (fatal elsewhere).
+- Shell in the claymorphism design: tokens in `src/styles/clay.css` (darker text/primary colors than the sheet so contrast passes AA), floating panel, sidebar (desktop) / bottom tab bar (mobile), admin chip, Inbox with real counts and the longest-waiting items, 404/500 in the same shell. Nav lists only existing pages (Inbox).
+- Checked on the running dev server against sample rows in the local D1: screenshots at 1440 and 390 px; axe (WCAG 2.2 AA) clean and no horizontal overflow at 1440 and 360 px on `/` and a 404; production build succeeds. Not run: `scripts/audit/admin.test.ts` and the extended `packages/config/env-validation.test.ts` (written, run only on request), browser CSP check against the built worker.
+
+## 2026-10-19 — Admin: church verification and provider review (not deployed, not pushed)
+
+- Review services reshaped for one admin: `AdminActor { name }` (the admin's email) replaces staff users; `verification_records.staff_user_id` is the fixed id `admin`; self-review rules, the staff-role check and `moderation_reviews` writes are gone; `AdminService.reviewEvent` returns `{ event, firstApproval }`. Tests updated to match (not run).
+- Pages in `apps/admin`: `/churches`, `/providers` (status and role filters, oldest first, honest empty states and truncation note) and `/churches/[id]`, `/providers/[id]` (profile facts, decision history, decision forms; a profile is redirected to its own queue's URL). Decisions are plain same-origin form POSTs with a stale-form guard; the provider is emailed through the outbox and the page says whether it was. Sidebar badges and Inbox links come from real counts.
+- Bug fixed on the way: the old profile page formatted dates with `dateStyle` plus `timeZoneName`, which throws, so a profile with history rendered nothing after its header. `formatWhen` in `lib/format.ts` replaces it (unit test added).
+- Checked in a real browser against the local D1: schedule meeting → verify with notes for a church (Verify is not offered before the meeting), history, notices, provider email status; axe WCAG 2.2 AA clean and no overflow at 390 px. Not run: `scripts/audit/admin.test.ts` and the updated service tests.
+
+## 2026-10-19 — Admin: first-event review (not deployed, not pushed)
+
+- `/events` in `apps/admin`: events in `pending_review` (same query as the sidebar count), oldest submission first, each with organizer, date in its time zone, venue, category and admission, description, and why it is in review (first event, or the organizer is set to review every event). Approve, ask for changes, or reject (a note is required for the last two); the organizer switch "review every event". Forms POST to the page (same-origin check, conditional status change, `verification_records` row with actor `admin`); results come back as fixed messages; a second decision on the same event is a conflict.
+- Honest limit shown on the page: organizers are not emailed about event decisions (the old admin did not either), so the note is kept with the decision only.
+- Checked in a real browser against the local D1: reject without a note is refused, approve records the first approval, the switch toggles, ask-for-changes empties the queue to the honest empty state, badge follows; axe clean and no overflow. Unit test added to `scripts/audit/admin.test.ts` (not run).
+
+## 2026-10-19 — Admin: participation requests (not deployed, not pushed)
+
+- `ParticipationService.review(id, input)` no longer takes a reviewer: no self-review rule, `reviewed_by_user_id` stays empty (one admin). `scripts/audit/participation.test.ts` updated (not run).
+- `/participation` in `apps/admin`: status filters (waiting oldest first, others newest first), each inquiry with who/what/when and the message, the admin's last reply, and a reply form (reply required; keep open or close). Plain same-origin POST, fixed result messages, honest empty state, truncation note. Nav item with a real badge; Inbox card and waiting-list rows link here.
+- Checked in a real browser against the local D1: reply keeps an inquiry open as "Replied", close removes the form, the queue empties to the honest empty state and the badge follows; axe clean, no overflow at 1440 or 390 px. Unit test added to `scripts/audit/admin.test.ts` (not run).

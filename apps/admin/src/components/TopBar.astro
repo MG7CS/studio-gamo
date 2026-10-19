@@ -1,0 +1,29 @@
+---
+/** Page-level top bar: the brand on small screens and the admin chip. */
+import BrandMark from './BrandMark.astro';
+
+interface Props {
+  email: string;
+}
+const { email } = Astro.props;
+const initial = email.charAt(0).toUpperCase();
+---
+
+<header class="flex items-center justify-between gap-4 px-4 pt-5 sm:px-8 lg:pt-8">
+  <a href="/" class="flex items-center gap-3 lg:hidden">
+    <BrandMark />
+    <span class="text-lg font-extrabold text-ink">Gamo</span>
+  </a>
+  <div class="ml-auto flex items-center gap-3 rounded-full bg-surface px-3 py-2 shadow-soft">
+    <span
+      class="grid h-9 w-9 place-items-center rounded-full bg-clay-100 text-sm font-extrabold text-clay-800"
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
+    <span class="hidden leading-tight sm:block">
+      <span class="block max-w-56 truncate text-sm font-semibold text-ink">{email}</span>
+      <span class="block text-xs font-medium text-muted">Administrator</span>
+    </span>
+  </div>
+</header>

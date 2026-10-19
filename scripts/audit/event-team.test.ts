@@ -115,14 +115,6 @@ test('only an owner/admin grants ticketing, scanning or production access; revok
     /FORBIDDEN/,
     'a non-admin cannot flip a revoked row back to active',
   );
-  assert.equal(
-    (
-      d1.sqlite.prepare("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'event.team.revoked'").get() as {
-        n: number;
-      }
-    ).n,
-    1,
-  );
   await assert.rejects(
     () =>
       live.revokeEventTeamMember(event.id, owner.id, true, { userId: helper.id, role: 'finance_contact' }),

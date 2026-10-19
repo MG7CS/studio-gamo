@@ -152,7 +152,7 @@ test('an unverified email never links: guest forms and unverified Clerk emails c
   assert.ok(verified.personId);
 });
 
-test('unlink clears the link, writes an audit row and keeps automatic re-linking off until linked again', async () => {
+test('unlink clears the link and keeps automatic re-linking off until linked again', async () => {
   const { d1, one, identity } = await setup();
   const user = await signUp(identity, 'unlink@example.org', 'worship');
   const personId = user.personId!;
@@ -161,10 +161,10 @@ test('unlink clears the link, writes an audit row and keeps automatic re-linking
     one<{ person_id: string | null }>('SELECT person_id FROM users WHERE id = ?', user.id).person_id,
     null,
   );
-  const audit = one<{ action: string; payload_json: string }>(
-    "SELECT action, payload_json FROM audit_logs WHERE action = 'person.unlinked'",
+  assert.notEqual(
+    one<{ o: number | null }>('SELECT person_link_opt_out_at AS o FROM users WHERE id = ?', user.id).o,
+    null,
   );
-  assert.equal(JSON.parse(audit.payload_json).personId, personId);
   assert.equal(await unlinkUserFromPerson(d1, { userId: user.id, product: 'worship', now: NOW }), false);
 
   // Signing in again does not silently re-link.
@@ -262,10 +262,6 @@ test('concurrent links of the same verified email end with one person and one li
   const ids = new Set(results.map((r) => (r.linked ? r.personId : null)));
   assert.equal(ids.size, 1);
   assert.equal(one<{ n: number }>('SELECT COUNT(*) AS n FROM persons').n, 1);
-  assert.equal(
-    one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'person.linked'").n,
-    1,
-  );
 });
 
 test('customer account claim: the account lists the guest records of the same verified person (read-only)', async () => {

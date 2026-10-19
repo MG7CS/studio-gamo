@@ -1,0 +1,28 @@
+---
+/** Pill button in the clay style. `danger` is outlined so the label, not the color, says what it does. */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  type?: 'submit' | 'button';
+  name?: string;
+  value?: string;
+}
+const { variant = 'primary', type = 'submit', name, value } = Astro.props;
+const styles = {
+  primary: 'bg-clay-700 text-white shadow-button hover:bg-clay-800',
+  secondary: 'bg-clay-50 text-clay-800 shadow-soft hover:bg-clay-100',
+  danger: 'bg-surface text-danger ring-2 ring-danger hover:bg-danger-fill/20',
+  ghost: 'bg-transparent text-clay-800 ring-1 ring-field hover:bg-clay-50',
+}[variant];
+---
+
+<button
+  type={type}
+  name={name}
+  value={value}
+  class:list={[
+    'inline-flex min-h-11 items-center justify-center rounded-full px-6 text-sm font-bold transition-colors',
+    styles,
+  ]}
+>
+  <slot />
+</button>

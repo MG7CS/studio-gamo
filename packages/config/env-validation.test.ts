@@ -43,6 +43,20 @@ test('admin requires Cloudflare Access settings; live warns about unconfigured p
     'CF_ACCESS_AUD',
     'ADMIN_EMAIL',
   ]);
+  // The admin has no sessions, so no signing secret; and its local-only identity flag is fatal outside local.
+  assert.ok(
+    !names(
+      validateEnv('admin', { ...base, SESSION_SECRET: undefined }, 'admin.gamostudio.org'),
+      'error',
+    ).includes('SESSION_SECRET'),
+  );
+  assert.deepEqual(
+    names(
+      validateEnv('admin', { ...base, ALLOW_LOCAL_ADMIN_IDENTITY: 'true' }, 'admin.gamostudio.org'),
+      'fatal',
+    ),
+    ['ALLOW_LOCAL_ADMIN_IDENTITY'],
+  );
   assert.deepEqual(names(validateEnv('live', base, 'live.gamostudio.org'), 'warning'), [
     'RESEND_API_KEY',
     'STRIPE_SECRET_KEY',

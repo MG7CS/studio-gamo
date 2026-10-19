@@ -73,9 +73,8 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     );
     organizerOrgId = org.id;
 
-    // 4. A staff reviewer user (D1 role only; the new admin is gated by Cloudflare Access instead)
+    // 4. A sample user (also used as the artist and booking requester below)
     const reviewer = await identityService.findOrCreateUser('jordan.avery@example.invalid', 'Jordan Avery');
-    await identityService.assignSystemRole(reviewer.id, 'staff_reviewer');
     staffUserId = reviewer.id;
   });
 
@@ -126,21 +125,15 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     const targetEvent = pendingList[0].event;
 
     // 2. Staff approves the event
-    const reviewResult = await adminService.reviewEvent(staffUserId, targetEvent.id, {
+    const reviewResult = await adminService.reviewEvent({ name: 'Sample Admin' }, targetEvent.id, {
       decision: 'approved',
       notes: 'Faithfully aligns with Christian gathering policy and community mission.',
     });
 
     assert.equal(reviewResult.event.status, 'approved');
-    assert.ok(reviewResult.reviewId.startsWith('mod_'));
+    assert.equal(reviewResult.firstApproval, true);
 
-    // 3. Verify audit log was recorded
-    const auditLogs = await adminService.getRecentAuditLogs(5);
-    const eventAudit = auditLogs.find((l) => l.entityId === targetEvent.id && l.action === 'event.approved');
-    assert.ok(eventAudit !== undefined);
-    assert.equal(eventAudit?.actorUserId, staffUserId);
-
-    // 4. Approved event is now discoverable in public listings
+    // 3. Approved event is now discoverable in public listings
     const publicEvents = await liveService.listDiscoverableEvents({ city: 'Phoenix' });
     assert.equal(publicEvents.length, 1);
     assert.equal(publicEvents[0].id, targetEvent.id);

@@ -465,29 +465,6 @@ export function accessLogStatement(input: {
   };
 }
 
-/** Statement that appends an `audit_logs` row (organizer/staff actions with their reason). */
-export function auditLogStatement(input: {
-  actorUserId: string | null;
-  action: string;
-  entityType: string;
-  entityId: string;
-  payload?: Record<string, unknown>;
-  now: number;
-}) {
-  return {
-    sql: 'INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)',
-    params: [
-      newPrefixedId('aud'),
-      input.actorUserId,
-      input.action,
-      input.entityType,
-      input.entityId,
-      input.payload ? JSON.stringify(input.payload) : null,
-      input.now,
-    ],
-  };
-}
-
 /** A short, non-reversible label for logs and rate-limit keys (never log the raw id with PII). */
 export async function keyHash(value: string): Promise<string> {
   return (await sha256Hex(`ticketing|${value}`)).slice(0, 32);

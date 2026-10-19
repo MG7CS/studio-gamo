@@ -1,0 +1,85 @@
+/*
+ * Admin design system: claymorphism (design-reference/claymorphism-admin-ui/). Admin pages use only this file's
+ * tokens; the public sites keep the booklet tokens. Text colors are darker than the design sheet so every pair
+ * meets WCAG 2.2 AA (docs/ADMIN_REQUIREMENTS.md §3).
+ */
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Primary (lavender) */
+  --color-clay-50: #f3ebfe;
+  --color-clay-100: #eee6fd;
+  --color-clay-300: #d4c5fa;
+  --color-clay-500: #9e8bf1;
+  --color-clay-600: #8d78ed;
+  --color-clay-700: #6d59d6;
+  --color-clay-800: #5a47bd;
+
+  /* Neutrals */
+  --color-page: #f5f3fb;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f7f4fc;
+  --color-ink: #283354;
+  --color-body: #5a6283;
+  --color-muted: #646a8c;
+  --color-line: #d9d3ec;
+  /* Borders of inputs and other controls: at least 3:1 against white (WCAG 1.4.11). */
+  --color-field: #8a84ad;
+
+  /* Semantic fills (backgrounds only) and the text colors that sit on white */
+  --color-success-fill: #9de5c2;
+  --color-warning-fill: #fdd29a;
+  --color-danger-fill: #fd969d;
+  --color-mint: #bcefdb;
+  --color-peach: #fdc8ba;
+  --color-lavender: #e3d6fb;
+  --color-success: #1f7a52;
+  --color-warning: #8a5a00;
+  --color-danger: #b3303c;
+
+  /* Radius (10 / 16 / 24 / 32 / 48) */
+  --radius-clay-sm: 10px;
+  --radius-clay-md: 16px;
+  --radius-clay-lg: 24px;
+  --radius-clay-xl: 32px;
+  --radius-clay-2xl: 48px;
+
+  /* Shadows */
+  --shadow-soft: 12px 12px 32px rgba(78, 64, 120, 0.12), -8px -8px 24px rgba(255, 255, 255, 0.9);
+  --shadow-card: 0 18px 45px rgba(81, 65, 130, 0.16);
+  --shadow-inset: inset 4px 4px 10px rgba(88, 78, 120, 0.08), inset -4px -4px 10px rgba(255, 255, 255, 0.9);
+  --shadow-button: 0 14px 28px rgba(104, 71, 232, 0.32);
+}
+
+@layer base {
+  html {
+    background: var(--color-page);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+  }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(60rem 40rem at 12% -10%, rgba(212, 197, 250, 0.45), transparent 60%),
+      radial-gradient(50rem 36rem at 100% 100%, rgba(189, 239, 219, 0.35), transparent 60%), var(--color-page);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-clay-700);
+    outline-offset: 2px;
+  }
+  h1,
+  h2,
+  h3 {
+    color: var(--color-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

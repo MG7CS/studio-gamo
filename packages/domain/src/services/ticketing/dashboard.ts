@@ -489,7 +489,7 @@ export async function scanLogCsv(
 /** Events the dashboard lists for a user: organizer-org owner/admin, or an active team grant. */
 export async function organizerEvents(
   db: SqlDatabase,
-  input: { userId: string; organizationIds: string[]; superadmin: boolean; limit?: number },
+  input: { userId: string; organizationIds: string[]; limit?: number },
 ) {
   const orgs = input.organizationIds.slice(0, 50);
   const orgClause = orgs.length
@@ -503,7 +503,7 @@ export async function organizerEvents(
     status: string;
     admission_type: string;
   }>(db, {
-    sql: `SELECT e.id, e.title, e.starts_at, e.timezone, e.status, e.admission_type FROM events e JOIN organizer_profiles op ON op.id = e.organizer_id WHERE e.listing_type != 'external_discovery' AND e.external_only = 0 AND (${input.superadmin ? '1' : '0'} OR ${orgClause} OR EXISTS (SELECT 1 FROM event_team_members m WHERE m.event_id = e.id AND m.user_id = ?1 AND m.status = 'active' AND (m.can_manage_ticketing = 1 OR m.can_scan_tickets = 1))) ORDER BY e.starts_at DESC LIMIT ${Math.min(input.limit ?? 50, 200)}`,
+    sql: `SELECT e.id, e.title, e.starts_at, e.timezone, e.status, e.admission_type FROM events e JOIN organizer_profiles op ON op.id = e.organizer_id WHERE e.listing_type != 'external_discovery' AND e.external_only = 0 AND (${orgClause} OR EXISTS (SELECT 1 FROM event_team_members m WHERE m.event_id = e.id AND m.user_id = ?1 AND m.status = 'active' AND (m.can_manage_ticketing = 1 OR m.can_scan_tickets = 1))) ORDER BY e.starts_at DESC LIMIT ${Math.min(input.limit ?? 50, 200)}`,
     params: [input.userId, ...orgs],
   });
 }

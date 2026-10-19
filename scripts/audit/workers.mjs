@@ -101,31 +101,6 @@ try {
     cookie,
   );
   const orgId = orgCreated.json.data.organization.id;
-  // 2. Superadmin provisions staff reviewer identity with Cloudflare Access sub
-  const superSession = await call('/api/auth/session', 200, { email: 'superadmin@example.invalid' });
-  const superCookie = superSession.response.headers.get('set-cookie').split(';')[0];
-  const superId = superSession.json.data.user.id;
-  await db.batch([
-    db.prepare("INSERT INTO roles(id,code) VALUES('role_superadmin','superadmin')"),
-    db
-      .prepare(
-        "INSERT INTO user_roles(id,user_id,role_id,created_at) VALUES('ur_super',?,'role_superadmin',unixepoch())",
-      )
-      .bind(superId),
-  ]);
-  await call(
-    '/api/staff/provision',
-    200,
-    {
-      email: 'reviewer@example.invalid',
-      role: 'staff_reviewer',
-      accessSubject: 'cf-access-sub-workerd-1',
-      displayName: 'Workerd Reviewer',
-    },
-    superCookie,
-  );
-  const reviewer = await call('/api/auth/session', 200, { email: 'reviewer@example.invalid' });
-  const staffCookie = reviewer.response.headers.get('set-cookie').split(';')[0];
   const input = {
     organizationId: orgId,
     title: 'Sample Audit Worship',
@@ -142,9 +117,8 @@ try {
   const created = await call('/api/events', 201, input, cookie);
   const id = created.json.data.event.id;
   await call(`/api/events/${id}`, 404);
-  await call(`/api/events/${id}/review`, 403, { decision: 'approved' }, cookie);
-  await call('/api/events/pending', 200, undefined, staffCookie);
-  await call(`/api/events/${id}/review`, 200, { decision: 'approved' }, staffCookie);
+  // Approval is a staff action done outside these routes (the admin is being rebuilt): approve in D1.
+  await db.prepare("UPDATE events SET status = 'approved' WHERE id = ?").bind(id).run();
   await call(`/api/events/${id}`, 200);
   const detail = await call(`/api/events/${id}`, 200);
   const categoryId = detail.json.data.tiers[0].id;

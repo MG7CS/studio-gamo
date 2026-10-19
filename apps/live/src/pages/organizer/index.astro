@@ -19,7 +19,6 @@ const events =
         organizationIds: auth.memberships
           .filter((m) => ['owner', 'admin'].includes(m.role))
           .map((m) => m.organizationId),
-        superadmin: auth.roles.includes('superadmin'),
       })
     : [];
 const when = (e: { starts_at: number; timezone: string }) => {

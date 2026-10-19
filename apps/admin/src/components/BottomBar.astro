@@ -1,0 +1,45 @@
+---
+/** Mobile bottom tab bar (the design's phone layout). Hidden on desktop, where the sidebar is shown. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { NAV_ITEMS, badgeFor, type NavKey } from '../lib/nav';
+import type { QueueCounts } from '../lib/inbox';
+
+interface Props {
+  current: NavKey | null;
+  counts: QueueCounts | null;
+}
+const { current, counts } = Astro.props;
+---
+
+<nav
+  aria-label="Admin"
+  class="fixed inset-x-3 bottom-3 z-20 rounded-clay-xl bg-surface/95 p-2 shadow-card backdrop-blur lg:hidden"
+>
+  <ul class="flex justify-around gap-1">
+    {NAV_ITEMS.map((item) => (
+      <li class="min-w-0 flex-1">
+        <a
+          href={item.href}
+          aria-current={item.key === current ? 'page' : undefined}
+          class:list={[
+            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-2 text-xs font-semibold',
+            item.key === current ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
+          ]}
+        >
+          <span class="relative">
+            <Icon name={item.icon} class="h-5 w-5" />
+            {badgeFor(item, counts) !== null && (
+              <span
+                class="absolute -right-3 -top-2 rounded-full bg-clay-700 px-1.5 text-[10px] font-bold leading-4 text-white"
+                aria-label={`${badgeFor(item, counts)} waiting`}
+              >
+                {badgeFor(item, counts)}
+              </span>
+            )}
+          </span>
+          <span class="truncate">{item.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

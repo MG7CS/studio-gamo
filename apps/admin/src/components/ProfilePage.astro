@@ -1,0 +1,36 @@
+---
+/** The profile page shared by `/churches/[id]` and `/providers/[id]`: facts, history, decisions, and any message. */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import Notice from './Notice.astro';
+import PageHeader from './PageHeader.astro';
+import ProviderDetail from './ProviderDetail.astro';
+import type { NavKey } from '../lib/nav';
+import type { ProviderDetailView } from '../lib/review-data';
+
+interface Props {
+  view: ProviderDetailView | null;
+  adminName: string;
+  nav: NavKey;
+  back: { href: string; label: string };
+  outcome: string | null;
+  error?: { message: string; field?: string } | null;
+}
+const { view, adminName, nav, back, outcome, error } = Astro.props;
+---
+
+<AdminLayout title={view ? view.profile.displayName : 'Profile not found'} current={nav}>
+  <PageHeader
+    title={view ? view.profile.displayName : 'Profile not found'}
+    description={view ? `${view.roleLabel} review` : undefined}
+  />
+  {outcome && <Notice tone="success" text={outcome} />}
+  {error && <Notice tone="error" text={error.message} />}
+  {!view && <Notice tone="info" text="That profile does not exist." />}
+  {view && <ProviderDetail view={view} adminName={adminName} errorField={error?.field ?? null} />}
+  <a
+    href={back.href}
+    class="mt-6 inline-flex min-h-11 items-center font-semibold text-clay-700 underline underline-offset-4"
+  >
+    {back.label}
+  </a>
+</AdminLayout>

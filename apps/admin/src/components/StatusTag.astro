@@ -1,0 +1,18 @@
+---
+/** A status word on a soft pill. The word carries the meaning; the tint only supports it. */
+interface Props {
+  status: string;
+  label: string;
+}
+const { status, label } = Astro.props;
+const tone =
+  status === 'verified'
+    ? 'bg-mint/60 text-success'
+    : status === 'rejected' || status === 'suspended'
+      ? 'bg-danger-fill/30 text-danger'
+      : status === 'changes_requested'
+        ? 'bg-warning-fill/50 text-warning'
+        : 'bg-clay-100 text-clay-800';
+---
+
+<span class:list={['inline-flex rounded-full px-3 py-1 text-xs font-bold', tone]}>{label}</span>

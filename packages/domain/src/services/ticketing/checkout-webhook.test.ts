@@ -602,10 +602,6 @@ describe('transfers and reissue', () => {
       now: now(),
     });
     assert.equal(r.version, 2);
-    assert.equal(
-      f.q<{ n: number }>("SELECT count(*) AS n FROM audit_logs WHERE action = 'ticket.reissue'").n,
-      1,
-    );
   });
 });
 

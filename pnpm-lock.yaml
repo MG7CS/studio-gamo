@@ -305,6 +305,43 @@ importers:
         specifier: workspace:*
         version: link:../../packages/config
 
+  apps/admin:
+    dependencies:
+      '@astrojs/cloudflare':
+        specifier: ^14.3.4
+        version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
+      '@fontsource-variable/inter':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@gamo/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@gamo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@gamo/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@studio-gamo/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      astro:
+        specifier: ^7.3.8
+        version: 7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      wrangler:
+        specifier: ^4.149.0
+        version: 4.149.0(@types/node@26.6.5)
+    devDependencies:
+      '@gamo/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
   apps/live:
     dependencies:
       '@astrojs/cloudflare':

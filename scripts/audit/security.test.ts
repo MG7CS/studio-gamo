@@ -58,6 +58,7 @@ function rsvp(f: Awaited<ReturnType<typeof fixture>>, email: string, quantity: n
     },
   );
 }
+const ADMIN = { name: 'Sample Admin' };
 async function fixture() {
   const d1 = createInMemoryD1();
   await applyMigrations(d1, migrations());
@@ -88,7 +89,7 @@ async function fixture() {
     tiers: [{ name: 'Free', priceCents: 0, capacity: 3 }],
   };
   const created = await live.createEvent(org.id, input);
-  await admin.reviewEvent(staff.id, created.event.id, { decision: 'approved' });
+  await admin.reviewEvent(ADMIN, created.event.id, { decision: 'approved' });
   return {
     d1,
     db,
@@ -188,27 +189,15 @@ test('registration races enforce capacity, duplicate uniqueness, outbox atomicit
     f.d1.sqlite.close();
   }
 });
-test('moderation rejects normal users, self-approval, repeat decisions and invalid schedules', async () => {
+test('moderation rejects repeat decisions and invalid schedules', async () => {
   const f = await fixture();
   try {
     const next = await f.live.createEvent(f.org.id, f.input);
-    await assert.rejects(
-      f.admin.reviewEvent(f.owner.id, next.event.id, { decision: 'approved' }),
-      /FORBIDDEN/,
-    );
-    await f.identity.assignSystemRole(f.owner.id, 'staff_reviewer');
-    await assert.rejects(
-      f.admin.reviewEvent(f.owner.id, next.event.id, { decision: 'approved' }),
-      /own organization/,
-    );
     assert.equal(
-      (await f.admin.reviewEvent(f.staff.id, next.event.id, { decision: 'revision_requested' })).event.status,
+      (await f.admin.reviewEvent(ADMIN, next.event.id, { decision: 'revision_requested' })).event.status,
       'revision_requested',
     );
-    await assert.rejects(
-      f.admin.reviewEvent(f.staff.id, next.event.id, { decision: 'approved' }),
-      /CONFLICT/,
-    );
+    await assert.rejects(f.admin.reviewEvent(ADMIN, next.event.id, { decision: 'approved' }), /CONFLICT/);
     await assert.rejects(f.live.createEvent(f.org.id, { ...f.input, startsAt: new Date(0) }), /schedule/);
     await assert.rejects(f.live.createEvent(f.org.id, { ...f.input, endsAt: new Date(0) }), /schedule/);
     f.d1.sqlite.prepare("UPDATE events SET status='canceled' WHERE id=?").run(f.event.id);
@@ -273,11 +262,6 @@ test('scoped system role rows never grant global staff permissions', async () =>
       .run(f.org.id, f.staff.id);
     const session = await createSession(f.db, f.staff.id, secret);
     assert.deepEqual((await validateSession(f.db, session.cookieValue, secret))?.roles, []);
-    const next = await f.live.createEvent(f.org.id, f.input);
-    await assert.rejects(
-      f.admin.reviewEvent(f.staff.id, next.event.id, { decision: 'approved' }),
-      /permission/,
-    );
   } finally {
     f.d1.sqlite.close();
   }

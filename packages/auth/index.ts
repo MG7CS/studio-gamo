@@ -446,15 +446,7 @@ export class AuthError extends Error {
  */
 export function hasSystemRole(auth: SessionData | null | undefined, role: string): boolean {
   if (!auth) return false;
-  return auth.roles.includes('superadmin') || auth.roles.includes(role);
-}
-
-/**
- * Checks if the user is a staff member or administrator.
- */
-export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
-  if (!auth) return false;
-  return auth.roles.includes('superadmin') || auth.roles.includes('staff_reviewer');
+  return auth.roles.includes(role);
 }
 
 /**
@@ -463,8 +455,6 @@ export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
  */
 export function hasProductAccess(auth: SessionData | null | undefined, product: ProductKey): boolean {
   if (!auth || !auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
-  if (auth.roles.includes('superadmin')) return true;
-
   // If the session was explicitly issued for a product, it cannot be used to authenticate into another product.
   if (auth.sessionProduct && auth.sessionProduct !== product) {
     return false;
@@ -487,8 +477,6 @@ export function hasOrgRole(
   allowedRoles: string[] = ['owner', 'admin', 'member'],
 ): boolean {
   if (!auth) return false;
-  if (auth.roles.includes('superadmin')) return true; // Superadmins have global tenant override
-
   const membership = auth.memberships.find((m) => m.organizationId === organizationId);
   if (!membership) return false;
 
@@ -573,12 +561,7 @@ export async function resolveAuth(
   if (!d1Session) return null;
 
   // Enforce strict product session boundary when product is known
-  if (
-    product &&
-    d1Session.sessionProduct &&
-    d1Session.sessionProduct !== product &&
-    !d1Session.roles.includes('superadmin')
-  ) {
+  if (product && d1Session.sessionProduct && d1Session.sessionProduct !== product) {
     return null;
   }
 
@@ -730,7 +713,6 @@ export async function hasEventPermission(
   permission: EventPermission,
 ): Promise<boolean> {
   if (!auth || !auth.user.verifiedEmailAt) return false;
-  if (auth.roles.includes('superadmin')) return true;
 
   // 1. Check explicit per-event team member grant first
   const teamRows = await db

@@ -13,7 +13,6 @@ import {
   roles,
   userRoles,
   authChallenges,
-  auditLogs,
   type GamoDatabase,
   type User,
   type Organization,
@@ -180,16 +179,6 @@ export class IdentityService {
       onboardingStatus: options?.onboardingStatus ?? 'pending',
       createdAt: now,
       updatedAt: now,
-    });
-
-    await this.db.insert(auditLogs).values({
-      id: `audit_${crypto.randomUUID()}`,
-      actorUserId: userId,
-      action: 'product_account.enrolled',
-      entityType: 'product_account',
-      entityId: id,
-      payloadJson: JSON.stringify({ product }),
-      createdAt: now,
     });
 
     const [created] = await this.db.select().from(productAccounts).where(eq(productAccounts.id, id)).limit(1);
@@ -459,21 +448,6 @@ export class IdentityService {
       await this.ensureProductAccount(user.id, options.product, { now });
     }
 
-    await this.db.insert(auditLogs).values({
-      id: `audit_${crypto.randomUUID()}`,
-      actorUserId: user.id,
-      action: 'auth.email_verified',
-      entityType: 'user',
-      entityId: user.id,
-      payloadJson: JSON.stringify({
-        challengeId: challenge.id,
-        purpose,
-        product: options?.product ?? null,
-        intent: options?.intent ?? null,
-      }),
-      createdAt: now,
-    });
-
     // The product just verified this address itself: link (or keep) the shared person record.
     if (options?.product) {
       await linkUserToVerifiedPerson(sqlDatabaseOf(this.db), {
@@ -497,7 +471,7 @@ export class IdentityService {
   }
 
   /**
-   * Creates an organization, assigns the owner membership, initializes an organizer profile, and logs an audit entry.
+   * Creates an organization, assigns the owner membership, initializes an organizer profile.
    */
   async createOrganization(
     name: string,
@@ -545,16 +519,6 @@ export class IdentityService {
       organizationId: orgId,
       kind: validKind,
       verificationStatus: 'unverified',
-      createdAt: now,
-    });
-
-    await this.db.insert(auditLogs).values({
-      id: `audit_${crypto.randomUUID()}`,
-      actorUserId: ownerUserId,
-      action: 'organization.created',
-      entityType: 'organization',
-      entityId: orgId,
-      payloadJson: JSON.stringify({ slug: cleanSlug, type }),
       createdAt: now,
     });
 
