@@ -469,7 +469,7 @@ describe('transfers and reissue', () => {
     assert.equal(inbox?.[0].kind, 'ticket_transfer');
     // The recipient opens the link from the email and sees only that ticket.
     const token = /\/link\?t=([A-Za-z0-9_-]{43})/.exec(inbox![0].text)![1];
-    const opened = await openCustomerLink(f.d1, f.env, { token, now: now(), https: false });
+    const opened = await openCustomerLink(f.d1, f.env, { product: 'live', token, now: now(), https: false });
     assert.ok(opened.ok);
     const recipient = await customerIdentity(f.d1, opened.ok ? opened.session : null);
     const recView = await getOrderView(f.d1, { orderId, session: recipient, now: now() });
@@ -667,7 +667,7 @@ describe('recovery and manage views', () => {
     const token = /\/link\?t=([A-Za-z0-9_-]{43})/.exec(
       (await readLocalTestInbox(f.env, 'old@example.org'))![0].text,
     )![1];
-    const opened = await openCustomerLink(f.d1, f.env, { token, now: t, https: false });
+    const opened = await openCustomerLink(f.d1, f.env, { product: 'live', token, now: t, https: false });
     const identity = await customerIdentity(f.d1, opened.ok ? opened.session : null);
     const view = await getOrderView(f.d1, { orderId: 'ord_legacy', session: identity, now: t });
     assert.equal(view?.tickets.length, 1);

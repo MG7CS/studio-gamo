@@ -292,6 +292,7 @@ export async function sendTicketEmail(
       : formatScope('customer')
     : formatScope('order', order.id);
   const link = await issueCustomerLink(db, env, {
+    product: 'live',
     customerProfileId: profileId,
     scope,
     purpose: input.recipient ? 'ticket' : 'order',

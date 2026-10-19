@@ -158,6 +158,12 @@ export const assignEventTeamMemberSchema = z.object({
 
 export type AssignEventTeamMemberInput = z.infer<typeof assignEventTeamMemberSchema>;
 
+export const revokeEventTeamMemberSchema = z.object({
+  userId: z.string().min(1),
+  role: assignEventTeamMemberSchema.shape.role,
+});
+export type RevokeEventTeamMemberInput = z.infer<typeof revokeEventTeamMemberSchema>;
+
 export const ticketLookupSchema = z.object({
   email: z.string().email('A valid email address is required').max(254),
   verificationCode: z.string().regex(/^[0-9]{6}$/, 'Verification code must be a 6-digit number'),

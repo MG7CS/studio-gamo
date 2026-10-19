@@ -7,10 +7,12 @@ properties:
     maxLength: 120
   toEmail:
     type: string
-    maxLength: 320
+    format: email
+    maxLength: 254
   toEmailConfirm:
     type: string
-    maxLength: 320
+    format: email
+    maxLength: 254
 required:
   - toName
   - toEmail

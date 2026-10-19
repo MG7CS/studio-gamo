@@ -37,7 +37,7 @@ let registrations: Awaited<ReturnType<typeof listCustomerRegistrations>> = [];
 
 try {
   const db = registrationDb(env);
-  session = await readCustomerSession(db, env as never, Astro.request, now);
+  session = await readCustomerSession(db, env as never, Astro.request, now, 'academy');
   const active = session;
   const covered = (id: string) => active !== null && scopeCovers(active.scope, { kind: 'registration', id });
 

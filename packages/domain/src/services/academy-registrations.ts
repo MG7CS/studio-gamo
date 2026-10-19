@@ -731,6 +731,7 @@ export async function sendRegistrationReceipt(
   },
 ): Promise<OutboxResult & { manageUrl: string }> {
   const link = await issueCustomerLink(db, env as Record<string, unknown> & { ENVIRONMENT?: unknown }, {
+    product: 'academy',
     customerProfileId: input.registration.customerProfileId,
     scope: `registration:${input.registration.id}`,
     purpose: 'registration',
@@ -790,6 +791,7 @@ export async function sendRegistrationRecovery(
     .first();
   if (!has) return { sent: false };
   const link = await issueCustomerLink(db, env as Record<string, unknown> & { ENVIRONMENT?: unknown }, {
+    product: 'academy',
     customerProfileId: profile.id,
     scope: 'customer:all',
     purpose: 'recovery',

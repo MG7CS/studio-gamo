@@ -35,6 +35,7 @@ import { authFlowOf, LOCKED_CODE_MESSAGE, sqlDatabaseOf } from '../services/iden
 import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from '../services/persons.ts';
 import { createDraftProviderProfile, isSignupRole, roleLabel, SIGNUP_ROLES } from '../services/providers.ts';
 import { guardPublicForm } from '../api/public-form-guard.ts';
+import { deferWork } from '../api/defer.ts';
 import { clerkWebhookSecretName, handleClerkWebhookRequest } from '../services/identity-clerk-webhook.ts';
 import { checkRateLimits, rateLimitBucket } from '../security/rate-limit.ts';
 import { clientIp, hashEmail, hashIp } from '../security/pii-hash.ts';
@@ -68,7 +69,9 @@ export function signupScreenOptions(product: ProductKey) {
  */
 export const AUTH_RATE_LIMITS = {
   challenge: { perIp: { limit: 30, windowSeconds: 600 }, perEmail: { limit: 5, windowSeconds: 900 } },
-  verify: { perIp: { limit: 40, windowSeconds: 600 }, perEmail: { limit: 15, windowSeconds: 900 } },
+  // Verify attempts are capped per (email, IP) pair below, not per email alone: a stranger must not be
+  // able to use up the real owner's budget (D-120).
+  verify: { perIp: { limit: 40, windowSeconds: 600 } },
   clerkSession: { perIp: { limit: 30, windowSeconds: 600 }, perEmail: { limit: 20, windowSeconds: 900 } },
 } as const;
 
@@ -143,6 +146,36 @@ function signupTermsFrom(raw: unknown): { slug: string; version: string }[] | Re
       );
   }
   return documents.filter((d) => (SIGNUP_TERMS as readonly string[]).includes(d.slug));
+}
+
+/** Verification attempts per (email, IP) per hour. Each code also accepts at most 5 guesses. */
+const VERIFY_PAIR_LIMIT = 10;
+/**
+ * Failed verifications per address per hour across ALL IPs; past it the address is locked for 15 minutes
+ * (D-120). Residual tradeoff: someone who knows the address can keep it locked by guessing wrongly, so the
+ * real owner waits or requests a new code from the sign-in page; the alternative (no global ceiling) lets a
+ * distributed attacker multiply guesses against one code.
+ */
+const VERIFY_EMAIL_FAILURES_PER_HOUR = 30;
+const VERIFY_LOCK_SECONDS = 900;
+
+function lockedResponse(): Response {
+  return errorResponse(
+    'RATE_LIMITED',
+    'Too many wrong codes for this address. Wait about 15 minutes, or request a new code from the sign-in page, then try again.',
+    429,
+    undefined,
+    { 'Retry-After': String(VERIFY_LOCK_SECONDS), 'Cache-Control': 'no-store' },
+  );
+}
+
+/** PII_HASH_SECRET when usable (keys the stored sign-in code hashes), else null (direct/legacy hashing). */
+function piiSecretFor(env: GamoEnv): string | null {
+  try {
+    return piiSecretOf(env);
+  } catch {
+    return null;
+  }
 }
 
 function piiSecretOf(env: GamoEnv): string {
@@ -230,16 +263,31 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       const product = requestProduct(context, validated.product, defaultProduct);
       const intent = validated.intent ?? 'signin';
       const db = getDb(runtimeEnv.DB);
-      const identityService = new IdentityService(db);
+      const identityService = new IdentityService(db, { hmacSecret: piiSecretFor(runtimeEnv) });
 
-      const issued = await identityService.issueEmailChallenge(validated.email, {
-        purpose: validated.purpose ?? 'login',
-        intent,
-        product,
-        ipHash: guard.ipHash,
-      });
+      const label = PRODUCT_DISPLAY_NAMES[product];
+      const flow = authFlowOf(intent);
+      const ttlMs = 10 * 60 * 1000;
+      const publicId = `chl_${crypto.randomUUID().replace(/-/g, '').slice(0, 20)}`;
+      const publicExpiry = new Date(Date.now() + ttlMs);
+      let localCode: string | null = null;
+      let localDelivered = false;
 
-      if (issued.deliver && !simulated) {
+      // Lookup, insert and send run after the response (D-119): how long they take must not tell anyone
+      // whether the address has an account here. A failed send is logged by name and answered identically.
+      const work = async () => {
+        const issued = await identityService.issueEmailChallenge(validated.email, {
+          purpose: validated.purpose ?? 'login',
+          intent,
+          product,
+          ipHash: guard.ipHash,
+        });
+        if (!issued.deliver) return;
+        if (simulated) {
+          localCode = issued.code;
+          localDelivered = true;
+          return;
+        }
         const notificationService = new NotificationService(db, {
           apiKey: runtimeEnv.RESEND_API_KEY,
           defaultFrom: runtimeEnv.EMAIL_FROM,
@@ -249,7 +297,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           email: issued.email,
           code: issued.code,
           expiresAt: issued.expiresAt,
-          programName: PRODUCT_DISPLAY_NAMES[product],
+          programName: label,
           challengeId: issued.challengeId,
         });
         if (!delivery.sent || delivery.deliveryStatus === 'simulated') {
@@ -257,19 +305,15 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
             .update(authChallenges)
             .set({ consumedAt: new Date() })
             .where(eq(authChallenges.id, issued.challengeId));
-          return errorResponse(
-            'UNAVAILABLE',
-            'We could not send a verification email. Please try again later.',
-            503,
-          );
+          console.error('[auth] challenge email was not sent');
         }
-      }
+      };
+      // Local simulation answers with the code, so it has to wait for the work.
+      await deferWork(context.locals, work, { label: 'auth.challenge', forceAwait: simulated });
 
-      const label = PRODUCT_DISPLAY_NAMES[product];
-      const flow = authFlowOf(intent);
       const message = simulated
-        ? issued.deliver
-          ? `Local simulation only; no email was sent. Local test code: ${issued.code}`
+        ? localDelivered
+          ? `Local simulation only; no email was sent. Local test code: ${localCode}`
           : `Local simulation only; no email was sent. No ${label} account uses this address, so no code was created — create an account instead.`
         : flow === 'signup'
           ? `We've emailed a 6-digit code to confirm your address. It expires in 10 minutes.`
@@ -277,8 +321,8 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
 
       return jsonResponse(
         {
-          challengeId: issued.challengeId,
-          expiresAt: issued.expiresAt.toISOString(),
+          challengeId: publicId,
+          expiresAt: publicExpiry.toISOString(),
           deliveryStatus: simulated ? ('simulated' as const) : ('sent' as const),
           message,
         },
@@ -324,7 +368,53 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
       }
 
       const db = getDb(runtimeEnv.DB);
-      const identityService = new IdentityService(db);
+      const identityService = new IdentityService(db, { hmacSecret: piiSecretFor(runtimeEnv) });
+      const pair = await checkRateLimits(
+        asSqlDatabase(runtimeEnv.DB),
+        [
+          {
+            bucket: rateLimitBucket(
+              'auth.verify-pair',
+              'key',
+              await hashEmail(`${validated.email}|${guard.ipHash}`, piiSecretOf(runtimeEnv)),
+            ),
+            limit: VERIFY_PAIR_LIMIT,
+            windowSeconds: 3600,
+          },
+        ],
+        Math.floor(Date.now() / 1000),
+      );
+      if (!pair.allowed) return rateLimitedResponse(pair.retryAfterSeconds);
+      // Global per-address ceiling across all IPs: while locked, no guess is even compared.
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const sqlDb = asSqlDatabase(runtimeEnv.DB);
+      const emailKey = await hashEmail(validated.email, piiSecretOf(runtimeEnv));
+      const lockBucket = rateLimitBucket('auth.verify-lock', 'email', emailKey);
+      const lockRow = (await sqlDb
+        .prepare('SELECT count FROM rate_limit_counters WHERE bucket = ?1 AND expires_at > ?2 LIMIT 1')
+        .bind(lockBucket, nowSeconds)
+        .first()) as { count: number } | null;
+      if (lockRow) return lockedResponse();
+      const recordFailure = async () => {
+        const failed = await checkRateLimits(
+          sqlDb,
+          [
+            {
+              bucket: rateLimitBucket('auth.verify-fail', 'email', emailKey),
+              limit: VERIFY_EMAIL_FAILURES_PER_HOUR,
+              windowSeconds: 3600,
+            },
+          ],
+          nowSeconds,
+        );
+        // Over the ceiling: lock the address for 15 minutes (one counter row with a 15-minute window).
+        if (!failed.allowed)
+          await checkRateLimits(
+            sqlDb,
+            [{ bucket: lockBucket, limit: 1, windowSeconds: VERIFY_LOCK_SECONDS }],
+            nowSeconds,
+          );
+      };
       let user;
       try {
         user = await identityService.verifyEmailChallenge(validated.email, validated.code, {
@@ -334,6 +424,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           product,
         });
       } catch (err) {
+        await recordFailure();
         if (err instanceof Error && err.message === LOCKED_CODE_MESSAGE)
           return errorResponse(
             'RATE_LIMITED',

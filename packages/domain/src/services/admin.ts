@@ -19,6 +19,8 @@ import {
   toContractEvent,
 } from '@gamo/db';
 import type { ReviewDecisionInput } from '../api/validation.ts';
+import { sqlDatabaseOf } from './identity.ts';
+import { assertNotSelfReview, recordEventReviewDecision, ReviewError } from './provider-review.ts';
 
 export class AdminService {
   db: GamoDatabase;
@@ -81,7 +83,7 @@ export class AdminService {
     reviewerUserId: string,
     eventId: string,
     input: ReviewDecisionInput,
-  ): Promise<{ event: ContractEvent; reviewId: string }> {
+  ): Promise<{ event: ContractEvent; reviewId: string; firstApproval: boolean }> {
     const [event] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
     if (!event) {
@@ -116,6 +118,27 @@ export class AdminService {
       )
       .limit(1);
     if (self) throw new Error('FORBIDDEN: Cannot moderate your own organization.');
+    // The same person/email/organization rule as every other staff review action (D-106): no caller can
+    // skip it, because it lives here.
+    const [reviewer] = await this.db.select().from(users).where(eq(users.id, reviewerUserId)).limit(1);
+    const sql = sqlDatabaseOf(this.db);
+    const staff = {
+      userId: reviewerUserId,
+      name: reviewer?.displayName?.trim() || reviewer?.email || 'Staff',
+      email: (reviewer?.email ?? '').split('#')[0],
+      personId: reviewer?.personId ?? null,
+    };
+    try {
+      await assertNotSelfReview(
+        sql,
+        staff,
+        { kind: 'organizer', organizerProfileId: event.organizerId },
+        Math.floor(Date.now() / 1000),
+      );
+    } catch (err) {
+      if (err instanceof ReviewError) throw new Error(`FORBIDDEN: ${err.message}`, { cause: err });
+      throw err;
+    }
     if (event.status !== 'pending_review') throw new Error('CONFLICT: Event already reviewed.');
     const reviewId = `mod_${crypto.randomUUID()}`;
     const newStatus = input.decision;
@@ -149,9 +172,21 @@ export class AdminService {
 
     const [updatedEvent] = await this.db.select().from(events).where(eq(events.id, eventId)).limit(1);
 
+    // First approval of an organizer's event (sets first_event_approved_at once) and the event's
+    // verification record, whichever caller made the decision (D-121).
+    const recorded = await recordEventReviewDecision(sql, {
+      eventId,
+      organizerProfileId: event.organizerId,
+      decision: input.decision,
+      staff,
+      notes: input.notes,
+      now: Math.floor(Date.now() / 1000),
+    });
+
     return {
       event: toContractEvent(updatedEvent),
       reviewId,
+      firstApproval: recorded.firstApproval,
     };
   }
 

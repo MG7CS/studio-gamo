@@ -91,8 +91,19 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
     if (misconfigured) return misconfigured;
     // API handlers own their contract-specific authorization and status codes.
     // robots.txt, sitemap.xml and llms.txt are public crawler files and must stay cacheable.
+    if (pathname.startsWith('/api/')) {
+      // Every API answer is private unless the handler said otherwise (D-123).
+      const response = await next();
+      if (response.headers.has('Cache-Control')) return response;
+      const headers = new Headers(response.headers);
+      headers.set('Cache-Control', 'no-store');
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
     if (
-      pathname.startsWith('/api/') ||
       pathname.startsWith('/_') ||
       pathname === '/robots.txt' ||
       pathname === '/sitemap.xml' ||
