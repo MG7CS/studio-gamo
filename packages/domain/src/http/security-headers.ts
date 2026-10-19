@@ -34,13 +34,15 @@ export interface SecurityHeaderOptions {
   formActionOrigins?: readonly string[];
   /** `Permissions-Policy: camera=(self)` for this response (the door scanner); otherwise `camera=()`. */
   camera?: boolean;
+  /** `Referrer-Policy: no-referrer` for this response (pages that carry a link token in the URL). */
+  noReferrer?: boolean;
 }
 
 /**
  * Per-page additions a page can request, through `requestSecurityHeaders(Astro.locals, …)` in the
  * page's frontmatter. The page middleware reads them after the page has rendered its head.
  */
-export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'camera'>;
+export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'camera' | 'noReferrer'>;
 
 /** Turnstile's script and widget frame origin (also used by Clerk's bot protection). */
 export const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
@@ -110,7 +112,7 @@ export function buildContentSecurityPolicy(
 export function securityHeaders(options: SecurityHeaderOptions): Record<string, string> {
   const headers: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Referrer-Policy': options.noReferrer ? 'no-referrer' : 'strict-origin-when-cross-origin',
     'X-Frame-Options': 'DENY',
     'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     'Permissions-Policy': [
@@ -146,6 +148,7 @@ export function requestSecurityHeaders(
       ...(request.formActionOrigins ?? []),
     ]),
     camera: Boolean(current.camera || request.camera),
+    noReferrer: Boolean(current.noReferrer || request.noReferrer),
   };
 }
 

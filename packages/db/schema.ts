@@ -26,6 +26,7 @@ export const users = sqliteTable(
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
     // 0012: shared person record (set only from a verified email; never grants product access)
     personId: text('person_id').references((): AnySQLiteColumn => persons.id, { onDelete: 'set null' }),
+    personLinkOptOutAt: integer('person_link_opt_out_at', { mode: 'timestamp' }),
   },
   (t) => [index('users_person_idx').on(t.personId)],
 );
@@ -1111,6 +1112,7 @@ export const ticketOrders = sqliteTable(
     disputedAt: integer('disputed_at', { mode: 'timestamp' }),
     cancelledAt: integer('cancelled_at', { mode: 'timestamp' }),
     policySnapshotJson: text('policy_snapshot_json'),
+    attendeesJson: text('attendees_json'),
     source: text('source').notNull().default('online'), // OrderSource
     verificationRequired: integer('verification_required', { mode: 'boolean' }).notNull().default(false),
     emailVerifiedAt: integer('email_verified_at', { mode: 'timestamp' }),
@@ -1631,6 +1633,8 @@ export const academyRegistrations = sqliteTable(
   'academy_registrations',
   {
     id: text('id').primaryKey(),
+    refundRequestedAt: integer('refund_requested_at', { mode: 'timestamp' }),
+    stripeCustomerId: text('stripe_customer_id'),
     reference: text('reference').unique(),
     programSlug: text('program_slug').notNull(),
     lessonSlug: text('lesson_slug'),
@@ -1918,6 +1922,8 @@ export const ticketScanEvents = sqliteTable(
   'ticket_scan_events',
   {
     id: text('id').primaryKey(),
+    reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+    reviewedByUserId: text('reviewed_by_user_id'),
     eventId: text('event_id')
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),

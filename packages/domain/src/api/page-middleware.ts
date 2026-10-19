@@ -79,6 +79,7 @@ export function pageSecurityHeaderOptions(
       typeof env.PUBLIC_TURNSTILE_SITE_KEY === 'string' && env.PUBLIC_TURNSTILE_SITE_KEY.trim() !== '',
     formActionOrigins: requested?.formActionOrigins,
     camera: requested?.camera === true,
+    noReferrer: requested?.noReferrer === true,
   };
 }
 
