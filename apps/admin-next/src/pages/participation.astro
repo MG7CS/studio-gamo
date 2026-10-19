@@ -43,7 +43,7 @@ if (Astro.request.method === 'POST') {
 }
 
 const filter = inquiryFilterFrom(Astro.url);
-const { items, truncated } = await loadInquiries(env.DB, filter);
+const { items, truncated } = await loadInquiries(env.DB, filter, staff.user.id);
 const error = Astro.url.searchParams.get('error');
 const saved = Astro.url.searchParams.get('done') === '1';
 ---
