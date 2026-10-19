@@ -79,6 +79,12 @@ async function fillOrderForm(
 }
 
 test.describe('Gamo Live tickets', () => {
+  // The local database keeps its per-IP rate-limit counters between runs: give every test its own address.
+  test.beforeEach(async ({ page }) => {
+    const n = () => Math.floor(Math.random() * 250) + 1;
+    await page.context().setExtraHTTPHeaders({ 'cf-connecting-ip': `10.${n()}.${n()}.${n()}` });
+  });
+
   test('free RSVP: form → emailed code → tickets → downloads (desktop and 360 px)', async ({
     page,
     request,
@@ -182,7 +188,7 @@ test.describe('Gamo Live tickets', () => {
     await page.goto(`${LIVE}/tickets/find`);
     await check(page, 'find page');
     const answers: string[] = [];
-    for (const address of ['nobody@example.org', email]) {
+    for (const address of [`nobody-${Date.now()}@example.org`, email]) {
       await page.goto(`${LIVE}/tickets/find`);
       await page.locator('#email').fill(address);
       await page.getByRole('button', { name: 'Email me a link' }).click();

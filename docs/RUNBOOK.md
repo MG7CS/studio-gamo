@@ -211,3 +211,13 @@ Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-code
    - **The email is the same person who will be the first staff account** → do not disable it; create the account with `pnpm staff:account:sql --env production --email <that email> --reset-password`. That replaces the known password with a new random one and signs the account out everywhere.
 
 Generated files live only in `.staff-sql/` (git-ignored). Repeat for preview. The historical password stays in git history; rewriting history before the repository is ever public is a separate owner decision (H-02).
+
+## 9. Gamo Live ticketing
+
+Details and owner actions: [`docs/TICKETING.md`](TICKETING.md) §5.
+
+- Paid checkout is test mode only and always `503` in production. On **preview** set `STRIPE_TEST_CHECKOUT=true` and a `sk_test_…` key; the local-only pages under `/local-test/*` answer 404 unless `ENVIRONMENT=local` (never set `STRIPE_TEST_CHECKOUT` in production: the startup check treats it as fatal).
+- Webhooks: `/api/webhook/stripe` (secret `STRIPE_WEBHOOK_SECRET`) and `/api/webhook/resend` (`RESEND_WEBHOOK_SECRET`); both answer `503` until their secret is set.
+- A failed card refund stays `approved` in `refund_records` and sends a staff alert email; retry it from the organizer order page.
+- Local ticket tests: `pnpm test:e2e -g "Gamo Live tickets"`; the organizer test also needs `SESSION_SECRET` in `apps/live/.dev.vars` and `astro dev`.
+

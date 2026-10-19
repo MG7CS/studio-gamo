@@ -21,7 +21,7 @@ const EXTRA_PAGES: Record<keyof typeof APPS, string[]> = {
   web: ['/account/signin', '/account/signup'],
   worship: ['/account/signin'],
   academy: ['/account/signin'],
-  live: ['/my-tickets', '/account/signin'],
+  live: ['/tickets/find', '/account/signin'],
   production: ['/account/signin'],
 };
 const LOCAL_ORIGIN = /^http:\/\/127\.0\.0\.1:432[1-6]$/;
