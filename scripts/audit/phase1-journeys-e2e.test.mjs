@@ -211,7 +211,7 @@ try {
     ['live', '/', 'Gamo Live'],
     ['live', '/events', 'Find a gathering worth showing up for.'],
     ['live', '/artists', 'Artists on tour & artist onboarding'],
-    ['live', '/my-tickets', 'Find your tickets.'],
+    ['live', '/tickets/find', 'Find your tickets.'],
     ['worship', '/', 'Gamo Worship'],
     ['academy', '/', 'Learn to Play the Instrument You Love'],
     ['production', '/', 'Gamo Production'],
@@ -610,7 +610,7 @@ try {
   assert.match(workspacesAfterRelogin || '', /Autumn Night of Worship & Prayer/);
   assert.match(workspacesAfterRelogin || '', /New Jerusalem Worship Collective/);
 
-  // Staff approves the event -> public visitor registers and recovers pass on /my-tickets
+  // Staff approves the event -> public visitor gets tickets and recovers them on /tickets/find
   const pendingEventRow = await db
     .prepare("SELECT id FROM events WHERE title = 'Autumn Night of Worship & Prayer' LIMIT 1")
     .first();
@@ -627,48 +627,67 @@ try {
   });
   assert.equal(approveEventRes.status, 200);
 
-  // Public attendee registers for the approved event
+  // Public attendee reserves tickets with the shared form kit (no account), confirms the emailed code
+  // (read from the local test inbox) and lands on the order page with her tickets.
+  const attendeeEmail = 'miriam.attendee@example.org';
+  const tierRow = await db
+    .prepare('SELECT id FROM ticket_tiers WHERE event_id = ? LIMIT 1')
+    .bind(pendingEventRow.id)
+    .first();
   await livePage.goto(`${urls.live}/events/${pendingEventRow.id}/register`, { waitUntil: 'networkidle' });
   assert.match((await livePage.textContent('h1')) || '', /Autumn Night of Worship & Prayer/);
-  await livePage.fill('[data-reg-form] input[name="attendeeName"]', 'Miriam Attendee');
-  await livePage.fill('[data-reg-form] input[name="attendeeEmail"]', 'miriam.attendee@example.org');
-  await livePage.fill('[data-reg-form] input[name="quantity"]', '2');
-  await livePage.click('[data-reg-submit]');
-  await livePage.waitForSelector('[data-reg-status]:not([hidden])');
-  assert.match((await livePage.textContent('[data-reg-status]')) || '', /Registration confirmed/);
+  await livePage.fill(`[id="qty.${tierRow.id}"]`, '2');
+  await livePage.fill('#purchaser-name', 'Miriam Attendee');
+  await livePage.fill('#email', attendeeEmail);
+  await livePage.fill('#email-confirm', attendeeEmail);
+  await livePage.check('#terms-accept');
+  await Promise.all([
+    livePage.waitForURL(/\/tickets\/confirm\?t=/),
+    livePage.click('#order-form button[type="submit"]'),
+  ]);
 
-  // Attendee recovers pass on /my-tickets using verified email challenge
-  await livePage.goto(`${urls.live}/my-tickets`, { waitUntil: 'networkidle' });
-  const myTicketsText = await livePage.textContent('main#main-content');
-  assert.match(myTicketsText || '', /SMS recovery is unavailable/);
+  const readInbox = async (kind) => {
+    const html = await (
+      await fetch(`${urls.live}/local-test/inbox?email=${encodeURIComponent(attendeeEmail)}`)
+    ).text();
+    const m = new RegExp(`data-kind="${kind}"[\\s\\S]*?<pre[^>]*>([\\s\\S]*?)</pre>`).exec(html);
+    return m ? m[1] : '';
+  };
+  const code = (await readInbox('order_verification')).match(/Your code: (\d{6})/)[1];
+  // A wrong code must not issue tickets.
+  await livePage.fill('#code', code === '000001' ? '000002' : '000001');
+  await livePage.click('form button[type="submit"]');
+  await livePage.waitForSelector('[data-error-summary]');
+  assert.equal((await db.prepare('SELECT count(*) n FROM tickets').first()).n, 0);
+  await livePage.fill('#code', code);
+  await Promise.all([
+    livePage.waitForURL(/\/tickets\/orders\/ord_/),
+    livePage.click('form button[type="submit"]'),
+  ]);
+  assert.equal(await livePage.locator('[data-ticket-card]').count(), 2);
 
-  await livePage.fill('#ticket-recovery input[name="email"]', 'miriam.attendee@example.org');
-  await livePage.click('#send-code');
-  await livePage.waitForFunction(() => {
-    const el = document.querySelector('#recovery-status');
-    return el && /Local test code: \d{6}/.test(el.textContent || '');
-  });
-  const ticketChallengeMsg = await livePage.textContent('#recovery-status');
-  const ticketCode = ticketChallengeMsg.match(/Local test code: (\d{6})/)[1];
-
-  // Wrong code on /my-tickets must not disclose registrations
-  await livePage.fill('#ticket-recovery input[name="verificationCode"]', '000000');
-  await livePage.click('#ticket-recovery button[type="submit"]');
-  await livePage.waitForFunction(() => {
-    const el = document.querySelector('#recovery-status');
-    return el && (el.textContent || '').includes('Invalid or expired verification code');
-  });
-
-  // Valid code discloses verified registration and QR credential
-  await livePage.fill('#ticket-recovery input[name="verificationCode"]', ticketCode);
-  await livePage.click('#ticket-recovery button[type="submit"]');
-  await livePage.waitForFunction(() => {
-    const el = document.querySelector('#recovery-results');
-    return el && (el.textContent || '').includes('Admission credential:');
-  });
-  const recoveredText = await livePage.textContent('#recovery-results');
-  assert.match(recoveredText || '', /2 guest\(s\) · confirmed/);
-  assert.match(recoveredText || '', /Admission credential:/);
+  // Attendee recovers the same tickets by email link from /tickets/find (new browser context, no cookies).
+  const recoveryContext = await browser.newContext();
+  const recoveryPage = await recoveryContext.newPage();
+  await recoveryPage.goto(`${urls.live}/tickets/find`, { waitUntil: 'networkidle' });
+  await recoveryPage.fill('#email', 'nobody.here@example.org');
+  await recoveryPage.click('form button[type="submit"]');
+  const unknownAnswer = await recoveryPage.textContent('#recovery-answer');
+  await recoveryPage.goto(`${urls.live}/tickets/find`, { waitUntil: 'networkidle' });
+  await recoveryPage.fill('#email', attendeeEmail);
+  await recoveryPage.click('form button[type="submit"]');
+  assert.equal(
+    await recoveryPage.textContent('#recovery-answer'),
+    unknownAnswer,
+    'same answer for every address',
+  );
+  const link = (await readInbox('ticket_recovery')).match(/(http:\/\/\S+\/link\?t=[A-Za-z0-9_-]+)/)[1];
+  await Promise.all([recoveryPage.waitForURL(`${urls.live}/tickets/manage`), recoveryPage.goto(link)]);
+  assert.match(
+    (await recoveryPage.textContent('main#main-content')) || '',
+    /Autumn Night of Worship & Prayer/,
+  );
+  await recoveryContext.close();
 
   await liveContext.close();
   console.log('PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK');

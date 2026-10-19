@@ -18,7 +18,6 @@ import {
   guardPublicFormForPage,
   nowSeconds,
   openOrderSession,
-  requestSecurityHeaders,
   ticketingDb,
 } from '@gamo/domain';
 import {
@@ -31,7 +30,7 @@ import {
 
 export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'private, no-store');
-requestSecurityHeaders(Astro.locals, { noReferrer: true });
+// No Referrer-Policy: no-referrer here: a no-referrer page posts `Origin: null`, which the CSRF check rejects.
 
 const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
   Awaited<ReturnType<typeof getRuntimeEnv>>;
