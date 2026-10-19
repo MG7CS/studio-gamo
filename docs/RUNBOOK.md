@@ -74,17 +74,33 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 
 **Identity and ticketing** (docs/design/identity-and-ticketing.md §10). All optional at startup; each one switches on a feature that otherwise **fails closed**. Missing ones are logged by name as warnings; a Gamo HMAC key shorter than 32 characters, or one that reuses `SESSION_SECRET` or another key, is an error. Generate each HMAC key separately, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`, and set it with `wrangler secret put`.
 
-| Name | Apps | Kind | Without it (outside local) |
+| Name | Apps | Kind | Same value across apps? | You generate it, or a service issues it? | Without it (outside local) |
+| --- | --- | --- | --- | --- | --- |
+| `TICKET_QR_SECRET_GL1` | live | secret, ≥ 32 chars | single app | **You generate** | ticket issue and scanning answer 503. Rotation later adds `TICKET_QR_SECRET_GL2` (optional, same rules) while GL1 stays accepted. |
+| `CUSTOMER_LINK_SECRET` | live, academy | secret, ≥ 32 chars | **Unique per app** (links are also bound to the product, but do not share the value) | **You generate** | manage/recovery links answer 503 |
+| `PII_HASH_SECRET` | web, worship, academy, live, production | secret, ≥ 32 chars | **Identical in all five apps** (they share one database; bounce/complaint suppressions are stored under a hash of the address and must match whichever app sends next). Different per environment. | **You generate** (once, then paste the same value into each app) | forms that record consent or rate-limit by address answer 503 |
+| `SCANNER_SESSION_SECRET` | live | secret, ≥ 32 chars | single app | **You generate** | door scanner answers 503 |
+| `PUBLIC_TURNSTILE_SITE_KEY` | web, worship, academy, live, production | var (public) | Either one shared widget listing all five hostnames, or one widget per app; both work (the hostname is not enforced) | **Cloudflare issues it** (dashboard → Turnstile → Add widget) | protected public forms answer 503 |
+| `TURNSTILE_SECRET_KEY` | web, worship, academy, live, production | secret | Must be the secret of the widget whose site key the same app uses | **Cloudflare issues it** (shown with the site key) | protected public forms answer 503 |
+| `STRIPE_TEST_CHECKOUT` | live, academy | var, `true` only in local/preview | per app | You set it | paid checkout answers 503. **`true` in production is fatal** (the app answers 503 everywhere; preflight reports `test-checkout-in-production`). |
+| `RESEND_WEBHOOK_SECRET` | live only | secret (`whsec_…`) | single app; **different for preview and production** (separate webhooks) | **Resend issues it** when you create the webhook | `/api/webhook/resend` answers 503; no delivery/bounce updates |
+| `CLERK_WEBHOOK_SECRET_WEB`, `_WORSHIP`, `_ACADEMY`, `_LIVE`, `_PRODUCTION` | the matching app, only if that product uses Clerk | secret (`whsec_…`) | **Unique per app** (one per Clerk application) | **Clerk issues it** when you add the endpoint | `/api/auth/clerk-webhook` answers 503; a session ended in Clerk stays valid here up to 7 days |
+| `CLERK_GOOGLE_ENABLED_WEB`, `_WORSHIP`, `_ACADEMY`, `_LIVE`, `_PRODUCTION` | the matching app | var (`true`) | per app | You set it, after enabling Google in that product's Clerk app | "Continue with Google" stays hidden (also hidden while that product's Clerk is off) |
+
+Rules that apply to every row: each environment (preview, production) gets its **own** values — never copy production values into preview; generated secrets are random and at least 32 characters (`openssl rand -base64 48`); within one app no two of these HMAC keys, and not `SESSION_SECRET`, may share a value (startup reports an error by name). Setting a secret: `cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>`; the two Turnstile and `*_ENABLED` / `STRIPE_TEST_CHECKOUT` entries that are vars can live in `wrangler.toml` per environment.
+
+**Webhook URLs to register** (owner action; each service shows the signing secret once, after you save the endpoint):
+
+| Service | URL to register | Events to select | Secret you copy back |
 | --- | --- | --- | --- |
-| `TICKET_QR_SECRET_GL1` | live | secret, ≥ 32 chars | ticket issue and scanning answer 503. Rotation later adds `TICKET_QR_SECRET_GL2` while GL1 stays accepted. |
-| `CUSTOMER_LINK_SECRET` | live, academy | secret, ≥ 32 chars | manage/recovery links answer 503 |
-| `PII_HASH_SECRET` | web, worship, academy, live, production | secret, ≥ 32 chars | forms that record consent or rate-limit by address answer 503 |
-| `SCANNER_SESSION_SECRET` | live | secret, ≥ 32 chars | door scanner answers 503 |
-| `PUBLIC_TURNSTILE_SITE_KEY` (var) + `TURNSTILE_SECRET_KEY` (secret) | web, worship, academy, live, production | Cloudflare Turnstile widget (owner creates it) | protected public forms answer 503 |
-| `STRIPE_TEST_CHECKOUT` | live, academy | var, `true` only in local/preview | paid checkout answers 503. **`true` in production is fatal** (the app answers 503 everywhere; preflight reports `test-checkout-in-production`). |
-| `RESEND_WEBHOOK_SECRET` | live (+ academy) | secret (Svix, from Resend) | `/api/webhook/resend` answers 503; no delivery/bounce updates |
-| `CLERK_WEBHOOK_SECRET_<APP>` | each public app | secret (Svix, from that product's Clerk app) | `/api/webhook/clerk` answers 503; a session ended in Clerk stays valid here up to 7 days |
-| `CLERK_GOOGLE_ENABLED_<APP>` | each public app | var (`true`) | "Continue with Google" stays hidden (also hidden while that product's Clerk is off) |
+| Resend (one webhook per environment; Live serves it and updates the shared database for mail sent by every app) | `https://live.gamostudio.org/api/webhook/resend` (preview: `https://gamo-live-preview.gamostudio.workers.dev/api/webhook/resend`) | `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed` | `RESEND_WEBHOOK_SECRET` on live |
+| Clerk — Gamo Web application | `https://gamostudio.org/api/auth/clerk-webhook` | `session.ended`, `session.revoked`, `session.removed`, `user.deleted`, `user.banned` | `CLERK_WEBHOOK_SECRET_WEB` on web |
+| Clerk — Gamo Worship application | `https://worship.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_WORSHIP` on worship |
+| Clerk — Gamo Academy application | `https://academy.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_ACADEMY` on academy |
+| Clerk — Gamo Live application | `https://live.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_LIVE` on live |
+| Clerk — Gamo Production application | `https://production.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_PRODUCTION` on production |
+
+Clerk webhooks are only needed for products that have Clerk switched on (§3a); each Clerk application points only at its own product's host. For a preview Clerk instance use that app's `https://gamo-<app>-preview.gamostudio.workers.dev/api/auth/clerk-webhook`. The Stripe webhook (`/api/webhook/stripe` on live, `STRIPE_WEBHOOK_SECRET`) is unchanged and test-mode only; it answers 503 in production by design.
 
 `<APP>` is `WEB`, `WORSHIP`, `ACADEMY`, `LIVE` or `PRODUCTION`; each product uses its **own** Clerk application — never copy keys between products. The Clerk secret names are `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>`; `EMAIL_FROM` must be on `gamostudio.org`.
 
