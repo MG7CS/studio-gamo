@@ -230,17 +230,19 @@ try {
   assert.match(promoteRedirectRes.headers.get('location') || '', /\/promote\/create$/);
 
   // Legacy mock multi-step forms redirect to persistent /contact?interest=... flow
-  for (const [app, path] of [
-    ['worship', '/apply'],
-    ['worship', '/hire'],
-    ['academy', '/register'],
-    ['academy', '/host-apply'],
-    ['production', '/assessment'],
-    ['production', '/consultation'],
+  // Provider roles go to their product's own sign-up with the role chosen; lessons to /lessons;
+  // production consultations (clients) stay on the inquiry form.
+  for (const [app, path, expected] of [
+    ['worship', '/apply', /\/account\/signup\?role=musician$/],
+    ['worship', '/hire', /\/account\/signup\?role=church$/],
+    ['academy', '/register', /\/lessons$/],
+    ['academy', '/host-apply', /\/account\/signup\?role=church$/],
+    ['production', '/assessment', /\/contact\?interest=/],
+    ['production', '/consultation', /\/contact\?interest=/],
   ]) {
     const res = await fetch(`${urls[app]}${path}`, { redirect: 'manual' });
     assert.equal(res.status, 303, `Expected 303 redirect on legacy form ${app}${path}`);
-    assert.match(res.headers.get('location') || '', /\/contact\?interest=/);
+    assert.match(res.headers.get('location') || '', expected, `${app}${path}`);
   }
 
   // Private routes across all apps redirect unauthenticated visitors to /account/signin (even with ?demo_key=)
@@ -290,6 +292,7 @@ try {
   await webPage.fill('[data-step-challenge] input[name="firstName"]', 'Ruth');
   await webPage.fill('[data-step-challenge] input[name="lastName"]', 'Tekle');
   await webPage.fill('[data-step-challenge] input[name="email"]', 'ruth.leader@example.org');
+  await webPage.check('[data-step-challenge] input[name="terms_accept"]');
   await webPage.click('[data-step-challenge] button[type="submit"]');
 
   await webPage.waitForSelector('[data-step-verify]:not([hidden])');
@@ -370,7 +373,11 @@ try {
   const staffChallenge = await fetch(`${urls.web}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Origin: urls.web },
-    body: JSON.stringify({ email: 'staff.reviewer@gamostudio.org' }),
+    body: JSON.stringify({
+      email: 'staff.reviewer@gamostudio.org',
+      intent: 'signup',
+      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
+    }),
   });
   const staffChalBody = await staffChallenge.json();
   const staffCode = staffChalBody.data.message.match(/Local test code: (\d{6})/)[1];
@@ -381,6 +388,13 @@ try {
       email: 'staff.reviewer@gamostudio.org',
       code: staffCode,
       displayName: 'Staff Reviewer',
+      intent: 'signup',
+      terms: ['site-terms', 'privacy-policy'].map((slug) => ({
+        slug,
+        version: /TERMS_DRAFT_VERSION = '([^']+)'/.exec(
+          readFileSync('packages/domain/src/terms/registry.ts', 'utf8'),
+        )[1],
+      })),
     }),
   });
   const staffSessionCookie = staffVerify.headers.get('set-cookie').split(';')[0];
@@ -447,10 +461,16 @@ try {
   assert.match(worshipH1 || '', /Welcome back/);
   await progPage.fill('[data-step-challenge] input[name="email"]', 'ruth.leader@example.org');
   await progPage.click('[data-step-challenge] button[type="submit"]');
-  await progPage.waitForFunction(() => {
-    const el = document.querySelector('[data-auth-status]');
-    return el && (el.textContent || '').includes('No Gamo Worship account was found');
-  });
+  // Designed behaviour: sign-in for an address with no Worship account answers like any address (code step,
+  // nothing about other products) and no code can create the account; sign-up is the only way in.
+  await progPage.waitForSelector('[data-step-verify]:not([hidden])');
+  const neutral = (await progPage.textContent('[data-auth-status]')) || '';
+  assert.doesNotMatch(neutral, /Gamo Studios|Gamo Live|No Gamo Worship account was found/);
+  await progPage.fill('[data-step-verify] input[name="code"]', '123456');
+  await progPage.click('[data-step-verify] button[type="submit"]');
+  await progPage.waitForFunction(() =>
+    (document.querySelector('[data-auth-status]')?.textContent || '').includes('Invalid or expired'),
+  );
 
   // Explicitly create a Gamo Worship account on /account/signup
   await progPage.goto(`${urls.worship}/account/signup`, { waitUntil: 'networkidle' });
@@ -458,6 +478,7 @@ try {
   await progPage.fill('[data-step-challenge] input[name="firstName"]', 'Ruth');
   await progPage.fill('[data-step-challenge] input[name="lastName"]', 'Tekle');
   await progPage.fill('[data-step-challenge] input[name="email"]', 'ruth.leader@example.org');
+  await progPage.check('[data-step-challenge] input[name="terms_accept"]');
   await progPage.click('[data-step-challenge] button[type="submit"]');
   await progPage.waitForSelector('[data-step-verify]:not([hidden])');
   const worshipCode = (await progPage.textContent('[data-auth-status]')).match(/Local test code: (\d{6})/)[1];
@@ -473,7 +494,7 @@ try {
   });
   assert.equal(progPage.url(), `${urls.worship}/account/access-denied`);
   assert.equal(deniedMusicianRes.status(), 403);
-  assert.match((await progPage.textContent('h1')) || '', /This workspace needs program access\./);
+  assert.match((await progPage.textContent('h1')) || '', /This area needs access you don't have yet/);
 
   // A Worship session is not a session for Gamo Academy at all (product mismatch is rejected when the
   // session is resolved), so /family treats the visitor as signed out and asks them to sign in.
@@ -489,6 +510,7 @@ try {
   await progPage.fill('[data-step-challenge] input[name="firstName"]', 'Ruth');
   await progPage.fill('[data-step-challenge] input[name="lastName"]', 'Tekle');
   await progPage.fill('[data-step-challenge] input[name="email"]', 'ruth.leader@example.org');
+  await progPage.check('[data-step-challenge] input[name="terms_accept"]');
   await progPage.click('[data-step-challenge] button[type="submit"]');
   await progPage.waitForSelector('[data-step-verify]:not([hidden])');
   const academyCode = (await progPage.textContent('[data-auth-status]')).match(/Local test code: (\d{6})/)[1];
@@ -526,6 +548,7 @@ try {
   await livePage.fill('[data-step-challenge] input[name="firstName"]', 'Pastor Daniel');
   await livePage.fill('[data-step-challenge] input[name="lastName"]', 'Bekele');
   await livePage.fill('[data-step-challenge] input[name="email"]', 'organizer.live@example.org');
+  await livePage.check('[data-step-challenge] input[name="terms_accept"]');
   await livePage.click('[data-step-challenge] button[type="submit"]');
   await livePage.waitForSelector('[data-step-verify]:not([hidden])');
   const liveCode = (await livePage.textContent('[data-auth-status]')).match(/Local test code: (\d{6})/)[1];
