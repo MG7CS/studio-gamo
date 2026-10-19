@@ -1,0 +1,91 @@
+---
+/** A review queue: status and role filters, then the profiles (oldest first), each linking to its page. */
+import EmptyState from './EmptyState.astro';
+import StatusTag from './StatusTag.astro';
+import { QUEUE_LIMIT, type QueueView } from '../lib/review-data';
+import { timeAgo } from '../lib/format';
+
+interface Props {
+  basePath: string;
+  /** Where a row links: `/churches` or `/providers` (the profile id is appended). */
+  itemBase: string;
+  queue: QueueView;
+  roles?: { value: string; label: string }[];
+  emptyText: string;
+}
+const { basePath, itemBase, queue, roles = [], emptyText } = Astro.props;
+const { filter, filters, items, roleFilter, truncated } = queue;
+const filterLabels: Record<string, string> = {
+  open: 'Waiting for you',
+  changes_requested: 'Changes requested',
+  verified: 'Verified',
+  rejected: 'Rejected',
+  suspended: 'Suspended',
+  draft: 'Drafts',
+};
+const href = (status: string, role?: string | null) => {
+  const p = new URLSearchParams({ status });
+  if (role) p.set('role', role);
+  return `${basePath}?${p}`;
+};
+const pill = (active: boolean) =>
+  active ? 'bg-clay-700 text-white shadow-button' : 'bg-surface text-clay-800 shadow-soft hover:bg-clay-50';
+---
+
+<nav aria-label="Filter by status" class="mb-3 flex flex-wrap gap-2">
+  {filters.map((f) => (
+    <a
+      href={href(f, roleFilter)}
+      aria-current={f === filter ? 'page' : undefined}
+      class:list={[
+        'inline-flex min-h-11 items-center rounded-full px-5 text-sm font-bold',
+        pill(f === filter),
+      ]}
+    >
+      {filterLabels[f] ?? f}
+    </a>
+  ))}
+</nav>
+{roles.length > 1 && (
+  <nav aria-label="Filter by role" class="mb-6 flex flex-wrap gap-2">
+    {[{ value: '', label: 'All roles' }, ...roles].map((r) => (
+      <a
+        href={href(filter, r.value || null)}
+        aria-current={(roleFilter ?? '') === r.value ? 'page' : undefined}
+        class:list={[
+          'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold',
+          pill((roleFilter ?? '') === r.value),
+        ]}
+      >
+        {r.label}
+      </a>
+    ))}
+  </nav>
+)}
+{items.length === 0 ? (
+  <EmptyState text={emptyText} />
+) : (
+  <>
+    <ul class="space-y-3">
+      {items.map((item) => (
+        <li>
+          <a
+            href={`${itemBase}/${encodeURIComponent(item.id)}`}
+            class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-5 shadow-soft transition-shadow hover:shadow-card"
+          >
+            <span class="min-w-0">
+              <span class="block truncate font-bold text-ink">{item.displayName}</span>
+              <span class="block text-sm text-muted">
+                {item.roleLabel} · from {item.productOrigin} · updated {timeAgo(item.updatedAt)}
+              </span>
+            </span>
+            <StatusTag status={item.status} label={item.statusLabel} />
+          </a>
+        </li>
+      ))}
+    </ul>
+    {truncated && (
+      <p class="mt-4 text-sm text-muted">Showing the first {QUEUE_LIMIT}. Older entries are not listed.</p>
+    )}
+  </>
+)}

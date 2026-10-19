@@ -5,7 +5,7 @@
  *   1. ONE batch: the `refund_records` row (amount computed in SQL from the tickets this batch will change,
  *      capped by what is not yet refunded) → the conditional ticket updates (`refunded` for paid, `voided`
  *      for free; of two concurrent refunds of one ticket only one finds it changeable) → derived refunded
- *      quantities → the audit row. A crash cannot leave tickets refunded without a record.
+ *      quantities. A crash cannot leave tickets refunded without a record.
  *   2. The Stripe test refund with idempotency key `refund_<recordId>` (paid only; local: simulated).
  *   3. ONE batch: record `processed` first, then `amount_refunded_cents = MIN(total, MAX(current, sum of
  *      processed records, Stripe's figure))` — the `charge.refunded` webhook uses the same statement, so the
@@ -225,18 +225,6 @@ export async function refundTickets(
     {
       sql: "UPDATE order_items SET refunded_quantity = min(quantity, max(refunded_quantity, (SELECT count(*) FROM tickets t WHERE t.order_item_id = order_items.id AND (t.status = 'refunded' OR (t.status = 'voided' AND t.void_reason IN ('organizer', 'event_cancelled')))))), updated_at = ?2 WHERE order_id = ?1",
       params: [order.id, input.now],
-    },
-    {
-      sql: "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) SELECT ?1, ?2, ?3, 'order', ?4, ?5, ?6 WHERE EXISTS (SELECT 1 FROM refund_records WHERE id = ?7)",
-      params: [
-        newPrefixedId('aud'),
-        input.actorUserId,
-        paid ? 'ticket.refund' : 'ticket.cancel',
-        order.id,
-        JSON.stringify({ refundRecordId: recordId, tickets: ids, reason: reason.slice(0, 200) }),
-        input.now,
-        recordId,
-      ],
     },
   ];
   if (!paid)

@@ -19,13 +19,7 @@ import { sendEventChangeEmail } from './email.ts';
 import { singleLine } from './calendar.ts';
 import { refundTickets } from './refunds.ts';
 import { getOrderView, type CustomerIdentity } from './orders.ts';
-import {
-  TicketingError,
-  auditLogStatement,
-  loadEvent,
-  type EventRow,
-  type TicketingEnv,
-} from './orders-shared.ts';
+import { TicketingError, loadEvent, type EventRow, type TicketingEnv } from './orders-shared.ts';
 
 export const CHANGE_NOTIFY_CHUNK = 50;
 
@@ -166,17 +160,6 @@ export async function cancelEvent(
         input.now,
       ],
     },
-    {
-      sql: "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) SELECT ?1, ?2, 'event.cancel', 'event', ?3, ?4, ?5 WHERE EXISTS (SELECT 1 FROM event_changes WHERE id = ?6)",
-      params: [
-        newPrefixedId('aud'),
-        input.actorUserId,
-        event.id,
-        JSON.stringify({ changeId, reason: reason.slice(0, 200) }),
-        input.now,
-        changeId,
-      ],
-    },
   ]);
   if (cancelled.length === 0)
     throw new TicketingError('CONFLICT', 'This event was just cancelled by someone else.');
@@ -290,14 +273,6 @@ export async function rescheduleEvent(
         input.now,
       ],
     },
-    auditLogStatement({
-      actorUserId: input.actorUserId,
-      action: 'event.reschedule',
-      entityType: 'event',
-      entityId: event.id,
-      payload: { changeId },
-      now: input.now,
-    }),
   ]);
   const { sent } = await resendChangeNotifications(db, env, {
     changeId,
@@ -350,14 +325,6 @@ export async function changeEventVenue(
         input.now,
       ],
     },
-    auditLogStatement({
-      actorUserId: input.actorUserId,
-      action: 'event.venue_change',
-      entityType: 'event',
-      entityId: event.id,
-      payload: { changeId },
-      now: input.now,
-    }),
   ]);
   const { sent } = await resendChangeNotifications(db, env, {
     changeId,

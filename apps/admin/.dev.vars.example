@@ -1,0 +1,14 @@
+# Gamo Admin (apps/admin) — local secrets. Copy to .dev.vars (git-ignored).
+# One admin, Cloudflare Access only (docs/ADMIN_REQUIREMENTS.md). Clerk variables are ignored in this app.
+# In preview/production: `wrangler secret put <NAME> --env <preview|production>` from this directory.
+
+# REQUIRED everywhere: the single admin's email. Every request must belong to exactly this address.
+ADMIN_EMAIL=
+
+# REQUIRED in preview/production: the Cloudflare Zero Trust Access application in front of admin.
+# Outside ENVIRONMENT=local every request must carry a valid Access assertion for this audience.
+CF_ACCESS_TEAM_NAME=
+CF_ACCESS_AUD=
+
+# LOCAL ONLY (loopback host + ENVIRONMENT=local; fatal anywhere else): act as ADMIN_EMAIL without Access.
+ALLOW_LOCAL_ADMIN_IDENTITY=

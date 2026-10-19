@@ -1,0 +1,65 @@
+---
+/** Inbox: everything waiting for the admin, from real queries. No trends or history, because none is recorded. */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import Notice from '../components/Notice.astro';
+import PageHeader from '../components/PageHeader.astro';
+import StatCard from '../components/StatCard.astro';
+import WaitingList from '../components/WaitingList.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { loadInbox } from '../lib/inbox';
+
+const env = await getRuntimeEnv(Astro);
+const inbox = await loadInbox(env.DB);
+const total = inbox ? Object.values(inbox.counts).reduce((sum, n) => sum + n, 0) : 0;
+const summary = !inbox
+  ? undefined
+  : total === 0
+    ? 'Nothing is waiting for you.'
+    : `${total} ${total === 1 ? 'item is' : 'items are'} waiting for you.`;
+---
+
+<AdminLayout title="Inbox" current="inbox">
+  <PageHeader title="Inbox" description={summary} />
+  {!inbox && (
+    <Notice
+      tone="error"
+      title="Counts unavailable"
+      text="The database could not be read, so nothing is shown instead of guessing. Try again in a moment."
+    />
+  )}
+  {inbox && (
+    <div class="space-y-6">
+      <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+        <StatCard
+          label="Participation requests"
+          value={inbox.counts.participation}
+          icon="mail"
+          tone="lavender"
+          href="/participation"
+        />
+        <StatCard
+          label="Church verifications"
+          value={inbox.counts.churches}
+          icon="church"
+          tone="mint"
+          href="/churches"
+        />
+        <StatCard
+          label="Provider reviews"
+          value={inbox.counts.providers}
+          icon="verified"
+          tone="peach"
+          href="/providers"
+        />
+        <StatCard
+          label="Events to review"
+          value={inbox.counts.events}
+          icon="ticket"
+          tone="warning"
+          href="/events"
+        />
+      </div>
+      <WaitingList items={inbox.oldest} />
+    </div>
+  )}
+</AdminLayout>

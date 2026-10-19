@@ -46,8 +46,7 @@ export function pageCacheControl(app: PublicApp, path: string): string {
 }
 export function canAccessPage(app: PublicApp, path: string, auth: SessionData): boolean {
   if (!auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
-  const role = (...roles: string[]) =>
-    auth.roles.includes('superadmin') || roles.some((r) => auth.roles.includes(r));
+  const role = (...roles: string[]) => roles.some((r) => auth.roles.includes(r));
   if (app === 'worship' && within(path, '/admin')) return role('staff_reviewer', 'dispatcher');
   if (!hasProductAccess(auth, app)) return false;
   if (app === 'worship' && (within(path, '/musician') || within(path, '/check-in')))

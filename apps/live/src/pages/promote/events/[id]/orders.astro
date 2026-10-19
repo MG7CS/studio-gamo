@@ -69,7 +69,7 @@ if (Astro.request.method === 'POST') {
         ticketId,
         reason,
         actorUserId: auth.user.id,
-        actorType: auth.roles.includes('superadmin') ? 'staff' : 'organizer',
+        actorType: 'organizer',
         origin: Astro.url.origin,
         now,
       });

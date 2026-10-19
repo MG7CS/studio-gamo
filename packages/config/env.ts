@@ -70,6 +70,8 @@ export interface GamoEnv {
   ALLOW_DEMO_SESSION?: string;
   ALLOW_AUTH_SIMULATION?: string;
   ALLOW_PUBLIC_DEMO_WORKSPACES?: string;
+  /** Admin only: act as ADMIN_EMAIL without Cloudflare Access (loopback + ENVIRONMENT=local). */
+  ALLOW_LOCAL_ADMIN_IDENTITY?: string;
 
   // Clerk (`CLERK_*`, `CLERK_*_<PRODUCT>`, incl. `CLERK_WEBHOOK_SECRET_<APP>` and
   // `CLERK_GOOGLE_ENABLED_<APP>` — see CLERK_WEBHOOK_SECRET_NAMES / CLERK_GOOGLE_ENABLED_NAMES)

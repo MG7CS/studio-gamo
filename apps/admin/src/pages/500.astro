@@ -1,0 +1,19 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+Astro.response.status = 500;
+---
+
+<AdminLayout title="Something went wrong">
+  <PageHeader
+    title="Something went wrong"
+    description="The page could not be loaded. Try again in a moment."
+  />
+  <a
+    href="/"
+    class="inline-flex min-h-11 items-center font-semibold text-clay-700 underline underline-offset-4"
+  >
+    Back to the Inbox
+  </a>
+</AdminLayout>

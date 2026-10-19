@@ -31,7 +31,7 @@ export const POST: APIRoute = async (context) => {
       ticketId,
       reason: body.reason,
       actorUserId: auth.user.id,
-      actorType: auth.roles.includes('superadmin') ? 'staff' : 'organizer',
+      actorType: 'organizer',
       origin: requestOrigin(context.request),
       now: nowSeconds(),
     });

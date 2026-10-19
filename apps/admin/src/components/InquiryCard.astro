@@ -1,0 +1,70 @@
+---
+/**
+ * One participation inquiry. The reply is shown to the person who sent it; replying does not grant program
+ * access, approve a partnership or send a notification.
+ */
+import Button from './Button.astro';
+import StatusTag from './StatusTag.astro';
+import { formatWhen, timeAgo } from '../lib/format';
+import { field, label } from '../lib/ui';
+import type { InquiryRow } from '../lib/participation';
+
+interface Props {
+  inquiry: InquiryRow;
+}
+const { inquiry } = Astro.props;
+const tag = { pending: 'Waiting', reviewed: 'Replied', closed: 'Closed' }[inquiry.status];
+const canReply = inquiry.status !== 'closed';
+---
+
+<li id={`inquiry-${inquiry.id}`} class="rounded-clay-lg bg-surface p-6 shadow-soft">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <h2 class="text-lg font-extrabold">
+      {inquiry.interest} · {inquiry.name}
+    </h2>
+    <StatusTag
+      status={inquiry.status === 'pending' ? 'open' : inquiry.status === 'closed' ? 'rejected' : 'verified'}
+      label={tag}
+    />
+  </div>
+  <p class="mt-1 text-sm text-muted">
+    {inquiry.kind} · {inquiry.organization || 'No organization supplied'} · received{' '}
+    {timeAgo(inquiry.createdAt)} ({formatWhen(inquiry.createdAt)})
+  </p>
+  <p class="mt-4 whitespace-pre-wrap text-body">{inquiry.message}</p>
+  {inquiry.reviewNotes && (
+    <p class="mt-4 whitespace-pre-wrap rounded-clay-md bg-clay-50 p-4 text-sm text-clay-800">
+      <strong>Your last reply: </strong>
+      {inquiry.reviewNotes}
+    </p>
+  )}
+  {canReply && (
+    <form method="post" class="mt-5 max-w-2xl space-y-3">
+      <input type="hidden" name="id" value={inquiry.id} />
+      <div>
+        <label class={label} for={`notes-${inquiry.id}`}>
+          Reply (the person can see it)
+        </label>
+        <textarea
+          id={`notes-${inquiry.id}`}
+          name="notes"
+          required
+          minlength="1"
+          maxlength="2000"
+          rows="3"
+          class={field}
+        ></textarea>
+      </div>
+      <div>
+        <label class={label} for={`status-${inquiry.id}`}>
+          After this reply
+        </label>
+        <select id={`status-${inquiry.id}`} name="status" class={field}>
+          <option value="reviewed">Keep open (replied)</option>
+          <option value="closed">Close the inquiry</option>
+        </select>
+      </div>
+      <Button>Save reply</Button>
+    </form>
+  )}
+</li>

@@ -20,7 +20,6 @@ import { sessionHoldsTicket, type CustomerIdentity } from './orders.ts';
 import {
   TicketingError,
   accessLogStatement,
-  auditLogStatement,
   emailsEqual,
   isEventCancelled,
   loadEvent,
@@ -269,14 +268,6 @@ export async function reissueTicket(
       actorId: input.actorUserId,
       action: 'reissue',
       ipHash: input.ipHash,
-      now: input.now,
-    }),
-    auditLogStatement({
-      actorUserId: input.actorUserId,
-      action: 'ticket.reissue',
-      entityType: 'ticket',
-      entityId: ticket.id,
-      payload: { reason: reason.slice(0, 200), version },
       now: input.now,
     }),
   ]);

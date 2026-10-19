@@ -586,8 +586,8 @@ export interface CancelResult {
 
 /**
  * Cancels a registration that belongs to `customerProfileId` (policy: any time before the first lesson).
- * A paid registration keeps its payment record (`paid_at`) and gets an `academy_registration.refund_requested`
- * audit row for staff in the same batch; no refund is sent to Stripe here. The status change is conditional
+ * A paid registration keeps its payment record (`paid_at`) and is flagged with `refund_requested_at` for staff;
+ * no refund is sent to Stripe here. The status change is conditional
  * on the status that was read, so a stale or repeated form changes nothing twice.
  */
 export async function cancelAcademyRegistration(
@@ -613,22 +613,6 @@ export async function cancelAcademyRegistration(
       params: [current.id, current.status, input.now, paid ? 1 : 0],
     },
   ];
-  if (paid)
-    specs.push({
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, NULL, 'academy_registration.refund_requested', 'academy_registration', ?2, ?3, ?4
-            WHERE EXISTS (SELECT 1 FROM academy_registrations WHERE id = ?2 AND status = 'cancelled' AND cancelled_at = ?4)`,
-      params: [
-        newPrefixedId('audit'),
-        current.id,
-        JSON.stringify({
-          reference: current.reference,
-          amountCents: current.amountCents,
-          currency: current.currency,
-        }),
-        input.now,
-      ],
-    });
   await runBatch(db, specs);
   const after = await getAcademyRegistration(db, current.id);
   if (!after) throw new Error('cancelAcademyRegistration: registration vanished');

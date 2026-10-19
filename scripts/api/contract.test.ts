@@ -32,6 +32,7 @@ const services = {
   live: new LiveService(db),
   admin: new AdminService(db),
 };
+const ADMIN = { name: 'Sample Admin' };
 const secret = 'contract-test-session-signing-material-only';
 const env: Record<string, unknown> = {
   DB: d1,
@@ -84,11 +85,6 @@ before(async () => {
     .prepare('UPDATE users SET verified_email_at = ? WHERE id = ?')
     .run(Math.floor(Date.now() / 1000), owner.id);
   const other = await services.identity.findOrCreateUser('other@example.invalid');
-  // Explicit internal demo reviewer matches existing fallback; does not claim Access-to-D1 identity mapping.
-  d1.sqlite
-    .prepare('INSERT INTO users (id,email,status,created_at) VALUES (?,?,?,?)')
-    .run('staff_reviewer_demo', 'reviewer@example.invalid', 'active', Math.floor(Date.now() / 1000));
-  await services.identity.assignSystemRole('staff_reviewer_demo', 'staff_reviewer');
   orgId = (
     await services.identity.createOrganization('Sample ministry', 'contract-ministry', 'church', owner.id)
   ).id;
@@ -427,7 +423,7 @@ test('free RSVP: validation, sold-out counts, identical answers, email-code conf
       tiers: [{ name: 'Only two', priceCents: 0, capacity: 2 }],
     }),
   );
-  await services.admin.reviewEvent('staff_reviewer_demo', small.event.id, { decision: 'approved' });
+  await services.admin.reviewEvent(ADMIN, small.event.id, { decision: 'approved' });
   await call(
     'live',
     'POST',
@@ -470,7 +466,7 @@ test('paid checkout: production always 503, local mock session, cross-origin ref
       tiers: [{ name: 'Seat', priceCents: 2500, capacity: 10 }],
     }),
   );
-  await services.admin.reviewEvent('staff_reviewer_demo', paid.event.id, { decision: 'approved' });
+  await services.admin.reviewEvent(ADMIN, paid.event.id, { decision: 'approved' });
   paidEventId = paid.event.id;
   const tierId = paid.tiers[0].id;
   await call('live', 'POST', '/api/checkout/session', 400, {});
@@ -801,7 +797,7 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
       tiers: [{ name: 'Reserved Seating', priceCents: 3000, capacity: 20 }],
     }),
   );
-  await services.admin.reviewEvent('staff_reviewer_demo', paidEvent.event.id, { decision: 'approved' });
+  await services.admin.reviewEvent(ADMIN, paidEvent.event.id, { decision: 'approved' });
 
   const paidCheckout = await call('live', 'POST', '/api/checkout/session', 200, {
     eventId: paidEvent.event.id,
@@ -1043,7 +1039,7 @@ test('legacy list cap, stable ordering and response schema negative controls', a
       orgId,
       createEventSchema.parse({ ...input, title: `Sample collection boundary ${n}` }),
     );
-    await services.admin.reviewEvent('staff_reviewer_demo', created.event.id, { decision: 'approved' });
+    await services.admin.reviewEvent(ADMIN, created.event.id, { decision: 'approved' });
   }
   const list = await call('live', 'GET', '/api/events', 200);
   assert.equal(list.body.data.length, 50);

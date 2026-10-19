@@ -5,7 +5,7 @@
 
 export const DEFAULT_MEETING_TIME_ZONE = 'America/Phoenix';
 
-function isTimeZone(zone: string): boolean {
+export function isTimeZone(zone: string): boolean {
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: zone });
     return true;

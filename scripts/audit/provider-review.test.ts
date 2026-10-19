@@ -1,7 +1,6 @@
 /**
  * Provider onboarding, publish gates and staff review (design §4.3, §4.4): meeting-time conversion, stale and
- * concurrent decisions, self-review (own profile and own
- * organization, D-106), first-event review and the always_review toggle, terms versioning.
+ * concurrent decisions, first-event review and the always_review toggle, terms versioning.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -24,7 +23,7 @@ import {
   recordEventReviewDecision,
   reviewProviderProfile,
   setOrganizerAlwaysReview,
-  type StaffActor,
+  type AdminActor,
 } from '../../packages/domain/src/services/provider-review.ts';
 import {
   recordTermsAcceptance,
@@ -60,11 +59,7 @@ async function provider(identity: IdentityService, email: string, product: 'wors
   });
 }
 
-async function staffMember(identity: IdentityService, email: string, name: string): Promise<StaffActor> {
-  const user = await identity.findOrCreateUser(email, name);
-  await identity.assignSystemRole(user.id, 'staff_reviewer');
-  return { userId: user.id, name, email, personId: null };
-}
+const ADMIN: AdminActor = { name: 'Sample Admin' };
 
 test('Phoenix meeting times convert to UTC without DST surprises', () => {
   // Arizona has no DST: always UTC-7.
@@ -130,79 +125,13 @@ async function submittedMusician(
   return { user, profileId: p.id, ctx };
 }
 
-test('self-review is refused: own profile (same person or same email) and own organization; refusals are audited', async () => {
+test('first event approval is recorded once and the always_review toggle applies', async () => {
   const { d1, identity, one } = await setup();
-  const { user, profileId } = await submittedMusician(d1, identity, 'musician@example.org');
-  // Same person as the provider.
-  const selfByPerson: StaffActor = {
-    userId: user.id,
-    name: 'Sample Musician',
-    email: 'musician@example.org',
-    personId: user.personId,
-  };
-  await assert.rejects(
-    () =>
-      reviewProviderProfile(d1, {
-        profileId,
-        action: 'verify',
-        expectedStatus: 'submitted',
-        staff: selfByPerson,
-        notes: 'ok',
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
-  // A separate staff row with the same email.
-  const staffSameEmail = await staffMember(identity, 'Musician@Example.org', 'Other Row');
-  await assert.rejects(
-    () =>
-      reviewProviderProfile(d1, {
-        profileId,
-        action: 'verify',
-        expectedStatus: 'submitted',
-        staff: { ...staffSameEmail, email: 'Musician@Example.org' },
-        notes: 'ok',
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
-
-  // An organizer whose organization has the staff member as an active member.
-  const staff = await staffMember(identity, 'staff@example.org', 'Sample Staff');
-  const org = await identity.createOrganization(
-    'Sample Ministry',
-    'sample-ministry',
-    'ministry',
-    staff.userId,
-  );
+  const owner = await identity.findOrCreateUser('owner@example.org', 'Sample Owner');
+  const org = await identity.createOrganization('Sample Ministry', 'sample-ministry', 'ministry', owner.id);
   const organizer = one<{ id: string }>(
     'SELECT id FROM organizer_profiles WHERE organization_id = ?',
     org.id,
-  );
-  await assert.rejects(
-    () =>
-      setOrganizerAlwaysReview(d1, {
-        organizerProfileId: organizer.id,
-        alwaysReview: false,
-        staff,
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
-  await assert.rejects(
-    () =>
-      recordEventReviewDecision(d1, {
-        eventId: 'evt_sample',
-        organizerProfileId: organizer.id,
-        decision: 'approved',
-        staff,
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
-  assert.equal(
-    one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'review.self_review_refused'").n,
-    4,
   );
   assert.equal(
     one<{ always_review: number }>('SELECT always_review FROM organizer_profiles WHERE id = ?', organizer.id)
@@ -210,14 +139,12 @@ test('self-review is refused: own profile (same person or same email) and own or
     0,
   );
 
-  // Another staff member may: first approval recorded once; toggle audited.
-  const other = await staffMember(identity, 'other.staff@example.org', 'Other Staff');
   assert.deepEqual(
     await recordEventReviewDecision(d1, {
       eventId: 'evt_1',
       organizerProfileId: organizer.id,
       decision: 'approved',
-      staff: other,
+      actor: ADMIN,
       now: NOW,
     }),
     { firstApproval: true },
@@ -227,7 +154,7 @@ test('self-review is refused: own profile (same person or same email) and own or
       eventId: 'evt_2',
       organizerProfileId: organizer.id,
       decision: 'approved',
-      staff: other,
+      actor: ADMIN,
       now: NOW + 5,
     }),
     { firstApproval: false },
@@ -236,28 +163,22 @@ test('self-review is refused: own profile (same person or same email) and own or
     await setOrganizerAlwaysReview(d1, {
       organizerProfileId: organizer.id,
       alwaysReview: true,
-      staff: other,
+      actor: ADMIN,
       now: NOW,
     }),
     true,
-  );
-  assert.equal(
-    one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'organizer.always_review'").n,
-    1,
   );
 });
 
 test('concurrent decisions: exactly one wins, the other is a conflict, and only one record is written', async () => {
   const { d1, identity, one } = await setup();
   const { profileId } = await submittedMusician(d1, identity, 'race@example.org');
-  const a = await staffMember(identity, 'a@example.org', 'Staff A');
-  const b = await staffMember(identity, 'b@example.org', 'Staff B');
   const results = await Promise.allSettled([
     reviewProviderProfile(d1, {
       profileId,
       action: 'verify',
       expectedStatus: 'submitted',
-      staff: a,
+      actor: ADMIN,
       notes: 'Checked references.',
       now: NOW,
     }),
@@ -265,7 +186,7 @@ test('concurrent decisions: exactly one wins, the other is a conflict, and only 
       profileId,
       action: 'reject',
       expectedStatus: 'submitted',
-      staff: b,
+      actor: ADMIN,
       notes: 'Incomplete.',
       now: NOW,
     }),

@@ -24,9 +24,8 @@ async function fixture() {
   const identity = new IdentityService(db);
   const owner = await identity.findOrCreateUser('participant@example.invalid', 'Test Participant');
   const other = await identity.findOrCreateUser('other@example.invalid');
-  const staff = await identity.findOrCreateUser('staff@example.invalid');
   d1.sqlite.prepare('UPDATE users SET verified_email_at = ?').run(Math.floor(Date.now() / 1000));
-  return { d1, db, owner, other, staff, service: new ParticipationService(db) };
+  return { d1, db, owner, other, service: new ParticipationService(db) };
 }
 const input = {
   kind: 'general' as const,
@@ -34,20 +33,16 @@ const input = {
   name: 'Test Participant',
   message: 'Please share information about adult beginner lessons.',
 };
-test('participation persists by owner, stays pending, and review does not grant privileges', async () => {
+test('participation persists by owner, stays pending, and the admin reply does not grant privileges', async () => {
   const f = await fixture();
   try {
     const inquiry = await f.service.create(f.owner.id, input);
     assert.equal(inquiry.status, 'pending');
     assert.equal((await new ParticipationService(f.db).list(f.owner.id))[0].message, input.message);
     assert.deepEqual(await f.service.list(f.other.id), []);
-    await assert.rejects(
-      f.service.review(inquiry.id, f.owner.id, { status: 'reviewed', notes: 'Self approval' }),
-      /FORBIDDEN/,
-    );
     assert.equal(
       (
-        await f.service.review(inquiry.id, f.staff.id, {
+        await f.service.review(inquiry.id, {
           status: 'reviewed',
           notes: 'Enrollment is not yet available.',
         })
@@ -55,20 +50,9 @@ test('participation persists by owner, stays pending, and review does not grant 
       'reviewed',
     );
     assert.equal((await f.service.list(f.owner.id))[0].reviewNotes, 'Enrollment is not yet available.');
-    await f.service.review(inquiry.id, f.staff.id, { status: 'closed', notes: 'Inquiry resolved.' });
-    await assert.rejects(
-      f.service.review(inquiry.id, f.staff.id, { status: 'reviewed', notes: 'Reopen' }),
-      /CONFLICT/,
-    );
+    await f.service.review(inquiry.id, { status: 'closed', notes: 'Inquiry resolved.' });
+    await assert.rejects(f.service.review(inquiry.id, { status: 'reviewed', notes: 'Reopen' }), /CONFLICT/);
     assert.equal((f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM user_roles').get() as any).n, 0);
-    assert.equal(
-      (
-        f.d1.sqlite
-          .prepare("SELECT COUNT(*) AS n FROM audit_logs WHERE action='participation.reviewed'")
-          .get() as any
-      ).n,
-      2,
-    );
   } finally {
     f.d1.sqlite.close();
   }

@@ -32,7 +32,6 @@ import {
   userRoles,
   organizations,
   organizationMembers,
-  auditLogs,
   type GamoDatabase,
 } from '@gamo/db';
 import {
@@ -612,15 +611,6 @@ export async function resolveOrProvisionClerkProductSession(
         .update(clerkIdentityLinks)
         .set({ clerkEmail: cleanEmail, updatedAt: now })
         .where(eq(clerkIdentityLinks.id, existingLink.id));
-      await db.insert(auditLogs).values({
-        id: `audit_${crypto.randomUUID()}`,
-        actorUserId: targetUserId,
-        action: 'clerk.email_changed',
-        entityType: 'product_account',
-        entityId: existingLink.productAccountId ?? existingLink.id,
-        payloadJson: JSON.stringify({ product: identity.product, clerkUserId: identity.clerkUserId }),
-        createdAt: now,
-      });
     }
   } else {
     // Ensure this (clerkIssuer, clerkUserId) is not already bound to a different product
@@ -702,21 +692,6 @@ export async function resolveOrProvisionClerkProductSession(
         linkedAt: now,
         updatedAt: now,
       });
-
-      await db.insert(auditLogs).values({
-        id: `audit_${crypto.randomUUID()}`,
-        actorUserId: targetUserId,
-        action: 'clerk.legacy_product_account_claimed',
-        entityType: 'product_account',
-        entityId: productAccountId,
-        payloadJson: JSON.stringify({
-          product: identity.product,
-          clerkAppId: identity.clerkAppId,
-          clerkUserId: identity.clerkUserId,
-          issuer: identity.issuer,
-        }),
-        createdAt: now,
-      });
     } else {
       // New Clerk registration for this product.
       // IMPORTANT: Even if `legacyUser` exists in another product with the same email,
@@ -748,7 +723,7 @@ export async function resolveOrProvisionClerkProductSession(
       }
 
       // Parallel first requests race here; the unique indexes decide the winner and the loser
-      // simply carries on with the winner's rows (nothing is inserted or audited twice).
+      // simply carries on with the winner's rows (nothing is inserted twice).
       const productAccountId = `pacc_${identity.product}_${sanitizedClerkId}`;
       const createdAccount = await db
         .insert(productAccounts)
@@ -788,21 +763,6 @@ export async function resolveOrProvisionClerkProductSession(
             updatedAt: now,
           })
           .onConflictDoNothing();
-
-        await db.insert(auditLogs).values({
-          id: `audit_${crypto.randomUUID()}`,
-          actorUserId: targetUserId,
-          action: 'clerk.product_account_registered',
-          entityType: 'product_account',
-          entityId: productAccountId,
-          payloadJson: JSON.stringify({
-            product: identity.product,
-            clerkAppId: identity.clerkAppId,
-            clerkUserId: identity.clerkUserId,
-            issuer: identity.issuer,
-          }),
-          createdAt: now,
-        });
       }
     }
   }

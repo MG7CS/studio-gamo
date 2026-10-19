@@ -8,7 +8,7 @@ import {
   handleApiError,
   getRuntimeEnv,
 } from '@gamo/domain';
-import { requireProductAuth, hasSystemRole } from '@gamo/auth';
+import { requireProductAuth } from '@gamo/auth';
 
 export const prerender = false;
 
@@ -26,15 +26,8 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'RevokeRepresentationInput');
     const validated = revokeRepresentationSchema.parse(body);
 
-    const isSuperadmin = hasSystemRole(auth, 'superadmin');
-
     const liveService = new LiveService(db);
-    const result = await liveService.revokeRepresentation(
-      authorizationId,
-      auth.user.id,
-      isSuperadmin,
-      validated.reason,
-    );
+    const result = await liveService.revokeRepresentation(authorizationId, auth.user.id, validated.reason);
 
     return jsonResponse(result, 200);
   } catch (err) {

@@ -5,13 +5,7 @@
  */
 import type { AstroGlobal } from 'astro';
 import { getDb } from '@gamo/db';
-import {
-  hasEventPermission,
-  isStaffOrAdmin,
-  requireSameOrigin,
-  type EventPermission,
-  type SessionData,
-} from '@gamo/auth';
+import { hasEventPermission, requireSameOrigin, type EventPermission, type SessionData } from '@gamo/auth';
 import { getRuntimeEnv, readPublicFormBody, type PublicFormBody } from '@gamo/domain';
 import { asSqlDatabase, type SqlDatabase } from '@gamo/domain/security';
 import { loadScanEvent, type ScanEventContext } from '@gamo/domain/scanner';
@@ -56,8 +50,7 @@ export async function resolveOrganizerEvent(
       message:
         'Your account does not have permission for this part of the event. Ask the event owner to add you to the event team.',
     };
-  const canSeePersonalData =
-    isStaffOrAdmin(auth) || (await hasEventPermission(drizzle, auth, eventId, 'view_settlement'));
+  const canSeePersonalData = await hasEventPermission(drizzle, auth, eventId, 'view_settlement');
   return { ok: true, ctx: { env, db, auth, event, canSeePersonalData } };
 }
 

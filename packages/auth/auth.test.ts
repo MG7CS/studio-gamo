@@ -9,7 +9,6 @@ import {
   buildClearSessionCookie,
   extractSessionCookie,
   hasSystemRole,
-  isStaffOrAdmin,
   hasOrgRole,
   type SessionData,
 } from './index.ts';
@@ -136,10 +135,8 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
   test('correctly identifies staff roles and capabilities', () => {
     assert.equal(hasSystemRole(mockStaffSession, 'staff_reviewer'), true);
     assert.equal(hasSystemRole(mockStaffSession, 'worship_leader'), false);
-    assert.equal(isStaffOrAdmin(mockStaffSession), true);
 
     assert.equal(hasSystemRole(mockOrganizerSession, 'staff_reviewer'), false);
-    assert.equal(isStaffOrAdmin(mockOrganizerSession), false);
   });
 
   test('strictly enforces tenant isolation across organizations', () => {
@@ -152,7 +149,7 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
     assert.equal(hasOrgRole(mockOrganizerSession, 'org_gamo_ops', ['member']), false);
   });
 
-  test('superadmin role overrides organization checks', () => {
+  test('a superadmin role grants no override of roles or organizations', () => {
     const superAdminSession: SessionData = {
       user: {
         id: 'usr_super_1',
@@ -168,10 +165,8 @@ describe('Authorization & Multi-Tenant Role Enforcement', () => {
       expiresAt: new Date(Date.now() + 86400000),
     };
 
-    assert.equal(hasSystemRole(superAdminSession, 'staff_reviewer'), true);
-    assert.equal(isStaffOrAdmin(superAdminSession), true);
-    // Superadmin has access to any org
-    assert.equal(hasOrgRole(superAdminSession, 'org_riverside_1', ['owner']), true);
+    assert.equal(hasSystemRole(superAdminSession, 'staff_reviewer'), false);
+    assert.equal(hasOrgRole(superAdminSession, 'org_riverside_1', ['owner']), false);
   });
 });
 

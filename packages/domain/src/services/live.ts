@@ -32,7 +32,6 @@ import {
   refundRecords,
   settlementRecords,
   productionRequests,
-  auditLogs,
   musicianProfiles,
   externalListingRevisions,
   externalOutboundClicks,
@@ -682,16 +681,6 @@ export class LiveService {
       }
     }
 
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'event.team.assigned',
-      entityType: 'event_team_member',
-      entityId: memberId,
-      payloadJson: JSON.stringify({ eventId, userId: input.userId, role: input.role, ...flags }),
-      createdAt: now,
-    });
-
     return {
       id: memberId,
       eventId,
@@ -701,7 +690,7 @@ export class LiveService {
     };
   }
 
-  /** Organization owner/admin of the event's organizer (or superadmin): the only people who grant ticketing access. */
+  /** Organization owner/admin of the event's organizer the only people who grant ticketing access. */
   async isOrgOwnerOrAdmin(auth: Parameters<typeof hasOrgRole>[0], eventId: string): Promise<boolean> {
     const [row] = await this.db
       .select({ orgId: organizerProfiles.organizationId })
@@ -713,7 +702,7 @@ export class LiveService {
   }
 
   /**
-   * Revokes a team member's role on an event (status `revoked`, audited). Only an organization owner/admin
+   * Revokes a team member's role on an event (status `revoked`). Only an organization owner/admin
    * or someone holding financial authority may revoke; a content editor cannot remove other people.
    */
   async revokeEventTeamMember(
@@ -741,21 +730,12 @@ export class LiveService {
         .update(eventTeamMembers)
         .set({ status: 'revoked' })
         .where(eq(eventTeamMembers.id, member.id));
-      await this.db.insert(auditLogs).values({
-        id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        actorUserId,
-        action: 'event.team.revoked',
-        entityType: 'event_team_member',
-        entityId: member.id,
-        payloadJson: JSON.stringify({ eventId, userId: input.userId, role: input.role }),
-        createdAt: new Date(),
-      });
     }
     return { id: member.id, eventId, userId: input.userId, role: input.role, status: 'revoked' as const };
   }
 
   /**
-   * Validates and checks in a QR admission pass with replay protection and scan audit logging.
+   * Validates and checks in a QR admission pass.
    */
   async scanTicketPass(scannedByUserId: string, input: TicketScanInput) {
     const now = new Date();
@@ -849,16 +829,6 @@ export class LiveService {
         outcome: 'admitted',
         gateLabel: input.gateLabel ?? null,
         scannedAt: now,
-      });
-
-      await this.db.insert(auditLogs).values({
-        id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        actorUserId: scannedByUserId,
-        action: 'ticket.scanned',
-        entityType: 'ticket',
-        entityId: ticket.id,
-        payloadJson: JSON.stringify({ scanId, eventId: input.eventId, outcome: 'admitted' }),
-        createdAt: now,
       });
 
       return {
@@ -993,16 +963,6 @@ export class LiveService {
       createdAt: now,
     });
 
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId: userId,
-      action: 'artist.profile.created',
-      entityType: 'artist_profile',
-      entityId: id,
-      payloadJson: JSON.stringify({ stageName: input.stageName, allowSelfBooking: input.allowSelfBooking }),
-      createdAt: now,
-    });
-
     return {
       id,
       userId,
@@ -1039,12 +999,7 @@ export class LiveService {
   /**
    * Records artist approval for a booking agent or manager with conflict detection on exclusive authority.
    */
-  async authorizeRepresentative(
-    artistId: string,
-    actorUserId: string,
-    isSuperadmin: boolean,
-    input: AuthorizeRepresentativeInput,
-  ) {
+  async authorizeRepresentative(artistId: string, actorUserId: string, input: AuthorizeRepresentativeInput) {
     const [artist] = await this.db
       .select()
       .from(artistProfiles)
@@ -1055,7 +1010,7 @@ export class LiveService {
       throw new Error(`NOT_FOUND: Artist ${artistId} not found.`);
     }
 
-    if (artist.userId !== actorUserId && !isSuperadmin) {
+    if (artist.userId !== actorUserId) {
       throw new Error('FORBIDDEN: Only the artist or an authorized administrator may grant representation.');
     }
 
@@ -1112,22 +1067,6 @@ export class LiveService {
       throw error;
     }
 
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'artist.representation.authorized',
-      entityType: 'representation_authorization',
-      entityId: authId,
-      payloadJson: JSON.stringify({
-        artistId,
-        representativeId: rep.id,
-        scope: input.scope,
-        exclusivity: input.exclusivity,
-        canViewFinancials: input.canViewFinancials,
-      }),
-      createdAt: now,
-    });
-
     return {
       id: authId,
       artistId,
@@ -1140,14 +1079,9 @@ export class LiveService {
   }
 
   /**
-   * Revokes an artist representation authorization while preserving prior signed engagements and audit history.
+   * Revokes an artist representation authorization while preserving prior signed engagements.
    */
-  async revokeRepresentation(
-    authorizationId: string,
-    actorUserId: string,
-    isSuperadmin: boolean,
-    reason: string,
-  ) {
+  async revokeRepresentation(authorizationId: string, actorUserId: string, reason: string) {
     const [authRow] = await this.db
       .select()
       .from(representationAuthorizations)
@@ -1170,7 +1104,7 @@ export class LiveService {
       .where(eq(artistRepresentatives.id, authRow.representativeId))
       .limit(1);
 
-    if (!isSuperadmin && artist?.userId !== actorUserId && rep?.userId !== actorUserId) {
+    if (artist?.userId !== actorUserId && rep?.userId !== actorUserId) {
       throw new Error('FORBIDDEN: Not authorized to revoke this representation agreement.');
     }
 
@@ -1184,16 +1118,6 @@ export class LiveService {
         revocationReason: reason.trim(),
       })
       .where(eq(representationAuthorizations.id, authorizationId));
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'artist.representation.revoked',
-      entityType: 'representation_authorization',
-      entityId: authorizationId,
-      payloadJson: JSON.stringify({ reason: reason.trim() }),
-      createdAt: now,
-    });
 
     return {
       id: authorizationId,
@@ -1292,16 +1216,6 @@ export class LiveService {
       createdAt: now,
     });
 
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'booking.inquiry.created',
-      entityType: 'booking_inquiry',
-      entityId: inquiryId,
-      payloadJson: JSON.stringify({ artistId: artist.id, offerId }),
-      createdAt: now,
-    });
-
     return {
       inquiry: {
         id: inquiryId,
@@ -1366,22 +1280,6 @@ export class LiveService {
       performanceMinutes: input.performanceMinutes,
       termsSummary: input.termsSummary.trim(),
       status: 'proposed',
-      createdAt: now,
-    });
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'booking.offer.proposed',
-      entityType: 'booking_offer',
-      entityId: offerId,
-      payloadJson: JSON.stringify({
-        inquiryId,
-        offeredByRole,
-        artistFeeCents: input.artistFeeCents,
-        agentCommissionCents: input.agentCommissionCents,
-        platformAdminAllocationCents: input.platformAdminAllocationCents,
-      }),
       createdAt: now,
     });
 
@@ -1500,23 +1398,6 @@ export class LiveService {
         });
       }
     }
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: 'booking.offer.accepted',
-      entityType: 'performance_engagement',
-      entityId: engagementId,
-      payloadJson: JSON.stringify({
-        inquiryId: inquiry.id,
-        offerId: offer.id,
-        artistFeeCents: offer.artistFeeCents,
-        agentCommissionCents: offer.agentCommissionCents,
-        platformAdminAllocationCents: offer.platformAdminAllocationCents,
-        depositCollectionStatus: 'disabled_pending_policy',
-      }),
-      createdAt: now,
-    });
 
     return {
       offer: {
@@ -1699,16 +1580,6 @@ export class LiveService {
       category: input.category,
       scopeSummary: input.scopeSummary.trim(),
       status: 'submitted',
-      createdAt: now,
-    });
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId: contactUserId,
-      action: 'event.production.requested',
-      entityType: 'production_request',
-      entityId: id,
-      payloadJson: JSON.stringify({ eventId: event.id, category: input.category }),
       createdAt: now,
     });
 
@@ -1925,21 +1796,6 @@ export class LiveService {
         createdAt: now,
       });
     }
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_pub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId: options?.actorUserId ?? userId,
-      action: 'live.publisher.provisioned',
-      entityType: 'organizer_profile',
-      entityId: profileId,
-      payloadJson: JSON.stringify({
-        organizationId: orgId,
-        organizationSlug: GAMO_LIVE_PUBLISHER_ORG_SLUG,
-        publisherEmail: GAMO_LIVE_PUBLISHER_EMAIL,
-        displayLabel: GAMO_LIVE_PUBLISHER_LABEL,
-      }),
-      createdAt: now,
-    });
 
     return {
       dryRun: false,
@@ -2251,21 +2107,6 @@ export class LiveService {
         createdAt: now,
       });
 
-      await this.db.insert(auditLogs).values({
-        id: `aud_imp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        actorUserId: publisherUserId,
-        action: existing ? 'live.external_listing.reimported' : 'live.external_listing.imported',
-        entityType: 'event',
-        entityId: eventId,
-        payloadJson: JSON.stringify({
-          importKey,
-          editorialDecision: evaluation.editorialDecision,
-          editorialStatus: nextEditorialStatus,
-          externalUrl: urlCheck.normalizedUrl,
-        }),
-        createdAt: now,
-      });
-
       entries.push({
         importKey,
         slug: evaluation.slug,
@@ -2364,21 +2205,6 @@ export class LiveService {
         slug: existing.slug,
         previousEditorialStatus: existing.editorialStatus,
         nextEditorialStatus: decision,
-      }),
-      createdAt: now,
-    });
-
-    await this.db.insert(auditLogs).values({
-      id: `aud_rev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      actorUserId,
-      action: `live.external_listing.${decision}`,
-      entityType: 'event',
-      entityId: existing.id,
-      payloadJson: JSON.stringify({
-        importKey: existing.importKey,
-        previousEditorialStatus: existing.editorialStatus,
-        nextEditorialStatus: decision,
-        notes: options?.notes ?? null,
       }),
       createdAt: now,
     });

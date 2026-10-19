@@ -21,7 +21,7 @@ export interface SecretRequirements {
 export function requirementsFor(app: PreflightApp): SecretRequirements {
   if (app === 'admin') {
     return {
-      required: ['SESSION_SECRET', 'CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD', 'ADMIN_EMAIL'],
+      required: ['CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD', 'ADMIN_EMAIL'],
       recommended: [],
       optional: [],
       clerk: [],

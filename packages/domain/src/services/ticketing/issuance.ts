@@ -482,23 +482,6 @@ export async function issueDoorTickets(
     sql: 'UPDATE ticket_orders SET confirmed_at = ?2 WHERE id = ?1',
     params: [orderId, input.now],
   });
-  specs.push({
-    sql: 'INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)',
-    params: [
-      newPrefixedId('aud'),
-      input.actorUserId ?? null,
-      'ticket.door_issue',
-      'order',
-      orderId,
-      JSON.stringify({
-        method: input.method,
-        quantity,
-        amountCents: amount,
-        scannerSessionId: input.scannerSessionId ?? null,
-      }),
-      input.now,
-    ],
-  });
   try {
     await runBatch(db, specs);
   } catch (err) {
@@ -527,7 +510,7 @@ export async function issueDoorTickets(
 /**
  * `issueDoorTickets` in the shape of Agent C's `DoorIssuer` seam (`scanning-door-sales.ts`): a drop-in for
  * `issueDoorTicketsLocal`. The signing keyring comes from the environment (`input.keyring` is not used);
- * `issuedBy` selects the audit actor; a replayed `idempotencyKey` returns the original sale.
+ * `issuedBy` selects the acting organizer or scanner session; a replayed `idempotencyKey` returns the original sale.
  */
 export async function issueDoorTicketsForScanner(
   db: SqlDatabase,

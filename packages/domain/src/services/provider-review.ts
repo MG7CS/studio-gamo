@@ -6,17 +6,17 @@
  * required meeting (a meeting may still be scheduled).
  *
  * Every decision is ONE D1 batch: a conditional status UPDATE (`WHERE status = <the status the staff
- * member saw>`), then the append-only `verification_records` row and the `audit_logs` row, both guarded by
- * `changes() = 1` so they are written only when the UPDATE moved the row. A stale form or a concurrent
- * decision therefore changes nothing and is reported as a conflict. Staff can never review their own
- * profile (same person or same email). The provider is emailed through the outbox (kind
+ * member saw>`), then the append-only `verification_records` row, guarded by
+ * `changes() = 1` so it is written only when the UPDATE moved the row. A stale form or a concurrent
+ * decision therefore changes nothing and is reported as a conflict. There is one admin (Cloudflare Access,
+ * docs/ADMIN_REQUIREMENTS.md): the record carries the admin's name and the fixed actor id `admin`, with no
+ * user account and no self-review rule. The provider is emailed through the outbox (kind
  * `provider_status`), honestly reported when email is not configured.
  *
  * All times are epoch seconds.
  */
 import type { GamoEnv } from '@gamo/config/env';
 import { newPrefixedId } from '../security/ids.ts';
-import { normalizeEmail } from '../security/pii-hash.ts';
 import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
 import type { ProviderRole, ProviderStatus } from '../types/enums.ts';
 import { sendOutboxEmail } from './email-outbox.ts';
@@ -78,7 +78,7 @@ export function availableReviewActions(
 
 export class ReviewError extends Error {
   constructor(
-    readonly code: 'NOT_FOUND' | 'INVALID' | 'SELF_REVIEW' | 'CONFLICT' | 'FORBIDDEN',
+    readonly code: 'NOT_FOUND' | 'INVALID' | 'CONFLICT' | 'FORBIDDEN',
     message: string,
     readonly field?: string,
   ) {
@@ -87,12 +87,12 @@ export class ReviewError extends Error {
   }
 }
 
-export interface StaffActor {
-  userId: string;
-  /** Shown on the record; taken from the signed-in staff account, never typed. */
+/** The id written to `verification_records.staff_user_id` (a plain column, not a foreign key): there is one admin. */
+export const ADMIN_ACTOR_ID = 'admin';
+
+/** Who decided. There is one admin; the name shown on the record is the admin's email address. */
+export interface AdminActor {
   name: string;
-  email: string;
-  personId: string | null;
 }
 
 export interface ProviderReviewInput {
@@ -100,7 +100,7 @@ export interface ProviderReviewInput {
   action: ProviderReviewAction;
   /** The status the staff member saw when they opened the form (stale-form guard). */
   expectedStatus: string;
-  staff: StaffActor;
+  actor: AdminActor;
   /** Required for verify (internal notes), request_changes (message to the provider), reject, suspend. */
   notes?: string | null;
   /** schedule_meeting: when (epoch seconds), where, and which staff member will attend. */
@@ -128,77 +128,6 @@ async function personEmail(db: SqlDatabase, personId: string): Promise<string | 
   });
   if (!row || row.erased_at !== null) return null;
   return row.email_normalized;
-}
-
-export type ReviewSubject =
-  | { kind: 'provider_profile'; id: string; personId: string; organizationId: string | null }
-  | { kind: 'organizer'; organizerProfileId: string };
-
-/**
- * One self-moderation rule for every staff review action (verification transitions, first-event review,
- * always_review; D-106): staff may not act on a subject they own or belong to —
- *   - the provider profile's person is the staff member's person, or its verified email is theirs;
- *   - the staff member (by user id, by person, or by email) is an active member of the organization
- *     behind the profile or the organizer.
- * A refusal writes a `review.self_review_refused` audit row and throws `ReviewError('SELF_REVIEW')`.
- */
-export async function assertNotSelfReview(
-  db: SqlDatabase,
-  staff: StaffActor,
-  subject: ReviewSubject,
-  now: number,
-): Promise<void> {
-  let organizationId: string | null;
-  let ownPerson = false;
-  let entity: { type: string; id: string };
-  if (subject.kind === 'provider_profile') {
-    entity = { type: 'provider_profile', id: subject.id };
-    organizationId = subject.organizationId;
-    const ownerEmail = await personEmail(db, subject.personId);
-    ownPerson =
-      (staff.personId !== null && staff.personId === subject.personId) ||
-      (ownerEmail !== null && normalizeEmail(staff.email) === ownerEmail);
-  } else {
-    entity = { type: 'organizer_profile', id: subject.organizerProfileId };
-    const [row] = await allRows<{ organization_id: string }>(db, {
-      sql: 'SELECT organization_id FROM organizer_profiles WHERE id = ?1',
-      params: [subject.organizerProfileId],
-    });
-    if (!row) throw new ReviewError('NOT_FOUND', 'That organizer no longer exists.');
-    organizationId = row.organization_id;
-  }
-  let member = false;
-  if (!ownPerson && organizationId) {
-    const [hit] = await allRows<{ n: number }>(db, {
-      sql: `SELECT count(*) AS n FROM organization_members m JOIN users u ON u.id = m.user_id
-             WHERE m.organization_id = ?1 AND m.status = 'active'
-               AND (u.id = ?2 OR (?3 IS NOT NULL AND u.person_id = ?3)
-                    OR lower(CASE WHEN instr(u.email, '#') > 0 THEN substr(u.email, 1, instr(u.email, '#') - 1) ELSE u.email END) = ?4)`,
-      params: [organizationId, staff.userId, staff.personId, normalizeEmail(staff.email)],
-    });
-    member = Number(hit?.n ?? 0) > 0;
-  }
-  if (!ownPerson && !member) return;
-  await runBatch(db, [
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            VALUES (?1, ?2, 'review.self_review_refused', ?3, ?4, ?5, ?6)`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        staff.userId,
-        entity.type,
-        entity.id,
-        JSON.stringify({ reason: ownPerson ? 'own_profile' : 'organization_member' }),
-        now,
-      ],
-    },
-  ]);
-  throw new ReviewError(
-    'SELF_REVIEW',
-    ownPerson
-      ? 'You cannot review your own profile. Ask another staff member.'
-      : 'You belong to this organization, so another staff member must review it.',
-  );
 }
 
 /** The meeting date on record for a church (the latest `schedule_meeting`), if any. */
@@ -232,20 +161,7 @@ export async function reviewProviderProfile(
   if (!transition) throw new ReviewError('INVALID', 'Choose one of the review actions.');
   const profile = await getProviderProfile(db, input.profileId);
   if (!profile) throw new ReviewError('NOT_FOUND', 'That profile no longer exists.');
-  if (!input.staff.userId || !clean(input.staff.name, 120))
-    throw new ReviewError('FORBIDDEN', 'Sign in to the staff gateway with a named staff account first.');
-
-  await assertNotSelfReview(
-    db,
-    input.staff,
-    {
-      kind: 'provider_profile',
-      id: profile.id,
-      personId: profile.personId,
-      organizationId: profile.organizationId,
-    },
-    input.now,
-  );
+  if (!clean(input.actor.name, 120)) throw new ReviewError('FORBIDDEN', 'The admin identity is missing.');
 
   if (profile.status !== input.expectedStatus)
     throw new ReviewError(
@@ -335,23 +251,11 @@ export async function reviewProviderProfile(
         input.action,
         profile.status,
         transition.to,
-        input.staff.userId,
-        clean(input.staff.name, 120),
+        ADMIN_ACTOR_ID,
+        clean(input.actor.name, 120),
         meetingAt,
         meetingLocation,
         recordNotes,
-        input.now,
-      ],
-    },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, ?2, ?3, 'provider_profile', ?4, ?5, ?6 WHERE changes() = 1`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        input.staff.userId,
-        `provider.review.${input.action}`,
-        profile.id,
-        JSON.stringify({ from: profile.status, to: transition.to, recordId, role: profile.role }),
         input.now,
       ],
     },
@@ -362,13 +266,13 @@ export async function reviewProviderProfile(
     { sql: 'SELECT id FROM verification_records WHERE id = ?1', params: [recordId] },
   ];
   const results = await runBatch(db, specs);
-  const written = (results[4] as unknown[]).length === 1;
+  const written = (results[3] as unknown[]).length === 1;
   if (!written)
     throw new ReviewError(
       'CONFLICT',
       'Someone else decided on this profile at the same time. Reload to see the latest.',
     );
-  const updated = toProviderProfile((results[3] as Parameters<typeof toProviderProfile>[0][])[0]);
+  const updated = toProviderProfile((results[2] as Parameters<typeof toProviderProfile>[0][])[0]);
   return { profile: updated, recordId, from: profile.status, to: transition.to };
 }
 
@@ -570,17 +474,11 @@ export async function recordEventReviewDecision(
     eventId: string;
     organizerProfileId: string;
     decision: 'approved' | 'rejected' | 'revision_requested';
-    staff: StaffActor;
+    actor: AdminActor;
     notes?: string | null;
     now: number;
   },
 ): Promise<{ firstApproval: boolean }> {
-  await assertNotSelfReview(
-    db,
-    input.staff,
-    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
-    input.now,
-  );
   const action =
     input.decision === 'approved'
       ? 'approve_event'
@@ -601,8 +499,8 @@ export async function recordEventReviewDecision(
         input.eventId,
         action,
         input.decision,
-        input.staff.userId,
-        clean(input.staff.name, 120),
+        ADMIN_ACTOR_ID,
+        clean(input.actor.name, 120),
         clean(input.notes, 2000) || null,
         input.now,
       ],
@@ -611,32 +509,15 @@ export async function recordEventReviewDecision(
   return { firstApproval: (results[0] as unknown[]).length === 1 };
 }
 
-/** Staff toggle: review every event of this organizer, not only the first. */
+/** Admin toggle: review every event of this organizer, not only the first. */
 export async function setOrganizerAlwaysReview(
   db: SqlDatabase,
-  input: { organizerProfileId: string; alwaysReview: boolean; staff: StaffActor; now: number },
+  input: { organizerProfileId: string; alwaysReview: boolean; actor: AdminActor; now: number },
 ): Promise<boolean> {
-  await assertNotSelfReview(
-    db,
-    input.staff,
-    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
-    input.now,
-  );
   const results = await runBatch(db, [
     {
       sql: 'UPDATE organizer_profiles SET always_review = ?2 WHERE id = ?1 RETURNING id',
       params: [input.organizerProfileId, input.alwaysReview ? 1 : 0],
-    },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, ?2, 'organizer.always_review', 'organizer_profile', ?3, ?4, ?5 WHERE changes() = 1`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        input.staff.userId,
-        input.organizerProfileId,
-        JSON.stringify({ alwaysReview: input.alwaysReview }),
-        input.now,
-      ],
     },
   ]);
   return (results[0] as unknown[]).length === 1;
