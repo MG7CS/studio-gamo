@@ -13,7 +13,7 @@
 import { runBatch, allRows, type SqlDatabase } from '../../security/sql-database.ts';
 import { newOrderReference, newPrefixedId } from '../../security/ids.ts';
 import { signValue, verifySignedValue } from '../../security/signed-value.ts';
-import { hmacSha256, constantTimeEqual } from '../../security/crypto.ts';
+import { hmacSha256, constantTimeEqual, sha256Hex } from '../../security/crypto.ts';
 import { isPlausibleEmail, normalizeEmail } from '../../security/pii-hash.ts';
 import { isLocalEnvironment } from '../../security/env-secret.ts';
 import { randomBase32 } from '../../security/base32.ts';
@@ -33,7 +33,7 @@ import {
   type HoldBatchItem,
 } from '../../ticketing/sql.ts';
 import { HOLD_DURATION_SECONDS, policySnapshotJson, type EventPolicy } from '../../types/policy.ts';
-import { createStripeTestClient, isRealTestKey } from '@studio-gamo/integrations/stripe';
+import { StripeApiError, createStripeTestClient, isRealTestKey } from '@studio-gamo/integrations/stripe';
 import { sendOrderVerificationEmail, sendTicketLimitEmail } from './email.ts';
 import { notifyWaitlist } from './checkout-waitlist.ts';
 import {
@@ -499,14 +499,112 @@ export interface PlaceOrderInput {
   https: boolean;
   now: number;
   fetchImpl?: typeof fetch;
+  /** Wait between attempts while another request creates the same Stripe session (default 250 ms; tests use less). */
+  retryDelayMs?: number;
 }
 
-async function heldOrValidTicketCount(db: SqlDatabase, eventId: string, profileId: string): Promise<number> {
-  const rows = await allRows<{ n: number }>(db, {
-    sql: "SELECT (SELECT count(*) FROM tickets WHERE event_id = ?1 AND customer_profile_id = ?2 AND status = 'valid') + (SELECT coalesce(sum(h.quantity), 0) FROM ticket_holds h JOIN ticket_orders o ON o.id = h.order_id WHERE h.event_id = ?1 AND h.status = 'held' AND o.customer_profile_id = ?2) AS n",
-    params: [eventId, profileId],
+/**
+ * Per event and email cap, enforced INSIDE the hold batch (CLEANUP_LOG D-174): a last statement that fails the
+ * whole batch with "malformed JSON" when valid tickets + held tickets of this customer exceed the cap.
+ * The new order's own holds are already inserted when it runs, so parallel orders cannot all pass a stale read.
+ */
+export const EMAIL_CAP_ERROR = /malformed JSON/i;
+function emailCapGuardStatement(eventId: string, profileId: string, cap: number) {
+  return {
+    sql: "SELECT CASE WHEN ((SELECT count(*) FROM tickets WHERE event_id = ?1 AND customer_profile_id = ?2 AND status = 'valid') + (SELECT coalesce(sum(h.quantity), 0) FROM ticket_holds h JOIN ticket_orders o ON o.id = h.order_id WHERE h.event_id = ?1 AND h.status = 'held' AND o.customer_profile_id = ?2)) > ?3 THEN json_extract('{', '$') ELSE 0 END",
+    params: [eventId, profileId, cap],
+  };
+}
+
+/** What the buyer asked for, hashed: a replay of the same idempotency key must carry the same request. */
+async function requestHash(eventId: string, v: ValidatedOrder, request: OrderRequest): Promise<string> {
+  return sha256Hex(
+    JSON.stringify({
+      e: eventId,
+      i: v.lines.map((l) => `${l.category.id}|${l.section?.id ?? ''}|${l.quantity}`).sort(),
+      n: request.purchaserName,
+      m: v.email,
+      a: v.holderNames.map((x) => x.toLowerCase()),
+    }),
+  );
+}
+
+function storedRequestHash(order: Pick<OrderRow, 'policy_snapshot_json'>): string | null {
+  try {
+    const raw = JSON.parse(order.policy_snapshot_json ?? 'null') as { reqHash?: unknown } | null;
+    return typeof raw?.reqHash === 'string' ? raw.reqHash : null;
+  } catch {
+    return null;
+  }
+}
+
+async function emailAlreadySent(db: SqlDatabase, key: string): Promise<boolean> {
+  const rows = await allRows<{ status: string }>(db, {
+    sql: 'SELECT status FROM email_log WHERE idempotency_key = ?1',
+    params: [key],
   });
-  return Number(rows[0]?.n ?? 0);
+  return ['sent', 'delivered', 'delivery_delayed'].includes(rows[0]?.status ?? '');
+}
+
+/**
+ * Everything after the order batch, written so a replay (same idempotency key after a crash or double
+ * submit) finishes what is missing and sends nothing twice: consent first, terms acceptance last (it is
+ * the "done" marker), the verification email only if it was not sent.
+ */
+async function completeOrderSteps(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: PlaceOrderInput,
+  order: OrderRow,
+  event: EventRow,
+): Promise<void> {
+  const request = input.request;
+  const profileId = order.customer_profile_id;
+  const termsDone = await allRows(db, {
+    sql: 'SELECT 1 FROM terms_acceptances WHERE context = ?1 LIMIT 1',
+    params: [`order:${order.id}`],
+  });
+  if (termsDone.length === 0) {
+    if (request.marketingOptIn)
+      await recordMarketingConsent(db, {
+        email: order.purchaser_email,
+        product: 'live',
+        granted: true,
+        source: 'live.order',
+        ipHash: input.ipHash,
+        now: input.now,
+      });
+    await recordTermsAcceptance(db, {
+      documents: request.termsDocuments.filter((d) =>
+        (TICKET_TERMS_SLUGS as readonly string[]).includes(d.slug),
+      ),
+      subject: { customerProfileId: profileId, email: order.purchaser_email },
+      context: `order:${order.id}`,
+      ipHash: input.ipHash,
+      now: input.now,
+    });
+  }
+  if (order.order_kind === 'free' || Number(order.total_cents) === 0) {
+    if (profileId && !(await emailAlreadySent(db, `order_verification:${order.id}`))) {
+      const holdExpiresAt = Number(order.hold_expires_at ?? input.now + HOLD_DURATION_SECONDS);
+      const link = await issueCustomerLink(db, env, {
+        customerProfileId: profileId,
+        scope: formatScope('order', order.id),
+        purpose: 'verification',
+        expiresAt: holdExpiresAt,
+        now: input.now,
+        ipHash: input.ipHash,
+        openPath: '/link',
+      });
+      await sendOrderVerificationEmail(db, env, {
+        order,
+        event,
+        code: await orderVerificationCode(env, order.id),
+        confirmUrl: `${input.origin}${link.path}`,
+        now: input.now,
+      });
+    }
+  }
 }
 
 /** Expires stale holds for the event (triggers give the units back) and tells the waitlist. */
@@ -538,10 +636,20 @@ async function resultForExistingOrder(
   env: TicketingEnv,
   order: OrderRow,
   input: PlaceOrderInput,
+  hash: string,
 ): Promise<PlaceOrderResult> {
   if (order.event_id !== input.request.eventId || !emailsEqual(order.purchaser_email, input.request.email))
     throw new TicketingError('CONFLICT', 'Please reload the page and send the form again.');
-  if (order.order_kind === 'free' || order.total_cents === 0)
+  const stored = storedRequestHash(order);
+  if (stored && stored !== hash)
+    throw new TicketingError(
+      'CONFLICT',
+      'This form was already sent with different choices. Reload the page and choose your tickets again.',
+    );
+  const event = await loadEvent(db, order.event_id);
+  if (!event) throw new TicketingError('NOT_FOUND', 'This event is no longer available.');
+  if (order.order_kind === 'free' || Number(order.total_cents) === 0) {
+    if (order.status === 'pending_verification') await completeOrderSteps(db, env, input, order, event);
     return {
       type: 'verify',
       confirmToken: await confirmTokenFor(
@@ -551,13 +659,13 @@ async function resultForExistingOrder(
       ),
       expiresAt: Number(order.hold_expires_at ?? input.now),
     };
+  }
   if (order.status !== 'pending_payment')
     throw new TicketingError(
       'CONFLICT',
       'This order was already completed. Check your email for your tickets.',
     );
-  const event = await loadEvent(db, order.event_id);
-  if (!event) throw new TicketingError('NOT_FOUND', 'This event is no longer available.');
+  await completeOrderSteps(db, env, input, order, event);
   return startCheckoutSession(db, env, order, event, input);
 }
 
@@ -593,8 +701,9 @@ export async function placeOrder(
   // Links and codes need the link secret: fail closed (503) before any inventory is held.
   requireTicketingSecret(env, 'CUSTOMER_LINK_SECRET');
 
+  const hash = await requestHash(ctx.event.id, v, request);
   const existing = await loadOrderBy(db, 'idempotency_key', request.idempotencyKey);
-  if (existing) return resultForExistingOrder(db, env, existing, { ...input, request });
+  if (existing) return resultForExistingOrder(db, env, existing, { ...input, request }, hash);
 
   await sweepEventHolds(db, env, ctx.event.id, now, input.origin);
 
@@ -604,23 +713,7 @@ export async function placeOrder(
       fields: [{ field: 'email', message: 'Please use another email address.' }],
     });
 
-  // Per event and email cap: answer exactly as for a new order (no enumeration), email the address.
   const cap = ctx.policy.maxTicketsPerOrder * PER_EVENT_EMAIL_CAP_MULTIPLE;
-  if ((await heldOrValidTicketCount(db, ctx.event.id, profile.id)) + v.totalTickets > cap) {
-    const attemptId = newPrefixedId('ord');
-    await sendTicketLimitEmail(db, env, {
-      to: v.email,
-      event: ctx.event,
-      attemptId,
-      origin: input.origin,
-      now,
-    });
-    return {
-      type: 'verify',
-      confirmToken: await confirmTokenFor(env, attemptId, now + HOLD_DURATION_SECONDS + 60),
-      expiresAt: now + HOLD_DURATION_SECONDS,
-    };
-  }
 
   const holdExpiresAt = now + HOLD_DURATION_SECONDS;
   const items: HoldBatchItem[] = v.lines.map((l) => ({
@@ -632,7 +725,10 @@ export async function placeOrder(
     },
     holdId: newPrefixedId('hold'),
   }));
-  const snapshot = policySnapshotJson(ctx.policy);
+  const snapshot = JSON.stringify({
+    ...(JSON.parse(policySnapshotJson(ctx.policy)) as object),
+    reqHash: hash,
+  });
   let orderId = '';
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -668,6 +764,7 @@ export async function placeOrder(
               },
             ]
           : []),
+        emailCapGuardStatement(ctx.event.id, profile.id, cap),
       ]);
       break;
     } catch (err) {
@@ -675,7 +772,23 @@ export async function placeOrder(
       if (code === 'DUPLICATE_ORDER_REFERENCE' && attempt < 2) continue;
       if (code === 'DUPLICATE_ORDER') {
         const raced = await loadOrderBy(db, 'idempotency_key', request.idempotencyKey);
-        if (raced) return resultForExistingOrder(db, env, raced, { ...input, request });
+        if (raced) return resultForExistingOrder(db, env, raced, { ...input, request }, hash);
+      }
+      if (EMAIL_CAP_ERROR.test(String((err as { message?: unknown })?.message ?? err))) {
+        // Per event and email cap: answer exactly as for a new order (no enumeration) and email the address.
+        const attemptId = newPrefixedId('ord');
+        await sendTicketLimitEmail(db, env, {
+          to: v.email,
+          event: ctx.event,
+          attemptId,
+          origin: input.origin,
+          now,
+        });
+        return {
+          type: 'verify',
+          confirmToken: await confirmTokenFor(env, attemptId, now + HOLD_DURATION_SECONDS + 60),
+          expiresAt: now + HOLD_DURATION_SECONDS,
+        };
       }
       if (code && SOLD_OUT_CODES.includes(code)) throw soldOut(await remainingCounts(db, ctx.event.id));
       if (code === 'EVENT_NOT_ON_SALE' || code === 'CATEGORY_NOT_ON_SALE' || code === 'SECTION_NOT_ON_SALE')
@@ -687,49 +800,14 @@ export async function placeOrder(
     }
   }
 
-  await recordTermsAcceptance(db, {
-    documents: request.termsDocuments.filter((d) =>
-      (TICKET_TERMS_SLUGS as readonly string[]).includes(d.slug),
-    ),
-    subject: { customerProfileId: profile.id, email: v.email },
-    context: `order:${orderId}`,
-    ipHash: input.ipHash,
-    now,
-  });
-  if (request.marketingOptIn)
-    await recordMarketingConsent(db, {
-      email: v.email,
-      product: 'live',
-      granted: true,
-      source: 'live.order',
-      ipHash: input.ipHash,
-      now,
-    });
-
   const order = (await loadOrder(db, orderId))!;
-  if (!paid) {
-    const link = await issueCustomerLink(db, env, {
-      customerProfileId: profile.id,
-      scope: formatScope('order', orderId),
-      purpose: 'verification',
-      expiresAt: holdExpiresAt,
-      now,
-      ipHash: input.ipHash,
-      openPath: '/link',
-    });
-    await sendOrderVerificationEmail(db, env, {
-      order,
-      event: ctx.event,
-      code: await orderVerificationCode(env, orderId),
-      confirmUrl: `${input.origin}${link.path}`,
-      now,
-    });
+  await completeOrderSteps(db, env, { ...input, request }, order, ctx.event);
+  if (!paid)
     return {
       type: 'verify',
       confirmToken: await confirmTokenFor(env, orderId, holdExpiresAt + 60),
       expiresAt: holdExpiresAt,
     };
-  }
   return startCheckoutSession(db, env, order, ctx.event, { ...input, request });
 }
 
@@ -754,6 +832,23 @@ async function lineItemsFor(db: SqlDatabase, event: EventRow, items: OrderItemRo
   });
 }
 
+/**
+ * Gives the held tickets back and cancels the order, but ONLY while no Stripe session was ever attached
+ * (a live checkout URL may have been handed out otherwise).
+ */
+async function cancelUnstartedOrder(db: SqlDatabase, orderId: string, now: number): Promise<void> {
+  await runBatch(db, [
+    {
+      sql: "UPDATE ticket_holds SET status = 'released', released_at = ?2 WHERE order_id = ?1 AND status = 'held' AND order_item_id IS NOT NULL AND EXISTS (SELECT 1 FROM ticket_orders o WHERE o.id = ?1 AND o.status = 'pending_payment' AND o.stripe_checkout_session_id IS NULL)",
+      params: [orderId, now],
+    },
+    {
+      sql: "UPDATE ticket_orders SET status = 'cancelled', cancelled_at = ?2, updated_at = ?2 WHERE id = ?1 AND status = 'pending_payment' AND stripe_checkout_session_id IS NULL",
+      params: [orderId, now],
+    },
+  ]);
+}
+
 /** Creates (or, for the same order, re-creates idempotently) the Checkout Session and the customer cookie. */
 async function startCheckoutSession(
   db: SqlDatabase,
@@ -770,44 +865,57 @@ async function startCheckoutSession(
   const expiresAt = checkoutExpiresAt(holdExpiresAt, Number(order.created_at));
   const successUrl = `${input.origin}/tickets/orders/${order.id}?checkout=success`;
   const cancelUrl = `${input.origin}/tickets/orders/${order.id}?checkout=cancelled`;
-  let session: { id: string; url: string; expiresAt: number };
-  try {
-    if (mode.mock) {
-      if (!isLocalEnvironment(env)) throw new TicketingError('UNAVAILABLE', PAID_CHECKOUT_UNAVAILABLE);
-      const id = order.stripe_checkout_session_id ?? `cs_test_local_${randomBase32(24)}`;
-      session = { id, url: `${input.origin}/local-test/stripe-checkout/${id}`, expiresAt };
-    } else {
-      const client = createStripeTestClient({ secretKey: mode.secretKey, fetchImpl: input.fetchImpl });
-      session = await client.createTicketCheckoutSession({
-        lineItems: await lineItemsFor(db, event, items),
-        currency: order.currency || 'usd',
-        customerEmail: order.purchaser_email,
-        successUrl,
-        cancelUrl,
-        expiresAt,
-        clientReferenceId: order.id,
-        metadata: { orderId: order.id, orderReference: order.order_reference ?? '', eventId: event.id },
-        idempotencyKey: `checkout_${order.id}`,
-      });
+  let session: { id: string; url: string; expiresAt: number } | null = null;
+  if (mode.mock) {
+    if (!isLocalEnvironment(env)) throw new TicketingError('UNAVAILABLE', PAID_CHECKOUT_UNAVAILABLE);
+    const id = order.stripe_checkout_session_id ?? `cs_test_local_${randomBase32(24)}`;
+    session = { id, url: `${input.origin}/local-test/stripe-checkout/${id}`, expiresAt };
+  } else {
+    const client = createStripeTestClient({ secretKey: mode.secretKey, fetchImpl: input.fetchImpl });
+    const lineItems = await lineItemsFor(db, event, items);
+    // A double submit reaches Stripe twice with the same key: the second gets 409 idempotency_key_in_use
+    // until the first finishes, then Stripe replays the first answer. Wait for that instead of failing.
+    for (let attempt = 0; attempt < 6 && !session; attempt++) {
+      try {
+        session = await client.createTicketCheckoutSession({
+          lineItems,
+          currency: order.currency || 'usd',
+          customerEmail: order.purchaser_email,
+          successUrl,
+          cancelUrl,
+          expiresAt,
+          clientReferenceId: order.id,
+          metadata: { orderId: order.id, orderReference: order.order_reference ?? '', eventId: event.id },
+          idempotencyKey: `checkout_${order.id}`,
+        });
+      } catch (err) {
+        if (err instanceof StripeApiError && err.status === 409) {
+          await new Promise((r) => setTimeout(r, (input.retryDelayMs ?? 250) * (attempt + 1)));
+          continue;
+        }
+        if (err instanceof StripeApiError && err.status >= 400 && err.status < 500 && err.status !== 429) {
+          // Stripe definitely refused: give the inventory back, only if no session was ever attached.
+          console.error(`[ticketing] checkout session refused (${err.code ?? err.status})`);
+          await cancelUnstartedOrder(db, order.id, now);
+          throw new TicketingError(
+            'PAYMENT_FAILED',
+            "We couldn't start the payment. No money was taken. Please try again.",
+          );
+        }
+        // Network error, timeout, 5xx, 429: Stripe may or may not have created the session. Never cancel here —
+        // the hold expires on its own and a retry with the same key replays the session.
+        console.error('[ticketing] checkout session failed (will retry with the same key)');
+        throw new TicketingError(
+          'PAYMENT_FAILED',
+          "We couldn't reach the payment page just now. No money was taken. Please try again in a moment — your tickets stay held for a few minutes.",
+        );
+      }
     }
-  } catch (err) {
-    if (err instanceof TicketingError) throw err;
-    console.error('[ticketing] checkout session failed');
-    // Give the inventory back at once; the buyer can try again.
-    await runBatch(db, [
-      releaseOrderHoldsStatement({ orderId: order.id, now, status: 'released' }),
-      transitionOrderStatement({
-        orderId: order.id,
-        from: ['pending_payment'],
-        to: 'cancelled',
-        now,
-        set: { cancelledAt: now },
-      }),
-    ]);
-    throw new TicketingError(
-      'PAYMENT_FAILED',
-      "We couldn't start the payment. No money was taken. Please try again.",
-    );
+    if (!session)
+      throw new TicketingError(
+        'UNAVAILABLE',
+        'Your payment page is still being prepared. Please reload in a few seconds — your tickets stay held.',
+      );
   }
   await runBatch(db, [
     transitionOrderStatement({
