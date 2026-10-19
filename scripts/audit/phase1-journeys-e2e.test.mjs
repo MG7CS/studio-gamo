@@ -18,7 +18,6 @@ const APPS = [
   { name: 'academy', port: 14323 },
   { name: 'live', port: 14324 },
   { name: 'production', port: 14325 },
-  { name: 'admin', port: 14326 },
 ];
 
 const MIME_TYPES = {
@@ -41,7 +40,6 @@ const dir = mkdtempSync(join(tmpdir(), 'gamo-phase1-e2e-'));
 const d1Dir = join(dir, 'd1');
 
 const SESSION_SECRET = 'phase1-e2e-shared-session-secret-0123456789abcdef';
-const ADMIN_ACCESS_TOKEN = 'phase1-e2e-admin-break-glass-token-0123456789';
 
 // Bundle each built Astro worker entry.mjs into a self-contained ESM script for Miniflare
 const workerConfigs = [];
@@ -96,8 +94,6 @@ for (const app of APPS) {
       ALLOW_DEMO_SESSION: 'false',
       ALLOW_PUBLIC_DEMO_WORKSPACES: 'false',
       STRIPE_SANDBOX_ENABLED: 'false',
-      ENABLE_BREAK_GLASS_AUTH: 'true',
-      ADMIN_ACCESS_TOKEN,
       PUBLIC_ROOT_DOMAIN: 'localhost',
       PUBLIC_SITE_URL_WEB: 'http://127.0.0.1:14321',
       PUBLIC_SITE_URL_WORSHIP: 'http://127.0.0.1:14322',
@@ -274,15 +270,12 @@ try {
     assert.match(res.headers.get('location') || '', /^\/account\/signin\?next=/);
   }
 
-  // Admin blocks unauthenticated requests with 401 Operations Gateway
-  const adminAnonRes = await fetch(`${urls.admin}/participation`, { redirect: 'manual' });
-  assert.equal(adminAnonRes.status, 401);
   await anonContext.close();
 
   // =========================================================================
-  // CHECK 2, 3, 4, 6, 7: Gamo Studios (apps/web) + Admin (apps/admin)
+  // CHECK 2, 3, 4, 6, 7: Gamo Studios (apps/web)
   // Real signup, verification, empty states, participation inquiry submission,
-  // persistence across logout/sign-in, and staff review workflow
+  // persistence across logout/sign-in, and a staff review shown to the participant
   // =========================================================================
   const webContext = await browser.newContext();
   const webPage = await webContext.newPage();
@@ -369,74 +362,13 @@ try {
     /Our congregation would like to explore Sunday morning worship coverage/,
   );
 
-  // Provision a staff reviewer and review the inquiry in apps/admin (/participation)
-  const staffChallenge = await fetch(`${urls.web}/api/auth/challenge`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Origin: urls.web },
-    body: JSON.stringify({
-      email: 'staff.reviewer@gamostudio.org',
-      intent: 'signup',
-      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
-    }),
-  });
-  const staffChalBody = await staffChallenge.json();
-  const staffCode = staffChalBody.data.message.match(/Local test code: (\d{6})/)[1];
-  const staffVerify = await fetch(`${urls.web}/api/auth/verify`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Origin: urls.web },
-    body: JSON.stringify({
-      email: 'staff.reviewer@gamostudio.org',
-      code: staffCode,
-      displayName: 'Staff Reviewer',
-      intent: 'signup',
-      terms: ['site-terms', 'privacy-policy'].map((slug) => ({
-        slug,
-        version: /TERMS_DRAFT_VERSION = '([^']+)'/.exec(
-          readFileSync('packages/domain/src/terms/registry.ts', 'utf8'),
-        )[1],
-      })),
-    }),
-  });
-  const staffSessionCookie = staffVerify.headers.get('set-cookie').split(';')[0];
-  const staffVerifyBody = await staffVerify.json();
-  const staffUserId = staffVerifyBody.data.user.id;
-  await db.batch([
-    db.prepare("INSERT OR IGNORE INTO roles (id, code) VALUES ('role_staff_reviewer', 'staff_reviewer')"),
-    db
-      .prepare(
-        "INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_staff_e2e', ?, 'role_staff_reviewer', unixepoch())",
-      )
-      .bind(staffUserId),
-  ]);
-
-  // Open apps/admin/participation in browser with staff session + break-glass header
-  const adminContext = await browser.newContext({
-    extraHTTPHeaders: { Authorization: `Bearer ${ADMIN_ACCESS_TOKEN}` },
-  });
-  await adminContext.addCookies([
-    {
-      name: '__session',
-      value: staffSessionCookie.split('=')[1],
-      domain: '127.0.0.1',
-      path: '/',
-    },
-  ]);
-  const adminPage = await adminContext.newPage();
-  await adminPage.goto(`${urls.admin}/participation`, { waitUntil: 'networkidle' });
-  const adminQueueText = await adminPage.textContent('main#main-content');
-  assert.match(adminQueueText || '', /Bethel Covenant Fellowship/);
-  assert.match(adminQueueText || '', /Ruth Tekle/);
-
-  await adminPage.selectOption('[data-review-inquiry] select[name="status"]', 'reviewed');
-  await adminPage.fill(
-    '[data-review-inquiry] textarea[name="notes"]',
-    'Connected Ruth with the Gamo Worship regional coordinator for an introductory call.',
-  );
-  await Promise.all([
-    adminPage.waitForNavigation({ waitUntil: 'networkidle' }),
-    adminPage.click('[data-review-inquiry] button[type="submit"]'),
-  ]);
-  await adminContext.close();
+  // Record a staff review directly in D1 (the staff review screens are being rebuilt).
+  await db
+    .prepare(
+      "UPDATE participation_inquiries SET status = 'reviewed', review_notes = ?, reviewed_at = unixepoch() WHERE status = 'pending'",
+    )
+    .bind('Connected Ruth with the Gamo Worship regional coordinator for an introductory call.')
+    .run();
 
   // Reload user's /account page on apps/web and confirm staff update is visible
   await webPage.reload({ waitUntil: 'networkidle' });
@@ -635,22 +567,12 @@ try {
   assert.match(workspacesAfterRelogin || '', /Autumn Night of Worship & Prayer/);
   assert.match(workspacesAfterRelogin || '', /New Jerusalem Worship Collective/);
 
-  // Staff approves the event -> public visitor gets tickets and recovers them on /tickets/find
+  // The event is approved (directly in D1) -> public visitor gets tickets and recovers them on /tickets/find
   const pendingEventRow = await db
     .prepare("SELECT id FROM events WHERE title = 'Autumn Night of Worship & Prayer' LIMIT 1")
     .first();
   assert.ok(pendingEventRow?.id);
-  const approveEventRes = await fetch(`${urls.admin}/api/events/${pendingEventRow.id}/review`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Origin: urls.admin,
-      Authorization: `Bearer ${ADMIN_ACCESS_TOKEN}`,
-      Cookie: staffSessionCookie,
-    },
-    body: JSON.stringify({ decision: 'approved', notes: 'Approved for public listing' }),
-  });
-  assert.equal(approveEventRes.status, 200);
+  await db.prepare("UPDATE events SET status = 'approved' WHERE id = ?").bind(pendingEventRow.id).run();
 
   // Public attendee reserves tickets with the shared form kit (no account), confirms the emailed code
   // (read from the local test inbox) and lands on the order page with her tickets.

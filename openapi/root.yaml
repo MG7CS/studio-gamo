@@ -37,10 +37,6 @@ tags:
 paths:
   /api/participation:
     $ref: paths/participation.yaml
-  /api/participation/review-queue:
-    $ref: paths/participation-review-queue.yaml
-  /api/participation/{id}/review:
-    $ref: paths/participation-id-review.yaml
   /api/auth/session:
     $ref: paths/auth-session.yaml
   /api/auth/challenge:
@@ -85,12 +81,6 @@ paths:
     $ref: paths/checkout-session.yaml
   /api/webhook/stripe:
     $ref: paths/webhook-stripe.yaml
-  /api/events/pending:
-    $ref: paths/events-pending.yaml
-  /api/events/{id}/review:
-    $ref: paths/events-id-review.yaml
-  /api/staff/provision:
-    $ref: paths/staff-provision.yaml
   # --- agent A (identity, onboarding, review) ---
   /api/auth/clerk-webhook:
     $ref: paths/auth-clerk-webhook.yaml
@@ -98,12 +88,6 @@ paths:
     $ref: paths/account-person-link.yaml
   /api/account/providers:
     $ref: paths/account-providers.yaml
-  /api/review/providers/{id}:
-    $ref: paths/review-providers-id.yaml
-  /api/review/events/{id}:
-    $ref: paths/review-events-id.yaml
-  /api/review/organizers/{id}:
-    $ref: paths/review-organizers-id.yaml
   # --- end agent A ---
   # --- agent C --- (door scanning, offline manifest, venue blueprints)
   /api/scanner/scan:
@@ -380,12 +364,6 @@ components:
     ScannerDevice:
       $ref: components/security/ScannerDevice.yaml
     # --- end agent C ---
-    EmergencyBearer:
-      $ref: components/security/EmergencyBearer.yaml
-    EmergencyKey:
-      $ref: components/security/EmergencyKey.yaml
-    EmergencyBasic:
-      $ref: components/security/EmergencyBasic.yaml
     # --- agent B ---
     CustomerSession:
       $ref: components/security/CustomerSession.yaml

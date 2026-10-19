@@ -1,5 +1,8 @@
 # Identity, registration and Gamo Live ticketing — design
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 Status: **design of record** for the 2026-10-18 identity-and-ticketing change (branch `cleanup/foundation-pass`, local only). Owner product decisions 1–7 from the brief are final and are restated in §2. Where this document and older docs disagree, this document wins for identity, registration, ticketing and scanning; `docs/IDENTITY.md` and `docs/TICKETING.md` describe what was built.
 
 Rules that bind every part of it (AGENTS.md): Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** (never nonprofit, tax-exempt, charity or donation language); fictional examples are labelled *Sample*; integrations fail closed outside `ENVIRONMENT=local`; **Stripe test mode only and paid checkout answers 503** except on a path explicitly marked test; nothing is deployed or pushed; no remote Cloudflare, Clerk, Resend or Stripe command is run; legal texts are drafts marked **"DRAFT — requires legal review"**.

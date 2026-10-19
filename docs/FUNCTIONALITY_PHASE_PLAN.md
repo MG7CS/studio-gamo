@@ -1,5 +1,8 @@
 # Gamo Studios: Functionality Phase Plan
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 **2026-10-13 Status Update — Backend Foundation & First Functional Slice Completed:**
 The backend infrastructure phase has commenced and completed its core foundational milestones:
 1. Complete relational schema in `packages/db` with D1 migrations 0000–0002 covering all 33 entity tables.

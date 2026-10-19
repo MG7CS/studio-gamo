@@ -70,8 +70,8 @@ export interface ProductClerkAppSpec {
 
 /**
  * Canonical Clerk Application Architecture Matrix across all 5 public Gamo Studios products.
- * Note: `apps/admin` is intentionally excluded from public Clerk product authentication
- * and uses its isolated Cloudflare Zero Trust Access + PBKDF2 Admin Gateway boundary.
+ * Note: the admin (removed 2026-10-19, being rebuilt) is intentionally excluded from public Clerk
+ * product authentication; it must keep its own isolated Cloudflare Zero Trust Access boundary.
  */
 export const CLERK_PRODUCT_APPS: Record<ProductKey, ProductClerkAppSpec> = {
   live: {

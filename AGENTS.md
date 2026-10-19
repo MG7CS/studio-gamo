@@ -107,7 +107,7 @@ Report completed milestones, commands/tests actually run, page URLs, screenshot 
 ## Custom Specialized Agents
 This repository contains customized Antigravity agents configured to operate autonomously for specialized roles during the development lifecycle:
 - **`design-lead`**: Interprets Gamo Studios design references (`design-reference/`), ensures visual consistency (Inter, brand colors), and reviews application screens without implementing complex logic.
-- **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Live, Production, and Admin domains using plausible demo states (no live backends during the design phase).
+- **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Live, and Production domains (the admin is being rebuilt from scratch and has no screens yet) using plausible demo states (no live backends during the design phase).
 - **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
 
 These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts. All three must apply the organizational mission rules above and the copy rules in `docs/GAMO_NONPROFIT_MODEL.md` §6–§7 to every screen they plan, build or review.
@@ -135,7 +135,7 @@ These custom agents are located in `.agents/agents/` and can be delegated tasks 
 
 ## Permanent OpenAPI-first HTTP contract rule
 
-`openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning six applications; no seventh API application by default.
+`openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning applications (five today; the admin is being rebuilt); no separate API application by default.
 
 Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Demo session issuance is explicitly local-only. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
 

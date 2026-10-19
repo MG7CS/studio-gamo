@@ -1,4 +1,0 @@
-type: apiKey
-in: header
-name: x-admin-key
-description: Conditional break-glass only.

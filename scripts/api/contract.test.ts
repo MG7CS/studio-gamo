@@ -20,7 +20,6 @@ import {
 } from '../../packages/domain/index.ts';
 import { createSession } from '../../packages/auth/index.ts';
 import { validateContract } from '../../packages/api-contracts/src/runtime.ts';
-import { onRequest } from '../../apps/admin/src/middleware.ts';
 import { LOCAL_TURNSTILE, signupTerms } from '../audit/auth-test-kit.ts';
 const spec = JSON.parse(readFileSync('openapi/bundled/internal.json', 'utf8'));
 const ajv = new Ajv2020({ strict: false, allErrors: true });
@@ -45,14 +44,12 @@ const env: Record<string, unknown> = {
   STRIPE_TEST_CHECKOUT: 'true',
   RESEND_WEBHOOK_SECRET: 'whsec_Y29udHJhY3QtdGVzdC1yZXNlbmQtd2ViaG9vaw==',
   RESEND_API_KEY: 're_mock_contract',
-  ENABLE_BREAK_GLASS_AUTH: 'true',
-  ADMIN_ACCESS_TOKEN: 'contract-test-emergency-material',
 };
 const servers: Server[] = [];
 const origins: Record<string, string> = {};
 const covered = new Set<string>();
 const nativeFetch = globalThis.fetch;
-let eventId: string, orgId: string, cookie: string, otherCookie: string, staffCookie: string;
+let eventId: string, orgId: string, cookie: string, otherCookie: string;
 const input = {
   organizationId: 'placeholder',
   title: 'Sample Christian community gathering',
@@ -92,7 +89,6 @@ before(async () => {
     .prepare('INSERT INTO users (id,email,status,created_at) VALUES (?,?,?,?)')
     .run('staff_reviewer_demo', 'reviewer@example.invalid', 'active', Math.floor(Date.now() / 1000));
   await services.identity.assignSystemRole('staff_reviewer_demo', 'staff_reviewer');
-  staffCookie = `__session=${encodeURIComponent((await createSession(db, 'staff_reviewer_demo', secret)).cookieValue)}`;
   orgId = (
     await services.identity.createOrganization('Sample ministry', 'contract-ministry', 'church', owner.id)
   ).id;
@@ -101,7 +97,7 @@ before(async () => {
   for (const id of [owner.id, other.id]) await services.identity.ensureProductAccount(id, 'live');
   cookie = `__session=${encodeURIComponent((await createSession(db, owner.id, secret)).cookieValue)}`;
   otherCookie = `__session=${encodeURIComponent((await createSession(db, other.id, secret)).cookieValue)}`;
-  for (const app of ['web', 'live', 'admin', 'worship', 'academy', 'production']) {
+  for (const app of ['web', 'live', 'worship', 'academy', 'production']) {
     const operations: any[] = [];
     for (const [path, item] of Object.entries<any>(spec.paths))
       for (const [method, op] of Object.entries<any>(item))
@@ -153,7 +149,7 @@ before(async () => {
             new Response(null, { status, headers: { Location: location } }),
         };
         const next = () => route.handler(context);
-        const response: Response = app === 'admin' ? await onRequest(context, next) : await next();
+        const response: Response = await next();
         res.writeHead(response.status, Object.fromEntries(response.headers));
         res.end(await response.text());
       } catch (error) {
@@ -325,50 +321,6 @@ test('verified email challenge, session inspection, organization onboarding, and
   const meAfterOrg = await call('web', 'GET', '/api/auth/me', 200, undefined, { cookie: verifiedCookie });
   assert.equal(meAfterOrg.body.data.memberships.length, 1);
   assert.equal(meAfterOrg.body.data.memberships[0].organizationSlug, 'grace-fellowship-ministry');
-  // Staff provisioning requires superadmin + Access boundary
-  await call('admin', 'POST', '/api/staff/provision', 401, {
-    email: 'new-reviewer@example.invalid',
-    role: 'staff_reviewer',
-    accessSubject: 'cf-sub-reviewer-1',
-  });
-  const reviewerHeaders = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: staffCookie };
-  await call(
-    'admin',
-    'POST',
-    '/api/staff/provision',
-    403,
-    { email: 'new-reviewer@example.invalid', role: 'staff_reviewer', accessSubject: 'cf-sub-reviewer-1' },
-    reviewerHeaders,
-  );
-  const superUser = await services.identity.findOrCreateUser(
-    'superadmin@example.invalid',
-    'Sample Superadmin',
-  );
-  await services.identity.assignSystemRole(superUser.id, 'superadmin');
-  const superCookie = `__session=${encodeURIComponent((await createSession(db, superUser.id, secret)).cookieValue)}`;
-  const superHeaders = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: superCookie };
-  const prov = await call(
-    'admin',
-    'POST',
-    '/api/staff/provision',
-    200,
-    {
-      email: 'new-reviewer@example.invalid',
-      role: 'staff_reviewer',
-      accessSubject: 'cf-sub-reviewer-1',
-      displayName: 'Provisioned Reviewer',
-    },
-    superHeaders,
-  );
-  assert.equal(prov.body.data.accessSubject, 'cf-sub-reviewer-1');
-  await call(
-    'admin',
-    'POST',
-    '/api/staff/provision',
-    409,
-    { email: 'another-staff@example.invalid', role: 'staff_reviewer', accessSubject: 'cf-sub-reviewer-1' },
-    superHeaders,
-  );
 });
 test('event creation checks identity, membership and contract; draft details hidden', async () => {
   await call('live', 'POST', '/api/events', 401, input);
@@ -382,16 +334,8 @@ test('event creation checks identity, membership and contract; draft details hid
   await call('live', 'GET', `/api/events/${eventId}`, 404);
   await call('live', 'GET', '/api/events/not-found', 404);
 });
-test('admin routes deny unauthenticated HTTP; documented boundary-only success with isolated reviewer', async () => {
-  await call('admin', 'GET', '/api/events/pending', 401);
-  await call('admin', 'POST', `/api/events/${eventId}/review`, 401, { decision: 'approved' });
-  const headers = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: staffCookie };
-  await call('admin', 'GET', '/api/events/pending', 403, undefined, { ...headers, cookie: otherCookie });
-  const pending = await call('admin', 'GET', '/api/events/pending', 200, undefined, headers);
-  assert.equal(pending.body.data.length, 1);
-  await call('admin', 'POST', `/api/events/${eventId}/review`, 400, { decision: 'invalid' }, headers);
-  await call('admin', 'POST', '/api/events/evt_missing/review', 404, { decision: 'approved' }, headers);
-  await call('admin', 'POST', `/api/events/${eventId}/review`, 200, { decision: 'approved' }, headers);
+test('a published event is listed and filtered by the public events API', async () => {
+  d1.sqlite.prepare("UPDATE events SET status = 'approved' WHERE id = ?").run(eventId);
   await call('live', 'GET', `/api/events/${eventId}`, 200);
   await call('live', 'GET', '/api/events?category=invalid', 400);
   await call('live', 'GET', '/api/events?category=', 400);
@@ -1116,7 +1060,7 @@ test('legacy list cap, stable ordering and response schema negative controls', a
   assert.throws(() => validateContract('TicketCheckoutInput', { eventId, quantity: null }));
   const response = handleApiError(new Error('sensitive implementation detail'));
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
-  assert.equal(covered.size, 35);
+  assert.equal(covered.size, 32);
 });
 
 test('all public apps expose the same isolated auth and organization contract, and participation inquiries match OpenAPI contracts', async () => {
@@ -1177,20 +1121,8 @@ test('all public apps expose the same isolated auth and organization contract, a
     },
     { cookie },
   );
-  const inquiryId = createdInq.body.data.inquiry.id;
+  assert.ok(createdInq.body.data.inquiry.id);
   const myInquiries = await call('web', 'GET', '/api/participation', 200, undefined, { cookie });
   assert.equal(myInquiries.body.data.inquiries.length, 1);
-  const headers = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: staffCookie };
-  const queue = await call('admin', 'GET', '/api/participation/review-queue', 200, undefined, headers);
-  assert.ok(queue.body.data.inquiries.some((item: any) => item.id === inquiryId));
-  const reviewed = await call(
-    'admin',
-    'POST',
-    `/api/participation/${inquiryId}/review`,
-    200,
-    { status: 'reviewed', notes: 'Followed up with church leadership.' },
-    headers,
-  );
-  assert.equal(reviewed.body.data.inquiry.status, 'reviewed');
-  assert.equal(covered.size, 63);
+  assert.equal(covered.size, 58);
 });

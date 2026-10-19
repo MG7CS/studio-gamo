@@ -29,7 +29,7 @@ The backend foundation uses Cloudflare-native primitives with strict safety gate
            |                        |                         |
     worship.gamostudio.org   academy.gamostudio.org    live.gamostudio.org
            |                        |                         |
-       admin.gamostudio.org    production.gamostudio.org
+       production.gamostudio.org    (admin.gamostudio.org: app removed, rebuilding)
            \_______________________|_________________________/
                        Shared domain model, identity,
                   permissions, design and adapters

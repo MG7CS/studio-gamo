@@ -1,5 +1,8 @@
 # Runbook
 
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+
+
 Operational procedures for Gamo Studios. **Every step that touches Cloudflare, Stripe, Clerk, Resend, DNS or a remote database is an owner-only action** (AGENTS.md). Agents prepare and verify locally; the owner runs the remote commands.
 
 All commands run from the repository root unless stated. Account: `ebae7bded6ab45950aeba1d6cf51eb7f` (in each `wrangler.toml` and the Makefile).
@@ -10,7 +13,7 @@ All commands run from the repository root unless stated. Account: `ebae7bded6ab4
 pnpm install --frozen-lockfile
 pnpm check                      # must pass: typecheck, lint, format, tests, API checks, build, browser tests
 pnpm --filter apps-web exec wrangler whoami   # or: make verify-config
-make verify-deployment          # wrangler deploy --dry-run for all six apps
+make verify-deployment          # wrangler deploy --dry-run for all five apps
 ```
 
 ### Preflight
@@ -47,7 +50,7 @@ Each target runs `CLOUDFLARE_ENV=<preview|production> pnpm --filter apps-<app> b
 
 Production routes use `custom_domain = true`, so the first deploy of an app creates its DNS record and certificate (gamostudio.org + www, worship., academy., live., production., admin.).
 
-**Admin:** deploy only after the Cloudflare Access application for `admin.gamostudio.org` exists and its AUD tag is set as `CF_ACCESS_AUD`. Admin has `workers_dev = false` and no preview route, so `admin-preview` is not reachable until a route is added (owner decision).
+**Admin:** _(no admin app exists until the rebuild; this applies to the rebuilt one)_ deploy only after the Cloudflare Access application for `admin.gamostudio.org` exists and its AUD tag is set as `CF_ACCESS_AUD`. Admin has `workers_dev = false` and no preview route, so `admin-preview` is not reachable until a route is added (owner decision).
 
 ## 2. Rollback
 
@@ -186,6 +189,8 @@ For each public host:
 - Admin: an unauthenticated visit is stopped by Cloudflare Access.
 
 ## 8. First staff account
+
+> **Removed 2026-10-19:** `pnpm staff:account:sql` and `scripts/admin/*` were deleted with the old admin, so 8.1 and 8.2 cannot be followed as written. The staff-account procedure will be redefined with the new admin.
 
 Admin needs a Cloudflare Access identity (the same email) **and** a D1 user with the `superadmin` role and an `admin_credentials` row. `ensureBootstrapAdminAccount` only works for explicit local demos on loopback, so for preview/production the SQL is generated locally and run by the owner.
 
