@@ -1,0 +1,33 @@
+---
+/** Phone navigation: the same screens as the sidebar, as a tab bar. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { ORGANIZER_NAV, type OrganizerNavKey } from '../../lib/organizer-nav';
+
+interface Props {
+  current: OrganizerNavKey;
+}
+const { current } = Astro.props;
+---
+
+<nav
+  aria-label="Organizer"
+  class="fixed inset-x-3 bottom-3 z-20 rounded-3xl bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.14)] lg:hidden"
+>
+  <ul class="flex justify-around gap-1">
+    {ORGANIZER_NAV.map((item) => (
+      <li class="min-w-0 flex-1">
+        <a
+          href={item.href}
+          aria-current={item.key === current ? 'page' : undefined}
+          class:list={[
+            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold',
+            item.key === current ? 'bg-terracotta/10 text-terracotta-deep' : 'text-ink',
+          ]}
+        >
+          <Icon name={item.icon} class="h-5 w-5" />
+          <span class="w-full truncate text-center">{item.shortLabel}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

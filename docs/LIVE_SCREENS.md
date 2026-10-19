@@ -68,3 +68,7 @@ Registration code · Registration confirmation (manage link, QR when on) · Regi
 Client-facing UI (people who book events or music classes) is out of Live v1: attendees use the no-account public pages (A4–A6). Its design references are added later, when Academy, Worship and Production requirements start.
 
 Next: the design pass for the organizer screens (B), the public registration screens (A3–A6), and the admin additions (C).
+
+## H. Build status
+
+Built (2026-10-19): A1–A10 (public pages, registration flow, Promote), B1 sign-in and sign-up (Clerk), B2 organization setup, B3 overview, B9 organization profile, members and invitations, B10 account, the organizer shell (sidebar, top bar with organization switcher, phone tab bar). Not built: B4 events list, B5 editor, B6 event overview, B7 registrations, B8 check-in, all admin screens (C), emails for event decisions. The organizer menu lists only screens that exist.

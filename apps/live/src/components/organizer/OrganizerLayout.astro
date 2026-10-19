@@ -1,0 +1,36 @@
+---
+/**
+ * The organizer area shell: left menu on desktop, tab bar on phones, a top bar with the organization and the
+ * signed-in person. Layout follows design-reference/dashboard-ui (white cards on a soft page), in the app palette.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Sidebar from './Sidebar.astro';
+import BottomBar from './BottomBar.astro';
+import TopBar from './TopBar.astro';
+import type { OrganizerNavKey } from '../../lib/organizer-nav';
+import type { MembershipSummary, Organizer } from '@gamo/domain';
+
+interface Props {
+  title: string;
+  current: OrganizerNavKey;
+  organizer: Organizer;
+  memberships: MembershipSummary[];
+  active: MembershipSummary | null;
+}
+const { title, current, organizer, memberships, active } = Astro.props;
+---
+
+<Layout title={`${title} · Organizer`} chrome={false} noindex bodyClass="bg-sand/50 text-ink">
+  <div class="min-h-screen lg:grid lg:grid-cols-[288px_1fr]">
+    <aside class="hidden p-4 lg:sticky lg:top-0 lg:block lg:h-screen">
+      <Sidebar current={current} />
+    </aside>
+    <div class="min-w-0 pb-28 lg:pb-10">
+      <TopBar organizer={organizer} memberships={memberships} active={active} />
+      <div class="mx-auto max-w-[1100px] px-4 sm:px-8">
+        <slot />
+      </div>
+    </div>
+  </div>
+  <BottomBar current={current} />
+</Layout>

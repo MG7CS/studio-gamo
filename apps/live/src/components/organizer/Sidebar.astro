@@ -1,0 +1,58 @@
+---
+/** Left menu of the organizer area (desktop): brand, grouped navigation, sign out. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import Logo from '@studio-gamo/ui/components/Logo.astro';
+import { ORGANIZER_NAV, type OrganizerNavKey } from '../../lib/organizer-nav';
+
+interface Props {
+  current: OrganizerNavKey;
+}
+const { current } = Astro.props;
+const groups = ['Menu', 'You'] as const;
+---
+
+<div class="flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+  <a
+    href="/organizer"
+    class="flex min-h-11 items-center gap-3 text-ink"
+    aria-label="Gamo Live organizer home"
+  >
+    <Logo program="Gamo Live" class="text-ink" />
+  </a>
+  <p class="mt-1 text-[12px] font-semibold uppercase tracking-wider text-muted">Organizer</p>
+  <nav aria-label="Organizer" class="mt-6 flex-1 space-y-6">
+    {groups.map((group) => (
+      <div>
+        <p class="px-3 text-[12px] font-semibold uppercase tracking-wider text-muted">{group}</p>
+        <ul class="mt-2 space-y-1">
+          {ORGANIZER_NAV.filter((i) => i.group === group).map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={item.key === current ? 'page' : undefined}
+                class:list={[
+                  'flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[15px] font-semibold transition-colors',
+                  item.key === current
+                    ? 'bg-terracotta/10 text-terracotta-deep'
+                    : 'text-ink hover:bg-sand/60',
+                ]}
+              >
+                <Icon name={item.icon} class="h-5 w-5" />
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </nav>
+  <form method="post" action="/account/signout">
+    <button
+      type="submit"
+      class="flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-[15px] font-semibold text-terracotta-deep transition-colors hover:bg-sand/60"
+    >
+      <Icon name="logout" class="h-5 w-5" />
+      Sign out
+    </button>
+  </form>
+</div>

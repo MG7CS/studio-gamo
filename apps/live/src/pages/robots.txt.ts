@@ -8,6 +8,6 @@ export const GET: APIRoute = () =>
   textResponse(
     buildRobotsTxt({
       app: 'live',
-      privatePaths: ['/registrations/', '/events/*/register'],
+      privatePaths: ['/registrations/', '/events/*/register', '/organizer'],
     }),
   );

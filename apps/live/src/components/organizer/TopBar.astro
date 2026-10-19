@@ -1,0 +1,66 @@
+---
+/** Top of every organizer page: which organization you are acting for, and who is signed in. */
+import type { MembershipSummary, Organizer } from '@gamo/domain';
+
+interface Props {
+  organizer: Organizer;
+  memberships: MembershipSummary[];
+  active: MembershipSummary | null;
+}
+const { organizer, memberships, active } = Astro.props;
+const initial = (organizer.displayName || organizer.email).trim().charAt(0).toUpperCase();
+---
+
+<header class="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-8">
+  <div class="min-w-0">
+    {active && memberships.length > 1 ? (
+      <form method="post" action="/organizer/switch" class="flex items-center gap-2">
+        <label for="org-switch" class="sr-only">
+          Organization
+        </label>
+        <select
+          id="org-switch"
+          name="organization"
+          class="min-h-11 max-w-[240px] rounded-full border border-ink/20 bg-white px-4 text-[14px] font-semibold text-ink"
+        >
+          {memberships.map((m) => (
+            <option value={m.organizationId} selected={m.organizationId === active.organizationId}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          class="min-h-11 rounded-full border border-ink/20 bg-white px-4 text-[14px] font-semibold text-ink hover:bg-sand"
+        >
+          Switch
+        </button>
+      </form>
+    ) : (
+      active && (
+        <p class="truncate text-[15px] font-semibold text-ink">
+          {active.name}
+          <span class="ml-2 rounded-full bg-sand px-2.5 py-0.5 text-[12px] font-semibold text-ink">
+            {active.verified ? 'Verified' : 'Not yet verified'}
+          </span>
+        </p>
+      )
+    )}
+  </div>
+  <div class="flex items-center gap-3 rounded-full bg-white py-1.5 pl-1.5 pr-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+    <span
+      class="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta text-[14px] font-bold text-white"
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
+    <span class="min-w-0 leading-tight">
+      <span class="block max-w-[180px] truncate text-[14px] font-semibold text-ink">
+        {organizer.displayName || organizer.email}
+      </span>
+      {organizer.displayName && (
+        <span class="block max-w-[180px] truncate text-[12px] text-muted">{organizer.email}</span>
+      )}
+    </span>
+  </div>
+</header>

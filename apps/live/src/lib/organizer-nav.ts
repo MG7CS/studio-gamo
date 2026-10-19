@@ -1,0 +1,40 @@
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+
+export type OrganizerNavKey = 'overview' | 'organization' | 'account';
+
+export interface OrganizerNavItem {
+  key: OrganizerNavKey;
+  label: string;
+  shortLabel: string;
+  href: string;
+  icon: IconName;
+  group: 'Menu' | 'You';
+}
+
+/** Only screens that exist are listed; each new organizer screen adds its item when it ships. */
+export const ORGANIZER_NAV: OrganizerNavItem[] = [
+  {
+    key: 'overview',
+    label: 'Overview',
+    shortLabel: 'Overview',
+    href: '/organizer',
+    icon: 'home',
+    group: 'Menu',
+  },
+  {
+    key: 'organization',
+    label: 'Organization',
+    shortLabel: 'Organization',
+    href: '/organizer/organization',
+    icon: 'building',
+    group: 'Menu',
+  },
+  {
+    key: 'account',
+    label: 'Account',
+    shortLabel: 'Account',
+    href: '/organizer/account',
+    icon: 'user',
+    group: 'You',
+  },
+];

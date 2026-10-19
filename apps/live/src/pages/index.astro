@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import LiveDiscoveryCard from '../components/LiveDiscoveryCard.astro';
 import {
   LiveCatalog,
@@ -587,7 +586,7 @@ const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/ev
 
         <div class="mt-7 flex flex-wrap items-center gap-3.5">
           <a
-            href={inquiryUrl('Event listing')}
+            href="/promote"
             class="inline-flex items-center gap-2 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-white shadow-md transition-colors"
           >
             <span>List an event</span>

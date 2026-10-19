@@ -1,48 +1,25 @@
 # Gamo Live (apps/live) — local secrets. Copy to apps/live/.dev.vars (git-ignored).
-# Shared settings (ENVIRONMENT, SESSION_SECRET, RESEND_API_KEY, local-only flags) come from the root .env.
-# In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/live.
+# In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/live (docs/RUNBOOK.md §5).
+# Never put real secret values in this example file.
 
-# OPTIONAL. Clerk sign-in for Gamo Live only (Clerk application app_3KlWyOBL2xL2YzhJuvgk8QdrWIt).
-# When unset, sign-in uses Gamo's own email verification codes. Never reuse these keys in another product.
-# Local development uses the Clerk DEVELOPMENT instance (pk_test_/sk_test_). Production keys are never kept here:
-# set them with scripts/set-clerk-secrets.sh --env production (docs/AUTH.md). CLERK_JWT_KEY is a PEM public key,
-# on one line with literal \n sequences or in quotes over several lines.
-CLERK_APP_ID_LIVE=
+# Local-only flags (fatal outside ENVIRONMENT=local). ALLOW_AUTH_SIMULATION=true shows a local sign-in form on
+# /account/signin when Clerk is not configured, so the organizer area can be worked on without keys.
+ALLOW_AUTH_SIMULATION=true
+
+# Organizer sign-in: Gamo Live's own Clerk application (never reuse these keys in another product).
+# Local development uses the Clerk DEVELOPMENT instance (pk_test_ / sk_test_). Both keys are needed; with only one
+# set, sign-in answers 503. CLERK_JWT_KEY_LIVE is a PEM public key (optional: verifies tokens without a network call),
+# on one line with literal \n sequences or in quotes. CLERK_AUTHORIZED_PARTIES_LIVE is a comma-separated origin list.
 PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE=
 CLERK_SECRET_KEY_LIVE=
 CLERK_JWT_KEY_LIVE=
-CLERK_ISSUER_LIVE=
-CLERK_AUTHORIZED_PARTIES_LIVE=
+CLERK_AUTHORIZED_PARTIES_LIVE=http://127.0.0.1:4324,http://localhost:4324
 
-# Stripe — TEST MODE ONLY (sk_test_… / rk_test_…). Live-mode keys are refused at runtime.
-# REQUIRED for paid checkout; without it checkout fails closed with 503.
-STRIPE_SECRET_KEY=
-# REQUIRED for POST /api/webhook/stripe (signature verification). From `stripe listen` locally.
-STRIPE_WEBHOOK_SECRET=
-
-# Identity, consent and abuse protection (docs/design/identity-and-ticketing.md §10; RUNBOOK §3).
-# Gamo HMAC keys (PII_HASH_SECRET, TICKET_QR_SECRET_GL1, CUSTOMER_LINK_SECRET, SCANNER_SESSION_SECRET) need ≥ 32 random
-# characters each and must differ from SESSION_SECRET and from each other. Provider secrets are pasted as issued.
-# Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-# OPTIONAL locally. HMAC key for hashed IPs/emails (consents, rate limits, email log). Outside local: forms that need it answer 503.
+# Hashes registrations, codes and invitations (32+ random characters). Optional locally (a fixed development key is
+# used); required in preview/production: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 PII_HASH_SECRET=
-# OPTIONAL locally. Cloudflare Turnstile widget for this product's public forms. Without both, protected forms answer 503
-# outside local; locally the dummy token XXXX.DUMMY.TOKEN.XXXX is accepted. PUBLIC_TURNSTILE_SITE_KEY is public (a var).
-PUBLIC_TURNSTILE_SITE_KEY=
-TURNSTILE_SECRET_KEY=
-# REQUIRED for ticket issue and scanning (≥ 32 chars). Key generation 1 of the signed QR payload (GL1.…).
-TICKET_QR_SECRET_GL1=
-# REQUIRED for ticket manage/recovery links (≥ 32 chars).
-CUSTOMER_LINK_SECRET=
-# REQUIRED for door scanning (≥ 32 chars): signs scanner cookies and peppers scanner PINs.
-SCANNER_SESSION_SECRET=
-# OPTIONAL. Svix signing secret of the Resend webhook (POST /api/webhook/resend: delivery, bounces, complaints).
-RESEND_WEBHOOK_SECRET=
-# OPTIONAL. "true" opens the Stripe TEST-mode paid checkout path in local/preview (with an sk_test_/rk_test_ key).
-# Never "true" in production: the app refuses to serve (503).
-STRIPE_TEST_CHECKOUT=
-# OPTIONAL. Svix signing secret of this product's Clerk webhook (POST /api/webhook/clerk ends Gamo sessions
-# when a Clerk session ends). Without it the route answers 503.
-CLERK_WEBHOOK_SECRET_LIVE=
-# OPTIONAL. "true" shows "Continue with Google" — only once Google is enabled in this product's own Clerk app.
-CLERK_GOOGLE_ENABLED_LIVE=
+
+# Email through Resend. Without a key, ENVIRONMENT=local prints each email (the 6-digit code, links) in the dev
+# server terminal; outside local nothing is sent and registration fails closed. EMAIL_FROM must be on gamostudio.org.
+RESEND_API_KEY=
+EMAIL_FROM=Gamo Live <hello@gamostudio.org>

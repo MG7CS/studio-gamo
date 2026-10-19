@@ -1,7 +1,7 @@
 ---
 import { formatUsd } from '@studio-gamo/ui/lib/format';
 import Layout from '../../../layouts/Layout.astro';
-import { inquiryUrl, siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
 import {
@@ -455,7 +455,7 @@ const pageDescription = metro
               </p>
             </div>
             <a
-              href={inquiryUrl('Event listing')}
+              href="/promote"
               class="shrink-0 inline-flex items-center px-6 py-3 rounded-full bg-terracotta hover:bg-terracotta-deep text-white text-sm font-bold transition-colors"
             >
               Submit an Event in {metro.name}

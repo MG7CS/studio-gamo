@@ -45,6 +45,13 @@ export interface GamoEnv {
   /** Signs door-staff scanner cookies and peppers scanner PINs. */
   SCANNER_SESSION_SECRET?: string;
 
+  // Gamo Live sign-in (its own Clerk application; the publishable key is `PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE`)
+  CLERK_SECRET_KEY_LIVE?: string;
+  /** PEM public key: verify Clerk session tokens without a network call. */
+  CLERK_JWT_KEY_LIVE?: string;
+  /** Comma-separated origins allowed as the session token's `azp`. */
+  CLERK_AUTHORIZED_PARTIES_LIVE?: string;
+
   // Cloudflare Turnstile (public forms). The site key is public; the secret is a secret.
   PUBLIC_TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;

@@ -194,3 +194,33 @@ test('a per-request nonce is added to script-src only, never with unsafe-inline,
   }
   assert.equal(directive(buildContentSecurityPolicy({ https: true }), 'script-src'), "script-src 'self'");
 });
+
+test('a sign-in page can ask for its own Clerk Frontend API origin; no other page gets it', () => {
+  const url = new URL('https://live.example.test/account/signin');
+  const csp = (locals: Record<string, any>) =>
+    securityHeaders(pageSecurityHeaderOptions('live', { url, locals }, true))['Content-Security-Policy'];
+
+  const signin: Record<string, any> = {};
+  requestSecurityHeaders(signin, { clerkFrontendApi: 'https://clerk.live.example.test' });
+  assert.equal(signin.securityRequest.clerkFrontendApi, 'https://clerk.live.example.test');
+  assert.match(directive(csp(signin), 'script-src')!, /https:\/\/clerk\.live\.example\.test/);
+  assert.match(directive(csp(signin), 'connect-src')!, /https:\/\/clerk\.live\.example\.test/);
+  assert.doesNotMatch(csp(signin), /unsafe-inline'? *[^;]*script|script-src[^;]*unsafe-inline/);
+
+  const other: Record<string, any> = {};
+  requestSecurityHeaders(other, { camera: true });
+  assert.equal(other.securityRequest.clerkFrontendApi, undefined);
+  assert.doesNotMatch(csp(other), /clerk/);
+  assert.doesNotMatch(csp({}), /clerk/);
+
+  for (const bad of [
+    'http://clerk.example.test',
+    'https://*.example.test',
+    'https://clerk.example.test/path',
+    'nonsense',
+  ]) {
+    const locals: Record<string, any> = {};
+    requestSecurityHeaders(locals, { clerkFrontendApi: bad });
+    assert.equal(locals.securityRequest.clerkFrontendApi, undefined, bad);
+  }
+});

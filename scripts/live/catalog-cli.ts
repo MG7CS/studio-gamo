@@ -7,6 +7,9 @@
  *   pnpm live:catalog:import --publish-approved        also publish the records that pass every editorial rule
  *   pnpm live:catalog:import --env preview --dry-run   evaluate only (preview/production are never written here)
  *
+ * It runs for both apps that bind LIVE_DB (live and web), because each app keeps its own local Miniflare
+ * state. Pass `--app live` or `--app web` to run for one.
+ *
  * Local only: the target is the Miniflare SQLite file that `astro dev` for apps/live uses (the one holding
  * the Live schema). Preview and production are changed by the owner, never by this script.
  */
@@ -26,6 +29,12 @@ const value = (name: string) => {
 const command = args[0];
 const env = value('--env') ?? 'local';
 const dryRun = flag('--dry-run');
+const appArg = value('--app') ?? 'all';
+if (!['all', 'live', 'web'].includes(appArg)) {
+  console.error('--app must be all, live or web');
+  process.exit(2);
+}
+const apps = appArg === 'all' ? ['live', 'web'] : [appArg];
 const file = resolve(value('--file') ?? 'data/gamo_live_verified_events_2026-10-15.json');
 
 if (command !== 'import') {
@@ -44,8 +53,8 @@ if (env !== 'local' && !dryRun) {
 const doc = JSON.parse(readFileSync(file, 'utf8')) as SeedCatalogDocument;
 const now = Math.floor(Date.now() / 1000);
 
-function localLiveDatabase(): string {
-  const dir = resolve('apps/live/.wrangler/state/v3/d1/miniflare-D1DatabaseObject');
+function localLiveDatabase(app: string): string {
+  const dir = resolve(`apps/${app}/.wrangler/state/v3/d1/miniflare-D1DatabaseObject`);
   const candidates = existsSync(dir)
     ? readdirSync(dir).filter((f) => f.endsWith('.sqlite') && f !== 'metadata.sqlite')
     : [];
@@ -61,30 +70,32 @@ function localLiveDatabase(): string {
       d1.sqlite.close();
     }
   }
-  throw new Error('No local Live database found. Run `pnpm db:migrate:live:local` first.');
+  throw new Error(`No local Live database found for apps/${app}. Run pnpm db:migrate:live:local first.`);
 }
 
-const d1 = createSqliteD1(dryRun ? ':memory:' : localLiveDatabase());
-if (dryRun) {
-  const migrations = resolve('packages/db/live/migrations');
-  for (const name of readdirSync(migrations)
-    .filter((f) => f.endsWith('.sql'))
-    .sort())
-    d1.sqlite.exec(readFileSync(resolve(migrations, name), 'utf8'));
+for (const app of dryRun ? ['dry-run'] : apps) {
+  const d1 = createSqliteD1(dryRun ? ':memory:' : localLiveDatabase(app));
+  if (dryRun) {
+    const migrations = resolve('packages/db/live/migrations');
+    for (const name of readdirSync(migrations)
+      .filter((f) => f.endsWith('.sql'))
+      .sort())
+      d1.sqlite.exec(readFileSync(resolve(migrations, name), 'utf8'));
+  }
+  const report = await importCatalog(d1 as never, doc, {
+    now,
+    publishApproved: flag('--publish-approved'),
+    revalidateUnfetched: flag('--revalidate-unfetched'),
+  });
+  if (dryRun)
+    for (const r of report)
+      console.log(`${r.result.padEnd(9)} ${r.status.padEnd(14)} ${r.importKey}  ${r.reason}`);
+  console.log(
+    `${dryRun ? 'Evaluated (nothing written)' : `apps/${app}`}: ${report.filter((r) => r.result === 'imported').length} imported, ` +
+      `${report.filter((r) => r.result === 'unchanged').length} unchanged, ` +
+      `${report.filter((r) => r.status === 'published').length} published, ` +
+      `${report.filter((r) => r.status === 'pending_review').length} waiting for review, ` +
+      `${report.filter((r) => r.status === 'rejected').length} rejected.`,
+  );
+  d1.sqlite.close();
 }
-
-const report = await importCatalog(d1 as never, doc, {
-  now,
-  publishApproved: flag('--publish-approved'),
-  revalidateUnfetched: flag('--revalidate-unfetched'),
-});
-for (const r of report)
-  console.log(`${r.result.padEnd(9)} ${r.status.padEnd(14)} ${r.importKey}  ${r.reason}`);
-console.log(
-  `${dryRun ? 'Evaluated (nothing written)' : 'Done'}: ${report.filter((r) => r.result === 'imported').length} imported, ` +
-    `${report.filter((r) => r.result === 'unchanged').length} unchanged, ` +
-    `${report.filter((r) => r.status === 'published').length} published, ` +
-    `${report.filter((r) => r.status === 'pending_review').length} waiting for review, ` +
-    `${report.filter((r) => r.status === 'rejected').length} rejected.`,
-);
-d1.sqlite.close();

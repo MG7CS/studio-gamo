@@ -1,5 +1,5 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
-        dev-web dev-worship dev-academy dev-live dev-production dev-admin open-all \
+        dev-web dev-worship dev-academy dev-live dev-production dev-admin open-all live-db \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
@@ -15,14 +15,15 @@ help:
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
-	@echo "  \033[36mmake dev-live\033[0m          - Start apps/live development server"
+	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live"
+	@echo "  \033[36mmake live-db\033[0m           - Migrate the local Live database and import the verified catalog (safe to repeat)"
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
 	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server (http://127.0.0.1:4326)"
 	@echo ""
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
 	@echo "  \033[36mmake build\033[0m             - Build all applications"
-	@echo "  \033[36mmake check\033[0m             - Run everything CI runs (typecheck, lint, format, tests, API contract, build)"
+	@echo "  \033[36mmake check\033[0m             - Run everything CI runs (typecheck, lint, format, tests, build, Playwright)"
 	@echo "  \033[36mmake typecheck\033[0m         - Type-check apps (astro check), packages and scripts"
 	@echo "  \033[36mmake format\033[0m            - Format the workspace with Prettier"
 	@echo "  \033[36mmake lint\033[0m              - Run linting"
@@ -55,7 +56,7 @@ help:
 
 dev: dev-web
 
-dev-all:
+dev-all: live-db
 	@pnpm run dev:all
 
 open-all:
@@ -70,7 +71,11 @@ dev-worship:
 dev-academy:
 	@pnpm --filter apps-academy run dev
 
-dev-live:
+live-db:
+	@pnpm db:migrate:live:local
+	@pnpm live:catalog:import --publish-approved
+
+dev-live: live-db
 	@pnpm --filter apps-live run dev
 
 dev-production:

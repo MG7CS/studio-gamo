@@ -1,0 +1,107 @@
+---
+/** Accepting an invitation: sign in with the invited email, then join the organization. */
+import Layout from '../../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { OrganizerError, acceptInvitation, previewInvitation, resolveOrganizerSession } from '@gamo/domain';
+import {
+  ORGANIZATION_COOKIE,
+  SESSION_COOKIE,
+  cookieHeader,
+  readCookie,
+} from '../../../lib/organizer-session';
+import { openLive } from '../../../lib/registration';
+
+export const prerender = false;
+
+const token = Astro.params.token ?? '';
+let organizationName = '';
+let invitedEmail: string | undefined;
+let signedInAs = '';
+let problem: string | undefined;
+let canAccept = false;
+let unavailable = false;
+
+try {
+  const live = await openLive(Astro);
+  const now = Math.floor(Date.now() / 1000);
+  const preview = await previewInvitation(live.db, token);
+  if (!preview) {
+    problem = 'This invitation link is not valid. Ask the organization’s owner to send a new one.';
+  } else {
+    organizationName = preview.organizationName;
+    invitedEmail = preview.email;
+    const organizer = await resolveOrganizerSession(live.db, readCookie(Astro.request, SESSION_COOKIE), now);
+    if (!organizer) {
+      return Astro.redirect(`/account/signin?next=${encodeURIComponent(`/organizer/invite/${token}`)}`, 303);
+    }
+    signedInAs = organizer.email;
+    canAccept = true;
+    if (Astro.request.method === 'POST') {
+      try {
+        requireSameOrigin(Astro.request);
+      } catch {
+        return new Response('Forbidden', { status: 403 });
+      }
+      try {
+        const joined = await acceptInvitation(live.db, live.env, { token, organizer, now });
+        const headers = new Headers({ location: '/organizer' });
+        headers.append(
+          'set-cookie',
+          cookieHeader(
+            ORGANIZATION_COOKIE,
+            joined.organizationId,
+            30 * 86400,
+            Astro.url.protocol === 'https:',
+          ),
+        );
+        return new Response(null, { status: 303, headers });
+      } catch (error) {
+        if (!(error instanceof OrganizerError)) throw error;
+        canAccept = false;
+        problem =
+          error.code === 'invitation_wrong_email'
+            ? `This invitation is for ${invitedEmail}. You are signed in as ${signedInAs}. Sign out and sign in with the invited address.`
+            : error.code === 'invitation_expired'
+              ? 'This invitation has expired. Ask the owner to send a new one.'
+              : 'This invitation can no longer be used.';
+      }
+    }
+  }
+} catch {
+  unavailable = true;
+}
+---
+
+<Layout title="Invitation" chrome={false} noindex>
+  <SplitScreenLayout photo="soundEngineer" position="44% 34%" program="Gamo Live" brandHref="/">
+    <SplitHeading
+      title={organizationName ? `Join ${organizationName}` : 'Invitation'}
+      subtext={
+        organizationName
+          ? 'You were invited to help manage this organization’s events on Gamo Live.'
+          : undefined
+      }
+    />
+    {unavailable && (
+      <SplitNotice tone="error">Gamo Live is temporarily unavailable. Please try again later.</SplitNotice>
+    )}
+    {problem && <SplitNotice tone="error">{problem}</SplitNotice>}
+    {canAccept && (
+      <form method="post">
+        <p class="mb-5 text-[15px] text-ink">
+          Signed in as <strong>{signedInAs}</strong>.
+        </p>
+        <SplitButton label="Accept invitation" />
+      </form>
+    )}
+    {signedInAs && !canAccept && (
+      <form method="post" action="/account/signout">
+        <SplitButton label="Sign out" variant="quiet" />
+      </form>
+    )}
+  </SplitScreenLayout>
+</Layout>

@@ -51,7 +51,10 @@ export interface SecurityHeaderOptions {
  * Per-page additions a page can request, through `requestSecurityHeaders(Astro.locals, …)` in the
  * page's frontmatter. The page middleware reads them after the page has rendered its head.
  */
-export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'camera' | 'noReferrer'>;
+export type PageSecurityRequest = Pick<
+  SecurityHeaderOptions,
+  'formActionOrigins' | 'camera' | 'noReferrer' | 'clerkFrontendApi'
+>;
 
 /** Turnstile's script and widget frame origin (also used by Clerk's bot protection). */
 export const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
@@ -171,6 +174,9 @@ export function requestSecurityHeaders(
     camera: Boolean(current.camera || request.camera),
     noReferrer: Boolean(current.noReferrer || request.noReferrer),
   };
+  // Only the sign-in pages ask for it: this product's own Clerk Frontend API, as one exact https origin.
+  const clerk = exactHttpsOrigins([request.clerkFrontendApi ?? current.clerkFrontendApi ?? ''])[0];
+  if (clerk) locals.securityRequest.clerkFrontendApi = clerk;
 }
 
 /** Sets the headers on `response`, copying it first if its headers are immutable. */

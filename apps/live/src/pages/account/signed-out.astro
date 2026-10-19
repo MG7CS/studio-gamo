@@ -1,0 +1,48 @@
+---
+/** Shown after sign-out; also ends the person's Clerk session in the browser (docs/LIVE_SCREENS.md B1). */
+import Layout from '../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import { liveClerkConfig, requestSecurityHeaders } from '@gamo/domain';
+import { openLive } from '../../lib/registration';
+
+export const prerender = false;
+
+let clerk: { publishableKey: string; frontendApi: string } | null = null;
+try {
+  const live = await openLive(Astro);
+  const config = liveClerkConfig(live.env);
+  if (config) {
+    clerk = { publishableKey: config.publishableKey, frontendApi: config.frontendApi };
+    requestSecurityHeaders(Astro.locals, { clerkFrontendApi: config.frontendApi });
+  }
+} catch {
+  clerk = null;
+}
+---
+
+<Layout title="Signed out" chrome={false} noindex>
+  <SplitScreenLayout photo="soundEngineer" position="44% 34%" program="Gamo Live" brandHref="/">
+    <SplitHeading title="You're signed out" subtext="Your organizer session has ended on this device." />
+    <div
+      data-clerk-signout
+      data-frontend-api={clerk?.frontendApi}
+      data-publishable-key={clerk?.publishableKey}
+    >
+      <a
+        href="/account/signin"
+        class="flex min-h-[52px] w-full items-center justify-center rounded-full bg-terracotta px-6 py-3.5 text-[15px] font-medium text-white hover:bg-terracotta-deep"
+      >
+        Sign in again
+      </a>
+      <p class="mt-6 text-center text-[14px]">
+        <a class="font-semibold text-terracotta underline" href="/events">
+          Browse events
+        </a>
+      </p>
+    </div>
+    {clerk && <script>
+      import '../../scripts/clerk-signout';
+    </script>}
+  </SplitScreenLayout>
+</Layout>

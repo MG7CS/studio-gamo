@@ -73,6 +73,17 @@ pnpm live:catalog:import --env production --dry-run   # evaluate only; preview/p
 
 Owner-only steps before Live can run in preview or production (not done): create `gamo-live-db-preview` and `gamo-live-db-production` (`wrangler d1 create`), add their ids to a `[[env.<env>.d1_databases]]` block with binding `LIVE_DB` and `migrations_dir = "../../packages/db/live/migrations"` in `apps/live/wrangler.toml` and `apps/web/wrangler.toml`, apply the migrations (`wrangler d1 migrations apply LIVE_DB --env <env> --remote`), then set `PII_HASH_SECRET` (32+ characters; keys the registration hashes and codes) and the Resend variables (`RESEND_API_KEY`, `EMAIL_FROM`) as Live secrets. Until then Live's data pages answer "unavailable" and registration fails closed.
 
+### Organizer sign-in (Clerk, Gamo Live's own application)
+
+Built: `/account/signin`, `/account/signup`, `/account/signed-out`, the organizer area under `/organizer`. The browser signs in with clerk-js using an emailed 6-digit code; the server verifies the session token (signature, issuer, expiry, authorized party), reads the **verified** email from Clerk's Backend API, then starts Gamo's own organizer session (an HttpOnly cookie; only its hash is stored in `organizer_sessions`, 7 days).
+
+Owner-only setup (Clerk dashboard and Cloudflare; not done):
+
+1. In Live's Clerk application (never another product's): enable **Email verification code** for sign-in and require a verified email address at sign-up; turn passwords off. Add the Live origins (`https://live.gamostudio.org`, the preview origin, `http://127.0.0.1:4324` for development) to the allowed origins.
+2. Set Live variables (`apps/live/.dev.vars` locally, `wrangler secret put … --env <preview|production>` deployed): `PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE`, `CLERK_SECRET_KEY_LIVE`; optional `CLERK_JWT_KEY_LIVE` (PEM public key, verification without a network call) and `CLERK_AUTHORIZED_PARTIES_LIVE` (comma-separated origins). Development keys (`pk_test_`/`sk_test_`) are an error in production.
+3. CSP: only the three sign-in pages add Clerk's origins, derived from the publishable key: the Frontend API (script and connect), `https://challenges.cloudflare.com` (script and frame), `https://img.clerk.com` (images) and `https://clerk-telemetry.com` (connect). **Clerk Protect (bot protection) loads `cdn.protect.clerk.com` and an inline script, which this CSP refuses (it was the cause of the failed production sign-up).** Keep Clerk Protect off for Live's instance, or approve that origin explicitly; verify the sign-in flow in a preview deployment before production.
+4. Without Clerk keys, sign-in answers 503 ("not available right now"). Only `ENVIRONMENT=local` with `ALLOW_AUTH_SIMULATION=true` and no Clerk keys shows a clearly labeled local stand-in sign-in form (any email creates a local organizer); the flag is fatal anywhere else.
+
 Local registration emails (the 6-digit code, the confirmation link) are printed in the `astro dev` terminal of `apps/live`; nothing is sent while `ENVIRONMENT=local` has no Resend key.
 
 ## 6. After a deploy

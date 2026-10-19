@@ -61,10 +61,12 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       'must not be "true" in production; paid checkout stays closed (503) in production',
     );
 
-  // The admin has no sessions (Cloudflare Access is its only credential). The marketing apps hold no
-  // accounts; only the ones that read the Live catalog need the database.
-  if (!env.DB && (app === 'admin' || app === 'web' || app === 'live'))
-    add('error', 'DB', 'D1 binding is missing; data-driven pages are unavailable');
+  // The admin has no sessions (Cloudflare Access is its only credential) and still reads the old database.
+  // The marketing apps hold no accounts; web and live read Gamo Live's own database.
+  if (app === 'admin' && !env.DB)
+    add('error', 'DB', 'D1 binding is missing; the admin cannot read its queues');
+  if ((app === 'web' || app === 'live') && !env.LIVE_DB)
+    add('error', 'LIVE_DB', 'Gamo Live database binding is missing; event pages are unavailable');
 
   if (app === 'admin') {
     if (!present(env.CF_ACCESS_TEAM_NAME))
@@ -73,7 +75,59 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (!present(env.ADMIN_EMAIL))
       add('error', 'ADMIN_EMAIL', 'the single admin email is required for admin');
   }
+
+  if (app === 'live') addLiveProblems(env, environment, add);
   return problems;
+}
+
+/** Gamo Live: registration hashes, email and organizer sign-in (its own Clerk application). */
+function addLiveProblems(
+  env: GamoEnv,
+  environment: string,
+  add: (severity: EnvSeverity, name: string, message: string) => void,
+): void {
+  const secret = typeof env.PII_HASH_SECRET === 'string' ? env.PII_HASH_SECRET.trim() : '';
+  if (secret.length < 32)
+    add(
+      'error',
+      'PII_HASH_SECRET',
+      'must be set to at least 32 characters; registration and invitations answer 503',
+    );
+  if (!present(env.RESEND_API_KEY) || !present(env.EMAIL_FROM))
+    add(
+      'warning',
+      'RESEND_API_KEY',
+      'email is not configured (RESEND_API_KEY and EMAIL_FROM); codes are not sent',
+    );
+  const publishable = present(env.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE);
+  const secretKey = present(env.CLERK_SECRET_KEY_LIVE);
+  if (publishable !== secretKey) {
+    add(
+      'error',
+      publishable ? 'CLERK_SECRET_KEY_LIVE' : 'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+      'Clerk is partly configured; organizer sign-in answers 503 until both keys are set',
+    );
+  } else if (!publishable) {
+    add(
+      'warning',
+      'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+      'Clerk is not configured; organizer sign-in is unavailable',
+    );
+  }
+  if (environment === 'production') {
+    if (String(env.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE ?? '').startsWith('pk_test_'))
+      add(
+        'error',
+        'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+        'is a Clerk development key; production needs the production instance',
+      );
+    if (String(env.CLERK_SECRET_KEY_LIVE ?? '').startsWith('sk_test_'))
+      add(
+        'error',
+        'CLERK_SECRET_KEY_LIVE',
+        'is a Clerk development key; production needs the production instance',
+      );
+  }
 }
 
 let reported = false;

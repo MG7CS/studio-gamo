@@ -8,7 +8,7 @@ interface Props {
   name: string;
   label: string;
   type?: 'text' | 'email' | 'number';
-  as?: 'input' | 'select';
+  as?: 'input' | 'select' | 'textarea';
   autocomplete?: string;
   placeholder?: string;
   required?: boolean;
@@ -18,6 +18,8 @@ interface Props {
   inputmode?: 'numeric' | 'text' | 'email';
   maxlength?: number;
   pattern?: string;
+  rows?: number;
+  disabled?: boolean;
   class?: string;
 }
 const {
@@ -35,6 +37,8 @@ const {
   inputmode,
   maxlength,
   pattern,
+  rows = 4,
+  disabled = false,
   class: className,
 } = Astro.props;
 const hintId = `${id}-hint`;
@@ -59,11 +63,23 @@ const control =
       {hint}
     </p>
   )}
-  {as === 'select' ? (
+  {as === 'textarea' ? (
+    <textarea
+      id={id}
+      name={name}
+      rows={rows}
+      maxlength={maxlength}
+      disabled={disabled}
+      aria-invalid={error ? 'true' : undefined}
+      aria-describedby={describedBy}
+      class={control}
+    >{value}</textarea>
+  ) : as === 'select' ? (
     <select
       id={id}
       name={name}
       required={required}
+      disabled={disabled}
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={describedBy}
       class={control}
@@ -82,6 +98,7 @@ const control =
       inputmode={inputmode}
       maxlength={maxlength}
       pattern={pattern}
+      disabled={disabled}
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={describedBy}
       class={control}

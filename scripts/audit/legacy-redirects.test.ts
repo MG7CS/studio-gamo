@@ -30,15 +30,30 @@ test('Gamo Live legacy routes keep working and never shadow real routes', () => 
   assert.equal(redirect(live, '/artist')?.location, '/artists');
   assert.equal(redirect(live, '/artists'), null);
   assert.equal(redirect(live, '/artists/some-artist'), null);
-  assert.match(redirect(live, '/promote/create')!.location!, /interest=Event%20listing$/);
+  assert.equal(redirect(live, '/promote/create')?.location, '/promote');
   assert.equal(redirect(live, '/promote/create')?.status, 303);
+  assert.equal(redirect(live, '/promote'), null, 'the Promote page is real');
   assert.equal(redirect(live, '/events/abc-123/tickets')?.location, '/events/abc-123');
   assert.equal(redirect(live, '/events/abc-123/register'), null, 'the registration page is real');
   assert.equal(redirect(live, '/events/abc-123'), null);
   assert.equal(redirect(live, '/events'), null);
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
   assert.equal(redirect(live, '/my-tickets')?.status, 301);
-  assert.equal(redirect(live, '/workspaces')?.location, '/events');
+  assert.equal(redirect(live, '/workspaces')?.location, '/organizer');
+  // The organizer area and its sign-in pages are real routes.
+  for (const path of [
+    '/organizer',
+    '/organizer/start',
+    '/organizer/organization',
+    '/organizer/account',
+    '/organizer/invite/abc',
+    '/account/signin',
+    '/account/signup',
+    '/account/signed-out',
+    '/account/session',
+    '/account/signout',
+  ])
+    assert.equal(redirect(live, path), null, path);
 });
 
 test('removed program flows keep the original 303 status of their stubs', () => {
@@ -69,7 +84,6 @@ test('removed product areas go to the matching inquiry topic or public page', ()
     [web, '/account/signin'],
     [worship, '/account'],
     [academy, '/account/profile'],
-    [live, '/account/signup'],
     [production, '/account/signin'],
   ] as const) {
     assert.ok(redirect(rules, path), `${path} no longer has a sign-in page`);

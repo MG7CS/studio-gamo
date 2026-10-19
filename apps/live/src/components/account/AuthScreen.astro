@@ -1,0 +1,140 @@
+---
+/**
+ * Sign-in and sign-up for Gamo Live organizers: the split-screen sign-in design with an emailed 6-digit code
+ * through Clerk. Without Clerk keys the screen says sign-in is unavailable; only a local development build
+ * (ENVIRONMENT=local with ALLOW_AUTH_SIMULATION=true) shows a clearly labeled stand-in form.
+ */
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+
+interface Props {
+  mode: 'signin' | 'signup';
+  next: string;
+  clerk: { publishableKey: string; frontendApi: string } | null;
+  simulation: boolean;
+  error?: string;
+}
+const { mode, next, clerk, simulation, error } = Astro.props;
+const signin = mode === 'signin';
+const otherHref = `${signin ? '/account/signup' : '/account/signin'}?next=${encodeURIComponent(next)}`;
+---
+
+<SplitScreenLayout
+  photo={signin ? 'acousticLeader' : 'girlGuitar'}
+  position={signin ? '46% 20%' : '48% 20%'}
+  program="Gamo Live"
+  brandHref="/"
+>
+  <SplitHeading
+    title={signin ? 'Welcome back' : 'Create your account'}
+    subtext={
+      signin
+        ? 'Sign in to Gamo Live with a 6-digit code we email you. There is no password.'
+        : 'For churches, ministries, artists and organizers who list events. We email a 6-digit code to confirm your address.'
+    }
+  />
+  {error && <SplitNotice tone="error">{error}</SplitNotice>}
+
+  {clerk ? (
+    <>
+      <div
+        data-clerk-auth
+        data-mode={mode}
+        data-next={next}
+        data-frontend-api={clerk.frontendApi}
+        data-publishable-key={clerk.publishableKey}
+      >
+        <p
+          id="auth-status"
+          role="status"
+          hidden
+          class="mb-5 rounded-xl border border-sand bg-cream px-4 py-3 text-[14px] leading-relaxed text-ink"
+        ></p>
+        <form id="email-form" class="space-y-5" novalidate>
+          {!signin && <SplitField id="name" name="name" label="Your name" autocomplete="name" />}
+          <SplitField
+            id="email"
+            name="email"
+            type="email"
+            label="Email address"
+            autocomplete="email"
+            placeholder="you@example.org"
+            required
+          />
+          <SplitButton label="Email me a code" />
+        </form>
+        <form id="code-form" class="space-y-5" hidden novalidate>
+          <div>
+            <label for="code" class="mb-2 block text-[14px] font-semibold text-ink">
+              6-digit code
+            </label>
+            <p class="-mt-1 mb-2 text-[13px] text-muted">
+              Sent to <span id="sent-to" class="font-semibold text-ink"></span>. It works for 10 minutes.
+            </p>
+            <input
+              id="code"
+              name="code"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]{6}"
+              maxlength="6"
+              spellcheck="false"
+              placeholder="000000"
+              class="min-h-[56px] w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 text-center font-mono text-[26px] font-semibold tracking-[0.5em] text-ink placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+            />
+          </div>
+          <SplitButton label={signin ? 'Sign in' : 'Create account'} />
+          <SplitButton label="Use a different email" type="button" variant="quiet" />
+        </form>
+        <noscript>
+          <SplitNotice tone="error">
+            Signing in needs JavaScript. Please turn it on and reload this page.
+          </SplitNotice>
+        </noscript>
+      </div>
+      <script>
+        import '../../scripts/clerk-auth';
+      </script>
+    </>
+  ) : simulation ? (
+    <form method="post" action="/account/session" class="space-y-5">
+      <SplitNotice>
+        <strong>Local development sign-in.</strong> Clerk is not configured, so this stand-in form is shown.
+        It exists only while ENVIRONMENT is local.
+      </SplitNotice>
+      <input type="hidden" name="next" value={next} />
+      <SplitField id="name" name="name" label="Your name" autocomplete="name" />
+      <SplitField
+        id="email"
+        name="email"
+        type="email"
+        label="Email address"
+        autocomplete="email"
+        placeholder="you@example.org"
+        required
+      />
+      <SplitButton label="Sign in locally" />
+    </form>
+  ) : (
+    <SplitNotice tone="error">
+      Organizer sign-in is not available right now. Please try again later.
+    </SplitNotice>
+  )}
+
+  <p class="mt-8 text-center text-[14px] text-muted">
+    {signin ? 'New to Gamo Live?' : 'Already have an account?'}
+    <a class="font-semibold text-terracotta underline" href={otherHref}>
+      {signin ? 'Create an account' : 'Sign in'}
+    </a>
+  </p>
+  <p class="mt-3 text-center text-[13px] text-muted">
+    Just want to attend an event? You do not need an account.
+    <a class="font-semibold text-terracotta underline" href="/events">
+      Browse events
+    </a>
+  </p>
+</SplitScreenLayout>

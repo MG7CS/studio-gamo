@@ -163,8 +163,14 @@ test('secret evaluation reports names only; the admin needs its Access settings 
     admin.filter((f) => f.severity === 'error').map((f) => f.message),
     ['CF_ACCESS_AUD is not set.', 'ADMIN_EMAIL is not set.'],
   );
-  for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const)
+  for (const app of ['web', 'worship', 'academy', 'production'] as const)
     assert.deepEqual(evaluateSecrets(app, 'production', new Set(), {}), [], app);
+  const live = evaluateSecrets('live', 'production', new Set(), {});
+  assert.deepEqual(
+    live.filter((f) => f.severity === 'error').map((f) => f.message),
+    ['PII_HASH_SECRET is not set.'],
+  );
+  assert.equal(live.filter((f) => f.code === 'secret-recommended').length, 4);
 });
 
 const outputs =
