@@ -1,0 +1,47 @@
+---
+/** Gamo Live organizations, one row each, linking to the page where the admin decides. */
+import EmptyState from './EmptyState.astro';
+import StatusTag from './StatusTag.astro';
+import { timeAgo } from '../lib/format';
+import type { AdminOrganizationRow } from '@gamo/domain';
+
+interface Props {
+  organizations: AdminOrganizationRow[];
+}
+const { organizations } = Astro.props;
+---
+
+{organizations.length === 0 ? (
+  <EmptyState text="No organizations match." />
+) : (
+  <ul class="space-y-3">
+    {organizations.map((o) => (
+      <li>
+        <a
+          href={`/organizations/${o.id}`}
+          class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-5 shadow-soft hover:bg-clay-50"
+        >
+          <span class="min-w-0">
+            <span class="block truncate text-lg font-extrabold text-ink">{o.name}</span>
+            <span class="block text-sm text-muted">
+              {o.kind}
+              {o.city ? ` · ${o.city}${o.state ? `, ${o.state}` : ''}` : ''} · {o.members}{' '}
+              {o.members === 1 ? 'member' : 'members'} · joined {timeAgo(o.createdAt)}
+            </span>
+            <span class="block text-sm text-body">
+              {o.events} {o.events === 1 ? 'event' : 'events'}: {o.published} published, {o.pending} waiting
+            </span>
+          </span>
+          <span class="flex flex-wrap gap-2">
+            <StatusTag
+              status={o.verified ? 'verified' : 'draft'}
+              label={o.verified ? 'Verified' : 'Not verified'}
+            />
+            {o.status === 'suspended' && <StatusTag status="suspended" label="Suspended" />}
+            {o.reviewEveryEvent && <StatusTag status="submitted" label="Reviews every event" />}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

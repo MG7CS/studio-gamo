@@ -1,7 +1,7 @@
 ---
 /** Mobile bottom tab bar (the design's phone layout). Hidden on desktop, where the sidebar is shown. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { NAV_ITEMS, badgeFor, type NavKey } from '../lib/nav';
+import { TAB_ITEMS, badgeFor, tabKeyFor, type NavKey } from '../lib/nav';
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   counts: QueueCounts | null;
 }
 const { current, counts } = Astro.props;
+const tab = tabKeyFor(current);
 ---
 
 <nav
@@ -16,15 +17,15 @@ const { current, counts } = Astro.props;
   class="fixed inset-x-3 bottom-3 z-20 rounded-clay-xl bg-surface/95 p-2 shadow-card backdrop-blur lg:hidden"
 >
   <ul class="flex justify-around gap-1">
-    {NAV_ITEMS.map((item) => (
+    {TAB_ITEMS.map((item) => (
       <li class="relative min-w-0 flex-1">
         <a
           href={item.href}
           aria-label={`${item.shortLabel === item.label ? item.label : `${item.shortLabel}: ${item.label}`}${badgeFor(item, counts) !== null ? `, ${badgeFor(item, counts)} waiting` : ''}`}
-          aria-current={item.key === current ? 'page' : undefined}
+          aria-current={item.key === tab ? 'page' : undefined}
           class:list={[
             'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-0.5 text-xs font-semibold',
-            item.key === current ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
+            item.key === tab ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
           ]}
         >
           <Icon name={item.icon} class="h-5 w-5" />

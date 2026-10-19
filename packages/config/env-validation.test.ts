@@ -42,12 +42,19 @@ test('only the apps that read data need the DB binding; the marketing-only apps 
 });
 
 test('admin requires Cloudflare Access settings and the admin email; its local identity flag is fatal outside local', () => {
-  const base = { ENVIRONMENT: 'production', DB: {} } as const;
+  const base = { ENVIRONMENT: 'production', DB: {}, LIVE_DB: {} } as const;
   assert.deepEqual(names(validateEnv('admin', base, 'admin.gamostudio.org'), 'error'), [
     'CF_ACCESS_TEAM_NAME',
     'CF_ACCESS_AUD',
     'ADMIN_EMAIL',
   ]);
+  assert.deepEqual(
+    names(
+      validateEnv('admin', { ENVIRONMENT: 'production', DB: {} }, 'admin.gamostudio.org'),
+      'error',
+    ).includes('LIVE_DB'),
+    true,
+  );
   assert.deepEqual(
     names(
       validateEnv('admin', { ...base, ALLOW_LOCAL_ADMIN_IDENTITY: 'true' }, 'admin.gamostudio.org'),

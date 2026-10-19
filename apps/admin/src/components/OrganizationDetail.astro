@@ -1,0 +1,178 @@
+---
+/** One Gamo Live organization: who it is, what it has listed, its decision history, and the admin's actions. */
+import Button from './Button.astro';
+import StatusTag from './StatusTag.astro';
+import { formatWhen } from '../lib/format';
+import { field, hint, label } from '../lib/ui';
+import type { AdminOrganizationDetail } from '@gamo/domain';
+
+interface Props {
+  org: AdminOrganizationDetail;
+}
+const { org } = Astro.props;
+const decisionText: Record<string, string> = {
+  verified: 'Verified',
+  unverified: 'Verification removed',
+  suspended: 'Suspended',
+  reinstated: 'Reinstated',
+};
+---
+
+<div class="space-y-6">
+  <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="org-title">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <h2 id="org-title" class="text-xl font-extrabold">
+        {org.name}
+      </h2>
+      <span class="flex flex-wrap gap-2">
+        <StatusTag
+          status={org.verified ? 'verified' : 'draft'}
+          label={org.verified ? 'Verified' : 'Not verified'}
+        />
+        {org.status === 'suspended' && <StatusTag status="suspended" label="Suspended" />}
+      </span>
+    </div>
+    <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+      <div>
+        <dt class="font-semibold text-ink">Kind</dt>
+        <dd class="text-body">{org.kind}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Place</dt>
+        <dd class="text-body">{[org.city, org.state].filter(Boolean).join(', ') || 'Not given'}</dd>
+      </div>
+      {org.website && (
+        <div>
+          <dt class="font-semibold text-ink">Website</dt>
+          <dd class="break-all text-body">
+            <a
+              class="underline underline-offset-4"
+              href={org.website}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {org.website}
+            </a>
+          </dd>
+        </div>
+      )}
+      {org.contactEmail && (
+        <div>
+          <dt class="font-semibold text-ink">Public contact</dt>
+          <dd class="break-all text-body">{org.contactEmail}</dd>
+        </div>
+      )}
+      <div>
+        <dt class="font-semibold text-ink">First event</dt>
+        <dd class="text-body">{org.firstEventApproved ? 'Approved' : 'Not approved yet'}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">Reviews every event</dt>
+        <dd class="text-body">{org.reviewEveryEvent ? 'Yes' : 'No'}</dd>
+      </div>
+    </dl>
+    {org.description && (
+      <p class="mt-4 whitespace-pre-wrap rounded-clay-md bg-surface-soft p-4 text-sm text-body shadow-inset">
+        {org.description}
+      </p>
+    )}
+  </section>
+
+  <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="members-title">
+    <h2 id="members-title" class="text-lg font-extrabold">
+      Members ({org.memberList.length})
+    </h2>
+    <ul class="mt-3 divide-y divide-line/60 text-sm">
+      {org.memberList.map((m) => (
+        <li class="flex flex-wrap justify-between gap-2 py-2">
+          <span class="font-semibold text-ink">
+            {m.displayName ?? m.email}
+            {m.displayName ? ` · ${m.email}` : ''}
+          </span>
+          <span class="text-body">{m.role}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="events-title">
+    <h2 id="events-title" class="text-lg font-extrabold">
+      Events ({org.eventList.length})
+    </h2>
+    {org.eventList.length === 0 ? (
+      <p class="mt-3 text-sm text-body">No events yet.</p>
+    ) : (
+      <ul class="mt-3 divide-y divide-line/60 text-sm">
+        {org.eventList.map((e) => (
+          <li class="flex flex-wrap justify-between gap-2 py-2">
+            <span class="font-semibold text-ink">{e.title}</span>
+            <span class="text-body">{e.status.replace('_', ' ')}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="actions-title">
+    <h2 id="actions-title" class="text-lg font-extrabold">
+      Decide
+    </h2>
+    <form method="post" class="mt-4 space-y-3">
+      <label class={label} for="notes">
+        Note (kept with the decision; required to suspend)
+      </label>
+      <textarea id="notes" name="notes" rows="2" maxlength="2000" class={field}></textarea>
+      <p class={hint}>Verification and suspension are recorded in the history below.</p>
+      <div class="flex flex-wrap gap-3">
+        {org.verified ? (
+          <Button variant="secondary" name="action" value="unverify">
+            Remove verification
+          </Button>
+        ) : (
+          <Button name="action" value="verify">
+            Verify organization
+          </Button>
+        )}
+        {org.status === 'suspended' ? (
+          <Button variant="secondary" name="action" value="reinstate">
+            Reinstate
+          </Button>
+        ) : (
+          <Button variant="danger" name="action" value="suspend">
+            Suspend
+          </Button>
+        )}
+      </div>
+    </form>
+    <form method="post" class="mt-5">
+      <button
+        name="action"
+        value={org.reviewEveryEvent ? 'review_off' : 'review_on'}
+        class="inline-flex min-h-11 items-center text-sm font-semibold text-clay-700 underline underline-offset-4"
+      >
+        {org.reviewEveryEvent
+          ? 'Stop reviewing every event of this organization'
+          : 'Review every event of this organization'}
+      </button>
+    </form>
+  </section>
+
+  <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="history-title">
+    <h2 id="history-title" class="text-lg font-extrabold">
+      Decision history
+    </h2>
+    {org.decisions.length === 0 ? (
+      <p class="mt-3 text-sm text-body">No decisions yet.</p>
+    ) : (
+      <ul class="mt-3 divide-y divide-line/60 text-sm">
+        {org.decisions.map((d) => (
+          <li class="py-2">
+            <span class="font-semibold text-ink">{decisionText[d.decision] ?? d.decision}</span>
+            <span class="text-body"> · {formatWhen(d.decidedAt)}</span>
+            {d.note && <span class="block whitespace-pre-wrap text-body">{d.note}</span>}
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</div>

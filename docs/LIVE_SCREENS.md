@@ -71,4 +71,4 @@ Next: the design pass for the organizer screens (B), the public registration scr
 
 ## H. Build status
 
-Built (2026-10-19): A1–A10, B1–B10 (sign-in and sign-up, organization setup, overview, events list, editor, event overview, registrations with CSV, check-in, organization and members, account) and the organizer shell. Not built: event photos, duplicate event, all admin screens (C), emails about review decisions. The organizer menu lists only screens that exist.
+Built (2026-10-19): everything in A and B, and the admin screens C1–C4 (Event review with emailed decisions, Organizations, Catalog, Inbox counts and waiting list). Not built: event photos, duplicate event, bulk-email queue for large cancellations, the 90-day registrant-data cleanup action, and sponsored-placement labels (no sponsored placements exist).

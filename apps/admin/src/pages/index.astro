@@ -9,7 +9,7 @@ import { getRuntimeEnv } from '@gamo/domain';
 import { loadInbox } from '../lib/inbox';
 
 const env = await getRuntimeEnv(Astro);
-const inbox = await loadInbox(env.DB);
+const inbox = await loadInbox(env);
 const total = inbox ? Object.values(inbox.counts).reduce((sum, n) => sum + n, 0) : 0;
 const summary = !inbox
   ? undefined
@@ -27,9 +27,16 @@ const summary = !inbox
       text="The database could not be read, so nothing is shown instead of guessing. Try again in a moment."
     />
   )}
+  {inbox && !inbox.liveAvailable && (
+    <Notice
+      tone="warning"
+      title="Gamo Live unavailable"
+      text="Gamo Live's database could not be read, so its queues are left out instead of showing zeros."
+    />
+  )}
   {inbox && (
     <div class="space-y-6">
-      <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
         <StatCard
           label="Participation requests"
           value={inbox.counts.participation}
@@ -51,13 +58,31 @@ const summary = !inbox
           tone="tan"
           href="/providers"
         />
-        <StatCard
-          label="Events to review"
-          value={inbox.counts.events}
-          icon="ticket"
-          tone="ink"
-          href="/events"
-        />
+        {inbox.liveAvailable && (
+          <>
+            <StatCard
+              label="Events to review"
+              value={inbox.counts.events}
+              icon="ticket"
+              tone="ink"
+              href="/events"
+            />
+            <StatCard
+              label="Organizations to verify"
+              value={inbox.counts.organizations}
+              icon="building"
+              tone="terracotta"
+              href="/organizations"
+            />
+            <StatCard
+              label="Catalog to approve"
+              value={inbox.counts.catalog}
+              icon="list"
+              tone="sand"
+              href="/catalog"
+            />
+          </>
+        )}
       </div>
       <WaitingList items={inbox.oldest} />
     </div>

@@ -24,7 +24,8 @@ export function requirementsFor(app: PreflightApp): SecretRequirements {
   if (app === 'admin') {
     return {
       required: ['CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD', 'ADMIN_EMAIL'],
-      recommended: [],
+      // Decisions on Gamo Live events email the organization's owners.
+      recommended: ['RESEND_API_KEY', 'EMAIL_FROM'],
       optional: [],
     };
   }

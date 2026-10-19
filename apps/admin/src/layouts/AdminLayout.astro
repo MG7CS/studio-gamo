@@ -22,7 +22,7 @@ interface Props {
 const { title, current = null } = Astro.props;
 const email = getAdminEmail(Astro.locals);
 if (!email) Astro.response.status = 403;
-const counts = email ? await loadCounts((await getRuntimeEnv(Astro)).DB) : null;
+const counts = email ? await loadCounts(await getRuntimeEnv(Astro)) : null;
 ---
 
 <!doctype html>

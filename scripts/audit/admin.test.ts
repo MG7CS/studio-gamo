@@ -8,6 +8,7 @@ import { createPublicKey, createSign, generateKeyPairSync } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/db/testing.ts';
+import { createSqliteD1 } from '../../packages/db/testing.ts';
 import { checkGate, isLocalRuntime } from '../../apps/admin/src/lib/gate.ts';
 import { NAV_ITEMS } from '../../apps/admin/src/lib/nav.ts';
 import { loadInbox, tallyCounts } from '../../apps/admin/src/lib/inbox.ts';
@@ -17,7 +18,18 @@ import {
   loadInquiries,
   outcomeFrom as replyOutcome,
 } from '../../apps/admin/src/lib/participation.ts';
-import { handleEventForm, loadPendingEvents, outcomeFrom } from '../../apps/admin/src/lib/event-review.ts';
+import {
+  handleCatalogForm,
+  handleEventForm,
+  handleOrganizationForm,
+  outcomeFrom,
+} from '../../apps/admin/src/lib/live-admin.ts';
+import {
+  getAdminOrganization,
+  listAdminCatalog,
+  listAdminOrganizations,
+  listPendingEvents,
+} from '../../packages/domain/src/live/admin.ts';
 import {
   loadAcceptanceCounts,
   registrySummary,
@@ -221,11 +233,24 @@ async function migrated() {
   return d1;
 }
 
-test('the Inbox counts and the waiting list come from the database, and nothing else', async () => {
+/** Gamo Live's own database with its migrations, as the admin binds it (LIVE_DB). */
+async function liveMigrated() {
+  const d1 = createSqliteD1();
+  const dir = join('packages/db/live/migrations');
+  for (const name of readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .sort())
+    await d1.exec(readFileSync(join(dir, name), 'utf8'));
+  return d1;
+}
+
+test('the Inbox counts and the waiting list come from the databases, and nothing else', async () => {
   const d1 = await migrated();
-  assert.deepEqual(await loadInbox(d1), {
-    counts: { participation: 0, churches: 0, providers: 0, events: 0 },
+  const live = await liveMigrated();
+  assert.deepEqual(await loadInbox({ DB: d1, LIVE_DB: live }), {
+    counts: { participation: 0, churches: 0, providers: 0, events: 0, organizations: 0, catalog: 0 },
     oldest: [],
+    liveAvailable: true,
   });
   const now = Math.floor(Date.now() / 1000);
   const run = (sql: string) => d1.exec(sql);
@@ -238,15 +263,18 @@ test('the Inbox counts and the waiting list come from the database, and nothing 
     ('m_open','p2','musician','worship','Sample Musician','in_review',1,${now - 200},${now - 200}),
     ('t_open','p3','teacher','academy','Sample Teacher','meeting_scheduled',1,${now - 100},${now - 100}),
     ('t_no','p1','teacher','academy','Sample Rejected','rejected',1,${now},${now})`);
-  run(
-    `INSERT INTO organizations (id,name,slug,type,status,created_at) VALUES ('o1','Sample Org','sample-org','church','active',${now})`,
+  live.exec(
+    `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now - 900},${now - 900}), ('g2','Sample Verified Org','sample-verified','church',${now},${now})`,
   );
-  run(
-    `INSERT INTO organizer_profiles (id,organization_id,kind,verification_status,created_at,always_review) VALUES ('op1','o1','church','verified',${now},0)`,
+  live.exec(`UPDATE organizations SET verified_at = ${now} WHERE id = 'g2'`);
+  live.exec(
+    `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
-  run(`INSERT INTO events (id,organizer_id,title,slug,category,description,venue_name,city,state,starts_at,timezone,status,created_at) VALUES
-    ('e1','op1','Sample Pending Event','sample-pending','concert','x','Hall','Phoenix','AZ',${now + 1000},'America/Phoenix','pending_review',${now - 300}),
-    ('e2','op1','Sample Published Event','sample-published','concert','x','Hall','Phoenix','AZ',${now + 1000},'America/Phoenix','approved',${now})`);
+  live.exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,venue_id,timezone,admission,status,created_at,updated_at) VALUES
+    ('e1','g1','organizer','sample-pending','Sample Pending Event','concert','v1','America/Phoenix','free_open','pending_review',${now - 300},${now - 300}),
+    ('e2','g1','organizer','sample-published','Sample Published Event','concert','v1','America/Phoenix','free_open','published',${now},${now}),
+    ('c1',NULL,'catalog','sample-catalog','Sample Catalog Listing','concert','v1','America/Phoenix','external_tickets','pending_review',${now - 100},${now - 100})`);
+  live.exec(`UPDATE events SET external_url = 'https://tickets.example.invalid/x' WHERE id = 'c1'`);
   run(
     `INSERT INTO users (id,email,verified_email_at,status,created_at) VALUES ('u1','v@example.invalid',${now},'active',${now})`,
   );
@@ -254,33 +282,60 @@ test('the Inbox counts and the waiting list come from the database, and nothing 
     ('i1','u1','general','Worship','Sample Visitor','Sample message one',  'pending',${now - 500}),
     ('i2','u1','general','Worship','Sample Visitor','Sample message two',  'reviewed',${now}),
     ('i3','u1','general','Academy','Sample Visitor','Sample message three','closed',${now})`);
-  const inbox = await loadInbox(d1);
-  assert.deepEqual(inbox?.counts, { participation: 1, churches: 1, providers: 2, events: 1 });
+  const inbox = await loadInbox({ DB: d1, LIVE_DB: live });
+  assert.deepEqual(inbox?.counts, {
+    participation: 1,
+    churches: 1,
+    providers: 2,
+    events: 1,
+    organizations: 1,
+    catalog: 1,
+  });
   // Oldest first, only what is waiting, labeled by queue.
   assert.deepEqual(
     inbox?.oldest.map((i) => [i.title, i.kind]),
     [
       ['Worship · Sample Visitor', 'Participation request'],
       ['Sample Church', 'Church verification'],
+      ['Sample Org', 'Organization verification'],
       ['Sample Pending Event', 'Event review'],
       ['Sample Musician', 'Provider review'],
       ['Sample Teacher', 'Provider review'],
-    ],
+    ].slice(0, 5),
   );
-  assert.equal((await loadInbox(d1, 2))?.oldest.length, 2);
+  assert.equal((await loadInbox({ DB: d1, LIVE_DB: live }, 2))?.oldest.length, 2);
+  // Gamo Live unreachable: its cards are left out and the rest still shows.
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    const without = await loadInbox({ DB: d1 });
+    assert.equal(without?.liveAvailable, false);
+    assert.deepEqual(without?.counts, {
+      participation: 1,
+      churches: 1,
+      providers: 2,
+      events: 0,
+      organizations: 0,
+      catalog: 0,
+    });
+  } finally {
+    console.error = originalError;
+  }
 });
 
 test('the Inbox is null (a visible error, not zeros) when the database cannot be read', async () => {
   const originalError = console.error;
   console.error = () => {};
   try {
-    assert.equal(await loadInbox(undefined), null);
+    assert.equal(await loadInbox({}), null);
     assert.equal(
       await loadInbox({
-        prepare: () => {
-          throw new Error('down');
+        DB: {
+          prepare: () => {
+            throw new Error('down');
+          },
+          batch: async () => [],
         },
-        batch: async () => [],
       }),
       null,
     );
@@ -298,6 +353,8 @@ test('the Inbox is null (a visible error, not zeros) when the database cannot be
       churches: 2,
       providers: 1,
       events: 0,
+      organizations: 0,
+      catalog: 0,
     },
   );
 });
@@ -313,23 +370,22 @@ test('timeAgo says how long something has waited', () => {
   assert.equal(timeAgo(s(-500), now), 'just now');
 });
 
-test('first-event review: list, decisions, conflicts, and the organizer switch', async () => {
-  const d1 = await migrated();
+test('Gamo Live event review: list, decisions, conflicts, notes, and the first approval', async () => {
+  const live = await liveMigrated();
   const now = Math.floor(Date.now() / 1000);
-  d1.exec(
-    `INSERT INTO organizations (id,name,slug,type,status,created_at) VALUES ('o1','Sample Org','sample-org','church','active',${now})`,
+  live.exec(`INSERT INTO organizations (id,name,slug,kind) VALUES ('g1','Sample Org','sample-org','church')`);
+  live.exec(
+    `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
-  d1.exec(
-    `INSERT INTO organizer_profiles (id,organization_id,kind,verification_status,created_at,always_review) VALUES ('op1','o1','church','verified',${now},0)`,
-  );
-  const event = (id: string, title: string, status: string, created: number) =>
-    d1.exec(
-      `INSERT INTO events (id,organizer_id,title,slug,category,description,venue_name,city,state,starts_at,timezone,status,created_at) VALUES ('${id}','op1','${title}','${id}','concert','x','Hall','Phoenix','AZ',${now + 1000},'America/Phoenix','${status}',${created})`,
-    );
+  const event = (id: string, title: string, status: string, created: number, startsAt = now + 86_400) =>
+    live.exec(`INSERT INTO events (id,organization_id,origin,slug,title,category,description,venue_id,timezone,admission,status,created_at,updated_at)
+      VALUES ('${id}','g1','organizer','${id}','${title}','concert','A sample event description.','v1','America/Phoenix','free_open','${status}',${created},${created});
+      INSERT INTO event_occurrences (id,event_id,starts_at) VALUES ('o_${id}','${id}',${startsAt});`);
   event('e_old', 'Sample Older Event', 'pending_review', now - 500);
   event('e_new', 'Sample Newer Event', 'pending_review', now - 100);
-  event('e_live', 'Sample Published Event', 'approved', now);
-  const env = { DB: d1, ENVIRONMENT: 'local' } as never;
+  event('e_past', 'Sample Past Event', 'pending_review', now - 50, now - 3600);
+  event('e_live', 'Sample Published Event', 'published', now);
+  const env = { LIVE_DB: live, ENVIRONMENT: 'local' } as never;
   const post = (fields: Record<string, string>, origin = 'http://127.0.0.1:4326') =>
     new Request('http://127.0.0.1:4326/events', {
       method: 'POST',
@@ -337,95 +393,190 @@ test('first-event review: list, decisions, conflicts, and the organizer switch',
       body: new URLSearchParams(fields),
     });
 
-  const listed = await loadPendingEvents(d1);
+  const listed = await listPendingEvents(live);
   assert.deepEqual(
-    listed.map((e) => [e.title, e.firstEvent, e.alwaysReview]),
+    listed.map((e) => [e.title, e.reason]),
     [
-      ['Sample Older Event', true, false],
-      ['Sample Newer Event', true, false],
+      ['Sample Older Event', 'first_event'],
+      ['Sample Newer Event', 'first_event'],
+      ['Sample Past Event', 'first_event'],
     ],
   );
 
   assert.deepEqual(
-    await handleEventForm(
-      post({ kind: 'decision', event_id: 'e_old', decision: 'approved' }, 'https://evil.example'),
-      env,
-      'owner@example.invalid',
-    ),
-    { ok: false, status: 403, message: 'That request came from another site and was refused.' },
+    await handleEventForm(post({ event_id: 'e_old', decision: 'approved' }, 'https://evil.example'), env),
+    {
+      ok: false,
+      status: 403,
+      message: 'That request came from another site and was refused.',
+    },
   );
-  const noNote = await handleEventForm(
-    post({ kind: 'decision', event_id: 'e_old', decision: 'rejected' }),
-    env,
-    'owner@example.invalid',
-  );
+  const noNote = await handleEventForm(post({ event_id: 'e_old', decision: 'rejected' }), env);
   assert.equal(!noNote.ok && noNote.status, 400);
+  assert.equal((await handleEventForm(post({ event_id: 'e_old', decision: 'maybe' }), env)).ok, false);
+  const pastApproval = await handleEventForm(post({ event_id: 'e_past', decision: 'approved' }), env);
   assert.equal(
-    (
-      await handleEventForm(
-        post({ kind: 'decision', event_id: 'e_old', decision: 'maybe' }),
-        env,
-        'owner@example.invalid',
-      )
-    ).ok,
-    false,
+    !pastApproval.ok && pastApproval.status,
+    409,
+    'an event whose dates have all passed cannot be approved',
   );
 
-  const approved = await handleEventForm(
-    post({ kind: 'decision', event_id: 'e_old', decision: 'approved' }),
-    env,
-    'owner@example.invalid',
-  );
-  assert.deepEqual(approved, { ok: true, location: '/events?done=approved&first=1' });
+  const approved = await handleEventForm(post({ event_id: 'e_old', decision: 'approved' }), env);
+  assert.deepEqual(approved, { ok: true, location: '/events?done=approved&first=1&emailed=no' });
   assert.equal(
-    outcomeFrom(new URL('http://x/events?done=approved&first=1')),
-    'Event approved. This was the organizer’s first approved event.',
+    outcomeFrom(new URL('http://x/events?done=approved&first=1&emailed=no')),
+    'Event approved and published. This was the organization’s first approved event. The owners could not be emailed; tell them directly if they need to act.',
   );
   assert.equal(outcomeFrom(new URL('http://x/events?done=<script>')), null);
-  const again = await handleEventForm(
-    post({ kind: 'decision', event_id: 'e_old', decision: 'rejected', notes: 'late' }),
-    env,
-    'owner@example.invalid',
+  assert.equal(
+    (live.sqlite.prepare("SELECT status FROM events WHERE id = 'e_old'").get() as { status: string }).status,
+    'published',
   );
+  const again = await handleEventForm(post({ event_id: 'e_old', decision: 'rejected', notes: 'late' }), env);
   assert.equal(!again.ok && again.status, 409);
-  const missing = await handleEventForm(
-    post({ kind: 'decision', event_id: 'e_nope', decision: 'approved' }),
-    env,
-    'owner@example.invalid',
-  );
+  const missing = await handleEventForm(post({ event_id: 'e_nope', decision: 'approved' }), env);
   assert.equal(!missing.ok && missing.status, 404);
 
-  // Not the organizer's first event any more; the switch brings it back into review.
-  assert.equal((await loadPendingEvents(d1))[0].firstEvent, false);
-  assert.deepEqual(
-    await handleEventForm(
-      post({ kind: 'organizer', organizer_id: 'op1', always_review: 'on' }),
-      env,
-      'owner@example.invalid',
-    ),
-    { ok: true, location: '/events?done=always_review_on' },
-  );
-  assert.equal((await loadPendingEvents(d1))[0].alwaysReview, true);
+  // The organization is now approved: later events are not "first events" any more.
+  assert.equal((await listPendingEvents(live))[0].reason, 'every_event');
   const changes = await handleEventForm(
-    post({ kind: 'decision', event_id: 'e_new', decision: 'revision_requested', notes: 'Add the address.' }),
+    post({ event_id: 'e_new', decision: 'changes_requested', notes: 'Add the address.' }),
     env,
-    'owner@example.invalid',
   );
-  assert.deepEqual(changes, { ok: true, location: '/events?done=revision_requested' });
+  assert.deepEqual(changes, { ok: true, location: '/events?done=changes_requested&emailed=no' });
 
-  const rows = d1.sqlite
+  const rows = live.sqlite
     .prepare(
-      "SELECT subject_id, action, staff_user_id, staff_name, notes FROM verification_records WHERE subject_type = 'event' ORDER BY rowid",
+      "SELECT subject_id, decision, note FROM review_decisions WHERE subject_type = 'event' ORDER BY rowid",
     )
     .all() as Record<string, unknown>[];
   assert.deepEqual(
-    rows.map((r) => [r.subject_id, r.action, r.staff_user_id, r.staff_name]),
+    rows.map((r) => [r.subject_id, r.decision, r.note]),
     [
-      ['e_old', 'approve_event', 'admin', 'owner@example.invalid'],
-      ['e_new', 'request_changes', 'admin', 'owner@example.invalid'],
+      ['e_old', 'approved', null],
+      ['e_new', 'changes_requested', 'Add the address.'],
     ],
   );
-  assert.deepEqual(await loadPendingEvents(d1), []);
+  assert.equal(
+    (
+      live.sqlite
+        .prepare('SELECT COUNT(*) AS n FROM organizations WHERE first_event_approved_at IS NOT NULL')
+        .get() as { n: number }
+    ).n,
+    1,
+  );
+});
+
+test('Gamo Live organizations: verify, suspend (note required), the review switch, and the history', async () => {
+  const live = await liveMigrated();
+  const now = Math.floor(Date.now() / 1000);
+  live.exec(
+    `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now},${now}), ('g2','Another Org','another','ministry',${now},${now})`,
+  );
+  live.exec(
+    `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
+  );
+  live.exec(
+    `INSERT INTO events (id,organization_id,origin,slug,title,category,venue_id,timezone,admission,status) VALUES ('e1','g1','organizer','e1','Sample Event','concert','v1','America/Phoenix','free_open','published')`,
+  );
+  const env = { LIVE_DB: live, ENVIRONMENT: 'local' } as never;
+  const post = (fields: Record<string, string>, origin = 'http://127.0.0.1:4326') =>
+    new Request('http://127.0.0.1:4326/organizations/g1', {
+      method: 'POST',
+      headers: { origin },
+      body: new URLSearchParams(fields),
+    });
+
+  assert.deepEqual(
+    (await listAdminOrganizations(live)).map((o) => o.name),
+    ['Sample Org'],
+    'waiting = has events, not verified',
+  );
+  assert.equal((await listAdminOrganizations(live, { filter: 'all' })).length, 2);
+  assert.equal(
+    (await handleOrganizationForm(post({ action: 'verify' }, 'https://evil.example'), env, 'g1')).ok,
+    false,
+  );
+  assert.deepEqual(
+    await handleOrganizationForm(post({ action: 'verify', notes: 'Visited in person.' }), env, 'g1'),
+    {
+      ok: true,
+      location: '/organizations/g1?done=verified',
+    },
+  );
+  assert.deepEqual(
+    (await listAdminOrganizations(live)).map((o) => o.name),
+    [],
+  );
+  const noNote = await handleOrganizationForm(post({ action: 'suspend' }), env, 'g1');
+  assert.equal(!noNote.ok && noNote.status, 400);
+  assert.deepEqual(
+    await handleOrganizationForm(post({ action: 'suspend', notes: 'Reported misuse.' }), env, 'g1'),
+    {
+      ok: true,
+      location: '/organizations/g1?done=suspended',
+    },
+  );
+  assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g1')).ok, true);
+  assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g_nope')).ok, false);
+  assert.equal((await handleOrganizationForm(post({ action: 'dance' }), env, 'g1')).ok, false);
+  const detail = await getAdminOrganization(live, 'g1');
+  assert.equal(detail?.status, 'suspended');
+  assert.equal(detail?.verified, true);
+  assert.equal(detail?.reviewEveryEvent, true);
+  assert.deepEqual(detail?.decisions.map((d) => d.decision).reverse(), ['verified', 'suspended']);
+  await handleOrganizationForm(post({ action: 'reinstate' }), env, 'g1');
+  assert.equal((await getAdminOrganization(live, 'g1'))?.status, 'active');
+  assert.equal(await getAdminOrganization(live, 'g_nope'), null);
+});
+
+test('Gamo Live catalog: approve, hide and feature; listings that failed the editorial rules stay out', async () => {
+  const live = await liveMigrated();
+  live.exec(
+    `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
+  );
+  live.exec(`INSERT INTO events (id,origin,slug,title,category,venue_id,timezone,admission,external_url,status) VALUES
+    ('c1','catalog','c1','Sample Listing','concert','v1','America/Phoenix','external_tickets','https://tickets.example.invalid/1','pending_review'),
+    ('c2','catalog','c2','Sample Rejected Listing','concert','v1','America/Phoenix','external_tickets','https://tickets.example.invalid/2','rejected')`);
+  const env = { LIVE_DB: live, ENVIRONMENT: 'local' } as never;
+  const post = (fields: Record<string, string>, origin = 'http://127.0.0.1:4326') =>
+    new Request('http://127.0.0.1:4326/catalog', {
+      method: 'POST',
+      headers: { origin },
+      body: new URLSearchParams(fields),
+    });
+  assert.equal(
+    (await handleCatalogForm(post({ event_id: 'c1', action: 'publish' }, 'https://evil.example'), env)).ok,
+    false,
+  );
+  assert.deepEqual(
+    (await listAdminCatalog(live)).map((r) => [r.title, r.status]),
+    [
+      ['Sample Listing', 'pending_review'],
+      ['Sample Rejected Listing', 'rejected'],
+    ],
+  );
+  const rejected = await handleCatalogForm(post({ event_id: 'c2', action: 'publish' }), env);
+  assert.equal(!rejected.ok && rejected.status, 409);
+  const notYet = await handleCatalogForm(post({ event_id: 'c1', action: 'feature' }), env);
+  assert.equal(!notYet.ok && notYet.status, 409, 'only published listings can be featured');
+  assert.deepEqual(await handleCatalogForm(post({ event_id: 'c1', action: 'publish' }), env), {
+    ok: true,
+    location: '/catalog?done=listing_published',
+  });
+  assert.deepEqual(await handleCatalogForm(post({ event_id: 'c1', action: 'feature' }), env), {
+    ok: true,
+    location: '/catalog?done=featured_on',
+  });
+  assert.equal((await listAdminCatalog(live)).find((r) => r.id === 'c1')?.featured, true);
+  assert.deepEqual(await handleCatalogForm(post({ event_id: 'c1', action: 'hide' }), env), {
+    ok: true,
+    location: '/catalog?done=listing_hidden',
+  });
+  assert.deepEqual(await handleCatalogForm(post({ event_id: 'c1', action: 'publish' }), env), {
+    ok: true,
+    location: '/catalog?done=listing_published',
+  });
 });
 
 test('participation requests: list order, reply, close, conflicts, and what the person sees', async () => {

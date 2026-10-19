@@ -1,0 +1,48 @@
+---
+/** Gamo Live editorial catalog: approve, hide and feature the external listings. Import stays a script. */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import CatalogList from '../components/CatalogList.astro';
+import LiveTabs from '../components/LiveTabs.astro';
+import Notice from '../components/Notice.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getRuntimeEnv, listAdminCatalog } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/domain/security';
+import { loadCounts } from '../lib/inbox';
+import { handleCatalogForm, outcomeFrom } from '../lib/live-admin';
+
+const env = await getRuntimeEnv(Astro);
+let error: string | null = null;
+if (Astro.request.method === 'POST') {
+  const outcome = await handleCatalogForm(Astro.request, env);
+  if (outcome.ok) return Astro.redirect(outcome.location, 303);
+  error = outcome.message;
+  Astro.response.status = outcome.status;
+}
+let rows = null as Awaited<ReturnType<typeof listAdminCatalog>> | null;
+try {
+  rows = await listAdminCatalog(asSqlDatabase(env.LIVE_DB));
+} catch (e) {
+  console.error(`[admin] catalog unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
+}
+const counts = await loadCounts(env);
+const outcome = outcomeFrom(Astro.url);
+---
+
+<AdminLayout title="Catalog" current="catalog">
+  <PageHeader
+    title="Catalog"
+    description="Real events Gamo lists for discovery, each with its source and the organizer’s own ticket page. Gamo never sells these tickets. Featured is editorial and always labeled."
+  />
+  <LiveTabs current="catalog" counts={counts} />
+  {outcome && <Notice tone="success" text={outcome} />}
+  {error && <Notice tone="error" text={error} />}
+  {rows ? (
+    <CatalogList rows={rows} />
+  ) : (
+    <Notice
+      tone="error"
+      title="Catalog unavailable"
+      text="Gamo Live’s database could not be read, so nothing is shown instead of guessing."
+    />
+  )}
+</AdminLayout>

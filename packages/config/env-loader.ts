@@ -457,8 +457,13 @@ export function isLocalDevEnvironment(): boolean {
  * - Populates `process.env` for build/dev time (`import.meta.env`) and merges into Miniflare Worker `vars` during local dev
  *   so `cloudflare:workers` (`getRuntimeEnv`) receives both root shared config and per-app Clerk credentials.
  * - Gives each app its own workerd inspector port and its own persisted local state
- *   (`apps/<app>/.wrangler/state`: D1, KV, R2), so all six apps can run at once.
+ *   (`apps/<app>/.wrangler/state`: D1, KV, R2), so all six apps can run at once. The three apps that read Gamo
+ *   Live's database (web, live, admin) share one state folder (`.wrangler/shared-state` at the repository root) so
+ *   an event an organizer submits in Live is the one the admin reviews.
  */
+/** Apps whose local D1 state is shared (they all read Gamo Live's database). */
+const SHARED_STATE_APPS: readonly AppName[] = ['web', 'live', 'admin'];
+
 export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | URL) {
   const appDir = dirname(fileURLToPath(appConfigUrl));
   const isLocalDev = isLocalDevEnvironment();
@@ -487,7 +492,11 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
     // Fixed per-app inspector in dev; none for builds (prerendering also starts workerd, and a
     // build must not collide with running dev servers).
     inspectorPort: isLocalDev ? LOCAL_INSPECTOR_PORTS[app] : false,
-    persistState: { path: resolve(appDir, '.wrangler/state') },
+    persistState: {
+      path: SHARED_STATE_APPS.includes(app)
+        ? resolve(appDir, '../../.wrangler/shared-state')
+        : resolve(appDir, '.wrangler/state'),
+    },
     config(workerConfig: { vars?: Record<string, unknown> }) {
       if (!isLocalDev) {
         return {};

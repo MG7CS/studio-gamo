@@ -1,0 +1,144 @@
+---
+/**
+ * Gamo Live events waiting for review: an organization's first event, or every event of an organization set to
+ * "review every event". Decisions POST to this page; the organization's owners are emailed the result.
+ */
+import Button from './Button.astro';
+import EmptyState from './EmptyState.astro';
+import { formatWhen, timeAgo } from '../lib/format';
+import { field, hint, label } from '../lib/ui';
+import type { LivePendingEvent } from '@gamo/domain';
+
+interface Props {
+  events: LivePendingEvent[];
+}
+const { events } = Astro.props;
+const reason = (e: LivePendingEvent) =>
+  e.reason === 'first_event'
+    ? 'First event of this organization'
+    : 'Organization is set to review every event';
+const admissionText: Record<string, string> = {
+  free_open: 'Free, no registration',
+  free_registration: 'Free, registration on Gamo Live',
+  external_tickets: 'Tickets elsewhere',
+};
+---
+
+{events.length === 0 ? (
+  <EmptyState text="No events are waiting for review." />
+) : (
+  <ul class="space-y-6">
+    {events.map((e) => (
+      <li id={`event-${e.id}`} class="rounded-clay-lg bg-surface p-6 shadow-soft">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <h2 class="min-w-0 text-xl font-extrabold">{e.title}</h2>
+          <span class="rounded-full bg-clay-100 px-3 py-1 text-xs font-bold text-clay-800">{reason(e)}</span>
+        </div>
+        <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="font-semibold text-ink">Organization</dt>
+            <dd class="text-body">
+              <a
+                class="font-semibold text-clay-800 underline underline-offset-4"
+                href={`/organizations/${e.organizationId}`}
+              >
+                {e.organizationName}
+              </a>
+              ({e.organizationKind}) · {e.organizationVerified ? 'verified' : 'not verified'}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-ink">When</dt>
+            <dd class="text-body">
+              {e.firstStartsAt ? formatWhen(e.firstStartsAt, e.timezone) : 'No date'}
+              {e.occurrenceCount > 1 ? ` · ${e.occurrenceCount} dates${e.recurring ? ' (series)' : ''}` : ''}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-ink">Where</dt>
+            <dd class="text-body">
+              {[e.venue, e.address, `${e.city}, ${e.state}`].filter(Boolean).join(', ')}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-ink">Category and admission</dt>
+            <dd class="text-body">
+              {e.category} · {admissionText[e.admission] ?? e.admission}
+              {e.capacity != null ? ` · ${e.capacity} seats` : ''}
+              {e.qrCheckin ? ' · QR check-in' : ''}
+            </dd>
+          </div>
+          {e.externalUrl && (
+            <div>
+              <dt class="font-semibold text-ink">Tickets page</dt>
+              <dd class="break-all text-body">
+                <a
+                  class="underline underline-offset-4"
+                  href={e.externalUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {e.externalUrl}
+                </a>
+              </dd>
+            </div>
+          )}
+          {e.website && (
+            <div>
+              <dt class="font-semibold text-ink">Organization website</dt>
+              <dd class="break-all text-body">
+                <a
+                  class="underline underline-offset-4"
+                  href={e.website}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {e.website}
+                </a>
+              </dd>
+            </div>
+          )}
+          {e.performers.length > 0 && (
+            <div>
+              <dt class="font-semibold text-ink">Performers</dt>
+              <dd class="text-body">{e.performers.join(', ')}</dd>
+            </div>
+          )}
+          {(e.priceText || e.refundPolicyText) && (
+            <div>
+              <dt class="font-semibold text-ink">Price and refunds as stated</dt>
+              <dd class="text-body">{[e.priceText, e.refundPolicyText].filter(Boolean).join(' · ')}</dd>
+            </div>
+          )}
+          <div>
+            <dt class="font-semibold text-ink">Submitted</dt>
+            <dd class="text-body">{timeAgo(e.submittedAt)}</dd>
+          </div>
+        </dl>
+        <p class="mt-4 whitespace-pre-wrap rounded-clay-md bg-surface-soft p-4 text-sm text-body shadow-inset">
+          {e.description}
+        </p>
+
+        <form method="post" class="mt-5 space-y-3">
+          <input type="hidden" name="event_id" value={e.id} />
+          <label class={label} for={`notes-${e.id}`}>
+            Note (shown to the organizer; required to reject or ask for changes)
+          </label>
+          <textarea id={`notes-${e.id}`} name="notes" rows="2" maxlength="2000" class={field}></textarea>
+          <p class={hint}>The organization’s owners are emailed the decision and this note.</p>
+          <div class="flex flex-wrap gap-3">
+            <Button name="decision" value="approved">
+              Approve
+            </Button>
+            <Button variant="secondary" name="decision" value="changes_requested">
+              Ask for changes
+            </Button>
+            <Button variant="danger" name="decision" value="rejected">
+              Reject
+            </Button>
+          </div>
+        </form>
+      </li>
+    ))}
+  </ul>
+)}

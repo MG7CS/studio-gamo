@@ -19,9 +19,9 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm test:e2e",
     "images:optimize": "node scripts/optimize-images.mjs",
     "images:report": "node scripts/optimize-images.mjs --report",
-    "db:migrate:live:local": "pnpm --filter apps-live exec wrangler d1 migrations apply LIVE_DB --local && pnpm --filter apps-web exec wrangler d1 migrations apply LIVE_DB --local",
+    "db:migrate:live:local": "pnpm --filter apps-live exec wrangler d1 migrations apply LIVE_DB --local --persist-to ../../.wrangler/shared-state && pnpm --filter apps-live exec wrangler d1 migrations apply gamo-db-local --local --persist-to ../../.wrangler/shared-state",
     "live:catalog:import": "tsx scripts/live/catalog-cli.ts import",
-    "db:migrate:local": "pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-worship exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-academy exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-live exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-production exec wrangler d1 migrations apply gamo-db-local --local",
+    "db:migrate:local": "pnpm --filter apps-web exec wrangler d1 migrations apply gamo-db-local --local --persist-to ../../.wrangler/shared-state && pnpm --filter apps-worship exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-academy exec wrangler d1 migrations apply gamo-db-local --local && pnpm --filter apps-live exec wrangler d1 migrations apply gamo-db-local --local --persist-to ../../.wrangler/shared-state && pnpm --filter apps-production exec wrangler d1 migrations apply gamo-db-local --local",
     "db:reset:local": "node scripts/db/reset-local.mjs && pnpm db:migrate:local",
     "db:seed:live:local": "pnpm db:migrate:live:local && pnpm live:catalog:import --publish-approved",
     "test:e2e": "playwright test"

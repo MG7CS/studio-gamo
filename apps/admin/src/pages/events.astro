@@ -1,31 +1,48 @@
 ---
-/** First-event review. GET lists events waiting for review; POST applies a decision or the organizer switch. */
+/** Gamo Live event review. GET lists events waiting for review; POST applies a decision. */
 import AdminLayout from '../layouts/AdminLayout.astro';
-import EventReviewList from '../components/EventReviewList.astro';
+import LiveEventReviewList from '../components/LiveEventReviewList.astro';
+import LiveTabs from '../components/LiveTabs.astro';
 import Notice from '../components/Notice.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { getRuntimeEnv } from '@gamo/domain';
-import { getAdminEmail } from '../lib/gate';
-import { handleEventForm, loadPendingEvents, outcomeFrom } from '../lib/event-review';
+import { getRuntimeEnv, listPendingEvents } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/domain/security';
+import { loadCounts } from '../lib/inbox';
+import { handleEventForm, outcomeFrom } from '../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
 let error: string | null = null;
 if (Astro.request.method === 'POST') {
-  const outcome = await handleEventForm(Astro.request, env, getAdminEmail(Astro.locals) ?? '');
+  const outcome = await handleEventForm(Astro.request, env);
   if (outcome.ok) return Astro.redirect(outcome.location, 303);
   error = outcome.message;
   Astro.response.status = outcome.status;
 }
-const events = await loadPendingEvents(env.DB);
+let events = null as Awaited<ReturnType<typeof listPendingEvents>> | null;
+try {
+  events = await listPendingEvents(asSqlDatabase(env.LIVE_DB));
+} catch (e) {
+  console.error(`[admin] live events unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
+}
+const counts = await loadCounts(env);
 const outcome = outcomeFrom(Astro.url);
 ---
 
-<AdminLayout title="First-event review" current="events">
+<AdminLayout title="Event review" current="events">
   <PageHeader
-    title="First-event review"
-    description="Every organizer's first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organizer."
+    title="Event review"
+    description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization."
   />
+  <LiveTabs current="events" counts={counts} />
   {outcome && <Notice tone="success" text={outcome} />}
   {error && <Notice tone="error" text={error} />}
-  <EventReviewList events={events} />
+  {events ? (
+    <LiveEventReviewList events={events} />
+  ) : (
+    <Notice
+      tone="error"
+      title="Events unavailable"
+      text="Gamo Live’s database could not be read, so nothing is shown instead of guessing."
+    />
+  )}
 </AdminLayout>

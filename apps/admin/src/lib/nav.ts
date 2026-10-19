@@ -6,7 +6,8 @@
 import type { IconName } from '@studio-gamo/ui/lib/icons';
 import type { QueueCounts } from './inbox';
 
-export type NavKey = 'inbox' | 'participation' | 'churches' | 'providers' | 'events' | 'legal';
+export type NavKey =
+  'inbox' | 'participation' | 'churches' | 'providers' | 'events' | 'organizations' | 'catalog' | 'legal';
 
 export interface NavItem {
   key: NavKey;
@@ -15,8 +16,8 @@ export interface NavItem {
   shortLabel: string;
   href: string;
   icon: IconName;
-  /** Which queue count (if any) this item shows. */
-  count?: keyof QueueCounts;
+  /** Which queue count (if any) this item shows. `live` is the sum of the three Gamo Live queues. */
+  count?: keyof QueueCounts | 'live';
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
@@ -47,17 +48,49 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'events',
-    label: 'First-event review',
+    label: 'Event review',
     shortLabel: 'Events',
     href: '/events',
     icon: 'ticket',
     count: 'events',
+  },
+  {
+    key: 'organizations',
+    label: 'Organizations',
+    shortLabel: 'Orgs',
+    href: '/organizations',
+    icon: 'building',
+    count: 'organizations',
+  },
+  {
+    key: 'catalog',
+    label: 'Catalog',
+    shortLabel: 'Catalog',
+    href: '/catalog',
+    icon: 'list',
+    count: 'catalog',
   },
   { key: 'legal', label: 'Legal', shortLabel: 'Legal', href: '/legal', icon: 'file' },
 ];
 
 export function badgeFor(item: NavItem, counts: QueueCounts | null | undefined): number | null {
   if (!item.count || !counts) return null;
-  const value = counts[item.count];
+  const value =
+    item.count === 'live' ? counts.events + counts.organizations + counts.catalog : counts[item.count];
   return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+/** The Gamo Live screens share one tab on the phone's bottom bar; the three screens switch between each other. */
+export const LIVE_KEYS: readonly NavKey[] = ['events', 'organizations', 'catalog'];
+
+/** The phone tab bar: every screen except the two that live under the "Live" tab. */
+export const TAB_ITEMS: readonly NavItem[] = NAV_ITEMS.filter(
+  (item) => item.key !== 'organizations' && item.key !== 'catalog',
+).map((item) =>
+  item.key === 'events' ? { ...item, label: 'Gamo Live', shortLabel: 'Live', count: 'live' as const } : item,
+);
+
+/** The tab that should look selected for the current screen. */
+export function tabKeyFor(current: NavKey | null): NavKey | null {
+  return current && LIVE_KEYS.includes(current) ? 'events' : current;
 }

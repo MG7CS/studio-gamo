@@ -84,6 +84,10 @@ Owner-only setup (Clerk dashboard and Cloudflare; not done):
 3. CSP: only the three sign-in pages add Clerk's origins, derived from the publishable key: the Frontend API (script and connect), `https://challenges.cloudflare.com` (script and frame), `https://img.clerk.com` (images) and `https://clerk-telemetry.com` (connect). **Clerk Protect (bot protection) loads `cdn.protect.clerk.com` and an inline script, which this CSP refuses (it was the cause of the failed production sign-up).** Keep Clerk Protect off for Live's instance, or approve that origin explicitly; verify the sign-in flow in a preview deployment before production.
 4. Without Clerk keys, sign-in answers 503 ("not available right now"). Only `ENVIRONMENT=local` with `ALLOW_AUTH_SIMULATION=true` and no Clerk keys shows a clearly labeled local stand-in sign-in form (any email creates a local organizer); the flag is fatal anywhere else.
 
+**Admin.** `apps/admin` binds `LIVE_DB` too (Event review, Organizations, Catalog and the Inbox read it; the other queues still read the shared database). Add the same `[[env.<env>.d1_databases]]` block to `apps/admin/wrangler.toml` when creating the Live databases. Decisions on events email the organization's owners through Resend, so set `RESEND_API_KEY` and `EMAIL_FROM` as admin secrets; without them the decision is saved and the page says the owners were not emailed.
+
+**Local state.** The web, live and admin apps share one local state folder (`.wrangler/shared-state`, git-ignored) so an event submitted in Live is the one the admin reviews. `make live-db` (also run by `make dev-live`, `make dev-admin`, `make dev-all`) migrates it and imports the catalog; `pnpm db:reset:local` deletes it. Existing per-app state in `apps/<app>/.wrangler/state` is no longer used by those three apps. Running three dev servers against one SQLite file is fine for development; if you see "database is locked", retry the request.
+
 Local registration emails (the 6-digit code, the confirmation link) are printed in the `astro dev` terminal of `apps/live`; nothing is sent while `ENVIRONMENT=local` has no Resend key.
 
 ## 6. After a deploy

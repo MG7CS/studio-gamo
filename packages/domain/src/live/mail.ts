@@ -119,3 +119,32 @@ export function eventCanceledEmail(
       footer,
   };
 }
+
+export function eventDecisionEmail(
+  to: string,
+  e: {
+    title: string;
+    decision: 'approved' | 'changes_requested' | 'rejected';
+    note: string;
+    eventUrl: string;
+    manageUrl: string;
+  },
+): LiveEmail {
+  const headline =
+    e.decision === 'approved'
+      ? `Your event is approved and published: ${e.title}`
+      : e.decision === 'changes_requested'
+        ? `Changes requested for your event: ${e.title}`
+        : `Your event was not approved: ${e.title}`;
+  const body =
+    e.decision === 'approved'
+      ? `Gamo reviewed ${e.title} and it is now on Gamo Live:\n${e.eventUrl}`
+      : e.decision === 'changes_requested'
+        ? `Gamo reviewed ${e.title} and asks for changes before it can be published. Edit the event and submit it again:\n${e.manageUrl}`
+        : `Gamo reviewed ${e.title} and could not approve it. You can edit it and submit it again:\n${e.manageUrl}`;
+  return {
+    to,
+    subject: headline,
+    text: `${body}${e.note ? `\n\nNote from Gamo:\n${e.note}` : ''}${footer}`,
+  };
+}
