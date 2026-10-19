@@ -1,5 +1,5 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
-        dev-web dev-worship dev-academy dev-live dev-production \
+        dev-web dev-worship dev-academy dev-live dev-production dev-admin \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
@@ -10,12 +10,13 @@ help:
 	@echo ""
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
-	@echo "  \033[36mmake dev-all\033[0m           - Start all 5 application development servers concurrently"
+	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently"
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
 	@echo "  \033[36mmake dev-live\033[0m          - Start apps/live development server"
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
+	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server (http://127.0.0.1:4326)"
 	@echo ""
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
@@ -70,6 +71,9 @@ dev-live:
 
 dev-production:
 	@pnpm --filter apps-production run dev
+
+dev-admin:
+	@pnpm --filter apps-admin run dev
 
 install:
 	@pnpm install

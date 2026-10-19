@@ -18,6 +18,12 @@ import {
   outcomeFrom as replyOutcome,
 } from '../../apps/admin/src/lib/participation.ts';
 import { handleEventForm, loadPendingEvents, outcomeFrom } from '../../apps/admin/src/lib/event-review.ts';
+import {
+  loadAcceptanceCounts,
+  registrySummary,
+  summarizeLegal,
+} from '../../apps/admin/src/lib/legal-data.ts';
+import { TERMS_DOCUMENTS, recordTermsAcceptance } from '../../packages/domain/src/terms/index.ts';
 import { formatWhen, timeAgo } from '../../apps/admin/src/lib/format.ts';
 
 const APP = 'apps/admin/src';
@@ -515,6 +521,52 @@ test('participation requests: list order, reply, close, conflicts, and what the 
   assert.equal(row.reviewed_by_user_id, null);
   assert.ok(row.reviewed_at);
   assert.deepEqual((await loadInquiries(d1, 'pending')).items, []);
+});
+
+test('legal: registry, review status and acceptance counts are real, read-only and honest when unavailable', async () => {
+  const d1 = await migrated();
+  const before = d1.sqlite.prepare('SELECT COUNT(*) AS n FROM terms_documents').get() as { n: number };
+  const counts = await loadAcceptanceCounts(d1);
+  assert.equal(counts?.size, 0);
+  assert.equal(
+    (d1.sqlite.prepare('SELECT COUNT(*) AS n FROM terms_documents').get() as { n: number }).n,
+    before.n,
+    'reading the page writes nothing',
+  );
+  const empty = registrySummary(counts);
+  assert.equal(empty.documents, TERMS_DOCUMENTS.length);
+  assert.equal(empty.totalAcceptances, 0);
+  assert.ok(empty.rows.every((r) => r.accepted === 0));
+
+  const doc = TERMS_DOCUMENTS[0];
+  for (const email of ['a@example.invalid', 'b@example.invalid'])
+    await recordTermsAcceptance(d1, {
+      documents: [{ slug: doc.slug, version: doc.version }],
+      subject: { email },
+      context: 'admin-test',
+      now: Math.floor(Date.now() / 1000),
+    });
+  const summary = registrySummary(await loadAcceptanceCounts(d1));
+  assert.equal(summary.rows.find((r) => r.doc.slug === doc.slug)?.accepted, 2);
+  assert.equal(summary.totalAcceptances, 2);
+  assert.equal(
+    summary.reviewed,
+    TERMS_DOCUMENTS.filter((d) => (d.legalReviewStatus as string) === 'reviewed').length,
+  );
+
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    assert.equal(await loadAcceptanceCounts(undefined), null);
+  } finally {
+    console.error = originalError;
+  }
+  const unavailable = summarizeLegal(TERMS_DOCUMENTS, null);
+  assert.equal(unavailable.totalAcceptances, null);
+  assert.ok(
+    unavailable.rows.every((r) => r.accepted === null),
+    'unavailable is never shown as zero',
+  );
 });
 
 test('formatWhen formats a meeting time in its zone without throwing', () => {
