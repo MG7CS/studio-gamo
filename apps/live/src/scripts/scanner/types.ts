@@ -36,6 +36,7 @@ export interface ScannerManifest {
   startsAt: number;
   endsAt: number;
   opensAt: number;
+  eventDayKey: string;
   cancelled: boolean;
   maxEntriesPerDay: number | null;
   categories: Record<string, { name: string; validDays: string[] | null; seats: number }>;

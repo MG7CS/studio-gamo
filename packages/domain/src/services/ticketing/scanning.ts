@@ -41,7 +41,6 @@ import {
   parseStringArray,
   operatingDayKey,
   SCAN_CLOSE_GRACE_SECONDS,
-  venueDayKey,
   type ScanEventContext,
 } from './scanning-context.ts';
 
@@ -105,7 +104,8 @@ export class ScanRequestError extends Error {
       | 'EVENT_NOT_FOUND'
       | 'BAD_REQUEST'
       | 'TICKET_NOT_FOUND'
-      | 'NOT_ALLOWED',
+      | 'NOT_ALLOWED'
+      | 'CLIENT_SCAN_ID_REUSED',
     message: string,
   ) {
     super(message);
@@ -381,7 +381,41 @@ export function effectiveScanTime(now: number, deviceScannedAt: number | null | 
 }
 
 /** Scans one code. Throws `ScanRequestError` for requests the actor may not make, `SecretNotConfiguredError` without QR keys. */
+export function clientScanIdReused() {
+  return new ScanRequestError(
+    400,
+    'CLIENT_SCAN_ID_REUSED',
+    'This scan id was already used for a different ticket. Reload the scanner and scan again.',
+  );
+}
+
+/** The id of the existing ticket a code points at (GL1 payload or legacy token), or null. Unverified: only for dedupe comparison. */
+async function resolveCodeTicketId(db: SqlDatabase, code: string): Promise<string | null> {
+  if (isLegacyTicketToken(code)) {
+    const row = await firstRow<{ id: string }>(db, 'SELECT id FROM tickets WHERE qr_token = ?1', [code]);
+    return row?.id ?? null;
+  }
+  const parsed = parseTicketQr(code);
+  if (!parsed.ok) return null;
+  const row = await firstRow<{ id: string }>(db, 'SELECT id FROM tickets WHERE id = ?1', [parsed.ticketId]);
+  return row?.id ?? null;
+}
+
+/**
+ * Online scan. `offline` and `deviceScannedAt` are ignored here: a client cannot claim "offline" to
+ * bypass ordering or entry limits. Offline scans are replayed only by `syncOfflineScans`
+ * (`scanTicketFromSync`).
+ */
 export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
+  return scanTicketInternal(db, { ...input, offline: false, deviceScannedAt: null });
+}
+
+/** Replay of one queued offline scan (device time honoured). Used by `syncOfflineScans` only. */
+export async function scanTicketFromSync(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
+  return scanTicketInternal(db, { ...input, offline: true });
+}
+
+async function scanTicketInternal(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
   assertActorForEvent(input.actor, input.eventId);
   const event = await loadScanEvent(db, input.eventId);
   if (!event) throw new ScanRequestError(404, 'EVENT_NOT_FOUND', 'That event was not found.');
@@ -419,6 +453,10 @@ export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<S
   if (who.scannerSessionId && clientScanId) {
     const stored = await storedResult(db, who.scannerSessionId, clientScanId);
     if (stored) {
+      // The id belongs to ONE scan of ONE ticket: reusing it for another ticket is a client bug or an
+      // attack, and must not touch presence or show the first scan's result.
+      const currentId = await resolveCodeTicketId(db, String(input.code ?? '').trim());
+      if ((stored.ticket_id ?? null) !== currentId) throw clientScanIdReused();
       const known = stored.ticket_id
         ? await firstRow<TicketRow>(db, `${TICKET_SELECT} WHERE t.id = ?1`, [stored.ticket_id])
         : null;
@@ -454,9 +492,19 @@ export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<S
     input.keyring,
   );
   // A transfer may also change the salt, so an older code no longer verifies; its lower version says
-  // why ("transferred or reissued"). The batch records `stale_version` and never admits it.
-  if (!mac.ok && mac.reason === 'bad_signature' && parsed.version < Number(ticket.version))
-    return decideAndRecord(db, event, base, ticket, parsed.version, input.direction, { offline, who });
+  // why ("transferred or reissued"). The MAC did NOT verify here, so nothing about the ticket, its
+  // holder or another event may be shown: a generic stale_version (recorded by the batch, never admitted).
+  if (!mac.ok && mac.reason === 'bad_signature' && parsed.version < Number(ticket.version)) {
+    if (ticket.event_id !== event.id || ticket.status !== 'valid') {
+      const r = await recordRejected(db, base, input.direction, 'invalid');
+      return outcome(event, r.result, { ...r, offline });
+    }
+    const stale = await decideAndRecord(db, event, base, ticket, parsed.version, input.direction, {
+      offline,
+      who,
+    });
+    return { ...stale, ticket: null, detail: emptyDetail() };
+  }
   if (!mac.ok) {
     const r = await recordRejected(db, base, input.direction, 'invalid');
     return outcome(event, r.result, { ...r, offline });
@@ -483,6 +531,10 @@ async function decideAndRecord(
   const validDays = parseStringArray(ticket.valid_days_json);
   const dayKey = operatingDayKey(event, scanAt, Boolean(validDays && validDays.length));
   const ctx: ScanContext = { ...base, dayKey, ticketId: ticket.id, ticketVersion: version };
+  if (ctx.scannerSessionId && ctx.clientScanId) {
+    const earlier = await storedResult(db, ctx.scannerSessionId, ctx.clientScanId);
+    if (earlier && (earlier.ticket_id ?? null) !== ticket.id) throw clientScanIdReused();
+  }
 
   if (ticket.event_id !== event.id) {
     const other = await firstRow<{ title: string }>(db, 'SELECT title FROM events WHERE id = ?1', [
@@ -528,31 +580,20 @@ async function decideAndRecord(
     }
   }
 
-  // An offline entry older than a later exit of the same day (the guest already left through another
-  // gate) must not put them back inside: record it as superseded, count the entry, keep presence.
+  // An offline entry (only ever reached from `scanTicketFromSync`) that is older than a later SUCCESSFUL
+  // exit of the same day — the guest already left through another gate — must not put them back
+  // inside. It answers a NON-admitting `already_used` with conflict `superseded`; presence is untouched
+  // and nothing is counted. Failed exits (`not_inside`) never supersede.
   if (current && offline && direction === 'in' && !opts.override) {
     const later = await firstRow(
       db,
-      "SELECT 1 AS x FROM ticket_scan_events WHERE ticket_id = ?1 AND day_key = ?2 AND direction = 'out' AND coalesce(device_scanned_at, received_at) > ?3 AND NOT (scanner_session_id IS ?4 AND client_scan_id IS ?5) LIMIT 1",
+      "SELECT 1 AS x FROM ticket_scan_events WHERE ticket_id = ?1 AND day_key = ?2 AND direction = 'out' AND result = 'exited' AND coalesce(device_scanned_at, received_at) > ?3 AND NOT (scanner_session_id IS ?4 AND client_scan_id IS ?5) LIMIT 1",
       [ticket.id, dayKey, scanAt, ctx.scannerSessionId ?? null, ctx.clientScanId ?? null],
     );
     if (later) {
-      const [, rows] = await runBatch(db, [
+      const [rows] = await runBatch(db, [
         {
-          sql: "INSERT INTO ticket_presence (ticket_id, day_key, event_id, state, entry_count, exit_count, first_entry_at, last_scan_at, last_gate, last_scan_event_id) SELECT t.id, ?2, t.event_id, 'outside', 1, 1, ?3, ?4, ?5, ?6 FROM tickets t WHERE t.id = ?1 AND (?7 IS NULL OR ?8 IS NULL OR NOT EXISTS (SELECT 1 FROM ticket_scan_events r WHERE r.scanner_session_id = ?7 AND r.client_scan_id = ?8)) ON CONFLICT(ticket_id, day_key) DO UPDATE SET entry_count = ticket_presence.entry_count + 1, exit_count = ticket_presence.exit_count + 1 WHERE ticket_presence.state = 'outside' AND (?7 IS NULL OR ?8 IS NULL OR NOT EXISTS (SELECT 1 FROM ticket_scan_events r WHERE r.scanner_session_id = ?7 AND r.client_scan_id = ?8))",
-          params: [
-            ticket.id,
-            dayKey,
-            scanAt,
-            ctx.now,
-            ctx.gate ?? null,
-            ctx.scanEventId,
-            ctx.scannerSessionId ?? null,
-            ctx.clientScanId ?? null,
-          ],
-        },
-        {
-          sql: "INSERT INTO ticket_scan_events (id, event_id, ticket_id, ticket_version, scanner_session_id, scanner_device_id, scanned_by_user_id, direction, gate, result, client_scan_id, device_scanned_at, received_at, offline, conflict, day_key) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'in', ?8, 'admitted', ?9, ?10, ?11, 1, 'superseded', ?12) ON CONFLICT(scanner_session_id, client_scan_id) WHERE scanner_session_id IS NOT NULL AND client_scan_id IS NOT NULL DO NOTHING RETURNING id, result, conflict",
+          sql: "INSERT INTO ticket_scan_events (id, event_id, ticket_id, ticket_version, scanner_session_id, scanner_device_id, scanned_by_user_id, direction, gate, result, client_scan_id, device_scanned_at, received_at, offline, conflict, day_key) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'in', ?8, 'already_used', ?9, ?10, ?11, 1, 'superseded', ?12) ON CONFLICT(scanner_session_id, client_scan_id) WHERE scanner_session_id IS NOT NULL AND client_scan_id IS NOT NULL DO NOTHING RETURNING id, result, conflict",
           params: [
             ctx.scanEventId,
             event.id,

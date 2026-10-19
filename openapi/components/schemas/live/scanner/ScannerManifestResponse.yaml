@@ -22,6 +22,9 @@ properties:
         type: integer
       opensAt:
         type: integer
+      eventDayKey:
+        type: string
+        description: Presence key of tickets without validDays (one per event); multi-day passes use the local date after shifting the clock back 5 hours.
       cancelled:
         type: boolean
       maxEntriesPerDay:
@@ -140,6 +143,7 @@ properties:
       - startsAt
       - endsAt
       - opensAt
+      - eventDayKey
       - cancelled
       - maxEntriesPerDay
       - generatedAt

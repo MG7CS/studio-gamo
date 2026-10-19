@@ -23,6 +23,7 @@ const TITLES: Record<string, string> = {
   not_found: 'Ticket not found',
   not_open_yet: 'Not open yet',
   event_cancelled: 'Event cancelled',
+  event_ended: 'Event has ended',
 };
 const MESSAGES: Record<string, string> = {
   admitted: 'Welcome them in. (Offline: will be confirmed when the scanner reconnects.)',
@@ -39,6 +40,7 @@ const MESSAGES: Record<string, string> = {
   not_found: 'This ticket is not on this phone’s list. It will be checked when the scanner reconnects.',
   not_open_yet: 'Scanning is not open yet for this ticket.',
   event_cancelled: 'This event was cancelled.',
+  event_ended: 'Scanning closed after the event ended. Ask the organizer.',
 };
 
 export function venueDayKey(epochSeconds: number, timeZone: string): string {
@@ -102,10 +104,15 @@ export async function decideOffline(input: {
   if (parsed.version > ticket.v || !(await macMatchesDigest(parsed.mac, ticket.d)))
     return { outcome: view('invalid', null, manifest), ticketKey: key };
   if (ticket.st !== 'valid') return { outcome: view(ticket.st, ticket, manifest), ticketKey: key };
+  if (input.now > manifest.endsAt + 6 * 3600)
+    return { outcome: view('event_ended', null, manifest), ticketKey: key };
   if (input.now < manifest.opensAt)
     return { outcome: view('not_open_yet', ticket, manifest), ticketKey: key };
-  const day = venueDayKey(input.now, manifest.timeZone);
+  // Same presence key as the server (operatingDayKey): one per event, or the 05:00-shifted local date for multi-day passes.
   const validDays = ticket.c ? manifest.categories[ticket.c]?.validDays : null;
+  const dayOf = (at: number) =>
+    validDays?.length ? venueDayKey(at - 5 * 3600, manifest.timeZone) : manifest.eventDayKey;
+  const day = dayOf(input.now);
   if (validDays?.length && !validDays.includes(day))
     return { outcome: view('not_open_yet', ticket, manifest), ticketKey: key };
   if (input.direction === 'in' && input.gateZones.length) {
@@ -117,7 +124,7 @@ export async function decideOffline(input: {
   let state = ticket.p[day]?.s ?? 'outside';
   let entries = ticket.p[day]?.e ?? 0;
   for (const q of input.queue) {
-    if (q.ticketKey !== key || venueDayKey(q.deviceScannedAt, manifest.timeZone) !== day) continue;
+    if (q.ticketKey !== key || dayOf(q.deviceScannedAt) !== day) continue;
     if (q.localResult === 'admitted') {
       state = 'inside';
       entries++;

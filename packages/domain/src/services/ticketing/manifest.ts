@@ -15,7 +15,7 @@ import { sha256Hex } from '../../security/crypto.ts';
 import { ticketIdToQrPart } from '../../security/ids.ts';
 import type { QrKeyring } from '../../security/ticket-qr.ts';
 import { allRows, runBatch, type SqlDatabase } from '../../security/sql-database.ts';
-import type { ScanConflict, ScanDirection, ScanResult } from '../../types/enums.ts';
+import type { ScanConflict, ScanDirection } from '../../types/enums.ts';
 import { SCAN_RESULTS } from '../../types/enums.ts';
 import { maxEntriesPerDay } from '../../types/policy.ts';
 import type { ScannerDeviceContext } from './scanner-sessions.ts';
@@ -23,7 +23,7 @@ import {
   assertActorForEvent,
   eventHeadcount,
   type ScanOutcomeResult,
-  scanTicket,
+  scanTicketFromSync,
   ScanRequestError,
   ticketZones,
   type Headcount,
@@ -195,14 +195,14 @@ export interface OfflineScanInput {
   direction: ScanDirection;
   deviceScannedAt: number;
   /** What the device showed while offline (for "needs review"). */
-  localResult?: ScanResult | null;
+  localResult?: ScanOutcomeResult | null;
 }
 
 export interface SyncedScan {
   clientScanId: string;
   result: ScanOutcomeResult;
   conflict: ScanConflict;
-  localResult: ScanResult | null;
+  localResult: ScanOutcomeResult | null;
   needsReview: boolean;
   title: string;
   message: string;
@@ -218,7 +218,7 @@ const sameOutcome = (a: ScanOutcomeResult, b: ScanOutcomeResult) => {
 
 /**
  * Replays one device's offline queue in device-time order (ties keep the queue order). Each scan goes
- * through `scanTicket` with `offline: true`, so the database decides and repeated client scan ids are
+ * through `scanTicketFromSync` (offline), so the database decides and repeated client scan ids are
  * recorded once (a retried sync is harmless).
  */
 export async function syncOfflineScans(
@@ -242,7 +242,7 @@ export async function syncOfflineScans(
   for (const { scan } of ordered) {
     let out: ScanOutcome;
     try {
-      out = await scanTicket(db, {
+      out = await scanTicketFromSync(db, {
         eventId: input.eventId,
         code: scan.code,
         direction: scan.direction,
@@ -268,7 +268,8 @@ export async function syncOfflineScans(
       continue;
     }
     const local =
-      scan.localResult && (SCAN_RESULTS as readonly string[]).includes(scan.localResult)
+      scan.localResult &&
+      (scan.localResult === 'event_ended' || (SCAN_RESULTS as readonly string[]).includes(scan.localResult))
         ? scan.localResult
         : null;
     results.push({
