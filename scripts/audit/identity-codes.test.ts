@@ -65,7 +65,7 @@ test('attempts are taken atomically before the comparison: parallel guesses neve
   await assert.rejects(() => identity.verifyEmailChallenge('atomic@example.org', issued.code, OPTS));
 });
 
-test('codes are capped per (address, IP) at 3/hour and 10/day, and per address at 6/hour and 20/day', async () => {
+test('codes are capped per (address, IP) at 6/hour and 15/day, and per address at 10/hour and 30/day', async () => {
   const { db } = await setup();
   const identity = new IdentityService(db);
   const t0 = new Date('2030-01-01T00:00:00Z');
@@ -73,17 +73,21 @@ test('codes are capped per (address, IP) at 3/hour and 10/day, and per address a
   const ip = (c: string) => c.repeat(64);
   const issue = (minutes: number, c: string) =>
     identity.issueEmailChallenge('cap@example.org', { ...OPTS, now: at(minutes), ipHash: ip(c) });
-  for (let i = 0; i < 3; i++) assert.equal((await issue(i, 'a')).deliver, true);
-  assert.equal((await issue(10, 'a')).deliver, false, '4th from the same IP');
-  assert.equal((await issue(11, 'b')).deliver, true);
-  assert.equal((await issue(12, 'c')).deliver, true);
-  assert.equal((await issue(13, 'd')).deliver, true);
-  assert.equal((await issue(14, 'e')).deliver, false, '7th for the address within the hour');
-  let delivered = 6;
+  for (let i = 0; i < 6; i++) assert.equal((await issue(i, 'a')).deliver, true);
+  assert.equal((await issue(10, 'a')).deliver, false, '7th from the same IP');
+  for (const [m, c] of [
+    [11, 'b'],
+    [12, 'c'],
+    [13, 'd'],
+    [14, 'e'],
+  ] as const)
+    assert.equal((await issue(m, c)).deliver, true);
+  assert.equal((await issue(15, 'f')).deliver, false, '11th for the address within the hour');
+  let delivered = 10;
   for (let h = 1; h < 24; h++)
-    for (let k = 0; k < 6; k++)
-      if ((await issue(h * 61 + k, String.fromCharCode(97 + k + (h % 3) * 6))).deliver) delivered++;
-  assert.ok(delivered <= 20, `at most 20 codes per address per day, saw ${delivered}`);
+    for (let k = 0; k < 10; k++)
+      if ((await issue(h * 61 + k, String.fromCharCode(97 + k + (h % 3) * 10))).deliver) delivered++;
+  assert.ok(delivered <= 30, `at most 30 codes per address per day, saw ${delivered}`);
 });
 
 test('distributed guessing against one address stops at the global ceiling and locks it for 15 minutes', async () => {

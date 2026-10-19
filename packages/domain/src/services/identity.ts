@@ -35,11 +35,11 @@ const CHALLENGE_MAX_ATTEMPTS = 5;
  * by asking; the per-address ceiling still bounds how many live codes can exist.
  */
 const CHALLENGE_HOUR_MS = 60 * 60 * 1000;
-const CHALLENGE_PAIR_HOUR_MAX = 3;
+const CHALLENGE_PAIR_HOUR_MAX = 6; // five products in an hour plus a retry (the count is not product-scoped)
 const CHALLENGE_DAY_MS = 24 * CHALLENGE_HOUR_MS;
-const CHALLENGE_PAIR_DAY_MAX = 10;
-const CHALLENGE_EMAIL_HOUR_MAX = 6;
-const CHALLENGE_EMAIL_DAY_MAX = 20;
+const CHALLENGE_PAIR_DAY_MAX = 15;
+const CHALLENGE_EMAIL_HOUR_MAX = 10;
+const CHALLENGE_EMAIL_DAY_MAX = 30;
 
 function normalizeChallengePurpose(purpose?: string): 'signin' | 'verify_email' {
   return purpose === 'verify_email' ? 'verify_email' : 'signin';
