@@ -24,3 +24,4 @@ packages/domain/src/services/verified-catalog-2026-10-15.ts
 packages/ui/src/lib/image-manifest.json
 .image-cache.json
 skills-lock.json
+.claude/
