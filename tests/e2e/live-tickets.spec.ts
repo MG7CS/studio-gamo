@@ -282,7 +282,7 @@ test.describe('Gamo Live tickets', () => {
     await expect(page.getByRole('heading', { name: 'Join the waitlist' })).toBeVisible();
     await page.locator('#waitlist-email').fill(`wait-${Date.now()}@example.org`);
     await page.getByRole('button', { name: 'Join the waitlist' }).click();
-    await expect(page.getByRole('heading', { name: "You're on the waitlist" })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Check your email to join the waitlist' })).toBeVisible();
   });
 
   test('organizer: create an event with categories and policies, edit it, see orders (needs SESSION_SECRET)', async ({
