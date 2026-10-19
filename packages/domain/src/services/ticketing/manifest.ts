@@ -22,13 +22,14 @@ import type { ScannerDeviceContext } from './scanner-sessions.ts';
 import {
   assertActorForEvent,
   eventHeadcount,
+  type ScanOutcomeResult,
   scanTicket,
   ScanRequestError,
   ticketZones,
   type Headcount,
   type ScanOutcome,
 } from './scanning.ts';
-import { holderInitials, loadScanEvent, parseStringArray, venueDayKey } from './scanning-context.ts';
+import { holderInitials, loadScanEvent, operatingDayKey, parseStringArray } from './scanning-context.ts';
 
 export interface ManifestTicket {
   /** QR id part (26 upper-case Crockford symbols). */
@@ -67,6 +68,8 @@ export interface ScannerManifest {
   endsAt: number;
   /** Scanning opens at this instant (start − `scan_opens_minutes_before`). */
   opensAt: number;
+  /** Presence key of tickets without `validDays` (one per event); multi-day passes shift the clock back 5 h. */
+  eventDayKey: string;
   cancelled: boolean;
   /** Entries per ticket per day (null = unlimited). */
   maxEntriesPerDay: number | null;
@@ -141,6 +144,7 @@ export async function buildScannerManifest(
     startsAt: event.startsAt,
     endsAt: event.endsAt,
     opensAt: event.startsAt - event.policy.scanOpensMinutesBefore * 60,
+    eventDayKey: operatingDayKey(event, event.startsAt, false),
     cancelled: event.cancelledAt !== null,
     maxEntriesPerDay: maxEntriesPerDay(event.policy),
     categories: Object.fromEntries(
@@ -196,7 +200,7 @@ export interface OfflineScanInput {
 
 export interface SyncedScan {
   clientScanId: string;
-  result: ScanResult;
+  result: ScanOutcomeResult;
   conflict: ScanConflict;
   localResult: ScanResult | null;
   needsReview: boolean;
@@ -207,8 +211,8 @@ export interface SyncedScan {
 
 export const SYNC_MAX_SCANS = 200;
 
-const sameOutcome = (a: ScanResult, b: ScanResult) => {
-  const admitting = (r: ScanResult) => r === 'admitted' || r === 'override_admitted';
+const sameOutcome = (a: ScanOutcomeResult, b: ScanOutcomeResult) => {
+  const admitting = (r: ScanOutcomeResult) => r === 'admitted' || r === 'override_admitted';
   return a === b || (admitting(a) && admitting(b));
 };
 
@@ -294,5 +298,5 @@ export async function syncOfflineScans(
 /** Today's venue-local day key for an event (the scanner page shows and uses it). */
 export async function currentDayKey(db: SqlDatabase, eventId: string, now: number): Promise<string | null> {
   const event = await loadScanEvent(db, eventId);
-  return event ? venueDayKey(now, event.timeZone) : null;
+  return event ? operatingDayKey(event, now, false) : null;
 }
