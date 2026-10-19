@@ -1,6 +1,6 @@
 # Gamo Studios Architecture Decisions
 
-> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Still in the repo: the shared backend (`@gamo/auth` staff and admin-password code, `AdminService`, `ParticipationService`, the review handlers in `@gamo/domain`), the `admin` entries in `@gamo/config`, the `adminCredentials` table (migration 0005) and the admin Cloudflare resources.
+> **Status (2026-10-19):** the previous admin app (`apps/admin`: pages, `/api/*` staff routes, `scripts/admin/*`, `staff:account:sql`, `make *-admin`) was deleted and a new admin is being designed from scratch. What this describes about it is historical. Removed since: the admin-password and gate-cookie code, `requireStaff`/`requireSuperadmin`/`verifyStaffBoundaryIdentity`, `provisionStaffIdentity`, the review form handlers and the break-glass variables. Still in the repo until the rebuild: `isStaffOrAdmin`, the `superadmin`/`staff_reviewer` role checks, `AdminService`, `ParticipationService.review`, `provider-review.ts`, `audit_logs` writes, the `admin_credentials` table (migration 0005) and the admin Cloudflare resources.
 
 
 ## Milestone 0 Decisions

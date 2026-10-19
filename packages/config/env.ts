@@ -57,15 +57,11 @@ export interface GamoEnv {
   PLATFORM_SENDER_EMAIL?: string;
   PLATFORM_LOGO_MARK?: string;
 
-  // Admin access
-  REQUIRE_ADMIN_AUTH?: string;
+  // Admin access: one admin, Cloudflare Access only (docs/ADMIN_REQUIREMENTS.md)
   CF_ACCESS_TEAM_NAME?: string;
   CF_ACCESS_AUD?: string;
-  ENABLE_BREAK_GLASS_AUTH?: string;
-  ADMIN_ACCESS_TOKEN?: string;
-  ADMIN_SECRET_KEY?: string;
-  ADMIN_BASIC_AUTH_USER?: string;
-  ADMIN_BASIC_AUTH_PASS?: string;
+  /** The single admin's email; every admin request must carry an Access assertion for exactly this address. */
+  ADMIN_EMAIL?: string;
 
   // Gamo Live: seed the bundled verified catalog on page requests (on by default only when ENVIRONMENT=local)
   LIVE_CATALOG_AUTOSEED?: string;

@@ -70,8 +70,8 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (!present(env.CF_ACCESS_TEAM_NAME))
       add('error', 'CF_ACCESS_TEAM_NAME', 'Cloudflare Access is required for admin');
     if (!present(env.CF_ACCESS_AUD)) add('error', 'CF_ACCESS_AUD', 'Cloudflare Access is required for admin');
-    if (env.ENABLE_BREAK_GLASS_AUTH === 'true')
-      add('warning', 'ENABLE_BREAK_GLASS_AUTH', 'emergency access is enabled');
+    if (!present(env.ADMIN_EMAIL))
+      add('error', 'ADMIN_EMAIL', 'the single admin email is required for admin');
     return problems;
   }
 

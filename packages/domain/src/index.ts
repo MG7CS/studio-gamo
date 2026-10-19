@@ -19,7 +19,7 @@ export * from './services/notifications.ts';
 export * from './http/auth.ts';
 export * from './http/account.ts';
 export * from './http/account-pages.ts';
-export * from './http/review.ts';
+export * from './services/meeting-time.ts';
 export * from './http/security-headers.ts';
 export * from './services/participation.ts';
 export * from './services/live-external-discovery.ts';

@@ -73,16 +73,10 @@ describe('Phase 8 — End-to-End Functional Slice (Gamo Live)', () => {
     );
     organizerOrgId = org.id;
 
-    // 4. Provision staff reviewer identity with immutable Cloudflare Access sub
-    const superAdmin = await identityService.findOrCreateUser('super@example.invalid', 'Super Admin');
-    await identityService.assignSystemRole(superAdmin.id, 'superadmin');
-    const provisioned = await identityService.provisionStaffIdentity(superAdmin.id, {
-      email: 'jordan.avery@example.invalid',
-      displayName: 'Jordan Avery',
-      role: 'staff_reviewer',
-      accessSubject: 'cf-sub-jordan-avery-1',
-    });
-    staffUserId = provisioned.user.id;
+    // 4. A staff reviewer user (D1 role only; the new admin is gated by Cloudflare Access instead)
+    const reviewer = await identityService.findOrCreateUser('jordan.avery@example.invalid', 'Jordan Avery');
+    await identityService.assignSystemRole(reviewer.id, 'staff_reviewer');
+    staffUserId = reviewer.id;
   });
 
   test('Step 1 & 2: Organizer creates a Christian event in pending_review status', async () => {

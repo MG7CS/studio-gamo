@@ -41,6 +41,7 @@ test('admin requires Cloudflare Access settings; live warns about unconfigured p
   assert.deepEqual(names(validateEnv('admin', base, 'admin.gamostudio.org'), 'error'), [
     'CF_ACCESS_TEAM_NAME',
     'CF_ACCESS_AUD',
+    'ADMIN_EMAIL',
   ]);
   assert.deepEqual(names(validateEnv('live', base, 'live.gamostudio.org'), 'warning'), [
     'RESEND_API_KEY',

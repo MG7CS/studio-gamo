@@ -5,7 +5,7 @@
  *
  * 1. Root Shared Local Configuration (`studio-gamo/.env` and optional `studio-gamo/.dev.vars`):
  *    - Shared non-product-specific local defaults (`ENVIRONMENT`, `SESSION_SECRET`,
- *      `ALLOW_DEMO_SESSION`, `ALLOW_TEST_CHALLENGE_OUTBOX`, `REQUIRE_ADMIN_AUTH`, `RESEND_API_KEY`, etc.).
+ *      `ALLOW_DEMO_SESSION`, `ALLOW_TEST_CHALLENGE_OUTBOX`, `RESEND_API_KEY`, etc.).
  *    - Any product-suffixed Clerk variables (`*_WEB`, `*_LIVE`, `*_ACADEMY`, `*_WORSHIP`, `*_PRODUCTION`)
  *      belonging to a DIFFERENT application are strictly filtered out so one app never inherits
  *      another product's Clerk keys.

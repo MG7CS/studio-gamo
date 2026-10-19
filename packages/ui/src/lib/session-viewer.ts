@@ -5,7 +5,7 @@ export async function resolveWorkspaceViewer(
   requestOrContext: Request | { request?: Request; locals?: App.Locals },
 ): Promise<ViewerPersona> {
   const locals = 'locals' in requestOrContext ? requestOrContext.locals : undefined;
-  const auth = locals?.auth ?? locals?.adminAuthSession;
+  const auth = locals?.auth;
   if (auth?.user?.verifiedEmailAt && auth.user.status === 'active') {
     const name = auth.user.displayName || auth.user.email;
     return {

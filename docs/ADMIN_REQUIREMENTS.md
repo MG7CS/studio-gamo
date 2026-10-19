@@ -73,6 +73,8 @@ This is an owner-approved exception to the repo's single-palette UI rule (AGENTS
 
 ## 5. Backend cleanup that goes with it (separate commits)
 
+**Done 2026-10-19:** admin-password and gate-cookie code, `requireStaff`/`requireSuperadmin`/`verifyStaffBoundaryIdentity`, `provisionStaffIdentity` and its schema and OpenAPI schemas, the review form handlers (the meeting-time helper moved to `services/meeting-time.ts`), break-glass and `ADMIN_*` variables (`ADMIN_EMAIL` added). **Still to do:** the items below that are not listed here, decided with each screen.
+
 Remove: `admin_credentials` use and the admin-password code, the gate cookie, staff roles and provisioning (`staff_reviewer`, `superadmin`, `provisionStaffIdentity`, `requireStaff`, `requireSuperadmin`, `verifyStaffBoundaryIdentity` and Access-subject bindings), break-glass and `ADMIN_*` variables, `audit_logs` writes in services, self-review rules. Change: review services take the admin's email as the actor name instead of a staff user ID. Keep: `verification_records` (providers see their decision history). Migrations already applied are never edited; dropping tables or columns, if wanted, is a new migration.
 
 ## 6. Build order

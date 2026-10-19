@@ -120,15 +120,6 @@ export const createOrganizationSchema = z.object({
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
-export const provisionStaffSchema = z.object({
-  email: z.string().email('A valid email address is required').max(254),
-  role: z.enum(['staff_reviewer', 'finance_manager', 'superadmin']),
-  accessSubject: z.string().min(1).max(255),
-  displayName: z.string().min(1).max(120).optional(),
-});
-
-export type ProvisionStaffInput = z.infer<typeof provisionStaffSchema>;
-
 // ============================================================================
 // GAMO LIVE STANDALONE PLATFORM (TEAMS, TICKETS, ARTISTS, AGENTS, BOOKINGS, REFUNDS, PRODUCTION)
 // ============================================================================
