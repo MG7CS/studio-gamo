@@ -754,9 +754,9 @@ test('verified email challenge enforces SHA-256 hashing, 10-min expiry, 5-attemp
     assert.ok(verifiedUser.verifiedEmailAt);
     // Replay of consumed code rejected
     await assert.rejects(() => f.identity.verifyEmailChallenge(email, fresh.code), /Invalid or expired/);
-    // Per-address cap (direct calls count every IP): 3 codes per hour; the 4th is rejected with RATE_LIMITED.
-    // (`issued` and `fresh` above are two; one more fits.)
-    await f.identity.issueEmailChallenge(email);
+    // Per-address cap (direct calls count every IP): 6 codes per hour; the 7th is rejected with RATE_LIMITED.
+    // (`issued` and `fresh` above are two; four more fit.)
+    for (let i = 0; i < 4; i++) await f.identity.issueEmailChallenge(email);
     await assert.rejects(() => f.identity.issueEmailChallenge(email), /RATE_LIMITED/);
   } finally {
     f.d1.sqlite.close();
