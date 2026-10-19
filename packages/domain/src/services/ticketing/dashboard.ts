@@ -273,7 +273,6 @@ export interface ScanLogRow {
   reviewed: boolean;
 }
 
-
 export async function scanLog(
   db: SqlDatabase,
   eventId: string,

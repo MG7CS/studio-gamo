@@ -5,7 +5,14 @@
 import { test, expect } from '@playwright/test';
 import { createScannerSession } from '../../packages/domain/src/services/ticketing/scanner-sessions.ts';
 import { expectAccessible, watchErrors } from './helpers/a11y.ts';
-import { count, seedEvent, seedOrganizer, seedTickets, startLiveWorker, type LiveWorker } from './helpers/live-worker.ts';
+import {
+  count,
+  seedEvent,
+  seedOrganizer,
+  seedTickets,
+  startLiveWorker,
+  type LiveWorker,
+} from './helpers/live-worker.ts';
 
 let worker: LiveWorker;
 let link: { path: string; pin: string };
@@ -15,10 +22,28 @@ let otherTicket: { id: string; payload: string };
 test.beforeAll(async () => {
   worker = await startLiveWorker();
   await seedOrganizer(worker);
-  await seedEvent(worker, { id: 'evt_e2e_scan', title: 'Sample Night of Worship', tiers: [{ id: 'tier_e2e_ga', name: 'General', capacity: 50 }] });
-  await seedEvent(worker, { id: 'evt_e2e_other', title: 'Sample Youth Gathering', tiers: [{ id: 'tier_e2e_other', name: 'General', capacity: 50 }] });
-  [ticket] = await seedTickets(worker, { eventId: 'evt_e2e_scan', categoryId: 'tier_e2e_ga', quantity: 1, holderName: 'Sample Guest Person' });
-  [otherTicket] = await seedTickets(worker, { eventId: 'evt_e2e_other', categoryId: 'tier_e2e_other', quantity: 1, holderName: 'Sample Other Guest' });
+  await seedEvent(worker, {
+    id: 'evt_e2e_scan',
+    title: 'Sample Night of Worship',
+    tiers: [{ id: 'tier_e2e_ga', name: 'General', capacity: 50 }],
+  });
+  await seedEvent(worker, {
+    id: 'evt_e2e_other',
+    title: 'Sample Youth Gathering',
+    tiers: [{ id: 'tier_e2e_other', name: 'General', capacity: 50 }],
+  });
+  [ticket] = await seedTickets(worker, {
+    eventId: 'evt_e2e_scan',
+    categoryId: 'tier_e2e_ga',
+    quantity: 1,
+    holderName: 'Sample Guest Person',
+  });
+  [otherTicket] = await seedTickets(worker, {
+    eventId: 'evt_e2e_other',
+    categoryId: 'tier_e2e_other',
+    quantity: 1,
+    holderName: 'Sample Other Guest',
+  });
   const session = await createScannerSession(worker.db, worker.env, {
     eventId: 'evt_e2e_scan',
     label: 'Sample North door',
@@ -80,10 +105,14 @@ test('scanner link + PIN, then entry → exit → re-entry and a wrong-event tic
   await expect(result).not.toContainText('Sample Other');
   await expectAccessible(page, 'wrong event');
 
-  expect(await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'admitted'")).toBe(2);
-  expect(await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'wrong_event'")).toBe(1);
+  expect(await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'admitted'")).toBe(
+    2,
+  );
+  expect(
+    await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'wrong_event'"),
+  ).toBe(1);
   // The deliberate wrong PIN answers 400; nothing else may log an error (CSP violations included).
-  expect(errors.filter((e) => !e.includes("status of 400"))).toEqual([]);
+  expect(errors.filter((e) => !e.includes('status of 400'))).toEqual([]);
   await context.close();
 });
 
