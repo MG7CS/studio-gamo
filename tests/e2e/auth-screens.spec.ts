@@ -67,10 +67,14 @@ for (const viewport of [
       await expect(page.getByText(/no passwords/i).first()).toBeVisible();
       await check(page, `${app} recover`, errors);
 
-      await page.goto(`${origin}/account/signup?role=${ROLE_CHIPS[app][0] ? ROLE_CHIPS[app][0].toLowerCase() : ''}`, {
-        waitUntil: 'networkidle',
-      });
-      for (const chip of ROLE_CHIPS[app]) await expect(page.getByText(chip, { exact: true }).first()).toBeVisible();
+      await page.goto(
+        `${origin}/account/signup?role=${ROLE_CHIPS[app][0] ? ROLE_CHIPS[app][0].toLowerCase() : ''}`,
+        {
+          waitUntil: 'networkidle',
+        },
+      );
+      for (const chip of ROLE_CHIPS[app])
+        await expect(page.getByText(chip, { exact: true }).first()).toBeVisible();
       await expect(page.getByLabel('First name')).toBeVisible();
       const terms = page.getByRole('checkbox', { name: /I agree to the/ });
       await expect(terms).not.toBeChecked();
@@ -104,7 +108,9 @@ for (const viewport of [
   }
 }
 
-test('onboarding and profile send anonymous visitors to sign-in and keep the way back', async ({ request }) => {
+test('onboarding and profile send anonymous visitors to sign-in and keep the way back', async ({
+  request,
+}) => {
   for (const path of ['/account/onboarding?role=musician', '/account/profile']) {
     const res = await request.get(`${APPS.worship}${path}`, { maxRedirects: 0 });
     expect(res.status(), path).toBe(303);
