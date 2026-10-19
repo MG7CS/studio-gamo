@@ -327,13 +327,13 @@ describe('venue-local day keys and multi-day passes', () => {
     assert.equal(venueDayKey(Date.UTC(2026, 10, 2, 6, 30) / 1000, 'America/Phoenix'), '2026-11-01'); // no DST
   });
 
-  test('a two-day pass enters once per venue day across the DST change, and not on other days', async () => {
+  test('a two-day pass enters once per operating day (05:00 cutoff) across the DST change, and not on other days', async () => {
     const f = await createFixture();
     const zone = 'America/New_York';
     const startsAt = Date.UTC(2026, 9, 31, 22, 0) / 1000; // 18:00 EDT Sat 31 Oct
     const eventId = seedEvent(f, {
       startsAt,
-      endsAt: Date.UTC(2026, 10, 2, 3, 0) / 1000, // 22:00 EST Sun 1 Nov
+      endsAt: Date.UTC(2026, 10, 2, 16, 0) / 1000, // Monday 11:00 EST
       timezone: zone,
       tiers: [
         { id: 'tier_pass', capacity: 20, validDays: ['2026-10-31', '2026-11-01'], name: 'Weekend pass' },
@@ -347,18 +347,24 @@ describe('venue-local day keys and multi-day passes', () => {
       now: startsAt - 86400,
     });
     const sat2359 = Date.UTC(2026, 10, 1, 3, 59) / 1000; // 23:59 EDT Saturday
-    const sun0001 = Date.UTC(2026, 10, 1, 4, 1) / 1000; // 00:01 EDT Sunday
-    const sun2330 = Date.UTC(2026, 10, 2, 4, 30) / 1000; // 23:30 EST Sunday (after the change)
-    const mon0010 = Date.UTC(2026, 10, 2, 5, 10) / 1000; // 00:10 EST Monday
+    const sun0001 = Date.UTC(2026, 10, 1, 4, 1) / 1000; // 00:01 EDT Sunday: still Saturday's operating day
+    const sun0600 = Date.UTC(2026, 10, 1, 11, 0) / 1000; // 06:00 EST Sunday (after the change): Sunday begins
+    const sun2330 = Date.UTC(2026, 10, 2, 4, 30) / 1000; // 23:30 EST Sunday
+    const mon0600 = Date.UTC(2026, 10, 2, 11, 0) / 1000; // 06:00 EST Monday
     const at = (now: number, dir: 'in' | 'out' = 'in') =>
       scan(f, eventId, organizer, t.payload, dir, { now });
     assert.equal((await at(sat2359)).result, 'admitted');
     assert.equal((await at(sat2359 + 30, 'out')).result, 'exited');
-    assert.equal((await at(sun0001)).result, 'admitted', 'a new venue day after midnight');
+    assert.equal(
+      (await at(sun0001)).result,
+      'already_used',
+      'midnight does not start a new day: the 05:00 cutoff does',
+    );
+    assert.equal((await at(sun0600)).result, 'admitted', 'a new operating day after 05:00 local');
     assert.equal((await at(sun2330)).result, 'already_inside');
     assert.equal((await at(sun2330 + 60, 'out')).result, 'exited');
     assert.equal((await at(sun2330 + 120)).result, 'already_used', 'still Sunday in New York');
-    const monday = await at(mon0010);
+    const monday = await at(mon0600);
     assert.equal(monday.result, 'not_open_yet');
     assert.deepEqual(monday.detail.validDays, ['2026-10-31', '2026-11-01']);
     assert.deepEqual(

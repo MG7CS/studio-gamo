@@ -39,7 +39,8 @@ import {
   loadScanEvent,
   maskEmail,
   parseStringArray,
-  venueDayKey,
+  operatingDayKey,
+  SCAN_CLOSE_GRACE_SECONDS,
   type ScanEventContext,
 } from './scanning-context.ts';
 
@@ -58,8 +59,14 @@ export interface ScanTicketView {
   seatsPerTicket: number;
 }
 
+/**
+ * `event_ended` is answered but not stored: `ticket_scan_events.result` has a CHECK without it
+ * (needs migration 0017 before it can be recorded; see CLEANUP_LOG D-210).
+ */
+export type ScanOutcomeResult = ScanResult | 'event_ended';
+
 export interface ScanOutcome {
-  result: ScanResult;
+  result: ScanOutcomeResult;
   /** `admitted` or `override_admitted`. */
   admitted: boolean;
   /** Large headline for the result screen. */
@@ -97,7 +104,8 @@ export class ScanRequestError extends Error {
       | 'EVENT_NOT_FOUND'
       | 'BAD_REQUEST'
       | 'TICKET_NOT_FOUND'
-      | 'NOT_ALLOWED',
+      | 'NOT_ALLOWED'
+      | 'CLIENT_SCAN_ID_REUSED',
     message: string,
   ) {
     super(message);
@@ -217,7 +225,8 @@ export function directionAllowed(allowed: 'in' | 'out' | 'both', direction: Scan
   return allowed === 'both' || allowed === direction;
 }
 
-const TITLES: Record<ScanResult, string> = {
+const TITLES: Record<ScanOutcomeResult, string> = {
+  event_ended: 'Event has ended',
   admitted: 'Admitted',
   override_admitted: 'Admitted by override',
   exited: 'Exit recorded',
@@ -236,9 +245,11 @@ const TITLES: Record<ScanResult, string> = {
   event_cancelled: 'Event cancelled',
 };
 
-function describe(result: ScanResult, d: ScanOutcome['detail'], event: ScanEventContext): string {
+function describe(result: ScanOutcomeResult, d: ScanOutcome['detail'], event: ScanEventContext): string {
   const when = d.atText ? ` at ${d.atText}${d.gate ? `, ${d.gate}` : ''}` : '';
   switch (result) {
+    case 'event_ended':
+      return 'Scanning closed after the event ended. Ask the organizer if a guest still needs to be admitted.';
     case 'admitted':
       return 'Welcome them in.';
     case 'override_admitted':
@@ -295,7 +306,7 @@ function emptyDetail(): ScanOutcome['detail'] {
 
 function outcome(
   event: ScanEventContext,
-  result: ScanResult,
+  result: ScanOutcomeResult,
   extra: Partial<Omit<ScanOutcome, 'result' | 'title' | 'message' | 'admitted'>> = {},
 ): ScanOutcome {
   const detail = { ...emptyDetail(), ...(extra.detail ?? {}) };
@@ -370,7 +381,41 @@ export function effectiveScanTime(now: number, deviceScannedAt: number | null | 
 }
 
 /** Scans one code. Throws `ScanRequestError` for requests the actor may not make, `SecretNotConfiguredError` without QR keys. */
+export function clientScanIdReused() {
+  return new ScanRequestError(
+    400,
+    'CLIENT_SCAN_ID_REUSED',
+    'This scan id was already used for a different ticket. Reload the scanner and scan again.',
+  );
+}
+
+/** The id of the existing ticket a code points at (GL1 payload or legacy token), or null. Unverified: only for dedupe comparison. */
+async function resolveCodeTicketId(db: SqlDatabase, code: string): Promise<string | null> {
+  if (isLegacyTicketToken(code)) {
+    const row = await firstRow<{ id: string }>(db, 'SELECT id FROM tickets WHERE qr_token = ?1', [code]);
+    return row?.id ?? null;
+  }
+  const parsed = parseTicketQr(code);
+  if (!parsed.ok) return null;
+  const row = await firstRow<{ id: string }>(db, 'SELECT id FROM tickets WHERE id = ?1', [parsed.ticketId]);
+  return row?.id ?? null;
+}
+
+/**
+ * Online scan. `offline` and `deviceScannedAt` are ignored here: a client cannot claim "offline" to
+ * bypass ordering or entry limits. Offline scans are replayed only by `syncOfflineScans`
+ * (`scanTicketFromSync`).
+ */
 export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
+  return scanTicketInternal(db, { ...input, offline: false, deviceScannedAt: null });
+}
+
+/** Replay of one queued offline scan (device time honoured). Used by `syncOfflineScans` only. */
+export async function scanTicketFromSync(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
+  return scanTicketInternal(db, { ...input, offline: true });
+}
+
+async function scanTicketInternal(db: SqlDatabase, input: ScanRequest): Promise<ScanOutcome> {
   assertActorForEvent(input.actor, input.eventId);
   const event = await loadScanEvent(db, input.eventId);
   if (!event) throw new ScanRequestError(404, 'EVENT_NOT_FOUND', 'That event was not found.');
@@ -387,7 +432,8 @@ export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<S
     input.clientScanId && CLIENT_SCAN_ID.test(input.clientScanId) ? input.clientScanId : null;
   const offline = Boolean(input.offline);
   const at = effectiveScanTime(input.now, input.deviceScannedAt, offline);
-  const dayKey = venueDayKey(at, event.timeZone);
+  // Rejected-before-ticket scans (bad code) carry the event-wide key; tickets pick their own below.
+  const dayKey = operatingDayKey(event, at, false);
   const base = {
     scanEventId: newPrefixedId('scan'),
     eventId: event.id,
@@ -401,6 +447,29 @@ export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<S
     offline,
     now: input.now,
   };
+
+  // A replayed client scan id is answered from the stored scan BEFORE anything touches presence
+  // (an offline retry or a lost response must never apply the same scan twice).
+  if (who.scannerSessionId && clientScanId) {
+    const stored = await storedResult(db, who.scannerSessionId, clientScanId);
+    if (stored) {
+      // The id belongs to ONE scan of ONE ticket: reusing it for another ticket is a client bug or an
+      // attack, and must not touch presence or show the first scan's result.
+      const currentId = await resolveCodeTicketId(db, String(input.code ?? '').trim());
+      if ((stored.ticket_id ?? null) !== currentId) throw clientScanIdReused();
+      const known = stored.ticket_id
+        ? await firstRow<TicketRow>(db, `${TICKET_SELECT} WHERE t.id = ?1`, [stored.ticket_id])
+        : null;
+      return outcome(event, stored.result, {
+        scanId: stored.id,
+        conflict: stored.conflict,
+        repeated: true,
+        offline,
+        ticket: known && known.event_id === event.id ? ticketView(known) : null,
+      });
+    }
+  }
+  if (at > event.endsAt + SCAN_CLOSE_GRACE_SECONDS) return outcome(event, 'event_ended', { offline });
 
   const code = String(input.code ?? '').trim();
   if (isLegacyTicketToken(code)) return legacyScan(db, event, base, code, input.direction, null);
@@ -423,9 +492,19 @@ export async function scanTicket(db: SqlDatabase, input: ScanRequest): Promise<S
     input.keyring,
   );
   // A transfer may also change the salt, so an older code no longer verifies; its lower version says
-  // why ("transferred or reissued"). The batch records `stale_version` and never admits it.
-  if (!mac.ok && mac.reason === 'bad_signature' && parsed.version < Number(ticket.version))
-    return decideAndRecord(db, event, base, ticket, parsed.version, input.direction, { offline, who });
+  // why ("transferred or reissued"). The MAC did NOT verify here, so nothing about the ticket, its
+  // holder or another event may be shown: a generic stale_version (recorded by the batch, never admitted).
+  if (!mac.ok && mac.reason === 'bad_signature' && parsed.version < Number(ticket.version)) {
+    if (ticket.event_id !== event.id || ticket.status !== 'valid') {
+      const r = await recordRejected(db, base, input.direction, 'invalid');
+      return outcome(event, r.result, { ...r, offline });
+    }
+    const stale = await decideAndRecord(db, event, base, ticket, parsed.version, input.direction, {
+      offline,
+      who,
+    });
+    return { ...stale, ticket: null, detail: emptyDetail() };
+  }
   if (!mac.ok) {
     const r = await recordRejected(db, base, input.direction, 'invalid');
     return outcome(event, r.result, { ...r, offline });
@@ -448,7 +527,14 @@ async function decideAndRecord(
 ): Promise<ScanOutcome> {
   const { offline } = opts;
   const view = ticketView(ticket);
-  const ctx: ScanContext = { ...base, ticketId: ticket.id, ticketVersion: version };
+  const scanAt = effectiveScanTime(base.now, base.deviceScannedAt, offline);
+  const validDays = parseStringArray(ticket.valid_days_json);
+  const dayKey = operatingDayKey(event, scanAt, Boolean(validDays && validDays.length));
+  const ctx: ScanContext = { ...base, dayKey, ticketId: ticket.id, ticketVersion: version };
+  if (ctx.scannerSessionId && ctx.clientScanId) {
+    const earlier = await storedResult(db, ctx.scannerSessionId, ctx.clientScanId);
+    if (earlier && (earlier.ticket_id ?? null) !== ticket.id) throw clientScanIdReused();
+  }
 
   if (ticket.event_id !== event.id) {
     const other = await firstRow<{ title: string }>(db, 'SELECT title FROM events WHERE id = ?1', [
@@ -474,8 +560,7 @@ async function decideAndRecord(
       const r = await recordRejected(db, ctx, direction, 'not_open_yet');
       return outcome(event, r.result, { ...r, offline, ticket: view, detail: { ...emptyDetail(), opensAt } });
     }
-    const validDays = parseStringArray(ticket.valid_days_json);
-    if (validDays && validDays.length && !validDays.includes(base.dayKey)) {
+    if (validDays && validDays.length && !validDays.includes(dayKey)) {
       const r = await recordRejected(db, ctx, direction, 'not_open_yet');
       return outcome(event, r.result, {
         ...r,
@@ -492,6 +577,49 @@ async function decideAndRecord(
         ticket: view,
         detail: { ...emptyDetail(), allowedZones: opts.who.allowedZones },
       });
+    }
+  }
+
+  // An offline entry (only ever reached from `scanTicketFromSync`) that is older than a later SUCCESSFUL
+  // exit of the same day — the guest already left through another gate — must not put them back
+  // inside. It answers a NON-admitting `already_used` with conflict `superseded`; presence is untouched
+  // and nothing is counted. Failed exits (`not_inside`) never supersede.
+  if (current && offline && direction === 'in' && !opts.override) {
+    const later = await firstRow(
+      db,
+      "SELECT 1 AS x FROM ticket_scan_events WHERE ticket_id = ?1 AND day_key = ?2 AND direction = 'out' AND result = 'exited' AND coalesce(device_scanned_at, received_at) > ?3 AND NOT (scanner_session_id IS ?4 AND client_scan_id IS ?5) LIMIT 1",
+      [ticket.id, dayKey, scanAt, ctx.scannerSessionId ?? null, ctx.clientScanId ?? null],
+    );
+    if (later) {
+      const [rows] = await runBatch(db, [
+        {
+          sql: "INSERT INTO ticket_scan_events (id, event_id, ticket_id, ticket_version, scanner_session_id, scanner_device_id, scanned_by_user_id, direction, gate, result, client_scan_id, device_scanned_at, received_at, offline, conflict, day_key) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'in', ?8, 'already_used', ?9, ?10, ?11, 1, 'superseded', ?12) ON CONFLICT(scanner_session_id, client_scan_id) WHERE scanner_session_id IS NOT NULL AND client_scan_id IS NOT NULL DO NOTHING RETURNING id, result, conflict",
+          params: [
+            ctx.scanEventId,
+            event.id,
+            ticket.id,
+            version,
+            ctx.scannerSessionId ?? null,
+            ctx.scannerDeviceId ?? null,
+            ctx.scannedByUserId ?? null,
+            ctx.gate ?? null,
+            ctx.clientScanId ?? null,
+            ctx.deviceScannedAt ?? null,
+            ctx.now,
+            dayKey,
+          ],
+        },
+      ]);
+      const row = rows[0] as { id: string; result: ScanResult; conflict: ScanConflict } | undefined;
+      const stored = row ?? (await storedResult(db, ctx.scannerSessionId ?? null, ctx.clientScanId ?? null));
+      if (stored)
+        return outcome(event, stored.result, {
+          scanId: stored.id,
+          conflict: stored.conflict,
+          repeated: !row,
+          offline,
+          ticket: view,
+        });
     }
   }
 
@@ -515,7 +643,7 @@ async function decideAndRecord(
     offline,
     ticket: view,
     detail: needsWhen
-      ? { ...emptyDetail(), ...(await presenceDetail(db, ticket.id, base.dayKey, event)) }
+      ? { ...emptyDetail(), ...(await presenceDetail(db, ticket.id, dayKey, event)) }
       : emptyDetail(),
   });
 }
@@ -683,7 +811,8 @@ export async function lookupTickets(
       'BAD_REQUEST',
       'Type at least 2 characters of a name, an email or an order reference.',
     );
-  const dayKey = venueDayKey(input.now, event.timeZone);
+  const dayKey = operatingDayKey(event, input.now, false);
+  const shiftedKey = operatingDayKey(event, input.now, true);
   const reference = normalizeOrderReference(query);
   let where: string;
   let param: string;
@@ -710,8 +839,8 @@ export async function lookupTickets(
     entry_count: number | null;
     order_item_id: string | null;
   }>(db, {
-    sql: `SELECT t.id, t.holder_name, t.holder_email, o.order_reference, t.order_id, c.name AS category_name, s.name AS section_name, t.status, p.state, p.entry_count, t.order_item_id FROM tickets t JOIN ticket_orders o ON o.id = t.order_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id LEFT JOIN venue_sections s ON s.id = t.section_id LEFT JOIN ticket_presence p ON p.ticket_id = t.id AND p.day_key = ?3 WHERE t.event_id = ?1 AND ${where} ORDER BY t.holder_name, t.id LIMIT ${LOOKUP_LIMIT + 1}`,
-    params: [event.id, param, dayKey],
+    sql: `SELECT t.id, t.holder_name, t.holder_email, o.order_reference, t.order_id, c.name AS category_name, s.name AS section_name, t.status, p.state, p.entry_count, t.order_item_id FROM tickets t JOIN ticket_orders o ON o.id = t.order_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id LEFT JOIN venue_sections s ON s.id = t.section_id LEFT JOIN ticket_presence p ON p.ticket_id = t.id AND p.day_key IN (?3, ?4) WHERE t.event_id = ?1 AND ${where} ORDER BY t.holder_name, t.id LIMIT ${LOOKUP_LIMIT + 1}`,
+    params: [event.id, param, dayKey, shiftedKey],
   });
   const truncated = rows.length > LOOKUP_LIMIT;
   const results = rows.slice(0, LOOKUP_LIMIT);
@@ -791,12 +920,13 @@ export async function overrideAdmit(
     [input.ticketId, event.id],
   );
   if (!ticket) throw new ScanRequestError(404, 'TICKET_NOT_FOUND', 'That ticket is not part of this event.');
+  if (input.now > event.endsAt + SCAN_CLOSE_GRACE_SECONDS) return outcome(event, 'event_ended');
   const clientScanId =
     input.clientScanId && CLIENT_SCAN_ID.test(input.clientScanId) ? input.clientScanId : null;
   const base = {
     scanEventId: newPrefixedId('scan'),
     eventId: event.id,
-    dayKey: venueDayKey(input.now, event.timeZone),
+    dayKey: operatingDayKey(event, input.now, false),
     gate: who.gate,
     scannerSessionId: who.scannerSessionId,
     scannerDeviceId: who.scannerDeviceId,
@@ -839,11 +969,19 @@ export interface Headcount {
 export async function eventHeadcount(db: SqlDatabase, eventId: string, now: number): Promise<Headcount> {
   const event = await loadScanEvent(db, eventId);
   if (!event) throw new ScanRequestError(404, 'EVENT_NOT_FOUND', 'That event was not found.');
-  const dayKey = venueDayKey(now, event.timeZone);
+  const multiDay = await firstRow(
+    db,
+    "SELECT 1 AS x FROM ticket_tiers WHERE event_id = ?1 AND valid_days_json IS NOT NULL AND valid_days_json NOT IN ('', '[]') LIMIT 1",
+    [event.id],
+  );
+  const eventKey = operatingDayKey(event, now, false);
+  const todayKey = multiDay ? operatingDayKey(event, now, true) : eventKey;
+  // Inside now: anyone whose presence is `inside` on any operating day, counting only VALID tickets
+  // (a refunded or voided ticket no longer counts; its exit scan still clears the row).
   const managed = await firstRow<{ inside: number | null; admitted: number | null }>(
     db,
-    "SELECT sum(CASE WHEN p.state = 'inside' THEN coalesce(c.seats_per_ticket, 1) ELSE 0 END) AS inside, sum(CASE WHEN p.entry_count > 0 THEN coalesce(c.seats_per_ticket, 1) ELSE 0 END) AS admitted FROM ticket_presence p JOIN tickets t ON t.id = p.ticket_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id WHERE p.event_id = ?1 AND p.day_key = ?2",
-    [event.id, dayKey],
+    "SELECT sum(CASE WHEN p.state = 'inside' AND t.status = 'valid' THEN coalesce(c.seats_per_ticket, 1) ELSE 0 END) AS inside, sum(CASE WHEN p.entry_count > 0 AND p.day_key IN (?2, ?3) THEN coalesce(c.seats_per_ticket, 1) ELSE 0 END) AS admitted FROM ticket_presence p JOIN tickets t ON t.id = p.ticket_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id WHERE p.event_id = ?1",
+    [event.id, eventKey, todayKey],
   );
   const legacy = await firstRow<{ n: number }>(
     db,
@@ -857,7 +995,7 @@ export async function eventHeadcount(db: SqlDatabase, eventId: string, now: numb
   );
   const legacyCount = Number(legacy?.n ?? 0);
   return {
-    dayKey,
+    dayKey: todayKey,
     insideNow: Number(managed?.inside ?? 0) + legacyCount,
     admittedToday: Number(managed?.admitted ?? 0) + legacyCount,
     capacity: Number(capacity?.n ?? 0),
@@ -867,4 +1005,17 @@ export async function eventHeadcount(db: SqlDatabase, eventId: string, now: numb
 /** Rate-limit key (hex) for an organizer scanning from their account. */
 export async function organizerRateKey(userId: string): Promise<string> {
   return (await sha256Hex(`scanner-organizer|${userId}`)).slice(0, 32);
+}
+
+/**
+ * Tickets of an order that are inside right now: show this before refunding or voiding an admitted
+ * ticket (the refund flow links it; the exit scan still clears presence afterwards).
+ */
+export async function ticketsInsideForOrder(db: SqlDatabase, orderId: string): Promise<number> {
+  const row = await firstRow<{ n: number }>(
+    db,
+    "SELECT count(DISTINCT p.ticket_id) AS n FROM ticket_presence p JOIN tickets t ON t.id = p.ticket_id WHERE t.order_id = ?1 AND p.state = 'inside'",
+    [orderId],
+  );
+  return Number(row?.n ?? 0);
 }

@@ -1508,6 +1508,8 @@ export interface components {
                 startsAt: number;
                 endsAt: number;
                 opensAt: number;
+                /** @description Presence key of tickets without validDays (one per event); multi-day passes use the local date after shifting the clock back 5 hours. */
+                eventDayKey: string;
                 cancelled: boolean;
                 maxEntriesPerDay: number | null;
                 generatedAt: number;
@@ -1874,10 +1876,10 @@ export interface components {
         /** @description Device-generated id; the same id twice from one scanner session is recorded once. */
         ClientScanId: string;
         /**
-         * @description Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner.
+         * @description Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner. event_ended (scanning closed 6 h after the event end) is answered but not stored.
          * @enum {string}
          */
-        ScanResult: "admitted" | "exited" | "already_inside" | "already_used" | "reentry_denied" | "not_inside" | "wrong_event" | "wrong_zone" | "voided" | "refunded" | "stale_version" | "invalid" | "not_found" | "not_open_yet" | "event_cancelled" | "override_admitted";
+        ScanResult: "admitted" | "exited" | "already_inside" | "already_used" | "reentry_denied" | "not_inside" | "wrong_event" | "wrong_zone" | "voided" | "refunded" | "stale_version" | "invalid" | "not_found" | "not_open_yet" | "event_cancelled" | "override_admitted" | "event_ended";
         /** @enum {string} */
         ScanConflict: "none" | "duplicate_offline" | "superseded";
         /** @description What a scanner may see about a ticket. Never an email, full name or order data. */

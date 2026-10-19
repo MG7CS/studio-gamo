@@ -596,7 +596,7 @@ export function admitPresenceStatement(
   override = false,
 ): SqlStatementSpec {
   return spec(
-    "INSERT INTO ticket_presence (ticket_id, day_key, event_id, state, entry_count, exit_count, first_entry_at, last_scan_at, last_gate, last_scan_event_id) SELECT t.id, ?2, t.event_id, 'inside', 1, 0, ?3, ?3, ?4, ?5 FROM tickets t WHERE t.id = ?1 AND t.event_id = ?6 AND t.status = 'valid' AND t.version = ?7 ON CONFLICT(ticket_id, day_key) DO UPDATE SET state = 'inside', entry_count = ticket_presence.entry_count + 1, last_scan_at = excluded.last_scan_at, last_gate = excluded.last_gate, last_scan_event_id = excluded.last_scan_event_id WHERE ticket_presence.state = 'outside' AND (?8 = 1 OR ?9 IS NULL OR ticket_presence.entry_count < ?9) RETURNING entry_count, first_entry_at",
+    "INSERT INTO ticket_presence (ticket_id, day_key, event_id, state, entry_count, exit_count, first_entry_at, last_scan_at, last_gate, last_scan_event_id) SELECT t.id, ?2, t.event_id, 'inside', 1, 0, ?3, ?3, ?4, ?5 FROM tickets t WHERE t.id = ?1 AND t.event_id = ?6 AND t.status = 'valid' AND t.version = ?7 AND (?10 IS NULL OR ?11 IS NULL OR NOT EXISTS (SELECT 1 FROM ticket_scan_events r WHERE r.scanner_session_id = ?10 AND r.client_scan_id = ?11)) ON CONFLICT(ticket_id, day_key) DO UPDATE SET state = 'inside', entry_count = ticket_presence.entry_count + 1, last_scan_at = excluded.last_scan_at, last_gate = excluded.last_gate, last_scan_event_id = excluded.last_scan_event_id WHERE ticket_presence.state = 'outside' AND (?8 = 1 OR ?9 IS NULL OR ticket_presence.entry_count < ?9) RETURNING entry_count, first_entry_at",
     [
       ctx.ticketId,
       ctx.dayKey,
@@ -607,6 +607,8 @@ export function admitPresenceStatement(
       ctx.ticketVersion,
       override ? 1 : 0,
       maxEntries,
+      ctx.scannerSessionId ?? null,
+      ctx.clientScanId ?? null,
     ],
   );
 }
@@ -614,8 +616,18 @@ export function admitPresenceStatement(
 /** Flips `inside → outside` for a valid ticket. Returns `exit_count` only when this call recorded the exit. */
 export function exitPresenceStatement(ctx: ScanContext): SqlStatementSpec {
   return spec(
-    "UPDATE ticket_presence SET state = 'outside', exit_count = exit_count + 1, last_scan_at = ?3, last_gate = ?4, last_scan_event_id = ?5 WHERE ticket_id = ?1 AND day_key = ?2 AND state = 'inside' AND EXISTS (SELECT 1 FROM tickets t WHERE t.id = ?1 AND t.event_id = ?6 AND t.status = 'valid' AND t.version = ?7) RETURNING exit_count",
-    [ctx.ticketId, ctx.dayKey, ctx.now, ctx.gate ?? null, ctx.scanEventId, ctx.eventId, ctx.ticketVersion],
+    "UPDATE ticket_presence SET state = 'outside', exit_count = exit_count + 1, last_scan_at = ?3, last_gate = ?4, last_scan_event_id = ?5 WHERE ticket_id = ?1 AND day_key = ?2 AND state = 'inside' AND EXISTS (SELECT 1 FROM tickets t WHERE t.id = ?1 AND t.event_id = ?6 AND t.version = ?7) AND (?8 IS NULL OR ?9 IS NULL OR NOT EXISTS (SELECT 1 FROM ticket_scan_events r WHERE r.scanner_session_id = ?8 AND r.client_scan_id = ?9)) RETURNING exit_count",
+    [
+      ctx.ticketId,
+      ctx.dayKey,
+      ctx.now,
+      ctx.gate ?? null,
+      ctx.scanEventId,
+      ctx.eventId,
+      ctx.ticketVersion,
+      ctx.scannerSessionId ?? null,
+      ctx.clientScanId ?? null,
+    ],
   );
 }
 

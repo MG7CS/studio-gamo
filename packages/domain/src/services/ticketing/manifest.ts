@@ -15,20 +15,21 @@ import { sha256Hex } from '../../security/crypto.ts';
 import { ticketIdToQrPart } from '../../security/ids.ts';
 import type { QrKeyring } from '../../security/ticket-qr.ts';
 import { allRows, runBatch, type SqlDatabase } from '../../security/sql-database.ts';
-import type { ScanConflict, ScanDirection, ScanResult } from '../../types/enums.ts';
+import type { ScanConflict, ScanDirection } from '../../types/enums.ts';
 import { SCAN_RESULTS } from '../../types/enums.ts';
 import { maxEntriesPerDay } from '../../types/policy.ts';
 import type { ScannerDeviceContext } from './scanner-sessions.ts';
 import {
   assertActorForEvent,
   eventHeadcount,
-  scanTicket,
+  type ScanOutcomeResult,
+  scanTicketFromSync,
   ScanRequestError,
   ticketZones,
   type Headcount,
   type ScanOutcome,
 } from './scanning.ts';
-import { holderInitials, loadScanEvent, parseStringArray, venueDayKey } from './scanning-context.ts';
+import { holderInitials, loadScanEvent, operatingDayKey, parseStringArray } from './scanning-context.ts';
 
 export interface ManifestTicket {
   /** QR id part (26 upper-case Crockford symbols). */
@@ -67,6 +68,8 @@ export interface ScannerManifest {
   endsAt: number;
   /** Scanning opens at this instant (start − `scan_opens_minutes_before`). */
   opensAt: number;
+  /** Presence key of tickets without `validDays` (one per event); multi-day passes shift the clock back 5 h. */
+  eventDayKey: string;
   cancelled: boolean;
   /** Entries per ticket per day (null = unlimited). */
   maxEntriesPerDay: number | null;
@@ -141,6 +144,7 @@ export async function buildScannerManifest(
     startsAt: event.startsAt,
     endsAt: event.endsAt,
     opensAt: event.startsAt - event.policy.scanOpensMinutesBefore * 60,
+    eventDayKey: operatingDayKey(event, event.startsAt, false),
     cancelled: event.cancelledAt !== null,
     maxEntriesPerDay: maxEntriesPerDay(event.policy),
     categories: Object.fromEntries(
@@ -191,14 +195,14 @@ export interface OfflineScanInput {
   direction: ScanDirection;
   deviceScannedAt: number;
   /** What the device showed while offline (for "needs review"). */
-  localResult?: ScanResult | null;
+  localResult?: ScanOutcomeResult | null;
 }
 
 export interface SyncedScan {
   clientScanId: string;
-  result: ScanResult;
+  result: ScanOutcomeResult;
   conflict: ScanConflict;
-  localResult: ScanResult | null;
+  localResult: ScanOutcomeResult | null;
   needsReview: boolean;
   title: string;
   message: string;
@@ -207,14 +211,14 @@ export interface SyncedScan {
 
 export const SYNC_MAX_SCANS = 200;
 
-const sameOutcome = (a: ScanResult, b: ScanResult) => {
-  const admitting = (r: ScanResult) => r === 'admitted' || r === 'override_admitted';
+const sameOutcome = (a: ScanOutcomeResult, b: ScanOutcomeResult) => {
+  const admitting = (r: ScanOutcomeResult) => r === 'admitted' || r === 'override_admitted';
   return a === b || (admitting(a) && admitting(b));
 };
 
 /**
  * Replays one device's offline queue in device-time order (ties keep the queue order). Each scan goes
- * through `scanTicket` with `offline: true`, so the database decides and repeated client scan ids are
+ * through `scanTicketFromSync` (offline), so the database decides and repeated client scan ids are
  * recorded once (a retried sync is harmless).
  */
 export async function syncOfflineScans(
@@ -238,7 +242,7 @@ export async function syncOfflineScans(
   for (const { scan } of ordered) {
     let out: ScanOutcome;
     try {
-      out = await scanTicket(db, {
+      out = await scanTicketFromSync(db, {
         eventId: input.eventId,
         code: scan.code,
         direction: scan.direction,
@@ -264,7 +268,8 @@ export async function syncOfflineScans(
       continue;
     }
     const local =
-      scan.localResult && (SCAN_RESULTS as readonly string[]).includes(scan.localResult)
+      scan.localResult &&
+      (scan.localResult === 'event_ended' || (SCAN_RESULTS as readonly string[]).includes(scan.localResult))
         ? scan.localResult
         : null;
     results.push({
@@ -294,5 +299,5 @@ export async function syncOfflineScans(
 /** Today's venue-local day key for an event (the scanner page shows and uses it). */
 export async function currentDayKey(db: SqlDatabase, eventId: string, now: number): Promise<string | null> {
   const event = await loadScanEvent(db, eventId);
-  return event ? venueDayKey(now, event.timeZone) : null;
+  return event ? operatingDayKey(event, now, false) : null;
 }

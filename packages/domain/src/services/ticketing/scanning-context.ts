@@ -146,6 +146,29 @@ export function venueDayKey(epochSeconds: number, timeZone: string): string {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
+/** A multi-day pass's "day" runs from 05:00 local to 05:00 local, so a 1 a.m. entry belongs to the evening before. */
+export const OPERATING_DAY_CUTOFF_HOURS = 5;
+/** Scanning stays open this long after the event's end (late exits, stragglers). */
+export const SCAN_CLOSE_GRACE_SECONDS = 6 * 60 * 60;
+
+/**
+ * The presence key ("operating day") of a scan.
+ * - Tickets without `valid_days_json`: ONE key for the whole event, the event's start date in the
+ *   venue zone — a 9 p.m.–2 a.m. event must not reset presence at midnight.
+ * - Multi-day passes: the local calendar date after shifting the clock back by 05:00, so the
+ *   `valid_days_json` dates and presence rows agree and a night session spans midnight.
+ * The same function is used by scanning, the headcount, the manifest and the transfer check.
+ */
+export function operatingDayKey(
+  event: { startsAt: number; timeZone: string },
+  at: number,
+  multiDay: boolean,
+): string {
+  return multiDay
+    ? venueDayKey(at - OPERATING_DAY_CUTOFF_HOURS * 3600, event.timeZone)
+    : venueDayKey(event.startsAt, event.timeZone);
+}
+
 /** "12 Nov, 19:02 MST"-style local time for result screens and the dashboard. */
 export function formatVenueTime(epochSeconds: number, timeZone: string, withDate = false): string {
   return new Intl.DateTimeFormat('en-US', {
