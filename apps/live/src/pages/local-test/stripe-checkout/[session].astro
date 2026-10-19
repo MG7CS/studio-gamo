@@ -1,0 +1,87 @@
+---
+/**
+ * LOCAL-ONLY mock of Stripe Checkout (CLEANUP_LOG D-154/D-155). "Pay" signs a `checkout.session.completed`
+ * event and runs it through the real webhook handler in-process, then returns to the order page — the
+ * same code path a Stripe test webhook takes. Answers 404 unless ENVIRONMENT=local.
+ */
+import Layout from '../../../layouts/Layout.astro';
+import PageHeader from '../../../components/shared/PageHeader.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  formatMoney,
+  getRuntimeEnv,
+  handleStripeWebhook,
+  loadOrderBy,
+  localMockPaymentWebhook,
+  nowSeconds,
+  ticketingDb,
+} from '@gamo/domain';
+import { see } from '../../../lib/page-forms';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
+  Awaited<ReturnType<typeof getRuntimeEnv>>;
+const sessionId = Astro.params.session ?? '';
+const notFound = () => new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+if (env.ENVIRONMENT !== 'local' || !/^cs_test_local_[A-Za-z0-9]+$/.test(sessionId)) return notFound();
+
+const db = ticketingDb(env);
+const order = await loadOrderBy(db, 'stripe_checkout_session_id', sessionId);
+if (!order) return notFound();
+const now = nowSeconds();
+
+if (Astro.request.method === 'POST') {
+  requireSameOrigin(Astro.request);
+  const form = await Astro.request.formData();
+  const type = form.get('outcome') === 'cancel' ? 'checkout.session.expired' : 'checkout.session.completed';
+  const { rawBody, signature } = await localMockPaymentWebhook(env, order, now, type);
+  const result = await handleStripeWebhook(db, env, {
+    rawBody,
+    signature,
+    ctx: { now, origin: Astro.url.origin },
+  });
+  if (result.status !== 200) {
+    Astro.response.status = 502;
+  } else {
+    return see(
+      `/tickets/orders/${order.id}?checkout=${type === 'checkout.session.completed' ? 'success' : 'cancelled'}`,
+    );
+  }
+}
+---
+
+<Layout title="Test checkout (local only)" noindex>
+  <PageHeader
+    eyebrow="Test mode · local development only"
+    title="Mock Stripe Checkout"
+    lede="This page imitates Stripe Checkout on your computer. No card is used and no money moves."
+  />
+  <section class="bg-cream px-4 pb-20 sm:px-8">
+    <form method="post" class="mx-auto max-w-md space-y-5 rounded-[28px] bg-white p-6 ring-1 ring-sand">
+      <p class="text-ink">
+        Order <strong>{order.order_reference}</strong> · {order.quantity} ticket
+        {order.quantity === 1 ? '' : 's'} ·
+        <strong>{formatMoney(Number(order.total_cents), order.currency)}</strong>
+      </p>
+      <p class="text-sm text-muted">Pay with the test card 4242 4242 4242 4242 (simulated).</p>
+      <button
+        type="submit"
+        name="outcome"
+        value="pay"
+        class="min-h-11 w-full rounded-full bg-terracotta px-6 py-3 font-bold text-white hover:bg-terracotta-deep"
+      >
+        Pay (test)
+      </button>
+      <button
+        type="submit"
+        name="outcome"
+        value="cancel"
+        class="min-h-11 w-full rounded-full border border-ink px-6 py-3 font-bold text-ink hover:bg-sand"
+      >
+        Cancel and go back
+      </button>
+    </form>
+  </section>
+</Layout>

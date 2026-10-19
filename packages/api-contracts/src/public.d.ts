@@ -1427,6 +1427,8 @@ export interface components {
                 slug?: string;
                 /** @enum {unknown} */
                 status?: "approved" | "pending_review";
+                /** @description True when a change to public details sent the event back to staff review. */
+                movedToReview?: boolean;
                 message: string;
             };
         };

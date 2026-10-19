@@ -5922,6 +5922,10 @@
                   "pending_review"
                 ]
               },
+              "movedToReview": {
+                "type": "boolean",
+                "description": "True when a change to public details sent the event back to staff review."
+              },
               "message": {
                 "type": "string"
               }

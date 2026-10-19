@@ -20,3 +20,4 @@ export * from './src/services/ticketing/render-cache.ts';
 export * from './src/services/ticketing/calendar.ts';
 export * from './src/services/ticketing/email.ts';
 export * from './src/services/ticketing/orders-http.ts';
+export * from './src/services/ticketing/events-form.ts';

@@ -9,7 +9,9 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/artist/*', to: '/workspaces' },
   { from: '/agent/*', to: '/workspaces' },
   { from: '/me/*', to: '/workspaces' },
-  { from: '/ticket', to: '/my-tickets' },
+  { from: '/ticket', to: '/tickets/find' },
+  { from: '/my-tickets', to: '/tickets/find', status: 301 },
+  { from: '/checkout', to: '/events', status: 301 },
   { from: /^\/events\/([^/]+)\/tickets$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
   {
     from: /^\/organizers\/([^/]+)$/,

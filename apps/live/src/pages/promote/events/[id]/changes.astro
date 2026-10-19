@@ -1,0 +1,223 @@
+---
+/**
+ * Event changes (organizer): reschedule, change the venue, or cancel. Tickets stay valid after a move and
+ * every holder is emailed with an updated calendar file; a cancellation voids every ticket, refunds paid
+ * orders in full (test mode) and emails everyone. All recorded in event_changes.
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import PageHeader from '../../../../components/shared/PageHeader.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import SelectField from '../../../../components/organizer/SelectField.astro';
+import { getDb } from '@gamo/db';
+import { requireSameOrigin, hasEventPermission } from '@gamo/auth';
+import {
+  EVENT_TIME_ZONES,
+  TicketingError,
+  cancelEvent,
+  changeEventVenue,
+  nowSeconds,
+  rescheduleEvent,
+  utcToZonedLocal,
+} from '@gamo/domain';
+import { allRows } from '@gamo/domain/security';
+import { organizerEventGate } from '../../../../lib/organizer-event';
+import { problemFromError, type FormProblem } from '../../../../lib/page-forms';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const gate = await organizerEventGate(Astro, ['edit_content']);
+if (gate instanceof Response) return gate;
+const { auth, env, db, event } = gate;
+const canCancel =
+  (await hasEventPermission(getDb(env.DB), auth, event.id, 'manage_ticketing')) &&
+  (await hasEventPermission(getDb(env.DB), auth, event.id, 'approve_refunds'));
+let problem: FormProblem | null = null;
+let notice: string | null = null;
+const start = utcToZonedLocal(Number(event.starts_at), event.timezone);
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+    const form = await Astro.request.formData();
+    const f = (n: string) => String(form.get(n) ?? '');
+    const base = {
+      eventId: event.id,
+      actorUserId: auth.user.id,
+      origin: Astro.url.origin,
+      now: nowSeconds(),
+    };
+    const intent = f('intent');
+    if (intent === 'cancel') {
+      if (!canCancel)
+        throw new TicketingError(
+          'FORBIDDEN',
+          'Cancelling needs ticketing and refund permissions for this event.',
+        );
+      if (f('confirm') !== 'yes')
+        throw new TicketingError('VALIDATION', 'Tick the box to confirm the cancellation.', {
+          fields: [{ field: 'confirm', message: 'Tick the box to confirm.' }],
+        });
+      const r = await cancelEvent(db, env, { ...base, reason: f('reason') });
+      notice = `Event cancelled. ${r.ticketsVoided} ticket${r.ticketsVoided === 1 ? '' : 's'} voided, ${r.notified} email${r.notified === 1 ? '' : 's'} sent${r.refundsPending ? `, ${r.refundsPending} refund(s) pending` : ''}.`;
+    } else if (intent === 'reschedule') {
+      const r = await rescheduleEvent(db, env, {
+        ...base,
+        startDate: f('startDate'),
+        startTime: f('startTime'),
+        endDate: f('endDate') || null,
+        endTime: f('endTime') || null,
+        timezone: f('timezone'),
+      });
+      notice = `Rescheduled. ${r.notified} ticket holder email${r.notified === 1 ? '' : 's'} sent with an updated calendar file.`;
+    } else if (intent === 'venue') {
+      const r = await changeEventVenue(db, env, {
+        ...base,
+        venueName: f('venueName'),
+        address: f('address') || null,
+        city: f('city'),
+        state: f('state'),
+      });
+      notice = `Venue changed. ${r.notified} ticket holder email${r.notified === 1 ? '' : 's'} sent.`;
+    }
+  } catch (err) {
+    problem = problemFromError(err);
+    Astro.response.status = problem.status;
+  }
+}
+const history = await allRows<{ kind: string; created_at: number; notified_at: number | null }>(db, {
+  sql: 'SELECT kind, created_at, notified_at FROM event_changes WHERE event_id = ?1 ORDER BY created_at DESC LIMIT 20',
+  params: [event.id],
+});
+const cancelled = event.cancelled_at !== null;
+const zones = EVENT_TIME_ZONES.some((z) => z.id === event.timezone)
+  ? EVENT_TIME_ZONES
+  : [{ id: event.timezone, label: event.timezone }, ...EVENT_TIME_ZONES];
+---
+
+<Layout title={`Event changes — ${event.title}`} noindex>
+  <PageHeader
+    eyebrow="Organizer"
+    title="Event changes"
+    lede={event.title}
+    back={{ href: `/promote/events/${event.id}/edit`, label: 'Edit event' }}
+  />
+  <section class="bg-cream px-4 pb-20 sm:px-8">
+    <div class="mx-auto max-w-3xl space-y-8 py-8">
+      {notice && (
+        <p role="status" class="rounded-2xl bg-white p-4 font-semibold text-ink ring-1 ring-sand">
+          {notice}
+        </p>
+      )}
+      <FormErrorSummary errors={problem?.summary ?? []} />
+      {cancelled ? (
+        <p class="rounded-2xl bg-white p-4 font-semibold text-ink ring-1 ring-sand">
+          This event is cancelled.
+        </p>
+      ) : (
+        <>
+          <form method="post" class="space-y-4 rounded-3xl bg-white p-5 ring-1 ring-sand" novalidate>
+            <input type="hidden" name="intent" value="reschedule" />
+            <h2 class="text-lg font-black uppercase text-ink">Move the date or time</h2>
+            <p class="text-ink">
+              Tickets stay valid. Everyone is emailed the new time with an updated calendar file, and may then
+              ask for a refund according to your policy.
+            </p>
+            <SelectField
+              id="timezone"
+              name="timezone"
+              label="Venue time zone"
+              value={event.timezone}
+              options={zones.map((z) => ({ value: z.id, label: z.label }))}
+            />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <TextField
+                id="startDate"
+                name="startDate"
+                label="New start date"
+                hint="YYYY-MM-DD"
+                value={start.date}
+                required
+              />
+              <TextField
+                id="startTime"
+                name="startTime"
+                label="New start time"
+                hint="HH:MM, 24-hour"
+                value={start.time}
+                required
+              />
+              <TextField id="endDate" name="endDate" label="New end date (optional)" />
+              <TextField id="endTime" name="endTime" label="New end time (optional)" />
+            </div>
+            <SubmitButton label="Reschedule and notify" variant="secondary" />
+          </form>
+
+          <form method="post" class="space-y-4 rounded-3xl bg-white p-5 ring-1 ring-sand" novalidate>
+            <input type="hidden" name="intent" value="venue" />
+            <h2 class="text-lg font-black uppercase text-ink">Change the venue</h2>
+            <TextField id="venueName" name="venueName" label="Venue name" value={event.venue_name} required />
+            <TextField id="address" name="address" label="Street address" value={event.address ?? ''} />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <TextField id="city" name="city" label="City" value={event.city} required />
+              <TextField id="state" name="state" label="State" value={event.state} required />
+            </div>
+            <SubmitButton label="Change venue and notify" variant="secondary" />
+          </form>
+
+          {canCancel && (
+            <form
+              method="post"
+              class="space-y-4 rounded-3xl border-2 border-terracotta-deep bg-white p-5"
+              novalidate
+            >
+              <input type="hidden" name="intent" value="cancel" />
+              <h2 class="text-lg font-black uppercase text-ink">Cancel the event</h2>
+              <p class="text-ink">
+                This voids every ticket, refunds paid orders in full (test mode) and emails everyone. It
+                cannot be undone.
+              </p>
+              <TextField
+                id="reason"
+                name="reason"
+                label="Reason shown to ticket holders"
+                required
+                maxlength={500}
+                error={problem?.fields.reason}
+              />
+              <label class="flex min-h-11 items-center gap-3">
+                <input
+                  id="confirm"
+                  type="checkbox"
+                  name="confirm"
+                  value="yes"
+                  class="h-6 w-6 accent-terracotta"
+                />
+                <span>Yes, cancel this event for everyone.</span>
+              </label>
+              <SubmitButton label="Cancel the event" variant="secondary" />
+            </form>
+          )}
+        </>
+      )}
+      {history.length > 0 && (
+        <section aria-labelledby="hist">
+          <h2 id="hist" class="text-lg font-black uppercase text-ink">
+            History
+          </h2>
+          <ul class="mt-2 divide-y divide-sand rounded-2xl bg-white ring-1 ring-sand">
+            {history.map((h) => (
+              <li class="p-3 text-ink">
+                {h.kind.replace('_', ' ')} ·{' '}
+                {new Date(h.created_at * 1000).toISOString().slice(0, 16).replace('T', ' ')} UTC ·{' '}
+                {h.notified_at ? 'everyone notified' : 'notifications pending'}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  </section>
+</Layout>

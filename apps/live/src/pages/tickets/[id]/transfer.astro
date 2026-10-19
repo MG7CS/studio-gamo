@@ -1,0 +1,152 @@
+---
+/**
+ * Transfer one ticket to another person (design §5.3): the current holder only. The new holder gets the
+ * ticket by email; the old QR code stops working at once. Within the order's transfer policy.
+ */
+import Layout from '../../../layouts/Layout.astro';
+import PageHeader from '../../../components/shared/PageHeader.astro';
+import JourneyPanel from '../../../components/shared/JourneyPanel.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
+import ConfirmEmailField from '@studio-gamo/ui/components/forms/ConfirmEmailField.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { clientIp, hashIp, resolveEnvSecret } from '@gamo/domain/security';
+import {
+  getOrderView,
+  getRuntimeEnv,
+  loadTicket,
+  nowSeconds,
+  requestCustomer,
+  requestSecurityHeaders,
+  ticketingDb,
+  transferTicket,
+  type TicketView,
+} from '@gamo/domain';
+import { problemFromError, see, type FormProblem } from '../../../lib/page-forms';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const env = (await getRuntimeEnv(Astro)) as Record<string, unknown> &
+  Awaited<ReturnType<typeof getRuntimeEnv>>;
+const ticketId = Astro.params.id ?? '';
+const now = nowSeconds();
+let ticket: TicketView | null = null;
+let eventTitle = '';
+let orderId = '';
+let problem: FormProblem | null = null;
+let values: Record<string, string> = {};
+let signedIn = false;
+
+try {
+  const db = ticketingDb(env);
+  const identity = await requestCustomer(db, env, Astro.request, now);
+  signedIn = Boolean(identity);
+  const row = await loadTicket(db, ticketId);
+  if (identity && row) {
+    const view = await getOrderView(db, { orderId: row.order_id, session: identity, now });
+    ticket = view?.tickets.find((t) => t.id === ticketId && t.state === 'valid') ?? null;
+    eventTitle = view?.event.title ?? '';
+    orderId = row.order_id;
+    if (ticket && Astro.request.method === 'POST') {
+      try {
+        requireSameOrigin(Astro.request);
+        const form = await Astro.request.formData();
+        values = Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === 'string')) as Record<
+          string,
+          string
+        >;
+        await transferTicket(db, env, {
+          ticketId,
+          identity,
+          toName: values.toName ?? '',
+          toEmail: values.toEmail ?? '',
+          toEmailConfirm: values.toEmailConfirm ?? '',
+          ipHash: await hashIp(
+            clientIp(Astro.request) ?? 'unknown',
+            resolveEnvSecret(env, 'PII_HASH_SECRET'),
+          ),
+          origin: Astro.url.origin,
+          now,
+        });
+        return see(`/tickets/orders/${orderId}?transferred=1`);
+      } catch (err) {
+        problem = problemFromError(err);
+        Astro.response.status = problem.status;
+      }
+    }
+  }
+} catch (err) {
+  problem = problemFromError(err);
+  Astro.response.status = problem.status;
+}
+if (!ticket && !problem) Astro.response.status = signedIn ? 404 : 401;
+---
+
+<Layout title="Transfer a ticket" noindex>
+  <PageHeader
+    eyebrow="Your tickets"
+    title="Transfer this ticket"
+    lede={
+      ticket
+        ? `Give your ticket for ${eventTitle} to someone else. Your QR code stops working as soon as you transfer it.`
+        : 'We can’t transfer this ticket from here.'
+    }
+    back={
+      orderId
+        ? { href: `/tickets/orders/${orderId}`, label: 'My tickets' }
+        : { href: '/tickets/find', label: 'Find my tickets' }
+    }
+  />
+  {ticket ? (
+    <section class="bg-cream px-4 pb-20 sm:px-8">
+      <form
+        method="post"
+        action={`/tickets/${ticketId}/transfer`}
+        class="mx-auto max-w-lg space-y-5 rounded-[28px] bg-white p-6 ring-1 ring-sand"
+        novalidate
+      >
+        <FormErrorSummary errors={problem?.summary ?? []} />
+        {!ticket.canTransfer && <p class="font-semibold text-ink">{ticket.transferBlockedReason}</p>}
+        <TextField
+          id="to-name"
+          name="toName"
+          label="New holder’s full name"
+          required
+          autocomplete="off"
+          maxlength={120}
+          value={values.toName}
+          error={problem?.fields.toName}
+        />
+        <EmailField
+          id="to-email"
+          name="toEmail"
+          label="New holder’s email"
+          value={values.toEmail}
+          error={problem?.fields.toEmail}
+          hint="The ticket is sent here. Check the spelling — you can’t undo a transfer."
+        />
+        <ConfirmEmailField
+          emailId="to-email"
+          id="to-email-confirm"
+          name="toEmailConfirm"
+          label="Confirm their email"
+          error={problem?.fields.toEmailConfirm}
+        />
+        <SubmitButton label="Transfer ticket" pendingLabel="Transferring…" fullWidth />
+      </form>
+    </section>
+  ) : (
+    <JourneyPanel
+      title={
+        problem?.message ?? (signedIn ? 'This ticket isn’t yours to transfer' : 'Open your tickets first')
+      }
+      body="Open the latest link from your ticket email, or request a new one."
+      href="/tickets/find"
+      label="Find my tickets"
+    />
+  )}
+</Layout>
