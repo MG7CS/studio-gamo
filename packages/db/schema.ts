@@ -1375,6 +1375,7 @@ export const customerProfiles = sqliteTable(
 export const customerAccessTokens = sqliteTable(
   'customer_access_tokens',
   {
+    product: text('product'),
     id: text('id').primaryKey(),
     customerProfileId: text('customer_profile_id')
       .notNull()
@@ -1400,6 +1401,7 @@ export const customerAccessTokens = sqliteTable(
 export const customerSessions = sqliteTable(
   'customer_sessions',
   {
+    product: text('product'),
     id: text('id').primaryKey(),
     customerProfileId: text('customer_profile_id')
       .notNull()
