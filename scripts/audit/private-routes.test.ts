@@ -285,6 +285,22 @@ test('Stripe webhook rejects unsigned and badly signed payloads before touching 
     livemode: false,
     data: { object: {} },
   });
+  // Production never processes paid checkout: 503 whatever is configured. Pre-production checks the signature first.
+  const preview = { ...env, ENVIRONMENT: 'preview' };
+  const postUnsigned = async (e: typeof env) =>
+    (
+      await POST({
+        request: new Request('https://live.example.test/api/webhook/stripe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'stripe-signature': 't=1,v1=deadbeef' },
+          body,
+        }),
+        locals: { runtime: { env: e } },
+        params: {},
+      } as never)
+    ).status;
+  if (String((env as { ENVIRONMENT?: unknown }).ENVIRONMENT) === 'production')
+    assert.equal(await postUnsigned(env), 503, 'production answers 503 once the request is signed');
   for (const signature of [undefined, 't=1,v1=deadbeef']) {
     const request = new Request('https://live.example.test/api/webhook/stripe', {
       method: 'POST',
@@ -294,7 +310,7 @@ test('Stripe webhook rejects unsigned and badly signed payloads before touching 
       },
       body,
     });
-    const response = await POST({ request, locals: { runtime: { env } }, params: {} } as never);
+    const response = await POST({ request, locals: { runtime: { env: preview } }, params: {} } as never);
     assert.equal(response.status, 400, `signature ${signature ?? '(none)'}`);
   }
 });
