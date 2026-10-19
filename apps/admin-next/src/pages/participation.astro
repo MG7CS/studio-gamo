@@ -1,0 +1,92 @@
+---
+/**
+ * Participation requests: inquiries people sent through the public sites. GET lists them; POST saves a review
+ * (same-origin only, then ParticipationService.review) and redirects back with the outcome.
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Notice from '../components/Notice.astro';
+import EmptyState from '../components/EmptyState.astro';
+import InquiryCard from '../components/InquiryCard.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { getDb } from '@gamo/db';
+import { validateContract } from '@gamo/api-contracts/runtime';
+import { ParticipationService, getRuntimeEnv, participationReviewSchema } from '@gamo/domain';
+import {
+  INQUIRY_FILTERS,
+  INQUIRY_FILTER_LABELS,
+  INQUIRY_LIMIT,
+  inquiryFilterFrom,
+  loadInquiries,
+  reviewFailureMessage,
+} from '../lib/participation-data';
+
+const staff = Astro.locals.adminAuthSession;
+if (!staff) return new Response('Staff sign-in required.', { status: 401 });
+const env = await getRuntimeEnv(Astro);
+
+if (Astro.request.method === 'POST') {
+  let location = '/participation?done=1';
+  try {
+    requireSameOrigin(Astro.request);
+    const form = await Astro.request.formData();
+    const id = validateContract('Identifier', String(form.get('id') ?? '')) as string;
+    const input = participationReviewSchema.parse({
+      status: String(form.get('status') ?? ''),
+      notes: String(form.get('notes') ?? ''),
+    });
+    await new ParticipationService(getDb(env.DB)).review(id, staff.user.id, input);
+  } catch (error) {
+    location = `/participation?error=${encodeURIComponent(reviewFailureMessage(error))}`;
+  }
+  return Astro.redirect(location, 303);
+}
+
+const filter = inquiryFilterFrom(Astro.url);
+const { items, truncated } = await loadInquiries(env.DB, filter);
+const error = Astro.url.searchParams.get('error');
+const saved = Astro.url.searchParams.get('done') === '1';
+---
+
+<AdminLayout title="Participation requests" current="participation">
+  <PageHeader
+    title="Participation requests"
+    description="Review what people sent through the public sites. Your update is visible to the person who submitted the inquiry. Reviewing does not grant program access, approve a partnership or send a notification."
+  />
+  {error && <Notice tone="error" text={error} />}
+  {saved && <Notice tone="success" text="Review saved." />}
+  <nav aria-label="Filter by status" class="mb-5 flex flex-wrap gap-2">
+    {INQUIRY_FILTERS.map((f) => (
+      <a
+        href={`/participation?status=${f}`}
+        aria-current={f === filter ? 'page' : undefined}
+        class:list={[
+          'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold',
+          f === filter ? 'bg-charcoal text-cream' : 'bg-white text-charcoal ring-1 ring-sand',
+        ]}
+      >
+        {INQUIRY_FILTER_LABELS[f]}
+      </a>
+    ))}
+  </nav>
+  {items.length === 0 ? (
+    <EmptyState
+      text={
+        filter === 'pending'
+          ? 'No participation requests are waiting for review.'
+          : 'No participation requests in this state.'
+      }
+    />
+  ) : (
+    <ul class="space-y-5">
+      {items.map((inquiry) => (
+        <InquiryCard inquiry={inquiry} staffUserId={staff.user.id} />
+      ))}
+    </ul>
+  )}
+  {truncated && (
+    <p class="mt-4 text-sm text-ink-soft">
+      Showing the latest {INQUIRY_LIMIT}. Older requests are not listed.
+    </p>
+  )}
+</AdminLayout>
