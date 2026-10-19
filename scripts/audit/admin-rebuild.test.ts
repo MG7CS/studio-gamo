@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
 import { IdentityService } from '../../packages/domain/index.ts';
+import { createSession, resolveAuth, revokeOtherAdminSessions } from '../../packages/auth/index.ts';
 import { NAV_ITEMS, badgeFor } from '../../apps/admin-next/src/lib/nav.ts';
 import { loadQueueCounts, tallyQueueCounts } from '../../apps/admin-next/src/lib/queue-counts.ts';
 import { REVIEW_FIXTURE_COUNTS, buildReviewFixtureStatements } from '../e2e/admin-review-fixtures.ts';
@@ -314,4 +315,30 @@ test('no mock data, placeholder text or literal counts in the admin source', () 
       `${path}: literal count`,
     );
   }
+});
+
+// ---------------------------------------------------------------------------------------------
+// Password change rotates the other admin sessions.
+// ---------------------------------------------------------------------------------------------
+
+test('revokeOtherAdminSessions keeps the current admin session and leaves product sessions alone', async () => {
+  const d1 = await migrated();
+  const db = createDb(d1);
+  const user = await new IdentityService(db).findOrCreateUser('rotate.staff@example.invalid');
+  const keep = await createSession(db, user.id, SECRET);
+  const other = await createSession(db, user.id, SECRET);
+  const product = await createSession(db, user.id, SECRET, { product: 'live' });
+  const probe = (cookieValue: string) =>
+    resolveAuth(
+      new Request('https://admin.example.test/', {
+        headers: { cookie: `__session=${encodeURIComponent(cookieValue)}` },
+      }),
+      db,
+      SECRET,
+    );
+  assert.ok(await probe(other.cookieValue));
+  await revokeOtherAdminSessions(db, user.id, keep.sessionId);
+  assert.ok(await probe(keep.cookieValue), 'the current session stays signed in');
+  assert.equal(await probe(other.cookieValue), null, 'the other admin session is revoked');
+  assert.ok(await probe(product.cookieValue), 'a product session is not an admin session');
 });
