@@ -82,7 +82,8 @@ test('scanner link + PIN, then entry → exit → re-entry and a wrong-event tic
 
   expect(await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'admitted'")).toBe(2);
   expect(await count(worker, "SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'wrong_event'")).toBe(1);
-  expect(errors).toEqual([]);
+  // The deliberate wrong PIN answers 400; nothing else may log an error (CSP violations included).
+  expect(errors.filter((e) => !e.includes("status of 400"))).toEqual([]);
   await context.close();
 });
 
