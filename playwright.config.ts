@@ -17,6 +17,14 @@ const apps = [
   ['production', 4325],
 ] as const;
 
+// `E2E_APPS=live,web pnpm test:e2e tests/e2e/live-tickets.spec.ts` starts only the listed apps' preview
+// servers (default: all five), so a single spec does not pay for five servers.
+const wanted = (process.env.E2E_APPS ?? '')
+  .split(',')
+  .map((a) => a.trim())
+  .filter(Boolean);
+const selectedApps = wanted.length ? apps.filter(([app]) => wanted.includes(app)) : apps;
+
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
@@ -25,7 +33,7 @@ export default defineConfig({
   timeout: 600_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://127.0.0.1:4321' },
-  webServer: apps.map(([app, port]) => ({
+  webServer: selectedApps.map(([app, port]) => ({
     // A local DB made by the old editorial CLI has tables but no migration records; the apply then
     // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
     command:
