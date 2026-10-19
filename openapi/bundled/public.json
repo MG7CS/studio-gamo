@@ -1986,6 +1986,516 @@
           }
         }
       }
+    },
+    "/api/scanner/scan": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "scanTicketAtDoor",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Scan a ticket in or out at the door",
+        "description": "Verifies a GL1 code (or a legacy gamt_ pass) and lets the database decide admission (one conditional presence upsert). Results expose first name and last initial, category, section and zone only. Rate-limited per device.",
+        "security": [
+          {
+            "ScannerDevice": []
+          },
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId. Same-origin required for POST.",
+        "x-idempotency": "clientScanId is recorded once per scanner session; a repeat answers the stored result with repeated=true.",
+        "x-source": "apps/live/src/pages/api/scanner/scan.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerScanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerScanInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scanner/lookup": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "lookupTicketsAtDoor",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Manual ticket lookup (dead phone, name check)",
+        "description": "Finds up to 10 tickets of the event by order reference, email (exact) or name. Organizer accounts and supervisor scanner sessions (can_override) only. Every result is written to ticket_access_log.",
+        "security": [
+          {
+            "ScannerDevice": []
+          },
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Supervisor scanner device for this event or a verified Gamo Live session with scan_tickets on eventId.",
+        "x-idempotency": "Read-only (each call is logged).",
+        "x-source": "apps/live/src/pages/api/scanner/lookup.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerLookupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerLookupInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scanner/override": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "overrideAdmitAtDoor",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Admit a ticket without its code, with a reason",
+        "description": "Supervisor override: lifts the entry limit but never admits someone already inside; zones and the scan window still apply. Recorded as override_admitted with the reason and in ticket_access_log.",
+        "security": [
+          {
+            "ScannerDevice": []
+          },
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Supervisor scanner device for this event or a verified Gamo Live session with scan_tickets on eventId.",
+        "x-idempotency": "clientScanId is recorded once per scanner session.",
+        "x-source": "apps/live/src/pages/api/scanner/override.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerScanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerOverrideInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scanner/manifest": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "getScannerManifest",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Offline manifest for a scanner device",
+        "description": "Event-scoped list of ticket id parts, versions, MAC digests, category, section, zone, status, presence and holder initials, for offline verification. No emails, full names or order data. Supports If-None-Match.",
+        "security": [
+          {
+            "ScannerDevice": []
+          },
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId.",
+        "x-idempotency": "Safe; ETag reflects the content (304 when unchanged).",
+        "x-source": "apps/live/src/pages/api/scanner/manifest.ts",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "required": true,
+            "description": "The event the scanner works.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "ETag": {
+                "description": "Content version of the manifest.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerManifestResponse"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified (If-None-Match matched the current ETag)."
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/scanner/sync": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "post": {
+        "operationId": "syncOfflineScans",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Replay a device’s offline scan queue",
+        "description": "Replays up to 200 queued scans in device-time order through the same statements as online scanning. Scans that lost to an earlier admission are flagged duplicate_offline and counted in needsReview. Scanner devices only.",
+        "security": [
+          {
+            "ScannerDevice": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Scanner device cookie for this event. Same-origin required.",
+        "x-idempotency": "Each clientScanId is recorded once; a retried sync records nothing new.",
+        "x-source": "apps/live/src/pages/api/scanner/sync.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerSyncResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerSyncInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scanner/headcount": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "getScannerHeadcount",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Live headcount for the scanner screen",
+        "description": "People inside now, admitted today (venue-local day) and capacity. Polled every 10 seconds while online.",
+        "security": [
+          {
+            "ScannerDevice": []
+          },
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId.",
+        "x-idempotency": "Safe.",
+        "x-source": "apps/live/src/pages/api/scanner/headcount.ts",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "query",
+            "required": true,
+            "description": "The event the scanner works.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerHeadcountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/venue-maps/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4324",
+          "description": "Local live application"
+        }
+      ],
+      "get": {
+        "operationId": "getVenueMapImage",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Venue blueprint image",
+        "description": "Serves an uploaded blueprint (PNG, JPEG, WebP or sanitised SVG) as an image with X-Content-Type-Options nosniff and Content-Security-Policy sandbox; never inlined into pages. Archived blueprints are not served. Cacheable by content hash (the v query parameter).",
+        "security": [],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Public (blueprint ids are random; only non-archived blueprints are served).",
+        "x-idempotency": "Safe.",
+        "x-source": "apps/live/src/pages/api/venue-maps/[id].ts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Venue blueprint identifier (vmap_…).",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "v",
+            "in": "query",
+            "required": false,
+            "description": "Content hash prefix (cache key only).",
+            "schema": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The blueprint image.",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified."
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4984,6 +5494,560 @@
           "role"
         ]
       },
+      "ScannerScanInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "code": {
+            "type": "string",
+            "description": "Scanned or typed ticket code (GL1 payload, or a legacy gamt_ pass).",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "in",
+              "out"
+            ]
+          },
+          "clientScanId": {
+            "$ref": "#/components/schemas/ClientScanId"
+          },
+          "gate": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "eventId",
+          "code",
+          "direction"
+        ]
+      },
+      "ScannerScanResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScanOutcome"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ScannerLookupInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "query": {
+            "type": "string",
+            "description": "Holder or purchaser name (contains), email (exact) or order reference (exact).",
+            "minLength": 2,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "eventId",
+          "query"
+        ]
+      },
+      "ScannerLookupResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "truncated": {
+                "type": "boolean"
+              },
+              "results": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "ticketId": {
+                      "type": "string"
+                    },
+                    "holderName": {
+                      "type": "string"
+                    },
+                    "emailMasked": {
+                      "type": "string"
+                    },
+                    "orderReference": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "section": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "inside": {
+                      "type": "boolean"
+                    },
+                    "entriesToday": {
+                      "type": "integer"
+                    },
+                    "legacy": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ticketId",
+                    "holderName",
+                    "emailMasked",
+                    "orderReference",
+                    "category",
+                    "section",
+                    "status",
+                    "inside",
+                    "entriesToday",
+                    "legacy"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "truncated",
+              "results"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ScannerOverrideInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "ticketId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 300
+          },
+          "clientScanId": {
+            "$ref": "#/components/schemas/ClientScanId"
+          }
+        },
+        "required": [
+          "eventId",
+          "ticketId",
+          "reason"
+        ]
+      },
+      "ScannerManifestResponse": {
+        "type": "object",
+        "description": "Event-scoped offline manifest. No emails, no full names, no order data.",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "v": {
+                "const": 1
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "eventTitle": {
+                "type": "string"
+              },
+              "timeZone": {
+                "type": "string"
+              },
+              "startsAt": {
+                "type": "integer"
+              },
+              "endsAt": {
+                "type": "integer"
+              },
+              "opensAt": {
+                "type": "integer"
+              },
+              "cancelled": {
+                "type": "boolean"
+              },
+              "maxEntriesPerDay": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "generatedAt": {
+                "type": "integer"
+              },
+              "categories": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "validDays": {
+                      "type": [
+                        "array",
+                        "null"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "seats": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "validDays",
+                    "seats"
+                  ]
+                }
+              },
+              "tickets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "i": {
+                      "type": "string",
+                      "description": "QR id part (26 Crockford symbols)."
+                    },
+                    "v": {
+                      "type": "integer"
+                    },
+                    "d": {
+                      "type": "string",
+                      "description": "SHA-256 hex of the current QR MAC."
+                    },
+                    "c": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "s": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "z": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "st": {
+                      "type": "string",
+                      "enum": [
+                        "valid",
+                        "voided",
+                        "refunded"
+                      ]
+                    },
+                    "n": {
+                      "type": "string",
+                      "description": "First name and last initial."
+                    },
+                    "p": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "s": {
+                            "type": "string",
+                            "enum": [
+                              "inside",
+                              "outside"
+                            ]
+                          },
+                          "e": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "s",
+                          "e"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "i",
+                    "v",
+                    "d",
+                    "c",
+                    "s",
+                    "z",
+                    "st",
+                    "n",
+                    "p"
+                  ]
+                }
+              },
+              "legacy": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "h": {
+                      "type": "string"
+                    },
+                    "n": {
+                      "type": "string"
+                    },
+                    "c": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "st": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "h",
+                    "n",
+                    "c",
+                    "st"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "v",
+              "eventId",
+              "eventTitle",
+              "timeZone",
+              "startsAt",
+              "endsAt",
+              "opensAt",
+              "cancelled",
+              "maxEntriesPerDay",
+              "generatedAt",
+              "categories",
+              "tickets",
+              "legacy"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ScannerSyncInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "scans": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "clientScanId": {
+                  "$ref": "#/components/schemas/ClientScanId"
+                },
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "in",
+                    "out"
+                  ]
+                },
+                "deviceScannedAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Device clock, epoch seconds."
+                },
+                "localResult": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ScanResult"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "clientScanId",
+                "code",
+                "direction",
+                "deviceScannedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "eventId",
+          "scans"
+        ]
+      },
+      "ScannerSyncResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "needsReview": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "headcount": {
+                "$ref": "#/components/schemas/ScannerHeadcount"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "clientScanId": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "$ref": "#/components/schemas/ScanResult"
+                    },
+                    "conflict": {
+                      "$ref": "#/components/schemas/ScanConflict"
+                    },
+                    "localResult": {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/ScanResult"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "needsReview": {
+                      "type": "boolean"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "holder": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "clientScanId",
+                    "result",
+                    "conflict",
+                    "localResult",
+                    "needsReview",
+                    "title",
+                    "message",
+                    "holder"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "needsReview",
+              "headcount",
+              "results"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ScannerHeadcountResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScannerHeadcount"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
       "category": {
         "type": "string",
         "enum": [
@@ -5030,6 +6094,228 @@
           "1",
           "0"
         ]
+      },
+      "ClientScanId": {
+        "type": "string",
+        "description": "Device-generated id; the same id twice from one scanner session is recorded once.",
+        "pattern": "^[A-Za-z0-9_-]{1,64}$"
+      },
+      "ScanResult": {
+        "type": "string",
+        "description": "Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner.",
+        "enum": [
+          "admitted",
+          "exited",
+          "already_inside",
+          "already_used",
+          "reentry_denied",
+          "not_inside",
+          "wrong_event",
+          "wrong_zone",
+          "voided",
+          "refunded",
+          "stale_version",
+          "invalid",
+          "not_found",
+          "not_open_yet",
+          "event_cancelled",
+          "override_admitted"
+        ]
+      },
+      "ScanConflict": {
+        "type": "string",
+        "enum": [
+          "none",
+          "duplicate_offline",
+          "superseded"
+        ]
+      },
+      "ScanTicketView": {
+        "type": "object",
+        "description": "What a scanner may see about a ticket. Never an email, full name or order data.",
+        "additionalProperties": false,
+        "properties": {
+          "holder": {
+            "type": "string",
+            "description": "First name and last initial only."
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seatsPerTicket": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "holder",
+          "category",
+          "section",
+          "zone",
+          "seatsPerTicket"
+        ]
+      },
+      "ScanOutcome": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ScanResult"
+          },
+          "admitted": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "scanId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conflict": {
+            "$ref": "#/components/schemas/ScanConflict"
+          },
+          "repeated": {
+            "type": "boolean",
+            "description": "This client scan id had already been recorded; the stored result is returned."
+          },
+          "offline": {
+            "type": "boolean"
+          },
+          "ticket": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ScanTicketView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "at": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "atText": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "gate": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "allowedZones": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "eventTitle": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "validDays": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "opensAt": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "at",
+              "atText",
+              "gate",
+              "allowedZones",
+              "eventTitle",
+              "validDays",
+              "opensAt"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "admitted",
+          "title",
+          "message",
+          "scanId",
+          "conflict",
+          "repeated",
+          "offline",
+          "ticket",
+          "detail"
+        ]
+      },
+      "ScannerHeadcount": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dayKey": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "insideNow": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "admittedToday": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "dayKey",
+          "insideNow",
+          "admittedToday",
+          "capacity"
+        ]
       }
     },
     "securitySchemes": {
@@ -5044,6 +6330,12 @@
         "in": "header",
         "name": "Stripe-Signature",
         "description": "HMAC SHA256 over timestamp and exact raw request body. Replay tolerance enforced. Test events only."
+      },
+      "ScannerDevice": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "gamo_scanner",
+        "description": "Door-staff scanner device cookie (HMAC-signed device id, purpose scanner_device, at most 12 hours and never past the gate session's expiry). Issued after the gate PIN; path-scoped to /scan and /api/scanner. Not an account."
       }
     },
     "responses": {

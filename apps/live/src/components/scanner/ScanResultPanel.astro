@@ -1,0 +1,71 @@
+---
+/**
+ * The large scan result: tone colour + icon + verb + title + plain-language next step, and the little
+ * the scanner may know about the ticket (first name + last initial, category, section/zone).
+ * The live region is assertive so a screen reader announces every result. The client script
+ * (scripts/scanner/render.ts) fills the same structure.
+ */
+import type { ScanOutcome } from '@gamo/domain/scanner';
+import { TONE_CLASSES, TONE_ICON, TONE_LABEL, toneOf } from '../../lib/scan-result-style';
+
+interface Props {
+  outcome?: ScanOutcome | null;
+  /** Error from the request itself (not a scan result), e.g. an ended link. */
+  error?: string | null;
+}
+const { outcome, error } = Astro.props;
+const tone = outcome ? toneOf(outcome.result) : error ? 'stop' : null;
+const t = outcome?.ticket;
+---
+
+<section
+  data-result-panel
+  aria-live="assertive"
+  aria-atomic="true"
+  aria-label="Scan result"
+  class:list={[
+    'rounded-[24px] p-5 transition-colors',
+    tone ? TONE_CLASSES[tone] : 'bg-white/5 text-cream ring-1 ring-white/15',
+  ]}
+>
+  {tone ? (
+    <div class="flex items-start gap-4" data-result={outcome?.result ?? 'error'}>
+      <svg
+        viewBox="0 0 24 24"
+        class="size-14 shrink-0"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="10.5" stroke-width="1.6" />
+        <path d={TONE_ICON[tone]} />
+      </svg>
+      <div class="min-w-0">
+        <p class="text-xs font-bold tracking-[0.2em] uppercase">{TONE_LABEL[tone]}</p>
+        <p class="text-3xl leading-tight font-black uppercase" data-result-title>
+          {outcome?.title ?? 'Not recorded'}
+        </p>
+        <p class="mt-1 text-base" data-result-message>
+          {outcome?.message ?? error}
+        </p>
+        {t && (
+          <p class="mt-2 text-base font-semibold" data-result-ticket>
+            {t.holder}
+            {t.category ? ` · ${t.category}` : ''}
+            {t.section ? ` · ${t.section}` : ''}
+            {t.zone ? ` · Zone ${t.zone}` : ''}
+            {t.seatsPerTicket > 1 ? ` · Group of ${t.seatsPerTicket}` : ''}
+          </p>
+        )}
+        {outcome?.repeated && <p class="mt-1 text-sm">Already recorded — showing the earlier result.</p>}
+      </div>
+    </div>
+  ) : (
+    <p class="text-base" data-result-idle>
+      Ready. Point the camera at a ticket, or type the code below.
+    </p>
+  )}
+</section>

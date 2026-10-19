@@ -1,0 +1,68 @@
+---
+/** Sold / held / capacity / gross per category or section (gross only for those who may see it). */
+import { formatMinorUnits, type SalesRow } from '@gamo/domain/scanner';
+
+interface Props {
+  caption: string;
+  rows: Array<SalesRow & { code?: string; categoryName?: string }>;
+  showGross: boolean;
+  firstColumn: string;
+}
+const { caption, rows, showGross, firstColumn } = Astro.props;
+---
+
+<div class="overflow-x-auto rounded-[20px] bg-white ring-1 ring-sand">
+  <table class="w-full min-w-[520px] text-left text-sm">
+    <caption class="px-4 pt-4 text-left text-base font-black text-ink uppercase">{caption}</caption>
+    <thead>
+      <tr class="border-b border-sand text-xs tracking-wider text-muted uppercase">
+        <th scope="col" class="px-4 py-3">
+          {firstColumn}
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Sold
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Held
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Left
+        </th>
+        <th scope="col" class="px-4 py-3 text-right">
+          Capacity
+        </th>
+        {showGross && (
+          <th scope="col" class="px-4 py-3 text-right">
+            Gross
+          </th>
+        )}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.length === 0 ? (
+        <tr>
+          <td colspan={showGross ? 6 : 5} class="px-4 py-4 text-muted">
+            Nothing yet.
+          </td>
+        </tr>
+      ) : (
+        rows.map((r) => (
+          <tr class="border-b border-sand last:border-0">
+            <th scope="row" class="px-4 py-3 font-semibold text-ink">
+              {r.name}
+              {r.code && <span class="ml-1 text-muted">({r.code})</span>}
+              {r.categoryName && <span class="block text-xs font-normal text-muted">{r.categoryName}</span>}
+            </th>
+            <td class="px-4 py-3 text-right tabular-nums">{r.sold}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{r.held}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{r.remaining}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{r.capacity}</td>
+            {showGross && (
+              <td class="px-4 py-3 text-right tabular-nums">{formatMinorUnits(r.grossCents, r.currency)}</td>
+            )}
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>

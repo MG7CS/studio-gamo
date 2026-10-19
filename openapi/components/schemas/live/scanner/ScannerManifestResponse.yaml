@@ -1,0 +1,151 @@
+type: object
+description: Event-scoped offline manifest. No emails, no full names, no order data.
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      v:
+        const: 1
+      eventId:
+        type: string
+      eventTitle:
+        type: string
+      timeZone:
+        type: string
+      startsAt:
+        type: integer
+      endsAt:
+        type: integer
+      opensAt:
+        type: integer
+      cancelled:
+        type: boolean
+      maxEntriesPerDay:
+        type:
+          - integer
+          - 'null'
+      generatedAt:
+        type: integer
+      categories:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: false
+          properties:
+            name:
+              type: string
+            validDays:
+              type:
+                - array
+                - 'null'
+              items:
+                type: string
+            seats:
+              type: integer
+          required:
+            - name
+            - validDays
+            - seats
+      tickets:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          properties:
+            i:
+              type: string
+              description: QR id part (26 Crockford symbols).
+            v:
+              type: integer
+            d:
+              type: string
+              description: SHA-256 hex of the current QR MAC.
+            c:
+              type:
+                - string
+                - 'null'
+            s:
+              type:
+                - string
+                - 'null'
+            z:
+              type: array
+              items:
+                type: string
+            st:
+              type: string
+              enum:
+                - valid
+                - voided
+                - refunded
+            n:
+              type: string
+              description: First name and last initial.
+            p:
+              type: object
+              additionalProperties:
+                type: object
+                additionalProperties: false
+                properties:
+                  s:
+                    type: string
+                    enum:
+                      - inside
+                      - outside
+                  e:
+                    type: integer
+                required:
+                  - s
+                  - e
+          required:
+            - i
+            - v
+            - d
+            - c
+            - s
+            - z
+            - st
+            - n
+            - p
+      legacy:
+        type: array
+        items:
+          type: object
+          additionalProperties: false
+          properties:
+            h:
+              type: string
+            n:
+              type: string
+            c:
+              type:
+                - string
+                - 'null'
+            st:
+              type: string
+          required:
+            - h
+            - n
+            - c
+            - st
+    required:
+      - v
+      - eventId
+      - eventTitle
+      - timeZone
+      - startsAt
+      - endsAt
+      - opensAt
+      - cancelled
+      - maxEntriesPerDay
+      - generatedAt
+      - categories
+      - tickets
+      - legacy
+required:
+  - success
+  - data

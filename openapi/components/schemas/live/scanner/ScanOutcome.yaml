@@ -1,0 +1,81 @@
+type: object
+additionalProperties: false
+properties:
+  result:
+    $ref: ./ScanResult.yaml
+  admitted:
+    type: boolean
+  title:
+    type: string
+  message:
+    type: string
+  scanId:
+    type:
+      - string
+      - 'null'
+  conflict:
+    $ref: ./ScanConflict.yaml
+  repeated:
+    type: boolean
+    description: This client scan id had already been recorded; the stored result is returned.
+  offline:
+    type: boolean
+  ticket:
+    oneOf:
+      - $ref: ./ScanTicketView.yaml
+      - type: 'null'
+  detail:
+    type: object
+    additionalProperties: false
+    properties:
+      at:
+        type:
+          - integer
+          - 'null'
+      atText:
+        type:
+          - string
+          - 'null'
+      gate:
+        type:
+          - string
+          - 'null'
+      allowedZones:
+        type:
+          - array
+          - 'null'
+        items:
+          type: string
+      eventTitle:
+        type:
+          - string
+          - 'null'
+      validDays:
+        type:
+          - array
+          - 'null'
+        items:
+          type: string
+      opensAt:
+        type:
+          - integer
+          - 'null'
+    required:
+      - at
+      - atText
+      - gate
+      - allowedZones
+      - eventTitle
+      - validDays
+      - opensAt
+required:
+  - result
+  - admitted
+  - title
+  - message
+  - scanId
+  - conflict
+  - repeated
+  - offline
+  - ticket
+  - detail

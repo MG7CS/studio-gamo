@@ -5,7 +5,8 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/promote', to: '/promote/create', status: 303 },
   { from: '/promote/status', to: '/workspaces' },
   { from: '/organizer/events/new', to: '/promote/create', status: 303 },
-  { from: '/organizer/*', to: '/workspaces' },
+  // /organizer and /organizer/events/<id>/… are the Agent C event tools now; only the retired scan page moves.
+  { from: '/organizer/scan', to: '/workspaces' },
   { from: '/artist/*', to: '/workspaces' },
   { from: '/agent/*', to: '/workspaces' },
   { from: '/me/*', to: '/workspaces' },

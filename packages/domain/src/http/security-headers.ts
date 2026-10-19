@@ -155,6 +155,9 @@ export function requestSecurityHeaders(
 /** Sets the headers on `response`, copying it first if its headers are immutable. */
 export function withSecurityHeaders(response: Response, options: SecurityHeaderOptions): Response {
   const headers = securityHeaders(options);
+  // A response that already sandboxes itself (uploaded venue blueprints, Agent C) keeps its stricter CSP.
+  if (/(^|;)\s*sandbox\b/.test(response.headers.get('content-security-policy') ?? ''))
+    delete headers['Content-Security-Policy'];
   let target = response;
   try {
     for (const [name, value] of Object.entries(headers)) target.headers.set(name, value);

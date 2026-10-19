@@ -1,0 +1,123 @@
+---
+/** Scan log with filters (result, gate, device, conflicts), offline conflict review and CSV export. */
+import OrganizerPageShell from '../../../../components/organizer/OrganizerPageShell.astro';
+import OrganizerNotice from '../../../../components/organizer/OrganizerNotice.astro';
+import ScanLogTable from '../../../../components/organizer/ScanLogTable.astro';
+import { nowSeconds, readPostedForm, resolveOrganizerEvent } from '../../../../lib/organizer-pages';
+import { markConflictReviewed, scanLog } from '@gamo/domain/scanner';
+import { SCAN_RESULTS } from '@gamo/domain/types';
+
+export const prerender = false;
+
+const eventId = Astro.params.id ?? '';
+const resolved = await resolveOrganizerEvent(Astro, eventId, 'manage_ticketing');
+let notice: string | null = null;
+if (!resolved.ok) Astro.response.status = resolved.status;
+else if (Astro.request.method === 'POST') {
+  const form = await readPostedForm(Astro.request);
+  if (!form.ok) notice = form.message;
+  else if (form.body.get('action') === 'review') {
+    const ok = await markConflictReviewed(resolved.ctx.db, {
+      eventId,
+      scanEventId: form.body.get('scan_id') ?? '',
+      userId: resolved.ctx.auth.user.id,
+      now: nowSeconds(),
+    });
+    notice = ok ? 'Marked as reviewed.' : 'That conflict was already reviewed.';
+  }
+}
+const ctx = resolved.ok ? resolved.ctx : null;
+const q = Astro.url.searchParams;
+const filters = {
+  result: q.get('result') || null,
+  gate: q.get('gate') || null,
+  deviceId: q.get('device') || null,
+  conflictsOnly: q.get('conflicts') === '1',
+  limit: 200,
+};
+const log = ctx ? await scanLog(ctx.db, eventId, filters) : null;
+const exportQuery = new URLSearchParams({
+  kind: 'scans',
+  ...Object.fromEntries(
+    [...q.entries()].filter(([k]) => ['result', 'gate', 'device', 'conflicts'].includes(k)),
+  ),
+});
+const selectClass = 'mt-1 min-h-11 w-full rounded-xl border border-ink/50 bg-white px-3 text-sm';
+---
+
+<OrganizerPageShell
+  title="Scan log"
+  eventId={eventId}
+  eventTitle={ctx?.event.title}
+  current="scans"
+  denied={resolved.ok ? null : resolved.message}
+>
+  {notice && <OrganizerNotice kind="success">{notice}</OrganizerNotice>}
+  {ctx && log && (
+    <>
+      <form
+        method="get"
+        class="grid gap-3 rounded-[20px] bg-white p-4 ring-1 ring-sand sm:grid-cols-2 lg:grid-cols-5 lg:items-end"
+      >
+        <label class="text-sm font-semibold">
+          Result
+          <select name="result" class={selectClass}>
+            <option value="">All results</option>
+            {SCAN_RESULTS.map((r) => (
+              <option value={r} selected={filters.result === r}>
+                {r.replaceAll('_', ' ')}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="text-sm font-semibold">
+          Gate
+          <select name="gate" class={selectClass}>
+            <option value="">All gates</option>
+            {log.gates.map((g) => (
+              <option value={g} selected={filters.gate === g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="text-sm font-semibold">
+          Device
+          <select name="device" class={selectClass}>
+            <option value="">All devices</option>
+            {log.devices.map((d) => (
+              <option value={d.id} selected={filters.deviceId === d.id}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="flex min-h-11 items-center gap-2 text-sm font-semibold">
+          <input
+            type="checkbox"
+            name="conflicts"
+            value="1"
+            checked={filters.conflictsOnly}
+            class="size-5 accent-terracotta"
+          />
+          Offline conflicts only
+        </label>
+        <button
+          type="submit"
+          class="min-h-11 rounded-full bg-ink px-5 text-sm font-semibold text-cream hover:bg-terracotta-deep"
+        >
+          Filter
+        </button>
+      </form>
+      <p>
+        <a
+          href={`/organizer/events/${encodeURIComponent(eventId)}/export?${exportQuery}`}
+          class="inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold ring-1 ring-ink/40 hover:bg-sand"
+        >
+          Download this log (CSV)
+        </a>
+      </p>
+      <ScanLogTable rows={log.rows} total={log.total} />
+    </>
+  )}
+</OrganizerPageShell>
