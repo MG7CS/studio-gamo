@@ -61,7 +61,9 @@ export function problemFromError(err: unknown): FormProblem {
       headers: err.details?.retryAfterSeconds ? { 'Retry-After': String(err.details.retryAfterSeconds) } : {},
     };
   }
-  console.error('[live] unexpected page error');
+  console.error(
+    `[live] unexpected page error: ${err instanceof Error ? `${err.name}: ${err.message.slice(0, 160)}` : typeof err}`,
+  );
   return {
     status: 500,
     message: 'Something went wrong on our side. Please try again in a moment.',

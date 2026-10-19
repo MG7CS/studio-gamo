@@ -79,6 +79,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/tickets/[id]/ticket.pdf',
     '/tickets/[id]/qr.png',
     '/local-test/inbox',
+    '/local-test/fixtures',
     '/local-test/stripe-checkout/[session]',
     '/venues',
     '/artists',
