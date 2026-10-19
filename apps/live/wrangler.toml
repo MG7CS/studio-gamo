@@ -48,6 +48,8 @@ name = "gamo-live-preview"
 workers_dev = true
 [env.preview.vars]
 ENVIRONMENT = "preview"
+PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa4P6c3vDrYW8Qo"
+STRIPE_TEST_CHECKOUT = "true"
 ALLOW_DEMO_SESSION = "false"
 STRIPE_SANDBOX_ENABLED = "true"
 PLATFORM_BRAND = "Gamo Live"
