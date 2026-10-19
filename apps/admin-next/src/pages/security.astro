@@ -1,0 +1,71 @@
+---
+/**
+ * Password & security. GET shows the form (and the temporary-password prompt, from the database, not from
+ * the URL); POST changes the password (same-origin, current password verified server-side) and redirects.
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Notice from '../components/Notice.astro';
+import PasswordForm from '../components/PasswordForm.astro';
+import { AuthError, getAdminCredentialStatus } from '@gamo/auth';
+import { getDb } from '@gamo/db';
+import { getRuntimeEnv } from '@gamo/domain';
+import { changePasswordFromForm } from '../lib/gate';
+
+const staff = Astro.locals.adminAuthSession;
+if (!staff) return new Response('Staff sign-in required.', { status: 401 });
+const env = await getRuntimeEnv(Astro);
+
+let error: string | undefined;
+if (Astro.request.method === 'POST') {
+  try {
+    const result = await changePasswordFromForm(Astro.request, env, staff);
+    if (result.ok) return Astro.redirect('/security?updated=1', 303);
+    error = result.error;
+  } catch (e) {
+    if (!(e instanceof AuthError)) throw e;
+    error = 'That request came from another site and was refused.';
+  }
+  Astro.response.status = 400;
+}
+
+// Lookup failure is treated as "temporary password": the safer prompt, never a silent success.
+let temporary = true;
+let updatedAt: Date | null = null;
+try {
+  const status = await getAdminCredentialStatus(getDb(env.DB), staff.user.id);
+  if (status) {
+    temporary = status.mustChangePassword;
+    updatedAt = status.updatedAt;
+  }
+} catch {
+  console.error('[admin] credential status unavailable');
+}
+const updated = Astro.url.searchParams.get('updated') === '1';
+const lastUpdated = updatedAt
+  ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeZone: 'America/Phoenix' }).format(updatedAt)
+  : null;
+---
+
+<AdminLayout title="Password & security" current="security">
+  <PageHeader
+    title="Password & security"
+    description={`Signed in as ${staff.user.email}.${lastUpdated && !temporary ? ` Password last changed ${lastUpdated}.` : ''}`}
+  />
+  {updated && !error && (
+    <Notice
+      tone="success"
+      title="Password updated"
+      text="Your new password is active for signing in to the admin."
+    />
+  )}
+  {error && <Notice tone="error" title="Password not changed" text={error} />}
+  {temporary && !updated && (
+    <Notice
+      tone="warning"
+      title="Choose a new password"
+      text="You signed in with a temporary password. Enter it below and choose your own before using the admin."
+    />
+  )}
+  <PasswordForm email={staff.user.email} temporary={temporary} />
+</AdminLayout>
