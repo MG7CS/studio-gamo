@@ -190,3 +190,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 
 - **Decision** (owner, after reviewing localhost; no gradients anywhere): admin pages keep the claymorphism shapes and shadows but use the same palette as every other app (shared `tokens.css`). The lavender palette, the invented logo chip and the background blobs are gone; the layout is full-page, the sidebar collapses to an icon rail, the brand is the Gamo Studios logo with an "Admin" label. The earlier palette exception no longer applies; the claymorphism design remains the admin's UI design.
 
+## 2026-10-19 — Rebuild the product side from scratch; rules reset
+
+- **Decision** (owner): rebuild every non-marketing page, API, the backend, data model, tests and the rules/docs from scratch; keep the marketing pages and the admin's Cloudflare Access gate and shell. Fresh data model (production holds no real user data), Live first, public sign-in redesigned, production frozen for the public apps until each rebuilt product ships. Rules now live in the rewritten `AGENTS.md`; the old rules are listed there as retired. Plan: `docs/REBUILD_PLAN.md`.
+

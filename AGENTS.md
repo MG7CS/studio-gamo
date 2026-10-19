@@ -1,197 +1,78 @@
-# AGENTS.md — Gamo Studios Development Contract
+# AGENTS.md — Gamo Studios
 
-You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Treat this file as persistent project instructions. Follow `SECURITY.md` before every external integration.
+Persistent instructions for anyone (person or agent) working in this repository. Rewritten 2026-10-19 for the rebuild: the product side of every app is being rebuilt from scratch ([`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md)). Older rules that described the previous product logic are listed at the end as retired; do not follow them.
 
-## Organizational mission (permanent — read first)
+## 1. Mission and wording (permanent)
 
-**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Studios is a **Public Benefit Corporation** (confirmed by the owner), formed to be mission-driven and not only profit-seeking. Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are interconnected programs serving one religious and educational mission, not independent profit centers. The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
+**Gamo Studios is a Christian, mission-driven Public Benefit Corporation.** Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are connected programs serving one religious and educational mission, not independent profit centers. The mission reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (historical file name; the PBC statement below prevails over any "nonprofit" wording in it).
 
-- Evaluate success by religious and educational impact, program accessibility, service reliability, musician and instructor fairness, community trust, church collaboration, responsible stewardship, financial sustainability and long-term mission effectiveness.
-- **Do not**, without explicit founder/board authorization: introduce commercialization strategies, maximize or add fees, turn free/sponsored programs into paid services, deduct from musician or instructor pay, or let payment/sponsorship/partnership affect vetting, rankings or trust signals.
-- **Legal status (approved by the owner):** Gamo Studios is a **Christian, mission-driven Public Benefit Corporation**, formed to be mission-driven and not only profit-seeking. This PBC statement is approved wording and may be used on public pages, emails, llms.txt and structured data. A PBC is a for-profit company type: Gamo Studios is **NOT a nonprofit** and is **NOT tax-exempt**.
-- **Never** write or imply "nonprofit", "non-profit", "not-for-profit", "501(c)(3)", "tax-exempt", "tax-deductible", "charitable", "charity" (for Gamo itself), or "donation/donor" language, on any public page, email, metadata or structured data. Do not add sentences about tax-exempt recognition, "legal status under evaluation" or deductible gifts. Also never claim IRS approval, registration numbers, committed board members, sponsors, donors or partner churches.
-- Existing docs and file names that say "nonprofit" (for example `docs/GAMO_NONPROFIT_MODEL.md`, `docs/NONPROFIT_TRANSITION_CHECKLIST.md`) are historical names; where their text says nonprofit or tax-exempt, this PBC statement prevails.
+- A PBC is a for-profit company type. Gamo Studios is **not a nonprofit** and **not tax-exempt**. Never write or imply "nonprofit", "non-profit", "not-for-profit", "501(c)(3)", "tax-exempt", "tax-deductible", "charitable", "charity" (for Gamo itself) or "donation/donor" on any public page, email, metadata or structured data. Never claim IRS approval, registration numbers, committed board members, sponsors, donors or partner churches.
+- Judge success by religious and educational impact, accessibility, reliability, musician and instructor fairness, community trust, church collaboration and responsible stewardship. Financial sustainability matters but is subordinate to the mission.
+- Without explicit owner approval, never: add or raise fees, turn free or sponsored programs into paid ones, deduct from musician or instructor pay, or let payment, sponsorship or partnership affect vetting, rankings or trust signals. Sponsored content is always visibly labeled.
+- Musician pay and any Gamo administrative allocation are always separate line items. All fees, contributions and tiers are proposals until approved.
+- No donation, membership or sponsorship payment processing until the prerequisites in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) are met.
 - Gamo Live serves **Christian events nationwide**; never define eligibility by ethnicity or nationality.
-- Gamo Academy speaks first to students, parents and families. The approved headline is **"Learn to Play the Instrument You Love."**
-- Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
-- Do not enable donation, membership or sponsorship payment processing until the legal prerequisites in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) are met.
-- Avoid corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value") when describing the mission.
+- Gamo Academy speaks first to students, parents and families; the approved headline is **"Learn to Play the Instrument You Love."**
+- No corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value").
+- Email: the verified sending domain is `gamostudio.org` (contact `hello@gamostudio.org`); `scripts/audit/email-domain.test.ts` fails on the misspelled extra-"s" domain.
 
-Financial sustainability is important, but it is subordinate to the mission.
+## 2. How the owner works with you (permanent)
 
-## Required reading order
+- **Tests run only when the owner asks.** Write and update tests alongside the code, but do not run tests, `pnpm check`, Playwright or the journeys on your own initiative. When asked, run exactly what was asked, once. Say plainly which tests were not run. Builds, typechecks, lint and format checks are fine.
+- **Commits:** never run `git commit`. When work is ready, give a ready-to-paste command (`git add …` and `git commit -m "…"`) with a short one-line message, no body, no attribution trailers.
+- **Never** deploy, push to a remote, change DNS, change secrets or security settings, spend money, send real emails, charge cards, run payouts, run destructive database operations, or publish legal terms as final without the owner's explicit approval for that action.
+- **Dev servers belong to the owner.** Never stop, kill or restart a dev server. Test against the owner's running server (read-only), or ask them to start one. Astro allows one dev server per app; after dependency changes, tell the owner to restart theirs.
+- Never add a provider or external service (analytics, AI APIs, messaging, payment, auth vendors…) without approval.
+- Never present invented screenshots or test results. Browser evidence comes from a running UI.
+- **No fake data or counts, ever.** Every number, badge and list comes from a real query; empty states say so honestly. Nothing appears in navigation without a working page behind it. Fictional people, bookings, events or stories are visibly labeled *Sample*/*Example*.
+- Record meaningful progress in [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) and decisions in [`docs/DECISIONS.md`](docs/DECISIONS.md) (both are history logs; this file holds the rules).
+- Plan briefly, then work through the agreed scope. Stop for the owner on visual sign-off, owner-only actions and real decisions; otherwise make ordinary engineering choices yourself.
 
-1. `docs/GAMO_NONPROFIT_MODEL.md` — **organizational source of truth** (purpose, programs, governance, sustainability, approval matrix)
-2. `README.md` — product and scope
-3. `ARCHITECTURE.md` — technical boundaries
-4. `DESIGN.md` — design system
-5. `SECURITY.md` — mandatory gates
-6. `ROADMAP.md` — mission-aligned milestone definitions
-7. `prompts/MASTER-PROMPT.md` — founder's nonprofit transformation instructions (2026-10-12)
-8. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
-9. `design-reference/README.md` — reference materials.
-10. `docs/GAMO_LIVE_AND_PARTNERS.md` — Gamo Live (Promote Event / Explore Events), church partnerships, dynamic homepage rules. Sponsored content must always be labeled, partnership or payment must never affect musician vetting/rankings, and all fees/contributions are proposals until approved.
-11. `docs/NONPROFIT_TRANSITION_CHECKLIST.md` — legal formation and governance dependencies (owner-only actions).
+## 3. Scope of the rebuild
 
-## Autonomy model & Active Priorities
+- **Kept as they are:** the marketing pages of the five public apps (look and content), and the admin's Cloudflare Access gate and shell (`apps/admin`, [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md)).
+- **Being rebuilt from scratch:** every non-marketing page (accounts, onboarding, dashboards, flows), every API route, the shared backend (`@gamo/domain`, product sign-in in `@gamo/auth`, the data model in `@gamo/db`, `@gamo/integrations`, the API contracts), demo-era UI in `@studio-gamo/ui`, and their tests. Until a product is rebuilt, its old code may still exist; it is not a reference for how things should work.
+- **Order:** Gamo Live first. Each product goes requirements → design → build → built-worker checks, like the admin.
+- **Production is frozen** for the public apps until each rebuilt product is ready and the owner approves a deploy.
 
-- **Active Development Priority (2026-10-13 Backend Stabilization & Verified Release Foundation)**: Treat all production blockers in [`docs/BACKEND_INDEPENDENT_AUDIT.md`](docs/BACKEND_INDEPENDENT_AUDIT.md), [`docs/BACKEND_TEST_MATRIX.md`](docs/BACKEND_TEST_MATRIX.md), and [`docs/BACKEND_RELEASE_READINESS.md`](docs/BACKEND_RELEASE_READINESS.md) as unresolved until independently verified. Earlier `cb97c37` claims of end-to-end backend completion are superseded: checkout and financial webhooks remain fail-closed (`503`) until order/inventory authority exists. Authoritative references: `openapi/root.yaml`, `docs/BACKEND_ARCHITECTURE.md`, and `docs/API_INVENTORY.md`.
-- **Autonomy**: Agents autonomously make ordinary coding and design decisions, edit workspace files, run local builds and tests, resolve compilation errors, and continue through the screen inventory without asking for confirmation after every step.
-- Preserve existing work and regularly update the progress log (`docs/BUILD_LOG.md`).
-- **Never deploy, push remotely, modify secrets, change security settings, or perform destructive operations without explicit authorization.**
-- Plan briefly, then execute continuously **within the currently approved application and design scope**. Stop for visual sign-off at the defined review checkpoint; never start an unapproved application.
-- Work through `ROADMAP.md` milestones in order, end-to-end, unless blocked by protected external dependencies. Independent work continues even if one integration is blocked.
-- Routine architectural and UI choices are your responsibility. Choose stable, supported technologies and document architectural decisions in `docs/DECISIONS.md`.
-- Always inspect installed tool versions and vendor docs before pasting framework commands.
-- Never silently add providers/services (Twilio, Firebase, Supabase, proprietary AI APIs, analytics etc.). Request approval for a new paid/external dependency; use adapters for future options.
-- Never substitute fictional screenshots or invented test results for real browser evidence.
+## 4. Engineering rules (permanent)
 
-## Build sequence
+- **Stack:** Astro (server output) on Cloudflare Workers, D1, R2, KV; Tailwind 4; strict TypeScript; pnpm workspaces. Check installed versions and vendor docs before using framework commands.
+- **Hosts and ports** come from `packages/config/apps.ts`; cross-app links from `packages/ui/src/lib/sites.ts`. Never hard-code an origin.
+- **Runtime config:** read bindings and secrets through `getRuntimeEnv()`, never `import.meta.env`. New variables go in `packages/config/env.ts`, `env-validation.ts` (when required), the app's `.dev.vars.example` and the runbook.
+- **Fail closed.** A missing key, binding or identity means the feature is unavailable (503/denied), never a fake success. Local-only flags (`ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION`, `ALLOW_PUBLIC_DEMO_WORKSPACES`, `ALLOW_LOCAL_ADMIN_IDENTITY`) are fatal outside `ENVIRONMENT=local`.
+- **Every state-changing request** checks identity first, then same origin, then validates input. The frontend is never the authority for permissions, inventory, check-in or payments.
+- **CSP:** no inline `<script>` or `on*=` handlers; scripts and styles ship as files; fonts self-hosted; no third-party script origin without approval. Security headers come from `packages/domain/src/http/security-headers.ts` (moves with the rebuild; keep it at least as strict).
+- **Money** in integer minor units with the currency recorded. **Time** zones handled explicitly.
+- **Data:** schema changes are tracked migrations; never edit an applied migration; nothing destructive without the owner.
+- **Logs** name variables and error codes, never secret values or personal data. Screenshots and fixtures never show secrets, ID documents or real personal data.
+- **Minimal client JavaScript:** server-rendered pages and plain forms; islands only for real interaction.
+- **Components:** compose pages from small typed components — shared primitives in `packages/ui`, app-specific components in the app's `src/components/`, large page sections extracted into their own components. No monolithic page files.
+- **Removed or renamed public URLs** keep a redirect (`src/lib/legacy-redirects.ts` in each app).
 
-`inspect → plan → scaffold → implement real vertical slice → test → inspect browser → improve → document → commit → next slice`
+## 5. Design (permanent)
 
-On each meaningful change:
-- During the current design-first phase, implement responsive, accessible visuals with clearly labeled demo states and no live backend integrations. Build persistent actions, validation, and roles only when the functionality phase is authorized.
-- Maintain demos that operate locally with fake, clearly labeled data and no external secrets.
-- Write/extend tests alongside implementation, including negative paths.
-- Keep one coherent visual system (Inter, charcoal/terracotta/cream, premium cinematic photography).
-- Produce browser screenshots only from running UI and store references in `docs/BUILD_LOG.md`.
+- One design system, defined in [`DESIGN.md`](DESIGN.md) and the tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`, tan `#D8C5AE`); Inter, self-hosted.
+- Every page: exactly one `<h1>`, interactive targets at least 44 × 44 px, axe WCAG 2.2 AA clean (serious/critical), no horizontal overflow at 360 px.
+- Marketing pages follow the cinematic editorial design and the approved references in `design-reference/` (homepage sections `design-reference/homepage/02-…07-`, approved hero preserved). Rebuild screens get their own approved design before they are built.
+- **Admin:** claymorphism shapes and shadows from `design-reference/claymorphism-admin-ui/` in the same palette, full-page layout, collapsible sidebar, Gamo Studios logo with an "Admin" label, **no gradients anywhere**.
 
-## Engineering conventions
+## 6. Admin access (permanent)
 
-- Strict TypeScript; shared typed schema and request validation; accessible semantic UI.
-- Use D1 migrations and tracked schema changes; no implicit destructive migrations.
-- All balances are integer minor currency units. Handle timezones intentionally.
-- Do not expose secrets, ID documents, raw financial details or personally identifying user data in screenshots/test fixtures.
-- Minimize client JavaScript with Astro, using islands only for true interaction.
-- Frontend is not authority for check-in, inventory, authorization or payments.
-- Unit tests for domain logic, integration tests for D1/API/Stripe webhooks, and Playwright/browser checks for main flows.
+One admin, one account. Cloudflare Access alone: every admin request must carry a valid Access assertion for exactly `ADMIN_EMAIL`; anything else is denied. No admin accounts, roles, passwords, sessions or emergency credentials. Recovery is changing the Access policy in Cloudflare. Locally, `ALLOW_LOCAL_ADMIN_IDENTITY=true` on a loopback host stands in for Access.
 
-### Established conventions (2026-10 foundation pass — see `docs/ARCHITECTURE.md`, `docs/CLEANUP_LOG.md`)
+## 7. Tools and helper agents
 
-- **Tests run only when the owner asks (owner decision, 2026-10-19).** Do not run tests, `pnpm check`, `pnpm check:quick`, the Playwright suite or the journeys on your own initiative: not while iterating, not before a commit, a push or a deploy, and not in agents or background jobs. Write and update tests alongside the code as usual, but leave running them to the owner's request. When the owner does ask, run what they asked for and no more (a single test file: `pnpm exec tsx --test <file>`, or `E2E_APPS=live pnpm exec playwright test <spec>` after building just that app); run the full `pnpm check` only if they ask for it by name, once, never as a loop, and never while other test runs share the machine. Say plainly in your report which tests were not run.
-- **`pnpm check`** (run only when the owner asks) runs typecheck, lint (zero warnings), Prettier check, unit/integration tests, `api:check`, build, the Miniflare journeys and the Playwright smoke suite. In an agent shell, run Astro commands with `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT` so they stay in the foreground.
-- **Hosts and ports** come from `packages/config/apps.ts`; cross-app links from `packages/ui/src/lib/sites.ts` (`siteUrl`, `inquiryUrl`). Never hard-code an origin.
-- **Typed runtime:** read bindings through `getRuntimeEnv()` (`GamoEnv`) and `Astro.locals` (`GamoLocals`); never read secrets from `import.meta.env`. New env vars go in `packages/config/env.ts`, `env-validation.ts` (if required), the relevant `.dev.vars.example` and `docs/RUNBOOK.md` §3.
-- **Middleware order** (`applicationPages`): env check → session → private-page guard → legacy redirects → page → security headers. New private areas go in `packages/auth/page-access.ts` *and* the app's `robots.txt`; `scripts/audit/private-routes.test.ts` and `crawler-files.test.ts` enforce both.
-- **Renamed or removed URLs** get an entry in the app's `src/lib/legacy-redirects.ts` (default 302; keep the status the old route used — 301 for permanent page moves, 303 for old form endpoints), covered by `scripts/audit/legacy-redirects.test.ts`.
-- **API routes:** auth check first, then `requireSameOrigin` on every state-changing request, then validation; errors via `api/response.ts`. Change `openapi/root.yaml` first.
-- **Fail closed:** integrations take `allowMock` only for `ENVIRONMENT=local`; outside local a missing key means the feature answers 503/unavailable, never a fake success. Local-only flags (`ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION`, `ALLOW_PUBLIC_DEMO_WORKSPACES`) are fatal elsewhere. Paid checkout stays 503.
-- **CSP:** no inline `<script>` or `on*=` handlers, no third-party script origins beyond the product's Clerk Frontend API; styles and fonts are self-hosted. Pages are on-demand (not prerendered) so middleware and headers always apply.
-- **UI:** tokens from `packages/ui/src/styles/tokens.css` only (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`); Inter (self-hosted variable); titles weight 900 uppercase; interactive targets ≥ 44 × 44 px; exactly one `<h1>` per page; every page passes axe WCAG 2.2 AA (serious/critical) and has no horizontal overflow at 360 px. **Admin (owner, 2026-10-19): admin pages use the claymorphism design in `design-reference/claymorphism-admin-ui/` (shapes, shadows, layout) in the same palette tokens as above; see `docs/ADMIN_REQUIREMENTS.md`.**
-- **Sample content:** any fictional person, booking, event or story is visibly labeled *Sample*/*Example*; Gamo Live public pages use D1 events only.
-- **Database:** add a new numbered migration in `packages/db/migrations` (never edit an applied one; additive by default), update the Drizzle schema and `docs/DATABASE.md`. Local: `pnpm db:migrate:local`, `db:seed:local`, `db:reset:local`.
-- **Logs** name variables and error codes, never secret values or personal data.
+- `.agents/agents/` holds the owner's Antigravity helper agents (`design-lead`, `frontend-builder`, `ui-reviewer`); they follow this file. Antigravity agents prefer the workspace's native file tools over external filesystem tools and never bypass workspace permissions.
+- In an agent shell, run Astro commands with `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT` so they stay in the foreground.
 
-## External operations require explicit permission
+## 8. Retired rules (2026-10-19)
 
-**Do not** publish to production, change DNS, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations, change security policies, commit credentials, publish legal terms as finalized, or push to remotes without the owner's approval. Sandbox payment/webhook simulations are allowed.
+These described the previous product logic. They are not in force; where a rebuilt product needs something similar, its requirements will say so ([`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md) lists what to carry forward).
 
-**Commits (owner decision, 2026-10-19):** never run `git commit` yourself. When work is ready, give the owner a ready-to-paste command (`git add …` and `git commit -m "…"`) and let them run it. The commit message is always short: one line, no body, no attribution trailers.
-
-## Blocker handling
-
-- Never say a live integration is complete without valid sandbox verification.
-- When missing credentials, configure env bindings, provider interface, local mock and tests, then note exact credential/setup needed.
-- If three different reasonable attempts fail, log details in `docs/BUILD_LOG.md`, isolate the blocker and continue elsewhere.
-- Pause only for an unavoidable high-risk/owner-only decision, explicit policy violation or environment exhaustion; say precisely what is blocked.
-
-## Definition of done
-
-The assigned roadmap milestone is done when its acceptance criteria pass and evidence is recorded. **The platform is not production-complete merely because its pages render**. Finishing local milestones 0–4 and submitting a production-readiness handoff is a valid autonomous build deliverable; milestone 5 requires human approval and accounts/contracts.
-
-## Final reporting
-
-Report completed milestones, commands/tests actually run, page URLs, screenshot artifact locations, commits, unfinished items, requested owner actions and known risks. Never claim work continued in the background if the agent process ended.
-
-## Custom Specialized Agents
-This repository contains customized Antigravity agents configured to operate autonomously for specialized roles during the development lifecycle:
-- **`design-lead`**: Interprets Gamo Studios design references (`design-reference/`), ensures visual consistency (Inter, brand colors), and reviews application screens without implementing complex logic.
-- **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Live, and Production domains (the admin is being rebuilt from scratch and has no screens yet) using plausible demo states (no live backends during the design phase).
-- **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
-
-These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts. All three must apply the organizational mission rules above and the copy rules in `docs/GAMO_NONPROFIT_MODEL.md` §6–§7 to every screen they plan, build or review.
-
-## Tool Usage
-- **MANDATORY**: For all Gamo Studios workspace agents, strictly prefer native Antigravity workspace file-reading and editing tools (e.g., `view_file`, `write_to_file`, `replace_file_content`) over external Filesystem MCP tools whenever equivalent native tools are available. Do not attempt to bypass workspace permissions.
-
-## Visual fidelity for approved homepage sections
-
-- Treat `design-reference/homepage/02-musicians.png` through `07-footer.png` as the **composition targets** for the global homepage below the hero.
-- Preserve the currently approved hero unless explicitly instructed otherwise.
-- Use photographic mosaics, large asymmetric type, sculptural photo masks, restrained floating product UI and cream/charcoal transitions; avoid generic equal-width SaaS grids.
-- Reconstruct responsive Astro markup, not screenshot backgrounds. Label all fictional musicians, bookings, concert events and story cards as sample content.
-- Capture and compare full-page desktop and mobile screenshots before reporting visual sign-off.
-
-## Component-First Workflow
-
-- **Permanent Rule**: Every page must be built by composing small, reusable, independently maintainable components. Do not write large, monolithic Astro page files with hundreds of lines of inline HTML/Tailwind.
-- **Level 1 (Shared UI)**: Generic components (Buttons, Cards, Badges, Containers) live in `packages/ui` and are reused across all applications.
-- **Level 2 (App-Specific UI)**: Components specific to one application (e.g., `MusicianProfileCard`, `AuditionPreview`) live in that app's `src/components/`.
-- **Level 3 (Page Sections)**: Large page sections (e.g., `HeroSection`, `WorshipCoverageSection`) must be extracted into their own components and composed within the page layout.
-- Maintain clear typed interfaces (Props) for all components.
-- Component extraction should improve clarity, independent testing, and reuse.
-- All specialized agents (`frontend-builder`, `design-lead`, `ui-reviewer`) must adhere to this architecture.
-
-## Permanent OpenAPI-first HTTP contract rule
-
-`openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning applications (five today; the admin is being rebuilt); no separate API application by default.
-
-Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Demo session issuance is explicitly local-only. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
-
-## Shared Authentication Design Rule
-
-All Gamo Studios applications must use the approved shared authentication UI components for sign-in, registration, email verification, and account recovery.
-
-Never independently implement, duplicate, or restyle authentication pages within individual applications.
-
-Authentication routes must use the shared full-viewport desktop layout and approved mobile layout.
-
-Application-specific differences must be supplied through supported component configuration.
-
-Any proposed exception requires explicit founder approval.
-
-When developing a new application or authentication route, reuse the existing shared components by default.
-
-### Shared Authentication Component Locations & Usage Conventions
-
-- **Canonical Shared Package Directory**: `packages/ui/src/components/auth/` (`@studio-gamo/ui/components/auth/*`)
-  - `GamoAuthExperience.astro` — Top-level full-screen 4-mode authentication experience (`mode="signin" | "signup" | "verify" | "recover"`, `program`, `brandHref`, `brandLabel`, `photos`).
-- **Route Usage Convention**:
-  - Every application's `/account/signin.astro`, `/account/signup.astro`, `/account/verify.astro`, and `/account/recover.astro` must wrap `<GamoAuthExperience mode="..." program="..." />` inside the app layout with `chrome={false}` so no marketing navigation header or footer surrounds the authentication screen.
-
-## Product Account Independence Rule
-
-Gamo Studios applications are independent products.
-
-Authentication UI components should be reused across the ecosystem, but product registration, membership, permissions, onboarding, and workspaces must remain separate.
-
-Never interpret shared UI components or authentication infrastructure as permission to create automatic cross-product accounts or grant cross-application access.
-
-Any cross-product identity linking, enrollment, or integration must be explicitly designed and authorized.
-
-**Approved exception — shared person record (owner decision, 2026-10-18; design: `docs/design/identity-and-ticketing.md` §4.6, built: `docs/IDENTITY.md`).** A D1 `persons` row keyed by a **verified** email links a provider's per-product users so that provider profiles, provider roles (musician, technician, church, agent, organizer, teacher) and terms acceptances carry across products. Linking happens only after the product has verified the email itself (its own emailed code or its own Clerk application); a typed-but-unproven email never links. Still separate per product: users, product accounts, sessions and cookies, Clerk applications and identity links, staff and program authorization roles, workspaces and onboarding. The person record never grants product access, staff roles or a session in another product, and a person can unlink a product. Customers (ticket buyers, parents, students) need no account: their identity is their email (`customer_profiles`) and they manage purchases through signed, expiring emailed links; door staff use event-scoped scanner links with a PIN.
-
-## Past Event Closure & Real Database Events Rule
-
-- All public Gamo Live surfaces (`gamostudio.org/live`, `live.gamostudio.org`, `/events`, `/events/<slug>`) must display **real approved/published events from the database (`events` table in D1 via `LiveService`)**, never hardcoded fictional sample events (such as `"Harvest Night of Gospel"`).
-- Any event whose scheduled date/time is already in the past (`isEventPast(event, now) === true`) must be treated as **past and closed** (`isPast = true`, `isClosed = true`, `lifecycleStatus = 'past'`):
-  - Display a clear **`Past · Closed`** (or **`Past Event · Closed`**) status badge on event cards, lists, and detail pages.
-  - Disable or replace active ticket purchase / free registration buttons on past events with a closed notice (`"Past · Closed"` / `"This event has already taken place. Ticket purchases and attendee registration are closed."`).
-  - Sort upcoming events ahead of past events in discovery feeds and featured hero carousels.
-
-## Independent Clerk Authentication Rule
-
-Every Gamo Studios product uses its own Clerk application and independent authentication accounts and sessions.
-
-All products reuse the approved shared authentication UI components.
-
-Never reuse one product's Clerk credentials in another product. Never automatically grant memberships or authorize cross-product access based on matching email addresses; the only email-based link is the approved shared person record above (verified email, profile data only).
-
-Authentication and business authorization are separate responsibilities.
-
-Do not introduce shared single sign-on or alter product-account independence without explicit founder approval.
-
-**Never run `clerk init`, the Clerk CLI, or any dashboard-generated Clerk setup prompt in this repository, and never replace the existing Clerk integration.** Clerk is already integrated in `packages/auth/clerk.ts` (with the shared auth UI) and is optional: launch uses Gamo's emailed verification codes. If Clerk is enabled later, each product needs its own production Clerk instance and DNS records (`docs/RUNBOOK.md` §3a). Deployed Clerk variables are always product-suffixed (`CLERK_SECRET_KEY_<APP>`, …; defined once in `packages/config/clerk-env.ts`), set with `scripts/set-clerk-secrets.sh`; everything else about auth is in `docs/AUTH.md`.
-
-**Email domain:** the verified sending domain is `gamostudio.org` (contact `hello@gamostudio.org`). `scripts/audit/email-domain.test.ts` fails if the misspelled extra-"s" domain appears anywhere in the repository.
+- The "design-first phase with demo states" priority, the old roadmap milestones, the backend-stabilization priority and the old definition of done.
+- The permanent OpenAPI-first contract rule (the API approach is decided anew in the rebuild).
+- The shared authentication UI rule, the product account independence rule with its shared person record, and the independent Clerk rule (public sign-in is designed from scratch).
+- The Live "past event closure" rule and "D1 events only" rule as written (carried forward as Live requirements).
+- The old middleware order, private-page registry and route tests as mandatory conventions.
+- Staff roles, staff provisioning, the admin password gateway and audit-log requirements.

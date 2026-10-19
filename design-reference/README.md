@@ -14,8 +14,10 @@ These are **reference screenshots, not deployable UI or standalone photos**. Rec
 
 Additional: `hero-standalone-alternative.png` is an alternative crop, not the primary hero; `header-navigation-reference.png` is a navigation-only reference. The first homepage image is the approved visual lead. Do not embed a laptop device mockup in the site. Logo SVGs in `branding/svg/` are supplied vector recreations; verify shapes and legibility at intended sizes.
 
-Use **Inter** throughout. Palette: terracotta `#B65B35`, charcoal `#1D2323`, warm cream `#F4EDE3`, copper `#D7AD86`. Premium real-looking photography, dynamic section transitions, uncluttered copy, accessible contrast, mobile-first responsiveness. No fabricated statistics, verification guarantees, reviews, prices or operating claims.
+Use **Inter** throughout. Palette: the tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`); colors in older screenshots are superseded. Premium real-looking photography, dynamic section transitions, uncluttered copy, accessible contrast, mobile-first responsiveness. No fabricated statistics, verification guarantees, reviews, prices or operating claims.
 
-**Copy note (2026-10-12):** the reference screenshots predate the nonprofit transition and may contain commercial marketplace wording. They remain binding for **composition only**; all text must follow [docs/GAMO_NONPROFIT_MODEL.md](../docs/GAMO_NONPROFIT_MODEL.md) (proposed Christian nonprofit, accurate legal status, no unapproved fees).
+**Copy note:** the reference screenshots may contain commercial marketplace wording. They are binding for **composition only**; all text follows the wording rules in `AGENTS.md` §1 (Gamo Studios is a Christian, mission-driven Public Benefit Corporation, not a nonprofit).
 
 Any photo depicted inside generated screenshots cannot be assumed to exist as a separate production-ready image. Use licensed, explicitly approved individual assets or tasteful safe placeholders; don't crop the full reference screenshot into background artwork.
+
+`claymorphism-admin-ui/` is the admin's design: its shapes, shadows and layout, in the palette above, without gradients (`docs/ADMIN_REQUIREMENTS.md`).
