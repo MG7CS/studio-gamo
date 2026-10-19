@@ -339,8 +339,9 @@ test('sign-in code email: sent from the verified domain with a reply-to; a faile
       request: request('second@example.org'),
       locals: { runtime: { env }, product: 'web' },
     });
-    assert.equal(failed.status, 503);
-    assert.equal(((await failed.json()) as { error: { code: string } }).error.code, 'UNAVAILABLE');
+    // A failed send is logged and answered exactly like a success (no timing/body oracle, D-119).
+    assert.equal(failed.status, 200);
+    assert.equal(((await failed.json()) as { data: { deliveryStatus: string } }).data.deliveryStatus, 'sent');
     const live = (await d1
       .prepare(
         "SELECT COUNT(*) AS n FROM auth_challenges WHERE email = 'second@example.org' AND consumed_at IS NULL",

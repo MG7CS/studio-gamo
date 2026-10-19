@@ -291,21 +291,32 @@ test('rate limits: per IP and per email on /challenge, per email on /verify, wit
   }
   assert.equal(last, 429);
 
-  // Verify: 15 guesses per address per 15 minutes from any IP.
+  // Verify: 10 attempts per (email, IP) per hour; another IP is not affected (a stranger cannot burn the
+  // owner's budget).
   let verifyStatus = 0;
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 11; i++) {
     const res = await web.verifyPOST(
       post(
         'web',
         '/api/auth/verify',
         env,
         { email: 'guess@example.org', code: '000000' },
-        { 'cf-connecting-ip': `203.0.113.${i}` },
+        { 'cf-connecting-ip': '203.0.113.1' },
       ),
     );
     verifyStatus = res.status;
   }
   assert.equal(verifyStatus, 429);
+  const owner = await web.verifyPOST(
+    post(
+      'web',
+      '/api/auth/verify',
+      env,
+      { email: 'guess@example.org', code: '000000' },
+      { 'cf-connecting-ip': '198.51.100.200' },
+    ),
+  );
+  assert.equal(owner.status, 401, 'the owner on another IP still has a budget');
 });
 
 test('Turnstile is required outside local: 503 without the secret, 400 without a token, 403 when rejected', async () => {

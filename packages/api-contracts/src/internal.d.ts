@@ -1987,7 +1987,9 @@ export interface components {
         OrderInput: {
             items: components["schemas"]["OrderItemInput"][];
             purchaserName: string;
+            /** Format: email */
             email: string;
+            /** Format: email */
             emailConfirm: string;
             attendeeNames?: string[];
             termsAccepted: boolean;
@@ -2001,7 +2003,9 @@ export interface components {
             eventId: components["schemas"]["Identifier"];
             items: components["schemas"]["OrderItemInput"][];
             purchaserName: string;
+            /** Format: email */
             email: string;
+            /** Format: email */
             emailConfirm: string;
             attendeeNames?: string[];
             termsAccepted: boolean;
@@ -2052,6 +2056,7 @@ export interface components {
             };
         };
         RecoveryInput: {
+            /** Format: email */
             email: string;
             "cf-turnstile-response"?: string;
         };
@@ -2064,7 +2069,9 @@ export interface components {
         };
         TransferInput: {
             toName: string;
+            /** Format: email */
             toEmail: string;
+            /** Format: email */
             toEmailConfirm: string;
         };
         TicketVersionResponse: {
@@ -2119,6 +2126,7 @@ export interface components {
             };
         };
         WaitlistInput: {
+            /** Format: email */
             email: string;
             categoryId?: components["schemas"]["Identifier"];
             quantity?: number;

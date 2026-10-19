@@ -18,6 +18,7 @@ try {
   const token = Astro.url.searchParams.get('t') ?? '';
   if (token) {
     const opened = await openCustomerLink(registrationDb(env), env as never, {
+      product: 'academy',
       token,
       now: nowSeconds(),
       https: Astro.url.protocol === 'https:',

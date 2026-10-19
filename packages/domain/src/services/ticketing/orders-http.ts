@@ -6,7 +6,7 @@ import { errorResponse, handleApiError } from '../../api/response.ts';
 import { SecretNotConfiguredError } from '../../security/crypto.ts';
 import { TermsAcceptanceError } from '../../terms/acceptance.ts';
 import {
-  CUSTOMER_COOKIE_NAME,
+  customerCookieName,
   CustomerInputError,
   issueCustomerLink,
   openCustomerLink,
@@ -78,7 +78,7 @@ export function ticketingErrorResponse(err: unknown): Response {
   return handleApiError(err);
 }
 
-/** The customer behind the request's `__gamo_customer` cookie, or null. */
+/** The customer behind the request's `__gamo_customer_live` cookie, or null. */
 export async function requestCustomer(
   db: SqlDatabase,
   env: TicketingEnv,
@@ -86,9 +86,9 @@ export async function requestCustomer(
   now: number,
 ): Promise<CustomerIdentity | null> {
   // No cookie → anonymous (401 in the routes), even when the link secret is missing.
-  if (!(request.headers.get('cookie') ?? '').includes(`${CUSTOMER_COOKIE_NAME}=`)) return null;
+  if (!(request.headers.get('cookie') ?? '').includes(`${customerCookieName('live')}=`)) return null;
   try {
-    return await customerIdentity(db, await readCustomerSession(db, env, request, now));
+    return await customerIdentity(db, await readCustomerSession(db, env, request, now, 'live'));
   } catch (err) {
     if (err instanceof SecretNotConfiguredError)
       throw new TicketingError(
@@ -116,6 +116,7 @@ export async function openOrderSession(
   const event = order ? await loadEvent(db, order.event_id) : null;
   if (!order?.customer_profile_id || !event) return null;
   const link = await issueCustomerLink(db, env, {
+    product: 'live',
     customerProfileId: order.customer_profile_id,
     scope: formatScope('order', order.id),
     purpose: 'order',
@@ -126,6 +127,11 @@ export async function openOrderSession(
     now: input.now,
     ipHash: input.ipHash,
   });
-  const opened = await openCustomerLink(db, env, { token: link.token, now: input.now, https: input.https });
+  const opened = await openCustomerLink(db, env, {
+    product: 'live',
+    token: link.token,
+    now: input.now,
+    https: input.https,
+  });
   return opened.ok ? opened.cookie : null;
 }

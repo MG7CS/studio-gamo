@@ -34,7 +34,12 @@ if (token) {
   try {
     const db = ticketingDb(env);
     const now = nowSeconds();
-    const opened = await openCustomerLink(db, env, { token, now, https: isHttpsRequest(Astro.request) });
+    const opened = await openCustomerLink(db, env, {
+      product: 'live',
+      token,
+      now,
+      https: isHttpsRequest(Astro.request),
+    });
     if (!opened.ok) message = opened.message;
     else {
       const scope = parseScope(opened.session.scope);

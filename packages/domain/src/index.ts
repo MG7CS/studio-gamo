@@ -2,6 +2,7 @@ export * from '@gamo/config/brand';
 export * from './api/response.ts';
 export * from './api/validation.ts';
 export * from './api/public-form-guard.ts';
+export * from './api/defer.ts';
 export * from './services/identity.ts';
 export * from './services/persons.ts';
 export * from './services/providers.ts';
