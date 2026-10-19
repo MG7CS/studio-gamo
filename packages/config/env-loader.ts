@@ -24,8 +24,9 @@
  *      managed exclusively via Cloudflare Worker secrets (`wrangler secret put`).
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCAL_HOST, LOCAL_INSPECTOR_PORTS, LOCAL_PORTS, type AppName } from './apps.ts';
 
@@ -222,6 +223,220 @@ export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<stri
 }
 
 /**
+ * The Clerk variables a test server must never see (e2e preview servers, journeys): every credential
+ * name, un-suffixed and product-suffixed, plus the app id so a pasted id of another product cannot trip
+ * the product-isolation guard. With all of them blank, Clerk is off and the emailed-code path is used.
+ */
+const CLERK_TEST_BLANKED =
+  /^(PUBLIC_CLERK_PUBLISHABLE_KEY|CLERK_SECRET_KEY|CLERK_JWT_KEY|CLERK_ISSUER|CLERK_WEBHOOK_SECRET|CLERK_APP_ID)(_(WEB|WORSHIP|ACADEMY|LIVE|PRODUCTION|ADMIN))?$/;
+
+export function isClerkTestBlankedName(key: string): boolean {
+  return CLERK_TEST_BLANKED.test(key.toUpperCase());
+}
+
+/** Every blanked Clerk name with an empty value, for a test server's bindings. */
+export function clerkOffTestVars(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const base of [
+    'PUBLIC_CLERK_PUBLISHABLE_KEY',
+    'CLERK_SECRET_KEY',
+    'CLERK_JWT_KEY',
+    'CLERK_ISSUER',
+    'CLERK_WEBHOOK_SECRET',
+    'CLERK_APP_ID',
+  ]) {
+    out[base] = '';
+    for (const suffix of [...ALL_PRODUCT_SUFFIXES, 'ADMIN']) out[`${base}_${suffix}`] = '';
+  }
+  return out;
+}
+
+/** Set by the e2e runner for the servers it starts: Clerk values from local files are dropped. */
+export function isTestServer(): boolean {
+  return process.env.GAMO_TEST_SERVER === '1';
+}
+
+export interface LiveKeyFinding {
+  /** Path relative to the repository root, e.g. `apps/live/.dev.vars`. */
+  file: string;
+  name: string;
+}
+
+/**
+ * Local env files of `app` (the ones `resolveAppLocalEnv` and `astro preview` read) that hold a
+ * live key: Clerk Production instance (`pk_live_`/`sk_live_`) or Stripe live (`sk_live_`/`rk_live_`).
+ * Returns file and variable names only, never values.
+ */
+export function findLiveKeysInLocalEnv(options: LoadAppLocalEnvOptions): LiveKeyFinding[] {
+  const appDir = resolve(options.appDir);
+  const monorepoRoot = options.monorepoRoot ? resolve(options.monorepoRoot) : resolve(appDir, '../..');
+  const files = [
+    resolve(monorepoRoot, '.env'),
+    resolve(monorepoRoot, '.dev.vars'),
+    resolve(appDir, '.env'),
+    resolve(appDir, '.dev.vars'),
+  ];
+  const findings: LiveKeyFinding[] = [];
+  for (const file of files) {
+    for (const [name, value] of Object.entries(readEnvFileIfExists(file))) {
+      if (/^(pk|sk|rk)_live_/.test(value.trim())) findings.push({ file: relative(monorepoRoot, file), name });
+    }
+  }
+  return findings;
+}
+
+export function describeLiveKeyFindings(findings: LiveKeyFinding[]): string {
+  return [
+    'Live (production) keys found in local env files:',
+    ...findings.map((f) => `  ${f.file}: ${f.name}`),
+    'Clerk Production instances reject 127.0.0.1 (400) and a live Stripe key can move real money, so local',
+    'servers would fail in confusing ways or touch production. Keep only Development/test keys locally;',
+    'set production keys with scripts/set-clerk-secrets.sh from a temporary --file (docs/AUTH.md §7).',
+  ].join('\n');
+}
+
+let warnedLiveKeys = false;
+
+interface WranglerVarsApi {
+  unstable_readConfig(
+    args: { config: string; env?: string },
+    options: { hideWarnings: boolean },
+  ): { configPath?: string; vars: Record<string, unknown> };
+  unstable_getVarsForDev(
+    configPath: string | undefined,
+    envFiles: undefined,
+    vars: Record<string, unknown>,
+    env: string | undefined,
+    silent: boolean,
+  ): Record<string, { value?: unknown }>;
+}
+
+function deployBuildEnv(): 'production' | 'preview' | undefined {
+  const cfEnv = process.env.CLOUDFLARE_ENV?.trim().toLowerCase();
+  return cfEnv === 'production' || cfEnv === 'preview' ? cfEnv : undefined;
+}
+
+function walkFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(dir, entry.name);
+    return entry.isDirectory() ? walkFiles(path) : [path];
+  });
+}
+
+/**
+ * Values of the app's local env files that a deploy build must never contain: everything wrangler
+ * reads for local dev (`.dev.vars[.<env>]`, else `.env`) plus the `.env` files Vite reads. Values that
+ * are also committed in `wrangler.toml` (public ids, URLs), short values and booleans are left out.
+ */
+export function localOnlyValues(
+  appDir: string,
+  localVars: Record<string, string>,
+): Array<{ source: string; name: string; value: string }> {
+  const committed = existsSync(resolve(appDir, 'wrangler.toml'))
+    ? readFileSync(resolve(appDir, 'wrangler.toml'), 'utf8')
+    : '';
+  const monorepoRoot = resolve(appDir, '../..');
+  const sources: Array<[string, Record<string, string>]> = [
+    ['local vars (.dev.vars)', localVars],
+    ...['.env', '.dev.vars'].map((f): [string, Record<string, string>] => [
+      relative(monorepoRoot, resolve(monorepoRoot, f)),
+      readEnvFileIfExists(resolve(monorepoRoot, f)),
+    ]),
+    [relative(monorepoRoot, resolve(appDir, '.env')), readEnvFileIfExists(resolve(appDir, '.env'))],
+  ];
+  const out: Array<{ source: string; name: string; value: string }> = [];
+  for (const [source, vars] of sources) {
+    for (const [name, raw] of Object.entries(vars)) {
+      const value = raw.trim();
+      if (value.length < 12 || /^(true|false)$/i.test(value) || committed.includes(value)) continue;
+      if (/^["'`]?-----(BEGIN|END) [A-Z ]+-----["'`]?$/.test(value)) continue; // a PEM line, not a key
+      out.push({ source, name, value });
+    }
+  }
+  return out;
+}
+
+/** `name (source) in file` for every local-only value found in `distDir`; never the value itself. */
+export function findLocalValuesInDist(
+  distDir: string,
+  values: Array<{ source: string; name: string; value: string }>,
+): string[] {
+  const hits: string[] = [];
+  for (const file of walkFiles(distDir)) {
+    const text = readFileSync(file, 'latin1');
+    for (const v of values)
+      if (text.includes(v.value)) hits.push(`${v.name} (${v.source}) in ${relative(distDir, file)}`);
+  }
+  return hits;
+}
+
+/**
+ * Astro integration for preview and production builds (`CLOUDFLARE_ENV` set, as `make deploy-*` and
+ * `make preview-*` do); a local build is left alone so `astro preview` keeps working.
+ *
+ * - `astro:build:start`: @astrojs/cloudflare copies the Worker vars *and the local `.dev.vars`* into
+ *   `process.env` so `astro:env` can inline them, and Vite then inlines `PUBLIC_*` (and, in server code,
+ *   private) values wherever `import.meta.env` is read as an object. Before Vite runs, every key that came
+ *   from a local file is put back: to its value before the build, else to the committed `wrangler.toml`
+ *   value for that environment, else removed.
+ * - `astro:build:done`: deletes `dist/server/.dev.vars` (@cloudflare/vite-plugin writes it on every build
+ *   for `astro preview`; wrangler deploy never uploads it) and fails the build if any local-only value
+ *   is still anywhere in `dist`, naming the variable and file but never the value.
+ */
+export function gamoDeployBuildHygiene(appConfigUrl: string | URL) {
+  const appDir = dirname(fileURLToPath(appConfigUrl));
+  const before = { ...process.env };
+  const wrangler = (): WranglerVarsApi =>
+    createRequire(resolve(appDir, 'package.json'))('wrangler') as WranglerVarsApi;
+  const configPath = resolve(appDir, 'wrangler.toml');
+  const localVars = (env: string): Record<string, string> => {
+    if (!existsSync(configPath)) return {};
+    const vars = wrangler().unstable_getVarsForDev(configPath, undefined, {}, env, true);
+    return Object.fromEntries(
+      Object.entries(vars).map(([k, b]) => [
+        k,
+        typeof b.value === 'string' ? b.value : JSON.stringify(b.value),
+      ]),
+    );
+  };
+  return {
+    name: 'gamo-deploy-build-hygiene',
+    hooks: {
+      'astro:build:start': () => {
+        const env = deployBuildEnv();
+        if (!env || !existsSync(configPath)) return;
+        const committed = wrangler().unstable_readConfig(
+          { config: configPath, env },
+          { hideWarnings: true },
+        ).vars;
+        for (const key of Object.keys(localVars(env))) {
+          if (before[key] !== undefined) process.env[key] = before[key];
+          else if (key in committed) {
+            const value = committed[key];
+            process.env[key] = typeof value === 'string' ? value : JSON.stringify(value);
+          } else delete process.env[key];
+        }
+      },
+      'astro:build:done': () => {
+        const env = deployBuildEnv();
+        if (!env) return;
+        const file = resolve(appDir, 'dist/server/.dev.vars');
+        if (existsSync(file)) {
+          rmSync(file);
+          console.warn(`[gamo] ${env} build: removed dist/server/.dev.vars (local values never ship)`);
+        }
+        const hits = findLocalValuesInDist(resolve(appDir, 'dist'), localOnlyValues(appDir, localVars(env)));
+        if (hits.length > 0)
+          throw new Error(
+            `[gamo] ${env} build contains values from local env files; do not deploy it:\n  ${hits.join('\n  ')}`,
+          );
+      },
+    },
+  };
+}
+
+/**
  * Returns true when running in local development (and NOT building for Cloudflare preview or production).
  */
 export function isLocalDevEnvironment(): boolean {
@@ -248,6 +463,17 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   const appDir = dirname(fileURLToPath(appConfigUrl));
   const isLocalDev = isLocalDevEnvironment();
   const localVars = isLocalDev ? resolveAppLocalEnv({ app, appDir }) : {};
+
+  if (isLocalDev && isTestServer()) {
+    for (const key of Object.keys(localVars)) if (isClerkTestBlankedName(key)) delete localVars[key];
+    Object.assign(localVars, clerkOffTestVars());
+  } else if (isLocalDev && !warnedLiveKeys) {
+    const findings = findLiveKeysInLocalEnv({ app, appDir });
+    if (findings.length > 0) {
+      warnedLiveKeys = true;
+      console.warn(`\n[gamo] WARNING (${app}): ${describeLiveKeyFindings(findings)}\n`);
+    }
+  }
 
   if (isLocalDev) {
     for (const [key, value] of Object.entries(localVars)) {

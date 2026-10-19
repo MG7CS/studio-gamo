@@ -161,3 +161,14 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   2. Added `isEventPast` and `getEventLifecycleStatus` to `@gamo/domain` (`packages/domain/src/services/live-external-discovery.ts`) and enriched `LiveEventWithDetails` in `LiveService` with `isPast`, `isClosed`, and `lifecycleStatus`.
   3. Enforced the **Past Event Closure Rule** across both `apps/web` (`/live` spotlight hero, event cards, free/ticketed ledger, and trust legend) and `apps/live` (`LiveDiscoveryCard.astro`, `/events/[id]`, and `/events/[id]/register`), rendering a `Past · Closed` / `Past Event · Closed` badge and replacing active ticket/registration CTAs with a closed notice whenever `isEventPast(event, now)` is true, while sorting upcoming events ahead of past events.
 
+
+---
+
+## 2026-10-18 — Test servers run with Clerk off; deploy builds carry no local values
+
+- **Context**: four Playwright tests failed because local `.dev.vars` held Clerk Production-instance keys (Clerk rejects `127.0.0.1` with 400) and, in worship, Gamo Live's Clerk app id (the product-isolation guard then answers 503 on private pages). Checking `make deploy-<app>` showed that `@astrojs/cloudflare` copies `.dev.vars` into `process.env` on every build, so Vite inlined the local `PUBLIC_CLERK_PUBLISHABLE_KEY` (and admin's local `CF_ACCESS_*`) into production server chunks, and `@cloudflare/vite-plugin` left `dist/server/.dev.vars` in deploy builds.
+- **Decision**:
+  1. e2e servers blank every Clerk credential and app id (`scripts/e2e/test-servers.ts`, `GAMO_TEST_SERVER=1`) and are never reused from an earlier process; Clerk-on behaviour is tested only with fake keys and blocked outbound network (`scripts/audit/clerk-configured-fake-keys-e2e.test.mjs`).
+  2. A live key (`pk_live_`/`sk_live_`/`rk_live_`) in a local env file is a warning in `pnpm dev` and stops `pnpm test:e2e` with an explanation.
+  3. `gamoDeployBuildHygiene` restores `process.env` before Vite runs in preview/production builds, deletes `dist/server/.dev.vars`, and fails the build if a local value is found in `dist`.
+- **Not changed**: local builds still inline `import.meta.env` objects (needed for `astro preview`); the build machine's shell `USER` is also inlined in those objects (harmless, noted for a later clean-up of `import.meta.env?.` reads).

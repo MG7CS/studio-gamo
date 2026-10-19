@@ -43,6 +43,8 @@ Always preview first, then production.
 
 Each target runs `CLOUDFLARE_ENV=<preview|production> pnpm --filter apps-<app> build` — the build writes the environment's bindings and vars into the deploy configuration — then `wrangler deploy`. **Never deploy a build made without `CLOUDFLARE_ENV`**: it carries `ENVIRONMENT=local`, and env validation then answers every non-loopback request with 503 (fail-safe, but an outage).
 
+**Local values never ship.** The build prints `Using secrets defined in .dev.vars` because `@astrojs/cloudflare` copies the Worker vars and the local `.dev.vars` into `process.env`, and `@cloudflare/vite-plugin` writes `dist/server/.dev.vars` for `astro preview`. For a `CLOUDFLARE_ENV` build, `gamoDeployBuildHygiene` (`packages/config/env-loader.ts`, in every `astro.config.mjs`) puts those keys back before Vite runs, deletes `dist/server/.dev.vars`, and **fails the build** if any value from a local env file is still anywhere in `dist` (it names the variable and file, never the value). `wrangler deploy` uploads `dist/server/entry.mjs` with its chunks and `dist/client` (minus `.assetsignore`), never `.dev.vars`.
+
 Production routes use `custom_domain = true`, so the first deploy of an app creates its DNS record and certificate (gamostudio.org + www, worship., academy., live., production., admin.).
 
 **Admin:** deploy only after the Cloudflare Access application for `admin.gamostudio.org` exists and its AUD tag is set as `CF_ACCESS_AUD`. Admin has `workers_dev = false` and no preview route, so `admin-preview` is not reachable until a route is added (owner decision).
@@ -249,6 +251,7 @@ Details: `docs/TICKETING_SCANNER.md`.
 - **Revoke:** "End scanner" on the same page; devices stop working on their next request. A lost phone: end the scanner and create a new one.
 - **Overrides and lookups** are in `ticket_access_log` (actions `lookup`, `override`); scan results are in `ticket_scan_events` (retain 13 months per `docs/DATABASE.md`).
 - **Offline conflicts:** `/organizer/events/<id>/scans?conflicts=1`, "Mark reviewed" sets `reviewed_at`.
+- **Test servers never use real Clerk keys:** `pnpm test:e2e` blanks every Clerk variable in each build's `dist/server/.dev.vars` before `astro preview` (`scripts/e2e/test-servers.ts`), never reuses a server already on a port, and refuses to start while a local env file holds a live key (`pk_live_`/`sk_live_`/`rk_live_`; `pnpm dev` prints the same warning). Clerk switched on is covered with fake keys and no network by `scripts/audit/clerk-configured-fake-keys-e2e.test.mjs` (part of `pnpm test:journeys`).
 - **Browser tests:** `pnpm test:e2e` runs `tests/e2e/scanner-*.spec.ts` against the built app in Miniflare (no `.dev.vars` needed; `pnpm build` first).
 
 ## 11. Gamo Live ticketing
