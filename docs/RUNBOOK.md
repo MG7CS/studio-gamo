@@ -211,3 +211,14 @@ Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-code
    - **The email is the same person who will be the first staff account** → do not disable it; create the account with `pnpm staff:account:sql --env production --email <that email> --reset-password`. That replaces the known password with a new random one and signs the account out everywhere.
 
 Generated files live only in `.staff-sql/` (git-ignored). Repeat for preview. The historical password stays in git history; rewriting history before the repository is ever public is a separate owner decision (H-02).
+
+## 9. Door scanning and venue maps (Gamo Live)
+
+Details: `docs/TICKETING_SCANNER.md`.
+
+- **Needs:** `SCANNER_SESSION_SECRET` (≥ 32 chars, distinct from other secrets; scanner links, PINs and device cookies) and `TICKET_QR_SECRET_GL1` (scans verify the signed QR). Outside `ENVIRONMENT=local` a missing secret makes `/api/scanner/*` and `/scan/*` answer 503 with "use the printed guest list". `PII_HASH_SECRET` lets lookups and PIN attempts log a hashed IP; without it only the per-session lock applies. Venue maps use the `MEDIA_BUCKET` R2 binding (503 without it).
+- **Create a scanner:** organizer opens `/organizer/events/<id>/scanners`, creates a gate; the link and 6-digit PIN are shown once. Link expiry: event end + 6 h, at most 7 days. Five wrong PINs lock the link 15 minutes.
+- **Revoke:** "End scanner" on the same page; devices stop working on their next request. A lost phone: end the scanner and create a new one.
+- **Overrides and lookups** are in `ticket_access_log` (actions `lookup`, `override`); scan results are in `ticket_scan_events` (retain 13 months per `docs/DATABASE.md`).
+- **Offline conflicts:** `/organizer/events/<id>/scans?conflicts=1`, "Mark reviewed" sets `reviewed_at`.
+- **Browser tests:** `pnpm test:e2e` runs `tests/e2e/scanner-*.spec.ts` against the built app in Miniflare (no `.dev.vars` needed; `pnpm build` first).
