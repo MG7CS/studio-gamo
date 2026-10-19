@@ -19,6 +19,12 @@ PUBLIC_SITE_URL_PRODUCTION = "http://127.0.0.1:4325"
 PUBLIC_SITE_URL_ADMIN = "http://127.0.0.1:4326"
 
 [[d1_databases]]
+binding = "LIVE_DB"
+database_name = "gamo-live-db-local"
+database_id = "00000000-0000-0000-0000-000000000002"
+migrations_dir = "../../packages/db/live/migrations"
+
+[[d1_databases]]
 binding = "DB"
 database_name = "gamo-db-local"
 database_id = "00000000-0000-0000-0000-000000000001"

@@ -1,0 +1,48 @@
+---
+/** One Gamo Live organization. GET shows it; POST verifies, suspends or switches "review every event". */
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import LiveTabs from '../../components/LiveTabs.astro';
+import Notice from '../../components/Notice.astro';
+import OrganizationDetail from '../../components/OrganizationDetail.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { getAdminOrganization, getRuntimeEnv } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/domain/security';
+import { loadCounts } from '../../lib/inbox';
+import { handleOrganizationForm, outcomeFrom } from '../../lib/live-admin';
+
+const env = await getRuntimeEnv(Astro);
+const id = Astro.params.id ?? '';
+let error: string | null = null;
+if (Astro.request.method === 'POST') {
+  const outcome = await handleOrganizationForm(Astro.request, env, id);
+  if (outcome.ok) return Astro.redirect(outcome.location, 303);
+  error = outcome.message;
+  Astro.response.status = outcome.status;
+}
+let org = null as Awaited<ReturnType<typeof getAdminOrganization>>;
+let unavailable = false;
+try {
+  org = await getAdminOrganization(asSqlDatabase(env.LIVE_DB), id);
+} catch (e) {
+  unavailable = true;
+  console.error(`[admin] organization unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
+}
+if (!org && !unavailable) return new Response(null, { status: 404 });
+const counts = await loadCounts(env);
+const outcome = outcomeFrom(Astro.url);
+---
+
+<AdminLayout title={org?.name ?? 'Organization'} current="organizations">
+  <PageHeader
+    title={org?.name ?? 'Organization'}
+    description="Decide whether this organization is verified or suspended."
+  />
+  <LiveTabs current="organizations" counts={counts} />
+  {outcome && <Notice tone="success" text={outcome} />}
+  {error && <Notice tone="error" text={error} />}
+  {org ? (
+    <OrganizationDetail org={org} />
+  ) : (
+    <Notice tone="error" title="Unavailable" text="Gamo Live’s database could not be read." />
+  )}
+</AdminLayout>

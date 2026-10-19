@@ -16,7 +16,7 @@ help:
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
 	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live"
-	@echo "  \033[36mmake live-db\033[0m           - Migrate the local Live database and import the verified catalog (safe to repeat)"
+	@echo "  \033[36mmake live-db\033[0m           - Migrate the shared local Live database (web, live, admin) and import the catalog (safe to repeat)"
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
 	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server (http://127.0.0.1:4326)"
 	@echo ""
@@ -81,7 +81,7 @@ dev-live: live-db
 dev-production:
 	@pnpm --filter apps-production run dev
 
-dev-admin:
+dev-admin: live-db
 	@pnpm --filter apps-admin run dev
 
 install:

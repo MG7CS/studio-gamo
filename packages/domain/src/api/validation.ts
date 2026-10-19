@@ -66,17 +66,6 @@ export const registerAttendeeSchema = z.object({
 export type RegisterAttendeeInput = z.infer<typeof registerAttendeeSchema>;
 
 // ============================================================================
-// ADMIN & MODERATION REVIEWS
-// ============================================================================
-
-export const reviewDecisionSchema = z.object({
-  decision: z.enum(['approved', 'rejected', 'revision_requested']),
-  notes: z.string().optional(),
-});
-
-export type ReviewDecisionInput = z.infer<typeof reviewDecisionSchema>;
-
-// ============================================================================
 // VERIFIED AUTHENTICATION, ORGANIZATION ONBOARDING & STAFF PROVISIONING
 // ============================================================================
 

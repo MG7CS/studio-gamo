@@ -141,17 +141,22 @@ export async function importCatalog(
   return report;
 }
 
-/** Admin decision on a catalog listing: publish it or hide it. Returns false when it is not a catalog event. */
+/**
+ * Admin decision on a catalog listing: publish it or hide it. Records the editorial import's own rejections are
+ * never published from here. Returns false when the listing is not a catalog event in a state that allows it.
+ */
 export async function setCatalogStatus(
   db: SqlDatabase,
   eventId: string,
   status: 'published' | 'hidden',
   now: number,
 ): Promise<boolean> {
+  const allowedFrom =
+    status === 'published' ? "('pending_review', 'hidden')" : "('published', 'pending_review')";
   const rows = await allRows(db, {
     sql: `UPDATE events SET status = ?2, published_at = CASE WHEN ?2 = 'published' THEN COALESCE(published_at, ?3) ELSE published_at END,
                  updated_at = ?3
-           WHERE id = ?1 AND origin = 'catalog' RETURNING id`,
+           WHERE id = ?1 AND origin = 'catalog' AND status IN ${allowedFrom} RETURNING id`,
     params: [eventId, status, now],
   });
   return rows.length === 1;

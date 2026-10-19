@@ -15,7 +15,7 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildReviewFixtureStatements } from './admin-review-fixtures.ts';
+import { buildLiveFixtureStatements, buildReviewFixtureStatements } from './admin-review-fixtures.ts';
 import {
   ACCESS_AUD,
   ACCESS_KEY_FILE,
@@ -79,7 +79,7 @@ const mf = new Miniflare({
         script: readFileSync(outfile, 'utf8'),
         compatibilityDate: '2024-09-23',
         compatibilityFlags: ['nodejs_compat'],
-        d1Databases: { DB: 'admin-e2e-db' },
+        d1Databases: { DB: 'admin-e2e-db', LIVE_DB: 'admin-e2e-live-db' },
         kvNamespaces: { SESSION: 'admin-e2e-kv', SESSION_KV: 'admin-e2e-kv' },
         // Workers Static Assets in production: the built files under dist/client.
         serviceBindings: {
@@ -142,6 +142,21 @@ for (const file of readdirSync(join(repoRoot, 'packages/db/migrations'))
   }
 }
 for (const statement of buildReviewFixtureStatements()) await db.exec(statement);
+// Gamo Live's own database: its migrations (one statement per call, comments stripped), then the Live fixtures.
+const liveDb = await mf.getD1Database('LIVE_DB', 'admin');
+for (const file of readdirSync(join(repoRoot, 'packages/db/live/migrations'))
+  .filter((x) => x.endsWith('.sql'))
+  .sort()) {
+  const text = readFileSync(join(repoRoot, 'packages/db/live/migrations', file), 'utf8').replace(
+    /^\s*--.*$/gm,
+    '',
+  );
+  for (const raw of text.split(';')) {
+    const sql = raw.trim().replace(/\s+/g, ' ');
+    if (sql) await liveDb.exec(sql);
+  }
+}
+for (const statement of buildLiveFixtureStatements()) await liveDb.exec(statement);
 console.log(
   `[admin-e2e] ready on http://127.0.0.1:${ADMIN_E2E_PORT} (ENVIRONMENT=production, Access mocked)`,
 );

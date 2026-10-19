@@ -10,6 +10,8 @@ export const REVIEW_FIXTURE_COUNTS = {
   churches: 1,
   providers: 2,
   events: 2,
+  organizations: 1,
+  catalog: 1,
 } as const;
 
 export const REVIEW_FIXTURE_TITLES = {
@@ -17,6 +19,8 @@ export const REVIEW_FIXTURE_TITLES = {
   musician: 'Sample Musician Profile',
   teacher: 'Sample Teacher Profile',
   firstEvent: 'Sample Harvest Concert (first event)',
+  organization: 'Sample Harvest Church (organization)',
+  catalogListing: 'Sample Catalog Listing',
   alwaysReviewEvent: 'Sample Youth Night (organizer reviews every event)',
   inquiry: 'Sample inquiry from a visitor',
   secondInquiry: 'Sample second inquiry',
@@ -78,24 +82,6 @@ export function buildReviewFixtureStatements(now = Math.floor(Date.now() / 1000)
     'rejected',
   );
 
-  // Two organizers: a new one (first event pending) and one that is reviewed on every event.
-  for (const [n, name, approvedAt, always] of [
-    [1, 'Sample Harvest Church', 'NULL', 0],
-    [2, 'Sample Youth Ministry', String(now - 30 * day), 1],
-  ] as const) {
-    out.push(
-      `INSERT INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_sample_${n}', ${q(name)}, 'sample-org-${n}', 'church', 'active', ${now})`,
-      `INSERT INTO organizer_profiles (id, organization_id, kind, verification_status, created_at, first_event_approved_at, always_review) VALUES ('orp_sample_${n}', 'org_sample_${n}', 'church', 'verified', ${now}, ${approvedAt}, ${always})`,
-    );
-  }
-  const event = (id: string, organizer: string, title: string, status: string, startsInDays: number) =>
-    out.push(
-      `INSERT INTO events (id, organizer_id, title, slug, category, description, venue_name, city, state, starts_at, timezone, status, created_at) VALUES (${q(id)}, ${q(organizer)}, ${q(title)}, ${q(id.replace(/_/g, '-'))}, 'concert', 'Sample event for the admin tests.', 'Sample Hall', 'Phoenix', 'AZ', ${now + startsInDays * day}, 'America/Phoenix', ${q(status)}, ${now})`,
-    );
-  event('evt_sample_first', 'orp_sample_1', REVIEW_FIXTURE_TITLES.firstEvent, 'pending_review', 30);
-  event('evt_sample_always', 'orp_sample_2', REVIEW_FIXTURE_TITLES.alwaysReviewEvent, 'pending_review', 45);
-  event('evt_sample_live', 'orp_sample_2', 'Sample Published Concert', 'approved', 60);
-
   // Participation: two pending and one already replied.
   out.push(
     `INSERT INTO users (id, email, verified_email_at, status, created_at, display_name) VALUES ('usr_sample_visitor', 'sample.visitor@example.invalid', ${now}, 'active', ${now}, 'Sample Visitor')`,
@@ -107,5 +93,52 @@ export function buildReviewFixtureStatements(now = Math.floor(Date.now() / 1000)
   inquiry('inq_sample_1', 'pending', REVIEW_FIXTURE_TITLES.inquiry, now - 3 * day);
   inquiry('inq_sample_2', 'pending', REVIEW_FIXTURE_TITLES.secondInquiry, now - day);
   inquiry('inq_sample_3', 'reviewed', 'Sample reviewed inquiry', now - 5 * day);
+  return out;
+}
+
+/**
+ * Rows for Gamo Live's own database (LIVE_DB): two organizations (one new with its first event pending, one verified
+ * that reviews every event), a published event and one catalog listing waiting for approval.
+ */
+export function buildLiveFixtureStatements(now = Math.floor(Date.now() / 1000)): string[] {
+  const day = 86_400;
+  const out: string[] = [
+    `INSERT INTO organizations (id, name, slug, kind, created_at, updated_at) VALUES ('org_sample_1', ${q(REVIEW_FIXTURE_TITLES.organization)}, 'sample-harvest', 'church', ${now - 2 * day}, ${now - 2 * day})`,
+    `INSERT INTO organizations (id, name, slug, kind, verified_at, first_event_approved_at, review_every_event, created_at, updated_at) VALUES ('org_sample_2', 'Sample Youth Ministry', 'sample-youth', 'ministry', ${now - 30 * day}, ${now - 30 * day}, 1, ${now - 40 * day}, ${now - 40 * day})`,
+    `INSERT INTO venues (id, name, address, city, state, metro_slug, timezone) VALUES ('ven_sample', 'Sample Hall', '1 Sample Way', 'Phoenix', 'AZ', 'phoenix-az', 'America/Phoenix')`,
+  ];
+  const event = (
+    id: string,
+    org: string | null,
+    origin: string,
+    title: string,
+    status: string,
+    startsInDays: number,
+    extra = '',
+  ) => {
+    out.push(
+      `INSERT INTO events (id, organization_id, origin, slug, title, category, description, venue_id, timezone, admission, external_url, status, created_at, updated_at) VALUES (${q(id)}, ${org ? q(org) : 'NULL'}, ${q(origin)}, ${q(id.replace(/_/g, '-'))}, ${q(title)}, 'concert', 'Sample event for the admin tests.', 'ven_sample', 'America/Phoenix', ${origin === 'catalog' ? "'external_tickets'" : "'free_open'"}, ${origin === 'catalog' ? "'https://tickets.example.invalid/sample'" : 'NULL'}, ${q(status)}, ${now - day}, ${now - day})`,
+      `INSERT INTO event_occurrences (id, event_id, starts_at) VALUES (${q(`occ_${id}`)}, ${q(id)}, ${now + startsInDays * day})`,
+    );
+    void extra;
+  };
+  event(
+    'evt_sample_first',
+    'org_sample_1',
+    'organizer',
+    REVIEW_FIXTURE_TITLES.firstEvent,
+    'pending_review',
+    30,
+  );
+  event(
+    'evt_sample_always',
+    'org_sample_2',
+    'organizer',
+    REVIEW_FIXTURE_TITLES.alwaysReviewEvent,
+    'pending_review',
+    45,
+  );
+  event('evt_sample_live', 'org_sample_2', 'organizer', 'Sample Published Concert', 'published', 60);
+  event('evt_sample_catalog', null, 'catalog', REVIEW_FIXTURE_TITLES.catalogListing, 'pending_review', 20);
   return out;
 }

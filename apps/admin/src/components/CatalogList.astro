@@ -1,0 +1,119 @@
+---
+/**
+ * Editorial catalog listings (external events Gamo lists for discovery). Approve to publish, hide to remove from the
+ * public pages. Listings that failed the editorial rules cannot be published from here.
+ */
+import Button from './Button.astro';
+import EmptyState from './EmptyState.astro';
+import StatusTag from './StatusTag.astro';
+import { formatWhen } from '../lib/format';
+import type { AdminCatalogRow } from '@gamo/domain';
+
+interface Props {
+  rows: AdminCatalogRow[];
+}
+const { rows } = Astro.props;
+const labelFor: Record<string, string> = {
+  pending_review: 'Waiting for approval',
+  published: 'Published',
+  hidden: 'Hidden',
+  rejected: 'Failed editorial rules',
+};
+---
+
+{rows.length === 0 ? (
+  <EmptyState text="No catalog listings. Import the verified catalog with pnpm live:catalog:import." />
+) : (
+  <ul class="space-y-4">
+    {rows.map((r) => (
+      <li id={`listing-${r.id}`} class="rounded-clay-lg bg-surface p-5 shadow-soft">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="text-lg font-extrabold">{r.title}</h2>
+            <p class="text-sm text-body">
+              {r.startsAt ? formatWhen(r.startsAt, r.timezone) : 'No date'} · {r.venue}, {r.city}, {r.state}
+            </p>
+          </div>
+          <span class="flex flex-wrap gap-2">
+            <StatusTag
+              status={
+                r.status === 'rejected' ? 'rejected' : r.status === 'published' ? 'verified' : 'submitted'
+              }
+              label={labelFor[r.status] ?? r.status}
+            />
+            {r.featured && <StatusTag status="submitted" label="Featured" />}
+          </span>
+        </div>
+        <dl class="mt-3 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+          {r.provider && (
+            <div>
+              <dt class="font-semibold text-ink">Tickets on</dt>
+              <dd class="text-body">{r.provider}</dd>
+            </div>
+          )}
+          {r.externalUrl && (
+            <div>
+              <dt class="font-semibold text-ink">Official destination</dt>
+              <dd class="break-all text-body">
+                <a
+                  class="underline underline-offset-4"
+                  href={r.externalUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {r.externalUrl}
+                </a>
+              </dd>
+            </div>
+          )}
+          {r.lastVerifiedAt && (
+            <div>
+              <dt class="font-semibold text-ink">Link last checked</dt>
+              <dd class="text-body">{formatWhen(r.lastVerifiedAt, r.timezone)}</dd>
+            </div>
+          )}
+          {r.sourceUrls.length > 0 && (
+            <div>
+              <dt class="font-semibold text-ink">Sources</dt>
+              <dd class="text-body">
+                {r.sourceUrls.map((u) => (
+                  <a
+                    class="block break-all underline underline-offset-4"
+                    href={u}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {u}
+                  </a>
+                ))}
+              </dd>
+            </div>
+          )}
+        </dl>
+        <form method="post" class="mt-4 flex flex-wrap gap-3">
+          <input type="hidden" name="event_id" value={r.id} />
+          {(r.status === 'pending_review' || r.status === 'hidden') && (
+            <Button name="action" value="publish">
+              {r.status === 'hidden' ? 'Publish again' : 'Approve and publish'}
+            </Button>
+          )}
+          {(r.status === 'published' || r.status === 'pending_review') && (
+            <Button variant="secondary" name="action" value="hide">
+              Hide
+            </Button>
+          )}
+          {r.status === 'published' &&
+            (r.featured ? (
+              <Button variant="ghost" name="action" value="unfeature">
+                Remove featured label
+              </Button>
+            ) : (
+              <Button variant="ghost" name="action" value="feature">
+                Mark as featured
+              </Button>
+            ))}
+        </form>
+      </li>
+    ))}
+  </ul>
+)}

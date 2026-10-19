@@ -1,0 +1,33 @@
+---
+/** The three Gamo Live screens, as tabs at the top of each. Counts are real queue sizes, drawn only above zero. */
+import type { QueueCounts } from '../lib/inbox';
+
+interface Props {
+  current: 'events' | 'organizations' | 'catalog';
+  counts: QueueCounts | null;
+}
+const { current, counts } = Astro.props;
+const tabs = [
+  { key: 'events', label: 'Event review', href: '/events', n: counts?.events ?? 0 },
+  { key: 'organizations', label: 'Organizations', href: '/organizations', n: counts?.organizations ?? 0 },
+  { key: 'catalog', label: 'Catalog', href: '/catalog', n: counts?.catalog ?? 0 },
+] as const;
+---
+
+<nav aria-label="Gamo Live" class="mb-6 flex flex-wrap gap-2">
+  {tabs.map((t) => (
+    <a
+      href={t.href}
+      aria-current={t.key === current ? 'page' : undefined}
+      class:list={[
+        'inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-bold',
+        t.key === current
+          ? 'bg-clay-700 text-white shadow-button'
+          : 'bg-surface text-clay-800 shadow-soft hover:bg-clay-50',
+      ]}
+    >
+      {t.label}
+      {t.n > 0 && <span class="rounded-full bg-white/90 px-2 text-xs font-bold text-clay-800">{t.n}</span>}
+    </a>
+  ))}
+</nav>

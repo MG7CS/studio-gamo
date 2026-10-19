@@ -17,7 +17,9 @@ The previous admin (`apps/admin`) and the first rebuild were deleted. This is th
 | Inbox (home) | See everything waiting, at a glance | counts and the oldest waiting items, from the four queues below |
 | Church verification | schedule the in-person meeting, verify, request changes, reject, suspend, reinstate | `provider_profiles` (role church), `verification_records` |
 | Provider review (+ profile page) | the same decisions for musicians, technicians, teachers, artists, agents | same |
-| First-event review | approve / ask for changes / reject; "review every event" switch per organizer | `events`, `organizer_profiles` |
+| Event review (Gamo Live) | approve / ask for changes / reject with a note; the organization's owners are emailed; first approval recorded | Live database: `events`, `organizations`, `review_decisions` |
+| Organizations (Gamo Live) | verify / remove verification, suspend (note required) / reinstate, "review every event" switch, decision history | Live database: `organizations`, `memberships`, `review_decisions` |
+| Catalog (Gamo Live) | approve and publish, hide, mark featured (labeled) the editorial external listings | Live database: `events` (origin `catalog`), `catalog_sources` |
 | Participation requests | read, reply (visible to the participant), mark reviewed or closed | `participation_inquiries` |
 | Legal (read-only) | terms versions, review status, acceptance counts | `terms_documents`, `terms_acceptances`, registry |
 
@@ -44,7 +46,7 @@ Targets ≥ 44 × 44 px, visible focus ring, one `<h1>` per page, no horizontal 
 
 ## 4. Layout and states
 
-- **Shell:** the dashboard is the page itself (full viewport, no floating panel and nothing behind it, owner decision 2026-10-19): sidebar (Inbox, Church verification, Provider review, First-event review, Participation requests, Legal; below it the admin's email and a Sign out link to Access's logout), top bar with the page title and admin chip, mobile bottom tab bar. Badges only for real counts above zero.
+- **Shell:** the dashboard is the page itself (full viewport, no floating panel and nothing behind it, owner decision 2026-10-19): sidebar (Inbox, Participation requests, Church verification, Provider review, Event review, Organizations, Catalog, Legal; the phone tab bar groups the three Gamo Live screens under one "Live" tab; below it the admin's email and a Sign out link to Access's logout), top bar with the page title and admin chip, mobile bottom tab bar. Badges only for real counts above zero.
 - **Every list:** loading is server-rendered (no spinners), honest empty state, "showing the first N" when truncated, filters as links.
 - **Every decision:** plain form POST with a redirect and a result message; errors explain what to fix; nothing is saved silently.
 - **Errors:** 404 and 500 render in the same shell; unauthenticated is a plain 401/403 (Access handles login).
@@ -61,7 +63,7 @@ Remove: `admin_credentials` use and the admin-password code, the gate cookie, st
 1. ~~Gate and shell in the clay style~~ (done 2026-10-19).
 2. ~~Inbox and the real counts~~ (done 2026-10-19; links to the queues are added as each queue page is built).
 3. ~~Church verification and provider review~~ (done 2026-10-19).
-4. ~~First-event review~~ (done 2026-10-19).
+4. ~~First-event review~~ (done 2026-10-19), rebuilt on Gamo Live's own database with Organizations and Catalog (2026-10-19).
 5. ~~Participation requests~~ (done 2026-10-19).
 6. ~~Legal~~ (done 2026-10-19).
 7. ~~Built-worker checks~~ (done 2026-10-19: `tests/e2e/admin.spec.ts`).

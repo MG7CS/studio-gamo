@@ -32,11 +32,21 @@ const watchCsp = (page: Page) =>
     if (cspMessage.test(m.text())) cspErrors.push(m.text());
   });
 
-const PAGES = ['/', '/participation', '/churches', '/providers', '/events', '/legal'];
+const PAGES = [
+  '/',
+  '/participation',
+  '/churches',
+  '/providers',
+  '/events',
+  '/organizations',
+  '/catalog',
+  '/legal',
+];
 const PROTECTED = [
   ...PAGES,
   '/churches/pf_sample_church_open',
   '/providers/pf_sample_musician',
+  '/organizations/org_sample_1',
   '/signin',
   '/users',
   '/api/anything',
@@ -184,7 +194,9 @@ test('the sidebar and Inbox show the real counts, and each area shows its seeded
   expect(await badgeOf(page, 'Participation requests')).toBe(String(REVIEW_FIXTURE_COUNTS.participation));
   expect(await badgeOf(page, 'Church verification')).toBe(String(REVIEW_FIXTURE_COUNTS.churches));
   expect(await badgeOf(page, 'Provider review')).toBe(String(REVIEW_FIXTURE_COUNTS.providers));
-  expect(await badgeOf(page, 'First-event review')).toBe(String(REVIEW_FIXTURE_COUNTS.events));
+  expect(await badgeOf(page, 'Event review')).toBe(String(REVIEW_FIXTURE_COUNTS.events));
+  expect(await badgeOf(page, 'Organizations')).toBe(String(REVIEW_FIXTURE_COUNTS.organizations));
+  expect(await badgeOf(page, 'Catalog')).toBe(String(REVIEW_FIXTURE_COUNTS.catalog));
   expect(await badgeOf(page, 'Legal')).toBe('');
   const total = Object.values(REVIEW_FIXTURE_COUNTS).reduce((sum, n) => sum + n, 0);
   await expect(page.getByText(`${total} items are waiting for you.`)).toBeVisible();
@@ -203,12 +215,23 @@ test('the sidebar and Inbox show the real counts, and each area shows its seeded
   await expect(page.getByRole('heading', { name: REVIEW_FIXTURE_TITLES.firstEvent })).toBeVisible();
   await expect(page.getByRole('heading', { name: REVIEW_FIXTURE_TITLES.alwaysReviewEvent })).toBeVisible();
   await expect(page.getByText('Sample Published Concert')).toHaveCount(0);
+  await page.goto(`${ADMIN_E2E_ORIGIN}/organizations`);
+  await expect(page.getByText(REVIEW_FIXTURE_TITLES.organization)).toBeVisible();
+  await expect(page.getByText('Sample Youth Ministry')).toHaveCount(0);
+  await page.goto(`${ADMIN_E2E_ORIGIN}/catalog`);
+  await expect(page.getByRole('heading', { name: REVIEW_FIXTURE_TITLES.catalogListing })).toBeVisible();
   await page.goto(`${ADMIN_E2E_ORIGIN}/legal`);
   await expect(page.locator('main h2')).toHaveCount(8);
 });
 
 test('every page passes accessibility, fits 360 px, has 44 px targets and a phone tab bar that names its links', async () => {
-  const all = [...PAGES, '/churches/pf_sample_church_open', '/providers/pf_sample_musician', '/no-such-page'];
+  const all = [
+    ...PAGES,
+    '/churches/pf_sample_church_open',
+    '/providers/pf_sample_musician',
+    '/organizations/org_sample_1',
+    '/no-such-page',
+  ];
   for (const path of all) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${ADMIN_E2E_ORIGIN}${path}`);
@@ -224,7 +247,7 @@ test('every page passes accessibility, fits 360 px, has 44 px targets and a phon
     'Requests: Participation requests, 2 waiting',
     'Church: Church verification, 1 waiting',
     'Providers: Provider review, 2 waiting',
-    'Events: First-event review, 2 waiting',
+    'Live: Gamo Live, 4 waiting',
     'Legal',
   ]);
   const small = await page.evaluate(() =>
@@ -313,15 +336,28 @@ test('decisions work under the enforced CSP: reply, verify a church, approve eve
   await expect(page.getByRole('alert')).toContainText('Add a note explaining the decision.');
   await firstEvent.getByRole('button', { name: 'Approve' }).click();
   await expect(
-    page.getByText('Event approved. This was the organizer’s first approved event.'),
+    page.getByText(/Event approved and published\. This was the organization’s first approved event\./),
   ).toBeVisible();
   await page
     .locator('li', { hasText: REVIEW_FIXTURE_TITLES.alwaysReviewEvent })
     .getByRole('button', { name: 'Approve' })
     .click();
   await expect(page.getByText('No events are waiting for review.')).toBeVisible();
-  expect(await badgeOf(page, 'First-event review')).toBe('');
+  expect(await badgeOf(page, 'Event review')).toBe('');
   await expectAdminShell(page);
+
+  // Organizations: the new organization is still waiting; verify it. Catalog: approve the listing.
+  await page.goto(`${ADMIN_E2E_ORIGIN}/organizations`);
+  await page.getByRole('link', { name: new RegExp(REVIEW_FIXTURE_TITLES.organization) }).click();
+  await page.getByRole('button', { name: 'Suspend' }).click();
+  await expect(page.getByRole('alert')).toContainText('Add a note explaining the decision.');
+  await page.getByRole('button', { name: 'Verify organization' }).click();
+  await expect(page.getByText('Organization verified.')).toBeVisible();
+  expect(await badgeOf(page, 'Organizations')).toBe('');
+  await page.goto(`${ADMIN_E2E_ORIGIN}/catalog`);
+  await page.getByRole('button', { name: 'Approve and publish' }).click();
+  await expect(page.getByText('Listing published.')).toBeVisible();
+  expect(await badgeOf(page, 'Catalog')).toBe('');
 
   // The Inbox now says what is left, from the database.
   await page.goto(`${ADMIN_E2E_ORIGIN}/`);
