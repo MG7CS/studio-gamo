@@ -63,8 +63,10 @@ export const PATCH: APIRoute = async (context) => {
       {
         ...saved,
         slug: event.slug,
-        status: event.status === 'approved' ? 'approved' : 'pending_review',
-        message: 'Changes saved.',
+        status: saved.status === 'approved' ? 'approved' : 'pending_review',
+        message: saved.movedToReview
+          ? 'Changes saved. Because you changed public details, staff review the event again before it is shown and tickets are sold. Tickets already issued stay valid.'
+          : 'Changes saved.',
       },
       200,
       undefined,

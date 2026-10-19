@@ -1029,7 +1029,7 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
     { ...formEvent, title: 'Sample organizer form event (edited)' },
     { cookie },
   );
-  assert.equal(edited.body.data.message, 'Changes saved.');
+  assert.match(edited.body.data.message, /Changes saved/);
 
   // Resend webhook: 503 without the secret; signed events update email_log.
   await call(

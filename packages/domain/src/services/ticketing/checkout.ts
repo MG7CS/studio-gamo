@@ -50,7 +50,6 @@ import {
   requireTicketingSecret,
   salesClosed,
   emailsEqual,
-  snapshotWithAttendees,
   type CategoryRow,
   type EventRow,
   type FieldError,
@@ -633,16 +632,15 @@ export async function placeOrder(
     },
     holdId: newPrefixedId('hold'),
   }));
-  const snapshot = snapshotWithAttendees(policySnapshotJson(ctx.policy), v.holderNames);
+  const snapshot = policySnapshotJson(ctx.policy);
   let orderId = '';
 
   for (let attempt = 0; attempt < 3; attempt++) {
     orderId = newPrefixedId('ord');
     const reference = newOrderReference();
     try {
-      await runBatch(
-        db,
-        buildHoldBatch({
+      await runBatch(db, [
+        ...buildHoldBatch({
           order: {
             id: orderId,
             reference,
@@ -662,7 +660,15 @@ export async function placeOrder(
           },
           items,
         }),
-      );
+        ...(v.holderNames.length
+          ? [
+              {
+                sql: 'UPDATE ticket_orders SET attendees_json = ?2 WHERE id = ?1',
+                params: [orderId, JSON.stringify(v.holderNames)],
+              },
+            ]
+          : []),
+      ]);
       break;
     } catch (err) {
       const code = ticketingErrorCode(err);

@@ -590,3 +590,68 @@ describe('paid checkout gate (T-05)', () => {
     assert.ok(await confirmTokenFor({ ENVIRONMENT: 'local' }, 'ord_x', now() + 60));
   });
 });
+
+describe('editing published events (D-168)', () => {
+  test('unverified organizer: public content change sends the event back to review; verified: audited in event_changes', async () => {
+    const f = await ticketingFixture();
+    const ev = await publishedEvent(f);
+    const edit = (title: string) => ({
+      ...sampleEventInput(f, { title }),
+      categories: [
+        { id: ev.categories[0].id, name: 'General admission', kind: 'general', price: '0', capacity: '50' },
+      ],
+    });
+    // Same content: stays approved, nothing recorded.
+    const same = await updateOrganizerEvent(f.d1, {
+      eventId: ev.eventId,
+      event: edit('Sample Worship Night'),
+      actorUserId: f.userId,
+      now: now(),
+    });
+    assert.equal(same.status, 'approved');
+    assert.equal(f.q<{ n: number }>("SELECT count(*) AS n FROM event_changes WHERE kind = 'details'").n, 0);
+    // Unverified organizer rewrites the title: back to pending_review, sales paused, audited.
+    const r = await updateOrganizerEvent(f.d1, {
+      eventId: ev.eventId,
+      event: edit('Totally different title'),
+      actorUserId: f.userId,
+      now: now(),
+    });
+    assert.equal(r.movedToReview, true);
+    assert.equal(
+      f.q<{ s: string }>('SELECT status AS s FROM events WHERE id = ?', ev.eventId).s,
+      'pending_review',
+    );
+    await assert.rejects(
+      place(f, sampleOrderRequest(ev.eventId, [{ categoryId: ev.categories[0].id, quantity: 1 }])),
+      TicketingError,
+    );
+    assert.equal(f.q<{ n: number }>("SELECT count(*) AS n FROM event_changes WHERE kind = 'details'").n, 1);
+    // Staff approve and mark the organizer verified: edits stay published but are recorded.
+    f.d1.sqlite.prepare("UPDATE events SET status = 'approved' WHERE id = ?").run(ev.eventId);
+    await recordFirstEventApproval(f.d1, ev.eventId, now());
+    const v = await updateOrganizerEvent(f.d1, {
+      eventId: ev.eventId,
+      event: edit('Verified organizer new title'),
+      actorUserId: f.userId,
+      now: now(),
+    });
+    assert.equal(v.movedToReview, false);
+    assert.equal(v.status, 'approved');
+    const rows = f.all<{ before_json: string; after_json: string }>(
+      "SELECT before_json, after_json FROM event_changes WHERE kind = 'details' ORDER BY created_at, rowid",
+    );
+    assert.equal(rows.length, 2);
+    assert.equal(JSON.parse(rows[1].before_json).title, 'Totally different title');
+    assert.equal(JSON.parse(rows[1].after_json).title, 'Verified organizer new title');
+    // always_review forces review again.
+    f.d1.sqlite.exec('UPDATE organizer_profiles SET always_review = 1');
+    const a = await updateOrganizerEvent(f.d1, {
+      eventId: ev.eventId,
+      event: edit('Another title again'),
+      actorUserId: f.userId,
+      now: now(),
+    });
+    assert.equal(a.movedToReview, true);
+  });
+});
