@@ -23,12 +23,10 @@ import { asSqlDatabase, allRows } from '../security/sql-database.ts';
 import { AdminService } from '../services/admin.ts';
 import {
   notifyProviderOfDecision,
-  recordEventReviewDecision,
   reviewProviderProfile,
   ReviewError,
   setOrganizerAlwaysReview,
   latestMeeting,
-  assertNotSelfReview,
   type ProviderReviewAction,
   type StaffActor,
 } from '../services/provider-review.ts';
