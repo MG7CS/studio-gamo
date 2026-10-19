@@ -16,7 +16,7 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/waitlist/*', to: '/events' },
   { from: '/scan/*', to: '/events' },
   { from: '/checkout', to: '/events', status: 301 },
-  { from: /^\/events\/([^/]+)\/(tickets|register)$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
+  { from: /^\/events\/([^/]+)\/tickets$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
   {
     from: /^\/organizers\/([^/]+)$/,
     to: (_url, m) => {

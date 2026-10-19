@@ -1,9 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import LiveDiscoveryCard from '../../components/LiveDiscoveryCard.astro';
-import { getDb } from '@gamo/db';
 import {
-  LiveService,
+  LiveCatalog,
+  asSqlDatabase,
   getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
@@ -72,13 +72,12 @@ if (rawDateParam === '2026') {
 }
 
 let events: LiveEventWithDetails[] = [];
-let metroSummaries: Awaited<ReturnType<LiveService['getMetroSummaries']>> = [];
+let metroSummaries: Awaited<ReturnType<LiveCatalog['getMetroSummaries']>> = [];
 let dbUnavailable = false;
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const liveService = new LiveService(getDb(env.DB));
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
 
   events = await liveService.listDiscoverableEvents({
     q: qParam || undefined,

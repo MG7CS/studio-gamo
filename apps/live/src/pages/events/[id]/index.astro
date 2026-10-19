@@ -4,9 +4,9 @@ import Layout from '../../../layouts/Layout.astro';
 import { inquiryUrl, siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
-import { getDb } from '@gamo/db';
 import {
-  LiveService,
+  LiveCatalog,
+  asSqlDatabase,
   getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
@@ -29,14 +29,13 @@ const weekendFilter = url.searchParams.get('weekend') === '1' || url.searchParam
 let unavailable = false;
 let event: LiveEventWithDetails | null = null;
 let metroEvents: LiveEventWithDetails[] = [];
-let metroVenues: Awaited<ReturnType<LiveService['listDiscoverableVenues']>> = [];
-let allMetroSummaries: Awaited<ReturnType<LiveService['getMetroSummaries']>> = [];
+let metroVenues: Awaited<ReturnType<LiveCatalog['listDiscoverableVenues']>> = [];
+let allMetroSummaries: Awaited<ReturnType<LiveCatalog['getMetroSummaries']>> = [];
 let relatedEvents: LiveEventWithDetails[] = [];
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const liveService = new LiveService(getDb(env.DB));
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
 
   if (metro) {
     metroEvents = await liveService.listDiscoverableEvents({
@@ -769,10 +768,46 @@ const pageDescription = metro
                     Organized by <strong>{event.organizerName}</strong>
                   </p>
 
-                  <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink-soft">
-                    Registration and tickets on Gamo Live are being rebuilt. Please contact the organizer
-                    directly to attend.
+                  <p class="mt-2 text-xs text-muted">
+                    {event.organizerVerified ? 'Verified organizer' : 'Not yet verified by Gamo'}
                   </p>
+                  {event.priceText && (
+                    <p class="mt-3 text-sm text-ink">
+                      <strong>Price:</strong> {event.priceText}
+                    </p>
+                  )}
+                  {event.refundPolicyText && (
+                    <p class="mt-1 text-sm text-ink">
+                      <strong>Refunds:</strong> {event.refundPolicyText}
+                    </p>
+                  )}
+                  {event.admission === 'free_registration' ? (
+                    event.capacity != null && event.seatsTaken >= event.capacity ? (
+                      <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                        Registration full. Check back in case seats open up.
+                      </p>
+                    ) : (
+                      <>
+                        <a
+                          class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
+                          href={`/events/${event.slug}/register`}
+                        >
+                          Register free
+                        </a>
+                        <p class="mt-2 text-xs text-muted">
+                          No account needed.
+                          {event.capacity != null
+                            ? ` ${Math.max(0, event.capacity - event.seatsTaken)} seats left.`
+                            : ''}
+                          {event.qrCheckin ? ' You will get a QR code for check-in.' : ''}
+                        </p>
+                      </>
+                    )
+                  ) : (
+                    <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                      Free event. No registration needed; just come.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

@@ -1,0 +1,19 @@
+---
+/** A short status or error message above a split-screen form. Errors are announced immediately. */
+interface Props {
+  tone?: 'info' | 'error';
+}
+const { tone = 'info' } = Astro.props;
+---
+
+<div
+  role={tone === 'error' ? 'alert' : 'status'}
+  class:list={[
+    'mb-5 rounded-xl border px-4 py-3 text-[14px] leading-relaxed',
+    tone === 'error'
+      ? 'border-terracotta-deep/40 bg-white text-terracotta-deep'
+      : 'border-sand bg-cream text-ink',
+  ]}
+>
+  <slot />
+</div>

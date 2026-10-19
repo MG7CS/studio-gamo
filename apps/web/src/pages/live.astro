@@ -1,16 +1,15 @@
 ---
 /**
  * Gamo Live Marketing Page on Gamo Studios (`apps/web/src/pages/live.astro` -> `/live`).
- * Loads real published Christian concerts and worship gatherings directly from the D1 `events`
- * database via `LiveService`, and enforces the Past Event Closure Rule so any event whose
+ * Loads real published Christian concerts and worship gatherings from the Live database
+ * via `LiveCatalog`, and enforces the Past Event Closure Rule so any event whose
  * date/time has passed is clearly marked `Past · Closed`.
  */
 import SiteLayout from '../layouts/SiteLayout.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
-import { getDb } from '@gamo/db';
-import { LiveService, getRuntimeEnv } from '@gamo/domain';
+import { LiveCatalog, asSqlDatabase, getRuntimeEnv } from '@gamo/domain';
 import EventSpotlightHero from '../components/live/EventSpotlightHero.astro';
 import NearbyRail from '../components/live/NearbyRail.astro';
 import BrowsePlaceDate from '../components/live/BrowsePlaceDate.astro';
@@ -23,7 +22,6 @@ import FeaturedOrganizers from '../components/live/FeaturedOrganizers.astro';
 import TrustLegend from '../components/live/TrustLegend.astro';
 import {
   buildOrganizersFromEvents,
-  buildVerifiedCatalogFallbackEvents,
   mapDbEventsToMarketingEvents,
   type LiveEvent,
 } from '../data/live-marketing';
@@ -35,16 +33,11 @@ let liveEvents: LiveEvent[];
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const liveService = new LiveService(getDb(env.DB));
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
   const dbEvents = await liveService.listDiscoverableEvents({ limit: 100 });
-  if (dbEvents.length > 0) {
-    liveEvents = mapDbEventsToMarketingEvents(dbEvents, now);
-  } else {
-    liveEvents = buildVerifiedCatalogFallbackEvents(now);
-  }
+  liveEvents = mapDbEventsToMarketingEvents(dbEvents, now);
 } catch {
-  liveEvents = buildVerifiedCatalogFallbackEvents(now);
+  liveEvents = [];
 }
 
 const organizers = buildOrganizersFromEvents(liveEvents);

@@ -1,0 +1,79 @@
+---
+/**
+ * SplitScreenLayout: the full-viewport "photo left, curved panel right" screen first used by sign-in.
+ * Layout only: the photo, the Gamo brand link and a curved cream panel with a slot for the content.
+ * Used for the moments a person commits to something (registering for an event, signing in) so they
+ * feel one consistent screen across the products. Pass the page's own form or summary as the slot.
+ */
+import Logo from '../Logo.astro';
+import Photo from '../Photo.astro';
+import type { PhotoKey } from '../../lib/images';
+
+interface Props {
+  photo?: PhotoKey;
+  /** CSS object-position for the photo, e.g. `46% 20%`. */
+  position?: string;
+  program?: string;
+  brandHref?: string;
+  brandLabel?: string;
+}
+
+const {
+  photo = 'acousticLeader',
+  position = '46% 20%',
+  program = 'Gamo Studios',
+  brandHref = '/',
+  brandLabel = `${program} home`,
+} = Astro.props;
+---
+
+<section class="relative flex min-h-screen w-full flex-col overflow-hidden bg-ivory text-ink lg:flex-row">
+  <div class="relative h-[43vh] max-h-[410px] min-h-[296px] shrink-0 overflow-hidden bg-ink sm:h-[45vh] sm:max-h-[460px] sm:min-h-[360px] lg:h-auto lg:max-h-none lg:min-h-screen lg:w-[58%] xl:w-[60%]">
+    <Photo
+      name={photo}
+      sizes="(min-width: 1024px) 60vw, 100vw"
+      position={position}
+      class="h-full w-full object-cover"
+      pictureClass="block h-full w-full"
+      priority
+    />
+    <div class="pointer-events-none absolute inset-0 bg-ink/20"></div>
+    <a
+      href={brandHref}
+      aria-label={brandLabel}
+      class="absolute left-6 top-6 z-20 inline-flex min-h-11 items-center rounded-lg text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:left-10 sm:top-8 lg:left-14 lg:top-11"
+    >
+      <Logo program={program} />
+    </a>
+  </div>
+
+  <div class="relative z-10 flex flex-1 flex-col justify-center px-6 pb-9 pt-2 sm:px-12 sm:pb-12 sm:pt-4 lg:-ml-[140px] lg:min-h-screen lg:py-12 lg:pl-[164px] lg:pr-14 xl:-ml-[160px] xl:pl-[196px] xl:pr-24">
+    <div
+      class="pointer-events-none absolute inset-x-0 -top-[54px] h-[55px] overflow-hidden sm:-top-[66px] sm:h-[67px] lg:hidden"
+      aria-hidden="true"
+    >
+      <svg
+        class="h-full w-full text-ivory"
+        viewBox="0 0 400 72"
+        preserveAspectRatio="none"
+        fill="currentColor"
+      >
+        <path d="M 0,72 L 0,58 C 0,30 34,22 108,21 C 218,20 296,19 348,11 C 378,6 394,2 400,0 L 400,72 Z" />
+      </svg>
+    </div>
+    <div class="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
+      <svg
+        class="absolute inset-y-0 left-0 h-full w-[164px] text-ivory"
+        viewBox="0 0 164 900"
+        preserveAspectRatio="none"
+        fill="currentColor"
+      >
+        <path d="M 164,0 L 142,0 C 52,0 6,104 6,255 L 6,645 C 6,796 52,900 142,900 L 164,900 Z" />
+      </svg>
+      <div class="absolute inset-y-0 left-[162px] right-0 bg-ivory"></div>
+    </div>
+    <div class="relative mx-auto w-full max-w-[560px] lg:mx-0">
+      <slot />
+    </div>
+  </div>
+</section>

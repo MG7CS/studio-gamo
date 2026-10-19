@@ -1,8 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import LiveDiscoveryCard from '../../components/LiveDiscoveryCard.astro';
-import { getDb } from '@gamo/db';
-import { LiveService, getRuntimeEnv, type LiveEventWithDetails } from '@gamo/domain';
+import { LiveCatalog, asSqlDatabase, getRuntimeEnv, type LiveEventWithDetails } from '@gamo/domain';
 
 export const prerender = false;
 
@@ -34,9 +33,7 @@ let unavailable = false;
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const db = getDb(env.DB);
-  const liveService = new LiveService(db);
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
 
   const [publishedEvents, verifiedProfiles] = await Promise.all([
     liveService.listDiscoverableEvents({ limit: 200 }),
@@ -51,12 +48,12 @@ try {
     artistMap.set(normKey, {
       slug,
       stageName: prof.stageName.trim(),
-      roleLabel: prof.genre || 'Verified Artist',
-      genre: prof.genre,
+      roleLabel: 'Performer',
+      genre: null,
       bio: null, // listArtists() does not expose bio (contract: ArtistListResponse)
-      homeCity: prof.homeCity ?? null,
-      homeState: prof.homeState ?? null,
-      isVerifiedProfile: true,
+      homeCity: null,
+      homeState: null,
+      isVerifiedProfile: false,
       upcomingEvents: [],
     });
   }

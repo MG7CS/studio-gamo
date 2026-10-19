@@ -1,0 +1,30 @@
+---
+/** The primary action of a split-screen form: full-width terracotta pill with an arrow. No gradient. */
+interface Props {
+  label: string;
+  type?: 'submit' | 'button';
+  name?: string;
+  value?: string;
+  variant?: 'primary' | 'quiet';
+}
+const { label, type = 'submit', name, value, variant = 'primary' } = Astro.props;
+---
+
+<button
+  type={type}
+  name={name}
+  value={value}
+  class:list={[
+    'group relative mt-1 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 disabled:opacity-60',
+    variant === 'primary'
+      ? 'bg-terracotta text-white shadow-[0_10px_24px_-8px_rgba(29,25,23,0.32)] hover:bg-terracotta-deep'
+      : 'border border-ink/30 bg-white text-ink hover:bg-sand',
+  ]}
+>
+  <span>{label}</span>
+  {variant === 'primary' && (
+    <span class="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+      →
+    </span>
+  )}
+</button>

@@ -5,7 +5,6 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./stripe": "./src/stripe.ts",
     "./resend": "./src/resend.ts"
   }
 }

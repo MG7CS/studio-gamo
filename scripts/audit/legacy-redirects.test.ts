@@ -33,7 +33,7 @@ test('Gamo Live legacy routes keep working and never shadow real routes', () => 
   assert.match(redirect(live, '/promote/create')!.location!, /interest=Event%20listing$/);
   assert.equal(redirect(live, '/promote/create')?.status, 303);
   assert.equal(redirect(live, '/events/abc-123/tickets')?.location, '/events/abc-123');
-  assert.equal(redirect(live, '/events/abc-123/register')?.location, '/events/abc-123');
+  assert.equal(redirect(live, '/events/abc-123/register'), null, 'the registration page is real');
   assert.equal(redirect(live, '/events/abc-123'), null);
   assert.equal(redirect(live, '/events'), null);
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');

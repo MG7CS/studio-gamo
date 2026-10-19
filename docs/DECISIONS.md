@@ -198,3 +198,11 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 ## 2026-10-19 — Phase 3: marketing contact by email
 
 - **Decision:** until each product's accounts are rebuilt, every "sign up", "register", "list an event" or "apply" call to action leads to the web contact page, which opens an email to `hello@gamostudio.org` with a pre-filled subject. Reason: the old forms required sign-in that never worked in production, and an honest email path is better than a dead end. **Deviation** from rebuild decision 3 ("forms keep working"); the owner can restore a form once its product is rebuilt.
+
+## 2026-10-19 — Live requirements answered
+
+- **Decision** (owner): keep Clerk for sign-in (own application per product); no QR for free registrations, but organizations can toggle attendance tracking per event; recurring events, script import plus admin approve/hide, and derived artist and venue pages are in v1; product dashboards follow `design-reference/dashboard-ui/` (not claymorphism). See `docs/LIVE_REQUIREMENTS.md` §7.
+
+## 2026-10-19 — Live data model and screens approved
+
+- **Decision** (owner): new Live-owned D1 database; registrant personal data deleted 90 days after the event while non-personal event facts and aggregate counts stay; 52-occurrence series limit; every member edits events, only owners edit the organization; organization pages and a public `/promote` page in v1; browser barcode detector with typed-code fallback; free-event QR codes off by default, switchable per event. Client-facing booking UI is designed later with Academy, Worship and Production.

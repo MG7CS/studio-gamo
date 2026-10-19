@@ -1,9 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getDb } from '@gamo/db';
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import {
-  LiveService,
+  LiveCatalog,
+  asSqlDatabase,
   getRuntimeEnv,
   formatLocalEventSchedule,
   type LiveEventWithDetails,
@@ -40,9 +40,7 @@ let unavailable = false;
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const db = getDb(env.DB);
-  const liveService = new LiveService(db);
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
 
   const [publishedEvents, verifiedProfiles] = await Promise.all([
     liveService.listDiscoverableEvents({ limit: 200 }),
@@ -57,11 +55,11 @@ try {
       key: normKey,
       slug: toArtistSlug(prof.stageName),
       stageName: prof.stageName.trim(),
-      roleLabel: prof.genre || 'Verified Artist',
-      genre: prof.genre,
-      homeCity: prof.homeCity ?? null,
-      homeState: prof.homeState ?? null,
-      isVerifiedProfile: true,
+      roleLabel: 'Performer',
+      genre: null,
+      homeCity: null,
+      homeState: null,
+      isVerifiedProfile: false,
       upcomingEvents: [],
     });
   }

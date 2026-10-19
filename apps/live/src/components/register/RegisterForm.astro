@@ -1,0 +1,101 @@
+---
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+
+interface Occurrence {
+  id: string;
+  label: string;
+  seatsLeft: number | null;
+}
+interface Props {
+  occurrences: Occurrence[];
+  selectedOccurrenceId: string;
+  maxParty: number;
+  values: { name?: string; email?: string; partySize?: string };
+  errors: Partial<Record<'name' | 'email' | 'partySize' | 'occurrence' | 'consent', string>>;
+  siteTermsUrl: string;
+  privacyUrl: string;
+}
+const { occurrences, selectedOccurrenceId, maxParty, values, errors, siteTermsUrl, privacyUrl } = Astro.props;
+const selected = occurrences.find((o) => o.id === selectedOccurrenceId) ?? occurrences[0];
+const limit = Math.max(1, Math.min(maxParty, selected?.seatsLeft ?? maxParty));
+---
+
+<form method="post" class="space-y-5" novalidate>
+  {occurrences.length > 1 && (
+    <SplitField id="occurrence" name="occurrence" label="Date" as="select" required error={errors.occurrence}>
+      {occurrences.map((o) => (
+        <option value={o.id} selected={o.id === selected?.id}>
+          {o.label}
+          {o.seatsLeft != null ? ` · ${o.seatsLeft} seats left` : ''}
+        </option>
+      ))}
+    </SplitField>
+  )}
+  {occurrences.length === 1 && <input type="hidden" name="occurrence" value={occurrences[0].id} />}
+  <SplitField
+    id="name"
+    name="name"
+    label="Your name"
+    autocomplete="name"
+    required
+    value={values.name}
+    error={errors.name}
+  />
+  <SplitField
+    id="email"
+    name="email"
+    type="email"
+    label="Email address"
+    autocomplete="email"
+    placeholder="you@example.org"
+    required
+    value={values.email}
+    error={errors.email}
+    hint="We email a 6-digit code to confirm. Nothing is reserved until you enter it."
+  />
+  <SplitField
+    id="partySize"
+    name="partySize"
+    label="Number of people"
+    as="select"
+    required
+    error={errors.partySize}
+  >
+    {Array.from({ length: limit }, (_, i) => i + 1).map((n) => (
+      <option value={String(n)} selected={String(n) === (values.partySize ?? '1')}>
+        {n}
+      </option>
+    ))}
+  </SplitField>
+  <div>
+    <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+      <input
+        type="checkbox"
+        name="consent"
+        value="yes"
+        required
+        aria-invalid={errors.consent ? 'true' : undefined}
+        aria-describedby={errors.consent ? 'consent-error' : undefined}
+        class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
+      />
+      <span>
+        I agree to the{' '}
+        <a class="font-semibold text-terracotta underline" href={siteTermsUrl}>
+          Site Terms
+        </a>{' '}
+        and have read the{' '}
+        <a class="font-semibold text-terracotta underline" href={privacyUrl}>
+          Privacy Policy
+        </a>{' '}
+        (drafts, under legal review).
+      </span>
+    </label>
+    {errors.consent && (
+      <p id="consent-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+        {errors.consent}
+      </p>
+    )}
+  </div>
+  <SplitButton label="Email me a code" />
+</form>

@@ -1,6 +1,6 @@
-# Gamo Live — requirements (draft for owner approval, 2026-10-19)
+# Gamo Live — requirements (owner decisions recorded 2026-10-19; design in progress)
 
-Gamo Live is the first product rebuilt from scratch ([`REBUILD_PLAN.md`](REBUILD_PLAN.md)). This draft states what v1 must do and what it leaves out. Decisions marked **Owner** are open; everything else is a proposal to confirm. Nothing here is built yet. Rules that apply everywhere are in [`AGENTS.md`](../AGENTS.md) and [`SECURITY.md`](../SECURITY.md).
+Gamo Live is the first product rebuilt from scratch ([`REBUILD_PLAN.md`](REBUILD_PLAN.md)). This draft states what v1 must do and what it leaves out. The owner answered the six open questions on 2026-10-19 (section 7); everything else is a proposal to confirm. Nothing here is built yet. Rules that apply everywhere are in [`AGENTS.md`](../AGENTS.md) and [`SECURITY.md`](../SECURITY.md).
 
 ## 1. Purpose
 
@@ -35,11 +35,11 @@ Like the admin, v1 is what can be trusted end to end, nothing more.
 7. For events where the organizer turned on **free registration**: name, email, number of people (within the organizer's limit and the remaining capacity), terms consent.
 8. The person confirms with a **6-digit code emailed** to them; nothing is held as confirmed before that. Capacity is reserved safely (no overselling under concurrent sign-ups).
 9. A confirmation email with the details and a **signed, expiring manage link** (view, cancel). No attendee account.
-10. **Proposal — Owner:** do free registrations need a QR code for door check-in in v1, or is a printed/exported attendee list enough? (Recommendation: list export in v1; QR check-in later.)
+10. **QR codes are off by default for free events** and an organizer can switch them on per event (owner decision, clarified 2026-10-19). When on, each confirmed registration gets a QR code (in the confirmation email and on the manage page) and the organizer checks people in on a check-in screen by scanning or typing the code (first scan wins; a second scan shows who was already admitted and when). When off, registrants get no code and the organizer sees and exports the list. Gamo-issued QR tickets for **paid** events stay out of v1 (3.5).
 
 ### 3.3 Promote an Event (organizers, with an account)
 
-11. **Organizer sign-in** with an emailed 6-digit code (decision 1 below). One organizer account can belong to one or more organizations (church, ministry, artist, organizer).
+11. **Organizer sign-in with Clerk** (Gamo Live's own Clerk application, never shared with another product; owner decision). One organizer account can belong to one or more organizations. The old Clerk code is in git history (commit `6eba89c`: `packages/auth/clerk.ts`, `packages/config/clerk-env.ts`) as a reference only; it is rebuilt with Live, and the CSP gains Clerk's exact origins on the sign-in pages only (the cause of the production sign-up failure must be tested against the built worker). Attendees still need no account. One organizer account can belong to one or more organizations (church, ministry, artist, organizer).
 12. **Organization profile** — name, type, city, website, contact; shown on its events.
 13. **Submit an event** — the fields of 3.1.2 plus schedule (one-time or recurring weekly/monthly), admission mode (free/no registration, free with registration and capacity, external tickets link), category, images with rights confirmation. Terms consent (organizer terms draft).
 14. **Review rule** — every organization's **first event is reviewed by the admin** before it is published; later events publish directly unless the admin set "review every event" for that organization. The organizer sees the status and the admin's note.
@@ -55,7 +55,7 @@ Like the admin, v1 is what can be trusted end to end, nothing more.
 
 ### 3.5 Not in v1
 
-Paid ticketing through Gamo (Stripe), Gamo-issued QR tickets and door scanning, waitlists, ticket transfer and resale controls, seating and venue maps, artist/agent representation and booking offers, sponsored or featured placement sales, organizer team roles beyond "member of the organization", social sign-in, attendee accounts. Each needs its own approval later; paid ticketing also needs Stripe production approval, refund policy and legal review (`SECURITY.md`).
+Paid ticketing through Gamo (Stripe), Paid Gamo-issued QR tickets, door-staff scanner links, waitlists, ticket transfer and resale controls, seating and venue maps, artist/agent representation and booking offers, sponsored or featured placement sales, organizer team roles beyond "member of the organization", social sign-in, attendee accounts. Each needs its own approval later; paid ticketing also needs Stripe production approval, refund policy and legal review (`SECURITY.md`).
 
 ## 4. Trust rules (from the mission, permanent)
 
@@ -72,11 +72,13 @@ Fresh schema, nothing reused from the old migrations: `organizations`, `organiza
 
 Same as the admin: real data only; honest empty states; plain server-rendered pages and forms (JavaScript only where it truly helps); CSP without inline scripts or third-party script origins; fail closed; same-origin checks; one `<h1>`, 44 px targets, axe WCAG 2.2 AA, no overflow at 360 px; built-worker browser checks before any deploy; designs approved before screens are built (marketing look kept for public pages).
 
-## 7. Decisions for the owner
+## 7. Owner decisions (2026-10-19)
 
-1. **Sign-in method for organizers (and later all products):** Gamo's own emailed 6-digit codes sent through Resend (recommended: no third-party script, which is what broke production sign-up; needs the Resend key and sender domain set up), or Clerk per product (each product its own Clerk application; needs CSP allowances for Clerk's scripts and its own DNS records).
-2. **Free registration QR check-in in v1?** Recommendation: no; attendee list export in v1.
-3. **Recurring events in v1?** Recommendation: yes, weekly and monthly patterns (common for prayer gatherings and Bible studies).
-4. **Catalog management in v1:** script import plus admin approve/hide (recommended), or a full admin import screen.
-5. **Artists and venues pages:** keep as derived pages (from published events) in v1? Recommendation: yes.
-6. **Design:** public Explore pages keep the current marketing look; organizer screens need a design. Do you have references for the organizer area, or should the organizer area follow the admin's claymorphism layout in the app palette?
+1. **Sign-in:** keep Clerk. Live gets its own Clerk application; each later product its own. Needs from the owner at build time: the Live Clerk keys and DNS (`docs/RUNBOOK.md`), and approval of the CSP origins Clerk requires.
+2. **Free-registration QR codes:** off by default; an organizer can switch them on per event, which adds a QR code to each registration and a check-in screen (3.2 item 10).
+3. **Recurring events in v1:** yes (weekly and monthly).
+4. **Catalog management:** yes: script import plus admin approve/hide.
+5. **Artists and venues pages:** yes, derived from published events.
+6. **Design:** the organizer area is **not claymorphism**. References: `design-reference/dashboard-ui/` (a light dashboard: left sidebar with grouped menu, top bar with search, rounded white cards on a soft grey page, status pills, filter/sort controls, tables and a kanban-style board; a dark-sidebar variant). They are layout references only; colors come from the app palette (`tokens.css`), no gradients, and the sample content in them (revenue, products, deals) is not Gamo content. The admin keeps its claymorphism.
+
+Detailed designs for owner approval: [`LIVE_DATA_MODEL.md`](LIVE_DATA_MODEL.md) and [`LIVE_SCREENS.md`](LIVE_SCREENS.md). Then the design pass, then the build.
