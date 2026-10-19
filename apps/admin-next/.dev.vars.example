@@ -1,9 +1,0 @@
-# Gamo Admin (apps/admin) — local secrets. Copy to .dev.vars (git-ignored).
-# Shared settings (ENVIRONMENT, SESSION_SECRET) come from the root .env.
-# Product Clerk accounts never grant admin access; Clerk variables are ignored in this app.
-# In preview/production: `wrangler secret put <NAME> --env <preview|production>` from this directory.
-
-# REQUIRED in preview/production: the Cloudflare Zero Trust Access application in front of admin.
-# Outside ENVIRONMENT=local every request must carry a valid Access assertion for this audience.
-CF_ACCESS_TEAM_NAME=
-CF_ACCESS_AUD=

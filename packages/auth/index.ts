@@ -10,7 +10,7 @@ import type { GamoLocals } from './locals.ts';
  * - Server-side Role-Based Access Control (RBAC) and Multi-Tenant Organization Authorization.
  */
 
-import { eq, and, gt, isNull, ne } from 'drizzle-orm';
+import { eq, and, gt, isNull } from 'drizzle-orm';
 import {
   users,
   sessions,
@@ -352,29 +352,6 @@ export async function revokeSession(db: GamoDatabase, sessionId: string): Promis
  */
 export async function revokeAllUserSessions(db: GamoDatabase, userId: string): Promise<void> {
   await db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.userId, userId));
-}
-
-/**
- * Revokes every other admin-gateway session of a user (those without a `product`), keeping `keepSessionId`.
- * Used after a password change so a session opened with the old password does not outlive it. Product
- * sessions of the same user are not touched: the admin password does not guard them.
- */
-export async function revokeOtherAdminSessions(
-  db: GamoDatabase,
-  userId: string,
-  keepSessionId: string,
-): Promise<void> {
-  await db
-    .update(sessions)
-    .set({ revokedAt: new Date() })
-    .where(
-      and(
-        eq(sessions.userId, userId),
-        ne(sessions.id, keepSessionId),
-        isNull(sessions.product),
-        isNull(sessions.revokedAt),
-      ),
-    );
 }
 
 /**

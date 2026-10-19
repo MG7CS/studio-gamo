@@ -61,8 +61,7 @@ export default defineConfig({
     ...(withAdmin
       ? [
           {
-            // ADMIN_E2E_SEED=review adds labeled sample work items (scripts/e2e/admin-review-fixtures.ts).
-            command: 'ADMIN_E2E_SEED=review pnpm exec tsx scripts/e2e/admin-server.ts',
+            command: 'pnpm exec tsx scripts/e2e/admin-server.ts',
             // The gateway answers 401 until someone signs in; Playwright accepts that as "up".
             url: `http://127.0.0.1:${ADMIN_E2E_PORT}/`,
             reuseExistingServer: false,
