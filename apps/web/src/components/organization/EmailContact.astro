@@ -1,0 +1,35 @@
+---
+import { inquiryTopics } from '@studio-gamo/ui/lib/sites';
+
+interface Props {
+  partnership?: boolean;
+}
+const { partnership = false } = Astro.props;
+
+const EMAIL = 'hello@gamostudio.org';
+const asked = Astro.url.searchParams.get('interest') ?? '';
+const topic = inquiryTopics.find((t) => t === asked);
+const subject = topic ?? (partnership ? 'Partnership idea' : 'Question for Gamo Studios');
+const href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`;
+---
+
+<div class="rounded-[28px] bg-sand p-8 sm:p-10">
+  <h2 class="text-2xl font-black uppercase">Write to our team</h2>
+  <p class="mt-4 leading-relaxed text-ink-soft">
+    {topic
+      ? `You are asking about: ${topic}.`
+      : partnership
+        ? 'Tell us about your church or organization and the partnership you have in mind.'
+        : 'Tell us what you are looking for and where you are.'}
+    A person on our team reads every message and replies by email.
+  </p>
+  <a
+    href={href}
+    class="mt-6 inline-flex min-h-11 items-center rounded-full bg-terracotta px-6 font-semibold text-white hover:bg-terracotta-deep"
+  >
+    Email {EMAIL}
+  </a>
+  <p class="mt-4 text-sm text-ink-soft">
+    The button opens your email app. You can also write to {EMAIL} directly.
+  </p>
+</div>

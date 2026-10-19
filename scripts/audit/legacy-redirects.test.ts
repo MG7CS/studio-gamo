@@ -27,22 +27,21 @@ test('exact, prefix and trailing-slash matching', () => {
 });
 
 test('Gamo Live legacy routes keep working and never shadow real routes', () => {
-  assert.equal(redirect(live, '/organizer/scan')?.location, '/workspaces');
-  assert.equal(redirect(live, '/artist')?.location, '/workspaces');
+  assert.equal(redirect(live, '/artist')?.location, '/artists');
   assert.equal(redirect(live, '/artists'), null);
   assert.equal(redirect(live, '/artists/some-artist'), null);
-  assert.equal(redirect(live, '/promote')?.location, '/promote/create');
-  assert.equal(redirect(live, '/promote/create'), null);
+  assert.match(redirect(live, '/promote/create')!.location!, /interest=Event%20listing$/);
+  assert.equal(redirect(live, '/promote/create')?.status, 303);
   assert.equal(redirect(live, '/events/abc-123/tickets')?.location, '/events/abc-123');
+  assert.equal(redirect(live, '/events/abc-123/register')?.location, '/events/abc-123');
   assert.equal(redirect(live, '/events/abc-123'), null);
+  assert.equal(redirect(live, '/events'), null);
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
-  assert.equal(redirect(live, '/my-tickets')?.location, '/tickets/find');
   assert.equal(redirect(live, '/my-tickets')?.status, 301);
-  assert.equal(redirect(live, '/checkout')?.location, '/events');
-  assert.equal(redirect(live, '/tickets/find'), null);
+  assert.equal(redirect(live, '/workspaces')?.location, '/events');
 });
 
-test('program demo flows keep the original 303 status of their stubs', () => {
+test('removed program flows keep the original 303 status of their stubs', () => {
   for (const [rules, path] of [
     [worship, '/hire'],
     [worship, '/apply/profile'],
@@ -56,26 +55,25 @@ test('program demo flows keep the original 303 status of their stubs', () => {
   }
 });
 
-test('program demo flows go to the matching provider sign-up, lessons or inquiry topic', () => {
-  assert.match(redirect(worship, '/hire/schedule')!.location!, /\/account\/signup\?role=church$/);
-  assert.match(redirect(worship, '/apply')!.location!, /\/account\/signup\?role=musician$/);
-  assert.match(redirect(academy, '/register')!.location!, /\/lessons$/);
-  assert.match(redirect(academy, '/host-apply')!.location!, /\/account\/signup\?role=church$/);
-  // Production consultations come from client churches (not a provider role): still the inquiry form.
+test('removed product areas go to the matching inquiry topic or public page', () => {
+  assert.match(redirect(worship, '/hire/schedule')!.location!, /interest=Church%20musician%20request$/);
+  assert.match(redirect(worship, '/apply')!.location!, /interest=Musician%20application$/);
+  assert.match(redirect(academy, '/register/piano')!.location!, /interest=Lesson%20interest$/);
+  assert.match(redirect(academy, '/family/lessons')!.location!, /\/lessons$/);
   assert.match(
     redirect(production, '/consultation/confirmation')!.location!,
     /interest=Production%20consultation$/,
   );
   assert.equal(redirect(production, '/services'), null);
-});
-
-test('web /signin keeps only a safe same-site return path', () => {
-  assert.equal(
-    redirect(web, '/signin?next=/account/inquiries')?.location,
-    '/account/signin?next=%2Faccount%2Finquiries',
-  );
-  assert.equal(redirect(web, '/signin?next=//evil.example')?.location, '/account/signin?next=%2Faccount');
-  assert.equal(redirect(web, '/signin')?.location, '/account/signin');
+  for (const [rules, path] of [
+    [web, '/account/signin'],
+    [worship, '/account'],
+    [academy, '/account/profile'],
+    [live, '/account/signup'],
+    [production, '/account/signin'],
+  ] as const) {
+    assert.ok(redirect(rules, path), `${path} no longer has a sign-in page`);
+  }
 });
 
 test('same-app redirect targets resolve to a page that exists', () => {

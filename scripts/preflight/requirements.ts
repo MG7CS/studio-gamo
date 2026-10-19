@@ -14,46 +14,19 @@ export interface SecretRequirements {
   recommended: string[];
   /** Missing → noted only. */
   optional: string[];
-  /** All-or-nothing group: some set but not all → warning. */
-  clerk: string[];
 }
 
+/**
+ * The admin needs its Access settings. The public apps are marketing-only during the rebuild
+ * (docs/REBUILD_PLAN.md) and need no secrets; each rebuilt product adds its own list here.
+ */
 export function requirementsFor(app: PreflightApp): SecretRequirements {
   if (app === 'admin') {
     return {
       required: ['CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD', 'ADMIN_EMAIL'],
       recommended: [],
       optional: [],
-      clerk: [],
     };
   }
-  const suffix = app.toUpperCase();
-  // Identity/ticketing (design §10): each unlocks a feature that otherwise answers 503.
-  const identity = ['PII_HASH_SECRET', 'PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'];
-  const optional =
-    app === 'live'
-      ? [
-          'STRIPE_SECRET_KEY',
-          'STRIPE_WEBHOOK_SECRET',
-          'TICKET_QR_SECRET_GL1',
-          'CUSTOMER_LINK_SECRET',
-          'SCANNER_SESSION_SECRET',
-          'RESEND_WEBHOOK_SECRET',
-          ...identity,
-        ]
-      : app === 'academy'
-        ? ['CUSTOMER_LINK_SECRET', ...identity]
-        : identity;
-  return {
-    required: ['SESSION_SECRET'],
-    // Launch signs people in with emailed codes, so email delivery is effectively needed.
-    recommended: ['RESEND_API_KEY', 'EMAIL_FROM'],
-    optional: [...optional, `CLERK_WEBHOOK_SECRET_${suffix}`],
-    clerk: [
-      `PUBLIC_CLERK_PUBLISHABLE_KEY_${suffix}`,
-      `CLERK_SECRET_KEY_${suffix}`,
-      `CLERK_JWT_KEY_${suffix}`,
-      `CLERK_ISSUER_${suffix}`,
-    ],
-  };
+  return { required: [], recommended: [], optional: [] };
 }

@@ -6,7 +6,6 @@
  */
 import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { CLERK_LEGACY_NAMES } from '../../packages/config/clerk-env.ts';
 import type { Finding } from './config.ts';
 import { requirementsFor, type DeployEnv, type PreflightApp } from './requirements.ts';
 
@@ -77,26 +76,9 @@ export function evaluateSecrets(
 
   for (const name of req.required) if (!has(name)) add('error', 'secret-missing', `${name} is not set.`);
   for (const name of req.recommended)
-    if (!has(name)) add('warning', 'secret-recommended', `${name} is not set (email sign-in codes need it).`);
+    if (!has(name)) add('warning', 'secret-recommended', `${name} is not set.`);
   for (const name of req.optional)
     if (!has(name)) add('info', 'secret-optional', `${name} is not set (optional).`);
 
-  if (req.clerk.length > 0) {
-    const legacy = CLERK_LEGACY_NAMES.filter((name) => secretNames.has(name));
-    if (legacy.length > 0) {
-      add(
-        'warning',
-        'clerk-legacy-name',
-        `un-suffixed Clerk secret(s) ${legacy.join(', ')} are ignored by a deployed Worker; run scripts/set-clerk-secrets.sh and delete them (docs/AUTH.md).`,
-      );
-    }
-    const set = req.clerk.filter(has);
-    if (set.length > 0 && set.length < req.clerk.length) {
-      const missing = req.clerk.filter((n) => !has(n));
-      add('warning', 'clerk-partial', `Clerk is partly configured; missing: ${missing.join(', ')}.`);
-    } else if (set.length === 0) {
-      add('info', 'clerk-off', 'Clerk not configured (optional; Gamo emailed codes are used).');
-    }
-  }
   return out;
 }

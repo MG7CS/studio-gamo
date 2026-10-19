@@ -17,7 +17,7 @@ import {
   isClerkTestBlankedName,
   localOnlyValues,
 } from '../../packages/config/env-loader.ts';
-import { parseDotenv } from '../clerk/dotenv-value.ts';
+import { parseDotenv } from './dotenv.ts';
 import { blankClerkInDevVars, prepareTestServer } from './test-servers.ts';
 
 const FAKE_LIVE_SECRET = 'sk_live_FAKE_DO_NOT_PRINT_0123456789';

@@ -17,14 +17,8 @@
       "entry": ["index.ts", "testing.ts", "drizzle.config.ts"],
       "project": ["*.ts"]
     },
-    "packages/api-contracts": {
-      "entry": ["src/index.ts", "src/runtime.ts", "src/internal.d.ts"],
-      "project": ["src/**/*.ts"]
-    },
     "packages/*": {
       "project": ["**/*.ts"]
     }
-  },
-  "ignore": ["openapi/bundled/**"],
-  "ignoreDependencies": ["ajv", "ajv-formats"]
+  }
 }

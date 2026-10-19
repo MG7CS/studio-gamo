@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { clerkOffTestVars, isClerkTestBlankedName } from '../../packages/config/env-loader.ts';
-import { parseDotenv } from '../clerk/dotenv-value.ts';
+import { parseDotenv } from './dotenv.ts';
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..');
 const APPS = ['web', 'worship', 'academy', 'live', 'production', 'admin'];

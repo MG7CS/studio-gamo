@@ -43,7 +43,7 @@ const {
 // Private and account pages (flagged by the page middleware) get no canonical or social tags.
 const locals = Astro.locals;
 const app = locals.product as SiteKey | undefined;
-const indexable = Boolean(app) && !noindex && !locals.noindexPage;
+const indexable = Boolean(app) && !noindex;
 const origin = app ? siteOrigin(app) : '';
 const canonical = indexable ? origin + (Astro.url.pathname.replace(/\/+$/, '') || '/') : undefined;
 const imageUrl = indexable && ogImage ? new URL(ogImage, origin).href : undefined;

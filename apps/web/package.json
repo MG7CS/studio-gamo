@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.4",
-    "@gamo/api-contracts": "workspace:*",
     "@gamo/auth": "workspace:*",
     "@gamo/db": "workspace:*",
     "@gamo/domain": "workspace:*",

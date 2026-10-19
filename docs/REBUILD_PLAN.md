@@ -40,7 +40,7 @@ Live workers today: `gamo-web`, `gamo-worship`, `gamo-academy`, `gamo-live`, `ga
 
 1. ~~Production inventory~~ (done).
 2. ~~**Rules and docs reset.**~~ (done 2026-10-19, see below) A short new `AGENTS.md` with only true, permanent rules (mission and legal wording, owner process rules, security baselines, design system, single-admin Access); `README.md` and `ARCHITECTURE.md` rewritten to describe what exists; outdated docs deleted or archived (git keeps history); `GAMO_NONPROFIT_MODEL.md` (mission) and the legal texts kept.
-3. **Removal**, in a few large commits: non-marketing pages, API routes, demo-era UI, domain services, old product auth, contracts, and their tests; marketing pages keep working per decisions 2–3.
+3. ~~**Removal**~~ (done 2026-10-19, see BUILD_LOG), in a few large commits: non-marketing pages, API routes, demo-era UI, domain services, old product auth, contracts, and their tests; marketing pages keep working per decisions 2–3.
 4. **Rebuild product by product:** requirements → design → build → built-worker checks, like the admin.
 5. **Production stays frozen** for the public apps until each rebuilt product is ready; nothing is deployed without the owner.
 

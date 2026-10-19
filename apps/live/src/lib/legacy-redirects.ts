@@ -1,19 +1,22 @@
 import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
-/** Retired Gamo Live URLs: per-role dashboards (now /workspaces) and old ticket/organizer paths. */
+/** Retired Gamo Live URLs (accounts, organizer tools and ticketing were removed in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [
-  { from: '/promote', to: '/promote/create', status: 303 },
-  { from: '/promote/status', to: '/workspaces' },
-  { from: '/organizer/events/new', to: '/promote/create', status: 303 },
-  // /organizer and /organizer/events/<id>/… are the Agent C event tools now; only the retired scan page moves.
-  { from: '/organizer/scan', to: '/workspaces' },
-  { from: '/artist/*', to: '/workspaces' },
-  { from: '/agent/*', to: '/workspaces' },
-  { from: '/me/*', to: '/workspaces' },
-  { from: '/ticket', to: '/tickets/find' },
-  { from: '/my-tickets', to: '/tickets/find', status: 301 },
+  { from: '/promote/*', to: () => inquiryUrl('Event listing'), status: 303 },
+  { from: '/organizer/*', to: () => inquiryUrl('Event listing') },
+  { from: '/artist/*', to: '/artists' },
+  { from: '/agent/*', to: '/artists' },
+  { from: '/me/*', to: '/events' },
+  { from: '/workspaces', to: '/events' },
+  { from: '/account/*', to: '/events' },
+  { from: '/tickets/*', to: '/events' },
+  { from: '/ticket', to: '/events' },
+  { from: '/my-tickets', to: '/events', status: 301 },
+  { from: '/waitlist/*', to: '/events' },
+  { from: '/scan/*', to: '/events' },
   { from: '/checkout', to: '/events', status: 301 },
-  { from: /^\/events\/([^/]+)\/tickets$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
+  { from: /^\/events\/([^/]+)\/(tickets|register)$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
   {
     from: /^\/organizers\/([^/]+)$/,
     to: (_url, m) => {

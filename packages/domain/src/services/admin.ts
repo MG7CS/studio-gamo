@@ -13,7 +13,7 @@ import {
   toContractEvent,
 } from '@gamo/db';
 import type { ReviewDecisionInput } from '../api/validation.ts';
-import { sqlDatabaseOf } from './identity.ts';
+import { sqlDatabaseOf } from '../security/sql-database.ts';
 import { recordEventReviewDecision, type AdminActor } from './provider-review.ts';
 
 export class AdminService {

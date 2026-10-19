@@ -147,42 +147,29 @@ test('requestSecurityHeaders merges page requests and filters origins', () => {
   );
 });
 
-test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page requests reach the headers', async () => {
-  const run = async (env: Record<string, unknown>, page: (locals: any) => void = () => {}) => {
-    const url = new URL('https://live.example.test/events/sample');
-    const locals: Record<string, any> = { runtime: { env: { ENVIRONMENT: 'production', ...env } } };
-    const middleware = applicationPages('live');
-    const response = await middleware(
-      { request: new Request(url), url, locals, redirect: () => new Response(null) } as never,
-      async () => {
-        page(locals);
-        return new Response('page');
-      },
+test('page middleware: pages answer no-store with the baseline headers and geolocation only on Live', async () => {
+  const run = async (app: 'live' | 'web') => {
+    const url = new URL(`https://${app}.example.test/events/sample`);
+    const locals: Record<string, any> = { runtime: { env: { ENVIRONMENT: 'production' } } };
+    return applicationPages(app)(
+      { request: new Request(url), url, locals } as never,
+      async () => new Response('page'),
     );
-    // The CSP header itself is only set in production builds (import.meta.env.PROD); its content is tested above.
-    return { response, locals };
   };
-  const without = await run({});
-  assert.match(without.response.headers.get('permissions-policy') ?? '', /camera=\(\)/);
-  const scanner = await run({ PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' }, (locals) =>
-    requestSecurityHeaders(locals, { camera: true, formActionOrigins: ['https://checkout.stripe.com'] }),
-  );
-  assert.match(scanner.response.headers.get('permissions-policy') ?? '', /camera=\(self\)/);
-  assert.deepEqual(scanner.locals.securityRequest.formActionOrigins, ['https://checkout.stripe.com']);
+  // The CSP header itself is only set in production builds (import.meta.env.PROD); its content is tested above.
+  const live = await run('live');
+  assert.equal(live.headers.get('cache-control'), 'private, no-store');
+  assert.match(live.headers.get('permissions-policy') ?? '', /geolocation=\(self\)/);
+  assert.match(live.headers.get('permissions-policy') ?? '', /camera=\(\)/);
+  const web = await run('web');
+  assert.doesNotMatch(web.headers.get('permissions-policy') ?? '', /geolocation=\(self\)/);
 
-  const url = new URL('https://live.example.test/scan');
-  const csp = (env: Record<string, string>, locals: Record<string, any> = {}) =>
-    securityHeaders(pageSecurityHeaderOptions('live', { url, locals }, env, true))['Content-Security-Policy'];
-  assert.ok(!csp({}).includes('challenges.cloudflare.com'), 'no site key → no Turnstile origin');
-  assert.ok(!csp({ PUBLIC_TURNSTILE_SITE_KEY: '  ' }).includes('challenges.cloudflare.com'));
-  assert.equal(
-    directive(csp({ PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' }), 'frame-src'),
-    "frame-src 'self' https://challenges.cloudflare.com",
-  );
-  assert.equal(
-    directive(csp({}, scanner.locals), 'form-action'),
-    "form-action 'self' https://checkout.stripe.com",
-  );
+  const url = new URL('https://live.example.test/events');
+  const csp = securityHeaders(pageSecurityHeaderOptions('live', { url, locals: {} }, true))[
+    'Content-Security-Policy'
+  ];
+  assert.equal(directive(csp, 'script-src'), "script-src 'self'");
+  assert.equal(directive(csp, 'form-action'), "form-action 'self'");
 });
 
 test('a per-request nonce is added to script-src only, never with unsafe-inline, and bad values are dropped', () => {

@@ -21,17 +21,16 @@ Every page is rendered on demand (not prerendered) so middleware and security he
 
 | Package | Status | What it holds |
 | --- | --- | --- |
-| `@studio-gamo/ui` (`packages/ui`) | kept: tokens, marketing layout and components, `Icon`, `Logo`, legal content; **being replaced:** `components/{account,auth,dashboard,forms,onboarding}` | shared UI |
+| `@studio-gamo/ui` (`packages/ui`) | tokens, marketing layout and components, `Icon`, `Logo`, legal content (the demo-era account, auth, dashboard, form and onboarding components were removed in phase 3) | shared UI |
 | `@gamo/config` (`packages/config`) | kept | app hosts and ports, typed `GamoEnv`, environment validation, local env loading |
-| `@gamo/domain` (`packages/domain`) | **being replaced**, except the security headers and terms registry, which move with the rebuild | services, page middleware, API helpers |
-| `@gamo/auth` (`packages/auth`) | **being replaced** (public sign-in is redesigned) | sessions, Clerk, page access |
+| `@gamo/domain` (`packages/domain`) | shrunk in phase 3 to what the admin and the marketing pages still use; each rebuilt product replaces its part | admin/provider-review/participation services, the Live read model and catalog import, security headers, terms registry, marketing page middleware |
+| `@gamo/auth` (`packages/auth`) | reduced in phase 3 to `AuthError`, `requireSameOrigin` and the `PublicApp`/`GamoLocals` types (product sign-in is redesigned) | request guards |
 | `@gamo/db` (`packages/db`) | **being replaced** (fresh data model) | Drizzle schema, migrations 0000–0017 |
-| `@gamo/integrations` (`packages/integrations`) | **being replaced** | Stripe, Resend, R2 adapters |
-| `@gamo/api-contracts` (`packages/api-contracts`) + `openapi/` | **being replaced** | OpenAPI contract and generated types and validators |
+| `@gamo/integrations` (`packages/integrations`) | reduced to the Resend adapter | email delivery |
 
 ## Request flow
 
-- **Public apps (today):** `src/middleware.ts` → `applicationPages()` in `@gamo/domain` (environment check → session → private-page guard → legacy redirects → page → security headers). Marketing pages need none of the session parts; the rebuild replaces this middleware.
+- **Public apps (today):** `src/middleware.ts` → `applicationPages()` in `@gamo/domain` (environment check → legacy redirects → page → security headers; no sessions). Marketing pages need none of the session parts; the rebuild replaces this middleware.
 - **Admin:** `apps/admin/src/middleware.ts` → environment check → the gate (`src/lib/gate.ts`: a valid Cloudflare Access assertion for exactly `ADMIN_EMAIL`; locally the explicit loopback-only identity) → page → security headers. Anything else is a plain 401/403/503. See [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md).
 - **Security headers** (`packages/domain/src/http/security-headers.ts`): CSP with `script-src 'self'` plus a per-response nonce, no `unsafe-inline` scripts, `frame-ancestors 'none'`, `form-action 'self'`, `X-Frame-Options: DENY`, `nosniff`, HSTS over HTTPS, a locked-down `Permissions-Policy`.
 

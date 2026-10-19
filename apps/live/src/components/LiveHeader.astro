@@ -1,5 +1,6 @@
 ---
 import { GAMO_LIVE_METROS, resolveMetroBySlug } from '@gamo/domain';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
 const pathname = Astro.url.pathname;
 const urlMetroParam = Astro.url.searchParams.get('metro');
@@ -31,7 +32,7 @@ const navItems = [
   },
   {
     label: 'Organizers',
-    href: '/promote/create',
+    href: inquiryUrl('Event listing'),
     match: (p: string) => p.startsWith('/promote') || p.startsWith('/submit') || p.startsWith('/organizer'),
   },
 ];
@@ -158,14 +159,6 @@ const navItems = [
         </select>
       </div>
 
-      {/* Sign In Pill */}
-      <a
-        href="/account/signin"
-        class="hidden sm:inline-flex items-center justify-center rounded-full border border-line bg-transparent hover:bg-cream text-terracotta px-5 min-h-11 text-sm font-semibold transition-colors whitespace-nowrap"
-      >
-        Sign In
-      </a>
-
       {/* Get Tickets Filled Pill */}
       <a
         href="/events"
@@ -281,13 +274,7 @@ const navItems = [
       </ul>
     </nav>
 
-    <div class="mt-4 grid grid-cols-2 gap-2.5 border-t border-sand pt-4">
-      <a
-        href="/account/signin"
-        class="rounded-full border border-line bg-white px-4 py-2.5 text-center text-sm font-semibold text-terracotta"
-      >
-        Sign In
-      </a>
+    <div class="mt-4 grid grid-cols-1 gap-2.5 border-t border-sand pt-4">
       <a
         href="/events"
         class="rounded-full bg-terracotta px-4 py-2.5 text-center text-sm font-semibold text-white"

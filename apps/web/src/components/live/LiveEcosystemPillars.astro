@@ -5,7 +5,7 @@
  */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 
 const pillars = [
   {
@@ -14,10 +14,7 @@ const pillars = [
     eyebrow: 'Attendees & Guests',
     body: 'Browse Christian concerts, worship nights, conferences, and community gatherings nationwide. Reserve free entry or follow verified ticket links — no casual attendee account required.',
     icon: 'ticket' as const,
-    links: [
-      { label: 'Browse all events', href: siteUrl('live', '/events') },
-      { label: 'Order & QR pass lookup', href: siteUrl('live', '/tickets/find') },
-    ],
+    links: [{ label: 'Browse all events', href: siteUrl('live', '/events') }],
   },
   {
     number: '02',
@@ -26,8 +23,8 @@ const pillars = [
     body: 'Publish moderated event listings, manage multi-role event teams with scoped permissions, configure ticket tiers, and run offline-capable QR door check-in.',
     icon: 'calendar' as const,
     links: [
-      { label: 'Promote an event', href: siteUrl('live', '/promote/create') },
-      { label: 'List an event', href: siteUrl('live', '/promote/create') },
+      { label: 'Promote an event', href: inquiryUrl('Event listing') },
+      { label: 'List an event', href: inquiryUrl('Event listing') },
     ],
   },
   {

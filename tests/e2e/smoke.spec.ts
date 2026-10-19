@@ -18,11 +18,11 @@ const APPS = {
 } as const;
 /** Public pages that are intentionally not in a sitemap. */
 const EXTRA_PAGES: Record<keyof typeof APPS, string[]> = {
-  web: ['/account/signin', '/account/signup'],
-  worship: ['/account/signin'],
-  academy: ['/account/signin'],
-  live: ['/tickets/find', '/account/signin'],
-  production: ['/account/signin'],
+  web: ['/contact'],
+  worship: [],
+  academy: [],
+  live: [],
+  production: [],
 };
 const LOCAL_ORIGIN = /^http:\/\/127\.0\.0\.1:432[1-6]$/;
 

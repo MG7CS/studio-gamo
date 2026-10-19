@@ -194,3 +194,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 
 - **Decision** (owner): rebuild every non-marketing page, API, the backend, data model, tests and the rules/docs from scratch; keep the marketing pages and the admin's Cloudflare Access gate and shell. Fresh data model (production holds no real user data), Live first, public sign-in redesigned, production frozen for the public apps until each rebuilt product ships. Rules now live in the rewritten `AGENTS.md`; the old rules are listed there as retired. Plan: `docs/REBUILD_PLAN.md`.
 
+
+## 2026-10-19 — Phase 3: marketing contact by email
+
+- **Decision:** until each product's accounts are rebuilt, every "sign up", "register", "list an event" or "apply" call to action leads to the web contact page, which opens an email to `hello@gamostudio.org` with a pre-filled subject. Reason: the old forms required sign-in that never worked in production, and an honest email path is better than a dead end. **Deviation** from rebuild decision 3 ("forms keep working"); the owner can restore a form once its product is rebuilt.
