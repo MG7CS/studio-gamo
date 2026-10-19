@@ -1,0 +1,27 @@
+---
+/** Event status as a small pill. The words come from the shared status labels; color is secondary. */
+import { EVENT_STATUS_LABELS } from '@gamo/domain';
+
+interface Props {
+  status: string;
+}
+const { status } = Astro.props;
+const tone: Record<string, string> = {
+  published: 'bg-ink text-white',
+  pending_review: 'bg-tan text-ink',
+  changes_requested: 'bg-terracotta text-white',
+  draft: 'bg-sand text-ink',
+  rejected: 'bg-white text-terracotta-deep ring-1 ring-terracotta-deep',
+  canceled: 'bg-white text-ink ring-1 ring-ink/40',
+  hidden: 'bg-white text-ink ring-1 ring-ink/40',
+};
+---
+
+<span
+  class:list={[
+    'inline-flex items-center rounded-full px-3 py-1 text-[12px] font-semibold',
+    tone[status] ?? 'bg-sand text-ink',
+  ]}
+>
+  {EVENT_STATUS_LABELS[status] ?? status}
+</span>

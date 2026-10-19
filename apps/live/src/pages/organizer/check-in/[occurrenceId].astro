@@ -1,0 +1,176 @@
+---
+/**
+ * B8: check people in at the door for an event that turned QR codes on. Scan with the camera where the browser
+ * supports it, or type the code. First scan wins: a second scan says who was admitted and when.
+ */
+import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import Panel from '../../../components/organizer/Panel.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  OrganizerError,
+  checkInForOrganizer,
+  getCheckInOccurrence,
+  requestSecurityHeaders,
+} from '@gamo/domain';
+import { organizerPage } from '../../../lib/organizer-session';
+import { whenLabel } from '../../../lib/organizer-format';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+const occurrenceId = Astro.params.occurrenceId ?? '';
+let occurrence = await getCheckInOccurrence(live.db, active.organizationId, occurrenceId);
+if (!occurrence) return new Response(null, { status: 404 });
+// This is the only page that asks the browser for the camera.
+requestSecurityHeaders(Astro.locals, { camera: true });
+
+let result: { ok: boolean; message: string } | null = null;
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const asJson = (Astro.request.headers.get('content-type') ?? '').includes('application/json');
+  const raw = asJson
+    ? ((await Astro.request.json().catch(() => null)) as { code?: unknown } | null)?.code
+    : (await Astro.request.formData()).get('code');
+  const code = typeof raw === 'string' ? raw : '';
+  try {
+    const outcome = await checkInForOrganizer(live.db, {
+      organizationId: active.organizationId,
+      occurrenceId,
+      code,
+      now,
+    });
+    result = outcome.ok
+      ? {
+          ok: true,
+          message: `Welcome, ${outcome.name}. Admit ${outcome.partySize} ${outcome.partySize === 1 ? 'person' : 'people'}.`,
+        }
+      : outcome.reason === 'already_admitted'
+        ? {
+            ok: false,
+            message: `${outcome.name} was already admitted at ${whenLabel(outcome.checkedInAt ?? now, occurrence.timezone)}.`,
+          }
+        : outcome.reason === 'canceled'
+          ? { ok: false, message: `${outcome.name}’s registration was canceled. Do not admit on this code.` }
+          : { ok: false, message: 'That code is not on this event’s list.' };
+  } catch (error) {
+    if (!(error instanceof OrganizerError)) throw error;
+    result = { ok: false, message: 'Check-in is not available for this date.' };
+  }
+  if (asJson)
+    return new Response(JSON.stringify(result), {
+      headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+    });
+  occurrence = (await getCheckInOccurrence(live.db, active.organizationId, occurrenceId)) ?? occurrence;
+}
+const enabled = occurrence.qrCheckin && !occurrence.canceled;
+---
+
+<OrganizerLayout
+  title="Check-in"
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle
+    title="Check-in"
+    subtext={`${occurrence.eventTitle} · ${whenLabel(occurrence.startsAt, occurrence.timezone)}`}
+  />
+  {!enabled && (
+    <SplitNotice tone="error">
+      Check-in is only available for dates of events that turned QR codes on, and not for canceled dates.
+    </SplitNotice>
+  )}
+  {enabled && (
+    <>
+      <div data-checkin class="grid gap-4 lg:grid-cols-[1fr_320px]">
+        <Panel
+          id="scan"
+          title="Scan or type a code"
+          description="Each registration has a QR code and a 10-character check-in code."
+        >
+          <button
+            id="scan-start"
+            type="button"
+            hidden
+            class="mb-4 min-h-12 w-full rounded-full border border-ink/30 bg-white px-6 text-[15px] font-semibold text-ink hover:bg-sand sm:w-auto"
+          >
+            Scan with camera
+          </button>
+          <video
+            id="scan-video"
+            hidden
+            playsinline
+            muted
+            class="mb-4 aspect-[4/3] w-full max-w-md rounded-2xl bg-ink object-cover"
+          ></video>
+          <form method="post" class="max-w-md space-y-4" novalidate>
+            <div>
+              <label for="code" class="mb-2 block text-[14px] font-semibold text-ink">
+                Check-in code
+              </label>
+              <input
+                id="code"
+                name="code"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                maxlength="20"
+                class="min-h-[56px] w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 font-mono text-[20px] uppercase tracking-widest text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+              />
+            </div>
+            <SplitButton label="Check in" />
+          </form>
+          <div
+            id="scan-result"
+            role="status"
+            aria-live="polite"
+            class:list={
+              result
+                ? result.ok
+                  ? 'mt-4 rounded-xl border border-sand bg-cream px-4 py-3 text-[15px] font-semibold text-ink'
+                  : 'mt-4 rounded-xl border border-terracotta-deep/40 bg-white px-4 py-3 text-[15px] font-semibold text-terracotta-deep'
+                : 'sr-only'
+            }
+          >
+            {result?.message}
+          </div>
+        </Panel>
+        <Panel id="count" title="At the door">
+          <p class="text-[40px] font-black leading-none tracking-[-0.03em] text-ink">
+            {occurrence.checkedInPeople}
+          </p>
+          <p class="mt-1 text-[14px] text-muted">
+            of {occurrence.confirmedPeople} {occurrence.confirmedPeople === 1 ? 'person' : 'people'}{' '}
+            registered have checked in
+          </p>
+          <a
+            href={`/organizer/events/${occurrence.eventId}/registrations`}
+            class="mt-5 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+          >
+            Registration list
+          </a>
+        </Panel>
+      </div>
+      <script>
+        import '../../../scripts/checkin-scan';
+      </script>
+    </>
+  )}
+</OrganizerLayout>

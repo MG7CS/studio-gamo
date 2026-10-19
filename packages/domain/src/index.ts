@@ -11,6 +11,7 @@ export * from './live/registration.ts';
 export * from './live/mail.ts';
 export * from './live/clerk.ts';
 export * from './live/organizers.ts';
+export * from './live/events.ts';
 export * from './live/qr.ts';
 export * from './services/admin.ts';
 export * from './services/notifications.ts';

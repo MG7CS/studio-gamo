@@ -1,0 +1,336 @@
+---
+/**
+ * The event editor (B5): sections for the basics, where, when and how people attend, then the review step.
+ * Plain server-rendered form; errors come back next to the fields. Once people have registered, the schedule
+ * and admission settings are locked so nobody's registration is changed under them.
+ */
+import Panel from './Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import {
+  ADMISSIONS,
+  EVENT_CATEGORIES,
+  EVENT_TIME_ZONES,
+  type EventFormValues,
+  type ReviewRule,
+} from '@gamo/domain';
+
+interface Props {
+  values: EventFormValues;
+  errors?: Record<string, string>;
+  locked?: boolean;
+  rule: ReviewRule;
+  published?: boolean;
+  readOnly?: boolean;
+}
+const { values: v, errors = {}, locked = false, rule, published = false, readOnly = false } = Astro.props;
+const submitLabel =
+  rule === 'none'
+    ? published
+      ? 'Save changes'
+      : 'Publish event'
+    : published
+      ? 'Save and send for review'
+      : 'Send for review';
+const ruleText =
+  rule === 'first_event'
+    ? 'Your organization’s first event is reviewed by Gamo before it appears. After it is approved, later events publish directly.'
+    : rule === 'every_event'
+      ? 'Gamo reviews every event from your organization before it appears.'
+      : 'Your organization is approved, so events publish as soon as you submit them.';
+const dis = readOnly;
+const lockDis = readOnly || locked;
+---
+
+<form method="post" class="space-y-4" novalidate>
+  <Panel id="basics" title="The basics">
+    <div class="space-y-5">
+      <SplitField
+        id="title"
+        name="title"
+        label="Event title"
+        required
+        value={v.title}
+        error={errors.title}
+        disabled={dis}
+      />
+      <SplitField
+        id="category"
+        name="category"
+        label="Category"
+        as="select"
+        required
+        error={errors.category}
+        disabled={dis}
+      >
+        {EVENT_CATEGORIES.map((c) => (
+          <option value={c.value} selected={v.category === c.value}>
+            {c.label}
+          </option>
+        ))}
+      </SplitField>
+      <SplitField
+        id="description"
+        name="description"
+        label="Description"
+        as="textarea"
+        rows={6}
+        maxlength={4000}
+        required
+        value={v.description}
+        error={errors.description}
+        disabled={dis}
+        hint="What happens, who it is for, anything people should know."
+      />
+      <SplitField
+        id="performers"
+        name="performers"
+        label="Performers and speakers"
+        as="textarea"
+        rows={3}
+        value={v.performers}
+        error={errors.performers}
+        disabled={dis}
+        hint="One per line. Add a role after a bar: Maria Lopez | Worship leader"
+      />
+    </div>
+  </Panel>
+
+  <Panel id="where" title="Where">
+    <div class="space-y-5">
+      <SplitField
+        id="venueName"
+        name="venueName"
+        label="Venue or church name"
+        required
+        value={v.venueName}
+        error={errors.venueName}
+        disabled={dis}
+      />
+      <SplitField
+        id="address"
+        name="address"
+        label="Street address"
+        value={v.address}
+        error={errors.address}
+        disabled={dis}
+        autocomplete="off"
+      />
+      <div class="grid gap-5 sm:grid-cols-[1fr_120px]">
+        <SplitField
+          id="city"
+          name="city"
+          label="City"
+          required
+          value={v.city}
+          error={errors.city}
+          disabled={dis}
+        />
+        <SplitField
+          id="state"
+          name="state"
+          label="State"
+          required
+          value={v.state}
+          error={errors.state}
+          disabled={dis}
+          maxlength={2}
+          placeholder="AZ"
+        />
+      </div>
+      <SplitField
+        id="timezone"
+        name="timezone"
+        label="Time zone of the venue"
+        as="select"
+        required
+        error={errors.timezone}
+        disabled={dis}
+      >
+        {EVENT_TIME_ZONES.map((z) => (
+          <option value={z.value} selected={v.timezone === z.value}>
+            {z.label}
+          </option>
+        ))}
+      </SplitField>
+    </div>
+  </Panel>
+
+  <Panel
+    id="when"
+    title="When"
+    description={
+      locked
+        ? 'People have registered, so the dates are locked. To change them, cancel this event and create a new one.'
+        : 'Times are in the venue’s time zone.'
+    }
+  >
+    <div class="space-y-5">
+      <SplitField
+        id="schedule"
+        name="schedule"
+        label="How often"
+        as="select"
+        required
+        error={errors.schedule}
+        disabled={lockDis}
+      >
+        <option value="once" selected={v.schedule === 'once'}>
+          One time
+        </option>
+        <option value="weekly" selected={v.schedule === 'weekly'}>
+          Every week
+        </option>
+        <option value="monthly" selected={v.schedule === 'monthly'}>
+          Every month (same date)
+        </option>
+      </SplitField>
+      <div class="grid gap-5 sm:grid-cols-3">
+        <SplitField
+          id="date"
+          name="date"
+          inputmode="numeric"
+          label="First date"
+          placeholder="YYYY-MM-DD"
+          required
+          value={v.date}
+          error={errors.date}
+          disabled={lockDis}
+          hint="Year-month-day"
+        />
+        <SplitField
+          id="startTime"
+          name="startTime"
+          label="Starts"
+          placeholder="19:00"
+          required
+          value={v.startTime}
+          error={errors.startTime}
+          disabled={lockDis}
+          hint="24-hour, like 19:00"
+        />
+        <SplitField
+          id="endTime"
+          name="endTime"
+          label="Ends (optional)"
+          placeholder="21:00"
+          value={v.endTime}
+          error={errors.endTime}
+          disabled={lockDis}
+        />
+      </div>
+      <SplitField
+        id="until"
+        name="until"
+        label="Last date (weekly or monthly only)"
+        placeholder="YYYY-MM-DD"
+        value={v.until}
+        error={errors.until}
+        disabled={lockDis}
+        hint="Up to 52 dates in a series."
+      />
+    </div>
+  </Panel>
+
+  <Panel id="admission" title="How people attend">
+    <div class="space-y-5">
+      <SplitField
+        id="admission"
+        name="admission"
+        label="Admission"
+        as="select"
+        required
+        error={errors.admission}
+        disabled={lockDis}
+      >
+        {ADMISSIONS.map((a) => (
+          <option value={a.value} selected={v.admission === a.value}>
+            {a.label}
+          </option>
+        ))}
+      </SplitField>
+      <SplitField
+        id="externalUrl"
+        name="externalUrl"
+        label="Tickets or registration page"
+        value={v.externalUrl}
+        error={errors.externalUrl}
+        disabled={lockDis}
+        placeholder="https://"
+        hint="Only for events sold or registered elsewhere. People leave Gamo Live to use it."
+      />
+      <div class="grid gap-5 sm:grid-cols-2">
+        <SplitField
+          id="capacity"
+          name="capacity"
+          label="Seats (registration events)"
+          inputmode="numeric"
+          value={v.capacity}
+          error={errors.capacity}
+          disabled={dis}
+          hint="Leave empty for no limit."
+        />
+        <SplitField
+          id="maxPartySize"
+          name="maxPartySize"
+          label="People per registration"
+          inputmode="numeric"
+          value={v.maxPartySize}
+          error={errors.maxPartySize}
+          disabled={dis}
+        />
+      </div>
+      <div>
+        <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+          <input
+            type="checkbox"
+            name="qrCheckin"
+            value="yes"
+            checked={v.qrCheckin}
+            disabled={lockDis}
+            class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
+          />
+          <span>
+            <strong>QR codes for check-in.</strong> Each registration gets a QR code and you check people in
+            at the door. Off by default; only for free events with registration.
+          </span>
+        </label>
+        {errors.qrCheckin && (
+          <p class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">{errors.qrCheckin}</p>
+        )}
+      </div>
+      <SplitField
+        id="priceText"
+        name="priceText"
+        label="Price note (optional)"
+        value={v.priceText}
+        error={errors.priceText}
+        disabled={dis}
+        hint="Shown exactly as you write it, for example “Free; donations welcome” or “From $15 on the ticket site”."
+      />
+      <SplitField
+        id="refundPolicyText"
+        name="refundPolicyText"
+        label="Refund policy (optional)"
+        as="textarea"
+        rows={2}
+        value={v.refundPolicyText}
+        error={errors.refundPolicyText}
+        disabled={dis}
+      />
+    </div>
+  </Panel>
+
+  {!readOnly && (
+    <Panel id="review" title="Review and submit" description={ruleText}>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <SplitButton label="Save as draft" name="intent" value="draft" variant="quiet" />
+        <SplitButton label={submitLabel} name="intent" value="submit" />
+      </div>
+      <p class="mt-4 text-[13px] text-muted">
+        Photos are not part of events yet. By submitting you confirm the details are true and that this is a
+        Christian event as described in the Organizer Terms.
+      </p>
+    </Panel>
+  )}
+</form>

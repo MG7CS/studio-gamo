@@ -1,6 +1,6 @@
 import type { IconName } from '@studio-gamo/ui/lib/icons';
 
-export type OrganizerNavKey = 'overview' | 'organization' | 'account';
+export type OrganizerNavKey = 'overview' | 'events' | 'organization' | 'account';
 
 export interface OrganizerNavItem {
   key: OrganizerNavKey;
@@ -19,6 +19,14 @@ export const ORGANIZER_NAV: OrganizerNavItem[] = [
     shortLabel: 'Overview',
     href: '/organizer',
     icon: 'home',
+    group: 'Menu',
+  },
+  {
+    key: 'events',
+    label: 'Events',
+    shortLabel: 'Events',
+    href: '/organizer/events',
+    icon: 'calendar',
     group: 'Menu',
   },
   {

@@ -1,0 +1,82 @@
+---
+/** B5: edit an event. Edits to a published event follow the review rule; dates lock once people register. */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import EventEditor from '../../../../components/organizer/EventEditor.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { getOrganizerEvent, reviewRuleFor } from '@gamo/domain';
+import { organizerPage } from '../../../../lib/organizer-session';
+import { readEventForm, saveFromForm } from '../../../../lib/event-editor';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+const id = Astro.params.id ?? '';
+let event = await getOrganizerEvent(live.db, active.organizationId, id);
+if (!event) return new Response(null, { status: 404 });
+const editable =
+  ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
+  active.status === 'active';
+let values = event.values;
+let errors: Record<string, string> = {};
+let notice: string | undefined;
+
+if (Astro.request.method === 'POST' && editable) {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  values = readEventForm(form);
+  const outcome = await saveFromForm(live.db, {
+    organizationId: active.organizationId,
+    eventId: id,
+    form,
+    now,
+  });
+  if (outcome.kind === 'saved') return Astro.redirect(`/organizer/events/${id}?saved=${outcome.status}`, 303);
+  errors = outcome.errors;
+  notice = outcome.notice;
+  event = (await getOrganizerEvent(live.db, active.organizationId, id)) ?? event;
+}
+const rule = await reviewRuleFor(live.db, active.organizationId);
+---
+
+<OrganizerLayout
+  title={`Edit ${event.values.title}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle title="Edit event" subtext={event.values.title} />
+  {!editable && <SplitNotice>This event can no longer be edited.</SplitNotice>}
+  {event.status === 'published' && rule !== 'none' && (
+    <SplitNotice>
+      Saving changes to a published event sends it back for review, and it stays hidden until Gamo approves
+      it.
+    </SplitNotice>
+  )}
+  {notice && <SplitNotice tone="error">{notice}</SplitNotice>}
+  {Object.keys(errors).length > 0 && (
+    <SplitNotice tone="error">Please fix the highlighted field: {Object.values(errors)[0]}</SplitNotice>
+  )}
+  <EventEditor
+    values={values}
+    errors={errors}
+    locked={event.registrationsLocked}
+    rule={rule}
+    published={event.status === 'published'}
+    readOnly={!editable}
+  />
+</OrganizerLayout>

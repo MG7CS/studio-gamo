@@ -29,7 +29,10 @@ export type OrganizerErrorCode =
   | 'invitation_invalid'
   | 'invitation_expired'
   | 'invitation_wrong_email'
-  | 'last_owner';
+  | 'last_owner'
+  | 'suspended'
+  | 'status_locked'
+  | 'capacity_low';
 
 export class OrganizerError extends Error {
   readonly code: OrganizerErrorCode;
