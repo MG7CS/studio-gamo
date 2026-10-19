@@ -468,7 +468,7 @@ test('free RSVP: validation, sold-out counts, identical answers, email-code conf
   });
   assert.equal(confirmed.body.data.ticketsIssued, 2);
   customerCookie = confirmed.response.headers.get('set-cookie')!.split(';')[0];
-  assert.match(customerCookie, /^__gamo_customer=/);
+  assert.match(customerCookie, /^__gamo_customer_live=/);
   const replay = await call('live', 'POST', '/api/orders/confirm', 200, {
     confirmToken: first.body.data.confirmToken,
     code,

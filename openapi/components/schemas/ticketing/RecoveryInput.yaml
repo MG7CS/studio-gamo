@@ -3,7 +3,9 @@ additionalProperties: false
 properties:
   email:
     type: string
-    maxLength: 320
+    format: email
+    maxLength: 254
+    pattern: '^[A-Za-z0-9.!#$%&''*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$'
   cf-turnstile-response:
     type: string
     maxLength: 2048

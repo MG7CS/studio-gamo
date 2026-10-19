@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createMigratedD1 } from '@gamo/db/testing';
 import {
-  CUSTOMER_COOKIE_NAME,
+  customerCookieName,
   CUSTOMER_LINK_INVALID_MESSAGE,
   CustomerInputError,
   endCustomerSession,
@@ -23,10 +23,11 @@ const SECRET = 'customer-link-secret-for-tests-000000000001';
 const ENV = { ENVIRONMENT: 'production', CUSTOMER_LINK_SECRET: SECRET };
 const NOW = 1_900_000_000;
 
-const cookieValue = (setCookie: string) => setCookie.split(';')[0].slice(CUSTOMER_COOKIE_NAME.length + 1);
+const cookieValue = (setCookie: string) =>
+  setCookie.split(';')[0].slice(customerCookieName('live').length + 1);
 const withCookie = (setCookie: string) =>
   new Request('https://live.example.test/tickets', {
-    headers: { cookie: `other=1; ${CUSTOMER_COOKIE_NAME}=${cookieValue(setCookie)}` },
+    headers: { cookie: `other=1; ${customerCookieName('live')}=${cookieValue(setCookie)}` },
   });
 
 test('upsertCustomerProfile: normalised email is the key; a guest form never sets or changes the name', async () => {
@@ -90,6 +91,7 @@ test('erased profiles are returned unchanged and cannot be verified or sent link
   );
   await assert.rejects(
     issueCustomerLink(db, ENV, {
+      product: 'live',
       customerProfileId: p.id,
       scope: 'customer:all',
       purpose: 'recovery',
@@ -126,6 +128,7 @@ test('issue → open → read → end: cookie flags, TTL capped by the token, to
   const db = await createMigratedD1();
   const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
   const link = await issueCustomerLink(db, ENV, {
+    product: 'live',
     customerProfileId: p.id,
     scope: 'order:ord_sample',
     purpose: 'order',
@@ -137,13 +140,18 @@ test('issue → open → read → end: cookie flags, TTL capped by the token, to
   assert.equal(link.path, `/tickets/open?t=${link.token}`);
   assert.equal(link.token.length, 43);
 
-  const opened = await openCustomerLink(db, ENV, { token: link.token, now: NOW + 3000, https: true });
+  const opened = await openCustomerLink(db, ENV, {
+    product: 'live',
+    token: link.token,
+    now: NOW + 3000,
+    https: true,
+  });
   assert.ok(opened.ok);
   assert.equal(opened.purpose, 'order');
   assert.equal(opened.session.expiresAt, NOW + 3600, 'never past the token expiry');
   assert.match(
     opened.cookie,
-    /^__gamo_customer=csn_[a-z0-9]+\.\d+\.[A-Za-z0-9_-]+; Path=\/; Max-Age=600; HttpOnly; SameSite=Lax; Secure$/,
+    /^__gamo_customer_live=csn_[a-z0-9]+\.\d+\.[A-Za-z0-9_-]+; Path=\/; Max-Age=600; HttpOnly; SameSite=Lax; Secure$/,
   );
   assert.ok(!opened.cookie.includes(link.token), 'the cookie never carries the link token');
   const verified = db.sqlite
@@ -152,41 +160,59 @@ test('issue → open → read → end: cookie flags, TTL capped by the token, to
   assert.equal(verified.email_verified_at, NOW + 3000, 'opening a link proves inbox control');
   assert.ok(verified.person_id);
 
-  const session = await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3100);
+  const session = await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3100, 'live');
   assert.deepEqual(session, {
     sessionId: opened.session.sessionId,
     customerProfileId: p.id,
     scope: 'order:ord_sample',
     expiresAt: NOW + 3600,
   });
-  assert.equal(await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3600), null, 'expired');
-  assert.equal(await readCustomerSession(db, ENV, new Request('https://x.test/'), NOW), null, 'no cookie');
+  assert.equal(
+    await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3600, 'live'),
+    null,
+    'expired',
+  );
+  assert.equal(
+    await readCustomerSession(db, ENV, new Request('https://x.test/'), NOW, 'live'),
+    null,
+    'no cookie',
+  );
   const tampered = opened.cookie.replace(/\.(\d+)\./, (_m, exp) => `.${Number(exp) + 999}.`);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(tampered), NOW + 3100), null, 'bad signature');
+  assert.equal(
+    await readCustomerSession(db, ENV, withCookie(tampered), NOW + 3100, 'live'),
+    null,
+    'bad signature',
+  );
   assert.equal(
     await readCustomerSession(
       db,
       { ...ENV, CUSTOMER_LINK_SECRET: 'x'.repeat(40) },
       withCookie(opened.cookie),
       NOW + 3100,
+      'live',
     ),
     null,
     'other secret',
   );
 
-  const ended = await endCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3200, false);
+  const ended = await endCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3200, false, 'live');
   assert.ok(ended.ended);
   assert.match(
     ended.cookie,
     /^__gamo_customer=; Path=\/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax$/,
   );
-  assert.equal(await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3201), null, 'revoked');
+  assert.equal(
+    await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3201, 'live'),
+    null,
+    'revoked',
+  );
 });
 
 test('a full 2 h session when the token lives longer; http (local) cookies are not Secure', async () => {
   const db = await createMigratedD1();
   const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
   const link = await issueCustomerLink(db, ENV, {
+    product: 'live',
     customerProfileId: p.id,
     scope: 'customer:all',
     purpose: 'recovery',
@@ -195,6 +221,7 @@ test('a full 2 h session when the token lives longer; http (local) cookies are n
   });
   assert.equal(link.path, `/link?t=${link.token}`);
   const opened = await openCustomerLink(db, ENV, {
+    product: 'live',
     token: link.token,
     now: NOW,
     https: false,
@@ -208,7 +235,7 @@ test('a full 2 h session when the token lives longer; http (local) cookies are n
     .get(p.id) as any;
   assert.equal(row.email_verified_at, null, 'markEmailVerified: false skips verification');
   assert.equal(await revokeCustomerSessions(db, p.id, NOW + 1), 1);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 2), null);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 2, 'live'), null);
 });
 
 test('every failure has the same public message (invalid, expired, revoked, exhausted, erased)', async () => {
@@ -216,6 +243,7 @@ test('every failure has the same public message (invalid, expired, revoked, exha
   const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
   const issue = (extra: object = {}) =>
     issueCustomerLink(db, ENV, {
+      product: 'live',
       customerProfileId: p.id,
       scope: 'transfer:tkt_sample',
       purpose: 'transfer',
@@ -224,19 +252,34 @@ test('every failure has the same public message (invalid, expired, revoked, exha
       ...extra,
     });
   const outcomes = [];
-  outcomes.push(await openCustomerLink(db, ENV, { token: 'not-a-token', now: NOW, https: true }));
   outcomes.push(
-    await openCustomerLink(db, ENV, { token: (await issue()).token, now: NOW + 601, https: true }),
+    await openCustomerLink(db, ENV, { product: 'live', token: 'not-a-token', now: NOW, https: true }),
+  );
+  outcomes.push(
+    await openCustomerLink(db, ENV, {
+      product: 'live',
+      token: (await issue()).token,
+      now: NOW + 601,
+      https: true,
+    }),
   );
   const revoked = await issue();
-  await new CustomerLinkTokens(db, SECRET).revoke(revoked.id, NOW);
-  outcomes.push(await openCustomerLink(db, ENV, { token: revoked.token, now: NOW + 1, https: true }));
+  await new CustomerLinkTokens(db, SECRET, 'live').revoke(revoked.id, NOW);
+  outcomes.push(
+    await openCustomerLink(db, ENV, { product: 'live', token: revoked.token, now: NOW + 1, https: true }),
+  );
   const once = await issue({ maxUses: 1 });
-  assert.ok((await openCustomerLink(db, ENV, { token: once.token, now: NOW + 1, https: true })).ok);
-  outcomes.push(await openCustomerLink(db, ENV, { token: once.token, now: NOW + 2, https: true }));
+  assert.ok(
+    (await openCustomerLink(db, ENV, { product: 'live', token: once.token, now: NOW + 1, https: true })).ok,
+  );
+  outcomes.push(
+    await openCustomerLink(db, ENV, { product: 'live', token: once.token, now: NOW + 2, https: true }),
+  );
   const erased = await issue();
   db.sqlite.prepare('UPDATE customer_profiles SET erased_at = ? WHERE id = ?').run(NOW + 3, p.id);
-  outcomes.push(await openCustomerLink(db, ENV, { token: erased.token, now: NOW + 4, https: true }));
+  outcomes.push(
+    await openCustomerLink(db, ENV, { product: 'live', token: erased.token, now: NOW + 4, https: true }),
+  );
   for (const o of outcomes) assert.deepEqual(o, { ok: false, message: CUSTOMER_LINK_INVALID_MESSAGE });
 });
 
@@ -247,6 +290,7 @@ test('CUSTOMER_LINK_SECRET: missing outside local throws SecretNotConfiguredErro
     customerProfileId: p.id,
     scope: 'customer:all' as const,
     purpose: 'recovery' as const,
+    product: 'live' as const,
     expiresAt: NOW + 600,
     now: NOW,
   };
@@ -258,45 +302,62 @@ test('CUSTOMER_LINK_SECRET: missing outside local throws SecretNotConfiguredErro
       { ENVIRONMENT: 'preview', CUSTOMER_LINK_SECRET: 'short' },
       new Request('https://x.test'),
       NOW,
+      'live',
     ),
     SecretNotConfiguredError,
   );
   const local = { ENVIRONMENT: 'local' };
   const link = await issueCustomerLink(db, local, input);
-  const opened = await openCustomerLink(db, local, { token: link.token, now: NOW + 1, https: false });
+  const opened = await openCustomerLink(db, local, {
+    product: 'live',
+    token: link.token,
+    now: NOW + 1,
+    https: false,
+  });
   assert.ok(opened.ok);
-  assert.ok(await readCustomerSession(db, local, withCookie(opened.cookie), NOW + 2));
-  const prod = await openCustomerLink(db, ENV, { token: link.token, now: NOW + 3, https: true });
+  assert.ok(await readCustomerSession(db, local, withCookie(opened.cookie), NOW + 2, 'live'));
+  const prod = await openCustomerLink(db, ENV, {
+    product: 'live',
+    token: link.token,
+    now: NOW + 3,
+    https: true,
+  });
   assert.equal(prod.ok, false, 'a token issued with the local key is useless with a real secret');
 });
 
 test('revoking the link revokes the sessions opened from it (revokeForScope and revoke)', async () => {
   const db = await createMigratedD1();
   const p = await upsertCustomerProfile(db, { email: 'sam@example.org', now: NOW });
-  const tokens = new CustomerLinkTokens(db, SECRET);
+  const tokens = new CustomerLinkTokens(db, SECRET, 'live');
   const open = async (scope: 'order:ord_1' | 'customer:all') => {
     const link = await issueCustomerLink(db, ENV, {
+      product: 'live',
       customerProfileId: p.id,
       scope,
       purpose: scope === 'customer:all' ? 'recovery' : 'order',
       expiresAt: NOW + 86400,
       now: NOW,
     });
-    const opened = await openCustomerLink(db, ENV, { token: link.token, now: NOW + 1, https: true });
+    const opened = await openCustomerLink(db, ENV, {
+      product: 'live',
+      token: link.token,
+      now: NOW + 1,
+      https: true,
+    });
     assert.ok(opened.ok);
     return { link, opened };
   };
   const order = await open('order:ord_1');
   const other = await open('customer:all');
-  assert.ok(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 2));
+  assert.ok(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 2, 'live'));
   assert.equal(await tokens.revokeForScope('order:ord_1', NOW + 3), 1);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 4), null);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(order.opened.cookie), NOW + 4, 'live'), null);
   const row = db.sqlite
     .prepare('SELECT revoked_at FROM customer_sessions WHERE id = ?')
     .get(order.opened.session.sessionId) as any;
   assert.equal(row.revoked_at, NOW + 3, 'the session row is revoked in the same batch');
   assert.ok(
-    await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 4),
+    await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 4, 'live'),
     'other scopes keep working',
   );
 
@@ -304,9 +365,9 @@ test('revoking the link revokes the sessions opened from it (revokeForScope and 
   db.sqlite
     .prepare('UPDATE customer_access_tokens SET revoked_at = ? WHERE id = ?')
     .run(NOW + 5, other.link.id);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 6), null);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(other.opened.cookie), NOW + 6, 'live'), null);
 
   const third = await open('customer:all');
   assert.equal(await tokens.revoke(third.link.id, NOW + 7), true);
-  assert.equal(await readCustomerSession(db, ENV, withCookie(third.opened.cookie), NOW + 8), null);
+  assert.equal(await readCustomerSession(db, ENV, withCookie(third.opened.cookie), NOW + 8, 'live'), null);
 });

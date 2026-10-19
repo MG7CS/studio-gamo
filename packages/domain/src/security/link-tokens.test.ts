@@ -30,7 +30,7 @@ async function setup() {
     )
     .run(NOW, NOW, NOW, NOW);
   const db: SqlDatabase = d1;
-  return { d1, db, tokens: new CustomerLinkTokens(db, SECRET) };
+  return { d1, db, tokens: new CustomerLinkTokens(db, SECRET, 'live') };
 }
 
 test('tokens are 256-bit base64url and hashed with the secret (never stored in clear)', async () => {
@@ -40,11 +40,11 @@ test('tokens are 256-bit base64url and hashed with the secret (never stored in c
   assert.notEqual(generateLinkToken(), t);
   for (const bad of ['', 'x'.repeat(43), t + 'A', t.slice(1), t.replace(/./, '+'), null])
     assert.equal(isWellFormedLinkToken(bad), false, String(bad));
-  const h = await hashLinkToken(t, SECRET);
+  const h = await hashLinkToken(t, SECRET, 'live');
   assert.match(h, /^[0-9a-f]{64}$/);
-  assert.notEqual(h, await hashLinkToken(t, SECRET.replace('0001', '0002')));
-  await assert.rejects(() => hashLinkToken(t, 'short'), SecretNotConfiguredError);
-  assert.throws(() => new CustomerLinkTokens({} as SqlDatabase, undefined), SecretNotConfiguredError);
+  assert.notEqual(h, await hashLinkToken(t, SECRET.replace('0001', '0002'), 'live'));
+  await assert.rejects(() => hashLinkToken(t, 'short', 'live'), SecretNotConfiguredError);
+  assert.throws(() => new CustomerLinkTokens({} as SqlDatabase, undefined, 'live'), SecretNotConfiguredError);
 
   const { d1, tokens } = await setup();
   const issued = await tokens.issue({
@@ -58,7 +58,7 @@ test('tokens are 256-bit base64url and hashed with the secret (never stored in c
     string,
     unknown
   >;
-  assert.equal(row.token_hash, await hashLinkToken(issued.token, SECRET));
+  assert.equal(row.token_hash, await hashLinkToken(issued.token, SECRET, 'live'));
   assert.ok(!Object.values(row).includes(issued.token), 'the plaintext token is not stored');
 });
 
@@ -126,10 +126,13 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
   assert.deepEqual(await tokens.consume(a.token, NOW + 600), { ok: false, reason: 'expired' });
   assert.deepEqual(await tokens.consume(generateLinkToken(), NOW), { ok: false, reason: 'invalid' });
   assert.deepEqual(await tokens.consume('not-a-token', NOW), { ok: false, reason: 'invalid' });
-  assert.deepEqual(await new CustomerLinkTokens(db, SECRET.replace('0001', '9999')).consume(a.token, NOW), {
-    ok: false,
-    reason: 'invalid',
-  });
+  assert.deepEqual(
+    await new CustomerLinkTokens(db, SECRET.replace('0001', '9999'), 'live').consume(a.token, NOW),
+    {
+      ok: false,
+      reason: 'invalid',
+    },
+  );
 
   const single = await tokens.issue({
     customerProfileId: 'cus_2',

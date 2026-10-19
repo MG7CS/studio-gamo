@@ -38,6 +38,7 @@ export async function requestTicketRecovery(
   if (!profile) profile = await upsertCustomerProfile(db, { email, now: input.now });
   if (profile.erasedAt !== null) return { message: RECOVERY_RESPONSE_MESSAGE, sent: false };
   const link = await issueCustomerLink(db, env, {
+    product: 'live',
     customerProfileId: profile.id,
     scope: formatScope('customer'),
     purpose: 'recovery',
