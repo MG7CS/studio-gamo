@@ -8,12 +8,12 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import SignInForm from '../components/SignInForm.astro';
 import { getRuntimeEnv } from '@gamo/domain';
-import { afterSignInPath, isLocalRuntime, signInWithPassword } from '../lib/gate';
+import { afterSignInPath, getSignInState, isLocalRuntime, signInWithPassword } from '../lib/gate';
 
 if (Astro.locals.adminAuthSession) return Astro.redirect('/', 303);
 
 const env = await getRuntimeEnv(Astro);
-const standingIn = Astro.locals.signIn;
+const standingIn = getSignInState(Astro.locals);
 let email = standingIn?.email ?? Astro.locals.staffEmail ?? '';
 const next = standingIn?.next ?? afterSignInPath(Astro.url.searchParams.get('next'));
 let error: string | undefined;

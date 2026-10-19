@@ -1,6 +1,6 @@
 /**
  * The admin navigation: exactly the areas that have a working backend. Adding an item here without a real
- * page behind it is a bug; there is no "coming soon" list.
+ * page behind it is a bug; the list never advertises unbuilt screens.
  */
 import type { QueueCounts } from './queue-counts';
 

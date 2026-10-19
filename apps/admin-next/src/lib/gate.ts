@@ -30,6 +30,22 @@ import {
 import { safeReturnPath } from '@gamo/auth/page-access';
 import { verifyCloudflareAccessJwt } from './access';
 
+/**
+ * Set by the middleware when the sign-in page stands in for a protected URL (the response stays 401).
+ * Kept off `App.Locals` so the middleware type-checks wherever it is imported, tests included.
+ */
+export interface SignInState {
+  reason: 'required';
+  /** The path (with query) the visitor asked for; sign-in returns there. */
+  next: string;
+  email?: string;
+}
+export const setSignInState = (locals: object, state: SignInState): void => {
+  (locals as { signIn?: SignInState }).signIn = state;
+};
+export const getSignInState = (locals: object): SignInState | undefined =>
+  (locals as { signIn?: SignInState }).signIn;
+
 export interface AccessIdentity {
   email: string;
   sub: string;
