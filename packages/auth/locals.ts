@@ -4,8 +4,7 @@ import type { SessionData } from './index.ts';
 import type { PublicApp } from './page-access.ts';
 
 /**
- * Request-scoped values set by middleware (`applicationPages()` in public apps, the admin
- * gateway of the admin, which is being rebuilt) and read by pages and shared components.
+ * Request-scoped values set by middleware (`applicationPages()` in public apps) and read by pages and shared components.
  */
 export interface GamoLocals {
   /** App that served the request. */
@@ -23,9 +22,4 @@ export interface GamoLocals {
    * Permissions-Policy. Origins are filtered to exact https origins there.
    */
   securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean; noReferrer?: boolean };
-  /** Admin (being rebuilt): D1 staff session that passed the admin gateway. */
-  adminAuthSession?: SessionData;
-  /** Admin (being rebuilt): identity asserted by Cloudflare Access. */
-  staffEmail?: string;
-  staffSubject?: string;
 }

@@ -1,6 +1,6 @@
 /**
- * Provider onboarding, publish gates and staff review (design §4.3, §4.4): church verification end to end
- * through the real form handlers, stale and concurrent decisions, self-review (own profile and own
+ * Provider onboarding, publish gates and staff review (design §4.3, §4.4): meeting-time conversion, stale and
+ * concurrent decisions, self-review (own profile and own
  * organization, D-106), first-event review and the always_review toggle, terms versioning.
  */
 import { test } from 'node:test';
@@ -8,14 +8,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
-import { createSession } from '../../packages/auth/index.ts';
 import { IdentityService } from '../../packages/domain/src/services/identity.ts';
-import { createAccountHandlers } from '../../packages/domain/src/http/account.ts';
-import {
-  providerReviewPOST,
-  organizerReviewPOST,
-  zonedLocalToEpochSeconds,
-} from '../../packages/domain/src/http/review.ts';
+import { zonedLocalToEpochSeconds } from '../../packages/domain/src/services/meeting-time.ts';
 import {
   createDraftProviderProfile,
   evaluatePublishGates,
@@ -71,147 +65,6 @@ async function staffMember(identity: IdentityService, email: string, name: strin
   await identity.assignSystemRole(user.id, 'staff_reviewer');
   return { userId: user.id, name, email, personId: null };
 }
-
-function form(url: string, fields: Record<string, string>, cookie: string) {
-  const origin = new URL(url).origin;
-  return new Request(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded', origin, cookie },
-    body: new URLSearchParams(fields).toString(),
-  });
-}
-
-const CHURCH_STEPS: Record<string, Record<string, string>> = {
-  church: { legalName: 'Sample Grace Fellowship', denomination: '', website: 'https://example.org' },
-  location: { address: '1 Sample Street, Phoenix, AZ', serviceTimes: 'Sundays 9:00 and 11:00' },
-  contact: {
-    contactName: 'Sample Pastor',
-    contactEmail: 'pastor@example.org',
-    contactPhone: '+1 602 555 0100',
-  },
-};
-
-test('church verification, end to end through the form handlers: draft → submitted → meeting → verified → published', async () => {
-  const { d1, db, identity, one, env } = await setup();
-  const owner = await provider(identity, 'church@example.org', 'worship');
-  const ownerSession = await createSession(db, owner.id, SECRET, { product: 'worship' });
-  const cookie = `__session=${encodeURIComponent(ownerSession.cookieValue)}`;
-  const providers = createAccountHandlers('worship').providersPOST;
-  const call = (fields: Record<string, string>) =>
-    providers({
-      request: form('http://localhost/api/account/providers', fields, cookie),
-      locals: { runtime: { env } },
-    });
-
-  let res = await call({ action: 'start', role: 'church' });
-  assert.equal(res.status, 303);
-  assert.equal(res.headers.get('location'), '/account/onboarding?role=church&step=church');
-
-  // A step with a missing required field saves the draft and lists the field.
-  res = await call({
-    action: 'save',
-    role: 'church',
-    step: 'location',
-    address: '',
-    serviceTimes: 'Sundays',
-  });
-  assert.match(res.headers.get('location')!, /invalid=address/);
-  for (const [step, fields] of Object.entries(CHURCH_STEPS)) {
-    res = await call({ action: 'save', role: 'church', step, ...fields });
-    assert.match(res.headers.get('location')!, /saved=1/, step);
-  }
-  const profile = (await findProviderProfile(d1, owner.personId!, 'church'))!;
-  assert.ok(profile.organizationId, 'the church organization was created with the legal name');
-  assert.equal(profile.displayName, 'Sample Grace Fellowship');
-
-  // Submitting needs the current Provider Terms first.
-  res = await call({ action: 'submit', role: 'church' });
-  assert.match(res.headers.get('location')!, /error=GATES_NOT_MET/);
-  const terms = getTermsDocument('provider-terms')!;
-  res = await call({
-    action: 'terms',
-    role: 'church',
-    terms_slug: 'provider-terms',
-    terms_version: '0-old',
-    terms_accept: 'yes',
-  });
-  assert.match(res.headers.get('location')!, /TERMS_OUTDATED/);
-  res = await call({
-    action: 'terms',
-    role: 'church',
-    terms_slug: 'provider-terms',
-    terms_version: terms.version,
-    terms_accept: 'yes',
-  });
-  assert.match(res.headers.get('location')!, /step=review/);
-  res = await call({ action: 'publish', role: 'church' });
-  assert.match(res.headers.get('location')!, /error=GATES_NOT_MET/, 'not public before staff verify it');
-  res = await call({ action: 'submit', role: 'church' });
-  assert.equal(res.headers.get('location'), '/account/profile?role=church&submitted=1');
-
-  // Editing is closed while staff review it.
-  res = await call({ action: 'save', role: 'church', step: 'church', ...CHURCH_STEPS.church });
-  assert.match(res.headers.get('location')!, /error=NOT_EDITABLE/);
-
-  // Staff (admin form handler).
-  const staff = await staffMember(identity, 'reviewer@example.org', 'Sample Reviewer');
-  const staffSession = await createSession(db, staff.userId, SECRET);
-  const staffCookie = `__session=${encodeURIComponent(staffSession.cookieValue)}`;
-  const review = (fields: Record<string, string>) =>
-    providerReviewPOST({
-      request: form(`http://localhost/api/review/providers/${profile.id}`, fields, staffCookie),
-      locals: { runtime: { env } },
-      params: { id: profile.id },
-    });
-  res = await review({ action: 'verify', expected_status: 'submitted', notes: 'Met in person.' });
-  assert.match(res.headers.get('location')!, /error=INVALID/, 'a church is verified only after a meeting');
-  res = await review({
-    action: 'schedule_meeting',
-    expected_status: 'submitted',
-    meeting_at: '2030-03-10T10:30',
-    meeting_zone: 'America/Phoenix',
-    meeting_location: 'Sample Grace Fellowship office',
-    meeting_staff: 'Sample Reviewer',
-  });
-  assert.match(res.headers.get('location')!, /done=schedule_meeting/);
-  // A stale form (still showing "submitted") cannot overwrite the newer state.
-  res = await review({ action: 'reject', expected_status: 'submitted', notes: 'stale tab' });
-  assert.match(res.headers.get('location')!, /error=CONFLICT/);
-  res = await review({
-    action: 'verify',
-    expected_status: 'meeting_scheduled',
-    notes: 'Met the pastor; documents checked.',
-  });
-  assert.match(res.headers.get('location')!, /done=verify&email=/);
-
-  const records = d1.sqlite
-    .prepare(
-      'SELECT action, to_status, staff_name, meeting_at FROM verification_records WHERE subject_id = ? ORDER BY created_at, rowid',
-    )
-    .all(profile.id) as {
-    action: string;
-    to_status: string;
-    staff_name: string | null;
-    meeting_at: number | null;
-  }[];
-  assert.deepEqual(
-    records.map((r) => r.action),
-    ['submit', 'schedule_meeting', 'verify'],
-  );
-  assert.equal(records[2].staff_name, 'Sample Reviewer', 'the staff name comes from the signed-in account');
-  assert.equal(records[2].meeting_at, zonedLocalToEpochSeconds('2030-03-10T10:30', 'America/Phoenix'));
-  assert.equal(
-    one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action LIKE 'provider.review.%'").n,
-    2,
-  );
-
-  res = await call({ action: 'publish', role: 'church' });
-  assert.equal(res.headers.get('location'), '/account/profile?role=church&published=1');
-  assert.ok(
-    one<{ published_at: number }>('SELECT published_at FROM provider_profiles WHERE id = ?', profile.id)
-      .published_at,
-  );
-});
 
 test('Phoenix meeting times convert to UTC without DST surprises', () => {
   // Arizona has no DST: always UTC-7.
@@ -356,20 +209,6 @@ test('self-review is refused: own profile (same person or same email) and own or
       .always_review,
     0,
   );
-
-  // Through the admin form handler too.
-  const { db } = { db: createDb(d1 as never) };
-  const session = await createSession(db, staff.userId, SECRET);
-  const res = await organizerReviewPOST({
-    request: form(
-      `http://localhost/api/review/organizers/${organizer.id}`,
-      { always_review: 'on' },
-      `__session=${encodeURIComponent(session.cookieValue)}`,
-    ),
-    locals: { runtime: { env: { ENVIRONMENT: 'local', DB: d1, SESSION_SECRET: SECRET } } },
-    params: { id: organizer.id },
-  });
-  assert.match(res.headers.get('location')!, /error=SELF_REVIEW/);
 
   // Another staff member may: first approval recorded once; toggle audited.
   const other = await staffMember(identity, 'other.staff@example.org', 'Other Staff');

@@ -167,10 +167,6 @@ components:
       $ref: components/schemas/live/RegisterAttendee.yaml
     ReviewDecision:
       $ref: components/schemas/administration/ReviewDecision.yaml
-    ProvisionStaffInput:
-      $ref: components/schemas/administration/ProvisionStaffInput.yaml
-    ProvisionStaffResponse:
-      $ref: components/schemas/administration/ProvisionStaffResponse.yaml
     CheckoutInput:
       $ref: components/schemas/payments/CheckoutInput.yaml
     CheckoutResponse:

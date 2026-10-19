@@ -74,7 +74,6 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
           'SESSION_SECRET="shared_local_session_secret_32_chars_min"',
           'ALLOW_DEMO_SESSION="false"',
           'ALLOW_TEST_CHALLENGE_OUTBOX="false"',
-          'REQUIRE_ADMIN_AUTH="true"',
           'PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_SHOULD_NEVER_BE_INHERITED_FROM_ROOT"',
         ].join('\n'),
       );
@@ -136,7 +135,6 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
       assert.equal(academyEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(webEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(adminEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
-      assert.equal(adminEnv.REQUIRE_ADMIN_AUTH, 'true');
 
       // Live loads only its own Clerk keys and .dev.vars overrides
       assert.equal(liveEnv.CLERK_PRODUCT, 'live');

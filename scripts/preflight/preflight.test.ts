@@ -195,7 +195,7 @@ test('secret evaluation reports names only and distinguishes required, recommend
   });
   assert.deepEqual(
     admin.filter((f) => f.severity === 'error').map((f) => f.message),
-    ['CF_ACCESS_AUD is not set.'],
+    ['CF_ACCESS_AUD is not set.', 'ADMIN_EMAIL is not set.'],
   );
 });
 

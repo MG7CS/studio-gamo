@@ -1037,27 +1037,6 @@ export interface components {
             decision: "approved" | "rejected" | "revision_requested";
             notes?: string;
         };
-        ProvisionStaffInput: {
-            /** Format: email */
-            email: string;
-            /** @enum {string} */
-            role: "staff_reviewer" | "finance_manager" | "superadmin";
-            accessSubject: string;
-            displayName?: string;
-        };
-        ProvisionStaffResponse: {
-            /** @constant */
-            success: true;
-            data: {
-                user: components["schemas"]["User"];
-                /** @enum {string} */
-                role: "staff_reviewer" | "finance_manager" | "superadmin";
-                /** @constant */
-                provider: "cloudflare_access";
-                accessSubject: string;
-                message: string;
-            };
-        };
         CheckoutInput: {
             eventId: components["schemas"]["Identifier"];
             /** @default 0 */
