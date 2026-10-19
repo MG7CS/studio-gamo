@@ -4,6 +4,7 @@ import { getDb } from '@gamo/db';
 import {
   LiveService,
   assignEventTeamMemberSchema,
+  revokeEventTeamMemberSchema,
   jsonResponse,
   handleApiError,
   getRuntimeEnv,
@@ -40,9 +41,37 @@ export const POST: APIRoute = async (context) => {
       auth.user.id,
       actorCanGrantFinancialAuthority,
       validated,
+      await liveService.isOrgOwnerOrAdmin(auth, eventId),
     );
 
     return jsonResponse(result, 201);
+  } catch (err) {
+    return handleApiError(err);
+  }
+};
+
+/** DELETE /api/events/{id}/team — revoke a team member's role (owner/admin only). */
+export const DELETE: APIRoute = async (context) => {
+  try {
+    const runtimeEnv = await getRuntimeEnv(context);
+    const db = getDb(runtimeEnv.DB);
+    const auth = await requireProductAuth(context.request, db, 'live', {
+      secret: runtimeEnv.SESSION_SECRET,
+      product: 'live',
+      env: runtimeEnv,
+    });
+    const eventId = validateContract('Identifier', context.params.id) as string;
+    const body = await readContract(context.request, 'RevokeEventTeamInput');
+    const validated = revokeEventTeamMemberSchema.parse(body);
+    await requireEventPermission(db, auth, eventId, 'edit_content');
+    const liveService = new LiveService(db);
+    const result = await liveService.revokeEventTeamMember(
+      eventId,
+      auth.user.id,
+      await liveService.isOrgOwnerOrAdmin(auth, eventId),
+      validated,
+    );
+    return jsonResponse(result, 200);
   } catch (err) {
     return handleApiError(err);
   }

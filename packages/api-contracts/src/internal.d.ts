@@ -270,7 +270,11 @@ export interface paths {
          * @description Grants or updates granular per-event permissions. Content/publishing roles cannot grant refund approval or settlement access unless the actor is primary organization owner or superadmin.
          */
         post: operations["assignEventTeamMember"];
-        delete?: never;
+        /**
+         * Revoke a role-scoped event team member
+         * @description Sets the member's role on this event to revoked and writes an audit row. Only an organization owner or admin (or superadmin) can revoke; granting ticketing, scanning or production access is limited to the same people.
+         */
+        delete: operations["revokeEventTeamMember"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1477,6 +1481,23 @@ export interface components {
                 canNegotiateBooking?: boolean;
                 canCoordinateProduction?: boolean;
                 canScanTickets?: boolean;
+            };
+        };
+        RevokeEventTeamInput: {
+            userId: components["schemas"]["Identifier"];
+            /** @enum {string} */
+            role: "event_owner" | "lead_promoter" | "host_venue" | "co_organizer" | "booking_agent" | "production_coordinator" | "ticketing_admin" | "finance_contact" | "door_scanner";
+        };
+        RevokeEventTeamResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                id: string;
+                eventId: string;
+                userId: string;
+                role: string;
+                /** @constant */
+                status: "revoked";
             };
         };
         TicketLookupInput: {
@@ -2855,6 +2876,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssignEventTeamResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    revokeEventTeamMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeEventTeamInput"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeEventTeamResponse"];
                 };
             };
             400: components["responses"]["LegacyError"];

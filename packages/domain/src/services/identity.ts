@@ -3,7 +3,7 @@
  * Handles user provisioning, organizations, and multi-tenant memberships.
  */
 
-import { eq, and, gte, gt, lt, isNull, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, gt, lt, lte, isNull, desc, sql } from 'drizzle-orm';
 import {
   users,
   productAccounts,
@@ -29,11 +29,17 @@ import { attachCustomerProfileForVerifiedEmail, linkUserToVerifiedPerson } from 
 
 const CHALLENGE_TTL_SECONDS = 10 * 60; // 10 minutes
 const CHALLENGE_MAX_ATTEMPTS = 5;
-/** Codes per address: 3 per hour and 10 per day (D-120). */
+/**
+ * Codes per (address, IP): 3 per hour and 10 per day, and per address across all IPs: 6 per hour and 20 per
+ * day (D-120). Requesting codes never invalidates an outstanding one, so a stranger cannot lock the owner out
+ * by asking; the per-address ceiling still bounds how many live codes can exist.
+ */
 const CHALLENGE_HOUR_MS = 60 * 60 * 1000;
-const CHALLENGE_HOUR_MAX = 3;
+const CHALLENGE_PAIR_HOUR_MAX = 3;
 const CHALLENGE_DAY_MS = 24 * CHALLENGE_HOUR_MS;
-const CHALLENGE_DAY_MAX = 10;
+const CHALLENGE_PAIR_DAY_MAX = 10;
+const CHALLENGE_EMAIL_HOUR_MAX = 6;
+const CHALLENGE_EMAIL_DAY_MAX = 20;
 
 function normalizeChallengePurpose(purpose?: string): 'signin' | 'verify_email' {
   return purpose === 'verify_email' ? 'verify_email' : 'signin';
@@ -278,7 +284,7 @@ export class IdentityService {
     }
 
     const recent = await this.db
-      .select({ createdAt: authChallenges.createdAt })
+      .select({ createdAt: authChallenges.createdAt, ipHash: authChallenges.ipHash })
       .from(authChallenges)
       .where(
         and(
@@ -287,9 +293,15 @@ export class IdentityService {
           gte(authChallenges.createdAt, new Date(now.getTime() - CHALLENGE_DAY_MS)),
         ),
       );
-    const lastHour = recent.filter((r) => r.createdAt.getTime() >= now.getTime() - CHALLENGE_HOUR_MS).length;
+    const inLastHour = (r: { createdAt: Date }) => r.createdAt.getTime() >= now.getTime() - CHALLENGE_HOUR_MS;
+    const pair = options?.ipHash ? recent.filter((r) => r.ipHash === options.ipHash) : recent;
+    const overPair =
+      pair.filter(inLastHour).length >= CHALLENGE_PAIR_HOUR_MAX || pair.length >= CHALLENGE_PAIR_DAY_MAX;
+    const overEmail =
+      recent.filter(inLastHour).length >= CHALLENGE_EMAIL_HOUR_MAX ||
+      recent.length >= CHALLENGE_EMAIL_DAY_MAX;
 
-    if (lastHour >= CHALLENGE_HOUR_MAX || recent.length >= CHALLENGE_DAY_MAX) {
+    if (overPair || overEmail) {
       // Product-scoped (HTTP) callers answer like any other request — the per-email rate limit in the
       // route already gives the visitor an honest "wait" message — so this never reveals a known address.
       if (scoped) return silent;
@@ -347,9 +359,11 @@ export class IdentityService {
     const flow = authFlowOf(options?.intent);
     const invalid = () => new AuthError('UNAUTHENTICATED', INVALID_CODE_MESSAGE, 401);
 
-    // Only the newest open challenge accepts guesses: an older code is dead once a newer one was sent,
-    // so resending cannot widen the guessing surface (D-120).
-    const [newest] = await this.db
+    // Every unexpired, unconsumed challenge for this address/flow can be answered (an attacker asking for a
+    // new code does not kill the owner's), under a SHARED attempt budget: each guess takes one attempt from
+    // every open challenge atomically BEFORE the comparison, and a challenge accepts at most 5 guesses
+    // (D-120). The caller adds the global per-address failure ceiling.
+    const open = await this.db
       .select()
       .from(authChallenges)
       .where(
@@ -361,25 +375,40 @@ export class IdentityService {
         ),
       )
       .orderBy(desc(authChallenges.createdAt), desc(authChallenges.id))
-      .limit(1);
+      .limit(10);
 
-    if (!newest) throw invalid();
+    if (open.length === 0) throw invalid();
 
     const scope = challengeScope(options?.product, options?.intent);
     const expectedHashes = [await hashChallengeCode(cleanEmail, cleanCode, purpose, scope, this.hmacSecret)];
     // Transitional: challenges issued before HMAC hashing hold a plain SHA-256 and expire within 10 minutes.
     if (this.hmacSecret) expectedHashes.push(await hashChallengeCode(cleanEmail, cleanCode, purpose, scope));
-    let matches = false;
-    for (const h of expectedHashes) matches = constantTimeCompare(newest.codeHash, h) || matches;
-    const challenge = matches && newest.attempts < CHALLENGE_MAX_ATTEMPTS ? newest : undefined;
+
+    let challenge: (typeof open)[number] | undefined;
+    const tookAttempt = new Set<string>();
+    for (const candidate of open) {
+      const taken = await this.db
+        .update(authChallenges)
+        .set({ attempts: sql`${authChallenges.attempts} + 1` })
+        .where(
+          and(
+            eq(authChallenges.id, candidate.id),
+            isNull(authChallenges.consumedAt),
+            lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
+          ),
+        )
+        .returning({ attempts: authChallenges.attempts });
+      if (taken.length !== 1) continue; // exhausted (or consumed meanwhile): it accepts no more guesses
+      tookAttempt.add(candidate.id);
+      let matches = false;
+      for (const h of expectedHashes) matches = constantTimeCompare(candidate.codeHash, h) || matches;
+      if (matches && !challenge) challenge = candidate;
+    }
 
     if (!challenge) {
-      if (newest.attempts < CHALLENGE_MAX_ATTEMPTS)
-        await this.db
-          .update(authChallenges)
-          .set({ attempts: sql`${authChallenges.attempts} + 1` })
-          .where(eq(authChallenges.id, newest.id));
-      if (newest.attempts + 1 >= CHALLENGE_MAX_ATTEMPTS) throw new Error(LOCKED_CODE_MESSAGE);
+      // Locked once every open code has used its five guesses (this one included).
+      if (open.every((c) => c.attempts + (tookAttempt.has(c.id) ? 1 : 0) >= CHALLENGE_MAX_ATTEMPTS))
+        throw new Error(LOCKED_CODE_MESSAGE);
       throw invalid();
     }
 
@@ -392,7 +421,7 @@ export class IdentityService {
           eq(authChallenges.id, challenge.id),
           isNull(authChallenges.consumedAt),
           gt(authChallenges.expiresAt, now),
-          lt(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
+          lte(authChallenges.attempts, CHALLENGE_MAX_ATTEMPTS),
         ),
       )
       .returning({ id: authChallenges.id });

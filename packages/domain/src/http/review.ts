@@ -226,22 +226,12 @@ export async function eventReviewPOST(context: Context): Promise<Response> {
           event: id,
         }),
       );
-    // Same self-moderation rule as every other review action, before the event changes (D-106).
-    await assertNotSelfReview(
-      sql,
-      staff,
-      { kind: 'organizer', organizerProfileId: event.organizer_id },
-      Math.floor(Date.now() / 1000),
-    );
-    await new AdminService(db).reviewEvent(staff.userId, id, { decision: form.decision, notes: form.notes });
-    const recorded = await recordEventReviewDecision(sql, {
-      eventId: id,
-      organizerProfileId: event.organizer_id,
+    // AdminService.reviewEvent applies the self-review rule and records the first approval.
+    const reviewed = await new AdminService(db).reviewEvent(staff.userId, id, {
       decision: form.decision,
-      staff,
       notes: form.notes,
-      now: Math.floor(Date.now() / 1000),
     });
+    const recorded = { firstApproval: reviewed.firstApproval };
     return seeOther(query(list, { done: form.decision, first: recorded.firstApproval ? '1' : null }));
   } catch (err) {
     return failure(list, err);

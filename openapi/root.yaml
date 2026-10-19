@@ -219,6 +219,10 @@ components:
       $ref: components/schemas/live/AssignEventTeamInput.yaml
     AssignEventTeamResponse:
       $ref: components/schemas/live/AssignEventTeamResponse.yaml
+    RevokeEventTeamInput:
+      $ref: components/schemas/live/RevokeEventTeamInput.yaml
+    RevokeEventTeamResponse:
+      $ref: components/schemas/live/RevokeEventTeamResponse.yaml
     TicketLookupInput:
       $ref: components/schemas/live/TicketLookupInput.yaml
     TicketLookupResponse:
