@@ -17,6 +17,7 @@ import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hashAdminPassword } from '../../packages/auth/index.ts';
 import { buildFirstSuperadminSql } from '../admin/staff-account-sql.ts';
+import { buildReviewFixtureStatements } from './admin-review-fixtures.ts';
 import {
   ACCESS_AUD,
   ACCESS_KEY_FILE,
@@ -154,6 +155,10 @@ const seed = buildFirstSuperadminSql({
 for (const statement of seed.replace(/^\s*--.*$/gm, '').split(/;\s*\n/)) {
   const sql = statement.replace(/\s+/g, ' ').trim();
   if (sql) await db.exec(sql);
+}
+// Work-queue rows (all labeled samples) for the specs that check counts and queues against real data.
+if (process.env.ADMIN_E2E_SEED === 'review') {
+  for (const statement of buildReviewFixtureStatements()) await db.exec(statement);
 }
 console.log(
   `[admin-e2e] ready on http://127.0.0.1:${ADMIN_E2E_PORT} (ENVIRONMENT=production, Access mocked)`,
