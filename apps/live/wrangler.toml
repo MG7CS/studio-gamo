@@ -92,6 +92,7 @@ routes = [
 ]
 [env.production.vars]
 ENVIRONMENT = "production"
+STRIPE_TEST_CHECKOUT = "false"
 ALLOW_DEMO_SESSION = "false"
 STRIPE_SANDBOX_ENABLED = "true"
 PLATFORM_BRAND = "Gamo Live"
