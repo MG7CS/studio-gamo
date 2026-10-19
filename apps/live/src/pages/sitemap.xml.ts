@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '@gamo/db';
-import { LiveService, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
+import { LiveCatalog, asSqlDatabase, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
 import { buildSitemapXml, xmlResponse, type SitemapEntry } from '@studio-gamo/ui/lib/crawlers';
 
 export const prerender = false;
@@ -15,8 +14,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
 async function publishedEventEntries(context: Parameters<APIRoute>[0]): Promise<SitemapEntry[]> {
   try {
     const runtimeEnv = await getRuntimeEnv(context);
-    const liveService = new LiveService(getDb(runtimeEnv.DB));
-    await liveService.seedCatalogIfAllowed(runtimeEnv);
+    const liveService = new LiveCatalog(asSqlDatabase(runtimeEnv.LIVE_DB));
     const events = await liveService.listDiscoverableEvents({ limit: 200 });
     return events
       .filter(

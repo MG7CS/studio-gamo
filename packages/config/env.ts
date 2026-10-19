@@ -11,6 +11,8 @@ export type RuntimeEnvironment = 'local' | 'preview' | 'production';
 export interface GamoEnv {
   // Bindings
   DB?: unknown;
+  /** Gamo Live's own D1 database (docs/LIVE_DATA_MODEL.md). */
+  LIVE_DB?: unknown;
   MEDIA_BUCKET?: unknown;
   SESSION?: unknown;
   SESSION_KV?: unknown;

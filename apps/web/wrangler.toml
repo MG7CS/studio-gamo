@@ -19,6 +19,12 @@ PUBLIC_CLERK_KEYLESS_DISABLED = "true"
 CLERK_AUTHORIZED_PARTIES_WEB = "http://127.0.0.1:4321,http://localhost:4321"
 
 [[d1_databases]]
+binding = "LIVE_DB"
+database_name = "gamo-live-db-local"
+database_id = "00000000-0000-0000-0000-000000000002"
+migrations_dir = "../../packages/db/live/migrations"
+
+[[d1_databases]]
 binding = "DB"
 database_name = "gamo-db-local"
 database_id = "00000000-0000-0000-0000-000000000001"

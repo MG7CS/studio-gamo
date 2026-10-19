@@ -1,0 +1,118 @@
+---
+/**
+ * A5: enter the emailed 6-digit code. Five wrong tries lock the code; "Send a new code" is limited to 3
+ * per hour. Success confirms the registration, emails the manage link and shows the registration page.
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import CodeForm from '../../../../components/register/CodeForm.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  EmailUnavailableError,
+  SecretNotConfiguredError,
+  codeEmail,
+  confirmationEmail,
+  confirmRegistration,
+  getRegistration,
+  resendCode,
+  sendLiveEmail,
+} from '@gamo/domain';
+import { openLive, registrationMessage, whenWhere } from '../../../../lib/registration';
+
+export const prerender = false;
+
+const slug = Astro.params.id ?? '';
+const registrationId = Astro.url.searchParams.get('r') ?? '';
+let codeError: string | undefined;
+let notice: string | undefined;
+let unavailable = false;
+let expired = false;
+let masked = '';
+
+try {
+  const live = await openLive(Astro);
+  const event = await live.catalog.getEvent(slug);
+  const reg = /^reg_[0-9a-z]{26}$/.test(registrationId)
+    ? await getRegistration(live.db, registrationId)
+    : null;
+  if (!event || !reg || reg.eventSlug !== event.slug) return new Response(null, { status: 404 });
+  const [local, domain] = reg.email.split('@');
+  masked = `${local.slice(0, 1)}•••@${domain}`;
+  const now = Math.floor(Date.now() / 1000);
+  const occ = event.occurrences.find((o) => o.id === reg.occurrenceId);
+  const details = whenWhere(event, occ?.startsAt);
+
+  if (reg.status === 'confirmed') {
+    expired = false;
+    notice = 'This registration is already confirmed. Use the link in your confirmation email to manage it.';
+  } else if (reg.status !== 'pending') {
+    expired = true;
+  } else if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const form = await Astro.request.formData();
+    try {
+      if (form.get('action') === 'resend') {
+        const fresh = await resendCode(live.db, live.env, { registrationId, now });
+        await sendLiveEmail(live.env, codeEmail(fresh.email, fresh.name, fresh.code, details));
+        notice = 'We sent a new code. The older one no longer works.';
+      } else {
+        const confirmed = await confirmRegistration(live.db, live.env, {
+          registrationId,
+          code: String(form.get('code') ?? ''),
+          now,
+        });
+        const manageUrl = `${new URL(Astro.request.url).origin}/registrations/${confirmed.manageToken}`;
+        try {
+          await sendLiveEmail(
+            live.env,
+            confirmationEmail(reg.email, reg.name, reg.partySize, details, manageUrl, confirmed.checkinCode),
+          );
+        } catch {
+          // The registration is confirmed; the person can still reach it from this redirect.
+        }
+        return Astro.redirect(`/registrations/${confirmed.manageToken}?new=1`, 303);
+      }
+    } catch (error) {
+      const shown = registrationMessage(error);
+      if (shown?.code === 'expired') expired = true;
+      else if (shown) codeError = shown.text;
+      else if (error instanceof EmailUnavailableError || error instanceof SecretNotConfiguredError)
+        unavailable = true;
+      else throw error;
+    }
+  }
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:confirm] failed', (error as Error)?.name);
+  unavailable = true;
+}
+---
+
+<Layout title="Confirm your registration" chrome={false} noindex>
+  <SplitScreenLayout photo="acousticLeader" program="Gamo Live" brandHref="/">
+    <SplitHeading
+      title={expired ? 'Registration expired' : 'Check your email'}
+      subtext={expired ? undefined : `We sent a 6-digit code to ${masked}.`}
+    />
+    {unavailable && (
+      <SplitNotice tone="error">Confirmation is temporarily unavailable. Please try again later.</SplitNotice>
+    )}
+    {notice && <SplitNotice>{notice}</SplitNotice>}
+    {expired ? (
+      <SplitNotice>
+        The hold on your seats ended. Nothing was reserved.{' '}
+        <a class="font-semibold text-terracotta underline" href={`/events/${slug}/register`}>
+          Start again
+        </a>
+      </SplitNotice>
+    ) : (
+      !unavailable && <CodeForm error={codeError} />
+    )}
+  </SplitScreenLayout>
+</Layout>

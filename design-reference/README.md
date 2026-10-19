@@ -21,3 +21,5 @@ Use **Inter** throughout. Palette: the tokens in `packages/ui/src/styles/tokens.
 Any photo depicted inside generated screenshots cannot be assumed to exist as a separate production-ready image. Use licensed, explicitly approved individual assets or tasteful safe placeholders; don't crop the full reference screenshot into background artwork.
 
 `claymorphism-admin-ui/` is the admin's design: its shapes, shadows and layout, in the palette above, without gradients (`docs/ADMIN_REQUIREMENTS.md`).
+
+`dashboard-ui/` holds layout references for the product dashboards (organizer, family, musician and similar areas, starting with Gamo Live): sidebar, top bar, cards, tables, board view. Not claymorphism; palette from `tokens.css`, no gradients, and none of the sample content is ours.

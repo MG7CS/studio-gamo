@@ -3,18 +3,15 @@ import { formatUsd } from '@studio-gamo/ui/lib/format';
  * Gamo Live showcase data & database mapper for the Gamo Studios main website (`apps/web/src/pages/live.astro`).
  *
  * Permanent rules:
- * 1. Always render real approved/published events from our database (`events` table in D1 via `LiveService`),
- *    with a deterministic fallback to the verified real event catalog (`GAMO_LIVE_VERIFIED_CATALOG_2026_10_15`)
- *    if D1 is temporarily unreachable. Never display fictional sample events such as "Harvest Night of Gospel".
+ * 1. Always render real approved/published events from our database (Live database via `LiveCatalog`),
+ *    never a fallback list and never fictional sample events such as "Harvest Night of Gospel"; an empty
+ *    database shows an honest empty state.
  * 2. Any event whose scheduled date/time is already in the past (`isEventPast(event, now) === true`)
  *    MUST resolve to `status = 'past'`, `isPast = true`, `isClosed = true`, and display as closed/past
  *    with registration/ticket actions disabled.
  */
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 import {
-  GAMO_LIVE_VERIFIED_CATALOG_2026_10_15,
-  buildFactualEditorialSummary,
-  evaluateCandidateForEditorialImport,
   formatLocalEventSchedule,
   getEventLifecycleStatus,
   inferExternalProviderName,
@@ -169,9 +166,7 @@ export function mapDbEventsToMarketingEvents(
         ? 'canceled'
         : past || lifecycleStatus === 'past'
           ? 'past'
-          : row.status === 'rescheduled'
-            ? 'rescheduled'
-            : 'scheduled';
+          : 'scheduled';
 
     const isExternal =
       row.listingType === 'external_discovery' ||
@@ -197,13 +192,7 @@ export function mapDbEventsToMarketingEvents(
     const organizerSlug = slugifyOrganizer(organizerDisplayName);
 
     const tiers: TicketTier[] =
-      row.tiers && row.tiers.length > 0
-        ? row.tiers.map((tier) => ({
-            name: tier.name,
-            priceCents: tier.priceCents,
-            note: tier.note || '',
-          }))
-        : typeof row.priceMinCents === 'number'
+      typeof row.priceMinCents === 'number'
           ? [
               {
                 name: isExternal ? `Tickets via ${providerName}` : 'General Admission',
@@ -266,109 +255,6 @@ export function mapDbEventsToMarketingEvents(
 }
 
 /**
- * Builds the verified catalog fallback directly from `GAMO_LIVE_VERIFIED_CATALOG_2026_10_15`
- * so that even if a local/static build runs without D1, only real verified events are shown.
- */
-export function buildVerifiedCatalogFallbackEvents(referenceNow: Date = new Date()): LiveEvent[] {
-  const approvedCandidates = GAMO_LIVE_VERIFIED_CATALOG_2026_10_15.events.filter((candidate) => {
-    // Same rules as the editorial import (no revalidateUnfetched): listings held for an
-    // unverified ticket destination must not appear here either, or they would link to a 404.
-    const evalResult = evaluateCandidateForEditorialImport(candidate, {
-      referenceNow: new Date('2026-10-15T00:00:00Z'),
-    });
-    return evalResult.editorialDecision === 'approved';
-  });
-
-  const syntheticDbRows: LiveEventWithDetails[] = approvedCandidates.map((candidate, idx) => {
-    // Same rules as the editorial import (no revalidateUnfetched): listings held for an
-    // unverified ticket destination must not appear here either, or they would link to a 404.
-    const evalResult = evaluateCandidateForEditorialImport(candidate, {
-      referenceNow: new Date('2026-10-15T00:00:00Z'),
-    });
-    const summary = buildFactualEditorialSummary(candidate);
-    const providerName = inferExternalProviderName(
-      candidate.external_destination?.url,
-      candidate.external_destination?.provider_name
-    );
-    const past = isEventPast(
-      {
-        startsAt: evalResult.startsAt,
-        startDateLocal: candidate.start_date_local,
-        startTimeLocal: candidate.start_time_local,
-        timezone: candidate.timezone,
-      },
-      referenceNow
-    );
-
-    return {
-      id: `evt_seed_${evalResult.slug}`,
-      organizerId: 'orgprof_gamo_live_listings',
-      title: candidate.title,
-      slug: evalResult.slug,
-      category: evalResult.normalizedCategory,
-      tagline: summary.tagline,
-      description: summary.description,
-      venueName: candidate.venue.name || 'Venue TBA',
-      address: candidate.venue.street_address ?? null,
-      city: candidate.venue.city,
-      state: candidate.venue.state,
-      country: candidate.venue.country || 'US',
-      metroSlug: candidate.metro_slug,
-      startsAt: evalResult.startsAt,
-      endsAt: null,
-      startDateLocal: candidate.start_date_local,
-      startTimeLocal: candidate.start_time_local ?? null,
-      timezone: candidate.timezone,
-      admissionType: 'external',
-      listingType: 'external_discovery',
-      importKey: candidate.import_key ?? null,
-      editorialStatus: 'published',
-      publishedByUserId: 'usr_gamo_live_listings',
-      publishedByLabel: 'Gamo Live Listings',
-      originalOrganizerName: candidate.original_organizer_name ?? null,
-      externalDestinationKind: candidate.external_destination?.kind ?? 'official_ticket_page',
-      externalTicketProvider: providerName,
-      externalOnly: true,
-      checkoutOnGamo: false,
-      priceMinCents:
-        typeof candidate.ticketing?.price_min_usd === 'number'
-          ? Math.round(candidate.ticketing.price_min_usd * 100)
-          : null,
-      currency: 'USD',
-      availabilityStatus: candidate.ticketing?.availability ?? 'unverified',
-      ticketAvailability: candidate.ticketing?.availability ?? 'unverified',
-      artworkUrl: null,
-      artworkRightsVerified: false,
-      artworkLicenseCredit: null,
-      independentDisclosure: 'Independent listing · Tickets sold by the external provider.',
-      sourceUrlsJson: JSON.stringify(candidate.source_urls ?? []),
-      editorialNotes: null,
-      lastVerifiedAt: new Date('2026-10-15T00:00:00Z'),
-      isFeatured: idx < 4,
-      photoKey: PHOTO_ROTATION[idx % PHOTO_ROTATION.length],
-      externalUrl: candidate.external_destination?.url ?? null,
-      status: 'approved',
-      createdAt: new Date('2026-10-15T00:00:00Z'),
-      organizerName: candidate.venue.name || 'Gamo Live Listings',
-      organizerKind: 'venue',
-      tiers: [],
-      totalRegistered: 0,
-      performers: (candidate.performers ?? []).map((name, pIdx) => ({
-        id: `perf_${idx}_${pIdx}`,
-        displayName: name,
-        billingOrder: pIdx + 1,
-        roleLabel: pIdx === 0 ? 'Headliner' : 'Special Guest',
-      })),
-      isPast: past,
-      isClosed: past,
-      lifecycleStatus: past ? 'past' : 'scheduled',
-    };
-  });
-
-  return mapDbEventsToMarketingEvents(syntheticDbRows, referenceNow);
-}
-
-/**
  * Builds the featured organizers / venues list dynamically from real events.
  */
 export function buildOrganizersFromEvents(eventList: LiveEvent[]): Organizer[] {
@@ -402,7 +288,8 @@ export function buildOrganizersFromEvents(eventList: LiveEvent[]): Organizer[] {
     .map((entry) => entry.org);
 }
 
-export const events: LiveEvent[] = buildVerifiedCatalogFallbackEvents();
+/** Kept empty: every event shown comes from the Live database (approved and published only). */
+export const events: LiveEvent[] = [];
 export const organizers: Organizer[] = buildOrganizersFromEvents(events);
 
 export const getOrganizer = (slug: string, orgList: Organizer[] = organizers): Organizer =>

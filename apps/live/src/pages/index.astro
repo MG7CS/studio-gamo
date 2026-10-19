@@ -2,9 +2,9 @@
 import Layout from '../layouts/Layout.astro';
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import LiveDiscoveryCard from '../components/LiveDiscoveryCard.astro';
-import { getDb } from '@gamo/db';
 import {
-  LiveService,
+  LiveCatalog,
+  asSqlDatabase,
   getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
@@ -19,8 +19,7 @@ let dbUnavailable = false;
 
 try {
   const env = await getRuntimeEnv(Astro);
-  const liveService = new LiveService(getDb(env.DB));
-  await liveService.seedCatalogIfAllowed(env);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
   allEvents = await liveService.listDiscoverableEvents({ limit: 50 });
 } catch {
   dbUnavailable = true;

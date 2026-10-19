@@ -58,18 +58,22 @@ pnpm exec wrangler d1 migrations list gamo-db-<env> --env <env> --remote
 
 Apply migrations before deploying code that needs them. D1 Time Travel (`wrangler d1 time-travel restore …`) is destructive and owner-only. Locally: `pnpm db:migrate:local`, `pnpm db:seed:local`, `pnpm db:reset:local` (deletes local data).
 
-## 5. Gamo Live catalog
+## 5. Gamo Live database and catalog
 
-The verified external catalog is `data/gamo_live_verified_events_2026-10-15.json` (also bundled in `packages/domain/src/services/verified-catalog-2026-10-15.ts`; import report in `docs/GAMO_LIVE_IMPORT_REPORT_2026-10-15.md`). Imported listings are real events with source links, shown only after editorial approval. Production holds these 20 events today.
+Gamo Live has its own D1 database (`LIVE_DB`; schema in `packages/db/live/migrations`, design in `docs/LIVE_DATA_MODEL.md`). `apps/live` and `apps/web` (which reads the catalog for `/live`) bind it; `apps/admin` will bind it for review screens.
 
-Locally:
+Locally (creates the Miniflare database under `apps/live/.wrangler`, safe to repeat):
 
 ```sh
-pnpm db:migrate:local
-pnpm db:seed:local     # provision the publisher, import, publish approved records
+pnpm db:migrate:live:local                 # apply the Live migrations locally
+pnpm live:catalog:import                   # import the verified catalog (data/gamo_live_verified_events_2026-10-15.json); records wait for admin review
+pnpm live:catalog:import --publish-approved   # local seeding: also publish records that pass every editorial rule
+pnpm live:catalog:import --env production --dry-run   # evaluate only; preview/production are never written by this script
 ```
 
-The editorial CLI (`scripts/live/editorial-cli.ts`) writes only to the local database; with `--env preview|production` it supports `--dry-run` and refuses `--apply`. The rebuilt Live re-imports the catalog into its new data model.
+Owner-only steps before Live can run in preview or production (not done): create `gamo-live-db-preview` and `gamo-live-db-production` (`wrangler d1 create`), add their ids to a `[[env.<env>.d1_databases]]` block with binding `LIVE_DB` and `migrations_dir = "../../packages/db/live/migrations"` in `apps/live/wrangler.toml` and `apps/web/wrangler.toml`, apply the migrations (`wrangler d1 migrations apply LIVE_DB --env <env> --remote`), then set `PII_HASH_SECRET` (32+ characters; keys the registration hashes and codes) and the Resend variables (`RESEND_API_KEY`, `EMAIL_FROM`) as Live secrets. Until then Live's data pages answer "unavailable" and registration fails closed.
+
+Local registration emails (the 6-digit code, the confirmation link) are printed in the `astro dev` terminal of `apps/live`; nothing is sent while `ENVIRONMENT=local` has no Resend key.
 
 ## 6. After a deploy
 

@@ -3,11 +3,11 @@ import { buildRobotsTxt, textResponse } from '@studio-gamo/ui/lib/crawlers';
 
 export const prerender = false;
 
-// No product areas exist during the rebuild; /api/ and /account stay disallowed for every crawler.
+// /api/ and /account stay disallowed for every crawler; registration and manage pages are personal.
 export const GET: APIRoute = () =>
   textResponse(
     buildRobotsTxt({
       app: 'live',
-      privatePaths: [],
+      privatePaths: ['/registrations/', '/events/*/register'],
     }),
   );
