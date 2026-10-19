@@ -28,6 +28,7 @@ import {
   artistProfiles,
   artistRepresentatives,
   representationAuthorizations,
+  providerProfiles,
   type GamoDatabase,
 } from '@gamo/db';
 import {
@@ -75,6 +76,10 @@ export interface SessionData {
   clerkUserId?: string;
   clerkAppId?: string;
   clerkIssuer?: string;
+  /** Shared person of this user (`users.person_id`), set only from a verified email (design §4.6). */
+  personId?: string | null;
+  /** Organizations whose church profile staff verified for this person (Worship `/church` gate). */
+  verifiedChurchOrganizationIds?: string[];
 }
 
 export interface AuthResolutionOptions {
@@ -90,6 +95,8 @@ export interface SessionOptions {
   ipHash?: string;
   userAgent?: string;
   product?: ProductKey;
+  /** Clerk `sid` behind this session (exchange only), so the Clerk webhook can revoke it. */
+  clerkSessionId?: string;
 }
 
 export interface CookieOptions {
@@ -187,6 +194,7 @@ export async function createSession(
     expiresAt,
     ipHash: options?.ipHash,
     userAgent: options?.userAgent,
+    clerkSessionId: options?.clerkSessionId ?? null,
     createdAt: now,
   });
 
@@ -301,11 +309,35 @@ export async function validateSession(
     },
     roles: roleCodes,
     memberships: memberRows,
+    personId: userRecord.personId ?? null,
+    verifiedChurchOrganizationIds: await loadVerifiedChurchOrganizationIds(db, userRecord.personId),
     products: productCodes,
     sessionProduct: sessionRecord.product ?? null,
     sessionId: sessionRecord.id,
     expiresAt: sessionRecord.expiresAt,
   };
+}
+
+/**
+ * Organizations whose church provider profile staff verified for this person. A church organization
+ * membership alone never opens the Worship church workspace (design §4.4).
+ */
+export async function loadVerifiedChurchOrganizationIds(
+  db: GamoDatabase,
+  personId: string | null | undefined,
+): Promise<string[]> {
+  if (!personId) return [];
+  const rows = await db
+    .select({ organizationId: providerProfiles.organizationId })
+    .from(providerProfiles)
+    .where(
+      and(
+        eq(providerProfiles.personId, personId),
+        eq(providerProfiles.role, 'church'),
+        eq(providerProfiles.status, 'verified'),
+      ),
+    );
+  return rows.map((r) => r.organizationId).filter((id): id is string => Boolean(id));
 }
 
 /**

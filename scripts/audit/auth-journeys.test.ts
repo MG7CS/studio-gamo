@@ -14,6 +14,7 @@ import {
 } from '../../packages/domain/index.ts';
 import { canAccessPage } from '../../packages/auth/page-access.ts';
 import { validateSession } from '../../packages/auth/index.ts';
+import { LOCAL_TURNSTILE, signupTerms } from './auth-test-kit.ts';
 
 const secret = 'isolated-auth-tests-signing-material-only';
 async function fixture() {
@@ -76,11 +77,18 @@ test('fresh identity verifies once, persists across logout and repeat sign-in, a
   try {
     const email = 'fresh@example.invalid';
     const service = new IdentityService(f.db);
-    const challenge = await service.issueEmailChallenge(email);
+    const challenge = await service.issueEmailChallenge(email, { product: 'web', intent: 'signup' });
+    const signup = {
+      email,
+      code: challenge.code,
+      displayName: 'Fresh member',
+      intent: 'signup',
+      terms: signupTerms(),
+    };
     const attempts = await Promise.all([
-      verifyPOST(f.context('/api/auth/verify', { email, code: challenge.code, displayName: 'Fresh member' })),
+      verifyPOST(f.context('/api/auth/verify', signup)),
       // Same payload as the first attempt: whichever request wins the race must produce the same profile.
-      verifyPOST(f.context('/api/auth/verify', { email, code: challenge.code, displayName: 'Fresh member' })),
+      verifyPOST(f.context('/api/auth/verify', signup)),
     ]);
     assert.deepEqual(attempts.map((x) => x.status).sort(), [200, 401]);
     const verified = attempts.find((x) => x.status === 200)!;
@@ -100,7 +108,8 @@ test('fresh identity verifies once, persists across logout and repeat sign-in, a
       200,
     );
     assert.equal((await meGET(f.context('/api/auth/me', undefined, cookie.split(';')[0]))).status, 401);
-    const again = await service.issueEmailChallenge(email);
+    const again = await service.issueEmailChallenge(email, { product: 'web', intent: 'signin' });
+    assert.equal(again.deliver, true);
     const signed = await verifyPOST(f.context('/api/auth/verify', { email, code: again.code }));
     assert.equal(((await signed.json()) as any).data.user.id, auth.data.user.id);
     assert.equal((f.d1.sqlite.prepare('SELECT COUNT(*) AS count FROM users').get() as any)?.count, 1);
@@ -119,14 +128,25 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
 
     const email = 'live.only@example.invalid';
     const chalRes = await liveAuth.challengePOST(
-      f.context('/api/auth/challenge', { email, displayName: 'Live Participant', intent: 'signup' }),
+      f.context('/api/auth/challenge', {
+        email,
+        displayName: 'Live Participant',
+        intent: 'signup',
+        ...LOCAL_TURNSTILE,
+      }),
     );
     assert.equal(chalRes.status, 200);
     const chalBody = (await chalRes.json()) as any;
     const code = chalBody.data.message.match(/Local test code: (\d{6})/)[1];
 
     const verifyRes = await liveAuth.verifyPOST(
-      f.context('/api/auth/verify', { email, code, displayName: 'Live Participant', intent: 'signup' }),
+      f.context('/api/auth/verify', {
+        email,
+        code,
+        displayName: 'Live Participant',
+        intent: 'signup',
+        terms: signupTerms(),
+      }),
     );
     assert.equal(verifyRes.status, 200);
     const liveCookie = verifyRes.headers.get('set-cookie')!.split(';')[0];
@@ -154,22 +174,41 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     assert.equal(canAccessPage('worship', '/account', sessionData), false);
     assert.equal(canAccessPage('production', '/account', sessionData), false);
 
-    // Attempting to sign in (intent: 'signin') to Academy without registering for Academy first is rejected with 403
+    // Signing in to Academy without an Academy account answers like any other address (no 403, nothing
+    // about Live), sends nothing and creates nothing; no code can create the account either.
+    const challengesBefore = (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any)
+      .n;
     const acadSigninTry = await academyAuth.challengePOST(
-      f.context('/api/auth/challenge', { email, intent: 'signin' }),
+      f.context('/api/auth/challenge', { email, intent: 'signin', ...LOCAL_TURNSTILE }),
     );
-    assert.equal(acadSigninTry.status, 403);
-    const acadSigninErr = ((await acadSigninTry.json()) as any).error.message;
-    assert.match(acadSigninErr, /No Gamo Academy account was found/);
+    assert.equal(acadSigninTry.status, 200);
+    const acadSigninBody = JSON.stringify(await acadSigninTry.json());
+    assert.doesNotMatch(acadSigninBody, /Gamo Live/);
+    assert.equal(
+      (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any).n,
+      challengesBefore,
+    );
+    const acadGuess = await academyAuth.verifyPOST(
+      f.context('/api/auth/verify', { email, code, intent: 'signin' }),
+    );
+    assert.equal(acadGuess.status, 401);
+    assert.equal(
+      (
+        f.d1.sqlite
+          .prepare("SELECT COUNT(*) AS n FROM product_accounts WHERE product = 'academy'")
+          .get() as any
+      ).n,
+      0,
+    );
 
     // Explicit registration (intent: 'signup') on Academy enrolls the user in Academy and issues an Academy session
     const acadSignupChal = await academyAuth.challengePOST(
-      f.context('/api/auth/challenge', { email, intent: 'signup' }),
+      f.context('/api/auth/challenge', { email, intent: 'signup', ...LOCAL_TURNSTILE }),
     );
     assert.equal(acadSignupChal.status, 200);
     const acadCode = ((await acadSignupChal.json()) as any).data.message.match(/Local test code: (\d{6})/)[1];
     const acadVerify = await academyAuth.verifyPOST(
-      f.context('/api/auth/verify', { email, code: acadCode, intent: 'signup' }),
+      f.context('/api/auth/verify', { email, code: acadCode, intent: 'signup', terms: signupTerms() }),
     );
     assert.equal(acadVerify.status, 200);
     const acadCookie = acadVerify.headers.get('set-cookie')!.split(';')[0];
@@ -180,16 +219,15 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     assert.deepEqual(acadMeData.products.sort(), ['academy', 'live']);
     assert.equal(acadMeData.product, 'academy');
 
-    // Still not enrolled in Worship or Production
-    assert.equal(
-      (await worshipAuth.challengePOST(f.context('/api/auth/challenge', { email, intent: 'signin' }))).status,
-      403,
-    );
-    assert.equal(
-      (await productionAuth.challengePOST(f.context('/api/auth/challenge', { email, intent: 'signin' })))
-        .status,
-      403,
-    );
+    // Still not enrolled in Worship or Production: sign-in creates no challenge there.
+    for (const handlers of [worshipAuth, productionAuth]) {
+      const before = (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any).n;
+      const res = await handlers.challengePOST(
+        f.context('/api/auth/challenge', { email, intent: 'signin', ...LOCAL_TURNSTILE }),
+      );
+      assert.equal(res.status, 200);
+      assert.equal((f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any).n, before);
+    }
   } finally {
     f.d1.sqlite.close();
   }

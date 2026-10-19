@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 /** Worship landing hero: editorial headline left, curved photo composition + sample match card right. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -22,10 +22,10 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
         serve congregations with excellence, dependable scheduling and fair pay.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href={inquiryUrl('Church musician request')} size="lg" arrow>
+        <ButtonLink href={providerSignupUrl('worship', 'church')} size="lg" arrow>
           Request musicians
         </ButtonLink>
-        <ButtonLink href={inquiryUrl('Musician application')} size="lg" variant="secondary">
+        <ButtonLink href={providerSignupUrl('worship', 'musician')} size="lg" variant="secondary">
           Apply as a musician
         </ButtonLink>
       </div>

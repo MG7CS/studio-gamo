@@ -1,0 +1,30 @@
+---
+/**
+ * One section of a legal document: heading, paragraphs and an optional bullet list. Props:
+ * - section: { id, heading, paragraphs?, items? } (see content/types.ts).
+ */
+import type { LegalSectionContent } from './content/types.ts';
+
+interface Props {
+  section: LegalSectionContent;
+}
+const { section } = Astro.props;
+const paragraphs = section.paragraphs ?? [];
+const items = section.items ?? [];
+---
+
+<section class="border-t border-sand pt-7" aria-labelledby={`legal-${section.id}`}>
+  <h2 id={`legal-${section.id}`} class="text-xl font-semibold text-ink sm:text-2xl">
+    {section.heading}
+  </h2>
+  {paragraphs.map((p) => (
+    <p class="mt-4 max-w-3xl leading-relaxed text-muted">{p}</p>
+  ))}
+  {items.length > 0 && (
+    <ul class="mt-4 max-w-3xl list-disc space-y-2 pl-5 leading-relaxed text-muted">
+      {items.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  )}
+</section>

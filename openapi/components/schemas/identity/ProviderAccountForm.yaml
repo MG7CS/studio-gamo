@@ -1,0 +1,42 @@
+type: object
+description: Onboarding form fields. Besides the listed controls, a save carries the step's own fields
+  (role-specific, validated server-side by the step schema) as plain strings.
+additionalProperties:
+  type: string
+  maxLength: 4000
+properties:
+  action:
+    type: string
+    enum:
+      - start
+      - save
+      - terms
+      - submit
+      - publish
+      - unpublish
+  role:
+    type: string
+    enum:
+      - musician
+      - technician
+      - church
+      - agent
+      - organizer
+      - teacher
+      - artist
+  step:
+    type: string
+    maxLength: 40
+  terms_slug:
+    type: string
+    maxLength: 64
+  terms_version:
+    type: string
+    maxLength: 32
+  terms_accept:
+    type: string
+    enum:
+      - 'yes'
+required:
+  - action
+  - role

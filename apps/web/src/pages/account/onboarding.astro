@@ -1,8 +1,12 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import AccountHub from '@studio-gamo/ui/components/account/AccountHub.astro';
+import ProviderOnboarding from '@studio-gamo/ui/components/onboarding/ProviderOnboarding.astro';
+import { loadOnboardingView } from '@gamo/domain';
+
+const view = await loadOnboardingView(Astro.locals, Astro.url);
+if (!view) return Astro.redirect('/account/signin?next=/account/onboarding', 303);
 ---
 
-<SiteLayout title="Account Onboarding | Gamo Studios">
-  <AccountHub program="Gamo Studios" />
+<SiteLayout title="Set Up Your Profile — Gamo Studios" description="Provider onboarding for Gamo Studios.">
+  <ProviderOnboarding program="Gamo Studios" view={view} />
 </SiteLayout>

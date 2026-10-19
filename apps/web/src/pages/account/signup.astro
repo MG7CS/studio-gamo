@@ -1,6 +1,10 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperience.astro';
+import { termsConsentDocuments } from '@studio-gamo/ui/lib/terms-links';
+import { signupScreenOptions } from '@gamo/domain';
+
+const options = signupScreenOptions('web');
 ---
 
 <SiteLayout
@@ -8,5 +12,11 @@ import GamoAuthExperience from '@studio-gamo/ui/components/auth/GamoAuthExperien
   description="Create a verified Gamo Studios account to submit participation inquiries and connect with our mission team."
   chrome={false}
 >
-  <GamoAuthExperience mode="signup" program="Gamo Studios" />
+  <GamoAuthExperience
+    mode="signup"
+    program="Gamo Studios"
+    signupRoles={options.roles}
+    selectedRole={Astro.url.searchParams.get('role')}
+    termsDocuments={termsConsentDocuments(options.terms)}
+  />
 </SiteLayout>

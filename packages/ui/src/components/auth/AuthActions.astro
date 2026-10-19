@@ -9,8 +9,6 @@ interface Props {
   accent?: 'terracotta' | 'lavender' | 'soft-lavender';
   dataBtnChallenge?: boolean;
   dataBtnVerify?: boolean;
-  googleAuthUrl?: string;
-  facebookAuthUrl?: string;
 }
 
 const {
@@ -20,11 +18,9 @@ const {
   accent = 'terracotta',
   dataBtnChallenge = false,
   dataBtnVerify = false,
-  googleAuthUrl,
-  facebookAuthUrl,
 } = Astro.props;
-
-const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
+const linkClass =
+  'inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline decoration-terracotta/40 underline-offset-4 transition-colors hover:text-ink';
 ---
 
 <div class="pt-1">
@@ -36,68 +32,28 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
   />
 </div>
 
-{hasSocialAuth && (mode === 'signin' || mode === 'signup') && (
-  <div class="pt-3 space-y-4" data-social-auth>
-    <div class="relative flex items-center py-1">
-      <div class="flex-grow border-t border-sand" />
-      <span class="mx-3 shrink text-[13px] text-muted">or</span>
-      <div class="flex-grow border-t border-sand" />
-    </div>
-    <div class="grid grid-cols-2 gap-3">
-      {googleAuthUrl && (
-        <a
-          href={googleAuthUrl}
-          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-4 py-2.5 text-[13px] font-medium text-ink shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-cream"
-        >
-          <span>Continue with Google</span>
-        </a>
-      )}
-      {facebookAuthUrl && (
-        <a
-          href={facebookAuthUrl}
-          class="inline-flex items-center justify-center gap-2.5 rounded-full border border-sand bg-white px-4 py-2.5 text-[13px] font-medium text-ink shadow-[0_1px_2px_rgba(24,20,17,0.04)] transition-colors hover:bg-cream"
-        >
-          <span>Continue with Facebook</span>
-        </a>
-      )}
-    </div>
-  </div>
-)}
-
 {mode === 'signin' && (
-  <div class="pt-5 text-center space-y-2.5">
+  <div class="pt-3 text-center space-y-1">
     <p class="text-[14px] text-muted">
       New to {program}?{' '}
-      <a
-        href="/account/signup"
-        data-nav-signup
-        class="font-semibold text-terracotta transition-colors hover:text-terracotta-deep lg:underline lg:decoration-terracotta/40 lg:underline-offset-4"
-      >
+      <a href="/account/signup" data-nav-signup class={linkClass}>
         Create an account
       </a>
     </p>
-    <p class="text-[13px] text-muted">
-      Need help accessing your email?{' '}
-      <a
-        href="/account/recover"
-        data-nav-recover
-        class="font-medium text-muted underline decoration-muted/40 underline-offset-4 transition-colors hover:text-ink"
-      >
-        Recover your account
+    <p class="text-[14px] text-muted">
+      Can't get into your account?{' '}
+      <a href="/account/recover" data-nav-recover class={linkClass}>
+        Get help signing in
       </a>
     </p>
   </div>
 )}
 
 {mode === 'signup' && (
-  <div class="pt-4 text-center lg:hidden">
+  <div class="pt-3 text-center">
     <p class="text-[14px] text-muted">
       Already have a {program} account?{' '}
-      <a
-        href="/account/signin"
-        data-nav-signin
-        class="font-semibold text-terracotta transition-colors hover:text-terracotta-deep"
-      >
+      <a href="/account/signin" data-nav-signin class={linkClass}>
         Sign in
       </a>
     </p>
@@ -105,13 +61,9 @@ const hasSocialAuth = Boolean(googleAuthUrl || facebookAuthUrl);
 )}
 
 {(mode === 'recover' || mode === 'verify') && (
-  <div class={mode === 'verify' ? 'pt-2' : 'pt-5'}>
-    <a
-      href="/account/signin"
-      data-nav-signin
-      class="inline-flex items-center gap-2 text-[14px] font-medium text-terracotta lg:text-muted transition-colors hover:text-ink"
-    >
-      <span aria-hidden="true">←</span>
+  <div class="pt-2">
+    <a href="/account/signin" data-nav-signin class={linkClass}>
+      <span aria-hidden="true">←&nbsp;</span>
       <span>Back to sign in</span>
     </a>
   </div>

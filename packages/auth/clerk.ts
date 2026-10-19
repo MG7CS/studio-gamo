@@ -35,7 +35,13 @@ import {
   auditLogs,
   type GamoDatabase,
 } from '@gamo/db';
-import { AuthError, PRODUCT_DISPLAY_NAMES, type ProductKey, type SessionData } from './index.ts';
+import {
+  AuthError,
+  loadVerifiedChurchOrganizationIds,
+  PRODUCT_DISPLAY_NAMES,
+  type ProductKey,
+  type SessionData,
+} from './index.ts';
 
 export interface ProductClerkAppSpec {
   product: ProductKey;
@@ -874,6 +880,8 @@ export async function resolveOrProvisionClerkProductSession(
     },
     roles: roleCodes,
     memberships: memberRows,
+    personId: userRecord.personId ?? null,
+    verifiedChurchOrganizationIds: await loadVerifiedChurchOrganizationIds(db, userRecord.personId),
     // Strictly scope the session to this single product
     products: [identity.product],
     sessionProduct: identity.product,

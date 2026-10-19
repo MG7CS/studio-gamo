@@ -580,6 +580,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/clerk-webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive a Svix-signed event from this product's own Clerk application
+         * @description Verified with CLERK_WEBHOOK_SECRET_<APP> (Svix scheme, 5-minute timestamp tolerance). session.ended, session.revoked and session.removed revoke the D1 sessions exchanged from that Clerk session id in this product; user.deleted and user.banned revoke every D1 session of the linked user in this product, and user.deleted also suspends the Clerk identity link. Other events are ignored with 200. Answers 503 when the secret is not configured.
+         */
+        post: operations["receiveClerkWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/person-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unlink (or link again) this product's account from the shared person record
+         * @description Plain HTML form post (no JavaScript needed). unlink clears users.person_id and writes a person.unlinked audit row, which also stops automatic re-linking at the next sign-in; link re-attaches the account to the person of its verified email. Never grants access in another product. Redirects 303 to /account with person=unlinked|linked|unchanged or error=<code>.
+         */
+        post: operations["changePersonLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/account/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Provider onboarding steps, terms, submit for review and publish
+         * @description Plain HTML form post used by /account/onboarding and /account/profile. start creates the draft profile for one of this product's sign-up roles; save stores one onboarding step as a draft (invalid fields are listed in the redirect); terms records the current Provider (or Organizer) Terms; submit sends the profile to staff review (verified email, complete profile and current terms required); publish lists it when every publish gate holds (staff verification for church, musician, technician and teacher; payout setup is not available yet and never blocks a profile); unpublish takes it off public view. Redirects 303 to the page with the outcome in the query string.
+         */
+        post: operations["changeProviderProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Staff decision on a provider profile (church verification and provider review)
+         * @description schedule_meeting (date/time in the given IANA zone, default America/Phoenix; location; attending staff), start_review, verify (notes required; churches only after a scheduled meeting), request_changes (message), reject, suspend, reinstate. One D1 batch per decision: a status UPDATE conditional on expected_status, then the verification_records and audit_logs rows. A stale form or a concurrent decision changes nothing (error=CONFLICT). Self-review is refused. The provider is emailed through the outbox (honest when email is not configured). Redirects 303 to the review detail page.
+         */
+        post: operations["reviewProviderProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Staff decision on an event waiting for review (organizer first-event review)
+         * @description Plain HTML form wrapper over AdminService.reviewEvent. On the organizer's first approval it sets organizer_profiles.first_event_approved_at (once) and records a verification_records row for the event. Self-moderation and already-reviewed events are refused. Redirects 303 to /review/events.
+         */
+        post: operations["reviewOrganizerEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/organizers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Turn "review every event" on or off for an organizer
+         * @description Sets organizer_profiles.always_review and writes an audit row. Redirects 303 to /review/events.
+         */
+        post: operations["setOrganizerAlwaysReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -642,6 +762,8 @@ export interface components {
                 user: components["schemas"]["User"];
                 sessionId: string;
                 message: string;
+                /** @description Same-site path to continue at (provider onboarding after a sign-up with a role). */
+                next?: string;
             };
         };
         LogoutResponse: {
@@ -664,6 +786,13 @@ export interface components {
             intent?: "signin" | "signup" | "recover";
             /** @enum {string} */
             product?: "web" | "worship" | "academy" | "live" | "production";
+            /**
+             * @description Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).
+             * @enum {string}
+             */
+            role?: "musician" | "technician" | "church" | "agent" | "organizer" | "teacher" | "artist";
+            /** @description Cloudflare Turnstile token (required outside ENVIRONMENT=local; local accepts the documented dummy token). */
+            "cf-turnstile-response"?: string;
         };
         AuthChallengeResponse: {
             /** @constant */
@@ -685,6 +814,15 @@ export interface components {
             intent?: "signin" | "signup" | "recover";
             /** @enum {string} */
             product?: "web" | "worship" | "academy" | "live" | "production";
+            /**
+             * @description Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).
+             * @enum {string}
+             */
+            role?: "musician" | "technician" | "church" | "agent" | "organizer" | "teacher" | "artist";
+            /** @description Sign-up only — the terms documents the form showed (current Site Terms and Privacy Policy versions are required). */
+            terms?: components["schemas"]["TermsDocumentRef"][];
+            /** @description Sign-up only — the separate, never pre-ticked marketing checkbox. */
+            marketingOptIn?: boolean;
         };
         OrganizationMembershipSummary: {
             organizationId: components["schemas"]["Identifier"];
@@ -1344,6 +1482,81 @@ export interface components {
                 inquiries: components["schemas"]["ParticipationInquiry"][];
             };
         };
+        TermsDocumentRef: {
+            slug: string;
+            version: string;
+        };
+        /** @description Optional body of the Clerk token exchange; carries what the sign-up screen collected. */
+        ClerkSessionInput: {
+            /** @enum {string} */
+            intent?: "signin" | "signup" | "recover";
+            /**
+             * @description Provider role chosen on the sign-up screen (sign-up only; must be one of this product's sign-up roles, otherwise ignored).
+             * @enum {string}
+             */
+            role?: "musician" | "technician" | "church" | "agent" | "organizer" | "teacher" | "artist";
+            terms?: components["schemas"]["TermsDocumentRef"][];
+            marketingOptIn?: boolean;
+        };
+        /** @description Clerk webhook payload (only type and data.id are read). */
+        ClerkWebhookEvent: {
+            type: string;
+            data?: {
+                [key: string]: unknown;
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        ClerkWebhookResponse: {
+            /** @constant */
+            success: true;
+            data: {
+                /** @constant */
+                received: true;
+                /** @enum {string} */
+                status: "revoked" | "ignored";
+                sessionsRevoked: number;
+            };
+        };
+        PersonLinkForm: {
+            /** @enum {string} */
+            action: "unlink" | "link";
+        };
+        /** @description Onboarding form fields. Besides the listed controls, a save carries the step's own fields (role-specific, validated server-side by the step schema) as plain strings. */
+        ProviderAccountForm: {
+            /** @enum {string} */
+            action: "start" | "save" | "terms" | "submit" | "publish" | "unpublish";
+            /** @enum {string} */
+            role: "musician" | "technician" | "church" | "agent" | "organizer" | "teacher" | "artist";
+            step?: string;
+            terms_slug?: string;
+            terms_version?: string;
+            /** @enum {string} */
+            terms_accept?: "yes";
+        } & {
+            [key: string]: string;
+        };
+        ProviderReviewForm: {
+            /** @enum {string} */
+            action: "schedule_meeting" | "start_review" | "verify" | "request_changes" | "reject" | "suspend" | "reinstate";
+            expected_status: string;
+            notes?: string;
+            /** @description Local date and time (YYYY-MM-DDTHH:MM) in meeting_zone. */
+            meeting_at?: string;
+            /** @description IANA time zone of meeting_at (default America/Phoenix). */
+            meeting_zone?: string;
+            meeting_location?: string;
+            meeting_staff?: string;
+        };
+        EventReviewForm: {
+            /** @enum {string} */
+            decision: "approved" | "rejected" | "revision_requested";
+            notes?: string;
+        };
+        OrganizerReviewForm: {
+            /** @enum {string} */
+            always_review: "on" | "off";
+        };
         /** @enum {string} */
         category: "concert" | "worship" | "bible" | "conference" | "youth";
         city: string;
@@ -1574,6 +1787,8 @@ export interface operations {
             };
             400: components["responses"]["LegacyError"];
             403: components["responses"]["LegacyError"];
+            413: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
             429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
             503: components["responses"]["LegacyError"];
@@ -1604,6 +1819,8 @@ export interface operations {
             400: components["responses"]["LegacyError"];
             401: components["responses"]["LegacyError"];
             403: components["responses"]["LegacyError"];
+            413: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
             429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
             503: components["responses"]["LegacyError"];
@@ -1616,7 +1833,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ClerkSessionInput"];
+            };
+        };
         responses: {
             /** @description Successful response */
             200: {
@@ -1627,8 +1848,10 @@ export interface operations {
                     "application/json": components["schemas"]["SessionResponse"];
                 };
             };
+            400: components["responses"]["LegacyError"];
             401: components["responses"]["LegacyError"];
             403: components["responses"]["LegacyError"];
+            429: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
             503: components["responses"]["LegacyError"];
         };
@@ -2378,6 +2601,188 @@ export interface operations {
             };
             403: components["responses"]["LegacyError"];
             409: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    receiveClerkWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClerkWebhookEvent"];
+            };
+        };
+        responses: {
+            /** @description Event verified and applied (or ignored). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClerkWebhookResponse"];
+                };
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            413: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    changePersonLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["PersonLinkForm"];
+            };
+        };
+        responses: {
+            /** @description Form handled; redirects back to the page with the outcome in the query string. */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    changeProviderProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["ProviderAccountForm"];
+            };
+        };
+        responses: {
+            /** @description Form handled; redirects back to the page with the outcome in the query string. */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            413: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+            503: components["responses"]["LegacyError"];
+        };
+    };
+    reviewProviderProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["ProviderReviewForm"];
+            };
+        };
+        responses: {
+            /** @description Form handled; redirects back to the page with the outcome in the query string. */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    reviewOrganizerEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["EventReviewForm"];
+            };
+        };
+        responses: {
+            /** @description Form handled; redirects back to the page with the outcome in the query string. */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    setOrganizerAlwaysReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event identifier; public detail additionally accepts a slug. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["OrganizerReviewForm"];
+            };
+        };
+        responses: {
+            /** @description Form handled; redirects back to the page with the outcome in the query string. */
+            303: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["LegacyError"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            415: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };

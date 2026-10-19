@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { adminWorkspace } from '../../apps/admin/src/data/workspace';
@@ -74,6 +75,16 @@ test('Admin workspace exposes full operational control, analytics hub, and Gamo 
   for (const group of adminWorkspace.nav) {
     for (const item of group.items) {
       if (item.slug === 'legal' || item.slug === 'security') continue;
+      // Real D1-backed review pages (apps/admin/src/pages/review/**), not demo screens.
+      if (item.slug.startsWith('review/')) {
+        const page = item.slug.split('?')[0];
+        assert.ok(
+          existsSync(`apps/admin/src/pages/${page}.astro`) ||
+            existsSync(`apps/admin/src/pages/${page}/index.astro`),
+          `Admin nav item "${item.label}" (${item.slug}) has no page`,
+        );
+        continue;
+      }
       const resolved = findScreen(adminWorkspace, item.slug);
       assert.ok(resolved, `Admin nav item "${item.label}" (${item.slug}) does not resolve to a screen`);
     }

@@ -1,5 +1,4 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '../../components/shared/PageHero.astro';
@@ -84,9 +83,10 @@ const facts = [
           Instructor compensation and any administrative allocation are always presented on separate lines
           before enrollment is confirmed.
         </p>
-        <ButtonLink href={inquiryUrl('Lesson interest')} class="mt-6 w-full justify-center" arrow>
+        <ButtonLink href={`/register/${l.slug}`} class="mt-6 w-full justify-center" arrow>
           Register for this lesson
         </ButtonLink>
+        <p class="mt-3 text-sm text-ink-soft">No account needed. Reserving a spot is free.</p>
       </aside>
     </div>
   </section>

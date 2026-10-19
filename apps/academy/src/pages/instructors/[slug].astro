@@ -1,5 +1,5 @@
 ---
-import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import LessonCard from '../../components/shared/LessonCard.astro';
@@ -52,7 +52,7 @@ const taught = lessons.filter((l) => l.instructorSlug === t.slug);
             {t.formats.join(', ')}
           </li>
         </ul>
-        <ButtonLink href={inquiryUrl('Lesson interest')} class="mt-8 w-full justify-center" arrow>
+        <ButtonLink href={siteUrl('academy', '/lessons')} class="mt-8 w-full justify-center" arrow>
           Register with {t.name.split(' ')[0]}
         </ButtonLink>
       </aside>

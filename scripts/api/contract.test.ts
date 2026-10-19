@@ -17,6 +17,7 @@ import {
 import { createSession } from '../../packages/auth/index.ts';
 import { validateContract } from '../../packages/api-contracts/src/runtime.ts';
 import { onRequest } from '../../apps/admin/src/middleware.ts';
+import { LOCAL_TURNSTILE, signupTerms } from '../audit/auth-test-kit.ts';
 const spec = JSON.parse(readFileSync('openapi/bundled/internal.json', 'utf8'));
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 addFormats(ajv);
@@ -253,10 +254,12 @@ test('session creation is explicitly local-only; invalid JSON, fields and media 
   await call('web', 'DELETE', '/api/auth/session', 200);
 });
 test('verified email challenge, session inspection, organization onboarding, and staff provisioning contracts', async () => {
-  await call('web', 'POST', '/api/auth/challenge', 400, { email: 'not-an-email' });
+  await call('web', 'POST', '/api/auth/challenge', 400, { email: 'not-an-email', ...LOCAL_TURNSTILE });
   const challengeRes = await call('web', 'POST', '/api/auth/challenge', 200, {
     email: 'verified-leader@example.invalid',
     displayName: 'Verified Leader',
+    intent: 'signup',
+    ...LOCAL_TURNSTILE,
   });
   assert.equal(challengeRes.body.data.deliveryStatus, 'simulated');
   await call('web', 'POST', '/api/auth/verify', 401, {
@@ -264,11 +267,16 @@ test('verified email challenge, session inspection, organization onboarding, and
     code: '000000',
   });
   // Issue fresh known challenge via service to verify HTTP verify route contract
-  const issued = await services.identity.issueEmailChallenge('verified-leader@example.invalid');
+  const issued = await services.identity.issueEmailChallenge('verified-leader@example.invalid', {
+    product: 'web',
+    intent: 'signup',
+  });
   const verified = await call('web', 'POST', '/api/auth/verify', 200, {
     email: 'verified-leader@example.invalid',
     code: issued.code,
     displayName: 'Verified Leader',
+    intent: 'signup',
+    terms: signupTerms(),
   });
   assert.ok(verified.body.data.user.verifiedEmailAt);
   const verifiedCookie = verified.response.headers.get('set-cookie')!.split(';')[0];
@@ -608,6 +616,14 @@ test('standalone Live platform workflows: teams, verified ticket lookup, QR scan
     { cookie: artistCookie },
   );
   const artistId = createdArtist.body.data.id;
+  // New artist profiles start as drafts and are not listed until staff verify them (Phase 2 identity).
+  assert.equal(createdArtist.body.data.verificationStatus, 'draft');
+  const draftList = await call('live', 'GET', '/api/artists', 200);
+  assert.ok(!draftList.body.data.some((a: any) => a.id === artistId));
+  await d1
+    .prepare("UPDATE artist_profiles SET verification_status = 'verified' WHERE id = ?")
+    .bind(artistId)
+    .run();
   const artistList = await call('live', 'GET', '/api/artists', 200);
   assert.ok(artistList.body.data.some((a: any) => a.id === artistId));
 
@@ -838,12 +854,18 @@ test('all public apps expose the same isolated auth and organization contract, a
   for (const app of ['web', 'live', 'worship', 'academy', 'production']) {
     const email = `replicated-${app}@example.invalid`;
     await call(app, 'POST', '/api/auth/session', 200, { email: `demo-${app}@example.invalid` });
-    const challenge = await call(app, 'POST', '/api/auth/challenge', 200, { email });
+    const challenge = await call(app, 'POST', '/api/auth/challenge', 200, {
+      email,
+      intent: 'signup',
+      ...LOCAL_TURNSTILE,
+    });
     const code = challenge.body.data.message.match(/Local test code: (\d{6})/)[1];
     const verified = await call(app, 'POST', '/api/auth/verify', 200, {
       email,
       code,
       displayName: 'Sample participant',
+      intent: 'signup',
+      terms: signupTerms(),
     });
     const appCookie = verified.response.headers.get('set-cookie')!.split(';')[0];
     await call(app, 'GET', '/api/auth/me', 200, undefined, { cookie: appCookie });
@@ -857,7 +879,14 @@ test('all public apps expose the same isolated auth and organization contract, a
     );
     await call(app, 'DELETE', '/api/auth/session', 200, undefined, { cookie: appCookie });
     await call(app, 'GET', '/api/auth/me', 401, undefined, { cookie: appCookie });
-    await call(app, 'POST', '/api/auth/challenge', 503, { email }, { 'x-contract-production': '1' });
+    await call(
+      app,
+      'POST',
+      '/api/auth/challenge',
+      503,
+      { email, ...LOCAL_TURNSTILE },
+      { 'x-contract-production': '1' },
+    );
   }
   await call('web', 'POST', '/api/participation', 401, {
     kind: 'general',

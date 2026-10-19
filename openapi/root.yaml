@@ -91,6 +91,20 @@ paths:
     $ref: paths/events-id-review.yaml
   /api/staff/provision:
     $ref: paths/staff-provision.yaml
+  # --- agent A (identity, onboarding, review) ---
+  /api/auth/clerk-webhook:
+    $ref: paths/auth-clerk-webhook.yaml
+  /api/account/person-link:
+    $ref: paths/account-person-link.yaml
+  /api/account/providers:
+    $ref: paths/account-providers.yaml
+  /api/review/providers/{id}:
+    $ref: paths/review-providers-id.yaml
+  /api/review/events/{id}:
+    $ref: paths/review-events-id.yaml
+  /api/review/organizers/{id}:
+    $ref: paths/review-organizers-id.yaml
+  # --- end agent A ---
 components:
   schemas:
     Identifier:
@@ -225,6 +239,26 @@ components:
       $ref: components/schemas/participation/ParticipationResponse.yaml
     ParticipationListResponse:
       $ref: components/schemas/participation/ParticipationListResponse.yaml
+    # --- agent A (identity, onboarding, review) ---
+    TermsDocumentRef:
+      $ref: components/schemas/identity/TermsDocumentRef.yaml
+    ClerkSessionInput:
+      $ref: components/schemas/identity/ClerkSessionInput.yaml
+    ClerkWebhookEvent:
+      $ref: components/schemas/identity/ClerkWebhookEvent.yaml
+    ClerkWebhookResponse:
+      $ref: components/schemas/identity/ClerkWebhookResponse.yaml
+    PersonLinkForm:
+      $ref: components/schemas/identity/PersonLinkForm.yaml
+    ProviderAccountForm:
+      $ref: components/schemas/identity/ProviderAccountForm.yaml
+    ProviderReviewForm:
+      $ref: components/schemas/administration/ProviderReviewForm.yaml
+    EventReviewForm:
+      $ref: components/schemas/administration/EventReviewForm.yaml
+    OrganizerReviewForm:
+      $ref: components/schemas/administration/OrganizerReviewForm.yaml
+    # --- end agent A ---
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml

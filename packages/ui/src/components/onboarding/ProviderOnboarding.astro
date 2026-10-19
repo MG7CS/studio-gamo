@@ -1,0 +1,166 @@
+---
+/**
+ * `/account/onboarding` for every product: role picker, the shared OnboardingStepper and the current step
+ * (fields → terms → review). Each step is its own form post (303), so it works without JavaScript, and
+ * everything saves as a draft. Data: `loadOnboardingView()` from `@gamo/domain`.
+ */
+import OnboardingStepper from '../forms/OnboardingStepper.astro';
+import AccountNotice from '../account/AccountNotice.astro';
+import RolePicker from './RolePicker.astro';
+import OnboardingStepForm, { type OnboardingFieldProp } from './OnboardingStepForm.astro';
+import OnboardingTermsStep from './OnboardingTermsStep.astro';
+import OnboardingReviewStep from './OnboardingReviewStep.astro';
+import type { PublishGateProp } from './PublishGateChecklist.astro';
+import { siteUrl } from '../../lib/sites';
+
+export interface OnboardingViewProp {
+  notice: { tone: 'success' | 'error' | 'info'; text: string } | null;
+  roles: { value: string; label: string; started: boolean; href: string }[];
+  role: string | null;
+  roleLabel: string;
+  profile: {
+    id: string;
+    status: string;
+    statusLabel: string;
+    completeness: number;
+    editable: boolean;
+  } | null;
+  steps: {
+    id: string;
+    label: string;
+    description: string;
+    state: 'complete' | 'current' | 'upcoming' | 'locked';
+    href?: string;
+    stateDescription?: string;
+  }[];
+  current:
+    | { kind: 'fields'; id: string; label: string; description: string; fields: OnboardingFieldProp[] }
+    | { kind: 'terms'; slug: string; title: string; version: string; path: string; accepted: boolean }
+    | {
+        kind: 'review';
+        gates: PublishGateProp[];
+        canSubmit: boolean;
+        requiresReview: boolean;
+        status: string;
+      }
+    | null;
+  personMissing: boolean;
+}
+interface Props {
+  program: string;
+  view: OnboardingViewProp;
+}
+const { program, view } = Astro.props;
+const invalidTerms = Astro.url.searchParams.get('invalid') === 'terms_accept';
+---
+
+<section class="mx-auto w-full max-w-3xl px-5 pb-24 pt-32 sm:px-8" aria-labelledby="onboarding-title">
+  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-terracotta-deep">{program} onboarding</p>
+  <h1 id="onboarding-title" class="mt-2 text-3xl font-black uppercase tracking-tight text-ink sm:text-4xl">
+    {view.role ? `Your ${view.roleLabel.toLowerCase()} profile` : 'Set up your profile'}
+  </h1>
+  <p class="mt-3 text-[15px] text-ink">
+    Everything you enter is saved as a draft. Nothing is public until every step is done
+    {view.role && view.current?.kind === 'review' && view.current.requiresReview
+      ? ' and staff have verified it'
+      : ''}
+    .
+  </p>
+
+  <div class="mt-6">
+    <AccountNotice notice={view.notice} />
+  </div>
+
+  {view.personMissing && (
+    <p class="mt-6 rounded-xl bg-white px-4 py-3 text-[15px] text-ink ring-1 ring-ink/15">
+      Provider profiles live on your shared Gamo person record, and this account is not linked to it.{' '}
+      <a href="/account#person-links" class="font-semibold text-terracotta-deep underline">
+        Link it on your account page
+      </a>{' '}
+      to continue.
+    </p>
+  )}
+
+  {!view.profile && (
+    <div class="mt-8">
+      <RolePicker roles={view.roles} program={program} />
+    </div>
+  )}
+
+  {view.profile && view.role && (
+    <div class="mt-8 space-y-8">
+      <p class="text-sm text-muted">
+        Status: <strong class="text-ink">{view.profile.statusLabel}</strong> · {view.profile.completeness}%
+        complete
+      </p>
+      <OnboardingStepper
+        steps={view.steps.map((s) => ({
+          label: s.label,
+          state: s.state,
+          href: s.href,
+          description: s.stateDescription,
+        }))}
+      />
+      <div class="rounded-3xl bg-cream p-5 ring-1 ring-ink/10 sm:p-8">
+        {view.current?.kind === 'fields' && (
+          <OnboardingStepForm role={view.role} step={view.current} editable={view.profile.editable} />
+        )}
+        {view.current?.kind === 'terms' && (
+          <OnboardingTermsStep
+            role={view.role}
+            accepted={view.current.accepted}
+            error={invalidTerms ? 'Tick the box to accept the terms, then continue.' : undefined}
+            document={{
+              slug: view.current.slug,
+              label: view.current.title,
+              title: view.current.title,
+              version: view.current.version,
+              href: siteUrl('web', view.current.path),
+            }}
+          />
+        )}
+        {view.current?.kind === 'review' && (
+          <OnboardingReviewStep
+            role={view.role}
+            gates={view.current.gates}
+            canSubmit={view.current.canSubmit}
+            requiresReview={view.current.requiresReview}
+            status={view.current.status}
+            isChurch={view.role === 'church'}
+          />
+        )}
+      </div>
+      {view.roles.length > 1 && (
+        <p class="text-sm text-ink">
+          Other roles:{' '}
+          {view.roles
+            .filter((r) => r.value !== view.role)
+            .map((r, i) => (
+              <>
+                {i > 0 && ' · '}
+                <a
+                  href={r.href}
+                  class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline"
+                >
+                  {r.label}
+                </a>
+              </>
+            ))}
+        </p>
+      )}
+    </div>
+  )}
+
+  {view.role && !view.profile && !view.personMissing && (
+    <form method="post" action="/api/account/providers" class="mt-6">
+      <input type="hidden" name="action" value="start" />
+      <input type="hidden" name="role" value={view.role} />
+      <button
+        type="submit"
+        class="inline-flex min-h-11 items-center rounded-full bg-terracotta-deep px-6 text-sm font-semibold text-white"
+      >
+        Start your {view.roleLabel.toLowerCase()} profile
+      </button>
+    </form>
+  )}
+</section>

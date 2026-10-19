@@ -86,6 +86,8 @@ export const authChallengeSchema = z.object({
   purpose: z.enum(['login']).default('login'),
   intent: z.enum(['signin', 'signup', 'recover']).optional(),
   product: z.enum(['web', 'worship', 'academy', 'live', 'production']).optional(),
+  role: z.enum(['musician', 'technician', 'church', 'agent', 'organizer', 'teacher', 'artist']).optional(),
+  'cf-turnstile-response': z.string().max(4096).optional(),
 });
 
 export type AuthChallengeInput = z.infer<typeof authChallengeSchema>;
@@ -96,6 +98,12 @@ export const authVerifySchema = z.object({
   displayName: z.string().min(1).max(120).optional(),
   intent: z.enum(['signin', 'signup', 'recover']).optional(),
   product: z.enum(['web', 'worship', 'academy', 'live', 'production']).optional(),
+  role: z.enum(['musician', 'technician', 'church', 'agent', 'organizer', 'teacher', 'artist']).optional(),
+  terms: z
+    .array(z.object({ slug: z.string().min(2).max(64), version: z.string().min(1).max(32) }))
+    .max(10)
+    .optional(),
+  marketingOptIn: z.boolean().optional(),
 });
 
 export type AuthVerifyInput = z.infer<typeof authVerifySchema>;

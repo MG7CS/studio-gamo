@@ -18,6 +18,8 @@ export const GET: APIRoute = () =>
         '/dashboard',
         '/register',
         '/host-apply',
+        // Guest registration receipts, emailed-link landing and the private manage page (customer cookie).
+        '/registrations',
       ],
     }),
   );

@@ -1,4 +1,12 @@
 ---
+/**
+ * The two steps of every shared auth screen: request a code (sign in / sign up / recover) and enter it.
+ *
+ * Sign-up also asks for the provider role (chips), the required Site Terms + Privacy consent and the
+ * separate, never pre-ticked marketing checkbox. The Cloudflare Turnstile widget sits below both steps
+ * (tokens are single-use; resend needs a fresh one). Sign-in never creates an account: the code step
+ * always offers "No account yet? Create one" so it reads the same for every address.
+ */
 import AuthNavBar from './AuthNavBar.astro';
 import AuthFormHeader from './AuthFormHeader.astro';
 import AuthFeedback from './AuthFeedback.astro';
@@ -6,31 +14,50 @@ import AuthTextField from './AuthTextField.astro';
 import AuthEmailInput from './AuthEmailInput.astro';
 import AuthCodeInput from './AuthCodeInput.astro';
 import AuthActions from './AuthActions.astro';
+import AuthRoleChips, { type AuthRoleOption } from './AuthRoleChips.astro';
+import AuthGoogleButton from './AuthGoogleButton.astro';
+import TermsConsent from '../forms/TermsConsent.astro';
+import MarketingConsent from '../forms/MarketingConsent.astro';
+import TurnstileWidget from '../forms/TurnstileWidget.astro';
 import { getAuthScreenCopy, type AuthScreenMode } from '../../lib/auth-flow-client';
+import type { TermsConsentDocument } from '../../lib/terms-links';
 
 interface Props {
   mode?: AuthScreenMode;
   program?: string;
+  product?: string;
   heading?: string;
   subtext?: string;
-  googleAuthUrl?: string;
-  facebookAuthUrl?: string;
+  signupRoles?: AuthRoleOption[];
+  selectedRole?: string | null;
+  termsDocuments?: TermsConsentDocument[];
+  googleEnabled?: boolean;
+  /** True when Clerk handles the code step (its own bot protection replaces Turnstile). */
+  clerkActive?: boolean;
 }
 
 const {
   mode = 'signin',
   program = 'Gamo Studios',
+  product = 'web',
   heading,
   subtext,
-  googleAuthUrl,
-  facebookAuthUrl,
+  signupRoles = [],
+  selectedRole,
+  termsDocuments = [],
+  googleEnabled = false,
+  clerkActive = false,
 } = Astro.props;
 
 const copy = getAuthScreenCopy(program)[mode];
 const effectiveHeading = heading || copy.heading;
 const effectiveSubtext = subtext || copy.subtext;
 const accent = mode === 'signin' ? 'terracotta' : 'lavender';
-const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Send verification code';
+const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Email me a code';
+const showGoogle = googleEnabled && (mode === 'signin' || mode === 'signup');
+const marketingProduct = (
+  ['web', 'worship', 'academy', 'live', 'production'].includes(product) ? product : 'web'
+) as 'web' | 'worship' | 'academy' | 'live' | 'production';
 ---
 
 <AuthNavBar mode={mode} />
@@ -40,8 +67,8 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
   <AuthFeedback />
 
-  {/* Challenge Form (Sign In / Create Account / Account Recovery) */}
-  <form class="space-y-3.5 lg:space-y-4" data-step-challenge hidden={mode === 'verify'}>
+  {/* Request a code (sign in / create account / recovery) */}
+  <form class="space-y-4" data-step-challenge hidden={mode === 'verify'} novalidate={false}>
     {mode === 'signup' && (
       <div class="grid grid-cols-1 min-[340px]:grid-cols-2 gap-3 sm:gap-3.5">
         <AuthTextField
@@ -50,8 +77,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
           label="First name"
           autocomplete="given-name"
           required
-          placeholder="First name"
-          accent="lavender"
+          placeholder="e.g. Grace"
         />
         <AuthTextField
           id="auth-last-name"
@@ -59,10 +85,8 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
           label="Last name"
           autocomplete="family-name"
           required
-          placeholder="Last name"
-          accent="lavender"
+          placeholder="e.g. Mensah"
         />
-        <input type="hidden" name="displayName" value="" />
       </div>
     )}
 
@@ -71,39 +95,20 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
       name="email"
       label="Email address"
       required
-      placeholder="you@example.com"
+      placeholder="you@example.org"
       icon="mail"
       accent={accent}
     />
 
-    {mode === 'signup' && (
-      <div class="hidden lg:block">
-        <span class="block text-[13px] font-medium text-ink mb-2">Verification method</span>
-        <div class="flex items-center justify-between rounded-xl border border-sand bg-cream px-4 py-3 text-[13px] text-muted">
-          <span class="flex items-center gap-2.5 font-medium text-ink">
-            <svg
-              class="h-4 w-4 text-terracotta shrink-0"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3.5 6.5 10 11l6.5-4.5M4 5h12a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 15H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 5Z"
-              />
-            </svg>
-            6-digit email verification code
-          </span>
-          <span class="text-[12px] text-muted">No password</span>
-        </div>
-      </div>
-    )}
+    {mode === 'signup' && <AuthRoleChips roles={signupRoles} selected={selectedRole} program={program} />}
 
-    {/* Mount point for Clerk's bot-protection widget (Cloudflare Turnstile). Empty and harmless when Clerk is off. */}
-    {mode === 'signup' && <div id="clerk-captcha" class="empty:hidden"></div>}
+    {mode === 'signup' && termsDocuments.length > 0 && (
+      <TermsConsent documents={termsDocuments} id="auth-terms-accept" newTab />
+    )}
+    {mode === 'signup' && <MarketingConsent product={marketingProduct} id="auth-marketing" />}
+
+    {/* Mount point for Clerk's bot-protection widget (Cloudflare Turnstile run by Clerk). Empty when Clerk is off. */}
+    {mode === 'signup' && <div id="clerk-captcha" class="empty:hidden" />}
 
     <AuthActions
       mode={mode}
@@ -111,12 +116,11 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
       primaryLabel={primaryActionLabel}
       accent={accent}
       dataBtnChallenge
-      googleAuthUrl={googleAuthUrl}
-      facebookAuthUrl={facebookAuthUrl}
     />
+    {showGoogle && <AuthGoogleButton mode={mode === 'signup' ? 'signup' : 'signin'} />}
   </form>
 
-  {/* Email Verification Form (Step 2 & Direct /account/verify) */}
+  {/* Enter the code (step 2 and direct /account/verify) */}
   <form class="space-y-5 lg:space-y-6" data-step-verify hidden={mode !== 'verify'}>
     <div data-verify-direct-email class="hidden">
       <AuthEmailInput
@@ -124,7 +128,7 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
         name="verifyEmail"
         label="Email address"
         required={false}
-        placeholder="you@example.com"
+        placeholder="you@example.org"
         icon="none"
         accent="lavender"
         dataVerifyEmailInput
@@ -133,19 +137,39 @@ const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Se
 
     <AuthCodeInput />
 
-    <p class="text-[14px] text-muted text-center lg:text-left">
-      Didn't receive the code?{' '}
+    <p class="text-[14px] text-muted">
+      No code after a few minutes? Check your spam folder, or{' '}
       <button
         type="button"
         data-btn-resend
-        class="font-semibold text-terracotta lg:underline lg:decoration-terracotta/40 lg:underline-offset-4 transition-colors hover:text-terracotta-deep disabled:opacity-50"
+        class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline decoration-terracotta/40 underline-offset-4 transition-colors hover:text-ink disabled:opacity-50"
       >
-        Resend code
+        resend the code
       </button>
+      .
     </p>
+    {mode !== 'signup' && (
+      <p class="text-[14px] text-muted">
+        No {program} account yet?{' '}
+        <a
+          href="/account/signup"
+          data-nav-signup
+          class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline decoration-terracotta/40 underline-offset-4"
+        >
+          Create one
+        </a>
+        — we only email codes to addresses that already have an account.
+      </p>
+    )}
 
     <AuthActions mode="verify" primaryLabel="Verify and continue" accent="soft-lavender" dataBtnVerify />
   </form>
+
+  {!clerkActive && mode !== 'verify' && (
+    <div class="mt-5">
+      <TurnstileWidget action="auth" id="auth-turnstile" />
+    </div>
+  )}
 </div>
 
-<div class="relative z-10 h-2" aria-hidden="true" />
+<div class="relative z-10 h-2" aria-hidden="true"></div>

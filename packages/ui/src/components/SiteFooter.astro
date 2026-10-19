@@ -6,7 +6,7 @@
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { siteUrl, inquiryUrl } from '../lib/sites';
+import { providerSignupUrl, siteUrl } from '../lib/sites';
 
 const columns = [
   {
@@ -22,8 +22,8 @@ const columns = [
     title: 'Get Involved',
     links: [
       { label: 'Ways to Participate', url: siteUrl('web', '/get-involved') },
-      { label: 'Request a Musician', url: inquiryUrl('Church musician request') },
-      { label: 'Join the Musician Collection', url: inquiryUrl('Musician application') },
+      { label: 'Request a Musician', url: providerSignupUrl('worship', 'church') },
+      { label: 'Join the Musician Collection', url: providerSignupUrl('worship', 'musician') },
       { label: 'Find a Lesson', url: siteUrl('academy', '/lessons') },
       { label: 'Promote an Event', url: siteUrl('live', '/promote/create') },
       { label: 'Partnerships', url: siteUrl('web', '/partners') },
@@ -126,6 +126,18 @@ const socials = [
       <nav aria-label="Legal" class="flex flex-wrap gap-x-6">
         <a href={siteUrl('web', '/legal')} class="inline-flex min-h-11 items-center hover:text-white">
           Legal &amp; Privacy
+        </a>
+        <a
+          href={siteUrl('web', '/legal/privacy-policy')}
+          class="inline-flex min-h-11 items-center hover:text-white"
+        >
+          Privacy Policy
+        </a>
+        <a
+          href={siteUrl('web', '/legal/site-terms')}
+          class="inline-flex min-h-11 items-center hover:text-white"
+        >
+          Site Terms
         </a>
         <a href={siteUrl('web', '/contact')} class="inline-flex min-h-11 items-center hover:text-white">
           Contact

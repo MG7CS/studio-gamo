@@ -1,0 +1,22 @@
+---
+/**
+ * gamostudio.org/legal/<slug> — one draft legal document (design §4.5). Rendered on demand so middleware and
+ * security headers apply; an unknown slug renders the branded 404 page. Version and status come from the
+ * terms registry (`@gamo/domain/terms`), the text from `@studio-gamo/ui/components/legal/content`.
+ */
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import LegalDocument from '@studio-gamo/ui/components/legal/LegalDocument.astro';
+import { getLegalDocumentContent } from '@studio-gamo/ui/components/legal/content/index.ts';
+import { getTermsDocument } from '@gamo/domain/terms';
+
+const slug = String(Astro.params.slug ?? '');
+const entry = getTermsDocument(slug);
+const content = entry ? getLegalDocumentContent(entry.slug) : null;
+if (!entry || !content) return Astro.rewrite('/404');
+---
+
+<SiteLayout title={`${entry.title} (Draft) | Gamo Studios`} description={entry.summary}>
+  <section class="px-6 page-intro-space sm:px-12">
+    <LegalDocument content={content} version={entry.version} />
+  </section>
+</SiteLayout>
