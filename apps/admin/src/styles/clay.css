@@ -62,9 +62,7 @@
   }
   body {
     min-height: 100vh;
-    background:
-      radial-gradient(60rem 40rem at 12% -10%, rgba(212, 197, 250, 0.45), transparent 60%),
-      radial-gradient(50rem 36rem at 100% 100%, rgba(189, 239, 219, 0.35), transparent 60%), var(--color-page);
+    background: var(--color-page);
   }
   :focus-visible {
     outline: 3px solid var(--color-clay-700);
@@ -75,6 +73,11 @@
   h3 {
     color: var(--color-ink);
   }
+}
+
+/* The sidebar toggle shows only once its script has run. */
+[hidden] {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

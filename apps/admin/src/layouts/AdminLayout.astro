@@ -1,14 +1,13 @@
 ---
 /**
- * The only document shell in this app: floating clay panel with the sidebar (desktop) or bottom tab bar
- * (mobile), top bar and the page. Every page, including 404 and 500, renders through it. The middleware has
+ * The only document shell in this app: the dashboard IS the page (full viewport, nothing behind it): sidebar
+ * (desktop) or bottom tab bar (mobile), top bar and the page content. Every page, including 404 and 500, renders through it. The middleware has
  * already admitted only the one admin; if the identity is somehow missing, nothing but a refusal is drawn.
  */
 import '../styles/clay.css';
 import HeadIcons from '@studio-gamo/ui/components/HeadIcons.astro';
 import FontPreload from '@studio-gamo/ui/components/FontPreload.astro';
 import BottomBar from '../components/BottomBar.astro';
-import ClayBlobs from '../components/ClayBlobs.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TopBar from '../components/TopBar.astro';
 import { getRuntimeEnv } from '@gamo/domain';
@@ -34,10 +33,15 @@ const counts = email ? await loadCounts((await getRuntimeEnv(Astro)).DB) : null;
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <HeadIcons />
     <FontPreload />
-    <title>{`${title} · Gamo Operations`}</title>
+    <script>
+      import '../scripts/sidebar';
+    </script>
+    <title>{`${title} · Gamo Studios Admin`}</title>
   </head>
-  <body class="font-sans text-[15px] leading-6 antialiased" data-admin-shell={email ? 'app' : 'denied'}>
-    <ClayBlobs />
+  <body
+    class="group/shell font-sans text-[15px] leading-6 antialiased"
+    data-admin-shell={email ? 'app' : 'denied'}
+  >
     {email ? (
       <>
         <a
@@ -46,15 +50,13 @@ const counts = email ? await loadCounts((await getRuntimeEnv(Astro)).DB) : null;
         >
           Skip to content
         </a>
-        <div class="mx-auto flex min-h-screen max-w-[1480px] lg:p-6">
-          <div class="flex min-h-full w-full rounded-clay-2xl bg-surface/70 shadow-card lg:backdrop-blur">
-            <Sidebar current={current} email={email} counts={counts} />
-            <div class="min-w-0 flex-1">
-              <TopBar email={email} />
-              <main id="admin-main" class="px-4 pb-32 pt-6 sm:px-8 lg:pb-12">
-                <slot />
-              </main>
-            </div>
+        <div class="min-h-screen lg:flex">
+          <Sidebar current={current} email={email} counts={counts} />
+          <div class="min-w-0 flex-1">
+            <TopBar email={email} />
+            <main id="admin-main" class="px-4 pb-32 pt-6 sm:px-8 lg:pb-12">
+              <slot />
+            </main>
           </div>
         </div>
         <BottomBar current={current} counts={counts} />
