@@ -462,6 +462,21 @@ export async function publishDecision(
   return r.approved_at !== null || Number(r.approved_events) > 0 ? 'approved' : 'pending_review';
 }
 
+/**
+ * Strict form of the review rule, used for edits of published events: review while the organizer has no
+ * `first_event_approved_at` (not yet verified by staff) or has `always_review`. Unlike `publishDecision`
+ * it does not accept "an earlier event was approved" as proof, so the first approved event cannot be
+ * rewritten freely before staff mark the organizer verified.
+ */
+export async function organizerNeedsReview(db: SqlDatabase, organizerId: string): Promise<boolean> {
+  const rows = await allRows<{ approved_at: number | null; always_review: number }>(db, {
+    sql: 'SELECT first_event_approved_at AS approved_at, always_review FROM organizer_profiles WHERE id = ?1',
+    params: [organizerId],
+  });
+  const r = rows[0];
+  return !r || Number(r.always_review) === 1 || r.approved_at === null;
+}
+
 /** For the admin review (lead/Agent A): mark the organizer verified when their first event is approved. */
 export async function recordFirstEventApproval(db: SqlDatabase, eventId: string, now: number): Promise<void> {
   await db
@@ -548,7 +563,7 @@ export async function eventHasOrders(db: SqlDatabase, eventId: string): Promise<
 export async function updateOrganizerEvent(
   db: SqlDatabase,
   input: { eventId: string; event: EventInput; actorUserId: string; now: number },
-): Promise<{ eventId: string }> {
+): Promise<{ eventId: string; status: string; movedToReview: boolean }> {
   const event = await loadEvent(db, input.eventId);
   if (!event || event.listing_type === 'external_discovery')
     throw new TicketingError('NOT_FOUND', 'Event not found.');
@@ -589,7 +604,58 @@ export async function updateOrganizerEvent(
         { fields: [{ field: 'admissionType', message: "Tickets exist, so this can't change." }] },
       );
   }
+  // Public content of a published event (CLEANUP_LOG D-168): changing it is a review bypass for events
+  // whose organizer still needs review (first event, always_review). Those go back to pending_review
+  // (sales pause because holds require an approved event; tickets already issued stay valid). For
+  // verified organizers the before/after is recorded in event_changes (kind 'details') for audit.
+  const publicBefore = {
+    title: event.title,
+    tagline: event.tagline ?? null,
+    description: event.description,
+    category: event.category,
+    venueName: event.venue_name,
+    address: event.address ?? null,
+    city: event.city,
+    state: event.state,
+  };
+  const publicAfter = {
+    title: v.title,
+    tagline: v.tagline,
+    description: v.description,
+    category: v.category,
+    venueName: v.venueName,
+    address: v.address,
+    city: v.city,
+    state: v.state,
+  };
+  const contentChanged = JSON.stringify(publicBefore) !== JSON.stringify(publicAfter);
+  const needsReview =
+    event.status === 'approved' && contentChanged && (await organizerNeedsReview(db, event.organizer_id));
+  const nextStatus = needsReview ? 'pending_review' : event.status;
   const specs: SqlStatementSpec[] = [
+    ...(contentChanged && event.status === 'approved'
+      ? [
+          {
+            sql: "INSERT INTO event_changes (id, event_id, kind, before_json, after_json, created_by_user_id, created_at) VALUES (?1, ?2, 'details', ?3, ?4, ?5, ?6)",
+            params: [
+              newPrefixedId('evc'),
+              event.id,
+              JSON.stringify(publicBefore),
+              JSON.stringify({ ...publicAfter, status: nextStatus }),
+              input.actorUserId,
+              input.now,
+            ],
+          },
+        ]
+      : []),
+    ...(needsReview
+      ? [
+          {
+            sql: "UPDATE events SET status = 'pending_review', first_event_review = 1 WHERE id = ?1 AND status = 'approved'",
+            params: [event.id],
+          },
+        ]
+      : []),
     {
       sql: 'UPDATE events SET title = ?2, category = ?3, tagline = ?4, description = ?5, venue_name = ?6, address = ?7, city = ?8, state = ?9, starts_at = ?10, ends_at = ?11, timezone = ?12, admission_type = ?13, start_date_local = ?14, start_time_local = ?15 WHERE id = ?1',
       params: [
@@ -656,7 +722,7 @@ export async function updateOrganizerEvent(
       );
     throw err;
   }
-  return { eventId: event.id };
+  return { eventId: event.id, status: nextStatus, movedToReview: needsReview };
 }
 
 /** Values to pre-fill the edit form. */

@@ -227,6 +227,7 @@ export interface OrderRow {
   disputed_at: number | null;
   cancelled_at: number | null;
   policy_snapshot_json: string | null;
+  attendees_json: string | null;
   source: string;
   verification_required: number;
   email_verified_at: number | null;
@@ -276,7 +277,7 @@ export interface TicketRow {
 const EVENT_COLUMNS =
   'id, organizer_id, title, slug, category, tagline, description, venue_name, address, city, state, starts_at, ends_at, timezone, admission_type, status, listing_type, external_only, cancelled_at, rescheduled_from_starts_at, first_event_review, start_date_local, start_time_local, venue_id';
 const ORDER_COLUMNS =
-  'id, order_reference, order_number, event_id, customer_profile_id, purchaser_name, purchaser_email, quantity, order_kind, subtotal_cents, total_cents, currency, stripe_checkout_session_id, stripe_payment_intent_id, idempotency_key, status, confirmed_at, created_at, hold_expires_at, stripe_checkout_expires_at, amount_refunded_cents, payment_status, payment_method, disputed_at, cancelled_at, policy_snapshot_json, source, verification_required, email_verified_at';
+  'id, order_reference, order_number, event_id, customer_profile_id, purchaser_name, purchaser_email, quantity, order_kind, subtotal_cents, total_cents, currency, stripe_checkout_session_id, stripe_payment_intent_id, idempotency_key, status, confirmed_at, created_at, hold_expires_at, stripe_checkout_expires_at, amount_refunded_cents, payment_status, payment_method, disputed_at, cancelled_at, policy_snapshot_json, attendees_json, source, verification_required, email_verified_at';
 export const TICKET_COLUMNS =
   'id, order_id, event_id, tier_id, holder_name, holder_email, status, order_item_id, section_id, customer_profile_id, version, qr_salt, qr_key_id, seq, zone_code, gate_label, transferred_from_ticket_email, transfer_count, voided_at, void_reason, refunded_at, issued_at, qr_token, registration_id';
 
@@ -353,13 +354,11 @@ export async function loadTicket(db: SqlDatabase, ticketId: string): Promise<Tic
 }
 
 // ---------------------------------------------------------------------------------------------
-// Policy snapshot (+ interim attendee storage)
+// Policy snapshot and attendee names
 // ---------------------------------------------------------------------------------------------
 
 /**
  * The policy a buyer bought under (`ticket_orders.policy_snapshot_json`), or the defaults.
- * INTERIM (CLEANUP_LOG D-152): the snapshot also carries `attendees` (holder names per ticket, in item
- * order) until the lead adds `ticket_orders.attendees_json`; only `orderAttendeeNames` reads it.
  */
 export function orderPolicy(order: Pick<OrderRow, 'policy_snapshot_json'>): EventPolicy {
   try {
@@ -387,18 +386,14 @@ export function orderPolicy(order: Pick<OrderRow, 'policy_snapshot_json'>): Even
   return eventPolicyFromRow(null);
 }
 
-export function orderAttendeeNames(order: Pick<OrderRow, 'policy_snapshot_json'>): string[] {
+/** Holder names per ticket in item order (`ticket_orders.attendees_json`, migration 0016). */
+export function orderAttendeeNames(order: Pick<OrderRow, 'attendees_json'>): string[] {
   try {
-    const raw = JSON.parse(order.policy_snapshot_json ?? 'null') as { attendees?: unknown } | null;
-    return Array.isArray(raw?.attendees) ? raw.attendees.map((n) => String(n ?? '')) : [];
+    const raw = JSON.parse(order.attendees_json ?? 'null') as unknown;
+    return Array.isArray(raw) ? raw.map((n) => String(n ?? '')) : [];
   } catch {
     return [];
   }
-}
-
-export function snapshotWithAttendees(policyJson: string, attendees: string[]): string {
-  if (attendees.length === 0) return policyJson;
-  return JSON.stringify({ ...(JSON.parse(policyJson) as object), attendees });
 }
 
 // ---------------------------------------------------------------------------------------------
