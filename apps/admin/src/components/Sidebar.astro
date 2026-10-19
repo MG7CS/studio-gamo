@@ -1,64 +1,87 @@
 ---
-/** Desktop sidebar: brand, navigation with the active item raised, and the admin with the Access sign-out. */
+/**
+ * Desktop sidebar: the Gamo Studios logo with an Admin label, navigation with the active item raised, and the
+ * admin with the Access sign-out. It collapses to an icon rail (`body[data-sidebar=collapsed]`, set by
+ * scripts/sidebar.ts): labels stay in the page for screen readers and show as tooltips, badges become small
+ * corner counts, and the logo becomes the official Gamo symbol (no other mark is used).
+ *
+ * Tailwind only generates classes it can read literally, so the collapsed variants are spelled out in full.
+ */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import BrandMark from './BrandMark.astro';
+import Logo from '@studio-gamo/ui/components/Logo.astro';
 import { NAV_ITEMS, badgeFor, type NavKey } from '../lib/nav';
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
   current: NavKey | null;
-  counts: QueueCounts | null;
   email: string;
+  counts: QueueCounts | null;
 }
 const { current, email, counts } = Astro.props;
 ---
 
-<aside class="hidden w-72 shrink-0 flex-col gap-8 p-6 lg:flex">
-  <a href="/" class="flex items-center gap-3 rounded-clay-md">
-    <BrandMark />
-    <span class="leading-tight">
-      <span class="block text-lg font-extrabold text-ink">Gamo</span>
-      <span class="block text-xs font-semibold uppercase tracking-widest text-muted">Operations</span>
+<aside
+  id="admin-sidebar"
+  class="hidden w-72 shrink-0 flex-col gap-8 bg-surface p-6 shadow-soft group-data-[sidebar=collapsed]/shell:w-20 group-data-[sidebar=collapsed]/shell:px-3 lg:sticky lg:top-0 lg:flex lg:h-screen lg:overflow-y-auto"
+>
+  <a
+    href="/"
+    class="block rounded-clay-md text-ink group-data-[sidebar=collapsed]/shell:mx-auto"
+    title="Gamo Studios Admin"
+  >
+    <span class="block group-data-[sidebar=collapsed]/shell:hidden">
+      <Logo width={168} height={31} />
+      <span class="mt-2 block text-xs font-semibold uppercase tracking-widest text-muted">Admin</span>
+    </span>
+    <span class="hidden group-data-[sidebar=collapsed]/shell:block">
+      <img src="/favicon.svg" alt="Gamo Studios Admin" width="36" height="36" class="h-9 w-9" />
     </span>
   </a>
   <nav aria-label="Admin" class="flex-1">
     <ul class="space-y-2">
-      {NAV_ITEMS.map((item) => (
-        <li>
-          <a
-            href={item.href}
-            aria-current={item.key === current ? 'page' : undefined}
-            class:list={[
-              'flex min-h-12 items-center gap-3 rounded-clay-md px-4 text-sm font-semibold transition-shadow',
-              item.key === current
-                ? 'bg-clay-100 text-clay-800 shadow-soft'
-                : 'text-body hover:bg-surface-soft hover:shadow-soft',
-            ]}
-          >
-            <Icon name={item.icon} class="h-5 w-5" />
-            <span class="flex-1">{item.label}</span>
-            {badgeFor(item, counts) !== null && (
-              <span
-                class="rounded-full bg-clay-700 px-2.5 py-0.5 text-xs font-bold text-white"
-                aria-label={`${badgeFor(item, counts)} waiting`}
-              >
-                {badgeFor(item, counts)}
-              </span>
-            )}
-          </a>
-        </li>
-      ))}
+      {NAV_ITEMS.map((item) => {
+        const badge = badgeFor(item, counts);
+        return (
+          <li>
+            <a
+              href={item.href}
+              title={item.label}
+              aria-current={item.key === current ? 'page' : undefined}
+              class:list={[
+                'relative flex min-h-12 items-center gap-3 rounded-clay-md px-4 text-sm font-semibold transition-shadow group-data-[sidebar=collapsed]/shell:justify-center group-data-[sidebar=collapsed]/shell:px-0',
+                item.key === current
+                  ? 'bg-clay-100 text-clay-800 shadow-soft'
+                  : 'text-body hover:bg-surface-soft hover:shadow-soft',
+              ]}
+            >
+              <Icon name={item.icon} class="h-5 w-5 shrink-0" />
+              <span class="flex-1 group-data-[sidebar=collapsed]/shell:sr-only">{item.label}</span>
+              {badge !== null && (
+                <span
+                  class="rounded-full bg-clay-700 px-2.5 py-0.5 text-xs font-bold text-white group-data-[sidebar=collapsed]/shell:absolute group-data-[sidebar=collapsed]/shell:right-1 group-data-[sidebar=collapsed]/shell:top-1 group-data-[sidebar=collapsed]/shell:px-1.5 group-data-[sidebar=collapsed]/shell:text-[10px] group-data-[sidebar=collapsed]/shell:leading-4"
+                  aria-label={`${badge} waiting`}
+                >
+                  {badge}
+                </span>
+              )}
+            </a>
+          </li>
+        );
+      })}
     </ul>
   </nav>
-  <div class="rounded-clay-lg bg-surface-soft p-4 shadow-inset">
-    <p class="text-xs font-semibold uppercase tracking-wider text-muted">Signed in as</p>
-    <p class="mt-1 break-all text-sm font-semibold text-ink">{email}</p>
+  <div class="rounded-clay-lg bg-surface-soft p-4 shadow-inset group-data-[sidebar=collapsed]/shell:bg-transparent group-data-[sidebar=collapsed]/shell:p-0 group-data-[sidebar=collapsed]/shell:shadow-none">
+    <div class="group-data-[sidebar=collapsed]/shell:hidden">
+      <p class="text-xs font-semibold uppercase tracking-wider text-muted">Signed in as</p>
+      <p class="mt-1 break-all text-sm font-semibold text-ink">{email}</p>
+    </div>
     <a
       href="/cdn-cgi/access/logout"
-      class="mt-3 flex min-h-11 items-center gap-2 rounded-clay-sm text-sm font-semibold text-clay-700 underline-offset-4 hover:underline"
+      title="Sign out"
+      class="mt-3 flex min-h-11 items-center gap-2 rounded-clay-sm text-sm font-semibold text-clay-700 underline-offset-4 hover:underline group-data-[sidebar=collapsed]/shell:mt-0 group-data-[sidebar=collapsed]/shell:justify-center group-data-[sidebar=collapsed]/shell:hover:no-underline"
     >
-      <Icon name="logout" class="h-5 w-5" />
-      Sign out
+      <Icon name="logout" class="h-5 w-5 shrink-0" />
+      <span class="group-data-[sidebar=collapsed]/shell:sr-only">Sign out</span>
     </a>
   </div>
 </aside>

@@ -43,7 +43,7 @@ Tokens read from the design system sheet (approximate, sampled from the image):
 | radius | 10 / 16 / 24 / 32 / 48 / 999 |
 | shadows | soft `12px 12px 32px rgba(78,64,120,.12), -8px -8px 24px rgba(255,255,255,.9)`; card `0 18px 45px rgba(81,65,130,.16)`; input inset `inset 4px 4px 10px rgba(88,78,120,.08), inset -4px -4px 10px rgba(255,255,255,.9)`; button `0 14px 28px rgba(104,71,232,.32)` |
 
-Components taken: floating rounded sidebar with the active item raised, top bar with admin chip, stat cards, list cards with icon chips, primary/secondary/ghost buttons, inputs and selects with inset shadow and a visible focus ring, checkbox/radio/switch, tags (New, Success, Warning, Danger), progress bar, pagination, mobile bottom tab bar, soft blobs as decoration (CSS only, hidden from assistive tech).
+Components taken: sidebar (collapsible to an icon rail; the official Gamo Studios logo with an "Admin" label, and only the official Gamo symbol when collapsed; no invented mark) with the active item raised, top bar with admin chip, stat cards, list cards with icon chips, primary/secondary/ghost buttons, inputs and selects with inset shadow and a visible focus ring, checkbox/radio/switch, tags (New, Success, Warning, Danger), progress bar, pagination, mobile bottom tab bar, no decorative blobs.
 
 Taken from the design and **dropped** because there is no real data or no purpose: revenue/customer/conversion numbers, sparklines and charts, trend arrows ("+12.5%"), "Upgrade to Pro", Help Center, Google sign-in and the login page, search, bell, "Good morning" copy that implies activity.
 
@@ -65,7 +65,7 @@ This is an owner-approved exception to the repo's single-palette UI rule (AGENTS
 
 ## 4. Layout and states
 
-- **Shell:** sidebar (Inbox, Church verification, Provider review, First-event review, Participation requests, Legal; below it the admin's email and a Sign out link to Access's logout), top bar with the page title and admin chip, mobile bottom tab bar. Badges only for real counts above zero.
+- **Shell:** the dashboard is the page itself (full viewport, no floating panel and nothing behind it, owner decision 2026-10-19): sidebar (Inbox, Church verification, Provider review, First-event review, Participation requests, Legal; below it the admin's email and a Sign out link to Access's logout), top bar with the page title and admin chip, mobile bottom tab bar. Badges only for real counts above zero.
 - **Every list:** loading is server-rendered (no spinners), honest empty state, "showing the first N" when truncated, filters as links.
 - **Every decision:** plain form POST with a redirect and a result message; errors explain what to fix; nothing is saved silently.
 - **Errors:** 404 and 500 render in the same shell; unauthenticated is a plain 401/403 (Access handles login).
