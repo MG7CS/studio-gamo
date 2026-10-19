@@ -17,13 +17,18 @@ import {
   providerStatusLabel,
   roleLabel,
   type ProviderProfile,
-  type ProviderRole,
-  type ProviderStatus,
 } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
+import type { ProviderRole, ProviderStatus } from '@gamo/domain/types';
 
 export const CHURCH_ROLES: readonly ProviderRole[] = ['church'];
-export const PROVIDER_REVIEW_ROLES: readonly ProviderRole[] = ['musician', 'technician', 'teacher', 'artist', 'agent'];
+export const PROVIDER_REVIEW_ROLES: readonly ProviderRole[] = [
+  'musician',
+  'technician',
+  'teacher',
+  'artist',
+  'agent',
+];
 const OPEN: readonly ProviderStatus[] = ['submitted', 'meeting_scheduled', 'in_review'];
 const STATUS_FILTERS: Record<string, readonly ProviderStatus[]> = {
   open: OPEN,
@@ -36,12 +41,18 @@ const STATUS_FILTERS: Record<string, readonly ProviderStatus[]> = {
 
 type AstroLike = { request: Request; locals: unknown; url: URL };
 
-export async function staffContext(astro: AstroLike): Promise<{ auth: SessionData; env: Awaited<ReturnType<typeof getRuntimeEnv>> } | null> {
+export async function staffContext(
+  astro: AstroLike,
+): Promise<{ auth: SessionData; env: Awaited<ReturnType<typeof getRuntimeEnv>> } | null> {
   try {
     const env = await getRuntimeEnv(astro);
     const db = getDb(env.DB);
     const auth = await requireStaff(astro.request, db, env.SESSION_SECRET);
-    await verifyStaffBoundaryIdentity(db, auth, astro.locals as Parameters<typeof verifyStaffBoundaryIdentity>[2]);
+    await verifyStaffBoundaryIdentity(
+      db,
+      auth,
+      astro.locals as Parameters<typeof verifyStaffBoundaryIdentity>[2],
+    );
     return { auth, env };
   } catch {
     return null;
@@ -50,7 +61,8 @@ export async function staffContext(astro: AstroLike): Promise<{ auth: SessionDat
 
 export function outcomeFrom(url: URL): { tone: 'success' | 'error'; text: string } | null {
   const message = url.searchParams.get('message');
-  if (url.searchParams.get('error')) return { tone: 'error', text: message || 'That did not work. Reload and try again.' };
+  if (url.searchParams.get('error'))
+    return { tone: 'error', text: message || 'That did not work. Reload and try again.' };
   const done = url.searchParams.get('done');
   if (!done) return null;
   const email = url.searchParams.get('email');
@@ -76,19 +88,17 @@ export function outcomeFrom(url: URL): { tone: 'success' | 'error'; text: string
     always_review_on: 'Every event of this organizer will now be reviewed.',
     always_review_off: 'Only the first event of this organizer is reviewed now.',
   };
-  const first = url.searchParams.get('first') === '1' ? ' This was the organizer’s first approved event.' : '';
+  const first =
+    url.searchParams.get('first') === '1' ? ' This was the organizer’s first approved event.' : '';
   return { tone: 'success', text: `${labels[done] ?? 'Saved.'}${first}${emailText}` };
 }
 
-export async function loadQueue(
-  env: { DB?: unknown },
-  roles: readonly ProviderRole[],
-  url: URL,
-) {
+export async function loadQueue(env: { DB?: unknown }, roles: readonly ProviderRole[], url: URL) {
   const filter = url.searchParams.get('status') ?? 'open';
   const statuses = STATUS_FILTERS[filter] ?? OPEN;
   const roleFilter = url.searchParams.get('role');
-  const activeRoles = roleFilter && roles.includes(roleFilter as ProviderRole) ? [roleFilter as ProviderRole] : roles;
+  const activeRoles =
+    roleFilter && roles.includes(roleFilter as ProviderRole) ? [roleFilter as ProviderRole] : roles;
   const items = await listReviewQueue(asSqlDatabase(env.DB), { roles: activeRoles, statuses });
   return {
     filter,
@@ -113,7 +123,10 @@ export interface ProviderDetailView {
   history: Awaited<ReturnType<typeof listVerificationRecords>>;
 }
 
-export async function loadProviderDetail(env: { DB?: unknown }, id: string): Promise<ProviderDetailView | null> {
+export async function loadProviderDetail(
+  env: { DB?: unknown },
+  id: string,
+): Promise<ProviderDetailView | null> {
   const db = asSqlDatabase(env.DB);
   const profile = await getProviderProfile(db, id);
   if (!profile) return null;
@@ -146,7 +159,9 @@ export async function loadPendingEvents(env: { DB?: unknown }) {
   const rows = [];
   for (const p of pending) {
     const organizer = (await sql
-      .prepare('SELECT id, first_event_approved_at, always_review FROM organizer_profiles WHERE id = (SELECT organizer_id FROM events WHERE id = ?1)')
+      .prepare(
+        'SELECT id, first_event_approved_at, always_review FROM organizer_profiles WHERE id = (SELECT organizer_id FROM events WHERE id = ?1)',
+      )
       .bind(p.event.id)
       .first()) as { id: string; first_event_approved_at: number | null; always_review: number } | null;
     rows.push({

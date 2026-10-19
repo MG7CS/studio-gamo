@@ -22,17 +22,15 @@ if (!staff) Astro.response.status = 401;
     path="/review/churches"
   />
   <ReviewOutcome outcome={outcomeFrom(Astro.url)} />
-  {
-    queue ? (
-      <ReviewQueueTable
-        basePath="/review/churches"
-        filter={queue.filter}
-        filters={queue.filters}
-        items={queue.items}
-        emptyText="No churches in this state."
-      />
-    ) : (
-      <StaffSignInNotice />
-    )
-  }
+  {queue ? (
+    <ReviewQueueTable
+      basePath="/review/churches"
+      filter={queue.filter}
+      filters={queue.filters}
+      items={queue.items}
+      emptyText="No churches in this state."
+    />
+  ) : (
+    <StaffSignInNotice />
+  )}
 </DashboardShell>

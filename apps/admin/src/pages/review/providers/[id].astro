@@ -18,7 +18,11 @@ const back = isChurch ? '/review/churches' : '/review/providers';
 const staffName = staff ? staff.auth.user.displayName?.trim() || staff.auth.user.email : '';
 ---
 
-<DashboardShell workspace={adminWorkspace} current={isChurch ? 'review/churches' : 'review/providers'} title="Review profile">
+<DashboardShell
+  workspace={adminWorkspace}
+  current={isChurch ? 'review/churches' : 'review/providers'}
+  title="Review profile"
+>
   <DashPageHeader
     workspace={adminWorkspace}
     title={view ? `Review: ${view.profile.displayName}` : 'Review profile'}
@@ -27,7 +31,22 @@ const staffName = staff ? staff.auth.user.displayName?.trim() || staff.auth.user
   />
   <ReviewOutcome outcome={outcomeFrom(Astro.url)} />
   {!staff && <StaffSignInNotice />}
-  {staff && !view && <p class="rounded-2xl border border-sand bg-white p-6 text-sm">That profile does not exist. <a href={back} class="font-semibold underline">Back to the queue</a></p>}
-  {staff && view && <ProviderReviewDetail view={view} staffName={staffName} errorField={Astro.url.searchParams.get('field')} />}
-  <a href={back} class="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-charcoal underline">Back to the queue</a>
+  {staff && !view && (
+    <p class="rounded-2xl border border-sand bg-white p-6 text-sm">
+      That profile does not exist.{' '}
+      <a href={back} class="font-semibold underline">
+        Back to the queue
+      </a>
+    </p>
+  )}
+  {staff && view && (
+    <ProviderReviewDetail
+      view={view}
+      staffName={staffName}
+      errorField={Astro.url.searchParams.get('field')}
+    />
+  )}
+  <a href={back} class="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-charcoal underline">
+    Back to the queue
+  </a>
 </DashboardShell>
