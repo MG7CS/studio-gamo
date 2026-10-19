@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
-import { IdentityService, hashChallengeCode } from '../../packages/domain/src/services/identity.ts';
+import { IdentityService } from '../../packages/domain/src/services/identity.ts';
 import { deferWork } from '../../packages/domain/src/api/defer.ts';
 import { createAuthHandlers } from '../../packages/domain/src/http/auth.ts';
 import { GUARD_SECRETS, siteverifyPass } from './auth-test-kit.ts';
