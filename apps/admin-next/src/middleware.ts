@@ -2,7 +2,13 @@ import { checkEnvOnce } from '@gamo/config/env-validation';
 import { defineMiddleware } from 'astro/middleware';
 import type { MiddlewareHandler } from 'astro';
 import { generateCspNonce, getRuntimeEnv, withSecurityHeaders } from '@gamo/domain';
-import { isLocalRuntime, mustChangePassword, readAccessIdentity, resolveStaffSession } from './lib/gate';
+import {
+  isLocalRuntime,
+  mustChangePassword,
+  readAccessIdentity,
+  resolveStaffSession,
+  setSignInState,
+} from './lib/gate';
 
 /**
  * Admin access control. Nothing is served to an unauthenticated request except the sign-in and sign-out
@@ -68,7 +74,7 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
   if (path.startsWith('/api/')) return unauthenticatedApi();
   if (context.request.method !== 'GET' && context.request.method !== 'HEAD')
     return plain(401, 'Staff sign-in required.');
-  context.locals.signIn = { reason: 'required', next: path + url.search, email: access?.email };
+  setSignInState(context.locals, { reason: 'required', next: path + url.search, email: access?.email });
   return next('/signin');
 };
 
