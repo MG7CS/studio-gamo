@@ -1,0 +1,45 @@
+---
+/**
+ * The admin navigation. A badge is drawn only for a count that was read from the database for this staff
+ * user and is above zero (see lib/queue-counts.ts); when the counts are unavailable no badge is drawn.
+ */
+import { NAV_ITEMS, badgeFor, type NavKey } from '../lib/nav';
+import type { QueueCounts } from '../lib/queue-counts';
+
+interface Props {
+  current: NavKey | null;
+  counts: QueueCounts | null;
+  idPrefix: string;
+}
+const { current, counts, idPrefix } = Astro.props;
+---
+
+<nav aria-label="Admin" id={`${idPrefix}-nav`}>
+  <ul class="space-y-1">
+    {NAV_ITEMS.map((item) => {
+      const badge = badgeFor(item, counts);
+      return (
+        <li>
+          <a
+            href={item.href}
+            aria-current={item.key === current ? 'page' : undefined}
+            class:list={[
+              'flex min-h-11 items-center justify-between gap-3 rounded-xl px-3 text-sm font-semibold',
+              item.key === current ? 'bg-cream text-charcoal' : 'text-cream hover:bg-white/10',
+            ]}
+          >
+            <span>{item.label}</span>
+            {badge !== null && (
+              <span
+                class="inline-flex min-w-6 items-center justify-center rounded-full bg-terracotta px-2 py-0.5 text-xs font-bold text-white"
+                aria-label={`${badge} waiting`}
+              >
+                {badge}
+              </span>
+            )}
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+</nav>

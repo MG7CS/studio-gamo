@@ -1,0 +1,34 @@
+---
+/**
+ * Staff sign-in. Public by design (it is how you get a session) but, outside local development, only
+ * reachable with a valid Cloudflare Access assertion (middleware). Also the page the middleware rewrites to
+ * (status 401) when an unauthenticated request asks for any other URL; `Astro.locals.signIn` is set then,
+ * and a POST to such a URL is never treated as a sign-in attempt.
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import SignInForm from '../components/SignInForm.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { afterSignInPath, isLocalRuntime, signInWithPassword } from '../lib/gate';
+
+if (Astro.locals.adminAuthSession) return Astro.redirect('/', 303);
+
+const env = await getRuntimeEnv(Astro);
+const standingIn = Astro.locals.signIn;
+let email = standingIn?.email ?? Astro.locals.staffEmail ?? '';
+const next = standingIn?.next ?? afterSignInPath(Astro.url.searchParams.get('next'));
+let error: string | undefined;
+
+if (standingIn) {
+  Astro.response.status = 401;
+} else if (Astro.request.method === 'POST') {
+  const result = await signInWithPassword(Astro.request, env, !isLocalRuntime(env, Astro.url));
+  if (result.ok) return result.response;
+  error = result.error;
+  email = result.email;
+  Astro.response.status = result.status;
+}
+---
+
+<AdminLayout title="Staff sign-in" shell="gate">
+  <SignInForm email={email} next={next === '/' ? '' : next} error={error} />
+</AdminLayout>

@@ -1,0 +1,11 @@
+---
+/** The honest "nothing here" message for a list or queue. */
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+---
+
+<p class="rounded-2xl border border-sand bg-white p-6 text-sm text-ink-soft" role="status">
+  {text}
+</p>
