@@ -7,7 +7,7 @@
 
 **This is the authoritative reference** for Gamo Studios' purpose, mission, programs, governance, sustainability and financial stewardship. Other documents link here and must not restate conflicting descriptions. If any repository document conflicts with this one on organizational purpose, programs, fees, membership or funding, **this document wins** and the conflict should be fixed.
 
-Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [GAMO_LIVE_AND_PARTNERS.md](GAMO_LIVE_AND_PARTNERS.md) · [README.md](../README.md) · [ROADMAP.md](../ROADMAP.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
+Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [README.md](../README.md) · [REBUILD_PLAN.md](REBUILD_PLAN.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
 
 > [!IMPORTANT]
 > Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has **not** incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe payments or contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
