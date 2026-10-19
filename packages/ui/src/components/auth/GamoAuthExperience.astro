@@ -59,6 +59,11 @@ const googleEnabled = googleSignInEnabled({
   product,
   env: Astro.locals.runtimeEnv as Record<string, unknown> | undefined,
 });
+const claim = Astro.url.searchParams.get('claim');
+const claimNote =
+  mode === 'signup' && (claim === 'tickets' || claim === 'registration')
+    ? `Use the same email you used for your ${claim === 'tickets' ? 'tickets' : 'registration'}. After you confirm it with the emailed code, your ${claim === 'tickets' ? 'orders' : 'registrations'} appear in your account.`
+    : undefined;
 const roleValue = signupRoles.some((r) => r.value === selectedRole) ? selectedRole : null;
 ---
 
@@ -76,7 +81,7 @@ const roleValue = signupRoles.some((r) => r.value === selectedRole) ? selectedRo
     program={program}
     product={product}
     heading={heading}
-    subtext={subtext}
+    subtext={claimNote ?? subtext}
     signupRoles={signupRoles}
     selectedRole={roleValue}
     termsDocuments={termsDocuments}

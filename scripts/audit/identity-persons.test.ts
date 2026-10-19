@@ -413,3 +413,41 @@ test('Clerk webhook: Svix-verified session.ended revokes only the matching sessi
   });
   assert.equal(await resolveAuth(later, db, { secret: SECRET, product: 'live' }), null);
 });
+
+test('legacy unlink (audit row only, column NULL) still counts as opted out and is backfilled', async () => {
+  const { d1, one, identity } = await setup();
+  const user = await signUp(identity, 'legacy@example.org', 'worship');
+  d1.sqlite
+    .prepare('UPDATE users SET person_id = NULL, person_link_opt_out_at = NULL WHERE id = ?')
+    .run(user.id);
+  d1.sqlite
+    .prepare(
+      "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) VALUES ('audit_legacy', ?1, 'person.unlinked', 'user', ?1, '{}', ?2)",
+    )
+    .run(user.id, NOW);
+  const blocked = await linkUserToVerifiedPerson(d1, {
+    userId: user.id,
+    email: 'legacy@example.org',
+    product: 'worship',
+    source: 'email_code',
+    now: NOW + 5,
+  });
+  assert.equal(blocked.linked, false);
+  assert.equal(
+    one<{ o: number }>('SELECT person_link_opt_out_at AS o FROM users WHERE id = ?', user.id).o,
+    NOW,
+  );
+  const back = await linkUserToVerifiedPerson(d1, {
+    userId: user.id,
+    email: 'legacy@example.org',
+    product: 'worship',
+    source: 'account_page',
+    explicit: true,
+    now: NOW + 6,
+  });
+  assert.equal(back.linked, true);
+  assert.equal(
+    one<{ o: number | null }>('SELECT person_link_opt_out_at AS o FROM users WHERE id = ?', user.id).o,
+    null,
+  );
+});

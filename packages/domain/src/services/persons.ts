@@ -57,13 +57,29 @@ function auditId(): string {
   return `audit_${crypto.randomUUID()}`;
 }
 
-/** True when the person unlinked this user (`users.person_link_opt_out_at`, cleared by an explicit relink). */
+/**
+ * True when the person unlinked this user: `users.person_link_opt_out_at` is set, or (legacy, before the
+ * column existed) the newest `person.linked`/`person.unlinked` audit row for the user is an unlink. The
+ * legacy case is backfilled into the column the first time it is seen (D-115).
+ */
 export async function hasOptedOutOfPersonLink(db: SqlDatabase, userId: string): Promise<boolean> {
-  const rows = await allRows<{ o: number | null }>(db, {
+  const [row] = await allRows<{ o: number | null }>(db, {
     sql: 'SELECT person_link_opt_out_at AS o FROM users WHERE id = ?1',
     params: [userId],
   });
-  return rows[0]?.o !== null && rows[0]?.o !== undefined;
+  if (row?.o !== null && row?.o !== undefined) return true;
+  const [last] = await allRows<{ action: string; created_at: number }>(db, {
+    sql: `SELECT action, created_at FROM audit_logs
+           WHERE entity_type = 'user' AND entity_id = ?1 AND action IN ('person.linked', 'person.unlinked')
+           ORDER BY created_at DESC, rowid DESC LIMIT 1`,
+    params: [userId],
+  });
+  if (last?.action !== 'person.unlinked') return false;
+  await db
+    .prepare('UPDATE users SET person_link_opt_out_at = ?2 WHERE id = ?1 AND person_link_opt_out_at IS NULL')
+    .bind(userId, Number(last.created_at))
+    .run();
+  return true;
 }
 
 /**
