@@ -148,8 +148,26 @@ function signupTermsFrom(raw: unknown): { slug: string; version: string }[] | Re
   return documents.filter((d) => (SIGNUP_TERMS as readonly string[]).includes(d.slug));
 }
 
-/** Verification attempts per (email, IP) per hour. Each code also locks after 5 wrong guesses. */
+/** Verification attempts per (email, IP) per hour. Each code also accepts at most 5 guesses. */
 const VERIFY_PAIR_LIMIT = 10;
+/**
+ * Failed verifications per address per hour across ALL IPs; past it the address is locked for 15 minutes
+ * (D-120). Residual tradeoff: someone who knows the address can keep it locked by guessing wrongly, so the
+ * real owner waits or requests a new code from the sign-in page; the alternative (no global ceiling) lets a
+ * distributed attacker multiply guesses against one code.
+ */
+const VERIFY_EMAIL_FAILURES_PER_HOUR = 30;
+const VERIFY_LOCK_SECONDS = 900;
+
+function lockedResponse(): Response {
+  return errorResponse(
+    'RATE_LIMITED',
+    'Too many wrong codes for this address. Wait about 15 minutes, or request a new code from the sign-in page, then try again.',
+    429,
+    undefined,
+    { 'Retry-After': String(VERIFY_LOCK_SECONDS), 'Cache-Control': 'no-store' },
+  );
+}
 
 /** PII_HASH_SECRET when usable (keys the stored sign-in code hashes), else null (direct/legacy hashing). */
 function piiSecretFor(env: GamoEnv): string | null {
@@ -367,6 +385,36 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
         Math.floor(Date.now() / 1000),
       );
       if (!pair.allowed) return rateLimitedResponse(pair.retryAfterSeconds);
+      // Global per-address ceiling across all IPs: while locked, no guess is even compared.
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const sqlDb = asSqlDatabase(runtimeEnv.DB);
+      const emailKey = await hashEmail(validated.email, piiSecretOf(runtimeEnv));
+      const lockBucket = rateLimitBucket('auth.verify-lock', 'email', emailKey);
+      const lockRow = (await sqlDb
+        .prepare('SELECT count FROM rate_limit_counters WHERE bucket = ?1 AND expires_at > ?2 LIMIT 1')
+        .bind(lockBucket, nowSeconds)
+        .first()) as { count: number } | null;
+      if (lockRow) return lockedResponse();
+      const recordFailure = async () => {
+        const failed = await checkRateLimits(
+          sqlDb,
+          [
+            {
+              bucket: rateLimitBucket('auth.verify-fail', 'email', emailKey),
+              limit: VERIFY_EMAIL_FAILURES_PER_HOUR,
+              windowSeconds: 3600,
+            },
+          ],
+          nowSeconds,
+        );
+        // Over the ceiling: lock the address for 15 minutes (one counter row with a 15-minute window).
+        if (!failed.allowed)
+          await checkRateLimits(
+            sqlDb,
+            [{ bucket: lockBucket, limit: 1, windowSeconds: VERIFY_LOCK_SECONDS }],
+            nowSeconds,
+          );
+      };
       let user;
       try {
         user = await identityService.verifyEmailChallenge(validated.email, validated.code, {
@@ -376,6 +424,7 @@ export function createAuthHandlers(defaultProduct: ProductKey = 'web') {
           product,
         });
       } catch (err) {
+        await recordFailure();
         if (err instanceof Error && err.message === LOCKED_CODE_MESSAGE)
           return errorResponse(
             'RATE_LIMITED',

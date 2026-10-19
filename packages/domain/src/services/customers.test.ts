@@ -199,7 +199,7 @@ test('issue → open → read → end: cookie flags, TTL capped by the token, to
   assert.ok(ended.ended);
   assert.match(
     ended.cookie,
-    /^__gamo_customer=; Path=\/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax$/,
+    /^__gamo_customer_live=; Path=\/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax$/,
   );
   assert.equal(
     await readCustomerSession(db, ENV, withCookie(opened.cookie), NOW + 3201, 'live'),

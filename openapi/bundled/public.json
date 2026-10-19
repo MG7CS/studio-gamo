@@ -1049,6 +1049,66 @@
             }
           }
         }
+      },
+      "delete": {
+        "operationId": "revokeEventTeamMember",
+        "tags": [
+          "Live"
+        ],
+        "summary": "Revoke a role-scoped event team member",
+        "description": "Sets the member's role on this event to revoked and writes an audit row. Only an organization owner or admin (or superadmin) can revoke; granting ticketing, scanning or production access is limited to the same people.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "live",
+        "x-status": "implemented",
+        "x-authorization": "Verified session with edit_content on the event, and organization owner or admin to revoke.",
+        "x-idempotency": "Revoking an already revoked member changes nothing.",
+        "x-source": "apps/live/src/pages/api/events/[id]/team.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeEventTeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeEventTeamInput"
+              }
+            }
+          }
+        }
       }
     },
     "/api/events/{id}/production-requests": {
@@ -4770,6 +4830,74 @@
               "eventId",
               "userId",
               "role"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "RevokeEventTeamInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "event_owner",
+              "lead_promoter",
+              "host_venue",
+              "co_organizer",
+              "booking_agent",
+              "production_coordinator",
+              "ticketing_admin",
+              "finance_contact",
+              "door_scanner"
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "role"
+        ]
+      },
+      "RevokeEventTeamResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "eventId": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              },
+              "status": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "id",
+              "eventId",
+              "userId",
+              "role",
+              "status"
             ]
           }
         },
