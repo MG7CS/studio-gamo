@@ -22,6 +22,7 @@ import {
   isStaffOrAdmin,
   requireSameOrigin,
   resolveAuth,
+  revokeOtherAdminSessions,
   revokeSession,
   verifyAdminGateCookie,
   verifyStaffBoundaryIdentity,
@@ -232,6 +233,10 @@ export async function changePasswordFromForm(
   const next = String(form.get('newPassword') ?? '');
   const confirm = String(form.get('confirmPassword') ?? '');
   if (next !== confirm) return { ok: false, error: 'New password and confirmation do not match.' };
-  const result = await changeAdminPassword(getDb(env.DB), session.user.id, current, next);
-  return result.ok ? { ok: true } : { ok: false, error: result.error || 'Could not update the password.' };
+  const db = getDb(env.DB);
+  const result = await changeAdminPassword(db, session.user.id, current, next);
+  if (!result.ok) return { ok: false, error: result.error || 'Could not update the password.' };
+  // A session opened with the old password must not outlive it; this one stays signed in.
+  await revokeOtherAdminSessions(db, session.user.id, session.sessionId);
+  return { ok: true };
 }
