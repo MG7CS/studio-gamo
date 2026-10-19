@@ -20,9 +20,10 @@ const { current, counts } = Astro.props;
       <li class="min-w-0 flex-1">
         <a
           href={item.href}
+          aria-label={`${item.shortLabel === item.label ? item.label : `${item.shortLabel}: ${item.label}`}${badgeFor(item, counts) !== null ? `, ${badgeFor(item, counts)} waiting` : ''}`}
           aria-current={item.key === current ? 'page' : undefined}
           class:list={[
-            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-2 text-xs font-semibold',
+            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-0.5 text-xs font-semibold',
             item.key === current ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
           ]}
         >
@@ -31,13 +32,13 @@ const { current, counts } = Astro.props;
             {badgeFor(item, counts) !== null && (
               <span
                 class="absolute -right-3 -top-2 rounded-full bg-clay-700 px-1.5 text-[10px] font-bold leading-4 text-white"
-                aria-label={`${badgeFor(item, counts)} waiting`}
+                aria-hidden="true"
               >
                 {badgeFor(item, counts)}
               </span>
             )}
           </span>
-          <span class="truncate">{item.label}</span>
+          <span class="w-full truncate text-center text-[10px] font-semibold">{item.shortLabel}</span>
         </a>
       </li>
     ))}

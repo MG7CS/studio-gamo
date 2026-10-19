@@ -10,15 +10,15 @@ interface Props {
   label: string;
   value: number;
   icon: IconName;
-  tone: 'lavender' | 'mint' | 'peach' | 'warning';
+  tone: 'terracotta' | 'sand' | 'tan' | 'ink';
   href?: string;
 }
 const { label, value, icon, tone, href } = Astro.props;
 const chip = {
-  lavender: 'bg-lavender text-clay-800',
-  mint: 'bg-mint text-success',
-  peach: 'bg-peach text-danger',
-  warning: 'bg-warning-fill/60 text-warning',
+  terracotta: 'bg-terracotta-soft/25 text-terracotta-deep',
+  sand: 'bg-sand text-ink',
+  tan: 'bg-tan/50 text-terracotta-deep',
+  ink: 'bg-ink/10 text-ink',
 }[tone];
 const Tag = href ? 'a' : 'div';
 ---

@@ -186,3 +186,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   4. The old `gamo-admin` worker stays live until the new one replaces it after a preview sign-in through real Access.
 - **Plan**: `docs/ADMIN_REQUIREMENTS.md`.
 
+## 2026-10-19 — Admin uses the app palette (supersedes the lavender palette above)
+
+- **Decision** (owner, after reviewing localhost; no gradients anywhere): admin pages keep the claymorphism shapes and shadows but use the same palette as every other app (shared `tokens.css`). The lavender palette, the invented logo chip and the background blobs are gone; the layout is full-page, the sidebar collapses to an icon rail, the brand is the Gamo Studios logo with an "Admin" label. The earlier palette exception no longer applies; the claymorphism design remains the admin's UI design.
+

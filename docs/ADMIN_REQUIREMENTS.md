@@ -30,38 +30,17 @@ Decision emails to providers and organizers stay as they are today; failures bec
 
 Source: `design-reference/claymorphism-admin-ui/` (three images: dashboard overview and mobile, desktop dashboard, design system sheet). The admin UI uses this style throughout; it is the **only** visual system for admin pages. Public sites keep the booklet system (terracotta, charcoal, cream); `packages/ui` tokens are not changed.
 
-Tokens read from the design system sheet (approximate, sampled from the image):
+**Palette (owner decision 2026-10-19, replaces the lavender of the sheet):** admin pages use the same app palette as every other app: the shared tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`, tan `#D8C5AE`, line `#DCD3C6`, muted `#57534E`, Inter). `apps/admin/src/styles/clay.css` imports them and only adds the clay shape language: the accent scale mapped onto the palette (50 cream, 100 sand, 300 tan, 500 soft, 600 terracotta, 700 deep, 800 `#6F2D12`), page cream, white surfaces, body text `#44403C`, control borders `#8A8176`, the 10/16/24/32/48 radii, an 8 px grid, and warm versions of the soft / card / inset / button shadows. No gradients anywhere (owner decision): one flat page color, white cards. Status words keep green / amber / red tints so meaning does not depend on terracotta.
 
-| Token | Value |
-|---|---|
-| primary 50 / 100 / 300 / 500 / 600 / 700 | `#f3ebfe` / `#eee6fd` / `#d4c5fa` / `#9e8bf1` / `#8d78ed` / `#6d59d6` |
-| page background | `#f5f3fb`; surface `#ffffff`; surface soft `#f7f4fc` |
-| text main | `#283354` |
-| semantic fills | success `#9de5c2`, warning `#fdd29a`, danger `#fd969d`, mint `#bcefdb`, peach `#fdc8ba`, lavender `#e3d6fb` |
-| type | Inter (self-hosted, already in the repo); display 48/800, H1 40/800, H2 32/700, H3 24/700, body 16/400, small 14/500, caption 12/500 |
-| spacing | 8 px grid (4 8 12 16 24 32 40 48 64 80) |
-| radius | 10 / 16 / 24 / 32 / 48 / 999 |
-| shadows | soft `12px 12px 32px rgba(78,64,120,.12), -8px -8px 24px rgba(255,255,255,.9)`; card `0 18px 45px rgba(81,65,130,.16)`; input inset `inset 4px 4px 10px rgba(88,78,120,.08), inset -4px -4px 10px rgba(255,255,255,.9)`; button `0 14px 28px rgba(104,71,232,.32)` |
+Contrast (WCAG 2.2 AA, all computed): ink on white 17.7:1; body `#44403C` on white 10.3:1 (on cream 9.5:1); muted on white 7.6:1 (on sand 6.2:1); white on deep terracotta (primary buttons) 7.5:1; deep terracotta on sand (active nav) 6.0:1; control border 3.8:1; success text `#1F7A52` 5.3:1.
 
 Components taken: sidebar (collapsible to an icon rail; the official Gamo Studios logo with an "Admin" label, and only the official Gamo symbol when collapsed; no invented mark) with the active item raised, top bar with admin chip, stat cards, list cards with icon chips, primary/secondary/ghost buttons, inputs and selects with inset shadow and a visible focus ring, checkbox/radio/switch, tags (New, Success, Warning, Danger), progress bar, pagination, mobile bottom tab bar, no decorative blobs.
 
 Taken from the design and **dropped** because there is no real data or no purpose: revenue/customer/conversion numbers, sparklines and charts, trend arrows ("+12.5%"), "Upgrade to Pro", Help Center, Google sign-in and the login page, search, bell, "Good morning" copy that implies activity.
 
-### Required deviations (accessibility is not optional here)
+### Accessibility
 
-The sheet's text colors fail WCAG 2.2 AA: body text `#a0a4c3` is 2.4:1 on white, muted `#d3d5e6` is 1.5:1, and white on primary 500/600 is 2.8:1 and 3.5:1. The admin therefore uses:
-
-| Use | Value | Contrast |
-|---|---|---|
-| main text | `#283354` | 12.4:1 |
-| body/secondary text | `#5a6283` | 6.0:1 (5.4:1 on page background) |
-| muted/caption text | `#646a8c` | 5.3:1 |
-| primary button fill and links | `#6d59d6`, white text | 5.2:1 |
-| status text | success `#1f7a52`, warning `#8a5a00`, danger `#b3303c` | 5.3 / 5.9 / 6.2:1 |
-
-Pastel fills (success, warning, danger, mint, peach, lavender) are backgrounds only, never the only carrier of meaning (every status also has a word). Also required: targets ≥ 44 × 44 px, visible focus ring, one `<h1>` per page, no horizontal overflow at 360 px, axe serious/critical clean, and soft shadows must not be the only separator between cards (keep a 1 px border at ≥ 3:1 for inputs).
-
-This is an owner-approved exception to the repo's single-palette UI rule (AGENTS.md "UI"). Recorded in `docs/DECISIONS.md` and AGENTS.md.
+Targets ≥ 44 × 44 px, visible focus ring, one `<h1>` per page, no horizontal overflow at 360 px, axe serious/critical clean, and soft shadows are never the only separator (inputs keep a 3:1 border).
 
 ## 4. Layout and states
 

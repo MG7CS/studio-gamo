@@ -11,6 +11,8 @@ export type NavKey = 'inbox' | 'participation' | 'churches' | 'providers' | 'eve
 export interface NavItem {
   key: NavKey;
   label: string;
+  /** One short word for the phone's bottom tab bar. */
+  shortLabel: string;
   href: string;
   icon: IconName;
   /** Which queue count (if any) this item shows. */
@@ -18,18 +20,40 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { key: 'inbox', label: 'Inbox', href: '/', icon: 'home' },
+  { key: 'inbox', label: 'Inbox', shortLabel: 'Inbox', href: '/', icon: 'home' },
   {
     key: 'participation',
     label: 'Participation requests',
+    shortLabel: 'Requests',
     href: '/participation',
     icon: 'mail',
     count: 'participation',
   },
-  { key: 'churches', label: 'Church verification', href: '/churches', icon: 'church', count: 'churches' },
-  { key: 'providers', label: 'Provider review', href: '/providers', icon: 'verified', count: 'providers' },
-  { key: 'events', label: 'First-event review', href: '/events', icon: 'ticket', count: 'events' },
-  { key: 'legal', label: 'Legal', href: '/legal', icon: 'file' },
+  {
+    key: 'churches',
+    label: 'Church verification',
+    shortLabel: 'Church',
+    href: '/churches',
+    icon: 'church',
+    count: 'churches',
+  },
+  {
+    key: 'providers',
+    label: 'Provider review',
+    shortLabel: 'Providers',
+    href: '/providers',
+    icon: 'verified',
+    count: 'providers',
+  },
+  {
+    key: 'events',
+    label: 'First-event review',
+    shortLabel: 'Events',
+    href: '/events',
+    icon: 'ticket',
+    count: 'events',
+  },
+  { key: 'legal', label: 'Legal', shortLabel: 'Legal', href: '/legal', icon: 'file' },
 ];
 
 export function badgeFor(item: NavItem, counts: QueueCounts | null | undefined): number | null {

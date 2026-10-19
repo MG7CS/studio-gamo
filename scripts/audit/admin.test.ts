@@ -619,6 +619,12 @@ test('every page renders through AdminLayout; no public layout, brand tokens, de
 test('no mock data, placeholder text or literal counts in the admin source', () => {
   for (const { path, text } of sources()) {
     assert.ok(
+      !/gradient|bg-linear|bg-radial|bg-conic|\bfrom-|\bvia-/.test(
+        text.replace(/No gradients anywhere/g, ''),
+      ),
+      `${path}: gradients are not used in the admin`,
+    );
+    assert.ok(
       !/coming soon|lorem ipsum|placeholder|\bTODO\b|\bFIXME\b|\bmock\b|fake data/i.test(text),
       `${path}: placeholder or mock text`,
     );
