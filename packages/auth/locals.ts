@@ -22,7 +22,7 @@ export interface GamoLocals {
    * `@gamo/domain` in the page frontmatter; read by the page middleware when it sets the CSP and
    * Permissions-Policy. Origins are filtered to exact https origins there.
    */
-  securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean };
+  securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean; noReferrer?: boolean };
   /** apps/admin: D1 staff session that passed the admin gateway. */
   adminAuthSession?: SessionData;
   /** apps/admin: identity asserted by Cloudflare Access. */
