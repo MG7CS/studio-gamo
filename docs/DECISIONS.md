@@ -175,3 +175,14 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   2. A live key (`pk_live_`/`sk_live_`/`rk_live_`) in a local env file is a warning in `pnpm dev` and stops `pnpm test:e2e` with an explanation.
   3. `gamoDeployBuildHygiene` restores `process.env` before Vite runs in preview/production builds, deletes `dist/server/.dev.vars`, and fails the build if a local value is found in `dist`.
 - **Not changed**: local builds still inline `import.meta.env` objects (needed for `astro preview`); the build machine's shell `USER` is also inlined in those objects (harmless, noted for a later clean-up of `import.meta.env?.` reads).
+
+## 2026-10-19 — Admin rebuilt from scratch: single admin, Access-only, claymorphism UI
+
+- **Context**: the old admin (and a first rebuild) were deleted. The owner decided one admin account is enough for the foreseeable future.
+- **Decision**:
+  1. One admin, no roles, staff management, audit trail, passwords or sessions. Cloudflare Access alone: the app verifies the Access assertion and requires the exact `ADMIN_EMAIL`, fail-closed. Recovery is changing the Access policy in Cloudflare.
+  2. Admin pages use the claymorphism design in `design-reference/claymorphism-admin-ui/` and only that. Exception to the single-palette UI rule, approved by the owner; public sites and `packages/ui` tokens are unchanged.
+  3. Accessibility deviations from the design are approved: darker body/muted text and primary-button colors so contrast meets WCAG 2.2 AA (`docs/ADMIN_REQUIREMENTS.md` §3). Inter only, CSS-only decoration, no dark mode in v1.
+  4. The old `gamo-admin` worker stays live until the new one replaces it after a preview sign-in through real Access.
+- **Plan**: `docs/ADMIN_REQUIREMENTS.md`.
+
