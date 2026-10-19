@@ -1,5 +1,5 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
-        dev-web dev-worship dev-academy dev-live dev-production dev-admin \
+        dev-web dev-worship dev-academy dev-live dev-production dev-admin open-all \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
@@ -11,6 +11,7 @@ help:
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
 	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently"
+	@echo "  \033[36mmake open-all\033[0m          - Open all 6 local sites in the browser (run after make dev-all)"
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
@@ -56,6 +57,9 @@ dev: dev-web
 
 dev-all:
 	@pnpm run dev:all
+
+open-all:
+	@for port in 4321 4322 4323 4324 4325 4326; do open http://127.0.0.1:$$port; done
 
 dev-web:
 	@pnpm --filter apps-web run dev
