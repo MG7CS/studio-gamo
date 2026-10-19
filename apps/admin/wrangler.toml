@@ -100,8 +100,8 @@ bucket_name = "gamo-media-production"
 
 [[env.production.kv_namespaces]]
 binding = "SESSION"
-id = "7d35f3e994d04c00a8a404a552978674"
+id = "51491fce0ca740318d81ab45ef119940"
 
 [[env.production.kv_namespaces]]
 binding = "SESSION_KV"
-id = "7d35f3e994d04c00a8a404a552978674"
+id = "51491fce0ca740318d81ab45ef119940"
