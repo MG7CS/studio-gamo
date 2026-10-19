@@ -7,7 +7,6 @@
  * an explicit grant, `view_settlement`) — the caller passes `unmask`. Scan rows show the holder's
  * first name + last initial only.
  */
-import { newPrefixedId } from '../../security/ids.ts';
 import { allRows, runBatch, type SqlDatabase, type SqlParam } from '../../security/sql-database.ts';
 import { FULFILLED_ORDER_STATUSES, SCAN_RESULTS, type ScanResult } from '../../types/enums.ts';
 import { eventHeadcount, type Headcount } from './scanning.ts';
@@ -274,8 +273,6 @@ export interface ScanLogRow {
   reviewed: boolean;
 }
 
-/** Audit action used to mark an offline conflict as reviewed (see the schema request in docs/TICKETING_SCANNER.md). */
-export const CONFLICT_REVIEWED_ACTION = 'live.scan_conflict_reviewed';
 
 export async function scanLog(
   db: SqlDatabase,
@@ -323,7 +320,7 @@ export async function scanLog(
     override_reason: string | null;
     reviewed: number;
   }>(db, {
-    sql: `SELECT e.id, e.received_at, e.device_scanned_at, e.offline, e.direction, e.result, e.gate, d.device_label, s.label AS session_label, e.scanner_device_id, t.holder_name, c.name AS category_name, e.conflict, e.override_reason, EXISTS (SELECT 1 FROM audit_logs a WHERE a.action = '${CONFLICT_REVIEWED_ACTION}' AND a.entity_type = 'ticket_scan_event' AND a.entity_id = e.id) AS reviewed FROM ticket_scan_events e LEFT JOIN scanner_devices d ON d.id = e.scanner_device_id LEFT JOIN scanner_sessions s ON s.id = e.scanner_session_id LEFT JOIN tickets t ON t.id = e.ticket_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id WHERE ${where} ORDER BY e.received_at DESC, e.id DESC LIMIT ${limit} OFFSET ${Math.max(0, filters.offset ?? 0)}`,
+    sql: `SELECT e.id, e.received_at, e.device_scanned_at, e.offline, e.direction, e.result, e.gate, d.device_label, s.label AS session_label, e.scanner_device_id, t.holder_name, c.name AS category_name, e.conflict, e.override_reason, (e.reviewed_at IS NOT NULL) AS reviewed FROM ticket_scan_events e LEFT JOIN scanner_devices d ON d.id = e.scanner_device_id LEFT JOIN scanner_sessions s ON s.id = e.scanner_session_id LEFT JOIN tickets t ON t.id = e.ticket_id LEFT JOIN ticket_tiers c ON c.id = t.tier_id WHERE ${where} ORDER BY e.received_at DESC, e.id DESC LIMIT ${limit} OFFSET ${Math.max(0, filters.offset ?? 0)}`,
     params,
   });
   const total = await firstRow<{ n: number }>(
@@ -370,22 +367,15 @@ export async function scanLog(
   };
 }
 
-/** Marks an offline conflict as reviewed (an audit row; idempotent per scan). */
+/** Marks an offline conflict as reviewed (`reviewed_at` / `reviewed_by_user_id`, migration 0016; idempotent). */
 export async function markConflictReviewed(
   db: SqlDatabase,
   input: { eventId: string; scanEventId: string; userId: string; note?: string | null; now: number },
 ): Promise<boolean> {
   const [rows] = await runBatch(db, [
     {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at) SELECT ?1, ?2, '${CONFLICT_REVIEWED_ACTION}', 'ticket_scan_event', e.id, ?3, ?4 FROM ticket_scan_events e WHERE e.id = ?5 AND e.event_id = ?6 AND e.conflict != 'none' AND NOT EXISTS (SELECT 1 FROM audit_logs a WHERE a.action = '${CONFLICT_REVIEWED_ACTION}' AND a.entity_type = 'ticket_scan_event' AND a.entity_id = e.id) RETURNING id`,
-      params: [
-        newPrefixedId('aud'),
-        input.userId,
-        JSON.stringify({ eventId: input.eventId, note: input.note?.slice(0, 300) ?? null }),
-        input.now,
-        input.scanEventId,
-        input.eventId,
-      ],
+      sql: "UPDATE ticket_scan_events SET reviewed_at = ?1, reviewed_by_user_id = ?2 WHERE id = ?3 AND event_id = ?4 AND conflict != 'none' AND reviewed_at IS NULL RETURNING id",
+      params: [input.now, input.userId, input.scanEventId, input.eventId],
     },
   ]);
   return rows.length === 1;
