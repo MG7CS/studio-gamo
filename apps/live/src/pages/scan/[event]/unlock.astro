@@ -7,7 +7,13 @@
 import ScannerLayout from '../../../components/scanner/ScannerLayout.astro';
 import OrganizerNotice from '../../../components/organizer/OrganizerNotice.astro';
 import { getRuntimeEnv } from '@gamo/domain';
-import { asSqlDatabase, clientIp, hashIp, SecretNotConfiguredError } from '@gamo/domain/security';
+import {
+  asSqlDatabase,
+  clientIp,
+  hashIp,
+  isLocalEnvironment,
+  SecretNotConfiguredError,
+} from '@gamo/domain/security';
 import {
   buildScannerCookies,
   findScannerLink,
@@ -38,13 +44,18 @@ try {
     else {
       token = form.body.get('k') ?? '';
       const ip = clientIp(Astro.request);
+      // The per-IP PIN limit is part of the lock: outside local it cannot be skipped
+      // (no client IP or no PII_HASH_SECRET -> 503 "scanner unavailable", handled below).
       let ipHash: string | null = null;
-      if (ip) {
-        try {
-          ipHash = await hashIp(ip, env.PII_HASH_SECRET as string | undefined);
-        } catch {
-          ipHash = null; // without PII_HASH_SECRET only the per-session lock applies
-        }
+      try {
+        if (!ip) throw new SecretNotConfiguredError('CF_CONNECTING_IP');
+        ipHash = await hashIp(ip, env.PII_HASH_SECRET as string | undefined);
+      } catch (err) {
+        if (!isLocalEnvironment(env))
+          throw err instanceof SecretNotConfiguredError
+            ? err
+            : new SecretNotConfiguredError('PII_HASH_SECRET');
+        ipHash = null; // local development only
       }
       const result = await unlockScannerSession(db, env as Record<string, unknown>, {
         token,

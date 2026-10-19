@@ -1,5 +1,5 @@
 type: string
-description: Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner.
+description: Outcome of one scan (design §5.3). Shown with icon, colour and text on the scanner. event_ended (scanning closed 6 h after the event end) is answered but not stored.
 enum:
   - admitted
   - exited
@@ -17,3 +17,4 @@ enum:
   - not_open_yet
   - event_cancelled
   - override_admitted
+  - event_ended

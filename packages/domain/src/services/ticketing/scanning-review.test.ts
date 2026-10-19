@@ -6,9 +6,16 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { runBatch } from '../../security/sql-database.ts';
+import { newQrSalt, signTicketQr } from '../../security/ticket-qr.ts';
 import { voidTicketStatement } from '../../ticketing/sql.ts';
 import { syncOfflineScans } from './manifest.ts';
-import { eventHeadcount, scanTicket, ticketsInsideForOrder, type ScanActor } from './scanning.ts';
+import {
+  eventHeadcount,
+  scanTicket,
+  ScanRequestError,
+  ticketsInsideForOrder,
+  type ScanActor,
+} from './scanning.ts';
 import { createFixture, issueTickets, QR_KEYS, scannerDevice, seedEvent } from './scanning-test-fixtures.ts';
 
 const NOW = 1_900_000_000;
@@ -176,30 +183,39 @@ describe('S3 scanning closes after the event', () => {
 });
 
 describe('S4 an offline entry older than an online exit does not put the guest back inside', () => {
-  test('sync flags it superseded, keeps presence outside, counts the entry, and is idempotent', async () => {
+  const entry = (code: string, id: string, at: number) => [
+    {
+      clientScanId: id,
+      code,
+      direction: 'in' as const,
+      deviceScannedAt: at,
+      localResult: 'admitted' as const,
+    },
+  ];
+
+  test('sync answers a NON-admitting already_used/superseded, leaves presence untouched, and is idempotent', async () => {
     const { f, eventId } = await basic();
     const [t] = await issueTickets(f, { eventId, categoryId: 'tier_ga', quantity: 1, now: NOW });
     const gateA = await scannerDevice(f, { eventId, now: NOW, label: 'A (offline)' });
     const gateB = await scannerDevice(f, { eventId, now: NOW, label: 'B (online)' });
+    const actorB: ScanActor = { kind: 'scanner', device: gateB.device };
     const tIn = NOW + HOUR + 600;
     const tOut = NOW + HOUR + HOUR;
-    const out = await scan(f, eventId, { kind: 'scanner', device: gateB.device }, t.payload, 'out', {
-      clientScanId: 'b-out',
-      now: tOut,
-    });
-    assert.equal(out.result, 'not_inside');
-    const scans = [
-      {
-        clientScanId: 'a-in',
-        code: t.payload,
-        direction: 'in' as const,
-        deviceScannedAt: tIn,
-        localResult: 'admitted' as const,
-      },
-    ];
+    await scan(f, eventId, actorB, t.payload, 'in', { clientScanId: 'b-in', now: tIn + 5 });
+    assert.equal(
+      (await scan(f, eventId, actorB, t.payload, 'out', { clientScanId: 'b-out', now: tOut })).result,
+      'exited',
+    );
     const run = (now: number) =>
-      syncOfflineScans(f.db, { eventId, device: gateA.device, keyring: QR_KEYS, scans, now });
+      syncOfflineScans(f.db, {
+        eventId,
+        device: gateA.device,
+        keyring: QR_KEYS,
+        scans: entry(t.payload, 'a-in', tIn),
+        now,
+      });
     const sync = await run(tOut + 600);
+    assert.equal(sync.results[0].result, 'already_used', 'never an admission');
     assert.equal(sync.results[0].conflict, 'superseded');
     assert.equal(sync.results[0].needsReview, true);
     assert.equal(sync.headcount.insideNow, 0);
@@ -211,7 +227,49 @@ describe('S4 an offline entry older than an online exit does not put the guest b
       entry_count: 1,
       exit_count: 1,
     });
-    assert.equal(f.q('SELECT count(*) AS n FROM ticket_scan_events').n, 2);
+    assert.equal(f.q('SELECT count(*) AS n FROM ticket_scan_events').n, 3);
+    assert.equal(f.q("SELECT count(*) AS n FROM ticket_scan_events WHERE result = 'admitted'").n, 1);
+  });
+
+  test('a failed exit (not_inside) does not supersede a later-synced entry', async () => {
+    const { f, eventId } = await basic();
+    const [t] = await issueTickets(f, { eventId, categoryId: 'tier_ga', quantity: 1, now: NOW });
+    const gateA = await scannerDevice(f, { eventId, now: NOW });
+    const gateB = await scannerDevice(f, { eventId, now: NOW });
+    const out = await scan(f, eventId, { kind: 'scanner', device: gateB.device }, t.payload, 'out', {
+      clientScanId: 'b-out',
+      now: NOW + 2 * HOUR,
+    });
+    assert.equal(out.result, 'not_inside');
+    const sync = await syncOfflineScans(f.db, {
+      eventId,
+      device: gateA.device,
+      keyring: QR_KEYS,
+      scans: entry(t.payload, 'a-in', NOW + HOUR + 600),
+      now: NOW + 2 * HOUR + 600,
+    });
+    assert.equal(sync.results[0].result, 'admitted');
+    assert.equal(sync.results[0].conflict, 'none');
+  });
+
+  test('an online scan cannot claim to be offline: offline and deviceScannedAt are ignored', async () => {
+    const { f, eventId } = await basic({ reentry_allowed: 0 });
+    const [t] = await issueTickets(f, { eventId, categoryId: 'tier_ga', quantity: 1, now: NOW });
+    const { device } = await scannerDevice(f, { eventId, now: NOW });
+    const actor: ScanActor = { kind: 'scanner', device };
+    await scan(f, eventId, actor, t.payload, 'in', { clientScanId: 'c1', now: NOW + 600 });
+    await scan(f, eventId, actor, t.payload, 'out', { clientScanId: 'c2', now: NOW + 1200 });
+    // Claiming offline with an old device time must neither flag nor admit past the one-entry limit.
+    const sneaky = await scan(f, eventId, actor, t.payload, 'in', {
+      clientScanId: 'c3',
+      offline: true,
+      deviceScannedAt: NOW + 100,
+      now: NOW + 1300,
+    });
+    assert.equal(sneaky.result, 'already_used');
+    assert.equal(sneaky.offline, false);
+    assert.equal(sneaky.conflict, 'none');
+    assert.equal(f.q('SELECT offline FROM ticket_scan_events WHERE client_scan_id = ?', 'c3').offline, 0);
   });
 });
 
@@ -228,5 +286,133 @@ describe('T2 headcount after a void or refund of an admitted ticket', () => {
     assert.equal(exit.result, 'exited');
     assert.equal(f.q('SELECT state FROM ticket_presence WHERE ticket_id = ?', t.id).state, 'outside');
     assert.equal(await ticketsInsideForOrder(f.db, t.orderId), 0);
+  });
+});
+
+describe('door issuer adapter (not wired yet)', () => {
+  test('maps the scanner input to the ticketing input and the result back', async () => {
+    const { doorIssuerFrom, toTicketingDoorInput } = await import('./scanning-door-adapter.ts');
+    const { f, eventId } = await basic();
+    let seen: unknown;
+    const issuer = doorIssuerFrom(async (_db, _env, input) => {
+      seen = input;
+      return {
+        orderId: 'ord_x',
+        orderReference: 'GL-AAAA-BBBB',
+        tickets: [{ ticketId: 'tkt_x', qrPayload: 'GL1.X', holderName: 'Door guest' }],
+      };
+    });
+    const out = await issuer(
+      f.db,
+      {},
+      {
+        eventId,
+        categoryId: 'tier_ga',
+        quantity: 2,
+        method: 'cash_recorded',
+        unitPriceCents: 1500,
+        issuedBy: { type: 'scanner', sessionId: 'scs_1' },
+        idempotencyKey: 'door-key-abc123',
+        keyring: QR_KEYS,
+        now: NOW,
+      },
+    );
+    assert.deepEqual(seen, {
+      eventId,
+      categoryId: 'tier_ga',
+      sectionId: null,
+      quantity: 2,
+      holderName: null,
+      holderEmail: null,
+      method: 'cash_recorded',
+      amountCents: 3000,
+      actorUserId: null,
+      scannerSessionId: 'scs_1',
+      idempotencyKey: 'door-key-abc123',
+      now: NOW,
+    });
+    assert.deepEqual(out.tickets, [
+      { ticketId: 'tkt_x', payload: 'GL1.X', holderName: 'Door guest', category: 'GA', section: null },
+    ]);
+    const free = toTicketingDoorInput({
+      eventId,
+      categoryId: 'tier_ga',
+      quantity: 1,
+      method: 'free_issue',
+      unitPriceCents: 0,
+      issuedBy: { type: 'organizer', userId: 'usr_owner' },
+      idempotencyKey: 'door-key-abc124',
+      keyring: QR_KEYS,
+      now: NOW,
+    });
+    assert.equal(free.amountCents, 0);
+    assert.equal(free.actorUserId, 'usr_owner');
+  });
+});
+
+describe('security review: client scan id reuse and unverified stale codes', () => {
+  test('reusing a client scan id for a different ticket is refused before presence changes', async () => {
+    const { f, eventId } = await basic();
+    const [a, b] = await issueTickets(f, { eventId, categoryId: 'tier_ga', quantity: 2, now: NOW });
+    const { device } = await scannerDevice(f, { eventId, now: NOW });
+    const actor: ScanActor = { kind: 'scanner', device };
+    assert.equal(
+      (await scan(f, eventId, actor, a.payload, 'in', { clientScanId: 'same-id' })).result,
+      'admitted',
+    );
+    await assert.rejects(
+      scan(f, eventId, actor, b.payload, 'in', { clientScanId: 'same-id' }),
+      (e: unknown) => e instanceof ScanRequestError && e.status === 400 && e.code === 'CLIENT_SCAN_ID_REUSED',
+    );
+    assert.equal(f.q('SELECT count(*) AS n FROM ticket_presence WHERE ticket_id = ?', b.id).n, 0);
+    // The same ticket and id is still a harmless replay.
+    assert.equal(
+      (await scan(f, eventId, actor, a.payload, 'in', { clientScanId: 'same-id' })).repeated,
+      true,
+    );
+  });
+
+  test('a code with a lower version and a bad MAC shows nothing about the ticket, holder or another event', async () => {
+    const f = await createFixture();
+    const eventId = seedEvent(f, { eventId: 'evt_s', startsAt: NOW + HOUR });
+    const otherId = seedEvent(f, {
+      eventId: 'evt_o',
+      title: 'Sample Secret Gathering',
+      startsAt: NOW + HOUR,
+    });
+    const [mine] = await issueTickets(f, {
+      eventId,
+      categoryId: `${eventId}_ga`,
+      quantity: 1,
+      holderName: 'Sample Private Holder',
+      now: NOW,
+    });
+    const [theirs] = await issueTickets(f, {
+      eventId: otherId,
+      categoryId: `${otherId}_ga`,
+      quantity: 1,
+      holderName: 'Sample Other Holder',
+      now: NOW,
+    });
+    await runBatch(f.db, [
+      { sql: 'UPDATE tickets SET version = 2 WHERE id IN (?1, ?2)', params: [mine.id, theirs.id] },
+    ]);
+    const forge = async (ticketId: string) => {
+      const sig = await signTicketQr({ ticketId, version: 1, eventId, salt: newQrSalt() }, QR_KEYS);
+      assert.ok(sig.ok);
+      return sig.payload;
+    };
+    for (const id of [mine.id, theirs.id]) {
+      const r = await scan(f, eventId, organizer, await forge(id));
+      assert.equal(r.admitted, false);
+      assert.equal(r.ticket, null);
+      assert.equal(r.detail.eventTitle, null);
+      assert.ok(!JSON.stringify(r).includes('Holder') && !JSON.stringify(r).includes('Secret'));
+    }
+    // Another event's ticket is not even named "stale".
+    assert.equal((await scan(f, eventId, organizer, await forge(theirs.id))).result, 'invalid');
+    const stale = await scan(f, eventId, organizer, await forge(mine.id));
+    assert.equal(stale.result, 'stale_version');
+    assert.equal(f.q('SELECT count(*) AS n FROM ticket_presence').n, 0);
   });
 });
