@@ -28,9 +28,11 @@ import {
 } from './admin-fixture.ts';
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..');
-const clientDir = join(repoRoot, 'apps/admin/dist/client');
+// Which admin build to serve. Defaults to apps/admin; the rebuild is tried with ADMIN_E2E_APP=apps/admin-next.
+const appDir = process.env.ADMIN_E2E_APP ?? 'apps/admin';
+const clientDir = join(repoRoot, appDir, 'dist/client');
 
-const require = createRequire(join(repoRoot, 'apps/admin/package.json'));
+const require = createRequire(join(repoRoot, appDir, 'package.json'));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -38,7 +40,7 @@ const { build } = wranglerRequire('esbuild');
 const dir = mkdtempSync(join(tmpdir(), 'gamo-admin-e2e-server-'));
 const outfile = join(dir, 'admin.mjs');
 await build({
-  entryPoints: [join(repoRoot, 'apps/admin/dist/server/entry.mjs')],
+  entryPoints: [join(repoRoot, appDir, 'dist/server/entry.mjs')],
   outfile,
   bundle: true,
   format: 'esm',

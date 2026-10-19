@@ -1,0 +1,16 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+Astro.response.status = 404;
+---
+
+<AdminLayout title="Page not found">
+  <PageHeader title="Page not found" description="That page does not exist in the admin." />
+  <a
+    href="/participation"
+    class="inline-flex min-h-11 items-center text-sm font-semibold text-charcoal underline"
+  >
+    Back to the work queues
+  </a>
+</AdminLayout>
