@@ -125,13 +125,25 @@ test('camera is off by default and (self) only when requested', () => {
 });
 
 test('requestSecurityHeaders merges page requests and filters origins', () => {
-  const locals: { securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean } } = {};
+  const locals: {
+    securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean; noReferrer?: boolean };
+  } = {};
   requestSecurityHeaders(locals, { formActionOrigins: ['https://checkout.stripe.com', 'https://*'] });
   requestSecurityHeaders(locals, { camera: true, formActionOrigins: ['https://checkout.stripe.com'] });
+  requestSecurityHeaders(locals, { noReferrer: true });
   assert.deepEqual(locals.securityRequest, {
     formActionOrigins: ['https://checkout.stripe.com'],
     camera: true,
+    noReferrer: true,
   });
+  assert.equal(
+    securityHeaders({ enforceCsp: false, https: true, noReferrer: true })['Referrer-Policy'],
+    'no-referrer',
+  );
+  assert.equal(
+    securityHeaders({ enforceCsp: false, https: true })['Referrer-Policy'],
+    'strict-origin-when-cross-origin',
+  );
 });
 
 test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page requests reach the headers', async () => {

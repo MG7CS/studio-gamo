@@ -42,3 +42,4 @@ docs/api-reference/*.html
 
 # Generated staff-account SQL (contains password hashes; owner-reviewed, never committed)
 .staff-sql/
+.claude/worktrees/
