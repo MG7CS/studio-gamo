@@ -720,3 +720,8 @@
 - Removed nonprofit / tax-exempt / tax-deductible wording from public pages, workspaces and Gamo Live brand disclosure; approved wording is "Christian, mission-driven Public Benefit Corporation" (AGENTS.md updated). llms.txt and Organization JSON-LD use the same wording.
 - `scripts/generate-share-images.mjs` writes og-image.png (1200x630) and logo-512.png to each public app from the vector wordmark; `og:image`/`twitter:image` default in `BaseLayout`.
 - `live-external-discovery.test.ts` ordering test now builds its own upcoming and past fixtures relative to now.
+
+## 2026-10-18 — Release blockers: secrets script, e2e Clerk isolation, deploy-build hygiene (not deployed, not pushed)
+- `scripts/set-clerk-secrets.sh`: refuses production writes from tests/CI and without an interactive terminal (`--yes` removed), requires `pk_live_`/`sk_live_` for production, requires a temp-directory stub `WRANGLER_BIN` under tests. Root cause: `scripts/clerk/clerk-tools.test.ts` ran `--env production` without `--yes`; `[ -r /dev/tty ]` is true inside a terminal, so the prompt appeared.
+- e2e failures (live auth screens ×2, worship onboarding redirect, worship marketing link check) were local configuration, not product bugs: production Clerk keys in `apps/live/.dev.vars` (400 from Clerk on sso-callback) and Gamo Live's Clerk app id in `apps/worship/.dev.vars` (guard → 503 on private pages). Test servers now run with Clerk off; see DECISIONS 2026-10-18.
+- Deploy builds: local `PUBLIC_CLERK_PUBLISHABLE_KEY` and admin `CF_ACCESS_*` were inlined into production server chunks and `dist/server/.dev.vars` was left in dist; fixed by `gamoDeployBuildHygiene` (verified by production builds of all six apps and a value scan of `dist`).
