@@ -77,6 +77,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     // Free RSVP and email-verified ticket recovery are public by design.
     '/events/[id]/register',
     '/link',
+    '/waitlist/confirm',
     '/tickets/find',
     '/tickets/confirm',
     '/tickets/manage',

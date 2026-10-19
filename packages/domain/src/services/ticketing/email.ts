@@ -582,6 +582,37 @@ export async function sendEventChangeEmail(
   );
 }
 
+/** Waitlist double opt-in: the only mail sent before the address confirms. */
+export async function sendWaitlistConfirmEmail(
+  db: SqlDatabase,
+  env: TicketingEnv,
+  input: { to: string; entryId: string; event: EventRow; confirmUrl: string; windowKey: string; now: number },
+  options?: OutboxOptions,
+) {
+  const text = `Someone (hopefully you) asked to join the waitlist for ${input.event.title}. If that was you, confirm here: ${input.confirmUrl}\n\nIf it was not you, ignore this email: you will not get any other message about this event.`;
+  return sendLiveEmail(
+    db,
+    env,
+    {
+      kind: 'waitlist_available',
+      idempotencyKey: `waitlist_confirm:${input.entryId}:${input.windowKey}`,
+      to: input.to,
+      subject: `Confirm your waitlist spot — ${input.event.title}`,
+      html: layout(
+        'Confirm your waitlist spot',
+        para(`Someone (hopefully you) asked to join the waitlist for ${input.event.title}.`) +
+          button(input.confirmUrl, 'Yes, add me to the waitlist') +
+          para('If it was not you, ignore this email: you will not get any other message about this event.'),
+      ),
+      text,
+      relatedType: 'event',
+      relatedId: input.event.id,
+      now: input.now,
+    },
+    options,
+  );
+}
+
 /** Waitlist: tickets became available (first come, first served; nothing is reserved or charged). */
 export async function sendWaitlistAvailableEmail(
   db: SqlDatabase,

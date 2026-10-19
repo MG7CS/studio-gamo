@@ -200,7 +200,13 @@ test.describe('Gamo Live tickets', () => {
 
     const mail = await inbox(request, email, 'ticket_recovery');
     const link = /(http:\/\/[^\s]+\/link\?t=[A-Za-z0-9_-]+)/.exec(mail)![1];
+    // Opening the emailed link only shows a button (mail scanners that GET it cannot use it up) ...
     await page.goto(link);
+    await expect(page.getByRole('button', { name: 'Open my tickets' })).toBeVisible();
+    await check(page, 'link interstitial');
+    // ... and a second GET changes nothing: the link still works after a scanner visited it.
+    await page.goto(link);
+    await page.getByRole('button', { name: 'Open my tickets' }).click();
     await page.waitForURL(/\/tickets\/manage$/);
     expect(page.url()).not.toContain('t=');
     await expect(
@@ -211,8 +217,12 @@ test.describe('Gamo Live tickets', () => {
     ).toBeVisible();
     await check(page, 'manage page');
     // Re-using the link is allowed until it expires; a made-up one is refused kindly.
-    const bad = await page.goto(`${LIVE}/link?t=notarealtoken`);
-    expect(bad?.status()).toBe(410);
+    await page.goto(`${LIVE}/link?t=notarealtoken`);
+    const [bad] = await Promise.all([
+      page.waitForResponse((r) => r.url().endsWith('/link') && r.request().method() === 'POST'),
+      page.getByRole('button', { name: 'Open my tickets' }).click(),
+    ]);
+    expect(bad.status()).toBe(410);
     await check(page, 'expired link page');
   });
 
@@ -252,6 +262,7 @@ test.describe('Gamo Live tickets', () => {
     const other = await browser.newContext();
     const rp = await other.newPage();
     await rp.goto(link);
+    await rp.getByRole('button', { name: 'Open my tickets' }).click();
     await rp.waitForURL(/\/tickets\/orders\/ord_/);
     expect(rp.url().split('?')[0]).toBe(orderUrl.split('?')[0]);
     await expect(rp.locator('[data-ticket-card]')).toHaveCount(1);
