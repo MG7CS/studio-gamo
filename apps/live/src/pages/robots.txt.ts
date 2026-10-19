@@ -25,6 +25,8 @@ export const GET: APIRoute = () =>
         '/me$',
         '/events/*/tickets',
         '/events/*/register',
+        // Door scanner pages and scanner links (Agent C).
+        '/scan',
       ],
     }),
   );

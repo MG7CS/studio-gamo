@@ -1,0 +1,24 @@
+type: object
+additionalProperties: false
+properties:
+  eventId:
+    $ref: ../../shared/Identifier.yaml
+  code:
+    type: string
+    description: Scanned or typed ticket code (GL1 payload, or a legacy gamt_ pass).
+    minLength: 1
+    maxLength: 200
+  direction:
+    type: string
+    enum:
+      - in
+      - out
+  clientScanId:
+    $ref: ./ClientScanId.yaml
+  gate:
+    type: string
+    maxLength: 80
+required:
+  - eventId
+  - code
+  - direction

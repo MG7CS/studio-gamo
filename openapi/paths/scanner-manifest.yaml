@@ -1,0 +1,50 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+get:
+  operationId: getScannerManifest
+  tags:
+    - Live
+  summary: 'Offline manifest for a scanner device'
+  description: 'Event-scoped list of ticket id parts, versions, MAC digests, category, section, zone, status, presence and holder initials, for offline verification. No emails, full names or order data. Supports If-None-Match.'
+  security:
+    - ScannerDevice: []
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: 'Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId.'
+  x-idempotency: 'Safe; ETag reflects the content (304 when unchanged).'
+  x-source: apps/live/src/pages/api/scanner/manifest.ts
+  parameters:
+    - name: eventId
+      in: query
+      required: true
+      description: The event the scanner works.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+  responses:
+    '200':
+      description: Successful response
+      headers:
+        ETag:
+          description: Content version of the manifest.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/scanner/ScannerManifestResponse.yaml
+    '304':
+      description: Not modified (If-None-Match matched the current ETag).
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml

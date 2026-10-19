@@ -80,6 +80,13 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/venues',
     '/artists',
     '/artists/[slug]',
+    // Door scanner (Agent C): gated by the scanner device cookie or an organizer session with
+    // scan_tickets inside the page; anyone else sees "open the scanner link" (no account needed).
+    '/scan',
+    '/scan/[event]',
+    '/scan/[event]/unlock',
+    '/scan/[event]/lookup',
+    '/scan/[event]/door',
     ...AUTH_PAGES,
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
@@ -109,6 +116,7 @@ const PUBLIC_API = new Set([
   'POST /api/checkout/session', // guest checkout; fails closed without Stripe
   'POST /api/webhook/stripe', // Stripe signature
   'POST /api/auth/clerk-webhook', // Svix signature with this product's CLERK_WEBHOOK_SECRET_<APP>
+  'GET /api/venue-maps/[id]', // venue blueprint image (random id, sandboxed image response)
 ]);
 
 function walk(dir: string, base = ''): string[] {

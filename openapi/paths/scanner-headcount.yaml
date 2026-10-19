@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+get:
+  operationId: getScannerHeadcount
+  tags:
+    - Live
+  summary: 'Live headcount for the scanner screen'
+  description: 'People inside now, admitted today (venue-local day) and capacity. Polled every 10 seconds while online.'
+  security:
+    - ScannerDevice: []
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: 'Scanner device cookie for this event, or a verified Gamo Live session with scan_tickets on eventId.'
+  x-idempotency: 'Safe.'
+  x-source: apps/live/src/pages/api/scanner/headcount.ts
+  parameters:
+    - name: eventId
+      in: query
+      required: true
+      description: The event the scanner works.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/scanner/ScannerHeadcountResponse.yaml
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml

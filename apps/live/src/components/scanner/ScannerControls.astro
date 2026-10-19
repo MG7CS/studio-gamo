@@ -1,0 +1,150 @@
+---
+/**
+ * Camera, entry/exit mode, manual code entry and headcount for the scanner page. Without JavaScript
+ * the manual form posts to the page and the server answers with the result; the camera, offline
+ * queue, headcount polling and repeat-scan debounce are added by scripts/scanner/app.ts.
+ */
+import type { Headcount } from '@gamo/domain/scanner';
+
+interface Props {
+  allowed: 'in' | 'out' | 'both';
+  direction: 'in' | 'out';
+  headcount: Headcount | null;
+  canSupervise: boolean;
+  eventId: string;
+}
+const { allowed, direction, headcount, canSupervise, eventId } = Astro.props;
+const modes = (allowed === 'both' ? ['in', 'out'] : [allowed]) as Array<'in' | 'out'>;
+const base = `/scan/${encodeURIComponent(eventId)}`;
+---
+
+<div class="space-y-4">
+  <div class="rounded-[20px] bg-white/5 p-3 ring-1 ring-white/15" data-camera hidden>
+    <div class="relative overflow-hidden rounded-2xl bg-black">
+      <video data-camera-video class="aspect-[4/3] w-full object-cover" muted playsinline></video>
+      <div
+        class="pointer-events-none absolute inset-8 rounded-2xl ring-4 ring-terracotta-soft/80"
+        aria-hidden="true"
+      ></div>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button
+        type="button"
+        data-camera-start
+        class="min-h-12 flex-1 rounded-full bg-terracotta px-5 font-bold text-white hover:bg-terracotta-deep"
+      >
+        Start camera
+      </button>
+      <button
+        type="button"
+        data-camera-stop
+        hidden
+        class="min-h-12 flex-1 rounded-full bg-white/15 px-5 font-semibold"
+      >
+        Stop camera
+      </button>
+    </div>
+    <p class="mt-2 text-sm text-cream/80" data-camera-status role="status"></p>
+  </div>
+
+  <form method="post" class="space-y-3 rounded-[20px] bg-white/5 p-4 ring-1 ring-white/15" data-manual-form>
+    {modes.length > 1 ? (
+      <fieldset>
+        <legend class="text-sm font-semibold">Mode</legend>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          {modes.map((m) => (
+            <label class="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-white/10 font-bold has-[:checked]:bg-cream has-[:checked]:text-ink">
+              <input
+                type="radio"
+                name="direction"
+                value={m}
+                checked={m === direction}
+                class="size-5 accent-terracotta"
+                data-direction
+              />
+              {m === 'in' ? 'Entry' : 'Exit'}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    ) : (
+      <input type="hidden" name="direction" value={modes[0]} data-direction />
+    )}
+    <div>
+      <label for="ticket-code" class="text-sm font-semibold">
+        Ticket code
+      </label>
+      <input
+        id="ticket-code"
+        name="code"
+        required
+        maxlength="200"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder="GL1.…"
+        class="mt-1.5 min-h-12 w-full rounded-xl bg-white px-3 font-mono text-base text-ink"
+      />
+      <p class="mt-1 text-xs text-cream/75">
+        Type the code printed under the QR if the camera cannot read it.
+      </p>
+    </div>
+    <button type="submit" class="min-h-12 w-full rounded-full bg-cream font-bold text-ink hover:bg-sand">
+      Check ticket
+    </button>
+  </form>
+
+  <dl class="grid grid-cols-3 gap-2 text-center" data-headcount>
+    <div class="rounded-2xl bg-white/5 p-3 ring-1 ring-white/15">
+      <dt class="text-xs text-cream/75">Inside now</dt>
+      <dd class="text-2xl font-black tabular-nums" data-count-inside>
+        {headcount?.insideNow ?? '—'}
+      </dd>
+    </div>
+    <div class="rounded-2xl bg-white/5 p-3 ring-1 ring-white/15">
+      <dt class="text-xs text-cream/75">Admitted today</dt>
+      <dd class="text-2xl font-black tabular-nums" data-count-admitted>
+        {headcount?.admittedToday ?? '—'}
+      </dd>
+    </div>
+    <div class="rounded-2xl bg-white/5 p-3 ring-1 ring-white/15">
+      <dt class="text-xs text-cream/75">Capacity</dt>
+      <dd class="text-2xl font-black tabular-nums" data-count-capacity>
+        {headcount?.capacity ?? '—'}
+      </dd>
+    </div>
+  </dl>
+
+  <p class="text-sm text-cream/80" data-connection role="status" aria-live="polite"></p>
+  <div data-review hidden class="rounded-2xl bg-amber-300 p-4 text-ink" role="status">
+    <p class="font-bold" data-review-title></p>
+    <ul class="mt-2 list-disc pl-5 text-sm" data-review-list></ul>
+  </div>
+
+  {canSupervise && (
+    <nav aria-label="Supervisor tools" class="grid grid-cols-2 gap-2">
+      <a
+        href={`${base}/lookup`}
+        class="flex min-h-12 items-center justify-center rounded-full bg-white/10 px-4 text-center font-semibold hover:bg-white/20"
+      >
+        Find a guest
+      </a>
+      <a
+        href={`${base}/door`}
+        class="flex min-h-12 items-center justify-center rounded-full bg-white/10 px-4 text-center font-semibold hover:bg-white/20"
+      >
+        Door sale
+      </a>
+    </nav>
+  )}
+
+  <details class="rounded-2xl bg-white/5 p-4 text-sm ring-1 ring-white/15" data-feedback-options hidden>
+    <summary class="min-h-11 cursor-pointer font-semibold">Sound and vibration</summary>
+    <label class="mt-2 flex min-h-11 items-center gap-3">
+      <input type="checkbox" data-pref="sound" class="size-5 accent-terracotta" /> Beep on each result
+    </label>
+    <label class="flex min-h-11 items-center gap-3">
+      <input type="checkbox" data-pref="vibrate" class="size-5 accent-terracotta" /> Vibrate on each result
+    </label>
+  </details>
+</div>

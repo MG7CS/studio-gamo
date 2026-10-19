@@ -105,6 +105,22 @@ paths:
   /api/review/organizers/{id}:
     $ref: paths/review-organizers-id.yaml
   # --- end agent A ---
+  # --- agent C --- (door scanning, offline manifest, venue blueprints)
+  /api/scanner/scan:
+    $ref: paths/scanner-scan.yaml
+  /api/scanner/lookup:
+    $ref: paths/scanner-lookup.yaml
+  /api/scanner/override:
+    $ref: paths/scanner-override.yaml
+  /api/scanner/manifest:
+    $ref: paths/scanner-manifest.yaml
+  /api/scanner/sync:
+    $ref: paths/scanner-sync.yaml
+  /api/scanner/headcount:
+    $ref: paths/scanner-headcount.yaml
+  /api/venue-maps/{id}:
+    $ref: paths/venue-maps-id.yaml
+  # --- end agent C ---
 components:
   schemas:
     Identifier:
@@ -259,6 +275,26 @@ components:
     OrganizerReviewForm:
       $ref: components/schemas/administration/OrganizerReviewForm.yaml
     # --- end agent A ---
+    # --- agent C --- (door scanning)
+    ScannerScanInput:
+      $ref: components/schemas/live/scanner/ScannerScanInput.yaml
+    ScannerScanResponse:
+      $ref: components/schemas/live/scanner/ScannerScanResponse.yaml
+    ScannerLookupInput:
+      $ref: components/schemas/live/scanner/ScannerLookupInput.yaml
+    ScannerLookupResponse:
+      $ref: components/schemas/live/scanner/ScannerLookupResponse.yaml
+    ScannerOverrideInput:
+      $ref: components/schemas/live/scanner/ScannerOverrideInput.yaml
+    ScannerManifestResponse:
+      $ref: components/schemas/live/scanner/ScannerManifestResponse.yaml
+    ScannerSyncInput:
+      $ref: components/schemas/live/scanner/ScannerSyncInput.yaml
+    ScannerSyncResponse:
+      $ref: components/schemas/live/scanner/ScannerSyncResponse.yaml
+    ScannerHeadcountResponse:
+      $ref: components/schemas/live/scanner/ScannerHeadcountResponse.yaml
+    # --- end agent C ---
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml
@@ -266,6 +302,10 @@ components:
       $ref: components/security/CloudflareAccess.yaml
     StripeSignature:
       $ref: components/security/StripeSignature.yaml
+    # --- agent C ---
+    ScannerDevice:
+      $ref: components/security/ScannerDevice.yaml
+    # --- end agent C ---
     EmergencyBearer:
       $ref: components/security/EmergencyBearer.yaml
     EmergencyKey:

@@ -10,7 +10,8 @@
     "drizzle-orm": "^0.45.4",
     "zod": "^3.24.2",
     "@gamo/api-contracts": "workspace:*",
-    "@gamo/config": "workspace:*"
+    "@gamo/config": "workspace:*",
+    "uqr": "0.1.3"
   },
   "exports": {
     ".": "./index.ts",
@@ -19,6 +20,7 @@
     "./types": "./src/types/index.ts",
     "./ticketing": "./src/ticketing/index.ts",
     "./terms": "./src/terms/index.ts",
-    "./public-form-guard": "./src/api/public-form-guard.ts"
+    "./public-form-guard": "./src/api/public-form-guard.ts",
+    "./scanner": "./src/services/ticketing/scanning-exports.ts"
   }
 }

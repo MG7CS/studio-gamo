@@ -1,0 +1,166 @@
+---
+/**
+ * Door staff open the scanner link (`/scan/<event>/unlock?k=<token>`) and type the 6-digit PIN.
+ * A correct PIN sets the HttpOnly scanner cookie (paths /scan and /api/scanner) and 303s to the
+ * token-free scanner page. Works without JavaScript.
+ */
+import ScannerLayout from '../../../components/scanner/ScannerLayout.astro';
+import OrganizerNotice from '../../../components/organizer/OrganizerNotice.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { asSqlDatabase, clientIp, hashIp, SecretNotConfiguredError } from '@gamo/domain/security';
+import {
+  buildScannerCookies,
+  findScannerLink,
+  resolveEventIdOrSlug,
+  SCANNER_LINK_ENDED_MESSAGE,
+  unlockScannerSession,
+} from '@gamo/domain/scanner';
+import { readPostedForm } from '../../../lib/organizer-pages';
+import { nowSeconds } from '../../../lib/scanner-pages';
+
+export const prerender = false;
+
+const env = await getRuntimeEnv(Astro);
+let token = Astro.url.searchParams.get('k') ?? '';
+let ended = false;
+let unavailable = false;
+let error: string | null = null;
+let eventTitle = 'Door scanner';
+let gate = '';
+
+try {
+  if (!env.DB) throw new SecretNotConfiguredError('DB');
+  const db = asSqlDatabase(env.DB);
+  const eventId = await resolveEventIdOrSlug(db, Astro.params.event ?? '');
+  if (Astro.request.method === 'POST') {
+    const form = await readPostedForm(Astro.request);
+    if (!form.ok) error = form.message;
+    else {
+      token = form.body.get('k') ?? '';
+      const ip = clientIp(Astro.request);
+      let ipHash: string | null = null;
+      if (ip) {
+        try {
+          ipHash = await hashIp(ip, env.PII_HASH_SECRET as string | undefined);
+        } catch {
+          ipHash = null; // without PII_HASH_SECRET only the per-session lock applies
+        }
+      }
+      const result = await unlockScannerSession(db, env as Record<string, unknown>, {
+        token,
+        pin: (form.body.get('pin') ?? '').replace(/\s/g, ''),
+        eventId: eventId ?? undefined,
+        ipHash,
+        deviceLabel: form.body.get('device') ?? null,
+        now: nowSeconds(),
+      });
+      if (result.ok) {
+        const headers = new Headers({
+          Location: `/scan/${encodeURIComponent(result.eventId)}`,
+          'Cache-Control': 'no-store',
+        });
+        for (const c of buildScannerCookies(
+          result.cookieValue,
+          result.cookieExpiresAt,
+          nowSeconds(),
+          Astro.url.protocol === 'https:',
+        ))
+          headers.append('Set-Cookie', c);
+        return new Response(null, { status: 303, headers });
+      }
+      if (result.reason === 'ended') ended = true;
+      else error = result.message;
+      Astro.response.status =
+        result.reason === 'rate_limited' || result.reason === 'locked'
+          ? 429
+          : result.reason === 'ended'
+            ? 410
+            : 400;
+    }
+  }
+  if (!ended) {
+    const link = await findScannerLink(db, env as Record<string, unknown>, {
+      token,
+      eventId: eventId ?? undefined,
+      now: nowSeconds(),
+    });
+    if (!link.ok) {
+      ended = true;
+      if (Astro.response.status === 200) Astro.response.status = 410;
+    } else {
+      eventTitle = link.event.title;
+      gate = link.session.label;
+      if (link.session.locked && !error)
+        error = 'Too many wrong PINs. This scanner link is locked for 15 minutes.';
+    }
+  }
+} catch (err) {
+  if (!(err instanceof SecretNotConfiguredError)) throw err;
+  unavailable = true;
+  Astro.response.status = 503;
+}
+---
+
+<ScannerLayout
+  title="Unlock scanner"
+  eyebrow={eventTitle}
+  heading="Unlock the scanner"
+  gate={gate || undefined}
+>
+  {unavailable ? (
+    <OrganizerNotice kind="error" title="Scanner unavailable" class="text-ink">
+      Door scanning is not configured yet. Use the printed guest list and tell the organizer.
+    </OrganizerNotice>
+  ) : ended ? (
+    <OrganizerNotice kind="error" title="Link ended" class="text-ink">
+      {SCANNER_LINK_ENDED_MESSAGE}
+    </OrganizerNotice>
+  ) : (
+    <form method="post" class="space-y-5" autocomplete="off">
+      <input type="hidden" name="k" value={token} />
+      <p class="text-sm text-cream/85">
+        Type the 6-digit PIN the organizer gave you. You only need to do this once per shift.
+      </p>
+      {error && (
+        <OrganizerNotice kind="error" class="text-ink">
+          <span id="pin-error">{error}</span>
+        </OrganizerNotice>
+      )}
+      <div>
+        <label for="pin" class="text-sm font-semibold">
+          PIN
+        </label>
+        <input
+          id="pin"
+          name="pin"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          required
+          aria-describedby={error ? 'pin-error' : undefined}
+          aria-invalid={error ? 'true' : undefined}
+          class="mt-1.5 min-h-14 w-full rounded-xl bg-white px-4 text-center font-mono text-3xl tracking-[0.4em] text-ink"
+        />
+      </div>
+      <div>
+        <label for="device" class="text-sm font-semibold">
+          Name this phone (optional)
+        </label>
+        <input
+          id="device"
+          name="device"
+          maxlength="80"
+          placeholder="e.g. North door phone"
+          class="mt-1.5 min-h-11 w-full rounded-xl bg-white px-3 text-ink"
+        />
+      </div>
+      <button
+        type="submit"
+        class="min-h-14 w-full rounded-full bg-terracotta text-base font-bold text-white hover:bg-terracotta-deep"
+      >
+        Unlock scanner
+      </button>
+    </form>
+  )}
+</ScannerLayout>

@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4324
+    description: Local live application
+post:
+  operationId: lookupTicketsAtDoor
+  tags:
+    - Live
+  summary: 'Manual ticket lookup (dead phone, name check)'
+  description: 'Finds up to 10 tickets of the event by order reference, email (exact) or name. Organizer accounts and supervisor scanner sessions (can_override) only. Every result is written to ticket_access_log.'
+  security:
+    - ScannerDevice: []
+    - BrowserSession: []
+  x-application: live
+  x-status: implemented
+  x-authorization: 'Supervisor scanner device for this event or a verified Gamo Live session with scan_tickets on eventId.'
+  x-idempotency: 'Read-only (each call is logged).'
+  x-source: apps/live/src/pages/api/scanner/lookup.ts
+  parameters: []
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/live/scanner/ScannerLookupResponse.yaml
+    '400':
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/LegacyError.yaml
+    '403':
+      $ref: ../components/responses/LegacyError.yaml
+    '404':
+      $ref: ../components/responses/LegacyError.yaml
+    '429':
+      $ref: ../components/responses/LegacyError.yaml
+    '503':
+      $ref: ../components/responses/LegacyError.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/live/scanner/ScannerLookupInput.yaml
