@@ -57,15 +57,13 @@ function auditId(): string {
   return `audit_${crypto.randomUUID()}`;
 }
 
-/** True when the newest person-link audit row for this user is an unlink (the person opted out). */
+/** True when the person unlinked this user (`users.person_link_opt_out_at`, cleared by an explicit relink). */
 export async function hasOptedOutOfPersonLink(db: SqlDatabase, userId: string): Promise<boolean> {
-  const rows = await allRows<{ action: string }>(db, {
-    sql: `SELECT action FROM audit_logs
-           WHERE entity_type = 'user' AND entity_id = ?1 AND action IN ('person.linked', 'person.unlinked')
-           ORDER BY created_at DESC, rowid DESC LIMIT 1`,
+  const rows = await allRows<{ o: number | null }>(db, {
+    sql: 'SELECT person_link_opt_out_at AS o FROM users WHERE id = ?1',
     params: [userId],
   });
-  return rows[0]?.action === 'person.unlinked';
+  return rows[0]?.o !== null && rows[0]?.o !== undefined;
 }
 
 /**
@@ -136,7 +134,7 @@ export async function linkUserToVerifiedPerson(
   const [updated] = await runBatch(db, [
     {
       // Conditional on the value read above, so two concurrent links cannot both move it.
-      sql: `UPDATE users SET person_id = ?2
+      sql: `UPDATE users SET person_id = ?2, person_link_opt_out_at = NULL
              WHERE id = ?1 AND ((?3 IS NULL AND person_id IS NULL) OR person_id = ?3)
                AND EXISTS (SELECT 1 FROM persons WHERE id = ?2 AND erased_at IS NULL)
              RETURNING person_id`,
@@ -175,8 +173,8 @@ export async function unlinkUserFromPerson(
       params: [auditId(), input.userId, input.product, input.now],
     },
     {
-      sql: 'UPDATE users SET person_id = NULL WHERE id = ?1 AND person_id IS NOT NULL RETURNING id',
-      params: [input.userId],
+      sql: 'UPDATE users SET person_id = NULL, person_link_opt_out_at = ?2 WHERE id = ?1 AND person_id IS NOT NULL RETURNING id',
+      params: [input.userId, input.now],
     },
   ]);
   return (cleared as unknown[]).length === 1;

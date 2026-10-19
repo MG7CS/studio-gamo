@@ -24,19 +24,17 @@ const roles = PROVIDER_REVIEW_ROLES.map((r) => ({ value: r, label: roleLabel(r) 
     path="/review/providers"
   />
   <ReviewOutcome outcome={outcomeFrom(Astro.url)} />
-  {
-    queue ? (
-      <ReviewQueueTable
-        basePath="/review/providers"
-        filter={queue.filter}
-        filters={queue.filters}
-        roles={roles}
-        roleFilter={queue.roleFilter}
-        items={queue.items}
-        emptyText="No providers in this state."
-      />
-    ) : (
-      <StaffSignInNotice />
-    )
-  }
+  {queue ? (
+    <ReviewQueueTable
+      basePath="/review/providers"
+      filter={queue.filter}
+      filters={queue.filters}
+      roles={roles}
+      roleFilter={queue.roleFilter}
+      items={queue.items}
+      emptyText="No providers in this state."
+    />
+  ) : (
+    <StaffSignInNotice />
+  )}
 </DashboardShell>

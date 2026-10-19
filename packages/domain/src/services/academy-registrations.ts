@@ -609,8 +609,8 @@ export async function cancelAcademyRegistration(
   const paid = current.status === 'paid';
   const specs: SqlStatementSpec[] = [
     {
-      sql: "UPDATE academy_registrations SET status = 'cancelled', cancelled_at = ?3, updated_at = ?3 WHERE id = ?1 AND status = ?2",
-      params: [current.id, current.status, input.now],
+      sql: "UPDATE academy_registrations SET status = 'cancelled', cancelled_at = ?3, updated_at = ?3, refund_requested_at = CASE WHEN ?4 = 1 THEN ?3 ELSE refund_requested_at END WHERE id = ?1 AND status = ?2",
+      params: [current.id, current.status, input.now, paid ? 1 : 0],
     },
   ];
   if (paid)

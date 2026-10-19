@@ -79,7 +79,8 @@ export function siteUrl(site: SiteKey, path = '/'): string {
  * churches join on Gamo Worship, teachers and church hosts on Gamo Academy, technicians on Gamo
  * Production, organizers, artists and agents on Gamo Live.
  */
-export type ProviderSignupRole = 'musician' | 'technician' | 'church' | 'agent' | 'organizer' | 'teacher' | 'artist';
+export type ProviderSignupRole =
+  'musician' | 'technician' | 'church' | 'agent' | 'organizer' | 'teacher' | 'artist';
 
 export function providerSignupUrl(site: Exclude<SiteKey, 'web' | 'admin'>, role: ProviderSignupRole): string {
   return siteUrl(site, `/account/signup?role=${role}`);

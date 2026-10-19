@@ -79,7 +79,8 @@ test('Admin workspace exposes full operational control, analytics hub, and Gamo 
       if (item.slug.startsWith('review/')) {
         const page = item.slug.split('?')[0];
         assert.ok(
-          existsSync(`apps/admin/src/pages/${page}.astro`) || existsSync(`apps/admin/src/pages/${page}/index.astro`),
+          existsSync(`apps/admin/src/pages/${page}.astro`) ||
+            existsSync(`apps/admin/src/pages/${page}/index.astro`),
           `Admin nav item "${item.label}" (${item.slug}) has no page`,
         );
         continue;
