@@ -890,3 +890,11 @@
 - **Owner-only, still to do:** apply Live migrations 0003 to 0007 remotely (`make live-db` applies them locally).
 - **Checked:** typecheck, eslint, prettier, builds of live and admin, `settings.test.ts` and `organizers.test.ts` (18/18), the admin spec (9/9, includes a menu-not-clipped check expanded and collapsed) and both Live flows (include the Settings step and axe). **Not run:** the full unit suite, the full Playwright run, the Live public smoke.
 
+## 2026-10-19 — Admin calendar and Overview (not committed, not deployed, not pushed)
+
+- **Inbox is now Overview.** Counts and "Waiting longest" stay; below the counts is a calendar card of every organizer event (published, waiting for review, hidden) and catalog listing (published, waiting, hidden) with a card for the chosen day, and a "Waiting for review and starting soon" card (events within 7 days, only when there are any). Each item links to where Gamo decides: the review card, the published list or the catalog listing. Catalog has its own calendar above the list (it also shows listings that failed the editorial rules).
+- **Code:** `packages/domain/src/live/admin-schedule.ts` (`listAdminSchedule`, pure `adminScheduleView`) with tests; admin `lib/schedule.ts` and the cards `ScheduleCalendar`, `ScheduleDay`, `StartingSoonCard`. The shared `Calendar` and `Panel` (clay variant) are reused; nothing new in `packages/ui` except the Month/Week toggle now being 44 px high.
+- **Not shown on the calendar:** drafts, rejected and canceled events, events with "changes requested" (the organizer acts), dates older than 90 days. A canceled date of a listed event shows as canceled.
+- **Phone:** a seven-column month cannot give each day a 44 px target on a phone; the Week view (one row per day) can. The month grid is exempt in the phone target check for that reason.
+- **Checked:** typecheck, eslint, prettier, builds, `admin-schedule.test.ts` (6/6), the admin spec (10/10, including the calendar, axe and no sideways scroll at 390 px) and both Live flows. **Not run:** the full unit suite, the full Playwright run, the Live public smoke.
+

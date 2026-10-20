@@ -22,7 +22,7 @@ const { events } = Astro.props;
 ) : (
   <ul class="space-y-3">
     {events.map((e) => (
-      <li class="rounded-clay-lg bg-surface p-5 shadow-soft">
+      <li id={`published-${e.id}`} class="rounded-clay-lg bg-surface p-5 shadow-soft">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div class="min-w-0">
             <h3 class="text-[15px] font-bold">{e.title}</h3>

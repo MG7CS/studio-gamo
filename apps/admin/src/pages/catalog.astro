@@ -3,12 +3,15 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import CatalogList from '../components/CatalogList.astro';
 import LiveTabs from '../components/LiveTabs.astro';
+import ScheduleCalendar from '../components/ScheduleCalendar.astro';
+import ScheduleDay from '../components/ScheduleDay.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listAdminCatalog } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../lib/inbox';
 import { handleCatalogForm, outcomeFrom } from '../lib/live-admin';
+import { loadAdminSchedule } from '../lib/schedule';
 
 const env = await getRuntimeEnv(Astro);
 let error: string | null = null;
@@ -25,6 +28,7 @@ try {
   console.error(`[admin] catalog unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
 const counts = await loadCounts(env);
+const schedule = rows ? await loadAdminSchedule(env, 'catalog', Astro.url) : null;
 const outcome = outcomeFrom(Astro.url);
 ---
 
@@ -43,6 +47,16 @@ const outcome = outcomeFrom(Astro.url);
     <Notice tone="danger" class="mb-5">
       {error}
     </Notice>
+  )}
+  {schedule && schedule.total > 0 && (
+    <div class="mb-5 grid items-start gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <ScheduleCalendar
+        view={schedule}
+        title="Catalog dates"
+        empty="Listings appear here once they have dates."
+      />
+      <ScheduleDay view={schedule} />
+    </div>
   )}
   {rows ? (
     <CatalogList rows={rows} />

@@ -1,15 +1,23 @@
 ---
-/** Inbox: everything waiting for the admin, from real queries. No trends or history, because none is recorded. */
+/**
+ * Overview: everything waiting for the admin (counts and the longest-waiting items) and every event and listing on a
+ * calendar, all from real queries. No trends or history, because none is recorded.
+ */
 import AdminLayout from '../layouts/AdminLayout.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import ScheduleCalendar from '../components/ScheduleCalendar.astro';
+import ScheduleDay from '../components/ScheduleDay.astro';
+import StartingSoonCard from '../components/StartingSoonCard.astro';
 import StatCard from '../components/StatCard.astro';
 import WaitingList from '../components/WaitingList.astro';
 import { getRuntimeEnv } from '@gamo/domain';
 import { loadInbox } from '../lib/inbox';
+import { loadAdminSchedule } from '../lib/schedule';
 
 const env = await getRuntimeEnv(Astro);
 const inbox = await loadInbox(env);
+const schedule = inbox?.liveAvailable ? await loadAdminSchedule(env, 'all', Astro.url) : null;
 const total = inbox ? Object.values(inbox.counts).reduce((sum, n) => sum + n, 0) : 0;
 const summary = !inbox
   ? undefined
@@ -18,8 +26,8 @@ const summary = !inbox
     : `${total} ${total === 1 ? 'item is' : 'items are'} waiting for you.`;
 ---
 
-<AdminLayout title="Inbox" current="inbox">
-  <PageHeader title="Inbox" description={summary} />
+<AdminLayout title="Overview" current="overview">
+  <PageHeader title="Overview" description={summary} />
   {!inbox && (
     <Notice tone="danger" title="Counts unavailable" class="mb-5">
       The database could not be read, so nothing is shown instead of guessing. Try again in a moment.
@@ -80,6 +88,24 @@ const summary = !inbox
           </>
         )}
       </div>
+      {inbox.liveAvailable && !schedule && (
+        <Notice tone="danger" title="Calendar unavailable">
+          Gamo Live’s dates could not be read, so no calendar is drawn instead of an empty one.
+        </Notice>
+      )}
+      {schedule && (
+        <div class="grid items-start gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+          <ScheduleCalendar
+            view={schedule}
+            title="All events and listings"
+            empty="Organizer events and catalog listings appear here once they have dates."
+          />
+          <div class="space-y-3">
+            <StartingSoonCard view={schedule} />
+            <ScheduleDay view={schedule} />
+          </div>
+        </div>
+      )}
       <WaitingList items={inbox.oldest} />
     </div>
   )}

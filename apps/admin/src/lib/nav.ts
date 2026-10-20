@@ -7,7 +7,7 @@ import type { IconName } from '@studio-gamo/ui/lib/icons';
 import type { QueueCounts } from './inbox';
 
 export type NavKey =
-  | 'inbox'
+  | 'overview'
   | 'participation'
   | 'churches'
   | 'providers'
@@ -29,7 +29,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { key: 'inbox', label: 'Inbox', shortLabel: 'Inbox', href: '/', icon: 'home' },
+  { key: 'overview', label: 'Overview', shortLabel: 'Overview', href: '/', icon: 'home' },
   {
     key: 'participation',
     label: 'Participation requests',

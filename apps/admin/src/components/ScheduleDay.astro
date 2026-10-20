@@ -1,0 +1,49 @@
+---
+/** The chosen day of the calendar: each event or listing on it, with its status, and a link to where Gamo decides. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { AdminScheduleView } from '@gamo/domain';
+
+interface Props {
+  view: AdminScheduleView;
+}
+const { view } = Astro.props;
+---
+
+<Panel id="day" variant="clay">
+  <h2 class="text-[16px] font-bold text-ink">{view.chosenLabel ?? 'Choose a day'}</h2>
+  {view.items.length === 0 ? (
+    <p class="mt-2 text-[14px] text-muted">
+      {view.total === 0 ? 'Nothing is scheduled.' : 'Choose a day with a date in the calendar.'}
+    </p>
+  ) : (
+    <ul class="mt-3 space-y-2">
+      {view.items.map((i) => (
+        <li>
+          <a
+            href={i.href}
+            class="block rounded-clay-md bg-surface-soft p-3 shadow-inset hover:bg-clay-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-700"
+          >
+            <span class="flex flex-wrap items-center justify-between gap-2">
+              <span class="min-w-0 text-[14px] font-semibold text-ink">{i.title}</span>
+              <span class="flex flex-wrap gap-1.5">
+                {i.source === 'catalog' && <Pill tone="neutral">Catalog</Pill>}
+                {i.canceled ? (
+                  <Pill tone="danger">Date canceled</Pill>
+                ) : (
+                  <Pill tone={i.tone}>{i.statusLabel}</Pill>
+                )}
+                {i.soon && <Pill tone="danger">Starts soon</Pill>}
+              </span>
+            </span>
+            <span class="mt-0.5 block text-[13px] text-muted">
+              {i.timeLabel}
+              {i.organizationName ? ` · ${i.organizationName}` : ''}
+              {i.past ? ' · Past' : ''}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

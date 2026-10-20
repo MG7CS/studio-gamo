@@ -189,9 +189,9 @@ test('the sidebar script runs under the enforced CSP: collapse to the icon rail,
   expect(cspErrors, 'no Content-Security-Policy violation so far').toEqual([]);
 });
 
-test('the sidebar and Inbox show the real counts, and each area shows its seeded rows', async () => {
+test('the sidebar and Overview show the real counts, and each area shows its seeded rows', async () => {
   await page.goto(`${ADMIN_E2E_ORIGIN}/`);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Inbox');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview');
   expect(await badgeOf(page, 'Participation requests')).toBe(String(REVIEW_FIXTURE_COUNTS.participation));
   expect(await badgeOf(page, 'Church verification')).toBe(String(REVIEW_FIXTURE_COUNTS.churches));
   expect(await badgeOf(page, 'Provider review')).toBe(String(REVIEW_FIXTURE_COUNTS.providers));
@@ -247,7 +247,7 @@ test('every page passes accessibility, fits 360 px, has 44 px targets and a phon
   await expect(tabs).toHaveCount(6);
   // The name is the visible word plus screen-reader-only extras (never a different aria-label).
   const names = [
-    'Inbox',
+    'Overview',
     'Requests (Participation requests, 2 waiting)',
     'Church (Church verification, 1 waiting)',
     'Providers (Provider review, 2 waiting)',
@@ -260,7 +260,14 @@ test('every page passes accessibility, fits 360 px, has 44 px targets and a phon
     [...document.querySelectorAll('a,button,select,input,textarea,summary')]
       .filter((e) => {
         const r = e.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && (r.height < 44 || r.width < 44) && !e.closest('.sr-only');
+        // A seven-column month cannot give every day 44 px on a phone; the Week view (one row per day) can.
+        return (
+          r.width > 0 &&
+          r.height > 0 &&
+          (r.height < 44 || r.width < 44) &&
+          !e.closest('.sr-only') &&
+          !e.closest('table')
+        );
       })
       .map((e) => e.textContent?.trim().slice(0, 30)),
   );
@@ -344,7 +351,7 @@ test('the admin menu closes on an outside press and Escape; dangerous actions co
   await page.locator('[data-sidebar-toggle]').click();
   await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'open');
 
-  // A count on the Inbox opens the list it counts.
+  // A count on the Overview opens the list it counts.
   await page
     .getByRole('link', { name: /^Participation requests\s*\d+/ })
     .first()
@@ -358,6 +365,49 @@ test('the admin menu closes on an outside press and Escape; dangerous actions co
   await expect(page.getByText('Cleanup finished.')).toHaveCount(0);
   await page.getByRole('button', { name: 'Delete old data now' }).click();
   await expect(page.getByText('Cleanup finished.')).toBeVisible();
+});
+
+test('the calendar shows every event and listing; a day lists them with links to where Gamo decides', async () => {
+  const inDays = (days: number) =>
+    new Date(Date.now() + days * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  // Overview: the calendar opens on the next upcoming date, which is the catalog listing 20 days out.
+  await page.goto(`${ADMIN_E2E_ORIGIN}/`);
+  const calendar = page.locator('#schedule');
+  await expect(calendar.getByRole('table')).toBeVisible();
+  await expect(calendar).toContainText('upcoming of 4 dates');
+  await expect(page.locator('#day a[href^="/catalog#listing-"]')).toHaveCount(1);
+  await expect(page.locator('#day')).toContainText('Catalog');
+  await expectAccessible(page, '/ (calendar)');
+  if (process.env.ADMIN_SHOTS)
+    await page.screenshot({ path: `${process.env.ADMIN_SHOTS}/overview.png`, fullPage: true });
+  // A date of an event waiting for review links to its review card; a published one to the published list.
+  await page.goto(`${ADMIN_E2E_ORIGIN}/?date=${inDays(30)}#schedule`);
+  const pending = page.locator('#day a[href^="/events#event-"]');
+  await expect(pending).toHaveCount(1);
+  await expect(page.locator('#day')).toContainText('Waiting for review');
+  await pending.click();
+  await expect(page).toHaveURL(/\/events#event-evt_sample_first$/);
+  await expect(page.locator('#event-evt_sample_first')).toBeVisible();
+  await page.goto(`${ADMIN_E2E_ORIGIN}/?date=${inDays(60)}#schedule`);
+  await page.locator('#day a[href^="/events#published-"]').click();
+  await expect(page.locator('#published-evt_sample_live')).toBeVisible();
+  // Catalog: its own calendar of listings, linking to the listing.
+  await page.goto(`${ADMIN_E2E_ORIGIN}/catalog`);
+  await expect(page.locator('#schedule').getByRole('table')).toBeVisible();
+  await page.locator('#day a[href^="/catalog#listing-"]').click();
+  await expect(page.locator('#listing-evt_sample_catalog')).toBeVisible();
+  await expectAccessible(page, '/catalog (calendar)');
+  if (process.env.ADMIN_SHOTS)
+    await page.screenshot({ path: `${process.env.ADMIN_SHOTS}/catalog.png`, fullPage: true });
+  // Phone: the calendar and the day stack and nothing scrolls sideways.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${ADMIN_E2E_ORIGIN}/`);
+  await expect(page.locator('#schedule').getByRole('table')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  if (process.env.ADMIN_SHOTS)
+    await page.screenshot({ path: `${process.env.ADMIN_SHOTS}/overview-phone.png`, fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
 });
 
 test('decisions work under the enforced CSP: reply, verify a church, approve events, and a cross-site post is refused', async ({
@@ -440,7 +490,7 @@ test('decisions work under the enforced CSP: reply, verify a church, approve eve
   await expect(page.getByText('Listing published.')).toBeVisible();
   expect(await badgeOf(page, 'Catalog')).toBe('');
 
-  // The Inbox now says what is left, from the database.
+  // The Overview now says what is left, from the database.
   await page.goto(`${ADMIN_E2E_ORIGIN}/`);
   await expect(page.getByText('1 item is waiting for you.')).toBeVisible();
   await context.close();
