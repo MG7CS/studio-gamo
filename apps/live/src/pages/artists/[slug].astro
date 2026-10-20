@@ -1,60 +1,221 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import DirectoryShell from '../../components/directory/DirectoryShell.astro';
 import LiveDiscoveryCard from '../../components/LiveDiscoveryCard.astro';
-import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
-import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
-import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import { readCatalog } from '../../lib/public-catalog';
+import { LiveCatalog, asSqlDatabase, getRuntimeEnv, type LiveEventWithDetails } from '@gamo/domain';
 
 export const prerender = false;
 
-const slug = (Astro.params.slug ?? '').trim();
-const result = await readCatalog(Astro, (catalog) => catalog.getArtistBySlug(slug));
-
-if (result.ok && !result.data) {
-  Astro.response.status = 404;
-  return Astro.rewrite('/404');
+function toArtistSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-');
 }
-if (!result.ok) Astro.response.status = 503;
-const artist = result.ok ? result.data : null;
-const count = artist?.upcomingEvents.length ?? 0;
+
+const rawSlug = (Astro.params.slug || '').trim().toLowerCase();
+
+interface PublicArtistProfile {
+  slug: string;
+  stageName: string;
+  roleLabel: string;
+  genre: string | null;
+  bio: string | null;
+  homeCity: string | null;
+  homeState: string | null;
+  isVerifiedProfile: boolean;
+  upcomingEvents: LiveEventWithDetails[];
+}
+
+let artist: PublicArtistProfile | null = null;
+let unavailable = false;
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
+
+  const [publishedEvents, verifiedProfiles] = await Promise.all([
+    liveService.listDiscoverableEvents({ limit: 200 }),
+    liveService.listArtists(),
+  ]);
+
+  const artistMap = new Map<string, PublicArtistProfile>();
+
+  for (const prof of verifiedProfiles) {
+    const slug = toArtistSlug(prof.stageName);
+    const normKey = prof.stageName.trim().toLowerCase();
+    artistMap.set(normKey, {
+      slug,
+      stageName: prof.stageName.trim(),
+      roleLabel: 'Performer',
+      genre: null,
+      bio: null, // listArtists() does not expose bio (contract: ArtistListResponse)
+      homeCity: null,
+      homeState: null,
+      isVerifiedProfile: false,
+      upcomingEvents: [],
+    });
+  }
+
+  for (const evt of publishedEvents) {
+    for (const perf of evt.performers || []) {
+      const name = perf.displayName.trim();
+      if (!name) continue;
+      const normKey = name.toLowerCase();
+      const existing = artistMap.get(normKey);
+      if (existing) {
+        if (!existing.upcomingEvents.some((e) => e.id === evt.id)) {
+          existing.upcomingEvents.push(evt);
+        }
+      } else {
+        artistMap.set(normKey, {
+          slug: toArtistSlug(name),
+          stageName: name,
+          roleLabel:
+            perf.roleLabel === 'headliner'
+              ? 'Headlining Artist'
+              : perf.roleLabel === 'featured'
+                ? 'Featured Artist'
+                : 'Touring Artist',
+          genre: evt.category === 'worship' ? 'Worship' : 'Christian & Gospel',
+          bio: null,
+          homeCity: null,
+          homeState: null,
+          isVerifiedProfile: false,
+          upcomingEvents: [evt],
+        });
+      }
+    }
+  }
+
+  for (const entry of artistMap.values()) {
+    if (entry.slug === rawSlug || entry.stageName.toLowerCase() === rawSlug) {
+      artist = entry;
+      break;
+    }
+  }
+} catch {
+  unavailable = true;
+}
+
+if (!artist && !unavailable) {
+  return Astro.redirect(`/artists?q=${encodeURIComponent(rawSlug)}`, 303);
+}
+
+if (unavailable) {
+  Astro.response.status = 503;
+}
 ---
 
 <Layout
-  title={artist ? artist.stageName : 'Artist'}
-  description={artist ? `Upcoming dates for ${artist.stageName} on Gamo Live.` : undefined}
-  bodyClass="bg-ivory text-ink"
+  title={artist ? `${artist.stageName} — Tour Dates & Profile` : 'Artist profile'}
+  description={
+    artist
+      ? `Upcoming Christian concert dates and worship gatherings featuring ${artist.stageName} on Gamo Live.`
+      : 'Browse artist profiles and upcoming Christian concert dates on Gamo Live.'
+  }
   noindex={!artist}
 >
   {artist ? (
-    <DirectoryShell
-      title={artist.stageName}
-      description={`${count} upcoming ${count === 1 ? 'event' : 'events'}`}
-      breadcrumbs={[{ label: 'Artists', href: '/artists' }, { label: artist.stageName }]}
-    >
-      {count === 0 ? (
-        <EmptyState title="No upcoming events." text="Dates appear here once they are published.">
-          <Button href="/events" variant="secondary">
-            Browse events
-          </Button>
-        </EmptyState>
-      ) : (
-        <ul class="grid gap-4 md:grid-cols-2">
-          {artist.upcomingEvents.map((event) => (
-            <LiveDiscoveryCard event={event} />
-          ))}
-        </ul>
-      )}
-    </DirectoryShell>
+    <div>
+      {/* Compact Artist Profile Header */}
+      <section class="bg-ivory border-b border-sand pt-8 pb-7">
+        <div class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8">
+          <a href="/artists" class="inline-block text-xs font-semibold text-muted hover:text-terracotta mb-2">
+            &larr; All artists
+          </a>
+
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
+                  {artist.genre || artist.roleLabel}
+                </span>
+                {artist.homeCity && artist.homeState && (
+                  <span class="text-xs text-muted">
+                    · {artist.homeCity}, {artist.homeState}
+                  </span>
+                )}
+                {artist.isVerifiedProfile && (
+                  <span class="inline-flex items-center rounded-full bg-[#E9F5EC] px-2.5 py-0.5 text-[11px] font-semibold text-[#2E6F40]">
+                    Verified profile
+                  </span>
+                )}
+              </div>
+
+              <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-ink uppercase">
+                {artist.stageName}
+              </h1>
+
+              {artist.bio && (
+                <p class="mt-2 max-w-2xl text-sm sm:text-base text-muted leading-relaxed">{artist.bio}</p>
+              )}
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+              <a
+                href={`/events?metro=all&q=${encodeURIComponent(artist.stageName)}`}
+                class="inline-flex items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep text-white px-5 py-2.5 text-sm font-semibold transition-colors min-h-11"
+              >
+                Filter in marketplace ({artist.upcomingEvents.length})
+              </a>
+              <a
+                href="/artists#artist-onboarding"
+                class="inline-flex items-center justify-center rounded-full border border-line bg-white hover:bg-cream text-ink px-5 py-2.5 text-sm font-semibold transition-colors min-h-11"
+              >
+                Manage representation
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Upcoming Tour Dates for this Artist */}
+      <section class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex items-baseline justify-between gap-4 mb-6">
+          <h2 class="text-xl font-extrabold text-ink">Upcoming dates ({artist.upcomingEvents.length})</h2>
+          <a
+            href="/events"
+            class="inline-flex min-h-11 items-center text-sm font-semibold text-terracotta hover:underline"
+          >
+            View full event directory &rarr;
+          </a>
+        </div>
+
+        {artist.upcomingEvents.length > 0 ? (
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {artist.upcomingEvents.map((evt, idx) => (
+              <LiveDiscoveryCard event={evt} index={idx} />
+            ))}
+          </div>
+        ) : (
+          <div class="rounded-2xl border border-sand bg-white p-8 text-center">
+            <p class="text-base font-bold text-ink">
+              No upcoming public tour dates currently listed for {artist.stageName}.
+            </p>
+            <a
+              href="/events"
+              class="mt-4 inline-flex items-center rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Browse all upcoming events
+            </a>
+          </div>
+        )}
+      </section>
+    </div>
   ) : (
-    <DirectoryShell
-      title="Artist"
-      breadcrumbs={[{ label: 'Artists', href: '/artists' }, { label: 'Artist' }]}
-    >
-      <Notice tone="warning" title="This artist is unavailable right now">
-        Please try again in a moment.
-      </Notice>
-    </DirectoryShell>
+    <section class="max-w-[1340px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="rounded-2xl border border-sand bg-white p-8 text-center">
+        <h1 class="text-lg font-bold text-ink">Artist profile temporarily unavailable</h1>
+        <p class="mt-1 text-sm text-muted">Please try again or browse the artist directory.</p>
+        <a
+          href="/artists"
+          class="mt-4 inline-flex items-center rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          Back to artists
+        </a>
+      </div>
+    </section>
   )}
 </Layout>

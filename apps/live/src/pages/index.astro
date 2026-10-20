@@ -1,29 +1,863 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import HomeHero from '../components/home/HomeHero.astro';
-import FeaturedEvent from '../components/home/FeaturedEvent.astro';
-import UpcomingEvents from '../components/home/UpcomingEvents.astro';
-import OrganizerStrip from '../components/home/OrganizerStrip.astro';
-import { pickHomeEvents } from '@gamo/domain';
-import { readCatalog } from '../lib/public-catalog';
+import LiveDiscoveryCard from '../components/LiveDiscoveryCard.astro';
+import {
+  LiveCatalog,
+  asSqlDatabase,
+  getRuntimeEnv,
+  GAMO_LIVE_METROS,
+  resolveMetroBySlug,
+  formatLocalEventSchedule,
+  type LiveEventWithDetails,
+} from '@gamo/domain';
 
 export const prerender = false;
 
-const result = await readCatalog(Astro, (catalog) =>
-  catalog.listDiscoverableEvents({ upcomingOnly: true, limit: 100 }),
-);
-const { featured, upcoming } = pickHomeEvents(result.ok ? result.data : []);
+let allEvents: LiveEventWithDetails[] = [];
+let dbUnavailable = false;
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
+  allEvents = await liveService.listDiscoverableEvents({ limit: 50 });
+} catch {
+  dbUnavailable = true;
+}
+
+const rawMetroParam = Astro.url.searchParams.get('metro');
+const rawCategoryParam = (Astro.url.searchParams.get('category') || 'all').toLowerCase();
+const rawWeekendParam =
+  Astro.url.searchParams.get('weekend') === 'true' || Astro.url.searchParams.get('date') === 'weekend';
+const rawQueryParam = (Astro.url.searchParams.get('q') || '').trim();
+const rawDateParam = (Astro.url.searchParams.get('date') || 'any').toLowerCase();
+
+const selectedMetroObj =
+  rawMetroParam === 'all' ? null : resolveMetroBySlug(rawMetroParam) || resolveMetroBySlug('phoenix-az')!;
+
+const selectedMetroSlug = rawMetroParam === 'all' ? 'all' : selectedMetroObj?.slug || 'phoenix-az';
+const selectedMetroLabel =
+  selectedMetroSlug === 'all' ? 'All U.S. Cities' : selectedMetroObj?.displayLabel || 'Phoenix, AZ';
+
+// Prioritize events in the active metro first, followed by nationwide upcoming events
+const localMetroEvents =
+  selectedMetroSlug === 'all' ? allEvents : allEvents.filter((e) => e.metroSlug === selectedMetroSlug);
+
+const otherNationwideEvents =
+  selectedMetroSlug === 'all' ? [] : allEvents.filter((e) => e.metroSlug !== selectedMetroSlug);
+
+const orderedEvents = [...localMetroEvents, ...otherNationwideEvents];
+
+const phoenixCount = allEvents.filter((e) => e.metroSlug === 'phoenix-az').length;
+const activeMetroCount = selectedMetroSlug === 'all' ? allEvents.length : localMetroEvents.length;
+
+// Featured: an event the admin marked featured (editorial, always labeled), else the next upcoming one.
+// With no events the section is not drawn at all.
+const upcomingEvents = allEvents.filter((e) => !e.isPast && e.status === 'approved');
+const featuredEvent = upcomingEvents.find((e) => e.isFeatured) ?? upcomingEvents[0] ?? null;
+
+const featuredSchedule = featuredEvent
+  ? formatLocalEventSchedule(
+      featuredEvent.startDateLocal,
+      featuredEvent.startTimeLocal,
+      featuredEvent.timezone,
+      featuredEvent.startsAt,
+    )
+  : null;
+
+const featuredPrimaryTitle = featuredEvent?.title ?? '';
+const featuredSecondaryTitle = featuredEvent ? `${featuredEvent.city}, ${featuredEvent.state}` : '';
+const featuredDateLine = featuredSchedule
+  ? `${featuredSchedule.shortDateLabel} · ${featuredSchedule.timeLabel}`
+  : '';
+const featuredVenueLine = featuredEvent
+  ? `${featuredEvent.venueName}${featuredEvent.address ? ` · ${featuredEvent.address}` : ''}, ${featuredEvent.city}, ${featuredEvent.state}`
+  : '';
+const featuredDetailUrl = featuredEvent ? `/events/${featuredEvent.slug}` : '/events';
+// What the main button does depends on how the event admits people.
+const featuredCta = !featuredEvent
+  ? null
+  : featuredEvent.admission === 'external_tickets' && featuredEvent.externalUrl
+    ? { label: 'Get tickets', href: featuredEvent.externalUrl, external: true }
+    : featuredEvent.registrationOpen
+      ? { label: 'Register free', href: `/events/${featuredEvent.slug}/register`, external: false }
+      : null;
+const featuredNote = !featuredEvent
+  ? ''
+  : featuredEvent.listingType === 'external_discovery'
+    ? `Published by Gamo Live Listings · Independent listing${featuredEvent.externalTicketProvider ? ` · Tickets sold by ${featuredEvent.externalTicketProvider}` : ''}`
+    : `Organized by ${featuredEvent.organizerName}${featuredEvent.organizerVerified ? '' : ' (not yet verified by Gamo)'}`;
 ---
 
 <Layout
-  title="Christian concerts, worship nights and gatherings"
-  description="Find Christian concerts, worship nights, conferences and church gatherings across the U.S. Free to attend, or tickets sold by the organizer."
-  bodyClass="bg-ivory text-ink"
+  title="Find Your Next Live Christian Concert or Worship Experience"
+  description="Discover verified Christian concerts, worship nights, and live gatherings across Phoenix and major U.S. cities on Gamo Live."
+  bodyClass="bg-ivory text-ink antialiased selection:bg-terracotta selection:text-white"
 >
-  <HomeHero />
-  <div class="mx-auto flex max-w-[1340px] flex-col gap-12 px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-    {featured && <FeaturedEvent event={featured} />}
-    {(upcoming.length > 0 || !featured) && <UpcomingEvents events={upcoming} unavailable={!result.ok} />}
-    <OrganizerStrip />
-  </div>
+  {/* SECTION 1: HERO BANNER */}
+  <section class="relative w-full overflow-hidden bg-ink text-white">
+    {/* Stage Photography Backdrop */}
+    <div class="absolute inset-0 z-0">
+      <img
+        src="/images/optimized/worship-gospel-worship-leader-golden-light-1122w.webp"
+        alt="Live Christian concert worship leader performing under warm golden and violet stage lights"
+        class="h-full w-full object-cover object-[center_22%] sm:object-right"
+        fetchpriority="high"
+        decoding="async"
+      />
+      {/* Rich dark left-to-right and bottom stage lighting gradients matching reference */}
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-night/95 via-night/80 to-night/35"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-ink/90 via-transparent to-night/40"
+        aria-hidden="true"
+      ></div>
+      {/* Subtle warm magenta/amber stage glow accent */}
+      <div
+        class="pointer-events-none absolute -top-24 left-1/3 h-96 w-96 rounded-full bg-terracotta/20 blur-3xl"
+        aria-hidden="true"
+      ></div>
+    </div>
+
+    <div class="relative z-10 mx-auto max-w-[1340px] px-4 pt-12 pb-12 sm:px-6 sm:pt-16 sm:pb-16 lg:px-8 lg:pt-20 lg:pb-16">
+      <div class="max-w-2xl">
+        <h1 class="text-[40px] font-black tracking-tight text-white leading-[1.06] sm:text-6xl lg:text-[68px] uppercase">
+          Find your next
+          <br />
+          <span class="text-terracotta-soft">live</span> experience.
+        </h1>
+        <p class="mt-4 max-w-lg text-base sm:text-xl text-white/90 font-normal leading-relaxed">
+          Concerts, worship nights, and gatherings worth being there for.
+        </p>
+      </div>
+
+      {/* Floating White 3-Part Pill Search Bar */}
+      <form
+        action="/events"
+        method="get"
+        role="search"
+        aria-label="Search Christian concerts and worship events"
+        class="mt-8 sm:mt-10 bg-white text-ink rounded-3xl lg:rounded-full p-2 sm:p-2.5 shadow-[0_22px_50px_-12px_rgba(12,9,8,0.65)] border border-white/80"
+      >
+        <div class="grid grid-cols-1 gap-2 lg:grid-cols-[1.5fr_1fr_1fr_auto] lg:items-center lg:gap-2">
+          {/* Part 1: Search Input */}
+          <div class="flex items-center gap-3 rounded-full bg-ivory lg:bg-transparent px-4 py-3 border border-sand lg:border-0">
+            <svg
+              class="h-5 w-5 text-muted shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+            <label for="hero-search-q" class="sr-only">
+              Search events, artists, or venues
+            </label>
+            <input
+              id="hero-search-q"
+              name="q"
+              type="search"
+              value={rawQueryParam}
+              placeholder="Search events, artists, or venues"
+              class="w-full bg-transparent text-sm sm:text-[15px] text-ink placeholder:text-muted focus:outline-none min-h-11"
+            />
+          </div>
+
+          {/* Part 2: Location Dropdown */}
+          <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
+            <svg
+              class="h-5 w-5 text-ink shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+              />
+            </svg>
+            <label for="hero-search-metro" class="sr-only">
+              Location
+            </label>
+            <select
+              id="hero-search-metro"
+              name="metro"
+              data-hero-metro-select
+              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-ink focus:outline-none cursor-pointer min-h-11"
+            >
+              {GAMO_LIVE_METROS.map((metro) => (
+                <option value={metro.slug} selected={selectedMetroSlug === metro.slug}>
+                  {metro.displayLabel}
+                </option>
+              ))}
+              <option value="all" selected={selectedMetroSlug === 'all'}>
+                All U.S. Cities
+              </option>
+            </select>
+          </div>
+
+          {/* Part 3: Date Window Dropdown */}
+          <div class="flex items-center gap-2.5 rounded-full border border-sand bg-ivory px-4 py-3">
+            <svg
+              class="h-5 w-5 text-ink shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.9"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+              />
+            </svg>
+            <label for="hero-search-date" class="sr-only">
+              Date range
+            </label>
+            <select
+              id="hero-search-date"
+              name="date"
+              class="w-full bg-transparent text-sm sm:text-[15px] font-medium text-muted focus:outline-none cursor-pointer min-h-11"
+            >
+              <option value="any" selected={rawDateParam === 'any'}>
+                Any date
+              </option>
+              <option value="weekend" selected={rawDateParam === 'weekend'}>
+                This weekend
+              </option>
+              <option value="month" selected={rawDateParam === 'month'}>
+                This month
+              </option>
+              <option value="2026" selected={rawDateParam === '2026'}>
+                2026
+              </option>
+              <option value="2027" selected={rawDateParam === '2027'}>
+                2027
+              </option>
+            </select>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            class="bg-terracotta hover:bg-terracotta-deep text-white rounded-full w-full lg:w-16 h-12 flex items-center justify-center shadow-md transition-colors shrink-0 cursor-pointer"
+            aria-label="Search events"
+          >
+            <span class="lg:sr-only font-semibold text-sm mr-2">Search Events</span>
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {/* SECTION 2: UPCOMING EVENTS */}
+  <section id="upcoming-events" class="mx-auto max-w-[1340px] px-4 pt-10 pb-8 sm:px-6 sm:pt-12 lg:px-8">
+    {/* Section Header Row */}
+    <div class="flex flex-wrap items-baseline justify-between gap-4">
+      <div>
+        <h2 class="text-2xl sm:text-[32px] font-black tracking-tight text-ink uppercase">Upcoming events</h2>
+        <p id="discovery-active-status" class="mt-1 text-xs sm:text-sm text-muted">
+          {selectedMetroSlug === 'all'
+            ? `Showing all ${allEvents.length} verified Christian concerts and worship gatherings across U.S. metros`
+            : `Prioritizing ${activeMetroCount} verified events in ${selectedMetroLabel} · ${allEvents.length} nationwide`}
+        </p>
+      </div>
+
+      <a
+        href="/events"
+        class="inline-flex items-center gap-1.5 text-sm sm:text-[15px] font-semibold text-terracotta hover:text-terracotta-deep transition-colors min-h-11"
+      >
+        <span>View all events</span>
+        <svg
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2.2"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </a>
+    </div>
+
+    {/* Working Filter Chips Row */}
+    <div
+      class="mt-5 flex flex-wrap items-center justify-between gap-3"
+      role="toolbar"
+      aria-label="Filter upcoming events"
+    >
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          data-filter-chip="all"
+          aria-pressed={rawCategoryParam === 'all' && !rawWeekendParam ? 'true' : 'false'}
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-terracotta text-white border-terracotta"
+        >
+          All events
+        </button>
+        <button
+          type="button"
+          data-filter-chip="weekend"
+          aria-pressed={rawWeekendParam ? 'true' : 'false'}
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
+        >
+          This weekend
+        </button>
+        <button
+          type="button"
+          data-filter-chip="concert"
+          aria-pressed={rawCategoryParam === 'concert' ? 'true' : 'false'}
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
+        >
+          Concerts
+        </button>
+        <button
+          type="button"
+          data-filter-chip="worship"
+          aria-pressed={rawCategoryParam === 'worship' ? 'true' : 'false'}
+          class="inline-flex min-h-11 items-center filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line"
+        >
+          Worship nights
+        </button>
+      </div>
+
+      {/* Market Scope Chips */}
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          data-scope-chip={selectedMetroSlug === 'all' ? 'phoenix-az' : selectedMetroSlug}
+          data-scope-label={selectedMetroSlug === 'all' ? 'Phoenix, AZ' : selectedMetroLabel}
+          aria-pressed={selectedMetroSlug !== 'all' ? 'true' : 'false'}
+          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-sand text-ink border-line min-h-11"
+        >
+          <svg
+            class="w-3.5 h-3.5 text-terracotta"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+            />
+          </svg>
+          <span>
+            {selectedMetroSlug === 'all'
+              ? `Phoenix, AZ (${phoenixCount})`
+              : `${selectedMetroLabel} (${activeMetroCount})`}
+          </span>
+        </button>
+        <button
+          type="button"
+          data-scope-chip="all"
+          data-scope-label="All U.S. Cities"
+          aria-pressed={selectedMetroSlug === 'all' ? 'true' : 'false'}
+          class="scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line min-h-11"
+        >
+          <span>All U.S. Cities ({allEvents.length})</span>
+        </button>
+      </div>
+    </div>
+
+    {/* 4-Column Event Cards Grid */}
+    {orderedEvents.length > 0 ? (
+      <div
+        id="homepage-events-grid"
+        data-default-metro={selectedMetroSlug}
+        class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        {orderedEvents.map((event, idx) => {
+          const isInitialVisible =
+            selectedMetroSlug === 'all' ? idx < 8 : event.metroSlug === selectedMetroSlug;
+          return (
+            <div
+              data-home-card-wrapper
+              data-card-metro={event.metroSlug || ''}
+              data-card-category={event.category}
+              data-card-weekend={
+                event.startDateLocal
+                  ? ['5', '6', '0'].includes(
+                      String(
+                        new Date(
+                          Date.UTC(
+                            Number(event.startDateLocal.split('-')[0]),
+                            Number(event.startDateLocal.split('-')[1]) - 1,
+                            Number(event.startDateLocal.split('-')[2]),
+                            12,
+                            0,
+                            0,
+                          ),
+                        ).getUTCDay(),
+                      ),
+                    )
+                    ? 'true'
+                    : 'false'
+                  : 'false'
+              }
+              class={isInitialVisible ? 'flex flex-col' : 'hidden flex-col'}
+            >
+              <LiveDiscoveryCard event={event} index={idx} />
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div class="mt-6 rounded-2xl border border-sand bg-white p-8 text-center">
+        <h3 class="text-lg font-bold text-ink">
+          {dbUnavailable ? 'Event discovery is refreshing' : 'No matching events right now'}
+        </h3>
+        <p class="mt-2 text-sm text-muted">
+          Explore all U.S. metros or browse our verified Christian concert directory.
+        </p>
+        <a
+          href="/events"
+          class="mt-4 inline-flex items-center gap-2 rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          Browse all events
+        </a>
+      </div>
+    )}
+
+    {/* Empty Filter Fallback Notice (Hidden unless a filter combination yields 0 cards) */}
+    <div
+      id="homepage-empty-filter-state"
+      class="hidden mt-6 rounded-2xl border border-sand bg-white p-8 text-center"
+    >
+      <p class="text-base font-bold text-ink">No events match that exact filter in this metro yet.</p>
+      <p class="mt-1 text-sm text-muted">
+        Switch to All U.S. Cities to see all upcoming concerts and worship nights nationwide.
+      </p>
+      <button
+        type="button"
+        id="reset-home-filters-btn"
+        class="mt-4 inline-flex items-center gap-2 rounded-full bg-terracotta px-5 py-2.5 text-sm font-semibold text-white cursor-pointer"
+      >
+        Show all U.S. events
+      </button>
+    </div>
+  </section>
+
+  {/* SECTION 3: FEATURED EVENT BANNER (only when there is an event to show) */}
+  {featuredEvent && (
+    <section class="mx-auto max-w-[1340px] px-4 py-4 sm:px-6 lg:px-8">
+      <div class="relative overflow-hidden rounded-3xl bg-ink text-white shadow-xl border border-ink">
+        {/* Right Stage Visual with Seamless Dark Gradient Blend */}
+        <div class="absolute inset-0 z-0">
+          <img
+            src="/images/optimized/worship-acoustic-worship-leader-stage-1122w.webp"
+            alt={`Live stage atmosphere for ${featuredPrimaryTitle}`}
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-cover object-[center_20%] lg:object-right opacity-55 lg:opacity-90"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/20"
+            aria-hidden="true"
+          ></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/40 lg:hidden"
+            aria-hidden="true"
+          ></div>
+        </div>
+
+        {/* Left Content Column */}
+        <div class="relative z-10 max-w-2xl p-7 sm:p-10 lg:p-14">
+          <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.14em] text-terracotta-soft">
+            {featuredEvent.isFeatured ? 'Featured event (editorial pick)' : 'Next up'}
+          </p>
+
+          <h2 class="mt-3 text-3xl sm:text-5xl lg:text-[52px] font-black tracking-tight leading-[1.06] uppercase">
+            <span class="block text-white">{featuredPrimaryTitle}</span>
+            <span class="block text-line mt-1">{featuredSecondaryTitle}</span>
+          </h2>
+
+          <div class="mt-6 space-y-2.5 text-sm sm:text-base text-sand">
+            {/* Calendar Schedule Line */}
+            <div class="flex items-center gap-3">
+              <svg
+                class="h-5 w-5 text-line shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.9"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                />
+              </svg>
+              <span class="font-medium">{featuredDateLine}</span>
+            </div>
+
+            {/* Venue Pin Line */}
+            <div class="flex items-center gap-3">
+              <svg
+                class="h-5 w-5 text-line shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.9"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                />
+              </svg>
+              <span class="font-medium">{featuredVenueLine}</span>
+            </div>
+          </div>
+
+          <p class="mt-4 text-xs text-line/90">{featuredNote}</p>
+
+          {/* CTA Row */}
+          <div class="mt-7 flex flex-wrap items-center gap-3.5">
+            {featuredCta && (
+              <a
+                href={featuredCta.href}
+                target={featuredCta.external ? '_blank' : undefined}
+                rel={featuredCta.external ? 'noopener noreferrer' : undefined}
+                class="inline-flex items-center gap-2.5 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-bold text-white shadow-lg transition-colors"
+                aria-label={`${featuredCta.label}: ${featuredPrimaryTitle}${featuredCta.external ? ' (opens in a new tab)' : ''}`}
+              >
+                <span>{featuredCta.label}</span>
+              </a>
+            )}
+
+            <a
+              href={featuredDetailUrl}
+              class="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 hover:bg-white/20 px-6 py-3.5 text-sm sm:text-[15px] font-semibold text-white backdrop-blur-sm transition-colors"
+            >
+              <span>Event details</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {/* SECTION 4: FOR ORGANIZERS AND ARTISTS SPLIT CARD */}
+  <section class="mx-auto max-w-[1340px] px-4 pt-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
+    <div class="overflow-hidden rounded-3xl bg-cream border border-sand grid grid-cols-1 lg:grid-cols-12 items-center shadow-sm">
+      {/* Left Content Column */}
+      <div class="lg:col-span-7 p-7 sm:p-10 lg:p-14">
+        <p class="text-xs sm:text-[13px] font-bold uppercase tracking-[0.12em] text-terracotta">
+          FOR ORGANIZERS AND ARTISTS
+        </p>
+
+        <h2 class="mt-3 text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-ink leading-[1.08] uppercase">
+          Bring your next event to life.
+        </h2>
+
+        <p class="mt-4 max-w-xl text-base sm:text-lg text-muted leading-relaxed">
+          Create events, reach audiences, and manage live performances with powerful, easy-to-use tools.
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-3.5">
+          <a
+            href="/promote"
+            class="inline-flex items-center gap-2 rounded-full bg-terracotta hover:bg-terracotta-deep px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-white shadow-md transition-colors"
+          >
+            <span>List an event</span>
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+
+          <a
+            href="/artists"
+            class="inline-flex items-center justify-center rounded-full border border-terracotta bg-transparent hover:bg-sand px-7 py-3.5 text-sm sm:text-[15px] font-semibold text-terracotta transition-colors"
+          >
+            For artists
+          </a>
+        </div>
+      </div>
+
+      {/* Right Sculptural Curved Photo Mask */}
+      <div class="lg:col-span-5 relative h-64 sm:h-80 lg:h-[360px] w-full overflow-hidden">
+        <div class="h-full w-full lg:rounded-tl-[160px] lg:rounded-bl-[40px] overflow-hidden relative">
+          <img
+            src="/images/optimized/live-worship-night-hands-raised-1254w.webp"
+            alt="Worship night audience with hands raised in stage light"
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-cover object-center"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-tr from-night/35 via-transparent to-transparent"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* Interactive Client Script for Filter Chips + Saved Event Hearts */}
+  <script>
+    (function () {
+      const FAVORITES_KEY = 'gamo_live_saved_events';
+
+      function getSavedSlugs() {
+        try {
+          const raw = localStorage.getItem(FAVORITES_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_e) {
+          return [];
+        }
+      }
+
+      function setSavedSlugs(slugs: string[]) {
+        try {
+          localStorage.setItem(FAVORITES_KEY, JSON.stringify(slugs));
+        } catch {
+          // Storage unavailable (private mode); favorites stay in-memory only.
+        }
+      }
+
+      function syncFavoriteButtons() {
+        const saved = getSavedSlugs();
+        const buttons = document.querySelectorAll('[data-favorite-btn]');
+        buttons.forEach(function (btn) {
+          const slug = btn.getAttribute('data-event-slug');
+          const isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
+          btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+          const svg = btn.querySelector('svg');
+          if (isSaved) {
+            btn.classList.add('text-terracotta', 'bg-cream');
+            btn.classList.remove('text-muted');
+            if (svg) svg.setAttribute('fill', 'currentColor');
+          } else {
+            btn.classList.remove('text-terracotta', 'bg-cream');
+            btn.classList.add('text-muted');
+            if (svg) svg.setAttribute('fill', 'none');
+          }
+        });
+      }
+
+      document.querySelectorAll('[data-favorite-btn]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const slug = btn.getAttribute('data-event-slug');
+          if (!slug) return;
+          const saved = getSavedSlugs();
+          const idx = saved.indexOf(slug);
+          if (idx === -1) {
+            saved.push(slug);
+          } else {
+            saved.splice(idx, 1);
+          }
+          setSavedSlugs(saved);
+          syncFavoriteButtons();
+        });
+      });
+
+      syncFavoriteButtons();
+
+      // Interactive Filter Chips & Market Scope Switching
+      const grid = document.getElementById('homepage-events-grid');
+      const cardWrappers = Array.from(document.querySelectorAll('[data-home-card-wrapper]'));
+      const filterChips = Array.from(document.querySelectorAll('[data-filter-chip]'));
+      const scopeChips = Array.from(document.querySelectorAll('[data-scope-chip]'));
+      const statusText = document.getElementById('discovery-active-status');
+      const emptyState = document.getElementById('homepage-empty-filter-state');
+      const resetBtn = document.getElementById('reset-home-filters-btn');
+
+      let activeFilter = 'all';
+      let activeScope = grid ? grid.getAttribute('data-default-metro') || 'phoenix-az' : 'phoenix-az';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('weekend') === 'true' || urlParams.get('date') === 'weekend') {
+        activeFilter = 'weekend';
+      } else if (urlParams.get('category') === 'concert') {
+        activeFilter = 'concert';
+      } else if (urlParams.get('category') === 'worship') {
+        activeFilter = 'worship';
+      }
+      const metroParam = urlParams.get('metro');
+      if (metroParam) {
+        activeScope = metroParam;
+      }
+
+      function applyChipVisuals() {
+        filterChips.forEach(function (chip) {
+          const val = chip.getAttribute('data-filter-chip');
+          const active = val === activeFilter;
+          chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+          if (active) {
+            chip.className =
+              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-semibold border transition-colors cursor-pointer bg-terracotta text-white border-terracotta';
+          } else {
+            chip.className =
+              'filter-chip rounded-full px-4 py-2 text-xs sm:text-sm font-medium border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line';
+          }
+        });
+
+        scopeChips.forEach(function (chip) {
+          const val = chip.getAttribute('data-scope-chip');
+          const active = val === 'all' ? activeScope === 'all' : activeScope !== 'all';
+          chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+          if (active) {
+            chip.className =
+              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-sand text-ink border-line';
+          } else {
+            chip.className =
+              'scope-chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-colors cursor-pointer bg-cream text-muted border-sand hover:border-line';
+          }
+        });
+      }
+
+      function applyFiltering(syncUrl: boolean) {
+        applyChipVisuals();
+        if (!cardWrappers.length) return;
+
+        // First check matches within activeScope
+        const matchesFilter = function (wrapper: Element) {
+          const cat = wrapper.getAttribute('data-card-category');
+          const weekend = wrapper.getAttribute('data-card-weekend') === 'true';
+          if (activeFilter === 'weekend') return weekend;
+          if (activeFilter === 'concert') return cat === 'concert';
+          if (activeFilter === 'worship') return cat === 'worship';
+          return true;
+        };
+
+        let visibleCount = 0;
+        let expandedToNationwide = false;
+
+        // When 'worship' is clicked or if local scope has < 2 matches for a specific filter, include nationwide matches
+        const localMatches = cardWrappers.filter(function (w) {
+          const metro = w.getAttribute('data-card-metro');
+          return (activeScope === 'all' || metro === activeScope) && matchesFilter(w);
+        });
+
+        const shouldShowAllScopes =
+          activeScope === 'all' || activeFilter === 'worship' || localMatches.length === 0;
+
+        if (shouldShowAllScopes && activeScope !== 'all') {
+          expandedToNationwide = true;
+        }
+
+        cardWrappers.forEach(function (wrapper) {
+          const metro = wrapper.getAttribute('data-card-metro');
+          const inScope = shouldShowAllScopes || metro === activeScope;
+          const isMatch = inScope && matchesFilter(wrapper);
+
+          if (isMatch) {
+            wrapper.classList.remove('hidden');
+            wrapper.classList.add('flex');
+            visibleCount++;
+          } else {
+            wrapper.classList.add('hidden');
+            wrapper.classList.remove('flex');
+          }
+        });
+
+        if (emptyState) {
+          emptyState.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        if (statusText) {
+          const filterLabel =
+            activeFilter === 'worship'
+              ? 'worship nights'
+              : activeFilter === 'concert'
+                ? 'concerts'
+                : activeFilter === 'weekend'
+                  ? 'weekend events'
+                  : 'verified events';
+
+          if (activeScope === 'all' || expandedToNationwide) {
+            statusText.textContent = 'Showing ' + visibleCount + ' ' + filterLabel + ' across U.S. metros';
+          } else {
+            statusText.textContent =
+              'Showing ' +
+              visibleCount +
+              ' ' +
+              filterLabel +
+              ' in ' +
+              (activeScope === 'phoenix-az' ? 'Phoenix, AZ' : activeScope);
+          }
+        }
+
+        if (syncUrl && window.history && window.history.replaceState) {
+          const nextUrl = new URL(window.location.href);
+          if (activeFilter === 'all') {
+            nextUrl.searchParams.delete('category');
+            nextUrl.searchParams.delete('weekend');
+          } else if (activeFilter === 'weekend') {
+            nextUrl.searchParams.delete('category');
+            nextUrl.searchParams.set('weekend', 'true');
+          } else {
+            nextUrl.searchParams.delete('weekend');
+            nextUrl.searchParams.set('category', activeFilter);
+          }
+          nextUrl.searchParams.set('metro', activeScope);
+          window.history.replaceState({}, '', nextUrl.pathname + nextUrl.search);
+        }
+      }
+
+      filterChips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          activeFilter = chip.getAttribute('data-filter-chip') || 'all';
+          applyFiltering(true);
+        });
+      });
+
+      scopeChips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          activeScope = chip.getAttribute('data-scope-chip') || 'phoenix-az';
+          applyFiltering(true);
+        });
+      });
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          activeFilter = 'all';
+          activeScope = 'all';
+          applyFiltering(true);
+        });
+      }
+
+      if (activeFilter !== 'all' || activeScope === 'all') {
+        applyFiltering(false);
+      }
+    })();
+  </script>
 </Layout>
