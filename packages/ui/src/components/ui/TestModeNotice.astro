@@ -1,0 +1,18 @@
+---
+/**
+ * Shown on every payment screen while Stripe runs in test mode (or the local stand-in): plain words, no "preview".
+ * Pass `standin` on local development without Stripe keys.
+ */
+import Notice from './Notice.astro';
+interface Props {
+  standin?: boolean;
+  class?: string;
+}
+const { standin = false, class: className } = Astro.props;
+---
+
+<Notice tone="warning" title="Test mode" class={className}>
+  {standin
+    ? 'Payments run on a local stand-in for Stripe on this computer. No card is charged and no money moves.'
+    : 'Payments run in Stripe’s test mode. No card is charged and no money moves.'}
+</Notice>

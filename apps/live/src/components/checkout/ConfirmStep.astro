@@ -1,0 +1,38 @@
+---
+/**
+ * The confirm step of a public action that cannot be undone (passing a ticket on, asking for a refund): the honest
+ * consequence with real numbers (slot), the answers carried as hidden fields (`fields` slot), a filled danger button
+ * that does it and a quiet "Change" that goes back to the form. Two plain buttons in one POST form; no script.
+ */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+
+interface Props {
+  confirmLabel: string;
+  editLabel?: string;
+}
+const { confirmLabel, editLabel = 'Change' } = Astro.props;
+---
+
+<form
+  method="post"
+  class="space-y-3 rounded-xl border border-status-danger-line bg-status-danger-soft/60 p-4"
+>
+  <div class="text-[14px] leading-relaxed text-ink">
+    <slot />
+  </div>
+  <slot name="fields" />
+  <div class="flex flex-wrap items-center gap-3">
+    <Button
+      type="submit"
+      name="action"
+      value="confirm"
+      variant="danger-outline"
+      class="bg-status-danger text-white hover:bg-status-danger/90"
+    >
+      {confirmLabel}
+    </Button>
+    <Button type="submit" name="action" value="edit" variant="ghost">
+      {editLabel}
+    </Button>
+  </div>
+</form>

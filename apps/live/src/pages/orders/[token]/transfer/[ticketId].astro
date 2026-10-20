@@ -1,0 +1,167 @@
+---
+/**
+ * Pass a ticket on (docs/LIVE_SCREENS.md §I.2 P6): the new holder's name and email, typed twice; no price field ever.
+ * A confirm step names the consequence (the old QR code stops working, both people are emailed) before it happens.
+ * Reached from the buyer's order link or the holder's ticket link; the policy and cutoff are checked on the server.
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import ConfirmStep from '../../../../components/checkout/ConfirmStep.astro';
+import OrderEventCard from '../../../../components/checkout/OrderEventCard.astro';
+import FormErrorSummary from '../../../../components/register/FormErrorSummary.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { openLive } from '../../../../lib/registration';
+import { openTransfer, submitTransfer, type TransferOutcome } from '../../../../lib/checkout-orders';
+
+export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const token = Astro.params.token ?? '';
+const ticketId = Astro.params.ticketId ?? '';
+const now = Math.floor(Date.now() / 1000);
+let outcome: TransferOutcome | null;
+
+try {
+  const live = await openLive(Astro);
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    outcome = await submitTransfer(live, {
+      token,
+      ticketId,
+      form: await Astro.request.formData(),
+      origin: siteOrigin('live'),
+      now,
+    });
+  } else {
+    outcome = await openTransfer(live, { token, ticketId, now });
+  }
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:orders] transfer_failed', (error as Error)?.name);
+  outcome = null;
+  Astro.response.status = 503;
+}
+if (outcome?.kind === 'expired') Astro.response.status = 410;
+const view = outcome?.kind === 'view' ? outcome.view : null;
+if (view) Astro.response.status = view.status;
+const errorList = view
+  ? (['toName', 'toEmail', 'confirmEmail'] as const)
+      .filter((f) => view.errors[f])
+      .map((f) => ({ field: f, message: view.errors[f]! }))
+  : [];
+---
+
+<CheckoutFrame
+  title="Pass a ticket on"
+  heading={outcome?.kind === 'expired' ? 'This link has expired' : 'Pass a ticket on'}
+  subtext={
+    view?.ticket.transfer.allowed && view.phase === 'form'
+      ? 'Give this ticket to someone else, free. Gamo Live never handles resale.'
+      : undefined
+  }
+  notice={
+    view?.notice ??
+    (outcome
+      ? null
+      : { tone: 'danger', text: 'This page is temporarily unavailable. Please try again later.' })
+  }
+  photo="worshipLeaderGolden"
+>
+  {outcome?.kind === 'expired' && (
+    <Button size="lg" block href="/tickets/find">
+      Find my tickets
+    </Button>
+  )}
+  {view && (
+    <div class="space-y-3">
+      <OrderEventCard
+        title={view.event.title}
+        whenLabel={view.event.whenLabel}
+        venueLabel={view.event.venueLabel}
+        extra={`${view.ticket.title}${view.ticket.holder ? ` · now with ${view.ticket.holder}` : ''}${view.deadlineLabel ? ` · passing on closes ${view.deadlineLabel}` : ''}`}
+      />
+      {view.ticket.transfer.allowed && view.phase === 'form' && (
+        <form method="post" class="space-y-3" novalidate>
+          <FormErrorSummary errors={errorList} />
+          <SplitField
+            id="toName"
+            name="toName"
+            label="New holder’s name"
+            autocomplete="off"
+            maxlength={100}
+            required
+            value={view.values.toName}
+            error={view.errors.toName}
+          />
+          <div class="grid gap-3 sm:grid-cols-2">
+            <SplitField
+              id="toEmail"
+              name="toEmail"
+              type="email"
+              inputmode="email"
+              label="Their email address"
+              autocomplete="off"
+              required
+              value={view.values.toEmail}
+              error={view.errors.toEmail}
+            />
+            <SplitField
+              id="confirmEmail"
+              name="confirmEmail"
+              type="email"
+              inputmode="email"
+              label="Their email again"
+              autocomplete="off"
+              required
+              value={view.values.confirmEmail}
+              error={view.errors.confirmEmail}
+            />
+          </div>
+          <input type="hidden" name="action" value="review" />
+          <SplitButton label="Continue" />
+        </form>
+      )}
+      {view.ticket.transfer.allowed && view.phase === 'confirm' && (
+        <ConfirmStep confirmLabel="Yes, pass this ticket on">
+          <p>
+            <strong>{view.ticket.title}</strong> goes to <strong>{view.values.toName}</strong> (
+            {view.values.toEmail}). Its current QR code stops working at once and the new holder gets their
+            own by email. This cannot be undone from here.
+          </p>
+          <Fragment slot="fields">
+            <input type="hidden" name="toName" value={view.values.toName} />
+            <input type="hidden" name="toEmail" value={view.values.toEmail} />
+            <input type="hidden" name="confirmEmail" value={view.values.confirmEmail} />
+          </Fragment>
+        </ConfirmStep>
+      )}
+      <Button variant="ghost" href={view.backHref} class="-ml-5">
+        Back to the ticket
+      </Button>
+    </div>
+  )}
+  {!outcome && (
+    <Button variant="secondary" href={`/orders/${token}`}>
+      Back
+    </Button>
+  )}
+</CheckoutFrame>

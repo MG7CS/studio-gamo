@@ -21,13 +21,14 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/organizer/account', to: '/organizer/settings', status: 301 },
   { from: '/account/onboarding', to: '/organizer/start' },
   { from: '/account', to: '/organizer' },
-  { from: '/tickets/*', to: '/events' },
-  { from: '/ticket', to: '/events' },
-  { from: '/my-tickets', to: '/events', status: 301 },
+  // Paid tickets are real again (checkout at /events/<slug>/tickets, orders at /orders/<token>, /tickets/find).
+  { from: '/tickets', to: '/tickets/find' },
+  { from: '/ticket', to: '/tickets/find' },
+  { from: '/my-tickets', to: '/tickets/find', status: 301 },
   { from: '/waitlist/*', to: '/events' },
   { from: '/scan/*', to: '/events' },
   { from: '/checkout', to: '/events', status: 301 },
-  { from: /^\/events\/([^/]+)\/tickets$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
+
   {
     from: /^\/organizers\/([^/]+)$/,
     to: (_url, m) => {

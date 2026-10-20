@@ -1,0 +1,193 @@
+---
+/**
+ * Checkout step 1 of 3 (docs/LIVE_SCREENS.md §I.2 P1): the date (for an event with several), each ticket type with its
+ * price in force and a quantity, and a promo or access code. Everything shown comes from the server; nothing is
+ * invented. Next carries the choice to step 2 (lib/checkout.ts).
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import TicketTypeRow from '../../../../components/checkout/TicketTypeRow.astro';
+import EventSummary from '../../../../components/register/EventSummary.astro';
+import FormErrorSummary from '../../../../components/register/FormErrorSummary.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../../../lib/registration';
+import {
+  CHECKOUT_FLASH,
+  PAID_MESSAGES,
+  isPaymentsUnavailable,
+  openSelection,
+  paymentTestMode,
+  submitSelection,
+  type SelectionView,
+  type StepOutcome,
+} from '../../../../lib/checkout';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const now = Math.floor(Date.now() / 1000);
+let view: SelectionView | null = null;
+let unavailable: string | null = null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  let outcome: StepOutcome<SelectionView>;
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    outcome = await submitSelection(live, {
+      slug,
+      form: await Astro.request.formData(),
+      cookies: Astro.cookies,
+      secure: Astro.url.protocol === 'https:',
+      now,
+    });
+  } else {
+    outcome = await openSelection(live, {
+      slug,
+      date: Astro.url.searchParams.get('date'),
+      cookies: Astro.cookies,
+      flash: readFlash(Astro, CHECKOUT_FLASH),
+      now,
+    });
+  }
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+  view = outcome.view;
+  Astro.response.status = view.status;
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:checkout] tickets_failed', (error as Error)?.name);
+  unavailable = isPaymentsUnavailable(error)
+    ? PAID_MESSAGES.payments_unavailable
+    : 'Ticket sales are temporarily unavailable. Please try again later.';
+  Astro.response.status = 503;
+}
+
+const errorList = view ? Object.entries(view.errors).map(([field, message]) => ({ field, message })) : [];
+const canBuy = Boolean(view && !view.closed && view.types.some((t) => t.state === 'on_sale'));
+---
+
+<CheckoutFrame
+  title={view ? `Tickets: ${view.event.title}` : 'Tickets'}
+  heading={view?.closed ? 'Tickets not on sale' : 'Choose tickets'}
+  step={view && !view.closed ? 1 : undefined}
+  testMode={testMode}
+  notice={unavailable ? { tone: 'danger', text: unavailable } : (view?.notice ?? null)}
+>
+  {view && (
+    <>
+      <FormErrorSummary errors={errorList} />
+      <EventSummary
+        title={view.event.title}
+        whenLabel={view.event.dates.length > 1 ? undefined : view.whenLabel}
+        venueLabel={view.event.venueLabel}
+        organizerName={view.event.organizerName}
+        organizerVerified={view.event.organizerVerified}
+      />
+      {view.closed && <p class="mb-5 text-[15px] leading-relaxed text-ink">{view.closed}</p>}
+      {!view.closed && view.event.dates.length > 1 && (
+        <form method="get" class="mb-4 flex items-end gap-2">
+          <div class="min-w-0 flex-1">
+            <label for="date" class="mb-1.5 block text-[14px] font-semibold text-ink">
+              Date
+            </label>
+            <select
+              id="date"
+              name="date"
+              class="min-h-11 w-full rounded-[12px] border border-ink/50 bg-white px-3 py-2 text-[15px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+            >
+              {view.event.dates.map((d) => (
+                <option value={d.id} selected={d.id === view!.occurrenceId}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button type="submit" variant="secondary">
+            Show tickets
+          </Button>
+        </form>
+      )}
+      {!view.closed && (
+        <form method="post" class="space-y-3" novalidate>
+          <input type="hidden" name="occurrence" value={view.occurrenceId} />
+          <div id="lines" tabindex="-1" class="space-y-2">
+            {view.types.map((t) => (
+              <TicketTypeRow option={t} />
+            ))}
+          </div>
+          {view.errors.lines && (
+            <p class="text-[13px] font-semibold text-terracotta-deep">
+              <span class="sr-only">Error: </span>
+              {view.errors.lines}
+            </p>
+          )}
+          <div>
+            <label for="code" class="mb-1.5 block text-[14px] font-semibold text-ink">
+              Promo or access code <span class="font-normal text-muted">(optional)</span>
+            </label>
+            <div class="flex gap-2">
+              <input
+                id="code"
+                name="code"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength={40}
+                value={view.code}
+                aria-invalid={view.errors.code ? 'true' : undefined}
+                aria-describedby={view.errors.code ? 'code-error' : view.codeNote ? 'code-note' : undefined}
+                class="min-h-11 min-w-0 flex-1 rounded-[12px] border border-ink/50 bg-white px-3 py-2 text-[15px] uppercase text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep"
+              />
+              <Button type="submit" name="action" value="apply" variant="secondary">
+                Apply
+              </Button>
+              {view.codeNote && (
+                <Button type="submit" name="action" value="remove_code" variant="ghost">
+                  Remove
+                </Button>
+              )}
+            </div>
+            {view.codeNote && (
+              <p id="code-note" class="mt-1.5 text-[13px] text-ink">
+                {view.codeNote}
+              </p>
+            )}
+            {view.errors.code && (
+              <p id="code-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+                <span class="sr-only">Error: </span>
+                {view.errors.code}
+              </p>
+            )}
+          </div>
+          {view.maxPerOrder > 0 && (
+            <p class="text-[13px] text-muted">
+              Up to {view.maxPerOrder} tickets per order. Prices are checked again at review.
+              {view.event.refundLine ? ` ${view.event.refundLine}` : ''}
+            </p>
+          )}
+          {canBuy && <SplitButton label="Next" name="action" value="next" />}
+        </form>
+      )}
+      <div class="mt-3">
+        <Button variant="ghost" href={`/events/${view.event.slug}`} class="-ml-5">
+          Back to the event
+        </Button>
+      </div>
+    </>
+  )}
+</CheckoutFrame>

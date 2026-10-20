@@ -1,0 +1,55 @@
+---
+/**
+ * The local Stripe stand-in's Connect onboarding page (docs/LIVE_SCREENS.md §I.2 P10). It exists only when the
+ * stand-in runs on this computer; everywhere else it is a 404. "Finish onboarding" makes the account ready, delivers
+ * the `account.updated` webhook at once and returns to the organization's payments page.
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { openLive } from '../../../../lib/registration';
+import { completeStandinOnboarding, openStandinOnboarding } from '../../../../lib/checkout-stripe';
+
+export const prerender = false;
+
+const accountId = Astro.params.acct ?? '';
+let account: { id: string; ready: boolean } | null = null;
+
+try {
+  const live = await openLive(Astro);
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const location = await completeStandinOnboarding(live, { accountId, now: Math.floor(Date.now() / 1000) });
+    if (location) return Astro.redirect(location, 303);
+  } else {
+    account = await openStandinOnboarding(live, { accountId });
+  }
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:standin] onboarding_failed', (error as Error)?.name);
+}
+if (!account) {
+  Astro.response.status = 404;
+  return Astro.rewrite('/404');
+}
+---
+
+<CheckoutFrame
+  title="Local Stripe stand-in"
+  heading="Local Stripe stand-in — onboarding"
+  subtext="This page stands in for Stripe’s account onboarding on this computer. No real account is created."
+  testMode={{ show: true, standin: true }}
+  notice={account.ready ? { tone: 'info', text: 'This account has finished onboarding already.' } : null}
+  photo="concertCrowdWide"
+>
+  <p class="mb-4 text-[14px] text-ink">
+    Account <span class="font-mono">{account.id}</span>
+  </p>
+  <form method="post">
+    <SplitButton label="Finish onboarding" />
+  </form>
+</CheckoutFrame>
