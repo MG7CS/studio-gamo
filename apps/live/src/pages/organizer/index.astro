@@ -40,7 +40,7 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
       what to do next.
     </SplitNotice>
   )}
-  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <StatCard label="Published events" value={counts.eventsByStatus.published ?? 0} />
     <StatCard label="Waiting for Gamo" value={waiting} hint="In review or needing changes" />
     <StatCard label="Upcoming dates" value={counts.upcomingOccurrences} />
@@ -50,9 +50,9 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
       hint="Confirmed, across all events"
     />
   </div>
-  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+  <div class="mt-3 grid gap-3 lg:grid-cols-2">
     <Panel id="status" title="Your organization" description="How people see you on your events.">
-      <dl class="space-y-3 text-[15px]">
+      <dl class="space-y-2.5 text-[14px]">
         <div class="flex justify-between gap-4">
           <dt class="text-muted">Name</dt>
           <dd class="text-right font-semibold text-ink">{active.name}</dd>
@@ -67,14 +67,14 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
         </div>
       </dl>
       {!active.verified && (
-        <p class="mt-4 text-[14px] leading-relaxed text-muted">
+        <p class="mt-3 text-[13px] leading-relaxed text-muted">
           Unverified organizations are labeled as such on their events. Gamo verifies organizations after
           review.
         </p>
       )}
       <a
         href="/organizer/organization"
-        class="mt-5 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+        class="mt-4 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[13px] font-semibold text-ink hover:bg-sand"
       >
         Edit organization
       </a>
@@ -84,23 +84,23 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
       title="Events"
       description="Your first event is reviewed by Gamo before it appears; later ones publish directly unless Gamo asks to review every event."
     >
-      <p class="text-[15px] leading-relaxed text-ink">
+      <p class="text-[14px] leading-relaxed text-ink">
         {(counts.eventsByStatus.published ?? 0) + waiting === 0
           ? 'You have no events yet.'
           : 'Your events are listed on the public event pages.'}
       </p>
-      <div class="mt-5 flex flex-wrap gap-3">
+      <div class="mt-4 flex flex-wrap gap-2.5">
         {active.status === 'active' && (
           <a
             href="/organizer/events/new"
-            class="inline-flex min-h-11 items-center rounded-full bg-terracotta px-5 text-[14px] font-semibold text-white hover:bg-terracotta-deep"
+            class="inline-flex min-h-11 items-center rounded-full bg-terracotta px-5 text-[13px] font-semibold text-white hover:bg-terracotta-deep"
           >
             Create event
           </a>
         )}
         <a
           href="/organizer/events"
-          class="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
+          class="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[13px] font-semibold text-ink hover:bg-sand"
         >
           All events
         </a>

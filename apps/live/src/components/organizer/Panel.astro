@@ -11,16 +11,16 @@ const { title, description, id, class: className } = Astro.props;
 
 <section
   id={id}
-  class:list={['rounded-3xl bg-white p-6 shadow-[0_1px_2px_rgba(24,24,27,0.05)] sm:p-8', className]}
+  class:list={['rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)] sm:p-5', className]}
   aria-labelledby={title && id ? `${id}-title` : undefined}
 >
   {title && (
-    <h2 id={id ? `${id}-title` : undefined} class="text-[19px] font-extrabold tracking-[-0.01em] text-ink">
+    <h2 id={id ? `${id}-title` : undefined} class="text-[16px] font-extrabold tracking-[-0.01em] text-ink">
       {title}
     </h2>
   )}
-  {description && <p class="mt-1 text-[14px] leading-relaxed text-muted">{description}</p>}
-  <div class:list={[title && 'mt-5']}>
+  {description && <p class="mt-1 text-[13px] leading-relaxed text-muted">{description}</p>}
+  <div class:list={[title && 'mt-4']}>
     <slot />
   </div>
 </section>

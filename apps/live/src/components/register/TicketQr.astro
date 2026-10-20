@@ -1,8 +1,9 @@
 ---
 /**
- * The door pass: a large, high-contrast QR code on white with a quiet zone, the 10-character check-in code in
- * monospace under it (for a volunteer to type if the scan fails) and one instruction. The SVG is made on the
- * server, so no script or outside service is involved.
+ * The door pass: a high-contrast QR code on white with a quiet zone, the 10-character check-in code in monospace
+ * under it (for a volunteer to type if the scan fails) and one instruction. The SVG is made on the server, so no
+ * script or outside service is involved. Large on a phone (about 300 px); on a desktop screen it sits beside the
+ * details and steps down on short windows so the page never scrolls.
  */
 interface Props {
   /** Inline SVG from `qrSvg()`. */
@@ -12,18 +13,18 @@ interface Props {
 const { svg, code } = Astro.props;
 ---
 
-<figure class="mt-6 flex flex-col items-center border-t border-tan pt-6">
+<figure class="flex flex-col items-center">
   <div
     role="img"
     aria-label="QR code for check-in"
-    class="aspect-square w-[min(100%,300px)] rounded-2xl bg-white p-4 ring-1 ring-tan [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
+    class="aspect-square w-[min(100%,300px)] rounded-2xl bg-white p-3 ring-1 ring-tan lg:w-[184px] [@media(min-width:1024px)_and_(max-height:800px)]:w-[164px] [@media(min-width:1024px)_and_(min-height:860px)]:w-[220px] [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
     set:html={svg}
   />
-  <figcaption class="mt-4 text-center">
-    <p class="text-[26px] font-semibold leading-tight text-ink">
+  <figcaption class="mt-3 text-center">
+    <p class="text-[22px] font-semibold leading-tight text-ink lg:text-[20px]">
       <span class="sr-only">Check-in code </span>
       <span class="font-mono tracking-[0.14em]">{code}</span>
     </p>
-    <p class="mt-1 text-[15px] font-semibold text-ink">Show this at the door</p>
+    <p class="mt-0.5 text-[14px] font-semibold text-ink">Show this at the door</p>
   </figcaption>
 </figure>

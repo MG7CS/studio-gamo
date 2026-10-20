@@ -11,7 +11,7 @@ const { organizer, memberships, active } = Astro.props;
 const initial = (organizer.displayName || organizer.email).trim().charAt(0).toUpperCase();
 ---
 
-<header class="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-8">
+<header class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
   <div class="min-w-0">
     {active && memberships.length > 1 ? (
       <form method="post" action="/organizer/switch" class="flex items-center gap-2">
@@ -38,9 +38,9 @@ const initial = (organizer.displayName || organizer.email).trim().charAt(0).toUp
       </form>
     ) : (
       active && (
-        <p class="truncate text-[15px] font-semibold text-ink">
+        <p class="truncate text-[14px] font-semibold text-ink">
           {active.name}
-          <span class="ml-2 rounded-full bg-sand px-2.5 py-0.5 text-[12px] font-semibold text-ink">
+          <span class="ml-2 rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-ink">
             {active.verified ? 'Verified' : 'Not yet verified'}
           </span>
         </p>
@@ -49,17 +49,17 @@ const initial = (organizer.displayName || organizer.email).trim().charAt(0).toUp
   </div>
   <div class="flex items-center gap-3 rounded-full bg-white py-1.5 pl-1.5 pr-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
     <span
-      class="flex h-9 w-9 items-center justify-center rounded-full bg-terracotta text-[14px] font-bold text-white"
+      class="flex h-8 w-8 items-center justify-center rounded-full bg-terracotta text-[13px] font-bold text-white"
       aria-hidden="true"
     >
       {initial}
     </span>
     <span class="min-w-0 leading-tight">
-      <span class="block max-w-[180px] truncate text-[14px] font-semibold text-ink">
+      <span class="block max-w-[180px] truncate text-[13px] font-semibold text-ink">
         {organizer.displayName || organizer.email}
       </span>
       {organizer.displayName && (
-        <span class="block max-w-[180px] truncate text-[12px] text-muted">{organizer.email}</span>
+        <span class="block max-w-[180px] truncate text-[11px] text-muted">{organizer.email}</span>
       )}
     </span>
   </div>

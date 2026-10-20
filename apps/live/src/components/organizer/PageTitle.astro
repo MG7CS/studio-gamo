@@ -7,9 +7,9 @@ interface Props {
 const { title, subtext } = Astro.props;
 ---
 
-<div class="pb-6 pt-2">
-  <h1 class="text-[28px] font-black uppercase leading-tight tracking-[-0.02em] text-ink sm:text-[34px]">
+<div class="pb-4 pt-1">
+  <h1 class="text-[22px] font-black uppercase leading-tight tracking-[-0.02em] text-ink sm:text-[26px]">
     {title}
   </h1>
-  {subtext && <p class="mt-1 max-w-2xl text-[15px] leading-relaxed text-muted">{subtext}</p>}
+  {subtext && <p class="mt-1 max-w-2xl text-[14px] leading-relaxed text-muted">{subtext}</p>}
 </div>

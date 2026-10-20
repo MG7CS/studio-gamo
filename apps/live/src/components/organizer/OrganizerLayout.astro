@@ -21,13 +21,13 @@ const { title, current, organizer, memberships, active } = Astro.props;
 ---
 
 <Layout title={`${title} · Organizer`} chrome={false} noindex bodyClass="bg-sand/50 text-ink">
-  <div class="min-h-screen lg:grid lg:grid-cols-[288px_1fr]">
+  <div class="min-h-screen lg:grid lg:grid-cols-[250px_1fr]">
     <aside class="hidden p-4 lg:sticky lg:top-0 lg:block lg:h-screen">
       <Sidebar current={current} />
     </aside>
     <div class="min-w-0 pb-28 lg:pb-10">
       <TopBar organizer={organizer} memberships={memberships} active={active} />
-      <div class="mx-auto max-w-[1100px] px-4 sm:px-8">
+      <div class="mx-auto max-w-[1100px] px-4 sm:px-6">
         <slot />
       </div>
     </div>
