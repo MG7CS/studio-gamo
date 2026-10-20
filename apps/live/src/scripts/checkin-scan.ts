@@ -8,6 +8,9 @@ interface Detector {
 declare const BarcodeDetector: { new (options: { formats: string[] }): Detector } | undefined;
 
 const root = document.querySelector<HTMLElement>('[data-checkin]');
+// Browsers only offer the camera on https or localhost; say so instead of silently hiding the button.
+if (root && !window.isSecureContext)
+  root.querySelector<HTMLElement>('#scan-insecure')?.removeAttribute('hidden');
 if (root && typeof BarcodeDetector !== 'undefined' && 'mediaDevices' in navigator) {
   setup(root);
 }

@@ -18,7 +18,28 @@ export interface EnvProblem {
   message: string;
 }
 
-const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+
+/**
+ * True only for this computer: `localhost`, `127.0.0.1`, `::1`. Use it to gate anything that must never work from
+ * another device (the local sign-in stand-in). A private-network address is NOT loopback; see `isPrivateNetworkHost`.
+ */
+export function isLoopbackHost(hostname: string): boolean {
+  return LOOPBACK_HOSTS.has(String(hostname).toLowerCase());
+}
+
+/**
+ * A private-network address (10.x, 192.168.x, 172.16-31.x) or a `.local` name: where a phone reaches a dev server over
+ * Wi-Fi. A deployed Worker is never served from one, so it does not weaken the "local build on a public host" check.
+ */
+export function isPrivateNetworkHost(hostname: string): boolean {
+  const m = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(hostname);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    return a === 10 || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31);
+  }
+  return hostname.endsWith('.local');
+}
 const LOCAL_ONLY_FLAGS = [
   'ALLOW_DEMO_SESSION',
   'ALLOW_AUTH_SIMULATION',
@@ -37,7 +58,8 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
   const add = (severity: EnvSeverity, name: string, message: string) =>
     problems.push({ severity, name, message });
   const environment = env.ENVIRONMENT;
-  const loopback = LOOPBACK_HOSTS.has(hostname);
+  // Where a `local` build may legitimately be served: this computer, or a private network address (a phone on Wi-Fi).
+  const localDevHost = isLoopbackHost(hostname) || isPrivateNetworkHost(hostname);
 
   if (environment !== 'local' && environment !== 'preview' && environment !== 'production') {
     add('fatal', 'ENVIRONMENT', 'must be one of local, preview, production');
@@ -46,7 +68,12 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
 
   if (environment === 'local') {
     // A `local` build served from a real hostname means it was deployed without --env.
-    if (!loopback) add('fatal', 'ENVIRONMENT', 'is "local" but the request host is not loopback');
+    if (!localDevHost)
+      add(
+        'fatal',
+        'ENVIRONMENT',
+        'is "local" but the request host is not a loopback or private-network address',
+      );
     return problems;
   }
 

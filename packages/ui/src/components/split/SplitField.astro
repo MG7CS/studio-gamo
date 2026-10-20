@@ -7,7 +7,7 @@ interface Props {
   id: string;
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number';
+  type?: 'text' | 'email' | 'number' | 'date' | 'time' | 'url';
   as?: 'input' | 'select' | 'textarea';
   autocomplete?: string;
   placeholder?: string;
@@ -15,11 +15,15 @@ interface Props {
   value?: string;
   hint?: string;
   error?: string;
-  inputmode?: 'numeric' | 'text' | 'email';
+  inputmode?: 'numeric' | 'text' | 'email' | 'url';
   maxlength?: number;
   pattern?: string;
   rows?: number;
   disabled?: boolean;
+  /** Shown under a disabled field so it is clear why it cannot be changed. */
+  disabledReason?: string;
+  min?: string;
+  max?: string;
   class?: string;
 }
 const {
@@ -39,13 +43,20 @@ const {
   pattern,
   rows = 4,
   disabled = false,
+  disabledReason,
+  min,
+  max,
   class: className,
 } = Astro.props;
 const hintId = `${id}-hint`;
 const errorId = `${id}-error`;
-const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ') || undefined;
+const reasonId = `${id}-reason`;
+const describedBy =
+  [hint ? hintId : null, disabled && disabledReason ? reasonId : null, error ? errorId : null]
+    .filter(Boolean)
+    .join(' ') || undefined;
 const control =
-  'min-h-[56px] w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 text-[16px] text-ink shadow-[0_1px_2px_rgba(24,20,17,0.03)] placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep';
+  'min-h-[56px] w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 text-[16px] text-ink shadow-[0_1px_2px_rgba(24,20,17,0.03)] placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep disabled:cursor-not-allowed disabled:border-line disabled:bg-sand disabled:text-muted';
 ---
 
 <div class={className}>
@@ -69,6 +80,7 @@ const control =
       name={name}
       rows={rows}
       maxlength={maxlength}
+      required={required}
       disabled={disabled}
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={describedBy}
@@ -98,11 +110,18 @@ const control =
       inputmode={inputmode}
       maxlength={maxlength}
       pattern={pattern}
+      min={min}
+      max={max}
       disabled={disabled}
       aria-invalid={error ? 'true' : undefined}
       aria-describedby={describedBy}
       class={control}
     />
+  )}
+  {disabled && disabledReason && (
+    <p id={reasonId} class="mt-1.5 text-[13px] text-muted">
+      {disabledReason}
+    </p>
   )}
   {error && (
     <p id={errorId} class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">

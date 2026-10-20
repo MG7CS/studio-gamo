@@ -3,8 +3,12 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { createSqliteD1 } from '@gamo/db/testing';
 import {
+  MAX_EVENTS_PER_ORGANIZATION,
+  MAX_OWNED_ORGANIZATIONS,
+  MAX_PENDING_INVITATIONS,
   OrganizerError,
   acceptInvitation,
+  assertEventQuota,
   createInvitation,
   createOrganization,
   endOrganizerSession,
@@ -47,6 +51,10 @@ async function database() {
 async function signedIn(db: never, email = 'ana@example.org', clerkUserId = 'user_ana') {
   return startOrganizerSession(db, { clerkUserId, email, displayName: 'Ana Reyes', now: NOW });
 }
+
+/** Gamo has approved the organization's first event, so it may invite people. */
+const approveFirstEvent = (d1: { sqlite: { exec(sql: string): void } }, organizationId: string) =>
+  d1.sqlite.exec(`UPDATE organizations SET first_event_approved_at = ${NOW} WHERE id = '${organizationId}'`);
 
 const codeOf = (e: unknown) =>
   e instanceof OrganizerError ? `${e.code}${e.field ? `:${e.field}` : ''}` : String(e);
@@ -165,7 +173,7 @@ test('only owners edit the profile, and editing never touches verification or re
 });
 
 test('invitations: owner invites, the invited address accepts once, others cannot, expiry and revoke work', async () => {
-  const { db } = await database();
+  const { db, d1 } = await database();
   const ana = (await signedIn(db)).organizer;
   const org = await createOrganization(db, {
     organizerId: ana.id,
@@ -173,6 +181,7 @@ test('invitations: owner invites, the invited address accepts once, others canno
     termsVersion: 'v1',
     now: NOW,
   });
+  approveFirstEvent(d1, org.organizationId);
   const bob = (await signedIn(db, 'bob@example.org', 'user_bob')).organizer;
   const carol = (await signedIn(db, 'carol@example.org', 'user_carol')).organizer;
   await assert.rejects(
@@ -243,7 +252,7 @@ test('invitations: owner invites, the invited address accepts once, others canno
 });
 
 test('members can leave, owners remove others, and the last owner cannot be removed', async () => {
-  const { db } = await database();
+  const { d1, db } = await database();
   const ana = (await signedIn(db)).organizer;
   const org = await createOrganization(db, {
     organizerId: ana.id,
@@ -251,6 +260,9 @@ test('members can leave, owners remove others, and the last owner cannot be remo
     termsVersion: 'v1',
     now: NOW,
   });
+  d1.sqlite.exec(
+    `UPDATE organizations SET first_event_approved_at = ${NOW} WHERE id = '${org.organizationId}'`,
+  );
   const bob = (await signedIn(db, 'bob@example.org', 'user_bob')).organizer;
   const invite = await createInvitation(db, ENV, {
     organizationId: org.organizationId,
@@ -306,4 +318,166 @@ test('overview numbers count only this organization’s events and confirmed reg
     upcomingOccurrences: 1,
     confirmedRegistrations: 3,
   });
+});
+
+const invite = (db: never, organizationId: string, organizerId: string, email: string, now = NOW) =>
+  createInvitation(db, ENV, { organizationId, organizerId, email, now });
+
+test('inviting needs the organization’s first event to be approved (not_ready)', async () => {
+  const { db, d1 } = await database();
+  const ana = (await signedIn(db)).organizer;
+  const org = await createOrganization(db, {
+    organizerId: ana.id,
+    profile: PROFILE,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  await assert.rejects(
+    invite(db, org.organizationId, ana.id, 'bob@example.org'),
+    (e) => codeOf(e) === 'not_ready',
+  );
+  assert.deepEqual(await listInvitations(db, org.organizationId, NOW), []);
+  approveFirstEvent(d1, org.organizationId);
+  assert.ok((await invite(db, org.organizationId, ana.id, 'bob@example.org')).token);
+});
+
+test('an expired or already accepted invitation has no preview and cannot be accepted', async () => {
+  const { db, d1 } = await database();
+  const ana = (await signedIn(db)).organizer;
+  const bob = (await signedIn(db, 'bob@example.org', 'user_bob')).organizer;
+  const org = await createOrganization(db, {
+    organizerId: ana.id,
+    profile: PROFILE,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  approveFirstEvent(d1, org.organizationId);
+  const sent = await invite(db, org.organizationId, ana.id, 'bob@example.org');
+  assert.ok(await previewInvitation(db, sent.token, NOW + 60));
+  assert.equal(
+    await previewInvitation(db, sent.token, NOW + 8 * 86400),
+    null,
+    'expired link previews as unknown',
+  );
+  await assert.rejects(
+    acceptInvitation(db, ENV, { token: sent.token, organizer: bob, now: NOW + 8 * 86400 }),
+    (e) => codeOf(e) === 'invitation_expired',
+  );
+  await acceptInvitation(db, ENV, { token: sent.token, organizer: bob, now: NOW + 60 });
+  assert.equal(await previewInvitation(db, sent.token, NOW + 61), null, 'accepted link previews as unknown');
+  d1.sqlite.exec("DELETE FROM memberships WHERE organizer_id = '" + bob.id + "'");
+  await assert.rejects(
+    acceptInvitation(db, ENV, { token: sent.token, organizer: bob, now: NOW + 62 }),
+    (e) => codeOf(e) === 'invitation_invalid',
+  );
+  assert.equal(
+    await membershipRole(db, org.organizationId, bob.id),
+    null,
+    'a used invitation never re-adds anyone',
+  );
+});
+
+test('at most 20 open invitations per organization; re-inviting one address does not add to the count', async () => {
+  const { db, d1 } = await database();
+  const ana = (await signedIn(db)).organizer;
+  const org = await createOrganization(db, {
+    organizerId: ana.id,
+    profile: PROFILE,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  approveFirstEvent(d1, org.organizationId);
+  // Spread over days so the per-day rate limit does not hide the cap.
+  for (let i = 0; i < MAX_PENDING_INVITATIONS; i++)
+    await invite(db, org.organizationId, ana.id, `p${i}@example.org`, NOW + Math.floor(i / 10) * 86400);
+  const later = NOW + 86400;
+  await assert.rejects(
+    invite(db, org.organizationId, ana.id, 'one-too-many@example.org', later),
+    (e) => codeOf(e) === 'quota',
+  );
+  await invite(db, org.organizationId, ana.id, 'p0@example.org', later); // replaces its own open invitation
+  assert.equal((await listInvitations(db, org.organizationId, later)).length, MAX_PENDING_INVITATIONS);
+});
+
+test('invitations are rate limited per address and per organization', async () => {
+  const { db, d1 } = await database();
+  const ana = (await signedIn(db)).organizer;
+  const org = await createOrganization(db, {
+    organizerId: ana.id,
+    profile: PROFILE,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  approveFirstEvent(d1, org.organizationId);
+  for (let i = 0; i < 3; i++) await invite(db, org.organizationId, ana.id, 'bob@example.org');
+  await assert.rejects(
+    invite(db, org.organizationId, ana.id, 'bob@example.org'),
+    (e) => codeOf(e) === 'rate_limited',
+    'a fourth send to one address in a day',
+  );
+  await invite(db, org.organizationId, ana.id, 'carol@example.org'); // another address is fine
+});
+
+test('one organizer can own at most 5 organizations', async () => {
+  const { db } = await database();
+  const ana = (await signedIn(db)).organizer;
+  for (let i = 0; i < MAX_OWNED_ORGANIZATIONS; i++)
+    await createOrganization(db, {
+      organizerId: ana.id,
+      profile: { ...PROFILE, name: `Church ${i}` },
+      termsVersion: 'v1',
+      now: NOW,
+    });
+  await assert.rejects(
+    createOrganization(db, {
+      organizerId: ana.id,
+      profile: { ...PROFILE, name: 'One more' },
+      termsVersion: 'v1',
+      now: NOW,
+    }),
+    (e) => codeOf(e) === 'quota',
+  );
+  // Only ownership counts: joining someone else's organization as a member does not use the allowance.
+  const bob = (await signedIn(db, 'bob@example.org', 'user_bob')).organizer;
+  await createOrganization(db, {
+    organizerId: bob.id,
+    profile: { ...PROFILE, name: 'Bob church' },
+    termsVersion: 'v1',
+    now: NOW,
+  });
+});
+
+test('assertEventQuota allows 100 events that are not canceled and then throws quota', async () => {
+  const { db, d1 } = await database();
+  const ana = (await signedIn(db)).organizer;
+  const org = await createOrganization(db, {
+    organizerId: ana.id,
+    profile: PROFILE,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  d1.sqlite.exec(
+    "INSERT INTO venues (id, name, city, state, timezone) VALUES ('ven_1', 'Hall', 'Phoenix', 'AZ', 'America/Phoenix')",
+  );
+  const add = (n: number, status: string) => {
+    for (let i = 0; i < n; i++)
+      d1.sqlite.exec(
+        `INSERT INTO events (id, organization_id, origin, slug, title, category, venue_id, timezone, admission, status)
+         VALUES ('evt_${status}_${i}', '${org.organizationId}', 'organizer', 's-${status}-${i}', 'T', 'worship', 'ven_1', 'America/Phoenix', 'free_registration', '${status}')`,
+      );
+  };
+  add(30, 'canceled');
+  add(MAX_EVENTS_PER_ORGANIZATION - 1, 'draft');
+  await assertEventQuota(db, org.organizationId); // 99 counted: one more is allowed
+  add(1, 'published');
+  await assert.rejects(assertEventQuota(db, org.organizationId), (e) => codeOf(e) === 'quota');
+  // Another organization is unaffected.
+  const bob = (await signedIn(db, 'bob@example.org', 'user_bob')).organizer;
+  const other = await createOrganization(db, {
+    organizerId: bob.id,
+    profile: { ...PROFILE, name: 'Other' },
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  await assertEventQuota(db, other.organizationId);
 });

@@ -206,3 +206,11 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 ## 2026-10-19 — Live data model and screens approved
 
 - **Decision** (owner): new Live-owned D1 database; registrant personal data deleted 90 days after the event while non-personal event facts and aggregate counts stay; 52-occurrence series limit; every member edits events, only owners edit the organization; organization pages and a public `/promote` page in v1; browser barcode detector with typed-code fallback; free-event QR codes off by default, switchable per event. Client-facing booking UI is designed later with Academy, Worship and Production.
+
+
+## 2026-10-19 — Live polish pass decisions
+
+- **Decision** (owner): do less but do it very well before moving on; three phases (foundation and logic, public pages and guest flow, organizer and admin) each followed by a screenshot review. Keep the split screen for guest registration but fix it; organizer events get a typographic date block instead of stock photos (photo upload is deferred); monthly recurrence is hidden for now.
+- **Decision** (owner): a change to a published event keeps the live version visible until Gamo approves the change (implemented as `event_revisions`).
+- **Decision** (owner): check-in must be flexible. Default opens 3 hours before and ends 12 hours after the start; the event can choose 1, 3, 12 or 24 hours; the organizer can open or close it by hand.
+- **Decision** (owner): working rules added to AGENTS.md: no application logic in page files, reuse and extract components, parallel agents when work splits cleanly, targeted tests are fine.

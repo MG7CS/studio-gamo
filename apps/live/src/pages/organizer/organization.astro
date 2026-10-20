@@ -14,6 +14,7 @@ import { requireSameOrigin } from '@gamo/auth';
 import {
   EmailUnavailableError,
   OrganizerError,
+  organizerErrorMessage,
   SecretNotConfiguredError,
   createInvitation,
   getOrganization,
@@ -105,7 +106,7 @@ if (Astro.request.method === 'POST') {
         notice = { tone: 'error', text: 'An organization needs at least one owner.' };
       else if (error.code === 'rate_limited')
         notice = { tone: 'error', text: 'Too many invitations today. Please try again tomorrow.' };
-      else notice = { tone: 'error', text: 'That could not be done.' };
+      else notice = { tone: 'error', text: organizerErrorMessage(error.code) };
     } else if (error instanceof SecretNotConfiguredError) {
       notice = { tone: 'error', text: 'This is temporarily unavailable. Please try again later.' };
     } else throw error;

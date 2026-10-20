@@ -43,7 +43,7 @@ export interface SecurityHeaderOptions {
   formActionOrigins?: readonly string[];
   /** `Permissions-Policy: camera=(self)` for this response (the door scanner); otherwise `camera=()`. */
   camera?: boolean;
-  /** `Referrer-Policy: no-referrer` for this response (pages that carry a link token in the URL). */
+  /** `Referrer-Policy: same-origin` for this response (pages that carry a link token in the URL): nothing is sent to other sites. Not `no-referrer`: that makes browsers send `Origin: null` on form posts, which the same-origin check rightly refuses. */
   noReferrer?: boolean;
 }
 
@@ -136,7 +136,7 @@ export function buildContentSecurityPolicy(
 export function securityHeaders(options: SecurityHeaderOptions): Record<string, string> {
   const headers: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': options.noReferrer ? 'no-referrer' : 'strict-origin-when-cross-origin',
+    'Referrer-Policy': options.noReferrer ? 'same-origin' : 'strict-origin-when-cross-origin',
     'X-Frame-Options': 'DENY',
     'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     'Permissions-Policy': [

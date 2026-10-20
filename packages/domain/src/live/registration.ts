@@ -117,6 +117,26 @@ export function sixDigitCode(): string {
 const codeHash = (secret: string, registrationId: string, code: string) =>
   hashPii(`regcode:${registrationId}:${code}`, secret);
 
+/**
+ * Releases every seat held by an unconfirmed registration whose 15-minute hold has run out, and marks those
+ * registrations expired. Safe to run at any time; `startRegistration` does the same for one date.
+ */
+export async function releaseExpiredHolds(db: SqlDatabase, now: number): Promise<void> {
+  await runBatch(db, [
+    {
+      sql: `UPDATE event_occurrences
+               SET seats_taken = seats_taken - COALESCE((SELECT SUM(party_size) FROM registrations
+                     WHERE occurrence_id = event_occurrences.id AND status = 'pending' AND expires_at <= ?1), 0)
+             WHERE id IN (SELECT occurrence_id FROM registrations WHERE status = 'pending' AND expires_at <= ?1)`,
+      params: [now],
+    },
+    {
+      sql: "UPDATE registrations SET status = 'expired' WHERE status = 'pending' AND expires_at <= ?1",
+      params: [now],
+    },
+  ]);
+}
+
 /** Reserves seats (15-minute hold) and creates the registration plus its emailed code. Throws `RegistrationError`. */
 export async function startRegistration(
   db: SqlDatabase,
@@ -216,6 +236,57 @@ export async function startRegistration(
   const created = await allRows(db, { sql: 'SELECT 1 AS ok FROM registrations WHERE id = ?1', params: [id] });
   if (created.length === 0) throw new RegistrationError('full');
   return { registrationId: id, code, email, name };
+}
+
+export interface RecoveredRegistration {
+  registrationId: string;
+  name: string;
+  email: string;
+  partySize: number;
+  startsAt: number;
+  manageToken: string;
+  checkinCode: string | null;
+}
+
+/**
+ * Finds the confirmed registration of an email for one date so its manage link can be emailed again (a repeated
+ * sign-up, or a lost email). Rate limited per email; returns null when there is none or the limit is reached, and the
+ * caller must answer the same either way so the page never reveals who is registered.
+ */
+export async function recoverRegistration(
+  db: SqlDatabase,
+  env: Env,
+  input: { occurrenceId: string; email: string; now: number },
+): Promise<RecoveredRegistration | null> {
+  const email = normalizeEmail(input.email);
+  if (!isPlausibleEmail(email)) return null;
+  const secret = secretOf(env);
+  const emailHash = await hashEmail(email, secret);
+  const limit = await checkRateLimits(
+    db,
+    [{ bucket: rateLimitBucket('live.link', 'email', emailHash), limit: 3, windowSeconds: 3600 }],
+    input.now,
+  );
+  if (!limit.allowed) return null;
+  const row = (
+    await allRows<Record<string, unknown>>(db, {
+      sql: `SELECT r.id, r.name, r.email, r.party_size, o.starts_at, e.qr_checkin
+              FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id JOIN events e ON e.id = o.event_id
+             WHERE r.occurrence_id = ?1 AND r.email_hash = ?2 AND r.status = 'confirmed'`,
+      params: [input.occurrenceId, emailHash],
+    })
+  )[0];
+  if (!row) return null;
+  const startsAt = Number(row.starts_at);
+  return {
+    registrationId: String(row.id),
+    name: String(row.name),
+    email: String(row.email),
+    partySize: Number(row.party_size),
+    startsAt,
+    manageToken: await signManageToken(env, String(row.id), startsAt + MANAGE_LINK_GRACE_SECONDS),
+    checkinCode: Number(row.qr_checkin) === 1 ? await deriveCheckinCode(env, String(row.id)) : null,
+  };
 }
 
 /** HMAC-derived check-in code for events with QR on: 10 Crockford symbols, recomputable, not guessable. */
@@ -385,20 +456,31 @@ export type CheckInResult =
   | { ok: true; name: string; partySize: number }
   | {
       ok: false;
-      reason: 'unknown_code' | 'canceled' | 'already_admitted';
+      reason: 'unknown_code' | 'canceled' | 'already_admitted' | 'outside_window';
       checkedInAt?: number;
       name?: string;
     };
 
 /** First scan wins. `code` is what the QR shows or what was typed. */
+/**
+ * What a door volunteer typed, or what a QR carried, as the stored code: upper case, no spaces or dashes, the `GL1`
+ * prefix of the QR text removed, and the look-alikes Crockford base 32 does not use (O, I, L) read as 0, 1, 1.
+ */
+export function normalizeCheckinCode(raw: unknown): string {
+  return String(raw ?? '')
+    .toUpperCase()
+    .replace(/\s+/g, '')
+    .replace(/^GL1[.:-]?/, '')
+    .replace(/-/g, '')
+    .replace(/O/g, '0')
+    .replace(/[IL]/g, '1');
+}
+
 export async function checkIn(
   db: SqlDatabase,
   input: { occurrenceId: string; code: string; now: number },
 ): Promise<CheckInResult> {
-  const code = String(input.code)
-    .trim()
-    .toUpperCase()
-    .replace(/^GL1[.:-]?/, '');
+  const code = normalizeCheckinCode(input.code);
   const won = await allRows<{ name: string; party_size: number }>(db, {
     sql: `UPDATE registrations SET checked_in_at = ?3
            WHERE occurrence_id = ?1 AND checkin_code = ?2 AND status = 'confirmed' AND checked_in_at IS NULL

@@ -2,10 +2,11 @@
 /** Gamo Live event review. GET lists events waiting for review; POST applies a decision. */
 import AdminLayout from '../layouts/AdminLayout.astro';
 import LiveEventReviewList from '../components/LiveEventReviewList.astro';
+import LivePublishedEventList from '../components/LivePublishedEventList.astro';
 import LiveTabs from '../components/LiveTabs.astro';
 import Notice from '../components/Notice.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { getRuntimeEnv, listPendingEvents } from '@gamo/domain';
+import { getRuntimeEnv, listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../lib/inbox';
 import { handleEventForm, outcomeFrom } from '../lib/live-admin';
@@ -19,8 +20,11 @@ if (Astro.request.method === 'POST') {
   Astro.response.status = outcome.status;
 }
 let events = null as Awaited<ReturnType<typeof listPendingEvents>> | null;
+let published = null as Awaited<ReturnType<typeof listPublishedOrganizerEvents>> | null;
 try {
-  events = await listPendingEvents(asSqlDatabase(env.LIVE_DB));
+  const db = asSqlDatabase(env.LIVE_DB);
+  events = await listPendingEvents(db);
+  published = await listPublishedOrganizerEvents(db);
 } catch (e) {
   console.error(`[admin] live events unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
@@ -31,13 +35,23 @@ const outcome = outcomeFrom(Astro.url);
 <AdminLayout title="Event review" current="events">
   <PageHeader
     title="Event review"
-    description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization."
+    description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization. Events that send people to another site for tickets are always reviewed."
   />
   <LiveTabs current="events" counts={counts} />
   {outcome && <Notice tone="success" text={outcome} />}
   {error && <Notice tone="error" text={error} />}
   {events ? (
-    <LiveEventReviewList events={events} />
+    <>
+      <LiveEventReviewList events={events} />
+      {published && (
+        <section class="mt-10" aria-labelledby="published-heading">
+          <h2 id="published-heading" class="mb-4 text-xl font-extrabold">
+            Published events
+          </h2>
+          <LivePublishedEventList events={published} />
+        </section>
+      )}
+    </>
   ) : (
     <Notice
       tone="error"

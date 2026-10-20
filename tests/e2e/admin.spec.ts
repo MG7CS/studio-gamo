@@ -40,6 +40,7 @@ const PAGES = [
   '/events',
   '/organizations',
   '/catalog',
+  '/maintenance',
   '/legal',
 ];
 const PROTECTED = [
@@ -214,7 +215,9 @@ test('the sidebar and Inbox show the real counts, and each area shows its seeded
   await page.goto(`${ADMIN_E2E_ORIGIN}/events`);
   await expect(page.getByRole('heading', { name: REVIEW_FIXTURE_TITLES.firstEvent })).toBeVisible();
   await expect(page.getByRole('heading', { name: REVIEW_FIXTURE_TITLES.alwaysReviewEvent })).toBeVisible();
-  await expect(page.getByText('Sample Published Concert')).toHaveCount(0);
+  // A published event is not in the review queue (h2 cards); it is listed below under "Published events" (h3).
+  await expect(page.getByRole('heading', { name: 'Sample Published Concert', level: 2 })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Sample Published Concert', level: 3 })).toBeVisible();
   await page.goto(`${ADMIN_E2E_ORIGIN}/organizations`);
   await expect(page.getByText(REVIEW_FIXTURE_TITLES.organization)).toBeVisible();
   await expect(page.getByText('Sample Youth Ministry')).toHaveCount(0);

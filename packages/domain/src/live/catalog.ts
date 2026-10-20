@@ -6,11 +6,57 @@
 import {
   GAMO_LIVE_METROS,
   isLocalWeekendDate,
+  resolveMetroBySlug,
   resolveNearestMetroByCoordinates,
   type EventLifecycleStatus,
   type GamoLiveMetro,
 } from '../services/live-external-discovery.ts';
 import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import type { EVENT_CATEGORIES } from './events.ts';
+
+export type EventCategory = (typeof EVENT_CATEGORIES)[number]['value'];
+
+/**
+ * Display text for every category. `Record<EventCategory, …>` makes this total: adding a category to
+ * EVENT_CATEGORIES without a label here is a compile error, so none can fall through to a raw value.
+ */
+const CATEGORY_DISPLAY: Record<EventCategory, { label: string; badge: string }> = {
+  concert: { label: 'Concert', badge: 'Concert' },
+  worship: { label: 'Worship night', badge: 'Worship Night' },
+  conference: { label: 'Conference', badge: 'Conference' },
+  youth: { label: 'Youth event', badge: 'Youth' },
+  bible: { label: 'Bible study', badge: 'Bible Study' },
+  prayer: { label: 'Prayer gathering', badge: 'Prayer' },
+  retreat: { label: 'Retreat', badge: 'Retreat' },
+  community: { label: 'Community event', badge: 'Community' },
+};
+
+/** Older imports used `worship_event` for what is now `worship`. */
+const CATEGORY_ALIASES: Record<string, EventCategory> = { worship_event: 'worship' };
+
+export function normalizeCategory(value: string | null | undefined): EventCategory | null {
+  const key = (value ?? '').trim().toLowerCase();
+  const alias = CATEGORY_ALIASES[key];
+  if (alias) return alias;
+  return key in CATEGORY_DISPLAY ? (key as EventCategory) : null;
+}
+
+const humanize = (value: string) => {
+  const text = value.trim().replace(/[_-]+/g, ' ');
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : 'Event';
+};
+
+/** Full label, e.g. "Bible study". Unknown values are made readable, never shown as a raw key. */
+export function categoryLabel(value: string | null | undefined): string {
+  const category = normalizeCategory(value);
+  return category ? CATEGORY_DISPLAY[category].label : humanize(value ?? '');
+}
+
+/** Short label for a card badge, e.g. "Worship Night". */
+export function categoryBadge(value: string | null | undefined): string {
+  const category = normalizeCategory(value);
+  return category ? CATEGORY_DISPLAY[category].badge : humanize(value ?? '');
+}
 
 export interface LiveEventPerformerSummary {
   id: string;
@@ -39,7 +85,12 @@ export interface LiveEventWithDetails {
   address: string | null;
   city: string;
   state: string;
+  /** Slug of one of the nine Gamo Live metros, or null outside them (never invented). */
   metroSlug: string | null;
+  /** Same as `metroSlug`; null when the city is outside every metro. */
+  metro: string | null;
+  /** Grouping label: the metro's label, else "City, ST". */
+  regionLabel: string;
   timezone: string;
   /** The next upcoming occurrence, or the most recent one when all have passed. */
   startsAt: Date;
@@ -102,10 +153,14 @@ export interface LiveEventFilters {
   lng?: number;
   venue?: string;
   artist?: string;
+  /** Exact performer names (any of them); used for an artist's own page. */
+  performers?: string[];
   q?: string;
   dateFrom?: Date;
   dateTo?: Date;
   weekend?: boolean;
+  /** Only events that have a date that has not ended yet. */
+  upcomingOnly?: boolean;
   limit?: number;
 }
 
@@ -115,7 +170,12 @@ export interface LiveVenueSummary {
   city: string;
   state: string;
   metroSlug: string | null;
+  metro: string | null;
+  regionLabel: string;
+  /** Upcoming (not yet ended, not canceled) events only. */
   upcomingEventCount: number;
+  nextEventStartsAt: Date | null;
+  nextEventDateLocal: string | null;
   upcomingEvents: LiveEventWithDetails[];
 }
 
@@ -123,7 +183,45 @@ export interface LiveArtistSummary {
   id: string;
   stageName: string;
   slug: string;
+  /** Upcoming (not yet ended, not canceled) events only. */
   upcomingEventCount: number;
+  nextEventStartsAt: Date | null;
+  nextEventDateLocal: string | null;
+}
+
+export interface LiveArtistProfile extends LiveArtistSummary {
+  /** Every spelling of the name found on performer lines. */
+  names: string[];
+  upcomingEvents: LiveEventWithDetails[];
+}
+
+export interface LiveRegion {
+  /** Metro slug, or null outside the nine metros. */
+  metro: string | null;
+  /** The metro's label, else "City, ST" (or just the state). */
+  regionLabel: string;
+}
+
+/**
+ * Which metro (if any) a place belongs to, and a label for grouping. A stored metro slug wins; otherwise the
+ * city is matched against the metro's city list. Anywhere else has no metro, only a "City, ST" label.
+ */
+export function regionForPlace(place: {
+  city: string;
+  state: string;
+  metroSlug?: string | null;
+}): LiveRegion {
+  const city = place.city.trim();
+  const state = place.state.trim().toUpperCase();
+  const stored = resolveMetroBySlug(place.metroSlug ?? null);
+  const metro =
+    stored ??
+    GAMO_LIVE_METROS.find(
+      (m) => m.state === state && m.cities.some((c) => c.toLowerCase() === city.toLowerCase()),
+    ) ??
+    null;
+  if (metro) return { metro: metro.slug, regionLabel: metro.displayLabel };
+  return { metro: null, regionLabel: city && state ? `${city}, ${state}` : city || state || 'United States' };
 }
 
 /** `YYYY-MM-DD` and `HH:mm` of an instant in an IANA time zone. */
@@ -141,13 +239,42 @@ export function localParts(epochSeconds: number, timeZone: string): { date: stri
   return { date: `${get('year')}-${get('month')}-${get('day')}`, time: `${get('hour')}:${get('minute')}` };
 }
 
+/** Case-, accent- and spacing-insensitive identity of an artist name. */
+export function artistKey(name: string): string {
+  return name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+/** Short deterministic hash (base 36, 8 characters) for slugs that cannot be built from Latin letters alone. */
+export function stableHash(text: string): string {
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36).padStart(8, '0').slice(-8);
+}
+
+/**
+ * URL slug of an artist name. Plain ASCII names keep their old slug ("Grace Choir" -> "grace-choir"); accents are
+ * folded ("José" -> "jose"). A name with letters that cannot be written in ASCII (Korean, Arabic, Hindi...) or with no
+ * letters at all gets a stable hash of the full name appended, so different names never share a slug and the same
+ * name always gets the same one.
+ */
 export function toArtistSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
+  const key = artistKey(name);
+  const folded = key.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  const base = folded
     .replace(/&/g, 'and')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-');
+  const lossy = /[\p{L}\p{N}]/u.test(folded.replace(/[\x20-\x7e]/g, ''));
+  if (!lossy && base) return base;
+  const stem = base.replace(/^-+|-+$/g, '').slice(0, 60) || 'artist';
+  return `${stem}-${stableHash(key)}`;
 }
 
 type Row = Record<string, unknown>;
@@ -156,27 +283,48 @@ const num = (v: unknown): number => Number(v ?? 0);
 const date = (seconds: unknown): Date | null => (seconds == null ? null : new Date(Number(seconds) * 1000));
 
 /**
- * One row per published event, joined to the occurrence a visitor should see: the next upcoming one,
- * else the most recent past one. `?1` is "now" in epoch seconds.
+ * Seats held by pending registrations whose hold has run out. They are still counted in `seats_taken` until the next
+ * registration (or cleanup) releases them, so every read subtracts them; `?1` is "now" in epoch seconds.
  */
-const EVENT_SELECT = `
+const heldSeats = (occurrence: string) =>
+  `COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = ${occurrence} AND status = 'pending' AND expires_at <= ?1), 0)`;
+
+/** A date has not ended yet: its end, or its start when no end is set, is after "now" (`?1`). */
+const NOT_ENDED = (alias = '') => `COALESCE(${alias}ends_at, ${alias}starts_at) > ?1`;
+
+/**
+ * One row per event, joined to the occurrence a visitor should see: the next upcoming (or running) one, else the
+ * most recent past one; canceled dates only when nothing else is left. `?1` is "now" in epoch seconds.
+ *
+ * `discovery` is for every list (home, search, city, venues, artists): only `published` events, and only dates that
+ * are not canceled, so a canceled event never shows up there. The detail page (`discovery: false`) also finds
+ * events canceled after they were published, so they can say so. `occurrenceWhere` narrows the dates considered
+ * (for example the date window of a search), as extra `AND ...` conditions on the occurrence table.
+ */
+function eventSelect(discovery: boolean, occurrenceWhere = ''): string {
+  return `
   SELECT e.id, e.slug, e.title, e.category, e.description, e.timezone, e.admission, e.external_url, e.price_text,
          e.refund_policy_text, e.status, e.featured, e.image_rights_confirmed_at, e.capacity, e.max_party_size, e.qr_checkin, e.image_key, e.origin, e.created_at,
-         v.name AS venue_name, v.address, v.city, v.state, v.metro_slug,
+         COALESCE(e.venue_name, v.name) AS venue_name, COALESCE(e.venue_address, v.address) AS address, v.city, v.state, v.metro_slug,
          g.name AS org_name, g.kind AS org_kind, g.slug AS org_slug, g.verified_at AS org_verified_at,
          cs.source_urls, cs.provider, cs.destination_kind, cs.last_verified_at, cs.original_organizer_name,
-         o.id AS occurrence_id, o.starts_at, o.ends_at, o.seats_taken,
-         (SELECT COALESCE(SUM(seats_taken), 0) FROM event_occurrences WHERE event_id = e.id) AS registered_total
+         o.id AS occurrence_id, o.starts_at, o.ends_at, o.seats_taken - ${heldSeats('o.id')} AS seats_taken,
+         (SELECT COALESCE(SUM(x.seats_taken - ${heldSeats('x.id')}), 0) FROM event_occurrences x WHERE x.event_id = e.id) AS registered_total
     FROM events e
     JOIN venues v ON v.id = e.venue_id
     LEFT JOIN organizations g ON g.id = e.organization_id
     LEFT JOIN catalog_sources cs ON cs.event_id = e.id
     JOIN event_occurrences o ON o.id = (
       SELECT id FROM event_occurrences
-       WHERE event_id = e.id
-       ORDER BY (status = 'canceled'), (starts_at < ?1), CASE WHEN starts_at >= ?1 THEN starts_at END ASC, starts_at DESC
+       WHERE event_id = e.id${discovery ? " AND status <> 'canceled'" : ''}${occurrenceWhere}
+       ORDER BY (status = 'canceled'), (${NOT_ENDED()}) = 0, CASE WHEN ${NOT_ENDED()} THEN starts_at END ASC, starts_at DESC
        LIMIT 1)
-   WHERE e.status IN ('published', 'canceled') AND (g.id IS NULL OR g.status = 'active')`;
+   WHERE ${
+     discovery
+       ? "e.status = 'published'"
+       : "(e.status = 'published' OR (e.status = 'canceled' AND e.published_at IS NOT NULL))"
+   } AND (g.id IS NULL OR g.status = 'active')`;
+}
 
 export class LiveCatalog {
   constructor(
@@ -214,6 +362,11 @@ export class LiveCatalog {
     const admission = String(r.admission) as LiveEventWithDetails['admission'];
     const catalog = r.origin === 'catalog';
     const canceled = r.status === 'canceled';
+    const region = regionForPlace({
+      city: String(r.city),
+      state: String(r.state),
+      metroSlug: str(r.metro_slug),
+    });
     return {
       id: String(r.id),
       slug: String(r.slug),
@@ -225,7 +378,9 @@ export class LiveCatalog {
       address: str(r.address),
       city: String(r.city),
       state: String(r.state),
-      metroSlug: str(r.metro_slug),
+      metroSlug: region.metro,
+      metro: region.metro,
+      regionLabel: region.regionLabel,
       timezone,
       startsAt: new Date(startsSec * 1000),
       endsAt: endsSec == null ? null : new Date(endsSec * 1000),
@@ -274,44 +429,67 @@ export class LiveCatalog {
     };
   }
 
-  /** Upcoming events first (soonest first), then past ones; each event once, at its relevant occurrence. */
+  /**
+   * Discovery list: published events only (a canceled event is never listed, only reachable by its own page).
+   * Upcoming events first (soonest first), then past ones unless `upcomingOnly`; each event once, at its relevant date.
+   */
   async listDiscoverableEvents(filters: LiveEventFilters = {}): Promise<LiveEventWithDetails[]> {
     const now = this.now();
-    const where: string[] = [];
     const params: (string | number)[] = [now];
-    const add = (sql: string, value: string | number) => {
+    const bind = (value: string | number) => {
       params.push(value);
-      where.push(sql.replace('?', `?${params.length}`));
+      return `?${params.length}`;
     };
-    if (filters.category)
-      add('e.category = ?', filters.category === 'worship_event' ? 'worship' : filters.category);
+    const where: string[] = [];
+    const add = (sql: string, value: string | number) => where.push(sql.replace('?', bind(value)));
+    // Conditions on the date itself are applied while choosing the date, so an event with several dates
+    // matches when any of them does.
+    const occurrenceWhere: string[] = [];
+    if (filters.upcomingOnly) occurrenceWhere.push(` AND ${NOT_ENDED()}`);
+    if (filters.dateFrom && Number.isFinite(filters.dateFrom.getTime()))
+      occurrenceWhere.push(` AND starts_at >= ${bind(Math.floor(filters.dateFrom.getTime() / 1000))}`);
+    if (filters.dateTo && Number.isFinite(filters.dateTo.getTime()))
+      occurrenceWhere.push(` AND starts_at <= ${bind(Math.floor(filters.dateTo.getTime() / 1000))}`);
+    if (filters.category) add('e.category = ?', normalizeCategory(filters.category) ?? filters.category);
     if (filters.city) add('v.city = ?', filters.city);
-    const metro =
+    const metroSlug = (
       filters.metro ||
       (Number.isFinite(filters.lat) && Number.isFinite(filters.lng)
         ? resolveNearestMetroByCoordinates(filters.lat as number, filters.lng as number).metro.slug
-        : undefined);
-    if (metro) add('v.metro_slug = ?', metro.trim().toLowerCase());
-    if (filters.dateFrom && Number.isFinite(filters.dateFrom.getTime()))
-      add('o.starts_at >= ?', Math.floor(filters.dateFrom.getTime() / 1000));
-    if (filters.dateTo && Number.isFinite(filters.dateTo.getTime()))
-      add('o.starts_at <= ?', Math.floor(filters.dateTo.getTime() / 1000));
+        : undefined)
+    )
+      ?.trim()
+      .toLowerCase();
+    if (metroSlug) {
+      const known = resolveMetroBySlug(metroSlug);
+      if (known) {
+        // Venues saved without a metro slug still belong to the metro when their city is one of its cities.
+        const slug = bind(known.slug);
+        const state = bind(known.state);
+        const cities = known.cities.map((c) => bind(c.toLowerCase())).join(', ');
+        where.push(`(v.metro_slug = ${slug} OR (v.state = ${state} AND LOWER(v.city) IN (${cities})))`);
+      } else add('v.metro_slug = ?', metroSlug);
+    }
     const like = (text: string) =>
       `%${text
         .trim()
         .toLowerCase()
         .replace(/[\\%_]/g, '\\$&')}%`;
     if (filters.venue?.trim()) add("LOWER(v.name) LIKE ? ESCAPE '\\'", like(filters.venue));
+    if (filters.performers?.length) {
+      const names = filters.performers.map((n) => bind(n)).join(', ');
+      where.push(
+        `EXISTS (SELECT 1 FROM event_performers p WHERE p.event_id = e.id AND p.name IN (${names}))`,
+      );
+    }
     if (filters.artist?.trim()) {
-      params.push(like(filters.artist));
-      const p = `?${params.length}`;
+      const p = bind(like(filters.artist));
       where.push(
         `(LOWER(e.title) LIKE ${p} ESCAPE '\\' OR EXISTS (SELECT 1 FROM event_performers p WHERE p.event_id = e.id AND LOWER(p.name) LIKE ${p} ESCAPE '\\'))`,
       );
     }
     if (filters.q?.trim()) {
-      params.push(like(filters.q));
-      const p = `?${params.length}`;
+      const p = bind(like(filters.q));
       where.push(
         `(LOWER(e.title) LIKE ${p} ESCAPE '\\' OR LOWER(COALESCE(e.description, '')) LIKE ${p} ESCAPE '\\'
           OR LOWER(v.name) LIKE ${p} ESCAPE '\\' OR LOWER(v.city) LIKE ${p} ESCAPE '\\' OR LOWER(v.state) LIKE ${p} ESCAPE '\\'
@@ -319,9 +497,9 @@ export class LiveCatalog {
       );
     }
     const rows = await allRows<Row>(this.db, {
-      sql: `${EVENT_SELECT}${where.length ? ` AND ${where.join(' AND ')}` : ''}
-            ORDER BY (o.starts_at < ?1), CASE WHEN o.starts_at >= ?1 THEN o.starts_at END ASC, o.starts_at DESC, e.id
-            LIMIT ${Math.min(Math.max(Math.trunc(filters.limit ?? 50), 1), 500)}`,
+      sql: `${eventSelect(true, occurrenceWhere.join(''))}${where.length ? ` AND ${where.join(' AND ')}` : ''}
+            ORDER BY (${NOT_ENDED('o.')}) = 0, CASE WHEN ${NOT_ENDED('o.')} THEN o.starts_at END ASC, o.starts_at DESC, e.id
+            LIMIT ${Math.min(Math.max(Math.trunc(filters.limit ?? 50), 1), 2000)}`,
       params,
     });
     const performers = await this.performersFor(rows.map((r) => String(r.id)));
@@ -336,15 +514,16 @@ export class LiveCatalog {
     const now = this.now();
     const column = idOrSlug.startsWith('evt_') ? 'e.id' : 'e.slug';
     const rows = await allRows<Row>(this.db, {
-      sql: `${EVENT_SELECT} AND ${column} = ?2 LIMIT 1`,
+      sql: `${eventSelect(false)} AND ${column} = ?2 LIMIT 1`,
       params: [now, idOrSlug],
     });
     const row = rows[0];
     if (!row) return null;
     const performers = await this.performersFor([String(row.id)]);
     const occ = await allRows<Row>(this.db, {
-      sql: 'SELECT id, starts_at, ends_at, status, seats_taken FROM event_occurrences WHERE event_id = ?1 ORDER BY starts_at',
-      params: [String(row.id)],
+      sql: `SELECT o.id, o.starts_at, o.ends_at, o.status, o.seats_taken - ${heldSeats('o.id')} AS seats_taken
+               FROM event_occurrences o WHERE o.event_id = ?2 ORDER BY o.starts_at`,
+      params: [now, String(row.id)],
     });
     return {
       ...this.mapEvent(row, performers.get(String(row.id)) ?? [], now),
@@ -359,58 +538,122 @@ export class LiveCatalog {
     };
   }
 
-  /** Artists with at least one published event, derived from performers. */
-  async listArtists(): Promise<LiveArtistSummary[]> {
+  /**
+   * Artists (from performer lines) with at least one upcoming, not canceled, published event. Counts and the next
+   * date only cover upcoming events. Two names that would share a slug keep it apart with a stable hash.
+   */
+  private async artistIndex(): Promise<Array<LiveArtistSummary & { names: string[] }>> {
+    const now = this.now();
     const rows = await allRows<Row>(this.db, {
-      sql: `SELECT p.name, COUNT(DISTINCT e.id) AS events
+      sql: `SELECT p.name, e.id AS event_id, e.timezone, MIN(o.starts_at) AS next_starts
               FROM event_performers p
               JOIN events e ON e.id = p.event_id AND e.status = 'published'
+              JOIN event_occurrences o ON o.event_id = e.id AND o.status <> 'canceled' AND ${NOT_ENDED('o.')}
               LEFT JOIN organizations g ON g.id = e.organization_id
              WHERE g.id IS NULL OR g.status = 'active'
-             GROUP BY LOWER(p.name)
-             ORDER BY events DESC, p.name`,
-      params: [],
+             GROUP BY p.name, e.id`,
+      params: [now],
     });
-    return rows.map((r) => ({
-      id: `artist:${toArtistSlug(String(r.name))}`,
-      stageName: String(r.name),
-      slug: toArtistSlug(String(r.name)),
-      upcomingEventCount: num(r.events),
-    }));
+    interface Group {
+      key: string;
+      spellings: Map<string, number>;
+      events: Set<string>;
+      next: { startsAt: number; timezone: string } | null;
+    }
+    const groups = new Map<string, Group>();
+    for (const r of rows) {
+      const display = String(r.name).normalize('NFC').trim().replace(/\s+/g, ' ');
+      if (!display) continue;
+      const key = artistKey(display);
+      const group = groups.get(key) ?? { key, spellings: new Map(), events: new Set(), next: null };
+      groups.set(key, group);
+      group.spellings.set(String(r.name), (group.spellings.get(String(r.name)) ?? 0) + 1);
+      group.events.add(String(r.event_id));
+      const startsAt = num(r.next_starts);
+      if (!group.next || startsAt < group.next.startsAt)
+        group.next = { startsAt, timezone: String(r.timezone) };
+    }
+    const used = new Set<string>();
+    const slugs = new Map<string, string>();
+    for (const key of [...groups.keys()].sort()) {
+      let slug = toArtistSlug(key);
+      if (used.has(slug)) slug = `${slug}-${stableHash(key)}`;
+      while (used.has(slug)) slug = `${slug}-x`;
+      used.add(slug);
+      slugs.set(key, slug);
+    }
+    return [...groups.values()]
+      .map((group) => {
+        const spellings = [...group.spellings.entries()].sort(
+          (x, y) => y[1] - x[1] || x[0].localeCompare(y[0]),
+        );
+        const stageName = spellings[0][0].normalize('NFC').trim().replace(/\s+/g, ' ');
+        const slug = slugs.get(group.key) as string;
+        return {
+          id: `artist:${slug}`,
+          stageName,
+          slug,
+          upcomingEventCount: group.events.size,
+          nextEventStartsAt: group.next ? new Date(group.next.startsAt * 1000) : null,
+          nextEventDateLocal: group.next ? localParts(group.next.startsAt, group.next.timezone).date : null,
+          names: spellings.map(([name]) => name),
+        };
+      })
+      .sort((x, y) => y.upcomingEventCount - x.upcomingEventCount || x.stageName.localeCompare(y.stageName));
   }
 
+  async listArtists(): Promise<LiveArtistSummary[]> {
+    return (await this.artistIndex()).map(({ names: _names, ...artist }) => artist);
+  }
+
+  /** One artist by the slug `listArtists` gave them, with their upcoming events; null when there are none. */
+  async getArtistBySlug(slug: string): Promise<LiveArtistProfile | null> {
+    const wanted = slug.trim().toLowerCase();
+    const artist = (await this.artistIndex()).find((a) => a.slug === wanted);
+    if (!artist) return null;
+    const upcomingEvents = await this.listDiscoverableEvents({
+      performers: artist.names,
+      upcomingOnly: true,
+      limit: 100,
+    });
+    return { ...artist, upcomingEvents };
+  }
+
+  /** Per metro: how many upcoming (not canceled) published events, and which one is next. */
   async getMetroSummaries(): Promise<
     Array<
       GamoLiveMetro & {
+        /** Upcoming events (kept under its old name for the existing pages). */
         publishedEventCount: number;
+        upcomingEventCount: number;
         nextEventTitle: string | null;
         nextEventDateLocal: string | null;
       }
     >
   > {
-    const all = await this.listDiscoverableEvents({ limit: 500 });
+    const upcoming = await this.listDiscoverableEvents({ upcomingOnly: true, limit: 2000 });
     return GAMO_LIVE_METROS.map((metro) => {
-      const mine = all.filter(
-        (e) =>
-          e.metroSlug === metro.slug ||
-          (e.state.toUpperCase() === metro.state &&
-            metro.cities.some((c) => c.toLowerCase() === e.city.toLowerCase())),
-      );
-      const next = mine.find((e) => !e.isPast) ?? null;
+      const mine = upcoming.filter((e) => e.metro === metro.slug);
+      const next = mine[0] ?? null;
       return {
         ...metro,
         publishedEventCount: mine.length,
+        upcomingEventCount: mine.length,
         nextEventTitle: next?.title ?? null,
         nextEventDateLocal: next?.startDateLocal ?? null,
       };
     });
   }
 
-  /** Venues that have at least one published event, most active first. */
+  /** Venues that have at least one upcoming, not canceled, published event, most active first. */
   async listDiscoverableVenues(filters: { metro?: string } = {}): Promise<LiveVenueSummary[]> {
-    const published = await this.listDiscoverableEvents({ metro: filters.metro, limit: 500 });
+    const upcoming = await this.listDiscoverableEvents({
+      metro: filters.metro,
+      upcomingOnly: true,
+      limit: 2000,
+    });
     const map = new Map<string, LiveVenueSummary>();
-    for (const evt of published) {
+    for (const evt of upcoming) {
       const key = `${evt.venueName.toLowerCase()}|${evt.city.toLowerCase()}|${evt.state.toLowerCase()}`;
       const existing = map.get(key);
       if (existing) {
@@ -422,8 +665,13 @@ export class LiveCatalog {
           address: evt.address,
           city: evt.city,
           state: evt.state,
-          metroSlug: evt.metroSlug,
+          metroSlug: evt.metro,
+          metro: evt.metro,
+          regionLabel: evt.regionLabel,
           upcomingEventCount: 1,
+          // The list is soonest first, so the first event of a venue is its next one.
+          nextEventStartsAt: evt.startsAt,
+          nextEventDateLocal: evt.startDateLocal,
           upcomingEvents: [evt],
         });
       }

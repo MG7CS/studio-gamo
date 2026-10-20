@@ -1,0 +1,16 @@
+---
+/** One real number with its label. Pass only values that come from a real query. */
+interface Props {
+  label: string;
+  value: string | number;
+  hint?: string;
+  class?: string;
+}
+const { label, value, hint, class: className } = Astro.props;
+---
+
+<div class:list={['rounded-xl border border-line bg-white px-4 py-3', className]}>
+  <p class="text-xs font-semibold text-muted">{label}</p>
+  <p class="mt-1 text-2xl font-semibold tabular-nums text-ink">{value}</p>
+  {hint && <p class="mt-0.5 text-xs text-muted">{hint}</p>}
+</div>

@@ -29,7 +29,7 @@ if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active, live, now } = ctx;
 const id = Astro.params.id ?? '';
-const event = await getOrganizerEvent(live.db, active.organizationId, id);
+const event = await getOrganizerEvent(live.db, active.organizationId, id, now);
 if (!event) return new Response(null, { status: 404 });
 const tz = event.values.timezone;
 const q = (Astro.url.searchParams.get('q') ?? '').trim();
@@ -72,6 +72,7 @@ if (Astro.request.method === 'POST') {
 const rows = await listEventRegistrations(live.db, active.organizationId, id, {
   occurrenceId: occurrenceId || undefined,
   q,
+  now,
 });
 const people = rows.filter((r) => r.status === 'confirmed').reduce((a, r) => a + r.partySize, 0);
 const csvQuery = new URLSearchParams({
@@ -183,10 +184,12 @@ const csvQuery = new URLSearchParams({
                       : 'Confirmed'
                     : r.status === 'pending'
                       ? 'Waiting for code'
-                      : 'Canceled'}
+                      : r.status === 'expired'
+                        ? 'Expired'
+                        : 'Canceled'}
                 </td>
                 <td class="py-3 text-right">
-                  {r.status !== 'canceled' && (
+                  {r.status !== 'canceled' && r.status !== 'expired' && (
                     <form method="post">
                       <input type="hidden" name="action" value="cancel" />
                       <input type="hidden" name="registration" value={r.id} />

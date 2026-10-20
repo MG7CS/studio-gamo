@@ -12,7 +12,9 @@ import { requireSameOrigin } from '@gamo/auth';
 import {
   OrganizerError,
   checkInForOrganizer,
+  checkInWindow,
   getCheckInOccurrence,
+  setCheckInOpen,
   requestSecurityHeaders,
 } from '@gamo/domain';
 import { organizerPage } from '../../../lib/organizer-session';
@@ -43,9 +45,24 @@ if (Astro.request.method === 'POST') {
     return new Response('Forbidden', { status: 403 });
   }
   const asJson = (Astro.request.headers.get('content-type') ?? '').includes('application/json');
+  const form = asJson ? null : await Astro.request.formData();
+  const action = String(form?.get('action') ?? '');
+  if (action === 'open' || action === 'close') {
+    try {
+      await setCheckInOpen(live.db, {
+        organizationId: active.organizationId,
+        occurrenceId,
+        open: action === 'open',
+        now,
+      });
+    } catch (error) {
+      if (!(error instanceof OrganizerError)) throw error;
+    }
+    return Astro.redirect(`${Astro.url.pathname}?${action === 'open' ? 'opened' : 'closed'}=1`, 303);
+  }
   const raw = asJson
     ? ((await Astro.request.json().catch(() => null)) as { code?: unknown } | null)?.code
-    : (await Astro.request.formData()).get('code');
+    : form?.get('code');
   const code = typeof raw === 'string' ? raw : '';
   try {
     const outcome = await checkInForOrganizer(live.db, {
@@ -66,18 +83,39 @@ if (Astro.request.method === 'POST') {
           }
         : outcome.reason === 'canceled'
           ? { ok: false, message: `${outcome.name}’s registration was canceled. Do not admit on this code.` }
-          : { ok: false, message: 'That code is not on this event’s list.' };
+          : outcome.reason === 'outside_window'
+            ? {
+                ok: false,
+                message:
+                  'Check-in is closed right now. Press “Open check-in now” above, or it opens by itself before the start.',
+              }
+            : { ok: false, message: 'That code is not on this event’s list.' };
   } catch (error) {
     if (!(error instanceof OrganizerError)) throw error;
     result = { ok: false, message: 'Check-in is not available for this date.' };
   }
-  if (asJson)
-    return new Response(JSON.stringify(result), {
-      headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-    });
+  if (asJson) {
+    const fresh = await getCheckInOccurrence(live.db, active.organizationId, occurrenceId);
+    return new Response(
+      JSON.stringify({
+        ...result,
+        checkedIn: fresh?.checkedInPeople ?? null,
+        registered: fresh?.confirmedPeople ?? null,
+      }),
+      {
+        headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+      },
+    );
+  }
   occurrence = (await getCheckInOccurrence(live.db, active.organizationId, occurrenceId)) ?? occurrence;
 }
 const enabled = occurrence.qrCheckin && !occurrence.canceled;
+const door = checkInWindow(occurrence, now);
+const doorNotice = Astro.url.searchParams.has('opened')
+  ? 'Check-in is open.'
+  : Astro.url.searchParams.has('closed')
+    ? 'Check-in is closed. It will open by itself at the scheduled time.'
+    : null;
 ---
 
 <OrganizerLayout
@@ -98,6 +136,36 @@ const enabled = occurrence.qrCheckin && !occurrence.canceled;
   )}
   {enabled && (
     <>
+      {doorNotice && <SplitNotice tone="info">{doorNotice}</SplitNotice>}
+      <Panel
+        id="door"
+        title={door.open ? 'Check-in is open' : 'Check-in is closed'}
+        description={
+          door.open
+            ? door.manual
+              ? 'You opened it by hand. It closes by itself 12 hours after the start.'
+              : `It opened ${occurrence.opensHours} ${occurrence.opensHours === 1 ? 'hour' : 'hours'} before the start and closes 12 hours after.`
+            : now > door.closesAt
+              ? 'This date ended more than 12 hours ago, so check-in has closed.'
+              : `It opens by itself on ${whenLabel(door.opensAt, occurrence.timezone)}. You can open it now, for early doors or a practice run.`
+        }
+        class="mb-4"
+      >
+        <form method="post">
+          {door.open && door.manual && (
+            <>
+              <input type="hidden" name="action" value="close" />
+              <SplitButton label="Close check-in" variant="quiet" />
+            </>
+          )}
+          {!door.open && now <= door.closesAt && (
+            <>
+              <input type="hidden" name="action" value="open" />
+              <SplitButton label="Open check-in now" />
+            </>
+          )}
+        </form>
+      </Panel>
       <div data-checkin class="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Panel
           id="scan"

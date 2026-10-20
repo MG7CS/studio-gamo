@@ -24,6 +24,7 @@ import {
 } from '@gamo/domain';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { openLive, registrationMessage, seatsLeft, whenWhere } from '../../../../lib/registration';
+import { emailRegistrationLinkAgain } from '../../../../lib/organizer-events';
 
 export const prerender = false;
 
@@ -41,7 +42,8 @@ try {
   if (!event || event.admission !== 'free_registration') {
     return new Response(null, { status: 404 });
   }
-  const upcoming = event.occurrences.filter((o) => !o.isPast && !o.canceled);
+  // Registration closes when a date starts, the same rule the server applies.
+  const upcoming = event.occurrences.filter((o) => !o.canceled && o.startsAt.getTime() > Date.now());
   selectedOccurrenceId = upcoming.find((o) => o.id === event!.occurrenceId)?.id ?? upcoming[0]?.id ?? '';
 
   if (Astro.request.method === 'POST' && upcoming.length > 0) {
@@ -84,8 +86,16 @@ try {
         const shown = registrationMessage(error);
         if (shown) {
           if (shown.code === 'invalid') errors.name = shown.text;
-          else if (shown.code === 'duplicate') errors.email = shown.text;
-          else notice = shown.text;
+          else if (shown.code === 'duplicate') {
+            await emailRegistrationLinkAgain(live, {
+              event,
+              occurrenceId: selectedOccurrenceId,
+              email: values.email,
+              origin: new URL(Astro.request.url).origin,
+              now,
+            });
+            notice = `We sent an email to ${values.email}. If you are already registered for this date, it has your registration link. If you started registering a moment ago, use the code in that email.`;
+          } else notice = shown.text;
         } else if (error instanceof EmailUnavailableError || error instanceof SecretNotConfiguredError) {
           unavailable = true;
         } else throw error;
@@ -98,7 +108,9 @@ try {
   unavailable = true;
 }
 
-const upcomingList = event ? event.occurrences.filter((o) => !o.isPast && !o.canceled) : [];
+const upcomingList = event
+  ? event.occurrences.filter((o) => !o.canceled && o.startsAt.getTime() > Date.now())
+  : [];
 const occurrences = upcomingList.map((o) => ({
   id: o.id,
   label: formatLocalEventSchedule(null, null, event!.timezone, o.startsAt).fullLabel,
@@ -130,7 +142,9 @@ const summary = event ? whenWhere(event, upcomingList[0]?.startsAt ?? event.star
         />
         {closed && (
           <SplitNotice>
-            This event has already taken place. Ticket purchases and attendee registration are closed.
+            {event.status === 'canceled'
+              ? 'This event was canceled, so registration is closed.'
+              : 'Registration is closed because every date has started or passed.'}
           </SplitNotice>
         )}
         {sold && <SplitNotice>This event is full. Check back in case seats open up.</SplitNotice>}

@@ -40,7 +40,7 @@ export const REGISTRATION_ERRORS: Record<RegistrationErrorCode, string> = {
   not_open: 'This event does not take registrations here.',
   closed_past: 'This event has already taken place. Registration is closed.',
   full: 'There are not enough seats left for that many people.',
-  duplicate: 'This email is already registered for this date.',
+  duplicate: 'We sent an email with your registration details.',
   rate_limited: 'Too many tries. Please wait a little while and try again.',
   wrong_code: 'That code is not right.',
   expired: 'This registration expired. Please start again.',

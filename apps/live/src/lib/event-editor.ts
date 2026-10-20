@@ -1,5 +1,11 @@
 /** Form reading, field messages and the save action shared by the new-event and edit-event pages. */
-import { OrganizerError, saveEvent, type EventFormValues, type SqlDatabase } from '@gamo/domain';
+import {
+  OrganizerError,
+  organizerErrorMessage,
+  saveEvent,
+  type EventFormValues,
+  type SqlDatabase,
+} from '@gamo/domain';
 
 const text = (form: FormData, name: string) => String(form.get(name) ?? '');
 
@@ -26,6 +32,7 @@ export function readEventForm(form: FormData): EventFormValues {
     capacity: text(form, 'capacity'),
     maxPartySize: text(form, 'maxPartySize'),
     qrCheckin: form.get('qrCheckin') === 'yes',
+    checkinOpensHours: text(form, 'checkinOpensHours'),
   };
 }
 
@@ -51,6 +58,7 @@ export const EMPTY_EVENT: EventFormValues = {
   capacity: '',
   maxPartySize: '6',
   qrCheckin: false,
+  checkinOpensHours: '3',
 };
 
 const FIELD_MESSAGES: Record<string, string> = {
@@ -66,7 +74,8 @@ const FIELD_MESSAGES: Record<string, string> = {
   schedule: 'Choose how often the event happens.',
   date: 'Enter a date that has not passed.',
   startTime: 'Enter the start time.',
-  endTime: 'The end time must be after the start time.',
+  endTime:
+    'Enter a valid end time. It cannot equal the start time; an earlier time means the event ends after midnight.',
   until: 'Enter the last date. A series can have at most 52 dates.',
   admission: 'Choose how people attend.',
   externalUrl: 'Enter the full https:// address of the page where people get tickets or register.',
@@ -75,6 +84,7 @@ const FIELD_MESSAGES: Record<string, string> = {
   capacity: 'Capacity must be a whole number of at least 1, and not below the seats already taken.',
   maxPartySize: 'People per registration must be between 1 and 20.',
   qrCheckin: 'QR check-in is only for free events with registration.',
+  checkinOpensHours: 'Choose how long before the start check-in opens.',
 };
 
 /** Result of trying to save: where to go, or what to show. */
@@ -111,6 +121,8 @@ export async function saveFromForm(
         };
       if (error.code === 'status_locked')
         return { kind: 'errors', errors: {}, notice: 'This event can no longer be edited.' };
+      if (error.code === 'quota' || error.code === 'not_ready')
+        return { kind: 'errors', errors: {}, notice: organizerErrorMessage(error.code) };
     }
     throw error;
   }

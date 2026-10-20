@@ -3,8 +3,9 @@
  *
  * - Clerk: the browser sends its Clerk session token as JSON; the server verifies the signature and claims,
  *   reads the verified email from Clerk, and only then starts a session.
- * - Local simulation: a plain form post, accepted only while ENVIRONMENT=local, ALLOW_AUTH_SIMULATION=true and
- *   Clerk is not configured. Never available anywhere else.
+ * - Local simulation: a plain form post, accepted only while ENVIRONMENT=local, ALLOW_AUTH_SIMULATION=true,
+ *   Clerk is not configured and the request is for localhost / 127.0.0.1 / ::1 (not a LAN address). Never
+ *   available anywhere else.
  */
 import type { APIRoute } from 'astro';
 import { requireSameOrigin } from '@gamo/auth';
@@ -59,13 +60,15 @@ export const POST: APIRoute = async ({ request, url, redirect, locals }) => {
       const config = liveClerkConfig(live.env);
       if (!config) return json({ ok: false, error: 'unavailable' }, 503);
       if (typeof body?.token !== 'string') return json({ ok: false, error: 'invalid' }, 400);
-      const claims = await verifyClerkSessionToken(body.token, config, now);
+      // With no CLERK_AUTHORIZED_PARTIES_LIVE the token's azp must be this request's own origin.
+      const claims = await verifyClerkSessionToken(body.token, config, now, fetch, url.origin);
       const profile = await fetchClerkUserProfile(claims.userId, config);
       identity = { clerkUserId: claims.userId, email: profile.email, displayName: profile.displayName };
     } else {
       const form = await request.formData();
       next = safeNext(String(form.get('next') ?? ''));
-      if (!localSimulatedSignInAllowed(live.env)) return json({ ok: false, error: 'unavailable' }, 503);
+      if (!localSimulatedSignInAllowed(live.env, url.hostname))
+        return json({ ok: false, error: 'unavailable' }, 503);
       const email = String(form.get('email') ?? '')
         .trim()
         .toLowerCase();

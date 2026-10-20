@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  allowedParties,
   clearJwksCache,
   ClerkUnavailableError,
   ClerkVerificationError,
@@ -15,6 +16,7 @@ import {
 const FRONTEND = 'https://clerk.live.example.test';
 const publishable = `pk_test_${Buffer.from('clerk.live.example.test$').toString('base64')}`;
 const NOW = 1_900_000_000;
+const ORIGIN = 'http://127.0.0.1:4324';
 
 const b64url = (data: Uint8Array | string) =>
   Buffer.from(typeof data === 'string' ? data : data).toString('base64url');
@@ -79,14 +81,20 @@ function jwksFetch(jwk: unknown, calls: { n: number } = { n: 0 }): typeof fetch 
 
 test('a valid session token verifies against the Frontend API keys', async () => {
   const { pair, jwk } = await keyPair();
-  const claims = await verifyClerkSessionToken(await token(pair, good), config(), NOW, jwksFetch(jwk));
+  const claims = await verifyClerkSessionToken(
+    await token(pair, good),
+    config(),
+    NOW,
+    jwksFetch(jwk),
+    ORIGIN,
+  );
   assert.deepEqual(claims, { userId: 'user_abc123', sessionId: 'sess_1' });
 });
 
 test('expired, early, wrong-issuer, wrong-party and unsigned tokens are refused', async () => {
   const { pair, jwk } = await keyPair();
   const other = await keyPair();
-  const verify = (t: string, c = config()) => verifyClerkSessionToken(t, c, NOW, jwksFetch(jwk));
+  const verify = (t: string, c = config()) => verifyClerkSessionToken(t, c, NOW, jwksFetch(jwk), ORIGIN);
   const reason = async (p: Promise<unknown>) => {
     try {
       await p;
@@ -114,11 +122,36 @@ test('expired, early, wrong-issuer, wrong-party and unsigned tokens are refused'
   );
 });
 
+test('without a configured parties list the token must come from the request’s own origin', async () => {
+  const { pair, jwk } = await keyPair();
+  const verify = (azp: string | undefined, origin: string | undefined, c = config()) =>
+    token(pair, { ...good, azp }).then((t) => verifyClerkSessionToken(t, c, NOW, jwksFetch(jwk), origin));
+  await verify(good.azp, ORIGIN); // same origin
+  await verify(good.azp, `${ORIGIN}/account/session`); // a URL is reduced to its origin
+  await assert.rejects(
+    verify('https://evil.example', ORIGIN),
+    (e) => e instanceof ClerkVerificationError && e.reason === 'party',
+  );
+  await assert.rejects(
+    verify(good.azp, 'https://live.example.test'),
+    (e) => e instanceof ClerkVerificationError && e.reason === 'party',
+  );
+  // No list and no origin to compare: refused, never skipped.
+  await assert.rejects(
+    verify(good.azp, undefined),
+    (e) => e instanceof ClerkVerificationError && e.reason === 'party',
+  );
+  // A configured list still decides, whatever the request origin is.
+  await verify(good.azp, 'https://elsewhere.example', config({ authorizedParties: [good.azp] }));
+  assert.deepEqual(allowedParties(config(), 'https://live.example.test/x'), ['https://live.example.test']);
+  assert.deepEqual(allowedParties(config(), 'not a url'), []);
+});
+
 test('a token signed by a different key is refused even with a matching key id', async () => {
   const { jwk } = await keyPair();
   const attacker = await keyPair();
   await assert.rejects(
-    verifyClerkSessionToken(await token(attacker.pair, good), config(), NOW, jwksFetch(jwk)),
+    verifyClerkSessionToken(await token(attacker.pair, good), config(), NOW, jwksFetch(jwk), ORIGIN),
     (e) => e instanceof ClerkVerificationError && e.reason === 'signature',
   );
 });
@@ -127,7 +160,7 @@ test('an unreachable key set is unavailable, not "signed out"', async () => {
   const { pair } = await keyPair();
   const down = (async () => new Response('', { status: 500 })) as typeof fetch;
   await assert.rejects(
-    verifyClerkSessionToken(await token(pair, good), config(), NOW, down),
+    verifyClerkSessionToken(await token(pair, good), config(), NOW, down, ORIGIN),
     (e) => e instanceof ClerkUnavailableError,
   );
 });
@@ -169,6 +202,22 @@ test('local sign-in without Clerk exists only for a local build with the flag an
     false,
     'with Clerk configured the stand-in is off',
   );
+});
+
+test('the local sign-in stand-in works only from this computer, never from a LAN address or .local name', () => {
+  const flags = { ENVIRONMENT: 'local', ALLOW_AUTH_SIMULATION: 'true' } as never;
+  for (const host of ['localhost', '127.0.0.1', '[::1]', '::1', 'LOCALHOST'])
+    assert.equal(localSimulatedSignInAllowed(flags, host), true, host);
+  for (const host of [
+    '192.168.1.20',
+    '10.0.0.5',
+    '172.16.0.9',
+    'my-mac.local',
+    'gamostudio.org',
+    '127.0.0.1.evil.test',
+    '',
+  ])
+    assert.equal(localSimulatedSignInAllowed(flags, host), false, host);
 });
 
 test('the user profile uses a verified email (primary first) and refuses unverified ones', async () => {

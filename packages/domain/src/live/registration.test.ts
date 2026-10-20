@@ -8,6 +8,7 @@ import {
   confirmRegistration,
   getRegistration,
   MAX_CODE_ATTEMPTS,
+  recoverRegistration,
   RegistrationError,
   signManageToken,
   startRegistration,
@@ -204,4 +205,33 @@ test('a cancelled registration cannot be checked in', async () => {
   const res = await checkIn(db, { occurrenceId: 'occ_1', code: c.checkinCode!, now: NOW + 3 });
   assert.equal(res.ok, false);
   assert.equal(res.ok === false && res.reason, 'canceled');
+});
+
+test('a repeated sign-up can recover the manage link of a confirmed registration, rate limited, and nothing for strangers', async () => {
+  const { db, register } = await setup({ qr: true });
+  const r = await register('Lost@Example.org', 2);
+  await confirmRegistration(db, ENV, { registrationId: r.registrationId, code: r.code, now: NOW + 60 });
+  const found = await recoverRegistration(db, ENV, {
+    occurrenceId: 'occ_1',
+    email: ' lost@example.org ',
+    now: NOW + 120,
+  });
+  assert.equal(found?.registrationId, r.registrationId);
+  assert.equal(await verifyManageToken(ENV, found!.manageToken, NOW + 120), r.registrationId);
+  assert.match(found!.checkinCode ?? '', /^[0-9A-Z]{10}$/);
+  assert.equal(
+    await recoverRegistration(db, ENV, { occurrenceId: 'occ_1', email: 'nobody@example.org', now: NOW }),
+    null,
+  );
+  for (let i = 0; i < 3; i++)
+    await recoverRegistration(db, ENV, {
+      occurrenceId: 'occ_1',
+      email: 'lost@example.org',
+      now: NOW + 130 + i,
+    });
+  assert.equal(
+    await recoverRegistration(db, ENV, { occurrenceId: 'occ_1', email: 'lost@example.org', now: NOW + 200 }),
+    null,
+    'at most three links an hour per email',
+  );
 });

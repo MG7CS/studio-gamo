@@ -71,4 +71,4 @@ Next: the design pass for the organizer screens (B), the public registration scr
 
 ## H. Build status
 
-Built (2026-10-19): everything in A and B, and the admin screens C1–C4 (Event review with emailed decisions, Organizations, Catalog, Inbox counts and waiting list). Not built: event photos, duplicate event, bulk-email queue for large cancellations, the 90-day registrant-data cleanup action, and sponsored-placement labels (no sponsored placements exist).
+Built (2026-10-19): everything in A and B, and the admin screens C1–C4 (Event review with emailed decisions, Organizations, Catalog, Inbox counts and waiting list). Built since: the admin cleanup action (Cleanup tab: 90-day registrant data, expired codes, old sessions and invitations, with a report), hide and restore for published events, and held-back changes to published events. Not built: event photos, duplicate event, bulk-email queue for large cancellations, and sponsored-placement labels (no sponsored placements exist). A polish pass on every screen is in progress (docs/BUILD_LOG.md).

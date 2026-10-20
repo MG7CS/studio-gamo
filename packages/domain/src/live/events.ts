@@ -15,7 +15,7 @@ import {
   type RegistrationView,
   getRegistration,
 } from './registration.ts';
-import { OrganizerError } from './organizers.ts';
+import { OrganizerError, assertEventQuota } from './organizers.ts';
 
 export const EVENT_CATEGORIES = [
   { value: 'concert', label: 'Concert' },
@@ -82,6 +82,8 @@ export interface EventFormValues {
   capacity: string;
   maxPartySize: string;
   qrCheckin: boolean;
+  /** Hours before a date that check-in opens by itself (only for events with QR check-in). */
+  checkinOpensHours: string;
 }
 
 export interface ValidatedEvent {
@@ -106,6 +108,7 @@ export interface ValidatedEvent {
   capacity: number | null;
   maxPartySize: number;
   qrCheckin: boolean;
+  checkinOpensHours: number;
 }
 
 const bad = (field: string): never => {
@@ -147,7 +150,7 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
   const description = t(input.description);
   if (description.length < 20 || description.length > 4000) bad('description');
   const performers = parsePerformers(input.performers);
-  const venueName = t(input.venueName);
+  const venueName = t(input.venueName).replace(/\s+/g, ' ');
   if (venueName.length < 2 || venueName.length > 120) bad('venueName');
   const address = t(input.address);
   if (address.length > 200) bad('address');
@@ -162,7 +165,8 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
   if (!validDate(input.date)) bad('date');
   if (!TIME.test(input.startTime)) bad('startTime');
   const endTime = t(input.endTime);
-  if (endTime && (!TIME.test(endTime) || endTime < input.startTime)) bad('endTime');
+  // An end before the start means the event runs past midnight (a vigil from 9 PM to 2 AM).
+  if (endTime && (!TIME.test(endTime) || endTime === input.startTime)) bad('endTime');
   let until: string | null = null;
   if (schedule !== 'once') {
     until = t(input.until);
@@ -193,6 +197,8 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
   const maxPartySize = t(input.maxPartySize) === '' ? 6 : Number(t(input.maxPartySize));
   if (!Number.isInteger(maxPartySize) || maxPartySize < 1 || maxPartySize > 20) bad('maxPartySize');
   if (input.qrCheckin && admission !== 'free_registration') bad('qrCheckin');
+  const opensHours = t(input.checkinOpensHours) === '' ? 3 : Number(t(input.checkinOpensHours));
+  if (!(CHECKIN_OPENS_HOURS_CHOICES as readonly number[]).includes(opensHours)) bad('checkinOpensHours');
   const v: ValidatedEvent = {
     title,
     category: input.category,
@@ -215,6 +221,7 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
     capacity: admission === 'free_registration' ? capacity : null,
     maxPartySize,
     qrCheckin: Boolean(input.qrCheckin),
+    checkinOpensHours: opensHours,
   };
   if (expandOccurrences(v).length > MAX_OCCURRENCES) bad('until');
   return v;
@@ -242,7 +249,12 @@ export function expandOccurrences(
     if (v.until && local > v.until) break;
     const startsAt = zonedLocalToEpochSeconds(`${local}T${v.startTime}`, v.timezone);
     if (startsAt == null) bad('startTime');
-    const endsAt = v.endTime ? zonedLocalToEpochSeconds(`${local}T${v.endTime}`, v.timezone) : null;
+    let endLocal = local;
+    if (v.endTime && v.endTime < v.startTime) {
+      const next = new Date(date.getTime() + 86_400_000);
+      endLocal = `${next.getUTCFullYear()}-${pad(next.getUTCMonth() + 1)}-${pad(next.getUTCDate())}`;
+    }
+    const endsAt = v.endTime ? zonedLocalToEpochSeconds(`${endLocal}T${v.endTime}`, v.timezone) : null;
     out.push({ startsAt: startsAt as number, endsAt });
     if (v.schedule === 'once') break;
   }
@@ -292,6 +304,190 @@ export interface SaveEventInput {
   now: number;
 }
 
+/** The proposed values of a change that waits for review (see migration 0004). */
+export interface EventRevisionPayload {
+  venueName: string;
+  address: string | null;
+  city: string;
+  state: string;
+  timezone: string;
+  schedule: 'once' | 'weekly' | 'monthly';
+  date: string;
+  startTime: string;
+  endTime: string | null;
+  until: string | null;
+  admission: Admission;
+  externalUrl: string | null;
+  capacity: number | null;
+  qrCheckin: boolean;
+}
+
+export function revisionPayloadFrom(v: ValidatedEvent): EventRevisionPayload {
+  return {
+    venueName: v.venueName,
+    address: v.address,
+    city: v.city,
+    state: v.state,
+    timezone: v.timezone,
+    schedule: v.schedule,
+    date: v.date,
+    startTime: v.startTime,
+    endTime: v.endTime,
+    until: v.until,
+    admission: v.admission,
+    externalUrl: v.externalUrl,
+    capacity: v.capacity,
+    qrCheckin: v.qrCheckin,
+  };
+}
+
+/** A stored proposal, or null when there is none or it cannot be read. */
+export function parseRevision(payload: unknown): EventRevisionPayload | null {
+  if (typeof payload !== 'string' || payload === '') return null;
+  try {
+    return JSON.parse(payload) as EventRevisionPayload;
+  } catch {
+    return null;
+  }
+}
+
+type Statement = { sql: string; params: (string | number | null)[] };
+
+/**
+ * Statements that write an approved revision onto its event. Every write waits on the review decision `decisionId`
+ * already being recorded in the same batch, so nothing is applied unless the approval won. The dates, time zone and
+ * admission are replaced only while nobody holds a registration (`scheduleLocked` is false).
+ */
+export function revisionApplyStatements(input: {
+  eventId: string;
+  revision: EventRevisionPayload;
+  decisionId: string;
+  now: number;
+  scheduleLocked: boolean;
+}): Statement[] {
+  const { eventId, revision: r, decisionId, now, scheduleLocked } = input;
+  const decided = 'EXISTS (SELECT 1 FROM review_decisions WHERE id = ?2)';
+  const statements: Statement[] = [
+    {
+      sql: `INSERT INTO venues (id, name, address, city, state, metro_slug, timezone) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            ON CONFLICT (name, city, state) DO UPDATE SET address = COALESCE(venues.address, excluded.address),
+              metro_slug = COALESCE(venues.metro_slug, excluded.metro_slug)`,
+      params: [
+        newPrefixedId('ven'),
+        r.venueName,
+        r.address,
+        r.city,
+        r.state,
+        metroFor(r.city, r.state),
+        r.timezone,
+      ],
+    },
+    {
+      sql: `UPDATE events SET venue_id = (SELECT id FROM venues WHERE name = ?3 AND city = ?4 AND state = ?5),
+                   venue_name = ?3, venue_address = ?6, updated_at = ?7
+             WHERE id = ?1 AND ${decided}`,
+      params: [eventId, decisionId, r.venueName, r.city, r.state, r.address, now],
+    },
+  ];
+  if (!scheduleLocked) {
+    const recurrence = r.schedule === 'once' ? null : JSON.stringify({ freq: r.schedule, until: r.until });
+    statements.push(
+      {
+        sql: `UPDATE events SET timezone = ?3, recurrence = ?4, admission = ?5, external_url = ?6, capacity = ?7, qr_checkin = ?8
+               WHERE id = ?1 AND ${decided}`,
+        params: [
+          eventId,
+          decisionId,
+          r.timezone,
+          recurrence,
+          r.admission,
+          r.externalUrl,
+          r.capacity,
+          r.qrCheckin ? 1 : 0,
+        ],
+      },
+      {
+        sql: `DELETE FROM event_occurrences WHERE event_id = ?1 AND ${decided}
+                AND NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
+                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))`,
+        params: [eventId, decisionId],
+      },
+      ...expandOccurrences(r).map((o) => ({
+        sql: `INSERT INTO event_occurrences (id, event_id, starts_at, ends_at)
+              SELECT ?3, ?1, ?4, ?5 WHERE ${decided}
+                AND NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
+                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))`,
+        params: [eventId, decisionId, newPrefixedId('occ'), o.startsAt, o.endsAt],
+      })),
+    );
+  }
+  statements.push({
+    sql: `DELETE FROM event_revisions WHERE event_id = ?1 AND ${decided}`,
+    params: [eventId, decisionId],
+  });
+  return statements;
+}
+
+/** The schedule and admission fields of a stored event, which stay as stored once people have registered. */
+function lockedValues(stored: EventFormValues): Partial<EventFormValues> {
+  const keep: Partial<EventFormValues> = {
+    timezone: stored.timezone,
+    schedule: stored.schedule,
+    date: stored.date,
+    startTime: stored.startTime,
+    endTime: stored.endTime,
+    until: stored.until,
+    admission: stored.admission,
+    externalUrl: stored.externalUrl,
+    qrCheckin: stored.qrCheckin,
+  };
+  if (stored.admission !== 'free_registration') keep.capacity = stored.capacity;
+  return keep;
+}
+
+function scheduleDiffers(stored: EventFormValues, next: ValidatedEvent): boolean {
+  return (
+    JSON.stringify([
+      stored.timezone,
+      stored.schedule,
+      stored.date,
+      stored.startTime,
+      stored.endTime || null,
+      stored.until || null,
+    ]) !== JSON.stringify([next.timezone, next.schedule, next.date, next.startTime, next.endTime, next.until])
+  );
+}
+
+/** True when an edit changes when, where or how people get in: the things review exists to check. */
+function isMaterialChange(stored: EventFormValues, next: ValidatedEvent): boolean {
+  let before: ValidatedEvent;
+  try {
+    before = validateEvent(stored);
+  } catch {
+    return true;
+  }
+  const pick = (e: ValidatedEvent) =>
+    JSON.stringify([
+      e.venueName.toLowerCase(),
+      e.address,
+      e.city.toLowerCase(),
+      e.state,
+      e.timezone,
+      e.schedule,
+      e.date,
+      e.startTime,
+      e.endTime,
+      e.until,
+      e.admission,
+      e.externalUrl,
+    ]);
+  return pick(before) !== pick(next);
+}
+
+/** SQL condition: nobody holds a pending (unexpired) or confirmed registration for event `?1`; `?2` is now. */
+const NO_ACTIVE_REGISTRATIONS = `NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
+    WHERE q.event_id = ?1 AND (x.status = 'confirmed' OR (x.status = 'pending' AND x.expires_at > ?2)))`;
+
 const EDITABLE = ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'];
 
 /** Creates or updates an event. Returns its id and resulting status. Throws `OrganizerError`. */
@@ -307,12 +503,25 @@ export async function saveEvent(
   )[0];
   if (!org) throw new OrganizerError('not_found');
   if (org.status !== 'active') throw new OrganizerError('suspended');
-  const v = validateEvent(args.input);
+  // Editing an event people have registered for: the schedule and admission are locked, and the form does not post
+  // disabled fields, so the stored values stand in for them before anything is validated.
+  const current = args.eventId
+    ? await getOrganizerEvent(db, args.organizationId, args.eventId, args.now)
+    : null;
+  if (args.eventId && !current) throw new OrganizerError('not_found');
+  const v = validateEvent(
+    current?.registrationsLocked ? { ...args.input, ...lockedValues(current.liveValues) } : args.input,
+  );
   const occurrences = expandOccurrences(v);
-  if (args.submit && !occurrences.some((o) => o.startsAt > args.now)) bad('date');
+  const hasFutureDate = current?.registrationsLocked
+    ? current.occurrences.some((o) => !o.canceled && o.startsAt > args.now)
+    : occurrences.some((o) => o.startsAt > args.now);
+  if (args.submit && !hasFutureDate) bad('date');
 
   const rule = await reviewRuleFor(db, args.organizationId);
-  const gate = (): 'pending_review' | 'published' => (rule === 'none' ? 'published' : 'pending_review');
+  // Events that send people to another site for tickets are always reviewed, whatever the organization's rule.
+  const gate = (): 'pending_review' | 'published' =>
+    rule === 'none' && v.admission !== 'external_tickets' ? 'published' : 'pending_review';
   const venueId = newPrefixedId('ven');
   const metro = metroFor(v.city, v.state);
 
@@ -328,6 +537,7 @@ export async function saveEvent(
   const recurrence = v.schedule === 'once' ? null : JSON.stringify({ freq: v.schedule, until: v.until });
 
   if (!args.eventId) {
+    await assertEventQuota(db, args.organizationId);
     const eventId = newPrefixedId('evt');
     const status = args.submit ? gate() : 'draft';
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -341,8 +551,8 @@ export async function saveEvent(
           {
             sql: `INSERT INTO events (id, organization_id, origin, slug, title, category, description, venue_id, timezone, admission,
                     external_url, price_text, refund_policy_text, capacity, max_party_size, qr_checkin, recurrence, status,
-                    published_at, created_at, updated_at)
-                  SELECT ?1, ?2, 'organizer', ?3, ?4, ?5, ?6, v.id, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?18
+                    published_at, created_at, updated_at, venue_name, venue_address)
+                  SELECT ?1, ?2, 'organizer', ?3, ?4, ?5, ?6, v.id, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?18, ?19, ?22
                     FROM venues v WHERE v.name = ?19 AND v.city = ?20 AND v.state = ?21`,
             params: [
               eventId,
@@ -366,7 +576,12 @@ export async function saveEvent(
               v.venueName,
               v.city,
               v.state,
+              v.address,
             ],
+          },
+          {
+            sql: 'UPDATE events SET checkin_opens_hours = ?2 WHERE id = ?1',
+            params: [eventId, v.checkinOpensHours],
           },
           ...occurrences.map((o) => ({
             sql: 'INSERT INTO event_occurrences (id, event_id, starts_at, ends_at) VALUES (?1, ?2, ?3, ?4)',
@@ -386,41 +601,73 @@ export async function saveEvent(
   }
 
   // Editing.
-  const existing = (
-    await allRows<{ status: string; qr_checkin: number; admission: string }>(db, {
-      sql: 'SELECT status, qr_checkin, admission FROM events WHERE id = ?1 AND organization_id = ?2',
-      params: [args.eventId, args.organizationId],
-    })
-  )[0];
-  if (!existing) throw new OrganizerError('not_found');
+  const existing = current as OrganizerEventDetail;
   if (!EDITABLE.includes(existing.status)) throw new OrganizerError('status_locked');
 
   const taken = (
     await allRows<{ active: number; max_seats: number }>(db, {
       sql: `SELECT (SELECT COUNT(*) FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
-                     WHERE o.event_id = ?1 AND r.status IN ('pending', 'confirmed')) AS active,
-                   COALESCE((SELECT MAX(seats_taken) FROM event_occurrences WHERE event_id = ?1), 0) AS max_seats`,
-      params: [args.eventId],
+                     WHERE o.event_id = ?1 AND (r.status = 'confirmed' OR (r.status = 'pending' AND r.expires_at > ?2))) AS active,
+                   COALESCE((SELECT MAX(o.seats_taken - COALESCE((SELECT SUM(party_size) FROM registrations
+                       WHERE occurrence_id = o.id AND status = 'pending' AND expires_at <= ?2), 0))
+                     FROM event_occurrences o WHERE o.event_id = ?1), 0) AS max_seats`,
+      params: [args.eventId, args.now],
     })
   )[0];
   const locked = Number(taken?.active ?? 0) > 0;
   if (locked && v.capacity != null && v.capacity < Number(taken?.max_seats ?? 0)) bad('capacity');
 
+  // A published event stays published and visible through every edit. Wording, price notes and performers save
+  // straight away. A change to when, where or how people get in is applied at once when the review rule allows;
+  // otherwise it waits as a proposal (event_revisions) while the current version stays live for the public.
+  const live = existing.liveValues;
+  const published = existing.status === 'published';
+  const material = published && isMaterialChange(live, v);
+  const deferred = material && gate() !== 'published';
   let status = existing.status;
-  if (existing.status === 'published' || args.submit) status = gate();
-  else if (existing.status === 'rejected') status = 'draft';
-  const publishing = status === 'published' && existing.status !== 'published';
+  if (!published) {
+    if (args.submit) status = gate();
+    else if (existing.status === 'rejected') status = 'draft';
+  }
+  const publishing = status === 'published' && !published;
+  const scheduleChanged = !published || scheduleDiffers(live, v);
 
-  const statements = [
-    venueStatement,
-    {
+  const eventId = args.eventId;
+  const statements: Statement[] = [];
+  if (deferred) {
+    const capacityDirect = v.admission === live.admission;
+    statements.push(
+      {
+        sql: `UPDATE events SET title = ?2, category = ?3, description = ?4, price_text = ?5, refund_policy_text = ?6,
+                max_party_size = ?7, updated_at = ?8
+                ${capacityDirect ? ", capacity = CASE WHEN admission = 'free_registration' THEN ?9 ELSE capacity END" : ''}
+              WHERE id = ?1`,
+        params: [
+          eventId,
+          v.title,
+          v.category,
+          v.description,
+          v.priceText,
+          v.refundPolicyText,
+          v.maxPartySize,
+          args.now,
+          ...(capacityDirect ? [v.capacity] : []),
+        ],
+      },
+      {
+        sql: 'INSERT OR REPLACE INTO event_revisions (event_id, payload, created_at) VALUES (?1, ?2, ?3)',
+        params: [eventId, JSON.stringify(revisionPayloadFrom(v)), args.now],
+      },
+    );
+  } else {
+    statements.push(venueStatement, {
       sql: `UPDATE events SET title = ?2, category = ?3, description = ?4, venue_id = ${venueRef.replace('?1', '?5').replace('?2', '?6').replace('?3', '?7')},
-              timezone = ?8, price_text = ?9, refund_policy_text = ?10, max_party_size = ?11, status = ?12,
+              venue_name = ?5, venue_address = ?15, timezone = ?8, price_text = ?9, refund_policy_text = ?10, max_party_size = ?11, status = ?12,
               published_at = CASE WHEN ?13 = 1 THEN ?14 ELSE published_at END, updated_at = ?14
-              ${locked ? '' : ', admission = ?15, external_url = ?16, capacity = ?17, qr_checkin = ?18, recurrence = ?19'}
+              ${locked ? '' : ', admission = ?16, external_url = ?17, capacity = ?18, qr_checkin = ?19, recurrence = ?20'}
             WHERE id = ?1`,
       params: [
-        args.eventId,
+        eventId,
         v.title,
         v.category,
         v.description,
@@ -434,39 +681,48 @@ export async function saveEvent(
         status,
         publishing ? 1 : 0,
         args.now,
+        v.address,
         ...(locked ? [] : [v.admission, v.externalUrl, v.capacity, v.qrCheckin ? 1 : 0, recurrence]),
-      ] as (string | number | null)[],
-    },
-    ...(locked
-      ? [
-          {
-            sql: "UPDATE events SET capacity = CASE WHEN admission = 'free_registration' THEN ?2 ELSE capacity END WHERE id = ?1",
-            params: [args.eventId, v.capacity] as (string | number | null)[],
-          },
-        ]
-      : [
-          {
-            sql: 'DELETE FROM event_occurrences WHERE event_id = ?1',
-            params: [args.eventId] as (string | number | null)[],
-          },
-          ...occurrences.map((o) => ({
-            sql: 'INSERT INTO event_occurrences (id, event_id, starts_at, ends_at) VALUES (?1, ?2, ?3, ?4)',
-            params: [newPrefixedId('occ'), args.eventId as string, o.startsAt, o.endsAt] as (
-              string | number | null
-            )[],
-          })),
-        ]),
+      ],
+    });
+    if (locked) {
+      statements.push({
+        sql: "UPDATE events SET capacity = CASE WHEN admission = 'free_registration' THEN ?2 ELSE capacity END WHERE id = ?1",
+        params: [eventId, v.capacity],
+      });
+    } else if (scheduleChanged) {
+      // Dates are rewritten only when the schedule itself changed, so an edit to wording keeps every date row (and
+      // the history of canceled registrations that hangs off it).
+      statements.push(
+        // Guarded: if someone registered after this edit was read, the dates are left alone rather than deleted.
+        {
+          sql: `DELETE FROM event_occurrences WHERE event_id = ?1 AND ${NO_ACTIVE_REGISTRATIONS}`,
+          params: [eventId, args.now],
+        },
+        ...occurrences.map((o) => ({
+          sql: `INSERT INTO event_occurrences (id, event_id, starts_at, ends_at)
+                SELECT ?3, ?1, ?4, ?5 WHERE ${NO_ACTIVE_REGISTRATIONS}`,
+          params: [eventId, args.now, newPrefixedId('occ'), o.startsAt, o.endsAt] as (
+            string | number | null
+          )[],
+        })),
+      );
+    }
+    statements.push({ sql: 'DELETE FROM event_revisions WHERE event_id = ?1', params: [eventId] });
+  }
+  statements.push(
     {
-      sql: 'DELETE FROM event_performers WHERE event_id = ?1',
-      params: [args.eventId] as (string | number | null)[],
+      sql: 'UPDATE events SET checkin_opens_hours = ?2 WHERE id = ?1',
+      params: [eventId, v.checkinOpensHours],
     },
+    { sql: 'DELETE FROM event_performers WHERE event_id = ?1', params: [eventId] },
     ...v.performers.map((p, position) => ({
       sql: 'INSERT INTO event_performers (event_id, position, name, role) VALUES (?1, ?2, ?3, ?4)',
-      params: [args.eventId as string, position, p.name, p.role] as (string | number | null)[],
+      params: [eventId, position, p.name, p.role] as (string | number | null)[],
     })),
-  ];
+  );
   await runBatch(db, statements);
-  return { eventId: args.eventId, status };
+  return { eventId, status };
 }
 
 /** Sends a draft or "changes requested" event for review, or publishes it when the review rule allows. */
@@ -482,7 +738,13 @@ export async function submitEvent(
   )[0];
   if (org?.status !== 'active') throw new OrganizerError('suspended');
   const rule = await reviewRuleFor(db, input.organizationId);
-  const status = rule === 'none' ? 'published' : 'pending_review';
+  const admission = (
+    await allRows<{ admission: string }>(db, {
+      sql: 'SELECT admission FROM events WHERE id = ?1 AND organization_id = ?2',
+      params: [input.eventId, input.organizationId],
+    })
+  )[0]?.admission;
+  const status = rule === 'none' && admission !== 'external_tickets' ? 'published' : 'pending_review';
   const rows = await allRows<{ id: string }>(db, {
     sql: `UPDATE events SET status = ?3, published_at = CASE WHEN ?3 = 'published' THEN ?4 ELSE published_at END, updated_at = ?4
            WHERE id = ?1 AND organization_id = ?2 AND status IN ('draft', 'changes_requested', 'rejected')
@@ -535,7 +797,7 @@ export async function listOrganizerEvents(
     where += ` AND (LOWER(e.title) LIKE ?${params.length} ESCAPE '\\' OR LOWER(v.name) LIKE ?${params.length} ESCAPE '\\')`;
   }
   const rows = await allRows<Record<string, unknown>>(db, {
-    sql: `SELECT e.id, e.slug, e.title, e.category, e.status, e.admission, e.timezone, v.name AS venue_name, v.city, v.state,
+    sql: `SELECT e.id, e.slug, e.title, e.category, e.status, e.admission, e.timezone, COALESCE(e.venue_name, v.name) AS venue_name, v.city, v.state,
                  (SELECT MIN(starts_at) FROM event_occurrences WHERE event_id = e.id AND status = 'scheduled' AND starts_at >= ?2) AS next_at,
                  (SELECT MIN(starts_at) FROM event_occurrences WHERE event_id = e.id) AS first_at,
                  (SELECT COUNT(*) FROM event_occurrences WHERE event_id = e.id) AS n,
@@ -580,7 +842,12 @@ export interface OrganizerEventDetail {
   id: string;
   slug: string;
   status: string;
+  /** What the form shows: the live values, with a waiting proposal laid over them. */
   values: EventFormValues;
+  /** What the public sees right now. Equals `values` unless a change is waiting for review. */
+  liveValues: EventFormValues;
+  /** A change to when, where or how people get in is waiting for Gamo; the live version stays visible. */
+  changeWaiting: boolean;
   qrCheckin: boolean;
   admission: Admission;
   capacity: number | null;
@@ -616,21 +883,24 @@ export async function getOrganizerEvent(
   db: SqlDatabase,
   organizationId: string,
   eventId: string,
+  now: number,
 ): Promise<OrganizerEventDetail | null> {
   const e = (
     await allRows<Record<string, unknown>>(db, {
-      sql: `SELECT e.*, v.name AS venue_name, v.address, v.city, v.state FROM events e JOIN venues v ON v.id = e.venue_id
+      sql: `SELECT e.*, COALESCE(e.venue_name, v.name) AS venue_name, COALESCE(e.venue_address, v.address) AS address, v.city, v.state FROM events e JOIN venues v ON v.id = e.venue_id
              WHERE e.id = ?1 AND e.organization_id = ?2`,
       params: [eventId, organizationId],
     })
   )[0];
   if (!e) return null;
   const occ = await allRows<Record<string, unknown>>(db, {
-    sql: `SELECT o.id, o.starts_at, o.ends_at, o.status, o.seats_taken,
+    sql: `SELECT o.id, o.starts_at, o.ends_at, o.status,
+                 o.seats_taken - COALESCE((SELECT SUM(party_size) FROM registrations
+                   WHERE occurrence_id = o.id AND status = 'pending' AND expires_at <= ?2), 0) AS seats_taken,
                  COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed'), 0) AS confirmed,
                  COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed' AND checked_in_at IS NOT NULL), 0) AS checked_in
             FROM event_occurrences o WHERE o.event_id = ?1 ORDER BY o.starts_at`,
-    params: [eventId],
+    params: [eventId, now],
   });
   const performers = await allRows<{ name: string; role: string | null }>(db, {
     sql: 'SELECT name, role FROM event_performers WHERE event_id = ?1 ORDER BY position',
@@ -646,8 +916,8 @@ export async function getOrganizerEvent(
   const active = (
     await allRows<{ n: number }>(db, {
       sql: `SELECT COUNT(*) AS n FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
-             WHERE o.event_id = ?1 AND r.status IN ('pending', 'confirmed')`,
-      params: [eventId],
+             WHERE o.event_id = ?1 AND (r.status = 'confirmed' OR (r.status = 'pending' AND r.expires_at > ?2))`,
+      params: [eventId, now],
     })
   )[0];
   const tz = String(e.timezone);
@@ -655,6 +925,56 @@ export async function getOrganizerEvent(
   const end = occ[0]?.ends_at != null ? localFields(Number(occ[0].ends_at), tz).time : '';
   const recurrence = parseRecurrence(e.recurrence);
   const s = (v: unknown) => (v == null ? '' : String(v));
+  const liveValues: EventFormValues = {
+    title: s(e.title),
+    category: s(e.category),
+    description: s(e.description),
+    performers: performers.map((p) => (p.role ? `${p.name} | ${p.role}` : p.name)).join('\n'),
+    venueName: s(e.venue_name),
+    address: s(e.address),
+    city: s(e.city),
+    state: s(e.state),
+    timezone: tz,
+    schedule: recurrence.freq === 'weekly' || recurrence.freq === 'monthly' ? recurrence.freq : 'once',
+    date: first.date,
+    startTime: first.time,
+    endTime: end,
+    until: recurrence.until ?? '',
+    admission: s(e.admission),
+    externalUrl: s(e.external_url),
+    priceText: s(e.price_text),
+    refundPolicyText: s(e.refund_policy_text),
+    capacity: e.capacity == null ? '' : String(e.capacity),
+    maxPartySize: String(e.max_party_size),
+    qrCheckin: Number(e.qr_checkin) === 1,
+    checkinOpensHours: String(e.checkin_opens_hours ?? 3),
+  };
+  const revisionRow = (
+    await allRows<{ payload: string }>(db, {
+      sql: 'SELECT payload FROM event_revisions WHERE event_id = ?1',
+      params: [eventId],
+    })
+  )[0];
+  const revision = parseRevision(revisionRow?.payload);
+  const values: EventFormValues = revision
+    ? {
+        ...liveValues,
+        venueName: revision.venueName,
+        address: revision.address ?? '',
+        city: revision.city,
+        state: revision.state,
+        timezone: revision.timezone,
+        schedule: revision.schedule,
+        date: revision.date,
+        startTime: revision.startTime,
+        endTime: revision.endTime ?? '',
+        until: revision.until ?? '',
+        admission: revision.admission,
+        externalUrl: revision.externalUrl ?? '',
+        capacity: revision.capacity == null ? '' : String(revision.capacity),
+        qrCheckin: revision.qrCheckin,
+      }
+    : liveValues;
   return {
     id: String(e.id),
     slug: String(e.slug),
@@ -675,29 +995,9 @@ export async function getOrganizerEvent(
     decision: decision
       ? { decision: decision.decision, note: decision.note, decidedAt: Number(decision.decided_at) }
       : null,
-    values: {
-      title: s(e.title),
-      category: s(e.category),
-      description: s(e.description),
-      performers: performers.map((p) => (p.role ? `${p.name} | ${p.role}` : p.name)).join('\n'),
-      venueName: s(e.venue_name),
-      address: s(e.address),
-      city: s(e.city),
-      state: s(e.state),
-      timezone: tz,
-      schedule: recurrence.freq === 'weekly' || recurrence.freq === 'monthly' ? recurrence.freq : 'once',
-      date: first.date,
-      startTime: first.time,
-      endTime: end,
-      until: recurrence.until ?? '',
-      admission: s(e.admission),
-      externalUrl: s(e.external_url),
-      priceText: s(e.price_text),
-      refundPolicyText: s(e.refund_policy_text),
-      capacity: e.capacity == null ? '' : String(e.capacity),
-      maxPartySize: String(e.max_party_size),
-      qrCheckin: Number(e.qr_checkin) === 1,
-    },
+    values,
+    liveValues,
+    changeWaiting: revision != null,
   };
 }
 
@@ -724,7 +1024,8 @@ export async function cancelEvent(
     })
   )[0];
   if (!ev) throw new OrganizerError('not_found');
-  if (ev.status === 'canceled' || ev.status === 'hidden') throw new OrganizerError('status_locked');
+  // Only a published event can be canceled; one that never went live is deleted instead (`deleteUnpublishedEvent`).
+  if (ev.status !== 'published') throw new OrganizerError('status_locked');
   const affected = await allRows<{ name: string; email: string; starts_at: number }>(db, {
     sql: `SELECT r.name, r.email, o.starts_at FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
            WHERE o.event_id = ?1 AND r.status = 'confirmed' ORDER BY o.starts_at, r.name`,
@@ -748,6 +1049,71 @@ export async function cancelEvent(
   return affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) }));
 }
 
+/**
+ * Cancels one date of a series. Its pending and confirmed registrations are canceled and the seats released; the
+ * other dates are untouched. When it was the last date left, the whole event is marked canceled.
+ */
+export async function cancelOccurrence(
+  db: SqlDatabase,
+  input: { organizationId: string; eventId: string; occurrenceId: string; now: number },
+): Promise<AffectedRegistrant[]> {
+  const row = (
+    await allRows<{ status: string; occ_status: string }>(db, {
+      sql: `SELECT e.status, o.status AS occ_status FROM event_occurrences o JOIN events e ON e.id = o.event_id
+             WHERE o.id = ?1 AND e.id = ?2 AND e.organization_id = ?3`,
+      params: [input.occurrenceId, input.eventId, input.organizationId],
+    })
+  )[0];
+  if (!row) throw new OrganizerError('not_found');
+  if (row.status !== 'published' || row.occ_status !== 'scheduled') throw new OrganizerError('status_locked');
+  const affected = await allRows<{ name: string; email: string; starts_at: number }>(db, {
+    sql: `SELECT r.name, r.email, o.starts_at FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
+           WHERE o.id = ?1 AND r.status = 'confirmed' ORDER BY r.name`,
+    params: [input.occurrenceId],
+  });
+  await runBatch(db, [
+    {
+      sql: `UPDATE registrations SET status = 'canceled', canceled_at = ?2, expires_at = NULL
+             WHERE status IN ('pending', 'confirmed') AND occurrence_id = ?1`,
+      params: [input.occurrenceId, input.now],
+    },
+    {
+      sql: "UPDATE event_occurrences SET status = 'canceled', seats_taken = 0 WHERE id = ?1",
+      params: [input.occurrenceId],
+    },
+    {
+      sql: `UPDATE events SET updated_at = ?2,
+                   status = CASE WHEN EXISTS (SELECT 1 FROM event_occurrences WHERE event_id = ?1 AND status = 'scheduled')
+                                 THEN status ELSE 'canceled' END
+             WHERE id = ?1`,
+      params: [input.eventId, input.now],
+    },
+  ]);
+  return affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) }));
+}
+
+/** Deletes an event that never went live (draft, in review, changes requested, rejected). Nobody can have registered. */
+export async function deleteUnpublishedEvent(
+  db: SqlDatabase,
+  input: { organizationId: string; eventId: string },
+): Promise<void> {
+  const rows = await allRows<{ id: string }>(db, {
+    sql: `SELECT id FROM events WHERE id = ?1 AND organization_id = ?2 AND published_at IS NULL
+             AND status IN ('draft', 'pending_review', 'changes_requested', 'rejected')`,
+    params: [input.eventId, input.organizationId],
+  });
+  if (rows.length === 0) throw new OrganizerError('status_locked');
+  await runBatch(db, [
+    { sql: 'DELETE FROM event_performers WHERE event_id = ?1', params: [input.eventId] },
+    { sql: 'DELETE FROM event_occurrences WHERE event_id = ?1', params: [input.eventId] },
+    {
+      sql: "DELETE FROM review_decisions WHERE subject_type = 'event' AND subject_id = ?1",
+      params: [input.eventId],
+    },
+    { sql: 'DELETE FROM events WHERE id = ?1 AND published_at IS NULL', params: [input.eventId] },
+  ]);
+}
+
 // --- Registrations ---------------------------------------------------------------------------------
 
 export interface OrganizerRegistration {
@@ -766,8 +1132,9 @@ export async function listEventRegistrations(
   db: SqlDatabase,
   organizationId: string,
   eventId: string,
-  filters: { occurrenceId?: string; q?: string } = {},
+  filters: { occurrenceId?: string; q?: string; now: number },
 ): Promise<OrganizerRegistration[]> {
+  const { now } = filters;
   const params: (string | number)[] = [eventId, organizationId];
   let where = 'o.event_id = ?1 AND e.organization_id = ?2';
   if (filters.occurrenceId) {
@@ -784,7 +1151,7 @@ export async function listEventRegistrations(
     where += ` AND (LOWER(r.name) LIKE ?${params.length} ESCAPE '\\' OR LOWER(r.email) LIKE ?${params.length} ESCAPE '\\')`;
   }
   const rows = await allRows<Record<string, unknown>>(db, {
-    sql: `SELECT r.id, r.occurrence_id, o.starts_at, r.name, r.email, r.party_size, r.status, r.checked_in_at, r.created_at
+    sql: `SELECT r.id, r.occurrence_id, o.starts_at, r.name, r.email, r.party_size, r.status, r.expires_at, r.checked_in_at, r.created_at
             FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id JOIN events e ON e.id = o.event_id
            WHERE ${where} AND r.status IN ('pending', 'confirmed', 'canceled')
            ORDER BY o.starts_at, r.created_at LIMIT 2000`,
@@ -797,7 +1164,8 @@ export async function listEventRegistrations(
     name: String(r.name),
     email: String(r.email),
     partySize: Number(r.party_size),
-    status: String(r.status),
+    // A hold that ran out is shown as expired even before cleanup marks it so.
+    status: r.status === 'pending' && Number(r.expires_at ?? 0) <= now ? 'expired' : String(r.status),
     checkedInAt: r.checked_in_at == null ? null : Number(r.checked_in_at),
     createdAt: Number(r.created_at),
   }));
@@ -864,6 +1232,10 @@ export interface CheckInOccurrence {
   canceled: boolean;
   confirmedPeople: number;
   checkedInPeople: number;
+  /** Hours before the start that check-in opens by itself (the event's setting). */
+  opensHours: number;
+  /** When the organizer opened check-in by hand, if they did. */
+  openedAt: number | null;
 }
 
 /** The date being checked in, if it belongs to this organization. */
@@ -874,7 +1246,7 @@ export async function getCheckInOccurrence(
 ): Promise<CheckInOccurrence | null> {
   const r = (
     await allRows<Record<string, unknown>>(db, {
-      sql: `SELECT o.id, o.event_id, o.starts_at, o.status, e.title, e.timezone, e.qr_checkin,
+      sql: `SELECT o.id, o.event_id, o.starts_at, o.status, o.checkin_opened_at, e.title, e.timezone, e.qr_checkin, e.checkin_opens_hours,
                    COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed'), 0) AS confirmed,
                    COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed' AND checked_in_at IS NOT NULL), 0) AS checked_in
               FROM event_occurrences o JOIN events e ON e.id = o.event_id
@@ -893,7 +1265,51 @@ export async function getCheckInOccurrence(
     canceled: r.status === 'canceled',
     confirmedPeople: Number(r.confirmed),
     checkedInPeople: Number(r.checked_in),
+    opensHours: Number(r.checkin_opens_hours ?? 3),
+    openedAt: r.checkin_opened_at == null ? null : Number(r.checkin_opened_at),
   };
+}
+
+/** Check-in always ends this long after a date starts, so a leaked code is useless days later. */
+export const CHECKIN_CLOSES_AFTER_SECONDS = 12 * 3600;
+export const CHECKIN_OPENS_HOURS_CHOICES = [1, 3, 12, 24] as const;
+
+export interface CheckInWindow {
+  open: boolean;
+  /** Epoch seconds when check-in opens by itself. */
+  opensAt: number;
+  closesAt: number;
+  /** True when it is open because the organizer opened it by hand. */
+  manual: boolean;
+}
+
+/**
+ * Whether a date accepts check-in now. It opens `opensHours` before the start (the event's setting), or whenever the
+ * organizer presses "Open check-in now" (early doors, a dry run), and always ends 12 hours after the start.
+ */
+export function checkInWindow(
+  occ: Pick<CheckInOccurrence, 'startsAt' | 'opensHours' | 'openedAt'>,
+  now: number,
+): CheckInWindow {
+  const opensAt = occ.startsAt - occ.opensHours * 3600;
+  const closesAt = occ.startsAt + CHECKIN_CLOSES_AFTER_SECONDS;
+  const manual = occ.openedAt != null;
+  return { open: now <= closesAt && (manual || now >= opensAt), opensAt, closesAt, manual };
+}
+
+/** Opens or closes check-in for one date by hand. Only this organization's QR-enabled, scheduled dates. */
+export async function setCheckInOpen(
+  db: SqlDatabase,
+  input: { organizationId: string; occurrenceId: string; open: boolean; now: number },
+): Promise<void> {
+  const occ = await getCheckInOccurrence(db, input.organizationId, input.occurrenceId);
+  if (!occ || !occ.qrCheckin || occ.canceled) throw new OrganizerError('not_found');
+  await runBatch(db, [
+    {
+      sql: 'UPDATE event_occurrences SET checkin_opened_at = ?2 WHERE id = ?1',
+      params: [input.occurrenceId, input.open ? input.now : null],
+    },
+  ]);
 }
 
 /** Checks a person in by their code. Only this organization's QR-enabled, scheduled dates accept check-in. */
@@ -903,5 +1319,6 @@ export async function checkInForOrganizer(
 ): Promise<CheckInResult> {
   const occ = await getCheckInOccurrence(db, input.organizationId, input.occurrenceId);
   if (!occ || !occ.qrCheckin || occ.canceled) throw new OrganizerError('not_found');
+  if (!checkInWindow(occ, input.now).open) return { ok: false, reason: 'outside_window' };
   return checkIn(db, { occurrenceId: input.occurrenceId, code: input.code, now: input.now });
 }

@@ -17,12 +17,16 @@ import {
   getRegistration,
   qrPayload,
   qrSvg,
+  requestSecurityHeaders,
   sendLiveEmail,
   verifyManageToken,
 } from '@gamo/domain';
 import { openLive, whenWhere } from '../../lib/registration';
 
 export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
 
 const token = Astro.params.token ?? '';
 let notice: string | undefined;

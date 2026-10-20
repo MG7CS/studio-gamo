@@ -10,17 +10,16 @@ import EventStatusPill from '../../../../components/organizer/EventStatusPill.as
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import {
-  CANCEL_EMAIL_LIMIT,
   ADMISSIONS,
   OrganizerError,
-  cancelEvent,
-  eventCanceledEmail,
+  deleteUnpublishedEvent,
   getOrganizerEvent,
-  sendLiveEmail,
   submitEvent,
 } from '@gamo/domain';
+import { cancelEventAndNotify } from '../../../../lib/organizer-events';
 import { organizerPage } from '../../../../lib/organizer-session';
 import { dateOnly, whenLabel } from '../../../../lib/organizer-format';
 import { STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
@@ -37,7 +36,7 @@ if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active, live, now } = ctx;
 const id = Astro.params.id ?? '';
-let event = await getOrganizerEvent(live.db, active.organizationId, id);
+let event = await getOrganizerEvent(live.db, active.organizationId, id, now);
 if (!event) return new Response(null, { status: 404 });
 
 let notice: { tone: 'info' | 'error'; text: string } | null = null;
@@ -56,48 +55,23 @@ if (Astro.request.method === 'POST') {
     if (action === 'submit') {
       const status = await submitEvent(live.db, { organizationId: active.organizationId, eventId: id, now });
       notice = { tone: 'info', text: STATUS_AFTER_SAVE[status] ?? 'Saved.' };
+    } else if (action === 'delete') {
+      await deleteUnpublishedEvent(live.db, { organizationId: active.organizationId, eventId: id });
+      return Astro.redirect('/organizer/events?deleted=1', 303);
     } else if (action === 'cancel') {
       if (form.get('confirm') !== 'yes') {
         notice = { tone: 'error', text: 'Tick the box to confirm that you want to cancel this event.' };
       } else {
-        const message = String(form.get('message') ?? '').slice(0, 1000);
-        const affected = await cancelEvent(live.db, {
+        notice = await cancelEventAndNotify({
+          live,
           organizationId: active.organizationId,
+          organizationName: active.name,
           eventId: id,
+          eventTitle: event.values.title,
+          timezone: event.values.timezone,
+          message: String(form.get('message') ?? '').slice(0, 1000),
           now,
         });
-        let sent = 0;
-        for (const person of affected.slice(0, CANCEL_EMAIL_LIMIT)) {
-          try {
-            await sendLiveEmail(
-              live.env,
-              eventCanceledEmail(
-                person.email,
-                person.name,
-                {
-                  title: event.values.title,
-                  whenLabel: whenLabel(person.startsAt, event.values.timezone),
-                  organizationName: active.name,
-                },
-                message,
-              ),
-            );
-            sent++;
-          } catch {
-            // Counted below as not emailed.
-          }
-        }
-        const missed = affected.length - sent;
-        notice = {
-          tone: missed > 0 ? 'error' : 'info',
-          text:
-            affected.length === 0
-              ? 'The event is canceled.'
-              : `The event is canceled and ${affected.length} ${affected.length === 1 ? 'registration was' : 'registrations were'} canceled. ${sent} ${sent === 1 ? 'person was' : 'people were'} emailed.` +
-                (missed > 0
-                  ? ` ${missed} could not be emailed; download the registration list and tell them directly.`
-                  : ''),
-        };
       }
     }
   } catch (error) {
@@ -112,7 +86,7 @@ if (Astro.request.method === 'POST') {
             : 'That could not be done.',
     };
   }
-  event = (await getOrganizerEvent(live.db, active.organizationId, id)) ?? event;
+  event = (await getOrganizerEvent(live.db, active.organizationId, id, now)) ?? event;
 }
 
 const v = event.values;
@@ -122,7 +96,10 @@ const canSubmit =
 const canEdit =
   ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
   active.status === 'active';
-const canCancel = !['canceled', 'hidden'].includes(event.status) && active.status === 'active';
+const canCancel = event.status === 'published' && active.status === 'active';
+const canDelete =
+  ['draft', 'pending_review', 'changes_requested', 'rejected'].includes(event.status) &&
+  active.status === 'active';
 const totalPeople = event.occurrences.reduce((a, o) => a + o.confirmedPeople, 0);
 const admissionLabel = ADMISSIONS.find((a) => a.value === event.admission)?.label ?? event.admission;
 const decisionLabel: Record<string, string> = {
@@ -143,7 +120,16 @@ const decisionLabel: Record<string, string> = {
     <PageTitle title={v.title} subtext={`${v.venueName}, ${v.city}, ${v.state}`} />
     <EventStatusPill status={event.status} />
   </div>
-  {notice && <SplitNotice tone={notice.tone}>{notice.text}</SplitNotice>}
+  {notice && !event.changeWaiting && <SplitNotice tone={notice.tone}>{notice.text}</SplitNotice>}
+  {event.changeWaiting && (
+    <SplitNotice tone="info">
+      <strong>Your change is waiting for Gamo’s review.</strong>
+      <span class="mt-1 block">
+        The public page keeps showing the previous date, place and tickets until it is approved. Other edits
+        are already live.
+      </span>
+    </SplitNotice>
+  )}
   {event.decision && event.decision.decision !== 'verified' && (
     <SplitNotice tone={event.decision.decision === 'approved' ? 'info' : 'error'}>
       <strong>Gamo’s decision: {decisionLabel[event.decision.decision] ?? event.decision.decision}</strong>
@@ -242,33 +228,45 @@ const decisionLabel: Record<string, string> = {
     </Panel>
   </div>
   {canCancel && (
-    <Panel
-      id="cancel"
-      title="Cancel this event"
-      description="Everyone registered is told. This cannot be undone."
-      class="mt-4"
-    >
-      <form method="post" class="max-w-xl space-y-5">
-        <input type="hidden" name="action" value="cancel" />
-        <SplitField
-          id="message"
-          name="message"
-          label="Message to registrants (optional)"
-          as="textarea"
-          rows={3}
-          maxlength={1000}
-        />
-        <label class="flex min-h-11 items-start gap-3 text-[14px] text-ink">
-          <input
-            type="checkbox"
-            name="confirm"
-            value="yes"
-            class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
-          />
-          <span>Yes, cancel this event and every registration.</span>
-        </label>
-        <SplitButton label="Cancel event" variant="quiet" />
-      </form>
+    <Panel id="cancel" title="Cancel this event" class="mt-4">
+      <ConfirmAction
+        summaryLabel="Cancel this event…"
+        confirmLabel="Yes, cancel the event"
+        actionValue="cancel"
+        class="max-w-xl"
+      >
+        <p>
+          {totalPeople > 0
+            ? `This cancels every date and ${totalPeople} confirmed ${totalPeople === 1 ? 'person' : 'people'} will be emailed. `
+            : 'No one has registered yet. '}
+          This cannot be undone.
+        </p>
+        <Fragment slot="fields">
+          <input type="hidden" name="confirm" value="yes" />
+          {totalPeople > 0 && (
+            <SplitField
+              id="message"
+              name="message"
+              label="Message to registrants (optional)"
+              as="textarea"
+              rows={3}
+              maxlength={1000}
+            />
+          )}
+        </Fragment>
+      </ConfirmAction>
+    </Panel>
+  )}
+  {canDelete && (
+    <Panel id="delete" title="Delete this event" class="mt-4">
+      <ConfirmAction
+        summaryLabel="Delete this event…"
+        confirmLabel="Yes, delete it"
+        actionValue="delete"
+        class="max-w-xl"
+      >
+        <p>It was never published, so nobody is registered. Deleting removes it for good.</p>
+      </ConfirmAction>
     </Panel>
   )}
 </OrganizerLayout>

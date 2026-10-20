@@ -1,0 +1,51 @@
+---
+/**
+ * A message to the person using the page. Danger is announced as an alert, the rest as status updates.
+ * Give it an `id` (and tabindex via `focusable`) when a redirect or error summary should move focus to it.
+ */
+import Icon, { type IconName } from '../Icon.astro';
+interface Props {
+  tone?: 'info' | 'success' | 'warning' | 'danger';
+  title?: string;
+  id?: string;
+  focusable?: boolean;
+  class?: string;
+}
+const { tone = 'info', title, id, focusable = false, class: className } = Astro.props;
+const styles: Record<string, [string, IconName, string]> = {
+  info: ['border-tan bg-cream text-ink', 'info', 'text-muted'],
+  success: [
+    'border-status-success-line bg-status-success-soft text-status-success',
+    'check',
+    'text-status-success',
+  ],
+  warning: [
+    'border-status-warning-line bg-status-warning-soft text-status-warning',
+    'alert',
+    'text-status-warning',
+  ],
+  danger: [
+    'border-status-danger-line bg-status-danger-soft text-status-danger',
+    'alert',
+    'text-status-danger',
+  ],
+};
+const [box, icon, iconClass] = styles[tone];
+const label = { info: 'Note', success: 'Done', warning: 'Warning', danger: 'Error' }[tone];
+---
+
+<div
+  id={id}
+  role={tone === 'danger' ? 'alert' : 'status'}
+  tabindex={focusable ? -1 : undefined}
+  class:list={['flex gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed', box, className]}
+>
+  <Icon name={icon} class={`mt-0.5 h-5 w-5 shrink-0 ${iconClass}`} strokeWidth={1.8} />
+  <div class="min-w-0 flex-1">
+    <span class="sr-only">{label}: </span>
+    {title && <p class="font-semibold">{title}</p>}
+    <div class:list={[title ? 'mt-0.5' : '', '[&_a]:font-semibold [&_a]:underline']}>
+      <slot />
+    </div>
+  </div>
+</div>

@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GamoEnv } from './env.ts';
-import { validateEnv } from './env-validation.ts';
+import { createGamoDevServer } from './env-loader.ts';
+import { isLoopbackHost, validateEnv } from './env-validation.ts';
 
 const SECRET = 'x'.repeat(32);
 const names = (problems: ReturnType<typeof validateEnv>, severity: string) =>
@@ -12,6 +13,15 @@ test('a local build served from a public hostname is fatal (deployed without --e
     'ENVIRONMENT',
   ]);
   assert.deepEqual(validateEnv('web', { ENVIRONMENT: 'local' }, '127.0.0.1'), []);
+  // A phone on the same Wi-Fi reaches a dev server by its private address; a public host is still refused.
+  for (const host of ['192.168.12.48', '10.0.0.5', '172.20.1.2', 'my-mac.local'])
+    assert.deepEqual(validateEnv('web', { ENVIRONMENT: 'local' }, host), [], host);
+  for (const host of ['8.8.8.8', '172.32.0.1', '192.169.1.1', 'gamostudio.org'])
+    assert.deepEqual(
+      names(validateEnv('web', { ENVIRONMENT: 'local' }, host), 'fatal'),
+      ['ENVIRONMENT'],
+      host,
+    );
 });
 
 test('missing or unknown ENVIRONMENT is fatal', () => {
@@ -115,4 +125,29 @@ test('Live needs its hash secret, and Clerk is all-or-nothing with production ke
     [],
     'development keys are fine in preview',
   );
+});
+
+test('isLoopbackHost is this computer only: LAN addresses and .local names are not loopback', () => {
+  for (const host of ['localhost', '127.0.0.1', '[::1]', '::1'])
+    assert.equal(isLoopbackHost(host), true, host);
+  for (const host of ['192.168.12.48', '10.0.0.5', '172.20.1.2', 'my-mac.local', 'gamostudio.org', '0.0.0.0'])
+    assert.equal(isLoopbackHost(host), false, host);
+});
+
+test('dev servers listen on this computer only, unless GAMO_DEV_LAN=1 opens Gamo Live (and only Live)', () => {
+  const before = process.env.GAMO_DEV_LAN;
+  try {
+    delete process.env.GAMO_DEV_LAN;
+    for (const app of ['web', 'live', 'admin'] as const)
+      assert.equal(createGamoDevServer(app).host, '127.0.0.1', app);
+    process.env.GAMO_DEV_LAN = '1';
+    assert.equal(createGamoDevServer('live').host, true);
+    assert.equal(createGamoDevServer('admin').host, '127.0.0.1');
+    assert.equal(createGamoDevServer('web').host, '127.0.0.1');
+    process.env.GAMO_DEV_LAN = 'true';
+    assert.equal(createGamoDevServer('live').host, '127.0.0.1', 'only the value 1 opens the network');
+  } finally {
+    if (before === undefined) delete process.env.GAMO_DEV_LAN;
+    else process.env.GAMO_DEV_LAN = before;
+  }
 });

@@ -7,7 +7,7 @@ import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import OrganizationForm from '../../components/organizer/OrganizationForm.astro';
 import { requireSameOrigin } from '@gamo/auth';
-import { TERMS_DRAFT_VERSION, createOrganization } from '@gamo/domain';
+import { OrganizerError, TERMS_DRAFT_VERSION, createOrganization, organizerErrorMessage } from '@gamo/domain';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { ORGANIZATION_COOKIE, cookieHeader, organizerPage } from '../../lib/organizer-session';
 import { fieldErrors, readOrganizationForm } from '../../lib/organizer-forms';
@@ -63,7 +63,10 @@ if (!ctx) {
       errors = fieldErrors(error);
       if (Object.keys(errors).length === 0) {
         console.error('[live:start] failed', (error as Error)?.name);
-        notice = 'We could not save your organization. Please try again.';
+        notice =
+          error instanceof OrganizerError
+            ? organizerErrorMessage(error.code)
+            : 'We could not save your organization. Please try again.';
       }
     }
   }
@@ -118,5 +121,13 @@ if (!ctx) {
     <p class="mt-6 text-center text-[14px] text-muted">
       Joining an existing organization? Open the invitation link from your email.
     </p>
+    {ctx && (
+      <form method="post" action="/account/signout" class="mt-4 text-center text-[14px] text-muted">
+        Signed in as <strong class="text-ink">{ctx.organizer.email}</strong>. Not you or the wrong account?
+        <button type="submit" class="min-h-11 font-semibold text-terracotta underline">
+          Sign out
+        </button>
+      </form>
+    )}
   </SplitScreenLayout>
 </Layout>

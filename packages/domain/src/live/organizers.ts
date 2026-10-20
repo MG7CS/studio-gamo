@@ -12,6 +12,12 @@ import { allRows, changesOf, runBatch, type SqlDatabase } from '../security/sql-
 
 export const SESSION_SECONDS = 7 * 24 * 60 * 60;
 export const INVITATION_SECONDS = 7 * 24 * 60 * 60;
+/** Abuse limits per organizer / organization (owner-approved numbers are proposals until published). */
+export const MAX_OWNED_ORGANIZATIONS = 5;
+export const MAX_EVENTS_PER_ORGANIZATION = 100;
+export const MAX_PENDING_INVITATIONS = 20;
+const INVITES_PER_ORGANIZATION_PER_DAY = 20;
+const INVITES_PER_ADDRESS_PER_DAY = 3;
 export const ORGANIZATION_KINDS = ['church', 'ministry', 'artist', 'organizer'] as const;
 export type OrganizationKind = (typeof ORGANIZATION_KINDS)[number];
 export const ORGANIZATION_KIND_LABELS: Record<OrganizationKind, string> = {
@@ -32,7 +38,28 @@ export type OrganizerErrorCode =
   | 'last_owner'
   | 'suspended'
   | 'status_locked'
-  | 'capacity_low';
+  | 'capacity_low'
+  | 'quota'
+  | 'not_ready';
+
+/** Friendly sentences for the codes a form cannot show next to a field. `invalid` is handled per field. */
+export const ORGANIZER_ERROR_MESSAGES: Partial<Record<OrganizerErrorCode, string>> = {
+  forbidden: 'Only owners can do that.',
+  rate_limited: 'Too many tries. Please wait a while and try again.',
+  last_owner: 'An organization needs at least one owner.',
+  suspended: 'This organization is suspended.',
+  status_locked: 'This event can no longer be edited.',
+  invitation_invalid: 'This invitation can no longer be used.',
+  invitation_expired: 'This invitation has expired. Ask the owner to send a new one.',
+  not_ready:
+    'You can invite people after Gamo approves your first event. Until then, only you manage this organization.',
+  quota:
+    'This limit has been reached (up to 5 organizations per person, 100 events and 20 open invitations per organization). Remove something first or write to hello@gamostudio.org.',
+};
+
+export function organizerErrorMessage(code: OrganizerErrorCode): string {
+  return ORGANIZER_ERROR_MESSAGES[code] ?? 'That could not be done.';
+}
 
 export class OrganizerError extends Error {
   readonly code: OrganizerErrorCode;
@@ -232,6 +259,11 @@ export async function createOrganization(
   input: { organizerId: string; profile: OrganizationInput; termsVersion: string; now: number },
 ): Promise<{ organizationId: string; slug: string }> {
   const profile = validateOrganization(input.profile);
+  const owned = await allRows<{ n: number }>(db, {
+    sql: "SELECT COUNT(*) AS n FROM memberships WHERE organizer_id = ?1 AND role = 'owner'",
+    params: [input.organizerId],
+  });
+  if (Number(owned[0]?.n ?? 0) >= MAX_OWNED_ORGANIZATIONS) throw new OrganizerError('quota');
   const id = newPrefixedId('org');
   for (let attempt = 0; attempt < 4; attempt++) {
     const slug =
@@ -275,6 +307,18 @@ export async function createOrganization(
     }
   }
   throw new OrganizerError('invalid', 'name');
+}
+
+/**
+ * Call before creating a new event: throws `OrganizerError('quota')` when the organization already has
+ * `MAX_EVENTS_PER_ORGANIZATION` events that are not canceled (drafts, pending, published, rejected, hidden).
+ */
+export async function assertEventQuota(db: SqlDatabase, organizationId: string): Promise<void> {
+  const rows = await allRows<{ n: number }>(db, {
+    sql: "SELECT COUNT(*) AS n FROM events WHERE organization_id = ?1 AND status <> 'canceled'",
+    params: [organizationId],
+  });
+  if (Number(rows[0]?.n ?? 0) >= MAX_EVENTS_PER_ORGANIZATION) throw new OrganizerError('quota');
 }
 
 export async function membershipRole(
@@ -424,12 +468,38 @@ export async function createInvitation(
   if (!isPlausibleEmail(email)) throw new OrganizerError('invalid', 'email');
   const secret = secretOf(env);
   const emailHash = await hashEmail(email, secret);
+  const state = await allRows<{ first_event_approved_at: number | null; status: string }>(db, {
+    sql: 'SELECT first_event_approved_at, status FROM organizations WHERE id = ?1',
+    params: [input.organizationId],
+  });
+  if (!state[0]) throw new OrganizerError('not_found');
+  if (state[0].status !== 'active') throw new OrganizerError('suspended');
+  // Only organizations Gamo has already reviewed can bring other people in.
+  if (state[0].first_event_approved_at == null) throw new OrganizerError('not_ready');
+  // Re-inviting the same address replaces its open invitation, so it does not count against the cap.
+  const pending = await allRows<{ n: number }>(db, {
+    sql: `SELECT COUNT(*) AS n FROM invitations
+           WHERE organization_id = ?1 AND accepted_at IS NULL AND expires_at > ?2 AND email_hash <> ?3`,
+    params: [input.organizationId, input.now, emailHash],
+  });
+  if (Number(pending[0]?.n ?? 0) >= MAX_PENDING_INVITATIONS) throw new OrganizerError('quota');
+  const organizationKey = await hashEmail(input.organizationId, secret);
   const limit = await checkRateLimits(
     db,
     [
       {
-        bucket: rateLimitBucket('live.invite', 'key', await hashEmail(input.organizationId, secret)),
-        limit: 20,
+        bucket: rateLimitBucket('live.invite', 'key', organizationKey),
+        limit: INVITES_PER_ORGANIZATION_PER_DAY,
+        windowSeconds: 86400,
+      },
+      {
+        // Creating and re-sending to one address share this budget.
+        bucket: rateLimitBucket(
+          'live.invite-to',
+          'key',
+          await hashEmail(`${input.organizationId}|${email}`, secret),
+        ),
+        limit: INVITES_PER_ADDRESS_PER_DAY,
         windowSeconds: 86400,
       },
     ],
@@ -439,8 +509,9 @@ export async function createInvitation(
   const token = bytesToBase64Url(randomBytes(32));
   await runBatch(db, [
     {
-      sql: 'DELETE FROM invitations WHERE organization_id = ?1 AND email_hash = ?2 AND accepted_at IS NULL',
-      params: [input.organizationId, emailHash],
+      sql: `DELETE FROM invitations WHERE organization_id = ?1 AND accepted_at IS NULL
+              AND (email_hash = ?2 OR expires_at <= ?3)`,
+      params: [input.organizationId, emailHash, input.now],
     },
     {
       sql: `INSERT INTO invitations (id, organization_id, email_hash, email, token_hash, expires_at, created_at)
@@ -486,10 +557,19 @@ async function findInvitation(db: SqlDatabase, token: string) {
   return rows[0] ?? null;
 }
 
-/** What an invitation link is for, without accepting it. Null when the link is unknown. */
-export async function previewInvitation(db: SqlDatabase, token: string): Promise<InvitationPreview | null> {
+/**
+ * What an invitation link is for, without accepting it. Null when the link is unknown, already accepted,
+ * expired, or the organization is suspended.
+ */
+export async function previewInvitation(
+  db: SqlDatabase,
+  token: string,
+  now: number = Math.floor(Date.now() / 1000),
+): Promise<InvitationPreview | null> {
   const row = await findInvitation(db, token);
-  return row ? { organizationName: String(row.name), email: String(row.email ?? '') } : null;
+  if (!row || row.accepted_at != null || row.status !== 'active' || Number(row.expires_at) <= now)
+    return null;
+  return { organizationName: String(row.name), email: String(row.email ?? '') };
 }
 
 /** Accepting needs the signed-in organizer's verified email to be the invited address. */
@@ -504,16 +584,20 @@ export async function acceptInvitation(
   if (Number(row.expires_at) <= input.now) throw new OrganizerError('invitation_expired');
   if ((await hashEmail(input.organizer.email, secretOf(env))) !== row.email_hash)
     throw new OrganizerError('invitation_wrong_email');
-  await runBatch(db, [
-    {
-      sql: `INSERT OR IGNORE INTO memberships (organization_id, organizer_id, role, created_at) VALUES (?1, ?2, 'member', ?3)`,
-      params: [String(row.organization_id), input.organizer.id, input.now],
-    },
-    {
-      sql: 'UPDATE invitations SET accepted_at = ?2 WHERE id = ?1 AND accepted_at IS NULL',
-      params: [String(row.id), input.now],
-    },
-  ]);
+  // Claim the invitation first (only while it is still open and unexpired), so it can never be used twice.
+  const claimed = await db
+    .prepare(
+      'UPDATE invitations SET accepted_at = ?2 WHERE id = ?1 AND accepted_at IS NULL AND expires_at > ?2',
+    )
+    .bind(String(row.id), input.now)
+    .run();
+  if (changesOf(claimed) === 0) throw new OrganizerError('invitation_invalid');
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO memberships (organization_id, organizer_id, role, created_at) VALUES (?1, ?2, 'member', ?3)`,
+    )
+    .bind(String(row.organization_id), input.organizer.id, input.now)
+    .run();
   return { organizationId: String(row.organization_id) };
 }
 

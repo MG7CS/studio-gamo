@@ -4,13 +4,15 @@ interface Props {
   label: string;
   type?: 'submit' | 'button';
   name?: string;
+  id?: string;
   value?: string;
   variant?: 'primary' | 'quiet';
 }
-const { label, type = 'submit', name, value, variant = 'primary' } = Astro.props;
+const { label, type = 'submit', name, id, value, variant = 'primary' } = Astro.props;
 ---
 
 <button
+  id={id}
   type={type}
   name={name}
   value={value}

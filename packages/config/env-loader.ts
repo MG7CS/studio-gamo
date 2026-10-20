@@ -511,7 +511,16 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   };
 }
 
-/** Astro `server` options for an app: fixed port, IPv4 loopback. */
+/**
+ * Astro `server` options for an app: fixed port, IPv4 loopback (this computer only). Only with `GAMO_DEV_LAN=1`
+ * (set by `make dev-live`, or by hand for `make dev-all`) does the Gamo Live server listen on the local network too,
+ * so a phone on the same Wi-Fi can open it. Anyone on that network can then reach the dev server; the local sign-in
+ * stand-in still refuses non-loopback hosts (`localSimulatedSignInAllowed`).
+ */
 export function createGamoDevServer(app: AppName) {
-  return { host: LOCAL_HOST, port: LOCAL_PORTS[app] };
+  // Only Gamo Live listens on the network (a phone scans and shows its QR codes); the other apps stay on loopback.
+  return {
+    host: process.env.GAMO_DEV_LAN === '1' && app === 'live' ? true : LOCAL_HOST,
+    port: LOCAL_PORTS[app],
+  };
 }

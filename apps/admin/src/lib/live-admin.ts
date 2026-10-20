@@ -8,10 +8,13 @@ import type { GamoEnv } from '@gamo/config/env';
 import {
   LiveAdminError,
   eventDecisionEmail,
+  eventVisibilityEmail,
   organizationOwnerEmails,
+  runLiveCleanup,
   reviewLiveEvent,
   sendLiveEmail,
   setCatalogFeatured,
+  setOrganizerEventHidden,
   setCatalogStatus,
   setOrganizationSuspended,
   setOrganizationVerified,
@@ -45,6 +48,9 @@ const DONE_TEXT: Record<string, string> = {
   listing_hidden: 'Listing hidden.',
   featured_on: 'Listing marked as featured.',
   featured_off: 'Listing is no longer featured.',
+  cleanup: 'Cleanup finished.',
+  event_hidden: 'Event hidden from every public page. The organizers were emailed.',
+  event_restored: 'Event restored. It is public again.',
 };
 
 export function outcomeFrom(url: URL): string | null {
@@ -52,6 +58,15 @@ export function outcomeFrom(url: URL): string | null {
   if (!done || !(done in DONE_TEXT)) return null;
   const extras: string[] = [];
   if (url.searchParams.get('first') === '1') extras.push('This was the organization’s first approved event.');
+  if (done === 'cleanup') {
+    const n = (key: string) => {
+      const value = Number(url.searchParams.get(key));
+      return Number.isInteger(value) && value >= 0 && value < 1e9 ? value : 0;
+    };
+    extras.push(
+      `Removed ${n('registrations')} registrations (totals kept on ${n('dates')} dates), ${n('codes')} email codes, ${n('sessions')} old sign-in sessions, ${n('invitations')} old invitations and ${n('counters')} rate-limit counters.`,
+    );
+  }
   const emailed = url.searchParams.get('emailed');
   if (emailed === 'yes') extras.push('The organization’s owners were emailed.');
   else if (emailed === 'no')
@@ -65,6 +80,11 @@ function failureFor(error: unknown): FormOutcome {
       return fail(409, 'That was already decided or changed. Reload to see the latest.');
     if (error.code === 'not_found') return fail(404, 'That no longer exists.');
     if (error.code === 'note_required') return fail(400, 'Add a note explaining the decision.');
+    if (error.code === 'stale')
+      return fail(
+        409,
+        'The organizer changed this event while you were reading it. Reload and read the new version first.',
+      );
     if (error.code === 'no_future_date')
       return fail(409, 'Every date has passed, so this cannot be approved. Ask for changes or reject it.');
   }
@@ -85,6 +105,8 @@ async function readForm(request: Request): Promise<FormData | FormOutcome> {
 export async function handleEventForm(request: Request, env: GamoEnv): Promise<FormOutcome> {
   const form = await readForm(request);
   if (!(form instanceof FormData)) return form;
+  const action = text(form, 'action');
+  if (action === 'hide' || action === 'restore') return handlePublishedEventForm(env, form, action);
   const decision = text(form, 'decision');
   if (decision !== 'approved' && decision !== 'changes_requested' && decision !== 'rejected')
     return fail(400, 'Choose approve, ask for changes or reject.');
@@ -96,6 +118,7 @@ export async function handleEventForm(request: Request, env: GamoEnv): Promise<F
       decision: decision as EventDecision,
       note,
       now: nowSeconds(),
+      seenAt: /^\d{1,12}$/.test(text(form, 'seen')) ? Number(text(form, 'seen')) : undefined,
     });
     let emailed = 'no';
     try {
@@ -182,6 +205,58 @@ export async function handleCatalogForm(request: Request, env: GamoEnv): Promise
       return { ok: true, location: `/catalog?done=${action === 'feature' ? 'featured_on' : 'featured_off'}` };
     }
     return fail(400, 'The form was incomplete. Reload and try again.');
+  } catch (error) {
+    return failureFor(error);
+  }
+}
+
+/** POST /maintenance: run the cleanup (registrant data older than 90 days, expired codes, old sessions). */
+export async function handleCleanupForm(request: Request, env: GamoEnv): Promise<FormOutcome> {
+  const form = await readForm(request);
+  if (!(form instanceof FormData)) return form;
+  if (text(form, 'confirm') !== 'yes') return fail(400, 'Tick the box to confirm, then run the cleanup.');
+  try {
+    const report = await runLiveCleanup(asSqlDatabase(env.LIVE_DB), nowSeconds());
+    const q = new URLSearchParams({
+      done: 'cleanup',
+      registrations: String(report.registrationsRemoved),
+      dates: String(report.occurrencesSummarized),
+      codes: String(report.emailCodesRemoved),
+      sessions: String(report.sessionsRemoved),
+      invitations: String(report.invitationsRemoved),
+      counters: String(report.rateLimitCountersRemoved),
+    });
+    return { ok: true, location: `/maintenance?${q}` };
+  } catch (error) {
+    return failureFor(error);
+  }
+}
+
+/** Hide a published event (note required) or restore a hidden one; the organization's owners are told. */
+async function handlePublishedEventForm(
+  env: GamoEnv,
+  form: FormData,
+  action: 'hide' | 'restore',
+): Promise<FormOutcome> {
+  try {
+    const db = asSqlDatabase(env.LIVE_DB);
+    const note = text(form, 'notes').trim().slice(0, 2000);
+    const result = await setOrganizerEventHidden(db, {
+      eventId: text(form, 'event_id'),
+      hidden: action === 'hide',
+      note,
+      now: nowSeconds(),
+    });
+    try {
+      for (const to of await organizationOwnerEmails(db, result.organizationId))
+        await sendLiveEmail(
+          env,
+          eventVisibilityEmail(to, { title: result.title, hidden: action === 'hide', note }),
+        );
+    } catch {
+      // The change is made; the page says so either way.
+    }
+    return { ok: true, location: `/events?done=${action === 'hide' ? 'event_hidden' : 'event_restored'}` };
   } catch (error) {
     return failureFor(error);
   }

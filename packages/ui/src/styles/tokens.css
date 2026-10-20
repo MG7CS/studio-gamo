@@ -20,6 +20,19 @@
   --color-line: #dcd3c6;
   --color-muted: #57534e;
 
+  /* Status colors shared by Live and the other apps (Notice, Pill, Button danger). Names carry the
+     "status-" prefix so they never clash with the admin's own --color-success/warning/danger in clay.css.
+     Contrast (WCAG): text on white / on its own soft fill / on cream / on sand — see DESIGN.md. */
+  --color-status-success: #17643f;
+  --color-status-success-soft: #e4f3ea;
+  --color-status-success-line: #b9dcc6;
+  --color-status-warning: #7a4d00;
+  --color-status-warning-soft: #fcf0d6;
+  --color-status-warning-line: #ecd29a;
+  --color-status-danger: #a52a35;
+  --color-status-danger-soft: #fbe6e6;
+  --color-status-danger-line: #e8b4b6;
+
   /* Aliases kept so existing class names keep working; prefer the names above in new code. */
   --color-terracotta-dark: var(--color-terracotta-deep);
   --color-charcoal: var(--color-ink);

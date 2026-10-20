@@ -29,9 +29,12 @@ async function run(el: HTMLElement) {
   const fail = (error: unknown) => {
     const code = clerkErrorCode(error);
     if (code === 'form_identifier_not_found')
-      return say('We could not find an account for that email. Create an account first.', 'error');
+      return say(
+        'We could not find an account for that email. Check the spelling, or choose “Create an account” below.',
+        'error',
+      );
     if (code === 'form_identifier_exists')
-      return say('That email already has an account. Sign in instead.', 'error');
+      return say('That email already has an account. Choose “Sign in” below instead.', 'error');
     if (code === 'form_code_incorrect')
       return say('That code is not right. Check the email and try again.', 'error');
     if (code === 'verification_expired' || code === 'verification_failed')
@@ -81,6 +84,9 @@ async function run(el: HTMLElement) {
     }
   }
 
+  // Asks Clerk to email a fresh code for the attempt that is in progress.
+  let sendCode: (() => Promise<void>) | null = null;
+
   emailForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const email = emailInput.value.trim().toLowerCase();
@@ -92,7 +98,11 @@ async function run(el: HTMLElement) {
         const attempt = await clerk.client!.signIn.create({ identifier: email });
         const factor = attempt.supportedFirstFactors?.find((f) => f.strategy === 'email_code');
         if (!factor?.emailAddressId) return say('This account cannot sign in with an emailed code.', 'error');
-        await attempt.prepareFirstFactor({ strategy: 'email_code', emailAddressId: factor.emailAddressId });
+        const emailAddressId = factor.emailAddressId;
+        sendCode = async () => {
+          await attempt.prepareFirstFactor({ strategy: 'email_code', emailAddressId });
+        };
+        await sendCode();
       } else {
         const fullName = (nameInput?.value ?? '').trim();
         const [firstName, ...rest] = fullName.split(/\s+/);
@@ -101,7 +111,10 @@ async function run(el: HTMLElement) {
           ...(firstName ? { firstName } : {}),
           ...(rest.length ? { lastName: rest.join(' ') } : {}),
         });
-        await clerk.client!.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        sendCode = async () => {
+          await clerk.client!.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        };
+        await sendCode();
       }
       if (sentTo) sentTo.textContent = email;
       emailForm.hidden = true;
@@ -130,6 +143,22 @@ async function run(el: HTMLElement) {
         return say("We couldn't finish signing you in. Please start again.", 'error');
       await clerk.setActive({ session: result.createdSessionId });
       await exchange();
+    } catch (error) {
+      fail(error);
+    } finally {
+      busy(false);
+    }
+  });
+
+  el.querySelector<HTMLButtonElement>('#resend')?.addEventListener('click', async () => {
+    if (!sendCode) return;
+    say('');
+    busy(true);
+    try {
+      await sendCode();
+      codeInput.value = '';
+      codeInput.focus();
+      say('We sent a new code. The older one no longer works.');
     } catch (error) {
       fail(error);
     } finally {

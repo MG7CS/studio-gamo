@@ -11,7 +11,7 @@ const { current } = Astro.props;
 
 <nav
   aria-label="Organizer"
-  class="fixed inset-x-3 bottom-3 z-20 rounded-3xl bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.14)] lg:hidden"
+  class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-3xl bg-white p-2 shadow-[0_8px_30px_rgba(24,24,27,0.14)] lg:hidden"
 >
   <ul class="flex justify-around gap-1">
     {ORGANIZER_NAV.map((item) => (
@@ -20,7 +20,7 @@ const { current } = Astro.props;
           href={item.href}
           aria-current={item.key === current ? 'page' : undefined}
           class:list={[
-            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-[11px] font-semibold',
+            'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-xs font-semibold',
             item.key === current ? 'bg-terracotta/10 text-terracotta-deep' : 'text-ink',
           ]}
         >

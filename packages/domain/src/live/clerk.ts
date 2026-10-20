@@ -8,6 +8,7 @@
  * `CLERK_JWT_KEY_LIVE` (PEM public key: verify without a network call) and `CLERK_AUTHORIZED_PARTIES_LIVE`
  * (comma-separated origins allowed as the token's `azp`).
  */
+import { isLoopbackHost } from '@gamo/config/env-validation';
 import { base64UrlToBytes } from '../security/crypto.ts';
 
 type Env = { ENVIRONMENT?: unknown };
@@ -75,9 +76,17 @@ export function liveClerkConfig(env: Env): LiveClerkConfig | null {
   };
 }
 
-/** Local-only sign-in without Clerk, for working on the organizer area before keys exist. Fatal elsewhere. */
-export function localSimulatedSignInAllowed(env: Env): boolean {
+/**
+ * Local-only sign-in without Clerk, for working on the organizer area before keys exist. Fatal elsewhere.
+ *
+ * It needs `ENVIRONMENT=local`, `ALLOW_AUTH_SIMULATION=true`, no Clerk keys, and a request served from this
+ * computer (`localhost`, `127.0.0.1`, `::1`). A phone or laptop on the same network (a LAN address or a `.local`
+ * name) never gets it, because the stand-in logs anyone in without proof. Pass the request's hostname whenever the
+ * answer authorizes something; omitting it only answers "is the stand-in configured at all", for showing the form.
+ */
+export function localSimulatedSignInAllowed(env: Env, hostname?: string): boolean {
   const e = env as Record<string, unknown>;
+  if (hostname !== undefined && !isLoopbackHost(hostname)) return false;
   return e.ENVIRONMENT === 'local' && e.ALLOW_AUTH_SIMULATION === 'true' && liveClerkConfig(env) === null;
 }
 
@@ -133,6 +142,19 @@ function pemToSpki(pem: string): Uint8Array<ArrayBuffer> | null {
   return bytes;
 }
 
+/** The origins a token's `azp` may name: the configured list, else only the request's own origin. */
+export function allowedParties(
+  config: Pick<LiveClerkConfig, 'authorizedParties'>,
+  requestOrigin?: string,
+): string[] {
+  if (config.authorizedParties.length > 0) return config.authorizedParties;
+  try {
+    return requestOrigin ? [new URL(requestOrigin).origin] : [];
+  } catch {
+    return [];
+  }
+}
+
 export interface ClerkSessionClaims {
   userId: string;
   sessionId: string | null;
@@ -140,14 +162,17 @@ export interface ClerkSessionClaims {
 
 /**
  * Verifies a Clerk session token: RS256 signature (public key from `CLERK_JWT_KEY_LIVE` or the Frontend API's
- * JWKS), `iss` equal to the Frontend API, `exp`/`nbf` with 10 s leeway, and `azp` in the authorized parties
- * when any are configured. Throws `ClerkVerificationError` (bad token) or `ClerkUnavailableError` (no JWKS).
+ * JWKS), `iss` equal to the Frontend API, `exp`/`nbf` with 10 s leeway, and `azp` (when the token has one) in
+ * the configured authorized parties, or, when none are configured, equal to `requestOrigin` (the origin this
+ * request was served from; callers pass `new URL(request.url).origin`). With neither, the token is refused:
+ * the check is never skipped. Throws `ClerkVerificationError` (bad token) or `ClerkUnavailableError` (no JWKS).
  */
 export async function verifyClerkSessionToken(
   token: string,
   config: LiveClerkConfig,
   now: number = Math.floor(Date.now() / 1000),
   fetchImpl: typeof fetch = fetch,
+  requestOrigin?: string,
 ): Promise<ClerkSessionClaims> {
   const parts = String(token).split('.');
   if (parts.length !== 3 || String(token).length > 8192) throw new ClerkVerificationError('malformed');
@@ -202,8 +227,9 @@ export async function verifyClerkSessionToken(
   if (typeof claims.exp !== 'number' || claims.exp + 10 <= now) throw new ClerkVerificationError('expired');
   if (typeof claims.nbf === 'number' && claims.nbf - 10 > now)
     throw new ClerkVerificationError('not_yet_valid');
-  if (config.authorizedParties.length > 0 && claims.azp && !config.authorizedParties.includes(claims.azp))
-    throw new ClerkVerificationError('party');
+  const parties = allowedParties(config, requestOrigin);
+  if (parties.length === 0) throw new ClerkVerificationError('party');
+  if (claims.azp && !parties.includes(claims.azp)) throw new ClerkVerificationError('party');
   if (typeof claims.sub !== 'string' || !/^user_[A-Za-z0-9]+$/.test(claims.sub))
     throw new ClerkVerificationError('subject');
   return { userId: claims.sub, sessionId: typeof claims.sid === 'string' ? claims.sid : null };
