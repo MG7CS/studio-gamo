@@ -16,12 +16,16 @@ import {
   confirmationEmail,
   confirmRegistration,
   getRegistration,
+  requestSecurityHeaders,
   resendCode,
   sendLiveEmail,
 } from '@gamo/domain';
 import { openLive, registrationMessage, whenWhere } from '../../../../lib/registration';
 
 export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
 
 const slug = Astro.params.id ?? '';
 const registrationId = Astro.url.searchParams.get('r') ?? '';

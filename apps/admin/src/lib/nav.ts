@@ -7,7 +7,15 @@ import type { IconName } from '@studio-gamo/ui/lib/icons';
 import type { QueueCounts } from './inbox';
 
 export type NavKey =
-  'inbox' | 'participation' | 'churches' | 'providers' | 'events' | 'organizations' | 'catalog' | 'legal';
+  | 'inbox'
+  | 'participation'
+  | 'churches'
+  | 'providers'
+  | 'events'
+  | 'organizations'
+  | 'catalog'
+  | 'maintenance'
+  | 'legal';
 
 export interface NavItem {
   key: NavKey;
@@ -70,6 +78,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'list',
     count: 'catalog',
   },
+  { key: 'maintenance', label: 'Live cleanup', shortLabel: 'Cleanup', href: '/maintenance', icon: 'list' },
   { key: 'legal', label: 'Legal', shortLabel: 'Legal', href: '/legal', icon: 'file' },
 ];
 
@@ -81,11 +90,11 @@ export function badgeFor(item: NavItem, counts: QueueCounts | null | undefined):
 }
 
 /** The Gamo Live screens share one tab on the phone's bottom bar; the three screens switch between each other. */
-export const LIVE_KEYS: readonly NavKey[] = ['events', 'organizations', 'catalog'];
+export const LIVE_KEYS: readonly NavKey[] = ['events', 'organizations', 'catalog', 'maintenance'];
 
 /** The phone tab bar: every screen except the two that live under the "Live" tab. */
 export const TAB_ITEMS: readonly NavItem[] = NAV_ITEMS.filter(
-  (item) => item.key !== 'organizations' && item.key !== 'catalog',
+  (item) => item.key !== 'organizations' && item.key !== 'catalog' && item.key !== 'maintenance',
 ).map((item) =>
   item.key === 'events' ? { ...item, label: 'Gamo Live', shortLabel: 'Live', count: 'live' as const } : item,
 );

@@ -24,16 +24,12 @@ interface Props {
   readOnly?: boolean;
 }
 const { values: v, errors = {}, locked = false, rule, published = false, readOnly = false } = Astro.props;
-const submitLabel =
-  rule === 'none'
-    ? published
-      ? 'Save changes'
-      : 'Publish event'
-    : published
-      ? 'Save and send for review'
-      : 'Send for review';
-const ruleText =
-  rule === 'first_event'
+const submitLabel = published ? 'Save changes' : rule === 'none' ? 'Publish event' : 'Send for review';
+const ruleText = published
+  ? rule === 'every_event'
+    ? 'Wording and price notes save straight away. Changing the date, time, place or tickets sends the event back to Gamo for review.'
+    : 'Your changes are saved straight away and visible on the public page.'
+  : rule === 'first_event'
     ? 'Your organization’s first event is reviewed by Gamo before it appears. After it is approved, later events publish directly.'
     : rule === 'every_event'
       ? 'Gamo reviews every event from your organization before it appears.'
@@ -181,9 +177,11 @@ const lockDis = readOnly || locked;
         <option value="weekly" selected={v.schedule === 'weekly'}>
           Every week
         </option>
-        <option value="monthly" selected={v.schedule === 'monthly'}>
-          Every month (same date)
-        </option>
+        {v.schedule === 'monthly' && (
+          <option value="monthly" selected>
+            Every month (same date)
+          </option>
+        )}
       </SplitField>
       <div class="grid gap-5 sm:grid-cols-3">
         <SplitField
@@ -222,7 +220,7 @@ const lockDis = readOnly || locked;
       <SplitField
         id="until"
         name="until"
-        label="Last date (weekly or monthly only)"
+        label="Last date (weekly events only)"
         placeholder="YYYY-MM-DD"
         value={v.until}
         error={errors.until}
@@ -300,13 +298,28 @@ const lockDis = readOnly || locked;
         )}
       </div>
       <SplitField
+        id="checkinOpensHours"
+        name="checkinOpensHours"
+        label="Check-in opens"
+        as="select"
+        error={errors.checkinOpensHours}
+        disabled={dis}
+        hint="Only matters when QR codes are on. You can also open check-in yourself at any time from the check-in screen."
+      >
+        {[1, 3, 12, 24].map((h) => (
+          <option value={String(h)} selected={v.checkinOpensHours === String(h)}>
+            {h === 1 ? '1 hour' : `${h} hours`} before the start
+          </option>
+        ))}
+      </SplitField>
+      <SplitField
         id="priceText"
         name="priceText"
         label="Price note (optional)"
         value={v.priceText}
         error={errors.priceText}
         disabled={dis}
-        hint="Shown exactly as you write it, for example “Free; donations welcome” or “From $15 on the ticket site”."
+        hint="Shown exactly as you write it, for example “Free; bring a friend” or “From $15 on the ticket site”."
       />
       <SplitField
         id="refundPolicyText"
@@ -323,8 +336,8 @@ const lockDis = readOnly || locked;
 
   {!readOnly && (
     <Panel id="review" title="Review and submit" description={ruleText}>
-      <div class="grid gap-3 sm:grid-cols-2">
-        <SplitButton label="Save as draft" name="intent" value="draft" variant="quiet" />
+      <div class={published ? 'grid gap-3' : 'grid gap-3 sm:grid-cols-2'}>
+        {!published && <SplitButton label="Save as draft" name="intent" value="draft" variant="quiet" />}
         <SplitButton label={submitLabel} name="intent" value="submit" />
       </div>
       <p class="mt-4 text-[13px] text-muted">

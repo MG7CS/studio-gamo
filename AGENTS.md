@@ -18,7 +18,7 @@ Persistent instructions for anyone (person or agent) working in this repository.
 
 ## 2. How the owner works with you (permanent)
 
-- **Tests run only when the owner asks.** Write and update tests alongside the code, but do not run tests, `pnpm check`, Playwright or the journeys on your own initiative. When asked, run exactly what was asked, once. Say plainly which tests were not run. Builds, typechecks, lint and format checks are fine.
+- **Tests: targeted yes, broad only when asked.** Write and update tests alongside the code, and run the specific test files (or single Playwright specs) that cover what you just changed, once per change set, to know the work is right. Do not run the full unit suite, `pnpm check`, `check:quick`, the full Playwright suite or the journeys on your own initiative (not while iterating, not before a commit, push or deploy); run those only when the owner asks, or at the end of a planned phase the owner has approved. Never loop on re-running. State plainly in reports which tests were run and which were not. Builds, typechecks, lint and format checks are always fine.
 - **Commits:** never run `git commit`. When work is ready, give a ready-to-paste command (`git add …` and `git commit -m "…"`) with a short one-line message, no body, no attribution trailers.
 - **Never** deploy, push to a remote, change DNS, change secrets or security settings, spend money, send real emails, charge cards, run payouts, run destructive database operations, or publish legal terms as final without the owner's explicit approval for that action.
 - **Dev servers belong to the owner.** Never stop, kill or restart a dev server. Test against the owner's running server (read-only), or ask them to start one. Astro allows one dev server per app; after dependency changes, tell the owner to restart theirs.
@@ -26,6 +26,7 @@ Persistent instructions for anyone (person or agent) working in this repository.
 - Never present invented screenshots or test results. Browser evidence comes from a running UI.
 - **No fake data or counts, ever.** Every number, badge and list comes from a real query; empty states say so honestly. Nothing appears in navigation without a working page behind it. Fictional people, bookings, events or stories are visibly labeled *Sample*/*Example*.
 - Record meaningful progress in [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) and decisions in [`docs/DECISIONS.md`](docs/DECISIONS.md) (both are history logs; this file holds the rules).
+- **Use parallel agents when work splits cleanly.** When a task has independent parts that touch different files (for example shared components, a security pass and a data-accuracy pass), run them as parallel agents with explicit file ownership and a written brief, then review and integrate the results yourself. Do not split work that edits the same files or depends on an earlier step. Agents follow this file too (no running tests, no commits, no touching dev servers).
 - Plan briefly, then work through the agreed scope. Stop for the owner on visual sign-off, owner-only actions and real decisions; otherwise make ordinary engineering choices yourself.
 
 ## 3. Scope of the rebuild
@@ -47,7 +48,8 @@ Persistent instructions for anyone (person or agent) working in this repository.
 - **Data:** schema changes are tracked migrations; never edit an applied migration; nothing destructive without the owner.
 - **Logs** name variables and error codes, never secret values or personal data. Screenshots and fixtures never show secrets, ID documents or real personal data.
 - **Minimal client JavaScript:** server-rendered pages and plain forms; islands only for real interaction.
-- **Components:** compose pages from small typed components — shared primitives in `packages/ui`, app-specific components in the app's `src/components/`, large page sections extracted into their own components. No monolithic page files.
+- **Thin pages:** no application or API logic in `.astro` page files (database writes, email sending, business rules, multi-step flows). Rules and SQL live in `@gamo/domain`; orchestration such as "cancel and notify" lives in the app's `src/lib/`. A page parses the request, calls one named function, and renders or redirects with the result. Every such function has a unit test.
+- **Components:** compose pages from small typed components — shared primitives in `packages/ui`, app-specific components in the app's `src/components/`, large page sections extracted into their own components. No monolithic page files. **Reuse first:** before writing UI or a feature, search `packages/ui` and the app's `src/components/` for something that already does it; extend it instead of copying. The second time a pattern (button, notice, pill, empty state, form row, card, list row, page header) appears, it becomes a shared component, and the earlier copies are replaced in the same change. No page repeats markup or logic another page already has.
 - **Removed or renamed public URLs** keep a redirect (`src/lib/legacy-redirects.ts` in each app).
 
 ## 5. Design (permanent)

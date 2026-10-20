@@ -1,0 +1,76 @@
+---
+/**
+ * The one button for Live's public and organizer screens. Renders an <a> when `href` is given, a <button>
+ * otherwise. 44 px minimum target (md) or 52 px (lg), visible focus ring, honest disabled style.
+ * `danger-outline` is outlined so the label, not only the color, says what it does.
+ */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'danger-outline' | 'ghost';
+  size?: 'md' | 'lg';
+  block?: boolean;
+  href?: string;
+  type?: 'submit' | 'button' | 'reset';
+  name?: string;
+  value?: string;
+  id?: string;
+  form?: string;
+  disabled?: boolean;
+  target?: string;
+  rel?: string;
+  download?: boolean | string;
+  class?: string;
+}
+const {
+  variant = 'primary',
+  size = 'md',
+  block = false,
+  href,
+  type = 'submit',
+  name,
+  value,
+  id,
+  form,
+  disabled = false,
+  target,
+  rel,
+  download,
+  class: className,
+} = Astro.props;
+const variants = {
+  primary: 'bg-terracotta-deep text-white hover:bg-ink',
+  secondary: 'border border-ink/30 bg-white text-ink hover:bg-sand',
+  'danger-outline': 'border-2 border-status-danger bg-white text-status-danger hover:bg-status-danger-soft',
+  ghost: 'bg-transparent text-ink hover:bg-sand',
+}[variant];
+const sizes = size === 'lg' ? 'min-h-[52px] px-7 text-[15px]' : 'min-h-11 px-5 text-sm';
+const classes = [
+  'inline-flex items-center justify-center gap-2 rounded-full font-semibold leading-tight transition-colors duration-150',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+  'disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-not-allowed aria-disabled:opacity-60',
+  sizes,
+  variants,
+  block ? 'w-full' : '',
+  className,
+];
+---
+
+{href && !disabled ? (
+  <a
+    id={id}
+    href={href}
+    target={target}
+    rel={target === '_blank' ? (rel ?? 'noopener noreferrer') : rel}
+    download={download}
+    class:list={classes}
+  >
+    <slot />
+  </a>
+) : href ? (
+  <span id={id} role="link" aria-disabled="true" class:list={classes}>
+    <slot />
+  </span>
+) : (
+  <button id={id} type={type} name={name} value={value} form={form} disabled={disabled} class:list={classes}>
+    <slot />
+  </button>
+)}

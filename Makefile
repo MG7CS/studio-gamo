@@ -10,12 +10,12 @@ help:
 	@echo ""
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
-	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently"
+	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently, on this computer only (set GAMO_DEV_LAN=1 to let a phone on your Wi-Fi reach Live)"
 	@echo "  \033[36mmake open-all\033[0m          - Open all 6 local sites in the browser (run after make dev-all)"
 	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
 	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
 	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
-	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live"
+	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live; also reachable from a phone on the same Wi-Fi"
 	@echo "  \033[36mmake live-db\033[0m           - Migrate the shared local Live database (web, live, admin) and import the catalog (safe to repeat)"
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
 	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server (http://127.0.0.1:4326)"
@@ -76,7 +76,11 @@ live-db:
 	@pnpm live:catalog:import --publish-approved
 
 dev-live: live-db
-	@pnpm --filter apps-live run dev
+	@ip=$$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null); \
+	  echo ""; echo "  This computer:      http://127.0.0.1:4324"; \
+	  echo "  Phone (same Wi-Fi): http://$${ip:-<your-computer-ip>}:4324"; \
+	  echo "  Phones allow the camera only on https or localhost: show the guest QR on the phone and scan it here, or type the code."; echo ""
+	@GAMO_DEV_LAN=1 pnpm --filter apps-live run dev
 
 dev-production:
 	@pnpm --filter apps-production run dev

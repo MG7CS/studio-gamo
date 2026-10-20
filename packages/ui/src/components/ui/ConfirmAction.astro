@@ -1,0 +1,44 @@
+---
+/**
+ * A destructive action with a confirm step and no JavaScript: a <details> that reveals the honest
+ * consequence (default slot), then a real POST form with a danger submit button. Extra hidden or visible
+ * fields (a reason box, ids) go in the `fields` slot.
+ */
+import Button from './Button.astro';
+interface Props {
+  summaryLabel: string;
+  confirmLabel: string;
+  /** Form field that tells the endpoint what to do, e.g. name="action" value="cancel". */
+  actionName?: string;
+  actionValue: string;
+  /** Where the form posts; defaults to the current page. */
+  formAction?: string;
+  class?: string;
+}
+const {
+  summaryLabel,
+  confirmLabel,
+  actionName = 'action',
+  actionValue,
+  formAction,
+  class: className,
+} = Astro.props;
+---
+
+<details class:list={['group rounded-xl border border-status-danger-line bg-white', className]}>
+  <summary class="flex min-h-11 cursor-pointer list-none items-center rounded-xl px-4 text-sm font-semibold text-status-danger marker:hidden [&::-webkit-details-marker]:hidden group-open:rounded-b-none group-open:bg-status-danger-soft">
+    {summaryLabel}
+  </summary>
+  <div class="space-y-4 px-4 py-4">
+    <div class="text-sm leading-relaxed text-ink">
+      <slot />
+    </div>
+    <form method="post" action={formAction} class="space-y-3">
+      <input type="hidden" name={actionName} value={actionValue} />
+      <slot name="fields" />
+      <Button type="submit" variant="danger-outline">
+        {confirmLabel}
+      </Button>
+    </form>
+  </div>
+</details>

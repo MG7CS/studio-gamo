@@ -236,6 +236,13 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.goBack();
     await page.getByRole('link', { name: 'Check in' }).first().click();
     await expectAccessible(page, '/organizer/check-in');
+    // The date is weeks away, so check-in is closed until the organizer opens it.
+    await expect(page.getByRole('heading', { name: 'Check-in is closed' })).toBeVisible();
+    await page.getByLabel('Check-in code').fill(checkinCode);
+    await page.getByRole('button', { name: 'Check in' }).click();
+    await expect(page.getByText(/Check-in is closed right now/)).toBeVisible();
+    await page.getByRole('button', { name: 'Open check-in now' }).click();
+    await expect(page.getByRole('heading', { name: 'Check-in is open' })).toBeVisible();
     await page.getByLabel('Check-in code').fill(checkinCode.toLowerCase());
     await page.getByRole('button', { name: 'Check in' }).click();
     await expect(page.getByText(`Welcome, ${first.name}. Admit 1 person.`)).toBeVisible();
@@ -250,11 +257,10 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   await test.step('canceling the event cancels the registration and emails the guest', async () => {
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/events`);
     await page.getByRole('link', { name: new RegExp(TITLE.replace(/[()]/g, '\\$&')) }).click();
-    await page.getByRole('button', { name: 'Cancel event' }).click();
-    await expect(page.getByRole('alert')).toContainText('Tick the box');
+    await page.getByText('Cancel this event…').click();
+    await expect(page.getByText(/1 confirmed person will be emailed/)).toBeVisible();
     await page.getByLabel('Message to registrants (optional)').fill('Sample reason: the hall is closed.');
-    await page.getByLabel('Yes, cancel this event and every registration.').check();
-    await page.getByRole('button', { name: 'Cancel event' }).click();
+    await page.getByRole('button', { name: 'Yes, cancel the event' }).click();
     await expect(
       page.getByText(/The event is canceled and 1 registration was canceled\. 1 person was emailed\./),
     ).toBeVisible();
@@ -357,7 +363,7 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
   await test.step('after the first approval a weekly series publishes directly with its dates', async () => {
     await fillEvent(series, async () => {
       await page.getByLabel('How often').selectOption('weekly');
-      await page.getByLabel('Last date (weekly or monthly only)').fill(until);
+      await page.getByLabel('Last date (weekly events only)').fill(until);
     });
     await expect(page.getByRole('button', { name: 'Publish event' })).toBeVisible();
     await page.getByRole('button', { name: 'Publish event' }).click();

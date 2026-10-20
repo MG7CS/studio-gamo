@@ -86,6 +86,8 @@ Owner-only setup (Clerk dashboard and Cloudflare; not done):
 
 **Admin.** `apps/admin` binds `LIVE_DB` too (Event review, Organizations, Catalog and the Inbox read it; the other queues still read the shared database). Add the same `[[env.<env>.d1_databases]]` block to `apps/admin/wrangler.toml` when creating the Live databases. Decisions on events email the organization's owners through Resend, so set `RESEND_API_KEY` and `EMAIL_FROM` as admin secrets; without them the decision is saved and the page says the owners were not emailed.
 
+**Cleanup.** The admin's Cleanup tab runs the retention job by hand (registrant data 90 days after an event's last date, expired codes, old sessions and invitations, finished rate-limit counters) and reports what it removed. Nothing runs on a schedule; a cron trigger can be added later with the owner's approval. After pulling this release, apply Live migrations 0003 to 0006 (venue details, event revisions, hide/restore decisions, check-in window); `make live-db` does it locally.
+
 **Local state.** The web, live and admin apps share one local state folder (`.wrangler/shared-state`, git-ignored) so an event submitted in Live is the one the admin reviews. `make live-db` (also run by `make dev-live`, `make dev-admin`, `make dev-all`) migrates it and imports the catalog; `pnpm db:reset:local` deletes it. Existing per-app state in `apps/<app>/.wrangler/state` is no longer used by those three apps. Running three dev servers against one SQLite file is fine for development; if you see "database is locked", retry the request.
 
 Local registration emails (the 6-digit code, the confirmation link) are printed in the `astro dev` terminal of `apps/live`; nothing is sent while `ENVIRONMENT=local` has no Resend key.

@@ -9,18 +9,15 @@ import {
   type MembershipSummary,
   type Organizer,
 } from '@gamo/domain';
+import { parseCookie } from './cookie-parse';
 import { openLive, type LiveContext } from './registration';
 
 export const SESSION_COOKIE = 'gl_organizer';
 export const ORGANIZATION_COOKIE = 'gl_org';
 
+/** A request cookie's decoded value; null when absent or malformed (never throws). */
 export function readCookie(request: Request, name: string): string | null {
-  const header = request.headers.get('cookie') ?? '';
-  for (const part of header.split(';')) {
-    const eq = part.indexOf('=');
-    if (eq > 0 && part.slice(0, eq).trim() === name) return decodeURIComponent(part.slice(eq + 1).trim());
-  }
-  return null;
+  return parseCookie(request.headers.get('cookie'), name);
 }
 
 /** `Set-Cookie` for a cookie that JavaScript can never read. `maxAge` 0 clears it. */

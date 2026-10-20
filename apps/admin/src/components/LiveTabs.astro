@@ -3,7 +3,7 @@
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
-  current: 'events' | 'organizations' | 'catalog';
+  current: 'events' | 'organizations' | 'catalog' | 'maintenance';
   counts: QueueCounts | null;
 }
 const { current, counts } = Astro.props;
@@ -11,6 +11,7 @@ const tabs = [
   { key: 'events', label: 'Event review', href: '/events', n: counts?.events ?? 0 },
   { key: 'organizations', label: 'Organizations', href: '/organizations', n: counts?.organizations ?? 0 },
   { key: 'catalog', label: 'Catalog', href: '/catalog', n: counts?.catalog ?? 0 },
+  { key: 'maintenance', label: 'Cleanup', href: '/maintenance', n: 0 },
 ] as const;
 ---
 

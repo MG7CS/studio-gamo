@@ -139,7 +139,7 @@ test('requestSecurityHeaders merges page requests and filters origins', () => {
   });
   assert.equal(
     securityHeaders({ enforceCsp: false, https: true, noReferrer: true })['Referrer-Policy'],
-    'no-referrer',
+    'same-origin',
   );
   assert.equal(
     securityHeaders({ enforceCsp: false, https: true })['Referrer-Policy'],

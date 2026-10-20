@@ -41,6 +41,15 @@ The goal is to create the visual character of a sophisticated music brand while 
 - Cream: `#F9F6F0` (light surfaces); ivory `#FCFAF6`
 - Sand: `#EDE6DA`; tan: `#D8C5AE`; line: `#DCD3C6`; muted text: `#57534E`
 - Typography: Inter (self-hosted variable font)
+- Status colors (shared, in `packages/ui/src/styles/tokens.css`; prefixed `status-` so they never clash with the admin's own `--color-success/warning/danger`). Each has a text color, a soft fill and a border line. Contrast of the text color, computed from the hex values (WCAG relative luminance), body-size text needs 4.5:1:
+
+  | Token (text / soft fill / line) | Hex | on white | on its soft fill | on cream | on sand |
+  | --- | --- | --- | --- | --- | --- |
+  | `status-success` / `-soft` / `-line` | `#17643F` / `#E4F3EA` / `#B9DCC6` | 7.16 | 6.25 | 6.64 | 5.78 |
+  | `status-warning` / `-soft` / `-line` | `#7A4D00` / `#FCF0D6` / `#ECD29A` | 7.27 | 6.43 | 6.74 | 5.86 |
+  | `status-danger` / `-soft` / `-line` | `#A52A35` / `#FBE6E6` / `#E8B4B6` | 7.04 | 5.89 | 6.53 | 5.68 |
+
+  White text on `status-danger` is 7.04:1. The line colors are decoration only and never carry text. Info and neutral use the brand palette (cream, sand, tan, ink), not a blue. Color never carries meaning alone: a word or icon always accompanies it.
 
 ## Photography
 
@@ -135,3 +144,33 @@ Apply these rules by default across all Gamo Studios design, redesign, and imple
 7. **Mandatory 8-Point Design Review**:
    - Verify before completion: (1) faithful reference adherence, (2) zero unrequested additions, (3) no unnecessary text/repetition, (4) no excessive cards/icons/decorations, (5) one clear primary page purpose, (6) intentional whitespace, (7) mature commercial product quality, and (8) maximum simplification without losing functionality.
 
+## Primitives for Live's public and organizer screens
+
+Shared components live in `packages/ui/src/components/ui/` (import with `@studio-gamo/ui/components/ui/Name.astro`). Pages compose these; they do not hand-roll buttons, banners, pills or empty states. All targets are at least 44 px, text at least 12 px, focus rings are visible, and none needs inline scripts.
+
+| Component | Props | Use it for |
+| --- | --- | --- |
+| `Button` | `variant` primary / secondary / danger-outline / ghost, `size` md / lg, `block`, `href` (renders `<a>`), `type`, `name`, `value`, `id`, `form`, `disabled` | Every button and button-looking link. One primary per screen area. |
+| `Notice` | `tone` info / success / warning / danger, `title?`, `id?`, `focusable?`, default slot | Messages: flash results, errors, warnings. Danger is `role="alert"`, the rest `role="status"`. |
+| `Pill` | `tone` neutral / info / success / warning / danger, `dot?` | Short status words (Draft, Published, Cancelled). Never "Verified" unless an admin verified it. The older `StatusPill` stays for public trust labels. |
+| `EmptyState` | `title`, `text?`, default slot for the next-step action | Every list that can be empty. |
+| `Breadcrumbs` | `items: { label, href? }[]` | Pages two or more levels deep. The last item is `aria-current="page"`. |
+| `PageHeader` | `title`, `description?`, slots `breadcrumbs`, `actions` | The one `<h1>` of a page, plus its one-line description and top-level actions. |
+| `ConfirmAction` | `summaryLabel`, `confirmLabel`, `actionValue`, `actionName?` (default `action`), `formAction?`, default slot (consequence), slot `fields` | Destructive actions (cancel event, remove member). `<details>` reveals the consequence, then a real POST form. |
+| `Stat` | `label`, `value`, `hint?` | One real number from a real query. Wrap several in a grid; no fake counts. |
+| `DateTimeField` | `id`, `name`, `label`, `kind` date / time, `value?`, `min?`, `max?`, `required?`, `disabled?`, `disabledReason?`, `hint?`, `error?` | Native date and time pickers that match `SplitField`. |
+| `SplitField` (existing) | adds `type` date / time / url, `required` on textarea, `disabled` styling, `disabledReason`, `min`, `max` | All other text, email, number, url, select and textarea inputs. |
+
+Flash messages: `packages/ui/src/lib/flash.ts`. A POST handler ends with `return flashRedirect(Astro, '/path', 'event-saved')`; the next page calls `readFlash(Astro, { 'event-saved': 'Event saved.' })` and renders the text in a `Notice`. The cookie holds only a key from the page's allow-list (60 s, HttpOnly, SameSite=Lax), never request text.
+
+### The bar every screen must meet
+
+1. Exactly one `<h1>`, from `PageHeader`; titles are sentence case, semibold.
+2. Shared primitives only; no hand-rolled buttons, banners, pills or empty states.
+3. Every list has a real empty state with a next step.
+4. Destructive actions have a confirm step with honest consequence text (`ConfirmAction`).
+5. Feedback after an action is a redirect plus a flash message, not a re-rendered POST.
+6. Forms use native date, time and url inputs and show all errors at once, each tied to its field.
+7. Checked at 360 and 390 px with safe-area padding, 44 px targets and 12 px minimum text, and no horizontal scroll.
+8. Plain, honest copy; never claim "Verified" unless an admin verified it; no invented numbers.
+9. Verified in a browser with axe (serious and critical violations are zero).

@@ -1,0 +1,20 @@
+---
+/** The honest "nothing here yet" for a list: what is missing, one line of why, and the next step in the slot. */
+interface Props {
+  title: string;
+  text?: string;
+  class?: string;
+}
+const { title, text, class: className } = Astro.props;
+const hasAction = Astro.slots.has('default');
+---
+
+<div class:list={['rounded-2xl border border-dashed border-tan bg-cream px-6 py-10 text-center', className]}>
+  <p class="text-base font-semibold text-ink">{title}</p>
+  {text && <p class="mx-auto mt-1 max-w-md text-sm text-muted">{text}</p>}
+  {hasAction && (
+    <div class="mt-5 flex justify-center">
+      <slot />
+    </div>
+  )}
+</div>

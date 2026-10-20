@@ -6,7 +6,13 @@ import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import { requireSameOrigin } from '@gamo/auth';
-import { OrganizerError, acceptInvitation, previewInvitation, resolveOrganizerSession } from '@gamo/domain';
+import {
+  OrganizerError,
+  acceptInvitation,
+  previewInvitation,
+  requestSecurityHeaders,
+  resolveOrganizerSession,
+} from '@gamo/domain';
 import {
   ORGANIZATION_COOKIE,
   SESSION_COOKIE,
@@ -16,6 +22,9 @@ import {
 import { openLive } from '../../../lib/registration';
 
 export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
 
 const token = Astro.params.token ?? '';
 let organizationName = '';
@@ -28,9 +37,10 @@ let unavailable = false;
 try {
   const live = await openLive(Astro);
   const now = Math.floor(Date.now() / 1000);
-  const preview = await previewInvitation(live.db, token);
+  const preview = await previewInvitation(live.db, token, now);
   if (!preview) {
-    problem = 'This invitation link is not valid. Ask the organization’s owner to send a new one.';
+    problem =
+      'This invitation link is not valid, has expired or was already used. Ask the organization’s owner to send a new one.';
   } else {
     organizationName = preview.organizationName;
     invitedEmail = preview.email;

@@ -88,7 +88,8 @@ const otherHref = `${signin ? '/account/signup' : '/account/signin'}?next=${enco
             />
           </div>
           <SplitButton label={signin ? 'Sign in' : 'Create account'} />
-          <SplitButton label="Use a different email" type="button" variant="quiet" />
+          <SplitButton id="resend" label="Send a new code" type="button" variant="quiet" />
+          <SplitButton id="back" label="Use a different email" type="button" variant="quiet" />
         </form>
         <noscript>
           <SplitNotice tone="error">
@@ -126,13 +127,13 @@ const otherHref = `${signin ? '/account/signup' : '/account/signin'}?next=${enco
   )}
 
   <p class="mt-8 text-center text-[14px] text-muted">
-    {signin ? 'New to Gamo Live?' : 'Already have an account?'}
+    {signin ? 'New to Gamo Live?' : 'Already have an account?'}{' '}
     <a class="font-semibold text-terracotta underline" href={otherHref}>
       {signin ? 'Create an account' : 'Sign in'}
     </a>
   </p>
   <p class="mt-3 text-center text-[13px] text-muted">
-    Just want to attend an event? You do not need an account.
+    Just want to attend an event? You do not need an account.{' '}
     <a class="font-semibold text-terracotta underline" href="/events">
       Browse events
     </a>

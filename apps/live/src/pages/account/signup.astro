@@ -31,7 +31,7 @@ try {
     // Only these pages load Clerk, so only these pages allow its origin.
     requestSecurityHeaders(Astro.locals, { clerkFrontendApi: config.frontendApi });
   }
-  simulation = localSimulatedSignInAllowed(live.env);
+  simulation = localSimulatedSignInAllowed(live.env, Astro.url.hostname);
   if (Astro.url.searchParams.get('error') === 'invalid') error = 'Enter your email address.';
 } catch {
   status = 503;

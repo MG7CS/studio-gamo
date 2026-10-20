@@ -21,7 +21,7 @@ if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active, live, now } = ctx;
 const id = Astro.params.id ?? '';
-let event = await getOrganizerEvent(live.db, active.organizationId, id);
+let event = await getOrganizerEvent(live.db, active.organizationId, id, now);
 if (!event) return new Response(null, { status: 404 });
 const editable =
   ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
@@ -47,7 +47,7 @@ if (Astro.request.method === 'POST' && editable) {
   if (outcome.kind === 'saved') return Astro.redirect(`/organizer/events/${id}?saved=${outcome.status}`, 303);
   errors = outcome.errors;
   notice = outcome.notice;
-  event = (await getOrganizerEvent(live.db, active.organizationId, id)) ?? event;
+  event = (await getOrganizerEvent(live.db, active.organizationId, id, now)) ?? event;
 }
 const rule = await reviewRuleFor(live.db, active.organizationId);
 ---

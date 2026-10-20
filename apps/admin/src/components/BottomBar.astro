@@ -14,7 +14,7 @@ const tab = tabKeyFor(current);
 
 <nav
   aria-label="Admin"
-  class="fixed inset-x-3 bottom-3 z-20 rounded-clay-xl bg-surface/95 p-2 shadow-card backdrop-blur lg:hidden"
+  class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-clay-xl bg-surface/95 p-2 shadow-card backdrop-blur lg:hidden"
 >
   <ul class="flex justify-around gap-1">
     {TAB_ITEMS.map((item) => (
@@ -29,11 +29,11 @@ const tab = tabKeyFor(current);
           ]}
         >
           <Icon name={item.icon} class="h-5 w-5" />
-          <span class="w-full truncate text-center text-[10px] font-semibold">{item.shortLabel}</span>
+          <span class="w-full truncate text-center text-xs font-semibold">{item.shortLabel}</span>
         </a>
         {badgeFor(item, counts) !== null && (
           <span
-            class="pointer-events-none absolute right-1.5 top-1 rounded-full bg-clay-700 px-1.5 text-[10px] font-bold leading-4 text-white"
+            class="pointer-events-none absolute right-1.5 top-1 rounded-full bg-clay-700 px-1.5 text-xs font-bold leading-4 text-white"
             aria-hidden="true"
           >
             {badgeFor(item, counts)}

@@ -1,0 +1,27 @@
+---
+/** A small status word on a soft pill. The word carries the meaning; the tint only supports it. */
+interface Props {
+  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+  dot?: boolean;
+  class?: string;
+}
+const { tone = 'neutral', dot = false, class: className } = Astro.props;
+const styles = {
+  neutral: ['bg-sand text-ink', 'bg-muted'],
+  info: ['bg-cream text-terracotta-deep ring-1 ring-inset ring-tan', 'bg-terracotta-deep'],
+  success: ['bg-status-success-soft text-status-success', 'bg-status-success'],
+  warning: ['bg-status-warning-soft text-status-warning', 'bg-status-warning'],
+  danger: ['bg-status-danger-soft text-status-danger', 'bg-status-danger'],
+}[tone];
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold leading-none whitespace-nowrap',
+    styles[0],
+    className,
+  ]}
+>
+  {dot && <span aria-hidden="true" class:list={['h-1.5 w-1.5 rounded-full', styles[1]]} />}
+  <slot />
+</span>
