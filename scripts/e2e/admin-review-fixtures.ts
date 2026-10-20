@@ -103,7 +103,8 @@ export function buildReviewFixtureStatements(now = Math.floor(Date.now() / 1000)
 export function buildLiveFixtureStatements(now = Math.floor(Date.now() / 1000)): string[] {
   const day = 86_400;
   const out: string[] = [
-    `INSERT INTO organizations (id, name, slug, kind, created_at, updated_at) VALUES ('org_sample_1', ${q(REVIEW_FIXTURE_TITLES.organization)}, 'sample-harvest', 'church', ${now - 2 * day}, ${now - 2 * day})`,
+    // It asked for verification (organizations wait for the admin once they request it; the meeting comes next).
+    `INSERT INTO organizations (id, name, slug, kind, verification_status, verification_requested_at, created_at, updated_at) VALUES ('org_sample_1', ${q(REVIEW_FIXTURE_TITLES.organization)}, 'sample-harvest', 'church', 'requested', ${now - 2 * day}, ${now - 2 * day}, ${now - 2 * day})`,
     `INSERT INTO organizations (id, name, slug, kind, verified_at, first_event_approved_at, review_every_event, created_at, updated_at) VALUES ('org_sample_2', 'Sample Youth Ministry', 'sample-youth', 'ministry', ${now - 30 * day}, ${now - 30 * day}, 1, ${now - 40 * day}, ${now - 40 * day})`,
     `INSERT INTO venues (id, name, address, city, state, metro_slug, timezone) VALUES ('ven_sample', 'Sample Hall', '1 Sample Way', 'Phoenix', 'AZ', 'phoenix-az', 'America/Phoenix')`,
   ];
