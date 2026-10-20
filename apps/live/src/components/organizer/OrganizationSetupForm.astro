@@ -1,0 +1,196 @@
+---
+/**
+ * Setting up an organization in three screens that each fit one desktop screen: 1 your organization, 2 about you,
+ * 3 review and agree. Every screen is server-rendered; the answers of the other screens travel as hidden fields so
+ * Next and Back lose nothing. Browser validation is off (`novalidate`): the server's wording is the only one.
+ */
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import StepProgress from '@studio-gamo/ui/components/split/StepProgress.astro';
+import {
+  ORGANIZATION_KINDS,
+  ORGANIZATION_KIND_LABELS,
+  SETUP_STEP_FIELDS,
+  SETUP_STEP_LABELS,
+} from '@gamo/domain';
+import type { OrganizationKind, SetupErrors, SetupStep } from '@gamo/domain';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import type { SetupValues } from '../../lib/organizer-setup';
+
+interface Props {
+  step: SetupStep;
+  values: SetupValues;
+  errors: SetupErrors;
+}
+const { step, values, errors } = Astro.props;
+const link = 'font-semibold text-terracotta-deep underline';
+// Fields of the other screens, kept as hidden inputs.
+const carried = ([1, 2] as const)
+  .filter((s) => s !== step)
+  .flatMap((s) => SETUP_STEP_FIELDS[s])
+  .map((field) => ({ field, value: values[field as keyof SetupValues] as string }));
+const kindLabel = ORGANIZATION_KIND_LABELS[values.kind as OrganizationKind] ?? values.kind;
+const summary = [
+  ['Name', values.name],
+  ['Kind', kindLabel],
+  ['Based in', `${values.city}, ${values.state}`],
+  ['About', values.description],
+  ['Website', values.website || '—'],
+  ['Contact email', values.contactEmail || '—'],
+] as const;
+---
+
+<form method="post" class="space-y-4 lg:space-y-3.5" novalidate>
+  <StepProgress step={step} total={SETUP_STEP_LABELS.length} labels={SETUP_STEP_LABELS} />
+  <input type="hidden" name="step" value={String(step)} />
+  {carried.map((c) => (
+    <input type="hidden" name={c.field} value={c.value} />
+  ))}
+  {step === 3 && values.terms && <input type="hidden" name="terms" value="yes" />}
+
+  {step === 1 && (
+    <>
+      <SplitField
+        id="name"
+        name="name"
+        label="Organization name"
+        required
+        value={values.name}
+        error={errors.name}
+        autocomplete="organization"
+      />
+      <SplitField
+        id="kind"
+        name="kind"
+        label="What kind of organization is this?"
+        as="select"
+        required
+        error={errors.kind}
+      >
+        {ORGANIZATION_KINDS.map((k) => (
+          <option value={k} selected={values.kind === k}>
+            {ORGANIZATION_KIND_LABELS[k]}
+          </option>
+        ))}
+      </SplitField>
+      <div class="grid gap-4 sm:grid-cols-[1fr_120px]">
+        <SplitField
+          id="city"
+          name="city"
+          label="City"
+          required
+          value={values.city}
+          error={errors.city}
+          autocomplete="address-level2"
+        />
+        <SplitField
+          id="state"
+          name="state"
+          label="State"
+          required
+          value={values.state}
+          error={errors.state}
+          maxlength={2}
+          placeholder="AZ"
+          autocomplete="address-level1"
+        />
+      </div>
+      <SplitButton label="Next" />
+    </>
+  )}
+
+  {step === 2 && (
+    <>
+      <SplitField
+        id="description"
+        name="description"
+        label="What does your organization do?"
+        as="textarea"
+        rows={3}
+        maxlength={1000}
+        required
+        value={values.description}
+        error={errors.description}
+      />
+      <SplitField
+        id="website"
+        name="website"
+        label="Website"
+        value={values.website}
+        error={errors.website}
+        placeholder="https://example.org"
+        inputmode="url"
+        hint="Add a website, a public contact email, or both. Gamo uses them to check who you are."
+      />
+      <SplitField
+        id="contactEmail"
+        name="contactEmail"
+        type="email"
+        label="Public contact email"
+        value={values.contactEmail}
+        error={errors.contactEmail}
+      />
+      <SplitButton label="Next" />
+      <SplitButton label="Back" name="nav" value="back" variant="quiet" />
+    </>
+  )}
+
+  {step === 3 && (
+    <>
+      <dl class="rounded-2xl border border-tan bg-white px-4 py-3 text-[14px] leading-snug">
+        {summary.map(([term, detail]) => (
+          <div class="flex gap-3 py-1">
+            <dt class="w-[6.5rem] shrink-0 font-semibold text-ink">{term}</dt>
+            <dd class="min-w-0 break-words text-muted [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
+              {detail}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div>
+        <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+          <input
+            id="terms"
+            type="checkbox"
+            name="terms"
+            value="yes"
+            checked={values.terms}
+            required
+            aria-invalid={errors.terms ? 'true' : undefined}
+            aria-describedby={errors.terms ? 'terms-error' : undefined}
+            class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta-deep"
+          />
+          <span>
+            I agree to the{' '}
+            <a
+              class={link}
+              href={siteUrl('web', '/legal/organizer-terms')}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Organizer Terms<span class="sr-only"> (opens in a new tab)</span>
+            </a>{' '}
+            and the{' '}
+            <a
+              class={link}
+              href={siteUrl('web', '/legal/privacy-policy')}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Privacy Policy<span class="sr-only"> (opens in a new tab)</span>
+            </a>{' '}
+            (drafts, under legal review).
+          </span>
+        </label>
+        {errors.terms && (
+          <p id="terms-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+            <span class="sr-only">Error: </span>
+            {errors.terms}
+          </p>
+        )}
+      </div>
+      <SplitButton label="Create organization" />
+      <SplitButton label="Back" name="nav" value="back" variant="quiet" />
+    </>
+  )}
+</form>

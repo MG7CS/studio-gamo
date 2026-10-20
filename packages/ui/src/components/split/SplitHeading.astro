@@ -7,8 +7,8 @@ interface Props {
 const { title, subtext } = Astro.props;
 ---
 
-<header class="mb-6 lg:mb-7">
-  <h1 class="text-[29px] font-black uppercase leading-[1.12] tracking-[-0.03em] text-ink sm:text-[34px] lg:text-[36px]">
+<header class="mb-5 lg:mb-4">
+  <h1 class="text-[29px] font-black uppercase leading-[1.12] tracking-[-0.03em] text-ink sm:text-[34px] lg:text-[30px] [@media(min-height:900px)]:lg:text-[34px]">
     {title}
   </h1>
   {subtext && <p class="mt-2 text-[15px] leading-relaxed text-muted">{subtext}</p>}

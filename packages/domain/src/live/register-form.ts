@@ -103,6 +103,47 @@ export function validateRegisterForm(
   return { ok: Object.keys(errors).length === 0, values, occurrenceId, errors };
 }
 
+/** The registration form is two steps: who you are, then your seats and consent. */
+export type RegisterStep = 1 | 2;
+export const REGISTER_STEP_LABELS = ['Your details', 'Your seats'] as const;
+/** Fields that belong to each step, in order. */
+export const REGISTER_STEP_FIELDS: Record<RegisterStep, readonly RegisterField[]> = {
+  1: ['name', 'email'],
+  2: ['occurrence', 'partySize', 'consent'],
+};
+
+/**
+ * Which step a posted form is on and where the person wants to go. `step` is the step that was on screen; `nav`
+ * is "back" when they pressed Back (nothing is validated then; their answers are just carried to step 1).
+ */
+export function readRegisterStep(raw: RawForm): { step: RegisterStep; back: boolean } {
+  const step = String(raw.get('step') ?? '') === '2' ? 2 : 1;
+  return { step, back: String(raw.get('nav') ?? '') === 'back' };
+}
+
+/** Step 1 only: the name and email. Everything else is checked when the whole form is submitted at step 2. */
+export function validateRegisterDetails(raw: RawForm): {
+  ok: boolean;
+  values: Pick<RegisterFormValues, 'name' | 'email'>;
+  errors: Partial<Record<'name' | 'email', string>>;
+} {
+  const text = (key: string) => String(raw.get(key) ?? '').trim();
+  const values = { name: text('name'), email: text('email') };
+  const errors: Partial<Record<'name' | 'email', string>> = {};
+  if (!values.name) errors.name = 'Enter your name.';
+  else if (values.name.length > NAME_MAX_LENGTH)
+    errors.name = `Use ${NAME_MAX_LENGTH} characters or fewer for your name.`;
+  if (!values.email) errors.email = 'Enter your email address.';
+  else if (!isPlausibleEmail(values.email))
+    errors.email = 'Enter a valid email address, like name@example.org.';
+  return { ok: Object.keys(errors).length === 0, values, errors };
+}
+
+/** The step a set of errors belongs to: the earliest step that has one, so a problem is never hidden on a later screen. */
+export function stepOfFirstError(errors: Partial<Record<RegisterField, string>>): RegisterStep {
+  return REGISTER_STEP_FIELDS[1].some((f) => errors[f]) ? 1 : 2;
+}
+
 /** The errors in the order the fields appear on the form, for the summary at the top. */
 export const REGISTER_FIELD_ORDER: readonly RegisterField[] = [
   'occurrence',

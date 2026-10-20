@@ -9,6 +9,7 @@ import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import StepProgress from '@studio-gamo/ui/components/split/StepProgress.astro';
 
 interface Props {
   mode: 'signin' | 'signup';
@@ -53,6 +54,21 @@ const otherHref = `${signin ? '/account/signup' : '/account/signin'}?next=${enco
           hidden
           class="mb-5 rounded-xl border border-sand bg-cream px-4 py-3 text-[14px] leading-relaxed text-ink"
         ></p>
+        {/* The same two screens with their place shown; the script swaps them together with the forms. */}
+        <div id="progress-email">
+          <StepProgress
+            step={1}
+            total={2}
+            labels={signin ? ['Your email', 'Your code'] : ['Your details', 'Your code']}
+          />
+        </div>
+        <div id="progress-code" hidden>
+          <StepProgress
+            step={2}
+            total={2}
+            labels={signin ? ['Your email', 'Your code'] : ['Your details', 'Your code']}
+          />
+        </div>
         <form id="email-form" class="space-y-5" novalidate>
           {!signin && <SplitField id="name" name="name" label="Your name" autocomplete="name" />}
           <SplitField

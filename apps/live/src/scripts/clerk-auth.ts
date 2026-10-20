@@ -20,6 +20,16 @@ async function run(el: HTMLElement) {
   const sentTo = el.querySelector<HTMLElement>('#sent-to');
   const buttons = el.querySelectorAll<HTMLButtonElement>('button[type="submit"]');
 
+  // The progress bar above the forms follows the screen that is showing.
+  const progress = {
+    email: el.querySelector<HTMLElement>('#progress-email'),
+    code: el.querySelector<HTMLElement>('#progress-code'),
+  };
+  const showProgress = (which: 'email' | 'code') => {
+    if (progress.email) progress.email.hidden = which !== 'email';
+    if (progress.code) progress.code.hidden = which !== 'code';
+  };
+
   const say = (text: string, tone: 'info' | 'error' = 'info') => {
     status.textContent = text;
     status.hidden = text === '';
@@ -119,6 +129,7 @@ async function run(el: HTMLElement) {
       if (sentTo) sentTo.textContent = email;
       emailForm.hidden = true;
       codeForm.hidden = false;
+      showProgress('code');
       codeInput.focus();
       say(`We sent a 6-digit code to ${email}.`);
     } catch (error) {
@@ -169,6 +180,7 @@ async function run(el: HTMLElement) {
   el.querySelector<HTMLButtonElement>('#back')?.addEventListener('click', () => {
     codeForm.hidden = true;
     emailForm.hidden = false;
+    showProgress('email');
     codeInput.value = '';
     say('');
     emailInput.focus();
