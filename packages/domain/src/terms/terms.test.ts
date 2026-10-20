@@ -27,7 +27,7 @@ test('registry: every TERMS_SLUGS document, all drafts requiring legal review, a
     [...TERMS_SLUGS],
   );
   for (const doc of TERMS_DOCUMENTS) {
-    assert.equal(doc.version, TERMS_DRAFT_VERSION);
+    assert.match(doc.version, /^2026-10-1[89]-draft\.[23]$/);
     assert.equal(doc.status, 'draft');
     assert.equal(doc.legalReviewStatus, 'draft_requires_review');
     assert.equal(doc.path, `/legal/${doc.slug}`);
@@ -46,8 +46,8 @@ test('registry: every TERMS_SLUGS document, all drafts requiring legal review, a
 test('recordTermsAcceptance writes documents and acceptances in one batch; repeats reuse the document row', async () => {
   const db = await createMigratedD1();
   const documents = [
-    { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
-    { slug: 'privacy-policy', version: TERMS_DRAFT_VERSION },
+    { slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version },
+    { slug: 'privacy-policy', version: TERMS_REGISTRY['privacy-policy'].version },
   ];
   const first = await recordTermsAcceptance(db, {
     documents,
@@ -74,7 +74,7 @@ test('recordTermsAcceptance writes documents and acceptances in one batch; repea
     { ...docs[1] },
     {
       slug: 'ticket-terms',
-      version: TERMS_DRAFT_VERSION,
+      version: TERMS_REGISTRY['ticket-terms'].version,
       status: 'draft',
       legal_review_status: 'draft_requires_review',
     },
@@ -103,23 +103,26 @@ test('unknown slugs, stale versions, duplicates and missing subjects are refused
   await expectCode(attempt([{ slug: 'made-up-terms', version: TERMS_DRAFT_VERSION }]), 'UNKNOWN_TERMS');
   await expectCode(
     attempt([
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
+      { slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version },
       { slug: 'privacy-policy', version: '2026-01-01-draft.0' },
     ]),
     'OUTDATED_TERMS',
   );
   await expectCode(
     attempt([
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
+      { slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version },
+      { slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version },
     ]),
     'UNKNOWN_TERMS',
   );
   await expectCode(attempt([]), 'NO_DOCUMENTS');
-  await expectCode(attempt([{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }], {}), 'NO_SUBJECT');
+  await expectCode(
+    attempt([{ slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version }], {}),
+    'NO_SUBJECT',
+  );
   await expectCode(
     recordTermsAcceptance(db, {
-      documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+      documents: [{ slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version }],
       subject: { email: 'sam@example.org' },
       context: '',
       now: NOW,
@@ -137,7 +140,7 @@ test('a failed batch rolls back the document rows too (customer profile that doe
   const db = await createMigratedD1();
   await assert.rejects(
     recordTermsAcceptance(db, {
-      documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+      documents: [{ slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version }],
       subject: { customerProfileId: 'cus_missing' },
       context: 'order:ord_x',
       now: NOW,
@@ -149,7 +152,7 @@ test('a failed batch rolls back the document rows too (customer profile that doe
 test('missingTermsAcceptances lists what must be accepted again', async () => {
   const db = await createMigratedD1();
   await recordTermsAcceptance(db, {
-    documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+    documents: [{ slug: 'ticket-terms', version: TERMS_REGISTRY['ticket-terms'].version }],
     subject: { email: 'sam@example.org' },
     context: 'order:ord_1',
     now: NOW,

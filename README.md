@@ -2,18 +2,18 @@
 
 Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This repository holds its websites and apps: the organization site and four programs — **Gamo Worship**, **Gamo Academy**, **Gamo Live** and **Gamo Production** — plus a private admin.
 
-**Status (2026-10-19): rebuild in progress.** The marketing pages and the admin's Cloudflare Access gate are kept; everything else on the product side (accounts, dashboards, flows, APIs, data model) is being rebuilt from scratch, starting with Gamo Live. See [`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md). Rules for working here are in [`AGENTS.md`](AGENTS.md).
+**Status (2026-10-19): rebuild in progress.** The four products launch together. Gamo Live and the admin are rebuilt first and are the reference for the others: Live has organizer accounts, free events and registration, check-in, and paid ticketing online and at the door (Stripe test mode only); the admin runs reviews, verification by meeting and Live payments. Worship, Academy and Production show their marketing pages while their product side is rebuilt. See [`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md). Rules for working here are in [`AGENTS.md`](AGENTS.md).
 
 | App | Production host | Local | What is current |
 | --- | --- | --- | --- |
 | `apps/web` | gamostudio.org | http://127.0.0.1:4321 | marketing pages (home, mission, live, get started, get involved, support, FAQ, contact, partners, legal) |
 | `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | marketing pages (home, opportunities) |
 | `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | marketing pages (home, instruments, lessons, instructors, sponsored) |
-| `apps/live` | live.gamostudio.org | http://127.0.0.1:4324 | marketing pages (home, events, artists, venues) reading the event catalog |
+| `apps/live` | live.gamostudio.org | http://127.0.0.1:4324 | marketing pages (home, events, artists, venues); free registration and ticket pages; paid checkout, order pages and find-my-tickets; organizer area (`/organizer`: events, tickets, orders, door, check-in, organization, payments, settings); door staff links (`/door`) |
 | `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | marketing pages (home, services, training) |
-| `apps/admin` | admin.gamostudio.org (old admin still live) | http://127.0.0.1:4326 | the rebuilt single-admin dashboard behind Cloudflare Access |
+| `apps/admin` | admin.gamostudio.org (old admin still live) | http://127.0.0.1:4326 | the rebuilt single-admin dashboard behind Cloudflare Access: Overview, Community, Gamo Live (review, organizations, catalog, payments, settings), Legal |
 
-Pages of the public apps that are not marketing (accounts, sign-in, dashboards, ticketing, registration, onboarding) are old code awaiting the rebuild.
+The public apps other than Live have only marketing pages until their products are rebuilt.
 
 **Stack:** Astro 7 (server output) on Cloudflare Workers, Tailwind CSS 4, D1, KV, R2, TypeScript (strict). pnpm workspace, Node 22.
 
@@ -52,6 +52,7 @@ Deploys, secrets, DNS and database changes are owner-only. The procedure is in [
 - [`SECURITY.md`](SECURITY.md) — security and trust baselines
 - [`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md) — the rebuild: inventory, decisions, phases
 - [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md) — the admin
+- [`docs/LIVE_REQUIREMENTS.md`](docs/LIVE_REQUIREMENTS.md), [`docs/LIVE_DATA_MODEL.md`](docs/LIVE_DATA_MODEL.md), [`docs/LIVE_SCREENS.md`](docs/LIVE_SCREENS.md), [`docs/LIVE_PAYMENTS.md`](docs/LIVE_PAYMENTS.md) — Gamo Live
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — deploy, rollback, Cloudflare setup, Live catalog import
 - [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md), [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) — mission and legal prerequisites (historical file names; the PBC statement in `AGENTS.md` prevails)
 - [`docs/DECISIONS.md`](docs/DECISIONS.md), [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) — history logs (not rules)

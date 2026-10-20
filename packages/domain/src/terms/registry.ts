@@ -38,18 +38,29 @@ export interface TermsDocumentEntry {
  */
 const DRAFT_CONTENT_HASHES: Readonly<Record<TermsSlug, string>> = {
   'site-terms': '4b11245915577c29c065ee875e1689f9f315792c9a955ce858d5453dff48588f',
-  'privacy-policy': '1b4f267a5f962991584df2558602287b31d07c6f40bcb70790aebc8068a2262d',
-  'ticket-terms': '616ab80c8dff8cf2f8fe43ae65e25195fab97aaa1ae263e5da6c3e6179e92c10',
-  'organizer-terms': 'ef8a7897690fb9d304375cce45f5fc5ca700b25fd61ce74812949950b5f4316c',
+  'privacy-policy': '362e511a652431e9b8cfe340ab80dc1a3635e5382725586ab3c4e9af8fd58a37',
+  'ticket-terms': '8d14339bbea6fe80f089b560eba967556aea11f3397b33a4e0b69b5c12396738',
+  'organizer-terms': 'acaca8b608ff192f562d69cafff7d366bd6c16016fd6eec802fcda8cd105d4b5',
   'provider-terms': '9f81eb4d39d3147404476153d37ef4b580fbcf203a3a1c77fad874b8d82e2155',
   'academy-enrollment-terms': '828e9d4ec877cbb186d55572dccb92510e67f328897612fc07085b4b5afc89ae',
   'academy-guardian-consent': '7e825c193a223b647672ba33423765c4fa0c23e6d3d68520cc00e05694274fdf',
   'academy-child-safety-consent': 'e83055c744bbc5e1468b7fc7511b4a5012909c7119ef3b1e13b0af9f663715a2',
 };
 
+/**
+ * Documents whose text changed after draft.2. draft.3 (2026-10-19): ticket and organizer terms describe paid
+ * ticketing, both seller-of-record arrangements, gifts to organizers, door staff links and door sales; the privacy
+ * policy describes verification meetings (video call or in person) and what door staff records.
+ */
+const VERSION_OVERRIDES: Partial<Record<TermsSlug, string>> = {
+  'ticket-terms': '2026-10-19-draft.3',
+  'organizer-terms': '2026-10-19-draft.3',
+  'privacy-policy': '2026-10-19-draft.3',
+};
+
 const entry = (slug: TermsSlug, title: string, summary: string): TermsDocumentEntry => ({
   slug,
-  version: TERMS_DRAFT_VERSION,
+  version: VERSION_OVERRIDES[slug] ?? TERMS_DRAFT_VERSION,
   title,
   path: `/legal/${slug}`,
   status: 'draft',

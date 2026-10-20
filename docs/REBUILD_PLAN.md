@@ -34,7 +34,7 @@ Live workers today: `gamo-web`, `gamo-worship`, `gamo-academy`, `gamo-live`, `ga
 4. **New admin** keeps its gate and shell; its queues are rebuilt on the new backend as each product lands.
 5. **Public sign-in** is designed from scratch too (emailed codes vs Clerk, per product): the first design decision of the rebuild.
 6. **Broken production sign-up:** open, owner to decide (quick CSP fix in the old code, or leave until the rebuild). No real users are affected yet.
-7. **Order of products:** open, owner to decide after phase 2.
+7. **Order of products** (decided 2026-10-19): Gamo Live and the admin are perfected first and become the reference for the other apps; all four products launch together.
 
 ## Phases
 
@@ -56,6 +56,6 @@ These are inputs to the product requirements, to confirm or change, not rules:
 
 - **Gamo Live:** public pages show only real, approved events from the database, never invented ones; past events are marked "Past · Closed", cannot be booked, and sort after upcoming ones; the catalog of external listings (with source links, editorial approval) is re-imported; "Promote an Event" (churches, ministries, artists, organizers) and "Explore Events" (attendees); every organizer's first event is reviewed by the admin, later events publish unless "review every event" is on; sponsored placements always labeled and never affect ranking or vetting; ticket terms draft: no resale, transfers, refunds per event policy, first scan wins; tickets unpredictable, invalidated on refund/transfer, replay-resistant scanning; door staff use event-scoped scanner links with a PIN; paid checkout in Stripe test mode only until approved; buyers need no account (identity by email, signed expiring links).
 - **Sign-in (all products):** products are independent (no automatic cross-product accounts or access); the old shared sign-in screens (split photo, full viewport, emailed 6-digit code, no passwords) are a design input; Clerk was optional per product with its own application; a verified-email "person" record once linked provider profiles across products.
-- **Providers and churches:** churches are verified in person before listing; musicians, technicians and teachers need verification; artists and agents may ask for it; decisions keep a history the provider can see; providers are emailed about decisions.
+- **Providers and churches:** every partner (churches, other groups, musicians, providers, Gamo Live organizations) is verified through a meeting with Gamo, by video call or in person (owner decision 2026-10-19); musicians, technicians and teachers need verification; artists and agents may ask for it; decisions keep a history the provider can see; providers are emailed about decisions.
 - **Academy:** guest registration with emailed manage links; guardian consent and child-safety consent for under-18s; safeguarding before real bookings (`SECURITY.md`).
 - **Legal:** the draft terms registry (versions, acceptance per version, re-acceptance on change).

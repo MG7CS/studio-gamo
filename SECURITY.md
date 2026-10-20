@@ -15,15 +15,21 @@ Academy and youth programs that involve minors need an approved safeguarding pol
 
 ## Payments and money
 
-- Stripe in test mode only until the owner approves production. Use Stripe-hosted payment surfaces; never store card numbers or CVV.
-- Webhooks are signature-verified and deduplicated; Stripe's event state is authoritative, never a browser redirect.
-- Money is integer minor units with the currency recorded. Musician and instructor pay is never silently reduced or netted against Gamo allocations.
-- Donation, sponsorship and membership payment processing stays off until the prerequisites in `docs/NONPROFIT_TRANSITION_CHECKLIST.md` are met.
+- Stripe in test mode only until the owner approves production. Use Stripe-hosted payment surfaces (Checkout, Terminal readers); never see, store or log card numbers or CVV.
+- **Keys by environment.** Live keys (`sk_live_…`, `pk_live_…`, `rk_live_…`) are refused anywhere but production; test keys are refused in production. Without keys, paid features fail closed (503). The local Stripe stand-in exists only where `ENVIRONMENT=local` (and in the test harness) and is fatal anywhere else.
+- Webhooks are signature-verified (timestamp tolerance, constant-time compare), recorded once by event id and processed idempotently (claim, process, mark); amounts, currency and the connected account are checked against the order. Stripe's event state is authoritative, never a browser redirect.
+- Money is integer minor units with the currency recorded. Every price, fee, discount and total shown to a buyer is computed on the server; amounts from a form are never trusted. Musician and instructor pay is never silently reduced or netted against Gamo allocations.
+- **Mode safety.** The funds-flow mode (organizer's own account, or Gamo collects) is resolved on the server and snapshotted on each order; refunds, disputes and reader payments always run on the account the order was charged on, never on a re-read setting.
+- **Gifts and sponsorships:** every gift names who receives it, and a gift to an organization is recorded as money owed to that organization (`third_party_payable`), never as Gamo income; Gamo makes no tax claim about any payment; each payment carries a ledger category; Gamo Studios receiving gifts for itself, and paid memberships, wait for a legal review.
+- **Connect account data:** Gamo stores only the connected account id, its readiness flags and the time they were read; identity and bank details stay with Stripe (hosted onboarding). Only owners of an organization see its payments area.
+- **Card readers (Stripe Terminal, server-driven):** readers are registered by an organization owner with the reader's one-time registration code, belong to one organization (on its own account in Mode A, on Gamo's in Mode B) and to one location; a reader can be renamed or removed, and payments are only ever sent to a reader that belongs to the event's organization. The server creates the card-present PaymentIntent with the amount it computed; the reader's result is confirmed by the webhook.
+- **Door staff links:** event-scoped, expiring and revocable; the link token and the PIN are stored only as keyed hashes; five wrong PINs lock the link for a period; each link carries explicit permissions (check in, sell, comp) checked on every request; every sale and refund records the link that made it.
+- **Cash:** cash never touches Stripe. Each selling link opens a cash session with a counted float, every cash sale and cash refund is a recorded movement (refunds need a reason), and the close records the counted amount against the expected one; nothing in a closed session can be edited.
 - Never run production charges, live invoices, payouts or live connected accounts without explicit owner approval.
 
 ## Events and inventory
 
-Ticket and seat inventory is reserved with a transactionally safe design (not KV alone). Ticket credentials are unpredictable and invalidated on refund or transfer; scanning resists replay.
+Ticket and seat inventory is reserved with a transactionally safe design (conditional updates in one D1 batch, not KV alone), with holds that expire with the payment session. Ticket credentials are unpredictable, versioned and invalidated on refund or transfer; scanning resists replay (first scan wins). Transfers carry no price; resale is not offered.
 
 ## Claims and legal
 

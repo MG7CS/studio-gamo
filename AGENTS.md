@@ -1,18 +1,27 @@
 # AGENTS.md — Gamo Studios
 
-Persistent instructions for anyone (person or agent) working in this repository. Rewritten 2026-10-19 for the rebuild: the product side of every app is being rebuilt from scratch ([`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md)). Older rules that described the previous product logic are listed at the end as retired; do not follow them.
+Persistent instructions for anyone (person or agent) working in this repository. Revised 2026-10-19 for the current plan: four products launching together, with Gamo Live and the admin perfected first as the reference for the others, and Gamo Live adding paid ticketing and in-person sales ([`docs/LIVE_REQUIREMENTS.md`](docs/LIVE_REQUIREMENTS.md), [`docs/LIVE_PAYMENTS.md`](docs/LIVE_PAYMENTS.md)). Older rules that described the previous product logic are listed at the end as retired; do not follow them.
+
+**Changing a rule.** A rule here can be changed when it is clearly wrong for the product: change it in this file, record the old rule, the new rule and the reason in [`docs/DECISIONS.md`](docs/DECISIONS.md), and tell the owner. Do not work around a rule silently. The **owner-only actions** in §2 (commits, pushes, deploys, DNS, secrets, real emails, real charges, live Stripe accounts, payouts, destructive remote database operations, paid resources, legal claims) are never changed without the owner.
 
 ## 1. Mission and wording (permanent)
 
 **Gamo Studios is a Christian, mission-driven Public Benefit Corporation.** Gamo Worship, Gamo Academy, Gamo Live and Gamo Production are connected programs serving one religious and educational mission, not independent profit centers. The mission reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (historical file name; the PBC statement below prevails over any "nonprofit" wording in it).
 
-- A PBC is a for-profit company type. Gamo Studios is **not a nonprofit** and **not tax-exempt**. Never write or imply "nonprofit", "non-profit", "not-for-profit", "501(c)(3)", "tax-exempt", "tax-deductible", "charitable", "charity" (for Gamo itself) or "donation/donor" on any public page, email, metadata or structured data. Never claim IRS approval, registration numbers, committed board members, sponsors, donors or partner churches.
+- A PBC is a for-profit company type. Gamo Studios is **not a nonprofit** and **not tax-exempt**. Never write or imply "nonprofit", "non-profit", "not-for-profit", "501(c)(3)", "tax-exempt", "charitable" or "charity" about Gamo itself, and never say a payment to Gamo is tax-deductible, on any public page, email, metadata or structured data. Never claim IRS approval, registration numbers, a filing status, committed board members, sponsors, donors or partner churches. Say "Public Benefit Corporation" and nothing more about the legal form.
 - Judge success by religious and educational impact, accessibility, reliability, musician and instructor fairness, community trust, church collaboration and responsible stewardship. Financial sustainability matters but is subordinate to the mission.
 - Without explicit owner approval, never: add or raise fees, turn free or sponsored programs into paid ones, deduct from musician or instructor pay, or let payment, sponsorship or partnership affect vetting, rankings or trust signals. Sponsored content is always visibly labeled.
 - Musician pay and any Gamo administrative allocation are always separate line items. All fees, contributions and tiers are proposals until approved.
-- No donation, membership or sponsorship payment processing until the prerequisites in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) are met.
+- **Gifts and sponsorships are allowed with these safeguards** (they replace the old blanket ban on donation and sponsorship processing):
+  - a gift always names who receives it ("Add a gift to <organization>"); gifts at Live checkout go to the **organizing church or ministry**, never to Gamo;
+  - Gamo makes no tax claim about any payment; if a receiving organization issues tax receipts, that is its own responsibility (the organizer terms say so);
+  - every payment is recorded with its money category ([`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) §5.3): money owed to an organization is `third_party_payable`, never Gamo income;
+  - Gamo-related payment wording says "gift", not "donation", until counsel says otherwise (an organizer's own description of their gift may say "donation");
+  - **gifts to Gamo Studios itself** and paid memberships wait for a legal review of Gamo as a PBC; sponsorship of Academy classes by a church or any organization is part of the product.
 - Gamo Live serves **Christian events nationwide**; never define eligibility by ethnicity or nationality.
-- Gamo Academy speaks first to students, parents and families; the approved headline is **"Learn to Play the Instrument You Love."**
+- Gamo Worship books musicians for **any occasion** (a service, a concert, an event or anything else, on any day) and for **almost any person or group**, not only churches.
+- Gamo Academy is **for anyone who wants to learn an instrument, plus production training** (audio, video and technical setup); classes and workshops can be sponsored by churches or any organization, and fully sponsored classes can be free to the learner. The approved headline is **"Learn to Play the Instrument You Love."** Gamo Production may mention training but sends people into Academy for it.
+- **Every partner is verified through a meeting** with Gamo (a video call or in person): churches, other groups, musicians and providers, and Gamo Live organizations. "Verified" appears only after the admin recorded the meeting and the decision.
 - No corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value").
 - Email: the verified sending domain is `gamostudio.org` (contact `hello@gamostudio.org`); `scripts/audit/email-domain.test.ts` fails on the misspelled extra-"s" domain.
 
@@ -22,7 +31,7 @@ Persistent instructions for anyone (person or agent) working in this repository.
 - **Commits:** never run `git commit`. When work is ready, give a ready-to-paste command (`git add …` and `git commit -m "…"`) with a short one-line message, no body, no attribution trailers.
 - **Never** deploy, push to a remote, change DNS, change secrets or security settings, spend money, send real emails, charge cards, run payouts, run destructive database operations, or publish legal terms as final without the owner's explicit approval for that action.
 - **Dev servers belong to the owner.** Never stop, kill or restart a dev server. Test against the owner's running server (read-only), or ask them to start one. Astro allows one dev server per app; after dependency changes, tell the owner to restart theirs.
-- Never add a provider or external service (analytics, AI APIs, messaging, payment, auth vendors…) without approval.
+- Never add a provider or external service (analytics, AI APIs, messaging, payment, auth vendors…) without approval. **Approved:** Stripe, including Stripe Connect and Stripe Terminal, in **test mode** (2026-10-19); live mode needs the owner. Propose anything else (for example a wallet-pass signer) to the owner instead of adding it.
 - Never present invented screenshots or test results. Browser evidence comes from a running UI.
 - **No fake data or counts, ever.** Every number, badge and list comes from a real query; empty states say so honestly. Nothing appears in navigation without a working page behind it. Fictional people, bookings, events or stories are visibly labeled *Sample*/*Example*.
 - Record meaningful progress in [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) and decisions in [`docs/DECISIONS.md`](docs/DECISIONS.md) (both are history logs; this file holds the rules).
@@ -32,9 +41,11 @@ Persistent instructions for anyone (person or agent) working in this repository.
 
 ## 3. Scope of the rebuild
 
-- **Kept as they are (do not touch):** the marketing pages of the five public apps (look and content). For Gamo Live that means every public page and its chrome: home, events list, event detail, artists, venues, promote, the header, footer and event card, plus their copy. A polish or rebuild pass never changes them unless the owner names a specific page and change; if a task seems to need it, ask first. Before finishing any task, compare the marketing files with `git diff` against the starting commit and confirm they are unchanged. The only parts of the old Live public side that are rebuilt are the non-marketing flows (registration, confirmation, ticket page, sign-in, organizer, admin), and the admin's Cloudflare Access gate and shell (`apps/admin`, [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md)).
+- **Four equal products launch together** (Worship, Academy, Live, Production) with the admin that runs them. **Gamo Live and the admin are perfected first** and become the reference: their components, conventions and feature patterns (payment interface, ledger, fee display, door-staff links, reports, meeting-based verification) are built so the other three apps can reuse them, in `packages/*` rather than inside `apps/live`.
+- **Gamo Live now includes paid ticketing (online and at the door)** alongside free events, free registration and the editorial catalog of external listings ([`docs/LIVE_REQUIREMENTS.md`](docs/LIVE_REQUIREMENTS.md)).
+- **Kept as they are (do not touch):** the marketing pages of the five public apps (look and content). For Gamo Live that means every public page and its chrome: home, events list, event detail, artists, venues, the header, footer and event card, plus their copy (the Promote page was removed; `/promote` redirects to `/organizer`). The one approved exception is the state-aware action panel on the event detail page, which gains states for Gamo's own tickets (smallest possible change, using the panel's own markup). A polish or rebuild pass never changes them unless the owner names a specific page and change; if a task seems to need it, ask first. Before finishing any task, compare the marketing files with `git diff` against the starting commit and confirm they are unchanged. The only parts of the old Live public side that are rebuilt are the non-marketing flows (registration, confirmation, ticket page, sign-in, organizer, admin), and the admin's Cloudflare Access gate and shell (`apps/admin`, [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md)).
 - **Being rebuilt from scratch:** every non-marketing page (accounts, onboarding, dashboards, flows), every API route, the shared backend (`@gamo/domain`, product sign-in in `@gamo/auth`, the data model in `@gamo/db`, `@gamo/integrations`, the API contracts), demo-era UI in `@studio-gamo/ui`, and their tests. Until a product is rebuilt, its old code may still exist; it is not a reference for how things should work.
-- **Order:** Gamo Live first. Each product goes requirements → design → build → built-worker checks, like the admin.
+- **Order:** Gamo Live and the admin first, then the other three products, all launching together. Each product goes requirements → design → build → built-worker checks, like the admin.
 - **Production is frozen** for the public apps until each rebuilt product is ready and the owner approves a deploy.
 
 ## 4. Engineering rules (permanent)
@@ -75,12 +86,25 @@ Persistent instructions for anyone (person or agent) working in this repository.
 
 One admin, one account. Cloudflare Access alone: every admin request must carry a valid Access assertion for exactly `ADMIN_EMAIL`; anything else is denied. No admin accounts, roles, passwords, sessions or emergency credentials. Recovery is changing the Access policy in Cloudflare. Locally, `ALLOW_LOCAL_ADMIN_IDENTITY=true` on a loopback host stands in for Access.
 
-## 7. Tools and helper agents
+## 7. Payments and money (permanent)
+
+Details in [`docs/LIVE_PAYMENTS.md`](docs/LIVE_PAYMENTS.md); security baselines in [`SECURITY.md`](SECURITY.md).
+
+- **Stripe test mode only** until the owner approves production. Without keys, paid sales fail closed; the local Stripe stand-in runs only with `ENVIRONMENT=local` (and in the test harness). Live keys (`sk_live_…`) are refused outside production, test keys inside it.
+- **Two funds-flow modes behind one interface.** Mode A: the organization's own Stripe account (Connect direct charges; the organization is the seller of record). Mode B: Gamo collects on its own account and pays the organization out (Connect transfers). The mode is a platform default with per-organization overrides, set in the admin; until the owner chooses, it is "not chosen" and paid sales are unavailable. Pages and orchestration never branch on the mode; they call the payment interface. Stripe is never described as escrow.
+- **Fees and gifts are their own line items.** The Gamo fee is computed, stored and shown separately, starts at $0, is an admin setting whose every change is a recorded decision, and is never charged on free tickets, cash sales or gifts unless the owner decides otherwise. The organizer chooses per event whether the buyer pays it ("pass on") or the organizer absorbs it.
+- **Snapshots at purchase.** The price, the fee, the policies (refund, transfer, re-entry) and the seller of record are copied onto the order when it is created; a later change applies to existing orders only when it is better for the buyer.
+- **The verified webhook is the authority** for payment; a browser returning from Stripe never confirms anything. Inventory is reserved by the database before payment.
+- **A ledger** records every money movement as typed entries in integer cents with currency; reports and statements read from it, never from ad-hoc sums.
+- **No card surcharges** added for buyers. **Transfers yes, resale no:** a transfer has no price field and there is no marketplace.
+- **Payouts and live connected accounts** are owner-only actions; the admin prepares them, the owner approves.
+
+## 8. Tools and helper agents
 
 - `.agents/agents/` holds the owner's Antigravity helper agents (`design-lead`, `frontend-builder`, `ui-reviewer`); they follow this file. Antigravity agents prefer the workspace's native file tools over external filesystem tools and never bypass workspace permissions.
 - In an agent shell, run Astro commands with `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT` so they stay in the foreground.
 
-## 8. Retired rules (2026-10-19)
+## 9. Retired rules (2026-10-19)
 
 These described the previous product logic. They are not in force; where a rebuilt product needs something similar, its requirements will say so ([`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md) lists what to carry forward).
 
@@ -89,4 +113,6 @@ These described the previous product logic. They are not in force; where a rebui
 - The shared authentication UI rule, the product account independence rule with its shared person record, and the independent Clerk rule (public sign-in is designed from scratch).
 - The Live "past event closure" rule and "D1 events only" rule as written (carried forward as Live requirements).
 - The old middleware order, private-page registry and route tests as mandatory conventions.
-- Staff roles, staff provisioning, the admin password gateway and audit-log requirements.
+- Staff roles, staff provisioning, the admin password gateway and audit-log requirements. This retires **admin** staff accounts only: event-scoped **door staff links** with a PIN and permissions (check in, sell) for Gamo Live are current requirements, designed so other apps can reuse them.
+- The blanket ban on donation, membership and sponsorship payment processing (replaced by the safeguards in §1), and "Academy speaks first to students, parents and families" (Academy is for anyone).
+- "Paid ticketing, door-staff links, transfers and organizer staff are not in Live v1" (they are in scope now).
