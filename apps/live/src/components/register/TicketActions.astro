@@ -14,12 +14,12 @@ const { calendarHref, mapsHref, canCancel } = Astro.props;
 {(calendarHref || mapsHref) && (
   <div class="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
     {calendarHref && (
-      <Button variant="secondary" size="lg" block href={calendarHref} download="gamo-live-event.ics">
+      <Button variant="secondary" block href={calendarHref} download="gamo-live-event.ics">
         Add to calendar
       </Button>
     )}
     {mapsHref && (
-      <Button variant="secondary" size="lg" block href={mapsHref} target="_blank">
+      <Button variant="secondary" block href={mapsHref} target="_blank">
         Open in Maps<span class="sr-only"> (opens in a new tab)</span>
       </Button>
     )}

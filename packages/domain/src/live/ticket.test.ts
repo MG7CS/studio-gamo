@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEventIcs, icsDate, icsEscape, icsFold, mapsSearchUrl, ticketView } from './ticket.ts';
+import {
+  buildEventIcs,
+  icsDate,
+  icsEscape,
+  icsFold,
+  mapsSearchUrl,
+  ticketHeading,
+  ticketView,
+} from './ticket.ts';
 
 const base = {
   status: 'confirmed' as const,
@@ -99,4 +107,11 @@ test('buildEventIcs uses the real end time when there is one', () => {
     now: new Date(0),
   });
   assert.match(ics, /DTEND:20261024T023000Z\r\n/);
+});
+
+test('every registration state has its own plain heading', () => {
+  for (const label of ['Confirmed', 'Checked in', 'Canceled', 'Expired', 'Event canceled'] as const)
+    assert.ok(ticketHeading(label).length > 5);
+  assert.equal(ticketHeading('Confirmed'), "You're registered");
+  assert.equal(ticketHeading('Event canceled'), 'Event canceled');
 });

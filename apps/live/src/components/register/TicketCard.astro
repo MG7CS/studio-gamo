@@ -1,0 +1,39 @@
+---
+/**
+ * The registration itself: the event, when and where, who it is for, a note when something needs saying (canceled,
+ * ended) and, when the event checks in by QR, the door pass. One column on a phone; on a desktop screen the details
+ * sit left and the QR right so everything fits one screen.
+ */
+import TicketQr from './TicketQr.astro';
+import type { TicketPage } from '../../lib/guest-registration';
+
+interface Props {
+  page: TicketPage;
+}
+const { page } = Astro.props;
+const people = `${page.reg.partySize} ${page.reg.partySize === 1 ? 'person' : 'people'}`;
+const showQr = Boolean(page.qr && page.checkinCode);
+---
+
+<div
+  class:list={[
+    'rounded-2xl border border-tan bg-white p-4',
+    showQr ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-4' : '',
+  ]}
+>
+  <div class="min-w-0">
+    <p class="text-[18px] font-bold leading-snug text-ink">{page.title}</p>
+    <p class="mt-1.5 text-[14px] font-semibold text-ink">{page.when}</p>
+    {page.where && <p class="text-[14px] text-muted">{page.where}</p>}
+    <p class="mt-2 text-[14px] text-ink">
+      {page.reg.name} · {people}
+    </p>
+    {page.view.note && <p class="mt-2 text-[13px] text-muted">{page.view.note}</p>}
+    {page.view.doorHint && <p class="mt-2 text-[14px] font-semibold text-ink">{page.view.doorHint}</p>}
+  </div>
+  {showQr && (
+    <div class="mt-5 border-t border-tan pt-5 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+      <TicketQr svg={page.qr!} code={page.checkinCode!} />
+    </div>
+  )}
+</div>

@@ -11,7 +11,7 @@ const { current } = Astro.props;
 const groups = ['Menu', 'You'] as const;
 ---
 
-<div class="flex h-full flex-col rounded-3xl bg-white p-5 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+<div class="flex h-full flex-col rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
   <a
     href="/organizer"
     class="flex min-h-11 items-center gap-3 text-ink"
@@ -19,11 +19,11 @@ const groups = ['Menu', 'You'] as const;
   >
     <Logo program="Gamo Live" tone="onLight" class="text-ink" />
   </a>
-  <p class="mt-1 text-[12px] font-semibold uppercase tracking-wider text-muted">Organizer</p>
-  <nav aria-label="Organizer" class="mt-6 flex-1 space-y-6">
+  <p class="mt-1 text-[11px] font-semibold uppercase tracking-wider text-muted">Organizer</p>
+  <nav aria-label="Organizer" class="mt-5 flex-1 space-y-5">
     {groups.map((group) => (
       <div>
-        <p class="px-3 text-[12px] font-semibold uppercase tracking-wider text-muted">{group}</p>
+        <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted">{group}</p>
         <ul class="mt-2 space-y-1">
           {ORGANIZER_NAV.filter((i) => i.group === group).map((item) => (
             <li>
@@ -31,13 +31,13 @@ const groups = ['Menu', 'You'] as const;
                 href={item.href}
                 aria-current={item.key === current ? 'page' : undefined}
                 class:list={[
-                  'flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[15px] font-semibold transition-colors',
+                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14px] font-semibold transition-colors',
                   item.key === current
                     ? 'bg-terracotta/10 text-terracotta-deep'
                     : 'text-ink hover:bg-sand/60',
                 ]}
               >
-                <Icon name={item.icon} class="h-5 w-5" />
+                <Icon name={item.icon} class="h-[18px] w-[18px]" />
                 {item.label}
               </a>
             </li>
@@ -49,9 +49,9 @@ const groups = ['Menu', 'You'] as const;
   <form method="post" action="/account/signout">
     <button
       type="submit"
-      class="flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-[15px] font-semibold text-terracotta-deep transition-colors hover:bg-sand/60"
+      class="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[14px] font-semibold text-terracotta-deep transition-colors hover:bg-sand/60"
     >
-      <Icon name="logout" class="h-5 w-5" />
+      <Icon name="logout" class="h-[18px] w-[18px]" />
       Sign out
     </button>
   </form>

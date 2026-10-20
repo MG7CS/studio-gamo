@@ -157,6 +157,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await setUpOrganization(page, { name: ORG, city: 'Phoenix', state: 'AZ', checkScroll: true });
     await expect(page).toHaveURL(/\/organizer$/);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
+    await shot(page, 'organizer-overview');
     await expectAccessible(page, '/organizer');
   });
 
@@ -261,14 +262,15 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await p.getByLabel('6-digit code').fill(code);
     await p.getByRole('button', { name: 'Confirm registration' }).click();
     await expect(p).toHaveURL(/\/registrations\/reg_/);
-    await expect(p.getByRole('heading', { level: 1 })).toHaveText(TITLE);
-    await expect(p.getByText('Confirmed', { exact: true })).toBeVisible();
+    await expect(p.getByRole('heading', { level: 1 })).toHaveText("You're registered");
+    await expect(p.getByText(TITLE)).toBeVisible();
     await expect(p.locator('figure svg')).toBeVisible();
     checkinCode = (await p.locator('figure figcaption span.font-mono').innerText()).trim();
     expect(checkinCode).toMatch(/^[0-9A-Z]{10}$/);
     manageUrl = p.url().split('?')[0];
     await expectAccessible(p, '/registrations/<token>');
     await shot(p, 'ticket');
+    await expectNoDesktopScroll(p, 'ticket');
     const confirmation = await waitForMail(
       (e) => to(e).includes(first.email) && /You're registered/.test(e.subject),
     );

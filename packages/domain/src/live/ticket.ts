@@ -170,3 +170,19 @@ export function buildEventIcs(e: IcsEventInput): string {
   ];
   return lines.map(icsFold).join('\r\n') + '\r\n';
 }
+
+/** The page title for each state of a registration: the status in plain words. */
+export function ticketHeading(label: TicketView['pill']['label']): string {
+  switch (label) {
+    case 'Confirmed':
+      return "You're registered";
+    case 'Checked in':
+      return "You're checked in";
+    case 'Canceled':
+      return 'Registration canceled';
+    case 'Expired':
+      return 'Registration expired';
+    case 'Event canceled':
+      return 'Event canceled';
+  }
+}

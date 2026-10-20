@@ -1,19 +1,19 @@
 ---
 /**
- * A guest's registration, opened from the signed link in their confirmation email. A centered page (no photo):
- * status, event, date and place, the QR code first and large when the event checks in by QR, then add to
- * calendar, open in Maps and cancel. No account. Links that expired or are not valid get a plain explanation;
- * only a link whose signature does not check out is a 404.
+ * A guest's registration, opened from the signed link in their confirmation email, in the same split screen as the
+ * other guest pages (and, like them, one screen on desktop): the status as the title, the event with the QR code
+ * when the event checks in by QR, then add to calendar, open in Maps and cancel. No account. Links that expired or
+ * are not valid get a plain explanation; only a link whose signature does not check out is a 404.
  */
 import Layout from '../../layouts/Layout.astro';
-import Logo from '@studio-gamo/ui/components/Logo.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
-import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import TicketQr from '../../components/register/TicketQr.astro';
+import TicketCard from '../../components/register/TicketCard.astro';
 import TicketActions from '../../components/register/TicketActions.astro';
 import { requireSameOrigin } from '@gamo/auth';
-import { requestSecurityHeaders } from '@gamo/domain';
+import { requestSecurityHeaders, ticketHeading } from '@gamo/domain';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { openLive } from '../../lib/registration';
 import {
@@ -66,83 +66,61 @@ if (loaded?.kind === 'link_expired') Astro.response.status = 410;
 const page: TicketPage | null = loaded?.kind === 'ready' ? loaded.page : null;
 const isNew = Astro.url.searchParams.get('new') === '1' && page?.view.state === 'active';
 const expiredEventSlug = loaded?.kind === 'link_expired' ? loaded.eventSlug : null;
-const people = page ? `${page.reg.partySize} ${page.reg.partySize === 1 ? 'person' : 'people'}` : '';
+const heading = page
+  ? ticketHeading(page.view.pill.label)
+  : expiredEventSlug
+    ? 'This link has expired'
+    : 'Temporarily unavailable';
 ---
 
 <Layout title={page ? 'Your registration' : 'Registration link'} chrome={false} noindex>
-  <div class="bg-cream px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-3 sm:pt-6">
-    <div class="mx-auto flex w-full max-w-md flex-col gap-5">
-      <a
-        href="/"
-        aria-label="Gamo Live home"
-        class="inline-flex min-h-11 items-center self-start rounded-lg text-ink"
-      >
-        <Logo program="Gamo Live" tone="onLight" />
-      </a>
+  <SplitScreenLayout photo="worshipLeaderGolden" position="50% 25%" program="Gamo Live" brandHref="/">
+    <SplitHeading title={heading} />
+    {unavailable && (
+      <p class="text-[15px] leading-relaxed text-muted">
+        This page is temporarily unavailable. Please try again in a little while.
+      </p>
+    )}
+    {flash && (
+      <Notice tone="success" class="mb-4">
+        {flash}
+      </Notice>
+    )}
+    {isNew && (
+      <Notice tone="info" class="mb-3">
+        We also emailed you this link. Keep it private.
+      </Notice>
+    )}
 
-      {unavailable && (
-        <section class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
-          <h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink">
-            This page is temporarily unavailable
-          </h1>
-          <p class="mt-2 text-[15px] leading-relaxed text-muted">Please try again in a little while.</p>
-        </section>
-      )}
-      {flash && <Notice tone="success">{flash}</Notice>}
-      {isNew && (
-        <Notice tone="info" title="You're registered">
-          We also emailed you this link. Keep it private.
-        </Notice>
-      )}
+    {expiredEventSlug && (
+      <>
+        <p class="text-[15px] leading-relaxed text-muted">
+          Links stop working 30 days after the event. If you still need your registration, register again from
+          the event page.
+        </p>
+        <Button variant="secondary" size="lg" block href={`/events/${expiredEventSlug}`} class="mt-5">
+          View the event
+        </Button>
+      </>
+    )}
 
-      {expiredEventSlug && (
-        <section class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
-          <h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink">
-            This link has expired or is not valid
-          </h1>
-          <p class="mt-2 text-[15px] leading-relaxed text-muted">
-            Links stop working 30 days after the event. If you still need your registration, register again
-            from the event page.
-          </p>
-          <Button variant="secondary" size="lg" block href={`/events/${expiredEventSlug}`} class="mt-5">
-            View the event
-          </Button>
-        </section>
-      )}
-
-      {page && (
-        <>
-          <article class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
-            <Pill tone={page.view.pill.tone} dot>
-              {page.view.pill.label}
-            </Pill>
-            <h1 class="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">{page.title}</h1>
-            <p class="mt-2 text-[16px] font-semibold text-ink">{page.when}</p>
-            {page.where && <p class="text-[15px] text-muted">{page.where}</p>}
-            <p class="mt-3 text-[15px] text-ink">
-              {page.reg.name} · {people}
-            </p>
-            {page.view.note && <p class="mt-3 text-[14px] text-muted">{page.view.note}</p>}
-            {page.qr && page.checkinCode && <TicketQr svg={page.qr} code={page.checkinCode} />}
-            {page.view.doorHint && (
-              <p class="mt-3 text-[15px] font-semibold text-ink">{page.view.doorHint}</p>
-            )}
-          </article>
-
-          <TicketActions
-            calendarHref={page.view.showCalendar ? `/registrations/${token}/calendar.ics` : undefined}
-            mapsHref={page.view.showMaps ? page.mapsUrl : null}
-            canCancel={page.view.canCancel}
-          />
-
-          <p class="text-[13px] leading-relaxed text-muted">
+    {page && (
+      <div class="space-y-3 lg:space-y-3">
+        <TicketCard page={page} />
+        <TicketActions
+          calendarHref={page.view.showCalendar ? `/registrations/${token}/calendar.ics` : undefined}
+          mapsHref={page.view.showMaps ? page.mapsUrl : null}
+          canCancel={page.view.canCancel}
+        />
+        <div class="flex flex-wrap items-center justify-between gap-x-4">
+          <p class="max-w-[24rem] text-[13px] leading-relaxed text-muted">
             Anyone with this link can see or cancel this registration, so keep it private.
           </p>
-          <Button variant="ghost" href={`/events/${page.reg.eventSlug}`} class="self-start">
+          <Button variant="ghost" href={`/events/${page.reg.eventSlug}`} class="-mr-5">
             View the event
           </Button>
-        </>
-      )}
-    </div>
-  </div>
+        </div>
+      </div>
+    )}
+  </SplitScreenLayout>
 </Layout>
