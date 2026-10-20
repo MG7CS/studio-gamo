@@ -1,45 +1,900 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import EventFilters from '../../components/events/EventFilters.astro';
-import EventResults from '../../components/events/EventResults.astro';
-import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
-import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import LiveDiscoveryCard from '../../components/LiveDiscoveryCard.astro';
 import {
-  eventCountSummary,
-  eventSearchFilters,
-  hasEventFilters,
-  parseEventSearch,
+  LiveCatalog,
+  asSqlDatabase,
+  getRuntimeEnv,
+  GAMO_LIVE_METROS,
   resolveMetroBySlug,
+  resolveNearestMetroByCoordinates,
+  type LiveEventWithDetails,
 } from '@gamo/domain';
-import { listEvents } from '../../lib/event-list';
 
 export const prerender = false;
 
-const search = parseEventSearch(Astro.url.searchParams);
-const { events, unavailable } = await listEvents(Astro, eventSearchFilters(search));
-if (unavailable) Astro.response.status = 503;
+const url = Astro.url;
+const qParam = (url.searchParams.get('q') || '').trim();
+const rawMetroParam = (url.searchParams.get('metro') || '').trim().toLowerCase();
+const rawCategoryParam = (url.searchParams.get('category') || '').trim().toLowerCase();
+const rawDateParam = (url.searchParams.get('date') || '').trim().toLowerCase();
+const rawWeekendParam = (url.searchParams.get('weekend') || '').trim().toLowerCase();
+const rawSortParam = (url.searchParams.get('sort') || 'date-asc').trim().toLowerCase();
+const venueParam = (url.searchParams.get('venue') || '').trim();
+const artistParam = (url.searchParams.get('artist') || '').trim();
+const savedParam = (url.searchParams.get('saved') || '').trim();
+const latParam = url.searchParams.get('lat');
+const lngParam = url.searchParams.get('lng');
+const dateFromParam = url.searchParams.get('dateFrom');
+const dateToParam = url.searchParams.get('dateTo');
 
-const metro = resolveMetroBySlug(search.metro);
-const title = metro ? `Christian events in ${metro.displayLabel}` : 'Christian events across the U.S.';
-const description =
-  'Upcoming Christian concerts, worship nights, conferences and gatherings. Free to attend or with tickets, with the details on each page.';
+const parsedLat = latParam !== null && latParam !== '' ? Number.parseFloat(latParam) : Number.NaN;
+const parsedLng = lngParam !== null && lngParam !== '' ? Number.parseFloat(lngParam) : Number.NaN;
+const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
+
+const nearestResolution = hasValidCoords ? resolveNearestMetroByCoordinates(parsedLat, parsedLng) : null;
+
+const effectiveMetroSlug =
+  rawMetroParam && rawMetroParam !== 'all'
+    ? rawMetroParam
+    : rawMetroParam !== 'all' && nearestResolution
+      ? nearestResolution.metro.slug
+      : '';
+
+const selectedMetro = effectiveMetroSlug ? resolveMetroBySlug(effectiveMetroSlug) : null;
+const dropdownMetroValue =
+  rawMetroParam === 'all' ? 'all' : selectedMetro ? selectedMetro.slug : 'phoenix-az';
+
+const isWeekendFilter = rawWeekendParam === '1' || rawWeekendParam === 'true' || rawDateParam === 'weekend';
+
+let computedDateFrom: Date | undefined;
+let computedDateTo: Date | undefined;
+
+if (dateFromParam) {
+  const d = new Date(dateFromParam);
+  if (Number.isFinite(d.getTime())) computedDateFrom = d;
+}
+if (dateToParam) {
+  const d = new Date(dateToParam);
+  if (Number.isFinite(d.getTime())) computedDateTo = d;
+}
+
+if (rawDateParam === '2026') {
+  computedDateFrom = new Date('2026-01-01T00:00:00Z');
+  computedDateTo = new Date('2026-12-31T23:59:59Z');
+} else if (rawDateParam === '2027') {
+  computedDateFrom = new Date('2027-01-01T00:00:00Z');
+  computedDateTo = new Date('2027-12-31T23:59:59Z');
+} else if (rawDateParam === 'month') {
+  const anchor = new Date();
+  computedDateFrom = anchor;
+  computedDateTo = new Date(anchor.getTime() + 45 * 24 * 60 * 60 * 1000);
+}
+
+let events: LiveEventWithDetails[] = [];
+let metroSummaries: Awaited<ReturnType<LiveCatalog['getMetroSummaries']>> = [];
+let dbUnavailable = false;
+
+try {
+  const env = await getRuntimeEnv(Astro);
+  const liveService = new LiveCatalog(asSqlDatabase(env.LIVE_DB));
+
+  events = await liveService.listDiscoverableEvents({
+    q: qParam || undefined,
+    metro: effectiveMetroSlug || undefined,
+    category: rawCategoryParam && rawCategoryParam !== 'all' ? rawCategoryParam : undefined,
+    weekend: isWeekendFilter || undefined,
+    venue: venueParam || undefined,
+    artist: artistParam || undefined,
+    dateFrom: computedDateFrom,
+    dateTo: computedDateTo,
+    limit: 100,
+  });
+
+  metroSummaries = await liveService.getMetroSummaries();
+} catch {
+  dbUnavailable = true;
+}
+
+// When no explicit ?metro= filter is set, prioritize Phoenix, AZ launch market cards first
+// so the top row mirrors the Phoenix launch showcase while still displaying all verified U.S. listings.
+const orderedEvents = [...events].sort((a, b) => {
+  if (!rawMetroParam && !nearestResolution && !qParam) {
+    const aPhx = a.metroSlug === 'phoenix-az' ? 0 : 1;
+    const bPhx = b.metroSlug === 'phoenix-az' ? 0 : 1;
+    if (aPhx !== bPhx) return aPhx - bPhx;
+  }
+  if (rawSortParam === 'date-desc') {
+    return b.startsAt.getTime() - a.startsAt.getTime();
+  }
+  if (rawSortParam === 'city-asc') {
+    return `${a.city}, ${a.state}`.localeCompare(`${b.city}, ${b.state}`);
+  }
+  if (rawSortParam === 'title-asc') {
+    return a.title.localeCompare(b.title);
+  }
+  return a.startsAt.getTime() - b.startsAt.getTime();
+});
+
+const hasActiveFilters = Boolean(
+  qParam ||
+  effectiveMetroSlug ||
+  (rawCategoryParam && rawCategoryParam !== 'all') ||
+  isWeekendFilter ||
+  rawDateParam ||
+  venueParam ||
+  artistParam ||
+  savedParam === '1',
+);
+
+const pageTitle = selectedMetro
+  ? `Christian Concerts & Worship Events in ${selectedMetro.displayLabel}`
+  : 'Discover Christian Concerts & Worship Events Across the U.S.';
+const pageDescription = selectedMetro
+  ? clampDescription(
+      selectedMetro.introCopy.length < 120
+        ? `${selectedMetro.introCopy} Dates, venues and details on Gamo Live.`
+        : selectedMetro.introCopy,
+    )
+  : 'Find verified Christian concerts, arena worship nights and live ministry gatherings in Phoenix, Atlanta, Nashville, Orlando, Los Angeles, Houston and more.';
+import { clampDescription } from '@studio-gamo/ui/lib/seo';
 ---
 
-<Layout title={title} description={description} noindex={hasEventFilters(search) || search.page > 1}>
-  <div class="mx-auto max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-    <PageHeader
-      title="Christian events"
-      description={unavailable ? undefined : eventCountSummary(events.length, search.metro)}
-    />
-    <EventFilters search={search} />
-    <section id="results" aria-label="Results" class="mt-6">
-      {unavailable ? (
-        <Notice tone="warning" title="Events can't be loaded right now.">
-          Please try again in a moment.
-        </Notice>
+<Layout title={pageTitle} description={pageDescription}>
+  {/* Marketplace Directory Section (Matches GAMO LIVE Events Grid.png) */}
+  <section id="discovery-search" class="bg-ivory min-h-[75vh] pt-6 pb-14">
+    <div class="mx-auto max-w-[1340px] px-4 sm:px-6 lg:px-8">
+      {/* Accessible Page Heading (Preserves E2E & Screen Reader Context without a Marketing Hero) */}
+      <h1 class="sr-only">Find a gathering worth showing up for. — {pageTitle}</h1>
+
+      {/* Row 1: 5-Pill Horizontal Marketplace Filter Bar */}
+      <form
+        id="events-discovery-form"
+        method="get"
+        action="/events"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(280px,1.75fr)_minmax(185px,1fr)_minmax(175px,0.95fr)_minmax(195px,1.05fr)_auto] gap-3 items-center"
+      >
+        {/* Pill 1: Search Input */}
+        <div class="sm:col-span-2 lg:col-span-1 flex items-center gap-3 rounded-[16px] border border-sand bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] focus-within:border-terracotta transition-colors">
+          <svg
+            class="w-5 h-5 text-ink shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+            />
+          </svg>
+          <label for="events-search-q" class="sr-only">
+            Search events, artists, or venues
+          </label>
+          <input
+            id="events-search-q"
+            type="search"
+            name="q"
+            value={qParam}
+            placeholder="Search events, artists, or venues"
+            class="w-full bg-transparent text-[14.5px] text-ink placeholder:text-muted focus:outline-none min-h-11"
+          />
+        </div>
+
+        {/* Pill 2: Location Dropdown */}
+        <div class="relative flex items-center gap-2.5 rounded-[16px] border border-sand bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-line transition-colors">
+          <svg
+            class="w-5 h-5 text-ink shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+            />
+          </svg>
+          <label for="events-filter-metro" class="sr-only">
+            Metro area
+          </label>
+          <select
+            id="events-filter-metro"
+            name="metro"
+            data-auto-submit-select
+            class="w-full appearance-none bg-transparent pr-6 text-[14.5px] font-medium text-ink focus:outline-none cursor-pointer min-h-11"
+          >
+            {GAMO_LIVE_METROS.map((m) => (
+              <option value={m.slug} selected={dropdownMetroValue === m.slug}>
+                {m.displayLabel}
+              </option>
+            ))}
+            <option value="all" selected={dropdownMetroValue === 'all'}>
+              All U.S. Cities
+            </option>
+          </select>
+          <svg
+            class="w-4 h-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+
+        {/* Pill 3: Date Window Dropdown */}
+        <div class="relative flex items-center gap-2.5 rounded-[16px] border border-sand bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-line transition-colors">
+          <svg
+            class="w-5 h-5 text-ink shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+            />
+          </svg>
+          <label for="events-filter-date" class="sr-only">
+            Date range
+          </label>
+          <select
+            id="events-filter-date"
+            name="date"
+            data-auto-submit-select
+            class="w-full appearance-none bg-transparent pr-6 text-[14.5px] font-normal text-muted focus:outline-none cursor-pointer min-h-11"
+          >
+            <option value="" selected={!rawDateParam && !isWeekendFilter}>
+              Any date
+            </option>
+            <option value="weekend" selected={rawDateParam === 'weekend' || isWeekendFilter}>
+              This weekend
+            </option>
+            <option value="month" selected={rawDateParam === 'month'}>
+              This month
+            </option>
+            <option value="2026" selected={rawDateParam === '2026'}>
+              2026
+            </option>
+            <option value="2027" selected={rawDateParam === '2027'}>
+              2027
+            </option>
+          </select>
+          <svg
+            class="w-4 h-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+
+        {/* Pill 4: Category Dropdown */}
+        <div class="relative flex items-center gap-2.5 rounded-[16px] border border-sand bg-white px-4 py-3 shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-line transition-colors">
+          <svg
+            class="w-5 h-5 text-ink shrink-0 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.9"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+            />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+          </svg>
+          <label for="events-filter-category" class="sr-only">
+            Category
+          </label>
+          <select
+            id="events-filter-category"
+            name="category"
+            data-auto-submit-select
+            class="w-full appearance-none bg-transparent pr-6 text-[14.5px] font-normal text-muted focus:outline-none cursor-pointer min-h-11"
+          >
+            <option value="" selected={!rawCategoryParam || rawCategoryParam === 'all'}>
+              All categories
+            </option>
+            <option value="concert" selected={rawCategoryParam === 'concert'}>
+              Concerts
+            </option>
+            <option value="worship" selected={rawCategoryParam === 'worship'}>
+              Worship Nights
+            </option>
+            <option value="conference" selected={rawCategoryParam === 'conference'}>
+              Conferences
+            </option>
+            <option value="youth" selected={rawCategoryParam === 'youth'}>
+              Youth &amp; Young Adult
+            </option>
+          </select>
+          <svg
+            class="w-4 h-4 text-muted absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+
+        {/* Pill 5: Filters Toggle Button */}
+        <button
+          id="toggle-more-filters-btn"
+          type="button"
+          aria-expanded={hasActiveFilters ? 'true' : 'false'}
+          aria-controls="more-filters-drawer"
+          class="inline-flex items-center justify-center gap-2 rounded-[16px] border border-line bg-ivory hover:bg-white px-5 py-3 text-[14.5px] font-semibold text-ink shadow-[0_1px_2px_rgba(25,24,23,0.03)] transition-colors cursor-pointer shrink-0"
+        >
+          <svg
+            class="w-4 h-4 text-ink"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+            />
+          </svg>
+          <span>Filters</span>
+        </button>
+      </form>
+
+      {/* Expandable Secondary Filters Drawer (Geolocation, Saved Events, Metro City Guides) */}
+      <div
+        id="more-filters-drawer"
+        class={
+          hasActiveFilters || nearestResolution
+            ? 'mt-3 rounded-2xl border border-sand bg-white p-4 shadow-sm'
+            : 'hidden mt-3 rounded-2xl border border-sand bg-white p-4 shadow-sm'
+        }
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            {/* Opt-in Geolocation Button */}
+            <button
+              id="use-my-location-btn"
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-full border border-sand bg-ivory hover:border-terracotta px-3.5 py-1.5 text-xs font-semibold text-ink transition-colors cursor-pointer"
+            >
+              <svg
+                class="w-3.5 h-3.5 text-terracotta"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 4v2m0 8v2m-6-6h2m8 0h2"
+                />
+              </svg>
+              <span id="use-my-location-label">Use my location</span>
+            </button>
+
+            {/* Client-side Saved Events Toggle */}
+            <button
+              id="saved-events-filter-btn"
+              type="button"
+              data-saved-active={savedParam === '1' ? 'true' : 'false'}
+              class="inline-flex items-center gap-1.5 rounded-full border border-sand bg-ivory hover:border-terracotta px-3.5 py-1.5 text-xs font-semibold text-ink transition-colors cursor-pointer"
+            >
+              <svg
+                class="w-3.5 h-3.5 text-terracotta"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
+              </svg>
+              <span>Saved Events</span>
+              <span
+                id="saved-events-count-badge"
+                class="px-1.5 py-0.5 rounded-full bg-sand text-[10px] font-bold"
+              >
+                0
+              </span>
+            </button>
+
+            {/* Weekend Quick Filter */}
+            <a
+              href={`/events?${new URLSearchParams({
+                ...(effectiveMetroSlug ? { metro: effectiveMetroSlug } : {}),
+                weekend: isWeekendFilter ? '' : '1',
+              }).toString()}`}
+              class={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                isWeekendFilter
+                  ? 'border-terracotta bg-terracotta text-white'
+                  : 'border-sand bg-ivory text-ink hover:border-terracotta'
+              }`}
+            >
+              Fri–Sun Weekend
+            </a>
+          </div>
+
+          {hasActiveFilters && (
+            <a href="/events" class="text-xs font-semibold text-terracotta hover:underline">
+              Reset all filters
+            </a>
+          )}
+        </div>
+
+        <p
+          id="location-status-msg"
+          class="text-xs text-terracotta-deep mt-2 hidden"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        {nearestResolution && selectedMetro && (
+          <div class="mt-2.5 inline-flex flex-wrap items-center gap-2 text-xs text-muted">
+            <span>
+              Matched nearest curated metro: <strong class="text-ink">{selectedMetro.displayLabel}</strong> (~
+              {nearestResolution.distanceKm} km)
+            </span>
+            <a href="/events?metro=all" class="underline font-semibold text-terracotta">
+              Switch to All U.S. Cities
+            </a>
+          </div>
+        )}
+
+        {/* Metro City Landing Page Links */}
+        <nav
+          aria-label="Curated U.S. Metro Markets"
+          class="mt-3 pt-3 border-t border-cream flex items-center gap-2 overflow-x-auto"
+        >
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-muted shrink-0">
+            City Pages:
+          </span>
+          {GAMO_LIVE_METROS.map((metro) => {
+            const summary = metroSummaries.find((s) => s.slug === metro.slug);
+            const count = summary?.publishedEventCount ?? 0;
+            const isCurrent = effectiveMetroSlug === metro.slug;
+            return (
+              <a
+                href={`/events/${metro.slug}`}
+                class={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  isCurrent
+                    ? 'bg-ink text-white border-ink'
+                    : 'bg-ivory text-muted border-sand hover:border-terracotta hover:text-ink'
+                }`}
+              >
+                <span>{metro.displayLabel}</span>
+                {count > 0 && <span class="opacity-75">({count})</span>}
+              </a>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Row 2: Results Count & Sort By Bar (Matches GAMO LIVE Events Grid.png) */}
+      <div class="mt-6 mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-baseline gap-3">
+          <h2 class="text-[20px] sm:text-[22px] font-extrabold tracking-tight text-ink">
+            <span id="visible-events-count">{orderedEvents.length}</span>{' '}
+            <span id="visible-events-unit">{orderedEvents.length === 1 ? 'event' : 'events'}</span>
+          </h2>
+          {selectedMetro && (
+            <span class="text-sm text-muted">
+              in{' '}
+              <a
+                href={`/events/${selectedMetro.slug}`}
+                class="font-semibold text-ink hover:text-terracotta underline"
+              >
+                {selectedMetro.displayLabel}
+              </a>
+            </span>
+          )}
+          {qParam && <span class="text-sm text-muted">matching &ldquo;{qParam}&rdquo;</span>}
+        </div>
+
+        {/* Sort By Control */}
+        <div class="flex items-center gap-2.5">
+          <label for="events-sort-select" class="text-[14px] text-muted font-normal">
+            Sort by
+          </label>
+          <div class="relative">
+            <select
+              id="events-sort-select"
+              class="appearance-none rounded-full border border-ink/50 bg-white pl-4 pr-9 py-2 text-[14px] font-medium text-ink shadow-[0_1px_2px_rgba(25,24,23,0.03)] hover:border-ink/50 focus:outline-none focus:border-terracotta cursor-pointer min-h-11"
+            >
+              <option value="date-asc" selected={rawSortParam === 'date-asc'}>
+                Date (soonest)
+              </option>
+              <option value="date-desc" selected={rawSortParam === 'date-desc'}>
+                Date (latest)
+              </option>
+              <option value="city-asc" selected={rawSortParam === 'city-asc'}>
+                City (A–Z)
+              </option>
+              <option value="title-asc" selected={rawSortParam === 'title-asc'}>
+                Title (A–Z)
+              </option>
+            </select>
+            <svg
+              class="w-4 h-4 text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Client-side Saved Filter Empty Notice */}
+      <div
+        id="saved-events-empty-state"
+        class="hidden bg-white rounded-2xl border border-sand p-8 text-center my-6 shadow-sm"
+      >
+        <h3 class="text-lg font-bold text-ink">No saved events on this device yet</h3>
+        <p class="text-sm text-muted mt-2 max-w-md mx-auto">
+          Tap the heart icon on any concert or worship night card to save it to your browser for quick access
+          later.
+        </p>
+        <button
+          id="clear-saved-filter-btn"
+          type="button"
+          class="mt-4 inline-flex items-center px-5 py-2.5 rounded-full bg-ink text-white text-xs font-bold hover:bg-terracotta transition-colors cursor-pointer"
+        >
+          Show All Events
+        </button>
+      </div>
+
+      {/* Row 3: 4-Column Event Cards Grid */}
+      {dbUnavailable ? (
+        <div class="bg-white rounded-2xl border border-sand p-8 text-center shadow-sm">
+          <h3 class="text-lg font-bold text-ink">Event directory is temporarily unavailable</h3>
+          <p class="text-sm text-muted mt-2">
+            We could not connect to the live event catalog right now. Please refresh or try again shortly.
+          </p>
+        </div>
+      ) : orderedEvents.length > 0 ? (
+        <div id="events-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {orderedEvents.map((event, idx) => (
+            <LiveDiscoveryCard event={event} index={idx} />
+          ))}
+        </div>
       ) : (
-        <EventResults events={events} search={search} path="/events" />
+        <div class="bg-white rounded-2xl border border-sand p-8 sm:p-12 text-center shadow-sm max-w-2xl mx-auto my-4">
+          <div class="w-12 h-12 rounded-2xl bg-cream text-terracotta flex items-center justify-center mx-auto mb-4">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-ink">No verified events match your current filters</h3>
+          <p class="text-sm text-muted mt-2 leading-relaxed">
+            We only publish events with verified venues, confirmed schedules, and official HTTPS ticket or
+            organizer links. Try clearing a filter or exploring one of our curated metro markets below.
+          </p>
+          <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="/events"
+              class="inline-flex items-center px-5 py-2.5 rounded-full bg-terracotta text-white text-sm font-bold hover:bg-terracotta-deep transition-colors"
+            >
+              Reset filters / View all U.S. events
+            </a>
+            <a
+              href="/events/phoenix-az"
+              class="inline-flex items-center px-5 py-2.5 rounded-full bg-cream text-ink text-sm font-semibold hover:bg-sand transition-colors"
+            >
+              Explore Phoenix, AZ
+            </a>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-cream">
+            <p class="text-xs font-semibold uppercase tracking-wider text-muted mb-3">
+              Browse Active U.S. Metro Markets
+            </p>
+            <div class="flex flex-wrap justify-center gap-2">
+              {GAMO_LIVE_METROS.map((m) => (
+                <a
+                  href={`/events/${m.slug}`}
+                  class="px-3 py-1.5 rounded-lg bg-ivory border border-sand text-xs font-medium text-muted hover:border-terracotta hover:text-terracotta transition-colors"
+                >
+                  {m.displayLabel}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
-    </section>
-  </div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'gamo_live_saved_events';
+      const METROS = [
+        { slug: 'phoenix-az', name: 'Phoenix, AZ', lat: 33.4484, lng: -112.074 },
+        { slug: 'atlanta-ga', name: 'Atlanta, GA', lat: 33.749, lng: -84.388 },
+        { slug: 'nashville-tn', name: 'Nashville, TN', lat: 36.1627, lng: -86.7816 },
+        { slug: 'orlando-fl', name: 'Orlando, FL', lat: 28.5383, lng: -81.3792 },
+        { slug: 'los-angeles-ca', name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+        { slug: 'houston-tx', name: 'Houston, TX', lat: 29.7604, lng: -95.3698 },
+        { slug: 'seattle-wa', name: 'Seattle, WA', lat: 47.6062, lng: -122.3321 },
+        { slug: 'new-york-ny', name: 'New York, NY', lat: 40.6782, lng: -73.9442 },
+        { slug: 'oklahoma-city-ok', name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 },
+      ];
+
+      const discoveryForm = document.getElementById('events-discovery-form') as HTMLFormElement | null;
+      const autoSubmitSelects = document.querySelectorAll('[data-auto-submit-select]');
+      autoSubmitSelects.forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          if (discoveryForm) discoveryForm.submit();
+        });
+      });
+
+      const moreFiltersBtn = document.getElementById('toggle-more-filters-btn');
+      const moreFiltersDrawer = document.getElementById('more-filters-drawer');
+      if (moreFiltersBtn && moreFiltersDrawer) {
+        moreFiltersBtn.addEventListener('click', function () {
+          const isHidden = moreFiltersDrawer.classList.contains('hidden');
+          if (isHidden) {
+            moreFiltersDrawer.classList.remove('hidden');
+            moreFiltersBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            moreFiltersDrawer.classList.add('hidden');
+            moreFiltersBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // Client-side Sort By handler
+      const sortSelect = document.getElementById('events-sort-select') as HTMLSelectElement | null;
+      const eventsGrid = document.getElementById('events-grid');
+      if (sortSelect && eventsGrid) {
+        sortSelect.addEventListener('change', function () {
+          const mode = sortSelect.value;
+          const cards = Array.prototype.slice.call(eventsGrid.querySelectorAll('[data-event-card]'));
+          cards.sort(function (a, b) {
+            const dateA = a.getAttribute('data-start-date') || '';
+            const dateB = b.getAttribute('data-start-date') || '';
+            const cityA = a.getAttribute('data-city') || '';
+            const cityB = b.getAttribute('data-city') || '';
+            const titleA = a.getAttribute('data-title') || '';
+            const titleB = b.getAttribute('data-title') || '';
+            if (mode === 'date-desc') return dateB.localeCompare(dateA);
+            if (mode === 'city-asc') return cityA.localeCompare(cityB);
+            if (mode === 'title-asc') return titleA.localeCompare(titleB);
+            return dateA.localeCompare(dateB);
+          });
+          cards.forEach(function (card) {
+            eventsGrid.appendChild(card);
+          });
+        });
+      }
+
+      function readSavedSlugs() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function writeSavedSlugs(slugs: string[]) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
+        } catch {
+          // Storage unavailable (private mode); favorites stay in-memory only.
+        }
+      }
+
+      const savedFilterBtn = document.getElementById('saved-events-filter-btn');
+      const savedCountBadge = document.getElementById('saved-events-count-badge');
+      const savedEmptyState = document.getElementById('saved-events-empty-state');
+      const clearSavedBtn = document.getElementById('clear-saved-filter-btn');
+      const visibleCountEl = document.getElementById('visible-events-count');
+      const visibleUnitEl = document.getElementById('visible-events-unit');
+      let savedOnlyActive = savedFilterBtn && savedFilterBtn.getAttribute('data-saved-active') === 'true';
+
+      function syncFavoriteUi() {
+        const saved = readSavedSlugs();
+        if (savedCountBadge) {
+          savedCountBadge.textContent = String(saved.length);
+        }
+
+        const favButtons = document.querySelectorAll('[data-favorite-btn]');
+        favButtons.forEach(function (btn) {
+          const slug = btn.getAttribute('data-event-slug');
+          const isSaved = Boolean(slug && saved.indexOf(slug) !== -1);
+          btn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+          const svg = btn.querySelector('svg');
+          if (isSaved) {
+            btn.classList.add('text-terracotta');
+            if (svg) svg.setAttribute('fill', 'currentColor');
+          } else {
+            btn.classList.remove('text-terracotta');
+            if (svg) svg.setAttribute('fill', 'none');
+          }
+        });
+
+        const cards = document.querySelectorAll('[data-event-card]');
+        let visibleCount = 0;
+        cards.forEach(function (card) {
+          const slug = card.getAttribute('data-event-slug');
+          const show = !savedOnlyActive || (slug && saved.indexOf(slug) !== -1);
+          if (show) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        if (visibleCountEl && cards.length > 0) {
+          visibleCountEl.textContent = String(visibleCount);
+        }
+        if (visibleUnitEl && cards.length > 0) {
+          visibleUnitEl.textContent = visibleCount === 1 ? 'event' : 'events';
+        }
+
+        if (savedFilterBtn) {
+          if (savedOnlyActive) {
+            savedFilterBtn.classList.add('bg-terracotta', 'text-white', 'border-terracotta');
+          } else {
+            savedFilterBtn.classList.remove('bg-terracotta', 'text-white', 'border-terracotta');
+          }
+        }
+
+        if (savedEmptyState) {
+          if (savedOnlyActive && visibleCount === 0) {
+            savedEmptyState.classList.remove('hidden');
+          } else {
+            savedEmptyState.classList.add('hidden');
+          }
+        }
+      }
+
+      document.addEventListener('click', function (e) {
+        const btn = (e.target as Element | null)?.closest('[data-favorite-btn]');
+        if (!btn) return;
+        e.preventDefault();
+        const slug = btn.getAttribute('data-event-slug');
+        if (!slug) return;
+        const current = readSavedSlugs();
+        const idx = current.indexOf(slug);
+        if (idx === -1) {
+          current.push(slug);
+        } else {
+          current.splice(idx, 1);
+        }
+        writeSavedSlugs(current);
+        syncFavoriteUi();
+      });
+
+      if (savedFilterBtn) {
+        savedFilterBtn.addEventListener('click', function () {
+          savedOnlyActive = !savedOnlyActive;
+          savedFilterBtn.setAttribute('data-saved-active', savedOnlyActive ? 'true' : 'false');
+          syncFavoriteUi();
+        });
+      }
+
+      if (clearSavedBtn) {
+        clearSavedBtn.addEventListener('click', function () {
+          savedOnlyActive = false;
+          if (savedFilterBtn) savedFilterBtn.setAttribute('data-saved-active', 'false');
+          syncFavoriteUi();
+        });
+      }
+
+      // Opt-in browser geolocation handler (never auto-prompts on load)
+      const locBtn = document.getElementById('use-my-location-btn');
+      const locLabel = document.getElementById('use-my-location-label');
+      const locStatus = document.getElementById('location-status-msg');
+
+      function nearestMetro(lat: number, lng: number) {
+        const toRad = function (d: number) {
+          return (d * Math.PI) / 180;
+        };
+        let best = METROS[0];
+        let bestDist = Infinity;
+        for (let i = 0; i < METROS.length; i++) {
+          const m = METROS[i];
+          const dLat = toRad(m.lat - lat);
+          const dLng = toRad(m.lng - lng);
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat)) * Math.cos(toRad(m.lat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = m;
+          }
+        }
+        return best;
+      }
+
+      if (locBtn) {
+        locBtn.addEventListener('click', function () {
+          if (!navigator.geolocation) {
+            if (locStatus) {
+              locStatus.textContent =
+                'Geolocation is not supported by your browser. Please select a city from the menu.';
+              locStatus.classList.remove('hidden');
+            }
+            return;
+          }
+          if (locLabel) locLabel.textContent = 'Locating...';
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              const match = nearestMetro(lat, lng);
+              if (locStatus) {
+                locStatus.textContent = 'Matched nearest city: ' + match.name + '. Loading events...';
+                locStatus.classList.remove('hidden');
+              }
+              const nextUrl = new URL(window.location.href);
+              nextUrl.searchParams.set('metro', match.slug);
+              nextUrl.searchParams.set('lat', lat.toFixed(4));
+              nextUrl.searchParams.set('lng', lng.toFixed(4));
+              window.location.href = nextUrl.toString();
+            },
+            function () {
+              if (locLabel) locLabel.textContent = 'Use my location';
+              if (locStatus) {
+                locStatus.textContent =
+                  'Location permission declined or unavailable. Browse all U.S. cities or choose a metro manually.';
+                locStatus.classList.remove('hidden');
+              }
+            },
+            { timeout: 8000, maximumAge: 300000 },
+          );
+        });
+      }
+
+      syncFavoriteUi();
+    })();
+  </script>
 </Layout>

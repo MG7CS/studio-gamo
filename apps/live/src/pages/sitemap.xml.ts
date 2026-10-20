@@ -41,7 +41,7 @@ async function publishedEventEntries(context: Parameters<APIRoute>[0]): Promise<
 
 export const GET: APIRoute = async (context) => {
   const metroEntries: SitemapEntry[] = GAMO_LIVE_METROS.map((metro) => ({
-    path: `/events/city/${metro.slug}`,
+    path: `/events/${metro.slug}`,
     priority: metro.isPrimaryLaunchMarket ? '0.9' : '0.8',
     changefreq: 'daily',
   }));

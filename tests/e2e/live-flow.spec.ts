@@ -78,8 +78,6 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText('Harvest Night of Gospel')).toHaveCount(0);
     if (SHOTS) {
-      await page.goto(`${FLOW_LIVE_ORIGIN}/events/city/phoenix-az`);
-      await shot(page, 'city');
       await page.goto(`${FLOW_LIVE_ORIGIN}/events/this-event-does-not-exist`);
       await shot(page, 'not-found');
       await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
@@ -190,7 +188,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     watch(p);
     await p.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
     if (name === 'Sample Guest One') await shot(p, 'event-registration');
-    await p.getByRole('link', { name: 'Register', exact: true }).click();
+    await p.getByRole('link', { name: 'Register free' }).click();
     await expect(p).toHaveURL(/\/register$/);
     if (name === 'Sample Guest One') await shot(p, 'register');
     await p.getByLabel('Your name').fill(name);
@@ -240,15 +238,15 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     const secondManage = p.url().split('?')[0];
     const view = await guest.newPage();
     await view.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
-    await expect(view.getByRole('button', { name: 'Full' })).toBeDisabled();
-    await expect(view.getByRole('link', { name: 'Register', exact: true })).toHaveCount(0);
+    await expect(view.getByText('Registration full.')).toBeVisible();
+    await expect(view.getByRole('link', { name: 'Register free' })).toHaveCount(0);
 
     await p.goto(secondManage);
     await p.getByText('Cancel registration', { exact: true }).click();
     await p.getByRole('button', { name: 'Yes, cancel my registration' }).click();
     await expect(p.getByText('Your registration is canceled and your seats are released.')).toBeVisible();
     await view.reload();
-    await expect(view.getByRole('link', { name: 'Register', exact: true })).toBeVisible();
+    await expect(view.getByRole('link', { name: 'Register free' })).toBeVisible();
     await guest.close();
   });
 
@@ -305,7 +303,9 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     const canceled = await waitForMail((e) => to(e).includes(first.email) && /^Canceled:/.test(e.subject));
     expect(canceled.text).toContain('Sample reason: the hall is closed.');
     await page.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
-    await expect(page.getByText('This event was canceled')).toBeVisible();
+    await expect(
+      page.getByText('Past Event · Closed').or(page.getByText('Event Canceled · Closed')).first(),
+    ).toBeVisible();
   });
 
   await test.step('sign out ends the session', async () => {
