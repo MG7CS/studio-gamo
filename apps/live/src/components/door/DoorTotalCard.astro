@@ -1,0 +1,45 @@
+---
+/** Step 2: every line and the total, priced on the server (cash has no Gamo fee; card may differ, shown plainly). */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { formatCents } from '@gamo/domain';
+import type { DoorQuote } from '../../lib/door-sell';
+interface Props {
+  quote: DoorQuote | null;
+  error: string | null;
+  clearHref: string;
+}
+const { quote, error, clearHref } = Astro.props;
+---
+
+<Panel id="total" title="Total">
+  {error && <Notice tone="danger">{error}</Notice>}
+  {!quote && !error && <p class="text-[15px] text-muted">Choose tickets to see the total.</p>}
+  {quote && (
+    <>
+      <ReceiptLines
+        lines={quote.lines}
+        total={{
+          label: quote.cardTotalCents === null ? 'Total' : 'Total (cash)',
+          amount: formatCents(quote.totalCents),
+        }}
+      />
+      <p class="mt-1 text-[36px] font-black leading-none tabular-nums text-ink" aria-hidden="true">
+        {formatCents(quote.totalCents)}
+      </p>
+      {quote.cardTotalCents !== null && (
+        <p class="mt-2 text-[14px] text-ink">
+          By card or the buyer’s phone: <strong>{formatCents(quote.cardTotalCents)}</strong> (includes the
+          Gamo fee).
+        </p>
+      )}
+      <a
+        href={clearHref}
+        class="mt-3 inline-flex min-h-11 items-center text-[14px] font-semibold text-terracotta-deep underline"
+      >
+        Start over
+      </a>
+    </>
+  )}
+</Panel>

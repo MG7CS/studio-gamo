@@ -1,0 +1,26 @@
+---
+/** The dates a door link can work (not canceled, door not yet closed), each opening that date's door screen. */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import DoorButton from './DoorButton.astro';
+interface Props {
+  dates: Array<{ id: string; label: string; href: string }>;
+}
+const { dates } = Astro.props;
+---
+
+{dates.length === 0 ? (
+  <EmptyState
+    title="No date to work"
+    text="This event has no upcoming date with an open door. Ask the organizer if this looks wrong."
+  />
+) : (
+  <ul class="space-y-2">
+    {dates.map((d) => (
+      <li>
+        <DoorButton href={d.href} variant="secondary" block>
+          {d.label}
+        </DoorButton>
+      </li>
+    ))}
+  </ul>
+)}

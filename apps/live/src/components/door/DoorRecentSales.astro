@@ -1,0 +1,54 @@
+---
+/**
+ * Door sales on this date that can still be refunded, newest first. Cash comes out of the person's open drawer with a
+ * reason; card and phone sales go back to the card through Stripe. Each refund has a confirm step.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import type { RecentDoorSale } from '../../lib/door-screen';
+interface Props {
+  sales: RecentDoorSale[];
+}
+const { sales } = Astro.props;
+---
+
+<Panel id="refunds" title="Refund a door sale" description="Recent paid door sales on this date.">
+  {sales.length === 0 ? (
+    <p class="text-[14px] text-muted">No paid door sales on this date yet.</p>
+  ) : (
+    <ul class="space-y-3">
+      {sales.map((s) => (
+        <li class="rounded-2xl bg-cream/60 p-3">
+          <p class="text-[15px] font-semibold text-ink">
+            {s.reference} · {s.methodLabel} · {s.total}
+          </p>
+          <p class="mb-2 text-[13px] text-muted">
+            {s.tickets} {s.tickets === 1 ? 'ticket' : 'tickets'}
+          </p>
+          <ConfirmAction
+            summaryLabel={`Refund ${s.reference}`}
+            confirmLabel={`Refund ${s.total}`}
+            actionValue="refund"
+          >
+            {s.method === 'cash'
+              ? `Give back ${s.total} in cash from your drawer. The ${s.tickets === 1 ? 'ticket stops' : `${s.tickets} tickets stop`} working.`
+              : `Refund ${s.total} to the card through Stripe. The ${s.tickets === 1 ? 'ticket stops' : `${s.tickets} tickets stop`} working.`}
+            <Fragment slot="fields">
+              <input type="hidden" name="order" value={s.orderId} />
+              <label class="block text-[14px] font-semibold text-ink" for={`reason-${s.orderId}`}>
+                Reason
+              </label>
+              <input
+                id={`reason-${s.orderId}`}
+                name="reason"
+                required
+                maxlength="200"
+                class="min-h-14 w-full rounded-[14px] border border-ink/50 bg-white px-4 text-[16px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+              />
+            </Fragment>
+          </ConfirmAction>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

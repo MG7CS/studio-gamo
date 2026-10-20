@@ -1,0 +1,55 @@
+---
+/**
+ * The door screen's button: at least 56 px tall (DESIGN.md "The door screen"), a link with `href`, a button
+ * otherwise. `sell` marks it as a selling action the offline script disables while the device has no connection.
+ */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'danger';
+  href?: string | null;
+  type?: 'submit' | 'button';
+  name?: string;
+  value?: string;
+  block?: boolean;
+  sell?: boolean;
+  current?: boolean;
+  class?: string;
+}
+const {
+  variant = 'primary',
+  href,
+  type = 'submit',
+  name,
+  value,
+  block = false,
+  sell = false,
+  current = false,
+  class: className,
+} = Astro.props;
+const classes = [
+  'inline-flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-2xl px-5 text-[16px] font-semibold leading-tight transition-colors',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+  'disabled:cursor-not-allowed disabled:bg-sand disabled:text-muted aria-disabled:cursor-not-allowed aria-disabled:bg-sand aria-disabled:text-muted',
+  {
+    primary: 'bg-terracotta-deep text-white hover:bg-ink',
+    secondary: 'border border-ink/30 bg-white text-ink hover:bg-sand',
+    danger: 'border-2 border-status-danger bg-white text-status-danger hover:bg-status-danger-soft',
+  }[variant],
+  block ? 'w-full' : '',
+  className,
+];
+---
+
+{href ? (
+  <a
+    href={href}
+    class:list={classes}
+    data-door-sell={sell ? '' : undefined}
+    aria-current={current ? 'page' : undefined}
+  >
+    <slot />
+  </a>
+) : (
+  <button type={type} name={name} value={value} class:list={classes} data-door-sell={sell ? '' : undefined}>
+    <slot />
+  </button>
+)}

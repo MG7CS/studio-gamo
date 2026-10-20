@@ -1,0 +1,108 @@
+---
+/**
+ * The door screen (DESIGN.md "The door screen"), one component set for signed-in organizers and door staff: the mode
+ * switch, the date and live counts, then Check in (window, scan or type) or Sell (tickets, total, payment, result,
+ * drawer, refunds), and the door-day totals. Phone first; targets at least 56 px.
+ */
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import DoorModeSwitch from './DoorModeSwitch.astro';
+import DoorCounts from './DoorCounts.astro';
+import DoorWindowCard from './DoorWindowCard.astro';
+import DoorScanCard from './DoorScanCard.astro';
+import DoorTotals from './DoorTotals.astro';
+import DoorOfflineNotice from './DoorOfflineNotice.astro';
+import DoorTicketsCard from './DoorTicketsCard.astro';
+import DoorTotalCard from './DoorTotalCard.astro';
+import DoorPayChoice from './DoorPayChoice.astro';
+import DoorPayForm from './DoorPayForm.astro';
+import DoorSaleCard from './DoorSaleCard.astro';
+import DoorDrawerCard from './DoorDrawerCard.astro';
+import DoorRecentSales from './DoorRecentSales.astro';
+import type { DoorScreenView } from '../../lib/door-screen';
+interface Props {
+  view: DoorScreenView;
+  /** The one-time message after a POST, if any. */
+  flash: { tone: 'success' | 'danger'; text: string } | null;
+  /** The result of a typed code (the camera scanner shows its own). */
+  checkInResult: { ok: boolean; message: string } | null;
+  /** Organizers may open and close check-in by hand. */
+  manage: boolean;
+}
+const { view, flash, checkInResult, manage } = Astro.props;
+const sell = view.sell;
+---
+
+<div class="space-y-4 pb-6">
+  <DoorOfflineNotice />
+  <DoorModeSwitch mode={view.mode} checkinHref={view.modeHrefs.checkin} sellHref={view.modeHrefs.sell} />
+  {flash && (
+    <Notice tone={flash.tone} id="door-flash" focusable>
+      {flash.text}
+    </Notice>
+  )}
+  <DoorCounts
+    checkedIn={view.counts.checkedIn}
+    expected={view.counts.expected}
+    unit={view.counts.unit}
+    href={view.countsHref}
+  />
+
+  {view.mode === 'checkin' && (
+    <>
+      {!view.checkIn.available && (
+        <Notice tone="danger">
+          Check-in is not available for this date (it was canceled, or QR check-in is off).
+        </Notice>
+      )}
+      {view.checkIn.available && (
+        <>
+          <DoorWindowCard {...view.checkIn.window} manage={manage} />
+          <div data-checkin>
+            <DoorScanCard result={checkInResult} />
+          </div>
+        </>
+      )}
+    </>
+  )}
+
+  {view.mode === 'sell' && sell && (
+    <>
+      {view.testMode.show && <TestModeNotice standin={view.testMode.standin} />}
+      {view.sale && <DoorSaleCard sale={view.sale} newSaleHref={sell.clearHref} />}
+      {sell.closedReason && <Notice tone="warning">{sell.closedReason}</Notice>}
+      {!sell.closedReason && !(view.sale && view.sale.state === 'pending') && (
+        <>
+          <DoorTicketsCard types={sell.types} />
+          <DoorTotalCard quote={sell.quote} error={sell.quoteError} clearHref={sell.clearHref} />
+          {sell.quote && (
+            <DoorPayChoice
+              pay={sell.pay}
+              hrefs={sell.payHrefs}
+              cardAvailable={sell.cardAvailable}
+              canComp={sell.canComp}
+            />
+          )}
+          {sell.pay && (sell.quote || (sell.pay === 'cash' && !sell.drawer)) && (
+            <DoorPayForm
+              pay={sell.pay}
+              sel={sell.sel}
+              drawer={sell.drawer}
+              readers={sell.readers}
+              ready={!!sell.quote}
+            />
+          )}
+        </>
+      )}
+      <DoorDrawerCard drawer={sell.drawer} closed={view.closedDrawer} />
+      <DoorRecentSales sales={view.recentSales} />
+    </>
+  )}
+
+  <DoorTotals totals={view.totals} />
+</div>
+
+<script>
+  import '../../scripts/door-online';
+  import '../../scripts/checkin-scan';
+</script>

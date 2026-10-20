@@ -1,0 +1,22 @@
+---
+/** One date of the event with its door screen. A canceled date says so and has no door. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+interface Props {
+  label: string;
+  canceled: boolean;
+  href: string;
+}
+const { label, canceled, href } = Astro.props;
+---
+
+<div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+  <span class="text-[15px] font-semibold text-ink">{label}</span>
+  {canceled ? (
+    <Pill tone="danger">Canceled</Pill>
+  ) : (
+    <Button href={href}>
+      Open door screen<span class="sr-only"> for {label}</span>
+    </Button>
+  )}
+</div>

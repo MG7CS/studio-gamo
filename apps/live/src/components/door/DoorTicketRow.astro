@@ -1,0 +1,29 @@
+---
+/** One ticket in a door-day list: order reference, type, holder, how it was sold, and when it was checked in. */
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { DoorListRow } from '../../lib/door-list';
+type Props = DoorListRow;
+const { reference, ticketType, holder, method, checkedIn, orderHref } = Astro.props;
+---
+
+<a
+  href={orderHref}
+  class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)] hover:bg-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+>
+  <span class="min-w-0">
+    <span class="block text-[15px] font-semibold text-ink">
+      {ticketType}
+      {holder ? ` · ${holder}` : ''}
+    </span>
+    <span class="block text-[13px] text-muted">
+      Order {reference} · {method}
+    </span>
+  </span>
+  {checkedIn ? (
+    <Pill tone="success" dot>
+      Checked in {checkedIn}
+    </Pill>
+  ) : (
+    <Pill tone="neutral">Not checked in</Pill>
+  )}
+</a>

@@ -1,0 +1,64 @@
+---
+/**
+ * The person's cash drawer on this date: float, cash sales, refunds and what it should hold; closing it with the
+ * counted cash shows the difference. A drawer just closed is shown with its result.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import { formatCents, type CashSession } from '@gamo/domain';
+import DoorButton from './DoorButton.astro';
+interface Props {
+  drawer: CashSession | null;
+  closed: CashSession | null;
+}
+const { drawer, closed } = Astro.props;
+const differenceWords = (d: number) =>
+  d === 0 ? 'Exactly right' : d < 0 ? `Short by ${formatCents(-d)}` : `Over by ${formatCents(d)}`;
+---
+
+{closed && (
+  <Panel id="drawer-closed" title="Cash drawer closed">
+    <ReceiptLines
+      lines={[
+        { label: 'Starting cash', amount: formatCents(closed.floatCents) },
+        { label: 'Cash sales', amount: formatCents(closed.salesCents) },
+        { label: 'Cash refunds', amount: formatCents(-closed.refundsCents) },
+        { label: 'Expected', amount: formatCents(closed.expectedCents) },
+        { label: 'Counted', amount: formatCents(closed.countedCents ?? 0) },
+      ]}
+      total={{ label: 'Difference', amount: formatCents(closed.differenceCents ?? 0) }}
+    />
+    <p class="mt-2 text-[16px] font-semibold text-ink">{differenceWords(closed.differenceCents ?? 0)}</p>
+  </Panel>
+)}
+{drawer && (
+  <Panel id="drawer" title="Your cash drawer">
+    <ReceiptLines
+      lines={[
+        { label: 'Starting cash', amount: formatCents(drawer.floatCents) },
+        { label: 'Cash sales', amount: formatCents(drawer.salesCents) },
+        { label: 'Cash refunds', amount: formatCents(-drawer.refundsCents) },
+      ]}
+      total={{ label: 'Should hold now', amount: formatCents(drawer.expectedCents) }}
+    />
+    <details class="mt-3">
+      <summary class="inline-flex min-h-14 cursor-pointer list-none items-center rounded-2xl border border-ink/30 bg-white px-5 text-[16px] font-semibold text-ink hover:bg-sand [&::-webkit-details-marker]:hidden">
+        Close drawer
+      </summary>
+      <form method="post" class="mt-3 max-w-md space-y-4">
+        <input type="hidden" name="action" value="close-drawer" />
+        <SplitField
+          id="counted"
+          name="counted"
+          label="Cash counted ($)"
+          inputmode="numeric"
+          required
+          placeholder="245.50"
+        />
+        <SplitField id="note" name="note" label="Note (optional)" maxlength={500} />
+        <DoorButton block>Close and show the difference</DoorButton>
+      </form>
+    </details>
+  </Panel>
+)}

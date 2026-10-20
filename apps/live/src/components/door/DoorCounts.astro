@@ -1,0 +1,35 @@
+---
+/** The live counts of the door: how many are in, out of everyone expected. Big numbers, read at arm's length. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+interface Props {
+  checkedIn: number;
+  expected: number;
+  unit: 'tickets' | 'people';
+  /** The list behind the number (organizers only). */
+  href: string | null;
+}
+const { checkedIn, expected, unit, href } = Astro.props;
+const noun =
+  unit === 'tickets' ? (expected === 1 ? 'ticket' : 'tickets') : expected === 1 ? 'person' : 'people';
+---
+
+<Panel id="count" title="At the door">
+  <p class="flex items-baseline gap-2">
+    {href ? (
+      <a
+        href={href}
+        class="text-[44px] font-black leading-none tracking-[-0.03em] text-ink underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+      >
+        <span data-door-checked>{checkedIn}</span>
+        <span class="sr-only"> checked in. Opens the list.</span>
+      </a>
+    ) : (
+      <span data-door-checked class="text-[44px] font-black leading-none tracking-[-0.03em] text-ink">
+        {checkedIn}
+      </span>
+    )}
+    <span class="text-[15px] text-muted">
+      of <span data-door-expected>{expected}</span> {noun} checked in
+    </span>
+  </p>
+</Panel>

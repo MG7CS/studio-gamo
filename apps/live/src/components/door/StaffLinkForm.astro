@@ -1,0 +1,71 @@
+---
+/** Create a door staff link: a name for the door or person, and what it may do. The PIN is shown once after. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+interface Props {
+  errors?: Partial<Record<'label' | 'permissions' | 'form', string>>;
+  values?: { label: string; permissions: string[] };
+}
+const { errors = {}, values } = Astro.props;
+const chosen = values?.permissions ?? ['check_in'];
+const options = [
+  { value: 'check_in', label: 'Check in', hint: 'Scan tickets and registrations' },
+  { value: 'sell', label: 'Sell', hint: 'Sell tickets for cash, phone or card reader' },
+  { value: 'comp', label: 'Comp', hint: 'Give free tickets with a reason (needs Sell)' },
+];
+---
+
+<Panel
+  id="new-link"
+  title="New staff link"
+  description="One link per door or person. It stops working 12 hours after the event’s last date."
+>
+  {errors.form && (
+    <Notice tone="danger" class="mb-3">
+      {errors.form}
+    </Notice>
+  )}
+  <form method="post" class="space-y-4" novalidate>
+    <input type="hidden" name="action" value="create-link" />
+    <SplitField
+      id="link-label"
+      name="label"
+      label="Name"
+      size="sm"
+      required
+      maxlength={60}
+      placeholder="North door"
+      value={values?.label}
+      error={errors.label}
+    />
+    <fieldset aria-describedby={errors.permissions ? 'link-permissions-error' : undefined}>
+      <legend class="mb-1.5 text-[13px] font-semibold text-ink">What it may do</legend>
+      <div class="flex flex-wrap gap-2">
+        {options.map((o) => (
+          <label class="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink/20 bg-white px-3 text-[14px] text-ink has-[:checked]:border-terracotta-deep">
+            <input
+              type="checkbox"
+              name="permissions"
+              value={o.value}
+              checked={chosen.includes(o.value)}
+              class="h-4 w-4 accent-terracotta-deep"
+            />
+            <span>
+              {o.label}
+              <span class="block text-[12px] text-muted">{o.hint}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {errors.permissions && (
+        <p id="link-permissions-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+          <span class="sr-only">Error: </span>
+          {errors.permissions}
+        </p>
+      )}
+    </fieldset>
+    <Button>Create link</Button>
+  </form>
+</Panel>

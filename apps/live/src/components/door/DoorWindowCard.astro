@@ -1,0 +1,25 @@
+---
+/** Whether check-in is open for this date, and (organizers only) the button to open or close it by hand. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import DoorButton from './DoorButton.astro';
+interface Props {
+  title: string;
+  description: string;
+  canOpen: boolean;
+  canClose: boolean;
+  /** Organizers may open and close check-in; staff only see the state. */
+  manage: boolean;
+}
+const { title, description, canOpen, canClose, manage } = Astro.props;
+---
+
+<Panel id="door" title={title} description={description}>
+  {manage && (canOpen || canClose) && (
+    <form method="post">
+      <input type="hidden" name="action" value={canOpen ? 'open-checkin' : 'close-checkin'} />
+      <DoorButton variant={canOpen ? 'primary' : 'secondary'}>
+        {canOpen ? 'Open check-in now' : 'Close check-in'}
+      </DoorButton>
+    </form>
+  )}
+</Panel>

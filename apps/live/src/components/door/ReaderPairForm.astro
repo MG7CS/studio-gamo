@@ -1,0 +1,103 @@
+---
+/**
+ * Pair a Stripe card reader (owners): a name, the pairing code the reader shows, and the venue's address (Stripe needs
+ * it for the organization's reader location the first time). Members see the readers but cannot pair.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import type { DoorTabFormState } from '../../lib/door-tab';
+interface Props {
+  errors?: DoorTabFormState['pairErrors'];
+  values: { label: string; line1: string; city: string; state: string; postalCode: string };
+  unavailable: string | null;
+}
+const { errors = {}, values, unavailable } = Astro.props;
+---
+
+<Panel
+  id="pair-reader"
+  title="Pair a card reader"
+  description="Turn the reader on and open its pairing screen to see the code."
+>
+  {unavailable ? (
+    <Notice tone="info">{unavailable}</Notice>
+  ) : (
+    <>
+      {errors.form && (
+        <Notice tone="danger" class="mb-3">
+          {errors.form}
+        </Notice>
+      )}
+      <form method="post" class="grid gap-4 sm:grid-cols-2" novalidate>
+        <input type="hidden" name="action" value="pair-reader" />
+        <SplitField
+          id="reader-label"
+          name="label"
+          label="Name"
+          size="sm"
+          required
+          maxlength={60}
+          placeholder="Box office reader"
+          value={values.label}
+          error={errors.label}
+        />
+        <SplitField
+          id="reader-code"
+          name="registrationCode"
+          label="Pairing code"
+          size="sm"
+          required
+          autocomplete="off"
+          error={errors.registrationCode}
+        />
+        <SplitField
+          id="reader-line1"
+          name="line1"
+          label="Venue street address"
+          size="sm"
+          required
+          value={values.line1}
+          error={errors.line1}
+          class="sm:col-span-2"
+        />
+        <SplitField
+          id="reader-city"
+          name="city"
+          label="City"
+          size="sm"
+          required
+          value={values.city}
+          error={errors.city}
+        />
+        <div class="grid grid-cols-2 gap-4">
+          <SplitField
+            id="reader-state"
+            name="state"
+            label="State"
+            size="sm"
+            required
+            maxlength={2}
+            value={values.state}
+            error={errors.state}
+          />
+          <SplitField
+            id="reader-zip"
+            name="postalCode"
+            label="ZIP code"
+            size="sm"
+            required
+            inputmode="numeric"
+            maxlength={10}
+            value={values.postalCode}
+            error={errors.postalCode}
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <Button>Pair reader</Button>
+        </div>
+      </form>
+    </>
+  )}
+</Panel>

@@ -1,0 +1,45 @@
+---
+/**
+ * P8: the door screen for door staff signed in on a link (no sidebar). The device cookie is re-checked on every
+ * request; the link's permissions decide Check in, Sell and Comp. Without a valid device: back to the PIN page.
+ */
+import DoorStaffShell from '../../../components/door/DoorStaffShell.astro';
+import DoorScreen from '../../../components/door/DoorScreen.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { openLive } from '../../../lib/registration';
+import { staffDoorFor } from '../../../lib/door-staff';
+import { doorDeps, handleDoorRequest } from '../../../lib/door-actions';
+import { loadDoorScreen } from '../../../lib/door-screen';
+
+export const prerender = false;
+
+// The address carries the link's secret; the scanner needs the camera.
+requestSecurityHeaders(Astro.locals, { noReferrer: true, camera: true });
+
+const token = Astro.params.token ?? '';
+const now = Math.floor(Date.now() / 1000);
+let live;
+try {
+  live = await openLive(Astro);
+} catch {
+  return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+}
+const found = await staffDoorFor(Astro, live, { token, occurrenceId: Astro.params.occurrenceId ?? '', now });
+if ('response' in found) return found.response;
+const { access } = found;
+const deps = doorDeps(live, Astro.url);
+const outcome = await handleDoorRequest(Astro, deps, access, now);
+if (outcome.response) return outcome.response;
+const view = await loadDoorScreen(deps, access, { params: Astro.url.searchParams, now });
+if (view.refreshSeconds) Astro.response.headers.set('Refresh', String(view.refreshSeconds));
+---
+
+<DoorStaffShell
+  title="Door"
+  label={access.staffLabel ?? 'Door'}
+  linkHref={`/door/${encodeURIComponent(token)}`}
+>
+  <PageTitle title={view.eventTitle} subtext={view.dateLabel} />
+  <DoorScreen view={view} flash={outcome.flash} checkInResult={outcome.checkIn} manage={false} />
+</DoorStaffShell>

@@ -1,0 +1,139 @@
+---
+/**
+ * O6: an event's Door tab (docs/LIVE_SCREENS.md §I.3): the dates with their door screens, staff links (create, shown
+ * once with the PIN; turn off), card readers (owners pair and remove; status asked from Stripe on each load) and every
+ * cash drawer with expected, counted and difference.
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import DoorSection from '../../../../components/door/DoorSection.astro';
+import DoorDateCard from '../../../../components/door/DoorDateCard.astro';
+import StaffLinkForm from '../../../../components/door/StaffLinkForm.astro';
+import StaffLinkCreated from '../../../../components/door/StaffLinkCreated.astro';
+import StaffLinkRow from '../../../../components/door/StaffLinkRow.astro';
+import ReaderPairForm from '../../../../components/door/ReaderPairForm.astro';
+import ReaderRow from '../../../../components/door/ReaderRow.astro';
+import CashDrawerRow from '../../../../components/door/CashDrawerRow.astro';
+import { organizerPage } from '../../../../lib/organizer-session';
+import { doorDeps } from '../../../../lib/door-actions';
+import { handleDoorTab } from '../../../../lib/door-tab';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+const outcome = await handleDoorTab(Astro, doorDeps(live, Astro.url), {
+  active,
+  organizerId: organizer.id,
+  eventId: Astro.params.id ?? '',
+  now,
+});
+if (outcome.response) return outcome.response;
+const { view, state, flash } = outcome;
+const eventHref = `/organizer/events/${encodeURIComponent(view.eventId)}`;
+---
+
+<OrganizerLayout
+  title={`Door · ${view.eventTitle}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: view.eventTitle, href: eventHref },
+      { label: 'Door' },
+    ]}
+  />
+  <PageTitle title={view.eventTitle} subtext="Door screens, staff links, card readers and cash drawers." />
+  <EventTabs eventId={view.eventId} admission={view.admission} current="door" class="mb-4" />
+  {flash && (
+    <Notice tone={flash.tone} id="door-flash" focusable class="mb-4">
+      {flash.text}
+    </Notice>
+  )}
+
+  <DoorSection
+    id="dates"
+    title="Dates"
+    description="Open a date’s door screen to check people in and sell at the door."
+  >
+    {view.dates.length === 0 ? (
+      <EmptyState title="No dates yet" text="Add a date in the event editor first." />
+    ) : (
+      view.dates.map((d) => <DoorDateCard label={d.label} canceled={d.canceled} href={d.href} />)
+    )}
+  </DoorSection>
+
+  <DoorSection
+    id="links"
+    title="Staff links"
+    description="For volunteers without an account: a link and a 6-digit PIN for one door or person."
+  >
+    {state.created && <StaffLinkCreated {...state.created} />}
+    <StaffLinkForm errors={state.linkErrors} values={state.linkValues} />
+    {view.links.length === 0 ? (
+      <EmptyState
+        title="No staff links yet"
+        text="Create one above for each door or person working this event."
+      />
+    ) : (
+      view.links.map((l) => <StaffLinkRow {...l} />)
+    )}
+  </DoorSection>
+
+  <DoorSection
+    id="readers"
+    title="Card readers"
+    description="Stripe readers paired to your organization. They can take card payments at any of your events."
+  >
+    {view.isOwner && (
+      <ReaderPairForm
+        errors={state.pairErrors}
+        values={state.pairValues ?? { ...view.venue, label: '', postalCode: '' }}
+        unavailable={view.pairUnavailable}
+      />
+    )}
+    {view.readers.length === 0 ? (
+      <EmptyState
+        title="No readers paired"
+        text={
+          view.isOwner
+            ? 'Pair one above, or sell with cash and the buyer’s phone.'
+            : 'An owner of your organization can pair one. Cash and the buyer’s phone work without a reader.'
+        }
+      />
+    ) : (
+      view.readers.map((r) => <ReaderRow reader={r} canRemove={view.isOwner} />)
+    )}
+  </DoorSection>
+
+  <DoorSection
+    id="drawers"
+    title="Cash drawers"
+    description="Every drawer opened at this event’s door, newest first."
+  >
+    {view.drawers.length === 0 ? (
+      <EmptyState
+        title="No cash drawers yet"
+        text="A drawer is opened on the door screen before the first cash sale."
+      />
+    ) : (
+      view.drawers.map((d) => <CashDrawerRow {...d} />)
+    )}
+  </DoorSection>
+</OrganizerLayout>

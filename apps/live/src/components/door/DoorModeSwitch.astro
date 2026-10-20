@@ -1,0 +1,33 @@
+---
+/** Check in / Sell at the top of the door screen. Sell appears only when this person may sell on a paid event. */
+interface Props {
+  mode: 'checkin' | 'sell';
+  checkinHref: string | null;
+  sellHref: string | null;
+}
+const { mode, checkinHref, sellHref } = Astro.props;
+const items = [
+  { key: 'checkin', label: 'Check in', href: checkinHref },
+  { key: 'sell', label: 'Sell', href: sellHref },
+].filter((i): i is { key: string; label: string; href: string } => i.href !== null);
+---
+
+{items.length > 1 && (
+  <nav
+    aria-label="Door mode"
+    class="grid grid-cols-2 gap-2 rounded-2xl bg-white p-1.5 shadow-[0_1px_2px_rgba(24,24,27,0.05)]"
+  >
+    {items.map((i) => (
+      <a
+        href={i.href}
+        aria-current={i.key === mode ? 'page' : undefined}
+        class:list={[
+          'flex min-h-14 items-center justify-center rounded-xl text-[16px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+          i.key === mode ? 'bg-terracotta-deep text-white' : 'text-ink hover:bg-sand',
+        ]}
+      >
+        {i.label}
+      </a>
+    ))}
+  </nav>
+)}

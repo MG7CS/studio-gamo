@@ -1,0 +1,10 @@
+---
+/** Shown by scripts/door-online.ts while the device has no connection; selling is disabled meanwhile. */
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+---
+
+<div data-door-offline hidden>
+  <Notice tone="danger" title="No connection">
+    This device is offline. Selling is paused until the connection is back; nothing is saved without it.
+  </Notice>
+</div>

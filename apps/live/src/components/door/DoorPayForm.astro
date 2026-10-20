@@ -1,0 +1,160 @@
+---
+/**
+ * The form for the chosen way to pay. Cash needs an open drawer first (its float); then the cash received (the change
+ * due is shown after). Buyer's phone shows a QR next. Card reader sends the total to a paired, online reader. Comp
+ * needs a reason. Every way takes an optional email to send the tickets to.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import { formatCents, type CashSession } from '@gamo/domain';
+import DoorButton from './DoorButton.astro';
+import type { PayChoice } from '../../lib/door-screen';
+interface Props {
+  pay: PayChoice;
+  sel: string;
+  drawer: CashSession | null;
+  readers: Array<{ id: string; label: string }>;
+  /** False until at least one ticket is chosen. */
+  ready: boolean;
+}
+const { pay, sel, drawer, readers, ready } = Astro.props;
+const titles: Record<PayChoice, string> = {
+  cash: drawer ? 'Cash' : 'Open a cash drawer',
+  phone: 'Buyer’s phone',
+  reader: 'Card reader',
+  comp: 'Comp (free tickets)',
+};
+---
+
+<Panel id="payment" title={titles[pay]}>
+  {pay === 'cash' && !drawer && (
+    <form method="post" class="max-w-md space-y-4">
+      <p class="text-[14px] text-ink">
+        Count the cash in the drawer before the first sale. Every cash sale and refund is recorded against it.
+      </p>
+      <input type="hidden" name="action" value="open-drawer" />
+      <input type="hidden" name="sel" value={sel} />
+      <SplitField
+        id="float"
+        name="float"
+        label="Starting cash ($)"
+        inputmode="numeric"
+        required
+        placeholder="100.00"
+      />
+      <DoorButton block sell>
+        Open drawer
+      </DoorButton>
+    </form>
+  )}
+  {pay === 'cash' && drawer && (
+    <form method="post" class="max-w-md space-y-4">
+      <p class="text-[14px] text-ink">Drawer should hold {formatCents(drawer.expectedCents)} now.</p>
+      <input type="hidden" name="action" value="sell-cash" />
+      <input type="hidden" name="sel" value={sel} />
+      <SplitField
+        id="received"
+        name="received"
+        label="Cash received ($)"
+        inputmode="numeric"
+        required
+        placeholder="50.00"
+      />
+      <SplitField
+        id="email-cash"
+        name="email"
+        type="email"
+        autocomplete="off"
+        label="Email the tickets to (optional)"
+      />
+      <DoorButton block sell>
+        Record sale
+      </DoorButton>
+    </form>
+  )}
+  {pay === 'phone' && (
+    <form method="post" class="max-w-md space-y-4">
+      <p class="text-[14px] text-ink">
+        The buyer scans a QR code with their phone and pays there. This screen confirms when the payment
+        arrives.
+      </p>
+      <input type="hidden" name="action" value="sell-phone" />
+      <input type="hidden" name="sel" value={sel} />
+      <SplitField
+        id="email-phone"
+        name="email"
+        type="email"
+        autocomplete="off"
+        label="Email the tickets to (optional)"
+      />
+      <DoorButton block sell>
+        Show the QR code
+      </DoorButton>
+    </form>
+  )}
+  {pay === 'reader' && readers.length === 0 && (
+    <EmptyState
+      title="No reader is online"
+      text="Switch the reader on and check its connection. Readers are paired in the event’s Door tab."
+    />
+  )}
+  {pay === 'reader' && readers.length > 0 && (
+    <form method="post" class="max-w-md space-y-4">
+      <input type="hidden" name="action" value="sell-reader" />
+      <input type="hidden" name="sel" value={sel} />
+      <fieldset>
+        <legend class="mb-2 text-[14px] font-semibold text-ink">Reader</legend>
+        <div class="space-y-2">
+          {readers.map((r, i) => (
+            <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-ink/20 bg-white px-4 text-[16px] text-ink has-[:checked]:border-terracotta-deep">
+              <input
+                type="radio"
+                name="reader"
+                value={r.id}
+                checked={i === 0}
+                class="h-5 w-5 accent-terracotta-deep"
+              />
+              {r.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <SplitField
+        id="email-reader"
+        name="email"
+        type="email"
+        autocomplete="off"
+        label="Email the tickets to (optional)"
+      />
+      <DoorButton block sell>
+        Send to reader
+      </DoorButton>
+    </form>
+  )}
+  {pay === 'comp' && (
+    <form method="post" class="max-w-md space-y-4">
+      <input type="hidden" name="action" value="sell-comp" />
+      <input type="hidden" name="sel" value={sel} />
+      <SplitField
+        id="reason"
+        name="reason"
+        label="Reason"
+        required
+        maxlength={200}
+        placeholder="Volunteer, guest of the band…"
+      />
+      <SplitField
+        id="email-comp"
+        name="email"
+        type="email"
+        autocomplete="off"
+        label="Email the tickets to (optional)"
+      />
+      <DoorButton block sell>
+        Give free tickets
+      </DoorButton>
+    </form>
+  )}
+  {!ready && pay !== 'cash' && <p class="mt-3 text-[13px] text-muted">Choose tickets first.</p>}
+</Panel>

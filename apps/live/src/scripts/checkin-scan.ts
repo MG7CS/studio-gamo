@@ -1,6 +1,8 @@
 /**
- * Camera scanning for the check-in screen, using the browser's built-in barcode detector (no third-party code).
- * Where it is not available the typed-code form still works. Each scan is sent to the same page as JSON.
+ * Camera scanning for the door screen's Check in mode, using the browser's built-in barcode detector (no third-party
+ * code). Where it is not available the typed-code form still works. Each scan is sent to the same page as JSON
+ * (`{ code }`); the reply is `{ ok, message, counts: { checkedIn, expected } | null }`, and the live count on the
+ * screen is updated from it.
  */
 interface Detector {
   detect(source: CanvasImageSource): Promise<Array<{ rawValue: string }>>;
@@ -28,7 +30,7 @@ function setup(el: HTMLElement) {
   const show = (text: string, tone: 'ok' | 'bad') => {
     result.textContent = text;
     result.className =
-      'mt-4 rounded-xl border px-4 py-3 text-[15px] font-semibold ' +
+      'mt-4 rounded-xl border px-4 py-3 text-[17px] font-semibold ' +
       (tone === 'ok'
         ? 'border-sand bg-cream text-ink'
         : 'border-terracotta-deep/40 bg-white text-terracotta-deep');
@@ -41,8 +43,21 @@ function setup(el: HTMLElement) {
       credentials: 'same-origin',
       body: JSON.stringify({ code }),
     });
-    const body = (await response.json().catch(() => null)) as { message?: string; ok?: boolean } | null;
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+      ok?: boolean;
+      counts?: { checkedIn?: number; expected?: number } | null;
+    } | null;
     show(body?.message ?? 'That could not be checked.', body?.ok ? 'ok' : 'bad');
+    const counts = body?.counts;
+    if (counts && typeof counts.checkedIn === 'number' && typeof counts.expected === 'number') {
+      document
+        .querySelectorAll('[data-door-checked]')
+        .forEach((n) => (n.textContent = String(counts.checkedIn)));
+      document
+        .querySelectorAll('[data-door-expected]')
+        .forEach((n) => (n.textContent = String(counts.expected)));
+    }
   }
 
   async function tick() {

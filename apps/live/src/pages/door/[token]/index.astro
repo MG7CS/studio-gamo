@@ -1,0 +1,99 @@
+---
+/**
+ * P8: a door staff link (docs/LIVE_SCREENS.md §I.2). First the 6-digit PIN (split screen); then the dates of the
+ * link's event that still have a door, or straight to the only one. Wrong PIN: tries left; locked: until when;
+ * turned off or expired: why, and to ask for a new link.
+ */
+import Layout from '../../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { openLive } from '../../../lib/registration';
+import { handleStaffLink } from '../../../lib/door-staff';
+import DoorDateList from '../../../components/door/DoorDateList.astro';
+
+export const prerender = false;
+
+// The address carries the link's secret: never send it in a Referer header.
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+let outcome;
+try {
+  const live = await openLive(Astro);
+  outcome = await handleStaffLink(Astro, live, {
+    token: Astro.params.token ?? '',
+    now: Math.floor(Date.now() / 1000),
+  });
+} catch {
+  outcome = null;
+}
+if (outcome?.response) return outcome.response;
+Astro.response.status = outcome ? outcome.status : 503;
+const entry = outcome?.entry ?? null;
+const pinError = outcome?.pinError ?? null;
+const title = entry?.kind === 'ready' ? entry.label : entry?.kind === 'pin' ? entry.label : 'Door link';
+---
+
+<Layout title="Door" chrome={false} noindex>
+  <SplitScreenLayout photo="soundEngineer" position="44% 34%" program="Gamo Live" brandHref="/">
+    <SplitHeading
+      title={title}
+      subtext={
+        entry?.kind === 'pin'
+          ? entry.eventTitle
+            ? `Door for ${entry.eventTitle}. Enter the PIN you were given with this link.`
+            : 'Enter the PIN you were given with this link.'
+          : entry?.kind === 'ready'
+            ? `Door for ${entry.eventTitle}. Choose the date you are working.`
+            : undefined
+      }
+    />
+    {!entry && (
+      <SplitNotice tone="error">Gamo Live is temporarily unavailable. Please try again later.</SplitNotice>
+    )}
+    {entry?.kind === 'invalid' && (
+      <SplitNotice tone="error">
+        This link is not valid. Check that you opened the whole link, or ask the organizer for a new one.
+      </SplitNotice>
+    )}
+    {entry?.kind === 'closed' && (
+      <SplitNotice tone="error">
+        {entry.reason === 'revoked'
+          ? 'This link was turned off by the organizer. Ask them for a new one.'
+          : 'This link has expired. Links stop working 12 hours after the event’s last date. Ask the organizer for a new one.'}
+      </SplitNotice>
+    )}
+    {entry?.kind === 'pin' && (
+      <>
+        {entry.lockedMessage && !pinError && <SplitNotice tone="error">{entry.lockedMessage}</SplitNotice>}
+        <form method="post" class="space-y-4" novalidate>
+          <input type="hidden" name="action" value="pin" />
+          <SplitField
+            id="pin"
+            name="pin"
+            label="PIN"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength={6}
+            pattern="[0-9]{6}"
+            required
+            error={pinError ?? undefined}
+          />
+          <SplitButton label="Open the door screen" />
+        </form>
+      </>
+    )}
+    {entry?.kind === 'ready' && (
+      <>
+        <DoorDateList dates={entry.dates} />
+        <form method="post" class="mt-4">
+          <input type="hidden" name="action" value="leave" />
+          <SplitButton label="Leave this device" variant="quiet" />
+        </form>
+      </>
+    )}
+  </SplitScreenLayout>
+</Layout>
