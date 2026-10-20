@@ -158,6 +158,14 @@ const navItems = [
         </select>
       </div>
 
+      {/* Sign In Pill */}
+      <a
+        href="/account/signin"
+        class="hidden sm:inline-flex items-center justify-center rounded-full border border-tan bg-transparent hover:bg-sand text-terracotta-deep px-5 min-h-11 text-sm font-semibold transition-colors whitespace-nowrap"
+      >
+        Sign In
+      </a>
+
       {/* Get Tickets Filled Pill */}
       <a
         href="/events"
@@ -273,10 +281,16 @@ const navItems = [
       </ul>
     </nav>
 
-    <div class="mt-4 grid grid-cols-1 gap-2.5 border-t border-sand pt-4">
+    <div class="mt-4 grid grid-cols-2 gap-2.5 border-t border-sand pt-4">
+      <a
+        href="/account/signin"
+        class="flex min-h-11 items-center justify-center rounded-full border border-tan bg-white px-4 text-center text-sm font-semibold text-terracotta-deep"
+      >
+        Sign In
+      </a>
       <a
         href="/events"
-        class="rounded-full bg-terracotta px-4 py-2.5 text-center text-sm font-semibold text-white"
+        class="flex min-h-11 items-center justify-center rounded-full bg-terracotta px-4 text-center text-sm font-semibold text-white"
       >
         Get Tickets
       </a>
