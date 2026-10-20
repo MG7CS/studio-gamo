@@ -98,9 +98,11 @@ export interface LiveEventWithDetails {
   startDateLocal: string;
   startTimeLocal: string;
   occurrenceId: string;
-  /** `free` (open or with registration) or `external` (tickets sold elsewhere). */
-  admissionType: 'free' | 'external';
-  admission: 'free_open' | 'free_registration' | 'external_tickets';
+  /** Paid events on their detail page only (`getEvent`); lists leave it out. */
+  paidTickets?: PaidTicketSummary | null;
+  /** `free` (open or with registration), `external` (tickets sold elsewhere) or `paid` (Gamo's own tickets). */
+  admissionType: 'free' | 'external' | 'paid';
+  admission: 'free_open' | 'free_registration' | 'external_tickets' | 'paid_tickets';
   registrationOpen: boolean;
   qrCheckin: boolean;
   capacity: number | null;
@@ -143,7 +145,30 @@ export interface LiveEventWithDetails {
 
 export interface LiveEventDetail extends LiveEventWithDetails {
   occurrences: LiveOccurrenceView[];
+  /** Only for `paid_tickets` events: what the event page's action panel shows (never invented availability). */
+  paidTickets: PaidTicketSummary | null;
 }
+
+/** The public summary of a paid event's tickets for the date shown. */
+export interface PaidTicketSummary {
+  /** `on_sale`: at least one public type can be bought now; `sold_out`: every public type is taken; `not_open`: sales
+   * start later; `ended`: sales are over. */
+  state: 'on_sale' | 'sold_out' | 'not_open' | 'ended';
+  /** Lowest price in force among public types on sale (cents), or null. */
+  fromCents: number | null;
+  /** When sales open, for `not_open` (epoch seconds). */
+  opensAt: number | null;
+  /** The refund policy in plain words. */
+  refundLine: string;
+  /** Who sells the tickets, or null while Gamo has not chosen how payments work. */
+  sellerLine: string | null;
+}
+
+const REFUND_WORDS: Record<string, (hours: number | null) => string> = {
+  none: () => 'No refunds.',
+  until_hours_before: (h) => `Refunds until ${h ?? 0} hours before the start.`,
+  until_start: () => 'Refunds any time before the start.',
+};
 
 export interface LiveEventFilters {
   category?: string;
@@ -309,6 +334,12 @@ function eventSelect(discovery: boolean, occurrenceWhere = ''): string {
          g.name AS org_name, g.kind AS org_kind, g.slug AS org_slug, g.verified_at AS org_verified_at,
          cs.source_urls, cs.provider, cs.destination_kind, cs.last_verified_at, cs.original_organizer_name,
          o.id AS occurrence_id, o.starts_at, o.ends_at, o.seats_taken - ${heldSeats('o.id')} AS seats_taken,
+         CASE WHEN e.admission = 'paid_tickets' THEN (
+           SELECT MIN(COALESCE((SELECT d.price_cents FROM price_deadlines d WHERE d.ticket_type_id = t.id AND d.ends_at > ?1
+                                 ORDER BY d.ends_at LIMIT 1), t.price_cents))
+             FROM ticket_types t
+            WHERE t.event_id = e.id AND t.status = 'on_sale' AND (t.sales_end_at IS NULL OR t.sales_end_at > ?1)
+         ) END AS paid_from_cents,
          (SELECT COALESCE(SUM(x.seats_taken - ${heldSeats('x.id')}), 0) FROM event_occurrences x WHERE x.event_id = e.id) AS registered_total
     FROM events e
     JOIN venues v ON v.id = e.venue_id
@@ -387,7 +418,8 @@ export class LiveCatalog {
       startDateLocal: local.date,
       startTimeLocal: local.time,
       occurrenceId: String(r.occurrence_id),
-      admissionType: admission === 'external_tickets' ? 'external' : 'free',
+      admissionType:
+        admission === 'external_tickets' ? 'external' : admission === 'paid_tickets' ? 'paid' : 'free',
       admission,
       registrationOpen: admission === 'free_registration' && !past && !canceled,
       qrCheckin: num(r.qr_checkin) === 1,
@@ -403,7 +435,8 @@ export class LiveCatalog {
       sourceUrlsJson: str(r.source_urls),
       lastVerifiedAt: date(r.last_verified_at),
       originalOrganizerName: str(r.original_organizer_name),
-      priceMinCents: null,
+      priceMinCents:
+        admission === 'paid_tickets' && r.paid_from_cents != null ? num(r.paid_from_cents) : null,
       currency: 'USD',
       ticketAvailability: 'unverified',
       photoKey: str(r.image_key),
@@ -527,6 +560,7 @@ export class LiveCatalog {
     });
     return {
       ...this.mapEvent(row, performers.get(String(row.id)) ?? [], now),
+      paidTickets: row.admission === 'paid_tickets' ? await this.paidTicketSummary(row, now) : null,
       occurrences: occ.map((o) => ({
         id: String(o.id),
         startsAt: new Date(num(o.starts_at) * 1000),
@@ -535,6 +569,95 @@ export class LiveCatalog {
         isPast: (o.ends_at == null ? num(o.starts_at) : num(o.ends_at)) <= now,
         seatsTaken: num(o.seats_taken),
       })),
+    };
+  }
+
+  /**
+   * What a paid event's panel shows for the date on screen: whether a public ticket type can be bought now (sales
+   * window open, not ended, seats left online after the door allocation, counting holds of unpaid orders that have
+   * already expired as free), the lowest price in force, the refund policy and the seller.
+   */
+  private async paidTicketSummary(row: Row, now: number): Promise<PaidTicketSummary> {
+    const eventId = String(row.id);
+    const occurrenceId = String(row.occurrence_id);
+    const types = await allRows<Row>(this.db, {
+      sql: `SELECT t.id, t.status, t.sales_start_at, t.sales_end_at, t.people_per_ticket,
+                   COALESCE((SELECT d.price_cents FROM price_deadlines d WHERE d.ticket_type_id = t.id AND d.ends_at > ?1
+                              ORDER BY d.ends_at LIMIT 1), t.price_cents) AS price_cents,
+                   i.capacity, i.online_taken, i.door_allocation, i.door_taken,
+                   COALESCE((SELECT SUM(oi.quantity) FROM order_items oi JOIN orders o ON o.id = oi.order_id
+                              WHERE oi.ticket_type_id = t.id AND o.occurrence_id = ?3 AND o.status = 'pending'
+                                AND o.channel = 'online' AND o.hold_expires_at <= ?1), 0) AS expired_held
+              FROM ticket_types t
+              LEFT JOIN ticket_inventory i ON i.ticket_type_id = t.id AND i.occurrence_id = ?3
+             WHERE t.event_id = ?2 AND t.status <> 'hidden'`,
+      params: [now, eventId, occurrenceId],
+    });
+    const [cap] = await allRows<Row>(this.db, {
+      sql: `SELECT capacity, people_taken,
+                   COALESCE((SELECT SUM(oi.quantity * oi.people_per_ticket) FROM order_items oi JOIN orders o ON o.id = oi.order_id
+                              WHERE o.occurrence_id = ?2 AND o.status = 'pending' AND o.hold_expires_at <= ?1), 0) AS expired_people
+              FROM occurrence_inventory WHERE occurrence_id = ?2`,
+      params: [now, occurrenceId],
+    });
+    const [policy] = await allRows<Row>(this.db, {
+      sql: `SELECT et.refund_policy, et.refund_hours,
+                   COALESCE(op.funds_flow_override, CASE WHEN ps.funds_flow_default = 'not_chosen' THEN NULL ELSE ps.funds_flow_default END) AS flow
+              FROM events e
+              LEFT JOIN event_ticketing et ON et.event_id = e.id
+              LEFT JOIN organization_payments op ON op.organization_id = e.organization_id
+              LEFT JOIN payment_settings ps ON ps.id = 1
+             WHERE e.id = ?1`,
+      params: [eventId],
+    });
+    const peopleLeft =
+      cap?.capacity == null ? Infinity : num(cap.capacity) - num(cap.people_taken) + num(cap.expired_people);
+    let fromCents: number | null = null;
+    let anyLater: number | null = null;
+    let anyOpenWindow = false;
+    let anyBuyable = false;
+    for (const t of types) {
+      if (t.status !== 'on_sale') continue;
+      const start = t.sales_start_at == null ? null : num(t.sales_start_at);
+      const end = t.sales_end_at == null ? null : num(t.sales_end_at);
+      if (end !== null && end <= now) continue;
+      if (start !== null && start > now) {
+        anyLater = anyLater === null ? start : Math.min(anyLater, start);
+        continue;
+      }
+      anyOpenWindow = true;
+      const online =
+        t.capacity == null
+          ? Infinity
+          : num(t.capacity) -
+            (num(t.online_taken) - num(t.expired_held)) -
+            Math.max(num(t.door_allocation), num(t.door_taken));
+      if (online >= 1 && peopleLeft >= num(t.people_per_ticket)) {
+        anyBuyable = true;
+        fromCents = fromCents === null ? num(t.price_cents) : Math.min(fromCents, num(t.price_cents));
+      }
+    }
+    const state: PaidTicketSummary['state'] = anyBuyable
+      ? 'on_sale'
+      : anyOpenWindow
+        ? 'sold_out'
+        : anyLater !== null
+          ? 'not_open'
+          : 'ended';
+    const words = REFUND_WORDS[String(policy?.refund_policy ?? 'none')] ?? REFUND_WORDS.none;
+    const org = str(row.org_name) ?? 'the organizer';
+    const flow = str(policy?.flow);
+    return {
+      state,
+      fromCents,
+      opensAt: state === 'not_open' ? anyLater : null,
+      refundLine: words(policy?.refund_hours == null ? null : num(policy.refund_hours)),
+      sellerLine:
+        flow === 'organizer_account'
+          ? `Sold by ${org}.`
+          : flow === 'gamo_collects'
+            ? `Sold by Gamo Studios on behalf of ${org}.`
+            : null,
     };
   }
 

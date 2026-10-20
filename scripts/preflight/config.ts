@@ -195,18 +195,15 @@ export function analyzeConfigs(
         message: `[env.${env}.vars] ENVIRONMENT is "${r.vars.ENVIRONMENT ?? ''}", expected "${env}".`,
       });
     }
-    for (const flag of ['ALLOW_DEMO_SESSION', 'ALLOW_AUTH_SIMULATION', 'ALLOW_PUBLIC_DEMO_WORKSPACES']) {
+    for (const flag of [
+      'ALLOW_DEMO_SESSION',
+      'ALLOW_AUTH_SIMULATION',
+      'ALLOW_PUBLIC_DEMO_WORKSPACES',
+      'ALLOW_STRIPE_STANDIN',
+    ]) {
       if (r.vars[flag] === 'true')
         add({ severity: 'error', app, code: 'local-flag', message: `${flag} is true in ${env}.` });
     }
-    if (env === 'production' && r.vars.STRIPE_TEST_CHECKOUT === 'true')
-      add({
-        severity: 'error',
-        app,
-        code: 'test-checkout-in-production',
-        message:
-          'STRIPE_TEST_CHECKOUT is true in production (the app refuses to serve; paid checkout stays 503).',
-      });
 
     if (r.kv.length === 0)
       add({ severity: 'error', app, code: 'kv-missing', message: 'no kv_namespaces declared.' });

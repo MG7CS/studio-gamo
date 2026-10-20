@@ -12,7 +12,7 @@
     "lint:fix": "eslint . --cache --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "tsx --test 'packages/**/*.test.ts' 'scripts/**/*.test.ts' scripts/image-policy.test.mjs",
+    "test": "tsx --test 'packages/**/*.test.ts' 'scripts/**/*.test.ts' 'apps/*/src/**/*.test.ts' scripts/image-policy.test.mjs",
     "knip": "knip",
     "preflight": "tsx scripts/preflight/cli.ts",
     "check:quick": "pnpm lint && pnpm format:check && pnpm test",

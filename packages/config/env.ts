@@ -28,22 +28,21 @@ export interface GamoEnv {
   // Email delivery webhooks (Resend → /api/webhook/resend, Svix signature)
   RESEND_WEBHOOK_SECRET?: string;
 
-  // Payments (Gamo Live, Stripe test mode only)
+  // Payments (Gamo Live; Stripe test mode only until the owner approves production; docs/LIVE_PAYMENTS.md)
+  /** Secret or restricted key. `sk_live_`/`rk_live_` are fatal outside production; test keys are an error in production. */
   STRIPE_SECRET_KEY?: string;
+  /** Signing secret (`whsec_…`) of the platform webhook endpoint `/api/stripe/webhook`. */
   STRIPE_WEBHOOK_SECRET?: string;
-  /** `true` opens the test-mode paid checkout path in local/preview only; fatal in production (design T-05). */
-  STRIPE_TEST_CHECKOUT?: string;
+  /** Signing secret (`whsec_…`) of the Connect webhook endpoint `/api/stripe/connect-webhook`. */
+  STRIPE_CONNECT_WEBHOOK_SECRET?: string;
+  /** Local only: `true` uses the local Stripe stand-in when no STRIPE_SECRET_KEY is set. Fatal outside ENVIRONMENT=local. */
+  ALLOW_STRIPE_STANDIN?: string;
 
-  // Identity and ticketing secrets (design §10; each ≥ 32 characters, never shared with SESSION_SECRET)
-  /** Ticket QR HMAC key, generation 1 (`GL1.…` payloads). A later rotation adds TICKET_QR_SECRET_GL2. */
-  TICKET_QR_SECRET_GL1?: string;
-  TICKET_QR_SECRET_GL2?: string;
-  /** HMAC key for customer manage/recovery link tokens. */
-  CUSTOMER_LINK_SECRET?: string;
-  /** HMAC key for hashed IPs and emails (consents, logs, rate limits, suppressions). */
+  // Gamo Live secrets (each ≥ 32 characters)
+  /** HMAC key for hashed IPs and emails (registrations, orders, rate limits) and registration codes and links. */
   PII_HASH_SECRET?: string;
-  /** Signs door-staff scanner cookies and peppers scanner PINs. */
-  SCANNER_SESSION_SECRET?: string;
+  /** HMAC key for paid ticket QR credentials, order page links, door staff link tokens and the PIN pepper. */
+  LIVE_TICKET_SECRET?: string;
 
   // Gamo Live sign-in (its own Clerk application; the publishable key is `PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE`)
   CLERK_SECRET_KEY_LIVE?: string;

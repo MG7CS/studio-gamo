@@ -8,7 +8,7 @@
  *   2. the role's onboarding steps are complete,
  *   3. the current Provider Terms (or Organizer Terms for organizers) are accepted,
  *   4. staff review where required — `STAFF_REVIEW_REQUIRED_ROLES` (church, musician, technician) and,
- *      for child safety, teachers (D-104); churches are verified after an in-person meeting,
+ *      for child safety, teachers (D-104); churches are verified after a meeting (video call or in person),
  *   5. payout setup for paid events — Stripe Connect is not built, so this gate always reads
  *      "not available yet" and paid events stay closed (it does not block a profile).
  *
@@ -70,7 +70,7 @@ export function requiresStaffReview(role: ProviderRole): boolean {
   return (STAFF_REVIEW_REQUIRED_ROLES as readonly string[]).includes(role) || role === 'teacher';
 }
 
-/** Churches are verified only after an in-person meeting (owner decision 4). */
+/** Churches are verified only after a verification meeting, by video call or in person (owner decision 4). */
 export function requiresMeeting(role: ProviderRole): boolean {
   return role === 'church';
 }
@@ -218,7 +218,8 @@ export const ONBOARDING_STEPS: Readonly<Record<ProviderRole, readonly Onboarding
     {
       id: 'church',
       label: 'Your church',
-      description: 'The church as it is legally registered. Staff confirm it in person before it is listed.',
+      description:
+        'The church as it is legally registered. Staff confirm it in a meeting (video call or in person) before it is listed.',
       fields: [
         text('legalName', 'Legal name of the church', true, { autocomplete: 'organization' }),
         text('denomination', 'Denomination or network (optional)', false),
@@ -701,7 +702,7 @@ export async function evaluatePublishGates(
   const reviewNeeded = profile.requiresStaffReview;
   const reviewHelp: Record<ProviderStatus, string> = {
     draft: requiresMeeting(profile.role)
-      ? 'Submit your church for verification. Staff will contact you to arrange an in-person meeting.'
+      ? 'Submit your church for verification. Staff will contact you to arrange a verification meeting (video call or in person).'
       : 'Submit your profile for review once every step is complete.',
     submitted: 'Submitted — staff will review it and email you.',
     meeting_scheduled: 'A verification meeting is scheduled. Staff will email you after it.',
@@ -747,7 +748,9 @@ export async function evaluatePublishGates(
     },
     {
       id: 'review',
-      label: requiresMeeting(profile.role) ? 'Verified in person by Gamo staff' : 'Reviewed by Gamo staff',
+      label: requiresMeeting(profile.role)
+        ? 'Verified by Gamo staff after a meeting'
+        : 'Reviewed by Gamo staff',
       met: !reviewNeeded || profile.status === 'verified',
       blocking: reviewNeeded,
       help: reviewNeeded

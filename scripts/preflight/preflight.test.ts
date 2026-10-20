@@ -108,18 +108,19 @@ test('a clean configuration has no findings', () => {
   }
 });
 
-test('STRIPE_TEST_CHECKOUT=true is an error in production only', () => {
+test('the local Stripe stand-in flag is an error in every deployed environment', () => {
   const root = fixtureRepo((app) =>
     toml({ admin: app === 'admin' })
-      .replace('ENVIRONMENT = "production"', 'ENVIRONMENT = "production"\nSTRIPE_TEST_CHECKOUT = "true"')
-      .replace('ENVIRONMENT = "preview"', 'ENVIRONMENT = "preview"\nSTRIPE_TEST_CHECKOUT = "true"'),
+      .replace('ENVIRONMENT = "production"', 'ENVIRONMENT = "production"\nALLOW_STRIPE_STANDIN = "true"')
+      .replace('ENVIRONMENT = "preview"', 'ENVIRONMENT = "preview"\nALLOW_STRIPE_STANDIN = "true"'),
   );
   try {
-    assert.deepEqual(analyzeConfigs(root, ['live'], 'preview'), []);
-    assert.deepEqual(
-      analyzeConfigs(root, ['live'], 'production').map((f) => f.code),
-      ['test-checkout-in-production'],
-    );
+    for (const env of ['preview', 'production'] as const)
+      assert.deepEqual(
+        analyzeConfigs(root, ['live'], env).map((f) => f.code),
+        ['local-flag'],
+        env,
+      );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

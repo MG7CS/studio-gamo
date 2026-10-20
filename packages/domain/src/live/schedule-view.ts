@@ -114,7 +114,7 @@ export function organizationScheduleView(input: {
       confirmedPeople: d.confirmedPeople,
       href: `/organizer/events/${d.eventId}?date=${chosenDate}#calendar`,
       checkInOpen: doorOpen(d),
-      checkInHref: `/organizer/check-in/${d.id}`,
+      checkInHref: `/organizer/door/${d.id}?mode=checkin`,
     })),
     total: input.dates.length,
     upcoming: input.dates.filter((d) => !d.canceled && (d.endsAt ?? d.startsAt) > input.now).length,
@@ -123,7 +123,7 @@ export function organizationScheduleView(input: {
       eventId: d.eventId,
       title: d.title,
       timeLabel: timeOf(d.startsAt, d.timeZone),
-      href: `/organizer/check-in/${d.id}`,
+      href: `/organizer/door/${d.id}?mode=checkin`,
     })),
   };
 }

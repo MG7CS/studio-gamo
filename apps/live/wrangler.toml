@@ -7,9 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ENVIRONMENT = "local"
 ALLOW_DEMO_SESSION = "false"
-STRIPE_SANDBOX_ENABLED = "true"
 # Local only: the mock Stripe checkout page (docs/TICKETING.md). Never set in production.
-STRIPE_TEST_CHECKOUT = "true"
 PLATFORM_BRAND = "Gamo Live"
 PLATFORM_IS_LIVE_DOMAIN = "false"
 PLATFORM_SUPPORT_EMAIL = "hello@gamostudio.org"
@@ -55,9 +53,7 @@ workers_dev = true
 [env.preview.vars]
 ENVIRONMENT = "preview"
 PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa4P6c3vDrYW8Qo"
-STRIPE_TEST_CHECKOUT = "true"
 ALLOW_DEMO_SESSION = "false"
-STRIPE_SANDBOX_ENABLED = "true"
 PLATFORM_BRAND = "Gamo Live"
 PLATFORM_IS_LIVE_DOMAIN = "false"
 PLATFORM_SUPPORT_EMAIL = "hello@gamostudio.org"
@@ -99,9 +95,7 @@ routes = [
 [env.production.vars]
 ENVIRONMENT = "production"
 PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa5Jse4TTbIFvR9"
-STRIPE_TEST_CHECKOUT = "false"
 ALLOW_DEMO_SESSION = "false"
-STRIPE_SANDBOX_ENABLED = "true"
 PLATFORM_BRAND = "Gamo Live"
 PLATFORM_IS_LIVE_DOMAIN = "false"
 PLATFORM_SUPPORT_EMAIL = "hello@gamostudio.org"

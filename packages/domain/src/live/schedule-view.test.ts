@@ -82,7 +82,7 @@ test('check-in is offered only while the door is open: public, not canceled, che
     });
   assert.equal(door({}, at(-4)).openNow.length, 0, 'before the window opens');
   assert.equal(door({}, at(-2)).openNow.length, 1, 'inside the window (3 hours before)');
-  assert.equal(door({}, at(-2)).openNow[0].href, '/organizer/check-in/o1');
+  assert.equal(door({}, at(-2)).openNow[0].href, '/organizer/door/o1?mode=checkin');
   assert.equal(door({}, at(13)).openNow.length, 0, 'closed 12 hours after the start');
   assert.equal(
     door({}, at(-4), { enabled: true, opensHours: 3, openedAt: at(-4) }).openNow.length,
@@ -99,5 +99,5 @@ test('check-in is offered only while the door is open: public, not canceled, che
   assert.equal(door({ checkIn: undefined }, at(-2)).openNow.length, 0, 'no check-in data');
   const chosen = door({}, at(-2));
   assert.equal(chosen.items[0].checkInOpen, true, 'the chosen day offers it too');
-  assert.equal(chosen.items[0].checkInHref, '/organizer/check-in/o1');
+  assert.equal(chosen.items[0].checkInHref, '/organizer/door/o1?mode=checkin');
 });

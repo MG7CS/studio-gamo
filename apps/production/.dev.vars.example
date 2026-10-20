@@ -17,9 +17,8 @@ CLERK_ISSUER_PRODUCTION=
 # OPTIONAL. Comma-separated allowed origins for Clerk tokens; defaults to this app's local/preview/production origins.
 CLERK_AUTHORIZED_PARTIES_PRODUCTION=
 
-# Identity, consent and abuse protection (docs/design/identity-and-ticketing.md §10; RUNBOOK §3).
-# Gamo HMAC keys (PII_HASH_SECRET, TICKET_QR_SECRET_GL1, CUSTOMER_LINK_SECRET, SCANNER_SESSION_SECRET) need ≥ 32 random
-# characters each and must differ from SESSION_SECRET and from each other. Provider secrets are pasted as issued.
+# Consent and abuse protection. Gamo HMAC keys (PII_HASH_SECRET) need ≥ 32 random characters and must differ from
+# SESSION_SECRET and from each other. Provider secrets are pasted as issued.
 # Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 # OPTIONAL locally. HMAC key for hashed IPs/emails (consents, rate limits, email log). Outside local: forms that need it answer 503.
 PII_HASH_SECRET=

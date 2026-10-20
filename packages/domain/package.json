@@ -18,9 +18,6 @@
     "./page-middleware": "./src/api/page-middleware.ts",
     "./security": "./src/security/index.ts",
     "./types": "./src/types/index.ts",
-    "./ticketing": "./src/ticketing/index.ts",
-    "./terms": "./src/terms/index.ts",
-    "./public-form-guard": "./src/api/public-form-guard.ts",
-    "./scanner": "./src/services/ticketing/scanning-exports.ts"
+    "./terms": "./src/terms/index.ts"
   }
 }
