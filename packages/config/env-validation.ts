@@ -45,7 +45,11 @@ const LOCAL_ONLY_FLAGS = [
   'ALLOW_AUTH_SIMULATION',
   'ALLOW_PUBLIC_DEMO_WORKSPACES',
   'ALLOW_LOCAL_ADMIN_IDENTITY',
+  'ALLOW_STRIPE_STANDIN',
 ] as const;
+
+const STRIPE_LIVE_KEY = /^(sk|rk|pk)_live_/;
+const STRIPE_TEST_KEY = /^(sk|rk|pk)_test_/;
 
 const present = (value: unknown): boolean => typeof value === 'string' && value.trim().length > 0;
 
@@ -65,6 +69,14 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     add('fatal', 'ENVIRONMENT', 'must be one of local, preview, production');
     return problems;
   }
+
+  // Stripe live-mode keys never run outside production (checked before the local early return).
+  if (environment !== 'production' && STRIPE_LIVE_KEY.test(String(env.STRIPE_SECRET_KEY ?? '').trim()))
+    add(
+      'fatal',
+      'STRIPE_SECRET_KEY',
+      'is a live-mode key; only test-mode keys are allowed outside production',
+    );
 
   if (environment === 'local') {
     // A `local` build served from a real hostname means it was deployed without --env.
@@ -86,12 +98,6 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       'fatal',
       'GAMO_DEV_PHONE_TOKEN',
       'is a local-only setting (make admin-phone) and must not be set outside ENVIRONMENT=local',
-    );
-  if (environment === 'production' && env.STRIPE_TEST_CHECKOUT === 'true')
-    add(
-      'fatal',
-      'STRIPE_TEST_CHECKOUT',
-      'must not be "true" in production; paid checkout stays closed (503) in production',
     );
 
   // The admin has no sessions (Cloudflare Access is its only credential) and still reads the old database.
@@ -149,6 +155,7 @@ function addLiveProblems(
       'Clerk is not configured; organizer sign-in is unavailable',
     );
   }
+  addStripeProblems(env, environment, add);
   if (environment === 'production') {
     if (String(env.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE ?? '').startsWith('pk_test_'))
       add(
@@ -163,6 +170,40 @@ function addLiveProblems(
         'is a Clerk development key; production needs the production instance',
       );
   }
+}
+
+/** Gamo Live payments: test mode until the owner approves production; card sales fail closed without keys. */
+function addStripeProblems(
+  env: GamoEnv,
+  environment: string,
+  add: (severity: EnvSeverity, name: string, message: string) => void,
+): void {
+  const ticketSecret = typeof env.LIVE_TICKET_SECRET === 'string' ? env.LIVE_TICKET_SECRET.trim() : '';
+  if (ticketSecret.length < 32)
+    add(
+      'warning',
+      'LIVE_TICKET_SECRET',
+      'is not set to at least 32 characters; paid tickets, order links and door staff links answer 503',
+    );
+  const key = String(env.STRIPE_SECRET_KEY ?? '').trim();
+  if (!key) {
+    add('warning', 'STRIPE_SECRET_KEY', 'Stripe is not configured; card sales are unavailable');
+    return;
+  }
+  if (environment === 'production' && STRIPE_TEST_KEY.test(key))
+    add('error', 'STRIPE_SECRET_KEY', 'is a test-mode key; production needs the owner-approved live key');
+  if (!present(env.STRIPE_WEBHOOK_SECRET))
+    add(
+      'error',
+      'STRIPE_WEBHOOK_SECRET',
+      'is missing while STRIPE_SECRET_KEY is set; payments cannot be confirmed, so card sales answer 503',
+    );
+  if (!present(env.STRIPE_CONNECT_WEBHOOK_SECRET))
+    add(
+      'warning',
+      'STRIPE_CONNECT_WEBHOOK_SECRET',
+      "is missing; organizations' own Stripe accounts (Mode A) cannot be used",
+    );
 }
 
 let reported = false;

@@ -69,7 +69,7 @@ export function availableReviewActions(
 ): ProviderReviewAction[] {
   return PROVIDER_REVIEW_ACTIONS.filter((action) => {
     if (!TRANSITIONS[action].from.includes(profile.status)) return false;
-    // A church is verified only after the in-person meeting has been scheduled (owner decision 4).
+    // A church is verified only after its verification meeting (video call or in person) has been scheduled (owner decision 4).
     if (action === 'verify' && requiresMeeting(profile.role) && profile.status !== 'meeting_scheduled')
       return false;
     return true;
@@ -172,7 +172,7 @@ export async function reviewProviderProfile(
     throw new ReviewError(
       'INVALID',
       input.action === 'verify' && requiresMeeting(profile.role)
-        ? 'Schedule and hold the in-person meeting before verifying a church.'
+        ? 'Schedule and hold a verification meeting (video call or in person) before verifying a church.'
         : `“${input.action.replace(/_/g, ' ')}” is not possible while the profile is ${profile.status.replace(/_/g, ' ')}.`,
     );
 
@@ -207,7 +207,10 @@ export async function reviewProviderProfile(
       if (requiresMeeting(profile.role)) {
         const meeting = await latestMeeting(db, profile.id);
         if (!meeting)
-          throw new ReviewError('INVALID', 'Schedule the in-person meeting before verifying a church.');
+          throw new ReviewError(
+            'INVALID',
+            'Schedule a verification meeting (video call or in person) before verifying a church.',
+          );
         meetingAt = meeting.meetingAt;
         meetingLocation = meeting.location;
       }
@@ -281,7 +284,7 @@ const DECISION_COPY: Partial<
 > = {
   schedule_meeting: (role) => ({
     subject: `Your ${role} verification meeting is scheduled`,
-    body: 'Gamo Studios staff scheduled an in-person verification meeting.',
+    body: 'Gamo Studios staff scheduled a verification meeting (video call or in person).',
   }),
   verify: (role) => ({
     subject: `Your ${role} profile is verified`,

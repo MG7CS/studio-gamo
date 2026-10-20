@@ -2,6 +2,8 @@
  * The admin's calendar: every date of every organizer event and catalog listing on one calendar, so Gamo can see what
  * is coming and which events still waiting for review start soon. `listAdminSchedule` reads the dates;
  * `adminScheduleView` is pure (dates, clock and address in, what to draw out), like the organizer's schedule view.
+ * Organization verification meetings (scheduled or held) are on the same calendar (`source: 'meeting'`), linking to the
+ * organization's page where the meeting step lives (docs/LIVE_SCREENS.md C5).
  */
 import {
   calendarModel,
@@ -13,13 +15,16 @@ import {
 import { allRows, type SqlDatabase } from '../security/sql-database.ts';
 
 export type AdminScheduleScope = 'all' | 'catalog';
-export type AdminScheduleSource = 'organizer' | 'catalog';
+export type AdminScheduleSource = 'organizer' | 'catalog' | 'meeting';
 
 export interface AdminScheduledDate {
   id: string;
+  /** The event's id; for a verification meeting, the meeting's id. */
   eventId: string;
+  /** The organization a verification meeting is with (meetings only). */
+  organizationId?: string | null;
   title: string;
-  /** The event's status: published, pending_review, hidden or (catalog only) rejected. */
+  /** The event's status: published, pending_review, hidden or (catalog only) rejected; a meeting's: meeting_scheduled or meeting_held. */
   status: string;
   source: AdminScheduleSource;
   organizationName: string | null;
@@ -60,7 +65,7 @@ export async function listAdminSchedule(
            ORDER BY o.starts_at, e.title LIMIT ?2`,
     params: [input.now - HISTORY_DAYS * DAY, input.limit ?? 2000],
   });
-  return rows.map((r) => ({
+  const dates: AdminScheduledDate[] = rows.map((r) => ({
     id: String(r.id),
     eventId: String(r.event_id),
     title: String(r.title),
@@ -71,6 +76,39 @@ export async function listAdminSchedule(
     startsAt: Number(r.starts_at),
     endsAt: r.ends_at == null ? null : Number(r.ends_at),
     canceled: r.occ_status === 'canceled',
+  }));
+  if (input.scope === 'catalog') return dates;
+  const meetings = await listVerificationMeetingDates(db, { now: input.now });
+  return [...dates, ...meetings].sort((a, b) => a.startsAt - b.startsAt || a.title.localeCompare(b.title));
+}
+
+/** How long a verification meeting is drawn on the calendar (the real length is not recorded). */
+export const MEETING_CALENDAR_SECONDS = 3600;
+
+/** Scheduled and held verification meetings with organizations, for the admin's calendar. Canceled ones stay off. */
+export async function listVerificationMeetingDates(
+  db: SqlDatabase,
+  input: { now: number; limit?: number },
+): Promise<AdminScheduledDate[]> {
+  const rows = await allRows<Record<string, unknown>>(db, {
+    sql: `SELECT vm.id, vm.subject_id, vm.starts_at, vm.timezone, vm.status, g.name
+            FROM verification_meetings vm JOIN organizations g ON g.id = vm.subject_id
+           WHERE vm.subject_type = 'organization' AND vm.status IN ('scheduled', 'held') AND vm.starts_at >= ?1
+           ORDER BY vm.starts_at, g.name LIMIT ?2`,
+    params: [input.now - HISTORY_DAYS * DAY, input.limit ?? 500],
+  });
+  return rows.map((r) => ({
+    id: String(r.id),
+    eventId: String(r.id),
+    organizationId: String(r.subject_id),
+    title: `Verification meeting: ${String(r.name)}`,
+    status: r.status === 'held' ? 'meeting_held' : 'meeting_scheduled',
+    source: 'meeting' as const,
+    organizationName: String(r.name),
+    timeZone: String(r.timezone),
+    startsAt: Number(r.starts_at),
+    endsAt: Number(r.starts_at) + MEETING_CALENDAR_SECONDS,
+    canceled: false,
   }));
 }
 
@@ -119,8 +157,12 @@ const dayOf = (epoch: number, timeZone: string) =>
     new Date(epoch * 1000),
   );
 
-/** Where Gamo acts on a date's event. */
-export function adminEventHref(d: Pick<AdminScheduledDate, 'source' | 'status' | 'eventId'>): string {
+/** Where Gamo acts on a date's event (or, for a verification meeting, on the organization). */
+export function adminEventHref(
+  d: Pick<AdminScheduledDate, 'source' | 'status' | 'eventId'> & { organizationId?: string | null },
+): string {
+  if (d.source === 'meeting')
+    return `/organizations/${encodeURIComponent(d.organizationId ?? '')}#verification`;
   if (d.source === 'catalog') return `/catalog#listing-${d.eventId}`;
   return d.status === 'pending_review'
     ? `/events#event-${d.eventId}`
@@ -132,6 +174,8 @@ const STATUS: Record<string, { label: string; tone: AdminDayItem['tone'] }> = {
   pending_review: { label: 'Waiting for review', tone: 'warning' },
   hidden: { label: 'Hidden', tone: 'neutral' },
   rejected: { label: 'Failed editorial rules', tone: 'danger' },
+  meeting_scheduled: { label: 'Verification meeting', tone: 'info' },
+  meeting_held: { label: 'Meeting held', tone: 'neutral' },
 };
 
 export function adminScheduleView(input: {

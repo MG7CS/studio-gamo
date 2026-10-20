@@ -23,3 +23,16 @@ PII_HASH_SECRET=
 # server terminal; outside local nothing is sent and registration fails closed. EMAIL_FROM must be on gamostudio.org.
 RESEND_API_KEY=
 EMAIL_FROM=Gamo Live <hello@gamostudio.org>
+
+# Paid tickets, order links and door staff links (32+ random characters). Optional locally (a fixed development key is
+# used); required in preview/production for paid events.
+LIVE_TICKET_SECRET=
+
+# Payments: Stripe TEST mode only (docs/LIVE_PAYMENTS.md, RUNBOOK §7). Live keys (sk_live_/rk_live_) are refused outside
+# production. Leave these empty to use the local Stripe stand-in (ALLOW_STRIPE_STANDIN=true, local only); once you add
+# a test key, the same code talks to Stripe's test mode. No publishable key is needed (hosted Checkout, server-driven
+# Terminal). Webhook secrets come from `stripe listen` locally or from the endpoints you create in the dashboard.
+ALLOW_STRIPE_STANDIN=true
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_CONNECT_WEBHOOK_SECRET=

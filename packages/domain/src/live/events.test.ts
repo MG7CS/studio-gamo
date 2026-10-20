@@ -28,11 +28,15 @@ import {
 } from './events.ts';
 import { OrganizerError } from './organizers.ts';
 import {
+  LiveAdminError,
   listPendingEvents,
   listPublishedOrganizerEvents,
+  paidEventReviewDetails,
   reviewLiveEvent,
   setOrganizerEventHidden,
 } from './admin.ts';
+import { PaidError } from './paid-types.ts';
+import { PAID_NOW, paidTestDatabase, seedPaidEvent, type SeedPaidEventOptions } from './paid-testing.ts';
 import {
   confirmRegistration,
   normalizeCheckinCode,
@@ -961,4 +965,393 @@ test('the organization schedule lists the dates of public and in-review events o
   );
   assert.ok(schedule[0].startsAt < schedule[1].startsAt);
   assert.equal(schedule[0].timeZone, 'America/Phoenix');
+});
+
+// --- Paid events (docs/LIVE_REQUIREMENTS.md §8 items 1, 6, 7, 17) -------------------------------------------------
+
+const PAID_FORM: EventFormValues = {
+  ...FORM,
+  admission: 'paid_tickets',
+  capacity: '',
+  maxPartySize: '',
+  qrCheckin: false,
+};
+
+async function paidDatabase(options: SeedPaidEventOptions = {}) {
+  const { d1, db } = await paidTestDatabase();
+  // Payments ready by default (Mode A, a ready account), so only what a test changes stands in the way of selling.
+  const seeded = seedPaidEvent(d1, { flow: 'organizer_account', ...options });
+  return { d1, db: db as never, seeded };
+}
+
+/** A raw order row on the seeded paid event (the orders module is separate; this is just enough for the rules). */
+function insertOrder(
+  d1: { sqlite: { exec(sql: string): void } },
+  o: {
+    id: string;
+    status: string;
+    occurrenceId?: string;
+    channel?: 'online' | 'door';
+    method?: string;
+    preview?: boolean;
+    codeId?: string | null;
+    session?: string | null;
+    email?: string | null;
+    items?: Array<{ type: string; qty: number; people?: number }>;
+  },
+) {
+  const channel = o.channel ?? 'online';
+  const method = o.method ?? (channel === 'door' ? 'cash' : 'card_online');
+  const flow = method === 'cash' || method === 'comp' || method === 'free' ? 'NULL' : "'gamo_collects'";
+  const items = o.items ?? [{ type: 'tty_general_1', qty: 1 }];
+  const subtotal = items.reduce((sum, i) => sum + i.qty * (i.type === 'tty_vip_1' ? 5000 : 2000), 0);
+  d1.sqlite.exec(`
+    INSERT INTO orders (id, reference, event_id, occurrence_id, organization_id, channel, payment_method, status, is_preview,
+                        funds_flow, seller, buyer_name, buyer_email, subtotal_cents, total_cents, code_id, policy_snapshot,
+                        fee_snapshot, hold_expires_at, checkout_session_id, created_at)
+      VALUES ('${o.id}', 'GL-${o.id}', 'evt_1', '${o.occurrenceId ?? 'occ_1'}', 'org_1', '${channel}', '${method}', '${o.status}',
+              ${o.preview ? 1 : 0}, ${flow}, 'gamo', 'Buyer ${o.id}', ${o.email === null ? 'NULL' : `'${o.email ?? `${o.id}@example.org`}'`},
+              ${subtotal}, ${subtotal}, ${o.codeId ? `'${o.codeId}'` : 'NULL'}, '{}', '{}', ${PAID_NOW + 1800},
+              ${o.session ? `'${o.session}'` : 'NULL'}, ${PAID_NOW});
+  `);
+  for (const [n, i] of items.entries())
+    d1.sqlite.exec(`
+      INSERT INTO order_items (id, order_id, ticket_type_id, name, unit_price_cents, quantity, people_per_ticket, line_total_cents)
+        VALUES ('oit_${o.id}_${n}', '${o.id}', '${i.type}', 'Ticket', ${i.type === 'tty_vip_1' ? 5000 : 2000}, ${i.qty}, ${i.people ?? 1},
+                ${i.qty * (i.type === 'tty_vip_1' ? 5000 : 2000)});
+    `);
+}
+
+test('paid tickets need no external link or price text, keep an optional capacity, and always use QR check-in', () => {
+  const v = validateEvent({ ...PAID_FORM, capacity: '250' });
+  assert.equal(v.admission, 'paid_tickets');
+  assert.equal(v.externalUrl, null);
+  assert.equal(v.capacity, 250, 'the event-wide cap in people per date');
+  assert.equal(v.qrCheckin, true, 'QR check-in is always on for paid tickets');
+  assert.equal(validateEvent(PAID_FORM).capacity, null, 'the cap is optional');
+  assert.equal(
+    invalid({ admission: 'external_tickets', qrCheckin: true, externalUrl: 'https://x.example.org' }),
+    'invalid:qrCheckin',
+  );
+});
+
+test('the first paid event is reviewed even after the first free event was approved; later ones follow the rule', async () => {
+  const { d1, db } = await paidDatabase();
+  d1.sqlite.exec("UPDATE organizations SET first_paid_event_approved_at = NULL WHERE id = 'org_1'");
+  const free = await saveEvent(db, { organizationId: 'org_1', input: FORM, submit: true, now: PAID_NOW });
+  assert.equal(free.status, 'published', 'free events of an approved organization still publish at once');
+  const paid = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: true,
+    now: PAID_NOW,
+  });
+  assert.equal(paid.status, 'pending_review', 'the first paid event waits for Gamo');
+  const draft = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: false,
+    now: PAID_NOW,
+  });
+  assert.equal(
+    await submitEvent(db, { organizationId: 'org_1', eventId: draft.eventId, now: PAID_NOW }),
+    'pending_review',
+  );
+  const decided = await reviewLiveEvent(db, {
+    eventId: paid.eventId,
+    decision: 'approved',
+    now: PAID_NOW + 5,
+  });
+  assert.equal(decided.firstPaidApproval, true);
+  assert.equal(
+    (
+      d1.sqlite
+        .prepare("SELECT first_paid_event_approved_at AS t FROM organizations WHERE id = 'org_1'")
+        .get() as { t: number }
+    ).t,
+    PAID_NOW + 5,
+  );
+  const next = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: true,
+    now: PAID_NOW + 10,
+  });
+  assert.equal(next.status, 'published', 'after one approved paid event, the normal rule applies');
+  d1.sqlite.exec("UPDATE organizations SET review_every_event = 1 WHERE id = 'org_1'");
+  const reviewed = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: true,
+    now: PAID_NOW + 10,
+  });
+  assert.equal(reviewed.status, 'pending_review');
+});
+
+test('only a verified organization can submit a paid event; drafts can be saved before', async () => {
+  const { db } = await paidDatabase({ verified: false });
+  const draft = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: false,
+    now: PAID_NOW,
+  });
+  assert.equal(draft.status, 'draft');
+  await assert.rejects(
+    saveEvent(db, { organizationId: 'org_1', input: PAID_FORM, submit: true, now: PAID_NOW }),
+    (e) => e instanceof PaidError && e.code === 'not_verified',
+  );
+  await assert.rejects(
+    submitEvent(db, { organizationId: 'org_1', eventId: draft.eventId, now: PAID_NOW }),
+    (e) => e instanceof PaidError && e.code === 'not_verified',
+  );
+  const free = await saveEvent(db, { organizationId: 'org_1', input: FORM, submit: true, now: PAID_NOW });
+  assert.equal(free.status, 'published', 'free events are unchanged');
+});
+
+test('a verified organization still needs payments ready and the organizer terms accepted to submit a paid event', async () => {
+  const submitPaid = (db: never) =>
+    saveEvent(db, { organizationId: 'org_1', input: PAID_FORM, submit: true, now: PAID_NOW });
+  const refusedWith = (code: string) => (e: unknown) => e instanceof PaidError && e.code === code;
+  const notChosen = await paidDatabase({ flow: undefined });
+  notChosen.d1.sqlite.exec(
+    "UPDATE payment_settings SET funds_flow_default = 'not_chosen'; DELETE FROM organization_payments",
+  );
+  await assert.rejects(submitPaid(notChosen.db), refusedWith('mode_not_chosen'));
+  const notReady = await paidDatabase({ accountReady: false });
+  await assert.rejects(submitPaid(notReady.db), refusedWith('account_not_ready'));
+  const noTerms = await paidDatabase();
+  noTerms.d1.sqlite.exec('DELETE FROM terms_acceptances');
+  await assert.rejects(submitPaid(noTerms.db), refusedWith('terms_not_accepted'));
+  const ready = await paidDatabase();
+  assert.notEqual((await submitPaid(ready.db)).status, 'draft');
+});
+
+test('saving a paid event creates the inventory rows for each date and ticket type; the cap follows the event', async () => {
+  const { d1, db } = await paidDatabase();
+  const created = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: { ...PAID_FORM, schedule: 'weekly', until: '2026-11-29', capacity: '80' },
+    submit: true,
+    now: PAID_NOW,
+  });
+  const caps = d1.sqlite
+    .prepare(
+      `SELECT i.capacity FROM occurrence_inventory i JOIN event_occurrences o ON o.id = i.occurrence_id WHERE o.event_id = ?`,
+    )
+    .all(created.eventId) as Array<{ capacity: number }>;
+  assert.deepEqual(
+    caps.map((c) => c.capacity),
+    [80, 80, 80],
+  );
+  d1.sqlite.exec(
+    `INSERT INTO ticket_types (id, event_id, name, price_cents, capacity) VALUES ('tty_new', '${created.eventId}', 'General', 1500, 40)`,
+  );
+  await saveEvent(db, {
+    organizationId: 'org_1',
+    eventId: created.eventId,
+    input: { ...PAID_FORM, schedule: 'weekly', until: '2026-11-29', capacity: '90', title: 'Renamed night' },
+    submit: false,
+    now: PAID_NOW + 1,
+  });
+  const rows = d1.sqlite
+    .prepare(
+      `SELECT (SELECT COUNT(*) FROM ticket_inventory WHERE ticket_type_id = 'tty_new') AS types,
+              (SELECT MIN(capacity) FROM occurrence_inventory i JOIN event_occurrences o ON o.id = i.occurrence_id WHERE o.event_id = ?) AS cap`,
+    )
+    .get(created.eventId) as { types: number; cap: number };
+  assert.deepEqual({ ...rows }, { types: 3, cap: 90 });
+});
+
+test('once an order exists the schedule and admission lock like registrations, and the cap cannot drop below people taken', async () => {
+  const { d1, db } = await paidDatabase();
+  const form = { ...PAID_FORM, date: '2026-12-01', startTime: '19:00', endTime: '22:00' };
+  const before = (await getOrganizerEvent(db, 'org_1', 'evt_1', PAID_NOW))!;
+  assert.equal(before.registrationsLocked, false, 'no sale yet');
+  insertOrder(d1, { id: 'ord_a', status: 'pending', items: [{ type: 'tty_general_1', qty: 2 }] });
+  d1.sqlite.exec("UPDATE occurrence_inventory SET people_taken = 2 WHERE occurrence_id = 'occ_1'");
+  const locked = (await getOrganizerEvent(db, 'org_1', 'evt_1', PAID_NOW))!;
+  assert.equal(locked.registrationsLocked, true);
+  assert.equal(locked.ordersLocked, true);
+  await saveEvent(db, {
+    organizationId: 'org_1',
+    eventId: 'evt_1',
+    input: { ...form, date: '2026-12-24', admission: 'free_open', title: 'Moved?' },
+    submit: false,
+    now: PAID_NOW + 10,
+  });
+  const after = (await getOrganizerEvent(db, 'org_1', 'evt_1', PAID_NOW + 10))!;
+  assert.deepEqual(
+    after.occurrences.map((o) => o.id),
+    ['occ_1'],
+    'the date row the order points at is kept',
+  );
+  assert.equal(after.admission, 'paid_tickets', 'admission is locked');
+  assert.equal(after.liveValues.title, 'Moved?', 'other fields still change');
+  await assert.rejects(
+    saveEvent(db, {
+      organizationId: 'org_1',
+      eventId: 'evt_1',
+      input: { ...form, capacity: '1' },
+      submit: false,
+      now: PAID_NOW + 20,
+    }),
+    (e) => codeOf(e) === 'invalid:capacity',
+  );
+});
+
+test('canceling a paid event cancels pending orders, frees their seats and code uses, and returns paid orders to refund', async () => {
+  const { d1, db } = await paidDatabase();
+  d1.sqlite.exec(
+    `INSERT INTO event_codes (id, event_id, code, kind, discount_kind, percent_off, uses) VALUES ('cod_1', 'evt_1', 'SAVE10', 'promo', 'percent', 10, 1)`,
+  );
+  // Pending online order: 2 general (1 person each) with a code and an open Checkout Session.
+  insertOrder(d1, {
+    id: 'ord_p1',
+    status: 'pending',
+    codeId: 'cod_1',
+    session: 'cs_test_1',
+    items: [{ type: 'tty_general_1', qty: 2 }],
+  });
+  // Pending door order: 1 VIP pack for 2 people.
+  insertOrder(d1, {
+    id: 'ord_p2',
+    status: 'pending',
+    channel: 'door',
+    items: [{ type: 'tty_vip_1', qty: 1, people: 2 }],
+  });
+  // Paid orders: one online, one preview (never refunded, only voided).
+  insertOrder(d1, { id: 'ord_paid', status: 'paid', items: [{ type: 'tty_general_1', qty: 3 }] });
+  insertOrder(d1, {
+    id: 'ord_prev',
+    status: 'paid',
+    preview: true,
+    items: [{ type: 'tty_general_1', qty: 1 }],
+  });
+  d1.sqlite.exec(`
+    UPDATE ticket_inventory SET online_taken = 6 WHERE ticket_type_id = 'tty_general_1';
+    UPDATE ticket_inventory SET door_taken = 1 WHERE ticket_type_id = 'tty_vip_1';
+    UPDATE occurrence_inventory SET people_taken = 8 WHERE occurrence_id = 'occ_1';
+  `);
+  const result = await cancelEvent(db, { organizationId: 'org_1', eventId: 'evt_1', now: PAID_NOW + 60 });
+  assert.deepEqual(
+    result.ordersToRefund.map((o) => [o.orderId, o.buyerEmail]),
+    [['ord_paid', 'ord_paid@example.org']],
+  );
+  assert.deepEqual(
+    result.checkoutsToExpire.map((c) => [c.orderId, c.checkoutSessionId]),
+    [['ord_p1', 'cs_test_1']],
+  );
+  assert.deepEqual([...result], [], 'no free registrants on a paid event');
+  const status = (id: string) =>
+    (d1.sqlite.prepare('SELECT status FROM orders WHERE id = ?').get(id) as { status: string }).status;
+  assert.equal(status('ord_p1'), 'canceled');
+  assert.equal(status('ord_p2'), 'canceled');
+  assert.equal(status('ord_paid'), 'paid', 'paid orders are refunded by the refunds module, not here');
+  const inv = d1.sqlite
+    .prepare(
+      "SELECT ticket_type_id AS t, online_taken AS o, door_taken AS d FROM ticket_inventory WHERE occurrence_id = 'occ_1' ORDER BY t",
+    )
+    .all() as Array<{ t: string; o: number; d: number }>;
+  assert.deepEqual(
+    inv.map((r) => [r.t, r.o, r.d]),
+    [
+      ['tty_general_1', 4, 0],
+      ['tty_vip_1', 0, 0],
+    ],
+    'only the pending holds are given back (3 paid + 1 preview stay counted)',
+  );
+  assert.equal(
+    (
+      d1.sqlite
+        .prepare("SELECT people_taken AS n FROM occurrence_inventory WHERE occurrence_id = 'occ_1'")
+        .get() as { n: number }
+    ).n,
+    4,
+  );
+  assert.equal(
+    (d1.sqlite.prepare("SELECT uses AS n FROM event_codes WHERE id = 'cod_1'").get() as { n: number }).n,
+    0,
+  );
+});
+
+test('canceling one date of a paid event touches only that date’s orders', async () => {
+  const { d1, db } = await paidDatabase();
+  d1.sqlite.exec(`
+    INSERT INTO event_occurrences (id, event_id, starts_at) VALUES ('occ_2', 'evt_1', ${PAID_NOW + 40 * 86_400});
+    INSERT INTO ticket_inventory (ticket_type_id, occurrence_id, capacity, online_taken) VALUES ('tty_general_1', 'occ_2', 100, 1);
+    INSERT INTO occurrence_inventory (occurrence_id, people_taken) VALUES ('occ_2', 1);
+    UPDATE ticket_inventory SET online_taken = 1 WHERE ticket_type_id = 'tty_general_1' AND occurrence_id = 'occ_1';
+    UPDATE occurrence_inventory SET people_taken = 1 WHERE occurrence_id = 'occ_1';
+  `);
+  insertOrder(d1, { id: 'ord_1', status: 'pending', occurrenceId: 'occ_1' });
+  insertOrder(d1, { id: 'ord_2', status: 'pending', occurrenceId: 'occ_2' });
+  insertOrder(d1, { id: 'ord_3', status: 'paid', occurrenceId: 'occ_2', email: null, channel: 'door' });
+  const result = await cancelOccurrence(db, {
+    organizationId: 'org_1',
+    eventId: 'evt_1',
+    occurrenceId: 'occ_2',
+    now: PAID_NOW + 60,
+  });
+  assert.deepEqual(
+    result.ordersToRefund.map((o) => [o.orderId, o.buyerEmail, o.paymentMethod]),
+    [['ord_3', null, 'cash']],
+  );
+  const statuses = d1.sqlite.prepare('SELECT id, status FROM orders ORDER BY id').all() as Array<{
+    id: string;
+    status: string;
+  }>;
+  assert.deepEqual(
+    statuses.map((r) => [r.id, r.status]),
+    [
+      ['ord_1', 'pending'],
+      ['ord_2', 'canceled'],
+      ['ord_3', 'paid'],
+    ],
+  );
+  const taken = d1.sqlite
+    .prepare(
+      "SELECT occurrence_id AS o, online_taken AS n FROM ticket_inventory WHERE ticket_type_id = 'tty_general_1' ORDER BY o",
+    )
+    .all() as Array<{ o: string; n: number }>;
+  assert.deepEqual(
+    taken.map((r) => [r.o, r.n]),
+    [
+      ['occ_1', 1],
+      ['occ_2', 0],
+    ],
+  );
+});
+
+test('approving a paid event needs a verified organization; the review card reads the paid details', async () => {
+  const { d1, db } = await paidDatabase();
+  d1.sqlite.exec("UPDATE organizations SET first_paid_event_approved_at = NULL WHERE id = 'org_1'");
+  const paid = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: PAID_FORM,
+    submit: true,
+    now: PAID_NOW,
+  });
+  const pending = (await listPendingEvents(db)).find((e) => e.id === paid.eventId);
+  assert.equal(pending?.reason, 'first_paid_event');
+  d1.sqlite.exec(
+    "UPDATE organizations SET verified_at = NULL, verification_status = 'none' WHERE id = 'org_1'",
+  );
+  await assert.rejects(
+    reviewLiveEvent(db, { eventId: paid.eventId, decision: 'approved', now: PAID_NOW + 1 }),
+    (e) => e instanceof LiveAdminError && e.code === 'not_verified',
+  );
+  const details = await paidEventReviewDetails(db, 'evt_1');
+  assert.equal(details?.feePayer, 'buyer');
+  assert.equal(details?.doorSalesEnabled, true);
+  assert.equal(details?.giftsEnabled, false);
+  assert.equal(details?.policies?.refundPolicy, 'until_hours_before');
+  assert.deepEqual(
+    details?.ticketTypes.map((t) => [t.name, t.priceCents, t.capacity, t.doorAllocation]),
+    [
+      ['General', 2000, 100, 0],
+      ['VIP', 5000, 10, 2],
+    ],
+  );
+  assert.equal(await paidEventReviewDetails(db, paid.eventId), null, 'nothing set up yet');
 });

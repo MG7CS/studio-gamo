@@ -86,3 +86,55 @@ test('cleanup releases abandoned holds, drops expired codes, old sessions and in
   assert.equal(count(d1, 'organizer_sessions'), 1);
   assert.equal(count(d1, 'invitations'), 1);
 });
+
+test('paid orders keep their amounts and references but lose names and emails 90 days after the event', async () => {
+  const { paidTestDatabase, seedPaidEvent, PAID_NOW } = await import('./paid-testing.ts');
+  const { d1, db } = await paidTestDatabase();
+  const seed = seedPaidEvent(d1, { flow: 'gamo_collects' });
+  d1.sqlite
+    .exec(`INSERT INTO orders (id, reference, event_id, occurrence_id, organization_id, channel, payment_method,
+      status, funds_flow, seller, buyer_name, buyer_email, email_hash, attendee_names, subtotal_cents, total_cents,
+      policy_snapshot, fee_snapshot)
+    VALUES ('ord_old', 'GL-2222-4444', '${seed.eventId}', '${seed.occurrenceId}', '${seed.organizationId}', 'online',
+      'card_online', 'paid', 'gamo_collects', 'gamo', 'Ada', 'ada@example.org', 'h', '["Ada"]', 2000, 2000, '{}', '{}');
+    INSERT INTO order_items (id, order_id, ticket_type_id, name, unit_price_cents, quantity, line_total_cents)
+      VALUES ('oit_old', 'ord_old', '${seed.generalTypeId}', 'General', 2000, 1, 2000);
+    INSERT INTO tickets (id, order_id, order_item_id, seq, event_id, occurrence_id, ticket_type_id, holder_name,
+      holder_email, email_hash, credential_salt)
+      VALUES ('tkt_old', 'ord_old', 'oit_old', 1, '${seed.eventId}', '${seed.occurrenceId}', '${seed.generalTypeId}',
+      'Ada', 'ada@example.org', 'h', 'salt');
+    INSERT INTO refunds (id, order_id, amount_cents, method, requested_by, reason, decided_note, status)
+      VALUES ('rfd_old', 'ord_old', 500, 'stripe', 'buyer', 'Sample: my mother is ill', 'Sample note', 'declined');`);
+  const lastDateEnds = PAID_NOW + 30 * 86_400 + 3 * 3600;
+  // Before the 90 days have passed nothing personal is removed.
+  let report = await runLiveCleanup(db, lastDateEnds + REGISTRANT_RETENTION_SECONDS - 10);
+  assert.equal(report.ordersAnonymized, 0);
+  report = await runLiveCleanup(db, lastDateEnds + REGISTRANT_RETENTION_SECONDS + 10);
+  assert.equal(report.ordersAnonymized, 1);
+  const order = {
+    ...d1.sqlite
+      .prepare(
+        "SELECT buyer_name, buyer_email, email_hash, attendee_names, reference, total_cents FROM orders WHERE id = 'ord_old'",
+      )
+      .get(),
+  };
+  assert.deepEqual(order, {
+    buyer_name: null,
+    buyer_email: null,
+    email_hash: null,
+    attendee_names: null,
+    reference: 'GL-2222-4444',
+    total_cents: 2000,
+  });
+  const ticket = {
+    ...d1.sqlite
+      .prepare("SELECT holder_name, holder_email, email_hash, status FROM tickets WHERE id = 'tkt_old'")
+      .get(),
+  };
+  assert.deepEqual(ticket, { holder_name: null, holder_email: null, email_hash: null, status: 'valid' });
+  // Free text people typed goes too; the amount stays.
+  const refund = {
+    ...d1.sqlite.prepare("SELECT reason, decided_note, amount_cents FROM refunds WHERE id = 'rfd_old'").get(),
+  };
+  assert.deepEqual(refund, { reason: 'Removed after 90 days', decided_note: null, amount_cents: 500 });
+});

@@ -2,6 +2,12 @@
  * Organizer-side event management for Gamo Live (docs/LIVE_SCREENS.md B4–B7): validate and save events,
  * expand recurring dates, apply the review rule, cancel events, list registrations and export them.
  * Every function is scoped to one organization; callers have already checked membership.
+ *
+ * Paid events (docs/LIVE_REQUIREMENTS.md §8 items 1, 6, 7 and 17): admission `paid_tickets` (no external link or price
+ * text needed, the capacity in people is optional, QR check-in always on, the party size unused); an organization's
+ * first paid event is always reviewed even after its first free event was approved, and only a verified organization
+ * can submit one; once a sale exists the schedule and admission lock like registrations lock them; canceling cancels
+ * the pending orders of the affected dates (seats and code uses given back) and returns the paid orders to refund.
  */
 import { GAMO_LIVE_METROS } from '../services/live-external-discovery.ts';
 import { zonedLocalToEpochSeconds, isTimeZone } from '../services/meeting-time.ts';
@@ -16,6 +22,14 @@ import {
   getRegistration,
 } from './registration.ts';
 import { OrganizerError, assertEventQuota } from './organizers.ts';
+import { PaidError } from './paid-types.ts';
+import {
+  accountReady,
+  effectiveFundsFlow,
+  readOrganizationPayments,
+  readPaymentSettings,
+} from './payments/resolve.ts';
+import { TERMS_REGISTRY } from '../terms/registry.ts';
 
 export const EVENT_CATEGORIES = [
   { value: 'concert', label: 'Concert' },
@@ -42,6 +56,7 @@ export const ADMISSIONS = [
   { value: 'free_open', label: 'Free, no registration' },
   { value: 'free_registration', label: 'Free, with registration on Gamo Live' },
   { value: 'external_tickets', label: 'Tickets or registration on another website' },
+  { value: 'paid_tickets', label: 'Paid tickets on Gamo Live' },
 ] as const;
 export type Admission = (typeof ADMISSIONS)[number]['value'];
 
@@ -211,7 +226,8 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
   }
   const maxPartySize = t(input.maxPartySize) === '' ? 6 : Number(t(input.maxPartySize));
   if (!Number.isInteger(maxPartySize) || maxPartySize < 1 || maxPartySize > 20) bad('maxPartySize');
-  if (input.qrCheckin && admission !== 'free_registration') bad('qrCheckin');
+  const paid = admission === 'paid_tickets';
+  if (input.qrCheckin && admission !== 'free_registration' && !paid) bad('qrCheckin');
   const opensHours = t(input.checkinOpensHours) === '' ? 3 : Number(t(input.checkinOpensHours));
   if (!(CHECKIN_OPENS_HOURS_CHOICES as readonly number[]).includes(opensHours)) bad('checkinOpensHours');
   const v: ValidatedEvent = {
@@ -233,9 +249,10 @@ export function validateEvent(input: EventFormValues): ValidatedEvent {
     externalUrl,
     priceText: priceText || null,
     refundPolicyText: refundPolicyText || null,
-    capacity: admission === 'free_registration' ? capacity : null,
+    capacity: admission === 'free_registration' || paid ? capacity : null,
     maxPartySize,
-    qrCheckin: Boolean(input.qrCheckin),
+    // Paid tickets always carry a QR code; check-in is how they are used.
+    qrCheckin: paid || Boolean(input.qrCheckin),
     checkinOpensHours: opensHours,
   };
   if (expandOccurrences(v).length > MAX_OCCURRENCES) bad('until');
@@ -305,6 +322,58 @@ export async function reviewRuleFor(db: SqlDatabase, organizationId: string): Pr
   if (!row) throw new OrganizerError('not_found');
   if (row.review_every_event === 1) return 'every_event';
   return row.first_event_approved_at == null ? 'first_event' : 'none';
+}
+
+/**
+ * Where a submitted event goes: `published`, or `pending_review` when the organization's rule asks for it, the event
+ * sends people to another site for tickets (always reviewed), or it is the organization's first paid event (always
+ * reviewed until one paid event was approved, even after the first free one was).
+ */
+export async function reviewGateFor(
+  db: SqlDatabase,
+  organizationId: string,
+): Promise<(admission: string) => 'pending_review' | 'published'> {
+  const row = (
+    await allRows<{ first_paid_event_approved_at: number | null }>(db, {
+      sql: 'SELECT first_paid_event_approved_at FROM organizations WHERE id = ?1',
+      params: [organizationId],
+    })
+  )[0];
+  const rule = await reviewRuleFor(db, organizationId);
+  const firstPaidApproved = row?.first_paid_event_approved_at != null;
+  return (admission) =>
+    rule === 'none' && admission !== 'external_tickets' && (admission !== 'paid_tickets' || firstPaidApproved)
+      ? 'published'
+      : 'pending_review';
+}
+
+/** Only a verified organization (meeting held, Gamo verified) may submit a paid event (§8 item 7). */
+/**
+ * Who may sell (docs/LIVE_REQUIREMENTS.md §8.1 item 7): an organization sends a paid event for review, and Gamo approves
+ * it, only when it is verified, its payments are ready for its funds-flow mode (from the stored settings and account
+ * flags, as `sellingChecklist` shows them), and an owner accepted the current organizer terms. Throws the first missing
+ * item as a `PaidError` (`not_verified`, `mode_not_chosen`, `account_not_ready`, `terms_not_accepted`).
+ */
+export async function assertMaySellTickets(db: SqlDatabase, organizationId: string): Promise<void> {
+  const row = (
+    await allRows<{ verified_at: number | null; terms: number }>(db, {
+      sql: `SELECT g.verified_at,
+                   EXISTS (SELECT 1 FROM terms_acceptances t JOIN memberships m ON m.organizer_id = t.organizer_id
+                            WHERE m.organization_id = g.id AND m.role = 'owner' AND t.document = 'organizer-terms'
+                              AND t.version = ?2) AS terms
+              FROM organizations g WHERE g.id = ?1`,
+      params: [organizationId, TERMS_REGISTRY['organizer-terms'].version],
+    })
+  )[0];
+  if (row?.verified_at == null) throw new PaidError('not_verified');
+  const [settings, payments] = await Promise.all([
+    readPaymentSettings(db),
+    readOrganizationPayments(db, organizationId),
+  ]);
+  const flow = effectiveFundsFlow(settings, payments);
+  if (!flow) throw new PaidError('mode_not_chosen');
+  if (!accountReady(flow, payments)) throw new PaidError('account_not_ready');
+  if (Number(row.terms) !== 1) throw new PaidError('terms_not_accepted');
 }
 
 // --- Saving ----------------------------------------------------------------------------------------
@@ -424,18 +493,21 @@ export function revisionApplyStatements(input: {
       {
         sql: `DELETE FROM event_occurrences WHERE event_id = ?1 AND ${decided}
                 AND NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
-                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))`,
+                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))
+                AND ${NO_ORDER_HISTORY}`,
         params: [eventId, decisionId],
       },
       ...expandOccurrences(r).map((o) => ({
         sql: `INSERT INTO event_occurrences (id, event_id, starts_at, ends_at)
               SELECT ?3, ?1, ?4, ?5 WHERE ${decided}
                 AND NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
-                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))`,
+                                 WHERE q.event_id = ?1 AND x.status IN ('pending', 'confirmed'))
+                AND ${NO_ORDER_HISTORY}`,
         params: [eventId, decisionId, newPrefixedId('occ'), o.startsAt, o.endsAt],
       })),
     );
   }
+  statements.push(...paidInventoryStatements(eventId));
   statements.push({
     sql: `DELETE FROM event_revisions WHERE event_id = ?1 AND ${decided}`,
     params: [eventId, decisionId],
@@ -456,7 +528,8 @@ function lockedValues(stored: EventFormValues): Partial<EventFormValues> {
     externalUrl: stored.externalUrl,
     qrCheckin: stored.qrCheckin,
   };
-  if (stored.admission !== 'free_registration') keep.capacity = stored.capacity;
+  if (stored.admission !== 'free_registration' && stored.admission !== 'paid_tickets')
+    keep.capacity = stored.capacity;
   return keep;
 }
 
@@ -499,9 +572,51 @@ function isMaterialChange(stored: EventFormValues, next: ValidatedEvent): boolea
   return pick(before) !== pick(next);
 }
 
-/** SQL condition: nobody holds a pending (unexpired) or confirmed registration for event `?1`; `?2` is now. */
+/**
+ * SQL condition: no order and no cash drawer points at a date of event `?1`. Orders keep their date for good (the
+ * foreign key has no cascade: order history is never deleted with a date), so any order, even a preview, an expired
+ * hold or a refunded one, keeps the dates as they are.
+ */
+const NO_ORDER_HISTORY = `NOT EXISTS (SELECT 1 FROM orders od WHERE od.event_id = ?1)
+    AND NOT EXISTS (SELECT 1 FROM cash_sessions cs WHERE cs.event_id = ?1)`;
+
+/**
+ * SQL condition: nobody holds a pending (unexpired) or confirmed registration for event `?1` (`?2` is now), and no
+ * order points at its dates. A pending or paid order locks the schedule like a registration; an expired, canceled,
+ * refunded or preview order keeps it too, because its date cannot be deleted (`NO_ORDER_HISTORY`).
+ */
 const NO_ACTIVE_REGISTRATIONS = `NOT EXISTS (SELECT 1 FROM registrations x JOIN event_occurrences q ON q.id = x.occurrence_id
-    WHERE q.event_id = ?1 AND (x.status = 'confirmed' OR (x.status = 'pending' AND x.expires_at > ?2)))`;
+    WHERE q.event_id = ?1 AND (x.status = 'confirmed' OR (x.status = 'pending' AND x.expires_at > ?2)))
+    AND ${NO_ORDER_HISTORY}`;
+
+/**
+ * Inventory rows for every date of a paid event: one `occurrence_inventory` row per date (the event's cap in people)
+ * and one `ticket_inventory` row per ticket type and date. Idempotent (`INSERT OR IGNORE`), so it runs after every
+ * write that can add dates or ticket types; the event's capacity is copied onto existing rows too.
+ */
+export function paidInventoryStatements(eventId: string): Statement[] {
+  return [
+    {
+      sql: `INSERT OR IGNORE INTO occurrence_inventory (occurrence_id, capacity)
+            SELECT o.id, e.capacity FROM event_occurrences o JOIN events e ON e.id = o.event_id
+             WHERE o.event_id = ?1 AND e.admission = 'paid_tickets'`,
+      params: [eventId],
+    },
+    {
+      sql: `UPDATE occurrence_inventory SET capacity = (SELECT capacity FROM events WHERE id = ?1)
+             WHERE occurrence_id IN (SELECT id FROM event_occurrences WHERE event_id = ?1)
+               AND EXISTS (SELECT 1 FROM events WHERE id = ?1 AND admission = 'paid_tickets')`,
+      params: [eventId],
+    },
+    {
+      sql: `INSERT OR IGNORE INTO ticket_inventory (ticket_type_id, occurrence_id, capacity, door_allocation, door_uses_online)
+            SELECT t.id, o.id, t.capacity, t.door_allocation, t.door_uses_online
+              FROM ticket_types t JOIN event_occurrences o ON o.event_id = t.event_id JOIN events e ON e.id = t.event_id
+             WHERE t.event_id = ?1 AND e.admission = 'paid_tickets'`,
+      params: [eventId],
+    },
+  ];
+}
 
 const EDITABLE = ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'];
 
@@ -533,10 +648,20 @@ export async function saveEvent(
     : occurrences.some((o) => o.startsAt > args.now);
   if (args.submit && !hasFutureDate) bad('date');
 
-  const rule = await reviewRuleFor(db, args.organizationId);
-  // Events that send people to another site for tickets are always reviewed, whatever the organization's rule.
-  const gate = (): 'pending_review' | 'published' =>
-    rule === 'none' && v.admission !== 'external_tickets' ? 'published' : 'pending_review';
+  // Events that send people to another site for tickets are always reviewed, whatever the organization's rule, and
+  // so is an organization's first paid event.
+  const gateOf = await reviewGateFor(db, args.organizationId);
+  const gate = (): 'pending_review' | 'published' => gateOf(v.admission);
+  const paid = v.admission === 'paid_tickets';
+  // Submitting a paid event, or turning a published event into one, needs a verified organization.
+  if (
+    paid &&
+    (current
+      ? (current.status !== 'published' && args.submit) ||
+        (current.status === 'published' && current.liveValues.admission !== 'paid_tickets')
+      : args.submit)
+  )
+    await assertMaySellTickets(db, args.organizationId);
   const venueId = newPrefixedId('ven');
   const metro = metroFor(v.city, v.state);
 
@@ -606,6 +731,7 @@ export async function saveEvent(
             sql: 'INSERT INTO event_performers (event_id, position, name, role) VALUES (?1, ?2, ?3, ?4)',
             params: [eventId, position, p.name, p.role] as (string | number | null)[],
           })),
+          ...paidInventoryStatements(eventId),
         ]);
         return { eventId, status };
       } catch (error) {
@@ -620,17 +746,20 @@ export async function saveEvent(
   if (!EDITABLE.includes(existing.status)) throw new OrganizerError('status_locked');
 
   const taken = (
-    await allRows<{ active: number; max_seats: number }>(db, {
-      sql: `SELECT (SELECT COUNT(*) FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
-                     WHERE o.event_id = ?1 AND (r.status = 'confirmed' OR (r.status = 'pending' AND r.expires_at > ?2))) AS active,
-                   COALESCE((SELECT MAX(o.seats_taken - COALESCE((SELECT SUM(party_size) FROM registrations
+    await allRows<{ max_seats: number; max_people: number }>(db, {
+      sql: `SELECT COALESCE((SELECT MAX(o.seats_taken - COALESCE((SELECT SUM(party_size) FROM registrations
                        WHERE occurrence_id = o.id AND status = 'pending' AND expires_at <= ?2), 0))
-                     FROM event_occurrences o WHERE o.event_id = ?1), 0) AS max_seats`,
+                     FROM event_occurrences o WHERE o.event_id = ?1), 0) AS max_seats,
+                   COALESCE((SELECT MAX(i.people_taken) FROM occurrence_inventory i JOIN event_occurrences o ON o.id = i.occurrence_id
+                     WHERE o.event_id = ?1), 0) AS max_people`,
       params: [args.eventId, args.now],
     })
   )[0];
-  const locked = Number(taken?.active ?? 0) > 0;
+  const locked = existing.registrationsLocked;
   if (locked && v.capacity != null && v.capacity < Number(taken?.max_seats ?? 0)) bad('capacity');
+  // A paid event's cap can never drop below the people already holding or bought tickets for a date.
+  if (v.admission === 'paid_tickets' && v.capacity != null && v.capacity < Number(taken?.max_people ?? 0))
+    bad('capacity');
 
   // A published event stays published and visible through every edit. Wording, price notes and performers save
   // straight away. A change to when, where or how people get in is applied at once when the review rule allows;
@@ -655,7 +784,7 @@ export async function saveEvent(
       {
         sql: `UPDATE events SET title = ?2, category = ?3, description = ?4, price_text = ?5, refund_policy_text = ?6,
                 max_party_size = ?7, updated_at = ?8
-                ${capacityDirect ? ", capacity = CASE WHEN admission = 'free_registration' THEN ?9 ELSE capacity END" : ''}
+                ${capacityDirect ? ", capacity = CASE WHEN admission IN ('free_registration', 'paid_tickets') THEN ?9 ELSE capacity END" : ''}
               WHERE id = ?1`,
         params: [
           eventId,
@@ -702,7 +831,7 @@ export async function saveEvent(
     });
     if (locked) {
       statements.push({
-        sql: "UPDATE events SET capacity = CASE WHEN admission = 'free_registration' THEN ?2 ELSE capacity END WHERE id = ?1",
+        sql: "UPDATE events SET capacity = CASE WHEN admission IN ('free_registration', 'paid_tickets') THEN ?2 ELSE capacity END WHERE id = ?1",
         params: [eventId, v.capacity],
       });
     } else if (scheduleChanged) {
@@ -735,6 +864,7 @@ export async function saveEvent(
       sql: 'INSERT INTO event_performers (event_id, position, name, role) VALUES (?1, ?2, ?3, ?4)',
       params: [eventId, position, p.name, p.role] as (string | number | null)[],
     })),
+    ...paidInventoryStatements(eventId),
   );
   await runBatch(db, statements);
   return { eventId, status };
@@ -752,14 +882,15 @@ export async function submitEvent(
     })
   )[0];
   if (org?.status !== 'active') throw new OrganizerError('suspended');
-  const rule = await reviewRuleFor(db, input.organizationId);
+  const gate = await reviewGateFor(db, input.organizationId);
   const admission = (
     await allRows<{ admission: string }>(db, {
       sql: 'SELECT admission FROM events WHERE id = ?1 AND organization_id = ?2',
       params: [input.eventId, input.organizationId],
     })
   )[0]?.admission;
-  const status = rule === 'none' && admission !== 'external_tickets' ? 'published' : 'pending_review';
+  if (admission === 'paid_tickets') await assertMaySellTickets(db, input.organizationId);
+  const status = gate(admission ?? '');
   const rows = await allRows<{ id: string }>(db, {
     sql: `UPDATE events SET status = ?3, published_at = CASE WHEN ?3 = 'published' THEN ?4 ELSE published_at END, updated_at = ?4
            WHERE id = ?1 AND organization_id = ?2 AND status IN ('draft', 'changes_requested', 'rejected')
@@ -923,7 +1054,13 @@ export interface OrganizerEventDetail {
   admission: Admission;
   capacity: number | null;
   occurrences: OrganizerOccurrence[];
+  /**
+   * The schedule and admission are locked: someone holds a registration, or an order points at the event's dates
+   * (pending, paid, or kept as history: orders are never deleted with a date).
+   */
   registrationsLocked: boolean;
+  /** The lock comes (also) from orders. */
+  ordersLocked: boolean;
   decision: { decision: string; note: string | null; decidedAt: number } | null;
 }
 
@@ -985,9 +1122,10 @@ export async function getOrganizerEvent(
     })
   )[0];
   const active = (
-    await allRows<{ n: number }>(db, {
-      sql: `SELECT COUNT(*) AS n FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
-             WHERE o.event_id = ?1 AND (r.status = 'confirmed' OR (r.status = 'pending' AND r.expires_at > ?2))`,
+    await allRows<{ n: number; orders: number }>(db, {
+      sql: `SELECT (SELECT COUNT(*) FROM registrations r JOIN event_occurrences o ON o.id = r.occurrence_id
+                     WHERE o.event_id = ?1 AND (r.status = 'confirmed' OR (r.status = 'pending' AND r.expires_at > ?2))) AS n,
+                   CASE WHEN ${NO_ORDER_HISTORY} THEN 0 ELSE 1 END AS orders`,
       params: [eventId, now],
     })
   )[0];
@@ -1053,7 +1191,8 @@ export async function getOrganizerEvent(
     qrCheckin: Number(e.qr_checkin) === 1,
     admission: e.admission as Admission,
     capacity: e.capacity == null ? null : Number(e.capacity),
-    registrationsLocked: Number(active?.n ?? 0) > 0,
+    registrationsLocked: Number(active?.n ?? 0) > 0 || Number(active?.orders ?? 0) > 0,
+    ordersLocked: Number(active?.orders ?? 0) > 0,
     occurrences: occ.map((o) => ({
       id: String(o.id),
       startsAt: Number(o.starts_at),
@@ -1080,14 +1219,128 @@ export interface AffectedRegistrant {
   startsAt: number;
 }
 
+/** A paid order on a canceled date: refund it in full with the refunds module and email the buyer (§8 item 17). */
+export interface OrderToRefund {
+  orderId: string;
+  /** Null for a door sale where no email was given. */
+  buyerEmail: string | null;
+  buyerName: string | null;
+  paymentMethod: string;
+  startsAt: number;
+}
+
+/** A pending order canceled with its date whose Checkout Session may still be open: expire it at Stripe. */
+export interface CheckoutToExpire {
+  orderId: string;
+  checkoutSessionId: string;
+  stripeAccountId: string | null;
+}
+
+/**
+ * What a cancellation returns: the confirmed registrants to tell (the array itself, as before), plus the paid orders
+ * to refund and the open Checkout Sessions of the pending orders it canceled.
+ */
+export type CancelResult = AffectedRegistrant[] & {
+  ordersToRefund: OrderToRefund[];
+  checkoutsToExpire: CheckoutToExpire[];
+};
+
+/**
+ * Statements that cancel every pending order on the dates `scope` selects (an SQL list of occurrence ids using
+ * `?1`), giving back what each one held: ticket counts by channel (`online_taken` / `door_taken`), people per date
+ * (`occurrence_inventory`) and code uses. The counters are lowered before the orders change status, in one batch.
+ * Preview orders are released the same way.
+ */
+function releasePendingOrdersStatements(scope: string, scopeParam: string, now: number): Statement[] {
+  const pending = `o.status = 'pending' AND o.occurrence_id IN (${scope})`;
+  const held = (channel: string) =>
+    `COALESCE((SELECT SUM(oi.quantity) FROM order_items oi JOIN orders o ON o.id = oi.order_id
+        WHERE ${pending} AND o.channel = '${channel}' AND o.occurrence_id = ticket_inventory.occurrence_id
+          AND oi.ticket_type_id = ticket_inventory.ticket_type_id), 0)`;
+  return [
+    {
+      sql: `UPDATE ticket_inventory SET online_taken = MAX(0, online_taken - ${held('online')}),
+                   door_taken = MAX(0, door_taken - ${held('door')})
+             WHERE occurrence_id IN (${scope})`,
+      params: [scopeParam],
+    },
+    {
+      sql: `UPDATE occurrence_inventory SET people_taken = MAX(0, people_taken - COALESCE((
+                SELECT SUM(oi.quantity * oi.people_per_ticket) FROM order_items oi JOIN orders o ON o.id = oi.order_id
+                 WHERE ${pending} AND o.occurrence_id = occurrence_inventory.occurrence_id), 0))
+             WHERE occurrence_id IN (${scope})`,
+      params: [scopeParam],
+    },
+    {
+      sql: `UPDATE event_codes SET uses = MAX(0, uses - (SELECT COUNT(*) FROM orders o WHERE ${pending} AND o.code_id = event_codes.id))
+             WHERE id IN (SELECT o.code_id FROM orders o WHERE ${pending} AND o.code_id IS NOT NULL)`,
+      params: [scopeParam],
+    },
+    {
+      sql: `UPDATE orders SET status = 'canceled', canceled_at = ?2, updated_at = ?2
+             WHERE status = 'pending' AND occurrence_id IN (${scope})`,
+      params: [scopeParam, now],
+    },
+  ];
+}
+
+const str = (v: unknown) => (v == null ? null : String(v));
+
+/** Pending orders with a Checkout Session on these dates (read before they are canceled). */
+async function openCheckoutsOn(
+  db: SqlDatabase,
+  scope: string,
+  scopeParam: string,
+): Promise<CheckoutToExpire[]> {
+  const rows = await allRows<Record<string, unknown>>(db, {
+    sql: `SELECT o.id, o.checkout_session_id, o.stripe_account_id FROM orders o
+           WHERE o.occurrence_id IN (${scope}) AND o.status = 'pending' AND o.checkout_session_id IS NOT NULL
+           ORDER BY o.created_at, o.id`,
+    params: [scopeParam],
+  });
+  return rows.map((r) => ({
+    orderId: String(r.id),
+    checkoutSessionId: String(r.checkout_session_id),
+    stripeAccountId: str(r.stripe_account_id),
+  }));
+}
+
+/**
+ * Paid orders on these dates, read after the cancellation so an order paid while it ran is not missed (one paid
+ * later still is the orders module's "paid, not fulfilled" case). Preview orders are voided, never refunded.
+ */
+async function paidOrdersOn(db: SqlDatabase, scope: string, scopeParam: string): Promise<OrderToRefund[]> {
+  const rows = await allRows<Record<string, unknown>>(db, {
+    sql: `SELECT o.id, o.buyer_email, o.buyer_name, o.payment_method, q.starts_at
+            FROM orders o JOIN event_occurrences q ON q.id = o.occurrence_id
+           WHERE o.occurrence_id IN (${scope}) AND o.is_preview = 0 AND o.status IN ('paid', 'partially_refunded')
+           ORDER BY q.starts_at, o.created_at, o.id`,
+    params: [scopeParam],
+  });
+  return rows.map((r) => ({
+    orderId: String(r.id),
+    buyerEmail: str(r.buyer_email),
+    buyerName: str(r.buyer_name),
+    paymentMethod: String(r.payment_method),
+    startsAt: Number(r.starts_at),
+  }));
+}
+
+const withOrders = (
+  affected: AffectedRegistrant[],
+  ordersToRefund: OrderToRefund[],
+  checkoutsToExpire: CheckoutToExpire[],
+): CancelResult => Object.assign(affected, { ordersToRefund, checkoutsToExpire });
+
 /**
  * Cancels an event: every date is canceled, every pending or confirmed registration is canceled and its seats
- * are released. Returns the people to tell. Draft and review-stage events can be canceled too.
+ * are released, and every pending order is canceled with its seats and code uses given back. Returns the people to
+ * tell, the paid orders to refund and the Checkout Sessions to expire.
  */
 export async function cancelEvent(
   db: SqlDatabase,
   input: { organizationId: string; eventId: string; now: number },
-): Promise<AffectedRegistrant[]> {
+): Promise<CancelResult> {
   const ev = (
     await allRows<{ status: string }>(db, {
       sql: 'SELECT status FROM events WHERE id = ?1 AND organization_id = ?2',
@@ -1102,7 +1355,10 @@ export async function cancelEvent(
            WHERE o.event_id = ?1 AND r.status = 'confirmed' ORDER BY o.starts_at, r.name`,
     params: [input.eventId],
   });
+  const eventDates = 'SELECT id FROM event_occurrences WHERE event_id = ?1';
+  const checkouts = await openCheckoutsOn(db, eventDates, input.eventId);
   await runBatch(db, [
+    ...releasePendingOrdersStatements(eventDates, input.eventId, input.now),
     {
       sql: `UPDATE registrations SET status = 'canceled', canceled_at = ?2, expires_at = NULL
              WHERE status IN ('pending', 'confirmed') AND occurrence_id IN (SELECT id FROM event_occurrences WHERE event_id = ?1)`,
@@ -1117,7 +1373,11 @@ export async function cancelEvent(
       params: [input.eventId, input.now],
     },
   ]);
-  return affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) }));
+  return withOrders(
+    affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) })),
+    await paidOrdersOn(db, eventDates, input.eventId),
+    checkouts,
+  );
 }
 
 /**
@@ -1127,7 +1387,7 @@ export async function cancelEvent(
 export async function cancelOccurrence(
   db: SqlDatabase,
   input: { organizationId: string; eventId: string; occurrenceId: string; now: number },
-): Promise<AffectedRegistrant[]> {
+): Promise<CancelResult> {
   const row = (
     await allRows<{ status: string; occ_status: string }>(db, {
       sql: `SELECT e.status, o.status AS occ_status FROM event_occurrences o JOIN events e ON e.id = o.event_id
@@ -1142,7 +1402,9 @@ export async function cancelOccurrence(
            WHERE o.id = ?1 AND r.status = 'confirmed' ORDER BY r.name`,
     params: [input.occurrenceId],
   });
+  const checkouts = await openCheckoutsOn(db, '?1', input.occurrenceId);
   await runBatch(db, [
+    ...releasePendingOrdersStatements('?1', input.occurrenceId, input.now),
     {
       sql: `UPDATE registrations SET status = 'canceled', canceled_at = ?2, expires_at = NULL
              WHERE status IN ('pending', 'confirmed') AND occurrence_id = ?1`,
@@ -1160,7 +1422,11 @@ export async function cancelOccurrence(
       params: [input.eventId, input.now],
     },
   ]);
-  return affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) }));
+  return withOrders(
+    affected.map((a) => ({ name: a.name, email: a.email, startsAt: Number(a.starts_at) })),
+    await paidOrdersOn(db, '?1', input.occurrenceId),
+    checkouts,
+  );
 }
 
 /** Deletes an event that never went live (draft, in review, changes requested, rejected). Nobody can have registered. */

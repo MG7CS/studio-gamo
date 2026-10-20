@@ -1,8 +1,7 @@
 /**
- * Door-staff scanner PINs (design T-09): 6 digits, PBKDF2-HMAC-SHA256 (100 000 iterations, the
- * Workers maximum and the value the admin password code uses), random 16-byte salt.
- * Pass SCANNER_SESSION_SECRET as `pepper` so a database copy alone cannot be brute-forced offline;
- * online guessing is stopped by the 5-attempt lock on `scanner_sessions`.
+ * Door staff link PINs: 6 digits, PBKDF2-HMAC-SHA256 (100 000 iterations, the Workers maximum), random 16-byte salt.
+ * Pass a key derived from LIVE_TICKET_SECRET as `pepper` so a database copy alone cannot be brute-forced offline;
+ * online guessing is stopped by the 5-attempt lock on `staff_links`.
  */
 import { bytesToHex, constantTimeEqual, hexToBytes, hmacSha256, randomBytes } from './crypto.ts';
 

@@ -194,3 +194,36 @@ test('a chosen day shows its items with source, organization and status', () => 
     ],
   );
 });
+
+test('verification meetings are on the overview calendar and link to the organization', async () => {
+  const d1 = await database();
+  seed(d1);
+  d1.sqlite.exec(`
+    INSERT INTO verification_meetings (id, subject_type, subject_id, starts_at, timezone, format, location, status)
+      VALUES ('vmt_1', 'organization', 'org_a', ${NOW + 2 * DAY}, 'America/Phoenix', 'video', 'https://meet.example.org/x', 'scheduled'),
+             ('vmt_2', 'organization', 'org_a', ${NOW + 4 * DAY}, 'America/Phoenix', 'video', 'https://meet.example.org/y', 'canceled');
+  `);
+  const all = await listAdminSchedule(d1 as never, { scope: 'all', now: NOW });
+  const meeting = all.filter((r) => r.source === 'meeting');
+  assert.deepEqual(
+    meeting.map((m) => [m.id, m.title, m.status]),
+    [['vmt_1', 'Verification meeting: Grace Church', 'meeting_scheduled']],
+    'canceled meetings stay off',
+  );
+  assert.deepEqual(
+    all.map((r) => r.startsAt),
+    [...all.map((r) => r.startsAt)].sort((a, b) => a - b),
+    'still in date order',
+  );
+  assert.equal(adminEventHref(meeting[0]), '/organizations/org_a#verification');
+  const onlyCatalog = await listAdminSchedule(d1 as never, { scope: 'catalog', now: NOW });
+  assert.equal(
+    onlyCatalog.some((r) => r.source === 'meeting'),
+    false,
+  );
+  const day = new Date((NOW + 2 * DAY) * 1000).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' });
+  const view = adminScheduleView({ dates: all, now: NOW, params: new URLSearchParams({ date: day }) });
+  const item = view.items.find((i) => i.id === 'vmt_1');
+  assert.equal(item?.statusLabel, 'Verification meeting');
+  assert.equal(item?.href, '/organizations/org_a#verification');
+});

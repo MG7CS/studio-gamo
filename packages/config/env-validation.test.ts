@@ -91,17 +91,68 @@ test('admin requires Cloudflare Access settings and the admin email; its local i
   );
 });
 
-test('STRIPE_TEST_CHECKOUT=true is fatal in production and allowed in preview and local', () => {
-  const env = { DB: {}, STRIPE_TEST_CHECKOUT: 'true' };
+test('Stripe live keys are fatal outside production; test keys are an error in production', () => {
+  const base = { LIVE_DB: {}, PII_HASH_SECRET: SECRET, LIVE_TICKET_SECRET: SECRET } as const;
+  const hooks = { STRIPE_WEBHOOK_SECRET: 'whsec_a', STRIPE_CONNECT_WEBHOOK_SECRET: 'whsec_b' } as const;
+  for (const key of ['sk_live_abc', 'rk_live_abc']) {
+    assert.deepEqual(
+      names(
+        validateEnv('live', { ...base, ENVIRONMENT: 'local', STRIPE_SECRET_KEY: key }, '127.0.0.1'),
+        'fatal',
+      ),
+      ['STRIPE_SECRET_KEY'],
+      key,
+    );
+    assert.deepEqual(
+      names(
+        validateEnv(
+          'live',
+          { ...base, ...hooks, ENVIRONMENT: 'preview', STRIPE_SECRET_KEY: key },
+          'live-preview.x',
+        ),
+        'fatal',
+      ),
+      ['STRIPE_SECRET_KEY'],
+      key,
+    );
+  }
+  const prod = { ...base, ...hooks, ENVIRONMENT: 'production' } as const;
   assert.deepEqual(
-    names(validateEnv('live', { ...env, ENVIRONMENT: 'production' }, 'live.gamostudio.org'), 'fatal'),
-    ['STRIPE_TEST_CHECKOUT'],
+    names(validateEnv('live', { ...prod, STRIPE_SECRET_KEY: 'sk_test_abc' }, 'live.gamostudio.org'), 'error'),
+    ['STRIPE_SECRET_KEY'],
   );
   assert.deepEqual(
-    names(validateEnv('live', { ...env, ENVIRONMENT: 'preview' }, 'live-preview.example.test'), 'fatal'),
+    names(validateEnv('live', { ...prod, STRIPE_SECRET_KEY: 'sk_live_abc' }, 'live.gamostudio.org'), 'fatal'),
     [],
   );
-  assert.deepEqual(validateEnv('live', { ...env, ENVIRONMENT: 'local' }, '127.0.0.1'), []);
+  // A key without the platform webhook secret cannot confirm payments.
+  assert.deepEqual(
+    names(
+      validateEnv(
+        'live',
+        { ...base, ENVIRONMENT: 'preview', STRIPE_SECRET_KEY: 'sk_test_abc' },
+        'live-preview.x',
+      ),
+      'error',
+    ),
+    ['STRIPE_WEBHOOK_SECRET'],
+  );
+  // The local stand-in is a local-only flag.
+  assert.deepEqual(
+    names(
+      validateEnv(
+        'live',
+        { ...base, ENVIRONMENT: 'preview', ALLOW_STRIPE_STANDIN: 'true' },
+        'live-preview.x',
+      ),
+      'fatal',
+    ),
+    ['ALLOW_STRIPE_STANDIN'],
+  );
+  assert.deepEqual(
+    validateEnv('live', { ...base, ENVIRONMENT: 'local', ALLOW_STRIPE_STANDIN: 'true' }, '127.0.0.1'),
+    [],
+  );
 });
 
 test('Live needs its hash secret, and Clerk is all-or-nothing with production keys in production', () => {

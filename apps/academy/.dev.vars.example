@@ -17,9 +17,8 @@ CLERK_ISSUER_ACADEMY=
 # OPTIONAL. Comma-separated allowed origins for Clerk tokens; defaults to this app's local/preview/production origins.
 CLERK_AUTHORIZED_PARTIES_ACADEMY=
 
-# Identity, consent and abuse protection (docs/design/identity-and-ticketing.md §10; RUNBOOK §3).
-# Gamo HMAC keys (PII_HASH_SECRET, TICKET_QR_SECRET_GL1, CUSTOMER_LINK_SECRET, SCANNER_SESSION_SECRET) need ≥ 32 random
-# characters each and must differ from SESSION_SECRET and from each other. Provider secrets are pasted as issued.
+# Consent and abuse protection. Gamo HMAC keys (PII_HASH_SECRET) need ≥ 32 random characters and must differ from
+# SESSION_SECRET and from each other. Provider secrets are pasted as issued.
 # Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 # OPTIONAL locally. HMAC key for hashed IPs/emails (consents, rate limits, email log). Outside local: forms that need it answer 503.
 PII_HASH_SECRET=
@@ -27,10 +26,6 @@ PII_HASH_SECRET=
 # outside local; locally the dummy token XXXX.DUMMY.TOKEN.XXXX is accepted. PUBLIC_TURNSTILE_SITE_KEY is public (a var).
 PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
-# REQUIRED for registration manage links (≥ 32 chars).
-CUSTOMER_LINK_SECRET=
-# OPTIONAL. "true" opens the Stripe TEST-mode paid registration path in local/preview. Never "true" in production.
-STRIPE_TEST_CHECKOUT=
 # OPTIONAL. Svix signing secret of this product's Clerk webhook (POST /api/webhook/clerk ends Gamo sessions
 # when a Clerk session ends). Without it the route answers 503.
 CLERK_WEBHOOK_SECRET_ACADEMY=

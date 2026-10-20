@@ -4,6 +4,7 @@
  */
 import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
 import { purgeRateLimitCounters } from '../security/rate-limit.ts';
+import { releaseExpiredOrders } from './orders.ts';
 import { releaseExpiredHolds } from './registration.ts';
 
 /** Registrant personal data is deleted this long after an event's last date has ended. */
@@ -18,7 +19,18 @@ export interface CleanupReport {
   sessionsRemoved: number;
   invitationsRemoved: number;
   rateLimitCountersRemoved: number;
+  /** Paid orders whose buyer and ticket-holder names and emails were removed (amounts and references stay). */
+  ordersAnonymized: number;
+  /** Door staff devices whose sign-in has ended. */
+  staffDevicesRemoved: number;
 }
+
+/** What free text typed by people becomes after the retention period, where a value is required. */
+const REMOVED = 'Removed after 90 days';
+
+/** Events whose last date ended before the cutoff (`?1`): their buyers' personal data is due for removal. */
+const DUE_EVENTS = `
+  SELECT event_id FROM event_occurrences GROUP BY event_id HAVING MAX(COALESCE(ends_at, starts_at)) < ?1`;
 
 const count = async (db: SqlDatabase, sql: string, params: (string | number)[]) =>
   Number((await allRows<{ n: number }>(db, { sql, params }))[0]?.n ?? 0);
@@ -33,6 +45,7 @@ const DUE_OCCURRENCES = `
 
 export async function runLiveCleanup(db: SqlDatabase, now: number): Promise<CleanupReport> {
   await releaseExpiredHolds(db, now);
+  await releaseExpiredOrders(db, now);
   const cutoff = now - REGISTRANT_RETENTION_SECONDS;
   const short = now - SHORT_RETENTION_SECONDS;
 
@@ -52,6 +65,16 @@ export async function runLiveCleanup(db: SqlDatabase, now: number): Promise<Clea
     [short],
   );
 
+  const ordersAnonymized = await count(
+    db,
+    `SELECT COUNT(*) AS n FROM orders WHERE event_id IN (${DUE_EVENTS})
+        AND (buyer_name IS NOT NULL OR buyer_email IS NOT NULL OR email_hash IS NOT NULL OR attendee_names IS NOT NULL)`,
+    [cutoff],
+  );
+  const staffDevices = await count(db, 'SELECT COUNT(*) AS n FROM staff_devices WHERE expires_at < ?1', [
+    now,
+  ]);
+
   // Totals are written onto each date before its registrations go, so the aggregate numbers outlive the people.
   // The deletes are in the same batch, after the summary, so a failure keeps both or neither.
   await runBatch(db, [
@@ -68,6 +91,47 @@ export async function runLiveCleanup(db: SqlDatabase, now: number): Promise<Clea
       sql: `DELETE FROM registrations WHERE occurrence_id IN (${DUE_OCCURRENCES})`,
       params: [cutoff],
     },
+    // Paid orders: financial records stay (amounts, references, payments, refunds, the ledger); names and emails go.
+    {
+      sql: `UPDATE orders SET buyer_name = NULL, buyer_email = NULL, email_hash = NULL, attendee_names = NULL
+             WHERE event_id IN (${DUE_EVENTS})`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE tickets SET holder_name = NULL, holder_email = NULL, email_hash = NULL
+             WHERE event_id IN (${DUE_EVENTS})`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE ticket_transfers SET from_name = NULL, from_email_hash = NULL, to_name = NULL, to_email_hash = ''
+             WHERE ticket_id IN (SELECT id FROM tickets WHERE event_id IN (${DUE_EVENTS}))`,
+      params: [cutoff],
+    },
+    // Free text people typed (refund reasons and notes, comp reasons, drawer notes, door link names) may hold
+    // personal details; it goes too. Required fields keep a neutral word so their CHECKs still hold.
+    {
+      sql: `UPDATE refunds SET reason = CASE WHEN reason IS NULL THEN NULL ELSE '${REMOVED}' END, decided_note = NULL
+             WHERE order_id IN (SELECT id FROM orders WHERE event_id IN (${DUE_EVENTS}))`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE orders SET comp_reason = '${REMOVED}' WHERE comp_reason IS NOT NULL AND event_id IN (${DUE_EVENTS})`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE cash_movements SET reason = CASE WHEN reason IS NULL THEN NULL ELSE '${REMOVED}' END
+             WHERE cash_session_id IN (SELECT id FROM cash_sessions WHERE event_id IN (${DUE_EVENTS}))`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE cash_sessions SET close_note = NULL WHERE event_id IN (${DUE_EVENTS})`,
+      params: [cutoff],
+    },
+    {
+      sql: `UPDATE staff_links SET label = 'Door link' WHERE event_id IN (${DUE_EVENTS})`,
+      params: [cutoff],
+    },
+    { sql: 'DELETE FROM staff_devices WHERE expires_at < ?1', params: [now] },
     { sql: 'DELETE FROM email_codes WHERE expires_at < ?1', params: [now] },
     { sql: 'DELETE FROM organizer_sessions WHERE expires_at < ?1', params: [short] },
     {
@@ -83,5 +147,7 @@ export async function runLiveCleanup(db: SqlDatabase, now: number): Promise<Clea
     sessionsRemoved: sessions,
     invitationsRemoved: invitations,
     rateLimitCountersRemoved,
+    ordersAnonymized,
+    staffDevicesRemoved: staffDevices,
   };
 }

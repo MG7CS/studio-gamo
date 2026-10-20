@@ -32,6 +32,10 @@ export function createSqliteD1(path = ':memory:'): SqliteD1 {
   sqlite.exec('PRAGMA foreign_keys=ON');
 
   const createStatement = (query: string): SqliteD1Statement => {
+    // Like D1, which limits a compound SELECT to five terms (node:sqlite has no limit to set): fail here, not in a
+    // deployed Worker. Counted over the whole statement, so it is stricter than D1 for nested compounds.
+    if ((query.match(/\b(UNION|INTERSECT|EXCEPT)\b/gi) ?? []).length > 4)
+      throw new Error('D1_ERROR: too many terms in compound SELECT (D1 allows at most 5)');
     let boundParams: SqlValue[] = [];
 
     const stmtObj: SqliteD1Statement = {

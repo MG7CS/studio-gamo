@@ -43,7 +43,6 @@ workers_dev = true
 [env.preview.vars]
 ENVIRONMENT = "preview"
 PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa4P6c3vDrYW8Qo"
-STRIPE_TEST_CHECKOUT = "true"
 ALLOW_DEMO_SESSION = "false"
 PUBLIC_ROOT_DOMAIN = "gamostudio.workers.dev"
 PUBLIC_SITE_URL_WEB = "https://gamo-web-preview.gamostudio.workers.dev"
