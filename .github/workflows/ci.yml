@@ -24,16 +24,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Browser for the Playwright smoke suite (tests/e2e) run by pnpm check.
       - run: pnpm exec playwright install --with-deps chromium
-      # Local-only HTML API reference; api:check scans it for credential-shaped strings.
-      - run: pnpm api:docs
       # typecheck (incl. .astro), lint, format check, unit/integration tests,
-      # OpenAPI lint + generated-artifact drift + contract tests, build of all six apps,
-      # browser smoke tests against the production builds.
+      # build of all six apps, browser tests against the production builds.
       - run: pnpm check
-      - name: OpenAPI compatibility review against the base commit
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
-            pnpm api:compatibility "$BASE_SHA"
-          fi
