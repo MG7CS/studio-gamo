@@ -9,7 +9,6 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: '/events', priority: '0.9', changefreq: 'daily' },
   { path: '/venues', priority: '0.8', changefreq: 'weekly' },
   { path: '/artists', priority: '0.7', changefreq: 'weekly' },
-  { path: '/promote', priority: '0.6', changefreq: 'monthly' },
 ];
 
 async function publishedEventEntries(context: Parameters<APIRoute>[0]): Promise<SitemapEntry[]> {
