@@ -1,0 +1,97 @@
+---
+/**
+ * The local Stripe stand-in's "hosted" Checkout page (docs/LIVE_SCREENS.md §I.2 P10). It exists only when the stand-in
+ * runs on this computer (ENVIRONMENT=local, ALLOW_STRIPE_STANDIN=true, no Stripe key); everywhere else it is a 404.
+ * Pay, Decline or Cancel record the choice, deliver the stand-in's signed webhooks at once, then go on to the
+ * checkout's success or cancel address. No card is asked for and no money moves.
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../../../lib/registration';
+import {
+  STANDIN_FLASH,
+  completeStandinCheckout,
+  openStandinCheckout,
+  type StandinCheckoutPage,
+} from '../../../../lib/checkout-stripe';
+
+export const prerender = false;
+
+const sessionId = Astro.params.id ?? '';
+const now = Math.floor(Date.now() / 1000);
+let page: StandinCheckoutPage | null = null;
+let flash: string | null = null;
+
+try {
+  const live = await openLive(Astro);
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const form = await Astro.request.formData();
+    const done = await completeStandinCheckout(live, {
+      sessionId,
+      outcome: String(form.get('outcome') ?? ''),
+      now,
+    });
+    if (!done) {
+      Astro.response.status = 404;
+      return Astro.rewrite('/404');
+    }
+    return done.declined
+      ? flashRedirect(Astro, done.location, 'standin-declined')
+      : Astro.redirect(done.location, 303);
+  }
+  page = await openStandinCheckout(live, { sessionId, now });
+  flash = readFlash(Astro, STANDIN_FLASH);
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:standin] checkout_failed', (error as Error)?.name);
+}
+if (!page) {
+  Astro.response.status = 404;
+  return Astro.rewrite('/404');
+}
+---
+
+<CheckoutFrame
+  title="Local Stripe stand-in"
+  heading="Local Stripe stand-in — no real payment"
+  subtext="This page stands in for Stripe Checkout on this computer. Choose what the payment should do."
+  testMode={{ show: true, standin: true }}
+  notice={
+    flash
+      ? { tone: 'warning', text: flash }
+      : page.statusText
+        ? { tone: 'info', text: page.statusText }
+        : null
+  }
+  photo="concertCrowdWide"
+>
+  <div class="rounded-2xl border border-tan bg-white px-4 py-3">
+    <ReceiptLines lines={page.lines} total={{ label: 'Total', amount: page.total }} />
+  </div>
+  {page.open ? (
+    <form method="post" class="mt-4 space-y-2">
+      <SplitButton label={`Pay ${page.total}`} name="outcome" value="paid" />
+      <div class="grid grid-cols-2 gap-2">
+        <Button type="submit" name="outcome" value="declined" variant="secondary" block>
+          Decline the card
+        </Button>
+        <Button type="submit" name="outcome" value="canceled" variant="ghost" block>
+          Cancel and go back
+        </Button>
+      </div>
+    </form>
+  ) : (
+    <Button variant="secondary" href={page.cancelUrl} class="mt-4">
+      Back to the event
+    </Button>
+  )}
+</CheckoutFrame>

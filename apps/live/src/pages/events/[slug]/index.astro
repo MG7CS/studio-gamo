@@ -779,7 +779,33 @@ const pageDescription = metro
                       <strong>Refunds:</strong> {event.refundPolicyText}
                     </p>
                   )}
-                  {event.admission === 'free_registration' ? (
+                  {event.admission === 'paid_tickets' && event.paidTickets ? (
+                    event.paidTickets.state === 'on_sale' ? (
+                      <>
+                        <a
+                          class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
+                          href={`/events/${event.slug}/tickets`}
+                        >
+                          Get tickets
+                        </a>
+                        <p class="mt-2 text-xs text-muted">
+                          {event.paidTickets.fromCents != null
+                            ? `From ${formatUsd(event.paidTickets.fromCents)}. `
+                            : ''}
+                          No account needed. {event.paidTickets.refundLine}
+                          {event.paidTickets.sellerLine ? ` ${event.paidTickets.sellerLine}` : ''}
+                        </p>
+                      </>
+                    ) : (
+                      <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                        {event.paidTickets.state === 'sold_out'
+                          ? 'Sold out.'
+                          : event.paidTickets.state === 'not_open' && event.paidTickets.opensAt
+                            ? `Tickets go on sale ${new Date(event.paidTickets.opensAt * 1000).toLocaleString('en-US', { timeZone: event.timezone, dateStyle: 'medium', timeStyle: 'short' })}.`
+                            : 'Ticket sales have ended.'}
+                      </p>
+                    )
+                  ) : event.admission === 'free_registration' ? (
                     event.capacity != null && event.seatsTaken >= event.capacity ? (
                       <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
                         Registration full. Check back in case seats open up.

@@ -1,0 +1,140 @@
+---
+/**
+ * Checkout step 3 of 3 (docs/LIVE_SCREENS.md §I.2 P3): every line priced on the server (tickets, discount, Gamo fee
+ * when passed on, gift), the total, the seller, the policies, and the terms consent (never pre-ticked). Pay reserves
+ * the seats and opens Stripe Checkout (or the local stand-in); an order that costs nothing opens its order page.
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import ReceiptCard from '../../../../components/checkout/ReceiptCard.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders, requesterHash } from '@gamo/domain';
+import { flashRedirect } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin, siteUrl } from '@studio-gamo/ui/lib/sites';
+import { openLive } from '../../../../lib/registration';
+import {
+  PAID_MESSAGES,
+  isPaymentsUnavailable,
+  openReview,
+  payReview,
+  paymentTestMode,
+  type ReviewView,
+  type StepOutcome,
+} from '../../../../lib/checkout';
+
+export const prerender = false;
+
+// Only this page's Pay form redirects to Stripe Checkout, so only this response allows posting there.
+requestSecurityHeaders(Astro.locals, { formActionOrigins: ['https://checkout.stripe.com'] });
+
+const slug = Astro.params.slug ?? '';
+const now = Math.floor(Date.now() / 1000);
+let view: ReviewView | null = null;
+let unavailable: string | null = null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  let outcome: StepOutcome<ReviewView>;
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    outcome = await payReview(live, {
+      slug,
+      form: await Astro.request.formData(),
+      cookies: Astro.cookies,
+      secure: Astro.url.protocol === 'https:',
+      // The return address Stripe sends the buyer back to comes from the configuration, never from the request; on
+      // this computer with the local stand-in it is this server, so a phone on the same Wi-Fi comes back here too.
+      origin: testMode.standin ? Astro.url.origin : siteOrigin('live'),
+      ipHash: await requesterHash(Astro.request, live.env),
+      now,
+    });
+  } else {
+    outcome = await openReview(live, { slug, cookies: Astro.cookies, now });
+  }
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+  view = outcome.view;
+  Astro.response.status = view.status;
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:checkout] review_failed', (error as Error)?.name);
+  unavailable = isPaymentsUnavailable(error)
+    ? PAID_MESSAGES.payments_unavailable
+    : 'Payments are temporarily unavailable. Nothing was charged. Please try again later.';
+  Astro.response.status = 503;
+}
+
+const link = 'font-semibold text-terracotta-deep underline';
+---
+
+<CheckoutFrame
+  title={view ? `Review: ${view.event.title}` : 'Review and pay'}
+  heading="Review and pay"
+  subtext={view ? `${view.event.title} · ${view.whenLabel}` : undefined}
+  step={3}
+  testMode={testMode}
+  notice={unavailable ? { tone: 'danger', text: unavailable } : (view?.notice ?? null)}
+>
+  {view && (
+    <form method="post" class="space-y-3" novalidate>
+      <ReceiptCard lines={view.lines} total={view.total} seller={view.seller} policy={view.policy} />
+      <p class="text-[13px] text-ink">
+        Tickets for {view.buyer.name} go to <strong>{view.buyer.email}</strong>.
+      </p>
+      <div>
+        <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+          <input
+            id="terms"
+            type="checkbox"
+            name="terms"
+            value="yes"
+            required
+            aria-invalid={view.error ? 'true' : undefined}
+            aria-describedby={view.error ? 'terms-error' : undefined}
+            class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/50 accent-terracotta-deep"
+          />
+          <span>
+            I agree to the{' '}
+            <a
+              class={link}
+              href={siteUrl('web', '/legal/ticket-terms')}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ticket Terms<span class="sr-only"> (opens in a new tab)</span>
+            </a>{' '}
+            (draft, under legal review) and the event’s policies above.
+          </span>
+        </label>
+        {view.error && (
+          <p id="terms-error" role="alert" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+            <span class="sr-only">Error: </span>
+            {view.error}
+          </p>
+        )}
+      </div>
+      <SplitButton label={view.free ? 'Get my tickets' : `Pay ${view.total.amount}`} />
+      {!view.free && (
+        <p class="text-[13px] text-muted">
+          You pay on Stripe’s secure page (card, Apple Pay or Google Pay). Gamo never sees your card number.
+        </p>
+      )}
+      <Button variant="ghost" href={`/events/${view.event.slug}/tickets/details`} class="-ml-5">
+        Back
+      </Button>
+    </form>
+  )}
+</CheckoutFrame>

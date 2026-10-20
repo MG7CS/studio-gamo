@@ -1,0 +1,172 @@
+---
+/**
+ * Checkout step 2 of 3 (docs/LIVE_SCREENS.md §I.2 P2): name, email and its confirmation (a possible typo is shown as
+ * "Did you mean …?" and never applied), the attendee names when the event asks for them, and the optional gift to the
+ * organization. Every problem is shown at once. Nothing is stored yet (lib/checkout.ts).
+ */
+import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
+import GiftChoice from '../../../../components/checkout/GiftChoice.astro';
+import FormErrorSummary from '../../../../components/register/FormErrorSummary.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../../../lib/registration';
+import {
+  CHECKOUT_FLASH,
+  PAID_MESSAGES,
+  isPaymentsUnavailable,
+  openDetails,
+  orderedDetailsErrors,
+  paymentTestMode,
+  submitDetails,
+  type DetailsView,
+  type StepOutcome,
+} from '../../../../lib/checkout';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const now = Math.floor(Date.now() / 1000);
+let view: DetailsView | null = null;
+let unavailable: string | null = null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  let outcome: StepOutcome<DetailsView>;
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    outcome = await submitDetails(live, {
+      slug,
+      form: await Astro.request.formData(),
+      cookies: Astro.cookies,
+      secure: Astro.url.protocol === 'https:',
+      now,
+    });
+  } else {
+    outcome = await openDetails(live, {
+      slug,
+      cookies: Astro.cookies,
+      flash: readFlash(Astro, CHECKOUT_FLASH),
+      now,
+    });
+  }
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+  view = outcome.view;
+  Astro.response.status = view.status;
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:checkout] details_failed', (error as Error)?.name);
+  unavailable = isPaymentsUnavailable(error)
+    ? PAID_MESSAGES.payments_unavailable
+    : 'Ticket sales are temporarily unavailable. Please try again later.';
+  Astro.response.status = 503;
+}
+
+const errorList = view ? orderedDetailsErrors(view.errors) : [];
+---
+
+<CheckoutFrame
+  title={view ? `Your details: ${view.event.title}` : 'Your details'}
+  heading="Your details"
+  subtext={view ? `${view.event.title} · ${view.whenLabel} · ${view.summary}` : undefined}
+  step={2}
+  testMode={testMode}
+  notice={unavailable ? { tone: 'danger', text: unavailable } : (view?.notice ?? null)}
+>
+  {view && (
+    <form method="post" class="space-y-3.5" novalidate>
+      <FormErrorSummary errors={errorList} />
+      <SplitField
+        id="name"
+        name="name"
+        label="Your name"
+        autocomplete="name"
+        maxlength={100}
+        required
+        value={view.values.name}
+        error={view.errors.name}
+      />
+      <div class="grid gap-3.5 sm:grid-cols-2">
+        <SplitField
+          id="email"
+          name="email"
+          type="email"
+          inputmode="email"
+          label="Email address"
+          autocomplete="email"
+          required
+          value={view.values.email}
+          error={view.errors.email}
+        />
+        <SplitField
+          id="confirmEmail"
+          name="confirmEmail"
+          type="email"
+          inputmode="email"
+          label="Email again"
+          autocomplete="email"
+          required
+          value={view.values.confirmEmail}
+          error={view.errors.confirmEmail}
+        />
+      </div>
+      {view.emailHint && (
+        <Notice tone="warning">
+          Did you mean <strong>{view.emailHint}</strong>? If so, correct both fields. If your address is
+          right, press Next again.
+        </Notice>
+      )}
+      <input type="hidden" name="hintFor" value={view.emailHint ? view.hintFor : ''} />
+      <p class="text-[13px] text-muted">Your tickets and receipt go to this address.</p>
+      {view.namesRequired && (
+        <fieldset>
+          <legend class="mb-1.5 text-[14px] font-semibold text-ink">Name on each ticket</legend>
+          <div class="grid gap-2 sm:grid-cols-2">
+            {view.values.attendeeNames.map((n, i) => (
+              <SplitField
+                id={`attendee_${i}`}
+                name={`attendee_${i}`}
+                label={`Ticket ${i + 1}`}
+                autocomplete="off"
+                maxlength={100}
+                required
+                size="sm"
+                value={n}
+                error={view!.errors[`attendee_${i}`]}
+              />
+            ))}
+          </div>
+        </fieldset>
+      )}
+      {view.gift.enabled && (
+        <GiftChoice
+          organizationName={view.gift.organizationName}
+          presets={view.gift.presets}
+          value={view.values.gift}
+          custom={view.values.giftCustom}
+          error={view.errors.gift}
+        />
+      )}
+      <SplitButton label="Next" />
+      <Button variant="ghost" href={`/events/${view.event.slug}/tickets`} class="-ml-5">
+        Back
+      </Button>
+    </form>
+  )}
+</CheckoutFrame>

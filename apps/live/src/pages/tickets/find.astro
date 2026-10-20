@@ -1,0 +1,90 @@
+---
+/**
+ * Find my tickets (docs/LIVE_SCREENS.md §I.2 P7): type the email address the tickets were bought with (or passed on
+ * to); if it has tickets, we email fresh links. The answer is always the same, also when rate limited, so the page
+ * never tells who bought what.
+ */
+import CheckoutFrame from '../../components/checkout/CheckoutFrame.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { openLive } from '../../lib/registration';
+import { FIND_FLASH, findTickets } from '../../lib/checkout-orders';
+
+export const prerender = false;
+
+const now = Math.floor(Date.now() / 1000);
+let error: string | null = null;
+let email = '';
+let unavailable = false;
+let sent: string | null = null;
+
+try {
+  const live = await openLive(Astro);
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const form = await Astro.request.formData();
+    email = String(form.get('email') ?? '').slice(0, 254);
+    const outcome = await findTickets(live, {
+      form,
+      request: Astro.request,
+      origin: siteOrigin('live'),
+      now,
+    });
+    if (outcome.kind === 'done') return flashRedirect(Astro, '/tickets/find', 'find-tickets-sent');
+    error = outcome.error;
+    Astro.response.status = 422;
+  } else {
+    sent = readFlash(Astro, FIND_FLASH);
+  }
+} catch (failure) {
+  if (failure instanceof Response) throw failure;
+  console.error('[live:find-tickets] failed', (failure as Error)?.name);
+  unavailable = true;
+  Astro.response.status = 503;
+}
+---
+
+<CheckoutFrame
+  title="Find my tickets"
+  heading="Find my tickets"
+  subtext="Lost the email with your tickets? We send fresh links to the address you used."
+  notice={
+    unavailable
+      ? { tone: 'danger', text: 'This is temporarily unavailable. Please try again later.' }
+      : sent
+        ? { tone: 'success', text: sent }
+        : null
+  }
+  photo="gospelVocalists"
+>
+  <form method="post" class="space-y-4" novalidate>
+    <SplitField
+      id="email"
+      name="email"
+      type="email"
+      inputmode="email"
+      label="Email address"
+      autocomplete="email"
+      required
+      value={email}
+      error={error ?? undefined}
+    />
+    <SplitButton label="Email my links" />
+  </form>
+  <p class="mt-4 text-[13px] leading-relaxed text-muted">
+    For free registrations, use the link in your registration email.
+  </p>
+  <div class="mt-3">
+    <Button variant="ghost" href="/events" class="-ml-5">
+      Browse events
+    </Button>
+  </div>
+</CheckoutFrame>

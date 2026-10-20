@@ -1,0 +1,54 @@
+---
+/**
+ * The frame of every public payment screen (checkout steps, return, order and ticket pages, transfer, refund, find my
+ * tickets, the local Stripe stand-in): the split screen with its one <h1>, "Step N of 3" when it is a checkout step,
+ * "Test mode" while Stripe runs with test keys or the local stand-in, and one notice. The page's own content is the
+ * slot. Never indexed.
+ */
+import Layout from '../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import StepProgress from '@studio-gamo/ui/components/split/StepProgress.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import { CHECKOUT_STEPS, type Message } from '../../lib/checkout';
+
+interface Props {
+  /** The browser tab title. */
+  title: string;
+  heading: string;
+  subtext?: string;
+  step?: 1 | 2 | 3;
+  testMode?: { show: boolean; standin: boolean } | null;
+  notice?: Message | null;
+  photo?: PhotoKey;
+  /** Reload the page every N seconds (the return page while the payment is confirmed). */
+  refreshSeconds?: number;
+}
+const {
+  title,
+  heading,
+  subtext,
+  step,
+  testMode,
+  notice,
+  photo = 'worshipNight',
+  refreshSeconds,
+} = Astro.props;
+---
+
+<Layout title={title} chrome={false} noindex>
+  {refreshSeconds && <meta slot="head" http-equiv="refresh" content={String(refreshSeconds)} />}
+  <SplitScreenLayout photo={photo} program="Gamo Live" brandHref="/">
+    {step && <StepProgress step={step} total={CHECKOUT_STEPS.length} labels={CHECKOUT_STEPS} />}
+    <SplitHeading title={heading} subtext={subtext} />
+    {testMode?.show && <TestModeNotice standin={testMode.standin} class="mb-4" />}
+    {notice && (
+      <Notice tone={notice.tone} class="mb-4">
+        {notice.text}
+      </Notice>
+    )}
+    <slot />
+  </SplitScreenLayout>
+</Layout>

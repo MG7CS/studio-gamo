@@ -1,0 +1,53 @@
+---
+/**
+ * One ticket of an order: type and seat number, who holds it, its status in words, its QR code when it can be used
+ * (a server-made SVG, high contrast on white with a quiet zone), a note (scanned, passed on) and "Pass on" when the
+ * policy allows it, or why not. The QR is large on a phone and steps down beside the details on a desktop screen.
+ */
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import type { TicketModel } from '../../lib/checkout-orders';
+
+interface Props {
+  ticket: TicketModel;
+}
+const { ticket: t } = Astro.props;
+const people = t.people > 1 ? ` · admits ${t.people} people` : '';
+---
+
+<article
+  class:list={[
+    'rounded-2xl border border-tan bg-white p-4',
+    t.qr ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-4' : '',
+  ]}
+>
+  <div class="min-w-0">
+    <div class="flex flex-wrap items-center gap-2">
+      <p class="text-[15px] font-bold text-ink">{t.title}</p>
+      <Pill tone={t.status.tone}>{t.status.label}</Pill>
+    </div>
+    <p class="mt-1 text-[14px] text-ink">
+      {t.holder ?? 'No name on this ticket'}
+      {people}
+    </p>
+    {t.note && <p class="mt-1 text-[13px] text-muted">{t.note}</p>}
+    {t.transfer.href ? (
+      <Button variant="secondary" href={t.transfer.href} class="mt-3">
+        Pass this ticket on
+      </Button>
+    ) : (
+      t.transfer.reason && <p class="mt-1 text-[13px] text-muted">{t.transfer.reason}</p>
+    )}
+  </div>
+  {t.qr && (
+    <figure class="mt-4 flex flex-col items-center border-t border-tan pt-4 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+      <div
+        role="img"
+        aria-label={`QR code for ${t.title}`}
+        class="aspect-square w-[min(100%,280px)] rounded-2xl bg-white p-2 ring-1 ring-tan lg:w-[164px] [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
+        set:html={t.qr}
+      />
+      <figcaption class="mt-2 text-[13px] font-semibold text-ink">Show this at the door</figcaption>
+    </figure>
+  )}
+</article>

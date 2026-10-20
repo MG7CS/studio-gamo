@@ -1,0 +1,175 @@
+---
+/**
+ * Ask for a refund (docs/LIVE_REQUIREMENTS.md §8.2 item 16), reached from the order page while the event's policy
+ * allows it: choose the tickets (each shows what it brings back), see the amount the server computes and the policy,
+ * add a reason if you like, confirm. The organizer then approves or declines; the money returns to the card.
+ */
+import CheckoutFrame from '../../../components/checkout/CheckoutFrame.astro';
+import ConfirmStep from '../../../components/checkout/ConfirmStep.astro';
+import OrderEventCard from '../../../components/checkout/OrderEventCard.astro';
+import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { openLive } from '../../../lib/registration';
+import { paymentTestMode } from '../../../lib/checkout';
+import { openRefund, submitRefund, type RefundOutcome } from '../../../lib/checkout-orders';
+
+export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const token = Astro.params.token ?? '';
+const now = Math.floor(Date.now() / 1000);
+let outcome: RefundOutcome | null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    outcome = await submitRefund(live, {
+      token,
+      form: await Astro.request.formData(),
+      origin: siteOrigin('live'),
+      now,
+    });
+  } else {
+    outcome = await openRefund(live, { token, now });
+  }
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:orders] refund_failed', (error as Error)?.name);
+  outcome = null;
+  Astro.response.status = 503;
+}
+if (outcome?.kind === 'expired') Astro.response.status = 410;
+const view = outcome?.kind === 'view' ? outcome.view : null;
+if (view) Astro.response.status = view.status;
+---
+
+<CheckoutFrame
+  title="Ask for a refund"
+  heading={outcome?.kind === 'expired' ? 'This link has expired' : 'Ask for a refund'}
+  testMode={testMode}
+  subtext={
+    view
+      ? `${view.policy.refund}${view.deadlineLabel ? ` Requests close ${view.deadlineLabel}.` : ''}`
+      : undefined
+  }
+  notice={
+    view?.notice ??
+    (outcome
+      ? null
+      : { tone: 'danger', text: 'This page is temporarily unavailable. Please try again later.' })
+  }
+  photo="worshipLeaderGolden"
+>
+  {outcome?.kind === 'expired' && (
+    <Button size="lg" block href="/tickets/find">
+      Find my tickets
+    </Button>
+  )}
+  {view && (
+    <div class="space-y-3">
+      <OrderEventCard
+        title={view.event.title}
+        whenLabel={view.event.whenLabel}
+        venueLabel={view.event.venueLabel}
+        extra={`Order ${view.reference}`}
+      />
+      {view.phase === 'choose' && (
+        <form method="post" class="space-y-3" novalidate>
+          <fieldset aria-describedby={view.error ? 'ticket-error' : undefined}>
+            <legend class="mb-1.5 text-[14px] font-semibold text-ink">Tickets to refund</legend>
+            <div id="tickets" tabindex="-1" class="space-y-2">
+              {view.options.map((o) => (
+                <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-2xl border border-tan bg-white px-4 py-2.5 text-[14px] text-ink has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta">
+                  <input
+                    type="checkbox"
+                    name="ticket"
+                    value={o.id}
+                    checked={o.checked}
+                    class="h-5 w-5 shrink-0 accent-terracotta-deep"
+                  />
+                  <span class="min-w-0 flex-1">
+                    <span class="font-semibold">{o.title}</span>
+                    {o.holder && <span class="text-muted"> · {o.holder}</span>}
+                  </span>
+                  <span class="tabular-nums">{o.amount}</span>
+                </label>
+              ))}
+            </div>
+            {view.error && (
+              <p id="ticket-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+                <span class="sr-only">Error: </span>
+                {view.error}
+              </p>
+            )}
+          </fieldset>
+          <SplitField
+            id="reason"
+            name="reason"
+            label="Reason (optional)"
+            as="textarea"
+            rows={2}
+            maxlength={500}
+            size="sm"
+            value={view.reason}
+            hint="The organizer sees this."
+          />
+          <input type="hidden" name="action" value="review" />
+          <SplitButton label="Continue" />
+        </form>
+      )}
+      {view.phase === 'confirm' && (
+        <ConfirmStep confirmLabel="Yes, ask for this refund">
+          <p>
+            You are asking for <strong>{view.amount}</strong> back for{' '}
+            {view.options.filter((o) => o.checked).length === 1
+              ? 'one ticket'
+              : `${view.options.filter((o) => o.checked).length} tickets`}
+            . {view.giftNote}
+          </p>
+          <p class="mt-1">
+            The organizer approves or declines it. If approved, the money returns to the card you paid with,
+            and those tickets stop working.
+          </p>
+          <Fragment slot="fields">
+            {view.options
+              .filter((o) => o.checked)
+              .map((o) => (
+                <input type="hidden" name="ticket" value={o.id} />
+              ))}
+            <input type="hidden" name="reason" value={view.reason} />
+          </Fragment>
+        </ConfirmStep>
+      )}
+      <Button variant="ghost" href={view.backHref} class="-ml-5">
+        Back to the order
+      </Button>
+    </div>
+  )}
+  {!outcome && (
+    <Button variant="secondary" href={`/orders/${token}`}>
+      Back
+    </Button>
+  )}
+</CheckoutFrame>

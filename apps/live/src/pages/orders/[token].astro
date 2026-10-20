@@ -1,0 +1,187 @@
+---
+/**
+ * The order page (docs/LIVE_SCREENS.md §I.2 P5), reached by the signed link in the confirmation email: the event, one
+ * card per ticket with its QR code, add to calendar and open in Maps, the receipt with every line and the seller, the
+ * policies, and what the buyer may do (pass a ticket on, ask for a refund) or why not. A transferred ticket's holder
+ * opens the same route with a ticket link and sees only their ticket. Forged links are a 404; expired ones a 410.
+ */
+import CheckoutFrame from '../../components/checkout/CheckoutFrame.astro';
+import OrderEventCard from '../../components/checkout/OrderEventCard.astro';
+import PaidTicketCard from '../../components/checkout/PaidTicketCard.astro';
+import ReceiptCard from '../../components/checkout/ReceiptCard.astro';
+import TicketActions from '../../components/register/TicketActions.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { readFlash } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../lib/registration';
+import { paymentTestMode } from '../../lib/checkout';
+import { ORDER_FLASH, openOrderLink, type OrderLinkOutcome } from '../../lib/checkout-orders';
+
+export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const token = Astro.params.token ?? '';
+const now = Math.floor(Date.now() / 1000);
+let page: OrderLinkOutcome | null;
+let flash: string | null = null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  page = await openOrderLink(live, { token, now });
+  if (page.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  flash = readFlash(Astro, ORDER_FLASH);
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:orders] order_failed', (error as Error)?.name);
+  page = null;
+  Astro.response.status = 503;
+}
+if (page?.kind === 'expired') Astro.response.status = 410;
+
+const order = page?.kind === 'order' ? page : null;
+const holder = page?.kind === 'ticket' ? page : null;
+const isNew = Astro.url.searchParams.get('new') === '1' && order?.state === 'active';
+const heading = order
+  ? {
+      active: order.tickets.length === 1 ? 'Your ticket' : 'Your tickets',
+      pending: 'Confirming payment',
+      unfulfilled: 'Refund on its way',
+      refunded: 'Order refunded',
+      closed: 'Payment not completed',
+    }[order.state]
+  : holder
+    ? holder.state === 'active'
+      ? 'Your ticket'
+      : 'Ticket passed on'
+    : page?.kind === 'expired'
+      ? 'This link has expired'
+      : 'Temporarily unavailable';
+---
+
+<CheckoutFrame
+  title={order || holder ? heading : 'Order link'}
+  heading={heading}
+  testMode={order || holder ? testMode : null}
+  notice={flash ? { tone: 'success', text: flash } : null}
+  photo="worshipLeaderGolden"
+>
+  {!page && (
+    <p class="text-[15px] leading-relaxed text-muted">
+      This page is temporarily unavailable. Please try again in a little while.
+    </p>
+  )}
+  {page?.kind === 'expired' && (
+    <>
+      <p class="text-[15px] leading-relaxed text-muted">
+        Order and ticket links stop working 30 days after the event, or when a ticket is passed on again. We
+        can email you a fresh link.
+      </p>
+      <Button size="lg" block href="/tickets/find" class="mt-5">
+        Find my tickets
+      </Button>
+    </>
+  )}
+
+  {order && (
+    <div class="space-y-3">
+      {isNew && (
+        <Notice tone="info">We also emailed you this link and your receipt. Keep the link private.</Notice>
+      )}
+      {order.notice && <Notice tone={order.notice.tone}>{order.notice.text}</Notice>}
+      <OrderEventCard
+        title={order.event.title}
+        whenLabel={order.event.whenLabel}
+        venueLabel={order.event.venueLabel}
+        extra={`Order ${order.reference}${order.buyerName ? ` · ${order.buyerName}` : ''}`}
+      />
+      {order.tickets.map((t) => (
+        <PaidTicketCard ticket={t} />
+      ))}
+      <TicketActions
+        calendarHref={order.calendarHref ?? undefined}
+        mapsHref={order.mapsUrl}
+        canCancel={false}
+      />
+      <ReceiptCard
+        caption="Receipt"
+        lines={order.receipt.lines}
+        total={order.receipt.total}
+        seller={order.seller}
+        policy={order.policy}
+      />
+      {order.refunds.length > 0 && (
+        <div class="rounded-2xl border border-tan bg-white px-4 py-3">
+          <p class="mb-1 text-[13px] font-semibold text-muted">Refunds</p>
+          <ul class="divide-y divide-line text-[14px] text-ink">
+            {order.refunds.map((r) => (
+              <li class="flex items-start justify-between gap-4 py-2">
+                <span>
+                  {r.status}
+                  <span class="block text-[12px] text-muted">{r.date}</span>
+                </span>
+                <span class="tabular-nums">{r.amount}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {order.refund.href ? (
+        <Button variant="secondary" href={order.refund.href}>
+          Ask for a refund
+        </Button>
+      ) : (
+        order.refund.reason &&
+        order.state === 'active' && <p class="text-[13px] text-muted">{order.refund.reason}</p>
+      )}
+      <p class="text-[13px] leading-relaxed text-muted">
+        Anyone with this link can show these tickets, so keep it private.
+      </p>
+      <Button variant="ghost" href={`/events/${order.event.slug}`} class="-ml-5">
+        View the event
+      </Button>
+    </div>
+  )}
+
+  {holder && holder.state === 'replaced' && (
+    <p class="text-[15px] leading-relaxed text-muted">
+      This ticket was passed on to someone else, so this link no longer shows it. Its new holder has their own
+      link.
+    </p>
+  )}
+  {holder && holder.ticket && holder.event && (
+    <div class="space-y-3">
+      <OrderEventCard
+        title={holder.event.title}
+        whenLabel={holder.event.whenLabel}
+        venueLabel={holder.event.venueLabel}
+        extra={holder.event.canceled ? 'This event was canceled.' : null}
+      />
+      <PaidTicketCard ticket={holder.ticket} />
+      <TicketActions
+        calendarHref={holder.calendarHref ?? undefined}
+        mapsHref={holder.mapsUrl}
+        canCancel={false}
+      />
+      {holder.policy && (
+        <p class="text-[13px] text-muted">
+          Sold by {holder.seller}. {holder.policy.transfer} {holder.policy.reentry}
+          {holder.policy.entryNotes ? ` Entry notes: ${holder.policy.entryNotes}` : ''}
+        </p>
+      )}
+      <p class="text-[13px] leading-relaxed text-muted">
+        Anyone with this link can show this ticket, so keep it private.
+      </p>
+      <Button variant="ghost" href={`/events/${holder.event.slug}`} class="-ml-5">
+        View the event
+      </Button>
+    </div>
+  )}
+</CheckoutFrame>

@@ -1,0 +1,78 @@
+---
+/**
+ * Back from Stripe Checkout (docs/LIVE_SCREENS.md §I.2 P4): "Payment received, issuing your tickets" while the
+ * payment webhook confirms the order (the page reloads itself every 3 seconds), then the order page. An order that was
+ * never paid goes back to the event's tickets with a notice. The URL carries the signed order link.
+ */
+import CheckoutFrame from '../../../components/checkout/CheckoutFrame.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../../lib/registration';
+import { paymentTestMode } from '../../../lib/checkout';
+import { openReturn, type ReturnOutcome } from '../../../lib/checkout-orders';
+
+export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const token = Astro.params.token ?? '';
+const now = Math.floor(Date.now() / 1000);
+let outcome: ReturnOutcome | null;
+let testMode = { show: false, standin: false };
+
+try {
+  const live = await openLive(Astro);
+  testMode = paymentTestMode(live.env);
+  outcome = await openReturn(live, { token, cookies: Astro.cookies, now });
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect')
+    return outcome.flash
+      ? flashRedirect(Astro, outcome.location, outcome.flash)
+      : Astro.redirect(outcome.location, 303);
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:orders] return_failed', (error as Error)?.name);
+  outcome = null;
+  Astro.response.status = 503;
+}
+if (outcome?.kind === 'expired') Astro.response.status = 410;
+const waiting = outcome?.kind === 'waiting' ? outcome : null;
+---
+
+<CheckoutFrame
+  title="Issuing your tickets"
+  heading={
+    waiting ? 'Issuing your tickets' : outcome?.kind === 'expired' ? 'This link has expired' : 'Please wait'
+  }
+  subtext={waiting ? `${waiting.eventTitle} · Order ${waiting.reference}` : undefined}
+  testMode={testMode}
+  refreshSeconds={waiting || !outcome ? 3 : undefined}
+>
+  {waiting && (
+    <p role="status" class="text-[15px] leading-relaxed text-ink">
+      Thank you. We are confirming your payment with Stripe and issuing your tickets; this usually takes a few
+      seconds and the page moves on by itself. We also email your tickets to you.
+    </p>
+  )}
+  {!outcome && (
+    <p role="status" class="text-[15px] leading-relaxed text-ink">
+      This page is temporarily unavailable. It will try again in a moment, and your tickets will also arrive
+      by email.
+    </p>
+  )}
+  {outcome?.kind === 'expired' && (
+    <>
+      <p class="text-[15px] leading-relaxed text-muted">
+        Order links stop working 30 days after the event. We can email you a fresh link.
+      </p>
+      <Button size="lg" block href="/tickets/find" class="mt-5">
+        Find my tickets
+      </Button>
+    </>
+  )}
+</CheckoutFrame>

@@ -1,0 +1,30 @@
+---
+/**
+ * What someone pays (or paid): every line, the total, who sells the tickets, and the policies that apply. The same
+ * card on the review step and the order page.
+ */
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import type { MoneyLine } from '../../lib/checkout';
+
+interface Props {
+  lines: MoneyLine[];
+  total: { label: string; amount: string };
+  seller: string;
+  policy?: { refund: string; transfer: string; reentry: string; entryNotes: string | null } | null;
+  caption?: string;
+}
+const { lines, total, seller, policy, caption } = Astro.props;
+---
+
+<div class="rounded-2xl border border-tan bg-white px-4 py-3">
+  <ReceiptLines lines={lines} total={total} caption={caption} />
+  <p class="mt-1 text-[13px] text-ink">Sold by {seller}.</p>
+  {policy && (
+    <ul class="mt-2 space-y-0.5 text-[13px] text-muted">
+      <li>{policy.refund}</li>
+      <li>{policy.transfer}</li>
+      <li>{policy.reentry}</li>
+      {policy.entryNotes && <li>Entry notes: {policy.entryNotes}</li>}
+    </ul>
+  )}
+</div>

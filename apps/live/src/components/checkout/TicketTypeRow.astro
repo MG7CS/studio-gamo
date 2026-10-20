@@ -1,0 +1,62 @@
+---
+/**
+ * One ticket type on the first checkout step: name, price in force (with when an early price ends), people per ticket,
+ * a real "Only N left" when few remain, and the quantity as a plain number field (no script). A type that cannot be
+ * bought now says why ("Sold out", "On sale from …", "Not on sale") instead of a field.
+ */
+import type { TicketTypeOption } from '../../lib/checkout';
+
+interface Props {
+  option: TicketTypeOption;
+}
+const { option: t } = Astro.props;
+const fieldId = `qty:${t.id}`;
+const metaId = `${fieldId}-meta`;
+const errorId = `${fieldId}-error`;
+const meta = [t.priceNote, t.people > 1 ? `Admits ${t.people} people` : null, t.leftText, t.description]
+  .filter(Boolean)
+  .join(' · ');
+---
+
+<div class="rounded-2xl border border-tan bg-white px-4 py-3">
+  <div class="flex items-center justify-between gap-4">
+    <div class="min-w-0">
+      <p class="text-[15px] font-semibold leading-snug text-ink">
+        {t.state === 'on_sale' ? <label for={fieldId}>{t.name}</label> : t.name}
+        <span class="font-normal text-ink"> · {t.priceLabel}</span>
+      </p>
+      {meta && (
+        <p id={metaId} class="mt-0.5 text-[13px] text-muted">
+          {meta}
+        </p>
+      )}
+    </div>
+    {t.state === 'on_sale' ? (
+      <input
+        id={fieldId}
+        name={fieldId}
+        type="number"
+        inputmode="numeric"
+        min="0"
+        max={String(t.max)}
+        step="1"
+        value={String(t.quantity)}
+        aria-describedby={
+          [meta ? metaId : null, t.error ? errorId : null].filter(Boolean).join(' ') || undefined
+        }
+        aria-invalid={t.error ? 'true' : undefined}
+        class="min-h-11 w-20 shrink-0 rounded-[12px] border border-ink/50 bg-white px-3 py-2 text-center text-[16px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep"
+      />
+    ) : (
+      <span class="shrink-0 rounded-full bg-sand px-3 py-1.5 text-[13px] font-semibold text-ink">
+        {t.stateText}
+      </span>
+    )}
+  </div>
+  {t.error && (
+    <p id={errorId} class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+      <span class="sr-only">Error: </span>
+      {t.error}
+    </p>
+  )}
+</div>

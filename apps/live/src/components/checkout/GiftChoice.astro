@@ -1,0 +1,58 @@
+---
+/**
+ * The optional gift on the details step: "Add a gift to <organization>", "No gift" chosen by default, the presets and
+ * a custom amount in dollars. It says who receives the gift and that Gamo makes no tax claim about it.
+ */
+interface Props {
+  organizationName: string;
+  presets: Array<{ value: string; label: string }>;
+  value: string;
+  custom: string;
+  error?: string;
+}
+const { organizationName, presets, value, custom, error } = Astro.props;
+const choices = [{ value: 'none', label: 'No gift' }, ...presets, { value: 'custom', label: 'Other' }];
+const radio =
+  'flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-ink/30 bg-white px-4 text-[14px] font-semibold text-ink has-[:checked]:border-terracotta-deep has-[:checked]:bg-cream has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-terracotta';
+---
+
+<fieldset aria-describedby={error ? 'gift-error gift-note' : 'gift-note'}>
+  <legend class="mb-1.5 text-[14px] font-semibold text-ink">Add a gift to {organizationName}</legend>
+  <p id="gift-note" class="mb-2 text-[13px] text-muted">
+    Optional. The gift goes to {organizationName}, not to Gamo. Gamo makes no tax claim about it.
+  </p>
+  <div class="flex flex-wrap items-center gap-2">
+    {choices.map((c) => (
+      <label class={radio}>
+        <input
+          type="radio"
+          id={`gift-${c.value}`}
+          name="gift"
+          value={c.value}
+          checked={c.value === value}
+          class="h-4 w-4 accent-terracotta-deep"
+        />
+        {c.label}
+      </label>
+    ))}
+    <label for="giftCustom" class="sr-only">
+      Other gift amount in dollars
+    </label>
+    <input
+      id="giftCustom"
+      name="giftCustom"
+      type="text"
+      inputmode="decimal"
+      placeholder="$ amount"
+      value={custom}
+      maxlength={12}
+      class="min-h-11 w-28 rounded-[12px] border border-ink/50 bg-white px-3 py-2 text-[15px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+    />
+  </div>
+  {error && (
+    <p id="gift-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+      <span class="sr-only">Error: </span>
+      {error}
+    </p>
+  )}
+</fieldset>

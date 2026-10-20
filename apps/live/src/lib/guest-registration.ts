@@ -7,7 +7,7 @@ import {
   EmailUnavailableError,
   RegistrationError,
   SecretNotConfiguredError,
-  TERMS_DRAFT_VERSION,
+  TERMS_REGISTRY,
   buildEventIcs,
   canceledEmail,
   cancelRegistration,
@@ -104,7 +104,7 @@ export async function submitRegistration(
       name: checked.values.name,
       email: checked.values.email,
       partySize: Number(checked.values.partySize),
-      termsVersion: TERMS_DRAFT_VERSION,
+      termsVersion: TERMS_REGISTRY['ticket-terms'].version,
       now,
       ipHash: await requesterHash(request, live.env),
     });
