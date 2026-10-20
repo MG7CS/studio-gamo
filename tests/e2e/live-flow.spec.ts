@@ -200,7 +200,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.getByLabel('State').fill('AZ');
     await page.getByLabel('First date').fill(future);
     await page.getByLabel('Starts').fill('18:30');
-    await page.getByLabel('Seats (registration events)').fill('2');
+    await page.getByLabel(/^Seats \(registration/).fill('2');
     await page.getByRole('checkbox', { name: /QR codes for check-in/ }).check();
     await expectAccessible(page, '/organizer/events/new');
     await page.getByRole('button', { name: 'Send for review' }).click();
@@ -231,7 +231,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
       await expect(admin.getByText('The organization’s owners were emailed.')).toBeVisible();
       const decision = await waitForMail((e) => to(e).includes(ORGANIZER) && /approved/i.test(e.subject));
       expect(decision.text).toContain(TITLE);
-      await admin.goto(`${FLOW_ADMIN_ORIGIN}/organizations`);
+      await admin.goto(`${FLOW_ADMIN_ORIGIN}/organizations?filter=all`);
       await expect(admin.getByText(ORG)).toBeVisible();
       await adminContext.close();
 
@@ -452,7 +452,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
       .getByRole('link', { name: new RegExp(TITLE.replace(/[()]/g, '\\$&')) })
       .click();
     await page.getByRole('link', { name: 'Check in' }).first().click();
-    await expectAccessible(page, '/organizer/check-in');
+    await expectAccessible(page, '/organizer/door (check in)');
     // The date is weeks away, so check-in is closed until the organizer opens it.
     await expect(page.getByRole('heading', { name: 'Check-in is closed' })).toBeVisible();
     await page.getByLabel('Check-in code').fill(checkinCode);
@@ -479,7 +479,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await expect(page.getByRole('link', { name: 'Create event' })).toBeVisible();
     await expectAccessible(page, '/organizer (check-in open)');
     await page.getByRole('link', { name: /^Check in for/ }).click();
-    await expect(page).toHaveURL(/\/organizer\/check-in\/occ_/);
+    await expect(page).toHaveURL(/\/organizer\/door\/occ_[^?]+\?mode=checkin/);
     await expect(page.getByRole('heading', { name: 'Check-in is open' })).toBeVisible();
   });
 
@@ -660,8 +660,8 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
 
     await admin.getByRole('button', { name: 'Reinstate' }).click();
     await expect(admin.getByText('Organization reinstated.')).toBeVisible();
-    await admin.getByRole('button', { name: 'Verify organization' }).click();
-    await expect(admin.getByText('Organization verified.')).toBeVisible();
+    // Verification now goes through a meeting (tests/e2e/live-payments-admin.spec.ts); no one-press verify exists.
+    await expect(admin.getByRole('button', { name: 'Verify organization' })).toHaveCount(0);
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText(series).first()).toBeVisible();
   });

@@ -40,6 +40,8 @@ const PAGES = [
   '/events',
   '/organizations',
   '/catalog',
+  '/payments',
+  '/live-settings',
   '/maintenance',
   '/legal',
 ];
@@ -289,9 +291,13 @@ test('related screens are tabs inside an area; detail pages keep their area sele
     /Event review/,
     /Organizations/,
     /Catalog/,
+    /Payments/,
+    /Live settings/,
     /Cleanup/,
   ]);
-  await expect(nav(page).getByRole('link', { name: /Cleanup|Catalog|Organizations/ })).toHaveCount(0);
+  await expect(
+    nav(page).getByRole('link', { name: /Cleanup|Catalog|Organizations|Payments|Live settings/ }),
+  ).toHaveCount(0);
   await tabs('Gamo Live')
     .getByRole('link', { name: /^Cleanup/ })
     .click();
@@ -438,7 +444,7 @@ test('the admin menu closes on an outside press and Escape; dangerous actions co
   // Cleanup is a confirm step: the first press only reveals the consequence; nothing runs until the second.
   await page.goto(`${ADMIN_E2E_ORIGIN}/maintenance`);
   await page.getByText('Run cleanup…').click();
-  await expect(page.getByText(/deleted for good/).last()).toBeVisible();
+  await expect(page.getByText(/deleted for\s+good/).last()).toBeVisible();
   await expect(page.getByText('Cleanup finished.')).toHaveCount(0);
   await page.getByRole('button', { name: 'Delete old data now' }).click();
   await expect(page.getByText('Cleanup finished.')).toBeVisible();
@@ -517,9 +523,12 @@ test('decisions work under the enforced CSP: reply, verify a church, approve eve
   await page.goto(`${ADMIN_E2E_ORIGIN}/churches`);
   await page.getByRole('link', { name: REVIEW_FIXTURE_TITLES.church }).click();
   await expect(page.getByRole('button', { name: 'Verify', exact: true })).toHaveCount(0);
-  const future = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 16);
-  await page.getByLabel('Date and time').fill(future);
-  await page.getByLabel('Location').fill('Sample fellowship hall');
+  // The shared meeting form (churches and Gamo Live organizations): date, time, video call or in person, place.
+  const future = new Date(Date.now() + 7 * 86_400_000).toISOString();
+  await page.getByLabel('Date', { exact: true }).fill(future.slice(0, 10));
+  await page.getByLabel('Time', { exact: true }).fill('18:30');
+  await page.getByLabel('In person').check();
+  await page.getByLabel('Video call link or place').fill('Sample fellowship hall');
   await page.getByRole('button', { name: 'Schedule meeting' }).click();
   await expect(page.getByText('Meeting scheduled.')).toBeVisible();
   await page.getByLabel('Verification notes (required)').fill('Met the pastor and two elders.');
@@ -554,13 +563,20 @@ test('decisions work under the enforced CSP: reply, verify a church, approve eve
   expect(await tabCount(page, 'Event review')).toBe('');
   await expectAdminShell(page);
 
-  // Organizations: the new organization is still waiting; verify it. Catalog: approve the listing.
+  // Organizations: the new organization asked for verification; scheduling its meeting takes it out of the waiting
+  // queue (verifying needs the meeting held first: tests/e2e/live-payments-admin.spec.ts). Catalog: approve the listing.
   await page.goto(`${ADMIN_E2E_ORIGIN}/organizations`);
   await page.getByRole('link', { name: REVIEW_FIXTURE_TITLES.organization }).click();
   await page.getByRole('button', { name: 'Suspend' }).click();
   await expect(page.getByRole('alert')).toContainText('Add a note explaining the decision.');
-  await page.getByRole('button', { name: 'Verify organization' }).click();
-  await expect(page.getByText('Organization verified.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Verify organization' })).toHaveCount(0);
+  const meetingDay = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+  const card = page.locator('#verification');
+  await card.getByLabel('Date', { exact: true }).fill(meetingDay);
+  await card.getByLabel('Time', { exact: true }).fill('10:00');
+  await card.getByLabel('Video call link or place').fill('https://meet.example.org/sample');
+  await card.getByRole('button', { name: 'Schedule meeting' }).click();
+  await expect(page.getByText('Meeting scheduled.').first()).toBeVisible();
   expect(await tabCount(page, 'Organizations')).toBe('');
   await page.goto(`${ADMIN_E2E_ORIGIN}/catalog`);
   await page.getByRole('button', { name: 'Approve and publish' }).click();

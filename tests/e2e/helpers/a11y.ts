@@ -1,6 +1,20 @@
-/** axe WCAG 2.2 AA (serious/critical) and 360 px overflow checks, the pattern of smoke.spec.ts. */
+/**
+ * axe WCAG 2.2 AA (serious/critical), one h1, and no horizontal overflow at 360 and 390 px, the pattern of
+ * smoke.spec.ts. With `E2E_SCREENSHOTS=<folder>` it also saves a desktop and a 390 px screenshot of each page it checks
+ * (for the owner's visual review; real screenshots of the running page).
+ */
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+
+const shots = process.env.E2E_SCREENSHOTS;
+const fileOf = (label: string) =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
 
 export async function expectAccessible(page: Page, label: string) {
   const axe = await new AxeBuilder({ page })
@@ -12,11 +26,19 @@ export async function expectAccessible(page: Page, label: string) {
   expect(serious, `${label}: axe`).toEqual([]);
   expect(await page.locator('h1').count(), `${label}: one h1`).toBe(1);
   const size = page.viewportSize();
-  await page.setViewportSize({ width: 360, height: 800 });
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
-  expect(overflow, `${label}: horizontal overflow at 360 px`).toBeLessThanOrEqual(0);
+  if (shots) {
+    mkdirSync(shots, { recursive: true });
+    await page.screenshot({ path: join(shots, `${fileOf(label)}-desktop.png`), fullPage: true });
+  }
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, `${label}: horizontal overflow at ${width} px`).toBeLessThanOrEqual(0);
+    if (shots && width === 390)
+      await page.screenshot({ path: join(shots, `${fileOf(label)}-390.png`), fullPage: true });
+  }
   if (size) await page.setViewportSize(size);
 }
 

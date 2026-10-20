@@ -8,6 +8,14 @@
  *   enforced Content-Security-Policy is what is tested. The admin runs as in production (Access verified locally).
  * - Every outbound request is refused except the Resend API and Access's key set, both answered here; emails are
  *   captured and listed at http://127.0.0.1:4330/__emails.
+ * - Payments: without Stripe keys both workers use the local Stripe stand-in (ALLOW_STRIPE_STANDIN, which needs
+ *   ENVIRONMENT=local, so the admin runs as `local` here too, still verifying the Access assertion on every request).
+ *   Its "hosted" Checkout and onboarding pages are Live's own `/dev/stripe/*` pages and its signed webhooks go through
+ *   the real webhook code. http://127.0.0.1:4330/__stripe/dispute?payment_intent=pi_… and
+ *   /__stripe/dispute/close?id=du_…&outcome=won|lost open and close a dispute (signed events POSTed to Live).
+ *   With STRIPE_SECRET_KEY=sk_test_… (and STRIPE_WEBHOOK_SECRET / STRIPE_CONNECT_WEBHOOK_SECRET from `stripe listen`)
+ *   in the environment, the workers use Stripe's test mode instead: api.stripe.com is let through and nothing else
+ *   changes. Live keys are refused.
  */
 import { createRequire } from 'node:module';
 import { createPublicKey, generateKeyPairSync } from 'node:crypto';
@@ -17,10 +25,16 @@ import { tmpdir } from 'node:os';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { importCatalog } from '../../packages/domain/src/live/catalog-import.ts';
+import {
+  standinCloseDispute,
+  standinOpenDispute,
+  type StandinDelivery,
+} from '../../packages/domain/src/live/payments/standin.ts';
 import type { SeedCatalogDocument } from '../../packages/domain/src/services/live-external-discovery.ts';
 import { ACCESS_AUD, ACCESS_KID, ACCESS_TEAM, ADMIN_EMAIL } from './admin-fixture.ts';
 import {
   FLOW_ACCESS_KEY_FILE,
+  FLOW_KEY_DIR,
   FLOW_ADMIN_PORT,
   FLOW_LIVE_PORT,
   FLOW_MAIL_PORT,
@@ -55,7 +69,7 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   publicKeyEncoding: { type: 'spki', format: 'pem' },
   privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
 });
-mkdirSync(join(tmpdir(), 'gamo-live-flow-e2e'), { recursive: true, mode: 0o700 });
+mkdirSync(FLOW_KEY_DIR, { recursive: true, mode: 0o700 });
 writeFileSync(FLOW_ACCESS_KEY_FILE, privateKey, { mode: 0o600 });
 const jwks = {
   keys: [
@@ -99,6 +113,8 @@ const outbound = async (request: Request) => {
     emails.push((await request.json()) as CapturedEmail);
     return Response.json({ id: `e2e_msg_${emails.length}` });
   }
+  // Stripe's test mode, only when a test key was given to this harness.
+  if (stripe.STRIPE_SECRET_KEY && url.origin === 'https://api.stripe.com') return fetch(request);
   return new Response('outbound network is disabled in this test', { status: 599 });
 };
 const common = {
@@ -110,6 +126,22 @@ const common = {
 const mail = {
   RESEND_API_KEY: 're_e2e_capture_key_0000000000',
   EMAIL_FROM: 'Gamo Live <hello@gamostudio.org>',
+};
+// Payments: Stripe's test mode when a test key is in the environment, otherwise the local stand-in.
+const testKey = String(process.env.STRIPE_SECRET_KEY ?? '').trim();
+if (testKey && !/^(sk|rk)_test_/.test(testKey))
+  throw new Error('live-flow: only Stripe test keys are allowed');
+const stripe: Record<string, string> = testKey
+  ? {
+      STRIPE_SECRET_KEY: testKey,
+      STRIPE_WEBHOOK_SECRET: String(process.env.STRIPE_WEBHOOK_SECRET ?? ''),
+      STRIPE_CONNECT_WEBHOOK_SECRET: String(process.env.STRIPE_CONNECT_WEBHOOK_SECRET ?? ''),
+    }
+  : { ALLOW_STRIPE_STANDIN: 'true' };
+const paid = {
+  ...stripe,
+  LIVE_TICKET_SECRET: 'e2e-live-ticket-secret-0123456789-abcdef',
+  PUBLIC_SITE_URL_LIVE: `http://127.0.0.1:${FLOW_LIVE_PORT}`,
 };
 
 const persist = join(dir, 'state');
@@ -133,13 +165,55 @@ const live = await start(
       ALLOW_AUTH_SIMULATION: 'true',
       PII_HASH_SECRET: 'e2e-pii-hash-secret-0123456789-abcdef',
       ...mail,
+      ...paid,
     },
   },
   FLOW_LIVE_PORT,
 );
-const mailServer = createServer((req, res) => {
-  if (req.url === '/__reset') emails.length = 0;
+// Stand-in events started from this harness (disputes) are POSTed to Live's real webhook endpoints.
+const deliverOverHttp: StandinDelivery = async (rawBody, signatureHeader, endpoint) => {
+  const path = endpoint === 'connect' ? '/api/stripe/connect-webhook' : '/api/stripe/webhook';
+  const res = await fetch(`http://127.0.0.1:${FLOW_LIVE_PORT}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'stripe-signature': signatureHeader },
+    body: rawBody,
+  });
+  return { status: res.status };
+};
+const harnessEnv = { ENVIRONMENT: 'local', ...paid };
+const mailServer = createServer(async (req, res) => {
   res.setHeader('content-type', 'application/json');
+  const url = new URL(req.url ?? '/', `http://127.0.0.1:${FLOW_MAIL_PORT}`);
+  try {
+    if (url.pathname === '/__stripe/dispute') {
+      const out = await standinOpenDispute(
+        liveDb as never,
+        harnessEnv,
+        url.searchParams.get('payment_intent') ?? '',
+        Math.floor(Date.now() / 1000),
+        { deliver: deliverOverHttp },
+      );
+      res.end(JSON.stringify(out));
+      return;
+    }
+    if (url.pathname === '/__stripe/dispute/close') {
+      await standinCloseDispute(
+        liveDb as never,
+        harnessEnv,
+        url.searchParams.get('id') ?? '',
+        url.searchParams.get('outcome') === 'lost' ? 'lost' : 'won',
+        Math.floor(Date.now() / 1000),
+        { deliver: deliverOverHttp },
+      );
+      res.end('{"ok":true}');
+      return;
+    }
+  } catch (error) {
+    res.statusCode = 400;
+    res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'failed' }));
+    return;
+  }
+  if (url.pathname === '/__reset') emails.length = 0;
   res.end(JSON.stringify(emails));
 }).listen(FLOW_MAIL_PORT, '127.0.0.1');
 
@@ -148,7 +222,7 @@ const shutdown = async () => {
   mailServer.close();
   await Promise.all([live.dispose().catch(() => {}), running.admin?.dispose().catch(() => {})]);
   rmSync(dir, { recursive: true, force: true });
-  rmSync(join(tmpdir(), 'gamo-live-flow-e2e'), { recursive: true, force: true });
+  rmSync(FLOW_KEY_DIR, { recursive: true, force: true });
   process.exit(0);
 };
 process.on('SIGINT', shutdown);
@@ -186,11 +260,13 @@ const adminInstance = await start(
     kvNamespaces: { SESSION: 'live-flow-kv', SESSION_KV: 'live-flow-kv' },
     serviceBindings: { ASSETS: assets(join(repoRoot, 'apps/admin/dist/client')) },
     bindings: {
-      ENVIRONMENT: 'production',
+      // `local` so the Stripe stand-in may run; the Access assertion is still required and verified on every request.
+      ENVIRONMENT: 'local',
       ADMIN_EMAIL,
       CF_ACCESS_TEAM_NAME: ACCESS_TEAM,
       CF_ACCESS_AUD: ACCESS_AUD,
       ...mail,
+      ...paid,
     },
   },
   FLOW_ADMIN_PORT,
