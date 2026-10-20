@@ -18,11 +18,6 @@ export default tseslint.config(
       'design-reference/**',
       'assets/**',
       'artifacts/**',
-      // Generated from openapi/ by scripts/api/generate.mjs
-      'openapi/bundled/**',
-      'packages/api-contracts/src/public.d.ts',
-      'packages/api-contracts/src/internal.d.ts',
-      'packages/api-contracts/src/validators.js',
     ],
   },
   js.configs.recommended,

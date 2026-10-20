@@ -13,11 +13,6 @@ artifacts/
 .agents/
 prompts/
 data/
-# Generated from openapi/ by scripts/api/generate.mjs
-openapi/bundled/
-packages/api-contracts/src/public.d.ts
-packages/api-contracts/src/internal.d.ts
-packages/api-contracts/src/validators.js
 packages/db/migrations/meta/
 # Large generated data module
 packages/domain/src/services/verified-catalog-2026-10-15.ts
