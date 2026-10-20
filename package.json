@@ -7,7 +7,7 @@
     "build": "ASTRO_TELEMETRY_DISABLED=1 WRANGLER_LOG_PATH=/tmp/wrangler-logs XDG_CONFIG_HOME=/tmp/xdg-config pnpm -r --workspace-concurrency=1 build",
     "typecheck": "pnpm typecheck:apps && pnpm typecheck:packages",
     "typecheck:apps": "ASTRO_TELEMETRY_DISABLED=1 pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro check --minimumFailingSeverity warning",
-    "typecheck:packages": "for p in auth config db domain integrations; do tsc --noEmit -p packages/$p || exit 1; done && tsc --noEmit -p scripts",
+    "typecheck:packages": "tsx scripts/typecheck-packages.ts && tsc --noEmit -p scripts",
     "lint": "eslint . --cache --max-warnings 0",
     "lint:fix": "eslint . --cache --fix",
     "format": "prettier --write .",
