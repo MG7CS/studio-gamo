@@ -1,0 +1,76 @@
+---
+/**
+ * The tickets behind a door-day number (docs/LIVE_REQUIREMENTS.md §8.3 item 26): one date's valid tickets with the
+ * same filter as the number (`channel`, `method`, `arrival`), so the count equals this list's length.
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import DoorTicketRow from '../../../../components/door/DoorTicketRow.astro';
+import { organizerPage } from '../../../../lib/organizer-session';
+import { organizerDoorAccess } from '../../../../lib/door-access';
+import { loadDoorList } from '../../../../lib/door-list';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live } = ctx;
+const occurrenceId = Astro.params.occurrenceId ?? '';
+const access = await organizerDoorAccess(live.db, {
+  organizerId: organizer.id,
+  organizationId: active.organizationId,
+  occurrenceId,
+});
+if (!access) return new Response(null, { status: 404 });
+const list = await loadDoorList(live.db, access, Astro.url.searchParams);
+const eventHref = `/organizer/events/${encodeURIComponent(access.occurrence.eventId)}`;
+const doorHref = `/organizer/door/${encodeURIComponent(occurrenceId)}`;
+---
+
+<OrganizerLayout
+  title={list.title}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: access.occurrence.eventTitle, href: eventHref },
+      { label: 'Door', href: doorHref },
+      { label: list.title },
+    ]}
+  />
+  <PageTitle
+    title={list.title}
+    subtext={`${access.occurrence.eventTitle} · ${list.dateLabel} · ${list.rows.length} ${list.rows.length === 1 ? 'ticket' : 'tickets'}`}
+  />
+  {list.rows.length === 0 ? (
+    <EmptyState title="No tickets here" text="Nothing matches this number yet on this date.">
+      <a
+        href={doorHref}
+        class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline"
+      >
+        Back to the door
+      </a>
+    </EmptyState>
+  ) : (
+    <ul class="space-y-3">
+      {list.rows.map((r) => (
+        <li>
+          <DoorTicketRow {...r} />
+        </li>
+      ))}
+    </ul>
+  )}
+</OrganizerLayout>

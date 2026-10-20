@@ -1,0 +1,71 @@
+---
+/**
+ * Scan or type a code. The camera button appears only where the browser can read QR codes itself
+ * (scripts/checkin-scan.ts); the typed-code form always works. Paid tickets and free registrations both check in here.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import DoorButton from './DoorButton.astro';
+interface Props {
+  result: { ok: boolean; message: string } | null;
+}
+const { result } = Astro.props;
+---
+
+<Panel
+  id="scan"
+  title="Scan or type a code"
+  description="Scan the QR code on the ticket. A free registration can also be typed by the code under its QR."
+>
+  <p id="scan-insecure" hidden class="mb-3 text-[13px] text-muted">
+    The camera only works on a secure (https) address. Free registration codes can still be typed; paid
+    tickets need the camera.
+  </p>
+  <button
+    id="scan-start"
+    type="button"
+    hidden
+    class="mb-4 min-h-14 w-full rounded-2xl border border-ink/30 bg-white px-6 text-[16px] font-semibold text-ink hover:bg-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta sm:w-auto"
+  >
+    Scan with camera
+  </button>
+  <video
+    id="scan-video"
+    hidden
+    playsinline
+    muted
+    class="mb-4 aspect-[4/3] w-full max-w-md rounded-2xl bg-ink object-cover"
+  ></video>
+  <form method="post" class="max-w-md space-y-4" novalidate>
+    <input type="hidden" name="action" value="checkin" />
+    <div>
+      <label for="code" class="mb-2 block text-[14px] font-semibold text-ink">
+        Ticket or check-in code
+      </label>
+      <input
+        id="code"
+        name="code"
+        type="text"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        maxlength="200"
+        class="min-h-14 w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 font-mono text-[20px] uppercase tracking-widest text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+      />
+    </div>
+    <DoorButton block>Check in</DoorButton>
+  </form>
+  <div
+    id="scan-result"
+    role="status"
+    aria-live="polite"
+    class:list={
+      result
+        ? result.ok
+          ? 'mt-4 rounded-xl border border-sand bg-cream px-4 py-3 text-[17px] font-semibold text-ink'
+          : 'mt-4 rounded-xl border border-terracotta-deep/40 bg-white px-4 py-3 text-[17px] font-semibold text-terracotta-deep'
+        : 'sr-only'
+    }
+  >
+    {result?.message}
+  </div>
+</Panel>

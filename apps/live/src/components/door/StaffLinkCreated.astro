@@ -1,0 +1,36 @@
+---
+/**
+ * A new staff link, shown once: the address and the 6-digit PIN as plain text to copy (only their hashes are kept, so
+ * neither can be shown again). Send them separately to the person working the door.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import type { CreatedLinkView } from '../../lib/door-tab';
+type Props = CreatedLinkView;
+const { label, url, pin, permissions, expires } = Astro.props;
+---
+
+<Panel
+  id="created-link"
+  title={`Link created: ${label}`}
+  description={`${permissions} · works until ${expires}`}
+>
+  <Notice tone="warning" title="Copy these now">
+    They are shown only this once. If they are lost, turn this link off and create a new one.
+  </Notice>
+  <dl class="mt-4 space-y-3">
+    <div>
+      <dt class="text-[13px] font-semibold text-muted">Link</dt>
+      <dd class="mt-1 select-all break-all rounded-xl bg-cream px-3 py-2 font-mono text-[14px] text-ink">
+        {url}
+      </dd>
+    </div>
+    <div>
+      <dt class="text-[13px] font-semibold text-muted">PIN</dt>
+      <dd class="mt-1 inline-block select-all rounded-xl bg-cream px-3 py-2 font-mono text-[24px] font-bold tracking-[0.3em] text-ink">
+        {pin}
+      </dd>
+    </div>
+  </dl>
+  <p class="mt-3 text-[13px] text-muted">Tip: send the link and the PIN in two separate messages.</p>
+</Panel>

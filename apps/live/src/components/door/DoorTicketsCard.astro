@@ -1,0 +1,80 @@
+---
+/**
+ * Step 1 of a door sale: how many of each ticket type. Plus and minus are links that change the selection kept in the
+ * address, so the server always prices exactly what is shown.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import DoorButton from './DoorButton.astro';
+import type { DoorTypeRow } from '../../lib/door-screen';
+interface Props {
+  types: DoorTypeRow[];
+}
+const { types } = Astro.props;
+---
+
+<Panel id="tickets" title="Choose tickets">
+  {types.length === 0 ? (
+    <EmptyState
+      title="No ticket types to sell"
+      text="This event has no ticket type that is on sale. An organizer can add one in the event’s Tickets tab."
+    />
+  ) : (
+    <ul class="divide-y divide-line">
+      {types.map((t) => (
+        <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+          <span class="min-w-0">
+            <span class="block text-[16px] font-semibold text-ink">{t.name}</span>
+            <span class="block text-[13px] text-muted">
+              {t.price} ·{' '}
+              {t.left === null
+                ? 'No limit'
+                : t.left === 0
+                  ? 'None left at the door'
+                  : `${t.left} left at the door`}
+            </span>
+          </span>
+          <span class="flex items-center gap-2">
+            {t.minusHref ? (
+              <DoorButton href={t.minusHref} variant="secondary" sell>
+                <span aria-hidden="true">−</span>
+                <span class="sr-only">Remove one {t.name}</span>
+              </DoorButton>
+            ) : (
+              <button
+                type="button"
+                disabled
+                class="min-h-14 min-w-14 rounded-2xl bg-sand text-[16px] font-semibold text-muted"
+              >
+                <span aria-hidden="true">−</span>
+                <span class="sr-only">Remove one {t.name}</span>
+              </button>
+            )}
+            <span
+              class="min-w-10 text-center text-[24px] font-black tabular-nums text-ink"
+              aria-live="polite"
+            >
+              {t.quantity}
+              <span class="sr-only"> {t.name} chosen</span>
+            </span>
+            {t.plusHref ? (
+              <DoorButton href={t.plusHref} sell>
+                <span aria-hidden="true">+</span>
+                <span class="sr-only">Add one {t.name}</span>
+              </DoorButton>
+            ) : (
+              <button
+                type="button"
+                disabled
+                class="min-h-14 min-w-14 rounded-2xl bg-sand text-[16px] font-semibold text-muted"
+              >
+                <span aria-hidden="true">+</span>
+                <span class="sr-only">Add one {t.name}</span>
+              </button>
+            )}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

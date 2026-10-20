@@ -1,0 +1,64 @@
+---
+/**
+ * O7: the door screen for a signed-in member of the event's organization (docs/LIVE_SCREENS.md §I.3): Check in and,
+ * for paid events with door sales on, Sell. Every permission; may open and close check-in by hand.
+ */
+import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import DoorScreen from '../../../components/door/DoorScreen.astro';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { organizerPage } from '../../../lib/organizer-session';
+import { organizerDoorAccess } from '../../../lib/door-access';
+import { doorDeps, handleDoorRequest } from '../../../lib/door-actions';
+import { loadDoorScreen } from '../../../lib/door-screen';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { organizer, memberships, active, live, now } = ctx;
+const access = await organizerDoorAccess(live.db, {
+  organizerId: organizer.id,
+  organizationId: active.organizationId,
+  occurrenceId: Astro.params.occurrenceId ?? '',
+});
+if (!access) return new Response(null, { status: 404 });
+// The door pages are the only pages that ask the browser for the camera.
+requestSecurityHeaders(Astro.locals, { camera: true });
+
+const deps = doorDeps(live, Astro.url);
+const outcome = await handleDoorRequest(Astro, deps, access, now);
+if (outcome.response) return outcome.response;
+const view = await loadDoorScreen(deps, access, { params: Astro.url.searchParams, now });
+if (view.refreshSeconds) Astro.response.headers.set('Refresh', String(view.refreshSeconds));
+const eventHref = `/organizer/events/${encodeURIComponent(access.occurrence.eventId)}`;
+---
+
+<OrganizerLayout
+  title="Door"
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: view.eventTitle, href: eventHref },
+      ...(view.paid ? [{ label: 'Door', href: `${eventHref}/door` }] : []),
+      { label: view.dateLabel },
+    ]}
+  />
+  <PageTitle title="Door" subtext={`${view.eventTitle} · ${view.dateLabel}`} />
+  <div class="mx-auto max-w-3xl">
+    <DoorScreen view={view} flash={outcome.flash} checkInResult={outcome.checkIn} manage={access.organizer} />
+  </div>
+</OrganizerLayout>

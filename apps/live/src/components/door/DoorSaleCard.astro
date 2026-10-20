@@ -1,0 +1,118 @@
+---
+/**
+ * The sale in progress or just done: the QR the buyer scans (refreshing until the payment arrives), the reader's
+ * status, or the result (change due, people admitted). After a paid sale the tickets can be emailed.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import DoorButton from './DoorButton.astro';
+import type { DoorSaleView } from '../../lib/door-screen';
+interface Props {
+  sale: DoorSaleView;
+  newSaleHref: string;
+}
+const { sale, newSaleHref } = Astro.props;
+const readerWords: Record<string, string> = {
+  in_progress: 'Waiting for the card on the reader…',
+  succeeded: 'Card accepted. Confirming the payment…',
+  failed: 'The reader could not take the card.',
+  idle: 'The reader is not waiting for a card.',
+};
+const ended: Record<string, string> = {
+  expired: 'This sale ran out of time. Nothing was paid and the tickets are free again.',
+  canceled: 'This sale was canceled. Nothing was paid.',
+  failed: 'The payment did not go through. Nothing was paid.',
+  unfulfilled: 'The payment arrived after the tickets were gone. It is refunded automatically.',
+};
+---
+
+<Panel id="sale" title={`Sale ${sale.reference} · ${sale.methodLabel}`}>
+  {sale.state === 'pending' && (
+    <div class="space-y-4" role="status">
+      <p class="text-[16px] font-semibold text-ink">Total {sale.total}. Waiting for the payment…</p>
+      {sale.qr && (
+        <div
+          class="mx-auto w-full max-w-[340px] rounded-2xl bg-white p-3 ring-1 ring-line [&_svg]:h-auto [&_svg]:w-full"
+          set:html={sale.qr}
+        />
+      )}
+      {sale.qr && (
+        <p class="text-center text-[14px] text-ink">
+          Ask the buyer to scan this with their phone camera and pay.
+        </p>
+      )}
+      {sale.qrUnavailable && (
+        <Notice tone="warning">
+          The payment page could not be shown. Cancel this sale and start it again.
+        </Notice>
+      )}
+      {sale.reader && (
+        <p class="text-[15px] text-ink">
+          {sale.reader.label}: {readerWords[sale.reader.status] ?? sale.reader.status}
+          {sale.reader.failure && (
+            <span class="block text-[13px] text-muted">Reason: {sale.reader.failure}</span>
+          )}
+        </p>
+      )}
+      <p class="text-[13px] text-muted">This screen refreshes by itself every few seconds.</p>
+      <div class="flex flex-wrap gap-2">
+        {sale.canSimulate && (
+          <form method="post">
+            <input type="hidden" name="action" value="simulate-tap" />
+            <input type="hidden" name="order" value={sale.orderId} />
+            <DoorButton variant="secondary" sell>
+              Simulate tap (test mode)
+            </DoorButton>
+          </form>
+        )}
+        {sale.canCancel && (
+          <form method="post">
+            <input type="hidden" name="action" value="cancel-sale" />
+            <input type="hidden" name="order" value={sale.orderId} />
+            <DoorButton variant="danger">Cancel sale</DoorButton>
+          </form>
+        )}
+      </div>
+    </div>
+  )}
+  {sale.state === 'paid' && (
+    <div class="space-y-4">
+      <div class="rounded-2xl bg-status-success-soft p-4 text-status-success" role="status">
+        <p class="text-[22px] font-black">
+          Admitted: {sale.admitted} {sale.admitted === 1 ? 'ticket' : 'tickets'}
+        </p>
+        <p class="text-[15px]">
+          Paid {sale.total} ({sale.methodLabel}).
+        </p>
+      </div>
+      {sale.changeDue !== null && (
+        <p class="text-ink">
+          <span class="block text-[14px] font-semibold text-muted">Change due</span>
+          <span class="block text-[44px] font-black leading-none tabular-nums">{sale.changeDue}</span>
+          {sale.received && <span class="block text-[13px] text-muted">Received {sale.received}</span>}
+        </p>
+      )}
+      <form method="post" class="max-w-md space-y-3">
+        <input type="hidden" name="action" value="email-tickets" />
+        <input type="hidden" name="order" value={sale.orderId} />
+        <SplitField
+          id="email-after"
+          name="email"
+          type="email"
+          autocomplete="off"
+          label="Email the tickets to"
+        />
+        <DoorButton variant="secondary" block>
+          Send tickets
+        </DoorButton>
+      </form>
+    </div>
+  )}
+  {sale.state !== 'pending' && sale.state !== 'paid' && <Notice tone="warning">{ended[sale.state]}</Notice>}
+  {sale.state !== 'pending' && (
+    <DoorButton href={newSaleHref} class="mt-4" block>
+      New sale
+    </DoorButton>
+  )}
+</Panel>

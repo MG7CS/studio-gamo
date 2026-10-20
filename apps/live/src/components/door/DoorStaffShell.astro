@@ -1,0 +1,42 @@
+---
+/**
+ * The page around the door screen for door staff (no sidebar, no account): the Gamo Live logo, which link this device
+ * is signed in with, and "Leave" to sign this device out. Phone first; the content is centered on a tablet.
+ */
+import '../../styles/organizer.css';
+import '@studio-gamo/ui/styles/interactions.css';
+import Layout from '../../layouts/Layout.astro';
+import Logo from '@studio-gamo/ui/components/Logo.astro';
+import DoorButton from './DoorButton.astro';
+interface Props {
+  title: string;
+  /** The staff link's name ("North door"). */
+  label: string;
+  /** The link page, where "Leave" posts and where the dates are listed. */
+  linkHref: string;
+}
+const { title, label, linkHref } = Astro.props;
+---
+
+<Layout title={title} chrome={false} noindex bodyClass="bg-cream text-ink">
+  <div class="organizer-theme min-h-screen">
+    <header class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <Logo program="Gamo Live" tone="onLight" class="text-ink" />
+      <div class="flex items-center gap-3">
+        <a href={linkHref} class="text-[13px] font-semibold text-ink underline underline-offset-2">
+          {label}
+        </a>
+        <form method="post" action={linkHref}>
+          <input type="hidden" name="action" value="leave" />
+          <DoorButton variant="secondary">Leave</DoorButton>
+        </form>
+      </div>
+    </header>
+    <main class="mx-auto max-w-3xl px-4 pb-10 sm:px-6">
+      <slot />
+    </main>
+  </div>
+  <script>
+    import '@studio-gamo/ui/scripts/interactions';
+  </script>
+</Layout>

@@ -1,0 +1,43 @@
+---
+/** One cash drawer: who opened it, on which date, float, expected, counted and the difference (short or over). */
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { DoorTabDrawer } from '../../lib/door-tab';
+type Props = DoorTabDrawer;
+const { date, openedBy, open, float, expected, counted, difference, differenceCents, when } = Astro.props;
+const differenceLabel =
+  differenceCents === null ? null : differenceCents === 0 ? 'Exact' : differenceCents < 0 ? 'Short' : 'Over';
+---
+
+<div class="rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <span class="min-w-0">
+      <span class="block text-[15px] font-semibold text-ink">{openedBy}</span>
+      <span class="block text-[12px] text-muted">
+        {date} · {when}
+      </span>
+    </span>
+    <Pill tone={open ? 'info' : 'neutral'} dot>
+      {open ? 'Open' : 'Closed'}
+    </Pill>
+  </div>
+  <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-[13px] sm:grid-cols-4">
+    <div>
+      <dt class="text-muted">Float</dt>
+      <dd class="font-semibold tabular-nums text-ink">{float}</dd>
+    </div>
+    <div>
+      <dt class="text-muted">Expected</dt>
+      <dd class="font-semibold tabular-nums text-ink">{expected}</dd>
+    </div>
+    <div>
+      <dt class="text-muted">Counted</dt>
+      <dd class="font-semibold tabular-nums text-ink">{counted ?? 'Not yet'}</dd>
+    </div>
+    <div>
+      <dt class="text-muted">Difference</dt>
+      <dd class="font-semibold tabular-nums text-ink">
+        {difference === null ? 'Not yet' : `${difference} (${differenceLabel})`}
+      </dd>
+    </div>
+  </dl>
+</div>

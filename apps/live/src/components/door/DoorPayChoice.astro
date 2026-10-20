@@ -1,0 +1,51 @@
+---
+/** Step 3: how the buyer pays. Card methods only when card payments are ready; comp only with that permission. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import DoorButton from './DoorButton.astro';
+import type { PayChoice } from '../../lib/door-screen';
+interface Props {
+  pay: PayChoice | null;
+  hrefs: Record<PayChoice, string>;
+  cardAvailable: boolean;
+  canComp: boolean;
+}
+const { pay, hrefs, cardAvailable, canComp } = Astro.props;
+const choices: Array<{ key: PayChoice; label: string; show: boolean; enabled: boolean }> = [
+  { key: 'cash', label: 'Cash', show: true, enabled: true },
+  { key: 'phone', label: 'Buyer’s phone', show: true, enabled: cardAvailable },
+  { key: 'reader', label: 'Card reader', show: true, enabled: cardAvailable },
+  { key: 'comp', label: 'Comp', show: canComp, enabled: true },
+];
+---
+
+<Panel id="pay" title="How are they paying?">
+  <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {choices
+      .filter((c) => c.show)
+      .map((c) =>
+        c.enabled ? (
+          <DoorButton
+            href={hrefs[c.key]}
+            variant={pay === c.key ? 'primary' : 'secondary'}
+            current={pay === c.key}
+            sell
+          >
+            {c.label}
+          </DoorButton>
+        ) : (
+          <button
+            type="button"
+            disabled
+            class="min-h-14 rounded-2xl bg-sand px-4 text-[16px] font-semibold text-muted"
+          >
+            {c.label}
+          </button>
+        ),
+      )}
+  </div>
+  {!cardAvailable && (
+    <p class="mt-3 text-[13px] text-muted">
+      Card and phone payments are not ready for this organization, so only cash and comp work here.
+    </p>
+  )}
+</Panel>

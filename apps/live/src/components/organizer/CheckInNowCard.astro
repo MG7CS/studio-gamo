@@ -1,7 +1,7 @@
 ---
 /**
  * Shown on the overview only while a date's check-in is open: the shortest way from "the event is happening" to the
- * door. One button per open date, nothing else.
+ * door screen (check in, and sell at the door for paid events). One button per open date, nothing else.
  */
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
@@ -11,6 +11,7 @@ interface Props {
   open: OpenCheckIn[];
 }
 const { open } = Astro.props;
+const doorHref = (o: OpenCheckIn) => `/organizer/door/${encodeURIComponent(o.occurrenceId)}?mode=checkin`;
 ---
 
 {open.length > 0 && (
@@ -22,7 +23,7 @@ const { open } = Astro.props;
             <span class="block truncate text-[14px] font-semibold text-ink">{o.title}</span>
             <span class="block text-[13px] text-muted">Starts {o.timeLabel}</span>
           </span>
-          <Button href={o.href}>
+          <Button href={doorHref(o)}>
             Check in<span class="sr-only"> for {o.title}</span>
           </Button>
         </li>

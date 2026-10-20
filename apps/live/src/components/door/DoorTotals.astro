@@ -1,0 +1,49 @@
+---
+/**
+ * Door-day totals for this date, in tickets: sold online, sold at the door by method, checked in, still to arrive.
+ * For organizers each number opens the list it counts; door staff see the numbers only.
+ */
+interface Stat {
+  key: string;
+  label: string;
+  value: number;
+  href: string | null;
+}
+interface Props {
+  totals: Stat[];
+}
+const { totals } = Astro.props;
+---
+
+{totals.length > 0 && (
+  <section aria-labelledby="door-totals-title">
+    <h2 id="door-totals-title" class="mb-2 text-[15px] font-semibold text-ink">
+      Today’s totals (tickets)
+    </h2>
+    <ul class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {totals.map((t) => (
+        <li>
+          {t.href ? (
+            <a
+              href={t.href}
+              class="block rounded-2xl border border-line/60 bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.04)] hover:border-terracotta/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+            >
+              <span class="block text-[13px] font-semibold text-muted">{t.label}</span>
+              <span class="mt-1 block text-[28px] font-black leading-none tabular-nums text-ink">
+                {t.value}
+              </span>
+              <span class="sr-only">. Opens the list.</span>
+            </a>
+          ) : (
+            <div class="rounded-2xl border border-line/60 bg-white p-4">
+              <span class="block text-[13px] font-semibold text-muted">{t.label}</span>
+              <span class="mt-1 block text-[28px] font-black leading-none tabular-nums text-ink">
+                {t.value}
+              </span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
