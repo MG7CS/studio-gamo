@@ -1,0 +1,50 @@
+---
+/** The order's tickets: type and seat, holder, status, checked in, and how often each was transferred. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { OrderDetail } from '@gamo/domain';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  tickets: OrderDetail['tickets'];
+  typeNames: Record<string, string>;
+  timeZone: string;
+}
+const { tickets, typeNames, timeZone } = Astro.props;
+const STATUS: Record<string, { label: string; tone: 'success' | 'info' | 'neutral' | 'danger' }> = {
+  valid: { label: 'Valid', tone: 'success' },
+  refunded: { label: 'Refunded', tone: 'info' },
+  voided: { label: 'Voided', tone: 'neutral' },
+  canceled: { label: 'Canceled', tone: 'neutral' },
+};
+---
+
+<Panel id="tickets" title={`Tickets (${tickets.length})`}>
+  {tickets.length === 0 ? (
+    <p class="text-[13px] text-muted">No tickets were issued for this order (it was not paid).</p>
+  ) : (
+    <ul class="divide-y divide-sand">
+      {tickets.map((t) => {
+        const s = STATUS[t.status] ?? { label: t.status, tone: 'neutral' as const };
+        return (
+          <li class="flex flex-wrap items-start justify-between gap-2 py-2.5">
+            <span class="min-w-0 text-[14px]">
+              <span class="block font-semibold text-ink">
+                {typeNames[t.ticketTypeId] ?? 'Ticket'} · ticket {t.seq}
+              </span>
+              <span class="block text-[13px] text-muted">
+                {t.holderName ?? 'No name'}
+                {t.holderEmail ? ` · ${t.holderEmail}` : ''}
+              </span>
+              <span class="block text-[12px] text-muted">
+                {t.checkedInAt ? `Checked in ${whenLabel(t.checkedInAt, timeZone)}` : 'Not checked in'}
+                {t.transferCount > 0 ? ` · transferred ${t.transferCount}×` : ''}
+              </span>
+            </span>
+            <Pill tone={s.tone}>{s.label}</Pill>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Panel>

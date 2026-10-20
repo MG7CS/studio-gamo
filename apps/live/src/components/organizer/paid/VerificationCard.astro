@@ -1,0 +1,65 @@
+---
+/**
+ * Verification by Gamo (docs/LIVE_SCREENS.md §I.3 O9): where it stands, the scheduled meeting (date and time, video
+ * call or in person, the link or the place, Gamo's note), Gamo's note after a decline, and, for owners, "Request
+ * verification". Members see the same card without the button.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import FactRows from './FactRows.astro';
+import { meetingLink, type OrganizationVerificationView } from '../../../lib/verification-page';
+
+interface Props {
+  view: OrganizationVerificationView;
+  isOwner: boolean;
+}
+const { view: v, isOwner } = Astro.props;
+const tone =
+  v.status === 'verified'
+    ? 'success'
+    : v.status === 'declined'
+      ? 'danger'
+      : v.status === 'none'
+        ? 'neutral'
+        : 'warning';
+const m = v.meeting;
+const link = m ? meetingLink(m.location) : null;
+---
+
+<Panel id="verification" title="Verification">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <Pill tone={tone} dot>
+      {v.statusLabel}
+    </Pill>
+  </div>
+  <p class="mt-2 text-[14px] leading-relaxed text-ink">{v.message}</p>
+  {m && (
+    <FactRows
+      class="mt-2"
+      rows={[
+        { label: 'When', value: m.whenLabel },
+        { label: 'How', value: m.formatLabel },
+        ...(link
+          ? [{ label: 'Link', value: link, href: link }]
+          : [{ label: m.format === 'video' ? 'Link' : 'Place', value: m.location }]),
+        ...(m.note ? [{ label: 'Note from Gamo', value: m.note }] : []),
+      ]}
+    />
+  )}
+  {v.declineNote && (
+    <p class="mt-2 text-[14px] text-ink">
+      <span class="text-muted">Gamo’s note:</span>
+      {v.declineNote}
+    </p>
+  )}
+  {v.canRequest &&
+    (isOwner ? (
+      <form method="post" class="mt-3">
+        <input type="hidden" name="action" value="request_verification" />
+        <Button type="submit">Request verification</Button>
+      </form>
+    ) : (
+      <p class="mt-3 text-[13px] text-muted">An owner of the organization can request verification.</p>
+    ))}
+</Panel>

@@ -1,0 +1,65 @@
+---
+/** Payments, refunds and ticket transfers of one order, oldest first, in plain words. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { formatCents, type OrderDetail } from '@gamo/domain';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  detail: OrderDetail;
+  timeZone: string;
+}
+const { detail, timeZone } = Astro.props;
+const KIND: Record<string, string> = {
+  checkout_session: 'Card payment online',
+  card_present: 'Card on a reader',
+  cash: 'Cash',
+  comp: 'Comp (no payment)',
+};
+const PAYMENT_STATUS: Record<string, string> = {
+  pending: 'waiting',
+  succeeded: 'received',
+  failed: 'failed',
+  canceled: 'canceled',
+  expired: 'expired',
+};
+const REFUND_STATUS: Record<string, string> = {
+  requested: 'requested by the buyer',
+  declined: 'declined',
+  pending: 'on its way',
+  succeeded: 'done',
+  failed: 'failed',
+  canceled: 'withdrawn',
+};
+const BY: Record<string, string> = { buyer: 'buyer', organizer: 'you', admin: 'Gamo', system: 'automatic' };
+const rows = [
+  ...detail.payments.map((p) => ({
+    at: p.createdAt,
+    text: `${KIND[p.kind] ?? p.kind}, ${formatCents(p.amountCents)}: ${PAYMENT_STATUS[p.status] ?? p.status}`,
+  })),
+  ...detail.refunds.map((r) => ({
+    at: r.createdAt,
+    text:
+      `Refund of ${formatCents(r.amountCents)} (${BY[r.requestedBy] ?? r.requestedBy}${r.method === 'cash' ? ', cash at the door' : ''}): ` +
+      `${REFUND_STATUS[r.status] ?? r.status}${r.reason ? `. Reason: ${r.reason}` : ''}`,
+  })),
+  ...detail.transfers.map((t) => ({
+    at: t.createdAt,
+    text: `Ticket transferred from ${t.fromName ?? 'the holder'} to ${t.toName ?? 'a new holder'}`,
+  })),
+].sort((a, b) => a.at - b.at);
+---
+
+<Panel id="history" title="History">
+  {rows.length === 0 ? (
+    <p class="text-[13px] text-muted">No payments, refunds or transfers yet.</p>
+  ) : (
+    <ol class="divide-y divide-sand">
+      {rows.map((r) => (
+        <li class="py-2 text-[14px]">
+          <span class="block text-[12px] text-muted">{whenLabel(r.at, timeZone)}</span>
+          <span class="text-ink">{r.text}</span>
+        </li>
+      ))}
+    </ol>
+  )}
+</Panel>

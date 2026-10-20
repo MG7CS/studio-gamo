@@ -1,0 +1,41 @@
+---
+/** Mode B: the payouts Gamo prepared or sent to the organization's payout account, newest first. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import { formatCents, type PayoutRow } from '@gamo/domain';
+import { PAYOUT_STATUS } from '../../../lib/payments-page';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  payouts: PayoutRow[];
+  timeZone: string;
+}
+const { payouts, timeZone } = Astro.props;
+---
+
+<Panel id="payouts" title={`Payouts (${payouts.length})`}>
+  {payouts.length === 0 ? (
+    <EmptyState
+      title="No payouts yet"
+      text="When Gamo pays what it holds for your organization, each payout is listed here."
+    />
+  ) : (
+    <ul class="divide-y divide-sand">
+      {payouts.map((p) => (
+        <li class="flex flex-wrap items-start justify-between gap-2 py-2.5 text-[14px]">
+          <span>
+            <span class="block font-semibold tabular-nums text-ink">{formatCents(p.amountCents)}</span>
+            <span class="block text-[12px] text-muted">
+              {p.sentAt
+                ? `Sent ${whenLabel(p.sentAt, timeZone)}`
+                : `Prepared ${whenLabel(p.preparedAt, timeZone)}`}
+              {p.note ? ` · ${p.note}` : ''}
+            </span>
+          </span>
+          <Pill tone={PAYOUT_STATUS[p.status].tone}>{PAYOUT_STATUS[p.status].label}</Pill>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

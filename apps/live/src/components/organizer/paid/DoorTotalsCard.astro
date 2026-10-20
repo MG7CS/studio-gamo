@@ -1,0 +1,47 @@
+---
+/**
+ * Door-day totals of one date (docs/LIVE_REQUIREMENTS.md §8.3 item 26): sold online, sold at the door by method,
+ * checked in, still to arrive. Every number is a link to the tickets it counts (same filter, same length). Tickets,
+ * not orders: a family pack is one ticket.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import type { DoorTotalItem } from '../../../lib/event-page';
+
+interface Props {
+  items: DoorTotalItem[];
+  /** The date counted, in words. */
+  dateLabel: string;
+  /** Door sales are on for this event (otherwise the door rows are left out). */
+  doorSales: boolean;
+  /** The event has more than one date (a calendar below picks another). */
+  series?: boolean;
+}
+const { items, dateLabel, doorSales, series = false } = Astro.props;
+const shown = items.filter((i) => doorSales || !i.key.startsWith('door'));
+---
+
+<Panel
+  id="door-day"
+  class="mt-3"
+  title={`Tickets on ${dateLabel}`}
+  description={
+    series
+      ? 'Valid tickets for this date. Pick another date on the calendar below to see its numbers.'
+      : 'Valid tickets for this date.'
+  }
+>
+  <ul class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    {shown.map((i) => (
+      <li>
+        <a
+          href={i.href}
+          class="flex min-h-11 flex-col rounded-xl border border-line bg-white px-3 py-2 hover:border-terracotta/40 hover:bg-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+        >
+          <span class="text-[12px] font-semibold text-muted">{i.label}</span>
+          <span class="text-[24px] font-black leading-tight tabular-nums text-ink">{i.value}</span>
+          <span class="sr-only">. Opens the list of these tickets.</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Panel>

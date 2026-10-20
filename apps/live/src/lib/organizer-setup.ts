@@ -4,7 +4,7 @@
  */
 import {
   OrganizerError,
-  TERMS_DRAFT_VERSION,
+  TERMS_REGISTRY,
   createOrganization,
   organizerErrorMessage,
   readSetupStep,
@@ -56,7 +56,7 @@ export async function runOrganizationSetup(input: {
     const created = await createOrganization(input.db, {
       organizerId: input.organizerId,
       profile: values,
-      termsVersion: TERMS_DRAFT_VERSION,
+      termsVersion: TERMS_REGISTRY['organizer-terms'].version,
       now: input.now,
     });
     const headers = new Headers({ location: '/organizer' });

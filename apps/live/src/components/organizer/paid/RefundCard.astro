@@ -1,0 +1,102 @@
+---
+/**
+ * Refund this order: everything still refundable (tickets not checked in, and the gift), or chosen tickets. Each
+ * confirm shows the real amount from the server. A cash order is refunded at the door's cash drawer instead.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Checkbox from './Checkbox.astro';
+import { formatCents } from '@gamo/domain';
+import type { OrderDetailView } from '../../../lib/orders-page';
+
+interface Props {
+  view: OrderDetailView;
+}
+const { view } = Astro.props;
+const { whole, refundableTickets, cash, order } = view;
+const giftLeft = order.giftCents > 0;
+const free = whole.amountCents === 0 && whole.ticketIds.length > 0;
+---
+
+<Panel id="refund" title="Refund">
+  {cash ? (
+    <Notice>
+      This order was paid in cash, so it is refunded in person: open the door screen for this date and use its
+      cash drawer, where the refund is recorded and lowers what the drawer should hold.
+    </Notice>
+  ) : whole.amountCents <= 0 && refundableTickets.length === 0 ? (
+    <p class="text-[13px] text-muted">
+      Nothing is left to refund on this order (tickets already refunded or checked in, a refund on its way, or
+      a dispute open with the buyer’s bank).
+    </p>
+  ) : free ? (
+    <ConfirmAction
+      summaryLabel="Cancel these tickets…"
+      confirmLabel="Cancel the tickets"
+      actionValue="refund"
+    >
+      Nothing was charged for this order, so no money goes back. {whole.ticketIds.length}
+      {whole.ticketIds.length === 1 ? ' ticket stops' : ' tickets stop'} working.
+      <input slot="fields" type="hidden" name="scope" value="all" />
+    </ConfirmAction>
+  ) : (
+    <div class="flex flex-wrap items-start gap-2">
+      <ConfirmAction
+        summaryLabel="Refund the whole order…"
+        confirmLabel={`Refund ${formatCents(whole.amountCents)}`}
+        actionValue="refund"
+        class="open:basis-full"
+      >
+        {formatCents(whole.amountCents)} goes back to the card they paid with
+        {whole.ticketIds.length > 0
+          ? `, and ${whole.ticketIds.length} ${whole.ticketIds.length === 1 ? 'ticket stops' : 'tickets stop'} working`
+          : ''}
+        {giftLeft ? ' (the gift included)' : ''}. The buyer is emailed. This cannot be undone.
+        <Fragment slot="fields">
+          <input type="hidden" name="scope" value="all" />
+          <SplitField
+            id="refund-reason-all"
+            name="reason"
+            label="Reason (optional, for your records)"
+            size="sm"
+            maxlength={500}
+          />
+        </Fragment>
+      </ConfirmAction>
+      {refundableTickets.length > 1 && (
+        <ConfirmAction
+          summaryLabel="Refund chosen tickets…"
+          confirmLabel="Refund the ticked tickets"
+          actionValue="refund"
+          class="open:basis-full"
+        >
+          Tick the tickets to refund; each shows what goes back to the card. The ticked tickets stop working
+          and the buyer is emailed. This cannot be undone.
+          <Fragment slot="fields">
+            <input type="hidden" name="scope" value="chosen" />
+            <fieldset>
+              <legend class="text-[13px] font-semibold text-ink">Tickets</legend>
+              {refundableTickets.map((t) => (
+                <Checkbox name="ticket" value={t.id}>
+                  {t.label}: {formatCents(t.amountCents)}
+                </Checkbox>
+              ))}
+              {giftLeft && (
+                <Checkbox name="gift">Give back the gift too ({formatCents(order.giftCents)})</Checkbox>
+              )}
+            </fieldset>
+            <SplitField
+              id="refund-reason-some"
+              name="reason"
+              label="Reason (optional, for your records)"
+              size="sm"
+              maxlength={500}
+            />
+          </Fragment>
+        </ConfirmAction>
+      )}
+    </div>
+  )}
+</Panel>

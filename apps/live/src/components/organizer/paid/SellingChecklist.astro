@@ -1,0 +1,71 @@
+---
+/**
+ * "Who may sell" (docs/LIVE_REQUIREMENTS.md §8.1 item 7): verified by Gamo, payments ready, organizer terms accepted.
+ * Each missing item says what is missing and links to where it is fixed. Status is a word and an icon, not a colour.
+ */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { SellingChecklist } from '@gamo/domain';
+import { readinessWording } from '../../../lib/payments-page';
+
+interface Props {
+  checklist: SellingChecklist;
+  /** Submitting a paid event goes to Gamo for review. */
+  reviewed: boolean;
+}
+const { checklist: c, reviewed } = Astro.props;
+const items = [
+  {
+    ok: c.verified.ok,
+    label: 'Organization verified by Gamo',
+    missing: 'Gamo verifies organizations after a short meeting (video call or in person).',
+    fix: 'Request verification',
+    href: c.verified.fixPath,
+  },
+  {
+    ok: c.paymentsReady.ok,
+    label: 'Card payments ready',
+    missing: readinessWording(c.paymentsReady.reason, null, 0).text,
+    fix: 'Open Payments',
+    href: c.paymentsReady.fixPath,
+  },
+  {
+    ok: c.termsAccepted.ok,
+    label: 'Organizer Terms accepted by an owner',
+    missing: `The current version (${c.termsAccepted.version}) has not been accepted by an owner yet.`,
+    fix: 'Read and accept',
+    href: c.termsAccepted.fixPath,
+  },
+];
+---
+
+<div class="rounded-xl border border-line bg-cream/60 p-4">
+  <h3 class="text-[14px] font-bold text-ink">Before paid tickets can go on sale</h3>
+  <ul class="mt-2 space-y-2">
+    {items.map((i) => (
+      <li class="flex items-start gap-3 text-[14px]">
+        <Icon
+          name={i.ok ? 'check' : 'alert'}
+          class:list={['mt-0.5 h-5 w-5 shrink-0', i.ok ? 'text-status-success' : 'text-status-warning']}
+        />
+        <span class="min-w-0">
+          <span class="font-semibold text-ink">
+            {i.label}: {i.ok ? 'done' : 'not yet'}
+          </span>
+          {!i.ok && (
+            <span class="block text-[13px] leading-relaxed text-muted">
+              {i.missing}{' '}
+              <a class="font-semibold text-terracotta-deep underline underline-offset-4" href={i.href}>
+                {i.fix}
+              </a>
+            </span>
+          )}
+        </span>
+      </li>
+    ))}
+  </ul>
+  <p class="mt-3 text-[13px] leading-relaxed text-muted">
+    {reviewed
+      ? 'An organization’s first paid event is reviewed by Gamo before it appears. You can save a draft and add ticket types at any time.'
+      : 'Your organization’s paid events follow its review rule. You can save a draft and add ticket types at any time.'}
+  </p>
+</div>

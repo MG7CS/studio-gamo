@@ -1,0 +1,68 @@
+---
+/**
+ * Start a preview order: choose a date, quantities and (optionally) a code, then go through the same checkout buyers
+ * use. Paying happens on the test payment page; no real card is charged.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { formatCents } from '@gamo/domain';
+
+interface Props {
+  dates: Array<{ id: string; label: string }>;
+  types: Array<{ id: string; name: string; priceCents: number; status: string }>;
+  buyerEmail: string;
+  errors?: Record<string, string>;
+}
+const { dates, types, buyerEmail, errors = {} } = Astro.props;
+---
+
+<Panel
+  id="preview"
+  title="Place a preview order"
+  description={`You buy as a buyer would; the confirmation goes to ${buyerEmail}. Preview orders never count in reports, and you can void them below.`}
+>
+  {dates.length === 0 || types.length === 0 ? (
+    <p class="text-[13px] text-muted">
+      {types.length === 0
+        ? 'Add a ticket type on the Tickets tab first.'
+        : 'This event has no upcoming date to preview.'}
+    </p>
+  ) : (
+    <form method="post" class="space-y-4" novalidate>
+      <input type="hidden" name="action" value="start" />
+      <SplitField id="p-date" name="occurrence" label="Date" as="select" size="sm" error={errors.occurrence}>
+        {dates.map((d) => (
+          <option value={d.id}>{d.label}</option>
+        ))}
+      </SplitField>
+      <fieldset>
+        <legend class="text-[13px] font-semibold text-ink">How many</legend>
+        <div class="mt-1 grid gap-3 sm:grid-cols-3">
+          {types.map((t, i) => (
+            <SplitField
+              id={`p-q-${t.id}`}
+              name={`qty_${t.id}`}
+              label={`${t.name} (${formatCents(t.priceCents)})`}
+              size="sm"
+              inputmode="numeric"
+              value={i === 0 ? '1' : ''}
+              hint={
+                t.status === 'hidden'
+                  ? 'Hidden: needs its access code.'
+                  : t.status === 'ended'
+                    ? 'Sales ended.'
+                    : undefined
+              }
+            />
+          ))}
+        </div>
+        {errors.quantities && (
+          <p class="mt-1 text-[13px] font-semibold text-terracotta-deep">{errors.quantities}</p>
+        )}
+      </fieldset>
+      <SplitField id="p-code" name="code" label="Promo or access code (optional)" size="sm" maxlength={32} />
+      <Button type="submit">Start preview checkout</Button>
+    </form>
+  )}
+</Panel>

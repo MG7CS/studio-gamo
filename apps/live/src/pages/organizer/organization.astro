@@ -1,18 +1,22 @@
 ---
 /**
- * The organization: who it is, its profile (read view, owners edit in place), and its members and invitations. Owners
- * edit; members read. Verification is set only by Gamo and is shown here, never editable.
+ * The organization's Profile tab: who it is, its profile (read view, owners edit in place), its members and
+ * invitations, and the verification card (owners request verification; Gamo meets them, then decides). Owners edit;
+ * members read. Verification is set only by Gamo and is shown here, never editable. Owners also see the Payments tab.
  */
 import OrganizerLayout from '../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../components/organizer/PageTitle.astro';
 import OrganizationHeader from '../../components/organizer/OrganizationHeader.astro';
 import OrganizationProfile from '../../components/organizer/OrganizationProfile.astro';
 import MembersPanel from '../../components/organizer/MembersPanel.astro';
+import OrganizationTabs from '../../components/organizer/OrganizationTabs.astro';
+import VerificationCard from '../../components/organizer/paid/VerificationCard.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import { getOrganization, listInvitations, listMembers, type SetupErrors } from '@gamo/domain';
 import { organizerPage } from '../../lib/organizer-session';
 import { runOrganizationAction } from '../../lib/organization-page';
+import { verificationCardView } from '../../lib/verification-page';
 
 export const prerender = false;
 
@@ -57,6 +61,7 @@ const organization = await getOrganization(live.db, orgId);
 if (!organization) return new Response(null, { status: 404 });
 const members = await listMembers(live.db, orgId);
 const invitations = isOwner ? await listInvitations(live.db, orgId, now) : [];
+const verification = await verificationCardView(live.db, orgId);
 const values: Record<string, string> = formValues ?? {
   name: organization.name,
   kind: organization.kind,
@@ -76,6 +81,7 @@ const values: Record<string, string> = formValues ?? {
   active={active}
 >
   <PageTitle title="Organization" subtext="Who you are on Gamo Live, and who can manage your events." />
+  <OrganizationTabs current="profile" isOwner={isOwner} class="mb-3" />
   {notice && (
     <Notice tone={notice.tone === 'error' ? 'danger' : 'success'} class="mb-3">
       {notice.text}
@@ -92,14 +98,17 @@ const values: Record<string, string> = formValues ?? {
         errors={profileErrors}
       />
     </div>
-    <MembersPanel
-      members={members}
-      invitations={invitations}
-      isOwner={isOwner}
-      selfId={organizer.id}
-      suspended={organization.status === 'suspended'}
-      firstEventApproved={organization.firstEventApproved}
-      inviteError={inviteError}
-    />
+    <div class="space-y-3">
+      <VerificationCard view={verification} isOwner={isOwner} />
+      <MembersPanel
+        members={members}
+        invitations={invitations}
+        isOwner={isOwner}
+        selfId={organizer.id}
+        suspended={organization.status === 'suspended'}
+        firstEventApproved={organization.firstEventApproved}
+        inviteError={inviteError}
+      />
+    </div>
   </div>
 </OrganizerLayout>

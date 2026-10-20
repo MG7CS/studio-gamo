@@ -1,0 +1,69 @@
+---
+/**
+ * Add a ticket type from a quick start (General, VIP, Child, Student, family pack, day pass): choose one, set the price
+ * and how many per date. Everything else can be changed afterwards with "Edit".
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import type { TicketSetupView } from '../../../lib/ticket-setup';
+
+interface Props {
+  quickStarts: TicketSetupView['quickStarts'];
+  values?: Record<string, unknown>;
+  errors?: Record<string, string>;
+  first: boolean;
+}
+const { quickStarts, values = {}, errors = {}, first } = Astro.props;
+const val = (k: string) => (typeof values[k] === 'string' ? (values[k] as string) : '');
+const chosen = quickStarts.findIndex((q) => q.name === val('name') || q.kind === val('kind'));
+---
+
+<Panel
+  id="add-type"
+  title={first ? 'Add your first ticket type' : 'Add a ticket type'}
+  description="Start from a common type, then set its price and how many you sell per date. You can edit the rest after adding it."
+>
+  <form method="post" class="grid items-start gap-3 sm:grid-cols-[1.4fr_1fr_1fr_1fr_auto]" novalidate>
+    <input type="hidden" name="action" value="add_type" />
+    <SplitField id="q-quick" name="quick" label="Start from" as="select" size="sm">
+      {quickStarts.map((q, i) => (
+        <option value={String(i)} selected={i === Math.max(0, chosen)}>
+          {q.name}
+        </option>
+      ))}
+    </SplitField>
+    <SplitField
+      id="q-name"
+      name="name"
+      label="Name (optional)"
+      size="sm"
+      maxlength={60}
+      value={val('name')}
+      error={errors.name}
+    />
+    <SplitField
+      id="q-price"
+      name="price"
+      label="Price ($)"
+      size="sm"
+      inputmode="numeric"
+      required
+      value={val('price')}
+      error={errors.price}
+    />
+    <SplitField
+      id="q-capacity"
+      name="capacity"
+      label="Per date"
+      size="sm"
+      inputmode="numeric"
+      value={val('capacity')}
+      error={errors.capacity}
+      hint="Empty: no limit"
+    />
+    <Button type="submit" class="sm:mt-[1.65rem]">
+      Add
+    </Button>
+  </form>
+</Panel>

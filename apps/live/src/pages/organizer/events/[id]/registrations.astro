@@ -4,6 +4,8 @@ import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.as
 import PageTitle from '../../../../components/organizer/PageTitle.astro';
 import RegistrationsToolbar from '../../../../components/organizer/RegistrationsToolbar.astro';
 import RegistrationRow from '../../../../components/organizer/RegistrationRow.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import { eventTabCounts } from '../../../../lib/event-page';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
@@ -64,6 +66,12 @@ const csvQuery = new URLSearchParams({
   ...(q ? { q } : {}),
 }).toString();
 const filtered = Boolean(q || occurrenceId);
+const tabCounts = await eventTabCounts(live.db, {
+  organizationId: active.organizationId,
+  eventId: id,
+  admission: event.admission,
+  now,
+});
 ---
 
 <OrganizerLayout
@@ -82,6 +90,13 @@ const filtered = Boolean(q || occurrenceId);
     ]}
   />
   <PageTitle title="Registrations" subtext={event.values.title} />
+  <EventTabs
+    eventId={id}
+    admission={event.admission}
+    current="registrations"
+    counts={tabCounts}
+    class="mb-3"
+  />
   {notice && (
     <Notice tone={notice.tone} class="mb-3">
       {notice.text}

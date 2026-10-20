@@ -1,0 +1,46 @@
+---
+/**
+ * The tabs of one event's pages (docs/LIVE_SCREENS.md §I.1): a paid event has Overview · Tickets · Orders · Door,
+ * a free-registration event Overview · Registrations, other events no tabs. Counts are shown only when the page passes
+ * a real count for that tab (each equals the length of the list the tab opens).
+ */
+import FilterChips from '@studio-gamo/ui/components/ui/FilterChips.astro';
+
+export type EventTab = 'overview' | 'tickets' | 'orders' | 'door' | 'registrations';
+interface Props {
+  eventId: string;
+  admission: string;
+  current: EventTab;
+  counts?: Partial<Record<EventTab, number>>;
+  class?: string;
+}
+const { eventId, admission, current, counts = {}, class: className } = Astro.props;
+const base = `/organizer/events/${encodeURIComponent(eventId)}`;
+const tabs: { key: EventTab; label: string; href: string }[] =
+  admission === 'paid_tickets'
+    ? [
+        { key: 'overview', label: 'Overview', href: base },
+        { key: 'tickets', label: 'Tickets', href: `${base}/tickets` },
+        { key: 'orders', label: 'Orders', href: `${base}/orders` },
+        { key: 'door', label: 'Door', href: `${base}/door` },
+      ]
+    : admission === 'free_registration'
+      ? [
+          { key: 'overview', label: 'Overview', href: base },
+          { key: 'registrations', label: 'Registrations', href: `${base}/registrations` },
+        ]
+      : [];
+---
+
+{tabs.length > 1 && (
+  <FilterChips
+    label="Event pages"
+    class={className}
+    items={tabs.map((t) => ({
+      label: t.label,
+      href: t.href,
+      active: t.key === current,
+      count: counts[t.key],
+    }))}
+  />
+)}

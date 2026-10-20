@@ -8,7 +8,13 @@ import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import { reviewRuleFor } from '@gamo/domain';
 import { organizerPage } from '../../../lib/organizer-session';
-import { EMPTY_EVENT, readEventForm, saveFromForm } from '../../../lib/event-editor';
+import {
+  EMPTY_EVENT,
+  paidEditorView,
+  readEventForm,
+  readTicketingForm,
+  saveFromForm,
+} from '../../../lib/event-editor';
 
 export const prerender = false;
 
@@ -22,6 +28,8 @@ if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active, live, now } = ctx;
 let values = organizer.timezone ? { ...EMPTY_EVENT, timezone: organizer.timezone } : EMPTY_EVENT;
+const paid = await paidEditorView(live.db, live.env, { organizationId: active.organizationId, now });
+let ticketing = paid.ticketing;
 let errors: Record<string, string> = {};
 let notice: string | undefined;
 
@@ -33,6 +41,7 @@ if (Astro.request.method === 'POST') {
   }
   const form = await Astro.request.formData();
   values = readEventForm(form);
+  ticketing = readTicketingForm(form);
   const outcome = await saveFromForm(live.db, { organizationId: active.organizationId, form, now });
   if (outcome.kind === 'saved')
     return Astro.redirect(`/organizer/events/${outcome.eventId}?saved=${outcome.status}`, 303);
@@ -59,7 +68,18 @@ const rule = await reviewRuleFor(live.db, active.organizationId);
   )}
   {notice && <SplitNotice tone="error">{notice}</SplitNotice>}
   {Object.keys(errors).length > 0 && (
-    <SplitNotice tone="error">Please fix the highlighted field: {Object.values(errors)[0]}</SplitNotice>
+    <SplitNotice tone="error">
+      {Object.keys(errors).length === 1
+        ? `Please fix the highlighted field: ${Object.values(errors)[0]}`
+        : `Please fix the ${Object.keys(errors).length} highlighted fields.`}
+    </SplitNotice>
   )}
-  <EventEditor values={values} errors={errors} rule={rule} readOnly={active.status === 'suspended'} />
+  <EventEditor
+    values={values}
+    errors={errors}
+    rule={rule}
+    readOnly={active.status === 'suspended'}
+    ticketing={ticketing}
+    paid={paid}
+  />
 </OrganizerLayout>

@@ -1,0 +1,83 @@
+---
+/**
+ * Mode B: one month's statement from the ledger: the balance at the start, every line, the balance at the end, and the
+ * part Gamo holds for the organization. Gamo's fee lines are shown for transparency and are not your money.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import FactRows from './FactRows.astro';
+import { formatCents } from '@gamo/domain';
+import type { PaymentsPageView } from '../../../lib/payments-page';
+import { dateOnly } from '../../../lib/organizer-format';
+import { PAYMENTS_PATH } from '../../../lib/payments-page';
+
+interface Props {
+  statement: NonNullable<PaymentsPageView['statement']>;
+  timeZone: string;
+}
+const { statement: s, timeZone } = Astro.props;
+const ENTRY: Record<string, string> = {
+  ticket_sale: 'Ticket sale',
+  gift: 'Gift',
+  gamo_fee: 'Gamo fee',
+  processing_cost: 'Card processing',
+  refund: 'Refund',
+  gift_refund: 'Gift refunded',
+  fee_refund: 'Gamo fee returned',
+  dispute: 'Dispute',
+  dispute_reversal: 'Dispute won',
+  payout: 'Payout to you',
+  cash_sale: 'Cash sale',
+  cash_refund: 'Cash refund',
+};
+const monthLabel = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${s.month}-15T00:00:00Z`));
+---
+
+<Panel id="statement" title={`Statement: ${monthLabel}`}>
+  <div class="mb-3 flex flex-wrap gap-2">
+    <Button href={`${PAYMENTS_PATH}?month=${s.previous}#statement`} variant="secondary">
+      Previous month
+    </Button>
+    {s.next && (
+      <Button href={`${PAYMENTS_PATH}?month=${s.next}#statement`} variant="secondary">
+        Next month
+      </Button>
+    )}
+  </div>
+  <FactRows
+    rows={[
+      { label: 'Balance at the start', value: formatCents(s.openingCents) },
+      { label: 'Of which Gamo holds', value: formatCents(s.openingHeldByGamoCents) },
+    ]}
+  />
+  {s.lines.length === 0 ? (
+    <p class="my-3 text-[13px] text-muted">No money moved this month.</p>
+  ) : (
+    <ul class="my-3 divide-y divide-sand border-y border-sand">
+      {s.lines.map((l) => (
+        <li class="flex items-start justify-between gap-3 py-2 text-[14px]">
+          <span>
+            {ENTRY[l.entryType] ?? l.entryType}
+            {!l.toOrganization && l.entryType !== 'payout' ? ' (not your money)' : ''}
+            <span class="block text-[12px] text-muted">
+              {dateOnly(l.occurredAt, timeZone)}
+              {l.eventTitle ? ` · ${l.eventTitle}` : ''}
+              {l.orderReference ? ` · ${l.orderReference}` : ''}
+            </span>
+          </span>
+          <span class="shrink-0 tabular-nums">{formatCents(l.amountCents)}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+  <FactRows
+    rows={[
+      { label: 'Balance at the end', value: formatCents(s.closingCents) },
+      { label: 'Of which Gamo holds', value: formatCents(s.closingHeldByGamoCents) },
+    ]}
+  />
+</Panel>

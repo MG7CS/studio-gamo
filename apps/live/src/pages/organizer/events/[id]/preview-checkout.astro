@@ -1,0 +1,161 @@
+---
+/**
+ * O10: preview checkout (docs/LIVE_REQUIREMENTS.md §8.1 item 8). A member places a test order on their own draft,
+ * pending or published paid event through the same checkout buyers use, sees it (and its confirmation email), then
+ * voids it. Refused, with the reason, when card sales are unavailable for the organization.
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import PreviewCheckoutForm from '../../../../components/organizer/paid/PreviewCheckoutForm.astro';
+import PreviewOrderCard from '../../../../components/organizer/paid/PreviewOrderCard.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { listTicketTypes, paymentsRuntime, priceNow, requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import {
+  PREVIEWABLE_STATUSES,
+  PREVIEW_FLASH,
+  eventTabCounts,
+  listPreviewOrders,
+  paidEventPage,
+  startPreviewCheckout,
+  voidPreview,
+} from '../../../../lib/event-page';
+import { redirectOrigin } from '../../../../lib/payments-page';
+import { whenLabel } from '../../../../lib/organizer-format';
+
+export const prerender = false;
+
+const ctx = await paidEventPage(Astro);
+if (ctx instanceof Response) return ctx;
+const { organizer, memberships, active, live, now, event, eventId: id } = ctx;
+const previewable = active.status === 'active' && PREVIEWABLE_STATUSES.includes(event.status);
+const pagePath = `/organizer/events/${id}/preview-checkout`;
+let notice: string | null = null;
+let fieldErrors: Record<string, string> = {};
+
+if (Astro.request.method === 'POST' && previewable) {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  const result =
+    form.get('action') === 'void'
+      ? await voidPreview({
+          db: live.db,
+          env: live.env,
+          organizationId: active.organizationId,
+          orderId: String(form.get('order') ?? ''),
+          now,
+        })
+      : await startPreviewCheckout({
+          db: live.db,
+          env: live.env,
+          organizationId: active.organizationId,
+          event: { id, title: event.values.title, status: event.status, occurrences: event.occurrences },
+          buyer: { name: organizer.displayName || 'Preview buyer', email: organizer.email },
+          form,
+          origin: siteOrigin('live'),
+          now,
+        });
+  if (result.kind === 'redirect') {
+    // Chrome applies form-action to the redirect after a form post: allow exactly the payment page's origin.
+    const target = redirectOrigin(result.url, Astro.url.origin);
+    if (target) requestSecurityHeaders(Astro.locals, { formActionOrigins: [target] });
+    return Astro.redirect(result.url, 303);
+  }
+  if (result.kind === 'free') return Astro.redirect(result.orderPath, 303);
+  if (result.kind === 'done') return flashRedirect(Astro, pagePath, result.flash);
+  notice = result.notice;
+  fieldErrors = result.fields ?? {};
+}
+
+const flash = readFlash(Astro, PREVIEW_FLASH);
+const [types, previews, tabCounts] = await Promise.all([
+  listTicketTypes(live.db, active.organizationId, id),
+  listPreviewOrders(live.db, live.env, { organizationId: active.organizationId, eventId: id }),
+  eventTabCounts(live.db, {
+    organizationId: active.organizationId,
+    eventId: id,
+    admission: event.admission,
+    now,
+  }),
+]);
+const tz = event.values.timezone;
+const dates = event.occurrences
+  .filter((o) => !o.canceled && o.startsAt > now)
+  .map((o) => ({ id: o.id, label: whenLabel(o.startsAt, tz) }));
+const standin = paymentsRuntime(live.db, live.env).standin;
+---
+
+<OrganizerLayout
+  title={`Preview checkout · ${event.values.title}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Preview checkout' },
+    ]}
+  />
+  <PageTitle
+    title="Preview checkout"
+    subtext="Buy a ticket to your own event the way buyers will, before you publish it."
+  />
+  <EventTabs eventId={id} admission={event.admission} current="overview" counts={tabCounts} class="mb-3" />
+  <TestModeNotice standin={standin} class="mb-3" />
+  {flash && (
+    <Notice tone="success" class="mb-3">
+      {flash}
+    </Notice>
+  )}
+  {notice && (
+    <Notice tone="danger" class="mb-3">
+      {notice}
+    </Notice>
+  )}
+  {!previewable && (
+    <Notice class="mb-3">
+      This event cannot be previewed (it is canceled or rejected, or the organization is suspended).
+    </Notice>
+  )}
+  <div class="space-y-3">
+    {previewable && (
+      <PreviewCheckoutForm
+        dates={dates}
+        types={types
+          .filter((t) => t.status !== 'ended')
+          .map((t) => ({ id: t.id, name: t.name, priceCents: priceNow(t, now), status: t.status }))}
+        buyerEmail={organizer.email}
+        errors={fieldErrors}
+      />
+    )}
+    <h2 class="pt-2 text-[16px] font-extrabold text-ink">Your preview orders ({previews.length})</h2>
+    {previews.length === 0 ? (
+      <EmptyState
+        title="No preview orders"
+        text="A preview you start above appears here after the payment page, with its order page and a way to void it."
+      />
+    ) : (
+      <ul class="space-y-2">
+        {previews.map((o) => (
+          <li>
+            <PreviewOrderCard order={o} eventId={id} timeZone={tz} />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</OrganizerLayout>

@@ -1,7 +1,8 @@
 ---
 /**
  * B6: one event: its status, Gamo's note, dates with registration counts, and the actions that apply
- * (edit, send for review, view public page, registrations, cancel).
+ * (edit, send for review, view public page, registrations, cancel). A paid event's Overview tab adds the door-day
+ * totals of one date and "Preview checkout".
  */
 import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../../components/organizer/PageTitle.astro';
@@ -11,12 +12,20 @@ import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import { ADMISSIONS, eventDatesView, eventPermissions, getOrganizerEvent } from '@gamo/domain';
-import { runEventPageAction } from '../../../../lib/event-page';
+import {
+  PREVIEWABLE_STATUSES,
+  eventTabCounts,
+  paidOverviewView,
+  runEventPageAction,
+} from '../../../../lib/event-page';
 import EventDates from '../../../../components/organizer/EventDates.astro';
 import EventActionBar from '../../../../components/organizer/EventActionBar.astro';
 import { organizerPage } from '../../../../lib/organizer-session';
-import { STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
+import { HOLDERS_TOLD, STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import DoorTotalsCard from '../../../../components/organizer/paid/DoorTotalsCard.astro';
+import { whenLabel } from '../../../../lib/organizer-format';
 
 export const prerender = false;
 
@@ -36,6 +45,9 @@ if (!event) return new Response(null, { status: 404 });
 let notice: { tone: 'info' | 'error'; text: string } | null = null;
 const saved = Astro.url.searchParams.get('saved');
 if (saved && STATUS_AFTER_SAVE[saved]) notice = { tone: 'info', text: STATUS_AFTER_SAVE[saved] };
+const holders = Astro.url.searchParams.get('holders');
+if (notice && holders === 'all') notice = { tone: 'info', text: `${notice.text} ${HOLDERS_TOLD.all}` };
+if (notice && holders === 'some') notice = { tone: 'error', text: `${notice.text} ${HOLDERS_TOLD.some}` };
 
 if (Astro.request.method === 'POST') {
   try {
@@ -65,6 +77,22 @@ const { canSubmit, canEdit, canCancel, canDelete } = eventPermissions(
 // The dates calendar: the view (month or week, a picker, the chosen day) comes from the address, and only real values are used.
 const dates = eventDatesView({ event, timeZone: tz, now, params: Astro.url.searchParams });
 const totalPeople = event.occurrences.reduce((a, o) => a + o.confirmedPeople, 0);
+const paidEvent = event.admission === 'paid_tickets';
+const paid = paidEvent
+  ? await paidOverviewView(live.db, {
+      organizationId: active.organizationId,
+      event,
+      selectedIds: dates.selectedIds,
+      now,
+    })
+  : null;
+const paidDate = paid?.occurrenceId ? event.occurrences.find((o) => o.id === paid.occurrenceId) : undefined;
+const tabCounts = await eventTabCounts(live.db, {
+  organizationId: active.organizationId,
+  eventId: id,
+  admission: event.admission,
+  now,
+});
 const admissionLabel = ADMISSIONS.find((a) => a.value === event.admission)?.label ?? event.admission;
 const decisionLabel: Record<string, string> = {
   approved: 'Approved',
@@ -101,15 +129,17 @@ const decisionLabel: Record<string, string> = {
       {event.decision.note ? <span class="block mt-1">{event.decision.note}</span> : null}
     </SplitNotice>
   )}
+  <EventTabs eventId={id} admission={event.admission} current="overview" counts={tabCounts} class="mb-3" />
   <EventActionBar
     eventId={id}
     slug={event.slug}
     canEdit={canEdit}
     published={event.status === 'published'}
-    registrations={event.admission === 'free_registration'}
     people={totalPeople}
     canCancel={canCancel}
     canDelete={canDelete}
+    canPreview={paidEvent && active.status === 'active' && PREVIEWABLE_STATUSES.includes(event.status)}
+    paidOrders={paid?.paidOrders ?? 0}
   />
   {canSubmit && (
     <Panel
@@ -143,6 +173,14 @@ const decisionLabel: Record<string, string> = {
       <dd class="font-semibold text-ink">{tz}</dd>
     </div>
   </dl>
+  {paid && paidDate && (
+    <DoorTotalsCard
+      items={paid.totals}
+      dateLabel={whenLabel(paidDate.startsAt, tz)}
+      doorSales={paid.doorSales}
+      series={event.occurrences.length > 1}
+    />
+  )}
   <EventDates
     event={event}
     model={dates.model}

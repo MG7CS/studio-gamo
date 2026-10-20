@@ -1,0 +1,59 @@
+---
+/**
+ * One sales summary (the whole event or one date), from the ledger: tickets sold per type, the money lines in the order
+ * money moves, what is your organization's, and door sales by method. The Gamo fee is shown for transparency.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import { formatCents, type SalesSummary } from '@gamo/domain';
+import { doorLines, salesLines } from '../../../lib/sales-page';
+
+interface Props {
+  title: string;
+  summary: SalesSummary;
+  id?: string;
+}
+const { title, summary: s, id } = Astro.props;
+const door = doorLines(s);
+---
+
+<Panel
+  id={id}
+  title={title}
+  description={`${s.ticketsSold} ${s.ticketsSold === 1 ? 'ticket' : 'tickets'} sold (refunded ones included)`}
+>
+  {s.types.length > 0 && (
+    <ul class="mb-3 divide-y divide-sand text-[14px]">
+      {s.types.map((t) => (
+        <li class="flex justify-between gap-4 py-1.5">
+          <span>
+            {t.name} × {t.quantity}
+          </span>
+          <span class="tabular-nums">{formatCents(t.ticketCents)}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+  <ReceiptLines
+    lines={salesLines(s).map((l) => ({ label: l.label, amount: formatCents(l.cents), note: l.note }))}
+    total={{ label: 'Your organization’s', amount: formatCents(s.netToOrganizationCents) }}
+  />
+  <p class="mt-2 text-[13px] text-muted">
+    Gamo fee kept: {formatCents(s.gamoFeeCents)} (its own line on receipts; not part of your money).
+  </p>
+  {door.length > 0 && (
+    <div class="mt-3 border-t border-sand pt-3">
+      <h3 class="text-[14px] font-bold text-ink">At the door</h3>
+      <ul class="mt-1 divide-y divide-sand text-[14px]">
+        {door.map((d) => (
+          <li class="flex justify-between gap-4 py-1.5">
+            <span>
+              {d.label} · {d.orders} {d.orders === 1 ? 'order' : 'orders'}
+            </span>
+            <span class="tabular-nums">{formatCents(d.cents)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</Panel>

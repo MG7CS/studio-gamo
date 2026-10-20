@@ -1,12 +1,15 @@
 ---
 /**
- * The event editor (B5): sections for the basics, where, when and how people attend, then the review step.
- * Plain server-rendered form; errors come back next to the fields. Once people have registered, the schedule
- * and admission settings are locked so nobody's registration is changed under them.
+ * The event editor (B5): sections for the basics, where, when and how people attend, the paid ticket settings, then
+ * the review step. Plain server-rendered form; errors come back next to the fields. Once people have registered or
+ * bought tickets, the schedule and admission settings are locked so nobody's registration or order is changed under
+ * them; a paid event's policies stay editable.
  */
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import PaidSettingsSection from './paid/PaidSettingsSection.astro';
+import type { PaidEditorView, TicketingFormValues } from '../../lib/event-editor';
 import {
   ADMISSIONS,
   EVENT_CATEGORIES,
@@ -22,8 +25,20 @@ interface Props {
   rule: ReviewRule;
   published?: boolean;
   readOnly?: boolean;
+  /** The paid section's values (as saved or as typed) and what it shows. */
+  ticketing: TicketingFormValues;
+  paid: PaidEditorView;
 }
-const { values: v, errors = {}, locked = false, rule, published = false, readOnly = false } = Astro.props;
+const {
+  values: v,
+  errors = {},
+  locked = false,
+  rule,
+  published = false,
+  readOnly = false,
+  ticketing,
+  paid,
+} = Astro.props;
 const submitLabel = published ? 'Save changes' : rule === 'none' ? 'Publish event' : 'Send for review';
 const ruleText = published
   ? rule === 'every_event'
@@ -261,12 +276,12 @@ const lockDis = readOnly || locked;
         <SplitField
           id="capacity"
           name="capacity"
-          label="Seats (registration events)"
+          label="Seats (registration and paid events)"
           inputmode="numeric"
           value={v.capacity}
           error={errors.capacity}
           disabled={dis}
-          hint="Leave empty for no limit."
+          hint="Leave empty for no limit. For paid tickets: the most people per date across all ticket types."
         />
         <SplitField
           id="maxPartySize"
@@ -333,6 +348,8 @@ const lockDis = readOnly || locked;
       />
     </div>
   </Panel>
+
+  <PaidSettingsSection values={ticketing} errors={errors} paid={paid} disabled={readOnly} />
 
   {!readOnly && (
     <Panel id="review" title="Review and submit" description={ruleText}>

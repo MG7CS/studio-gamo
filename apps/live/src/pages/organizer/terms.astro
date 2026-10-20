@@ -1,0 +1,86 @@
+---
+/**
+ * The Organizer Terms (docs/LIVE_REQUIREMENTS.md §8.1 item 7): the current version, a link to read it, and for owners
+ * the accept form. Selling paid tickets needs an owner's acceptance of the current version. Part of the Organization
+ * area (linked from the event editor's "who may sell" list).
+ */
+import OrganizerLayout from '../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../components/organizer/PageTitle.astro';
+import TermsCard from '../../components/organizer/paid/TermsCard.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { organizerPage } from '../../lib/organizer-session';
+import { TERMS_FLASH, organizerTermsView, runAcceptTerms } from '../../lib/terms-page';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { live, organizer, memberships, active, now } = ctx;
+const isOwner = active.role === 'owner';
+let error: string | undefined;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const result = await runAcceptTerms({
+    db: live.db,
+    organizationId: active.organizationId,
+    organizerId: organizer.id,
+    isOwner,
+    form: await Astro.request.formData(),
+    now,
+  });
+  if (result.kind === 'done') return flashRedirect(Astro, '/organizer/terms', result.flash);
+  error = result.error;
+}
+
+const flash = readFlash(Astro, TERMS_FLASH);
+const view = await organizerTermsView(live.db, {
+  organizationId: active.organizationId,
+  organizerId: organizer.id,
+});
+---
+
+<OrganizerLayout
+  title="Organizer Terms"
+  current="organization"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[{ label: 'Organization', href: '/organizer/organization' }, { label: 'Organizer Terms' }]}
+  />
+  <PageTitle
+    title="Organizer Terms"
+    subtext="The terms for publishing events and selling tickets on Gamo Live."
+  />
+  {flash && (
+    <Notice tone="success" class="mb-3">
+      {flash}
+    </Notice>
+  )}
+  <div class="max-w-2xl">
+    <TermsCard
+      view={view}
+      documentUrl={siteUrl('web', view.path)}
+      isOwner={isOwner}
+      timeZone={organizer.timezone || 'America/Phoenix'}
+      error={error}
+    />
+  </div>
+</OrganizerLayout>

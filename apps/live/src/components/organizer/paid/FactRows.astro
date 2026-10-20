@@ -1,0 +1,30 @@
+---
+/** Facts as label and value rows (a definition list), used by the paid cards. A value may link somewhere. */
+interface Row {
+  label: string;
+  value: string;
+  href?: string;
+}
+interface Props {
+  rows: Row[];
+  class?: string;
+}
+const { rows, class: className } = Astro.props;
+---
+
+<dl class:list={['divide-y divide-sand text-[14px]', className]}>
+  {rows.map((r) => (
+    <div class="grid gap-1 py-2 sm:grid-cols-[11rem_1fr] sm:gap-4">
+      <dt class="text-[13px] text-muted">{r.label}</dt>
+      <dd class="min-w-0 break-words font-medium text-ink">
+        {r.href ? (
+          <a class="underline underline-offset-4 hover:text-terracotta-deep" href={r.href}>
+            {r.value}
+          </a>
+        ) : (
+          r.value
+        )}
+      </dd>
+    </div>
+  ))}
+</dl>

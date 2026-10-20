@@ -1,0 +1,200 @@
+---
+/**
+ * One ticket type as its own card: price now (with its price deadlines), how many per date, door settings, sales
+ * window and status; how many orders hold it (a link to those orders). Edit opens the form in place (`?edit=<id>`);
+ * Hide, Put on sale and End sales are one press; Delete only while nobody has ordered it, after a confirm.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import DateTimeField from '@studio-gamo/ui/components/ui/DateTimeField.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import FactRows from './FactRows.astro';
+import TicketTypeForm from './TicketTypeForm.astro';
+import { formatCents, priceNow, type TicketType } from '@gamo/domain';
+import { TYPE_STATUS_LABELS, typeValuesOf, type TicketTypeValues } from '../../../lib/ticket-setup';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  type: TicketType;
+  eventId: string;
+  orders: number;
+  timeZone: string;
+  now: number;
+  editing: boolean;
+  /** Typed values and errors after a failed save of this type or its deadline form. */
+  values?: Record<string, unknown>;
+  errors?: Record<string, string>;
+  deadlineErrors?: Record<string, string>;
+  deadlineValues?: Record<string, unknown>;
+  notice?: string;
+}
+const {
+  type: t,
+  eventId,
+  orders,
+  timeZone,
+  now,
+  editing,
+  values,
+  errors = {},
+  deadlineErrors = {},
+  deadlineValues = {},
+  notice,
+} = Astro.props;
+const status = TYPE_STATUS_LABELS[t.status];
+const base = `/organizer/events/${encodeURIComponent(eventId)}/tickets`;
+const current = priceNow(t, now);
+const salesWindow = [
+  t.salesStartAt ? `from ${whenLabel(t.salesStartAt, timeZone)}` : null,
+  t.salesEndAt ? `until ${whenLabel(t.salesEndAt, timeZone)}` : null,
+]
+  .filter(Boolean)
+  .join(' ');
+const upcoming = t.deadlines.filter((d) => d.endsAt > now);
+const dv = (k: string) => (typeof deadlineValues[k] === 'string' ? (deadlineValues[k] as string) : '');
+const formValues = (values as TicketTypeValues | undefined) ?? typeValuesOf(t, timeZone);
+const id = `type-${t.id}`;
+---
+
+<Panel id={id}>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0">
+      <h2 class="text-[16px] font-extrabold text-ink">{t.name}</h2>
+      <p class="mt-0.5 text-[13px] text-muted">
+        {formatCents(current)}
+        {current !== t.priceCents && ` now (then ${formatCents(t.priceCents)})`}
+        {t.peoplePerTicket > 1 && ` · admits ${t.peoplePerTicket} people`}
+      </p>
+    </div>
+    <Pill tone={status.tone}>{status.label}</Pill>
+  </div>
+  {notice && (
+    <Notice tone="danger" class="mt-3">
+      {notice}
+    </Notice>
+  )}
+
+  {editing ? (
+    <div class="mt-4">
+      <TicketTypeForm
+        typeId={t.id}
+        status={t.status}
+        values={formValues}
+        errors={errors}
+        timeZone={timeZone}
+        cancelHref={`${base}#${id}`}
+      />
+    </div>
+  ) : (
+    <>
+      <FactRows
+        class="mt-3"
+        rows={[
+          ...(t.description ? [{ label: 'Description', value: t.description }] : []),
+          {
+            label: 'Tickets per date',
+            value: t.capacity == null ? 'No limit of its own' : String(t.capacity),
+          },
+          {
+            label: 'Door',
+            value: `${t.doorAllocation} held for the door${t.doorUsesOnline ? '; the door may also sell online tickets' : ''}`,
+          },
+          { label: 'Most per order', value: String(t.perOrderLimit) },
+          { label: 'Sales window', value: salesWindow || 'Whenever the event is on sale' },
+          {
+            label: 'Orders',
+            value: `${orders} ${orders === 1 ? 'order' : 'orders'}`,
+            href: `/organizer/events/${encodeURIComponent(eventId)}/orders?type=${encodeURIComponent(t.id)}`,
+          },
+        ]}
+      />
+      <div class="mt-3 flex flex-wrap items-start gap-2">
+        <Button href={`${base}?edit=${encodeURIComponent(t.id)}#${id}`} variant="secondary">
+          Edit<span class="sr-only"> {t.name}</span>
+        </Button>
+        {(['on_sale', 'hidden', 'ended'] as const)
+          .filter((s) => s !== t.status)
+          .map((s) => (
+            <form method="post">
+              <input type="hidden" name="action" value="type_status" />
+              <input type="hidden" name="id" value={t.id} />
+              <input type="hidden" name="status" value={s} />
+              <Button type="submit" variant="ghost">
+                {s === 'on_sale' ? 'Put on sale' : s === 'hidden' ? 'Hide' : 'End sales'}
+                <span class="sr-only"> for {t.name}</span>
+              </Button>
+            </form>
+          ))}
+        {orders === 0 && (
+          <ConfirmAction
+            summaryLabel="Delete…"
+            confirmLabel="Yes, delete this ticket type"
+            actionValue="delete_type"
+            class="open:basis-full sm:ml-auto"
+          >
+            Nobody has ordered “{t.name}”, so it is removed with its price deadlines. This cannot be undone.
+            <input slot="fields" type="hidden" name="id" value={t.id} />
+          </ConfirmAction>
+        )}
+      </div>
+    </>
+  )}
+
+  <div class="mt-4 border-t border-sand pt-3">
+    <h3 class="text-[14px] font-bold text-ink">Price deadlines</h3>
+    <p class="text-[13px] text-muted">
+      An early price that applies until a date, then the price above (or the next deadline) applies by itself.
+    </p>
+    {upcoming.length > 0 && (
+      <ul class="mt-2 divide-y divide-sand">
+        {upcoming.map((d) => (
+          <li class="flex flex-wrap items-center justify-between gap-2 py-2 text-[14px]">
+            <span>
+              <strong>{formatCents(d.priceCents)}</strong> until {whenLabel(d.endsAt, timeZone)}
+            </span>
+            <form method="post">
+              <input type="hidden" name="action" value="remove_deadline" />
+              <input type="hidden" name="id" value={d.id} />
+              <Button type="submit" variant="ghost">
+                Remove<span class="sr-only"> the {formatCents(d.priceCents)} price deadline</span>
+              </Button>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )}
+    <form method="post" class="mt-2 grid items-start gap-2 sm:grid-cols-[8rem_1fr_8rem_auto]" novalidate>
+      <input type="hidden" name="action" value="add_deadline" />
+      <input type="hidden" name="id" value={t.id} />
+      <SplitField
+        id={`d-${t.id}-price`}
+        name="price"
+        label="Early price ($)"
+        size="sm"
+        inputmode="numeric"
+        value={dv('price')}
+        error={deadlineErrors.price}
+      />
+      <DateTimeField
+        id={`d-${t.id}-date`}
+        name="endsDate"
+        label="Until"
+        value={dv('endsDate')}
+        error={deadlineErrors.endsDate}
+      />
+      <DateTimeField
+        id={`d-${t.id}-time`}
+        name="endsTime"
+        label="Time"
+        kind="time"
+        value={dv('endsTime') || '23:59'}
+      />
+      <Button type="submit" variant="secondary" class="sm:mt-[1.65rem]">
+        Add deadline<span class="sr-only"> for {t.name}</span>
+      </Button>
+    </form>
+  </div>
+</Panel>
