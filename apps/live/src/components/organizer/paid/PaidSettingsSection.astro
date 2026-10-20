@@ -1,0 +1,145 @@
+---
+/**
+ * The event editor's paid section (docs/LIVE_SCREENS.md §I.3 O1), used when Admission is "Paid tickets": refunds,
+ * transfers, re-entry, entry notes, attendee names, who pays the Gamo fee (with the per-type table), gifts and door
+ * sales, then the "who may sell" checklist. Fields of the editor's one form; saved with the event.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Checkbox from './Checkbox.astro';
+import FeePreviewTable from './FeePreviewTable.astro';
+import SellingChecklist from './SellingChecklist.astro';
+import { REFUND_CHOICES, type PaidEditorView, type TicketingFormValues } from '../../../lib/event-editor';
+
+interface Props {
+  values: TicketingFormValues;
+  errors?: Record<string, string>;
+  paid: PaidEditorView;
+  disabled?: boolean;
+}
+const { values: v, errors = {}, paid, disabled = false } = Astro.props;
+---
+
+<Panel
+  id="paid"
+  title="Paid tickets"
+  description="Only used when Admission is “Paid tickets on Gamo Live”. Buyers see these policies on the event page before they buy; each order keeps the policy it was bought under, and a later change applies to it only when it is better for the buyer."
+>
+  <div class="space-y-5">
+    <SplitField
+      id="refund"
+      name="refund"
+      label="Refunds"
+      as="select"
+      error={errors.refund}
+      disabled={disabled}
+      hint="Buyers ask from their order page; you approve or decline. You can always refund an order yourself."
+    >
+      {REFUND_CHOICES.map((c) => (
+        <option value={c.value} selected={v.refund === c.value}>
+          {c.label}
+        </option>
+      ))}
+    </SplitField>
+
+    <div class="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-start">
+      <Checkbox name="transfersAllowed" checked={v.transfersAllowed} disabled={disabled}>
+        <strong>Ticket transfers.</strong> A buyer may give a ticket to someone else by name and email; the
+        old QR code stops working. Resale is never offered.
+      </Checkbox>
+      <SplitField
+        id="transferCutoffHours"
+        name="transferCutoffHours"
+        label="Transfers close (hours before)"
+        inputmode="numeric"
+        size="sm"
+        value={v.transferCutoffHours}
+        error={errors.transferCutoffHours}
+        disabled={disabled}
+        hint="0 to 168."
+      />
+    </div>
+
+    <Checkbox name="reentryAllowed" checked={v.reentryAllowed} disabled={disabled}>
+      <strong>Re-entry.</strong> People may leave and come back in with the same ticket.
+    </Checkbox>
+
+    <Checkbox name="namesRequired" checked={v.namesRequired} disabled={disabled}>
+      <strong>Attendee names.</strong> Buyers enter a name for every ticket.
+    </Checkbox>
+
+    <SplitField
+      id="entryNotes"
+      name="entryNotes"
+      label="Entry notes (optional)"
+      as="textarea"
+      rows={2}
+      maxlength={280}
+      value={v.entryNotes}
+      error={errors.entryNotes}
+      disabled={disabled}
+      hint="Shown on tickets and in the confirmation email, for example “Doors open 30 minutes early; bring ID for the VIP entrance.”"
+    />
+
+    <fieldset>
+      <legend class="text-[14px] font-semibold text-ink">Who pays the Gamo fee</legend>
+      <div class="mt-2 grid gap-2 sm:grid-cols-2">
+        <label class="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-line bg-white p-3 text-[14px] text-ink">
+          <input
+            type="radio"
+            name="feePayer"
+            value="buyer"
+            checked={v.feePayer === 'buyer'}
+            disabled={disabled}
+            class="mt-1 h-5 w-5 shrink-0 accent-terracotta"
+          />
+          <span>
+            <strong>Pass it on.</strong> Buyers see it as its own line and pay it.
+          </span>
+        </label>
+        <label class="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-line bg-white p-3 text-[14px] text-ink">
+          <input
+            type="radio"
+            name="feePayer"
+            value="organizer"
+            checked={v.feePayer === 'organizer'}
+            disabled={disabled}
+            class="mt-1 h-5 w-5 shrink-0 accent-terracotta"
+          />
+          <span>
+            <strong>Absorb it.</strong> Buyers pay the ticket price; the fee comes out of what you receive.
+          </span>
+        </label>
+      </div>
+      {errors.feePayer && (
+        <p class="mt-1 text-[13px] font-semibold text-terracotta-deep">{errors.feePayer}</p>
+      )}
+      <FeePreviewTable rows={paid.feeRows} fee={paid.fee} />
+    </fieldset>
+
+    <div class="grid gap-3 sm:grid-cols-[1fr_14rem] sm:items-start">
+      <Checkbox name="giftsEnabled" checked={v.giftsEnabled} disabled={disabled}>
+        <strong>Gifts to your organization.</strong> Buyers may add a gift at checkout (none is chosen for
+        them). The gift goes to your organization, carries no Gamo fee, and Gamo makes no tax claim about it.
+      </Checkbox>
+      <SplitField
+        id="giftPresets"
+        name="giftPresets"
+        label="Gift amounts ($)"
+        size="sm"
+        value={v.giftPresets}
+        error={errors.giftPresets}
+        disabled={disabled}
+        placeholder="5, 10, 25"
+        hint="Up to 4 amounts. Buyers can also type their own."
+      />
+    </div>
+
+    <Checkbox name="doorSalesEnabled" checked={v.doorSalesEnabled} disabled={disabled}>
+      <strong>Door sales.</strong> Sell tickets at the door on the event day: cash, the buyer’s own phone, a
+      card reader, or comp tickets.
+    </Checkbox>
+
+    <SellingChecklist checklist={paid.checklist} reviewed={paid.paidReviewed} />
+  </div>
+</Panel>

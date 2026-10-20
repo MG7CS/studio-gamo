@@ -1,6 +1,7 @@
 /**
  * What happens on the Organization page when a form is posted: save the profile, invite, remove an invitation, remove
- * or leave. The page only calls this and renders the result; the rules live in `@gamo/domain`.
+ * or leave, or (owners) ask Gamo for verification. The page only calls this and renders the result; the rules live in
+ * `@gamo/domain`.
  */
 import {
   EmailUnavailableError,
@@ -21,6 +22,7 @@ import {
 } from '@gamo/domain';
 import type { LiveContext } from './registration';
 import { fieldErrors, readOrganizationForm } from './organizer-forms';
+import { requestVerificationAction } from './verification-page';
 
 export interface OrganizationActionResult {
   notice?: { tone: 'info' | 'error'; text: string };
@@ -97,6 +99,16 @@ export async function runOrganizationAction(input: {
       });
       return { notice: { tone: 'info', text: 'Invitation removed.' } };
     }
+    if (action === 'request_verification')
+      return {
+        notice: await requestVerificationAction({
+          db: live.db,
+          env: live.env,
+          organizationId: orgId,
+          organizerId: organizer.id,
+          now,
+        }),
+      };
     if (action === 'remove') {
       const target = String(form.get('member') ?? '');
       await removeMember(live.db, { organizationId: orgId, actorId: organizer.id, targetId: target });

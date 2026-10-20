@@ -1,0 +1,73 @@
+---
+/**
+ * What a buyer pays and what the organization receives per ticket, for each ticket type, in both fee choices (pass the
+ * Gamo fee on, or absorb it), before card processing (docs/LIVE_REQUIREMENTS.md §8.1 item 5). Amounts come from
+ * `feePreview` on the server.
+ */
+import { formatCents, type FeeSetting } from '@gamo/domain';
+import type { FeePreviewRow } from '../../../lib/event-editor';
+
+interface Props {
+  rows: FeePreviewRow[];
+  fee: FeeSetting;
+}
+const { rows, fee } = Astro.props;
+const feeText =
+  fee.fixedCents === 0 && fee.percentBps === 0
+    ? 'The Gamo fee is $0.00 right now, so both choices give the same amounts.'
+    : `The Gamo fee is ${formatCents(fee.fixedCents)} per ticket plus ${(fee.percentBps / 100).toFixed(2).replace(/\.00$/, '')}% of the price.`;
+---
+
+<div>
+  <p class="text-[13px] leading-relaxed text-muted">
+    {feeText} Card processing is not included: it is taken from what you receive, never added for buyers.
+  </p>
+  {rows.length === 0 ? (
+    <p class="mt-2 text-[13px] text-muted">
+      Add ticket types on the Tickets tab after saving; this table then shows each one.
+    </p>
+  ) : (
+    <div class="mt-3 overflow-x-auto rounded-xl border border-line">
+      <table class="w-full min-w-[30rem] text-left text-[13px]">
+        <caption class="sr-only">
+          What the buyer pays and what you receive per ticket, in both fee choices
+        </caption>
+        <thead class="bg-cream text-muted">
+          <tr>
+            <th scope="col" class="px-3 py-2 font-semibold">
+              Ticket type
+            </th>
+            <th scope="col" class="px-3 py-2 font-semibold">
+              Pass on: buyer pays
+            </th>
+            <th scope="col" class="px-3 py-2 font-semibold">
+              Pass on: you receive
+            </th>
+            <th scope="col" class="px-3 py-2 font-semibold">
+              Absorb: buyer pays
+            </th>
+            <th scope="col" class="px-3 py-2 font-semibold">
+              Absorb: you receive
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-sand">
+          {rows.map((r) => (
+            <tr>
+              <th scope="row" class="px-3 py-2 font-semibold text-ink">
+                {r.name}
+                <span class="block text-[12px] font-normal text-muted">
+                  Price {formatCents(r.priceCents)}
+                </span>
+              </th>
+              <td class="px-3 py-2 tabular-nums">{formatCents(r.passOn.buyerPays)}</td>
+              <td class="px-3 py-2 tabular-nums">{formatCents(r.passOn.youReceive)}</td>
+              <td class="px-3 py-2 tabular-nums">{formatCents(r.absorb.buyerPays)}</td>
+              <td class="px-3 py-2 tabular-nums">{formatCents(r.absorb.youReceive)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>

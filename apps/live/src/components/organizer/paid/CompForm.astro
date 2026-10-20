@@ -1,0 +1,98 @@
+---
+/**
+ * Issue comp tickets (organizer-issued, price 0, no Gamo fee, a reason required). Optionally emailed to the person,
+ * whose tickets then arrive like any order's. The tickets count against the date's seats.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import type { CompValues } from '../../../lib/ticket-setup';
+
+interface Props {
+  types: Array<{ id: string; name: string }>;
+  dates: Array<{ id: string; label: string }>;
+  values?: Record<string, unknown>;
+  errors?: Record<string, string>;
+}
+const { types, dates, values, errors = {} } = Astro.props;
+const v = (values as Partial<CompValues> | undefined) ?? {};
+const qty = (id: string) => v.quantities?.[id] ?? '';
+---
+
+<Panel
+  id="comp"
+  title="Comp tickets"
+  description="Free tickets you give (worship team, volunteers, guests). They need a reason, count against the date’s seats, and never carry a Gamo fee."
+>
+  {dates.length === 0 ? (
+    <p class="text-[13px] text-muted">There is no upcoming date to issue comp tickets for.</p>
+  ) : (
+    <form method="post" class="space-y-4" novalidate>
+      <input type="hidden" name="action" value="issue_comp" />
+      <SplitField
+        id="comp-date"
+        name="occurrence"
+        label="Date"
+        as="select"
+        size="sm"
+        error={errors.occurrence}
+      >
+        {dates.map((d) => (
+          <option value={d.id} selected={v.occurrenceId === d.id}>
+            {d.label}
+          </option>
+        ))}
+      </SplitField>
+      <fieldset>
+        <legend class="text-[13px] font-semibold text-ink">How many of each</legend>
+        <div class="mt-1 grid gap-3 sm:grid-cols-3">
+          {types.map((t) => (
+            <SplitField
+              id={`comp-q-${t.id}`}
+              name={`qty_${t.id}`}
+              label={t.name}
+              size="sm"
+              inputmode="numeric"
+              value={qty(t.id)}
+            />
+          ))}
+        </div>
+        {errors.quantities && (
+          <p class="mt-1 text-[13px] font-semibold text-terracotta-deep">{errors.quantities}</p>
+        )}
+      </fieldset>
+      <SplitField
+        id="comp-reason"
+        name="reason"
+        label="Reason"
+        size="sm"
+        required
+        maxlength={200}
+        value={v.reason ?? ''}
+        error={errors.reason}
+      />
+      <div class="grid gap-4 sm:grid-cols-2">
+        <SplitField
+          id="comp-name"
+          name="name"
+          label="Their name (optional)"
+          size="sm"
+          maxlength={100}
+          value={v.name ?? ''}
+          error={errors.name}
+        />
+        <SplitField
+          id="comp-email"
+          name="email"
+          type="email"
+          label="Their email (optional)"
+          size="sm"
+          value={v.email ?? ''}
+          error={errors.email}
+          hint="The tickets are emailed to this address."
+        />
+      </div>
+      <Button type="submit">Issue comp tickets</Button>
+    </form>
+  )}
+</Panel>

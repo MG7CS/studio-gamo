@@ -1,0 +1,54 @@
+---
+/** Who bought, for which date, how they paid and who sold it (the receipt's seller), with "Resend confirmation". */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import FactRows from './FactRows.astro';
+import { sellerText, type OrderDetail } from '@gamo/domain';
+import { CHANNEL_LABELS, METHOD_LABELS, ORDER_STATUS_LABELS } from '../../../lib/orders-page';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  order: OrderDetail['order'];
+  organizationName: string;
+  timeZone: string;
+}
+const { order: o, organizationName, timeZone } = Astro.props;
+const status = ORDER_STATUS_LABELS[o.status];
+const canResend = Boolean(o.buyerEmail) && ['paid', 'partially_refunded'].includes(o.status);
+---
+
+<Panel id="order">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0">
+      <h2 class="text-[16px] font-extrabold text-ink">{o.buyerName || o.buyerEmail || 'No name given'}</h2>
+      <p class="font-mono text-[13px] text-muted">{o.reference}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <Pill tone={status.tone}>{status.label}</Pill>
+      {o.disputed && <Pill tone="danger">Disputed</Pill>}
+      {o.isPreview && <Pill tone="warning">Preview</Pill>}
+    </div>
+  </div>
+  <FactRows
+    class="mt-3"
+    rows={[
+      ...(o.buyerEmail ? [{ label: 'Email', value: o.buyerEmail }] : []),
+      { label: 'Date', value: whenLabel(o.startsAt, timeZone) },
+      { label: 'Sold', value: `${CHANNEL_LABELS[o.channel]} · ${METHOD_LABELS[o.paymentMethod]}` },
+      { label: 'Seller on the receipt', value: sellerText(o.seller, organizationName) },
+      ...(o.code ? [{ label: 'Code used', value: o.code }] : []),
+      ...(o.compReason ? [{ label: 'Comp reason', value: o.compReason }] : []),
+      { label: 'Ordered', value: whenLabel(o.createdAt, timeZone) },
+      ...(o.paidAt ? [{ label: 'Paid', value: whenLabel(o.paidAt, timeZone) }] : []),
+    ]}
+  />
+  {canResend && (
+    <form method="post" class="mt-3">
+      <input type="hidden" name="action" value="resend" />
+      <Button type="submit" variant="secondary">
+        Resend confirmation
+      </Button>
+    </form>
+  )}
+</Panel>

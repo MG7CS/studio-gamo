@@ -1,8 +1,9 @@
 ---
 /**
- * What an organizer does with an event, in one row at the top of its page: edit, view the public page, registrations,
- * and (at the end, quiet) cancel a published event or delete one that never went live. The cancel and delete buttons
- * open their confirm panel on a row of its own, with the real consequence and the number of people told.
+ * What an organizer does with an event, in one row at the top of its page: edit, view the public page, preview
+ * checkout (paid events; registrations are a tab of the event), and (at the end, quiet) cancel a published event or delete one that
+ * never went live. The cancel and delete buttons open their confirm panel on a row of its own, with the real
+ * consequence: the number of people told and, for a paid event, the number of paid orders refunded in full.
  */
 import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
@@ -12,12 +13,25 @@ interface Props {
   slug: string;
   canEdit: boolean;
   published: boolean;
-  registrations: boolean;
   people: number;
   canCancel: boolean;
   canDelete: boolean;
+  /** Paid events: the preview checkout is offered, and canceling refunds this many paid orders. */
+  canPreview?: boolean;
+  paidOrders?: number;
 }
-const { eventId, slug, canEdit, published, registrations, people, canCancel, canDelete } = Astro.props;
+const {
+  eventId,
+  slug,
+  canEdit,
+  published,
+  people,
+  canCancel,
+  canDelete,
+  canPreview = false,
+  paidOrders = 0,
+} = Astro.props;
+const told = people > 0 || paidOrders > 0;
 const pill =
   'inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta';
 ---
@@ -33,9 +47,9 @@ const pill =
       View public page
     </a>
   )}
-  {registrations && (
-    <a href={`/organizer/events/${eventId}/registrations`} class={pill}>
-      Registrations ({people})
+  {canPreview && (
+    <a href={`/organizer/events/${eventId}/preview-checkout`} class={pill}>
+      Preview checkout
     </a>
   )}
   {canCancel && (
@@ -48,15 +62,24 @@ const pill =
       <p>
         {people > 0
           ? `Every date is canceled and ${people} confirmed ${people === 1 ? 'person is' : 'people are'} told by email. This cannot be undone.`
-          : 'Every date is canceled. No one has registered yet. This cannot be undone.'}
+          : paidOrders > 0
+            ? 'Every date is canceled. This cannot be undone.'
+            : 'Every date is canceled. No one has registered yet. This cannot be undone.'}
       </p>
+      {paidOrders > 0 && (
+        <p class="mt-2">
+          {`${paidOrders} paid ${paidOrders === 1 ? 'order is' : 'orders are'} refunded in full and every buyer is emailed. Cash orders are listed for you to give back in person at the door.`}
+        </p>
+      )}
       <Fragment slot="fields">
         <input type="hidden" name="confirm" value="yes" />
-        {people > 0 && (
+        {told && (
           <SplitField
             id="message"
             name="message"
-            label="Message to registrants (optional)"
+            label={
+              paidOrders > 0 ? 'Message to ticket holders (optional)' : 'Message to registrants (optional)'
+            }
             as="textarea"
             rows={3}
             maxlength={1000}

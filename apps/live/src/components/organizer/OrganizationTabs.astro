@@ -1,0 +1,19 @@
+---
+/**
+ * The tabs of the Organization area (docs/LIVE_SCREENS.md §I.1): Profile (profile, members, verification) and, for
+ * owners only, Payments.
+ */
+import FilterChips from '@studio-gamo/ui/components/ui/FilterChips.astro';
+
+interface Props {
+  current: 'profile' | 'payments';
+  isOwner: boolean;
+  class?: string;
+}
+const { current, isOwner, class: className } = Astro.props;
+const items = [{ label: 'Profile', href: '/organizer/organization', active: current === 'profile' }];
+if (isOwner)
+  items.push({ label: 'Payments', href: '/organizer/organization/payments', active: current === 'payments' });
+---
+
+{items.length > 1 && <FilterChips label="Organization pages" class={className} items={items} />}

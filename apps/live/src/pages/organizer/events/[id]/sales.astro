@@ -1,0 +1,86 @@
+---
+/**
+ * O5: a paid event's sales summary (docs/LIVE_SCREENS.md §I.3), part of the Orders tab: the event's totals and each
+ * date's, read from the ledger, and, for owners, the check against the payment processor.
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import SalesSummaryCard from '../../../../components/organizer/paid/SalesSummaryCard.astro';
+import ReconcileCard from '../../../../components/organizer/paid/ReconcileCard.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { paymentsRuntime } from '@gamo/domain';
+import { eventTabCounts, paidEventPage } from '../../../../lib/event-page';
+import { runReconcile, salesPageView, type ReconcileResult } from '../../../../lib/sales-page';
+import { whenLabel } from '../../../../lib/organizer-format';
+
+export const prerender = false;
+
+const ctx = await paidEventPage(Astro);
+if (ctx instanceof Response) return ctx;
+const { organizer, memberships, active, live, now, event, eventId: id } = ctx;
+const isOwner = active.role === 'owner';
+let reconcile: ReconcileResult | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  // The check's result is shown on this response; running it again is harmless (each cost is recorded once).
+  reconcile = await runReconcile({
+    db: live.db,
+    env: live.env,
+    organizationId: active.organizationId,
+    eventId: id,
+    isOwner,
+    now,
+  });
+}
+
+const view = await salesPageView(live.db, { organizationId: active.organizationId, eventId: id });
+const tz = event.values.timezone;
+const standin = paymentsRuntime(live.db, live.env).standin;
+const tabCounts = await eventTabCounts(live.db, {
+  organizationId: active.organizationId,
+  eventId: id,
+  admission: event.admission,
+  now,
+});
+---
+
+<OrganizerLayout
+  title={`Sales · ${event.values.title}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Orders', href: `/organizer/events/${id}/orders` },
+      { label: 'Sales summary' },
+    ]}
+  />
+  <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+    <PageTitle title="Sales summary" subtext={event.values.title} />
+    <Button href={`/organizer/events/${id}/orders`} variant="secondary" class="mt-1">
+      Back to orders
+    </Button>
+  </div>
+  <EventTabs eventId={id} admission={event.admission} current="orders" counts={tabCounts} class="mb-3" />
+  <TestModeNotice standin={standin} class="mb-3" />
+  <div class="grid items-start gap-3 lg:grid-cols-2">
+    <SalesSummaryCard id="total" title="Whole event" summary={view.total} />
+    <ReconcileCard isOwner={isOwner} result={reconcile} />
+    {view.byDate.length > 1 &&
+      view.byDate.map((d) => <SalesSummaryCard title={whenLabel(d.startsAt, tz)} summary={d} />)}
+  </div>
+</OrganizerLayout>

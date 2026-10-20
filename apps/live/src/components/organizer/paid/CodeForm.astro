@@ -1,0 +1,140 @@
+---
+/**
+ * Create a promo code (percent or amount off, optionally only some types) or an access code (unlocks hidden types for a
+ * presale), with an optional use limit and dates in the event's time zone. Every error shows next to its field.
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import DateTimeField from '@studio-gamo/ui/components/ui/DateTimeField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Checkbox from './Checkbox.astro';
+import { EMPTY_CODE, type CodeValues } from '../../../lib/ticket-setup';
+
+interface Props {
+  types: Array<{ id: string; name: string }>;
+  values?: Record<string, unknown>;
+  errors?: Record<string, string>;
+  timeZone: string;
+}
+const { types, values, errors = {}, timeZone } = Astro.props;
+const v = { ...EMPTY_CODE, ...(values as Partial<CodeValues> | undefined) };
+---
+
+<Panel
+  id="new-code"
+  title="Create a code"
+  description="Promo codes take money off. Access codes show hidden ticket types, for a presale. A buyer uses one code per order."
+>
+  <form method="post" class="space-y-4" novalidate>
+    <input type="hidden" name="action" value="create_code" />
+    <div class="grid gap-4 sm:grid-cols-2">
+      <SplitField
+        id="c-code"
+        name="code"
+        label="Code"
+        size="sm"
+        maxlength={32}
+        required
+        value={v.code}
+        error={errors.code}
+        placeholder="EARLY10"
+        hint="Letters, numbers, dashes. Not case sensitive."
+      />
+      <SplitField id="c-kind" name="kind" label="Kind" as="select" size="sm" error={errors.kind}>
+        <option value="promo" selected={v.kind !== 'access'}>
+          Promo code (money off)
+        </option>
+        <option value="access" selected={v.kind === 'access'}>
+          Access code (shows hidden types)
+        </option>
+      </SplitField>
+    </div>
+    <fieldset class="grid gap-4 sm:grid-cols-3">
+      <legend class="mb-2 text-[13px] font-semibold text-ink">Promo codes only</legend>
+      <SplitField
+        id="c-dk"
+        name="discountKind"
+        label="Discount"
+        as="select"
+        size="sm"
+        error={errors.discountKind}
+      >
+        <option value="percent" selected={v.discountKind !== 'amount'}>
+          Percent off
+        </option>
+        <option value="amount" selected={v.discountKind === 'amount'}>
+          Amount off
+        </option>
+      </SplitField>
+      <SplitField
+        id="c-pct"
+        name="percentOff"
+        label="Percent (1 to 100)"
+        size="sm"
+        inputmode="numeric"
+        value={v.percentOff}
+        error={errors.percentOff}
+      />
+      <SplitField
+        id="c-amt"
+        name="amountOff"
+        label="Amount ($)"
+        size="sm"
+        inputmode="numeric"
+        value={v.amountOff}
+        error={errors.amountOff}
+      />
+    </fieldset>
+    {types.length > 0 && (
+      <fieldset>
+        <legend class="text-[13px] font-semibold text-ink">Ticket types</legend>
+        <p class="text-[12px] text-muted">
+          Promo codes: leave all unticked for every type. Access codes: tick the hidden types it shows.
+        </p>
+        <div class="mt-1 grid gap-x-4 sm:grid-cols-2">
+          {types.map((t) => (
+            <Checkbox name="ticketTypeIds" value={t.id} checked={v.ticketTypeIds.includes(t.id)}>
+              {t.name}
+            </Checkbox>
+          ))}
+        </div>
+        {errors.ticketTypeIds && (
+          <p class="mt-1 text-[13px] font-semibold text-terracotta-deep">{errors.ticketTypeIds}</p>
+        )}
+      </fieldset>
+    )}
+    <div class="grid gap-4 sm:grid-cols-[10rem_1fr_1fr]">
+      <SplitField
+        id="c-max"
+        name="maxUses"
+        label="Most uses (optional)"
+        size="sm"
+        inputmode="numeric"
+        value={v.maxUses}
+        error={errors.maxUses}
+      />
+      <div class="grid grid-cols-2 gap-2">
+        <DateTimeField
+          id="c-sd"
+          name="startsDate"
+          label="Starts (optional)"
+          value={v.startsDate}
+          error={errors.startsDate}
+        />
+        <DateTimeField id="c-st" name="startsTime" label="Time" kind="time" value={v.startsTime} />
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <DateTimeField
+          id="c-ed"
+          name="endsDate"
+          label="Ends (optional)"
+          value={v.endsDate}
+          error={errors.endsDate}
+        />
+        <DateTimeField id="c-et" name="endsTime" label="Time" kind="time" value={v.endsTime} />
+      </div>
+    </div>
+    <p class="text-[12px] text-muted">Dates and times are in the venue’s time zone ({timeZone}).</p>
+    <Button type="submit">Create code</Button>
+  </form>
+</Panel>

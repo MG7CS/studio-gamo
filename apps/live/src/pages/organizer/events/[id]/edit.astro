@@ -6,9 +6,10 @@ import EventEditor from '../../../../components/organizer/EventEditor.astro';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import { requireSameOrigin } from '@gamo/auth';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { getOrganizerEvent, reviewRuleFor } from '@gamo/domain';
 import { organizerPage } from '../../../../lib/organizer-session';
-import { readEventForm, saveFromForm } from '../../../../lib/event-editor';
+import { paidEditorView, readEventForm, readTicketingForm, saveFromForm } from '../../../../lib/event-editor';
 
 export const prerender = false;
 
@@ -28,6 +29,12 @@ const editable =
   ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
   active.status === 'active';
 let values = event.values;
+const paid = await paidEditorView(live.db, live.env, {
+  organizationId: active.organizationId,
+  eventId: id,
+  now,
+});
+let ticketing = paid.ticketing;
 let errors: Record<string, string> = {};
 let notice: string | undefined;
 
@@ -39,13 +46,18 @@ if (Astro.request.method === 'POST' && editable) {
   }
   const form = await Astro.request.formData();
   values = readEventForm(form);
+  ticketing = readTicketingForm(form);
   const outcome = await saveFromForm(live.db, {
     organizationId: active.organizationId,
     eventId: id,
     form,
     now,
+    notify: { env: live.env, origin: siteOrigin('live') },
   });
-  if (outcome.kind === 'saved') return Astro.redirect(`/organizer/events/${id}?saved=${outcome.status}`, 303);
+  if (outcome.kind === 'saved') {
+    const told = outcome.holders ? `&holders=${outcome.holders.notEmailed > 0 ? 'some' : 'all'}` : '';
+    return Astro.redirect(`/organizer/events/${id}?saved=${outcome.status}${told}`, 303);
+  }
   errors = outcome.errors;
   notice = outcome.notice;
   event = (await getOrganizerEvent(live.db, active.organizationId, id, now)) ?? event;
@@ -78,7 +90,11 @@ const rule = await reviewRuleFor(live.db, active.organizationId);
   )}
   {notice && <SplitNotice tone="error">{notice}</SplitNotice>}
   {Object.keys(errors).length > 0 && (
-    <SplitNotice tone="error">Please fix the highlighted field: {Object.values(errors)[0]}</SplitNotice>
+    <SplitNotice tone="error">
+      {Object.keys(errors).length === 1
+        ? `Please fix the highlighted field: ${Object.values(errors)[0]}`
+        : `Please fix the ${Object.keys(errors).length} highlighted fields.`}
+    </SplitNotice>
   )}
   <EventEditor
     values={values}
@@ -87,5 +103,7 @@ const rule = await reviewRuleFor(live.db, active.organizationId);
     rule={rule}
     published={event.status === 'published'}
     readOnly={!editable}
+    ticketing={ticketing}
+    paid={paid}
   />
 </OrganizerLayout>

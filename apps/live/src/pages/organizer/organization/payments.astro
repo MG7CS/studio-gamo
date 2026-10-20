@@ -1,0 +1,118 @@
+---
+/**
+ * O8: the Organization area's Payments tab (docs/LIVE_SCREENS.md §I.3), owners only (members get 404): how payments
+ * flow and who the seller is, the Stripe account (connect, continue, check), and, when Gamo collects, payouts and a
+ * monthly statement. "Test mode" is shown plainly.
+ */
+import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import OrganizationTabs from '../../../components/organizer/OrganizationTabs.astro';
+import PaymentsModeCard from '../../../components/organizer/paid/PaymentsModeCard.astro';
+import PaymentsAccountCard from '../../../components/organizer/paid/PaymentsAccountCard.astro';
+import PayoutsCard from '../../../components/organizer/paid/PayoutsCard.astro';
+import StatementCard from '../../../components/organizer/paid/StatementCard.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { organizerPage } from '../../../lib/organizer-session';
+import {
+  PAYMENTS_FLASH,
+  PAYMENTS_PATH,
+  paymentsPageView,
+  redirectOrigin,
+  runPaymentsAction,
+  type PaymentsActionResult,
+} from '../../../lib/payments-page';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro);
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { live, organizer, memberships, active, now } = ctx;
+if (active.role !== 'owner') return new Response(null, { status: 404 });
+const timeZone = organizer.timezone || 'America/Phoenix';
+
+let result: PaymentsActionResult | null = null;
+const stripeReturn = Astro.url.searchParams.get('stripe');
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const form = await Astro.request.formData();
+  result = await runPaymentsAction({
+    db: live.db,
+    env: live.env,
+    organizationId: active.organizationId,
+    action: form.get('action') === 'connect' ? 'connect' : 'check',
+    origin: siteOrigin('live'),
+    now,
+  });
+} else if (stripeReturn === 'return' || stripeReturn === 'refresh') {
+  // Back from Stripe's onboarding (or its link expired): only read the account. A new onboarding link is made by the
+  // page's own "Continue" button (a POST), never by visiting an address, so a link from elsewhere cannot start it.
+  result = await runPaymentsAction({
+    db: live.db,
+    env: live.env,
+    organizationId: active.organizationId,
+    action: 'returned',
+    origin: siteOrigin('live'),
+    now,
+  });
+}
+if (result?.kind === 'redirect') {
+  // Chrome applies form-action to the redirect after a form post: allow exactly Stripe's onboarding origin.
+  const target = redirectOrigin(result.url, Astro.url.origin);
+  if (target) requestSecurityHeaders(Astro.locals, { formActionOrigins: [target] });
+  return Astro.redirect(result.url, 303);
+}
+if (result?.kind === 'done') return flashRedirect(Astro, PAYMENTS_PATH, result.flash);
+const notice = result?.kind === 'error' ? result.notice : null;
+
+const flash = readFlash(Astro, PAYMENTS_FLASH);
+const view = await paymentsPageView(live.db, live.env, {
+  organizationId: active.organizationId,
+  organizationName: active.name,
+  month: Astro.url.searchParams.get('month'),
+  timeZone,
+  now,
+});
+---
+
+<OrganizerLayout
+  title="Payments"
+  current="organization"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle title="Payments" subtext="How your organization is paid for tickets sold on Gamo Live." />
+  <OrganizationTabs current="payments" isOwner class="mb-3" />
+  <TestModeNotice standin={view.standin} class="mb-3" />
+  {flash && (
+    <Notice tone="success" class="mb-3">
+      {flash}
+    </Notice>
+  )}
+  {notice && (
+    <Notice tone="danger" class="mb-3">
+      {notice}
+    </Notice>
+  )}
+  <div class="grid items-start gap-3 lg:grid-cols-2">
+    <PaymentsModeCard view={view} />
+    <PaymentsAccountCard view={view} timeZone={timeZone} />
+    {view.payouts && <PayoutsCard payouts={view.payouts} timeZone={timeZone} />}
+    {view.statement && <StatementCard statement={view.statement} timeZone={timeZone} />}
+  </div>
+</OrganizerLayout>

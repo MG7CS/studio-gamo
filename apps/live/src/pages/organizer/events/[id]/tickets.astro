@@ -1,0 +1,185 @@
+---
+/**
+ * O2: a paid event's Tickets tab (docs/LIVE_SCREENS.md §I.3): one card per ticket type (edit, hide, end, delete while
+ * nobody ordered it, price deadlines), adding a type from a quick start, one card per code and the code form, and comp
+ * tickets. Every change is a POST to this page, then a redirect with a flash message.
+ */
+import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../components/organizer/PageTitle.astro';
+import EventTabs from '../../../../components/organizer/EventTabs.astro';
+import TicketTypeCard from '../../../../components/organizer/paid/TicketTypeCard.astro';
+import QuickStartCard from '../../../../components/organizer/paid/QuickStartCard.astro';
+import CodeCard from '../../../../components/organizer/paid/CodeCard.astro';
+import CodeForm from '../../../../components/organizer/paid/CodeForm.astro';
+import CompForm from '../../../../components/organizer/paid/CompForm.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { eventTabCounts, paidEventPage } from '../../../../lib/event-page';
+import {
+  TICKETS_FLASH,
+  runTicketsAction,
+  ticketSetupView,
+  type TicketsActionResult,
+} from '../../../../lib/ticket-setup';
+import { whenLabel } from '../../../../lib/organizer-format';
+
+export const prerender = false;
+
+const ctx = await paidEventPage(Astro);
+if (ctx instanceof Response) return ctx;
+const { organizer, memberships, active, live, now, event, eventId: id } = ctx;
+const tz = event.values.timezone;
+const editable = active.status === 'active' && event.status !== 'canceled';
+let failed: Extract<TicketsActionResult, { kind: 'errors' }> | null = null;
+
+if (Astro.request.method === 'POST' && editable) {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const result = await runTicketsAction({
+    db: live.db,
+    env: live.env,
+    organizationId: active.organizationId,
+    eventId: id,
+    timeZone: tz,
+    origin: siteOrigin('live'),
+    form: await Astro.request.formData(),
+    now,
+  });
+  if (result.kind === 'done') return flashRedirect(Astro, `/organizer/events/${id}/tickets`, result.flash);
+  failed = result;
+}
+
+const flash = readFlash(Astro, TICKETS_FLASH);
+const view = await ticketSetupView(live.db, { organizationId: active.organizationId, eventId: id });
+const tabCounts = await eventTabCounts(live.db, {
+  organizationId: active.organizationId,
+  eventId: id,
+  admission: event.admission,
+  now,
+});
+const editId = failed?.form.startsWith('type:') ? failed.form.slice(5) : Astro.url.searchParams.get('edit');
+const typeNames = Object.fromEntries(view.types.map((t) => [t.id, t.name]));
+const upcomingDates = event.occurrences
+  .filter((o) => !o.canceled && o.startsAt + 12 * 3600 > now)
+  .map((o) => ({ id: o.id, label: whenLabel(o.startsAt, tz) }));
+const formOf = (key: string) => (failed?.form === key ? failed : null);
+---
+
+<OrganizerLayout
+  title={`Tickets · ${event.values.title}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Tickets' },
+    ]}
+  />
+  <PageTitle title="Tickets" subtext={event.values.title} />
+  <EventTabs eventId={id} admission={event.admission} current="tickets" counts={tabCounts} class="mb-3" />
+  {flash && (
+    <Notice tone="success" class="mb-3">
+      {flash}
+    </Notice>
+  )}
+  {failed && (failed.notice || Object.keys(failed.errors).length > 0) && !failed.form.startsWith('type:') && (
+    <Notice tone="danger" class="mb-3">
+      {failed.notice ?? 'Please fix the highlighted fields below.'}
+    </Notice>
+  )}
+  {!editable && (
+    <Notice class="mb-3">
+      {event.status === 'canceled'
+        ? 'This event is canceled, so its tickets can no longer be changed.'
+        : 'This organization is suspended, so tickets cannot be changed.'}
+    </Notice>
+  )}
+
+  <div class="space-y-3">
+    {view.types.length === 0 ? (
+      <EmptyState
+        title="No ticket types yet"
+        text="Add at least one ticket type before the event can sell tickets. Start from a quick start below."
+      >
+        <Button href="#add-type" variant="secondary">
+          Add a ticket type
+        </Button>
+      </EmptyState>
+    ) : (
+      view.types.map((t) => (
+        <TicketTypeCard
+          type={t}
+          eventId={id}
+          orders={view.ordersByType[t.id] ?? 0}
+          timeZone={tz}
+          now={now}
+          editing={editable && editId === t.id}
+          values={formOf(`type:${t.id}`)?.values}
+          errors={formOf(`type:${t.id}`)?.errors}
+          notice={formOf(`type:${t.id}`)?.notice}
+          deadlineErrors={formOf(`deadline:${t.id}`)?.errors}
+          deadlineValues={formOf(`deadline:${t.id}`)?.values}
+        />
+      ))
+    )}
+    {editable && (
+      <QuickStartCard
+        quickStarts={view.quickStarts}
+        values={formOf('new_type')?.values}
+        errors={formOf('new_type')?.errors}
+        first={view.types.length === 0}
+      />
+    )}
+
+    <h2 class="pt-3 text-[16px] font-extrabold text-ink">Codes</h2>
+    {view.codes.length === 0 ? (
+      <EmptyState
+        title="No codes yet"
+        text="Create a promo code for a discount, or an access code for a presale of hidden ticket types."
+      >
+        {editable && (
+          <Button href="#new-code" variant="secondary">
+            Create a code
+          </Button>
+        )}
+      </EmptyState>
+    ) : (
+      <ul class="grid gap-3 sm:grid-cols-2">
+        {view.codes.map((c) => (
+          <li>
+            <CodeCard code={c} typeNames={typeNames} timeZone={tz} />
+          </li>
+        ))}
+      </ul>
+    )}
+    {editable && view.types.length > 0 && (
+      <CodeForm
+        types={view.types.map((t) => ({ id: t.id, name: t.name }))}
+        values={formOf('code')?.values}
+        errors={formOf('code')?.errors}
+        timeZone={tz}
+      />
+    )}
+    {editable && view.types.length > 0 && (
+      <CompForm
+        types={view.types.map((t) => ({ id: t.id, name: t.name }))}
+        dates={upcomingDates}
+        values={formOf('comp')?.values}
+        errors={formOf('comp')?.errors}
+      />
+    )}
+  </div>
+</OrganizerLayout>

@@ -1,0 +1,53 @@
+---
+/**
+ * The Organizer Terms an owner accepts before the organization may sell tickets: the current version (a draft that
+ * requires legal review, read on gamostudio.org), whether it is accepted, and for owners the accept form (the box is
+ * never pre-ticked).
+ */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import FactRows from './FactRows.astro';
+import Checkbox from './Checkbox.astro';
+import type { TermsView } from '../../../lib/terms-page';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  view: TermsView;
+  documentUrl: string;
+  isOwner: boolean;
+  timeZone: string;
+  error?: string;
+}
+const { view, documentUrl, isOwner, timeZone, error } = Astro.props;
+---
+
+<Panel
+  id="terms"
+  title={view.title}
+  description="DRAFT — requires legal review. Read it in full before accepting."
+>
+  <Pill tone={view.ownerAccepted ? 'success' : 'warning'} dot>
+    {view.ownerAccepted ? 'Accepted for your organization' : 'Not accepted yet'}
+  </Pill>
+  <FactRows
+    class="mt-3"
+    rows={[
+      { label: 'Current version', value: view.version },
+      { label: 'Read it', value: documentUrl.replace(/^https?:\/\//, ''), href: documentUrl },
+      ...(view.acceptedAt ? [{ label: 'You accepted it', value: whenLabel(view.acceptedAt, timeZone) }] : []),
+    ]}
+  />
+  {isOwner && !view.acceptedAt && (
+    <form method="post" class="mt-3 space-y-3" novalidate>
+      <input type="hidden" name="action" value="accept" />
+      <Checkbox name="agree" error={error}>
+        I have read the Organizer Terms (version {view.version}) and accept them for my organization.
+      </Checkbox>
+      <Button type="submit">Accept the Organizer Terms</Button>
+    </form>
+  )}
+  {!isOwner && !view.ownerAccepted && (
+    <p class="mt-3 text-[13px] text-muted">An owner of your organization accepts the terms for everyone.</p>
+  )}
+</Panel>

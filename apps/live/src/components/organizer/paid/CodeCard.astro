@@ -1,0 +1,62 @@
+---
+/** One promo or access code as its own card: what it does, which types, uses, dates, and turning it off or on. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import FactRows from './FactRows.astro';
+import { formatCents, type EventCode } from '@gamo/domain';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  code: EventCode;
+  typeNames: Record<string, string>;
+  timeZone: string;
+}
+const { code: c, typeNames, timeZone } = Astro.props;
+const does =
+  c.kind === 'access'
+    ? 'Access code: shows hidden ticket types'
+    : c.discountKind === 'percent'
+      ? `${c.percentOff}% off`
+      : `${formatCents(c.amountOffCents ?? 0)} off`;
+const types = (c.ticketTypeIds ?? []).map((id) => typeNames[id] ?? 'A deleted type');
+const dates = [
+  c.startsAt ? `from ${whenLabel(c.startsAt, timeZone)}` : null,
+  c.endsAt ? `until ${whenLabel(c.endsAt, timeZone)}` : null,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+<Panel>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0">
+      <h3 class="font-mono text-[15px] font-bold tracking-wide text-ink">{c.code}</h3>
+      <p class="text-[13px] text-muted">{does}</p>
+    </div>
+    <Pill tone={c.status === 'active' ? 'success' : 'neutral'}>{c.status === 'active' ? 'On' : 'Off'}</Pill>
+  </div>
+  <FactRows
+    class="mt-2"
+    rows={[
+      {
+        label: c.kind === 'access' ? 'Unlocks' : 'Applies to',
+        value: types.length ? types.join(', ') : 'Every ticket type',
+      },
+      {
+        label: 'Used',
+        value: c.maxUses == null ? `${c.uses} times (no limit)` : `${c.uses} of ${c.maxUses}`,
+      },
+      { label: 'Works', value: dates || 'Whenever tickets are on sale' },
+    ]}
+  />
+  <form method="post" class="mt-2">
+    <input type="hidden" name="action" value="code_status" />
+    <input type="hidden" name="id" value={c.id} />
+    <input type="hidden" name="status" value={c.status === 'active' ? 'disabled' : 'active'} />
+    <Button type="submit" variant="ghost">
+      {c.status === 'active' ? 'Turn off' : 'Turn on'}
+      <span class="sr-only"> code {c.code}</span>
+    </Button>
+  </form>
+</Panel>

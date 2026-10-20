@@ -1,0 +1,152 @@
+---
+/**
+ * The fields of one ticket type (edit). Price in dollars; capacity per date (empty = only the event's seats); the sales
+ * window in the event's time zone; tickets held for the door. Posts `save_type` with the type's current status, so
+ * editing never changes whether it is on sale.
+ */
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import DateTimeField from '@studio-gamo/ui/components/ui/DateTimeField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Checkbox from './Checkbox.astro';
+import { TICKET_TYPE_KINDS } from '@gamo/domain';
+import type { TicketTypeValues } from '../../../lib/ticket-setup';
+
+interface Props {
+  typeId: string;
+  status: string;
+  values: TicketTypeValues;
+  errors?: Record<string, string>;
+  timeZone: string;
+  cancelHref: string;
+}
+const { typeId, status, values: v, errors = {}, timeZone, cancelHref } = Astro.props;
+const KIND_LABELS: Record<string, string> = {
+  general: 'General',
+  vip: 'VIP',
+  child: 'Child',
+  student: 'Student',
+  group: 'Group or family pack',
+  day_pass: 'Day pass',
+  other: 'Other',
+};
+const f = (name: string) => `t-${typeId}-${name}`;
+---
+
+<form method="post" class="space-y-4" novalidate>
+  <input type="hidden" name="action" value="save_type" />
+  <input type="hidden" name="id" value={typeId} />
+  <input type="hidden" name="status" value={status} />
+  <div class="grid gap-4 sm:grid-cols-[1fr_12rem]">
+    <SplitField
+      id={f('name')}
+      name="name"
+      label="Name"
+      size="sm"
+      required
+      maxlength={60}
+      value={v.name}
+      error={errors.name}
+    />
+    <SplitField id={f('kind')} name="kind" label="Kind" as="select" size="sm" error={errors.kind}>
+      {TICKET_TYPE_KINDS.map((k) => (
+        <option value={k} selected={v.kind === k}>
+          {KIND_LABELS[k]}
+        </option>
+      ))}
+    </SplitField>
+  </div>
+  <SplitField
+    id={f('description')}
+    name="description"
+    label="Short description (optional)"
+    size="sm"
+    maxlength={200}
+    value={v.description}
+    error={errors.description}
+  />
+  <div class="grid gap-4 sm:grid-cols-3">
+    <SplitField
+      id={f('price')}
+      name="price"
+      label="Price ($)"
+      size="sm"
+      inputmode="numeric"
+      required
+      value={v.price}
+      error={errors.price}
+    />
+    <SplitField
+      id={f('capacity')}
+      name="capacity"
+      label="Tickets per date"
+      size="sm"
+      inputmode="numeric"
+      value={v.capacity}
+      error={errors.capacity}
+      hint="Empty: only the event's seats limit it."
+    />
+    <SplitField
+      id={f('peoplePerTicket')}
+      name="peoplePerTicket"
+      label="People per ticket"
+      size="sm"
+      inputmode="numeric"
+      value={v.peoplePerTicket}
+      error={errors.peoplePerTicket}
+      hint="More than 1 for a group or family pack."
+    />
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <SplitField
+      id={f('perOrderLimit')}
+      name="perOrderLimit"
+      label="Most per order"
+      size="sm"
+      inputmode="numeric"
+      value={v.perOrderLimit}
+      error={errors.perOrderLimit}
+    />
+    <SplitField
+      id={f('doorAllocation')}
+      name="doorAllocation"
+      label="Held for the door"
+      size="sm"
+      inputmode="numeric"
+      value={v.doorAllocation}
+      error={errors.doorAllocation}
+      hint="Tickets only the door may sell, per date."
+    />
+  </div>
+  <Checkbox name="doorUsesOnline" checked={v.doorUsesOnline}>
+    The door may also sell tickets that are still available online.
+  </Checkbox>
+  <fieldset class="grid gap-4 sm:grid-cols-2">
+    <legend class="mb-2 text-[13px] font-semibold text-ink">Sales window (optional, {timeZone})</legend>
+    <div class="grid grid-cols-2 gap-2">
+      <DateTimeField
+        id={f('ssd')}
+        name="salesStartDate"
+        label="Sales start"
+        value={v.salesStartDate}
+        error={errors.salesStartDate}
+      />
+      <DateTimeField id={f('sst')} name="salesStartTime" label="Time" kind="time" value={v.salesStartTime} />
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <DateTimeField
+        id={f('sed')}
+        name="salesEndDate"
+        label="Sales end"
+        value={v.salesEndDate}
+        error={errors.salesEndDate}
+      />
+      <DateTimeField id={f('set')} name="salesEndTime" label="Time" kind="time" value={v.salesEndTime} />
+    </div>
+  </fieldset>
+  <div class="flex flex-wrap gap-2">
+    <Button type="submit">Save ticket type</Button>
+    <Button href={cancelHref} variant="secondary">
+      Cancel
+    </Button>
+  </div>
+</form>

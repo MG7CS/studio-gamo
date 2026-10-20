@@ -1,0 +1,136 @@
+---
+/**
+ * O4: one order of a paid event (docs/LIVE_SCREENS.md §I.3): who and how they paid, every line of the receipt, the
+ * buyer's refund requests to approve or decline, refunding the whole order or chosen tickets (a confirm with the real
+ * amount), resending the confirmation, the tickets, and the history of payments, refunds and transfers.
+ */
+import OrganizerLayout from '../../../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../../../components/organizer/PageTitle.astro';
+import EventTabs from '../../../../../components/organizer/EventTabs.astro';
+import OrderSummaryCard from '../../../../../components/organizer/paid/OrderSummaryCard.astro';
+import OrderTicketsCard from '../../../../../components/organizer/paid/OrderTicketsCard.astro';
+import OrderHistoryCard from '../../../../../components/organizer/paid/OrderHistoryCard.astro';
+import RefundRequestCard from '../../../../../components/organizer/paid/RefundRequestCard.astro';
+import RefundCard from '../../../../../components/organizer/paid/RefundCard.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { formatCents } from '@gamo/domain';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { eventTabCounts, paidEventPage } from '../../../../../lib/event-page';
+import { ORDER_FLASH, orderDetailView, runOrderAction } from '../../../../../lib/orders-page';
+
+export const prerender = false;
+
+const ctx = await paidEventPage(Astro);
+if (ctx instanceof Response) return ctx;
+const { organizer, memberships, active, live, now, event, eventId: id } = ctx;
+const orderId = Astro.params.orderId ?? '';
+const pagePath = `/organizer/events/${id}/orders/${encodeURIComponent(orderId)}`;
+let notice: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  if (!(await orderDetailView(live.db, { organizationId: active.organizationId, eventId: id, orderId })))
+    return new Response(null, { status: 404 });
+  const result = await runOrderAction({
+    db: live.db,
+    env: live.env,
+    organizationId: active.organizationId,
+    orderId,
+    form: await Astro.request.formData(),
+    origin: siteOrigin('live'),
+    now,
+  });
+  if (result.kind === 'done') return flashRedirect(Astro, pagePath, result.flash);
+  notice = result.notice;
+}
+
+const view = await orderDetailView(live.db, { organizationId: active.organizationId, eventId: id, orderId });
+if (!view) return new Response(null, { status: 404 });
+const flash = readFlash(Astro, ORDER_FLASH);
+const tz = event.values.timezone;
+const tabCounts = await eventTabCounts(live.db, {
+  organizationId: active.organizationId,
+  eventId: id,
+  admission: event.admission,
+  now,
+});
+const ticketLabels = Object.fromEntries(
+  view.detail.tickets.map((t) => [
+    t.id,
+    `${view.typeNames[t.ticketTypeId] ?? 'Ticket'} ${t.seq}${t.holderName ? ` (${t.holderName})` : ''}`,
+  ]),
+);
+const receipt = view.receipt;
+const ref = view.detail.order.reference;
+---
+
+<OrganizerLayout
+  title={`Order ${ref}`}
+  current="events"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Orders', href: `/organizer/events/${id}/orders` },
+      { label: ref },
+    ]}
+  />
+  <PageTitle title={`Order ${ref}`} subtext={event.values.title} />
+  <EventTabs eventId={id} admission={event.admission} current="orders" counts={tabCounts} class="mb-3" />
+  {flash && (
+    <Notice tone="success" class="mb-3">
+      {flash}
+    </Notice>
+  )}
+  {notice && (
+    <Notice tone="danger" class="mb-3">
+      {notice}
+    </Notice>
+  )}
+  {view.detail.order.disputed && (
+    <Notice tone="warning" class="mb-3">
+      The buyer disputed this payment with their bank. The payment processor settles it; refunds are not
+      possible while it is open.
+    </Notice>
+  )}
+  <div class="grid items-start gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+    <div class="space-y-3">
+      <OrderSummaryCard
+        order={view.detail.order}
+        organizationName={view.order.organizationName}
+        timeZone={tz}
+      />
+      {view.requests.map((r) => (
+        <RefundRequestCard request={r} ticketLabels={ticketLabels} timeZone={tz} />
+      ))}
+      <RefundCard view={view} />
+      <OrderTicketsCard tickets={view.detail.tickets} typeNames={view.typeNames} timeZone={tz} />
+    </div>
+    <div class="space-y-3">
+      <Panel id="receipt" title="What they paid">
+        <ReceiptLines
+          lines={receipt.lines.map((l) => ({ label: l.label, amount: formatCents(l.amountCents) }))}
+          total={{ label: 'Total', amount: formatCents(receipt.totalCents) }}
+        />
+        {receipt.refundedCents > 0 && (
+          <p class="mt-2 text-[14px] text-ink">Refunded so far: {formatCents(receipt.refundedCents)}</p>
+        )}
+      </Panel>
+      <OrderHistoryCard detail={view.detail} timeZone={tz} />
+    </div>
+  </div>
+</OrganizerLayout>

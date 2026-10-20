@@ -86,7 +86,7 @@ const stateOf = (o: (typeof selected)[number]) =>
                 <div class="mt-3 flex flex-wrap items-start gap-2">
                   {canCheckIn && (
                     <a
-                      href={`/organizer/check-in/${o.id}`}
+                      href={`/organizer/door/${o.id}?mode=checkin`}
                       class="inline-flex min-h-11 items-center rounded-full border border-ink/20 bg-white px-5 text-[13px] font-semibold text-ink hover:bg-sand"
                     >
                       Check in

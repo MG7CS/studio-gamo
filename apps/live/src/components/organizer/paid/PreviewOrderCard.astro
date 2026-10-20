@@ -1,0 +1,50 @@
+---
+/** One preview order: its reference, state and total, the buyer's order page and the organizer view, and Void. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import { formatCents, type OrganizerOrderRow } from '@gamo/domain';
+import { ORDER_STATUS_LABELS } from '../../../lib/orders-page';
+import { whenLabel } from '../../../lib/organizer-format';
+
+interface Props {
+  order: OrganizerOrderRow & { orderPath: string | null };
+  eventId: string;
+  timeZone: string;
+}
+const { order: o, eventId, timeZone } = Astro.props;
+const status = ORDER_STATUS_LABELS[o.status];
+---
+
+<Panel>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0">
+      <h3 class="font-mono text-[15px] font-bold text-ink">{o.reference}</h3>
+      <p class="text-[13px] text-muted">
+        {whenLabel(o.startsAt, timeZone)} · {o.tickets} {o.tickets === 1 ? 'ticket' : 'tickets'} ·{' '}
+        {formatCents(o.totalCents)}
+      </p>
+    </div>
+    <Pill tone={status.tone}>{status.label}</Pill>
+  </div>
+  <div class="mt-3 flex flex-wrap items-start gap-2">
+    {o.orderPath && (
+      <Button href={o.orderPath} variant="secondary">
+        Buyer’s order page<span class="sr-only"> for {o.reference}</span>
+      </Button>
+    )}
+    <Button href={`/organizer/events/${eventId}/orders/${o.id}`} variant="ghost">
+      Order details<span class="sr-only"> for {o.reference}</span>
+    </Button>
+    <ConfirmAction
+      summaryLabel="Void…"
+      confirmLabel="Void this preview"
+      actionValue="void"
+      class="open:basis-full sm:ml-auto"
+    >
+      The preview order and its tickets are removed and their seats freed. It never counted in reports.
+      <input slot="fields" type="hidden" name="order" value={o.id} />
+    </ConfirmAction>
+  </div>
+</Panel>

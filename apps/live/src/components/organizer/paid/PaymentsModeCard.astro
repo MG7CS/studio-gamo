@@ -1,0 +1,25 @@
+---
+/** How card payments flow for this organization and who the seller on receipts is (never described as escrow). */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import FactRows from './FactRows.astro';
+import type { PaymentsPageView } from '../../../lib/payments-page';
+
+interface Props {
+  view: PaymentsPageView;
+}
+const { mode } = Astro.props.view;
+---
+
+<Panel
+  id="mode"
+  title="How payments work"
+  description="Gamo sets this; ask hello@gamostudio.org if you have questions."
+>
+  <FactRows
+    rows={[
+      { label: 'In force', value: mode.title },
+      ...(mode.seller ? [{ label: 'Seller on receipts', value: mode.seller }] : []),
+    ]}
+  />
+  <p class="mt-2 text-[14px] leading-relaxed text-ink">{mode.text}</p>
+</Panel>
