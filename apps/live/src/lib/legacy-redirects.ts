@@ -2,8 +2,9 @@ import type { LegacyRedirect } from '@gamo/domain/page-middleware';
 
 /** Retired Gamo Live URLs (the old organizer tools, ticketing and account pages were replaced in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [
-  // The old Promote flow lives on as the Promote page and the organizer area.
-  { from: '/promote/create', to: '/promote', status: 303 },
+  // The Promote page was removed; the organizer area (sign-in, set-up, events) is where promoting starts.
+  { from: '/promote', to: '/organizer', status: 301 },
+  { from: '/promote/create', to: '/organizer', status: 303 },
   { from: '/promote/status', to: '/organizer' },
   { from: '/promote/events', to: '/organizer' },
   { from: '/workspaces', to: '/organizer' },

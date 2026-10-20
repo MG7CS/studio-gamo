@@ -69,7 +69,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   watch(page);
 
   await test.step('public pages render, are accessible and show no Clerk or sample data', async () => {
-    for (const path of ['/', '/events', '/promote', '/venues', '/artists', '/account/signin']) {
+    for (const path of ['/', '/events', '/venues', '/artists', '/account/signin']) {
       const response = await page.goto(`${FLOW_LIVE_ORIGIN}${path}`);
       expect(response?.status(), path).toBeLessThan(400);
       await expectAccessible(page, path);
