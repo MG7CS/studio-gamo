@@ -1,0 +1,37 @@
+---
+/** Events still waiting for review that start within a week: the ones that should not be left, each a link to its review. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { AdminScheduleView } from '@gamo/domain';
+
+interface Props {
+  view: AdminScheduleView;
+}
+const { view } = Astro.props;
+---
+
+{view.soon.length > 0 && (
+  <Panel
+    id="soon"
+    variant="clay"
+    title="Waiting for review and starting soon"
+    description="Within the next 7 days."
+  >
+    <ul class="space-y-2">
+      {view.soon.map((s) => (
+        <li>
+          <a
+            href={s.href}
+            class="flex flex-wrap items-center justify-between gap-2 rounded-clay-md bg-surface-soft p-3 shadow-inset hover:bg-clay-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay-700"
+          >
+            <span class="min-w-0">
+              <span class="block text-[14px] font-semibold text-ink">{s.title}</span>
+              <span class="block text-[13px] text-muted">{s.whenLabel}</span>
+            </span>
+            {s.source === 'catalog' && <Pill tone="neutral">Catalog</Pill>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </Panel>
+)}

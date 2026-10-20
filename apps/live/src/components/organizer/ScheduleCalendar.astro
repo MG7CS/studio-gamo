@@ -22,7 +22,9 @@ const { view, canCreate, size = 'cozy' } = Astro.props;
   <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
     <h2 class="text-[16px] font-extrabold text-ink">Your schedule</h2>
     <p class="text-[13px] text-muted">
-      {view.total === 0 ? 'No dates yet' : `${view.upcoming} upcoming of ${view.total} dates`}
+      {view.total === 0
+        ? 'No dates yet'
+        : `${view.upcoming} upcoming of ${view.total} ${view.total === 1 ? 'date' : 'dates'}`}
     </p>
   </div>
   {view.total === 0 ? (

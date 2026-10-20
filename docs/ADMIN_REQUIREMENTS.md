@@ -14,7 +14,7 @@ The previous admin (`apps/admin`) and the first rebuild were deleted. This is th
 
 | Screen | What the admin does | Data |
 |---|---|---|
-| Inbox (home) | See everything waiting, at a glance | counts and the oldest waiting items, from the four queues below |
+| Overview (home, was Inbox) | See everything waiting, and everything scheduled, at a glance | counts, the oldest waiting items, and a calendar of every organizer event and catalog listing (days link to where Gamo decides; events waiting for review that start within 7 days are called out) |
 | Church verification | schedule the in-person meeting, verify, request changes, reject, suspend, reinstate | `provider_profiles` (role church), `verification_records` |
 | Provider review (+ profile page) | the same decisions for musicians, technicians, teachers, artists, agents | same |
 | Event review (Gamo Live) | approve / ask for changes / reject with a note; the organization's owners are emailed; first approval recorded | Live database: `events`, `organizations`, `review_decisions` |

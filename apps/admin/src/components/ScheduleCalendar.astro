@@ -1,0 +1,33 @@
+---
+/**
+ * The calendar card: every date on one calendar (the shared `Calendar`), with how many are still ahead. With no dates
+ * it says so plainly instead of drawing an empty grid. The chosen day is a separate card (`ScheduleDay`).
+ */
+import Calendar from '@studio-gamo/ui/components/ui/Calendar.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import type { AdminScheduleView } from '@gamo/domain';
+
+interface Props {
+  view: AdminScheduleView;
+  title: string;
+  /** What an empty calendar says. */
+  empty: string;
+}
+const { view, title, empty } = Astro.props;
+---
+
+<Panel id="schedule" variant="clay">
+  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+    <h2 class="text-[16px] font-bold text-ink">{title}</h2>
+    <p class="text-[13px] text-muted">
+      {view.total === 0
+        ? 'No dates yet'
+        : `${view.upcoming} upcoming of ${view.total} ${view.total === 1 ? 'date' : 'dates'}`}
+    </p>
+  </div>
+  {view.total === 0 ? (
+    <p class="rounded-clay-md bg-surface-soft p-5 text-[14px] text-ink shadow-inset">{empty}</p>
+  ) : (
+    <Calendar model={view.model} noun="date" size="cozy" />
+  )}
+</Panel>
