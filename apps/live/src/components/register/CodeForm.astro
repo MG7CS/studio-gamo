@@ -1,5 +1,10 @@
 ---
+/**
+ * Enter the emailed 6-digit code, or ask for a new one. Two separate forms so "Send a new code" never needs
+ * a code typed first and pressing Enter in the field always confirms.
+ */
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
 
 interface Props {
   error?: string;
@@ -13,7 +18,7 @@ const { error } = Astro.props;
       6-digit code
     </label>
     <p id="code-hint" class="-mt-1 mb-2 text-[13px] text-muted">
-      The code is in the email we just sent. It works for 10 minutes.
+      It is in the email we just sent and works for 10 minutes.
     </p>
     <input
       id="code"
@@ -32,12 +37,20 @@ const { error } = Astro.props;
       class="min-h-[56px] w-full rounded-[14px] border border-ink/50 bg-white px-4 py-3 text-center font-mono text-[26px] font-semibold tracking-[0.5em] text-ink placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep"
     />
     {error && (
-      <p id="code-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+      <p id="code-error" role="alert" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
         <span class="sr-only">Error: </span>
         {error}
       </p>
     )}
   </div>
   <SplitButton label="Confirm registration" name="action" value="confirm" />
-  <SplitButton label="Send a new code" name="action" value="resend" variant="quiet" />
+</form>
+
+<form method="post" class="mt-6 border-t border-tan pt-5">
+  <p class="mb-3 text-[14px] text-muted">
+    Did not get an email? Check your spam folder, or ask for a new code.
+  </p>
+  <Button variant="secondary" size="lg" block name="action" value="resend">
+    Send a new code
+  </Button>
 </form>

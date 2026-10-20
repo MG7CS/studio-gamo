@@ -1,43 +1,54 @@
 ---
+/**
+ * The guest registration form: date (only when there are several), name, email, number of people, consent.
+ * Native controls and a plain POST; errors arrive from the server and are shown next to each field (the page
+ * also lists them all at the top). Browser validation is off (`novalidate`) so the server's wording is the only one.
+ */
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import { partySelectMax } from '@gamo/domain';
+import type { RegisterDateOption, RegisterField, RegisterFormValues } from '@gamo/domain';
 
-interface Occurrence {
-  id: string;
-  label: string;
-  seatsLeft: number | null;
-}
 interface Props {
-  occurrences: Occurrence[];
+  options: RegisterDateOption[];
   selectedOccurrenceId: string;
   maxParty: number;
-  values: { name?: string; email?: string; partySize?: string };
-  errors: Partial<Record<'name' | 'email' | 'partySize' | 'occurrence' | 'consent', string>>;
-  siteTermsUrl: string;
+  values: RegisterFormValues;
+  errors: Partial<Record<RegisterField, string>>;
+  termsUrl: string;
   privacyUrl: string;
 }
-const { occurrences, selectedOccurrenceId, maxParty, values, errors, siteTermsUrl, privacyUrl } = Astro.props;
-const selected = occurrences.find((o) => o.id === selectedOccurrenceId) ?? occurrences[0];
-const limit = Math.max(1, Math.min(maxParty, selected?.seatsLeft ?? maxParty));
+const { options, selectedOccurrenceId, maxParty, values, errors, termsUrl, privacyUrl } = Astro.props;
+const selected = options.find((o) => o.id === selectedOccurrenceId) ?? options[0];
+const peopleMax = partySelectMax(maxParty, options);
+const seatsText = (o: RegisterDateOption) =>
+  o.seatsLeft == null
+    ? ''
+    : o.seatsLeft === 0
+      ? ' · Full'
+      : ` · ${o.seatsLeft} ${o.seatsLeft === 1 ? 'seat' : 'seats'} left`;
+const link = 'font-semibold text-terracotta-deep underline';
 ---
 
 <form method="post" class="space-y-5" novalidate>
-  {occurrences.length > 1 && (
+  {options.length > 1 ? (
     <SplitField id="occurrence" name="occurrence" label="Date" as="select" required error={errors.occurrence}>
-      {occurrences.map((o) => (
-        <option value={o.id} selected={o.id === selected?.id}>
+      {options.map((o) => (
+        <option value={o.id} selected={o.id === selected?.id} disabled={o.seatsLeft === 0}>
           {o.label}
-          {o.seatsLeft != null ? ` · ${o.seatsLeft} seats left` : ''}
+          {seatsText(o)}
         </option>
       ))}
     </SplitField>
+  ) : (
+    <input type="hidden" name="occurrence" value={options[0]?.id ?? ''} />
   )}
-  {occurrences.length === 1 && <input type="hidden" name="occurrence" value={occurrences[0].id} />}
   <SplitField
     id="name"
     name="name"
     label="Your name"
     autocomplete="name"
+    maxlength={100}
     required
     value={values.name}
     error={errors.name}
@@ -46,13 +57,14 @@ const limit = Math.max(1, Math.min(maxParty, selected?.seatsLeft ?? maxParty));
     id="email"
     name="email"
     type="email"
+    inputmode="email"
     label="Email address"
     autocomplete="email"
     placeholder="you@example.org"
     required
     value={values.email}
     error={errors.email}
-    hint="We email a 6-digit code to confirm. Nothing is reserved until you enter it."
+    hint="We email you a 6-digit code to confirm."
   />
   <SplitField
     id="partySize"
@@ -62,37 +74,43 @@ const limit = Math.max(1, Math.min(maxParty, selected?.seatsLeft ?? maxParty));
     required
     error={errors.partySize}
   >
-    {Array.from({ length: limit }, (_, i) => i + 1).map((n) => (
-      <option value={String(n)} selected={String(n) === (values.partySize ?? '1')}>
+    {Array.from({ length: peopleMax }, (_, i) => i + 1).map((n) => (
+      <option value={String(n)} selected={String(n) === values.partySize}>
         {n}
       </option>
     ))}
   </SplitField>
+  <p class="text-[13px] leading-relaxed text-muted">
+    We use your email to send your code and your registration link, and delete it 90 days after the event.
+  </p>
   <div>
     <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
       <input
+        id="consent"
         type="checkbox"
         name="consent"
         value="yes"
+        checked={values.consent}
         required
         aria-invalid={errors.consent ? 'true' : undefined}
         aria-describedby={errors.consent ? 'consent-error' : undefined}
-        class="mt-1 h-5 w-5 shrink-0 rounded border-ink/50 accent-terracotta"
+        class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/50 accent-terracotta-deep"
       />
       <span>
         I agree to the{' '}
-        <a class="font-semibold text-terracotta underline" href={siteTermsUrl}>
-          Site Terms
+        <a class={link} href={termsUrl} target="_blank" rel="noopener noreferrer">
+          Site Terms<span class="sr-only"> (opens in a new tab)</span>
         </a>{' '}
         and have read the{' '}
-        <a class="font-semibold text-terracotta underline" href={privacyUrl}>
-          Privacy Policy
+        <a class={link} href={privacyUrl} target="_blank" rel="noopener noreferrer">
+          Privacy Policy<span class="sr-only"> (opens in a new tab)</span>
         </a>{' '}
         (drafts, under legal review).
       </span>
     </label>
     {errors.consent && (
       <p id="consent-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+        <span class="sr-only">Error: </span>
         {errors.consent}
       </p>
     )}

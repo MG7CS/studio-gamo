@@ -1,27 +1,28 @@
 ---
 /**
- * A6: a person's registration, reached from the signed link in their confirmation email. Shows the details,
- * the QR code (only when the organizer turned QR on) and lets them cancel. No account.
+ * A guest's registration, opened from the signed link in their confirmation email. A centered page (no photo):
+ * status, event, date and place, the QR code first and large when the event checks in by QR, then add to
+ * calendar, open in Maps and cancel. No account. Links that expired or are not valid get a plain explanation;
+ * only a link whose signature does not check out is a 404.
  */
 import Layout from '../../layouts/Layout.astro';
-import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
-import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
-import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
-import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Logo from '@studio-gamo/ui/components/Logo.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import TicketQr from '../../components/register/TicketQr.astro';
+import TicketActions from '../../components/register/TicketActions.astro';
 import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { openLive } from '../../lib/registration';
 import {
-  RegistrationError,
-  canceledEmail,
-  cancelRegistration,
-  formatLocalEventSchedule,
-  getRegistration,
-  qrPayload,
-  qrSvg,
-  requestSecurityHeaders,
-  sendLiveEmail,
-  verifyManageToken,
-} from '@gamo/domain';
-import { openLive, whenWhere } from '../../lib/registration';
+  TICKET_FLASH,
+  cancelFromTicket,
+  loadTicket,
+  type TicketLoad,
+  type TicketPage,
+} from '../../lib/guest-registration';
 
 export const prerender = false;
 
@@ -29,114 +30,119 @@ export const prerender = false;
 requestSecurityHeaders(Astro.locals, { noReferrer: true });
 
 const token = Astro.params.token ?? '';
-let notice: string | undefined;
+const now = Math.floor(Date.now() / 1000);
 let unavailable = false;
-let reg = null as Awaited<ReturnType<typeof getRegistration>>;
-let when = '';
-let venue = '';
-let eventTitle = '';
-let qr = '';
+let loaded: TicketLoad | null = null;
+let flash: string | null = null;
 
 try {
   const live = await openLive(Astro);
-  const now = Math.floor(Date.now() / 1000);
-  const id = await verifyManageToken(live.env, token, now);
-  reg = id ? await getRegistration(live.db, id) : null;
-  if (!reg) return new Response(null, { status: 404 });
-  const event = await live.catalog.getEvent(reg.eventSlug);
-  if (event) {
-    const details = whenWhere(event, new Date(reg.startsAt * 1000));
-    when = formatLocalEventSchedule(null, null, reg.timezone, new Date(reg.startsAt * 1000)).fullLabel;
-    venue = details.venueLabel;
-    eventTitle = event.title;
-
-    if (Astro.request.method === 'POST') {
-      try {
-        requireSameOrigin(Astro.request);
-      } catch {
-        return new Response('Forbidden', { status: 403 });
-      }
-      const form = await Astro.request.formData();
-      if (form.get('action') === 'cancel') {
-        try {
-          await cancelRegistration(live.db, reg.id, now);
-          reg = await getRegistration(live.db, reg.id);
-          notice = 'Your registration is canceled and your seats are released.';
-          await sendLiveEmail(
-            live.env,
-            canceledEmail(reg!.email, reg!.name, { ...details, whenLabel: when }),
-          ).catch(() => {});
-        } catch (error) {
-          if (!(error instanceof RegistrationError)) throw error;
-          notice = 'This registration is already canceled.';
-        }
-      }
+  loaded = await loadTicket(live, token, now);
+  if (loaded.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (loaded.kind === 'ready' && Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const form = await Astro.request.formData();
+    if (form.get('action') === 'cancel') {
+      const result = await cancelFromTicket(live, loaded.page, now);
+      return flashRedirect(Astro, `/registrations/${token}`, result);
     }
   }
-  if (reg && reg.status === 'confirmed' && reg.checkinCode) qr = qrSvg(qrPayload(reg.checkinCode));
+  flash = readFlash(Astro, TICKET_FLASH);
 } catch (error) {
   if (error instanceof Response) throw error;
   console.error('[live:manage] failed', (error as Error)?.name);
   unavailable = true;
 }
+if (unavailable) Astro.response.status = 503;
+if (loaded?.kind === 'link_expired') Astro.response.status = 410;
 
-const isNew = Astro.url.searchParams.get('new') === '1';
-const past = reg ? reg.startsAt * 1000 <= Date.now() : false;
+const page: TicketPage | null = loaded?.kind === 'ready' ? loaded.page : null;
+const isNew = Astro.url.searchParams.get('new') === '1' && page?.view.state === 'active';
+const expiredEventSlug = loaded?.kind === 'link_expired' ? loaded.eventSlug : null;
+const people = page ? `${page.reg.partySize} ${page.reg.partySize === 1 ? 'person' : 'people'}` : '';
 ---
 
-<Layout title="Your registration" chrome={false} noindex>
-  <SplitScreenLayout photo="girlGuitar" position="48% 20%" program="Gamo Live" brandHref="/">
-    <SplitHeading
-      title={
-        reg?.status === 'canceled'
-          ? 'Registration canceled'
-          : isNew
-            ? "You're registered"
-            : 'Your registration'
-      }
-      subtext={reg?.status === 'confirmed' ? 'We also emailed you this link. Keep it private.' : undefined}
-    />
-    {unavailable && (
-      <SplitNotice tone="error">This page is temporarily unavailable. Please try again later.</SplitNotice>
-    )}
-    {notice && <SplitNotice>{notice}</SplitNotice>}
-    {reg && (
-      <div class="mb-6 rounded-2xl border border-sand bg-white px-5 py-4">
-        <p class="text-[18px] font-bold leading-snug text-ink">{eventTitle || reg.eventTitle}</p>
-        <p class="mt-2 text-[14px] text-ink">{when}</p>
-        <p class="text-[14px] text-muted">{venue}</p>
-        <p class="mt-3 text-[14px] text-ink">
-          {reg.name} · {reg.partySize} {reg.partySize === 1 ? 'person' : 'people'}
-          {reg.checkedInAt ? ' · Checked in' : ''}
-        </p>
-        {past && reg.status === 'confirmed' && <p class="mt-2 text-[13px] text-muted">Past · Closed</p>}
-      </div>
-    )}
-    {qr && (
-      <figure class="mb-6">
-        <div
-          class="mx-auto h-48 w-48 rounded-2xl border border-sand bg-white p-3"
-          aria-hidden="true"
-          set:html={qr}
-        />
-        <figcaption class="mt-2 text-center text-[13px] text-muted">
-          Show this at the door. Check-in code:{' '}
-          <span class="font-mono font-semibold text-ink">{reg!.checkinCode}</span>
-        </figcaption>
-      </figure>
-    )}
-    {reg && reg.status === 'confirmed' && !past && (
-      <form method="post">
-        <input type="hidden" name="action" value="cancel" />
-        <SplitButton label="Cancel my registration" variant="quiet" />
-      </form>
-    )}
-    {reg && (
-      <p class="mt-6 text-[14px]">
-        <a class="font-semibold text-terracotta underline" href={`/events/${reg.eventSlug}`}>
-          View the event
-        </a>
-      </p>
-    )}
-  </SplitScreenLayout>
+<Layout title={page ? 'Your registration' : 'Registration link'} chrome={false} noindex>
+  <div class="bg-cream px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-3 sm:pt-6">
+    <div class="mx-auto flex w-full max-w-md flex-col gap-5">
+      <a
+        href="/"
+        aria-label="Gamo Live home"
+        class="inline-flex min-h-11 items-center self-start rounded-lg text-ink"
+      >
+        <Logo program="Gamo Live" tone="onLight" />
+      </a>
+
+      {unavailable && (
+        <section class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
+          <h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink">
+            This page is temporarily unavailable
+          </h1>
+          <p class="mt-2 text-[15px] leading-relaxed text-muted">Please try again in a little while.</p>
+        </section>
+      )}
+      {flash && <Notice tone="success">{flash}</Notice>}
+      {isNew && (
+        <Notice tone="info" title="You're registered">
+          We also emailed you this link. Keep it private.
+        </Notice>
+      )}
+
+      {expiredEventSlug && (
+        <section class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
+          <h1 class="text-[24px] font-bold leading-tight tracking-tight text-ink">
+            This link has expired or is not valid
+          </h1>
+          <p class="mt-2 text-[15px] leading-relaxed text-muted">
+            Links stop working 30 days after the event. If you still need your registration, register again
+            from the event page.
+          </p>
+          <Button variant="secondary" size="lg" block href={`/events/${expiredEventSlug}`} class="mt-5">
+            View the event
+          </Button>
+        </section>
+      )}
+
+      {page && (
+        <>
+          <article class="rounded-3xl border border-tan bg-white p-5 sm:p-6">
+            <Pill tone={page.view.pill.tone} dot>
+              {page.view.pill.label}
+            </Pill>
+            <h1 class="mt-3 text-[26px] font-bold leading-tight tracking-tight text-ink">{page.title}</h1>
+            <p class="mt-2 text-[16px] font-semibold text-ink">{page.when}</p>
+            {page.where && <p class="text-[15px] text-muted">{page.where}</p>}
+            <p class="mt-3 text-[15px] text-ink">
+              {page.reg.name} · {people}
+            </p>
+            {page.view.note && <p class="mt-3 text-[14px] text-muted">{page.view.note}</p>}
+            {page.qr && page.checkinCode && <TicketQr svg={page.qr} code={page.checkinCode} />}
+            {page.view.doorHint && (
+              <p class="mt-3 text-[15px] font-semibold text-ink">{page.view.doorHint}</p>
+            )}
+          </article>
+
+          <TicketActions
+            calendarHref={page.view.showCalendar ? `/registrations/${token}/calendar.ics` : undefined}
+            mapsHref={page.view.showMaps ? page.mapsUrl : null}
+            canCancel={page.view.canCancel}
+          />
+
+          <p class="text-[13px] leading-relaxed text-muted">
+            Anyone with this link can see or cancel this registration, so keep it private.
+          </p>
+          <Button variant="ghost" href={`/events/${page.reg.eventSlug}`} class="self-start">
+            View the event
+          </Button>
+        </>
+      )}
+    </div>
+  </div>
 </Layout>

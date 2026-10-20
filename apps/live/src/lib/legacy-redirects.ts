@@ -1,4 +1,8 @@
+import { GAMO_LIVE_METROS } from '@gamo/domain';
 import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+
+/** `/events/<metro-slug>` used to be the city page; only the real metro slugs move (every other slug is an event). */
+const metroSlugs = new RegExp(`^/events/(${GAMO_LIVE_METROS.map((m) => m.slug).join('|')})$`);
 
 /** Retired Gamo Live URLs (the old organizer tools, ticketing and account pages were replaced in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [
@@ -25,6 +29,7 @@ export const legacyRedirects: LegacyRedirect[] = [
   { from: '/waitlist/*', to: '/events' },
   { from: '/scan/*', to: '/events' },
   { from: '/checkout', to: '/events', status: 301 },
+  { from: metroSlugs, to: (_url, m) => `/events/city/${m?.[1] ?? ''}`, status: 301 },
   { from: /^\/events\/([^/]+)\/tickets$/, to: (_url, m) => `/events/${m?.[1] ?? ''}` },
   {
     from: /^\/organizers\/([^/]+)$/,

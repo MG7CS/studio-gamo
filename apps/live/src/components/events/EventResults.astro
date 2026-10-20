@@ -1,0 +1,76 @@
+---
+/**
+ * Upcoming events as lists of cards, soonest first, 24 at a time. "Show more" is a plain link to the next page of
+ * the same search; each run of 24 is its own list with an id, so the link lands on the first new event.
+ */
+import { chunkEvents, eventSearchHref, hasEventFilters } from '@gamo/domain';
+import type { EventSearch, LiveEventWithDetails } from '@gamo/domain';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import LiveDiscoveryCard from '../LiveDiscoveryCard.astro';
+
+interface Props {
+  events: LiveEventWithDetails[];
+  search: EventSearch;
+  /** The page's own path; "Show more" and "Clear" links are built from it. */
+  path: string;
+  /** Named city of a city page, used in the empty message. */
+  placeLabel?: string;
+}
+const { events, search, path, placeLabel } = Astro.props;
+const { chunks, hasMore, nextPage } = chunkEvents(events, search.page);
+const shown = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+const filtered = hasEventFilters(search);
+---
+
+{events.length === 0 ? (
+  <EmptyState
+    title={
+      filtered
+        ? 'No upcoming events match.'
+        : `No upcoming events${placeLabel ? ` in ${placeLabel}` : ''} yet.`
+    }
+    text={
+      filtered
+        ? 'Clear the filters to see every upcoming event, or promote yours.'
+        : 'Events appear here once organizers publish them.'
+    }
+  >
+    <div class="flex flex-wrap justify-center gap-2">
+      {filtered && (
+        <Button href={path} variant="secondary">
+          Clear filters
+        </Button>
+      )}
+      {placeLabel && (
+        <Button href="/events" variant="secondary">
+          See all events
+        </Button>
+      )}
+      <Button href="/promote">Promote an event</Button>
+    </div>
+  </EmptyState>
+) : (
+  <div>
+    {chunks.map((chunk, i) => (
+      <ul id={`page-${i + 1}`} class="grid scroll-mt-24 gap-3 lg:grid-cols-2 [&:not(:first-child)]:mt-3">
+        {chunk.map((event) => (
+          <LiveDiscoveryCard event={event} />
+        ))}
+      </ul>
+    ))}
+    {hasMore && (
+      <div class="mt-8 flex flex-col items-center gap-3">
+        <p class="text-sm text-muted">
+          Showing {shown} of {events.length}
+        </p>
+        <Button
+          href={`${eventSearchHref(path, { ...search, page: nextPage })}#page-${nextPage}`}
+          variant="secondary"
+        >
+          Show more events
+        </Button>
+      </div>
+    )}
+  </div>
+)}

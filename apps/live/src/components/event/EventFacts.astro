@@ -1,0 +1,68 @@
+---
+/** When, where, who and the organizer's own notes on price and refunds. Each fact is written once. */
+import { categoryBadge, formatLocalEventSchedule, mapsUrl, organizerLine, placeLine } from '@gamo/domain';
+import type { LiveEventDetail } from '@gamo/domain';
+
+interface Props {
+  event: LiveEventDetail;
+  /** "Next date" when the event repeats, so the facts do not pretend to be the only date. */
+  whenLabel?: string;
+}
+const { event, whenLabel = 'When' } = Astro.props;
+const schedule = formatLocalEventSchedule(
+  event.startDateLocal,
+  event.startTimeLocal,
+  event.timezone,
+  event.startsAt,
+);
+const organizer = organizerLine(event);
+const place = placeLine(event);
+const rows: Array<{ term: string; value: string }> = [
+  ...(event.priceText ? [{ term: 'Price', value: event.priceText }] : []),
+  ...(event.refundPolicyText ? [{ term: 'Refunds', value: event.refundPolicyText }] : []),
+  ...(event.performers.length
+    ? [{ term: 'Performing', value: event.performers.map((p) => p.displayName).join(', ') }]
+    : []),
+];
+const termClass = 'text-xs font-semibold uppercase tracking-wide text-muted';
+---
+
+<dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+  <div>
+    <dt class={termClass}>{whenLabel}</dt>
+    <dd class="mt-1 text-base font-semibold text-ink">{schedule.dateLabel}</dd>
+    <dd class="text-sm text-ink">{schedule.timeLabel}</dd>
+  </div>
+  <div>
+    <dt class={termClass}>Where</dt>
+    <dd class="mt-1 text-base font-semibold text-ink">{event.venueName}</dd>
+    <dd class="text-sm text-ink">{place}</dd>
+    <dd>
+      <a
+        href={mapsUrl(event)}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-11 items-center text-sm font-semibold text-terracotta-deep underline underline-offset-4"
+      >
+        Open in Maps<span class="sr-only"> (opens in a new tab)</span>
+      </a>
+    </dd>
+  </div>
+  <div>
+    <dt class={termClass}>Organizer</dt>
+    <dd class="mt-1 text-sm text-ink">
+      {organizer.name}
+      {organizer.verified && <span class="text-muted"> · Verified by Gamo</span>}
+    </dd>
+  </div>
+  <div>
+    <dt class={termClass}>Type</dt>
+    <dd class="mt-1 text-sm text-ink">{categoryBadge(event.category)}</dd>
+  </div>
+  {rows.map((row) => (
+    <div class="sm:col-span-2">
+      <dt class={termClass}>{row.term}</dt>
+      <dd class="mt-1 text-sm text-ink">{row.value}</dd>
+    </div>
+  ))}
+</dl>

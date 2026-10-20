@@ -1,0 +1,132 @@
+---
+/**
+ * Register for a free event. Photo-left split screen like sign-in; no account. A person picks a date (when
+ * there are several), enters name, email and party size, accepts the terms and is emailed a 6-digit code
+ * (next page). Seats are held 15 minutes. Past, full or canceled events show a plain closed state, decided on
+ * the server. `?date=<occurrence id>` preselects a date (the event page links here with it).
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import EventSummary from '../../../../components/register/EventSummary.astro';
+import FormErrorSummary from '../../../../components/register/FormErrorSummary.astro';
+import RegisterForm from '../../../../components/register/RegisterForm.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import {
+  chooseOccurrence,
+  orderedErrors,
+  registerAvailability,
+  type LiveEventDetail,
+  type RegisterField,
+  type RegisterFormValues,
+} from '@gamo/domain';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import { dateOptions, openLive, whenWhere } from '../../../../lib/registration';
+import { submitRegistration, type Message } from '../../../../lib/guest-registration';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const now = Math.floor(Date.now() / 1000);
+let event: LiveEventDetail | null = null;
+let unavailable = false;
+let notice: Message | null = null;
+let errors: Partial<Record<RegisterField, string>> = {};
+let values: RegisterFormValues = { name: '', email: '', partySize: '1', consent: false };
+let selectedOccurrenceId = '';
+
+try {
+  const live = await openLive(Astro);
+  event = await live.catalog.getEvent(slug);
+  if (!event || event.admission !== 'free_registration') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  const options = dateOptions(event, now * 1000);
+  selectedOccurrenceId = chooseOccurrence(options, Astro.url.searchParams.get('date'), event.occurrenceId);
+
+  if (Astro.request.method === 'POST' && options.length > 0) {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    const outcome = await submitRegistration(live, {
+      event,
+      form: await Astro.request.formData(),
+      request: Astro.request,
+      now,
+    });
+    if (outcome.kind === 'redirect') return Astro.redirect(outcome.location, 303);
+    ({ values, errors, notice, unavailable } = outcome);
+    selectedOccurrenceId = outcome.occurrenceId;
+  }
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:register] failed', (error as Error)?.name);
+  unavailable = true;
+}
+if (unavailable) Astro.response.status = 503;
+
+const options = event ? dateOptions(event, now * 1000) : [];
+const availability = event ? registerAvailability({ eventStatus: event.status, options }) : null;
+const open = availability?.state === 'open' && !unavailable;
+const summary = event
+  ? whenWhere(
+      event,
+      options.length === 1 ? event.occurrences.find((o) => o.id === options[0].id)?.startsAt : undefined,
+    )
+  : null;
+const errorList = orderedErrors(errors).map((e) => ({ field: e.field, message: e.message }));
+---
+
+<Layout title={event ? `Register: ${event.title}` : 'Register'} chrome={false} noindex>
+  <SplitScreenLayout photo="worshipNight" program="Gamo Live" brandHref="/">
+    <SplitHeading title={open || !availability ? 'Register free' : 'Registration closed'} />
+    <FormErrorSummary errors={errorList} />
+    {unavailable && (
+      <Notice tone="danger" class="mb-5">
+        Registration is temporarily unavailable. Please try again later.
+      </Notice>
+    )}
+    {notice && (
+      <Notice tone={notice.tone} class="mb-5">
+        {notice.text}
+      </Notice>
+    )}
+    {event && summary && (
+      <>
+        <EventSummary
+          title={event.title}
+          whenLabel={options.length > 1 ? undefined : summary.whenLabel}
+          venueLabel={summary.venueLabel}
+          organizerName={event.organizerName}
+          organizerVerified={event.organizerVerified}
+        />
+        {availability && availability.state !== 'open' && (
+          <Notice tone="info" class="mb-5">
+            {availability.message}
+          </Notice>
+        )}
+        {open && (
+          <RegisterForm
+            options={options}
+            selectedOccurrenceId={selectedOccurrenceId}
+            maxParty={event.maxPartySize}
+            values={values}
+            errors={errors}
+            termsUrl={siteUrl('web', '/legal/site-terms')}
+            privacyUrl={siteUrl('web', '/legal/privacy-policy')}
+          />
+        )}
+        <div class="mt-6">
+          <Button variant="ghost" href={`/events/${event.slug}`} class="-ml-5">
+            Back to the event
+          </Button>
+        </div>
+      </>
+    )}
+  </SplitScreenLayout>
+</Layout>

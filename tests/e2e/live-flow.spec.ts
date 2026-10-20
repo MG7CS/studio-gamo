@@ -26,6 +26,22 @@ const watch = (page: Page) => {
   page.on('pageerror', (e) => problems.push(String(e).slice(0, 200)));
 };
 
+/** SCREENSHOTS=1 saves full-page pictures of key screens at three widths into test-results/live-screens/. */
+const SHOTS = process.env.SCREENSHOTS === '1';
+const shot = async (page: Page, name: string) => {
+  if (!SHOTS) return;
+  const original = page.viewportSize();
+  for (const [width, height] of [
+    [1440, 900],
+    [390, 844],
+    [360, 740],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    await page.screenshot({ path: `test-results/live-screens/${name}-${width}.png`, fullPage: true });
+  }
+  if (original) await page.setViewportSize(original);
+};
+
 const mail = async (): Promise<CapturedEmail[]> => (await fetch(`${FLOW_MAIL_ORIGIN}/__emails`)).json();
 const waitForMail = async (match: (e: CapturedEmail) => boolean) => {
   for (let i = 0; i < 40; i++) {
@@ -57,9 +73,25 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
       const response = await page.goto(`${FLOW_LIVE_ORIGIN}${path}`);
       expect(response?.status(), path).toBeLessThan(400);
       await expectAccessible(page, path);
+      await shot(page, path === '/' ? 'home' : path.slice(1).replace(/\//g, '-'));
     }
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText('Harvest Night of Gospel')).toHaveCount(0);
+    if (SHOTS) {
+      await page.goto(`${FLOW_LIVE_ORIGIN}/events/city/phoenix-az`);
+      await shot(page, 'city');
+      await page.goto(`${FLOW_LIVE_ORIGIN}/events/this-event-does-not-exist`);
+      await shot(page, 'not-found');
+      await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
+      const external = await page
+        .locator('main a[href^="/events/"]:not([href*="/city/"])')
+        .first()
+        .getAttribute('href');
+      if (external) {
+        await page.goto(`${FLOW_LIVE_ORIGIN}${external}`);
+        await shot(page, 'event-external');
+      }
+    }
   });
 
   await test.step('private pages send an anonymous visitor to sign in', async () => {
@@ -157,8 +189,10 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     const p = await guest.newPage();
     watch(p);
     await p.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
-    await p.getByRole('link', { name: 'Register free' }).click();
+    if (name === 'Sample Guest One') await shot(p, 'event-registration');
+    await p.getByRole('link', { name: 'Register', exact: true }).click();
     await expect(p).toHaveURL(/\/register$/);
+    if (name === 'Sample Guest One') await shot(p, 'register');
     await p.getByLabel('Your name').fill(name);
     await p.getByLabel('Email address').fill(email);
     await p.getByRole('checkbox').check();
@@ -175,18 +209,21 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   await test.step('a person registers: wrong code is refused, the right one confirms, the QR and manage link work', async () => {
     const { guest, p, code } = await register(first.name, first.email);
     await expectAccessible(p, '/register/confirm');
+    await shot(p, 'confirm');
     await p.getByLabel('6-digit code').fill(code === '000000' ? '111111' : '000000');
     await p.getByRole('button', { name: 'Confirm registration' }).click();
     await expect(p.getByText('That code is not right.')).toBeVisible();
     await p.getByLabel('6-digit code').fill(code);
     await p.getByRole('button', { name: 'Confirm registration' }).click();
     await expect(p).toHaveURL(/\/registrations\/reg_/);
-    await expect(p.getByRole('heading', { level: 1 })).toHaveText("You're registered");
+    await expect(p.getByRole('heading', { level: 1 })).toHaveText(TITLE);
+    await expect(p.getByText('Confirmed', { exact: true })).toBeVisible();
     await expect(p.locator('figure svg')).toBeVisible();
     checkinCode = (await p.locator('figure figcaption span.font-mono').innerText()).trim();
     expect(checkinCode).toMatch(/^[0-9A-Z]{10}$/);
     manageUrl = p.url().split('?')[0];
     await expectAccessible(p, '/registrations/<token>');
+    await shot(p, 'ticket');
     const confirmation = await waitForMail(
       (e) => to(e).includes(first.email) && /You're registered/.test(e.subject),
     );
@@ -203,14 +240,15 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     const secondManage = p.url().split('?')[0];
     const view = await guest.newPage();
     await view.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
-    await expect(view.getByText('Registration full.')).toBeVisible();
-    await expect(view.getByRole('link', { name: 'Register free' })).toHaveCount(0);
+    await expect(view.getByRole('button', { name: 'Full' })).toBeDisabled();
+    await expect(view.getByRole('link', { name: 'Register', exact: true })).toHaveCount(0);
 
     await p.goto(secondManage);
-    await p.getByRole('button', { name: 'Cancel my registration' }).click();
+    await p.getByText('Cancel registration', { exact: true }).click();
+    await p.getByRole('button', { name: 'Yes, cancel my registration' }).click();
     await expect(p.getByText('Your registration is canceled and your seats are released.')).toBeVisible();
     await view.reload();
-    await expect(view.getByRole('link', { name: 'Register free' })).toBeVisible();
+    await expect(view.getByRole('link', { name: 'Register', exact: true })).toBeVisible();
     await guest.close();
   });
 
@@ -267,9 +305,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     const canceled = await waitForMail((e) => to(e).includes(first.email) && /^Canceled:/.test(e.subject));
     expect(canceled.text).toContain('Sample reason: the hall is closed.');
     await page.goto(`${FLOW_LIVE_ORIGIN}${publicSlug}`);
-    await expect(
-      page.getByText('Past Event · Closed').or(page.getByText('Event Canceled · Closed')).first(),
-    ).toBeVisible();
+    await expect(page.getByText('This event was canceled')).toBeVisible();
   });
 
   await test.step('sign out ends the session', async () => {

@@ -1,0 +1,52 @@
+---
+/**
+ * Every date of an event that repeats: upcoming ones first (six shown, the rest behind a native disclosure), each
+ * with its own state and a Register link where registering works, then past dates folded away.
+ */
+import { VISIBLE_DATE_COUNT, type EventDateRow } from '@gamo/domain';
+import EventDateItem from './EventDateItem.astro';
+
+interface Props {
+  upcoming: EventDateRow[];
+  past: EventDateRow[];
+}
+const { upcoming, past } = Astro.props;
+const shown = upcoming.slice(0, VISIBLE_DATE_COUNT);
+const hidden = upcoming.slice(VISIBLE_DATE_COUNT);
+const summaryClass =
+  'inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-terracotta-deep underline underline-offset-4';
+---
+
+<section aria-labelledby="event-dates">
+  <h2 id="event-dates" class="text-xl font-bold text-ink">
+    Dates
+  </h2>
+  {upcoming.length === 0 && <p class="mt-2 text-sm text-muted">No upcoming dates.</p>}
+  {shown.length > 0 && (
+    <ul class="mt-2">
+      {shown.map((row) => (
+        <EventDateItem row={row} />
+      ))}
+    </ul>
+  )}
+  {hidden.length > 0 && (
+    <details class="mt-1">
+      <summary class={summaryClass}>Show all {upcoming.length} dates</summary>
+      <ul>
+        {hidden.map((row) => (
+          <EventDateItem row={row} />
+        ))}
+      </ul>
+    </details>
+  )}
+  {past.length > 0 && (
+    <details class="mt-1">
+      <summary class={summaryClass}>Past dates ({past.length})</summary>
+      <ul>
+        {past.map((row) => (
+          <EventDateItem row={row} />
+        ))}
+      </ul>
+    </details>
+  )}
+</section>

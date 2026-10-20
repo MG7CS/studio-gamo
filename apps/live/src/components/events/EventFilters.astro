@@ -1,0 +1,77 @@
+---
+/**
+ * The one search form of the events list: a plain GET form, so it works without JavaScript and every result is a
+ * shareable link. The search field has id="search" because the header's search icon links to /events#search.
+ */
+import {
+  EVENT_CATEGORIES,
+  EVENT_DATE_PRESETS,
+  GAMO_LIVE_METROS,
+  categoryLabel,
+  hasEventFilters,
+} from '@gamo/domain';
+import type { EventSearch } from '@gamo/domain';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+
+interface Props {
+  search: EventSearch;
+}
+const { search } = Astro.props;
+---
+
+<form
+  method="get"
+  action="/events"
+  role="search"
+  aria-label="Find events"
+  class="grid gap-4 rounded-2xl border border-sand bg-white p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto] lg:items-end"
+>
+  <SplitField
+    id="search"
+    name="q"
+    label="Search"
+    value={search.q}
+    placeholder="Event, venue, artist or city"
+    autocomplete="off"
+    maxlength={100}
+    class="sm:col-span-2 lg:col-span-1"
+  />
+  <SplitField id="metro" name="metro" label="City" as="select">
+    <option value="" selected={!search.metro}>
+      All U.S. cities
+    </option>
+    {GAMO_LIVE_METROS.map((m) => (
+      <option value={m.slug} selected={search.metro === m.slug}>
+        {m.displayLabel}
+      </option>
+    ))}
+  </SplitField>
+  <SplitField id="category" name="category" label="Type" as="select">
+    <option value="" selected={!search.category}>
+      All types
+    </option>
+    {EVENT_CATEGORIES.map((c) => (
+      <option value={c.value} selected={search.category === c.value}>
+        {categoryLabel(c.value)}
+      </option>
+    ))}
+  </SplitField>
+  <SplitField id="date" name="date" label="When" as="select">
+    {EVENT_DATE_PRESETS.map((p) => (
+      <option value={p.value} selected={search.when === p.value}>
+        {p.label}
+      </option>
+    ))}
+  </SplitField>
+  <div class="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-1">
+    <Button type="submit" class="min-h-14 px-7">
+      Search
+    </Button>
+    {hasEventFilters(search) && (
+      <Button href="/events" variant="ghost" class="min-h-14">
+        Clear
+      </Button>
+    )}
+  </div>
+</form>

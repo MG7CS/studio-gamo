@@ -1,0 +1,104 @@
+---
+/**
+ * Enter the emailed 6-digit code. Five wrong tries lock the code; "Send a new code" is limited to 3 per hour.
+ * Success confirms the registration, emails the manage link and opens the registration page. The address
+ * carries the registration id, so the page asks for a restrictive Referrer-Policy below.
+ */
+import Layout from '../../../../layouts/Layout.astro';
+import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
+import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import CodeForm from '../../../../components/register/CodeForm.astro';
+import { requireSameOrigin } from '@gamo/auth';
+import { requestSecurityHeaders } from '@gamo/domain';
+import { openLive } from '../../../../lib/registration';
+import { runConfirmStep, type ConfirmView } from '../../../../lib/guest-registration';
+
+export const prerender = false;
+
+// The URL carries a secret: never leak it in a Referer header (the middleware also sends Cache-Control: no-store).
+requestSecurityHeaders(Astro.locals, { noReferrer: true });
+
+const slug = Astro.params.slug ?? '';
+const registrationId = Astro.url.searchParams.get('r') ?? '';
+let view: ConfirmView = { phase: 'code', masked: '', notice: null, unavailable: false };
+
+try {
+  const live = await openLive(Astro);
+  let form: FormData | null = null;
+  if (Astro.request.method === 'POST') {
+    try {
+      requireSameOrigin(Astro.request);
+    } catch {
+      return new Response('Forbidden', { status: 403 });
+    }
+    form = await Astro.request.formData();
+  }
+  const outcome = await runConfirmStep(live, {
+    slug,
+    registrationId,
+    form,
+    request: Astro.request,
+    now: Math.floor(Date.now() / 1000),
+  });
+  if (outcome.kind === 'not_found') {
+    Astro.response.status = 404;
+    return Astro.rewrite('/404');
+  }
+  if (outcome.kind === 'redirect') return Astro.redirect(outcome.location, 303);
+  view = outcome.view;
+} catch (error) {
+  if (error instanceof Response) throw error;
+  console.error('[live:confirm] failed', (error as Error)?.name);
+  view = { ...view, unavailable: true };
+}
+if (view.unavailable) Astro.response.status = 503;
+
+const title = {
+  code: 'Check your email',
+  confirmed: 'Already confirmed',
+  expired: 'Registration expired',
+}[view.phase];
+---
+
+<Layout title="Confirm your registration" chrome={false} noindex>
+  <SplitScreenLayout photo="gospelVocalists" program="Gamo Live" brandHref="/">
+    <SplitHeading
+      title={title}
+      subtext={view.phase === 'code' && view.masked ? `We sent a 6-digit code to ${view.masked}.` : undefined}
+    />
+    {view.unavailable && (
+      <Notice tone="danger" class="mb-5">
+        Confirmation is temporarily unavailable. Please try again later.
+      </Notice>
+    )}
+    {view.notice && (
+      <Notice tone={view.notice.tone} class="mb-5">
+        {view.notice.text}
+      </Notice>
+    )}
+    {view.phase === 'code' && !view.unavailable && <CodeForm error={view.codeError} />}
+    {view.phase === 'confirmed' && (
+      <>
+        <Notice tone="info" class="mb-5">
+          This registration is already confirmed. Open the link in your confirmation email to see your
+          registration or make changes.
+        </Notice>
+        <Button variant="secondary" size="lg" block href={`/events/${slug}`}>
+          Back to the event
+        </Button>
+      </>
+    )}
+    {view.phase === 'expired' && (
+      <>
+        <Notice tone="warning" class="mb-5">
+          The hold on your seats ended, so nothing was reserved. You can start again.
+        </Notice>
+        <Button size="lg" block href={`/events/${slug}/register`}>
+          Start again
+        </Button>
+      </>
+    )}
+  </SplitScreenLayout>
+</Layout>

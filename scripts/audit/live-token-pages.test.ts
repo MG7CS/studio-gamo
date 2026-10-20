@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 // response must send `Referrer-Policy: same-origin` (the page middleware turns the request into the header).
 const PAGES = [
   'apps/live/src/pages/registrations/[token].astro',
-  'apps/live/src/pages/events/[id]/register/confirm.astro',
+  'apps/live/src/pages/events/[slug]/register/confirm.astro',
   'apps/live/src/pages/organizer/invite/[token].astro',
 ];
 

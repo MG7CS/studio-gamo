@@ -1,0 +1,36 @@
+---
+/** What a guest can do with their registration: add it to a calendar, find the place, cancel. Each only when it applies. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+
+interface Props {
+  calendarHref?: string;
+  mapsHref?: string | null;
+  canCancel: boolean;
+}
+const { calendarHref, mapsHref, canCancel } = Astro.props;
+---
+
+{(calendarHref || mapsHref) && (
+  <div class="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
+    {calendarHref && (
+      <Button variant="secondary" size="lg" block href={calendarHref} download="gamo-live-event.ics">
+        Add to calendar
+      </Button>
+    )}
+    {mapsHref && (
+      <Button variant="secondary" size="lg" block href={mapsHref} target="_blank">
+        Open in Maps<span class="sr-only"> (opens in a new tab)</span>
+      </Button>
+    )}
+  </div>
+)}
+{canCancel && (
+  <ConfirmAction
+    summaryLabel="Cancel registration"
+    confirmLabel="Yes, cancel my registration"
+    actionValue="cancel"
+  >
+    Your seats are released. This cannot be undone.
+  </ConfirmAction>
+)}

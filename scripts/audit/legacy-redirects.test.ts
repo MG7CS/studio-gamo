@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
+import { GAMO_LIVE_METROS } from '../../packages/domain/src/services/live-external-discovery';
 import { matchLegacyRedirect, type LegacyRedirect } from '../../packages/domain/src/api/page-middleware';
 import { legacyRedirects as web } from '../../apps/web/src/lib/legacy-redirects';
 import { legacyRedirects as worship } from '../../apps/worship/src/lib/legacy-redirects';
@@ -37,6 +38,15 @@ test('Gamo Live legacy routes keep working and never shadow real routes', () => 
   assert.equal(redirect(live, '/events/abc-123/register'), null, 'the registration page is real');
   assert.equal(redirect(live, '/events/abc-123'), null);
   assert.equal(redirect(live, '/events'), null);
+  // The nine metro pages moved to /events/city/<slug>; an event slug is never touched.
+  assert.deepEqual(redirect(live, '/events/phoenix-az'), {
+    status: 301,
+    location: '/events/city/phoenix-az',
+  });
+  assert.equal(redirect(live, '/events/city/phoenix-az'), null);
+  assert.equal(redirect(live, '/events/phoenix-az-gospel-night'), null);
+  for (const metro of GAMO_LIVE_METROS)
+    assert.equal(redirect(live, `/events/${metro.slug}`)?.location, `/events/city/${metro.slug}`);
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
   assert.equal(redirect(live, '/my-tickets')?.status, 301);
   assert.equal(redirect(live, '/workspaces')?.location, '/organizer');

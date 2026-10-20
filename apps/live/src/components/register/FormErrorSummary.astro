@@ -1,0 +1,33 @@
+---
+/**
+ * Every problem with a submitted form at once, at the top of the page and focusable, each one a link to its
+ * field. The same messages also appear next to the fields. Renders nothing when there are no errors.
+ */
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+
+interface Props {
+  errors: { field: string; message: string }[];
+}
+const { errors } = Astro.props;
+---
+
+{errors.length > 0 && (
+  <Notice
+    tone="danger"
+    id="form-errors"
+    focusable
+    title={errors.length === 1 ? 'Fix this to continue' : `Fix these ${errors.length} things to continue`}
+    class="mb-5"
+  >
+    <ul class="mt-1 list-disc space-y-1 pl-5">
+      {errors.map((e) => (
+        <li>
+          <a href={`#${e.field}`}>{e.message}</a>
+        </li>
+      ))}
+    </ul>
+  </Notice>
+)}
+<script>
+  import '../../scripts/focus-on-load';
+</script>

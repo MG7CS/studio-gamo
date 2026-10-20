@@ -5,7 +5,9 @@ import {
   asSqlDatabase,
   formatLocalEventSchedule,
   getRuntimeEnv,
+  waitPhrase,
   type LiveEventDetail,
+  type RegisterDateOption,
   type RegistrationErrorCode,
   type SqlDatabase,
 } from '@gamo/domain';
@@ -35,7 +37,7 @@ export function whenWhere(event: LiveEventDetail, startsAt: Date = event.startsA
 
 /** What a person sees for each registration problem. Never reveals who else registered. */
 export const REGISTRATION_ERRORS: Record<RegistrationErrorCode, string> = {
-  invalid: 'Please check your name, email and the number of people.',
+  invalid: 'Please check your name, email address and the number of people.',
   not_found: 'This event is not open for registration.',
   not_open: 'This event does not take registrations here.',
   closed_past: 'This event has already taken place. Registration is closed.',
@@ -44,7 +46,7 @@ export const REGISTRATION_ERRORS: Record<RegistrationErrorCode, string> = {
   rate_limited: 'Too many tries. Please wait a little while and try again.',
   wrong_code: 'That code is not right.',
   expired: 'This registration expired. Please start again.',
-  locked: 'Too many wrong codes. Please start again to get a new one.',
+  locked: 'That code has expired or was tried too many times. Send a new code to continue.',
   already_canceled: 'This registration is already canceled.',
 };
 
@@ -55,10 +57,29 @@ export function registrationMessage(error: unknown): { code: RegistrationErrorCo
     error.code === 'wrong_code' && typeof error.attemptsLeft === 'number'
       ? ` ${error.attemptsLeft} ${error.attemptsLeft === 1 ? 'try' : 'tries'} left.`
       : '';
+  if (error.code === 'rate_limited' && error.retryAfterSeconds)
+    return {
+      code: error.code,
+      text: `Too many tries. Please wait ${waitPhrase(error.retryAfterSeconds)} and try again.`,
+    };
   return { code: error.code, text: base + extra };
 }
 
 /** Remaining seats for the occurrence (null = unlimited). */
 export function seatsLeft(capacity: number | null, seatsTaken: number): number | null {
   return capacity == null ? null : Math.max(0, capacity - seatsTaken);
+}
+
+/** The dates a person can still register for: not canceled and not yet started (the server applies the same rule). */
+export function upcomingDates(event: LiveEventDetail, nowMs: number = Date.now()) {
+  return event.occurrences.filter((o) => !o.canceled && o.startsAt.getTime() > nowMs);
+}
+
+/** Those dates as options for the form's date select. */
+export function dateOptions(event: LiveEventDetail, nowMs: number = Date.now()): RegisterDateOption[] {
+  return upcomingDates(event, nowMs).map((o) => ({
+    id: o.id,
+    label: formatLocalEventSchedule(null, null, event.timezone, o.startsAt).fullLabel,
+    seatsLeft: seatsLeft(event.capacity, o.seatsTaken),
+  }));
 }
