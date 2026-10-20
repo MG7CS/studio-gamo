@@ -225,3 +225,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 
 - **Decision** (owner approved the plan; open questions answered by default): Settings holds only what is real today. Account deletion is by email for now (a person checks what the account owns first); there is no notifications section until a real notification exists; organization extras (phone, mailing address, social links, denomination, shown/private flags) wait for the public organization page that would show them; photo and logo upload stay deferred.
 
+
+## 2026-10-19 — Organize dashboards by task, with areas and tabs
+
+- **Decision** (owner): not every screen belongs in the sidebar. Group related functionality as tabs inside an area and plan the flow of each main task; organization decides whether an app is smooth or annoying. Admin: Overview, Community, Gamo Live, Legal. Organizer: Overview, Events, Organization, Settings.

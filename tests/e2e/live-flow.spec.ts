@@ -446,7 +446,11 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     ).request.get(page.url().replace(/\/registrations.*$/, '/registrations.csv'), { maxRedirects: 0 });
     expect(anonymous.status(), 'the list is private').toBe(303);
 
-    await page.goBack();
+    // The breadcrumb is the way back to the event.
+    await page
+      .getByRole('navigation', { name: 'Breadcrumb' })
+      .getByRole('link', { name: new RegExp(TITLE.replace(/[()]/g, '\\$&')) })
+      .click();
     await page.getByRole('link', { name: 'Check in' }).first().click();
     await expectAccessible(page, '/organizer/check-in');
     // The date is weeks away, so check-in is closed until the organizer opens it.

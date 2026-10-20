@@ -102,10 +102,7 @@ const schedule = organizationScheduleView({
     <div class="space-y-3">
       <ScheduleDay view={schedule} />
       <OrganizationSummaryCard name={active.name} role={active.role} verified={active.verified} />
-      <EventsShortcutCard
-        hasEvents={(counts.eventsByStatus.published ?? 0) + waiting > 0}
-        canCreate={active.status === 'active'}
-      />
+      <EventsShortcutCard hasEvents={(counts.eventsByStatus.published ?? 0) + waiting > 0} />
     </div>
   </div>
 </OrganizerLayout>
