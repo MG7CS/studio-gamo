@@ -1,0 +1,198 @@
+---
+/**
+ * The profile, as a read view with a rows-of-facts layout; owners press "Edit profile" to open the form in place
+ * (`?edit=1`, a plain link, so Save and Cancel are ordinary page loads). Members only ever see the read view.
+ */
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { ORGANIZATION_KINDS, ORGANIZATION_KIND_LABELS, orderedSetupErrors } from '@gamo/domain';
+import type { OrganizationKind, OrganizationProfile, SetupErrors } from '@gamo/domain';
+import Panel from './Panel.astro';
+
+interface Props {
+  organization: OrganizationProfile;
+  isOwner: boolean;
+  editing: boolean;
+  values: Record<string, string>;
+  errors: SetupErrors;
+}
+const { organization: o, isOwner, editing, values, errors } = Astro.props;
+const canEdit = isOwner && o.status === 'active';
+const problems = orderedSetupErrors(errors);
+const rows: Array<[string, string | null, 'link' | 'mail' | 'text']> = [
+  ['Name', o.name, 'text'],
+  ['Kind', ORGANIZATION_KIND_LABELS[o.kind as OrganizationKind] ?? o.kind, 'text'],
+  ['Based in', [o.city, o.state].filter(Boolean).join(', ') || null, 'text'],
+  ['Website', o.website, 'link'],
+  ['Contact email', o.contactEmail, 'mail'],
+  ['About', o.description, 'text'],
+];
+---
+
+<Panel
+  id="profile"
+  title="Profile"
+  description={
+    editing
+      ? 'Everything here is shown on your events so people can check who you are.'
+      : 'How your organization appears on its events.'
+  }
+>
+  {!editing && (
+    <>
+      <dl class="divide-y divide-sand text-[14px]">
+        {rows.map(([term, value, kind]) => (
+          <div class="grid gap-1 py-2.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt class="text-muted">{term}</dt>
+            <dd class="min-w-0 break-words font-medium text-ink">
+              {!value ? (
+                <span class="font-normal text-muted">Not added</span>
+              ) : kind === 'link' ? (
+                <a
+                  class="underline underline-offset-4"
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {value.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  <span class="sr-only"> (opens in a new tab)</span>
+                </a>
+              ) : kind === 'mail' ? (
+                <a class="underline underline-offset-4" href={`mailto:${value}`}>
+                  {value}
+                </a>
+              ) : term === 'About' ? (
+                <span class="whitespace-pre-line font-normal">{value}</span>
+              ) : (
+                value
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div class="mt-4">
+        {canEdit ? (
+          <Button variant="secondary" href="?edit=1#profile">
+            Edit profile
+          </Button>
+        ) : (
+          <p class="text-[13px] text-muted">
+            {isOwner ? 'A suspended organization cannot be edited.' : 'Only owners can edit the profile.'}
+          </p>
+        )}
+      </div>
+    </>
+  )}
+  {editing && canEdit && (
+    <form method="post" class="space-y-4" novalidate>
+      <input type="hidden" name="action" value="save" />
+      {problems.length > 0 && (
+        <Notice
+          tone="danger"
+          title={problems.length === 1 ? 'Fix this to save' : `Fix these ${problems.length} things to save`}
+        >
+          <ul class="mt-1 list-disc space-y-0.5 pl-5">
+            {problems.map((p) => (
+              <li>
+                <a class="underline" href={`#${p.field}`}>
+                  {p.message}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Notice>
+      )}
+      <div class="grid gap-4 sm:grid-cols-2">
+        <SplitField
+          id="name"
+          name="name"
+          label="Organization name"
+          size="sm"
+          required
+          value={values.name}
+          error={errors.name}
+          autocomplete="organization"
+        />
+        <SplitField
+          id="kind"
+          name="kind"
+          label="Kind of organization"
+          size="sm"
+          as="select"
+          required
+          error={errors.kind}
+        >
+          {ORGANIZATION_KINDS.map((k) => (
+            <option value={k} selected={values.kind === k}>
+              {ORGANIZATION_KIND_LABELS[k]}
+            </option>
+          ))}
+        </SplitField>
+        <div class="grid grid-cols-[1fr_5.5rem] gap-3">
+          <SplitField
+            id="city"
+            name="city"
+            label="City"
+            size="sm"
+            required
+            value={values.city}
+            error={errors.city}
+            autocomplete="address-level2"
+          />
+          <SplitField
+            id="state"
+            name="state"
+            label="State"
+            size="sm"
+            required
+            value={values.state}
+            error={errors.state}
+            maxlength={2}
+            placeholder="AZ"
+            autocomplete="address-level1"
+          />
+        </div>
+        <SplitField
+          id="website"
+          name="website"
+          label="Website"
+          size="sm"
+          value={values.website}
+          error={errors.website}
+          placeholder="https://example.org"
+          inputmode="url"
+        />
+        <SplitField
+          id="contactEmail"
+          name="contactEmail"
+          type="email"
+          label="Public contact email"
+          size="sm"
+          value={values.contactEmail}
+          error={errors.contactEmail}
+          class="sm:col-span-2"
+          hint="Add a website, a contact email, or both."
+        />
+      </div>
+      <SplitField
+        id="description"
+        name="description"
+        label="What does your organization do?"
+        size="sm"
+        as="textarea"
+        rows={4}
+        maxlength={1000}
+        required
+        value={values.description}
+        error={errors.description}
+      />
+      <div class="flex flex-wrap items-center gap-3">
+        <Button type="submit">Save changes</Button>
+        <Button variant="ghost" href="?#profile">
+          Cancel
+        </Button>
+      </div>
+    </form>
+  )}
+</Panel>

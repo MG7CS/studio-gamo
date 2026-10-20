@@ -1,0 +1,51 @@
+---
+/** Who this organization is at a glance: the initial in a circle, the name, kind and place, and its standing with Gamo. */
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { ORGANIZATION_KIND_LABELS } from '@gamo/domain';
+import type { OrganizationProfile } from '@gamo/domain';
+import Panel from './Panel.astro';
+
+interface Props {
+  organization: OrganizationProfile;
+  role: 'owner' | 'member';
+}
+const { organization: o, role } = Astro.props;
+const place = [o.city, o.state].filter(Boolean).join(', ');
+---
+
+<Panel>
+  <div class="flex flex-wrap items-center gap-4">
+    <span
+      class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-terracotta-deep text-[22px] font-extrabold text-white"
+      aria-hidden="true"
+    >
+      {o.name.trim().charAt(0).toUpperCase()}
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-[18px] font-extrabold leading-tight text-ink">{o.name}</p>
+      <p class="mt-0.5 text-[13px] text-muted">
+        {ORGANIZATION_KIND_LABELS[o.kind] ?? o.kind}
+        {place ? ` · ${place}` : ''}
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <Pill tone={o.verified ? 'success' : 'neutral'} dot>
+        {o.verified ? 'Verified by Gamo' : 'Not yet verified'}
+      </Pill>
+      {o.status === 'suspended' && <Pill tone="danger">Suspended</Pill>}
+      <Pill tone="info">{role === 'owner' ? 'You are an owner' : 'You are a member'}</Pill>
+    </div>
+  </div>
+  {!o.verified && o.status === 'active' && (
+    <p class="mt-3 border-t border-sand pt-3 text-[13px] leading-relaxed text-muted">
+      Events show “Not yet verified” until Gamo verifies the organization, after reviewing your first event.
+      Editing the profile never changes verification.
+    </p>
+  )}
+  {o.status === 'suspended' && (
+    <p class="mt-3 border-t border-sand pt-3 text-[13px] leading-relaxed text-status-danger">
+      This organization is suspended, so its events are hidden and nothing can be changed. Write to
+      hello@gamostudio.org to ask about it.
+    </p>
+  )}
+</Panel>

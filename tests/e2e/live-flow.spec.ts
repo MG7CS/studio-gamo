@@ -161,6 +161,30 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await expectAccessible(page, '/organizer');
   });
 
+  await test.step('the organization page: a read view, in-place editing with required fields, members and invitations', async () => {
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/organization`);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Organization');
+    await expect(page.getByText('Not yet verified').first()).toBeVisible();
+    await expect(
+      page.getByText('You can invite teammates once Gamo has approved your first event.'),
+    ).toBeVisible();
+    await expectAccessible(page, '/organizer/organization');
+    await shot(page, 'organization');
+    await page.getByRole('link', { name: 'Edit profile' }).click();
+    await shot(page, 'organization-edit');
+    await page.getByLabel('What does your organization do?').fill('Too short');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Fix this to save')).toBeVisible();
+    await expect(page.getByRole('link', { name: /at least 20 characters/ })).toBeVisible();
+    await expectAccessible(page, '/organizer/organization (editing, with an error)');
+    await page
+      .getByLabel('What does your organization do?')
+      .fill('A sample organization that hosts worship nights and youth concerts.');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await expect(page.getByText('Profile saved.')).toBeVisible();
+    await expect(page.getByText('youth concerts')).toBeVisible();
+  });
+
   await test.step('create an event; a field error shows next to the field, then submit for review', async () => {
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/events/new`);
     await page.getByLabel('Event title').fill('x');

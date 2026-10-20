@@ -18,6 +18,7 @@ export * from './live/seo.ts';
 export * from './live/cleanup.ts';
 export * from './live/organization-setup.ts';
 export * from './live/calendar.ts';
+export * from './live/organization-page.ts';
 export * from './live/register-form.ts';
 export * from './live/ticket.ts';
 export * from './live/visibility-mail.ts';

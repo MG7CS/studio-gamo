@@ -200,6 +200,9 @@ export interface OrganizationProfile {
   status: 'active' | 'suspended';
   verified: boolean;
   reviewEveryEvent: boolean;
+  /** Gamo has approved this organization's first event (invitations open after that). */
+  firstEventApproved: boolean;
+  createdAt: number;
 }
 
 export interface OrganizationInput {
@@ -357,6 +360,8 @@ export async function getOrganization(
     status: r.status as 'active' | 'suspended',
     verified: r.verified_at != null,
     reviewEveryEvent: Number(r.review_every_event) === 1,
+    firstEventApproved: r.first_event_approved_at != null,
+    createdAt: Number(r.created_at ?? 0),
   };
 }
 
@@ -395,11 +400,12 @@ export interface MemberView {
   email: string;
   displayName: string | null;
   role: 'owner' | 'member';
+  joinedAt: number;
 }
 
 export async function listMembers(db: SqlDatabase, organizationId: string): Promise<MemberView[]> {
   const rows = await allRows<Record<string, unknown>>(db, {
-    sql: `SELECT o.id, o.email, o.display_name, m.role FROM memberships m JOIN organizers o ON o.id = m.organizer_id
+    sql: `SELECT o.id, o.email, o.display_name, m.role, m.created_at FROM memberships m JOIN organizers o ON o.id = m.organizer_id
            WHERE m.organization_id = ?1 ORDER BY (m.role = 'owner') DESC, m.created_at`,
     params: [organizationId],
   });
@@ -408,6 +414,7 @@ export async function listMembers(db: SqlDatabase, organizationId: string): Prom
     email: String(r.email),
     displayName: r.display_name == null ? null : String(r.display_name),
     role: r.role as 'owner' | 'member',
+    joinedAt: Number(r.created_at ?? 0),
   }));
 }
 
