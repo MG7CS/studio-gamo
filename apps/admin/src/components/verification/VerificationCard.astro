@@ -1,0 +1,164 @@
+---
+/**
+ * The verification step of one Gamo Live organization (docs/LIVE_SCREENS.md C5): where it stands, the meeting when
+ * one is scheduled, and only the actions open now (from `adminVerificationView`). Each action POSTs to the
+ * organization page; the owners are emailed at every step. Verifying needs a held meeting and a note.
+ */
+import Button from '../Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import MeetingForm from '../MeetingForm.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatWhen } from '../../lib/format';
+import { meetingDefaults, type MeetingField } from '../../lib/meeting-form';
+import type { AdminVerificationView } from '@gamo/domain';
+
+interface Props {
+  view: AdminVerificationView;
+  errorField?: MeetingField | null;
+}
+const { view, errorField } = Astro.props;
+const has = (a: AdminVerificationView['actions'][number]) => view.actions.includes(a);
+const tone =
+  view.status === 'verified'
+    ? 'success'
+    : view.status === 'declined'
+      ? 'danger'
+      : view.status === 'none'
+        ? 'neutral'
+        : 'warning';
+const meeting = view.currentMeeting;
+const nextStep: Record<string, string> = {
+  none: 'The organization has not asked for verification. Its owners request it from their Organization page.',
+  requested:
+    'Schedule a meeting (video call or in person). The owners are emailed the time and the link or place.',
+  meeting_scheduled: meeting
+    ? meeting.startsAt > Math.floor(Date.now() / 1000)
+      ? 'Once the meeting has taken place, mark it held. You can reschedule or cancel it until then.'
+      : 'The meeting time has passed. Mark it held, or reschedule it if it did not happen.'
+    : 'Reload the page to see the meeting.',
+  meeting_held: 'Verify or decline, with a note. The owners are emailed the decision.',
+  verified: 'Verified after a meeting. You can remove verification with a note.',
+  declined: 'Declined. The owners can request verification again.',
+};
+---
+
+<Panel id="verification" variant="clay" title="Verification">
+  <div class="flex flex-wrap items-center gap-2">
+    <Pill tone={tone}>{view.statusLabel}</Pill>
+    {view.requestedAt && <span class="text-[13px] text-muted">Requested {formatWhen(view.requestedAt)}</span>}
+    {view.verifiedAt && <span class="text-[13px] text-muted">Verified {formatWhen(view.verifiedAt)}</span>}
+  </div>
+  <p class="mt-2 text-[14px] text-body">{nextStep[view.status]}</p>
+
+  {meeting && (
+    <dl class="mt-4 grid gap-x-8 gap-y-2 rounded-clay-md bg-surface-soft p-4 text-sm shadow-inset sm:grid-cols-2">
+      <div>
+        <dt class="font-semibold text-ink">When</dt>
+        <dd class="text-body">{meeting.whenLabel}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold text-ink">How</dt>
+        <dd class="text-body">{meeting.formatLabel}</dd>
+      </div>
+      <div class="sm:col-span-2">
+        <dt class="font-semibold text-ink">{meeting.format === 'video' ? 'Link' : 'Place'}</dt>
+        <dd class="break-all text-body">{meeting.location}</dd>
+      </div>
+      {meeting.note && (
+        <div class="sm:col-span-2">
+          <dt class="font-semibold text-ink">Note</dt>
+          <dd class="whitespace-pre-wrap text-body">{meeting.note}</dd>
+        </div>
+      )}
+    </dl>
+  )}
+
+  <div class="mt-5 space-y-4">
+    {has('schedule') && (
+      <MeetingForm
+        action="schedule"
+        title="Schedule the meeting"
+        submitLabel="Schedule meeting"
+        description="The owners are emailed the time and the link or place."
+        errorField={errorField}
+      />
+    )}
+    {has('mark_held') && (
+      <form method="post">
+        <input type="hidden" name="action" value="mark_held" />
+        <Button>Mark meeting held</Button>
+      </form>
+    )}
+    {has('verify') && (
+      <form method="post" class="space-y-3 rounded-clay-lg bg-surface p-5 shadow-soft">
+        <h3 class="text-[15px] font-bold">Verify</h3>
+        <input type="hidden" name="action" value="verify" />
+        <NoteField
+          id="verify-notes"
+          label="Note (required)"
+          required
+          rows={3}
+          hint="What you checked in the meeting and with whom. The owners are emailed this note."
+          invalid={errorField === 'note'}
+        />
+        <Button>Verify organization</Button>
+      </form>
+    )}
+    {has('reschedule') && meeting && (
+      <MeetingForm
+        action="reschedule"
+        title="Reschedule the meeting"
+        submitLabel="Move meeting"
+        description="The owners are emailed the new time."
+        defaults={meetingDefaults(meeting)}
+        errorField={errorField}
+        idPrefix="reschedule"
+      />
+    )}
+    <div class="flex flex-wrap items-start gap-3">
+      {has('cancel_meeting') && (
+        <ConfirmAction
+          summaryLabel="Cancel meeting…"
+          confirmLabel="Cancel the meeting"
+          actionValue="cancel_meeting"
+        >
+          The meeting is canceled and the owners are emailed. The organization goes back to “verification
+          requested”, so you can schedule a new meeting.
+          <NoteField slot="fields" id="cancel-notes" label="Note to the owners (optional)" maxlength={500} />
+        </ConfirmAction>
+      )}
+      {has('decline') && (
+        <ConfirmAction summaryLabel="Decline…" confirmLabel="Decline verification" actionValue="decline">
+          The organization stays unverified and cannot sell paid tickets. The owners are emailed your note and
+          can request verification again.
+          <NoteField
+            slot="fields"
+            id="decline-notes"
+            label="Note (required, sent to the owners)"
+            required
+            invalid={errorField === 'note'}
+          />
+        </ConfirmAction>
+      )}
+      {has('remove') && (
+        <ConfirmAction
+          summaryLabel="Remove verification…"
+          confirmLabel="Remove verification"
+          actionValue="unverify"
+        >
+          The organization is no longer verified: it cannot publish new paid events until it is verified
+          again. The owners are emailed your note.
+          <NoteField
+            slot="fields"
+            id="unverify-notes"
+            label="Note (required, kept with the decision)"
+            required
+            invalid={errorField === 'note'}
+          />
+        </ConfirmAction>
+      )}
+    </div>
+  </div>
+</Panel>

@@ -12,13 +12,13 @@ import StartingSoonCard from '../components/StartingSoonCard.astro';
 import StatCard from '../components/StatCard.astro';
 import WaitingList from '../components/WaitingList.astro';
 import { getRuntimeEnv } from '@gamo/domain';
-import { loadInbox } from '../lib/inbox';
+import { loadInbox, waitingTotal } from '../lib/inbox';
 import { loadAdminSchedule } from '../lib/schedule';
 
 const env = await getRuntimeEnv(Astro);
 const inbox = await loadInbox(env);
 const schedule = inbox?.liveAvailable ? await loadAdminSchedule(env, 'all', Astro.url) : null;
-const total = inbox ? Object.values(inbox.counts).reduce((sum, n) => sum + n, 0) : 0;
+const total = inbox ? waitingTotal(inbox.counts) : 0;
 const summary = !inbox
   ? undefined
   : total === 0
@@ -40,7 +40,7 @@ const summary = !inbox
   )}
   {inbox && (
     <div class="space-y-6">
-      <div class="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard
           label="Participation requests"
           value={inbox.counts.participation}
@@ -72,11 +72,18 @@ const summary = !inbox
               href="/events"
             />
             <StatCard
-              label="Organizations to verify"
-              value={inbox.counts.organizations}
-              icon="building"
+              label="Verification meetings to schedule"
+              value={inbox.counts.verifications}
+              icon="calendar"
               tone="terracotta"
-              href="/organizations"
+              href="/organizations?filter=to_schedule"
+            />
+            <StatCard
+              label="Meetings held, to decide"
+              value={inbox.counts.meetingsToDecide}
+              icon="building"
+              tone="tan"
+              href="/organizations?filter=to_decide"
             />
             <StatCard
               label="Catalog to approve"
@@ -84,6 +91,20 @@ const summary = !inbox
               icon="list"
               tone="sand"
               href="/catalog"
+            />
+            <StatCard
+              label="Refund requests (Gamo sold)"
+              value={inbox.counts.refundRequests}
+              icon="wallet"
+              tone="ink"
+              href="/payments?tab=refunds"
+            />
+            <StatCard
+              label="Open disputes"
+              value={inbox.counts.disputes}
+              icon="alert"
+              tone="terracotta"
+              href="/payments?tab=disputes"
             />
           </>
         )}
@@ -97,8 +118,8 @@ const summary = !inbox
         <div class="grid items-start gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
           <ScheduleCalendar
             view={schedule}
-            title="All events and listings"
-            empty="Organizer events and catalog listings appear here once they have dates."
+            title="Events, listings and meetings"
+            empty="Organizer events, catalog listings and verification meetings appear here once they have dates."
           />
           <div class="space-y-3">
             <StartingSoonCard view={schedule} />

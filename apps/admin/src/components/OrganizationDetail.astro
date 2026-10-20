@@ -1,5 +1,8 @@
 ---
-/** One Gamo Live organization: who it is, what it has listed, its decision history, and the admin's actions. */
+/**
+ * One Gamo Live organization: who it is, what it has listed, suspension and the review switch, and its decision
+ * history. Verification has its own card (`verification/VerificationCard.astro`), payments too.
+ */
 import Button from './Button.astro';
 import StatusTag from './StatusTag.astro';
 import { formatWhen } from '../lib/format';
@@ -11,7 +14,12 @@ interface Props {
 }
 const { org } = Astro.props;
 const decisionText: Record<string, string> = {
+  verification_requested: 'Verification requested',
+  meeting_scheduled: 'Meeting scheduled',
+  meeting_held: 'Meeting held',
+  meeting_canceled: 'Meeting canceled',
   verified: 'Verified',
+  declined: 'Verification declined',
   unverified: 'Verification removed',
   suspended: 'Suspended',
   reinstated: 'Reinstated',
@@ -115,24 +123,17 @@ const decisionText: Record<string, string> = {
 
   <section class="rounded-clay-lg bg-surface p-6 shadow-soft" aria-labelledby="actions-title">
     <h2 id="actions-title" class="text-[16px] font-bold">
-      Decide
+      Suspension
     </h2>
     <form method="post" class="mt-4 space-y-3">
       <label class={label} for="notes">
         Note (kept with the decision; required to suspend)
       </label>
       <textarea id="notes" name="notes" rows="2" maxlength="2000" class={field}></textarea>
-      <p class={hint}>Verification and suspension are recorded in the history below.</p>
+      <p class={hint}>
+        Suspending hides the organization’s events everywhere. It is recorded in the history below.
+      </p>
       <div class="flex flex-wrap gap-3">
-        {org.verified ? (
-          <Button variant="secondary" name="action" value="unverify">
-            Remove verification
-          </Button>
-        ) : (
-          <Button name="action" value="verify">
-            Verify organization
-          </Button>
-        )}
         {org.status === 'suspended' ? (
           <Button variant="secondary" name="action" value="reinstate">
             Reinstate

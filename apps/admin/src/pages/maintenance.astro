@@ -22,7 +22,7 @@ const outcome = outcomeFrom(Astro.url);
 <AdminLayout title="Cleanup" current="maintenance">
   <PageHeader
     title="Cleanup"
-    description="Removes what Gamo Live no longer needs. It runs only when you press the button, and it reports what it removed."
+    description="Removes what Gamo Live no longer needs. Paid orders keep their amounts and references; only names and emails go. It runs only when you press the button, and it reports what it removed."
   />
   {outcome && (
     <Notice tone="success" class="mb-5">
@@ -40,13 +40,22 @@ const outcome = outcomeFrom(Astro.url);
         Deletes registrants’ names, emails and check-in codes 90 days after an event’s last date. The totals
         (people registered, people checked in) stay on each date.
       </li>
-      <li>Releases seats held by registrations that were never confirmed.</li>
+      <li>
+        Removes buyers’ and ticket holders’ names and emails from paid orders 90 days after an event’s last
+        date. The orders keep their amounts, references and the ledger, for accounting.
+      </li>
+      <li>
+        Releases seats held by registrations that were never confirmed, and by paid orders whose payment
+        expired.
+      </li>
+      <li>Removes door staff devices whose sign-in has ended.</li>
       <li>Deletes expired email codes, sign-in sessions and invitations older than 30 days.</li>
       <li>Clears finished rate-limit counters.</li>
     </ul>
     <div class="mt-6">
       <ConfirmAction summaryLabel="Run cleanup…" confirmLabel="Delete old data now" actionValue="cleanup">
-        Registrant data older than 90 days is deleted for good. The totals stay. It cannot be undone.
+        Registrant data, and buyer and ticket-holder names and emails, older than 90 days are deleted for
+        good. The totals, order amounts and references stay. It cannot be undone.
         <input slot="fields" type="hidden" name="confirm" value="yes" />
       </ConfirmAction>
     </div>

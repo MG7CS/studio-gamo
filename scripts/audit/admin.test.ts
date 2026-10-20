@@ -11,7 +11,7 @@ import { createInMemoryD1, applyMigrations, readMigrations } from '../../package
 import { createSqliteD1 } from '../../packages/db/testing.ts';
 import { checkGate, isLocalRuntime } from '../../apps/admin/src/lib/gate.ts';
 import { SECTIONS, sectionBadge, sectionOf, tabCount } from '../../apps/admin/src/lib/nav.ts';
-import { loadInbox, tallyCounts } from '../../apps/admin/src/lib/inbox.ts';
+import { loadInbox, tallyCounts, waitingTotal } from '../../apps/admin/src/lib/inbox.ts';
 import {
   handleReply,
   inquiryFilterFrom,
@@ -22,6 +22,8 @@ import {
   handleCatalogForm,
   handleEventForm,
   handleOrganizationForm,
+  loadOrganizationList,
+  loadOrganizationPage,
   outcomeFrom,
 } from '../../apps/admin/src/lib/live-admin.ts';
 import {
@@ -468,7 +470,19 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
   const d1 = await migrated();
   const live = await liveMigrated();
   assert.deepEqual(await loadInbox({ DB: d1, LIVE_DB: live }), {
-    counts: { participation: 0, churches: 0, providers: 0, events: 0, organizations: 0, catalog: 0 },
+    counts: {
+      participation: 0,
+      churches: 0,
+      providers: 0,
+      events: 0,
+      organizations: 0,
+      catalog: 0,
+      verifications: 0,
+      meetingsToDecide: 0,
+      disputes: 0,
+      refundRequests: 0,
+      payments: 0,
+    },
     oldest: [],
     liveAvailable: true,
   });
@@ -487,6 +501,10 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
     `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now - 900},${now - 900}), ('g2','Sample Verified Org','sample-verified','church',${now},${now})`,
   );
   live.sqlite.exec(`UPDATE organizations SET verified_at = ${now} WHERE id = 'g2'`);
+  // "Waiting" now means the organization asked for verification (or its meeting was held).
+  live.sqlite.exec(
+    `UPDATE organizations SET verification_status = 'requested', verification_requested_at = ${now - 900} WHERE id = 'g1'`,
+  );
   live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
@@ -510,7 +528,13 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
     events: 1,
     organizations: 1,
     catalog: 1,
+    verifications: 1,
+    meetingsToDecide: 0,
+    disputes: 0,
+    refundRequests: 0,
+    payments: 0,
   });
+  assert.equal(waitingTotal(inbox!.counts), 7, 'each waiting item counted once');
   // Oldest first, only what is waiting, labeled by queue.
   assert.deepEqual(
     inbox?.oldest.map((i) => [i.title, i.kind]),
@@ -537,6 +561,11 @@ test('the Inbox counts and the waiting list come from the databases, and nothing
       events: 0,
       organizations: 0,
       catalog: 0,
+      verifications: 0,
+      meetingsToDecide: 0,
+      disputes: 0,
+      refundRequests: 0,
+      payments: 0,
     });
   } finally {
     console.error = originalError;
@@ -575,6 +604,11 @@ test('the Inbox is null (a visible error, not zeros) when the database cannot be
       events: 0,
       organizations: 0,
       catalog: 0,
+      verifications: 0,
+      meetingsToDecide: 0,
+      disputes: 0,
+      refundRequests: 0,
+      payments: 0,
     },
   );
 });
@@ -648,7 +682,7 @@ test('Gamo Live event review: list, decisions, conflicts, notes, and the first a
   assert.deepEqual(approved, { ok: true, location: '/events?done=approved&first=1&emailed=no' });
   assert.equal(
     outcomeFrom(new URL('http://x/events?done=approved&first=1&emailed=no')),
-    'Event approved and published. This was the organization’s first approved event. The owners could not be emailed; tell them directly if they need to act.',
+    'Event approved and published. This was the organization’s first approved event. The owners were not emailed (email is unavailable right now); tell them directly if they need to act.',
   );
   assert.equal(outcomeFrom(new URL('http://x/events?done=<script>')), null);
   assert.equal(
@@ -690,12 +724,16 @@ test('Gamo Live event review: list, decisions, conflicts, notes, and the first a
   );
 });
 
-test('Gamo Live organizations: verify, suspend (note required), the review switch, and the history', async () => {
+test('Gamo Live organizations: verification by meeting, suspend (note required), the review switch, funds flow and the history', async () => {
   const live = await liveMigrated();
   const now = Math.floor(Date.now() / 1000);
   live.sqlite.exec(
-    `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at) VALUES ('g1','Sample Org','sample-org','church',${now},${now}), ('g2','Another Org','another','ministry',${now},${now})`,
+    `INSERT INTO organizations (id,name,slug,kind,created_at,updated_at,verification_status,verification_requested_at) VALUES ('g1','Sample Org','sample-org','church',${now},${now},'requested',${now}), ('g2','Another Org','another','ministry',${now},${now},'none',NULL)`,
   );
+  live.sqlite.exec(
+    `INSERT INTO organizers (id,clerk_user_id,email,display_name) VALUES ('u1','clerk_u1','owner@example.invalid','Sample Owner')`,
+  );
+  live.sqlite.exec(`INSERT INTO memberships (organization_id,organizer_id,role) VALUES ('g1','u1','owner')`);
   live.sqlite.exec(
     `INSERT INTO venues (id,name,city,state,timezone) VALUES ('v1','Hall','Phoenix','AZ','America/Phoenix')`,
   );
@@ -709,48 +747,155 @@ test('Gamo Live organizations: verify, suspend (note required), the review switc
       headers: { origin },
       body: new URLSearchParams(fields),
     });
-
-  assert.deepEqual(
-    (await listAdminOrganizations(live)).map((o) => o.name),
-    ['Sample Org'],
-    'waiting = has events, not verified',
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Phoenix' }).format(
+    new Date((now + 3 * 86_400) * 1000),
   );
-  assert.equal((await listAdminOrganizations(live, { filter: 'all' })).length, 2);
-  assert.equal(
-    (await handleOrganizationForm(post({ action: 'verify' }, 'https://evil.example'), env, 'g1')).ok,
-    false,
-  );
-  assert.deepEqual(
-    await handleOrganizationForm(post({ action: 'verify', notes: 'Visited in person.' }), env, 'g1'),
-    {
+  const meeting = {
+    meeting_date: day,
+    meeting_time: '10:00',
+    meeting_zone: 'America/Phoenix',
+    meeting_format: 'video',
+    meeting_location: 'https://meet.example.invalid/sample',
+  };
+  const quiet = console.warn;
+  console.warn = () => {};
+  try {
+    assert.deepEqual(
+      (await listAdminOrganizations(live)).map((o) => o.name),
+      ['Sample Org'],
+      'waiting = asked for verification (or meeting held)',
+    );
+    assert.equal((await listAdminOrganizations(live, { filter: 'all' })).length, 2);
+    const toSchedule = await loadOrganizationList(env, 'to_schedule', '');
+    assert.equal(toSchedule?.kind === 'queue' && toSchedule.rows.length, 1);
+    assert.equal(
+      (
+        await handleOrganizationForm(
+          post({ action: 'schedule', ...meeting }, 'https://evil.example'),
+          env,
+          'g1',
+        )
+      ).ok,
+      false,
+    );
+    // The one-button verify is gone: verifying needs a held meeting.
+    const early = await handleOrganizationForm(post({ action: 'verify', notes: 'Met them.' }), env, 'g1');
+    assert.equal(!early.ok && early.status, 400);
+    assert.match(!early.ok ? early.message : '', /held meeting/);
+    const noPlace = await handleOrganizationForm(
+      post({ action: 'schedule', ...meeting, meeting_location: '' }),
+      env,
+      'g1',
+    );
+    assert.equal(!noPlace.ok && noPlace.field, 'location');
+    assert.deepEqual(await handleOrganizationForm(post({ action: 'schedule', ...meeting }), env, 'g1'), {
       ok: true,
-      location: '/organizations/g1?done=verified',
-    },
-  );
-  assert.deepEqual(
-    (await listAdminOrganizations(live)).map((o) => o.name),
-    [],
-  );
-  const noNote = await handleOrganizationForm(post({ action: 'suspend' }), env, 'g1');
-  assert.equal(!noNote.ok && noNote.status, 400);
-  assert.deepEqual(
-    await handleOrganizationForm(post({ action: 'suspend', notes: 'Reported misuse.' }), env, 'g1'),
-    {
+      location: '/organizations/g1?done=meeting_scheduled&emailed=yes',
+    });
+    const notYet = await handleOrganizationForm(post({ action: 'mark_held' }), env, 'g1');
+    assert.match(!notYet.ok ? notYet.message : '', /not started yet/);
+    live.sqlite.exec(`UPDATE verification_meetings SET starts_at = ${now - 60} WHERE subject_id = 'g1'`);
+    assert.deepEqual(await handleOrganizationForm(post({ action: 'mark_held' }), env, 'g1'), {
       ok: true,
-      location: '/organizations/g1?done=suspended',
-    },
-  );
-  assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g1')).ok, true);
-  assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g_nope')).ok, false);
-  assert.equal((await handleOrganizationForm(post({ action: 'dance' }), env, 'g1')).ok, false);
-  const detail = await getAdminOrganization(live, 'g1');
-  assert.equal(detail?.status, 'suspended');
-  assert.equal(detail?.verified, true);
-  assert.equal(detail?.reviewEveryEvent, true);
-  assert.deepEqual(detail?.decisions.map((d) => d.decision).reverse(), ['verified', 'suspended']);
-  await handleOrganizationForm(post({ action: 'reinstate' }), env, 'g1');
-  assert.equal((await getAdminOrganization(live, 'g1'))?.status, 'active');
-  assert.equal(await getAdminOrganization(live, 'g_nope'), null);
+      location: '/organizations/g1?done=meeting_held&emailed=yes',
+    });
+    const toDecide = await loadOrganizationList(env, 'to_decide', '');
+    assert.equal(toDecide?.kind === 'queue' && toDecide.rows.length, 1);
+    const page = await loadOrganizationPage(env, 'g1');
+    assert.deepEqual(page && page !== 'not_found' && page.verification.actions, ['verify', 'decline']);
+    const noNote = await handleOrganizationForm(post({ action: 'verify' }), env, 'g1');
+    assert.equal(!noNote.ok && noNote.field, 'notes');
+    assert.deepEqual(
+      await handleOrganizationForm(post({ action: 'verify', notes: 'Met on a video call.' }), env, 'g1'),
+      { ok: true, location: '/organizations/g1?done=verified&emailed=yes' },
+    );
+    assert.deepEqual(
+      (await listAdminOrganizations(live)).map((o) => o.name),
+      [],
+    );
+    const suspendNoNote = await handleOrganizationForm(post({ action: 'suspend' }), env, 'g1');
+    assert.equal(!suspendNoNote.ok && suspendNoNote.status, 400);
+    assert.deepEqual(
+      await handleOrganizationForm(post({ action: 'suspend', notes: 'Reported misuse.' }), env, 'g1'),
+      { ok: true, location: '/organizations/g1?done=suspended' },
+    );
+    assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g1')).ok, true);
+    assert.equal((await handleOrganizationForm(post({ action: 'review_on' }), env, 'g_nope')).ok, false);
+    assert.equal((await handleOrganizationForm(post({ action: 'dance' }), env, 'g1')).ok, false);
+    assert.equal((await handleOrganizationForm(post({ action: 'toString' }), env, 'g1')).ok, false);
+    // Funds flow: a reason is required; an unchanged value says so.
+    const noReason = await handleOrganizationForm(
+      post({ action: 'funds_flow', funds_flow: 'gamo_collects' }),
+      env,
+      'g1',
+    );
+    assert.equal(!noReason.ok && noReason.field, 'reason');
+    assert.deepEqual(
+      await handleOrganizationForm(
+        post({ action: 'funds_flow', funds_flow: 'gamo_collects', reason: 'Small church, Gamo collects.' }),
+        env,
+        'g1',
+      ),
+      { ok: true, location: '/organizations/g1?done=funds_flow#payments' },
+    );
+    assert.deepEqual(
+      await handleOrganizationForm(
+        post({ action: 'funds_flow', funds_flow: 'gamo_collects', reason: 'Again.' }),
+        env,
+        'g1',
+      ),
+      { ok: true, location: '/organizations/g1?done=funds_flow_same#payments' },
+    );
+    const detail = await getAdminOrganization(live, 'g1');
+    assert.equal(detail?.status, 'suspended');
+    assert.equal(detail?.verified, true);
+    assert.equal(detail?.reviewEveryEvent, true);
+    assert.deepEqual(detail?.decisions.map((d) => d.decision).reverse(), [
+      'meeting_scheduled',
+      'meeting_held',
+      'verified',
+      'suspended',
+    ]);
+    await handleOrganizationForm(post({ action: 'reinstate' }), env, 'g1');
+    assert.equal((await getAdminOrganization(live, 'g1'))?.status, 'active');
+    assert.equal(await getAdminOrganization(live, 'g_nope'), null);
+    assert.equal(await loadOrganizationPage(env, 'g_nope'), 'not_found');
+    // Removing verification sends no email (the admin tells the owners in their own words).
+    assert.deepEqual(
+      await handleOrganizationForm(post({ action: 'unverify', notes: 'Asked to stop.' }), env, 'g1'),
+      { ok: true, location: '/organizations/g1?done=unverified&emailed=none' },
+    );
+    assert.match(
+      outcomeFrom(new URL('http://x/organizations/g1?done=unverified&emailed=none')) ?? '',
+      /No email was sent/,
+    );
+    // Email unavailable (not local, no key): the step is saved and the page says the owners were not emailed.
+    live.sqlite.exec(
+      `UPDATE organizations SET verification_status = 'requested', verification_requested_at = ${now} WHERE id = 'g2'`,
+    );
+    live.sqlite.exec(
+      `INSERT INTO memberships (organization_id,organizer_id,role) VALUES ('g2','u1','owner')`,
+    );
+    const prodEnv = { LIVE_DB: live, ENVIRONMENT: 'production' } as never;
+    const quietError = console.error;
+    console.error = () => {};
+    try {
+      const scheduled = await handleOrganizationForm(post({ action: 'schedule', ...meeting }), prodEnv, 'g2');
+      assert.deepEqual(scheduled, {
+        ok: true,
+        location: '/organizations/g2?done=meeting_scheduled&emailed=no',
+      });
+    } finally {
+      console.error = quietError;
+    }
+    assert.match(
+      outcomeFrom(new URL('http://x/organizations/g2?done=meeting_scheduled&emailed=no')) ?? '',
+      /owners were not emailed/,
+    );
+    assert.equal((await getAdminOrganization(live, 'g1'))?.verified, false);
+  } finally {
+    console.warn = quiet;
+  }
 });
 
 test('Gamo Live catalog: approve, hide and feature; listings that failed the editorial rules stay out', async () => {
@@ -991,12 +1136,48 @@ test('areas and tabs: each screen belongs to its area; badges and tab counts are
   assert.equal(sectionOf(null), null);
   const community = SECTIONS.find((s) => s.key === 'community')!;
   const live = SECTIONS.find((s) => s.key === 'live')!;
-  const counts = { participation: 2, churches: 1, providers: 2, events: 3, organizations: 0, catalog: 1 };
+  const counts = {
+    participation: 2,
+    churches: 1,
+    providers: 2,
+    events: 3,
+    organizations: 0,
+    catalog: 1,
+    verifications: 0,
+    meetingsToDecide: 0,
+    disputes: 1,
+    refundRequests: 1,
+    payments: 2,
+  };
   assert.equal(sectionBadge(community, counts), 5);
-  assert.equal(sectionBadge(live, counts), 4);
+  assert.equal(sectionBadge(live, counts), 4, 'events and catalog');
+  assert.equal(
+    tabCount(
+      live.tabs.find((t) => t.key === 'payments')!,
+      counts,
+    ),
+    null,
+    'Payments opens on all orders, so a count of waiting items would not equal what it opens',
+  );
+  assert.equal(
+    tabCount(
+      live.tabs.find((t) => t.key === 'live-settings')!,
+      counts,
+    ),
+    null,
+    'settings is no queue',
+  );
+  assert.deepEqual(
+    live.tabs.map((t) => t.key),
+    ['events', 'organizations', 'catalog', 'payments', 'live-settings', 'maintenance'],
+  );
+  assert.equal(sectionOf('payments')?.key, 'live');
   assert.equal(sectionBadge(SECTIONS[0], counts), null, 'Overview has no queue');
   assert.equal(sectionBadge(live, null), null, 'no counts read, no badge');
-  assert.equal(sectionBadge(live, { ...counts, events: Number.NaN, organizations: -1, catalog: 0 }), null);
+  assert.equal(
+    sectionBadge(live, { ...counts, events: Number.NaN, organizations: -1, catalog: 0, payments: 0 }),
+    null,
+  );
   const organizations = live.tabs.find((t) => t.key === 'organizations')!;
   assert.equal(tabCount(organizations, counts), null, 'zero is not drawn');
   assert.equal(

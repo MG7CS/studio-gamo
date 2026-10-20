@@ -1,0 +1,56 @@
+---
+/** The platform-wide door-sales switch (cash, comp and card at the door). A reason is required either way. */
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import Button from '../Button.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  enabled: boolean;
+  reasonInvalid?: boolean;
+}
+const { enabled, reasonInvalid = false } = Astro.props;
+---
+
+<Panel
+  id="door-sales"
+  variant="clay"
+  title="Door sales"
+  description={
+    enabled
+      ? 'On: organizers can sell at the door (cash, comp and card) where their event allows it.'
+      : 'Off: no event can sell at the door. Check-in still works.'
+  }
+>
+  {enabled ? (
+    <ConfirmAction
+      summaryLabel="Turn door sales off…"
+      confirmLabel="Turn door sales off"
+      actionValue="door_off"
+    >
+      Every door screen stops selling at once, on every event. Tickets already sold still check in.
+      <NoteField
+        slot="fields"
+        id="door-off-reason"
+        name="reason"
+        label="Reason (required)"
+        required
+        maxlength={500}
+        invalid={reasonInvalid}
+      />
+    </ConfirmAction>
+  ) : (
+    <form method="post" class="space-y-3">
+      <input type="hidden" name="action" value="door_on" />
+      <NoteField
+        id="door-on-reason"
+        name="reason"
+        label="Reason (required, kept with the decision)"
+        required
+        maxlength={500}
+        invalid={reasonInvalid}
+      />
+      <Button variant="secondary">Turn door sales on</Button>
+    </form>
+  )}
+</Panel>

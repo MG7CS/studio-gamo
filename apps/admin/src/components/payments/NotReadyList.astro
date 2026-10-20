@@ -1,0 +1,41 @@
+---
+/** Active organizations with paid events (or a payments record) that cannot take card payments now, and why. */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { FUNDS_FLOW_LABELS, NOT_READY_TEXT } from '../../lib/live-settings';
+import type { PaymentsNotReadyRow } from '@gamo/domain';
+
+interface Props {
+  rows: PaymentsNotReadyRow[];
+}
+const { rows } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyState
+    title="Every organization with paid events can take payments."
+    text="An organization appears here when it has a paid event but cannot take card payments yet."
+  />
+) : (
+  <ul class="space-y-3">
+    {rows.map((r) => (
+      <li>
+        <a
+          href={`/organizations/${encodeURIComponent(r.organizationId)}#payments`}
+          class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-4 shadow-soft hover:bg-clay-50"
+        >
+          <span class="min-w-0">
+            <span class="block text-[15px] font-bold text-ink">{r.name}</span>
+            <span class="block text-[13px] text-body">{NOT_READY_TEXT[r.reason]}</span>
+            <span class="block text-[13px] text-muted">
+              {r.flow ? FUNDS_FLOW_LABELS[r.flow] : FUNDS_FLOW_LABELS.not_chosen} · {r.paidEvents}{' '}
+              {r.paidEvents === 1 ? 'paid event' : 'paid events'}
+              {r.requirementsDue > 0 ? ` · Stripe still needs ${r.requirementsDue} from the owners` : ''}
+            </span>
+          </span>
+          <Pill tone="warning">Not ready</Pill>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

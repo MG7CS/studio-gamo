@@ -1,0 +1,48 @@
+---
+/** One verification queue (to schedule, scheduled, to decide): one card per organization, each a link to its page. */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { MEETING_FORMAT_LABELS, VERIFICATION_STATUS_LABELS, type VerificationQueueRow } from '@gamo/domain';
+import { timeAgo } from '../../lib/format';
+
+interface Props {
+  rows: VerificationQueueRow[];
+}
+const { rows } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyState
+    title="No organization is in this step."
+    text="Organizations appear here when their owners ask for verification and as their meetings move along."
+  />
+) : (
+  <ul class="space-y-3">
+    {rows.map((o) => (
+      <li>
+        <a
+          href={`/organizations/${encodeURIComponent(o.organizationId)}#verification`}
+          class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-5 shadow-soft hover:bg-clay-50"
+        >
+          <span class="min-w-0">
+            <span class="block truncate text-[15px] font-bold text-ink">{o.name}</span>
+            <span class="block text-[13px] text-muted">
+              {o.kind}
+              {o.city ? ` · ${o.city}${o.state ? `, ${o.state}` : ''}` : ''}
+              {o.requestedAt ? ` · requested ${timeAgo(o.requestedAt)}` : ''}
+            </span>
+            {o.meeting && (
+              <span class="block text-[13px] text-body">
+                Meeting {o.meeting.whenLabel} · {MEETING_FORMAT_LABELS[o.meeting.format]}
+              </span>
+            )}
+          </span>
+          <span class="flex flex-wrap gap-2">
+            <Pill tone="warning">{VERIFICATION_STATUS_LABELS[o.status]}</Pill>
+            {o.suspended && <Pill tone="danger">Suspended</Pill>}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

@@ -1,0 +1,68 @@
+---
+/** Who bought what, from whom, and how: one order's facts. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { sellerText, type PaidOrder } from '@gamo/domain';
+import { formatWhen } from '../../../lib/format';
+import { METHOD_TEXT, ORDER_STATUS_TEXT } from '../../../lib/payments-admin';
+
+interface Props {
+  order: PaidOrder;
+}
+const { order } = Astro.props;
+---
+
+<Panel id="order" variant="clay" title={`Order ${order.reference}`}>
+  <div class="flex flex-wrap gap-2">
+    <Pill tone={order.status === 'paid' ? 'success' : 'neutral'}>
+      {ORDER_STATUS_TEXT[order.status] ?? order.status}
+    </Pill>
+    {order.disputed && <Pill tone="danger">Disputed</Pill>}
+  </div>
+  <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+    <div>
+      <dt class="font-semibold text-ink">Event</dt>
+      <dd class="text-body">
+        {order.eventTitle} · {formatWhen(order.startsAt, order.timezone)}
+      </dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Organization</dt>
+      <dd class="text-body">
+        <a
+          class="underline underline-offset-4"
+          href={`/organizations/${encodeURIComponent(order.organizationId)}`}
+        >
+          {order.organizationName}
+        </a>
+      </dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Seller</dt>
+      <dd class="text-body">
+        {sellerText(order.seller, order.organizationName)}
+        {order.seller === 'gamo' ? ' (Mode B)' : ' (Mode A)'}
+      </dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Paid with</dt>
+      <dd class="text-body">
+        {METHOD_TEXT[order.paymentMethod] ?? order.paymentMethod} ·{' '}
+        {order.channel === 'door' ? 'at the door' : 'online'}
+      </dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Buyer</dt>
+      <dd class="break-all text-body">
+        {[order.buyerName, order.buyerEmail].filter(Boolean).join(' · ') || 'Not given'}
+      </dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Placed</dt>
+      <dd class="text-body">
+        {formatWhen(order.createdAt)}
+        {order.paidAt ? ` · paid ${formatWhen(order.paidAt)}` : ''}
+      </dd>
+    </div>
+  </dl>
+</Panel>

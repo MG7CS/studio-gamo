@@ -1,0 +1,46 @@
+---
+/** Open disputes across organizations, oldest first. Disputes are answered in Stripe; each row opens its order. */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatCents, type AdminDisputeRow } from '@gamo/domain';
+import { timeAgo } from '../../lib/format';
+
+interface Props {
+  rows: AdminDisputeRow[];
+}
+const { rows } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyState
+    title="No open disputes."
+    text="When a buyer disputes a card payment, it appears here until it closes."
+  />
+) : (
+  <ul class="space-y-3">
+    {rows.map((d) => (
+      <li>
+        <a
+          href={`/payments/orders/${encodeURIComponent(d.orderId)}`}
+          class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-4 shadow-soft hover:bg-clay-50"
+        >
+          <span class="min-w-0">
+            <span class="block text-[15px] font-bold text-ink">
+              Order {d.orderReference} · {formatCents(d.amountCents, d.currency)}
+            </span>
+            <span class="block text-[13px] text-muted">
+              {d.eventTitle} · {d.organizationName} · opened {timeAgo(d.createdAt)}
+            </span>
+            <span class="block text-[13px] text-body">
+              {d.reason ? `Reason: ${d.reason.replace(/_/g, ' ')}` : 'No reason given'} ·{' '}
+              {d.seller === 'gamo'
+                ? 'Gamo answers it in Stripe (Mode B)'
+                : 'The organization answers it in Stripe (Mode A)'}
+            </span>
+          </span>
+          <Pill tone="danger">{d.status.replace(/_/g, ' ')}</Pill>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

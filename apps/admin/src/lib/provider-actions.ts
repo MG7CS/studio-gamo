@@ -10,14 +10,13 @@ import {
   DEFAULT_MEETING_TIME_ZONE,
   PROVIDER_REVIEW_ACTIONS,
   ReviewError,
-  isTimeZone,
   latestMeeting,
   notifyProviderOfDecision,
   reviewProviderProfile,
-  zonedLocalToEpochSeconds,
   type ProviderReviewAction,
 } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
+import { MEETING_FIELDS, readChurchMeeting } from './meeting-form';
 
 export type DecisionOutcome =
   { ok: true; location: string } | { ok: false; status: number; message: string; field?: string };
@@ -51,20 +50,18 @@ export async function decideProfile(
   const expectedStatus = text(form, 'expected_status');
   if (!expectedStatus) return bad('The form was incomplete. Reload and try again.');
 
-  const zone = text(form, 'meeting_zone').trim() || DEFAULT_MEETING_TIME_ZONE;
-  if (action === 'schedule_meeting' && !isTimeZone(zone))
-    return bad('Choose a valid time zone.', 'meeting_zone');
-  const meetingAt = text(form, 'meeting_at')
-    ? zonedLocalToEpochSeconds(text(form, 'meeting_at'), zone)
-    : null;
-  if (action === 'schedule_meeting' && text(form, 'meeting_at') && meetingAt === null)
-    return bad('Enter the meeting date and time.', 'meeting_at');
+  // The shared meeting form (date, time, zone, video call or in person, link or place, note).
+  const meetingForm = action === 'schedule_meeting' ? readChurchMeeting(form) : null;
+  if (meetingForm && !meetingForm.ok) return bad(meetingForm.message, MEETING_FIELDS[meetingForm.field]);
+  const scheduled = meetingForm?.ok ? meetingForm : null;
+  const zone = scheduled?.timeZone ?? DEFAULT_MEETING_TIME_ZONE;
+  const meetingAt = scheduled?.meetingAt ?? null;
 
   try {
     const sql = asSqlDatabase(env.DB);
     const now = Math.floor(Date.now() / 1000);
-    const notes = text(form, 'notes') || null;
-    const meetingLocation = text(form, 'meeting_location') || null;
+    const notes = scheduled ? scheduled.notes : text(form, 'notes') || null;
+    const meetingLocation = scheduled?.location ?? null;
     const result = await reviewProviderProfile(sql, {
       profileId,
       action: action as ProviderReviewAction,

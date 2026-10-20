@@ -1,0 +1,64 @@
+---
+/** The order's payments, refunds and transfers, oldest first. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { formatCents, type OrderDetail } from '@gamo/domain';
+import { formatWhen } from '../../../lib/format';
+
+interface Props {
+  detail: OrderDetail;
+}
+const { detail } = Astro.props;
+const currency = detail.order.currency;
+const kindText: Record<string, string> = {
+  checkout_session: 'Online payment',
+  card_present: 'Card at the door',
+  cash: 'Cash',
+  comp: 'Comp',
+};
+const byText: Record<string, string> = {
+  buyer: 'asked by the buyer',
+  organizer: 'by the organization',
+  admin: 'by Gamo',
+  system: 'automatic',
+};
+const empty = detail.payments.length + detail.refunds.length + detail.transfers.length === 0;
+---
+
+<Panel id="history" variant="clay" title="History">
+  {empty ? (
+    <p class="text-sm text-body">Nothing recorded yet.</p>
+  ) : (
+    <ul class="divide-y divide-line/60 text-sm">
+      {detail.payments.map((p) => (
+        <li class="py-2">
+          <span class="font-semibold text-ink">
+            {kindText[p.kind] ?? p.kind} · {formatCents(p.amountCents, currency)}
+          </span>
+          <span class="text-body">
+            {' '}
+            · {p.status} · {formatWhen(p.createdAt)}
+          </span>
+        </li>
+      ))}
+      {detail.refunds.map((r) => (
+        <li class="py-2">
+          <span class="font-semibold text-ink">Refund · {formatCents(r.amountCents, currency)}</span>
+          <span class="text-body">
+            {' '}
+            · {r.status} · {byText[r.requestedBy] ?? r.requestedBy} · {formatWhen(r.createdAt)}
+          </span>
+          {r.reason && <span class="block whitespace-pre-wrap text-muted">Reason: {r.reason}</span>}
+        </li>
+      ))}
+      {detail.transfers.map((t) => (
+        <li class="py-2">
+          <span class="font-semibold text-ink">Ticket transferred</span>
+          <span class="text-body">
+            {' '}
+            · {t.fromName ?? 'Unnamed'} to {t.toName ?? 'unnamed'} · {formatWhen(t.createdAt)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

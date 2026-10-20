@@ -8,7 +8,7 @@ import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import { getRuntimeEnv, listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
-import { handleEventForm, outcomeFrom } from '../lib/live-admin';
+import { handleEventForm, loadPaidReviewDetails, outcomeFrom } from '../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
 let error: string | null = null;
@@ -20,10 +20,12 @@ if (Astro.request.method === 'POST') {
 }
 let events = null as Awaited<ReturnType<typeof listPendingEvents>> | null;
 let published = null as Awaited<ReturnType<typeof listPublishedOrganizerEvents>> | null;
+let paid = new Map() as Awaited<ReturnType<typeof loadPaidReviewDetails>>;
 try {
   const db = asSqlDatabase(env.LIVE_DB);
   events = await listPendingEvents(db);
   published = await listPublishedOrganizerEvents(db);
+  paid = await loadPaidReviewDetails(db, events);
 } catch (e) {
   console.error(`[admin] live events unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
@@ -34,7 +36,7 @@ const view = Astro.url.searchParams.get('view') === 'published' ? 'published' : 
 <AdminLayout title="Event review" current="events">
   <PageHeader
     title="Event review"
-    description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization. Events that send people to another site for tickets are always reviewed."
+    description="Every organization’s first event, and its first paid event, is reviewed before it is published. A paid event is approved only for a verified organization. Later events publish directly unless “review every event” is on for that organization. Events that send people to another site for tickets are always reviewed."
   />
   {outcome && (
     <Notice tone="success" class="mb-5">
@@ -72,7 +74,7 @@ const view = Astro.url.searchParams.get('view') === 'published' ? 'published' : 
         ]}
       />
       {view === 'waiting' ? (
-        <LiveEventReviewList events={events} />
+        <LiveEventReviewList events={events} paid={paid} />
       ) : (
         published && <LivePublishedEventList events={published} />
       )}

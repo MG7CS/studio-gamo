@@ -1,0 +1,99 @@
+---
+/**
+ * Mode B payouts, newest first. A prepared payout is sent only through the confirm step, which says plainly how much
+ * goes to whom and that it runs in Stripe test mode; it can also be canceled with a reason.
+ */
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatCents } from '@gamo/domain';
+import { formatWhen } from '../../lib/format';
+import type { PaymentsConfig } from '../../lib/live-settings';
+import type { PaymentsView } from '../../lib/payments-admin';
+
+interface Props {
+  payouts: PaymentsView['payouts'];
+  config: PaymentsConfig;
+}
+const { payouts, config } = Astro.props;
+const statusText = {
+  prepared: ['Prepared, not sent', 'warning'],
+  approved: ['Approved, sending', 'warning'],
+  sent: ['Sent', 'success'],
+  failed: ['Failed', 'danger'],
+  canceled: ['Canceled', 'neutral'],
+} as const;
+const canSend = config.configured && !config.liveMode;
+---
+
+<Panel
+  id="payouts"
+  variant="clay"
+  title="Payouts"
+  description="Preparing a payout sends nothing. Sending is a separate, confirmed step."
+>
+  {payouts.length === 0 ? (
+    <p class="text-sm text-body">No payouts yet.</p>
+  ) : (
+    <ul class="divide-y divide-line/60">
+      {payouts.map((p) => (
+        <li class="py-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[15px] font-semibold text-ink">
+              {formatCents(p.amountCents)} to {p.organizationName}
+            </span>
+            <Pill tone={statusText[p.status][1]}>{statusText[p.status][0]}</Pill>
+          </div>
+          <p class="text-[13px] text-muted">
+            Prepared {formatWhen(p.preparedAt)}
+            {p.sentAt ? ` · sent ${formatWhen(p.sentAt)}` : ''}
+            {p.stripeTransferId ? ` · Stripe transfer ${p.stripeTransferId}` : ''}
+          </p>
+          {p.note && <p class="text-[13px] text-body">Reason: {p.note}</p>}
+          {(p.status === 'prepared' || p.status === 'approved') && (
+            <div class="mt-3 flex flex-wrap items-start gap-3">
+              {canSend ? (
+                <ConfirmAction
+                  summaryLabel="Send payout…"
+                  confirmLabel="Send payout"
+                  actionValue="send_payout"
+                >
+                  This sends {formatCents(p.amountCents)} to {p.organizationName} in Stripe test mode. It is a
+                  transfer to the organization’s payout account and is recorded in the ledger once Stripe
+                  accepts it.
+                  <input slot="fields" type="hidden" name="payout_id" value={p.id} />
+                  <input slot="fields" type="hidden" name="confirm" value="yes" />
+                </ConfirmAction>
+              ) : (
+                <p class="text-sm text-body">
+                  {config.liveMode
+                    ? 'Payouts run only in Stripe test mode until the owner approves production.'
+                    : 'Payments are not configured here, so this payout cannot be sent.'}
+                </p>
+              )}
+              {p.status === 'prepared' && (
+                <ConfirmAction
+                  summaryLabel="Cancel payout…"
+                  confirmLabel="Cancel payout"
+                  actionValue="cancel_payout"
+                >
+                  The payout is canceled and nothing is sent. The money stays owed to the organization.
+                  <input slot="fields" type="hidden" name="payout_id" value={p.id} />
+                  <NoteField
+                    slot="fields"
+                    id={`cancel-${p.id}`}
+                    name="reason"
+                    label="Reason (required)"
+                    required
+                    maxlength={500}
+                  />
+                </ConfirmAction>
+              )}
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

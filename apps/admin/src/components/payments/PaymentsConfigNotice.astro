@@ -1,0 +1,30 @@
+---
+/**
+ * What every payment screen of the admin says about Stripe here: test mode (or the local stand-in), live mode (payouts
+ * refused until the owner approves production), or not configured (lists still show what is recorded; actions that
+ * need Stripe say so and change nothing).
+ */
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
+import type { PaymentsConfig } from '../../lib/live-settings';
+
+interface Props {
+  config: PaymentsConfig;
+  class?: string;
+}
+const { config, class: className } = Astro.props;
+---
+
+{!config.configured ? (
+  <Notice tone="warning" title="Payments are not configured" class={className}>
+    No Stripe key is set for the admin here, so refunds and payouts cannot reach Stripe. The lists still show
+    what is recorded.
+  </Notice>
+) : config.liveMode ? (
+  <Notice tone="warning" title="Live mode" class={className}>
+    Stripe runs with live keys. Refunds return real money; payouts are refused until the owner approves
+    production.
+  </Notice>
+) : (
+  <TestModeNotice standin={config.standin} class={className} />
+)}

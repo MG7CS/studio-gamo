@@ -1,0 +1,73 @@
+---
+/** Orders across organizations: one card per order, each a link to its detail. */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatCents } from '@gamo/domain';
+import { formatWhen } from '../../lib/format';
+import {
+  ADMIN_ORDER_LIMIT,
+  METHOD_TEXT,
+  ORDER_STATUS_TEXT,
+  type AdminOrderRow,
+} from '../../lib/payments-admin';
+
+interface Props {
+  orders: AdminOrderRow[];
+  searched: boolean;
+}
+const { orders, searched } = Astro.props;
+---
+
+{orders.length === 0 ? (
+  <EmptyState
+    title={searched ? 'No order matches.' : 'No orders yet.'}
+    text={
+      searched
+        ? 'Try a reference, a buyer’s name or email, or an organization’s name, or clear the filters.'
+        : 'Orders appear here once buyers pay for tickets on Gamo Live.'
+    }
+  />
+) : (
+  <>
+    <ul class="space-y-3">
+      {orders.map((o) => (
+        <li>
+          <a
+            href={`/payments/orders/${encodeURIComponent(o.id)}`}
+            class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-4 shadow-soft hover:bg-clay-50"
+          >
+            <span class="min-w-0">
+              <span class="block text-[15px] font-bold text-ink">
+                {o.reference} · {o.buyerName ?? o.buyerEmail ?? 'No name'}
+              </span>
+              <span class="block text-[13px] text-muted">
+                {o.eventTitle} · {o.organizationName} · {formatWhen(o.createdAt)}
+              </span>
+              <span class="block text-[13px] text-body">
+                {formatCents(o.totalCents, o.currency)}
+                {o.amountRefundedCents > 0
+                  ? ` · ${formatCents(o.amountRefundedCents, o.currency)} refunded`
+                  : ''}
+                {' · '}
+                {METHOD_TEXT[o.paymentMethod] ?? o.paymentMethod}
+                {' · '}
+                {o.seller === 'gamo' ? 'Gamo sold (Mode B)' : 'Organization sold (Mode A)'}
+              </span>
+            </span>
+            <span class="flex flex-wrap gap-2">
+              <Pill tone={o.status === 'paid' ? 'success' : o.status === 'pending' ? 'warning' : 'neutral'}>
+                {ORDER_STATUS_TEXT[o.status] ?? o.status}
+              </Pill>
+              {o.disputed && <Pill tone="danger">Disputed</Pill>}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    {orders.length === ADMIN_ORDER_LIMIT && (
+      <p class="mt-3 text-[13px] text-muted">
+        Showing the newest {ADMIN_ORDER_LIMIT} orders. Search or filter to find older ones.
+      </p>
+    )}
+  </>
+)}
