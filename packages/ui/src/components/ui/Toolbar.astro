@@ -1,0 +1,35 @@
+---
+/**
+ * The toolbar card of a list page: an optional search and one or more rows of filter chips, as one floating card of
+ * its own above the list. Plain GET links and form, no JavaScript. Search keeps the filters the list already has.
+ */
+import Panel from './Panel.astro';
+import SearchField from './SearchField.astro';
+import FilterChips from './FilterChips.astro';
+
+interface ChipGroup {
+  label: string;
+  items: Array<{ label: string; href: string; active: boolean; count?: number }>;
+}
+interface Props {
+  search?: {
+    label: string;
+    value: string;
+    placeholder?: string;
+    keep?: Record<string, string | undefined>;
+    name?: string;
+  };
+  groups?: ChipGroup[];
+  variant?: 'flat' | 'clay';
+  class?: string;
+}
+const { search, groups = [], variant = 'flat', class: className } = Astro.props;
+const shown = groups.filter((g) => g.items.length > 0);
+---
+
+<Panel variant={variant} class:list={['!p-3 sm:!p-3', className]}>
+  {search && <SearchField {...search} />}
+  {shown.map((g, i) => (
+    <FilterChips items={g.items} label={g.label} class={search || i > 0 ? 'mt-3' : ''} />
+  ))}
+</Panel>

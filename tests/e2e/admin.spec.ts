@@ -245,14 +245,17 @@ test('every page passes accessibility, fits 360 px, has 44 px targets and a phon
   await expect(page.locator('[data-sidebar-toggle]')).toBeHidden();
   const tabs = page.getByRole('navigation', { name: 'Admin' }).last().getByRole('link');
   await expect(tabs).toHaveCount(6);
-  expect(await tabs.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual([
+  // The name is the visible word plus screen-reader-only extras (never a different aria-label).
+  const names = [
     'Inbox',
-    'Requests: Participation requests, 2 waiting',
-    'Church: Church verification, 1 waiting',
-    'Providers: Provider review, 2 waiting',
-    'Live: Gamo Live, 4 waiting',
+    'Requests (Participation requests, 2 waiting)',
+    'Church (Church verification, 1 waiting)',
+    'Providers (Provider review, 2 waiting)',
+    'Live (Gamo Live, 4 waiting)',
     'Legal',
-  ]);
+  ];
+  for (const [i, name] of names.entries()) await expect(tabs.nth(i)).toHaveAccessibleName(name);
+  await expect(tabs.locator('xpath=self::*[@aria-label]')).toHaveCount(0);
   const small = await page.evaluate(() =>
     [...document.querySelectorAll('a,button,select,input,textarea,summary')]
       .filter((e) => {
@@ -280,6 +283,81 @@ test('unknown routes, the error page and missing records render inside the admin
   expect(missing?.status()).toBe(404);
   await expect(page.getByText('That profile does not exist.')).toBeVisible();
   await expectAdminShell(page);
+});
+
+test('the admin menu closes on an outside press and Escape; dangerous actions confirm first; counts open their list', async () => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`${ADMIN_E2E_ORIGIN}/`);
+  const menu = page.locator('[data-user-menu="sidebar"]');
+  // The open menu is fully visible, expanded and collapsed: not clipped by the sidebar, not under the page.
+  const expectMenuUnclipped = async (label: string) => {
+    const box = menu.locator('summary + div');
+    await expect(box).toBeVisible();
+    const probe = await box.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const inside = (x: number, y: number) => {
+        const hit = document.elementFromPoint(x, y);
+        return !!hit && el.contains(hit);
+      };
+      return {
+        left: r.left,
+        right: r.right,
+        top: r.top,
+        bottom: r.bottom,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        corners: [
+          inside(r.left + 28, r.top + 28),
+          inside(r.right - 28, r.top + 28),
+          inside(r.right - 28, r.bottom - 28),
+          inside(r.left + 28, r.bottom - 28),
+        ],
+      };
+    });
+    expect(probe.left, `${label}: left`).toBeGreaterThanOrEqual(0);
+    expect(probe.right, `${label}: right`).toBeLessThanOrEqual(probe.width);
+    expect(probe.top, `${label}: top`).toBeGreaterThanOrEqual(0);
+    expect(probe.bottom, `${label}: bottom`).toBeLessThanOrEqual(probe.height);
+    expect(probe.corners, `${label}: every corner is the menu itself, not clipped or covered`).toEqual([
+      true,
+      true,
+      true,
+      true,
+    ]);
+    if (process.env.ADMIN_SHOTS)
+      await page.screenshot({ path: `${process.env.ADMIN_SHOTS}/menu-${label}.png` });
+  };
+  await menu.locator('summary').click();
+  await expect(menu).toHaveAttribute('open', '');
+  await expectMenuUnclipped('open');
+  await expect(menu.getByRole('link', { name: 'Sign out' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu).not.toHaveAttribute('open', '');
+  await menu.locator('summary').click();
+  await page.locator('main h1').click();
+  await expect(menu).not.toHaveAttribute('open', '');
+  await page.locator('[data-sidebar-toggle]').click();
+  await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'collapsed');
+  await menu.locator('summary').click();
+  await expectMenuUnclipped('collapsed');
+  await page.keyboard.press('Escape');
+  await page.locator('[data-sidebar-toggle]').click();
+  await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'open');
+
+  // A count on the Inbox opens the list it counts.
+  await page
+    .getByRole('link', { name: /^Participation requests\s*\d+/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/participation$/);
+
+  // Cleanup is a confirm step: the first press only reveals the consequence; nothing runs until the second.
+  await page.goto(`${ADMIN_E2E_ORIGIN}/maintenance`);
+  await page.getByText('Run cleanup…').click();
+  await expect(page.getByText(/deleted for good/).last()).toBeVisible();
+  await expect(page.getByText('Cleanup finished.')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Delete old data now' }).click();
+  await expect(page.getByText('Cleanup finished.')).toBeVisible();
 });
 
 test('decisions work under the enforced CSP: reply, verify a church, approve events, and a cross-site post is refused', async ({

@@ -1,6 +1,6 @@
 ---
 /** Gamo Live organizations, one row each, linking to the page where the admin decides. */
-import EmptyState from './EmptyState.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import StatusTag from './StatusTag.astro';
 import { timeAgo } from '../lib/format';
 import type { AdminOrganizationRow } from '@gamo/domain';
@@ -12,7 +12,7 @@ const { organizations } = Astro.props;
 ---
 
 {organizations.length === 0 ? (
-  <EmptyState text="No organizations match." />
+  <EmptyState title="No organizations match." />
 ) : (
   <ul class="space-y-3">
     {organizations.map((o) => (
@@ -22,7 +22,7 @@ const { organizations } = Astro.props;
           class="flex flex-wrap items-center justify-between gap-3 rounded-clay-lg bg-surface p-5 shadow-soft hover:bg-clay-50"
         >
           <span class="min-w-0">
-            <span class="block truncate text-lg font-extrabold text-ink">{o.name}</span>
+            <span class="block truncate text-[15px] font-bold text-ink">{o.name}</span>
             <span class="block text-sm text-muted">
               {o.kind}
               {o.city ? ` · ${o.city}${o.state ? `, ${o.state}` : ''}` : ''} · {o.members}{' '}

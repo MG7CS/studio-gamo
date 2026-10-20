@@ -1,5 +1,7 @@
 ---
-/** A status word on a soft pill. The word carries the meaning; the tint only supports it. */
+/** A status word on the shared pill. The word carries the meaning; the tint only supports it. */
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+
 interface Props {
   status: string;
   label: string;
@@ -7,12 +9,12 @@ interface Props {
 const { status, label } = Astro.props;
 const tone =
   status === 'verified'
-    ? 'bg-mint/60 text-success'
+    ? 'success'
     : status === 'rejected' || status === 'suspended'
-      ? 'bg-danger-fill/30 text-danger'
+      ? 'danger'
       : status === 'changes_requested'
-        ? 'bg-warning-fill/50 text-warning'
-        : 'bg-clay-100 text-clay-800';
+        ? 'warning'
+        : 'neutral';
 ---
 
-<span class:list={['inline-flex rounded-full px-3 py-1 text-xs font-bold', tone]}>{label}</span>
+<Pill tone={tone}>{label}</Pill>

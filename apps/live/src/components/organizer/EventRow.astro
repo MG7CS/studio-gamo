@@ -1,0 +1,34 @@
+---
+/** One event of the list as its own floating card: the title, when and where, how many registered, and its status. */
+import EventStatusPill from './EventStatusPill.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  whenText: string;
+  place: string;
+  dates: number;
+  status: string;
+  registered: number | null;
+}
+const { id, title, whenText, place, dates, status, registered } = Astro.props;
+---
+
+<a
+  href={`/organizer/events/${id}`}
+  class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line/60 bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-terracotta/40 hover:shadow-[0_8px_20px_rgba(143,59,24,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+>
+  <span class="min-w-0">
+    <span class="block truncate text-[15px] font-bold text-ink">{title}</span>
+    <span class="block text-[13px] text-muted">
+      {whenText}
+      {dates > 1 ? ` · ${dates} dates` : ''} · {place}
+    </span>
+    {registered != null && (
+      <span class="block text-[12px] text-muted">
+        {registered} {registered === 1 ? 'person' : 'people'} registered
+      </span>
+    )}
+  </span>
+  <EventStatusPill status={status} />
+</a>

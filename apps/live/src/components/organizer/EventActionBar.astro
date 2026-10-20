@@ -1,0 +1,79 @@
+---
+/**
+ * What an organizer does with an event, in one row at the top of its page: edit, view the public page, registrations,
+ * and (at the end, quiet) cancel a published event or delete one that never went live. The cancel and delete buttons
+ * open their confirm panel on a row of its own, with the real consequence and the number of people told.
+ */
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+
+interface Props {
+  eventId: string;
+  slug: string;
+  canEdit: boolean;
+  published: boolean;
+  registrations: boolean;
+  people: number;
+  canCancel: boolean;
+  canDelete: boolean;
+}
+const { eventId, slug, canEdit, published, registrations, people, canCancel, canDelete } = Astro.props;
+const pill =
+  'inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta';
+---
+
+<div id="actions" class="mb-3 flex flex-wrap items-start gap-2">
+  {canEdit && (
+    <a href={`/organizer/events/${eventId}/edit`} class={pill}>
+      Edit event
+    </a>
+  )}
+  {published && (
+    <a href={`/events/${slug}`} class={pill}>
+      View public page
+    </a>
+  )}
+  {registrations && (
+    <a href={`/organizer/events/${eventId}/registrations`} class={pill}>
+      Registrations ({people})
+    </a>
+  )}
+  {canCancel && (
+    <ConfirmAction
+      summaryLabel="Cancel event…"
+      confirmLabel="Yes, cancel the event"
+      actionValue="cancel"
+      class="open:basis-full sm:ml-auto"
+    >
+      <p>
+        {people > 0
+          ? `Every date is canceled and ${people} confirmed ${people === 1 ? 'person is' : 'people are'} told by email. This cannot be undone.`
+          : 'Every date is canceled. No one has registered yet. This cannot be undone.'}
+      </p>
+      <Fragment slot="fields">
+        <input type="hidden" name="confirm" value="yes" />
+        {people > 0 && (
+          <SplitField
+            id="message"
+            name="message"
+            label="Message to registrants (optional)"
+            as="textarea"
+            rows={3}
+            maxlength={1000}
+            size="sm"
+          />
+        )}
+      </Fragment>
+    </ConfirmAction>
+  )}
+  {canDelete && (
+    <ConfirmAction
+      summaryLabel="Delete event…"
+      confirmLabel="Yes, delete it"
+      actionValue="delete"
+      class="open:basis-full sm:ml-auto"
+    >
+      <p>It was never published, so nobody is registered. The event and its dates are removed for good.</p>
+    </ConfirmAction>
+  )}
+</div>

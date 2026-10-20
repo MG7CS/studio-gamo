@@ -1,0 +1,49 @@
+---
+/**
+ * Your data: a download of what Gamo Live holds about you, and how to ask for the account to be deleted. Deleting is
+ * handled by email for now, because an account that owns an organization needs a person to look at it first.
+ */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  email: string;
+}
+const { email } = Astro.props;
+const subject = encodeURIComponent('Please delete my Gamo Live account');
+const body = encodeURIComponent(`Please delete the Gamo Live account for ${email}.`);
+---
+
+<Panel id="data" title="Your data and privacy">
+  <div class="space-y-4 text-[14px] text-ink">
+    <div>
+      <p class="font-semibold">Download your data</p>
+      <p class="mt-1 text-[13px] text-muted">
+        A file with your name, email, default time zone, the organizations you belong to and how many devices
+        are signed in. It holds nothing about other people.
+      </p>
+      <Button
+        class="mt-3"
+        variant="secondary"
+        href="/organizer/settings/export"
+        download="gamo-live-my-data.json"
+      >
+        Download my data
+      </Button>
+    </div>
+    <div class="border-t border-sand pt-4">
+      <p class="font-semibold">Delete your account</p>
+      <p class="mt-1 text-[13px] text-muted">
+        For now, deleting an account is done by email so a person can check what it owns first. Write to us
+        from this address and we will reply.
+      </p>
+      <Button
+        class="mt-3"
+        variant="secondary"
+        href={`mailto:hello@gamostudio.org?subject=${subject}&body=${body}`}
+      >
+        Email hello@gamostudio.org
+      </Button>
+    </div>
+  </div>
+</Panel>

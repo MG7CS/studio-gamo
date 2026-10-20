@@ -4,8 +4,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 import LiveEventReviewList from '../components/LiveEventReviewList.astro';
 import LivePublishedEventList from '../components/LivePublishedEventList.astro';
 import LiveTabs from '../components/LiveTabs.astro';
-import Notice from '../components/Notice.astro';
-import PageHeader from '../components/PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../lib/inbox';
@@ -38,14 +38,22 @@ const outcome = outcomeFrom(Astro.url);
     description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization. Events that send people to another site for tickets are always reviewed."
   />
   <LiveTabs current="events" counts={counts} />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error} />}
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
   {events ? (
     <>
       <LiveEventReviewList events={events} />
       {published && (
         <section class="mt-10" aria-labelledby="published-heading">
-          <h2 id="published-heading" class="mb-4 text-xl font-extrabold">
+          <h2 id="published-heading" class="mb-4 text-[17px] font-bold">
             Published events
           </h2>
           <LivePublishedEventList events={published} />
@@ -53,10 +61,8 @@ const outcome = outcomeFrom(Astro.url);
       )}
     </>
   ) : (
-    <Notice
-      tone="error"
-      title="Events unavailable"
-      text="Gamo Live’s database could not be read, so nothing is shown instead of guessing."
-    />
+    <Notice tone="danger" title="Events unavailable" class="mb-5">
+      Gamo Live’s database could not be read, so nothing is shown instead of guessing.
+    </Notice>
   )}
 </AdminLayout>

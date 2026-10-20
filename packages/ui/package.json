@@ -8,6 +8,7 @@
     "./components/*": "./src/components/*",
     "./lib/*.ts": "./src/lib/*.ts",
     "./lib/*": "./src/lib/*.ts",
+    "./scripts/*": "./src/scripts/*.ts",
     "./styles/*": "./src/styles/*"
   },
   "peerDependencies": {

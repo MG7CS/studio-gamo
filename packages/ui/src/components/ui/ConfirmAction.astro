@@ -1,8 +1,9 @@
 ---
 /**
- * A destructive action with a confirm step and no JavaScript: a <details> that reveals the honest
- * consequence (default slot), then a real POST form with a danger submit button. Extra hidden or visible
- * fields (a reason box, ids) go in the `fields` slot.
+ * A destructive action with a confirm step and no JavaScript: a compact danger button (a <details> summary) that opens
+ * the honest consequence (default slot) in a tinted panel with the real POST form and a filled danger submit. Extra
+ * hidden or visible fields (a reason box, ids) go in the `fields` slot. Closed, it is only the button, so it sits
+ * comfortably in a row, a card or a list.
  */
 import Button from './Button.astro';
 interface Props {
@@ -25,18 +26,22 @@ const {
 } = Astro.props;
 ---
 
-<details class:list={['group rounded-xl border border-status-danger-line bg-white', className]}>
-  <summary class="flex min-h-11 cursor-pointer list-none items-center rounded-xl px-4 text-sm font-semibold text-status-danger marker:hidden [&::-webkit-details-marker]:hidden group-open:rounded-b-none group-open:bg-status-danger-soft">
+<details class:list={['group', className]}>
+  <summary class="inline-flex min-h-11 cursor-pointer list-none items-center rounded-full border border-status-danger/50 bg-white px-5 text-[13px] font-semibold text-status-danger marker:hidden hover:bg-status-danger-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta group-open:bg-status-danger-soft [&::-webkit-details-marker]:hidden">
     {summaryLabel}
   </summary>
-  <div class="space-y-4 px-4 py-4">
-    <div class="text-sm leading-relaxed text-ink">
+  <div class="mt-3 space-y-3 rounded-xl border border-status-danger-line bg-status-danger-soft/60 p-4">
+    <div class="text-[14px] leading-relaxed text-ink">
       <slot />
     </div>
     <form method="post" action={formAction} class="space-y-3">
       <input type="hidden" name={actionName} value={actionValue} />
       <slot name="fields" />
-      <Button type="submit" variant="danger-outline">
+      <Button
+        type="submit"
+        variant="danger-outline"
+        class="bg-status-danger text-white hover:bg-status-danger/90"
+      >
         {confirmLabel}
       </Button>
     </form>

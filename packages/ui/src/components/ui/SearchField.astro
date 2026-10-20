@@ -1,0 +1,43 @@
+---
+/**
+ * A search form for a list: a labelled field and a Search button in one row, as a plain GET form (no JavaScript).
+ * Other query parameters the list already has (a filter) are carried as hidden fields so searching keeps them.
+ */
+import Button from './Button.astro';
+
+interface Props {
+  name?: string;
+  value?: string;
+  label: string;
+  placeholder?: string;
+  /** Parameters to keep, e.g. { status: 'published' }. */
+  keep?: Record<string, string | undefined>;
+  action?: string;
+  class?: string;
+}
+const { name = 'q', value = '', label, placeholder, keep = {}, action, class: className } = Astro.props;
+const id = `search-${name}`;
+---
+
+<form
+  method="get"
+  action={action}
+  role="search"
+  class:list={['flex flex-wrap items-center gap-2', className]}
+>
+  {Object.entries(keep).map(([k, v]) => v && <input type="hidden" name={k} value={v} />)}
+  <label for={id} class="sr-only">
+    {label}
+  </label>
+  <input
+    id={id}
+    name={name}
+    type="search"
+    value={value}
+    placeholder={placeholder}
+    class="min-h-11 min-w-[12rem] flex-1 rounded-full border border-ink/25 bg-white px-5 text-[14px] text-ink placeholder:text-muted/70 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+  />
+  <Button type="submit" variant="secondary">
+    Search
+  </Button>
+</form>

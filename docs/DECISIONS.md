@@ -214,3 +214,14 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Decision** (owner): a change to a published event keeps the live version visible until Gamo approves the change (implemented as `event_revisions`).
 - **Decision** (owner): check-in must be flexible. Default opens 3 hours before and ends 12 hours after the start; the event can choose 1, 3, 12 or 24 hours; the organizer can open or close it by hand.
 - **Decision** (owner): working rules added to AGENTS.md: no application logic in page files, reuse and extract components, parallel agents when work splits cleanly, targeted tests are fine.
+
+## 2026-10-19 — Dashboard principles carried from Live to the admin and later apps
+
+- **Decision** (owner, after the Live organizer polish): the principles settled while polishing Live apply to every dashboard, starting with the admin. Recorded as permanent rules in `AGENTS.md` section 2 and 5 and in `DESIGN.md` ("Dashboard composition and behaviour"): floating cards (toolbar, summary, one card per row); every number links to the list it counts; one shell (collapsible sidebar, person menu at the bottom, inline-SVG rail logo, phone tab bar); accessible names from visible text, solid colours; the shared calendar with URL state; `ConfirmAction` for dangerous actions; shared menu/pressed/double-submit behaviour; thin pages and reuse-first; visual design is owner-led and marketing pages stay frozen.
+- **Admin keeps its identity**: claymorphism shapes and shadows, no gradients, Cloudflare Access only. The principles change structure and behaviour, not the approved look. Which parts of the admin were changed is in `docs/BUILD_LOG.md`.
+- **Phone view of the admin** (owner): `make dev-admin` stays this-computer only; `make admin-phone` serves it on the Wi-Fi behind a random per-run secret link (`GAMO_DEV_PHONE_TOKEN`, local only, fatal elsewhere) copied to the clipboard.
+
+## 2026-10-19 — Organizer Settings scope
+
+- **Decision** (owner approved the plan; open questions answered by default): Settings holds only what is real today. Account deletion is by email for now (a person checks what the account owns first); there is no notifications section until a real notification exists; organization extras (phone, mailing address, social links, denomination, shown/private flags) wait for the public organization page that would show them; photo and logo upload stay deferred.
+

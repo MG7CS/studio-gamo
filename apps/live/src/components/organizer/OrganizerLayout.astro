@@ -1,8 +1,10 @@
 ---
 /**
- * The organizer area shell: left menu on desktop, tab bar on phones, a top bar with the organization and the
- * signed-in person. Layout follows design-reference/dashboard-ui (white cards on a soft page), in the app palette.
+ * The organizer area shell: left menu on desktop (collapsible to an icon rail, the choice remembered), tab bar
+ * on phones with the person's menu at the top right. Layout follows design-reference/dashboard-ui (white cards on a soft page), in the app palette.
  */
+import '../../styles/organizer.css';
+import '@studio-gamo/ui/styles/interactions.css';
 import Layout from '../../layouts/Layout.astro';
 import Sidebar from './Sidebar.astro';
 import BottomBar from './BottomBar.astro';
@@ -20,17 +22,24 @@ interface Props {
 const { title, current, organizer, memberships, active } = Astro.props;
 ---
 
-<Layout title={`${title} · Organizer`} chrome={false} noindex bodyClass="bg-sand/50 text-ink">
-  <div class="min-h-screen lg:grid lg:grid-cols-[250px_1fr]">
-    <aside class="hidden p-4 lg:sticky lg:top-0 lg:block lg:h-screen">
-      <Sidebar current={current} />
+<Layout title={`${title} · Organizer`} chrome={false} noindex bodyClass="group/shell bg-cream text-ink">
+  <div
+    data-shell
+    class="organizer-theme min-h-screen lg:grid lg:grid-cols-[250px_1fr] lg:group-data-[sidebar=collapsed]/shell:grid-cols-[88px_1fr]"
+  >
+    <aside class="hidden p-4 lg:sticky lg:top-0 lg:z-30 lg:block lg:h-screen">
+      <Sidebar current={current} organizer={organizer} memberships={memberships} active={active} />
     </aside>
     <div class="min-w-0 pb-28 lg:pb-10">
       <TopBar organizer={organizer} memberships={memberships} active={active} />
-      <div class="mx-auto max-w-[1100px] px-4 sm:px-6">
+      <div class="mx-auto max-w-[1100px] px-4 sm:px-6 lg:pt-6">
         <slot />
       </div>
     </div>
   </div>
   <BottomBar current={current} />
+  <script>
+    import '@studio-gamo/ui/scripts/sidebar-collapse';
+    import '@studio-gamo/ui/scripts/interactions';
+  </script>
 </Layout>

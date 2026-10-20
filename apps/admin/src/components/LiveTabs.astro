@@ -1,5 +1,6 @@
 ---
-/** The three Gamo Live screens, as tabs at the top of each. Counts are real queue sizes, drawn only above zero. */
+/** The Gamo Live screens, as chips at the top of each. Counts are real queue sizes, shown only above zero. */
+import FilterChips from '@studio-gamo/ui/components/ui/FilterChips.astro';
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
@@ -15,20 +16,13 @@ const tabs = [
 ] as const;
 ---
 
-<nav aria-label="Gamo Live" class="mb-6 flex flex-wrap gap-2">
-  {tabs.map((t) => (
-    <a
-      href={t.href}
-      aria-current={t.key === current ? 'page' : undefined}
-      class:list={[
-        'inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-bold',
-        t.key === current
-          ? 'bg-clay-700 text-white shadow-button'
-          : 'bg-surface text-clay-800 shadow-soft hover:bg-clay-50',
-      ]}
-    >
-      {t.label}
-      {t.n > 0 && <span class="rounded-full bg-white/90 px-2 text-xs font-bold text-clay-800">{t.n}</span>}
-    </a>
-  ))}
-</nav>
+<FilterChips
+  label="Gamo Live"
+  class="mb-6"
+  items={tabs.map((t) => ({
+    label: t.label,
+    href: t.href,
+    active: t.key === current,
+    count: t.n > 0 ? t.n : undefined,
+  }))}
+/>

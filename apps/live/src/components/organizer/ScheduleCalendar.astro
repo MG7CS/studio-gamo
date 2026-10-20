@@ -1,0 +1,40 @@
+---
+/**
+ * The schedule calendar card: every date of the organization's events on one calendar (the shared `Calendar`).
+ * An organization with no dates yet gets a plain next step instead of an empty grid. The chosen day's events are a
+ * separate card (`ScheduleDay`), so a page can put the two wherever it wants.
+ */
+import Calendar from '@studio-gamo/ui/components/ui/Calendar.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import type { OrganizationScheduleView } from '@gamo/domain';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  view: OrganizationScheduleView;
+  canCreate: boolean;
+  /** `cozy` for a calendar that sits beside other cards, `comfortable` when the calendar is the page. */
+  size?: 'auto' | 'cozy' | 'comfortable';
+}
+const { view, canCreate, size = 'cozy' } = Astro.props;
+---
+
+<Panel id="schedule">
+  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+    <h2 class="text-[16px] font-extrabold text-ink">Your schedule</h2>
+    <p class="text-[13px] text-muted">
+      {view.total === 0 ? 'No dates yet' : `${view.upcoming} upcoming of ${view.total} dates`}
+    </p>
+  </div>
+  {view.total === 0 ? (
+    <div class="rounded-xl bg-cream/60 p-5 text-[14px] text-ink">
+      <p>Your events and their dates will appear here, so you can see your whole month at a glance.</p>
+      {canCreate && (
+        <Button href="/organizer/events/new" class="mt-3">
+          Create an event
+        </Button>
+      )}
+    </div>
+  ) : (
+    <Calendar model={view.model} noun="date" size={size} />
+  )}
+</Panel>

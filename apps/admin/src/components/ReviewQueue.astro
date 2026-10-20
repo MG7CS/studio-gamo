@@ -1,6 +1,7 @@
 ---
 /** A review queue: status and role filters, then the profiles (oldest first), each linking to its page. */
-import EmptyState from './EmptyState.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import StatusTag from './StatusTag.astro';
 import { QUEUE_LIMIT, type QueueView } from '../lib/review-data';
 import { timeAgo } from '../lib/format';
@@ -28,42 +29,35 @@ const href = (status: string, role?: string | null) => {
   if (role) p.set('role', role);
   return `${basePath}?${p}`;
 };
-const pill = (active: boolean) =>
-  active ? 'bg-clay-700 text-white shadow-button' : 'bg-surface text-clay-800 shadow-soft hover:bg-clay-50';
 ---
 
-<nav aria-label="Filter by status" class="mb-3 flex flex-wrap gap-2">
-  {filters.map((f) => (
-    <a
-      href={href(f, roleFilter)}
-      aria-current={f === filter ? 'page' : undefined}
-      class:list={[
-        'inline-flex min-h-11 items-center rounded-full px-5 text-sm font-bold',
-        pill(f === filter),
-      ]}
-    >
-      {filterLabels[f] ?? f}
-    </a>
-  ))}
-</nav>
-{roles.length > 1 && (
-  <nav aria-label="Filter by role" class="mb-6 flex flex-wrap gap-2">
-    {[{ value: '', label: 'All roles' }, ...roles].map((r) => (
-      <a
-        href={href(filter, r.value || null)}
-        aria-current={(roleFilter ?? '') === r.value ? 'page' : undefined}
-        class:list={[
-          'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold',
-          pill((roleFilter ?? '') === r.value),
-        ]}
-      >
-        {r.label}
-      </a>
-    ))}
-  </nav>
-)}
+<Toolbar
+  variant="clay"
+  class="mb-5"
+  groups={[
+    {
+      label: 'Filter by status',
+      items: filters.map((f) => ({
+        label: filterLabels[f] ?? f,
+        href: href(f, roleFilter),
+        active: f === filter,
+      })),
+    },
+    {
+      label: 'Filter by role',
+      items:
+        roles.length > 1
+          ? [{ value: '', label: 'All roles' }, ...roles].map((r) => ({
+              label: r.label,
+              href: href(filter, r.value || null),
+              active: (roleFilter ?? '') === r.value,
+            }))
+          : [],
+    },
+  ]}
+/>
 {items.length === 0 ? (
-  <EmptyState text={emptyText} />
+  <EmptyState title={emptyText} />
 ) : (
   <>
     <ul class="space-y-3">

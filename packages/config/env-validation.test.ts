@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { GamoEnv } from './env.ts';
-import { createGamoDevServer } from './env-loader.ts';
+import { createGamoCloudflareConfig, createGamoDevServer } from './env-loader.ts';
 import { isLoopbackHost, validateEnv } from './env-validation.ts';
 
 const SECRET = 'x'.repeat(32);
@@ -16,6 +16,15 @@ test('a local build served from a public hostname is fatal (deployed without --e
   // A phone on the same Wi-Fi reaches a dev server by its private address; a public host is still refused.
   for (const host of ['192.168.12.48', '10.0.0.5', '172.20.1.2', 'my-mac.local'])
     assert.deepEqual(validateEnv('web', { ENVIRONMENT: 'local' }, host), [], host);
+  // Every public app, not only Live, is served to a phone over Wi-Fi in development.
+  for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const) {
+    assert.deepEqual(validateEnv(app, { ENVIRONMENT: 'local' }, '192.168.12.48'), [], app);
+    assert.deepEqual(
+      names(validateEnv(app, { ENVIRONMENT: 'local' }, 'gamostudio.org'), 'fatal'),
+      ['ENVIRONMENT'],
+      app,
+    );
+  }
   for (const host of ['8.8.8.8', '172.32.0.1', '192.169.1.1', 'gamostudio.org'])
     assert.deepEqual(
       names(validateEnv('web', { ENVIRONMENT: 'local' }, host), 'fatal'),
@@ -134,20 +143,80 @@ test('isLoopbackHost is this computer only: LAN addresses and .local names are n
     assert.equal(isLoopbackHost(host), false, host);
 });
 
-test('dev servers listen on this computer only, unless GAMO_DEV_LAN=1 opens Gamo Live (and only Live)', () => {
-  const before = process.env.GAMO_DEV_LAN;
+test('dev servers listen on this computer only, unless GAMO_DEV_LAN=1 opens the public apps (the admin needs a phone secret too)', () => {
+  const before = { lan: process.env.GAMO_DEV_LAN, token: process.env.GAMO_DEV_PHONE_TOKEN };
+  const restore = (key: string, value: string | undefined) => {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  };
   try {
     delete process.env.GAMO_DEV_LAN;
-    for (const app of ['web', 'live', 'admin'] as const)
+    delete process.env.GAMO_DEV_PHONE_TOKEN;
+    for (const app of ['web', 'worship', 'academy', 'live', 'production', 'admin'] as const)
       assert.equal(createGamoDevServer(app).host, '127.0.0.1', app);
     process.env.GAMO_DEV_LAN = '1';
-    assert.equal(createGamoDevServer('live').host, true);
-    assert.equal(createGamoDevServer('admin').host, '127.0.0.1');
-    assert.equal(createGamoDevServer('web').host, '127.0.0.1');
+    for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const)
+      assert.equal(createGamoDevServer(app).host, true, app);
+    assert.equal(
+      createGamoDevServer('admin').host,
+      '127.0.0.1',
+      'make dev-admin never listens on the network',
+    );
+    for (const empty of ['', '   ']) {
+      process.env.GAMO_DEV_PHONE_TOKEN = empty;
+      assert.equal(createGamoDevServer('admin').host, '127.0.0.1', 'an empty secret opens nothing');
+    }
+    process.env.GAMO_DEV_PHONE_TOKEN = 'a'.repeat(48);
+    assert.equal(createGamoDevServer('admin').host, true, 'make admin-phone: flag and secret together');
+    delete process.env.GAMO_DEV_LAN;
+    assert.equal(
+      createGamoDevServer('admin').host,
+      '127.0.0.1',
+      'the secret alone does not open the network',
+    );
     process.env.GAMO_DEV_LAN = 'true';
     assert.equal(createGamoDevServer('live').host, '127.0.0.1', 'only the value 1 opens the network');
+    assert.equal(createGamoDevServer('admin').host, '127.0.0.1', 'only the value 1 opens the network');
   } finally {
-    if (before === undefined) delete process.env.GAMO_DEV_LAN;
-    else process.env.GAMO_DEV_LAN = before;
+    restore('GAMO_DEV_LAN', before.lan);
+    restore('GAMO_DEV_PHONE_TOKEN', before.token);
+  }
+});
+
+test('GAMO_DEV_PHONE_TOKEN is fatal outside local and reaches only the admin worker, only from the dev process', () => {
+  const base = { DB: {}, LIVE_DB: {}, GAMO_DEV_PHONE_TOKEN: 'a'.repeat(48) } as const;
+  for (const environment of ['preview', 'production'] as const)
+    assert.deepEqual(
+      names(validateEnv('admin', { ...base, ENVIRONMENT: environment }, 'admin.gamostudio.org'), 'fatal'),
+      ['GAMO_DEV_PHONE_TOKEN'],
+      environment,
+    );
+  assert.deepEqual(validateEnv('admin', { ...base, ENVIRONMENT: 'local' }, '192.168.1.20'), []);
+  // The existing rule is unchanged: a local build on a real hostname is still fatal.
+  assert.deepEqual(
+    names(validateEnv('admin', { ...base, ENVIRONMENT: 'local' }, 'admin.gamostudio.org'), 'fatal'),
+    ['ENVIRONMENT'],
+  );
+
+  const before = { token: process.env.GAMO_DEV_PHONE_TOKEN, event: process.env.npm_lifecycle_event };
+  try {
+    process.env.GAMO_DEV_PHONE_TOKEN = 'b'.repeat(48);
+    process.env.npm_lifecycle_event = 'dev';
+    const url = new URL('../../apps/admin/astro.config.mjs', import.meta.url);
+    const varsOf = (app: 'admin' | 'live') =>
+      createGamoCloudflareConfig(app, url).config({ vars: {} }).vars as Record<string, unknown>;
+    assert.equal(varsOf('admin').GAMO_DEV_PHONE_TOKEN, 'b'.repeat(48));
+    assert.equal(varsOf('live').GAMO_DEV_PHONE_TOKEN, undefined, 'no other app gets the secret');
+    process.env.npm_lifecycle_event = 'build';
+    assert.deepEqual(
+      createGamoCloudflareConfig('admin', url).config({ vars: {} }),
+      {},
+      'a build embeds nothing',
+    );
+  } finally {
+    if (before.token === undefined) delete process.env.GAMO_DEV_PHONE_TOKEN;
+    else process.env.GAMO_DEV_PHONE_TOKEN = before.token;
+    if (before.event === undefined) delete process.env.npm_lifecycle_event;
+    else process.env.npm_lifecycle_event = before.event;
   }
 });

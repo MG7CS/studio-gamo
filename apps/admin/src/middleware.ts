@@ -16,6 +16,12 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
 
   const gate = await checkGate(context.request, env, new URL(context.request.url));
   if (!gate.ok) {
+    // Only a valid `?phone=` secret on GET gets here (apps/admin/src/lib/gate.ts): same page, secret removed, cookie set.
+    if (gate.status === 303)
+      return new Response(null, {
+        status: 303,
+        headers: { Location: gate.location, 'Set-Cookie': gate.setCookie },
+      });
     return new Response(gate.message, {
       status: gate.status,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },

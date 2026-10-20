@@ -1,0 +1,27 @@
+---
+/** The Overview's events card: what happens to a new event, and the two things to do next. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  hasEvents: boolean;
+  canCreate: boolean;
+}
+const { hasEvents, canCreate } = Astro.props;
+---
+
+<Panel id="events" title="Events">
+  <p class="text-[14px] leading-relaxed text-ink">
+    {hasEvents ? 'Your events are listed on the public event pages.' : 'You have no events yet.'}
+  </p>
+  <p class="mt-1 text-[13px] leading-relaxed text-muted">
+    Your first event is reviewed by Gamo before it appears; later ones publish directly unless Gamo asks to
+    review every event.
+  </p>
+  <div class="mt-4 flex flex-wrap gap-2.5">
+    {canCreate && <Button href="/organizer/events/new">Create event</Button>}
+    <Button variant="secondary" href="/organizer/events">
+      All events
+    </Button>
+  </div>
+</Panel>

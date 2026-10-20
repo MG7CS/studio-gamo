@@ -1,41 +1,18 @@
 ---
-/** Page-level top bar: the brand on small screens and the admin chip. */
-import Icon from '@studio-gamo/ui/components/Icon.astro';
+/** Phone top bar: the brand and the admin's menu. On desktop the sidebar carries both, so this bar is not shown. */
 import Logo from '@studio-gamo/ui/components/Logo.astro';
+import UserMenu from './UserMenu.astro';
 
 interface Props {
   email: string;
 }
 const { email } = Astro.props;
-const initial = email.charAt(0).toUpperCase();
 ---
 
-<header class="flex items-center justify-between gap-4 px-4 pt-5 sm:px-8 lg:pt-8">
-  <button
-    type="button"
-    hidden
-    data-sidebar-toggle
-    aria-controls="admin-sidebar"
-    aria-expanded="true"
-    class="hidden min-h-11 items-center gap-2 rounded-full bg-surface px-4 text-sm font-bold text-clay-800 shadow-soft hover:bg-clay-50 lg:inline-flex"
-  >
-    <Icon name="menu" class="h-5 w-5" />
-    <span data-sidebar-label>Collapse menu</span>
-  </button>
-  <a href="/" class="flex min-h-11 items-center gap-2 text-ink lg:hidden">
+<header class="flex items-center justify-between gap-4 px-4 pt-4 sm:px-6 lg:hidden">
+  <a href="/" class="flex min-h-11 items-center gap-2 text-ink">
     <Logo width={120} height={22} />
     <span class="text-xs font-semibold uppercase tracking-widest text-muted">Admin</span>
   </a>
-  <div class="ml-auto flex items-center gap-3 rounded-full bg-surface px-3 py-2 shadow-soft">
-    <span
-      class="grid h-9 w-9 place-items-center rounded-full bg-clay-100 text-sm font-extrabold text-clay-800"
-      aria-hidden="true"
-    >
-      {initial}
-    </span>
-    <span class="hidden leading-tight sm:block">
-      <span class="block max-w-56 truncate text-sm font-semibold text-ink">{email}</span>
-      <span class="block text-xs font-medium text-muted">Administrator</span>
-    </span>
-  </div>
+  <UserMenu email={email} variant="phone" />
 </header>

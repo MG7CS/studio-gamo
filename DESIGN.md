@@ -179,3 +179,18 @@ Flash messages: `packages/ui/src/lib/flash.ts`. A POST handler ends with `return
 ## Split-screen pages: one screen, steps when needed
 
 Sign-in, sign-up, registration, confirmation, organizer set-up and invitation pages use the split layout (photo left, form right). On desktop they never scroll: the page is one screen tall and the form is centered. If the fields do not fit, tighten type and spacing slightly, then split the form into steps rather than shrinking further. Each step is a server-rendered page with a thin progress bar ("Step N of M"), a Next button and a Back link; it validates its own fields and carries earlier answers forward. Phones may scroll. Verify at laptop heights (about 700 and 900 px).
+
+
+## Dashboard composition and behaviour
+
+- **Floating cards.** A dashboard page is a title plus separate cards on the page background: a toolbar card (search and filters), summary cards, the calendar card, and one card per list row or topic. A card never holds another card's contents; the search box, the filters and the list are three things. Pages list components, they do not draw.
+- **Shared cards.** `Panel`, `Stat`, `Calendar`, `SearchField`, `FilterChips`, `EmptyState`, `Button`, `Pill` and `ConfirmAction` live in `packages/ui` and are used the same way in the organizer area and the admin.
+- **Warm, not dark.** The organizer area uses the cream page, warm secondary text (`.organizer-theme` in `apps/live/src/styles/organizer.css`) and terracotta for active and selected states; near-black is for text only.
+- **Behaviour.** Menus close on an outside press and Escape; pressable things show pointer, hover, focus and pressed states; forms cannot be double-submitted. These come from `packages/ui/src/scripts/interactions.ts` and `styles/interactions.css`, loaded by each dashboard layout.
+- **Counts are links.** A stat card or a chip count opens the list it counts, filtered the same way, and equals that list's length. The card's accessible name is its visible text plus an `sr-only` "Opens …".
+- **Shell.** Sidebar (collapsible to an icon rail, shared script), the person's menu at the bottom of the sidebar, an avatar button in the phone top bar, a bottom tab bar on phones, and the collapsed logo as an inline orange SVG. The top bar adds nothing the sidebar already says.
+- **Accessible names and contrast.** Visible text is the accessible name; extra words are `sr-only` text inside the control, never a different `aria-label`. No `opacity` on text; solid colours that pass contrast. Status is a word, not only a colour.
+- **Calendar.** Dates are shown with the shared `Calendar` (month, week, months and years pickers), driven by URL parameters and server-rendered. One calendar for every app.
+- **Type scale in dashboards.** Calm and small: page titles about 26 px semibold, body 14 to 15 px, labels 12 to 13 px; large black headlines are for marketing only.
+- **Sizes and clipping.** Dashboard scale: titles 22 to 26 px, descriptions 14 px, card and row titles 15 to 16 px, meta 12 to 13 px, big numbers about 28 px, sidebar about 250 px (88 collapsed), content at most about 1100 px. Menus and popovers are never inside an `overflow` container (scroll the inner list instead) and the shell sits at `z-30`. Verify in a browser with the sidebar open and collapsed and every menu open.
+

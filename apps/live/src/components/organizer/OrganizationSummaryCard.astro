@@ -1,0 +1,44 @@
+---
+/** The organization at a glance on the Overview: name, your role, verification, and a way to its page. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  name: string;
+  role: 'owner' | 'member';
+  verified: boolean;
+}
+const { name, role, verified } = Astro.props;
+---
+
+<Panel id="status" title="Your organization">
+  <dl class="space-y-2.5 text-[14px]">
+    <div class="flex items-center justify-between gap-4">
+      <dt class="text-muted">Name</dt>
+      <dd class="text-right font-semibold text-ink">{name}</dd>
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <dt class="text-muted">Your role</dt>
+      <dd>
+        <Pill tone="info">{role === 'owner' ? 'Owner' : 'Member'}</Pill>
+      </dd>
+    </div>
+    <div class="flex items-center justify-between gap-4">
+      <dt class="text-muted">Verification</dt>
+      <dd>
+        <Pill tone={verified ? 'success' : 'neutral'} dot>
+          {verified ? 'Verified by Gamo' : 'Not yet verified'}
+        </Pill>
+      </dd>
+    </div>
+  </dl>
+  {!verified && (
+    <p class="mt-3 text-[13px] leading-relaxed text-muted">
+      Events show “Not yet verified” until Gamo verifies the organization, after reviewing your first event.
+    </p>
+  )}
+  <Button variant="secondary" href="/organizer/organization" class="mt-4">
+    Manage organization
+  </Button>
+</Panel>

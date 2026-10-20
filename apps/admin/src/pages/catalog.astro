@@ -3,8 +3,8 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import CatalogList from '../components/CatalogList.astro';
 import LiveTabs from '../components/LiveTabs.astro';
-import Notice from '../components/Notice.astro';
-import PageHeader from '../components/PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listAdminCatalog } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../lib/inbox';
@@ -34,15 +34,21 @@ const outcome = outcomeFrom(Astro.url);
     description="Real events Gamo lists for discovery, each with its source and the organizer’s own ticket page. Gamo never sells these tickets. Featured is editorial and always labeled."
   />
   <LiveTabs current="catalog" counts={counts} />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error} />}
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
   {rows ? (
     <CatalogList rows={rows} />
   ) : (
-    <Notice
-      tone="error"
-      title="Catalog unavailable"
-      text="Gamo Live’s database could not be read, so nothing is shown instead of guessing."
-    />
+    <Notice tone="danger" title="Catalog unavailable" class="mb-5">
+      Gamo Live’s database could not be read, so nothing is shown instead of guessing.
+    </Notice>
   )}
 </AdminLayout>

@@ -1,5 +1,5 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
-        dev-web dev-worship dev-academy dev-live dev-production dev-admin open-all live-db \
+        dev-web dev-worship dev-academy dev-live dev-production dev-admin admin-phone open-all live-db \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
@@ -10,15 +10,16 @@ help:
 	@echo ""
 	@echo "\033[1;32mDevelopment\033[0m"
 	@echo "  \033[36mmake dev\033[0m               - Start the global website development server (apps/web)"
-	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently, on this computer only (set GAMO_DEV_LAN=1 to let a phone on your Wi-Fi reach Live)"
-	@echo "  \033[36mmake open-all\033[0m          - Open all 6 local sites in the browser (run after make dev-all)"
-	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web development server"
-	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship development server"
-	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy development server"
-	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live; also reachable from a phone on the same Wi-Fi"
+	@echo "  \033[36mmake dev-all\033[0m           - Start all 6 application development servers concurrently, on this computer only (set GAMO_DEV_LAN=1 to let a phone on your Wi-Fi reach the 5 public apps; never the admin)"
+	@echo "  \033[36mmake open-all\033[0m          - Open all 6 local sites in the browser on this computer (run after make dev-all)"
+	@echo "  \033[36mmake dev-web\033[0m           - Start apps/web; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
+	@echo "  \033[36mmake dev-worship\033[0m       - Start apps/worship; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
+	@echo "  \033[36mmake dev-academy\033[0m       - Start apps/academy; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
+	@echo "  \033[36mmake dev-live\033[0m          - Prepare the local Live database (migrate + import catalog), then start apps/live; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
 	@echo "  \033[36mmake live-db\033[0m           - Migrate the shared local Live database (web, live, admin) and import the catalog (safe to repeat)"
-	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production development server"
-	@echo "  \033[36mmake dev-admin\033[0m         - Start apps/admin development server (http://127.0.0.1:4326)"
+	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
+	@echo "  \033[36mmake dev-admin\033[0m         - Prepare the local Live database, then start apps/admin; this computer only (http://127.0.0.1:4326). To open it on your phone use make admin-phone"
+	@echo "  \033[36mmake admin-phone\033[0m       - Prepare the local Live database, then start apps/admin for your phone on the same Wi-Fi: prints a link with a random secret and copies it to the clipboard; it works only while this runs, and the admin refuses every request without the secret"
 	@echo ""
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
@@ -63,30 +64,35 @@ open-all:
 	@for port in 4321 4322 4323 4324 4325 4326; do open http://127.0.0.1:$$port; done
 
 dev-web:
-	@pnpm --filter apps-web run dev
+	@scripts/dev/print-urls.sh web
+	@GAMO_DEV_LAN=1 pnpm --filter apps-web run dev
 
 dev-worship:
-	@pnpm --filter apps-worship run dev
+	@scripts/dev/print-urls.sh worship
+	@GAMO_DEV_LAN=1 pnpm --filter apps-worship run dev
 
 dev-academy:
-	@pnpm --filter apps-academy run dev
+	@scripts/dev/print-urls.sh academy
+	@GAMO_DEV_LAN=1 pnpm --filter apps-academy run dev
 
 live-db:
 	@pnpm db:migrate:live:local
 	@pnpm live:catalog:import --publish-approved
 
 dev-live: live-db
-	@ip=$$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null); \
-	  echo ""; echo "  This computer:      http://127.0.0.1:4324"; \
-	  echo "  Phone (same Wi-Fi): http://$${ip:-<your-computer-ip>}:4324"; \
-	  echo "  Phones allow the camera only on https or localhost: show the guest QR on the phone and scan it here, or type the code."; echo ""
+	@scripts/dev/print-urls.sh live
 	@GAMO_DEV_LAN=1 pnpm --filter apps-live run dev
 
 dev-production:
-	@pnpm --filter apps-production run dev
+	@scripts/dev/print-urls.sh production
+	@GAMO_DEV_LAN=1 pnpm --filter apps-production run dev
 
 dev-admin: live-db
+	@scripts/dev/print-urls.sh admin
 	@pnpm --filter apps-admin run dev
+
+admin-phone: live-db
+	@scripts/dev/admin-phone.sh
 
 install:
 	@pnpm install

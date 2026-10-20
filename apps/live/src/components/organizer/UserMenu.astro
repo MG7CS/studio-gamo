@@ -1,0 +1,112 @@
+---
+/**
+ * The signed-in person, as a button that opens a small menu (a native details element, no JavaScript): who you
+ * are, which organization you act for (a switcher when you belong to several), your account and sign out.
+ * Rendered once in the sidebar (desktop) and once in the phone top bar; `variant` decides where the menu opens.
+ */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { MembershipSummary, Organizer } from '@gamo/domain';
+
+interface Props {
+  organizer: Organizer;
+  memberships: MembershipSummary[];
+  active: MembershipSummary | null;
+  variant: 'sidebar' | 'phone';
+}
+const { organizer, memberships, active, variant } = Astro.props;
+const name = organizer.displayName || organizer.email;
+const initial = name.trim().charAt(0).toUpperCase();
+const idPrefix = `user-menu-${variant}`;
+const inSidebar = variant === 'sidebar';
+---
+
+<details class="relative" data-menu data-user-menu={variant}>
+  <summary
+    class:list={[
+      'flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl text-ink transition-colors hover:bg-sand/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta [&::-webkit-details-marker]:hidden',
+      inSidebar
+        ? 'w-full px-2 group-data-[sidebar=collapsed]/shell:justify-center group-data-[sidebar=collapsed]/shell:px-0'
+        : 'justify-center',
+    ]}
+  >
+    <span
+      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-terracotta text-[14px] font-bold text-white"
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
+    <span
+      class:list={[
+        'min-w-0 flex-1 text-left leading-tight',
+        inSidebar ? 'group-data-[sidebar=collapsed]/shell:sr-only' : 'sr-only',
+      ]}
+    >
+      <span class="block truncate text-[14px] font-semibold text-ink">{name}</span>
+      {organizer.displayName && <span class="block truncate text-[12px] text-muted">{organizer.email}</span>}
+    </span>
+  </summary>
+  <div
+    class:list={[
+      'absolute z-40 w-72 max-w-[calc(100vw-2rem)] rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(24,24,27,0.18)] ring-1 ring-ink/10',
+      inSidebar ? 'bottom-full left-0 mb-2' : 'right-0 top-full mt-2',
+    ]}
+  >
+    <p class="truncate text-[15px] font-bold text-ink">{name}</p>
+    {organizer.displayName && <p class="truncate text-[13px] text-muted">{organizer.email}</p>}
+    {active && (
+      <div class="mt-3 border-t border-sand pt-3">
+        {memberships.length > 1 ? (
+          <form method="post" action="/organizer/switch" class="flex items-center gap-2">
+            <label for={`${idPrefix}-org`} class="sr-only">
+              Organization
+            </label>
+            <select
+              id={`${idPrefix}-org`}
+              name="organization"
+              class="min-h-11 min-w-0 flex-1 rounded-full border border-ink/20 bg-white px-4 text-[14px] font-semibold text-ink"
+            >
+              {memberships.map((m) => (
+                <option value={m.organizationId} selected={m.organizationId === active.organizationId}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              class="min-h-11 rounded-full border border-ink/20 bg-white px-4 text-[14px] font-semibold text-ink hover:bg-sand"
+            >
+              Switch
+            </button>
+          </form>
+        ) : (
+          <>
+            <p class="text-[12px] font-semibold uppercase tracking-wider text-muted">Organization</p>
+            <p class="truncate text-[14px] font-semibold text-ink">{active.name}</p>
+          </>
+        )}
+      </div>
+    )}
+    <ul class="mt-3 space-y-1 border-t border-sand pt-3">
+      <li>
+        <a
+          href="/organizer/settings"
+          class="flex min-h-11 items-center gap-3 rounded-xl px-3 text-[14px] font-semibold text-ink transition-colors hover:bg-sand/60"
+        >
+          <Icon name="settings" class="h-[18px] w-[18px]" />
+          Settings
+        </a>
+      </li>
+      <li>
+        <form method="post" action="/account/signout">
+          <button
+            type="submit"
+            class="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[14px] font-semibold text-terracotta-deep transition-colors hover:bg-sand/60"
+          >
+            <Icon name="logout" class="h-[18px] w-[18px]" />
+            Sign out
+          </button>
+        </form>
+      </li>
+    </ul>
+  </div>
+</details>

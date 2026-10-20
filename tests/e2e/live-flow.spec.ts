@@ -245,6 +245,90 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
       return href as string;
     });
 
+  await test.step('the overview: a schedule calendar, stat cards that are links, a sidebar that collapses to icons', async () => {
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
+    const schedule = page.locator('#schedule');
+    await expect(schedule.getByRole('table')).toBeVisible();
+    await shot(page, 'organizer-overview-calendar');
+    await expectAccessible(page, '/organizer (overview with calendar)');
+    // The chosen day lists its events; each is a link to the event on that date.
+    await page.locator('#day a[href^="/organizer/events/evt_"]').first().click();
+    await expect(page).toHaveURL(/\/organizer\/events\/evt_[^/]+\?date=/);
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
+    // Stat cards lead to the related page.
+    await page.getByRole('link', { name: /^Published events\s*1/ }).click();
+    await expect(page).toHaveURL(/\/organizer\/events\?status=published/);
+    // The sidebar collapses to an icon rail, remembers it across pages, and expands again.
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
+    await page.locator('[data-sidebar-toggle]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'collapsed');
+    await shot(page, 'organizer-overview-collapsed');
+    await expectAccessible(page, '/organizer (collapsed rail)');
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/events`);
+    await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'collapsed');
+    await expect(page.getByRole('link', { name: 'Events' }).first()).toBeVisible();
+    await page.locator('[data-sidebar-toggle]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-sidebar', 'open');
+    // The user menu at the bottom of the sidebar holds Settings and Sign out.
+    await page.locator('[data-user-menu=sidebar] summary').click();
+    await expect(
+      page.locator('[data-user-menu=sidebar]').getByRole('link', { name: 'Settings' }),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-user-menu=sidebar]').getByRole('button', { name: 'Sign out' }),
+    ).toBeVisible();
+    // Menus close like menus do: a press outside, or Escape (focus returns to the button).
+    const menu = page.locator('[data-user-menu=sidebar]');
+    await page
+      .locator('main, h1')
+      .first()
+      .click({ position: { x: 5, y: 5 }, force: true });
+    await expect(menu).not.toHaveAttribute('open', '');
+    await menu.locator('summary').click();
+    await expect(menu).toHaveAttribute('open', '');
+    await page.keyboard.press('Escape');
+    await expect(menu).not.toHaveAttribute('open', '');
+    await expect(menu.locator('summary')).toBeFocused();
+  });
+
+  await test.step('settings: save the name and a default time zone, other devices, the data download, the old URL', async () => {
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/settings`);
+    await expect(page.locator('h1')).toHaveText('Settings');
+    await expectAccessible(page, '/organizer/settings');
+    await shot(page, 'organizer-settings');
+    await expect(page.getByRole('button', { name: 'Sign out other devices' })).toBeDisabled();
+    const original = await page.getByLabel('Your name').inputValue();
+    await page.getByLabel('Your name').fill('Pastor Sample');
+    await page.getByLabel('Default time zone for new events').selectOption('America/Chicago');
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByText('Your settings are saved.')).toBeVisible();
+    await expect(page.getByLabel('Your name')).toHaveValue('Pastor Sample');
+    // A blank name is refused and what was typed stays.
+    await page.getByLabel('Your name').fill('   ');
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByRole('alert').first()).toContainText('Enter your name');
+    // A new event starts with the chosen time zone.
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/events/new`);
+    await expect(page.getByLabel('Time zone of the venue')).toHaveValue('America/Chicago');
+    // The download is the person's own data only.
+    const download = await page.request.get(`${FLOW_LIVE_ORIGIN}/organizer/settings/export`);
+    expect(download.status()).toBe(200);
+    expect(download.headers()['content-disposition']).toContain('attachment');
+    expect(download.headers()['cache-control']).toContain('no-store');
+    const mine = await download.json();
+    expect(mine.account.name).toBe('Pastor Sample');
+    expect(mine.account.defaultTimeZone).toBe('America/Chicago');
+    expect(mine.signedInDevices).toBeGreaterThanOrEqual(1);
+    // The old Account address still works.
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/account`);
+    await expect(page).toHaveURL(/\/organizer\/settings$/);
+    // Put the sample organizer back as it was for the steps that follow.
+    await page.getByLabel('Your name').fill(original);
+    await page.getByLabel('Default time zone for new events').selectOption('');
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByText('Your settings are saved.')).toBeVisible();
+  });
+
   async function register(name: string, email: string) {
     const guest = await browser.newContext();
     const p = await guest.newPage();
@@ -366,8 +450,8 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   await test.step('canceling the event cancels the registration and emails the guest', async () => {
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/events`);
     await page.getByRole('link', { name: new RegExp(TITLE.replace(/[()]/g, '\\$&')) }).click();
-    await page.getByText('Cancel this event…').click();
-    await expect(page.getByText(/1 confirmed person will be emailed/)).toBeVisible();
+    await page.locator('#actions').getByText('Cancel event…').click();
+    await expect(page.getByText(/1 confirmed person is told by email/)).toBeVisible();
     await page.getByLabel('Message to registrants (optional)').fill('Sample reason: the hall is closed.');
     await page.getByRole('button', { name: 'Yes, cancel the event' }).click();
     await expect(
@@ -382,8 +466,10 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   });
 
   await test.step('sign out ends the session', async () => {
-    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/account`);
-    await page.getByRole('button', { name: 'Sign out' }).first().click();
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
+    // The user sits at the bottom of the sidebar; pressing it opens a menu with Account and Sign out.
+    await page.locator('[data-user-menu=sidebar] summary').click();
+    await page.locator('[data-user-menu=sidebar]').getByRole('button', { name: 'Sign out' }).click();
     await expect(page).toHaveURL(/\/account\/signed-out/);
     await expectNoDesktopScroll(page, 'signed out');
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
@@ -475,20 +561,47 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
     await page.getByRole('button', { name: 'Publish event' }).click();
     await expect(page.getByText('Published. It is now on Gamo Live.')).toBeVisible();
     await expect(page.getByRole('heading', { name: /^Dates \(\d+\)$/ })).toContainText(/\((3|4|5)\)/);
-    // The dates are a calendar, not a long list: the chosen day's details sit under it.
-    const dates = page.locator('#dates');
-    await expect(dates.getByRole('table')).toBeVisible();
-    await expect(dates.getByText('Upcoming', { exact: true }).first()).toBeVisible();
-    const upcomingDays = dates.getByRole('link', { name: /, upcoming$/ });
-    expect(await upcomingDays.count()).toBeGreaterThan(0);
+    // The dates are a calendar, the main thing on the page: the chosen day's details sit beside it.
+    const calendar = page.locator('#calendar');
+    await expect(calendar.getByRole('table')).toBeVisible();
+    expect(await calendar.getByRole('link', { name: /, upcoming/ }).count()).toBeGreaterThan(0);
     await expectAccessible(page, '/organizer/events/<series>');
     await shot(page, 'organizer-event-series');
+
+    // Pressing the title opens the month picker, and the year in it opens the year picker (plain links).
+    await calendar.getByRole('link', { name: /Choose another month/ }).click();
+    await expect(calendar.getByRole('list', { name: /^Months of \d{4}$/ })).toBeVisible();
+    await expectAccessible(page, '/organizer/events/<series> month picker');
+    await shot(page, 'organizer-calendar-months');
+    await calendar.getByRole('link', { name: /Choose another year/ }).click();
+    await expect(calendar.getByRole('list', { name: 'Years' })).toBeVisible();
+    await expectAccessible(page, '/organizer/events/<series> year picker');
+    const picked = calendar.locator('ul[aria-label] a[aria-current="true"]');
+    await picked.click(); // the current year, back to its months
+    await expect(calendar.getByRole('list', { name: /^Months of \d{4}$/ })).toBeVisible();
+    await picked.click(); // the current month, back to the grid
+    await expect(calendar.getByRole('table')).toBeVisible();
+
+    // The week view lists each day's dates with their times, and switches back to the month.
+    await calendar.getByRole('link', { name: 'Week', exact: true }).click();
+    await expect(calendar.getByRole('list', { name: /^[A-Z][a-z]{2} \d{1,2}/ }).first()).toBeVisible();
+    await expectAccessible(page, '/organizer/events/<series> week');
+    await shot(page, 'organizer-calendar-week');
+    await calendar.getByRole('link', { name: 'Month', exact: true }).click();
+    await expect(calendar.getByRole('table')).toBeVisible();
+
+    // Choosing another day with a date changes the details beside the calendar.
+    const days = calendar.getByRole('link', { name: /, upcoming/ });
+    const before = await page.locator('#day h2').innerText();
+    await days.nth((await days.count()) - 1).click();
+    expect(await page.locator('#day h2').innerText()).not.toBe(before);
+
     // Canceling one date leaves the series; that day turns to "canceled".
-    await dates.getByText('Cancel this date…').click();
-    await dates.getByRole('button', { name: 'Yes, cancel this date' }).click();
+    await page.locator('#day').getByText('Cancel this date…').click();
+    await page.locator('#day').getByRole('button', { name: 'Yes, cancel this date' }).click();
     await expect(page.getByText(/That date is canceled/)).toBeVisible();
     await expect(page.getByRole('heading', { name: /^Dates \(\d+\)$/ })).toContainText(/\((3|4|5)\)/);
-    await expect(dates.getByRole('link', { name: /, canceled$/ }).first()).toBeVisible();
+    await expect(calendar.getByRole('link', { name: /, canceled/ }).first()).toBeVisible();
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText(series).first()).toBeVisible();
   });

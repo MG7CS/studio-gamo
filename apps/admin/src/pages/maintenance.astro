@@ -1,10 +1,11 @@
 ---
 /** Gamo Live cleanup: the admin-run retention job. Nothing is deleted unless the admin runs it and says so. */
 import AdminLayout from '../layouts/AdminLayout.astro';
-import Button from '../components/Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import LiveTabs from '../components/LiveTabs.astro';
-import Notice from '../components/Notice.astro';
-import PageHeader from '../components/PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv } from '@gamo/domain';
 import { loadCounts } from '../lib/inbox';
 import { handleCleanupForm, outcomeFrom } from '../lib/live-admin';
@@ -27,11 +28,18 @@ const outcome = outcomeFrom(Astro.url);
     description="Removes what Gamo Live no longer needs. It runs only when you press the button, and it reports what it removed."
   />
   <LiveTabs current="maintenance" counts={counts} />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error} />}
-  <section class="rounded-clay-lg bg-surface p-6 shadow-soft">
-    <h2 class="text-xl font-extrabold">What it does</h2>
-    <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-body">
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
+  <Panel variant="clay" title="What it does">
+    <ul class="list-disc space-y-1 pl-5 text-sm text-body">
       <li>
         Deletes registrants’ names, emails and check-in codes 90 days after an event’s last date. The totals
         (people registered, people checked in) stay on each date.
@@ -40,12 +48,11 @@ const outcome = outcomeFrom(Astro.url);
       <li>Deletes expired email codes, sign-in sessions and invitations older than 30 days.</li>
       <li>Clears finished rate-limit counters.</li>
     </ul>
-    <form method="post" class="mt-6 space-y-4">
-      <label class="flex min-h-11 items-start gap-3 text-sm text-ink">
-        <input type="checkbox" name="confirm" value="yes" class="mt-0.5 h-5 w-5 shrink-0" />
-        <span>I understand that registrant data older than 90 days is deleted for good.</span>
-      </label>
-      <Button variant="danger">Run cleanup</Button>
-    </form>
-  </section>
+    <div class="mt-6">
+      <ConfirmAction summaryLabel="Run cleanup…" confirmLabel="Delete old data now" actionValue="cleanup">
+        Registrant data older than 90 days is deleted for good. The totals stay. It cannot be undone.
+        <input slot="fields" type="hidden" name="confirm" value="yes" />
+      </ConfirmAction>
+    </div>
+  </Panel>
 </AdminLayout>

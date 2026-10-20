@@ -175,6 +175,226 @@ test('the local identity works only on a loopback host with ENVIRONMENT=local an
   assert.equal(isLocalRuntime({ ENVIRONMENT: 'local' }, new URL('http://evil.localhost.example/')), false);
 });
 
+const PHONE = 'f3a9c1d27b6e48a0951c7d2e8b4a6f10c3d5e7a9b1c2d3e4';
+const phoneEnv = {
+  ENVIRONMENT: 'local',
+  ADMIN_EMAIL: ADMIN,
+  ALLOW_LOCAL_ADMIN_IDENTITY: 'true',
+  GAMO_DEV_PHONE_TOKEN: PHONE,
+};
+const PHONE_HOST = 'http://192.168.1.20:4326';
+const cookieFrom = (setCookie: string) => setCookie.split(';')[0]!;
+
+async function runMiddleware(
+  env: Record<string, unknown>,
+  target: string,
+  init: RequestInit = {},
+): Promise<{ response: Response; reached: boolean }> {
+  const { onRequest } = await import('../../apps/admin/src/middleware.ts');
+  const request = new Request(target, init);
+  let reached = false;
+  const response = (await onRequest(
+    { request, url: new URL(request.url), params: {}, locals: { runtime: { env } } } as never,
+    (async () => {
+      reached = true;
+      return new Response('page');
+    }) as never,
+  )) as Response;
+  return { response, reached };
+}
+
+test('phone access: a valid ?phone= secret on a private-network host redirects to the clean path and sets the cookie', async () => {
+  const { request, url } = at(`${PHONE_HOST}/review/events?status=open&phone=${PHONE}&page=2`);
+  const result = await checkGate(request, phoneEnv, url);
+  assert.equal(result.ok, false);
+  assert.ok(!result.ok && result.status === 303);
+  if (result.ok || result.status !== 303) return;
+  assert.equal(result.location, '/review/events?status=open&page=2');
+  assert.ok(!result.location.includes(PHONE) && !result.location.includes('phone'));
+  assert.match(result.setCookie, /^gamo_dev_phone=[0-9a-f]{64}; /);
+  assert.ok(!result.setCookie.includes(PHONE), 'the cookie is not the secret from the link');
+  for (const part of ['Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=28800'])
+    assert.ok(result.setCookie.includes(part), part);
+  assert.ok(!/secure/i.test(result.setCookie), 'the link is http: a Secure cookie would never be stored');
+  // A path that starts with slashes cannot turn the redirect into another site.
+  const sneaky = at(`${PHONE_HOST}//evil.example/x?phone=${PHONE}`);
+  const sneakyResult = await checkGate(sneaky.request, phoneEnv, sneaky.url);
+  assert.ok(!sneakyResult.ok && sneakyResult.status === 303 && sneakyResult.location === '/evil.example/x');
+});
+
+test('phone access: the cookie from the redirect then gets in, as ADMIN_EMAIL, on any path and method', async () => {
+  const first = await runMiddleware(phoneEnv, `${PHONE_HOST}/legal?phone=${PHONE}`);
+  assert.equal(first.reached, false, 'the redirect itself serves no page');
+  assert.equal(first.response.status, 303);
+  assert.equal(first.response.headers.get('location'), '/legal');
+  assert.equal(await first.response.text(), '');
+  assert.equal(first.response.headers.get('cache-control'), 'no-store');
+  const cookie = cookieFrom(first.response.headers.get('set-cookie') ?? '');
+  for (const method of ['GET', 'POST']) {
+    const next = await runMiddleware(phoneEnv, `${PHONE_HOST}/legal`, {
+      method,
+      headers: { cookie: `a=b; ${cookie}; c=d` },
+    });
+    assert.equal(next.reached, true, method);
+    assert.equal(next.response.status, 200, method);
+  }
+  const { request, url } = at(`${PHONE_HOST}/`, { cookie });
+  assert.deepEqual(await checkGate(request, phoneEnv, url), { ok: true, email: ADMIN });
+});
+
+test('phone access: anything without the exact secret is denied with 403 and no content, never saying why', async () => {
+  const good = cookieFrom(
+    (await runMiddleware(phoneEnv, `${PHONE_HOST}/?phone=${PHONE}`)).response.headers.get('set-cookie') ?? '',
+  );
+  const wrongSecret = `${PHONE.slice(0, -1)}0`;
+  const attempts: [string, string, RequestInit][] = [
+    ['no secret', `${PHONE_HOST}/`, {}],
+    ['wrong secret', `${PHONE_HOST}/?phone=${wrongSecret}`, {}],
+    ['empty secret', `${PHONE_HOST}/?phone=`, {}],
+    ['prefix of the secret', `${PHONE_HOST}/?phone=${PHONE.slice(0, 20)}`, {}],
+    ['secret plus extra', `${PHONE_HOST}/?phone=${PHONE}x`, {}],
+    ['secret under another name', `${PHONE_HOST}/?token=${PHONE}`, {}],
+    ['wrong cookie', `${PHONE_HOST}/`, { headers: { cookie: 'gamo_dev_phone=deadbeef' } }],
+    ['the raw secret as cookie', `${PHONE_HOST}/`, { headers: { cookie: `gamo_dev_phone=${PHONE}` } }],
+    [
+      'cookie of another name',
+      `${PHONE_HOST}/`,
+      { headers: { cookie: good.replace('gamo_dev_phone', 'other') } },
+    ],
+    [
+      'secret in a header',
+      `${PHONE_HOST}/`,
+      { headers: { 'x-gamo-dev-phone': PHONE, authorization: `Bearer ${PHONE}` } },
+    ],
+    ['10.x host, no secret', 'http://10.0.0.5:4326/', {}],
+    ['172.16 host, no secret', 'http://172.16.4.2:4326/', {}],
+    ['a .local name, no secret', 'http://macbook.local:4326/', {}],
+  ];
+  for (const [name, target, init] of attempts) {
+    const { response, reached } = await runMiddleware(phoneEnv, target, init);
+    assert.equal(reached, false, name);
+    assert.equal(response.status, 403, name);
+    assert.equal(response.headers.get('location'), null, name);
+    assert.ok(!response.headers.get('set-cookie'), name);
+    const body = await response.text();
+    assert.ok(
+      !body.includes(PHONE) && !/phone|secret|token/i.test(body),
+      `${name}: the answer reveals nothing`,
+    );
+  }
+  // The cookie of one run is worthless against the next run's secret.
+  const next = await runMiddleware({ ...phoneEnv, GAMO_DEV_PHONE_TOKEN: 'e'.repeat(48) }, `${PHONE_HOST}/`, {
+    headers: { cookie: good },
+  });
+  assert.equal(next.response.status, 403);
+});
+
+test('phone access: a spoofed loopback Host header cannot skip the secret, and a short secret opens nothing', async () => {
+  // While the admin is on the network the Host header proves nothing, so the local identity needs the secret too.
+  for (const host of ['http://127.0.0.1:4326', 'http://localhost:4326']) {
+    const without = await runMiddleware(phoneEnv, `${host}/`);
+    assert.equal(without.reached, false, host);
+    assert.equal(without.response.status, 403, host);
+    const withSecret = await runMiddleware(phoneEnv, `${host}/?phone=${PHONE}`);
+    assert.equal(withSecret.response.status, 303, host);
+  }
+  const short = { ...phoneEnv, GAMO_DEV_PHONE_TOKEN: 'abc' };
+  for (const target of [
+    `${PHONE_HOST}/?phone=abc`,
+    'http://127.0.0.1:4326/?phone=abc',
+    'http://127.0.0.1:4326/',
+  ]) {
+    const { response, reached } = await runMiddleware(short, target);
+    assert.equal(reached, false, target);
+    assert.equal(response.status, 403, target);
+  }
+});
+
+test('phone access: the redirect is only for GET with a valid secret', async () => {
+  for (const method of ['POST', 'PUT', 'DELETE', 'PATCH']) {
+    const valid = await runMiddleware(phoneEnv, `${PHONE_HOST}/legal?phone=${PHONE}`, { method });
+    assert.equal(valid.reached, false, method);
+    assert.equal(valid.response.status, 403, method);
+    assert.equal(valid.response.headers.get('location'), null, method);
+    assert.ok(!valid.response.headers.get('set-cookie'), method);
+  }
+  const wrong = await runMiddleware(phoneEnv, `${PHONE_HOST}/legal?phone=nope`);
+  assert.equal(wrong.response.status, 403);
+  assert.equal(wrong.response.headers.get('location'), null);
+});
+
+test('phone access is off everywhere else: public hosts, preview, production, no token; loopback is unchanged', async () => {
+  const q = `?phone=${PHONE}`;
+  const denied: [string, Record<string, unknown>, string][] = [
+    ['public host', phoneEnv, `https://admin.gamostudio.org/${q}`],
+    ['lookalike private name', phoneEnv, `http://192.168.1.20.evil.example/${q}`],
+    ['172.32 is public', phoneEnv, `http://172.32.0.1:4326/${q}`],
+    ['public IP', phoneEnv, `http://8.8.8.8:4326/${q}`],
+    ['preview', { ...phoneEnv, ENVIRONMENT: 'preview' }, `${PHONE_HOST}/${q}`],
+    ['production', { ...phoneEnv, ENVIRONMENT: 'production' }, `${PHONE_HOST}/${q}`],
+    ['no token configured', { ...phoneEnv, GAMO_DEV_PHONE_TOKEN: undefined }, `${PHONE_HOST}/${q}`],
+    ['empty token', { ...phoneEnv, GAMO_DEV_PHONE_TOKEN: '  ' }, `${PHONE_HOST}/${q}`],
+    ['no token, empty secret', { ...phoneEnv, GAMO_DEV_PHONE_TOKEN: undefined }, `${PHONE_HOST}/?phone=`],
+  ];
+  for (const [name, env, target] of denied) {
+    const { response, reached } = await runMiddleware(env, target);
+    assert.equal(reached, false, name);
+    assert.ok([401, 403, 503].includes(response.status), `${name}: ${response.status}`);
+    assert.equal(response.headers.get('location'), null, name);
+    assert.ok(!response.headers.get('set-cookie'), name);
+  }
+  // Production never honors the cookie either.
+  const cookie = cookieFrom(
+    (await runMiddleware(phoneEnv, `${PHONE_HOST}/?phone=${PHONE}`)).response.headers.get('set-cookie') ?? '',
+  );
+  const inProd = await runMiddleware(
+    { ...prod, GAMO_DEV_PHONE_TOKEN: PHONE },
+    'https://admin.example.test/',
+    {
+      headers: { cookie },
+    },
+  );
+  assert.equal(inProd.reached, false);
+  assert.ok([401, 403, 503].includes(inProd.response.status));
+
+  // Without a token, loopback is exactly what it was: the local identity, no cookie, no redirect.
+  const local = { ENVIRONMENT: 'local', ADMIN_EMAIL: ADMIN, ALLOW_LOCAL_ADMIN_IDENTITY: 'true' };
+  for (const target of ['http://127.0.0.1:4326/', `http://127.0.0.1:4326/${q}`, 'http://localhost:4326/']) {
+    const ok = await runMiddleware(local, target);
+    assert.equal(ok.reached, true, target);
+    assert.equal(ok.response.status, 200, target);
+    assert.ok(!ok.response.headers.get('set-cookie'), target);
+  }
+  // A private host without a token is refused as before (the flag alone never opens the network).
+  const lan = await runMiddleware(local, `${PHONE_HOST}/`);
+  assert.equal(lan.reached, false);
+  assert.equal(lan.response.status, 401);
+});
+
+test('phone access: the secret is never logged', async () => {
+  const logged: string[] = [];
+  const originals = [console.log, console.error, console.warn, console.info];
+  console.log =
+    console.error =
+    console.warn =
+    console.info =
+      (...args: unknown[]) => {
+        logged.push(args.map(String).join(' '));
+      };
+  try {
+    await runMiddleware(phoneEnv, `${PHONE_HOST}/?phone=${PHONE}`);
+    await runMiddleware(phoneEnv, `${PHONE_HOST}/?phone=wrong`);
+  } finally {
+    [console.log, console.error, console.warn, console.info] = originals as [
+      typeof console.log,
+      typeof console.error,
+      typeof console.warn,
+      typeof console.info,
+    ];
+  }
+  assert.ok(!logged.join('\n').includes(PHONE));
+});
+
 test('the middleware serves nothing without the gate: every path, method and API answers 401/403/503', async () => {
   const { onRequest } = await import('../../apps/admin/src/middleware.ts');
   const paths = [

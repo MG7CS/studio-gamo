@@ -1,8 +1,8 @@
 ---
 /** The profile page shared by `/churches/[id]` and `/providers/[id]`: facts, history, decisions, and any message. */
 import AdminLayout from '../layouts/AdminLayout.astro';
-import Notice from './Notice.astro';
-import PageHeader from './PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import ProviderDetail from './ProviderDetail.astro';
 import type { NavKey } from '../lib/nav';
 import type { ProviderDetailView } from '../lib/review-data';
@@ -23,9 +23,21 @@ const { view, adminName, nav, back, outcome, error } = Astro.props;
     title={view ? view.profile.displayName : 'Profile not found'}
     description={view ? `${view.roleLabel} review` : undefined}
   />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error.message} />}
-  {!view && <Notice tone="info" text="That profile does not exist." />}
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error.message}
+    </Notice>
+  )}
+  {!view && (
+    <Notice tone="info" class="mb-5">
+      That profile does not exist.
+    </Notice>
+  )}
   {view && <ProviderDetail view={view} adminName={adminName} errorField={error?.field ?? null} />}
   <a
     href={back.href}

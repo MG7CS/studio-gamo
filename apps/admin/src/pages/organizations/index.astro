@@ -2,13 +2,13 @@
 /** Gamo Live organizations: those waiting for verification first, with search and filters. */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import LiveTabs from '../../components/LiveTabs.astro';
-import Notice from '../../components/Notice.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationList from '../../components/OrganizationList.astro';
-import PageHeader from '../../components/PageHeader.astro';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listAdminOrganizations, type OrganizationFilter } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../../lib/inbox';
-import { field, label } from '../../lib/ui';
 
 const env = await getRuntimeEnv(Astro);
 const requested = Astro.url.searchParams.get('filter') ?? 'waiting';
@@ -39,34 +39,26 @@ const filters: Array<[OrganizationFilter, string]> = [
     description="Verify the organizations that list events, suspend one that should not, or review every event of one. Verification is decided only here; payment or partnership never changes it."
   />
   <LiveTabs current="organizations" counts={counts} />
-  <nav aria-label="Filter organizations" class="mb-4 flex flex-wrap gap-2">
-    {filters.map(([key, text]) => (
-      <a
-        href={`/organizations?filter=${key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
-        aria-current={filter === key ? 'page' : undefined}
-        class:list={[
-          'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold',
-          filter === key ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body ring-1 ring-field',
-        ]}
-      >
-        {text}
-      </a>
-    ))}
-  </nav>
-  <form method="get" class="mb-6 max-w-md" role="search">
-    <input type="hidden" name="filter" value={filter} />
-    <label class={label} for="q">
-      Search by name
-    </label>
-    <input id="q" name="q" type="search" value={q} class={field} />
-  </form>
+  <Toolbar
+    variant="clay"
+    class="mb-4"
+    search={{ label: 'Search by name', value: q, keep: { filter } }}
+    groups={[
+      {
+        label: 'Filter organizations',
+        items: filters.map(([key, text]) => ({
+          label: text,
+          href: `/organizations?filter=${key}${q ? `&q=${encodeURIComponent(q)}` : ''}`,
+          active: filter === key,
+        })),
+      },
+    ]}
+  />
   {organizations ? (
     <OrganizationList organizations={organizations} />
   ) : (
-    <Notice
-      tone="error"
-      title="Organizations unavailable"
-      text="Gamo Live’s database could not be read, so nothing is shown instead of guessing."
-    />
+    <Notice tone="danger" title="Organizations unavailable" class="mb-5">
+      Gamo Live’s database could not be read, so nothing is shown instead of guessing.
+    </Notice>
   )}
 </AdminLayout>

@@ -80,6 +80,8 @@ export interface Organizer {
   id: string;
   email: string;
   displayName: string | null;
+  /** Default time zone for new events (an IANA name from the event list), or null. */
+  timezone: string | null;
 }
 
 // --- Sessions ---------------------------------------------------------------------------------------
@@ -106,7 +108,8 @@ export async function startOrganizerSession(
       sql: `INSERT INTO organizers (id, clerk_user_id, email, display_name, created_at)
             VALUES (?1, ?2, ?3, ?4, ?5)
             ON CONFLICT (clerk_user_id) DO UPDATE SET email = excluded.email,
-              display_name = COALESCE(excluded.display_name, organizers.display_name)`,
+              display_name = CASE WHEN organizers.name_edited = 1 THEN organizers.display_name
+                                  ELSE COALESCE(excluded.display_name, organizers.display_name) END`,
       params: [id, input.clerkUserId, email, input.displayName, input.now],
     },
     {
@@ -119,13 +122,18 @@ export async function startOrganizerSession(
       params: [await sha256Hex(token), expiresAt, input.now, input.clerkUserId],
     },
     {
-      sql: 'SELECT id, email, display_name FROM organizers WHERE clerk_user_id = ?1',
+      sql: 'SELECT id, email, display_name, timezone FROM organizers WHERE clerk_user_id = ?1',
       params: [input.clerkUserId],
     },
   ]);
-  const row = rows[3][0] as { id: string; email: string; display_name: string | null } | undefined;
+  const row = rows[3][0] as
+    { id: string; email: string; display_name: string | null; timezone: string | null } | undefined;
   if (!row) throw new OrganizerError('not_found');
-  return { token, expiresAt, organizer: { id: row.id, email: row.email, displayName: row.display_name } };
+  return {
+    token,
+    expiresAt,
+    organizer: { id: row.id, email: row.email, displayName: row.display_name, timezone: row.timezone },
+  };
 }
 
 /** The organizer behind a session cookie value, or null (unknown, expired). */
@@ -135,18 +143,21 @@ export async function resolveOrganizerSession(
   now: number,
 ): Promise<Organizer | null> {
   if (!token || token.length < 32 || token.length > 128) return null;
-  const rows = await allRows<{ id: string; email: string; display_name: string | null; session_id: string }>(
-    db,
-    {
-      sql: `SELECT o.id, o.email, o.display_name, s.id AS session_id
+  const rows = await allRows<{
+    id: string;
+    email: string;
+    display_name: string | null;
+    timezone: string | null;
+    session_id: string;
+  }>(db, {
+    sql: `SELECT o.id, o.email, o.display_name, o.timezone, s.id AS session_id
             FROM organizer_sessions s JOIN organizers o ON o.id = s.organizer_id
            WHERE s.id = ?1 AND s.expires_at > ?2`,
-      params: [await sha256Hex(token), now],
-    },
-  );
+    params: [await sha256Hex(token), now],
+  });
   const row = rows[0];
   if (!row) return null;
-  return { id: row.id, email: row.email, displayName: row.display_name };
+  return { id: row.id, email: row.email, displayName: row.display_name, timezone: row.timezone };
 }
 
 export async function endOrganizerSession(db: SqlDatabase, token: string | null | undefined): Promise<void> {

@@ -1,0 +1,82 @@
+---
+/** Settings: your profile and defaults, your devices, your organizations, and your data. Organization details are on the Organization page. */
+import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
+import PageTitle from '../../../components/organizer/PageTitle.astro';
+import SettingsProfileCard from '../../../components/organizer/SettingsProfileCard.astro';
+import SettingsSessionsCard from '../../../components/organizer/SettingsSessionsCard.astro';
+import SettingsOrganizationsCard from '../../../components/organizer/SettingsOrganizationsCard.astro';
+import SettingsDataCard from '../../../components/organizer/SettingsDataCard.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
+import { requireSameOrigin } from '@gamo/auth';
+import { listOrganizerSessions, type SettingsErrors, type SettingsInput } from '@gamo/domain';
+import { organizerPage, readCookie, SESSION_COOKIE } from '../../../lib/organizer-session';
+import { SETTINGS_FLASH, runSettingsAction } from '../../../lib/settings-page';
+
+export const prerender = false;
+
+let ctx;
+try {
+  ctx = await organizerPage(Astro, { needOrganization: false });
+} catch {
+  ctx = null;
+}
+if (ctx instanceof Response) return ctx;
+if (!ctx) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
+const { live, organizer, memberships, active, now } = ctx;
+const sessionToken = readCookie(Astro.request, SESSION_COOKIE);
+
+let errors: SettingsErrors = {};
+let values: SettingsInput = { displayName: organizer.displayName ?? '', timezone: organizer.timezone ?? '' };
+if (Astro.request.method === 'POST') {
+  try {
+    requireSameOrigin(Astro.request);
+  } catch {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const result = await runSettingsAction({
+    live,
+    organizer,
+    form: await Astro.request.formData(),
+    sessionToken,
+  });
+  if (result.flash) return flashRedirect(Astro, '/organizer/settings', result.flash);
+  if (result.errors) {
+    errors = result.errors;
+    values = result.values ?? values;
+  }
+}
+const notice = readFlash(Astro, SETTINGS_FLASH);
+const sessions = await listOrganizerSessions(live.db, organizer.id, sessionToken, now);
+const problems = Object.values(errors);
+---
+
+<OrganizerLayout
+  title="Settings"
+  current="settings"
+  organizer={organizer}
+  memberships={memberships}
+  active={active}
+>
+  <PageTitle title="Settings" subtext="Your profile, your devices and your data." />
+  {notice && (
+    <Notice tone="success" class="mb-3">
+      {notice}
+    </Notice>
+  )}
+  {problems.length > 0 && (
+    <Notice tone="danger" class="mb-3">
+      {problems[0]}
+    </Notice>
+  )}
+  <div class="grid items-start gap-3 lg:grid-cols-2">
+    <div class="space-y-3">
+      <SettingsProfileCard email={organizer.email} values={values} errors={errors} />
+      <SettingsSessionsCard sessions={sessions} timeZone={organizer.timezone ?? 'America/Phoenix'} />
+    </div>
+    <div class="space-y-3">
+      <SettingsOrganizationsCard memberships={memberships} activeId={active?.organizationId ?? null} />
+      <SettingsDataCard email={organizer.email} />
+    </div>
+  </div>
+</OrganizerLayout>

@@ -2,9 +2,18 @@
 /** B4: all of the organization's events, filterable by status and searchable. */
 import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../components/organizer/PageTitle.astro';
-import Panel from '../../../components/organizer/Panel.astro';
-import EventStatusPill from '../../../components/organizer/EventStatusPill.astro';
-import { EVENT_STATUS_LABELS, listOrganizerEvents, organizationCounts } from '@gamo/domain';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
+import EventRow from '../../../components/organizer/EventRow.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import {
+  EVENT_FILTER_LABELS,
+  EVENT_STATUS_LABELS,
+  WAITING_FILTER,
+  countWaitingEvents,
+  listOrganizerEvents,
+  organizationCounts,
+} from '@gamo/domain';
 import { organizerPage } from '../../../lib/organizer-session';
 import { whenLabel } from '../../../lib/organizer-format';
 
@@ -26,9 +35,24 @@ const [events, counts] = await Promise.all([
   organizationCounts(live.db, active.organizationId, now),
 ]);
 const total = Object.values(counts.eventsByStatus).reduce((a, b) => a + b, 0);
-const filters = ['', ...Object.keys(EVENT_STATUS_LABELS).filter((s) => (counts.eventsByStatus[s] ?? 0) > 0)];
+const waitingCount = countWaitingEvents(counts.eventsByStatus);
+const filters = [
+  '',
+  ...(waitingCount > 0 ? [WAITING_FILTER] : []),
+  ...Object.keys(EVENT_STATUS_LABELS).filter((s) => (counts.eventsByStatus[s] ?? 0) > 0),
+];
+const countFor = (s: string) => (s === WAITING_FILTER ? waitingCount : counts.eventsByStatus[s]);
 const href = (s: string) =>
   `/organizer/events${s || q ? `?${new URLSearchParams({ ...(s ? { status: s } : {}), ...(q ? { q } : {}) })}` : ''}`;
+const chips =
+  total > 0
+    ? filters.map((s) => ({
+        label: s ? EVENT_FILTER_LABELS[s] : 'All',
+        href: href(s),
+        active: status === s,
+        count: s ? countFor(s) : total,
+      }))
+    : [];
 ---
 
 <OrganizerLayout
@@ -40,87 +64,51 @@ const href = (s: string) =>
 >
   <div class="flex flex-wrap items-start justify-between gap-4">
     <PageTitle title="Events" subtext={`Everything ${active.name} has listed on Gamo Live.`} />
-    {active.status === 'active' && (
-      <a
-        href="/organizer/events/new"
-        class="inline-flex min-h-12 items-center rounded-full bg-terracotta px-6 text-[15px] font-semibold text-white hover:bg-terracotta-deep"
-      >
-        Create event
-      </a>
-    )}
+    {active.status === 'active' && <Button href="/organizer/events/new">Create event</Button>}
   </div>
-  <Panel id="list">
-    <form method="get" class="flex flex-wrap items-center gap-3" role="search">
-      {status && <input type="hidden" name="status" value={status} />}
-      <label for="q" class="sr-only">
-        Search your events
-      </label>
-      <input
-        id="q"
-        name="q"
-        type="search"
-        value={q}
-        placeholder="Search by title or venue"
-        class="min-h-11 min-w-[220px] flex-1 rounded-full border border-ink/30 bg-white px-5 text-[15px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
-      />
-      <button
-        type="submit"
-        class="min-h-11 rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
-      >
-        Search
-      </button>
-    </form>
-    {total > 0 && (
-      <nav aria-label="Filter by status" class="mt-4 flex flex-wrap gap-2">
-        {filters.map((s) => (
-          <a
-            href={href(s)}
-            aria-current={status === s ? 'page' : undefined}
-            class:list={[
-              'inline-flex min-h-11 items-center rounded-full px-4 text-[14px] font-semibold',
-              status === s ? 'bg-ink text-white' : 'bg-sand text-ink hover:bg-tan',
-            ]}
-          >
-            {s ? EVENT_STATUS_LABELS[s] : 'All'}
-            {s ? ` (${counts.eventsByStatus[s]})` : ` (${total})`}
-          </a>
-        ))}
-      </nav>
-    )}
+  <div class="space-y-3">
+    <Toolbar
+      search={{
+        label: 'Search your events',
+        value: q,
+        placeholder: 'Search by title or venue',
+        keep: { status },
+      }}
+      groups={[{ label: 'Filter by status', items: chips }]}
+    />
     {events.length === 0 ? (
-      <p class="mt-6 text-[15px] leading-relaxed text-ink">
-        {total === 0
-          ? 'You have not created an event yet. Create your first one to list it on Gamo Live.'
-          : 'No events match that search or filter.'}
-      </p>
+      <EmptyState
+        title={total === 0 ? 'No events yet' : 'No events match'}
+        text={
+          total === 0
+            ? 'Create your first event to list it on Gamo Live.'
+            : 'Nothing matches that search or filter. Clear it to see everything.'
+        }
+      >
+        {total === 0 && active.status === 'active' && (
+          <Button href="/organizer/events/new">Create event</Button>
+        )}
+      </EmptyState>
     ) : (
-      <ul class="mt-6 divide-y divide-sand">
-        {events.map((e) => {
-          const shown = e.nextStartsAt ?? e.firstStartsAt;
-          return (
-            <li class="py-4">
-              <a
-                href={`/organizer/events/${e.id}`}
-                class="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-2 hover:bg-sand/50"
-              >
-                <span class="min-w-0">
-                  <span class="block truncate text-[17px] font-bold text-ink">{e.title}</span>
-                  <span class="block text-[14px] text-muted">
-                    {shown ? whenLabel(shown, e.timezone) : 'No date'}
-                    {e.occurrenceCount > 1 ? ` · ${e.occurrenceCount} dates` : ''} · {e.venueName}, {e.city}
-                  </span>
-                  {e.admission === 'free_registration' && (
-                    <span class="block text-[13px] text-muted">
-                      {e.peopleRegistered} {e.peopleRegistered === 1 ? 'person' : 'people'} registered
-                    </span>
-                  )}
-                </span>
-                <EventStatusPill status={e.status} />
-              </a>
-            </li>
-          );
-        })}
+      <ul class="space-y-2">
+        {events.map((e) => (
+          <li>
+            <EventRow
+              id={e.id}
+              title={e.title}
+              whenText={
+                (e.nextStartsAt ?? e.firstStartsAt)
+                  ? whenLabel((e.nextStartsAt ?? e.firstStartsAt)!, e.timezone)
+                  : 'No date'
+              }
+              place={`${e.venueName}, ${e.city}`}
+              dates={e.occurrenceCount}
+              status={e.status}
+              registered={e.admission === 'free_registration' ? e.peopleRegistered : null}
+            />
+          </li>
+        ))}
       </ul>
     )}
-  </Panel>
+  </div>
 </OrganizerLayout>
