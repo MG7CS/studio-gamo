@@ -2,14 +2,12 @@
 /** Gamo Live editorial catalog: approve, hide and feature the external listings. Import stays a script. */
 import AdminLayout from '../layouts/AdminLayout.astro';
 import CatalogList from '../components/CatalogList.astro';
-import LiveTabs from '../components/LiveTabs.astro';
 import ScheduleCalendar from '../components/ScheduleCalendar.astro';
 import ScheduleDay from '../components/ScheduleDay.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listAdminCatalog } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
-import { loadCounts } from '../lib/inbox';
 import { handleCatalogForm, outcomeFrom } from '../lib/live-admin';
 import { loadAdminSchedule } from '../lib/schedule';
 
@@ -27,7 +25,6 @@ try {
 } catch (e) {
   console.error(`[admin] catalog unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
-const counts = await loadCounts(env);
 const schedule = rows ? await loadAdminSchedule(env, 'catalog', Astro.url) : null;
 const outcome = outcomeFrom(Astro.url);
 ---
@@ -37,7 +34,6 @@ const outcome = outcomeFrom(Astro.url);
     title="Catalog"
     description="Real events Gamo lists for discovery, each with its source and the organizer’s own ticket page. Gamo never sells these tickets. Featured is editorial and always labeled."
   />
-  <LiveTabs current="catalog" counts={counts} />
   {outcome && (
     <Notice tone="success" class="mb-5">
       {outcome}

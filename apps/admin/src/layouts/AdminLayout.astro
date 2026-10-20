@@ -9,6 +9,7 @@ import '@studio-gamo/ui/styles/interactions.css';
 import HeadIcons from '@studio-gamo/ui/components/HeadIcons.astro';
 import FontPreload from '@studio-gamo/ui/components/FontPreload.astro';
 import BottomBar from '../components/BottomBar.astro';
+import SectionTabs from '../components/SectionTabs.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TopBar from '../components/TopBar.astro';
 import { getRuntimeEnv } from '@gamo/domain';
@@ -61,6 +62,7 @@ const counts = email ? await loadCounts(await getRuntimeEnv(Astro)) : null;
               id="admin-main"
               class="mx-auto w-full max-w-[1100px] px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pt-6"
             >
+              {current && <SectionTabs current={current} counts={counts} />}
               <slot />
             </main>
           </div>

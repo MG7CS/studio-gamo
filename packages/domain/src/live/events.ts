@@ -785,6 +785,8 @@ export interface ScheduledDate {
   canceled: boolean;
   /** People confirmed for this date (registration events). */
   confirmedPeople: number;
+  /** The event's check-in settings, so the schedule can offer "Check in" while the door is open. */
+  checkIn?: { enabled: boolean; opensHours: number; openedAt: number | null };
 }
 
 /**
@@ -798,6 +800,7 @@ export async function listOrganizationSchedule(
 ): Promise<ScheduledDate[]> {
   const rows = await allRows<Record<string, unknown>>(db, {
     sql: `SELECT o.id, o.event_id, e.title, e.status, e.timezone, o.starts_at, o.ends_at, o.status AS occ_status,
+                 e.qr_checkin, e.checkin_opens_hours, o.checkin_opened_at,
                  COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed'), 0) AS confirmed
             FROM event_occurrences o JOIN events e ON e.id = o.event_id
            WHERE e.organization_id = ?1 AND e.status IN ('published', 'pending_review', 'changes_requested')
@@ -814,6 +817,11 @@ export async function listOrganizationSchedule(
     endsAt: r.ends_at == null ? null : Number(r.ends_at),
     canceled: r.occ_status === 'canceled',
     confirmedPeople: Number(r.confirmed),
+    checkIn: {
+      enabled: Number(r.qr_checkin) === 1,
+      opensHours: Number(r.checkin_opens_hours ?? 3),
+      openedAt: r.checkin_opened_at == null ? null : Number(r.checkin_opened_at),
+    },
   }));
 }
 

@@ -1,0 +1,29 @@
+---
+/**
+ * The screens of the current area as chips at the top of each of them, with each queue's real count. Areas with one
+ * screen (Overview, Legal) draw nothing. This is how related screens are grouped instead of crowding the sidebar.
+ */
+import FilterChips from '@studio-gamo/ui/components/ui/FilterChips.astro';
+import { sectionOf, tabCount, type NavKey } from '../lib/nav';
+import type { QueueCounts } from '../lib/inbox';
+
+interface Props {
+  current: NavKey;
+  counts: QueueCounts | null;
+}
+const { current, counts } = Astro.props;
+const section = sectionOf(current);
+---
+
+{section && section.tabs.length > 1 && (
+  <FilterChips
+    label={section.label}
+    class="mb-4"
+    items={section.tabs.map((t) => ({
+      label: t.label,
+      href: t.href,
+      active: t.key === current,
+      count: tabCount(t, counts) ?? undefined,
+    }))}
+  />
+)}

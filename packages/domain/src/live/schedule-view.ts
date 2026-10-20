@@ -10,7 +10,7 @@ import {
   readCalendarState,
   type CalendarModel,
 } from '../calendar.ts';
-import type { ScheduledDate } from './events.ts';
+import { checkInWindow, type ScheduledDate } from './events.ts';
 
 export interface ScheduleDayItem {
   id: string;
@@ -23,6 +23,18 @@ export interface ScheduleDayItem {
   confirmedPeople: number;
   /** The event's page, opened on this date. */
   href: string;
+  /** The door is open for this date now: the person can go straight to check-in. */
+  checkInOpen: boolean;
+  checkInHref: string;
+}
+
+/** A date whose check-in is open right now (shown first on the overview, one press from the door). */
+export interface OpenCheckIn {
+  occurrenceId: string;
+  eventId: string;
+  title: string;
+  timeLabel: string;
+  href: string;
 }
 
 export interface OrganizationScheduleView {
@@ -32,6 +44,8 @@ export interface OrganizationScheduleView {
   items: ScheduleDayItem[];
   total: number;
   upcoming: number;
+  /** Dates of public events whose check-in is open now, soonest first. */
+  openNow: OpenCheckIn[];
 }
 
 const timeOf = (epoch: number, timeZone: string) =>
@@ -69,6 +83,14 @@ export function organizationScheduleView(input: {
     href: (s) => `${calendarQuery(s)}${anchor}`,
   });
   const onDay = chosenDate ? (data.byDay.get(chosenDate) ?? []) : [];
+  const doorOpen = (d: ScheduledDate) =>
+    d.status === 'published' &&
+    !d.canceled &&
+    !!d.checkIn?.enabled &&
+    checkInWindow(
+      { startsAt: d.startsAt, opensHours: d.checkIn.opensHours, openedAt: d.checkIn.openedAt },
+      input.now,
+    ).open;
   return {
     model,
     chosenDate,
@@ -91,8 +113,17 @@ export function organizationScheduleView(input: {
       past: (d.endsAt ?? d.startsAt) <= input.now,
       confirmedPeople: d.confirmedPeople,
       href: `/organizer/events/${d.eventId}?date=${chosenDate}#calendar`,
+      checkInOpen: doorOpen(d),
+      checkInHref: `/organizer/check-in/${d.id}`,
     })),
     total: input.dates.length,
     upcoming: input.dates.filter((d) => !d.canceled && (d.endsAt ?? d.startsAt) > input.now).length,
+    openNow: input.dates.filter(doorOpen).map((d) => ({
+      occurrenceId: d.id,
+      eventId: d.eventId,
+      title: d.title,
+      timeLabel: timeOf(d.startsAt, d.timeZone),
+      href: `/organizer/check-in/${d.id}`,
+    })),
   };
 }

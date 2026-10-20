@@ -1,0 +1,32 @@
+---
+/**
+ * Shown on the overview only while a date's check-in is open: the shortest way from "the event is happening" to the
+ * door. One button per open date, nothing else.
+ */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import type { OpenCheckIn } from '@gamo/domain';
+
+interface Props {
+  open: OpenCheckIn[];
+}
+const { open } = Astro.props;
+---
+
+{open.length > 0 && (
+  <Panel id="check-in-now" title="Check-in is open" description="People can be checked in at the door now.">
+    <ul class="space-y-2">
+      {open.map((o) => (
+        <li class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-cream/60 p-3">
+          <span class="min-w-0">
+            <span class="block truncate text-[14px] font-semibold text-ink">{o.title}</span>
+            <span class="block text-[13px] text-muted">Starts {o.timeLabel}</span>
+          </span>
+          <Button href={o.href}>
+            Check in<span class="sr-only"> for {o.title}</span>
+          </Button>
+        </li>
+      ))}
+    </ul>
+  </Panel>
+)}

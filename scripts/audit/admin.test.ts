@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/db/testing.ts';
 import { createSqliteD1 } from '../../packages/db/testing.ts';
 import { checkGate, isLocalRuntime } from '../../apps/admin/src/lib/gate.ts';
-import { NAV_ITEMS } from '../../apps/admin/src/lib/nav.ts';
+import { SECTIONS, sectionBadge, sectionOf, tabCount } from '../../apps/admin/src/lib/nav.ts';
 import { loadInbox, tallyCounts } from '../../apps/admin/src/lib/inbox.ts';
 import {
   handleReply,
@@ -960,17 +960,60 @@ function sources(dir = APP): { path: string; text: string }[] {
   });
 }
 
-test('navigation lists only screens that exist', () => {
-  for (const item of NAV_ITEMS) {
-    const candidates =
-      item.href === '/'
-        ? [`${APP}/pages/index.astro`]
-        : [`${APP}/pages${item.href}.astro`, `${APP}/pages${item.href}/index.astro`];
-    assert.ok(
-      candidates.some((file) => existsSync(file)),
-      `${item.href} has no page`,
-    );
+test('navigation lists only screens that exist, groups them into a few areas, and never repeats a screen', () => {
+  assert.ok(
+    SECTIONS.length >= 3 && SECTIONS.length <= 6,
+    'the sidebar holds a handful of areas, not every screen',
+  );
+  const seen = new Set<string>();
+  for (const section of SECTIONS) {
+    assert.equal(section.href, section.tabs[0].href, `${section.key} opens on its first screen`);
+    for (const tab of section.tabs) {
+      assert.ok(!seen.has(tab.key), `${tab.key} is in more than one area`);
+      seen.add(tab.key);
+      const candidates =
+        tab.href === '/'
+          ? [`${APP}/pages/index.astro`]
+          : [`${APP}/pages${tab.href}.astro`, `${APP}/pages${tab.href}/index.astro`];
+      assert.ok(
+        candidates.some((file) => existsSync(file)),
+        `${tab.href} has no page`,
+      );
+    }
   }
+});
+
+test('areas and tabs: each screen belongs to its area; badges and tab counts are real numbers only', () => {
+  assert.equal(sectionOf('churches')?.key, 'community');
+  assert.equal(sectionOf('catalog')?.key, 'live');
+  assert.equal(sectionOf('maintenance')?.key, 'live', 'cleanup is a tab of Gamo Live, not a menu item');
+  assert.equal(sectionOf('overview')?.key, 'overview');
+  assert.equal(sectionOf(null), null);
+  const community = SECTIONS.find((s) => s.key === 'community')!;
+  const live = SECTIONS.find((s) => s.key === 'live')!;
+  const counts = { participation: 2, churches: 1, providers: 2, events: 3, organizations: 0, catalog: 1 };
+  assert.equal(sectionBadge(community, counts), 5);
+  assert.equal(sectionBadge(live, counts), 4);
+  assert.equal(sectionBadge(SECTIONS[0], counts), null, 'Overview has no queue');
+  assert.equal(sectionBadge(live, null), null, 'no counts read, no badge');
+  assert.equal(sectionBadge(live, { ...counts, events: Number.NaN, organizations: -1, catalog: 0 }), null);
+  const organizations = live.tabs.find((t) => t.key === 'organizations')!;
+  assert.equal(tabCount(organizations, counts), null, 'zero is not drawn');
+  assert.equal(
+    tabCount(
+      live.tabs.find((t) => t.key === 'events')!,
+      counts,
+    ),
+    3,
+  );
+  assert.equal(
+    tabCount(
+      live.tabs.find((t) => t.key === 'maintenance')!,
+      counts,
+    ),
+    null,
+    'cleanup has no queue',
+  );
 });
 
 test('every page renders through AdminLayout; no public layout, demo shell or sessions', () => {

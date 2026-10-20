@@ -20,6 +20,8 @@ export * from './live/organization-setup.ts';
 export * from './calendar.ts';
 export * from './live/organization-page.ts';
 export * from './live/settings.ts';
+export * from './live/checkin-view.ts';
+export * from './live/event-page-view.ts';
 export * from './live/admin-schedule.ts';
 export * from './live/schedule-view.ts';
 export * from './live/register-form.ts';

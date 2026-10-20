@@ -106,11 +106,11 @@ test('links go to where Gamo decides', () => {
   );
   assert.equal(
     adminEventHref({ source: 'organizer', status: 'published', eventId: 'e1' }),
-    '/events#published-e1',
+    '/events?view=published#published-e1',
   );
   assert.equal(
     adminEventHref({ source: 'organizer', status: 'hidden', eventId: 'e1' }),
-    '/events#published-e1',
+    '/events?view=published#published-e1',
   );
 });
 

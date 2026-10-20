@@ -5,8 +5,10 @@ import PageTitle from '../../components/organizer/PageTitle.astro';
 import StatCard from '../../components/organizer/StatCard.astro';
 import ScheduleCalendar from '../../components/organizer/ScheduleCalendar.astro';
 import ScheduleDay from '../../components/organizer/ScheduleDay.astro';
+import CheckInNowCard from '../../components/organizer/CheckInNowCard.astro';
 import OrganizationSummaryCard from '../../components/organizer/OrganizationSummaryCard.astro';
 import EventsShortcutCard from '../../components/organizer/EventsShortcutCard.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import {
   countWaitingEvents,
@@ -45,17 +47,25 @@ const schedule = organizationScheduleView({
   memberships={memberships}
   active={active}
 >
-  <PageTitle
-    title={`Welcome, ${organizer.displayName?.split(' ')[0] || 'organizer'}`}
-    subtext={`Here is where ${active.name} stands on Gamo Live.`}
-  />
+  <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+    <PageTitle
+      title={`Welcome, ${organizer.displayName?.split(' ')[0] || 'organizer'}`}
+      subtext={`Here is where ${active.name} stands on Gamo Live.`}
+    />
+    {active.status === 'active' && (
+      <Button href="/organizer/events/new" class="mt-1">
+        Create event
+      </Button>
+    )}
+  </div>
   {active.status === 'suspended' && (
     <SplitNotice tone="error">
       This organization is suspended, so its events are hidden. Write to hello@gamostudio.org to ask why and
       what to do next.
     </SplitNotice>
   )}
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <CheckInNowCard open={schedule.openNow} />
+  <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <StatCard
       label="Published events"
       tone="terracotta"

@@ -3,6 +3,7 @@
 import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../../components/organizer/PageTitle.astro';
 import EventEditor from '../../../../components/organizer/EventEditor.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import { getOrganizerEvent, reviewRuleFor } from '@gamo/domain';
@@ -59,6 +60,14 @@ const rule = await reviewRuleFor(live.db, active.organizationId);
   memberships={memberships}
   active={active}
 >
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Edit' },
+    ]}
+  />
   <PageTitle title="Edit event" subtext={event.values.title} />
   {!editable && <SplitNotice>This event can no longer be edited.</SplitNotice>}
   {event.status === 'published' && rule !== 'none' && (

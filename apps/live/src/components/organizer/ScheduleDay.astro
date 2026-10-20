@@ -1,5 +1,6 @@
 ---
 /** The chosen day of the schedule: the events on it, each a link to the event on that date. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
 import type { OrganizationScheduleView } from '@gamo/domain';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
@@ -29,10 +30,10 @@ const pillFor = (i: OrganizationScheduleView['items'][number]) =>
       {view.items.map((i) => {
         const pill = pillFor(i);
         return (
-          <li>
+          <li class="rounded-xl bg-cream/60 p-3 hover:bg-cream">
             <a
               href={i.href}
-              class="block rounded-xl bg-cream/60 p-3 hover:bg-cream focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
+              class="block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta"
             >
               <span class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-[14px] font-semibold text-ink">{i.title}</span>
@@ -43,6 +44,11 @@ const pillFor = (i: OrganizationScheduleView['items'][number]) =>
                 {i.confirmedPeople > 0 ? ` · ${i.confirmedPeople} registered` : ''}
               </span>
             </a>
+            {i.checkInOpen && (
+              <Button href={i.checkInHref} class="mt-2">
+                Check in
+              </Button>
+            )}
           </li>
         );
       })}

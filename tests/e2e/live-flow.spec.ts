@@ -418,6 +418,26 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.getByRole('link', { name: /^Registrations/ }).click();
     await expect(page.getByText(first.name, { exact: true })).toBeVisible();
     await expectAccessible(page, '/organizer/events/<id>/registrations');
+    // Each registration is its own card with a status; the toolbar, the numbers and the way back are separate cards.
+    await expect(
+      page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Events' }),
+    ).toBeVisible();
+    await expect(
+      page.locator('li').filter({ hasText: first.email }).getByText('Confirmed', { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText('People confirmed')).toBeVisible();
+    await page.getByLabel('Search name or email').fill(first.email);
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(page.getByText(first.name, { exact: true })).toBeVisible();
+    await page.getByLabel('Search name or email').fill('nobody-by-this-name');
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(page.getByText('No registrations match')).toBeVisible();
+    await page.getByRole('link', { name: 'Show everyone' }).click();
+    await expect(page.getByText(first.name, { exact: true })).toBeVisible();
+    // Canceling a registration asks first and shows what will happen; nothing is canceled by opening it.
+    await page.getByText('Cancel registration…').first().click();
+    await expect(page.getByText(/is emailed and their seat is free again/)).toBeVisible();
+    await expect(page.getByText('Canceled the registration for')).toHaveCount(0);
     const csv = await page.request.get(page.url().replace(/\/registrations.*$/, '/registrations.csv'));
     expect(csv.status()).toBe(200);
     expect(await csv.text()).toContain(first.email);
@@ -445,6 +465,18 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.getByLabel('Check-in code').fill('ZZZZZZZZZZ');
     await page.getByRole('button', { name: 'Check in' }).click();
     await expect(page.getByText('That code is not on this event’s list.')).toBeVisible();
+    await expect(
+      page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Events' }),
+    ).toBeVisible();
+
+    // The door is open, so the overview offers check-in first, one press away; Create event is on the overview too.
+    await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
+    await expect(page.getByRole('heading', { name: 'Check-in is open' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Create event' })).toBeVisible();
+    await expectAccessible(page, '/organizer (check-in open)');
+    await page.getByRole('link', { name: /^Check in for/ }).click();
+    await expect(page).toHaveURL(/\/organizer\/check-in\/occ_/);
+    await expect(page.getByRole('heading', { name: 'Check-in is open' })).toBeVisible();
   });
 
   await test.step('canceling the event cancels the registration and emails the guest', async () => {
