@@ -451,6 +451,20 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
     await page.getByRole('button', { name: 'Publish event' }).click();
     await expect(page.getByText('Published. It is now on Gamo Live.')).toBeVisible();
     await expect(page.getByRole('heading', { name: /^Dates \(\d+\)$/ })).toContainText(/\((3|4|5)\)/);
+    // The dates are a calendar, not a long list: the chosen day's details sit under it.
+    const dates = page.locator('#dates');
+    await expect(dates.getByRole('table')).toBeVisible();
+    await expect(dates.getByText('Upcoming', { exact: true }).first()).toBeVisible();
+    const upcomingDays = dates.getByRole('link', { name: /, upcoming$/ });
+    expect(await upcomingDays.count()).toBeGreaterThan(0);
+    await expectAccessible(page, '/organizer/events/<series>');
+    await shot(page, 'organizer-event-series');
+    // Canceling one date leaves the series; that day turns to "canceled".
+    await dates.getByText('Cancel this date…').click();
+    await dates.getByRole('button', { name: 'Yes, cancel this date' }).click();
+    await expect(page.getByText(/That date is canceled/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Dates \(\d+\)$/ })).toContainText(/\((3|4|5)\)/);
+    await expect(dates.getByRole('link', { name: /, canceled$/ }).first()).toBeVisible();
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText(series).first()).toBeVisible();
   });

@@ -1,0 +1,126 @@
+---
+/**
+ * A month calendar that shows which days matter and links only those days. No JavaScript: moving between months and
+ * choosing a day are plain links, so it works anywhere a page can be rendered and the address always says what is
+ * showing. It only draws what its caller computed (the weeks, the day states, the links), so the same component serves
+ * an event's dates, a booking calendar or an availability picker.
+ *
+ * Day states: `upcoming` is a filled day, `past` a quiet one, `canceled` struck through; `selected` adds a ring and
+ * `today` an underline. Every linked day is at least 44 px square and carries a full written label for screen readers.
+ */
+export interface CalendarDay {
+  /** YYYY-MM-DD. */
+  iso: string;
+  day: number;
+  inMonth: boolean;
+  state?: 'upcoming' | 'past' | 'canceled';
+  selected?: boolean;
+  today?: boolean;
+  /** Only days that can be opened are links. */
+  href?: string;
+  /** Spoken label for a linked day, e.g. "Sunday, October 25, 2026, upcoming". */
+  label?: string;
+}
+interface Props {
+  /** The month shown, e.g. "November 2026". */
+  title: string;
+  weeks: CalendarDay[][];
+  prevHref?: string;
+  nextHref?: string;
+  /** Short column headings, first column first. */
+  weekdays?: string[];
+  class?: string;
+}
+const {
+  title,
+  weeks,
+  prevHref,
+  nextHref,
+  weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+  class: className,
+} = Astro.props;
+const arrow =
+  'inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-white text-ink hover:bg-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta';
+const arrowOff =
+  'inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 text-ink/30';
+const longDate = (iso: string) =>
+  new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'UTC' }).format(
+    new Date(`${iso}T12:00:00Z`),
+  );
+const stateWord = { upcoming: 'upcoming', past: 'past', canceled: 'canceled' } as const;
+const cell =
+  'mx-auto flex h-11 w-11 items-center justify-center rounded-full text-[14px] font-semibold tabular-nums';
+const look = (d: CalendarDay) => [
+  cell,
+  d.state === 'upcoming' && 'bg-terracotta-deep text-white',
+  d.state === 'past' && 'bg-sand text-ink',
+  d.state === 'canceled' && 'bg-status-danger-soft text-status-danger line-through',
+  !d.state && 'font-medium text-muted',
+  d.selected && 'ring-2 ring-ink ring-offset-2 ring-offset-white',
+  d.today && !d.selected && 'underline decoration-2 underline-offset-4',
+  d.href &&
+    'hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+];
+---
+
+<div class={className}>
+  <div class="mb-2 flex items-center justify-between gap-2">
+    {prevHref ? (
+      <a href={prevHref} class={arrow} aria-label="Previous month">
+        <span aria-hidden="true">←</span>
+      </a>
+    ) : (
+      <span class={arrowOff} aria-hidden="true">
+        ←
+      </span>
+    )}
+    <h3 class="text-[15px] font-bold text-ink" aria-live="polite">
+      {title}
+    </h3>
+    {nextHref ? (
+      <a href={nextHref} class={arrow} aria-label="Next month">
+        <span aria-hidden="true">→</span>
+      </a>
+    ) : (
+      <span class={arrowOff} aria-hidden="true">
+        →
+      </span>
+    )}
+  </div>
+  <table class="w-full border-separate border-spacing-y-1 text-center">
+    <caption class="sr-only">{title}</caption>
+    <thead>
+      <tr>
+        {weekdays.map((w) => (
+          <th scope="col" class="pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+            {w}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {weeks.map((week) => (
+        <tr>
+          {week.map((d) => (
+            <td class="p-0">
+              {!d.inMonth ? (
+                <span class="block h-11" aria-hidden="true" />
+              ) : d.href ? (
+                <a
+                  href={d.href}
+                  class:list={look(d)}
+                  aria-current={d.selected ? 'date' : undefined}
+                  aria-label={d.label ?? `${longDate(d.iso)}${d.state ? `, ${stateWord[d.state]}` : ''}`}
+                >
+                  {d.day}
+                </a>
+              ) : (
+                <span class:list={look(d)}>{d.day}</span>
+              )}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
