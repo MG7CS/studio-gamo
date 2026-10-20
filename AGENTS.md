@@ -57,6 +57,7 @@ Persistent instructions for anyone (person or agent) working in this repository.
 - One design system, defined in [`DESIGN.md`](DESIGN.md) and the tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`, tan `#D8C5AE`); Inter, self-hosted.
 - Every page: exactly one `<h1>`, interactive targets at least 44 × 44 px, axe WCAG 2.2 AA clean (serious/critical), no horizontal overflow at 360 px.
 - Marketing pages follow the cinematic editorial design and the approved references in `design-reference/` (homepage sections `design-reference/homepage/02-…07-`, approved hero preserved). Rebuild screens get their own approved design before they are built.
+- **Split-screen pages (sign-in, sign-up, registration, confirmation, organizer set-up, invitations) never scroll on desktop.** The page is exactly one screen tall, content centered, photo on the left. If the fields do not fit, reduce type and spacing a little, then split the form into steps instead of shrinking further: a thin progress bar with "Step N of M", a Next button, a Back link, each step a server-rendered page that validates its own fields and keeps earlier answers. Phones may scroll. Check at laptop heights (about 700 and 900 px) before calling any such page done.
 - **Admin:** claymorphism shapes and shadows from `design-reference/claymorphism-admin-ui/` in the same palette, full-page layout, collapsible sidebar, Gamo Studios logo with an "Admin" label, **no gradients anywhere**.
 
 ## 6. Admin access (permanent)

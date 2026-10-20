@@ -25,12 +25,16 @@ import {
   sendLiveEmail,
   startRegistration,
   ticketView,
+  readRegisterStep,
+  stepOfFirstError,
+  validateRegisterDetails,
   validateRegisterForm,
   verifyManageToken,
   waitPhrase,
   type LiveEventDetail,
   type RegisterField,
   type RegisterFormValues,
+  type RegisterStep,
   type RegistrationView,
   type TicketView,
 } from '@gamo/domain';
@@ -51,6 +55,7 @@ export type RegisterOutcome =
   | { kind: 'redirect'; location: string }
   | {
       kind: 'form';
+      step: RegisterStep;
       values: RegisterFormValues;
       occurrenceId: string;
       errors: Partial<Record<RegisterField, string>>;
@@ -72,6 +77,7 @@ export async function submitRegistration(
   });
   const back = (extra: Partial<Extract<RegisterOutcome, { kind: 'form' }>> = {}): RegisterOutcome => ({
     kind: 'form',
+    step: stepOfFirstError(checked.errors),
     values: checked.values,
     occurrenceId: checked.occurrenceId,
     errors: checked.errors,
@@ -79,6 +85,16 @@ export async function submitRegistration(
     unavailable: false,
     ...extra,
   });
+  // Step 1 (name and email) and Back never submit anything: they only move between the two screens, keeping
+  // every answer. Only the second step's button registers.
+  const { step, back: goBack } = readRegisterStep(form);
+  const carry = (to: RegisterStep, errors: Partial<Record<RegisterField, string>> = {}): RegisterOutcome =>
+    back({ step: to, errors });
+  if (goBack) return carry(1);
+  if (step === 1) {
+    const details = validateRegisterDetails(form);
+    return details.ok ? carry(2) : carry(1, details.errors);
+  }
   if (!checked.ok) return back();
 
   const occurrence = event.occurrences.find((o) => o.id === checked.occurrenceId);

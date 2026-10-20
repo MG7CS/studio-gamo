@@ -174,3 +174,8 @@ Flash messages: `packages/ui/src/lib/flash.ts`. A POST handler ends with `return
 7. Checked at 360 and 390 px with safe-area padding, 44 px targets and 12 px minimum text, and no horizontal scroll.
 8. Plain, honest copy; never claim "Verified" unless an admin verified it; no invented numbers.
 9. Verified in a browser with axe (serious and critical violations are zero).
+
+
+## Split-screen pages: one screen, steps when needed
+
+Sign-in, sign-up, registration, confirmation, organizer set-up and invitation pages use the split layout (photo left, form right). On desktop they never scroll: the page is one screen tall and the form is centered. If the fields do not fit, tighten type and spacing slightly, then split the form into steps rather than shrinking further. Each step is a server-rendered page with a thin progress bar ("Step N of M"), a Next button and a Back link; it validates its own fields and carries earlier answers forward. Phones may scroll. Verify at laptop heights (about 700 and 900 px).

@@ -1,15 +1,19 @@
 ---
 /**
- * The guest registration form: date (only when there are several), name, email, number of people, consent.
- * Native controls and a plain POST; errors arrive from the server and are shown next to each field (the page
- * also lists them all at the top). Browser validation is off (`novalidate`) so the server's wording is the only one.
+ * The guest registration form, in two steps so it always fits one screen: 1 "Your details" (name, email) and
+ * 2 "Your seats" (date when there are several, number of people, consent). Both steps are server-rendered; the
+ * answers of the other step travel as hidden fields, so Next and Back lose nothing. Native controls and a plain
+ * POST; errors arrive from the server and are shown next to each field (the page also lists them at the top).
+ * Browser validation is off (`novalidate`) so the server's wording is the only one.
  */
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import { partySelectMax } from '@gamo/domain';
-import type { RegisterDateOption, RegisterField, RegisterFormValues } from '@gamo/domain';
+import StepProgress from '@studio-gamo/ui/components/split/StepProgress.astro';
+import { REGISTER_STEP_LABELS, partySelectMax } from '@gamo/domain';
+import type { RegisterDateOption, RegisterField, RegisterFormValues, RegisterStep } from '@gamo/domain';
 
 interface Props {
+  step: RegisterStep;
   options: RegisterDateOption[];
   selectedOccurrenceId: string;
   maxParty: number;
@@ -18,7 +22,7 @@ interface Props {
   termsUrl: string;
   privacyUrl: string;
 }
-const { options, selectedOccurrenceId, maxParty, values, errors, termsUrl, privacyUrl } = Astro.props;
+const { step, options, selectedOccurrenceId, maxParty, values, errors, termsUrl, privacyUrl } = Astro.props;
 const selected = options.find((o) => o.id === selectedOccurrenceId) ?? options[0];
 const peopleMax = partySelectMax(maxParty, options);
 const seatsText = (o: RegisterDateOption) =>
@@ -30,90 +34,115 @@ const seatsText = (o: RegisterDateOption) =>
 const link = 'font-semibold text-terracotta-deep underline';
 ---
 
-<form method="post" class="space-y-5" novalidate>
-  {options.length > 1 ? (
-    <SplitField id="occurrence" name="occurrence" label="Date" as="select" required error={errors.occurrence}>
-      {options.map((o) => (
-        <option value={o.id} selected={o.id === selected?.id} disabled={o.seatsLeft === 0}>
-          {o.label}
-          {seatsText(o)}
-        </option>
-      ))}
-    </SplitField>
-  ) : (
-    <input type="hidden" name="occurrence" value={options[0]?.id ?? ''} />
-  )}
-  <SplitField
-    id="name"
-    name="name"
-    label="Your name"
-    autocomplete="name"
-    maxlength={100}
-    required
-    value={values.name}
-    error={errors.name}
-  />
-  <SplitField
-    id="email"
-    name="email"
-    type="email"
-    inputmode="email"
-    label="Email address"
-    autocomplete="email"
-    placeholder="you@example.org"
-    required
-    value={values.email}
-    error={errors.email}
-    hint="We email you a 6-digit code to confirm."
-  />
-  <SplitField
-    id="partySize"
-    name="partySize"
-    label="Number of people"
-    as="select"
-    required
-    error={errors.partySize}
-  >
-    {Array.from({ length: peopleMax }, (_, i) => i + 1).map((n) => (
-      <option value={String(n)} selected={String(n) === values.partySize}>
-        {n}
-      </option>
-    ))}
-  </SplitField>
-  <p class="text-[13px] leading-relaxed text-muted">
-    We use your email to send your code and your registration link, and delete it 90 days after the event.
-  </p>
-  <div>
-    <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
-      <input
-        id="consent"
-        type="checkbox"
-        name="consent"
-        value="yes"
-        checked={values.consent}
+<form method="post" class="space-y-4 lg:space-y-3.5" novalidate>
+  <StepProgress step={step} total={REGISTER_STEP_LABELS.length} labels={REGISTER_STEP_LABELS} />
+  <input type="hidden" name="step" value={String(step)} />
+
+  {step === 1 ? (
+    <>
+      <SplitField
+        id="name"
+        name="name"
+        label="Your name"
+        autocomplete="name"
+        maxlength={100}
         required
-        aria-invalid={errors.consent ? 'true' : undefined}
-        aria-describedby={errors.consent ? 'consent-error' : undefined}
-        class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/50 accent-terracotta-deep"
+        value={values.name}
+        error={errors.name}
       />
-      <span>
-        I agree to the{' '}
-        <a class={link} href={termsUrl} target="_blank" rel="noopener noreferrer">
-          Site Terms<span class="sr-only"> (opens in a new tab)</span>
-        </a>{' '}
-        and have read the{' '}
-        <a class={link} href={privacyUrl} target="_blank" rel="noopener noreferrer">
-          Privacy Policy<span class="sr-only"> (opens in a new tab)</span>
-        </a>{' '}
-        (drafts, under legal review).
-      </span>
-    </label>
-    {errors.consent && (
-      <p id="consent-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
-        <span class="sr-only">Error: </span>
-        {errors.consent}
+      <SplitField
+        id="email"
+        name="email"
+        type="email"
+        inputmode="email"
+        label="Email address"
+        autocomplete="email"
+        placeholder="you@example.org"
+        required
+        value={values.email}
+        error={errors.email}
+        hint="We email you a 6-digit code to confirm."
+      />
+      {/* Answers from the other step, kept while someone goes Back and then Next again. */}
+      <input type="hidden" name="occurrence" value={selected?.id ?? ''} />
+      <input type="hidden" name="partySize" value={values.partySize} />
+      {values.consent && <input type="hidden" name="consent" value="yes" />}
+      <SplitButton label="Next" />
+    </>
+  ) : (
+    <>
+      <input type="hidden" name="name" value={values.name} />
+      <input type="hidden" name="email" value={values.email} />
+      {options.length > 1 ? (
+        <SplitField
+          id="occurrence"
+          name="occurrence"
+          label="Date"
+          as="select"
+          required
+          error={errors.occurrence}
+        >
+          {options.map((o) => (
+            <option value={o.id} selected={o.id === selected?.id} disabled={o.seatsLeft === 0}>
+              {o.label}
+              {seatsText(o)}
+            </option>
+          ))}
+        </SplitField>
+      ) : (
+        <input type="hidden" name="occurrence" value={options[0]?.id ?? ''} />
+      )}
+      <SplitField
+        id="partySize"
+        name="partySize"
+        label="Number of people"
+        as="select"
+        required
+        error={errors.partySize}
+      >
+        {Array.from({ length: peopleMax }, (_, i) => i + 1).map((n) => (
+          <option value={String(n)} selected={String(n) === values.partySize}>
+            {n}
+          </option>
+        ))}
+      </SplitField>
+      <p class="text-[13px] leading-relaxed text-muted">
+        We use your email to send your code and your registration link, and delete it 90 days after the event.
       </p>
-    )}
-  </div>
-  <SplitButton label="Email me a code" />
+      <div>
+        <label class="flex min-h-11 items-start gap-3 text-[14px] leading-relaxed text-ink">
+          <input
+            id="consent"
+            type="checkbox"
+            name="consent"
+            value="yes"
+            checked={values.consent}
+            required
+            aria-invalid={errors.consent ? 'true' : undefined}
+            aria-describedby={errors.consent ? 'consent-error' : undefined}
+            class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/50 accent-terracotta-deep"
+          />
+          <span>
+            I agree to the{' '}
+            <a class={link} href={termsUrl} target="_blank" rel="noopener noreferrer">
+              Site Terms<span class="sr-only"> (opens in a new tab)</span>
+            </a>{' '}
+            and have read the{' '}
+            <a class={link} href={privacyUrl} target="_blank" rel="noopener noreferrer">
+              Privacy Policy<span class="sr-only"> (opens in a new tab)</span>
+            </a>{' '}
+            (drafts, under legal review).
+          </span>
+        </label>
+        {errors.consent && (
+          <p id="consent-error" class="mt-1.5 text-[13px] font-semibold text-terracotta-deep">
+            <span class="sr-only">Error: </span>
+            {errors.consent}
+          </p>
+        )}
+      </div>
+      <SplitButton label="Email me a code" />
+      <SplitButton label="Back" name="nav" value="back" variant="quiet" />
+    </>
+  )}
 </form>

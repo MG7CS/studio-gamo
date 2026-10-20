@@ -21,6 +21,7 @@ import {
   type LiveEventDetail,
   type RegisterField,
   type RegisterFormValues,
+  type RegisterStep,
 } from '@gamo/domain';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { dateOptions, openLive, whenWhere } from '../../../../lib/registration';
@@ -36,6 +37,7 @@ let notice: Message | null = null;
 let errors: Partial<Record<RegisterField, string>> = {};
 let values: RegisterFormValues = { name: '', email: '', partySize: '1', consent: false };
 let selectedOccurrenceId = '';
+let step: RegisterStep = 1;
 
 try {
   const live = await openLive(Astro);
@@ -60,7 +62,7 @@ try {
       now,
     });
     if (outcome.kind === 'redirect') return Astro.redirect(outcome.location, 303);
-    ({ values, errors, notice, unavailable } = outcome);
+    ({ values, errors, notice, unavailable, step } = outcome);
     selectedOccurrenceId = outcome.occurrenceId;
   }
 } catch (error) {
@@ -112,6 +114,7 @@ const errorList = orderedErrors(errors).map((e) => ({ field: e.field, message: e
         )}
         {open && (
           <RegisterForm
+            step={step}
             options={options}
             selectedOccurrenceId={selectedOccurrenceId}
             maxParty={event.maxPartySize}
@@ -121,11 +124,14 @@ const errorList = orderedErrors(errors).map((e) => ({ field: e.field, message: e
             privacyUrl={siteUrl('web', '/legal/privacy-policy')}
           />
         )}
-        <div class="mt-6">
-          <Button variant="ghost" href={`/events/${event.slug}`} class="-ml-5">
-            Back to the event
-          </Button>
-        </div>
+        {/* On step 2 the form's own Back button goes to step 1, so the event link is only offered before that. */}
+        {!(open && step === 2) && (
+          <div class="mt-4 lg:mt-3">
+            <Button variant="ghost" href={`/events/${event.slug}`} class="-ml-5">
+              Back to the event
+            </Button>
+          </div>
+        )}
       </>
     )}
   </SplitScreenLayout>

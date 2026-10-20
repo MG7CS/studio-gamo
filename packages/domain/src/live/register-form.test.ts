@@ -6,7 +6,10 @@ import {
   orderedErrors,
   partyLimitFor,
   partySelectMax,
+  readRegisterStep,
   registerAvailability,
+  stepOfFirstError,
+  validateRegisterDetails,
   validateRegisterForm,
   waitPhrase,
   type RegisterDateOption,
@@ -110,4 +113,26 @@ test('registerAvailability explains why the form is not shown', () => {
     registerAvailability({ eventStatus: 'approved', options: [{ id: 'a', label: 'x', seatsLeft: 0 }] }).state,
     'full',
   );
+});
+
+test('the form has two steps; Back carries answers without validating', () => {
+  assert.deepEqual(readRegisterStep(form({})), { step: 1, back: false });
+  assert.deepEqual(readRegisterStep(form({ step: '2' })), { step: 2, back: false });
+  assert.deepEqual(readRegisterStep(form({ step: '2', nav: 'back' })), { step: 2, back: true });
+  assert.deepEqual(readRegisterStep(form({ step: 'zzz' })), { step: 1, back: false });
+});
+
+test('step 1 checks only the name and email, all at once', () => {
+  const bad = validateRegisterDetails(form({ name: ' ', email: 'nope' }));
+  assert.equal(bad.ok, false);
+  assert.deepEqual(Object.keys(bad.errors).sort(), ['email', 'name']);
+  const good = validateRegisterDetails(form({ name: ' Sam ', email: 'sam@example.org' }));
+  assert.equal(good.ok, true);
+  assert.deepEqual(good.values, { name: 'Sam', email: 'sam@example.org' });
+});
+
+test('an error on a step-1 field sends the person back to step 1', () => {
+  assert.equal(stepOfFirstError({ email: 'x', consent: 'y' }), 1);
+  assert.equal(stepOfFirstError({ consent: 'y' }), 2);
+  assert.equal(stepOfFirstError({}), 2);
 });

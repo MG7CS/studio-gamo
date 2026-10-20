@@ -16,6 +16,7 @@ import {
   type CapturedEmail,
 } from '../../scripts/e2e/live-flow-fixture.ts';
 import { expectAccessible } from './helpers/a11y.ts';
+import { expectNoDesktopScroll } from './helpers/split-screen.ts';
 
 const cspMessage = /content security policy|refused to (execute|load|apply)|violates the following/i;
 const problems: string[] = [];
@@ -41,6 +42,42 @@ const shot = async (page: Page, name: string) => {
   }
   if (original) await page.setViewportSize(original);
 };
+
+/** The three-step organization set-up: details, about, review and agree. */
+async function setUpOrganization(
+  page: Page,
+  org: { name: string; city: string; state: string; checkScroll?: boolean },
+) {
+  await expect(page.getByText('Step 1 of 3')).toBeVisible();
+  await page.getByLabel('Organization name').fill(org.name);
+  await page.getByLabel('City').fill(org.city);
+  await page.getByLabel('State').fill(org.state);
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByText('Step 2 of 3')).toBeVisible();
+  if (org.checkScroll) {
+    await expectNoDesktopScroll(page, 'organizer start step 2');
+    await shot(page, 'start-step-2');
+  }
+  // Step 2 asks for what the organization does and a website or contact email; leaving both out says so.
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByText('Tell people what you do')).toBeVisible();
+  await expect(page.getByText('Add a website or a public contact email')).toBeVisible();
+  await page
+    .getByLabel('What does your organization do?')
+    .fill('A sample organization that hosts worship nights.');
+  await page.getByLabel('Website').fill('https://example.org');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByText('Step 3 of 3')).toBeVisible();
+  await expect(page.getByText(`${org.city}, ${org.state}`)).toBeVisible();
+  if (org.checkScroll) {
+    await expectNoDesktopScroll(page, 'organizer start step 3');
+    await shot(page, 'start-step-3');
+  }
+  await page.getByRole('button', { name: 'Create organization' }).click();
+  await expect(page.getByText('Please accept the organizer terms')).toBeVisible();
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Create organization' }).click();
+}
 
 const mail = async (): Promise<CapturedEmail[]> => (await fetch(`${FLOW_MAIL_ORIGIN}/__emails`)).json();
 const waitForMail = async (match: (e: CapturedEmail) => boolean) => {
@@ -73,8 +110,11 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
       const response = await page.goto(`${FLOW_LIVE_ORIGIN}${path}`);
       expect(response?.status(), path).toBeLessThan(400);
       await expectAccessible(page, path);
+      if (path === '/account/signin') await expectNoDesktopScroll(page, path);
       await shot(page, path === '/' ? 'home' : path.slice(1).replace(/\//g, '-'));
     }
+    await page.goto(`${FLOW_LIVE_ORIGIN}/account/signup`);
+    await expectNoDesktopScroll(page, '/account/signup');
     await page.goto(`${FLOW_LIVE_ORIGIN}/events`);
     await expect(page.getByText('Harvest Night of Gospel')).toHaveCount(0);
     if (SHOTS) {
@@ -112,11 +152,9 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.getByRole('button', { name: 'Sign in locally' }).click();
     await expect(page).toHaveURL(/\/organizer\/start/);
     await expectAccessible(page, '/organizer/start');
-    await page.getByLabel('Organization name').fill(ORG);
-    await page.getByLabel('City').fill('Phoenix');
-    await page.getByLabel('State').fill('AZ');
-    await page.getByRole('checkbox').check();
-    await page.getByRole('button', { name: 'Create organization' }).click();
+    await expectNoDesktopScroll(page, 'organizer start step 1');
+    await shot(page, 'start-step-1');
+    await setUpOrganization(page, { name: ORG, city: 'Phoenix', state: 'AZ', checkScroll: true });
     await expect(page).toHaveURL(/\/organizer$/);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
     await expectAccessible(page, '/organizer');
@@ -193,6 +231,14 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     if (name === 'Sample Guest One') await shot(p, 'register');
     await p.getByLabel('Your name').fill(name);
     await p.getByLabel('Email address').fill(email);
+    await expect(p.getByText('Step 1 of 2')).toBeVisible();
+    if (name === 'Sample Guest One') await expectNoDesktopScroll(p, 'register step 1');
+    await p.getByRole('button', { name: 'Next' }).click();
+    await expect(p.getByText('Step 2 of 2')).toBeVisible();
+    if (name === 'Sample Guest One') {
+      await shot(p, 'register-step-2');
+      await expectNoDesktopScroll(p, 'register step 2');
+    }
     await p.getByRole('checkbox').check();
     await p.getByRole('button', { name: 'Email me a code' }).click();
     await expect(p).toHaveURL(/\/register\/confirm\?r=reg_/);
@@ -207,6 +253,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
   await test.step('a person registers: wrong code is refused, the right one confirms, the QR and manage link work', async () => {
     const { guest, p, code } = await register(first.name, first.email);
     await expectAccessible(p, '/register/confirm');
+    await expectNoDesktopScroll(p, 'confirm');
     await shot(p, 'confirm');
     await p.getByLabel('6-digit code').fill(code === '000000' ? '111111' : '000000');
     await p.getByRole('button', { name: 'Confirm registration' }).click();
@@ -312,6 +359,7 @@ test('Gamo Live: organizer submits, admin approves, people register, the door ch
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer/account`);
     await page.getByRole('button', { name: 'Sign out' }).first().click();
     await expect(page).toHaveURL(/\/account\/signed-out/);
+    await expectNoDesktopScroll(page, 'signed out');
     await page.goto(`${FLOW_LIVE_ORIGIN}/organizer`);
     await expect(page).toHaveURL(/\/account\/signin/);
   });
@@ -361,11 +409,7 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
     await page.goto(`${FLOW_LIVE_ORIGIN}/account/signin`);
     await page.getByLabel('Email address').fill(owner);
     await page.getByRole('button', { name: 'Sign in locally' }).click();
-    await page.getByLabel('Organization name').fill(orgName);
-    await page.getByLabel('City').fill('Glendale');
-    await page.getByLabel('State').fill('AZ');
-    await page.getByRole('checkbox').check();
-    await page.getByRole('button', { name: 'Create organization' }).click();
+    await setUpOrganization(page, { name: orgName, city: 'Glendale', state: 'AZ' });
     await expect(page).toHaveURL(/\/organizer$/);
   });
 
