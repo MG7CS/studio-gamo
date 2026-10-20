@@ -929,3 +929,7 @@
 - The `./ticketing` and `./scanner` exports of `@gamo/domain` were already removed in `5167944`; nothing to remove.
 - Removed the config lines for the deleted OpenAPI outputs from `.gitattributes`, `.prettierignore` and `eslint.config.js`.
 - Left alone on purpose: 75 exports that knip reports but that are used inside their own file, the unused dependencies knip lists, and the domain files that only the barrel reaches (see the domain graph, change set 5). No behavior change.
+
+## 2026-10-20 — Platform layers WO1, change set 3: typecheck covers every package (branch `platform-layers`, not committed, not pushed)
+
+- `pnpm typecheck:packages` now runs `scripts/typecheck-packages.ts`, which checks every folder under `packages/` that has a `package.json` (`astro check` when it holds `.astro` files, otherwise `tsc --noEmit`) and fails a package that has no `tsconfig.json`. `ui` was never checked before; it now has a `tsconfig.json` and a `typecheck.d.ts` (a stand-in for `cloudflare:workers`, which only the app adapters declare). Covered today: auth, config, db, domain, integrations, ui. New packages are picked up automatically. Test: `scripts/typecheck-packages.test.ts`. No behavior change.

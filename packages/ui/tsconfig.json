@@ -1,0 +1,5 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": ["src/**/*", "typecheck.d.ts", "../auth/app-locals.d.ts"],
+  "exclude": ["node_modules"]
+}
