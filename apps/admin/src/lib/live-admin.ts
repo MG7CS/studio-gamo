@@ -256,7 +256,10 @@ async function handlePublishedEventForm(
     } catch {
       // The change is made; the page says so either way.
     }
-    return { ok: true, location: `/events?done=${action === 'hide' ? 'event_hidden' : 'event_restored'}` };
+    return {
+      ok: true,
+      location: `/events?view=published&done=${action === 'hide' ? 'event_hidden' : 'event_restored'}`,
+    };
   } catch (error) {
     return failureFor(error);
   }

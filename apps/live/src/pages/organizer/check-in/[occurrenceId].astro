@@ -8,11 +8,15 @@ import PageTitle from '../../../components/organizer/PageTitle.astro';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import {
   OrganizerError,
   checkInForOrganizer,
+  checkInMessage,
   checkInWindow,
+  doorSummary,
   getCheckInOccurrence,
   setCheckInOpen,
   requestSecurityHeaders,
@@ -34,6 +38,7 @@ const { organizer, memberships, active, live, now } = ctx;
 const occurrenceId = Astro.params.occurrenceId ?? '';
 let occurrence = await getCheckInOccurrence(live.db, active.organizationId, occurrenceId);
 if (!occurrence) return new Response(null, { status: 404 });
+const zone = occurrence.timezone;
 // This is the only page that asks the browser for the camera.
 requestSecurityHeaders(Astro.locals, { camera: true });
 
@@ -71,25 +76,7 @@ if (Astro.request.method === 'POST') {
       code,
       now,
     });
-    result = outcome.ok
-      ? {
-          ok: true,
-          message: `Welcome, ${outcome.name}. Admit ${outcome.partySize} ${outcome.partySize === 1 ? 'person' : 'people'}.`,
-        }
-      : outcome.reason === 'already_admitted'
-        ? {
-            ok: false,
-            message: `${outcome.name} was already admitted at ${whenLabel(outcome.checkedInAt ?? now, occurrence.timezone)}.`,
-          }
-        : outcome.reason === 'canceled'
-          ? { ok: false, message: `${outcome.name}’s registration was canceled. Do not admit on this code.` }
-          : outcome.reason === 'outside_window'
-            ? {
-                ok: false,
-                message:
-                  'Check-in is closed right now. Press “Open check-in now” above, or it opens by itself before the start.',
-              }
-            : { ok: false, message: 'That code is not on this event’s list.' };
+    result = checkInMessage(outcome, (at) => whenLabel(at, zone), now);
   } catch (error) {
     if (!(error instanceof OrganizerError)) throw error;
     result = { ok: false, message: 'Check-in is not available for this date.' };
@@ -111,6 +98,7 @@ if (Astro.request.method === 'POST') {
 }
 const enabled = occurrence.qrCheckin && !occurrence.canceled;
 const door = checkInWindow(occurrence, now);
+const doorText = doorSummary(door, occurrence.opensHours, (at) => whenLabel(at, occurrence.timezone), now);
 const doorNotice = Astro.url.searchParams.has('opened')
   ? 'Check-in is open.'
   : Astro.url.searchParams.has('closed')
@@ -125,6 +113,14 @@ const doorNotice = Astro.url.searchParams.has('opened')
   memberships={memberships}
   active={active}
 >
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: occurrence.eventTitle, href: `/organizer/events/${occurrence.eventId}` },
+      { label: 'Check-in' },
+    ]}
+  />
   <PageTitle
     title="Check-in"
     subtext={`${occurrence.eventTitle} · ${whenLabel(occurrence.startsAt, occurrence.timezone)}`}
@@ -137,28 +133,15 @@ const doorNotice = Astro.url.searchParams.has('opened')
   {enabled && (
     <>
       {doorNotice && <SplitNotice tone="info">{doorNotice}</SplitNotice>}
-      <Panel
-        id="door"
-        title={door.open ? 'Check-in is open' : 'Check-in is closed'}
-        description={
-          door.open
-            ? door.manual
-              ? 'You opened it by hand. It closes by itself 12 hours after the start.'
-              : `It opened ${occurrence.opensHours} ${occurrence.opensHours === 1 ? 'hour' : 'hours'} before the start and closes 12 hours after.`
-            : now > door.closesAt
-              ? 'This date ended more than 12 hours ago, so check-in has closed.'
-              : `It opens by itself on ${whenLabel(door.opensAt, occurrence.timezone)}. You can open it now, for early doors or a practice run.`
-        }
-        class="mb-4"
-      >
+      <Panel id="door" title={doorText.title} description={doorText.description} class="mb-4">
         <form method="post">
-          {door.open && door.manual && (
+          {doorText.canClose && (
             <>
               <input type="hidden" name="action" value="close" />
               <SplitButton label="Close check-in" variant="quiet" />
             </>
           )}
-          {!door.open && now <= door.closesAt && (
+          {doorText.canOpen && (
             <>
               <input type="hidden" name="action" value="open" />
               <SplitButton label="Open check-in now" />
@@ -228,12 +211,13 @@ const doorNotice = Astro.url.searchParams.has('opened')
             of {occurrence.confirmedPeople} {occurrence.confirmedPeople === 1 ? 'person' : 'people'}{' '}
             registered have checked in
           </p>
-          <a
+          <Button
+            class="mt-5"
+            variant="secondary"
             href={`/organizer/events/${occurrence.eventId}/registrations`}
-            class="mt-5 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[14px] font-semibold text-ink hover:bg-sand"
           >
             Registration list
-          </a>
+          </Button>
         </Panel>
       </div>
       <script>

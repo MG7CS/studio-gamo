@@ -3,12 +3,11 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import LiveEventReviewList from '../components/LiveEventReviewList.astro';
 import LivePublishedEventList from '../components/LivePublishedEventList.astro';
-import LiveTabs from '../components/LiveTabs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import { getRuntimeEnv, listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
-import { loadCounts } from '../lib/inbox';
 import { handleEventForm, outcomeFrom } from '../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
@@ -28,8 +27,8 @@ try {
 } catch (e) {
   console.error(`[admin] live events unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
-const counts = await loadCounts(env);
 const outcome = outcomeFrom(Astro.url);
+const view = Astro.url.searchParams.get('view') === 'published' ? 'published' : 'waiting';
 ---
 
 <AdminLayout title="Event review" current="events">
@@ -37,7 +36,6 @@ const outcome = outcomeFrom(Astro.url);
     title="Event review"
     description="Every organization’s first event is reviewed before it is published. Later events publish directly unless “review every event” is on for that organization. Events that send people to another site for tickets are always reviewed."
   />
-  <LiveTabs current="events" counts={counts} />
   {outcome && (
     <Notice tone="success" class="mb-5">
       {outcome}
@@ -50,14 +48,33 @@ const outcome = outcomeFrom(Astro.url);
   )}
   {events ? (
     <>
-      <LiveEventReviewList events={events} />
-      {published && (
-        <section class="mt-10" aria-labelledby="published-heading">
-          <h2 id="published-heading" class="mb-4 text-[17px] font-bold">
-            Published events
-          </h2>
-          <LivePublishedEventList events={published} />
-        </section>
+      <Toolbar
+        variant="clay"
+        class="mb-5"
+        groups={[
+          {
+            label: 'Show',
+            items: [
+              {
+                label: 'Waiting for review',
+                href: '/events',
+                active: view === 'waiting',
+                count: events.length > 0 ? events.length : undefined,
+              },
+              {
+                label: 'Published and hidden',
+                href: '/events?view=published',
+                active: view === 'published',
+                count: published && published.length > 0 ? published.length : undefined,
+              },
+            ],
+          },
+        ]}
+      />
+      {view === 'waiting' ? (
+        <LiveEventReviewList events={events} />
+      ) : (
+        published && <LivePublishedEventList events={published} />
       )}
     </>
   ) : (

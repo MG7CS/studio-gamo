@@ -3,11 +3,9 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
-import LiveTabs from '../components/LiveTabs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv } from '@gamo/domain';
-import { loadCounts } from '../lib/inbox';
 import { handleCleanupForm, outcomeFrom } from '../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
@@ -18,7 +16,6 @@ if (Astro.request.method === 'POST') {
   error = outcome.message;
   Astro.response.status = outcome.status;
 }
-const counts = await loadCounts(env);
 const outcome = outcomeFrom(Astro.url);
 ---
 
@@ -27,7 +24,6 @@ const outcome = outcomeFrom(Astro.url);
     title="Cleanup"
     description="Removes what Gamo Live no longer needs. It runs only when you press the button, and it reports what it removed."
   />
-  <LiveTabs current="maintenance" counts={counts} />
   {outcome && (
     <Notice tone="success" class="mb-5">
       {outcome}

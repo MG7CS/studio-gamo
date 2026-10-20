@@ -1,7 +1,7 @@
 ---
-/** Mobile bottom tab bar (the design's phone layout). Hidden on desktop, where the sidebar is shown. */
+/** Phone tab bar: the same four areas as the desktop sidebar. Hidden on desktop. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
-import { TAB_ITEMS, badgeFor, tabKeyFor, type NavKey } from '../lib/nav';
+import { SECTIONS, sectionBadge, sectionOf, type NavKey } from '../lib/nav';
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
@@ -9,11 +9,14 @@ interface Props {
   counts: QueueCounts | null;
 }
 const { current, counts } = Astro.props;
-const tab = tabKeyFor(current);
+const active = sectionOf(current)?.key ?? null;
 /** What the screen reader adds after the visible word, in brackets: the full name and the real waiting count. */
-const extraName = (item: (typeof TAB_ITEMS)[number]) => {
-  const badge = badgeFor(item, counts);
-  const parts = [item.shortLabel === item.label ? '' : item.label, badge !== null ? `${badge} waiting` : ''];
+const extraName = (section: (typeof SECTIONS)[number]) => {
+  const badge = sectionBadge(section, counts);
+  const parts = [
+    section.shortLabel === section.label ? '' : section.label,
+    badge !== null ? `${badge} waiting` : '',
+  ];
   const text = parts.filter(Boolean).join(', ');
   return text ? ` (${text})` : '';
 };
@@ -24,28 +27,28 @@ const extraName = (item: (typeof TAB_ITEMS)[number]) => {
   class="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-clay-xl bg-surface/95 p-2 shadow-card backdrop-blur lg:hidden"
 >
   <ul class="flex justify-around gap-1">
-    {TAB_ITEMS.map((item) => (
+    {SECTIONS.map((section) => (
       <li class="relative min-w-0 flex-1">
         <a
-          href={item.href}
-          aria-current={item.key === tab ? 'page' : undefined}
+          href={section.href}
+          aria-current={section.key === active ? 'page' : undefined}
           class:list={[
             'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-0.5 text-xs font-semibold',
-            item.key === tab ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
+            section.key === active ? 'bg-clay-100 text-clay-800 shadow-soft' : 'text-body',
           ]}
         >
-          <Icon name={item.icon} class="h-5 w-5" />
+          <Icon name={section.icon} class="h-5 w-5" />
           <span class="w-full truncate text-center text-xs font-semibold">
-            {item.shortLabel}
-            <span class="sr-only">{extraName(item)}</span>
+            {section.shortLabel}
+            <span class="sr-only">{extraName(section)}</span>
           </span>
         </a>
-        {badgeFor(item, counts) !== null && (
+        {sectionBadge(section, counts) !== null && (
           <span
             class="pointer-events-none absolute right-1.5 top-1 rounded-full bg-clay-700 px-1.5 text-xs font-bold leading-4 text-white"
             aria-hidden="true"
           >
-            {badgeFor(item, counts)}
+            {sectionBadge(section, counts)}
           </span>
         )}
       </li>

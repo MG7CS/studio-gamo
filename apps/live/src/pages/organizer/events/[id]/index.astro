@@ -10,22 +10,13 @@ import EventStatusPill from '../../../../components/organizer/EventStatusPill.as
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import { requireSameOrigin } from '@gamo/auth';
-import {
-  ADMISSIONS,
-  OrganizerError,
-  calendarModel,
-  calendarQuery,
-  eventCalendarData,
-  readCalendarState,
-  deleteUnpublishedEvent,
-  getOrganizerEvent,
-  submitEvent,
-} from '@gamo/domain';
-import { cancelDateAndNotify, cancelEventAndNotify } from '../../../../lib/organizer-events';
+import { ADMISSIONS, eventDatesView, eventPermissions, getOrganizerEvent } from '@gamo/domain';
+import { runEventPageAction } from '../../../../lib/event-page';
 import EventDates from '../../../../components/organizer/EventDates.astro';
 import EventActionBar from '../../../../components/organizer/EventActionBar.astro';
 import { organizerPage } from '../../../../lib/organizer-session';
 import { STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 
 export const prerender = false;
 
@@ -52,103 +43,27 @@ if (Astro.request.method === 'POST') {
   } catch {
     return new Response('Forbidden', { status: 403 });
   }
-  const form = await Astro.request.formData();
-  const action = String(form.get('action') ?? '');
-  try {
-    if (action === 'submit') {
-      const status = await submitEvent(live.db, { organizationId: active.organizationId, eventId: id, now });
-      notice = { tone: 'info', text: STATUS_AFTER_SAVE[status] ?? 'Saved.' };
-    } else if (action === 'delete') {
-      await deleteUnpublishedEvent(live.db, { organizationId: active.organizationId, eventId: id });
-      return Astro.redirect('/organizer/events?deleted=1', 303);
-    } else if (action === 'cancel_date') {
-      notice = await cancelDateAndNotify({
-        live,
-        organizationId: active.organizationId,
-        organizationName: active.name,
-        eventId: id,
-        occurrenceId: String(form.get('occurrence') ?? ''),
-        eventTitle: event.values.title,
-        timezone: event.values.timezone,
-        message: String(form.get('message') ?? '').slice(0, 1000),
-        now,
-      });
-    } else if (action === 'cancel') {
-      if (form.get('confirm') !== 'yes') {
-        notice = { tone: 'error', text: 'Tick the box to confirm that you want to cancel this event.' };
-      } else {
-        notice = await cancelEventAndNotify({
-          live,
-          organizationId: active.organizationId,
-          organizationName: active.name,
-          eventId: id,
-          eventTitle: event.values.title,
-          timezone: event.values.timezone,
-          message: String(form.get('message') ?? '').slice(0, 1000),
-          now,
-        });
-      }
-    }
-  } catch (error) {
-    if (!(error instanceof OrganizerError)) throw error;
-    notice = {
-      tone: 'error',
-      text:
-        error.code === 'suspended'
-          ? 'This organization is suspended.'
-          : error.code === 'status_locked'
-            ? 'That is not possible for this event right now. Events need a date that has not passed to be submitted.'
-            : 'That could not be done.',
-    };
-  }
+  const result = await runEventPageAction({
+    live,
+    active,
+    event,
+    eventId: id,
+    form: await Astro.request.formData(),
+    now,
+  });
+  if (result.redirect) return Astro.redirect(result.redirect, 303);
+  if (result.notice) notice = result.notice;
   event = (await getOrganizerEvent(live.db, active.organizationId, id, now)) ?? event;
 }
 
 const v = event.values;
 const tz = v.timezone;
-const canSubmit =
-  ['draft', 'changes_requested', 'rejected'].includes(event.status) && active.status === 'active';
-const canEdit =
-  ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'].includes(event.status) &&
-  active.status === 'active';
-const canCancel = event.status === 'published' && active.status === 'active';
-const canDelete =
-  ['draft', 'pending_review', 'changes_requested', 'rejected'].includes(event.status) &&
-  active.status === 'active';
+const { canSubmit, canEdit, canCancel, canDelete } = eventPermissions(
+  event.status,
+  active.status === 'active',
+);
 // The dates calendar: the view (month or week, a picker, the chosen day) comes from the address, and only real values are used.
-const calendarData = eventCalendarData({
-  occurrences: event.occurrences,
-  timeZone: tz,
-  now,
-  describe: (o) => ({
-    label: new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' }).format(
-      new Date(o.startsAt * 1000),
-    ),
-    detail: event.admission === 'free_registration' ? `${o.confirmedPeople} registered` : undefined,
-  }),
-});
-const calendarState = readCalendarState(Astro.url.searchParams, {
-  fallbackDate: calendarData.openOn,
-  bounds: calendarData.bounds,
-});
-const chosenDate = calendarState.date ?? calendarData.openOn;
-const calendarModelView = calendarModel({
-  state: { ...calendarState, date: chosenDate },
-  today: calendarData.today,
-  days: calendarData.days,
-  bounds: calendarData.bounds,
-  selectable: 'marked',
-  href: (st) => `${calendarQuery(st)}#calendar`,
-});
-const chosenLabel = calendarData.byDay.has(chosenDate)
-  ? new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${chosenDate}T12:00:00Z`))
-  : null;
+const dates = eventDatesView({ event, timeZone: tz, now, params: Astro.url.searchParams });
 const totalPeople = event.occurrences.reduce((a, o) => a + o.confirmedPeople, 0);
 const admissionLabel = ADMISSIONS.find((a) => a.value === event.admission)?.label ?? event.admission;
 const decisionLabel: Record<string, string> = {
@@ -165,6 +80,7 @@ const decisionLabel: Record<string, string> = {
   memberships={memberships}
   active={active}
 >
+  <Breadcrumbs class="-mt-1" items={[{ label: 'Events', href: '/organizer/events' }, { label: v.title }]} />
   <div class="flex flex-wrap items-start justify-between gap-4">
     <PageTitle title={v.title} subtext={`${v.venueName}, ${v.city}, ${v.state}`} />
     <EventStatusPill status={event.status} />
@@ -229,9 +145,9 @@ const decisionLabel: Record<string, string> = {
   </dl>
   <EventDates
     event={event}
-    model={calendarModelView}
-    selectedIds={(calendarData.byDay.get(chosenDate) ?? []).map((o) => o.id)}
-    selectedLabel={chosenLabel}
+    model={dates.model}
+    selectedIds={dates.selectedIds}
+    selectedLabel={dates.chosenLabel}
     timeZone={tz}
     now={now}
     canCancelDates={

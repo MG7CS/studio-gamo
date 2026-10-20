@@ -122,7 +122,9 @@ const dayOf = (epoch: number, timeZone: string) =>
 /** Where Gamo acts on a date's event. */
 export function adminEventHref(d: Pick<AdminScheduledDate, 'source' | 'status' | 'eventId'>): string {
   if (d.source === 'catalog') return `/catalog#listing-${d.eventId}`;
-  return d.status === 'pending_review' ? `/events#event-${d.eventId}` : `/events#published-${d.eventId}`;
+  return d.status === 'pending_review'
+    ? `/events#event-${d.eventId}`
+    : `/events?view=published#published-${d.eventId}`;
 }
 
 const STATUS: Record<string, { label: string; tone: AdminDayItem['tone'] }> = {

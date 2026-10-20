@@ -1,14 +1,12 @@
 ---
 /** Gamo Live organizations: those waiting for verification first, with search and filters. */
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import LiveTabs from '../../components/LiveTabs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationList from '../../components/OrganizationList.astro';
 import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv, listAdminOrganizations, type OrganizationFilter } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
-import { loadCounts } from '../../lib/inbox';
 
 const env = await getRuntimeEnv(Astro);
 const requested = Astro.url.searchParams.get('filter') ?? 'waiting';
@@ -24,7 +22,6 @@ try {
 } catch (e) {
   console.error(`[admin] organizations unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
-const counts = await loadCounts(env);
 const filters: Array<[OrganizationFilter, string]> = [
   ['waiting', 'Waiting for verification'],
   ['verified', 'Verified'],
@@ -38,7 +35,6 @@ const filters: Array<[OrganizationFilter, string]> = [
     title="Organizations"
     description="Verify the organizations that list events, suspend one that should not, or review every event of one. Verification is decided only here; payment or partnership never changes it."
   />
-  <LiveTabs current="organizations" counts={counts} />
   <Toolbar
     variant="clay"
     class="mb-4"

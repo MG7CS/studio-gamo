@@ -1,21 +1,19 @@
 ---
-/** B7: who registered. Search, filter by date, download the list, cancel a registration. */
+/** B7: who registered. Search, filter by date, download the list, cancel a registration (each in its own card). */
 import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../../components/organizer/PageTitle.astro';
-import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
-import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
+import RegistrationsToolbar from '../../../../components/organizer/RegistrationsToolbar.astro';
+import RegistrationRow from '../../../../components/organizer/RegistrationRow.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Stat from '@studio-gamo/ui/components/ui/Stat.astro';
 import { requireSameOrigin } from '@gamo/auth';
-import {
-  OrganizerError,
-  RegistrationError,
-  canceledEmail,
-  cancelRegistrationForOrganizer,
-  getOrganizerEvent,
-  listEventRegistrations,
-  sendLiveEmail,
-} from '@gamo/domain';
+import { getOrganizerEvent, listEventRegistrations } from '@gamo/domain';
 import { organizerPage } from '../../../../lib/organizer-session';
 import { whenLabel } from '../../../../lib/organizer-format';
+import { cancelRegistrationAction, type RegistrationsNotice } from '../../../../lib/registrations-page';
 
 export const prerender = false;
 
@@ -34,7 +32,7 @@ if (!event) return new Response(null, { status: 404 });
 const tz = event.values.timezone;
 const q = (Astro.url.searchParams.get('q') ?? '').trim();
 const occurrenceId = Astro.url.searchParams.get('occurrence') ?? '';
-let notice: { tone: 'info' | 'error'; text: string } | null = null;
+let notice: RegistrationsNotice | null = null;
 
 if (Astro.request.method === 'POST') {
   try {
@@ -43,30 +41,14 @@ if (Astro.request.method === 'POST') {
     return new Response('Forbidden', { status: 403 });
   }
   const form = await Astro.request.formData();
-  if (form.get('action') === 'cancel') {
-    try {
-      const view = await cancelRegistrationForOrganizer(live.db, {
-        organizationId: active.organizationId,
-        registrationId: String(form.get('registration') ?? ''),
-        now,
-      });
-      await sendLiveEmail(
-        live.env,
-        canceledEmail(view.email, view.name, {
-          title: view.eventTitle,
-          whenLabel: whenLabel(view.startsAt, tz),
-          venueLabel: '',
-        }),
-      ).catch(() => {});
-      notice = {
-        tone: 'info',
-        text: `Canceled the registration for ${view.name}. Their seats are free again.`,
-      };
-    } catch (error) {
-      if (!(error instanceof OrganizerError) && !(error instanceof RegistrationError)) throw error;
-      notice = { tone: 'error', text: 'That registration could not be canceled.' };
-    }
-  }
+  if (form.get('action') === 'cancel')
+    notice = await cancelRegistrationAction({
+      live,
+      organizationId: active.organizationId,
+      registrationId: String(form.get('registration') ?? ''),
+      timeZone: tz,
+      now,
+    });
 }
 
 const rows = await listEventRegistrations(live.db, active.organizationId, id, {
@@ -74,11 +56,14 @@ const rows = await listEventRegistrations(live.db, active.organizationId, id, {
   q,
   now,
 });
-const people = rows.filter((r) => r.status === 'confirmed').reduce((a, r) => a + r.partySize, 0);
+const confirmed = rows.filter((r) => r.status === 'confirmed');
+const people = confirmed.reduce((a, r) => a + r.partySize, 0);
+const checkedIn = confirmed.filter((r) => r.checkedInAt).reduce((a, r) => a + r.partySize, 0);
 const csvQuery = new URLSearchParams({
   ...(occurrenceId ? { occurrence: occurrenceId } : {}),
   ...(q ? { q } : {}),
 }).toString();
+const filtered = Boolean(q || occurrenceId);
 ---
 
 <OrganizerLayout
@@ -88,125 +73,71 @@ const csvQuery = new URLSearchParams({
   memberships={memberships}
   active={active}
 >
+  <Breadcrumbs
+    class="-mt-1"
+    items={[
+      { label: 'Events', href: '/organizer/events' },
+      { label: event.values.title, href: `/organizer/events/${id}` },
+      { label: 'Registrations' },
+    ]}
+  />
   <PageTitle title="Registrations" subtext={event.values.title} />
-  {notice && <SplitNotice tone={notice.tone}>{notice.text}</SplitNotice>}
-  {event.admission !== 'free_registration' && (
-    <SplitNotice>This event does not take registrations on Gamo Live.</SplitNotice>
+  {notice && (
+    <Notice tone={notice.tone} class="mb-3">
+      {notice.text}
+    </Notice>
   )}
-  <Panel id="registrations">
-    <form method="get" class="flex flex-wrap items-end gap-3" role="search">
-      <div class="min-w-[220px] flex-1">
-        <label for="q" class="mb-1 block text-[13px] font-semibold text-ink">
-          Search name or email
-        </label>
-        <input
-          id="q"
-          name="q"
-          type="search"
-          value={q}
-          class="min-h-11 w-full rounded-full border border-ink/30 bg-white px-5 text-[15px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
-        />
-      </div>
-      {event.occurrences.length > 1 && (
-        <div>
-          <label for="occurrence" class="mb-1 block text-[13px] font-semibold text-ink">
-            Date
-          </label>
-          <select
-            id="occurrence"
-            name="occurrence"
-            class="min-h-11 rounded-full border border-ink/30 bg-white px-4 text-[14px] text-ink"
-          >
-            <option value="">All dates</option>
-            {event.occurrences.map((o) => (
-              <option value={o.id} selected={o.id === occurrenceId}>
-                {whenLabel(o.startsAt, tz)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      <button
-        type="submit"
-        class="min-h-11 rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
-      >
-        Search
-      </button>
-      <a
-        href={`/organizer/events/${id}/registrations.csv${csvQuery ? `?${csvQuery}` : ''}`}
-        class="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-[14px] font-semibold text-white"
-      >
-        Download list (CSV)
-      </a>
-    </form>
-    <p class="mt-4 text-[14px] text-muted">
-      {rows.length} {rows.length === 1 ? 'registration' : 'registrations'} · {people}{' '}
-      {people === 1 ? 'person' : 'people'} confirmed
-    </p>
+  {event.admission !== 'free_registration' && (
+    <Notice class="mb-3">This event does not take registrations on Gamo Live.</Notice>
+  )}
+  <div class="space-y-3">
+    <RegistrationsToolbar
+      eventId={id}
+      q={q}
+      occurrenceId={occurrenceId}
+      dates={event.occurrences.map((o) => ({ id: o.id, label: whenLabel(o.startsAt, tz) }))}
+      csvQuery={csvQuery}
+    />
+    <div class="grid gap-3 sm:grid-cols-3">
+      <Stat label={filtered ? 'Matching registrations' : 'Registrations'} value={rows.length} />
+      <Stat label="People confirmed" value={people} />
+      <Stat label="People checked in" value={checkedIn} />
+    </div>
     {rows.length === 0 ? (
-      <p class="mt-6 text-[15px] text-ink">No registrations yet.</p>
+      <EmptyState
+        title={filtered ? 'No registrations match' : 'No registrations yet'}
+        text={
+          filtered
+            ? 'Nothing matches that search or date. Clear it to see everyone.'
+            : 'When people register for this event they appear here.'
+        }
+      >
+        {filtered ? (
+          <Button href={`/organizer/events/${id}/registrations`} variant="secondary">
+            Show everyone
+          </Button>
+        ) : (
+          <Button href={`/organizer/events/${id}`} variant="secondary">
+            Back to the event
+          </Button>
+        )}
+      </EmptyState>
     ) : (
-      <div class="relative mt-4 overflow-x-auto">
-        <table class="w-full min-w-[640px] text-left text-[14px]">
-          <caption class="sr-only">Registrations for {event.values.title}</caption>
-          <thead>
-            <tr class="border-b border-sand text-muted">
-              <th scope="col" class="py-2 pr-4 font-semibold">
-                Name
-              </th>
-              <th scope="col" class="py-2 pr-4 font-semibold">
-                Date
-              </th>
-              <th scope="col" class="py-2 pr-4 font-semibold">
-                People
-              </th>
-              <th scope="col" class="py-2 pr-4 font-semibold">
-                Status
-              </th>
-              <th scope="col" class="py-2 font-semibold">
-                <span class="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr class="border-b border-sand/70 align-top">
-                <td class="py-3 pr-4">
-                  <span class="block font-semibold text-ink">{r.name}</span>
-                  <span class="block break-all text-muted">{r.email}</span>
-                </td>
-                <td class="py-3 pr-4 text-ink">{whenLabel(r.startsAt, tz)}</td>
-                <td class="py-3 pr-4 text-ink">{r.partySize}</td>
-                <td class="py-3 pr-4 text-ink">
-                  {r.status === 'confirmed'
-                    ? r.checkedInAt
-                      ? 'Checked in'
-                      : 'Confirmed'
-                    : r.status === 'pending'
-                      ? 'Waiting for code'
-                      : r.status === 'expired'
-                        ? 'Expired'
-                        : 'Canceled'}
-                </td>
-                <td class="py-3 text-right">
-                  {r.status !== 'canceled' && r.status !== 'expired' && (
-                    <form method="post">
-                      <input type="hidden" name="action" value="cancel" />
-                      <input type="hidden" name="registration" value={r.id} />
-                      <button
-                        type="submit"
-                        class="min-h-11 rounded-full px-4 text-[14px] font-semibold text-terracotta-deep hover:bg-sand"
-                      >
-                        Cancel<span class="sr-only"> registration for {r.name}</span>
-                      </button>
-                    </form>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul class="space-y-2">
+        {rows.map((r) => (
+          <li>
+            <RegistrationRow
+              id={r.id}
+              name={r.name}
+              email={r.email}
+              whenText={whenLabel(r.startsAt, tz)}
+              partySize={r.partySize}
+              status={r.status}
+              checkedInAt={r.checkedInAt}
+            />
+          </li>
+        ))}
+      </ul>
     )}
-  </Panel>
+  </div>
 </OrganizerLayout>

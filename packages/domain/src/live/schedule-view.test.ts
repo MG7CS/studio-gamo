@@ -66,3 +66,38 @@ test('a chosen day and month come from the address; a day without dates is ignor
   assert.deepEqual(empty.items, []);
   assert.equal(empty.total, 0);
 });
+
+test('check-in is offered only while the door is open: public, not canceled, check-in on, inside the window or opened by hand', () => {
+  const starts = Date.parse('2026-10-20T19:00:00-07:00') / 1000; // 7 PM Phoenix, 2 hours after NOW (12:00 UTC = 5 AM)
+  const at = (offsetHours: number) => starts + offsetHours * 3600;
+  const door = (
+    extra: Partial<ScheduledDate>,
+    now: number,
+    checkIn = { enabled: true, opensHours: 3, openedAt: null as number | null },
+  ) =>
+    organizationScheduleView({
+      dates: [date('o1', 'evt_o', 'Door Event', '2026-10-20', { checkIn, ...extra })],
+      now,
+      params: new URLSearchParams(''),
+    });
+  assert.equal(door({}, at(-4)).openNow.length, 0, 'before the window opens');
+  assert.equal(door({}, at(-2)).openNow.length, 1, 'inside the window (3 hours before)');
+  assert.equal(door({}, at(-2)).openNow[0].href, '/organizer/check-in/o1');
+  assert.equal(door({}, at(13)).openNow.length, 0, 'closed 12 hours after the start');
+  assert.equal(
+    door({}, at(-4), { enabled: true, opensHours: 3, openedAt: at(-4) }).openNow.length,
+    1,
+    'opened by hand',
+  );
+  assert.equal(
+    door({}, at(-2), { enabled: false, opensHours: 3, openedAt: null }).openNow.length,
+    0,
+    'check-in is off for the event',
+  );
+  assert.equal(door({ status: 'pending_review' }, at(-2)).openNow.length, 0, 'not public yet');
+  assert.equal(door({ canceled: true }, at(-2)).openNow.length, 0, 'canceled');
+  assert.equal(door({ checkIn: undefined }, at(-2)).openNow.length, 0, 'no check-in data');
+  const chosen = door({}, at(-2));
+  assert.equal(chosen.items[0].checkInOpen, true, 'the chosen day offers it too');
+  assert.equal(chosen.items[0].checkInHref, '/organizer/check-in/o1');
+});

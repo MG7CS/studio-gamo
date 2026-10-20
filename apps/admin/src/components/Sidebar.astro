@@ -10,7 +10,7 @@
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import Logo from '@studio-gamo/ui/components/Logo.astro';
 import UserMenu from './UserMenu.astro';
-import { NAV_ITEMS, badgeFor, type NavKey } from '../lib/nav';
+import { SECTIONS, sectionBadge, sectionOf, type NavKey } from '../lib/nav';
 import type { QueueCounts } from '../lib/inbox';
 
 interface Props {
@@ -19,6 +19,7 @@ interface Props {
   counts: QueueCounts | null;
 }
 const { current, email, counts } = Astro.props;
+const active = sectionOf(current)?.key ?? null;
 ---
 
 <aside
@@ -67,23 +68,23 @@ const { current, email, counts } = Astro.props;
   </button>
   <nav aria-label="Admin" class="-mx-3 -my-2 min-h-0 flex-1 overflow-y-auto px-3 py-2">
     <ul class="space-y-1.5">
-      {NAV_ITEMS.map((item) => {
-        const badge = badgeFor(item, counts);
+      {SECTIONS.map((section) => {
+        const badge = sectionBadge(section, counts);
         return (
           <li>
             <a
-              href={item.href}
-              title={item.label}
-              aria-current={item.key === current ? 'page' : undefined}
+              href={section.href}
+              title={section.label}
+              aria-current={section.key === active ? 'page' : undefined}
               class:list={[
                 'relative flex min-h-11 items-center gap-2.5 rounded-clay-md px-3 text-[13px] font-semibold transition-shadow group-data-[sidebar=collapsed]/shell:justify-center group-data-[sidebar=collapsed]/shell:px-0',
-                item.key === current
+                section.key === active
                   ? 'bg-clay-100 text-clay-800 shadow-soft'
                   : 'text-body hover:bg-surface-soft hover:shadow-soft',
               ]}
             >
-              <Icon name={item.icon} class="h-5 w-5 shrink-0" />
-              <span class="flex-1 group-data-[sidebar=collapsed]/shell:sr-only">{item.label}</span>
+              <Icon name={section.icon} class="h-5 w-5 shrink-0" />
+              <span class="flex-1 group-data-[sidebar=collapsed]/shell:sr-only">{section.label}</span>
               {badge !== null && (
                 <span class="rounded-full bg-clay-700 px-2.5 py-0.5 text-xs font-bold text-white group-data-[sidebar=collapsed]/shell:absolute group-data-[sidebar=collapsed]/shell:right-1 group-data-[sidebar=collapsed]/shell:top-1 group-data-[sidebar=collapsed]/shell:px-1.5 group-data-[sidebar=collapsed]/shell:text-[10px] group-data-[sidebar=collapsed]/shell:leading-4">
                   {badge}

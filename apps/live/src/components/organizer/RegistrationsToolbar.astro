@@ -1,0 +1,59 @@
+---
+/**
+ * The search, the date filter and the CSV download of an event's registrations, as one floating card of its own.
+ * A plain GET form, so a search or a date is a link that can be shared and reloaded.
+ */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+
+interface Props {
+  eventId: string;
+  q: string;
+  occurrenceId: string;
+  dates: Array<{ id: string; label: string }>;
+  csvQuery: string;
+}
+const { eventId, q, occurrenceId, dates, csvQuery } = Astro.props;
+---
+
+<Panel class="!p-3 sm:!p-3">
+  <form method="get" role="search" class="flex flex-wrap items-end gap-2">
+    <div class="min-w-[200px] flex-1">
+      <label for="q" class="mb-1 block text-[13px] font-semibold text-ink">
+        Search name or email
+      </label>
+      <input
+        id="q"
+        name="q"
+        type="search"
+        value={q}
+        class="min-h-11 w-full rounded-full border border-ink/25 bg-white px-5 text-[14px] text-ink focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20"
+      />
+    </div>
+    {dates.length > 1 && (
+      <div>
+        <label for="occurrence" class="mb-1 block text-[13px] font-semibold text-ink">
+          Date
+        </label>
+        <select
+          id="occurrence"
+          name="occurrence"
+          class="min-h-11 rounded-full border border-ink/25 bg-white px-4 text-[14px] text-ink"
+        >
+          <option value="">All dates</option>
+          {dates.map((d) => (
+            <option value={d.id} selected={d.id === occurrenceId}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    )}
+    <Button type="submit" variant="secondary">
+      Search
+    </Button>
+    <Button href={`/organizer/events/${eventId}/registrations.csv${csvQuery ? `?${csvQuery}` : ''}`}>
+      Download list (CSV)
+    </Button>
+  </form>
+</Panel>

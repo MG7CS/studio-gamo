@@ -1,13 +1,11 @@
 ---
 /** One Gamo Live organization. GET shows it; POST verifies, suspends or switches "review every event". */
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import LiveTabs from '../../components/LiveTabs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationDetail from '../../components/OrganizationDetail.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getAdminOrganization, getRuntimeEnv } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
-import { loadCounts } from '../../lib/inbox';
 import { handleOrganizationForm, outcomeFrom } from '../../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
@@ -28,7 +26,6 @@ try {
   console.error(`[admin] organization unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
 }
 if (!org && !unavailable) return new Response(null, { status: 404 });
-const counts = await loadCounts(env);
 const outcome = outcomeFrom(Astro.url);
 ---
 
@@ -37,7 +34,6 @@ const outcome = outcomeFrom(Astro.url);
     title={org?.name ?? 'Organization'}
     description="Decide whether this organization is verified or suspended."
   />
-  <LiveTabs current="organizations" counts={counts} />
   {outcome && (
     <Notice tone="success" class="mb-5">
       {outcome}

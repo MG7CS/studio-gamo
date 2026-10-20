@@ -3,6 +3,7 @@
 import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../components/organizer/PageTitle.astro';
 import EventEditor from '../../../components/organizer/EventEditor.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import { reviewRuleFor } from '@gamo/domain';
@@ -48,6 +49,10 @@ const rule = await reviewRuleFor(live.db, active.organizationId);
   memberships={memberships}
   active={active}
 >
+  <Breadcrumbs
+    class="-mt-1"
+    items={[{ label: 'Events', href: '/organizer/events' }, { label: 'New event' }]}
+  />
   <PageTitle title="Create event" subtext="Fill in the details. You can save a draft and come back." />
   {active.status === 'suspended' && (
     <SplitNotice tone="error">This organization is suspended, so events cannot be created.</SplitNotice>
