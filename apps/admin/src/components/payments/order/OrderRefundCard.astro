@@ -1,0 +1,57 @@
+---
+/**
+ * Gamo refunds an order it sold (Mode B): the whole order, or chosen tickets and optionally the gift. The amount is
+ * computed on the server from what was paid, never more than what remains. A confirm step comes first.
+ */
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import NoteField from '../../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { formatCents } from '@gamo/domain';
+import type { AdminOrderView } from '../../../lib/payments-admin';
+
+interface Props {
+  view: AdminOrderView;
+  configured: boolean;
+}
+const { view, configured } = Astro.props;
+const { order } = view;
+const remaining = order.totalCents - order.amountRefundedCents;
+const choice = 'inline-flex min-h-11 items-center gap-2 text-sm text-ink';
+---
+
+<Panel id="refund" variant="clay" title="Refund">
+  {view.refundNote ? (
+    <p class="text-sm text-body">{view.refundNote}</p>
+  ) : !configured ? (
+    <p class="text-sm text-body">Payments are not configured here, so this order cannot be refunded now.</p>
+  ) : (
+    <ConfirmAction summaryLabel="Refund…" confirmLabel="Refund now" actionValue="refund">
+      The money goes back to the buyer’s card through Stripe; at most {formatCents(remaining, order.currency)}{' '}
+      remains on this order. Refunded tickets stop working at once and the buyer is emailed.
+      <fieldset slot="fields" class="space-y-1">
+        <legend class="text-sm font-semibold text-ink">What to refund</legend>
+        <label class={choice}>
+          <input type="radio" name="scope" value="all" checked class="h-4 w-4" />
+          The whole order (every valid ticket and the gift)
+        </label>
+        <label class={choice}>
+          <input type="radio" name="scope" value="chosen" class="h-4 w-4" />
+          Only the tickets chosen below
+        </label>
+        {view.refundableTickets.map((t) => (
+          <label class:list={[choice, 'pl-6']}>
+            <input type="checkbox" name="ticket_id" value={t.id} class="h-4 w-4" />
+            {t.label}
+          </label>
+        ))}
+        {order.giftCents > 0 && (
+          <label class:list={[choice, 'pl-6']}>
+            <input type="checkbox" name="include_gift" value="yes" class="h-4 w-4" />
+            The gift ({formatCents(order.giftCents, order.currency)})
+          </label>
+        )}
+      </fieldset>
+      <NoteField slot="fields" id="refund-reason" name="reason" label="Reason (optional)" maxlength={500} />
+    </ConfirmAction>
+  )}
+</Panel>

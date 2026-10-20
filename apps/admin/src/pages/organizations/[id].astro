@@ -1,38 +1,45 @@
 ---
-/** One Gamo Live organization. GET shows it; POST verifies, suspends or switches "review every event". */
+/**
+ * One Gamo Live organization. GET shows it; POST runs a verification step (meeting, verify, decline, remove),
+ * suspends or reinstates, switches "review every event", or changes its funds flow.
+ */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationDetail from '../../components/OrganizationDetail.astro';
+import OrganizationPaymentsCard from '../../components/payments/OrganizationPaymentsCard.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
-import { getAdminOrganization, getRuntimeEnv } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
-import { handleOrganizationForm, outcomeFrom } from '../../lib/live-admin';
+import VerificationCard from '../../components/verification/VerificationCard.astro';
+import VerificationHistory from '../../components/verification/VerificationHistory.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import {
+  handleOrganizationForm,
+  loadOrganizationPage,
+  organizationErrorField,
+  outcomeFrom,
+  type FormOutcome,
+} from '../../lib/live-admin';
+import { loadOrganizationPayments } from '../../lib/live-settings';
 
 const env = await getRuntimeEnv(Astro);
 const id = Astro.params.id ?? '';
-let error: string | null = null;
+let failed: FormOutcome | null = null;
 if (Astro.request.method === 'POST') {
   const outcome = await handleOrganizationForm(Astro.request, env, id);
   if (outcome.ok) return Astro.redirect(outcome.location, 303);
-  error = outcome.message;
+  failed = outcome;
   Astro.response.status = outcome.status;
 }
-let org = null as Awaited<ReturnType<typeof getAdminOrganization>>;
-let unavailable = false;
-try {
-  org = await getAdminOrganization(asSqlDatabase(env.LIVE_DB), id);
-} catch (e) {
-  unavailable = true;
-  console.error(`[admin] organization unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
-}
-if (!org && !unavailable) return new Response(null, { status: 404 });
+const page = await loadOrganizationPage(env, id);
+if (page === 'not_found') return new Response(null, { status: 404 });
+const payments = page ? await loadOrganizationPayments(env, id) : null;
 const outcome = outcomeFrom(Astro.url);
+const error = failed && !failed.ok ? failed : null;
 ---
 
-<AdminLayout title={org?.name ?? 'Organization'} current="organizations">
+<AdminLayout title={page?.org.name ?? 'Organization'} current="organizations">
   <PageHeader
-    title={org?.name ?? 'Organization'}
-    description="Decide whether this organization is verified or suspended."
+    title={page?.org.name ?? 'Organization'}
+    description="Verify this organization through a meeting, set its funds flow, or suspend it."
   />
   {outcome && (
     <Notice tone="success" class="mb-5">
@@ -41,11 +48,25 @@ const outcome = outcomeFrom(Astro.url);
   )}
   {error && (
     <Notice tone="danger" class="mb-5">
-      {error}
+      {error.message}
     </Notice>
   )}
-  {org ? (
-    <OrganizationDetail org={org} />
+  {page ? (
+    <div class="space-y-6">
+      <VerificationCard
+        view={page.verification}
+        errorField={failed ? organizationErrorField(failed) : null}
+      />
+      {payments ? (
+        <OrganizationPaymentsCard view={payments} reasonInvalid={error?.field === 'reason'} />
+      ) : (
+        <Notice tone="danger" title="Payments unavailable">
+          This organization’s payment settings could not be read, so nothing is shown instead of guessing.
+        </Notice>
+      )}
+      <OrganizationDetail org={page.org} />
+      <VerificationHistory view={page.verification} />
+    </div>
   ) : (
     <Notice tone="danger" title="Unavailable" class="mb-5">
       Gamo Live’s database could not be read.

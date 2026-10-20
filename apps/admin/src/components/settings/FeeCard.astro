@@ -1,0 +1,114 @@
+---
+/**
+ * The Gamo fee: the fee in force, its history, and a change in two steps. "Review the change" (a GET form) shows the
+ * old and the new fee; only the confirm step under it saves, with a required reason. Sold tickets keep their fee.
+ */
+import Button from '../Button.astro';
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { formatWhen } from '../../lib/format';
+import { feeText, type FeePreview, type LiveSettingsView } from '../../lib/live-settings';
+import { field, hint, label } from '../../lib/ui';
+
+interface Props {
+  fee: LiveSettingsView['fee'];
+  history: LiveSettingsView['feeHistory'];
+  preview: FeePreview;
+  reasonInvalid?: boolean;
+}
+const { fee, history, preview, reasonInvalid = false } = Astro.props;
+---
+
+<Panel
+  id="fee"
+  variant="clay"
+  title="Gamo fee"
+  description={`In force now: ${feeText(fee)} per ticket. Shown to buyers as its own line when the organization passes it on.`}
+>
+  <form method="get" action="/live-settings#fee" class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+    <div>
+      <label class={label} for="fee-fixed">
+        Fixed part (dollars)
+      </label>
+      <input
+        id="fee-fixed"
+        name="fee_fixed"
+        inputmode="decimal"
+        maxlength="8"
+        value={(fee.fixedCents / 100).toFixed(2)}
+        class={field}
+        aria-invalid={preview.state === 'error' && preview.field === 'fee_fixed' ? 'true' : undefined}
+      />
+    </div>
+    <div>
+      <label class={label} for="fee-percent">
+        Percent part
+      </label>
+      <input
+        id="fee-percent"
+        name="fee_percent"
+        inputmode="decimal"
+        maxlength="6"
+        value={String(fee.percentBps / 100)}
+        class={field}
+        aria-invalid={preview.state === 'error' && preview.field === 'fee_percent' ? 'true' : undefined}
+      />
+    </div>
+    <Button variant="secondary">Review the change</Button>
+  </form>
+  <p class={hint}>Nothing is saved until you confirm the change below.</p>
+
+  {preview.state === 'error' && (
+    <p class="mt-3 text-sm font-semibold text-ink" role="alert">
+      {preview.message}
+    </p>
+  )}
+  {preview.state === 'same' && (
+    <p class="mt-3 text-sm text-body">That is already the fee ({preview.text}).</p>
+  )}
+  {preview.state === 'ready' && (
+    <div class="mt-4 rounded-clay-md bg-surface-soft p-4 shadow-inset">
+      <p class="text-sm text-ink">
+        <span class="font-semibold">Old fee:</span> {preview.oldText}
+        <br />
+        <span class="font-semibold">New fee:</span> {preview.newText}
+      </p>
+      <div class="mt-3">
+        <ConfirmAction summaryLabel="Change the fee…" confirmLabel="Change the Gamo fee" actionValue="fee">
+          The Gamo fee changes from {preview.oldText} to {preview.newText} for new orders, effective now.
+          Tickets already sold keep the fee they were sold with. The change is recorded with your reason.
+          <input slot="fields" type="hidden" name="fixed_cents" value={String(preview.fixedCents)} />
+          <input slot="fields" type="hidden" name="percent_bps" value={String(preview.percentBps)} />
+          <input slot="fields" type="hidden" name="confirm" value="yes" />
+          <NoteField
+            slot="fields"
+            id="fee-reason"
+            name="reason"
+            label="Reason (required)"
+            required
+            maxlength={500}
+            invalid={reasonInvalid}
+          />
+        </ConfirmAction>
+      </div>
+    </div>
+  )}
+
+  <h3 class="mt-6 text-[15px] font-bold text-ink">History</h3>
+  {history.length === 0 ? (
+    <p class="mt-2 text-sm text-body">No fee has been set; it has been {feeText(fee)} from the start.</p>
+  ) : (
+    <ul class="mt-2 divide-y divide-line/60 text-sm">
+      {history.map((h) => (
+        <li class="py-2">
+          <span class="font-semibold text-ink">{feeText(h)}</span>
+          <span class="text-body">
+            {h.effectiveAt > 0 ? ` · from ${formatWhen(h.effectiveAt)}` : ' · the starting setting'}
+          </span>
+          <span class="block whitespace-pre-wrap text-muted">Reason: {h.reason}</span>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

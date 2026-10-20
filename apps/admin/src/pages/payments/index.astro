@@ -1,0 +1,133 @@
+---
+/**
+ * Gamo Live payments (docs/LIVE_SCREENS.md C6): orders across organizations, refund requests where Gamo is the seller,
+ * open disputes, organizations whose payments are not ready, Mode B balances and payouts. GET shows one tab; POST
+ * decides a refund request or prepares, cancels or sends a payout.
+ */
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminOrderList from '../../components/payments/AdminOrderList.astro';
+import BalanceList from '../../components/payments/BalanceList.astro';
+import DisputeList from '../../components/payments/DisputeList.astro';
+import NotReadyList from '../../components/payments/NotReadyList.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import PaymentsConfigNotice from '../../components/payments/PaymentsConfigNotice.astro';
+import PayoutList from '../../components/payments/PayoutList.astro';
+import RefundRequestList from '../../components/payments/RefundRequestList.astro';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { paymentsConfig } from '../../lib/live-settings';
+import {
+  ORDER_STATUS_FILTERS,
+  PAYMENTS_TABS,
+  SELLER_FILTERS,
+  handlePaymentsForm,
+  loadPaymentsView,
+  orderFilterFrom,
+  ordersHref,
+  paymentsOutcomeFrom,
+  paymentsTabCounts,
+  paymentsTabFrom,
+} from '../../lib/payments-admin';
+
+const env = await getRuntimeEnv(Astro);
+let error: string | null = null;
+if (Astro.request.method === 'POST') {
+  const outcome = await handlePaymentsForm(Astro.request, env);
+  if (outcome.ok) return Astro.redirect(outcome.location, 303);
+  error = outcome.message;
+  Astro.response.status = outcome.status;
+}
+const tab = paymentsTabFrom(Astro.url);
+const filter = orderFilterFrom(Astro.url);
+const view = await loadPaymentsView(env, { tab, filter });
+const counts = view ? paymentsTabCounts(view) : null;
+const config = paymentsConfig(env);
+const outcome = paymentsOutcomeFrom(Astro.url);
+---
+
+<AdminLayout title="Payments" current="payments">
+  <PageHeader
+    title="Payments"
+    description="Orders across organizations, refunds where Gamo is the seller, disputes, organizations not ready to take payments, and what Gamo owes in Mode B."
+  />
+  <PaymentsConfigNotice config={config} class="mb-5" />
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
+  {!view ? (
+    <Notice tone="danger" title="Payments unavailable">
+      Gamo Live’s database could not be read, so nothing is shown instead of guessing.
+    </Notice>
+  ) : (
+    <>
+      <Toolbar
+        variant="clay"
+        class="mb-4"
+        search={
+          tab === 'orders'
+            ? {
+                label: 'Search orders by reference, buyer’s name or email, or organization',
+                value: filter.q,
+                keep: {
+                  tab: 'orders',
+                  status: filter.status ?? undefined,
+                  seller: filter.seller ?? undefined,
+                },
+              }
+            : undefined
+        }
+        groups={[
+          {
+            label: 'Payments',
+            items: PAYMENTS_TABS.map((t) => ({
+              label: t.label,
+              href: t.key === 'orders' ? '/payments' : `/payments?tab=${t.key}`,
+              active: t.key === tab,
+              count: counts?.[t.key] || undefined,
+            })),
+          },
+          ...(tab === 'orders'
+            ? [
+                {
+                  label: 'Status',
+                  items: ORDER_STATUS_FILTERS.map((f) => ({
+                    label: f.label,
+                    href: ordersHref({ ...filter, status: f.value }),
+                    active: filter.status === f.value,
+                  })),
+                },
+                {
+                  label: 'Seller',
+                  items: SELLER_FILTERS.map((f) => ({
+                    label: f.label,
+                    href: ordersHref({ ...filter, seller: f.value }),
+                    active: filter.seller === f.value,
+                  })),
+                },
+              ]
+            : []),
+        ]}
+      />
+      {tab === 'orders' && view.orders && (
+        <AdminOrderList orders={view.orders} searched={Boolean(filter.q || filter.status || filter.seller)} />
+      )}
+      {tab === 'refunds' && <RefundRequestList rows={view.refunds} configured={config.configured} />}
+      {tab === 'disputes' && <DisputeList rows={view.disputes} />}
+      {tab === 'not_ready' && <NotReadyList rows={view.notReady} />}
+      {tab === 'balances' && (
+        <div class="space-y-6">
+          <BalanceList rows={view.balances} />
+          <PayoutList payouts={view.payouts} config={config} />
+        </div>
+      )}
+    </>
+  )}
+</AdminLayout>

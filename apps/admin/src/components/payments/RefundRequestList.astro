@@ -1,0 +1,81 @@
+---
+/**
+ * Refunds buyers asked for on orders Gamo sold (Mode B), oldest first. Approving returns the money through the
+ * order's own Stripe routing; declining keeps the tickets valid. Both are confirm steps.
+ */
+import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
+import NoteField from '../NoteField.astro';
+import { formatCents, type AdminRefundRequestRow } from '@gamo/domain';
+import { timeAgo } from '../../lib/format';
+
+interface Props {
+  rows: AdminRefundRequestRow[];
+  configured: boolean;
+}
+const { rows, configured } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyState
+    title="No refund requests are waiting."
+    text="When a buyer asks for a refund on an order Gamo sold (Mode B), it waits here for your decision."
+  />
+) : (
+  <ul class="space-y-3">
+    {rows.map((r) => (
+      <li id={`refund-${r.id}`} class="rounded-clay-lg bg-surface p-5 shadow-soft">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="text-[15px] font-bold text-ink">
+              <a
+                class="underline underline-offset-4"
+                href={`/payments/orders/${encodeURIComponent(r.orderId)}`}
+              >
+                Order {r.orderReference}
+              </a>
+            </h2>
+            <p class="text-[13px] text-muted">
+              {r.eventTitle} · {r.organizationName} · asked {timeAgo(r.createdAt)}
+            </p>
+          </div>
+          <p class="text-[15px] font-bold text-ink">{formatCents(r.amountCents, r.currency)}</p>
+        </div>
+        {r.reason && (
+          <p class="mt-2 whitespace-pre-wrap text-sm text-body">
+            <span class="font-semibold text-ink">Buyer’s reason: </span>
+            {r.reason}
+          </p>
+        )}
+        <div class="mt-4 flex flex-wrap items-start gap-3">
+          {configured ? (
+            <ConfirmAction
+              summaryLabel="Approve refund…"
+              confirmLabel="Refund now"
+              actionValue="approve_refund"
+            >
+              Up to {formatCents(r.amountCents, r.currency)} goes back to the buyer’s card through Stripe,
+              computed again from what was paid and never more than what remains. The tickets in the request
+              stop working at once. The buyer is emailed.
+              <input slot="fields" type="hidden" name="refund_id" value={r.id} />
+              <NoteField slot="fields" id={`approve-${r.id}`} label="Note (optional)" maxlength={500} />
+            </ConfirmAction>
+          ) : (
+            <p class="text-sm text-body">Payments are not configured here, so this cannot be refunded now.</p>
+          )}
+          <ConfirmAction summaryLabel="Decline…" confirmLabel="Decline request" actionValue="decline_refund">
+            The tickets keep working and nothing is refunded. Reply to the buyer yourself: no email goes out
+            for a refund Gamo declines.
+            <input slot="fields" type="hidden" name="refund_id" value={r.id} />
+            <NoteField
+              slot="fields"
+              id={`decline-${r.id}`}
+              label="Note (optional, kept with the decision)"
+              maxlength={500}
+            />
+          </ConfirmAction>
+        </div>
+      </li>
+    ))}
+  </ul>
+)}

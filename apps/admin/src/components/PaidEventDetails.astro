@@ -1,0 +1,61 @@
+---
+/** The paid details of an event under review: ticket types and prices, fees, policies, gifts, door sales and codes. */
+import { paidReviewText } from '../lib/paid-review';
+import type { PaidEventReviewDetails } from '@gamo/domain';
+
+interface Props {
+  details: PaidEventReviewDetails;
+  timeZone: string;
+  eventId: string;
+}
+const { details, timeZone, eventId } = Astro.props;
+const t = paidReviewText(details, timeZone);
+---
+
+<section
+  class="mt-4 space-y-4 rounded-clay-md bg-surface-soft p-4 text-sm shadow-inset"
+  aria-labelledby={`paid-${eventId}`}
+>
+  <h3 id={`paid-${eventId}`} class="text-[15px] font-bold text-ink">
+    Paid tickets
+  </h3>
+  {t.ticketTypes.length === 0 ? (
+    <p class="text-body">No ticket types yet.</p>
+  ) : (
+    <ul class="divide-y divide-line/60">
+      {t.ticketTypes.map((type) => (
+        <li class="py-2">
+          <span class="flex flex-wrap justify-between gap-2">
+            <span class="font-semibold text-ink">{type.name}</span>
+            <span class="font-semibold text-ink">{type.price}</span>
+          </span>
+          {type.lines.map((line) => (
+            <span class="block text-body">{line}</span>
+          ))}
+        </li>
+      ))}
+    </ul>
+  )}
+  <dl class="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+    <div>
+      <dt class="font-semibold text-ink">Gamo fee</dt>
+      <dd class="text-body">{t.feePayer}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Gifts, door and codes</dt>
+      <dd class="text-body">
+        {t.extras.map((line) => (
+          <span class="block">{line}</span>
+        ))}
+      </dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="font-semibold text-ink">Policies shown before buying</dt>
+      <dd class="text-body">
+        {t.policies.map((line) => (
+          <span class="block">{line}</span>
+        ))}
+      </dd>
+    </div>
+  </dl>
+</section>

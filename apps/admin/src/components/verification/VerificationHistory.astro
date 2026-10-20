@@ -1,0 +1,72 @@
+---
+/** Every verification meeting of one organization and the verification decisions, newest first. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatWhen } from '../../lib/format';
+import type { AdminVerificationView } from '@gamo/domain';
+
+interface Props {
+  view: AdminVerificationView;
+}
+const { view } = Astro.props;
+const meetingStatus = {
+  scheduled: ['Scheduled', 'warning'],
+  held: ['Held', 'success'],
+  canceled: ['Canceled', 'neutral'],
+} as const;
+const decisionText: Record<string, string> = {
+  verification_requested: 'Verification requested',
+  meeting_scheduled: 'Meeting scheduled',
+  meeting_held: 'Meeting held',
+  meeting_canceled: 'Meeting canceled',
+  verified: 'Verified',
+  declined: 'Declined',
+  unverified: 'Verification removed',
+};
+---
+
+<Panel id="verification-history" variant="clay" title="Meetings and decisions">
+  {view.meetings.length === 0 && view.decisions.length === 0 ? (
+    <p class="text-sm text-body">Nothing yet. The steps appear here as they happen.</p>
+  ) : (
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div>
+        <h3 class="text-[15px] font-bold text-ink">Meetings ({view.meetings.length})</h3>
+        {view.meetings.length === 0 ? (
+          <p class="mt-2 text-sm text-body">No meeting yet.</p>
+        ) : (
+          <ul class="mt-2 divide-y divide-line/60 text-sm">
+            {view.meetings.map((m) => (
+              <li class="py-2">
+                <span class="flex flex-wrap items-center gap-2">
+                  <span class="font-semibold text-ink">{m.whenLabel}</span>
+                  <Pill tone={meetingStatus[m.status][1]}>{meetingStatus[m.status][0]}</Pill>
+                </span>
+                <span class="block break-all text-body">
+                  {m.formatLabel} · {m.location}
+                </span>
+                {m.note && <span class="block whitespace-pre-wrap text-muted">{m.note}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div>
+        <h3 class="text-[15px] font-bold text-ink">Decisions ({view.decisions.length})</h3>
+        {view.decisions.length === 0 ? (
+          <p class="mt-2 text-sm text-body">No decision yet.</p>
+        ) : (
+          <ul class="mt-2 divide-y divide-line/60 text-sm">
+            {view.decisions.map((d) => (
+              <li class="py-2">
+                <span class="font-semibold text-ink">{decisionText[d.decision] ?? d.decision}</span>
+                <span class="text-body"> · {formatWhen(d.decidedAt)}</span>
+                {d.note && <span class="block whitespace-pre-wrap text-body">{d.note}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )}
+</Panel>

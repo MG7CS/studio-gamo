@@ -1,26 +1,33 @@
 ---
 /**
- * Gamo Live events waiting for review: an organization's first event, or every event of an organization set to
- * "review every event". Decisions POST to this page; the organization's owners are emailed the result.
+ * Gamo Live events waiting for review: an organization's first event, its first paid event, or every event of an
+ * organization set to "review every event". Paid events show their ticket types, fees and policies. Decisions POST
+ * to this page; the organization's owners are emailed the result.
  */
 import Button from './Button.astro';
+import PaidEventDetails from './PaidEventDetails.astro';
 import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import { formatWhen, timeAgo } from '../lib/format';
 import { field, hint, label } from '../lib/ui';
-import type { LivePendingEvent } from '@gamo/domain';
+import type { LivePendingEvent, PaidEventReviewDetails } from '@gamo/domain';
 
 interface Props {
   events: LivePendingEvent[];
+  /** Paid details per event id (paid events only). */
+  paid?: ReadonlyMap<string, PaidEventReviewDetails>;
 }
-const { events } = Astro.props;
+const { events, paid = new Map() } = Astro.props;
 const reason = (e: LivePendingEvent) =>
   e.reason === 'first_event'
     ? 'First event of this organization'
-    : 'Organization is set to review every event';
+    : e.reason === 'first_paid_event'
+      ? 'First paid event of this organization'
+      : 'Organization is set to review every event';
 const admissionText: Record<string, string> = {
   free_open: 'Free, no registration',
   free_registration: 'Free, registration on Gamo Live',
   external_tickets: 'Tickets elsewhere',
+  paid_tickets: 'Paid tickets on Gamo Live',
 };
 ---
 
@@ -130,6 +137,14 @@ const admissionText: Record<string, string> = {
         <p class="mt-4 whitespace-pre-wrap rounded-clay-md bg-surface-soft p-4 text-sm text-body shadow-inset">
           {e.description}
         </p>
+        {paid.get(e.id) && (
+          <PaidEventDetails details={paid.get(e.id)!} timeZone={e.timezone} eventId={e.id} />
+        )}
+        {e.admission === 'paid_tickets' && !e.organizationVerified && (
+          <p class="mt-4 text-sm font-semibold text-ink">
+            This organization is not verified yet, so this paid event cannot be approved until it is.
+          </p>
+        )}
 
         <form method="post" class="mt-5 space-y-3">
           <input type="hidden" name="event_id" value={e.id} />

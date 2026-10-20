@@ -1,0 +1,109 @@
+---
+/**
+ * One organization's payments on its admin page: the funds-flow mode in force (platform default or its own override),
+ * whether card sales can run now and why not, the connected account's readiness, and the override form (a reason is
+ * required and kept with the decision).
+ */
+import Button from '../Button.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import PaymentDecisionList from './PaymentDecisionList.astro';
+import { FUNDS_FLOW_LABELS, NOT_READY_TEXT, type OrganizationPaymentsView } from '../../lib/live-settings';
+import { field, label } from '../../lib/ui';
+
+interface Props {
+  view: OrganizationPaymentsView;
+  reasonInvalid?: boolean;
+}
+const { view, reasonInvalid = false } = Astro.props;
+const { status } = view;
+const override = status.org?.fundsFlowOverride ?? null;
+const current = override ?? 'default';
+const yesNo = (v: boolean | undefined) => (v ? 'Yes' : 'No');
+---
+
+<Panel id="payments" variant="clay" title="Payments">
+  <div class="flex flex-wrap items-center gap-2">
+    {status.cardSalesAvailable ? (
+      <Pill tone="success">Card sales ready</Pill>
+    ) : (
+      <Pill tone="warning">Card sales not ready</Pill>
+    )}
+    <span class="text-[13px] text-muted">
+      {status.flow ? FUNDS_FLOW_LABELS[status.flow] : FUNDS_FLOW_LABELS.not_chosen}
+      {override ? ' (set for this organization)' : ' (platform default)'}
+    </span>
+  </div>
+  {status.reason && <p class="mt-2 text-[14px] text-body">{NOT_READY_TEXT[status.reason]}</p>}
+  <dl class="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+    <div>
+      <dt class="font-semibold text-ink">Stripe account connected</dt>
+      <dd class="text-body">{yesNo(Boolean(status.org?.connectedAccountId))}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Details submitted</dt>
+      <dd class="text-body">{yesNo(status.org?.detailsSubmitted)}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Can take payments (Mode A)</dt>
+      <dd class="text-body">{yesNo(status.org?.chargesEnabled)}</dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Can receive transfers (Mode B)</dt>
+      <dd class="text-body">{yesNo(status.org?.payoutsEnabled)}</dd>
+    </div>
+    {status.org && status.org.requirementsDue > 0 && (
+      <div>
+        <dt class="font-semibold text-ink">Stripe still needs</dt>
+        <dd class="text-body">
+          {status.org.requirementsDue} {status.org.requirementsDue === 1 ? 'item' : 'items'} from the owners
+        </dd>
+      </div>
+    )}
+    <div>
+      <dt class="font-semibold text-ink">Door sales platform-wide</dt>
+      <dd class="text-body">{status.doorSalesEnabled ? 'On' : 'Off'}</dd>
+    </div>
+  </dl>
+
+  <form method="post" class="mt-5 space-y-3 rounded-clay-lg bg-surface p-5 shadow-soft">
+    <h3 class="text-[15px] font-bold">Funds flow for this organization</h3>
+    <input type="hidden" name="action" value="funds_flow" />
+    <div>
+      <label class={label} for="org-funds-flow">
+        Mode
+      </label>
+      <select id="org-funds-flow" name="funds_flow" class={field}>
+        <option value="default" selected={current === 'default'}>
+          Platform default ({FUNDS_FLOW_LABELS[view.platformDefault]})
+        </option>
+        <option value="organizer_account" selected={current === 'organizer_account'}>
+          {FUNDS_FLOW_LABELS.organizer_account}
+        </option>
+        <option value="gamo_collects" selected={current === 'gamo_collects'}>
+          {FUNDS_FLOW_LABELS.gamo_collects}
+        </option>
+      </select>
+    </div>
+    <NoteField
+      id="org-funds-reason"
+      name="reason"
+      label="Reason (required, kept with the decision)"
+      required
+      maxlength={500}
+      invalid={reasonInvalid}
+    />
+    <p class="text-[13px] text-muted">
+      Orders already sold keep the mode they were sold under; refunds always use the order’s own account.
+    </p>
+    <Button variant="secondary">Save funds flow</Button>
+  </form>
+
+  {view.decisions.length > 0 && (
+    <div class="mt-5">
+      <h3 class="text-[15px] font-bold text-ink">Payment decisions for this organization</h3>
+      <PaymentDecisionList decisions={view.decisions} showOrganization={false} />
+    </div>
+  )}
+</Panel>

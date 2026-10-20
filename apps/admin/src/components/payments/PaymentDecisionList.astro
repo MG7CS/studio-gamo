@@ -1,0 +1,25 @@
+---
+/** Recorded payment decisions in plain words: what changed, from what to what, why, and when. */
+import { formatWhen } from '../../lib/format';
+import type { DecisionLine } from '../../lib/live-settings';
+
+interface Props {
+  decisions: DecisionLine[];
+  showOrganization?: boolean;
+}
+const { decisions, showOrganization = true } = Astro.props;
+---
+
+<ul class="mt-2 divide-y divide-line/60 text-sm">
+  {decisions.map((d) => (
+    <li class="py-2">
+      <span class="font-semibold text-ink">
+        {d.subject}
+        {showOrganization && d.organizationName ? ` · ${d.organizationName}` : ''}
+      </span>
+      <span class="text-body"> · {formatWhen(d.decidedAt)}</span>
+      <span class="block text-body">{d.change}</span>
+      <span class="block whitespace-pre-wrap text-muted">Reason: {d.reason}</span>
+    </li>
+  ))}
+</ul>

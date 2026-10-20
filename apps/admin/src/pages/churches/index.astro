@@ -1,5 +1,5 @@
 ---
-/** Church verification: submitted → meeting scheduled → verified in person. */
+/** Church verification: submitted → meeting (video call or in person) scheduled → verified. */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import ReviewQueue from '../../components/ReviewQueue.astro';
@@ -14,7 +14,7 @@ const queue = await loadQueue(env.DB, CHURCH_ROLES, Astro.url);
 <AdminLayout title="Church verification" current="churches">
   <PageHeader
     title="Church verification"
-    description="Churches are verified in person before they are listed: schedule the meeting, then verify with notes."
+    description="Churches are verified through a meeting (video call or in person) before they are listed: schedule the meeting, then verify with notes."
   />
   <ReviewQueue
     basePath="/churches"

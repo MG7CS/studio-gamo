@@ -1,39 +1,24 @@
 ---
-/** Gamo Live organizations: those waiting for verification first, with search and filters. */
+/** Gamo Live organizations: those whose verification waits for the admin first, with search and filters. */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationList from '../../components/OrganizationList.astro';
 import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
-import { getRuntimeEnv, listAdminOrganizations, type OrganizationFilter } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import VerificationQueueList from '../../components/verification/VerificationQueueList.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import { ORGANIZATION_FILTERS, loadOrganizationList, organizationFilterFrom } from '../../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);
-const requested = Astro.url.searchParams.get('filter') ?? 'waiting';
-const filter: OrganizationFilter = (['waiting', 'verified', 'suspended', 'all'] as const).includes(
-  requested as never,
-)
-  ? (requested as OrganizationFilter)
-  : 'waiting';
+const filter = organizationFilterFrom(Astro.url);
 const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 100);
-let organizations = null as Awaited<ReturnType<typeof listAdminOrganizations>> | null;
-try {
-  organizations = await listAdminOrganizations(asSqlDatabase(env.LIVE_DB), { filter, q });
-} catch (e) {
-  console.error(`[admin] organizations unavailable: ${e instanceof Error ? e.name : 'unknown'}`);
-}
-const filters: Array<[OrganizationFilter, string]> = [
-  ['waiting', 'Waiting for verification'],
-  ['verified', 'Verified'],
-  ['suspended', 'Suspended'],
-  ['all', 'All'],
-];
+const list = await loadOrganizationList(env, filter, q);
 ---
 
 <AdminLayout title="Organizations" current="organizations">
   <PageHeader
     title="Organizations"
-    description="Verify the organizations that list events, suspend one that should not, or review every event of one. Verification is decided only here; payment or partnership never changes it."
+    description="Organizations ask to be verified; you meet them (video call or in person), then verify or decline. Verification is decided only here; payment or partnership never changes it."
   />
   <Toolbar
     variant="clay"
@@ -42,7 +27,7 @@ const filters: Array<[OrganizationFilter, string]> = [
     groups={[
       {
         label: 'Filter organizations',
-        items: filters.map(([key, text]) => ({
+        items: ORGANIZATION_FILTERS.map(([key, text]) => ({
           label: text,
           href: `/organizations?filter=${key}${q ? `&q=${encodeURIComponent(q)}` : ''}`,
           active: filter === key,
@@ -50,11 +35,13 @@ const filters: Array<[OrganizationFilter, string]> = [
       },
     ]}
   />
-  {organizations ? (
-    <OrganizationList organizations={organizations} />
-  ) : (
+  {list === null ? (
     <Notice tone="danger" title="Organizations unavailable" class="mb-5">
       Gamo Live’s database could not be read, so nothing is shown instead of guessing.
     </Notice>
+  ) : list.kind === 'queue' ? (
+    <VerificationQueueList rows={list.rows} />
+  ) : (
+    <OrganizationList organizations={list.rows} />
   )}
 </AdminLayout>

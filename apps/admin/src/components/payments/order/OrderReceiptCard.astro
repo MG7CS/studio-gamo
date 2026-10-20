@@ -1,0 +1,27 @@
+---
+/** Every line the buyer paid, the total, and what has been refunded. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
+import { formatCents, type Receipt } from '@gamo/domain';
+
+interface Props {
+  receipt: Receipt;
+}
+const { receipt } = Astro.props;
+const lines = receipt.lines.map((l) => ({
+  label: l.label,
+  amount: formatCents(l.amountCents, receipt.currency),
+}));
+---
+
+<Panel id="receipt" variant="clay" title="What was paid">
+  <ReceiptLines
+    lines={lines}
+    total={{ label: 'Total', amount: formatCents(receipt.totalCents, receipt.currency) }}
+  />
+  {receipt.refundedCents > 0 && (
+    <p class="mt-3 text-sm font-semibold text-ink">
+      Refunded so far: {formatCents(receipt.refundedCents, receipt.currency)}
+    </p>
+  )}
+</Panel>

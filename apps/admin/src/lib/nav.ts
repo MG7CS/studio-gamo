@@ -6,7 +6,7 @@
  *
  *   Overview   the home: what is waiting and what is scheduled
  *   Community  participation requests, church verification, provider review (the people of the programs)
- *   Gamo Live  event review, organizations, catalog, cleanup
+ *   Gamo Live  event review, organizations, catalog, payments, Live settings, cleanup
  *   Legal      the registry of documents and acceptances
  */
 import type { IconName } from '@studio-gamo/ui/lib/icons';
@@ -20,6 +20,8 @@ export type NavKey =
   | 'events'
   | 'organizations'
   | 'catalog'
+  | 'payments'
+  | 'live-settings'
   | 'maintenance'
   | 'legal';
 
@@ -80,6 +82,8 @@ export const SECTIONS: readonly NavSection[] = [
       { key: 'events', label: 'Event review', href: '/events', count: 'events' },
       { key: 'organizations', label: 'Organizations', href: '/organizations', count: 'organizations' },
       { key: 'catalog', label: 'Catalog', href: '/catalog', count: 'catalog' },
+      { key: 'payments', label: 'Payments', href: '/payments' },
+      { key: 'live-settings', label: 'Live settings', href: '/live-settings' },
       { key: 'maintenance', label: 'Cleanup', href: '/maintenance' },
     ],
   },

@@ -3,7 +3,7 @@
  * production queues come from the shared database, the Gamo Live queues from Live's own database. When a query
  * fails its result is not shown (the page says so) instead of showing zeros.
  */
-import { liveOldestWaiting, liveQueueCounts } from '@gamo/domain';
+import { liveOldestWaiting, liveQueueCounts, type LiveQueueCounts } from '@gamo/domain';
 import { allRows, asSqlDatabase } from '@gamo/domain/security';
 import { CHURCH_ROLES, OPEN_PROFILE_STATUSES, PROVIDER_REVIEW_ROLES } from './review-scope';
 
@@ -16,10 +16,36 @@ export interface QueueCounts {
   providers: number;
   /** Gamo Live events in `pending_review`. */
   events: number;
-  /** Gamo Live organizations with events, not yet verified. */
+  /** Gamo Live organizations whose verification needs the admin: `verifications + meetingsToDecide`. */
   organizations: number;
   /** Gamo Live catalog listings waiting for approval. */
   catalog: number;
+  /** Verification requested, meeting to schedule (`/organizations?filter=to_schedule`). */
+  verifications: number;
+  /** Meeting held, verify or decline (`/organizations?filter=to_decide`). */
+  meetingsToDecide: number;
+  /** Open disputes (`/payments?tab=disputes`). */
+  disputes: number;
+  /** Refunds requested on orders Gamo sold (`/payments?tab=refunds`). */
+  refundRequests: number;
+  /** The Payments tab's queues together: `refundRequests + disputes`. */
+  payments: number;
+}
+
+/**
+ * How many items are waiting, each counted once: `organizations` already holds the verifications and meetings to
+ * decide, and `payments` the refund requests and disputes, so those parts are not added again.
+ */
+export function waitingTotal(counts: QueueCounts): number {
+  return (
+    counts.participation +
+    counts.churches +
+    counts.providers +
+    counts.events +
+    counts.organizations +
+    counts.catalog +
+    counts.payments
+  );
 }
 
 /** The bindings the admin reads (the Worker environment satisfies this). */
@@ -27,6 +53,16 @@ export interface AdminBindings {
   DB?: unknown;
   LIVE_DB?: unknown;
 }
+
+const NO_LIVE: LiveQueueCounts = {
+  events: 0,
+  organizations: 0,
+  catalog: 0,
+  verifications: 0,
+  meetingsToDecide: 0,
+  disputes: 0,
+  refundRequests: 0,
+};
 
 const list = (values: readonly string[]) => values.map((v) => `'${v}'`).join(', ');
 const OPEN = list(OPEN_PROFILE_STATUSES);
@@ -40,13 +76,21 @@ SELECT role AS k, COUNT(*) AS n FROM provider_profiles WHERE status IN (${OPEN})
 
 export function tallyCounts(
   rows: readonly { k: string; n: number | string }[],
-  live: { events: number; organizations: number; catalog: number } = {
-    events: 0,
-    organizations: 0,
-    catalog: 0,
-  },
+  live: LiveQueueCounts = NO_LIVE,
 ): QueueCounts {
-  const counts: QueueCounts = { participation: 0, churches: 0, providers: 0, ...live };
+  const counts: QueueCounts = {
+    participation: 0,
+    churches: 0,
+    providers: 0,
+    events: live.events,
+    organizations: live.organizations,
+    catalog: live.catalog,
+    verifications: live.verifications,
+    meetingsToDecide: live.meetingsToDecide,
+    disputes: live.disputes,
+    refundRequests: live.refundRequests,
+    payments: live.disputes + live.refundRequests,
+  };
   for (const { k, n } of rows) {
     const value = Number(n);
     if (!Number.isFinite(value)) continue;
@@ -102,9 +146,7 @@ const LIVE_HREF: Record<string, (id: string) => string> = {
   'Catalog listing': (id) => `/catalog#listing-${encodeURIComponent(id)}`,
 };
 
-const NO_LIVE = { events: 0, organizations: 0, catalog: 0 };
-
-async function liveCounts(bindings: AdminBindings): Promise<{ ok: boolean; counts: typeof NO_LIVE }> {
+async function liveCounts(bindings: AdminBindings): Promise<{ ok: boolean; counts: LiveQueueCounts }> {
   try {
     return { ok: true, counts: await liveQueueCounts(asSqlDatabase(bindings.LIVE_DB)) };
   } catch (error) {

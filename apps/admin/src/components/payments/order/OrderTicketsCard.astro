@@ -1,0 +1,46 @@
+---
+/** The order's tickets: holder, status and check-in. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import { formatWhen } from '../../../lib/format';
+import type { OrderDetail } from '@gamo/domain';
+
+interface Props {
+  detail: OrderDetail;
+  timeZone: string;
+}
+const { detail, timeZone } = Astro.props;
+const names = new Map(detail.items.map((i) => [i.ticketTypeId, i.name]));
+const statusText: Record<string, [string, 'success' | 'neutral' | 'danger']> = {
+  valid: ['Valid', 'success'],
+  refunded: ['Refunded', 'neutral'],
+  voided: ['Voided', 'neutral'],
+  canceled: ['Canceled', 'danger'],
+};
+---
+
+<Panel id="tickets" variant="clay" title={`Tickets (${detail.tickets.length})`}>
+  {detail.tickets.length === 0 ? (
+    <p class="text-sm text-body">No tickets were issued for this order.</p>
+  ) : (
+    <ul class="divide-y divide-line/60 text-sm">
+      {detail.tickets.map((t) => (
+        <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+          <span class="min-w-0">
+            <span class="block font-semibold text-ink">
+              {names.get(t.ticketTypeId) ?? 'Ticket'} {t.seq}
+            </span>
+            <span class="block text-[13px] text-muted">
+              {t.holderName ?? 'No holder name'}
+              {t.checkedInAt ? ` · checked in ${formatWhen(t.checkedInAt, timeZone)}` : ''}
+              {t.transferCount > 0 ? ` · transferred ${t.transferCount}×` : ''}
+            </span>
+          </span>
+          <Pill tone={(statusText[t.status] ?? [t.status, 'neutral'])[1]}>
+            {(statusText[t.status] ?? [t.status])[0]}
+          </Pill>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

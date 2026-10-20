@@ -1,0 +1,49 @@
+---
+/**
+ * A labelled note or reason box for a decision form: the admin's forms ask for a note (verification, refunds) or a
+ * reason (payment settings, payouts) the same way. `invalid` marks it after an error that named it.
+ */
+import { field, hint as hintClass, label as labelClass } from '../lib/ui';
+
+interface Props {
+  id: string;
+  label: string;
+  name?: string;
+  required?: boolean;
+  rows?: number;
+  maxlength?: number;
+  hint?: string;
+  invalid?: boolean;
+}
+const {
+  id,
+  label,
+  name = 'notes',
+  required = false,
+  rows = 2,
+  maxlength = 2000,
+  hint,
+  invalid = false,
+} = Astro.props;
+---
+
+<div>
+  <label class={labelClass} for={id}>
+    {label}
+  </label>
+  <textarea
+    id={id}
+    name={name}
+    rows={rows}
+    maxlength={maxlength}
+    required={required}
+    class={field}
+    aria-invalid={invalid ? 'true' : undefined}
+    aria-describedby={hint ? `${id}-hint` : undefined}
+  ></textarea>
+  {hint && (
+    <p id={`${id}-hint`} class={hintClass}>
+      {hint}
+    </p>
+  )}
+</div>

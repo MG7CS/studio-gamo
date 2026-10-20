@@ -1,0 +1,144 @@
+---
+/**
+ * The one meeting form of the admin: a verification meeting (video call or in person) with a church (Community) or a
+ * Gamo Live organization. Date, time, zone, format, the link or the place, and a note. Extra hidden or visible fields
+ * (a stale-form guard, "who is attending") go in the default slot. Read on the server by `lib/meeting-form.ts`.
+ */
+import Button from './Button.astro';
+import {
+  MEETING_FIELDS,
+  MEETING_FORMAT_CHOICES,
+  MEETING_ZONES,
+  type MeetingDefaults,
+  type MeetingField,
+} from '../lib/meeting-form';
+import { DEFAULT_MEETING_TIME_ZONE } from '@gamo/domain';
+import { field, hint, label } from '../lib/ui';
+
+interface Props {
+  /** The `action` value the POST carries. */
+  action: string;
+  title: string;
+  submitLabel: string;
+  /** One sentence under the title (who is emailed, what happens next). */
+  description?: string;
+  /** Starting values (rescheduling shows the current meeting). */
+  defaults?: Partial<MeetingDefaults>;
+  /** The field the last error named; it is marked invalid. */
+  errorField?: MeetingField | null;
+  /** Prefix for the field ids, so two forms on one page stay distinct. */
+  idPrefix?: string;
+}
+const {
+  action,
+  title,
+  submitLabel,
+  description,
+  defaults = {},
+  errorField,
+  idPrefix = 'meeting',
+} = Astro.props;
+const id = (name: string) => `${idPrefix}-${name}`;
+const invalid = (name: MeetingField) => (errorField === name ? 'true' : undefined);
+const zone = defaults.timeZone ?? DEFAULT_MEETING_TIME_ZONE;
+const format = defaults.format ?? 'video';
+---
+
+<form method="post" class="space-y-3 rounded-clay-lg bg-surface p-5 shadow-soft">
+  <h3 class="text-[15px] font-bold">{title}</h3>
+  {description && <p class="text-[13px] text-body">{description}</p>}
+  <input type="hidden" name="action" value={action} />
+  <slot />
+  <div class="grid gap-3 sm:grid-cols-3">
+    <div>
+      <label class={label} for={id('date')}>
+        Date
+      </label>
+      <input
+        id={id('date')}
+        name={MEETING_FIELDS.date}
+        type="date"
+        required
+        value={defaults.date}
+        class={field}
+        aria-invalid={invalid('date')}
+      />
+    </div>
+    <div>
+      <label class={label} for={id('time')}>
+        Time
+      </label>
+      <input
+        id={id('time')}
+        name={MEETING_FIELDS.time}
+        type="time"
+        required
+        value={defaults.time}
+        class={field}
+        aria-invalid={invalid('time')}
+      />
+    </div>
+    <div>
+      <label class={label} for={id('zone')}>
+        Time zone
+      </label>
+      <select id={id('zone')} name={MEETING_FIELDS.timeZone} class={field} aria-invalid={invalid('timeZone')}>
+        {MEETING_ZONES.map((z) => (
+          <option value={z} selected={z === zone}>
+            {z.replace('_', ' ')}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+  <fieldset aria-invalid={invalid('format')}>
+    <legend class={label}>How you meet</legend>
+    <div class="mt-1 flex flex-wrap gap-3">
+      {MEETING_FORMAT_CHOICES.map((c) => (
+        <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-surface-soft px-4 text-sm font-semibold text-ink shadow-inset">
+          <input
+            type="radio"
+            name={MEETING_FIELDS.format}
+            value={c.value}
+            checked={c.value === format}
+            required
+            class="h-4 w-4 accent-clay-700"
+          />
+          {c.label}
+        </label>
+      ))}
+    </div>
+  </fieldset>
+  <div>
+    <label class={label} for={id('location')}>
+      Video call link or place
+    </label>
+    <input
+      id={id('location')}
+      name={MEETING_FIELDS.location}
+      required
+      maxlength="300"
+      value={defaults.location}
+      class={field}
+      aria-invalid={invalid('location')}
+      aria-describedby={id('location-hint')}
+    />
+    <p id={id('location-hint')} class={hint}>
+      For a video call, the https link. In person, the address.
+    </p>
+  </div>
+  <div>
+    <label class={label} for={id('note')}>
+      Note (optional)
+    </label>
+    <textarea
+      id={id('note')}
+      name={MEETING_FIELDS.note}
+      rows="2"
+      maxlength="500"
+      class={field}
+      aria-invalid={invalid('note')}
+    ></textarea>
+  </div>
+  <Button variant="secondary">{submitLabel}</Button>
+</form>

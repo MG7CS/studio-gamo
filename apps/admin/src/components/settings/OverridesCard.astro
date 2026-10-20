@@ -1,0 +1,35 @@
+---
+/** Organizations with their own funds-flow mode instead of the platform default; each opens its page to change it. */
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { FUNDS_FLOW_LABELS, type LiveSettingsView } from '../../lib/live-settings';
+
+interface Props {
+  overrides: LiveSettingsView['overrides'];
+}
+const { overrides } = Astro.props;
+---
+
+<Panel
+  id="overrides"
+  variant="clay"
+  title={`Organization overrides (${overrides.length})`}
+  description="Set on an organization’s page, with a reason."
+>
+  {overrides.length === 0 ? (
+    <p class="text-sm text-body">Every organization follows the platform default.</p>
+  ) : (
+    <ul class="divide-y divide-line/60 text-sm">
+      {overrides.map((o) => (
+        <li>
+          <a
+            href={`/organizations/${encodeURIComponent(o.organizationId)}#payments`}
+            class="flex min-h-11 flex-wrap items-center justify-between gap-2 py-2 hover:text-clay-800"
+          >
+            <span class="font-semibold text-ink">{o.name}</span>
+            <span class="text-body">{FUNDS_FLOW_LABELS[o.flow]}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Panel>

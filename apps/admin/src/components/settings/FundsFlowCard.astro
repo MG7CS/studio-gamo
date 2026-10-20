@@ -1,0 +1,64 @@
+---
+/**
+ * The platform's funds-flow default: Mode A, Mode B or not chosen (card sales off), each explained in plain words.
+ * A change needs a reason and is recorded with it. Per-organization overrides are listed under it.
+ */
+import Button from '../Button.astro';
+import NoteField from '../NoteField.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { FUNDS_FLOW_DEFAULTS, type FundsFlowDefault } from '@gamo/domain';
+import { FUNDS_FLOW_EXPLAINED, FUNDS_FLOW_LABELS } from '../../lib/live-settings';
+
+interface Props {
+  current: FundsFlowDefault;
+  reasonInvalid?: boolean;
+}
+const { current, reasonInvalid = false } = Astro.props;
+const order: FundsFlowDefault[] = ['organizer_account', 'gamo_collects', 'not_chosen'];
+---
+
+<Panel
+  id="funds-flow"
+  variant="clay"
+  title="Funds flow"
+  description={`In force now: ${FUNDS_FLOW_LABELS[current]}. Orders keep the mode they were sold under.`}
+>
+  <form method="post" class="space-y-4">
+    <input type="hidden" name="action" value="flow_default" />
+    <fieldset class="space-y-3">
+      <legend class="text-sm font-semibold text-ink">Platform default</legend>
+      {order
+        .filter((v) => (FUNDS_FLOW_DEFAULTS as readonly string[]).includes(v))
+        .map((v) => (
+          <div class="flex gap-3 rounded-clay-md bg-surface-soft p-3 shadow-inset">
+            <input
+              id={`flow-${v}`}
+              type="radio"
+              name="funds_flow"
+              value={v}
+              checked={v === current}
+              aria-describedby={`flow-${v}-text`}
+              class="mt-1 h-4 w-4 shrink-0"
+            />
+            <div>
+              <label for={`flow-${v}`} class="block cursor-pointer text-[14px] font-semibold text-ink">
+                {FUNDS_FLOW_LABELS[v]}
+              </label>
+              <p id={`flow-${v}-text`} class="text-[13px] text-body">
+                {FUNDS_FLOW_EXPLAINED[v]}
+              </p>
+            </div>
+          </div>
+        ))}
+    </fieldset>
+    <NoteField
+      id="flow-reason"
+      name="reason"
+      label="Reason (required, kept with the decision)"
+      required
+      maxlength={500}
+      invalid={reasonInvalid}
+    />
+    <Button variant="secondary">Save funds-flow default</Button>
+  </form>
+</Panel>

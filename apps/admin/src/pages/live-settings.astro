@@ -1,0 +1,81 @@
+---
+/**
+ * Gamo Live settings (docs/LIVE_SCREENS.md C8): the funds-flow default and per-organization overrides, the Gamo fee
+ * (reason and confirm step), door sales on or off, and the history of these decisions. POST changes one of them.
+ */
+import AdminLayout from '../layouts/AdminLayout.astro';
+import DoorSalesCard from '../components/settings/DoorSalesCard.astro';
+import FeeCard from '../components/settings/FeeCard.astro';
+import FundsFlowCard from '../components/settings/FundsFlowCard.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import OverridesCard from '../components/settings/OverridesCard.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import PaymentDecisionList from '../components/payments/PaymentDecisionList.astro';
+import PaymentsConfigNotice from '../components/payments/PaymentsConfigNotice.astro';
+import { getRuntimeEnv } from '@gamo/domain';
+import {
+  feeChangePreview,
+  handleLiveSettingsForm,
+  loadLiveSettings,
+  paymentsConfig,
+  settingsOutcomeFrom,
+  type SettingsOutcome,
+} from '../lib/live-settings';
+
+const env = await getRuntimeEnv(Astro);
+let failed: SettingsOutcome | null = null;
+if (Astro.request.method === 'POST') {
+  const outcome = await handleLiveSettingsForm(Astro.request, env);
+  if (outcome.ok) return Astro.redirect(outcome.location, 303);
+  failed = outcome;
+  Astro.response.status = outcome.status;
+}
+const error = failed && !failed.ok ? failed : null;
+const view = await loadLiveSettings(env);
+const preview = view ? feeChangePreview(Astro.url.searchParams, view.fee) : null;
+const outcome = settingsOutcomeFrom(Astro.url);
+const reasonInvalid = error?.field === 'reason';
+---
+
+<AdminLayout title="Live settings" current="live-settings">
+  <PageHeader
+    title="Live settings"
+    description="How ticket money flows, the Gamo fee and door sales, for all of Gamo Live. Every change is recorded with its reason."
+  />
+  <PaymentsConfigNotice config={paymentsConfig(env)} class="mb-5" />
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error.message}
+    </Notice>
+  )}
+  {view && preview ? (
+    <div class="space-y-6">
+      <FundsFlowCard current={view.settings.fundsFlowDefault} reasonInvalid={reasonInvalid} />
+      <OverridesCard overrides={view.overrides} />
+      <FeeCard fee={view.fee} history={view.feeHistory} preview={preview} reasonInvalid={reasonInvalid} />
+      <DoorSalesCard enabled={view.settings.doorSalesEnabled} reasonInvalid={reasonInvalid} />
+      <Panel
+        id="decisions"
+        variant="clay"
+        title="Decision history"
+        description="The latest 100 payment decisions."
+      >
+        {view.decisions.length === 0 ? (
+          <p class="text-sm text-body">No payment decision has been made yet.</p>
+        ) : (
+          <PaymentDecisionList decisions={view.decisions} />
+        )}
+      </Panel>
+    </div>
+  ) : (
+    <Notice tone="danger" title="Settings unavailable">
+      Gamo Live’s database could not be read, so nothing is shown instead of guessing.
+    </Notice>
+  )}
+</AdminLayout>
