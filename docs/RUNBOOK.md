@@ -97,3 +97,32 @@ Local registration emails (the 6-digit code, the confirmation link) are printed 
 ## 6. After a deploy
 
 For each public host: `/`, `/robots.txt`, `/sitemap.xml` (and `/llms.txt` on gamostudio.org) return 200; an unknown path shows the branded 404; `curl -sI https://<host>/` shows `content-security-policy`, `strict-transport-security` and `x-content-type-options: nosniff`; `pnpm exec wrangler tail --env <env>` from the app shows no `[env:<app>] fatal` lines. Admin: a visit without Access is stopped; the admin's email gets in.
+
+## 7. Gamo Live payments (Stripe, Connect, Terminal) — owner only
+
+How money moves: [`LIVE_PAYMENTS.md`](LIVE_PAYMENTS.md). Nothing below has been done; no keys exist in any `.dev.vars`. **Test mode first.** Never paste keys into chat or commit them; Live refuses `sk_live_`/`rk_live_` outside production.
+
+**New in this release, also for Cloudflare:** migrations `0008`–`0012` (`0008` rebuilds the `events` table and restores its dependent rows in the same migration: **export a backup first**, `wrangler d1 export … --remote`), the secrets `LIVE_TICKET_SECRET` (32+ random characters), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_WEBHOOK_SECRET` for Live. The admin needs the same Stripe secret to run refunds and payouts (`STRIPE_SECRET_KEY`); its Live screens read `LIVE_DB` as before.
+
+### 7.1 Local, without keys (works today)
+
+`apps/live/.dev.vars`: `ALLOW_STRIPE_STANDIN=true` and no `STRIPE_SECRET_KEY`. The local stand-in creates sessions, accounts and readers and opens `/dev/stripe/checkout/<id>` instead of Stripe. Nothing leaves the computer.
+
+### 7.2 Test mode (Stripe dashboard, test mode switched on)
+
+1. **Account and business settings:** business name "Gamo Studios", public support email `hello@gamostudio.org`, statement descriptor (for example `GAMO LIVE`), branding. In Payment methods enable Cards, Apple Pay and Google Pay (hosted Checkout needs no domain registration).
+2. **API key:** create a **restricted key** (recommended) or use the test secret key. Put it in `apps/live/.dev.vars` as `STRIPE_SECRET_KEY=sk_test_…` (or `rk_test_…`) and remove `ALLOW_STRIPE_STANDIN` (a key always wins). Restricted-key permissions: Checkout Sessions, PaymentIntents, Refunds, Disputes (read), Balance transactions (read), Accounts and Account Links (Connect), Transfers, Terminal (locations, readers, connection tokens not needed), Events (read).
+3. **Connect platform profile** (Connect → Settings): platform name, the countries you onboard (US), "Platform" use case for a ticketing marketplace, branding for hosted onboarding, and the **return and refresh URLs** `https://<live host>/organizer/organization/payments` (`http://127.0.0.1:4324/...` locally).
+   - **Mode A (organizer's own account):** connected accounts that process their own payments (direct charges, `card_payments` and `transfers` capabilities). Choose who pays Stripe fees (the connected account) and who is liable for losses (the connected account) in the controller settings.
+   - **Mode B (Gamo collects):** connected accounts that only receive transfers (`transfers` capability); Gamo's platform is liable for refunds and disputes. Payouts stay manual in the admin (owner approval each time).
+4. **Webhook endpoints** (Developers → Webhooks, API version as current):
+   - **Platform** endpoint `https://<live host>/api/stripe/webhook`, events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`, `refund.created`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`, `terminal.reader.action_succeeded`, `terminal.reader.action_failed`, `transfer.created`, `transfer.reversed`. Its signing secret is `STRIPE_WEBHOOK_SECRET`.
+   - **Connect** endpoint ("Events on connected accounts") `https://<live host>/api/stripe/connect-webhook`, the same events plus `account.updated` and `account.application.deauthorized`. Its signing secret is `STRIPE_CONNECT_WEBHOOK_SECRET`.
+   - **Locally** use the Stripe CLI: `stripe listen --forward-to 127.0.0.1:4324/api/stripe/webhook` and, in a second terminal, `stripe listen --forward-connect-to 127.0.0.1:4324/api/stripe/connect-webhook`; each prints a `whsec_…` for `.dev.vars`.
+5. **Terminal:** locations are created by the app per organization (no dashboard step). To test a reader, pair a **simulated reader** from the organizer's Door tab with the registration code `simulated-s700` (test mode only).
+6. **Preview:** `wrangler secret put STRIPE_SECRET_KEY --env preview` (test key), `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_WEBHOOK_SECRET`, `LIVE_TICKET_SECRET` from `apps/live`; point the two test endpoints at the preview host.
+7. **Choose the funds-flow mode** in the admin (Gamo Live → Live settings). Until then card sales stay unavailable.
+
+### 7.3 Live mode (only after the owner approves production)
+
+Complete Stripe's account activation (legal entity, bank account, tax details), repeat steps 1–4 in live mode with the production host, set the live key and the two live signing secrets as production secrets, order a physical reader (Stripe Reader S700 or BBPOS WisePOS E; Dashboard → Terminal → Shop) and pair it from the Door tab with the code it shows, run one small real purchase and refund, then approve the first payout (Mode B). Decide sales tax on admissions and review the ticket and organizer terms with counsel first.

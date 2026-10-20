@@ -25,7 +25,7 @@ export const privacyPolicy: LegalDocumentContent = {
       items: [
         'Your account email, name and the role you sign up for.',
         'The profile you build for that role, for example instruments, skills, region, availability, sample links, church service times or past events.',
-        'Staff review notes, and for churches the date and place of the in-person verification meeting.',
+        'Staff review notes, and for churches, organizations and other partners the date, format (video call or in person) and place or link of the verification meeting.',
         'The terms you accepted, with the version and date.',
       ],
     },
@@ -40,7 +40,7 @@ export const privacyPolicy: LegalDocumentContent = {
       id: 'security-records',
       heading: 'Security records',
       paragraphs: [
-        'To stop abuse we keep a keyed fingerprint (not the address itself) of the IP address behind sign-ins, form submissions and ticket lookups, count recent attempts to apply rate limits, and use Cloudflare Turnstile to check that a form is not being sent by a bot. We log who viewed, downloaded, transferred or reissued a ticket.',
+        'To stop abuse we keep a keyed fingerprint (not the address itself) of the IP address behind sign-ins, form submissions and ticket lookups, count recent attempts to apply rate limits, and use Cloudflare Turnstile to check that a form is not being sent by a bot. We record each ticket transfer (the previous and new holder) and which door staff link or organizer checked a ticket in or made a door sale.',
       ],
     },
     {

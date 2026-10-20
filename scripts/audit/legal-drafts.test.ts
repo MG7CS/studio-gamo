@@ -27,12 +27,15 @@ const PUBLISHED_VERSIONS: Record<string, Record<string, string>> = {
   },
   'privacy-policy': {
     '2026-10-18-draft.2': '1b4f267a5f962991584df2558602287b31d07c6f40bcb70790aebc8068a2262d',
+    '2026-10-19-draft.3': '362e511a652431e9b8cfe340ab80dc1a3635e5382725586ab3c4e9af8fd58a37',
   },
   'ticket-terms': {
     '2026-10-18-draft.2': '616ab80c8dff8cf2f8fe43ae65e25195fab97aaa1ae263e5da6c3e6179e92c10',
+    '2026-10-19-draft.3': '8d14339bbea6fe80f089b560eba967556aea11f3397b33a4e0b69b5c12396738',
   },
   'organizer-terms': {
     '2026-10-18-draft.2': 'ef8a7897690fb9d304375cce45f5fc5ca700b25fd61ce74812949950b5f4316c',
+    '2026-10-19-draft.3': 'acaca8b608ff192f562d69cafff7d366bd6c16016fd6eec802fcda8cd105d4b5',
   },
   'provider-terms': {
     '2026-10-18-draft.2': '9f81eb4d39d3147404476153d37ef4b580fbcf203a3a1c77fad874b8d82e2155',

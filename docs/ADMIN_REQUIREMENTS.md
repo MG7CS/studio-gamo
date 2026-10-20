@@ -15,16 +15,20 @@ The previous admin (`apps/admin`) and the first rebuild were deleted. This is th
 | Screen | What the admin does | Data |
 |---|---|---|
 | Overview (home, was Inbox) | See everything waiting, and everything scheduled, at a glance | counts, the oldest waiting items, and a calendar of every organizer event and catalog listing (days link to where Gamo decides; events waiting for review that start within 7 days are called out) |
-| Church verification | schedule the in-person meeting, verify, request changes, reject, suspend, reinstate | `provider_profiles` (role church), `verification_records` |
+| Church verification | schedule the verification meeting (video call or in person), mark it held, verify, request changes, reject, suspend, reinstate | `provider_profiles` (role church), `verification_records` |
 | Provider review (+ profile page) | the same decisions for musicians, technicians, teachers, artists, agents | same |
 | Event review (Gamo Live) | approve / ask for changes / reject with a note; the organization's owners are emailed; first approval recorded | Live database: `events`, `organizations`, `review_decisions` |
-| Organizations (Gamo Live) | verify / remove verification, suspend (note required) / reinstate, "review every event" switch, decision history | Live database: `organizations`, `memberships`, `review_decisions` |
+| Organizations (Gamo Live) | verification by meeting (the organization requests it; schedule a meeting by video call or in person, mark it held, then verify or decline with a note; the owners are emailed at each step), remove verification, suspend (note required) / reinstate, "review every event" switch, funds-flow override, decision history | Live database: `organizations`, `memberships`, `review_decisions`, `verification_meetings` |
+| Live payments (Gamo Live) | orders across organizations (search), refunds, disputes needing attention, organizations whose payments are not ready, and in Mode B the balance owed per organization and payouts (prepared here; running a payout needs the owner's explicit approval, test mode only) | Live database: `orders`, `refunds`, `disputes`, `ledger_entries`, `payouts` |
+| Live settings (Gamo Live) | funds-flow default and per-organization overrides, the Gamo fee (starts at 0; each change is a recorded decision with a reason), door sales on or off platform-wide | Live database: `payment_settings`, `fee_settings`, `organization_payment_overrides` |
 | Catalog (Gamo Live) | approve and publish, hide, mark featured (labeled) the editorial external listings | Live database: `events` (origin `catalog`), `catalog_sources` |
 | Participation requests | read, reply (visible to the participant), mark reviewed or closed | `participation_inquiries` |
 | Legal (read-only) | terms versions, review status, acceptance counts | `terms_documents`, `terms_acceptances`, registry |
 
-Not in v1: charts or trends (no history table to draw them from), search, notifications bell, messages, analytics, reports, users, roles, settings, billing.
-v1.1: email outbox (failed and suppressed emails, retry). Later, on real demand: Live orders and refunds, Academy registrations, mission reporting.
+Every partner is verified through a meeting (video call or in person) before being verified: churches, other groups, providers and Gamo Live organizations. One meeting component is used in Community and in Gamo Live.
+
+Not in v1: charts or trends (no history table to draw them from), a notifications bell, messages, analytics, users, roles.
+v1.1: email outbox (failed and suppressed emails, retry). Later, on real demand: Academy registrations, mission reporting.
 
 Decision emails to providers and organizers stay as they are today; failures become visible in v1.1.
 
@@ -46,7 +50,7 @@ Targets ≥ 44 × 44 px, visible focus ring, one `<h1>` per page, no horizontal 
 
 ## 4. Layout and states
 
-- **Shell:** the dashboard is the page itself (full viewport, no floating panel and nothing behind it, owner decision 2026-10-19): sidebar (Inbox, Participation requests, Church verification, Provider review, Event review, Organizations, Catalog, Legal; the phone tab bar groups the three Gamo Live screens under one "Live" tab; below it the admin's email and a Sign out link to Access's logout), top bar with the page title and admin chip, mobile bottom tab bar. Badges only for real counts above zero.
+- **Shell:** the dashboard is the page itself (full viewport, no floating panel and nothing behind it, owner decision 2026-10-19): a sidebar of four areas, **Overview** (was Inbox), **Community** (tabs: participation requests, church verification, provider review), **Gamo Live** (tabs: event review, organizations, catalog, payments, settings; cleanup is reached from the area, not the menu) and **Legal** (`apps/admin/src/lib/nav.ts`); below it the admin's email and a Sign out link to Access's logout; top bar with the page title; the phone tab bar shows the same four areas. Badges only for real counts above zero.
 - **Every list:** loading is server-rendered (no spinners), honest empty state, "showing the first N" when truncated, filters as links.
 - **Every decision:** plain form POST with a redirect and a result message; errors explain what to fix; nothing is saved silently.
 - **Errors:** 404 and 500 render in the same shell; unauthenticated is a plain 401/403 (Access handles login).

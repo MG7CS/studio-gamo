@@ -1,16 +1,14 @@
-# Gamo Studios — Mission-Driven Organizational Model (Legal-Structure-Neutral)
+# Gamo Studios — Mission-Driven Organizational Model
 
-<!-- status-banner: 2026-10 foundation pass -->
-> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+<!-- status-banner: 2026-10-19 -->
+> **Legal status:** Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** (a for-profit company type), not a nonprofit and not tax-exempt. Payments to Gamo are not tax-deductible. Older wording in this file about an "undecided" or "legal-structure-neutral" form, about becoming a nonprofit, or about donations to Gamo is out of date and waits for a full rewrite by the owner; where it conflicts with [AGENTS.md](../AGENTS.md), AGENTS.md prevails.
 
-**Status:** Governing organizational direction, updated 2026-10-13. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and updates earlier assumptions that a single legal/tax form had already been finalized.
-
-**This is the authoritative reference** for Gamo Studios' purpose, mission, programs, governance, sustainability and financial stewardship. Other documents link here and must not restate conflicting descriptions. If any repository document conflicts with this one on organizational purpose, programs, fees, membership or funding, **this document wins** and the conflict should be fixed.
+**Status:** Background on purpose, mission, programs and financial stewardship, updated 2026-10-13 with the 2026-10-19 corrections below. Current rules live in [AGENTS.md](../AGENTS.md); product requirements in each product's requirements document. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals).
 
 Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [README.md](../README.md) · [REBUILD_PLAN.md](REBUILD_PLAN.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
 
 > [!IMPORTANT]
-> Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has **not** incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe payments or contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
+> Gamo Studios is a **Public Benefit Corporation**. Do not describe it as a nonprofit, a 501(c)(3), tax-exempt or a charity, do not describe payments to Gamo as tax-deductible, do not state a registration or filing status, and do not invent registration numbers, board members, sponsors, donors or partners.
 
 ---
 
@@ -88,9 +86,7 @@ Revenue growth is **not** a success metric on its own.
   - do **not** imply board members, sponsors, donors or institutional partners have committed.
 - Legal and governance prerequisites are tracked in [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md).
 
-**Approved public status wording** (use until legal and tax status are formally decided):
-
-> Gamo Studios is a developing Christian, mission-driven initiative. Final legal incorporation structure and tax status remain under evaluation, and contributions or payments are not tax-deductible.
+**Public status wording (2026-10-19):** "Gamo Studios is a Christian, mission-driven Public Benefit Corporation." Payments to Gamo are not tax-deductible. The rest of §2.1 above predates the PBC decision and is kept only as history until the owner rewrites this file.
 
 ### 2.2 Governance — *Decided intent*
 
@@ -158,7 +154,7 @@ The four applications are **connected programs of one nonprofit mission**, not i
 
 **Purpose — Decided.** Expand access to high-quality instrument instruction, particularly for children, teenagers, families, aspiring musicians and church communities. Academy is one of the organization's **principal educational programs**.
 
-**Primary audience — Decided.** Students, individuals, parents and families. Church-hosted classes and sponsorship are a **secondary institutional pathway**.
+**Audience — Decided (2026-10-19).** Anyone who wants to learn an instrument, of any age, plus **production training** (audio, video and other technical setup for concerts, churches and events; Gamo Production sends people here for it). Classes and workshops, free or paid, can be **sponsored by churches or any other organization**; a fully sponsored class can be free to the learner.
 
 **Approved homepage headline — Decided:** **"Learn to Play the Instrument You Love."** Keep this exact wording unless the founder instructs otherwise.
 
@@ -265,7 +261,7 @@ These sustain programs; they are **not** separate profit centers that must indiv
 | `charitable_contribution` | Donations and gifts (restricted or unrestricted) | Yes — contribution income |
 | `sponsorship` | Program or event sponsorships (may include recognition benefits) | Yes — treatment Pending review |
 | `program_service_receipt` | Tuition, administrative service charges, production cost recovery, ticketing administration fees | Yes — earned program income |
-| `third_party_payable` | Musician pay, instructor pay, ticket proceeds owed to organizers, organizer-funded media budgets | **No** — held for and paid to third parties |
+| `third_party_payable` | Musician pay, instructor pay, ticket proceeds owed to organizers, **gifts to an organizer** added by a buyer at Gamo Live checkout (entry type `gift_to_organizer`), organizer-funded media budgets | **No** — held for and paid to third parties |
 | `processing_cost` | Payment-processor fees | Expense |
 | `refund` / `dispute` | Reversals and chargebacks | Adjustment |
 
@@ -279,7 +275,7 @@ Stripe Connect may be the payout rail; **Stripe is not a regulated escrow servic
 - The homepage introduces Gamo as a **unified Christian music and community organization** and shows how the four programs work together.
 - Audiences: churches and ministries; musicians; students and families; Christian artists; event organizers; people discovering events; potential supporting churches; donors and sponsors; community partners.
 - A **dynamic hero** may eventually spotlight the mission, sponsored programs, concerts, events, Academy, Worship opportunities, church partnerships and special initiatives. **No carousel is implemented without explicit approval.**
-- **Church Partnerships** and **Support Our Mission** pathways are planned (see [SCREEN_INVENTORY.md](SCREEN_INVENTORY.md)). Until legal and donation infrastructure is ready: **no donation processing, no tax-deductibility claims.**
+- **Church Partnerships** and **Support Our Mission** pathways are planned. Gifts **to an organizer** (a church or ministry running a Gamo Live event) may be collected at checkout, always naming the organization that receives them and recorded as `third_party_payable`. Gifts **to Gamo Studios itself** wait for a legal review of Gamo as a PBC. Never a tax-deductibility claim for a payment to Gamo.
 - Footer: Our Mission · Gamo Worship · Gamo Academy · Gamo Live · Gamo Production · Church Partnerships · Opportunities to Support · Contact and legal — with accurate legal status only (§2.1 wording).
 - All fictional musicians, events, bookings and profiles stay labeled as samples.
 
@@ -287,7 +283,7 @@ Stripe Connect may be the payout rail; **Stripe is not a regulated escrow servic
 
 ## 7. Agent guardrails (permanent)
 
-**We are building a Christian nonprofit organization and its supporting software infrastructure — not a commercial startup designed to maximize revenue.**
+**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.**
 
 Agents must **not**, without explicit founder/board authorization:
 
@@ -296,7 +292,7 @@ Agents must **not**, without explicit founder/board authorization:
 - add deductions from musician or instructor pay;
 - let payment, sponsorship or partnership status affect vetting, rankings or trust signals;
 - claim nonprofit status, tax-deductibility, partnerships, verified members or real events that do not exist;
-- enable donation, membership or sponsorship payment processing.
+- collect gifts for Gamo Studios itself or paid memberships (these wait for a legal review); gifts to organizers and class sponsorships follow the safeguards in AGENTS.md §1.
 
 Financial sustainability is important, but it is **subordinate to the mission**.
 

@@ -1,9 +1,9 @@
 # Gamo Studios — Legal Structure, Governance & Operational Readiness Checklist
 
-<!-- status-banner: 2026-10 foundation pass -->
-> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+<!-- status-banner: 2026-10-19 -->
+> **Legal status:** Gamo Studios is a Christian, mission-driven **Public Benefit Corporation**, not a nonprofit and not tax-exempt. Items below that assume an undecided structure or a nonprofit route are out of date and wait for a full rewrite by the owner; [AGENTS.md](../AGENTS.md) prevails.
 
-**Purpose:** Track the legal, governance, financial, policy and operational decisions required for Gamo Studios as a Christian, mission-driven organization whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). Organizational direction lives in [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md).
+**Purpose:** Track the legal, governance, financial, policy and operational decisions Gamo Studios still needs. Background lives in [GAMO_NONPROFIT_MODEL.md](GAMO_NONPROFIT_MODEL.md).
 
 > [!CAUTION]
 > Nothing on this list has been completed unless it is marked **Confirmed**. Agents must not mark items Confirmed, file anything, contact agencies, open accounts, or publish status claims. These are owner-only actions that require qualified U.S. legal and accounting advice.
@@ -78,7 +78,9 @@
 
 | # | Item | Status |
 | --- | --- | --- |
-| 5.1 | Donation processing infrastructure (disabled until 1.8 and 3.4) | Blocked |
+| 5.1 | Gifts to Gamo Studios itself (needs a legal review of Gamo as a PBC). Gifts to organizers at Gamo Live checkout are in scope with the safeguards in AGENTS.md §1 and do not depend on this item. | Awaiting approval |
+| 5.1a | Sales tax on admissions (several states, Arizona included, tax admissions): who collects and remits for Gamo Live tickets in each funds-flow mode | Awaiting approval |
+| 5.1b | Card surcharging (not built; restricted in several states) and the organizer terms' seller-of-record wording for both funds-flow modes | Awaiting approval |
 | 5.2 | Production Stripe, Resend and domain setup (owner-approved) | Awaiting approval |
 | 5.3 | Identity verification and background-check vendor contracts | Awaiting approval |
 | 5.4 | Insurance (general liability, D&O, abuse/molestation coverage for youth programs) | Proposed |
