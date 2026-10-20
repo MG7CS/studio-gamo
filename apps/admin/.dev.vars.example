@@ -12,3 +12,7 @@ CF_ACCESS_AUD=
 
 # LOCAL ONLY (loopback host + ENVIRONMENT=local; fatal anywhere else): act as ADMIN_EMAIL without Access.
 ALLOW_LOCAL_ADMIN_IDENTITY=
+
+# LOCAL ONLY, do not put a value here: GAMO_DEV_PHONE_TOKEN is the random secret `make admin-phone` sets for that one run
+# (scripts/dev/admin-phone.sh). A value in this file is ignored. Setting it outside ENVIRONMENT=local is fatal.
+# GAMO_DEV_PHONE_TOKEN=

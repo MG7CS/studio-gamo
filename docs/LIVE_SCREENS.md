@@ -33,7 +33,7 @@ Layout: dashboard shell per the reference (left sidebar with grouped menu, top b
 | B7 | `/organizer/events/[id]/registrations` | Registrations table per occurrence: name, party, status, checked-in; search; **Export CSV**; cancel a registration | Only this organization's registrants. |
 | B8 | `/organizer/check-in/[occurrenceId]` | Check-in (only for events with QR on): scan with the camera where the browser supports it, or type the code; shows name and party, "Admitted" or "Already admitted at <time>" | First scan wins. Camera permission requested on this page only (`Permissions-Policy: camera=(self)` for this response). |
 | B9 | `/organizer/organization` | Edit the organization profile; members and invitations (owner only); verification status (read-only) | Profile edits do not change verification. |
-| B10 | `/organizer/account` | Name, email (from Clerk), sign out | |
+| B10 | `/organizer/settings` | Name, email (from Clerk), default time zone, own devices, own data download, deletion by email (replaces Account) | |
 
 Error and edge states for B: not signed in → sign-in; signed in with no organization → B2; wrong organization's event → 404; suspended organization → a clear notice and read-only pages.
 

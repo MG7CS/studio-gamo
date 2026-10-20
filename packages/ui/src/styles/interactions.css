@@ -1,0 +1,27 @@
+/*
+ * Touch and mouse basics for the dashboards (the Live organizer area and the admin): what is pressable looks
+ * pressable. Tailwind resets buttons to the default arrow, so say it here once instead of on every button.
+ * Marketing pages do not import this file.
+ */
+[data-shell]
+  :is(button, summary, [role='button'], select, label[for], input[type='checkbox'], input[type='radio']):not(
+    :disabled
+  ) {
+  cursor: pointer;
+}
+[data-shell] :is(button, input[type='submit']):disabled,
+[data-shell] [aria-disabled='true'] {
+  cursor: not-allowed;
+}
+/* A small press, so a click is felt before the next page loads. */
+[data-shell] :is(button, a[class*='rounded-full']):active:not(:disabled) {
+  transform: translateY(1px);
+}
+[data-shell] [aria-busy='true'] {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-shell] :is(button, a):active {
+    transform: none;
+  }
+}

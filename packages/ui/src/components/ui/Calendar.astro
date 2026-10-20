@@ -1,126 +1,416 @@
 ---
 /**
- * A month calendar that shows which days matter and links only those days. No JavaScript: moving between months and
- * choosing a day are plain links, so it works anywhere a page can be rendered and the address always says what is
- * showing. It only draws what its caller computed (the weeks, the day states, the links), so the same component serves
- * an event's dates, a booking calendar or an availability picker.
+ * The calendar: a toolbar (previous, a title you press to pick a month or a year, next, Today, and a Month/Week
+ * switch) over a month grid, a week, a month picker or a year picker. It only draws the model that `calendarModel()`
+ * in `@gamo/domain` returns, so every screen and every app gets the same behaviour: all navigation is plain links
+ * (no JavaScript), and the address always says what is showing.
  *
- * Day states: `upcoming` is a filled day, `past` a quiet one, `canceled` struck through; `selected` adds a ring and
- * `today` an underline. Every linked day is at least 44 px square and carries a full written label for screen readers.
+ * It fits wherever it is put without new code. `size="auto"` (the default) adapts to the width of the place it sits in
+ * (container queries): a narrow card shows a compact grid with dots, a wide area shows each day's items inside its
+ * cell, and the week view becomes seven columns. `size="compact"` or `size="comfortable"` force one or the other.
+ *
+ * The props are structurally typed to the domain model (this package does not depend on the domain package).
  */
-export interface CalendarDay {
-  /** YYYY-MM-DD. */
+export interface CalendarItem {
+  label: string;
+  detail?: string;
+  state: 'upcoming' | 'past' | 'canceled';
+  href?: string;
+}
+export interface CalendarCellModel {
   iso: string;
   day: number;
   inMonth: boolean;
-  state?: 'upcoming' | 'past' | 'canceled';
-  selected?: boolean;
-  today?: boolean;
-  /** Only days that can be opened are links. */
+  data?: { state: 'upcoming' | 'past' | 'canceled'; items: CalendarItem[] };
+  selected: boolean;
+  today: boolean;
   href?: string;
-  /** Spoken label for a linked day, e.g. "Sunday, October 25, 2026, upcoming". */
-  label?: string;
 }
-interface Props {
-  /** The month shown, e.g. "November 2026". */
+interface Link {
+  label: string;
+  href?: string;
+  active?: boolean;
+}
+export interface CalendarModelProps {
+  kind: 'month' | 'week' | 'months' | 'years';
   title: string;
-  weeks: CalendarDay[][];
+  titleHref?: string;
   prevHref?: string;
   nextHref?: string;
-  /** Short column headings, first column first. */
+  prevLabel: string;
+  nextLabel: string;
+  todayHref?: string;
+  closeHref?: string;
+  modes: { month: Link; week: Link };
+  weeks?: CalendarCellModel[][];
+  days?: CalendarCellModel[];
+  months?: Array<Link & { count: number; current: boolean }>;
+  years?: Array<Link & { count: number; current: boolean }>;
+}
+interface Props {
+  model: CalendarModelProps;
+  /**
+   * `auto` follows the width of the container. `compact` is dots only, `cozy` shows each day's items in shorter rows (a
+   * dashboard card beside other cards), `comfortable` shows them in tall rows (the calendar is the page).
+   */
+  size?: 'auto' | 'compact' | 'cozy' | 'comfortable';
+  /** Short column headings for the month grid, first column first. */
   weekdays?: string[];
+  /** Show the Upcoming / Past / Canceled key under the calendar. */
+  legend?: boolean;
+  /** Label the thing being counted in the pickers and cells ("date", "booking"). */
+  noun?: string;
   class?: string;
 }
 const {
-  title,
-  weeks,
-  prevHref,
-  nextHref,
-  weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+  model,
+  size = 'auto',
+  weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  legend = true,
+  noun = 'date',
   class: className,
 } = Astro.props;
-const arrow =
-  'inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-white text-ink hover:bg-sand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta';
-const arrowOff =
-  'inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 text-ink/30';
-const longDate = (iso: string) =>
+
+// The roomy parts and the compact parts swap on the container's width, or stay put when forced.
+const always = size === 'comfortable' || size === 'cozy';
+const roomy = size === 'compact' ? 'hidden' : always ? '' : 'hidden @lg:block';
+const tight = size === 'compact' ? '' : always ? 'hidden' : '@lg:hidden';
+const cellHeight =
+  size === 'compact'
+    ? 'min-h-11'
+    : size === 'cozy'
+      ? 'min-h-[68px]'
+      : size === 'comfortable'
+        ? 'min-h-[104px]'
+        : 'min-h-11 @lg:min-h-[88px] @3xl:min-h-[104px]';
+const weekColumns = size === 'compact' ? '' : always ? 'grid-cols-7' : '@xl:grid-cols-7';
+
+const long = (iso: string) =>
   new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'UTC' }).format(
     new Date(`${iso}T12:00:00Z`),
   );
-const stateWord = { upcoming: 'upcoming', past: 'past', canceled: 'canceled' } as const;
-const cell =
-  'mx-auto flex h-11 w-11 items-center justify-center rounded-full text-[14px] font-semibold tabular-nums';
-const look = (d: CalendarDay) => [
-  cell,
-  d.state === 'upcoming' && 'bg-terracotta-deep text-white',
-  d.state === 'past' && 'bg-sand text-ink',
-  d.state === 'canceled' && 'bg-status-danger-soft text-status-danger line-through',
-  !d.state && 'font-medium text-muted',
-  d.selected && 'ring-2 ring-ink ring-offset-2 ring-offset-white',
-  d.today && !d.selected && 'underline decoration-2 underline-offset-4',
-  d.href &&
-    'hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+const short = (iso: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${iso}T12:00:00Z`));
+const plural = (n: number) => `${n} ${noun}${n === 1 ? '' : 's'}`;
+const spoken = (c: CalendarCellModel) =>
+  `${long(c.iso)}${c.data ? `, ${plural(c.data.items.length)}, ${c.data.state}` : ''}${c.selected ? ', selected' : ''}`;
+
+const chip = {
+  upcoming: 'bg-terracotta-deep/10 text-terracotta-deep',
+  past: 'bg-sand text-ink',
+  canceled: 'bg-status-danger-soft text-status-danger line-through',
+} as const;
+const dot = {
+  upcoming: 'bg-terracotta-deep',
+  past: 'bg-ink/35',
+  canceled: 'bg-status-danger',
+} as const;
+const focus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta';
+const control = `inline-flex h-11 items-center justify-center rounded-full border border-ink/15 bg-white px-4 text-[13px] font-semibold text-ink hover:bg-sand ${focus}`;
+const arrow = `inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-white text-ink hover:bg-sand ${focus}`;
+const arrowOff =
+  'inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 text-ink/30';
+const cellBase = `group relative flex h-full flex-col rounded-xl border p-1.5 text-left transition-colors @lg:p-2 ${focus}`;
+const cellLook = (c: CalendarCellModel) => [
+  cellBase,
+  cellHeight,
+  c.selected
+    ? 'border-ink ring-2 ring-ink'
+    : c.data
+      ? 'border-tan bg-white hover:bg-cream'
+      : 'border-transparent',
+  !c.href && 'cursor-default',
+  c.href && !c.data && 'hover:bg-sand/60',
 ];
+const maxItems = 2;
 ---
 
-<div class={className}>
-  <div class="mb-2 flex items-center justify-between gap-2">
-    {prevHref ? (
-      <a href={prevHref} class={arrow} aria-label="Previous month">
-        <span aria-hidden="true">←</span>
-      </a>
-    ) : (
-      <span class={arrowOff} aria-hidden="true">
-        ←
-      </span>
-    )}
-    <h3 class="text-[15px] font-bold text-ink" aria-live="polite">
-      {title}
-    </h3>
-    {nextHref ? (
-      <a href={nextHref} class={arrow} aria-label="Next month">
-        <span aria-hidden="true">→</span>
-      </a>
-    ) : (
-      <span class={arrowOff} aria-hidden="true">
-        →
-      </span>
-    )}
-  </div>
-  <table class="w-full border-separate border-spacing-y-1 text-center">
-    <caption class="sr-only">{title}</caption>
-    <thead>
-      <tr>
-        {weekdays.map((w) => (
-          <th scope="col" class="pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
-            {w}
-          </th>
+<div class:list={['@container', className]}>
+  <nav
+    aria-label="Calendar controls"
+    class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+  >
+    <div class="flex min-w-0 items-center gap-1.5">
+      {model.prevHref ? (
+        <a href={model.prevHref} class={arrow} aria-label={model.prevLabel}>
+          <span aria-hidden="true">←</span>
+        </a>
+      ) : (
+        <span class={arrowOff} aria-hidden="true">
+          ←
+        </span>
+      )}
+      {model.titleHref ? (
+        <a
+          href={model.titleHref}
+          class={`inline-flex h-11 min-w-0 items-center gap-1.5 rounded-full px-3 text-[16px] font-extrabold text-ink hover:bg-sand ${focus}`}
+          aria-label={`${model.title}. Choose another ${model.kind === 'months' ? 'year' : 'month'}`}
+        >
+          <span class="truncate">{model.title}</span>
+          <span aria-hidden="true" class="text-[11px] text-muted">
+            ▾
+          </span>
+        </a>
+      ) : (
+        <h3 class="px-3 text-[16px] font-extrabold text-ink">{model.title}</h3>
+      )}
+      {model.nextHref ? (
+        <a href={model.nextHref} class={arrow} aria-label={model.nextLabel}>
+          <span aria-hidden="true">→</span>
+        </a>
+      ) : (
+        <span class={arrowOff} aria-hidden="true">
+          →
+        </span>
+      )}
+    </div>
+    <div class="flex items-center gap-1.5">
+      {model.closeHref && (
+        <a href={model.closeHref} class={control}>
+          Back
+        </a>
+      )}
+      {model.todayHref && (
+        <a href={model.todayHref} class={control}>
+          Today
+        </a>
+      )}
+      <div
+        class="inline-flex rounded-full border border-ink/15 bg-white p-0.5"
+        role="group"
+        aria-label="View"
+      >
+        {([model.modes.month, model.modes.week] as const).map((m) => (
+          <a
+            href={m.href}
+            aria-current={m.active ? 'true' : undefined}
+            class:list={[
+              'inline-flex h-10 items-center rounded-full px-4 text-[13px] font-semibold',
+              focus,
+              m.active ? 'bg-terracotta-deep text-white' : 'text-ink hover:bg-sand',
+            ]}
+          >
+            {m.label}
+          </a>
         ))}
-      </tr>
-    </thead>
-    <tbody>
-      {weeks.map((week) => (
+      </div>
+    </div>
+  </nav>
+
+  {model.kind === 'month' && model.weeks && (
+    <table class="w-full table-fixed border-separate border-spacing-1" aria-label={model.title}>
+      <thead>
         <tr>
-          {week.map((d) => (
-            <td class="p-0">
-              {!d.inMonth ? (
-                <span class="block h-11" aria-hidden="true" />
-              ) : d.href ? (
-                <a
-                  href={d.href}
-                  class:list={look(d)}
-                  aria-current={d.selected ? 'date' : undefined}
-                  aria-label={d.label ?? `${longDate(d.iso)}${d.state ? `, ${stateWord[d.state]}` : ''}`}
-                >
-                  {d.day}
-                </a>
-              ) : (
-                <span class:list={look(d)}>{d.day}</span>
-              )}
-            </td>
+          {weekdays.map((w) => (
+            <th
+              scope="col"
+              class="pb-0.5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted @lg:pl-2 @lg:text-left"
+            >
+              <span class="@lg:hidden" aria-hidden="true">
+                {w.slice(0, 2)}
+              </span>
+              <span class="hidden @lg:inline" aria-hidden="true">
+                {w}
+              </span>
+              <span class="sr-only">{w}</span>
+            </th>
           ))}
         </tr>
-      ))}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {model.weeks.map((week) => (
+          <tr>
+            {week.map((c) => {
+              const Tag = c.href ? 'a' : 'div';
+              const items = c.data?.items ?? [];
+              return (
+                <td class="p-0 align-top">
+                  {!c.inMonth ? (
+                    <span class={`block ${cellHeight}`} aria-hidden="true" />
+                  ) : (
+                    <Tag
+                      href={c.href}
+                      class:list={cellLook(c)}
+                      aria-current={c.selected ? 'date' : undefined}
+                    >
+                      {c.href && <span class="sr-only">{spoken(c)}. </span>}
+                      <span
+                        class:list={[
+                          'mx-auto inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1 text-[13px] font-semibold tabular-nums @lg:mx-0 @lg:h-6 @lg:min-w-6 @lg:self-start',
+                          c.today
+                            ? 'bg-terracotta text-white'
+                            : c.data
+                              ? 'text-ink'
+                              : 'font-medium text-muted',
+                        ]}
+                      >
+                        {c.day}
+                      </span>
+                      {c.data && (
+                        <>
+                          <span
+                            class={`mt-auto flex justify-center gap-0.5 pt-0.5 ${tight}`}
+                            aria-hidden="true"
+                          >
+                            {items.slice(0, 3).map((it) => (
+                              <span class:list={['h-1.5 w-1.5 rounded-full', dot[it.state]]} />
+                            ))}
+                          </span>
+                          <span class={`mt-1 space-y-0.5 ${roomy}`}>
+                            {items.slice(0, maxItems).map((it) => (
+                              <span
+                                class:list={[
+                                  'block rounded-md px-1.5 py-1 text-[11px] font-semibold leading-tight',
+                                  chip[it.state],
+                                ]}
+                              >
+                                <span class="block truncate">{it.label}</span>
+                                {it.detail && <span class="block truncate font-normal">{it.detail}</span>}
+                              </span>
+                            ))}
+                            {items.length > maxItems && (
+                              <span class="block px-1.5 text-[11px] font-medium text-muted">
+                                +{items.length - maxItems} more
+                              </span>
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </Tag>
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+
+  {model.kind === 'week' && model.days && (
+    <ol class:list={['grid gap-2', weekColumns]} aria-label={model.title}>
+      {model.days.map((c) => {
+        const items = c.data?.items ?? [];
+        return (
+          <li
+            class:list={[
+              'flex flex-col rounded-xl border p-2.5',
+              c.selected
+                ? 'border-terracotta-deep ring-2 ring-terracotta-deep'
+                : c.data
+                  ? 'border-tan bg-white'
+                  : 'border-sand',
+            ]}
+          >
+            <div class="flex items-center justify-between gap-2 @xl:block">
+              {c.href ? (
+                <a
+                  href={c.href}
+                  class={`flex items-baseline gap-2 rounded-lg ${focus}`}
+                  aria-current={c.selected ? 'date' : undefined}
+                >
+                  <span class="sr-only">{spoken(c)}. </span>
+                  <span class="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                    {short(c.iso).split(',')[0]}
+                  </span>
+                  <span
+                    class:list={[
+                      'inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1 text-[14px] font-bold tabular-nums',
+                      c.today ? 'bg-terracotta text-white' : 'text-ink',
+                    ]}
+                  >
+                    {c.day}
+                  </span>
+                </a>
+              ) : (
+                <span class="flex items-baseline gap-2">
+                  <span class="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                    {short(c.iso).split(',')[0]}
+                  </span>
+                  <span class="text-[14px] font-bold tabular-nums text-ink">{c.day}</span>
+                </span>
+              )}
+            </div>
+            {items.length === 0 ? (
+              <p class="mt-1.5 text-[12px] text-muted @xl:mt-3">Nothing</p>
+            ) : (
+              <ul class="mt-1.5 space-y-1 @xl:mt-3">
+                {items.map((it) => {
+                  const Tag = it.href ? 'a' : 'div';
+                  return (
+                    <li>
+                      <Tag
+                        href={it.href}
+                        class:list={[
+                          'block rounded-lg px-2 py-1.5 text-[12px] leading-snug',
+                          chip[it.state],
+                          it.href && 'hover:opacity-85',
+                        ]}
+                      >
+                        <span class="block font-semibold">{it.label}</span>
+                        {it.detail && <span class="block font-normal">{it.detail}</span>}
+                      </Tag>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  )}
+
+  {(model.kind === 'months' || model.kind === 'years') && (
+    <ul
+      class="grid grid-cols-3 gap-2"
+      aria-label={model.kind === 'months' ? `Months of ${model.title}` : 'Years'}
+    >
+      {(model.kind === 'months' ? model.months : model.years)!.map((m) => {
+        const Tag = m.href ? 'a' : 'span';
+        return (
+          <li>
+            <Tag
+              href={m.href}
+              aria-current={m.current ? 'true' : undefined}
+              class:list={[
+                'flex min-h-14 flex-col items-center justify-center rounded-xl border px-2 py-2 text-center',
+                m.href
+                  ? `border-tan bg-white text-ink hover:bg-cream ${focus}`
+                  : 'border-transparent bg-cream text-muted',
+                m.current && 'ring-2 ring-terracotta-deep',
+              ]}
+            >
+              <span class="text-[15px] font-bold">{m.label}</span>
+              {m.count > 0 && (
+                <span class="text-[11px] font-medium text-terracotta-deep">{plural(m.count)}</span>
+              )}
+            </Tag>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+
+  {legend && (model.kind === 'month' || model.kind === 'week') && (
+    <p class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
+      <span>
+        <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-terracotta-deep align-middle" />
+        Upcoming
+      </span>
+      <span>
+        <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-ink/35 align-middle" />
+        Past
+      </span>
+      <span>
+        <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-status-danger align-middle" />
+        Canceled
+      </span>
+    </p>
+  )}
 </div>

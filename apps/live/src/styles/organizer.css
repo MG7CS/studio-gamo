@@ -1,0 +1,11 @@
+/*
+ * The organizer area's warmth. The dashboard shares the brand palette with the marketing pages but sits on a quieter
+ * canvas, so it was reading dark and gray: near-black for every active state and a cold gray for secondary text.
+ * Here the page is cream, secondary text is a warm brown-gray (still above 5:1 contrast on white and cream), and the
+ * accents (active toggle, today, selection) are the brand terracotta. Scoped to `.organizer-theme`, so nothing else
+ * changes.
+ */
+.organizer-theme {
+  --color-muted: #6a5b4f;
+  --color-line: #e4d9c9;
+}

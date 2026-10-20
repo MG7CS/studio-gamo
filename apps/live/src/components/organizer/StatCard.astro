@@ -1,17 +1,43 @@
 ---
-/** One real number from the database, with a plain label. Never a placeholder. */
+/** One real number from the database, with a plain label. Never a placeholder. The whole card opens the related list. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+import type { OrganizerStatLink } from '../../lib/organizer-stats';
+
 interface Props {
   label: string;
   value: number;
   hint?: string;
+  link: OrganizerStatLink;
+  /** The colour of the icon chip: each number has its own so the row reads at a glance. */
+  tone?: 'terracotta' | 'amber' | 'green' | 'plum';
+  icon?: IconName;
 }
-const { label, value, hint } = Astro.props;
+const { label, value, hint, link, tone = 'terracotta', icon = 'calendar' } = Astro.props;
+const chip = {
+  terracotta: 'bg-terracotta/12 text-terracotta-deep',
+  amber: 'bg-warning-soft text-status-warning',
+  green: 'bg-status-success-soft text-status-success',
+  plum: 'bg-[#efe3f0] text-[#6b3a73]',
+}[tone];
 ---
 
-<div class="rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
-  <p class="text-[13px] font-semibold text-muted">{label}</p>
-  <p class="mt-1.5 text-[28px] font-black leading-none tracking-[-0.03em] text-ink">
+<a
+  href={link.href}
+  class="group block rounded-2xl border border-line/60 bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-terracotta/40 hover:shadow-[0_8px_20px_rgba(143,59,24,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2"
+>
+  <span class="flex items-start justify-between gap-3">
+    <span class="text-[13px] font-semibold text-muted">{label}</span>
+    <span
+      class:list={['flex h-8 w-8 shrink-0 items-center justify-center rounded-xl', chip]}
+      aria-hidden="true"
+    >
+      <Icon name={icon} class="h-[18px] w-[18px]" />
+    </span>
+  </span>
+  <span class="mt-1 block text-[28px] font-black leading-none tracking-[-0.03em] text-ink">
     {value.toLocaleString('en-US')}
-  </p>
-  {hint && <p class="mt-1.5 text-[12px] text-muted">{hint}</p>}
-</div>
+  </span>
+  {hint && <span class="mt-1.5 block text-[12px] text-muted">{hint}</span>}
+  <span class="sr-only">. Opens {link.opens}.</span>
+</a>

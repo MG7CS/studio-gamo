@@ -1,130 +1,133 @@
 ---
 /**
- * An event's dates in the organizer area. A series shows a month calendar (the shared `Calendar`) with the chosen day's
- * details underneath: when, how many registered and checked in, Check in, and Cancel this date. A one-date event skips
- * the calendar and shows just that date. Everything is a link or a form; nothing needs JavaScript.
+ * An event's dates: the calendar is the main thing on the page (month or week, with a month and year picker), and the
+ * chosen day's details sit beside it: when, how many registered and checked in, Check in, and Cancel this date. A
+ * one-date event skips the calendar and shows just that date. Everything is a link or a form; no JavaScript.
  */
 import Calendar from '@studio-gamo/ui/components/ui/Calendar.astro';
 import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
 import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
-import Panel from './Panel.astro';
 import { CHECKIN_CLOSES_AFTER_SECONDS } from '@gamo/domain';
-import type { EventCalendarView, OrganizerEventDetail } from '@gamo/domain';
+import type { CalendarModel, OrganizerEventDetail } from '@gamo/domain';
 import { dateOnly, whenLabel } from '../../lib/organizer-format';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 
 interface Props {
   event: OrganizerEventDetail;
-  view: EventCalendarView;
+  model: CalendarModel;
+  /** The dates of the chosen day, as the event page read them. */
+  selectedIds: string[];
+  /** The chosen day in words, e.g. "Sun, Oct 25, 2026". */
+  selectedLabel: string | null;
   timeZone: string;
   now: number;
   /** The event is published and has more than one date, so a single date can be canceled. */
   canCancelDates: boolean;
 }
-const { event, view, timeZone, now, canCancelDates } = Astro.props;
+const { event, model, selectedIds, selectedLabel, timeZone, now, canCancelDates } = Astro.props;
 const byId = new Map(event.occurrences.map((o) => [o.id, o]));
-const selected = view.selected.map((s) => byId.get(s.id)!).filter(Boolean);
+const selected = selectedIds.map((id) => byId.get(id)).filter((o): o is NonNullable<typeof o> => Boolean(o));
 const series = event.occurrences.length > 1;
 const registration = event.admission === 'free_registration';
+const upcoming = event.occurrences.filter((o) => !o.canceled && (o.endsAt ?? o.startsAt) > now).length;
+const first = event.occurrences[0];
+const last = event.occurrences[event.occurrences.length - 1];
 const stateOf = (o: (typeof selected)[number]) =>
   o.canceled
     ? ({ label: 'Canceled', tone: 'danger' } as const)
     : (o.endsAt ?? o.startsAt) <= now
       ? ({ label: 'Past', tone: 'neutral' } as const)
       : ({ label: 'Upcoming', tone: 'info' } as const);
-const upcoming = event.occurrences.filter((o) => !o.canceled && (o.endsAt ?? o.startsAt) > now).length;
 ---
 
-<Panel id="dates" title={series ? `Dates (${event.occurrences.length})` : 'Date'}>
+<div
+  id="calendar"
+  class:list={['mt-3 grid items-start gap-3', series && 'lg:grid-cols-[minmax(0,1fr)_21rem]']}
+>
   {series && (
-    <>
-      <p class="mb-3 text-[13px] text-muted">
-        {view.firstDate && view.lastDate
-          ? `${dateOnly(event.occurrences[0].startsAt, timeZone)} to ${dateOnly(event.occurrences[event.occurrences.length - 1].startsAt, timeZone)} · ${upcoming} upcoming`
-          : ''}
-      </p>
-      <Calendar title={view.label} weeks={view.weeks} prevHref={view.prevHref} nextHref={view.nextHref} />
-      <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
-        <span>
-          <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-terracotta-deep align-middle" />
-          Upcoming
-        </span>
-        <span>
-          <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-sand align-middle ring-1 ring-ink/15" />
-          Past
-        </span>
-        <span>
-          <span class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-status-danger-soft align-middle ring-1 ring-status-danger/40" />
-          Canceled
-        </span>
-      </p>
-    </>
+    <Panel>
+      <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+        <h2 class="text-[16px] font-extrabold text-ink">Dates ({event.occurrences.length})</h2>
+        <p class="text-[13px] text-muted">
+          {dateOnly(first.startsAt, timeZone)} to {dateOnly(last.startsAt, timeZone)} · {upcoming} upcoming
+        </p>
+      </div>
+      <Calendar model={model} noun="date" />
+    </Panel>
   )}
 
-  {selected.length === 0 ? (
-    <p class="mt-4 text-[14px] text-muted">This event has no dates yet.</p>
-  ) : (
-    <ul class:list={['space-y-3', series && 'mt-4 border-t border-sand pt-4']}>
-      {selected.map((o) => {
-        const state = stateOf(o);
-        const canCheckIn = event.qrCheckin && !o.canceled && o.startsAt + CHECKIN_CLOSES_AFTER_SECONDS > now;
-        const canCancel = canCancelDates && !o.canceled && (o.endsAt ?? o.startsAt) > now;
-        return (
-          <li class="rounded-xl bg-cream/60 p-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <p class="text-[14px] font-semibold text-ink">{whenLabel(o.startsAt, timeZone)}</p>
-              <Pill tone={state.tone}>{state.label}</Pill>
-            </div>
-            {registration && (
-              <p class="mt-1 text-[13px] text-muted">
-                {o.confirmedPeople} registered{event.capacity != null ? ` of ${event.capacity}` : ''}
-                {event.qrCheckin ? ` · ${o.checkedInPeople} checked in` : ''}
-              </p>
-            )}
-            {(canCheckIn || canCancel) && (
-              <div class="mt-3 flex flex-wrap items-start gap-2">
-                {canCheckIn && (
-                  <a
-                    href={`/organizer/check-in/${o.id}`}
-                    class="inline-flex min-h-11 items-center rounded-full border border-ink/20 bg-white px-4 text-[13px] font-semibold text-ink hover:bg-sand"
-                  >
-                    Check in
-                  </a>
-                )}
-                {canCancel && (
-                  <ConfirmAction
-                    summaryLabel="Cancel this date…"
-                    confirmLabel="Yes, cancel this date"
-                    actionName="action"
-                    actionValue="cancel_date"
-                    class="w-full"
-                  >
-                    <p>
-                      {o.confirmedPeople > 0
-                        ? `${o.confirmedPeople} ${o.confirmedPeople === 1 ? 'person' : 'people'} registered for this date will be emailed. `
-                        : 'No one has registered for this date. '}
-                      The other dates are not affected. This cannot be undone.
-                    </p>
-                    <Fragment slot="fields">
-                      <input type="hidden" name="occurrence" value={o.id} />
-                      {o.confirmedPeople > 0 && (
-                        <SplitField
-                          id={`message-${o.id}`}
-                          name="message"
-                          label="Message to registrants (optional)"
-                          as="textarea"
-                          rows={2}
-                          maxlength={1000}
-                        />
-                      )}
-                    </Fragment>
-                  </ConfirmAction>
-                )}
+  <Panel id="day" class="lg:sticky lg:top-3">
+    <h2 class="text-[16px] font-extrabold text-ink">{series ? (selectedLabel ?? 'Choose a day') : 'Date'}</h2>
+    {selected.length === 0 ? (
+      <p class="mt-2 text-[14px] text-muted">
+        {series ? 'Choose a day with a date in the calendar.' : 'This event has no dates yet.'}
+      </p>
+    ) : (
+      <ul class="mt-3 space-y-3">
+        {selected.map((o) => {
+          const state = stateOf(o);
+          const canCheckIn =
+            event.qrCheckin && !o.canceled && o.startsAt + CHECKIN_CLOSES_AFTER_SECONDS > now;
+          const canCancel = canCancelDates && !o.canceled && (o.endsAt ?? o.startsAt) > now;
+          return (
+            <li class="rounded-xl bg-cream/60 p-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="text-[14px] font-semibold text-ink">{whenLabel(o.startsAt, timeZone)}</p>
+                <Pill tone={state.tone}>{state.label}</Pill>
               </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  )}
-</Panel>
+              {registration && (
+                <p class="mt-1 text-[13px] text-muted">
+                  {o.confirmedPeople} registered{event.capacity != null ? ` of ${event.capacity}` : ''}
+                  {event.qrCheckin ? ` · ${o.checkedInPeople} checked in` : ''}
+                </p>
+              )}
+              {(canCheckIn || canCancel) && (
+                <div class="mt-3 flex flex-wrap items-start gap-2">
+                  {canCheckIn && (
+                    <a
+                      href={`/organizer/check-in/${o.id}`}
+                      class="inline-flex min-h-11 items-center rounded-full border border-ink/20 bg-white px-5 text-[13px] font-semibold text-ink hover:bg-sand"
+                    >
+                      Check in
+                    </a>
+                  )}
+                  {canCancel && (
+                    <ConfirmAction
+                      summaryLabel="Cancel this date…"
+                      confirmLabel="Yes, cancel this date"
+                      actionName="action"
+                      actionValue="cancel_date"
+                      class="w-full"
+                    >
+                      <p>
+                        {o.confirmedPeople > 0
+                          ? `${o.confirmedPeople} ${o.confirmedPeople === 1 ? 'person' : 'people'} registered for this date will be emailed. `
+                          : 'No one has registered for this date. '}
+                        The other dates are not affected. This cannot be undone.
+                      </p>
+                      <Fragment slot="fields">
+                        <input type="hidden" name="occurrence" value={o.id} />
+                        {o.confirmedPeople > 0 && (
+                          <SplitField
+                            id={`message-${o.id}`}
+                            name="message"
+                            label="Message to registrants (optional)"
+                            as="textarea"
+                            rows={2}
+                            maxlength={1000}
+                            size="sm"
+                          />
+                        )}
+                      </Fragment>
+                    </ConfirmAction>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </Panel>
+</div>

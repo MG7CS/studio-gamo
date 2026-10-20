@@ -14,24 +14,24 @@ const tile = 'rounded-clay-lg bg-surface p-5 shadow-soft';
 <dl class="mb-8 grid gap-4 sm:grid-cols-3">
   <div class={tile}>
     <dt class="text-sm font-semibold text-body">Documents in the registry</dt>
-    <dd class="mt-1 text-3xl font-extrabold text-ink">{summary.documents}</dd>
+    <dd class="mt-1 text-[28px] font-black leading-none text-ink">{summary.documents}</dd>
   </div>
   <div class={tile}>
     <dt class="text-sm font-semibold text-body">Legal review complete</dt>
-    <dd class="mt-1 text-3xl font-extrabold text-ink">
+    <dd class="mt-1 text-[28px] font-black leading-none text-ink">
       {summary.reviewed} of {summary.documents}
     </dd>
   </div>
   <div class={tile}>
     <dt class="text-sm font-semibold text-body">Recorded acceptances (all versions)</dt>
-    <dd class="mt-1 text-3xl font-extrabold text-ink">{count(summary.totalAcceptances)}</dd>
+    <dd class="mt-1 text-[28px] font-black leading-none text-ink">{count(summary.totalAcceptances)}</dd>
   </div>
 </dl>
 
 <ul class="space-y-4">
   {summary.rows.map(({ doc, accepted }) => (
     <li class="rounded-clay-lg bg-surface p-6 shadow-soft">
-      <h2 class="text-lg font-extrabold">{doc.title}</h2>
+      <h2 class="text-[16px] font-bold">{doc.title}</h2>
       <p class="mt-1 text-sm text-body">{doc.summary}</p>
       <dl class="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
         <div>

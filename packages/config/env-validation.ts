@@ -81,6 +81,12 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (env[flag] === 'true')
       add('fatal', flag, 'is a local-only flag and must not be enabled outside ENVIRONMENT=local');
   }
+  if (present(env.GAMO_DEV_PHONE_TOKEN))
+    add(
+      'fatal',
+      'GAMO_DEV_PHONE_TOKEN',
+      'is a local-only setting (make admin-phone) and must not be set outside ENVIRONMENT=local',
+    );
   if (environment === 'production' && env.STRIPE_TEST_CHECKOUT === 'true')
     add(
       'fatal',

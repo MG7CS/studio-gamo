@@ -3,10 +3,19 @@
 import OrganizerLayout from '../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../components/organizer/PageTitle.astro';
 import StatCard from '../../components/organizer/StatCard.astro';
-import Panel from '../../components/organizer/Panel.astro';
+import ScheduleCalendar from '../../components/organizer/ScheduleCalendar.astro';
+import ScheduleDay from '../../components/organizer/ScheduleDay.astro';
+import OrganizationSummaryCard from '../../components/organizer/OrganizationSummaryCard.astro';
+import EventsShortcutCard from '../../components/organizer/EventsShortcutCard.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
-import { organizationCounts } from '@gamo/domain';
+import {
+  countWaitingEvents,
+  listOrganizationSchedule,
+  organizationCounts,
+  organizationScheduleView,
+} from '@gamo/domain';
 import { organizerPage } from '../../lib/organizer-session';
+import { ORGANIZER_STAT_LINKS } from '../../lib/organizer-stats';
 
 export const prerender = false;
 
@@ -20,7 +29,13 @@ if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active } = ctx;
 const counts = await organizationCounts(ctx.live.db, active.organizationId, ctx.now);
-const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsByStatus.changes_requested ?? 0);
+const waiting = countWaitingEvents(counts.eventsByStatus);
+const schedule = organizationScheduleView({
+  dates: await listOrganizationSchedule(ctx.live.db, active.organizationId),
+  now: ctx.now,
+  params: Astro.url.searchParams,
+  anchor: '#schedule',
+});
 ---
 
 <OrganizerLayout
@@ -41,70 +56,46 @@ const waiting = (counts.eventsByStatus.pending_review ?? 0) + (counts.eventsBySt
     </SplitNotice>
   )}
   <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-    <StatCard label="Published events" value={counts.eventsByStatus.published ?? 0} />
-    <StatCard label="Waiting for Gamo" value={waiting} hint="In review or needing changes" />
-    <StatCard label="Upcoming dates" value={counts.upcomingOccurrences} />
+    <StatCard
+      label="Published events"
+      tone="terracotta"
+      icon="check"
+      value={counts.eventsByStatus.published ?? 0}
+      link={ORGANIZER_STAT_LINKS.published}
+    />
+    <StatCard
+      label="Waiting for Gamo"
+      tone="amber"
+      icon="clock"
+      value={waiting}
+      hint="In review or needing changes"
+      link={ORGANIZER_STAT_LINKS.waiting}
+    />
+    <StatCard
+      label="Upcoming dates"
+      tone="plum"
+      icon="calendar"
+      value={counts.upcomingOccurrences}
+      link={ORGANIZER_STAT_LINKS.upcoming}
+    />
     <StatCard
       label="People registered"
+      tone="green"
+      icon="users"
       value={counts.confirmedRegistrations}
       hint="Confirmed, across all events"
+      link={ORGANIZER_STAT_LINKS.registered}
     />
   </div>
-  <div class="mt-3 grid gap-3 lg:grid-cols-2">
-    <Panel id="status" title="Your organization" description="How people see you on your events.">
-      <dl class="space-y-2.5 text-[14px]">
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">Name</dt>
-          <dd class="text-right font-semibold text-ink">{active.name}</dd>
-        </div>
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">Your role</dt>
-          <dd class="font-semibold text-ink">{active.role === 'owner' ? 'Owner' : 'Member'}</dd>
-        </div>
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">Verification</dt>
-          <dd class="font-semibold text-ink">{active.verified ? 'Verified by Gamo' : 'Not yet verified'}</dd>
-        </div>
-      </dl>
-      {!active.verified && (
-        <p class="mt-3 text-[13px] leading-relaxed text-muted">
-          Unverified organizations are labeled as such on their events. Gamo verifies organizations after
-          review.
-        </p>
-      )}
-      <a
-        href="/organizer/organization"
-        class="mt-4 inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[13px] font-semibold text-ink hover:bg-sand"
-      >
-        Edit organization
-      </a>
-    </Panel>
-    <Panel
-      id="events"
-      title="Events"
-      description="Your first event is reviewed by Gamo before it appears; later ones publish directly unless Gamo asks to review every event."
-    >
-      <p class="text-[14px] leading-relaxed text-ink">
-        {(counts.eventsByStatus.published ?? 0) + waiting === 0
-          ? 'You have no events yet.'
-          : 'Your events are listed on the public event pages.'}
-      </p>
-      <div class="mt-4 flex flex-wrap gap-2.5">
-        {active.status === 'active' && (
-          <a
-            href="/organizer/events/new"
-            class="inline-flex min-h-11 items-center rounded-full bg-terracotta px-5 text-[13px] font-semibold text-white hover:bg-terracotta-deep"
-          >
-            Create event
-          </a>
-        )}
-        <a
-          href="/organizer/events"
-          class="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 text-[13px] font-semibold text-ink hover:bg-sand"
-        >
-          All events
-        </a>
-      </div>
-    </Panel>
+  <div class="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+    <ScheduleCalendar view={schedule} canCreate={active.status === 'active'} />
+    <div class="space-y-3">
+      <ScheduleDay view={schedule} />
+      <OrganizationSummaryCard name={active.name} role={active.role} verified={active.verified} />
+      <EventsShortcutCard
+        hasEvents={(counts.eventsByStatus.published ?? 0) + waiting > 0}
+        canCreate={active.status === 'active'}
+      />
+    </div>
   </div>
 </OrganizerLayout>

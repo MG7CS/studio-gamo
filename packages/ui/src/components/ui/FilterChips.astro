@@ -1,0 +1,31 @@
+---
+/** A row of filter chips for a list: each is a link, the current one is filled. Counts show only when given. */
+interface Item {
+  label: string;
+  href: string;
+  active: boolean;
+  count?: number;
+}
+interface Props {
+  items: Item[];
+  label: string;
+  class?: string;
+}
+const { items, label, class: className } = Astro.props;
+---
+
+<nav aria-label={label} class:list={['flex flex-wrap gap-2', className]}>
+  {items.map((i) => (
+    <a
+      href={i.href}
+      aria-current={i.active ? 'page' : undefined}
+      class:list={[
+        'inline-flex min-h-11 items-center rounded-full px-4 text-[13px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta',
+        i.active ? 'bg-terracotta-deep text-white' : 'bg-white text-ink ring-1 ring-ink/15 hover:bg-sand',
+      ]}
+    >
+      {i.label}
+      {i.count != null ? ` (${i.count})` : ''}
+    </a>
+  ))}
+</nav>

@@ -1,0 +1,42 @@
+---
+/** The devices signed in as you, with one button that signs out every other device. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import Pill from '@studio-gamo/ui/components/ui/Pill.astro';
+import type { SessionView } from '@gamo/domain';
+import { whenLabel } from '../../lib/organizer-format';
+
+interface Props {
+  sessions: SessionView[];
+  timeZone: string;
+}
+const { sessions, timeZone } = Astro.props;
+const others = sessions.filter((s) => !s.current).length;
+---
+
+<Panel
+  id="sign-in"
+  title="Sign-in and security"
+  description="Each browser you signed in with stays signed in for 7 days."
+>
+  <ul class="space-y-2">
+    {sessions.map((s) => (
+      <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-cream px-3 py-2.5 text-[14px]">
+        <span class="min-w-0">
+          <span class="block font-semibold text-ink">
+            {s.current ? 'This device' : `Device ${s.position}`}
+          </span>
+          <span class="block text-[12px] text-muted">Signed in {whenLabel(s.signedInAt, timeZone)}</span>
+        </span>
+        {s.current && <Pill tone="info">Current</Pill>}
+      </li>
+    ))}
+  </ul>
+  <form method="post" class="mt-4">
+    <input type="hidden" name="action" value="sign-out-others" />
+    <Button type="submit" variant="secondary" disabled={others === 0}>
+      Sign out other devices
+    </Button>
+    {others === 0 && <p class="mt-2 text-[12px] text-muted">You are not signed in anywhere else.</p>}
+  </form>
+</Panel>

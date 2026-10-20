@@ -81,6 +81,8 @@ export interface GamoEnv {
   ALLOW_PUBLIC_DEMO_WORKSPACES?: string;
   /** Admin only: act as ADMIN_EMAIL without Cloudflare Access (loopback + ENVIRONMENT=local). */
   ALLOW_LOCAL_ADMIN_IDENTITY?: string;
+  /** Admin only, set by `make admin-phone` (never from a file): the random secret that lets one phone reach the local admin. Fatal outside local. */
+  GAMO_DEV_PHONE_TOKEN?: string;
 
   // Public site URLs (`PUBLIC_*`)
   [key: `PUBLIC_${string}`]: string | undefined;

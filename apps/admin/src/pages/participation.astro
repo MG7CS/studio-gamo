@@ -1,10 +1,11 @@
 ---
 /** Participation requests. GET lists inquiries; POST saves the admin's reply. */
 import AdminLayout from '../layouts/AdminLayout.astro';
-import EmptyState from '../components/EmptyState.astro';
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import InquiryCard from '../components/InquiryCard.astro';
-import Notice from '../components/Notice.astro';
-import PageHeader from '../components/PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getRuntimeEnv } from '@gamo/domain';
 import {
   INQUIRY_FILTERS,
@@ -27,8 +28,6 @@ if (Astro.request.method === 'POST') {
 const filter = inquiryFilterFrom(Astro.url);
 const { items, truncated } = await loadInquiries(env.DB, filter);
 const outcome = outcomeFrom(Astro.url);
-const pill = (active: boolean) =>
-  active ? 'bg-clay-700 text-white shadow-button' : 'bg-surface text-clay-800 shadow-soft hover:bg-clay-50';
 ---
 
 <AdminLayout title="Participation requests" current="participation">
@@ -36,25 +35,33 @@ const pill = (active: boolean) =>
     title="Participation requests"
     description="What people sent through the public sites. Your reply is visible to the person who sent it. Replying does not grant program access, approve a partnership or send a notification."
   />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error} />}
-  <nav aria-label="Filter by status" class="mb-6 flex flex-wrap gap-2">
-    {INQUIRY_FILTERS.map((f) => (
-      <a
-        href={`/participation?status=${f}`}
-        aria-current={f === filter ? 'page' : undefined}
-        class:list={[
-          'inline-flex min-h-11 items-center rounded-full px-5 text-sm font-bold',
-          pill(f === filter),
-        ]}
-      >
-        {INQUIRY_FILTER_LABELS[f]}
-      </a>
-    ))}
-  </nav>
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
+  <Toolbar
+    variant="clay"
+    class="mb-5"
+    groups={[
+      {
+        label: 'Filter by status',
+        items: INQUIRY_FILTERS.map((f) => ({
+          label: INQUIRY_FILTER_LABELS[f],
+          href: `/participation?status=${f}`,
+          active: f === filter,
+        })),
+      },
+    ]}
+  />
   {items.length === 0 ? (
     <EmptyState
-      text={
+      title={
         filter === 'pending'
           ? 'No participation requests are waiting for you.'
           : 'No participation requests in this state.'

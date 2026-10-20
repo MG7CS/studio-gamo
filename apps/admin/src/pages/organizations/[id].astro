@@ -2,9 +2,9 @@
 /** One Gamo Live organization. GET shows it; POST verifies, suspends or switches "review every event". */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import LiveTabs from '../../components/LiveTabs.astro';
-import Notice from '../../components/Notice.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import OrganizationDetail from '../../components/OrganizationDetail.astro';
-import PageHeader from '../../components/PageHeader.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import { getAdminOrganization, getRuntimeEnv } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/domain/security';
 import { loadCounts } from '../../lib/inbox';
@@ -38,11 +38,21 @@ const outcome = outcomeFrom(Astro.url);
     description="Decide whether this organization is verified or suspended."
   />
   <LiveTabs current="organizations" counts={counts} />
-  {outcome && <Notice tone="success" text={outcome} />}
-  {error && <Notice tone="error" text={error} />}
+  {outcome && (
+    <Notice tone="success" class="mb-5">
+      {outcome}
+    </Notice>
+  )}
+  {error && (
+    <Notice tone="danger" class="mb-5">
+      {error}
+    </Notice>
+  )}
   {org ? (
     <OrganizationDetail org={org} />
   ) : (
-    <Notice tone="error" title="Unavailable" text="Gamo Live’s database could not be read." />
+    <Notice tone="danger" title="Unavailable" class="mb-5">
+      Gamo Live’s database could not be read.
+    </Notice>
   )}
 </AdminLayout>

@@ -1,12 +1,13 @@
 /**
- * Collapse the desktop sidebar to an icon rail and expand it again. The choice is remembered in this browser only (localStorage, wrapped in
+ * Shared by the admin and the Live organizer area. Collapse the desktop sidebar to an icon rail and expand it again. The choice is remembered in this browser only (localStorage, wrapped in
  * try/catch so a blocked store just means it is not remembered). Without JavaScript the sidebar simply stays
  * visible and the button stays hidden.
  */
-const KEY = 'admin-sidebar';
 const button = document.querySelector<HTMLButtonElement>('[data-sidebar-toggle]');
+/** Each app names its own storage key on the toggle button (`data-sidebar-key`), so the choice never leaks between apps. */
+const KEY = button?.dataset.sidebarKey;
 
-if (button) {
+if (button && KEY) {
   const label = button.querySelector<HTMLElement>('[data-sidebar-label]');
   const read = (): string | null => {
     try {

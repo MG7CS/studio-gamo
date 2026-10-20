@@ -59,6 +59,21 @@ export const EVENT_STATUS_LABELS: Record<string, string> = {
   hidden: 'Hidden by Gamo',
 };
 
+/** The list filter value for events that are with Gamo or sent back: in review, or changes requested. */
+export const WAITING_FILTER = 'waiting';
+export const WAITING_EVENT_STATUSES = ['pending_review', 'changes_requested'] as const;
+
+/** Labels for every value the organizer's event list accepts as a status filter. */
+export const EVENT_FILTER_LABELS: Record<string, string> = {
+  ...EVENT_STATUS_LABELS,
+  [WAITING_FILTER]: 'Waiting for Gamo',
+};
+
+/** How many events are waiting, from the per-status counts of `organizationCounts`. */
+export function countWaitingEvents(eventsByStatus: Record<string, number>): number {
+  return WAITING_EVENT_STATUSES.reduce((sum, status) => sum + (eventsByStatus[status] ?? 0), 0);
+}
+
 /** What the editor form holds (all strings, as typed). */
 export interface EventFormValues {
   title: string;
@@ -756,6 +771,52 @@ export async function submitEvent(
   return status;
 }
 
+// --- The organization's schedule -------------------------------------------------------------------
+
+/** One date of one of the organization's events, for a calendar that spans all of them. */
+export interface ScheduledDate {
+  id: string;
+  eventId: string;
+  title: string;
+  status: string;
+  timeZone: string;
+  startsAt: number;
+  endsAt: number | null;
+  canceled: boolean;
+  /** People confirmed for this date (registration events). */
+  confirmedPeople: number;
+}
+
+/**
+ * Every date of the organization's events that are public or waiting for review (drafts, rejected, hidden and
+ * canceled events stay off it), soonest first, with the people confirmed for each.
+ */
+export async function listOrganizationSchedule(
+  db: SqlDatabase,
+  organizationId: string,
+  limit = 1000,
+): Promise<ScheduledDate[]> {
+  const rows = await allRows<Record<string, unknown>>(db, {
+    sql: `SELECT o.id, o.event_id, e.title, e.status, e.timezone, o.starts_at, o.ends_at, o.status AS occ_status,
+                 COALESCE((SELECT SUM(party_size) FROM registrations WHERE occurrence_id = o.id AND status = 'confirmed'), 0) AS confirmed
+            FROM event_occurrences o JOIN events e ON e.id = o.event_id
+           WHERE e.organization_id = ?1 AND e.status IN ('published', 'pending_review', 'changes_requested')
+           ORDER BY o.starts_at, e.title LIMIT ?2`,
+    params: [organizationId, limit],
+  });
+  return rows.map((r) => ({
+    id: String(r.id),
+    eventId: String(r.event_id),
+    title: String(r.title),
+    status: String(r.status),
+    timeZone: String(r.timezone),
+    startsAt: Number(r.starts_at),
+    endsAt: r.ends_at == null ? null : Number(r.ends_at),
+    canceled: r.occ_status === 'canceled',
+    confirmedPeople: Number(r.confirmed),
+  }));
+}
+
 // --- Reading ---------------------------------------------------------------------------------------
 
 export interface OrganizerEventRow {
@@ -783,7 +844,9 @@ export async function listOrganizerEvents(
 ): Promise<OrganizerEventRow[]> {
   const params: (string | number)[] = [organizationId, now];
   let where = 'e.organization_id = ?1';
-  if (filters.status && EVENT_STATUS_LABELS[filters.status]) {
+  if (filters.status === WAITING_FILTER) {
+    where += ` AND e.status IN (${WAITING_EVENT_STATUSES.map((status) => `'${status}'`).join(', ')})`;
+  } else if (filters.status && EVENT_STATUS_LABELS[filters.status]) {
     params.push(filters.status);
     where += ` AND e.status = ?${params.length}`;
   }

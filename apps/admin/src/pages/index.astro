@@ -1,8 +1,8 @@
 ---
 /** Inbox: everything waiting for the admin, from real queries. No trends or history, because none is recorded. */
 import AdminLayout from '../layouts/AdminLayout.astro';
-import Notice from '../components/Notice.astro';
-import PageHeader from '../components/PageHeader.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import StatCard from '../components/StatCard.astro';
 import WaitingList from '../components/WaitingList.astro';
 import { getRuntimeEnv } from '@gamo/domain';
@@ -21,22 +21,18 @@ const summary = !inbox
 <AdminLayout title="Inbox" current="inbox">
   <PageHeader title="Inbox" description={summary} />
   {!inbox && (
-    <Notice
-      tone="error"
-      title="Counts unavailable"
-      text="The database could not be read, so nothing is shown instead of guessing. Try again in a moment."
-    />
+    <Notice tone="danger" title="Counts unavailable" class="mb-5">
+      The database could not be read, so nothing is shown instead of guessing. Try again in a moment.
+    </Notice>
   )}
   {inbox && !inbox.liveAvailable && (
-    <Notice
-      tone="warning"
-      title="Gamo Live unavailable"
-      text="Gamo Live's database could not be read, so its queues are left out instead of showing zeros."
-    />
+    <Notice tone="warning" title="Gamo Live unavailable" class="mb-5">
+      Gamo Live's database could not be read, so its queues are left out instead of showing zeros.
+    </Notice>
   )}
   {inbox && (
     <div class="space-y-6">
-      <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-3">
         <StatCard
           label="Participation requests"
           value={inbox.counts.participation}

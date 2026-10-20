@@ -468,6 +468,10 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   const appDir = dirname(fileURLToPath(appConfigUrl));
   const isLocalDev = isLocalDevEnvironment();
   const localVars = isLocalDev ? resolveAppLocalEnv({ app, appDir }) : {};
+  // The phone secret comes only from the dev process (`make admin-phone`), never from a file, and only reaches the admin.
+  delete localVars.GAMO_DEV_PHONE_TOKEN;
+  const phoneToken = process.env.GAMO_DEV_PHONE_TOKEN?.trim();
+  if (isLocalDev && app === 'admin' && phoneToken) localVars.GAMO_DEV_PHONE_TOKEN = phoneToken;
 
   if (isLocalDev && isTestServer()) {
     for (const key of Object.keys(localVars)) if (isClerkTestBlankedName(key)) delete localVars[key];
@@ -511,16 +515,25 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   };
 }
 
+/** The five public apps may listen on the local network in development with `GAMO_DEV_LAN=1`. */
+const LAN_CAPABLE_APPS: readonly AppName[] = ['web', 'worship', 'academy', 'live', 'production'];
+
 /**
  * Astro `server` options for an app: fixed port, IPv4 loopback (this computer only). Only with `GAMO_DEV_LAN=1`
- * (set by `make dev-live`, or by hand for `make dev-all`) does the Gamo Live server listen on the local network too,
- * so a phone on the same Wi-Fi can open it. Anyone on that network can then reach the dev server; the local sign-in
- * stand-in still refuses non-loopback hosts (`localSimulatedSignInAllowed`).
+ * (set by each public app's `make dev-<app>`, or by hand for `make dev-all`) does a public app (web, worship, academy,
+ * live, production) listen on the local network too, so a phone on the same Wi-Fi can open them. Anyone on that network
+ * can then reach the dev server; Live's local sign-in stand-in still refuses non-loopback hosts
+ * (`localSimulatedSignInAllowed`). The admin never listens on the network from `make dev-admin` (neither variable is set):
+ * its local identity stand-in is for this computer only. It listens on the network only when `GAMO_DEV_LAN=1` AND a
+ * non-empty `GAMO_DEV_PHONE_TOKEN` are both set, which `make admin-phone` does; the admin's gate then refuses every
+ * request that lacks the secret (`checkGate` in apps/admin/src/lib/gate.ts, `scripts/dev/admin-phone.sh`).
  */
 export function createGamoDevServer(app: AppName) {
-  // Only Gamo Live listens on the network (a phone scans and shows its QR codes); the other apps stay on loopback.
+  const lan =
+    process.env.GAMO_DEV_LAN === '1' &&
+    (LAN_CAPABLE_APPS.includes(app) || (app === 'admin' && !!process.env.GAMO_DEV_PHONE_TOKEN?.trim()));
   return {
-    host: process.env.GAMO_DEV_LAN === '1' && app === 'live' ? true : LOCAL_HOST,
+    host: lan ? true : LOCAL_HOST,
     port: LOCAL_PORTS[app],
   };
 }

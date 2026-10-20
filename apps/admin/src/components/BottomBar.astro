@@ -10,6 +10,13 @@ interface Props {
 }
 const { current, counts } = Astro.props;
 const tab = tabKeyFor(current);
+/** What the screen reader adds after the visible word, in brackets: the full name and the real waiting count. */
+const extraName = (item: (typeof TAB_ITEMS)[number]) => {
+  const badge = badgeFor(item, counts);
+  const parts = [item.shortLabel === item.label ? '' : item.label, badge !== null ? `${badge} waiting` : ''];
+  const text = parts.filter(Boolean).join(', ');
+  return text ? ` (${text})` : '';
+};
 ---
 
 <nav
@@ -21,7 +28,6 @@ const tab = tabKeyFor(current);
       <li class="relative min-w-0 flex-1">
         <a
           href={item.href}
-          aria-label={`${item.shortLabel === item.label ? item.label : `${item.shortLabel}: ${item.label}`}${badgeFor(item, counts) !== null ? `, ${badgeFor(item, counts)} waiting` : ''}`}
           aria-current={item.key === tab ? 'page' : undefined}
           class:list={[
             'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-clay-md px-0.5 text-xs font-semibold',
@@ -29,7 +35,10 @@ const tab = tabKeyFor(current);
           ]}
         >
           <Icon name={item.icon} class="h-5 w-5" />
-          <span class="w-full truncate text-center text-xs font-semibold">{item.shortLabel}</span>
+          <span class="w-full truncate text-center text-xs font-semibold">
+            {item.shortLabel}
+            <span class="sr-only">{extraName(item)}</span>
+          </span>
         </a>
         {badgeFor(item, counts) !== null && (
           <span

@@ -45,7 +45,7 @@ const buttons = {
 <div class="space-y-5">
   {has('schedule_meeting') && (
     <form method="post" class={card}>
-      <h3 class="text-base font-extrabold">
+      <h3 class="text-[15px] font-bold">
         {isChurch ? 'Schedule the in-person verification meeting' : 'Schedule a meeting (optional)'}
       </h3>
       <input type="hidden" name="action" value="schedule_meeting" />
@@ -115,7 +115,7 @@ const buttons = {
 
   {has('verify') && (
     <form method="post" class={card}>
-      <h3 class="text-base font-extrabold">Verify</h3>
+      <h3 class="text-[15px] font-bold">Verify</h3>
       <input type="hidden" name="action" value="verify" />
       <input type="hidden" name="expected_status" value={status} />
       <label class={label} for="verify_notes">
@@ -142,7 +142,7 @@ const buttons = {
 
   {simple.filter(has).map((a) => (
     <form method="post" class={card}>
-      <h3 class="text-base font-extrabold">{titles[a]}</h3>
+      <h3 class="text-[15px] font-bold">{titles[a]}</h3>
       <input type="hidden" name="action" value={a} />
       <input type="hidden" name="expected_status" value={status} />
       {a !== 'start_review' && a !== 'reinstate' && (

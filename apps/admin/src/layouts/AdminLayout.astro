@@ -5,6 +5,7 @@
  * already admitted only the one admin; if the identity is somehow missing, nothing but a refusal is drawn.
  */
 import '../styles/clay.css';
+import '@studio-gamo/ui/styles/interactions.css';
 import HeadIcons from '@studio-gamo/ui/components/HeadIcons.astro';
 import FontPreload from '@studio-gamo/ui/components/FontPreload.astro';
 import BottomBar from '../components/BottomBar.astro';
@@ -34,11 +35,13 @@ const counts = email ? await loadCounts(await getRuntimeEnv(Astro)) : null;
     <HeadIcons />
     <FontPreload />
     <script>
-      import '../scripts/sidebar';
+      import '@studio-gamo/ui/scripts/sidebar-collapse';
+      import '@studio-gamo/ui/scripts/interactions';
     </script>
     <title>{`${title} · Gamo Studios Admin`}</title>
   </head>
   <body
+    data-shell
     class="group/shell font-sans text-[15px] leading-6 antialiased"
     data-admin-shell={email ? 'app' : 'denied'}
   >
@@ -54,7 +57,10 @@ const counts = email ? await loadCounts(await getRuntimeEnv(Astro)) : null;
           <Sidebar current={current} email={email} counts={counts} />
           <div class="min-w-0 flex-1">
             <TopBar email={email} />
-            <main id="admin-main" class="px-4 pb-32 pt-6 sm:px-8 lg:pb-12">
+            <main
+              id="admin-main"
+              class="mx-auto w-full max-w-[1100px] px-4 pb-32 pt-6 sm:px-6 lg:pb-10 lg:pt-6"
+            >
               <slot />
             </main>
           </div>

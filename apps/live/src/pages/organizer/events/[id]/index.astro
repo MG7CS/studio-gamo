@@ -5,23 +5,25 @@
  */
 import OrganizerLayout from '../../../../components/organizer/OrganizerLayout.astro';
 import PageTitle from '../../../../components/organizer/PageTitle.astro';
-import Panel from '../../../../components/organizer/Panel.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import EventStatusPill from '../../../../components/organizer/EventStatusPill.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
-import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import { requireSameOrigin } from '@gamo/auth';
 import {
   ADMISSIONS,
   OrganizerError,
-  eventCalendarView,
+  calendarModel,
+  calendarQuery,
+  eventCalendarData,
+  readCalendarState,
   deleteUnpublishedEvent,
   getOrganizerEvent,
   submitEvent,
 } from '@gamo/domain';
 import { cancelDateAndNotify, cancelEventAndNotify } from '../../../../lib/organizer-events';
 import EventDates from '../../../../components/organizer/EventDates.astro';
+import EventActionBar from '../../../../components/organizer/EventActionBar.astro';
 import { organizerPage } from '../../../../lib/organizer-session';
 import { STATUS_AFTER_SAVE } from '../../../../lib/event-editor';
 
@@ -113,15 +115,40 @@ const canCancel = event.status === 'published' && active.status === 'active';
 const canDelete =
   ['draft', 'pending_review', 'changes_requested', 'rejected'].includes(event.status) &&
   active.status === 'active';
-// The dates calendar: the month and the chosen day come from the address, and only real ones are used.
-const calendar = eventCalendarView({
+// The dates calendar: the view (month or week, a picker, the chosen day) comes from the address, and only real values are used.
+const calendarData = eventCalendarData({
   occurrences: event.occurrences,
   timeZone: tz,
   now,
-  monthParam: Astro.url.searchParams.get('month'),
-  dateParam: Astro.url.searchParams.get('date'),
-  href: ({ month, date }) => `?month=${month}${date ? `&date=${date}` : ''}#dates`,
+  describe: (o) => ({
+    label: new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' }).format(
+      new Date(o.startsAt * 1000),
+    ),
+    detail: event.admission === 'free_registration' ? `${o.confirmedPeople} registered` : undefined,
+  }),
 });
+const calendarState = readCalendarState(Astro.url.searchParams, {
+  fallbackDate: calendarData.openOn,
+  bounds: calendarData.bounds,
+});
+const chosenDate = calendarState.date ?? calendarData.openOn;
+const calendarModelView = calendarModel({
+  state: { ...calendarState, date: chosenDate },
+  today: calendarData.today,
+  days: calendarData.days,
+  bounds: calendarData.bounds,
+  selectable: 'marked',
+  href: (st) => `${calendarQuery(st)}#calendar`,
+});
+const chosenLabel = calendarData.byDay.has(chosenDate)
+  ? new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(`${chosenDate}T12:00:00Z`))
+  : null;
 const totalPeople = event.occurrences.reduce((a, o) => a + o.confirmedPeople, 0);
 const admissionLabel = ADMISSIONS.find((a) => a.value === event.admission)?.label ?? event.admission;
 const decisionLabel: Record<string, string> = {
@@ -158,32 +185,16 @@ const decisionLabel: Record<string, string> = {
       {event.decision.note ? <span class="block mt-1">{event.decision.note}</span> : null}
     </SplitNotice>
   )}
-  <div class="mb-4 flex flex-wrap gap-3">
-    {canEdit && (
-      <a
-        href={`/organizer/events/${id}/edit`}
-        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
-      >
-        Edit event
-      </a>
-    )}
-    {event.status === 'published' && (
-      <a
-        href={`/events/${event.slug}`}
-        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
-      >
-        View public page
-      </a>
-    )}
-    {event.admission === 'free_registration' && (
-      <a
-        href={`/organizer/events/${id}/registrations`}
-        class="inline-flex min-h-11 items-center rounded-full border border-ink/30 bg-white px-5 text-[14px] font-semibold text-ink hover:bg-sand"
-      >
-        Registrations ({totalPeople})
-      </a>
-    )}
-  </div>
+  <EventActionBar
+    eventId={id}
+    slug={event.slug}
+    canEdit={canEdit}
+    published={event.status === 'published'}
+    registrations={event.admission === 'free_registration'}
+    people={totalPeople}
+    canCancel={canCancel}
+    canDelete={canDelete}
+  />
   {canSubmit && (
     <Panel
       id="submit"
@@ -196,79 +207,35 @@ const decisionLabel: Record<string, string> = {
       </form>
     </Panel>
   )}
-  <div class="mt-4 grid items-start gap-4 lg:grid-cols-2">
-    <Panel id="details" title="Details">
-      <dl class="space-y-3 text-[15px]">
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">Admission</dt>
-          <dd class="text-right font-semibold text-ink">{admissionLabel}</dd>
-        </div>
-        {event.capacity != null && (
-          <div class="flex justify-between gap-4">
-            <dt class="text-muted">Seats</dt>
-            <dd class="font-semibold text-ink">{event.capacity}</dd>
-          </div>
-        )}
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">QR check-in</dt>
-          <dd class="font-semibold text-ink">{event.qrCheckin ? 'On' : 'Off'}</dd>
-        </div>
-        <div class="flex justify-between gap-4">
-          <dt class="text-muted">Time zone</dt>
-          <dd class="font-semibold text-ink">{tz}</dd>
-        </div>
-      </dl>
-    </Panel>
-    <EventDates
-      event={event}
-      view={calendar}
-      timeZone={tz}
-      now={now}
-      canCancelDates={
-        event.status === 'published' && event.occurrences.length > 1 && active.status === 'active'
-      }
-    />
-  </div>
-  {canCancel && (
-    <Panel id="cancel" title="Cancel this event" class="mt-4">
-      <ConfirmAction
-        summaryLabel="Cancel this event…"
-        confirmLabel="Yes, cancel the event"
-        actionValue="cancel"
-        class="max-w-xl"
-      >
-        <p>
-          {totalPeople > 0
-            ? `This cancels every date and ${totalPeople} confirmed ${totalPeople === 1 ? 'person' : 'people'} will be emailed. `
-            : 'No one has registered yet. '}
-          This cannot be undone.
-        </p>
-        <Fragment slot="fields">
-          <input type="hidden" name="confirm" value="yes" />
-          {totalPeople > 0 && (
-            <SplitField
-              id="message"
-              name="message"
-              label="Message to registrants (optional)"
-              as="textarea"
-              rows={3}
-              maxlength={1000}
-            />
-          )}
-        </Fragment>
-      </ConfirmAction>
-    </Panel>
-  )}
-  {canDelete && (
-    <Panel id="delete" title="Delete this event" class="mt-4">
-      <ConfirmAction
-        summaryLabel="Delete this event…"
-        confirmLabel="Yes, delete it"
-        actionValue="delete"
-        class="max-w-xl"
-      >
-        <p>It was never published, so nobody is registered. Deleting removes it for good.</p>
-      </ConfirmAction>
-    </Panel>
-  )}
+  <dl class="mt-3 flex flex-wrap gap-x-8 gap-y-2 rounded-2xl bg-white px-4 py-3 text-[13px] shadow-[0_1px_2px_rgba(24,24,27,0.05)]">
+    <div class="flex gap-2">
+      <dt class="text-muted">Admission</dt>
+      <dd class="font-semibold text-ink">{admissionLabel}</dd>
+    </div>
+    {event.capacity != null && (
+      <div class="flex gap-2">
+        <dt class="text-muted">Seats</dt>
+        <dd class="font-semibold text-ink">{event.capacity}</dd>
+      </div>
+    )}
+    <div class="flex gap-2">
+      <dt class="text-muted">QR check-in</dt>
+      <dd class="font-semibold text-ink">{event.qrCheckin ? 'On' : 'Off'}</dd>
+    </div>
+    <div class="flex gap-2">
+      <dt class="text-muted">Time zone</dt>
+      <dd class="font-semibold text-ink">{tz}</dd>
+    </div>
+  </dl>
+  <EventDates
+    event={event}
+    model={calendarModelView}
+    selectedIds={(calendarData.byDay.get(chosenDate) ?? []).map((o) => o.id)}
+    selectedLabel={chosenLabel}
+    timeZone={tz}
+    now={now}
+    canCancelDates={
+      event.status === 'published' && event.occurrences.length > 1 && active.status === 'active'
+    }
+  />
 </OrganizerLayout>

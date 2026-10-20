@@ -1,0 +1,30 @@
+---
+/**
+ * A floating card of a dashboard, with an optional title and one line of context. The default is the warm white card
+ * of the Live organizer area; `variant="clay"` is the admin's raised clay card (its tokens come from the admin theme).
+ */
+interface Props {
+  title?: string;
+  description?: string;
+  id?: string;
+  variant?: 'flat' | 'clay';
+  class?: string;
+}
+const { title, description, id, variant = 'flat', class: className } = Astro.props;
+const shape = {
+  flat: 'rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(24,24,27,0.05)] sm:p-5',
+  clay: 'rounded-clay-lg bg-surface p-5 shadow-soft sm:p-6',
+}[variant];
+---
+
+<section id={id} class:list={[shape, className]} aria-labelledby={title && id ? `${id}-title` : undefined}>
+  {title && (
+    <h2 id={id ? `${id}-title` : undefined} class="text-[16px] font-extrabold tracking-[-0.01em] text-ink">
+      {title}
+    </h2>
+  )}
+  {description && <p class="mt-1 text-[13px] leading-relaxed text-muted">{description}</p>}
+  <div class:list={[title && 'mt-4']}>
+    <slot />
+  </div>
+</section>

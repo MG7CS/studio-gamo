@@ -78,7 +78,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: 'list',
     count: 'catalog',
   },
-  { key: 'maintenance', label: 'Live cleanup', shortLabel: 'Cleanup', href: '/maintenance', icon: 'list' },
+  {
+    key: 'maintenance',
+    label: 'Live cleanup',
+    shortLabel: 'Cleanup',
+    href: '/maintenance',
+    icon: 'settings',
+  },
   { key: 'legal', label: 'Legal', shortLabel: 'Legal', href: '/legal', icon: 'file' },
 ];
 

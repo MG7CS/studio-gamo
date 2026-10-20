@@ -45,12 +45,18 @@ test('Gamo Live legacy routes keep working and never shadow real routes', () => 
   assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
   assert.equal(redirect(live, '/my-tickets')?.status, 301);
   assert.equal(redirect(live, '/workspaces')?.location, '/organizer');
+  assert.equal(
+    redirect(live, '/organizer/account')?.location,
+    '/organizer/settings',
+    'Account became Settings',
+  );
   // The organizer area and its sign-in pages are real routes.
   for (const path of [
     '/organizer',
     '/organizer/start',
     '/organizer/organization',
-    '/organizer/account',
+    '/organizer/settings',
+    '/organizer/settings/export',
     '/organizer/events',
     '/organizer/events/new',
     '/organizer/events/evt_abc',

@@ -26,19 +26,17 @@ const Tag = href ? 'a' : 'div';
 <Tag
   href={href}
   class:list={[
-    'block rounded-clay-lg bg-surface p-4 shadow-soft sm:p-5',
+    'block rounded-clay-lg bg-surface p-4 shadow-soft',
     href && 'transition-shadow hover:shadow-card',
   ]}
 >
   <div class="flex items-start justify-between gap-3">
-    <p class="text-sm font-semibold leading-snug text-body">{label}</p>
-    <span
-      class:list={['grid h-9 w-9 shrink-0 place-items-center rounded-full sm:h-10 sm:w-10', chip]}
-      aria-hidden="true"
-    >
-      <Icon name={icon} class="h-5 w-5" />
+    <p class="text-[13px] font-semibold leading-snug text-body">{label}</p>
+    <span class:list={['grid h-8 w-8 shrink-0 place-items-center rounded-full', chip]} aria-hidden="true">
+      <Icon name={icon} class="h-[18px] w-[18px]" />
     </span>
   </div>
-  <p class="mt-3 text-4xl font-extrabold tracking-tight text-ink">{value}</p>
-  <p class="mt-1 text-sm text-muted">waiting for you</p>
+  <p class="mt-1 text-[28px] font-black leading-none tracking-tight text-ink">{value}</p>
+  <p class="mt-1.5 text-[12px] text-muted">waiting for you</p>
+  {href && <span class="sr-only">. Opens the list.</span>}
 </Tag>

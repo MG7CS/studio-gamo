@@ -1,6 +1,9 @@
 ---
-/** The items that have waited longest, with how long. Plain rows: the queue pages link them as they are built. */
-import EmptyState from './EmptyState.astro';
+/**
+ * The items that have waited longest, with how long: a heading and one floating card per item (a link when the item
+ * has a page). Nothing is drawn when nothing waits except the honest empty state.
+ */
+import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import { timeAgo } from '../lib/format';
 import type { WaitingItem } from '../lib/inbox';
 
@@ -8,42 +11,39 @@ interface Props {
   items: WaitingItem[];
 }
 const { items } = Astro.props;
+const row =
+  'flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-clay-lg bg-surface p-4 shadow-soft sm:p-5';
 ---
 
-<section aria-labelledby="waiting-title" class="rounded-clay-lg bg-surface p-6 shadow-soft">
-  <h2 id="waiting-title" class="text-lg font-extrabold">
+<section aria-labelledby="waiting-title">
+  <h2 id="waiting-title" class="mb-3 text-[16px] font-bold">
     Waiting longest
   </h2>
-  <div class="mt-4">
-    {items.length === 0 ? (
-      <EmptyState text="Nothing is waiting for you." />
-    ) : (
-      <ul class="divide-y divide-line/60">
-        {items.map((item) => (
-          <li>
-            {item.href ? (
-              <a
-                href={item.href}
-                class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3 hover:text-clay-800"
-              >
-                <span class="min-w-0">
-                  <span class="block truncate font-semibold text-ink">{item.title}</span>
-                  <span class="block text-sm text-muted">{item.kind}</span>
-                </span>
-                <span class="text-sm font-medium text-body">{timeAgo(item.since)}</span>
-              </a>
-            ) : (
-              <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
-                <span class="min-w-0">
-                  <span class="block truncate font-semibold text-ink">{item.title}</span>
-                  <span class="block text-sm text-muted">{item.kind}</span>
-                </span>
-                <span class="text-sm font-medium text-body">{timeAgo(item.since)}</span>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
+  {items.length === 0 ? (
+    <EmptyState title="Nothing is waiting for you." />
+  ) : (
+    <ul class="space-y-3">
+      {items.map((item) => (
+        <li>
+          {item.href ? (
+            <a href={item.href} class:list={[row, 'transition-shadow hover:shadow-card']}>
+              <span class="min-w-0">
+                <span class="block truncate font-semibold text-ink">{item.title}</span>
+                <span class="block text-sm text-muted">{item.kind}</span>
+              </span>
+              <span class="text-sm font-medium text-body">{timeAgo(item.since)}</span>
+            </a>
+          ) : (
+            <div class={row}>
+              <span class="min-w-0">
+                <span class="block truncate font-semibold text-ink">{item.title}</span>
+                <span class="block text-sm text-muted">{item.kind}</span>
+              </span>
+              <span class="text-sm font-medium text-body">{timeAgo(item.since)}</span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
 </section>

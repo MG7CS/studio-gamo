@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { createSqliteD1 } from '@gamo/db/testing';
 import {
   cancelEvent,
+  countWaitingEvents,
+  WAITING_FILTER,
   cancelOccurrence,
   checkInWindow,
   setCheckInOpen,
@@ -15,6 +17,7 @@ import {
   expandOccurrences,
   getOrganizerEvent,
   listEventRegistrations,
+  listOrganizationSchedule,
   listOrganizerEvents,
   registrationsCsv,
   reviewRuleFor,
@@ -193,6 +196,38 @@ test('the review rule decides between draft, review and publishing', async () =>
     now: NOW,
   });
   assert.equal(again.status, 'pending_review');
+});
+
+test('the "waiting" list filter shows events in review or needing changes, and nothing else', async () => {
+  const { d1, db } = await database();
+  const draft = await saveEvent(db, { organizationId: 'org_1', input: FORM, submit: false, now: NOW });
+  const review = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: { ...FORM, title: 'In review night' },
+    submit: true,
+    now: NOW,
+  });
+  const changes = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: { ...FORM, title: 'Needs changes night' },
+    submit: true,
+    now: NOW,
+  });
+  d1.sqlite.exec(`UPDATE events SET status = 'changes_requested' WHERE id = '${changes.eventId}'`);
+  const other = await saveEvent(db, {
+    organizationId: 'org_2',
+    input: { ...FORM, title: 'Other organization night' },
+    submit: true,
+    now: NOW,
+  });
+  assert.equal(draft.status, 'draft');
+  assert.equal(review.status, 'pending_review');
+  assert.equal(other.status, 'pending_review');
+  const waiting = await listOrganizerEvents(db, 'org_1', { status: WAITING_FILTER }, NOW);
+  assert.deepEqual(waiting.map((e) => e.id).sort(), [review.eventId, changes.eventId].sort());
+  assert.equal((await listOrganizerEvents(db, 'org_1', {}, NOW)).length, 3, 'no filter lists everything');
+  assert.equal(countWaitingEvents({ pending_review: 1, changes_requested: 2, published: 5 }), 3);
+  assert.equal(countWaitingEvents({}), 0);
 });
 
 test('editing a published event goes back to review when the rule asks for it; other organizations cannot touch it', async () => {
@@ -874,4 +909,56 @@ test('check-in opens N hours before by the event setting, or whenever the organi
   assert.equal(checkInWindow(opened, occ.startsAt + 13 * 3600).open, false, 'a manual opening still ends');
   await setCheckInOpen(db, { organizationId: 'org_1', occurrenceId: occ.id, open: false, now: NOW + 30 });
   assert.equal(checkInWindow((await getCheckInOccurrence(db, 'org_1', occ.id))!, NOW + 40).open, false);
+});
+
+test('the organization schedule lists the dates of public and in-review events only, with their people', async () => {
+  const { d1, db } = await database();
+  d1.sqlite.exec("UPDATE organizations SET first_event_approved_at = 1 WHERE id = 'org_1'");
+  const live = await saveEvent(db, {
+    organizationId: 'org_1',
+    input: { ...FORM, schedule: 'weekly', until: '2026-11-29' },
+    submit: true,
+    now: NOW,
+  });
+  await saveEvent(db, {
+    organizationId: 'org_1',
+    input: { ...FORM, title: 'Just a draft' },
+    submit: false,
+    now: NOW,
+  });
+  await saveEvent(db, {
+    organizationId: 'org_2',
+    input: { ...FORM, title: 'Someone else' },
+    submit: true,
+    now: NOW,
+  });
+  const occ = (await getOrganizerEvent(db, 'org_1', live.eventId, NOW + 1))!.occurrences[1];
+  const reg = await startRegistration(db, ENV, {
+    occurrenceId: occ.id,
+    name: 'Sam',
+    email: 'sam@example.org',
+    partySize: 2,
+    termsVersion: 'v1',
+    now: NOW,
+  });
+  await confirmRegistration(db, ENV, { registrationId: reg.registrationId, code: reg.code, now: NOW + 5 });
+  await cancelOccurrence(db, {
+    organizationId: 'org_1',
+    eventId: live.eventId,
+    occurrenceId: occ.id,
+    now: NOW + 9,
+  });
+  const schedule = await listOrganizationSchedule(db, 'org_1');
+  assert.equal(
+    schedule.length,
+    3,
+    'the three dates of the series, not the draft and not the other organization',
+  );
+  assert.ok(schedule.every((d) => d.title === 'Sunday Worship Night'));
+  assert.deepEqual(
+    schedule.map((d) => d.canceled),
+    [false, true, false],
+  );
+  assert.ok(schedule[0].startsAt < schedule[1].startsAt);
+  assert.equal(schedule[0].timeZone, 'America/Phoenix');
 });

@@ -20,7 +20,7 @@ const { title, description, class: className } = Astro.props;
   <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
     <div class="min-w-0 flex-1 basis-64">
       <h1 class="text-[26px] font-semibold leading-tight tracking-tight text-ink">{title}</h1>
-      {description && <p class="mt-1.5 max-w-prose text-[15px] text-muted">{description}</p>}
+      {description && <p class="mt-1.5 max-w-prose text-[14px] text-muted">{description}</p>}
     </div>
     {Astro.slots.has('actions') && (
       <div class="flex flex-wrap items-center gap-2">

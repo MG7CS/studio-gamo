@@ -1,0 +1,55 @@
+---
+/** Who you are on Gamo Live: your name, your email (from sign-in, read only) and the time zone new events start with. */
+import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
+import { EVENT_TIME_ZONES, type SettingsErrors, type SettingsInput } from '@gamo/domain';
+
+interface Props {
+  email: string;
+  values: SettingsInput;
+  errors: SettingsErrors;
+}
+const { email, values, errors } = Astro.props;
+---
+
+<Panel id="profile" title="You" description="How you appear to the people you invite, and your defaults.">
+  <form method="post" class="space-y-4" novalidate>
+    <input type="hidden" name="action" value="profile" />
+    <SplitField
+      id="displayName"
+      name="displayName"
+      label="Your name"
+      size="sm"
+      required
+      maxlength={80}
+      autocomplete="name"
+      value={values.displayName}
+      error={errors.displayName}
+    />
+    <div>
+      <p class="text-[13px] font-semibold text-ink">Email</p>
+      <p class="mt-1 break-all text-[14px] text-ink">{email}</p>
+      <p class="mt-0.5 text-[12px] text-muted">It comes from your sign-in, so it cannot be changed here.</p>
+    </div>
+    <SplitField
+      id="timezone"
+      name="timezone"
+      label="Default time zone for new events"
+      as="select"
+      size="sm"
+      error={errors.timezone}
+      hint="Each event still has its own time zone."
+    >
+      <option value="" selected={values.timezone === ''}>
+        No default
+      </option>
+      {EVENT_TIME_ZONES.map((z) => (
+        <option value={z.value} selected={values.timezone === z.value}>
+          {z.label}
+        </option>
+      ))}
+    </SplitField>
+    <Button type="submit">Save settings</Button>
+  </form>
+</Panel>

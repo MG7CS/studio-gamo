@@ -20,7 +20,7 @@ try {
 if (ctx instanceof Response) return ctx;
 if (!ctx || !ctx.active) return new Response('Gamo Live is temporarily unavailable.', { status: 503 });
 const { organizer, memberships, active, live, now } = ctx;
-let values = EMPTY_EVENT;
+let values = organizer.timezone ? { ...EMPTY_EVENT, timezone: organizer.timezone } : EMPTY_EVENT;
 let errors: Record<string, string> = {};
 let notice: string | undefined;
 
