@@ -922,3 +922,10 @@
 ## 2026-10-20 — Platform layers WO1, change set 1: CI (branch `platform-layers`, not committed, not pushed)
 
 - `.github/workflows/ci.yml`: removed the `pnpm api:docs` step and the `pnpm api:compatibility` step (neither script exists since the OpenAPI tooling was removed; `openapi/` and `scripts/api/` are gone) and the stale OpenAPI wording in the comments. Nothing reads the HTML reference those scripts wrote. No behavior change.
+
+## 2026-10-20 — Platform layers WO1, change set 2: dead code (branch `platform-layers`, not committed, not pushed)
+
+- Deleted the two files knip reports as unused: `apps/live/src/components/shared/PageHeader.astro` (the admin and organizer pages use `@studio-gamo/ui` `PageHeader`) and `apps/live/src/lib/defer.ts` (nothing imports it).
+- The `./ticketing` and `./scanner` exports of `@gamo/domain` were already removed in `5167944`; nothing to remove.
+- Removed the config lines for the deleted OpenAPI outputs from `.gitattributes`, `.prettierignore` and `eslint.config.js`.
+- Left alone on purpose: 75 exports that knip reports but that are used inside their own file, the unused dependencies knip lists, and the domain files that only the barrel reaches (see the domain graph, change set 5). No behavior change.
