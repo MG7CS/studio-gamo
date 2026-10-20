@@ -25,6 +25,8 @@ interface Props {
   min?: string;
   max?: string;
   class?: string;
+  /** `sm` is the compact field for dense screens (the organizer area): 44 px high, 14 px text. */
+  size?: 'md' | 'sm';
 }
 const {
   id,
@@ -47,6 +49,7 @@ const {
   min,
   max,
   class: className,
+  size = 'md',
 } = Astro.props;
 const hintId = `${id}-hint`;
 const errorId = `${id}-error`;
@@ -55,15 +58,19 @@ const describedBy =
   [hint ? hintId : null, disabled && disabledReason ? reasonId : null, error ? errorId : null]
     .filter(Boolean)
     .join(' ') || undefined;
-const control =
-  'min-h-[56px] w-full rounded-[14px] [@media(min-width:1024px)_and_(max-height:860px)]:min-h-[48px] [@media(min-width:1024px)_and_(max-height:860px)]:py-2 border border-ink/50 bg-white px-4 py-3 text-[16px] text-ink shadow-[0_1px_2px_rgba(24,20,17,0.03)] placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep disabled:cursor-not-allowed disabled:border-line disabled:bg-sand disabled:text-muted';
+const compact = size === 'sm';
+// Sizing differs by size; the rest of the look is shared (so the two never fight over the same property).
+const sizing = compact
+  ? 'min-h-11 px-3.5 py-2 text-[14px]'
+  : 'min-h-[56px] px-4 py-3 text-[16px] [@media(min-width:1024px)_and_(max-height:860px)]:min-h-[48px] [@media(min-width:1024px)_and_(max-height:860px)]:py-2';
+const control = `${sizing} w-full rounded-[14px] border border-ink/50 bg-white text-ink shadow-[0_1px_2px_rgba(24,20,17,0.03)] placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20 aria-[invalid=true]:border-2 aria-[invalid=true]:border-terracotta-deep disabled:cursor-not-allowed disabled:border-line disabled:bg-sand disabled:text-muted`;
+const labelClass = compact
+  ? 'mb-1.5 block text-[13px] font-semibold text-ink'
+  : 'mb-2 block text-[14px] font-semibold text-ink [@media(min-width:1024px)_and_(max-height:860px)]:mb-1.5';
 ---
 
 <div class={className}>
-  <label
-    for={id}
-    class="mb-2 block text-[14px] font-semibold text-ink [@media(min-width:1024px)_and_(max-height:860px)]:mb-1.5"
-  >
+  <label for={id} class={labelClass}>
     {label}
     {required && (
       <span class="font-normal text-muted">
