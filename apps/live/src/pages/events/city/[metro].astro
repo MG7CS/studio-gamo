@@ -1,0 +1,57 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import EventResults from '../../../components/events/EventResults.astro';
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
+import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
+import {
+  EMPTY_EVENT_SEARCH,
+  eventCountSummary,
+  eventSearchFilters,
+  parseEventSearch,
+  resolveMetroBySlug,
+} from '@gamo/domain';
+import { listEvents } from '../../../lib/event-list';
+
+export const prerender = false;
+
+const metro = resolveMetroBySlug(Astro.params.metro);
+if (!metro) {
+  Astro.response.status = 404;
+  return Astro.rewrite('/404');
+}
+
+const search = { ...EMPTY_EVENT_SEARCH, page: parseEventSearch(Astro.url.searchParams).page };
+const { events, unavailable } = await listEvents(Astro, eventSearchFilters({ ...search, metro: metro.slug }));
+if (unavailable) Astro.response.status = 503;
+---
+
+<Layout
+  title={`Christian events in ${metro.displayLabel}`}
+  description={`Upcoming Christian concerts, worship nights and gatherings in ${metro.displayLabel}.`}
+  noindex={search.page > 1}
+>
+  <div class="mx-auto max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+    <PageHeader
+      title={`Christian events in ${metro.displayLabel}`}
+      description={unavailable ? undefined : eventCountSummary(events.length, metro.slug)}
+    >
+      <Breadcrumbs
+        slot="breadcrumbs"
+        items={[{ label: 'All events', href: '/events' }, { label: metro.displayLabel }]}
+      />
+    </PageHeader>
+    {unavailable ? (
+      <Notice tone="warning" title="Events can't be loaded right now.">
+        Please try again in a moment.
+      </Notice>
+    ) : (
+      <EventResults
+        events={events}
+        search={search}
+        path={`/events/city/${metro.slug}`}
+        placeLabel={metro.displayLabel}
+      />
+    )}
+  </div>
+</Layout>

@@ -1,0 +1,42 @@
+---
+/**
+ * The date as a typographic block: month, day number and weekday. Stands in for event photos (events have no
+ * photos yet) and is the same everywhere a date leads a card or a page. Decorative: the date is always also written
+ * out in text next to it, so it is hidden from assistive technology.
+ */
+interface Props {
+  /** Local date of the event, YYYY-MM-DD. */
+  date: string;
+  size?: 'md' | 'lg';
+  /** Dim the block for a past or canceled date. */
+  muted?: boolean;
+  class?: string;
+}
+const { date, size = 'md', muted = false, class: className } = Astro.props;
+const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+// The date is local to the event, so format it in UTC from its own parts: no time zone can shift the day.
+const anchor = match
+  ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12))
+  : null;
+const part = (options: Intl.DateTimeFormatOptions) =>
+  anchor ? new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(anchor) : '';
+const month = part({ month: 'short' }).toUpperCase();
+const day = part({ day: 'numeric' });
+const weekday = part({ weekday: 'short' }).toUpperCase();
+---
+
+<div
+  aria-hidden="true"
+  class:list={[
+    'flex shrink-0 flex-col items-center justify-center rounded-2xl text-center leading-none',
+    muted ? 'bg-sand text-muted' : 'bg-terracotta-deep text-white',
+    size === 'lg' ? 'h-32 w-24 gap-2 py-3' : 'h-20 w-16 gap-1.5 py-2.5',
+    className,
+  ]}
+>
+  <span class:list={['font-bold tracking-[0.12em]', size === 'lg' ? 'text-sm' : 'text-xs']}>{month}</span>
+  <span class:list={['font-extrabold', size === 'lg' ? 'text-5xl' : 'text-3xl']}>{day}</span>
+  <span class:list={['font-semibold tracking-[0.12em] opacity-80', size === 'lg' ? 'text-xs' : 'text-xs']}>
+    {weekday}
+  </span>
+</div>

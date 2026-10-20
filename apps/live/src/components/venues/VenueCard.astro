@@ -1,0 +1,46 @@
+---
+/** One venue in the venue list. Every card has the same parts in the same order, so the grid stays even. */
+import type { LiveVenueSummary } from '@gamo/domain';
+import { formatLocalEventSchedule, venueEventPreview } from '@gamo/domain';
+
+interface Props {
+  venue: LiveVenueSummary;
+}
+const { venue } = Astro.props;
+const { events, moreCount } = venueEventPreview(venue);
+const next = venue.nextEventDateLocal
+  ? formatLocalEventSchedule(venue.nextEventDateLocal, null, null).shortDateLabel
+  : null;
+---
+
+<li class="list-none">
+  <article class="flex h-full flex-col rounded-2xl border border-sand bg-white p-5">
+    <h2 class="text-lg font-semibold leading-snug text-ink">{venue.venueName}</h2>
+    <p class="mt-0.5 text-sm text-muted">{venue.regionLabel}</p>
+    <p class="mt-3 text-sm font-semibold text-terracotta-deep">
+      {venue.upcomingEventCount} upcoming{next && <span class="font-medium text-ink"> · Next {next}</span>}
+    </p>
+    <ul class="mt-3 flex-1 border-t border-sand">
+      {events.map((e) => (
+        <li class="list-none border-b border-sand last:border-b-0">
+          <a
+            href={`/events/${e.slug}`}
+            class="flex min-h-11 items-center py-1.5 text-[15px] font-medium text-ink underline-offset-4 hover:text-terracotta-deep hover:underline"
+          >
+            {e.title}
+          </a>
+        </li>
+      ))}
+      {moreCount > 0 && (
+        <li class="list-none">
+          <a
+            href={`/events?venue=${encodeURIComponent(venue.venueName)}`}
+            class="flex min-h-11 items-center py-1.5 text-sm font-semibold text-terracotta-deep underline-offset-4 hover:underline"
+          >
+            and {moreCount} more
+          </a>
+        </li>
+      )}
+    </ul>
+  </article>
+</li>

@@ -1,0 +1,36 @@
+---
+/** Split hero: the promise and the one way in on the left, a curved concert photograph on the right. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+---
+
+<section class="mx-auto grid max-w-[1340px] items-center gap-8 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-16">
+  <div>
+    <h1 class="text-[40px] font-black leading-[1.05] tracking-tight text-ink sm:text-6xl">
+      Promote your <span class="text-terracotta">event</span>.
+    </h1>
+    <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted">
+      List your concert, worship night, conference or gathering on Gamo Live. People can find it, register for
+      free events, or follow your link to buy tickets.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+      <Button href="/account/signup?next=%2Forganizer" size="lg">
+        Start promoting
+      </Button>
+      <a
+        href="/account/signin?next=%2Forganizer"
+        class="inline-flex min-h-11 items-center text-[15px] font-semibold text-ink underline underline-offset-4 hover:text-terracotta-deep"
+      >
+        Sign in
+      </a>
+    </div>
+  </div>
+  <div class="order-first aspect-[16/10] overflow-hidden rounded-[2rem] rounded-br-[6rem] bg-sand lg:order-last lg:aspect-[4/5]">
+    <Photo
+      name="gospelVocalists"
+      sizes="(min-width: 1024px) 45vw, 100vw"
+      priority
+      class="h-full w-full object-cover"
+    />
+  </div>
+</section>

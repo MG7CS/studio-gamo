@@ -1,0 +1,29 @@
+---
+/**
+ * The door pass: a large, high-contrast QR code on white with a quiet zone, the 10-character check-in code in
+ * monospace under it (for a volunteer to type if the scan fails) and one instruction. The SVG is made on the
+ * server, so no script or outside service is involved.
+ */
+interface Props {
+  /** Inline SVG from `qrSvg()`. */
+  svg: string;
+  code: string;
+}
+const { svg, code } = Astro.props;
+---
+
+<figure class="mt-6 flex flex-col items-center border-t border-tan pt-6">
+  <div
+    role="img"
+    aria-label="QR code for check-in"
+    class="aspect-square w-[min(100%,300px)] rounded-2xl bg-white p-4 ring-1 ring-tan [&>svg]:block [&>svg]:h-full [&>svg]:w-full"
+    set:html={svg}
+  />
+  <figcaption class="mt-4 text-center">
+    <p class="text-[26px] font-semibold leading-tight text-ink">
+      <span class="sr-only">Check-in code </span>
+      <span class="font-mono tracking-[0.14em]">{code}</span>
+    </p>
+    <p class="mt-1 text-[15px] font-semibold text-ink">Show this at the door</p>
+  </figcaption>
+</figure>

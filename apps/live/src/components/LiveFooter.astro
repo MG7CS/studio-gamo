@@ -1,182 +1,72 @@
 ---
-import { GAMO_LIVE_METROS } from '@gamo/domain';
+/** The one footer for every public Gamo Live page: who we are in a sentence, the same four links, three legal links. */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
-const primaryLinks = [
+const links = [
   { label: 'Events', href: '/events' },
   { label: 'Artists', href: '/artists' },
   { label: 'Venues', href: '/venues' },
-  { label: 'List an Event', href: '/promote' },
+  { label: 'Promote an event', href: '/promote' },
 ];
+// The legal documents stay linked from every footer (scripts/audit/legal-drafts.test.ts).
+const legal = [
+  { label: 'Legal', path: '/legal' },
+  { label: 'Privacy', path: '/legal/privacy-policy' },
+  { label: 'Site terms', path: '/legal/site-terms' },
+  { label: 'Ticket terms', path: '/legal/ticket-terms' },
+  { label: 'Organizer terms', path: '/legal/organizer-terms' },
+  { label: 'Contact', path: '/contact' },
+];
+const link = 'inline-flex min-h-11 items-center text-sm font-medium text-ink hover:text-terracotta-deep';
 ---
 
-<footer data-surface="light" class="bg-ivory border-t border-sand text-ink">
+<footer class="border-t border-sand bg-ivory text-ink">
   <div class="mx-auto max-w-[1340px] px-4 py-10 sm:px-6 lg:px-8">
-    {/* Top Row: Brand Mark, Primary Links, Quick Actions */}
-    <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-      {/* Brand Mark */}
-      <a href="/" class="inline-flex items-center gap-2.5 focus:outline-none group">
-        <svg class="h-6 w-6 shrink-0 text-terracotta" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-          <rect x="2" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
-          <rect x="7.2" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
-          <rect x="12.4" y="2.5" width="3.2" height="23" rx="1.6" fill="currentColor" />
-          <rect x="17.6" y="6" width="3.2" height="16" rx="1.6" fill="currentColor" opacity="0.9" />
-          <rect x="22.8" y="10" width="3.2" height="8" rx="1.6" fill="currentColor" opacity="0.75" />
-        </svg>
-        <span class="text-[19px] leading-none tracking-tight flex items-baseline">
-          <span aria-hidden="true" class="font-extrabold text-ink">
+    <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+      <div class="max-w-md">
+        <a href="/" class="inline-flex min-h-11 items-center text-xl tracking-tight">
+          <span aria-hidden="true" class="font-extrabold">
             GAMO
-          </span>{' '}
-          <span aria-hidden="true" class="font-normal text-terracotta ml-0.5">
+          </span>
+          <span aria-hidden="true" class="ml-1 font-normal text-terracotta-deep">
             LIVE
           </span>
           <span class="sr-only">Gamo Live home</span>
-        </span>
-      </a>
-
-      {/* Center Navigation Links */}
-      <nav aria-label="Footer navigation">
-        <ul class="flex flex-wrap items-center gap-x-7 gap-y-2.5">
-          {primaryLinks.map((link) => (
+        </a>
+        <p class="mt-2 text-sm leading-relaxed text-muted">
+          Christian concerts, worship nights and conferences across the United States. Gamo Live is part of
+          Gamo Studios, a Christian public benefit corporation. Tickets for listed events are sold by the
+          organizers, not by Gamo.
+        </p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="flex flex-wrap gap-x-7 md:flex-col">
+          {links.map((l) => (
             <li>
-              <a
-                href={link.href}
-                class="text-sm font-medium text-muted hover:text-terracotta transition-colors"
-              >
-                {link.label}
+              <a href={l.href} class={link}>
+                {l.label}
               </a>
             </li>
           ))}
         </ul>
       </nav>
-
-      {/* Right Icons / Discovery Shortcuts */}
-      <div class="flex items-center gap-3 text-muted">
-        <a
-          href="/events"
-          class="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sand hover:text-terracotta transition-colors"
-          aria-label="Browse all Christian concerts and worship events"
-          title="Browse events"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </a>
-        <a
-          href="/venues"
-          class="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sand hover:text-terracotta transition-colors"
-          aria-label="Explore concert venues across U.S. metros"
-          title="Explore venues"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </a>
-        <a
-          href="/artists"
-          class="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sand hover:text-terracotta transition-colors"
-          aria-label="Artists and ministry representation"
-          title="Artists"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"
-            />
-          </svg>
-        </a>
-        <a
-          href="/promote"
-          class="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-sand hover:text-terracotta transition-colors"
-          aria-label="Submit a Christian concert or worship event"
-          title="List an event"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-        </a>
-      </div>
     </div>
-
-    {/* Metro Quick Links Row */}
-    <div class="mt-7 pt-6 border-t border-sand/80">
-      <div class="flex flex-wrap items-center gap-x-2 gap-y-2 text-xs">
-        <span class="font-bold uppercase tracking-wider text-muted mr-1.5">Browse by Metro:</span>
-        {GAMO_LIVE_METROS.map((metro) => (
-          <a
-            href={`/events/${metro.slug}`}
-            class="inline-flex items-center rounded-full border border-sand bg-cream hover:bg-sand hover:border-line px-3 py-1 font-medium text-muted hover:text-terracotta transition-colors min-h-11"
-          >
-            {metro.displayLabel}
-          </a>
-        ))}
-      </div>
+    <div class="mt-8 flex flex-col gap-2 border-t border-sand pt-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+      <p>© {new Date().getFullYear()} Gamo Studios</p>
+      <nav aria-label="Legal">
+        <ul class="flex flex-wrap gap-x-6">
+          {legal.map((l) => (
+            <li>
+              <a
+                href={siteUrl('web', l.path)}
+                class="inline-flex min-h-11 items-center hover:text-terracotta-deep"
+              >
+                {l.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
-
-    {/* Truthful Platform Disclosure Line */}
-    <div
-      id="status"
-      class="mt-6 pt-5 border-t border-sand/80 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between text-xs text-muted leading-relaxed"
-    >
-      <p class="max-w-4xl">
-        Gamo Live is a Christian, mission-driven event discovery and organizer platform. External discovery
-        listings are published by Gamo Live Listings for informational discovery; ticket purchases and
-        customer support occur on the linked official ticket provider site.
-      </p>
-      <p class="shrink-0 text-muted">© {new Date().getFullYear()} Gamo Live · Gamo Studios</p>
-    </div>
-
-    {/* Legal documents (drafts) on gamostudio.org — Phase 2 Agent A */}
-    <nav aria-label="Legal" class="mt-4 flex flex-wrap gap-x-6 text-xs text-muted">
-      {[
-        { label: 'Legal & Privacy', path: '/legal' },
-        { label: 'Privacy Policy', path: '/legal/privacy-policy' },
-        { label: 'Site Terms', path: '/legal/site-terms' },
-        { label: 'Ticket Terms', path: '/legal/ticket-terms' },
-        { label: 'Organizer Terms', path: '/legal/organizer-terms' },
-      ].map((link) => (
-        <a href={siteUrl('web', link.path)} class="inline-flex min-h-11 items-center hover:text-terracotta">
-          {link.label}
-        </a>
-      ))}
-    </nav>
   </div>
 </footer>

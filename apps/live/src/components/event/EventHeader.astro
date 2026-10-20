@@ -1,0 +1,24 @@
+---
+/** The title of an event page: the date block beside the one h1 and the key facts. Closed events are dimmed. */
+import type { LiveEventDetail } from '@gamo/domain';
+import DateBlock from '../DateBlock.astro';
+import EventFacts from './EventFacts.astro';
+
+interface Props {
+  event: LiveEventDetail;
+  /** Canceled or past: the date block is dimmed. */
+  muted?: boolean;
+  severalDates?: boolean;
+}
+const { event, muted = false, severalDates = false } = Astro.props;
+---
+
+<header class="flex flex-col gap-5 sm:flex-row sm:gap-6">
+  <DateBlock date={event.startDateLocal} size="lg" muted={muted} />
+  <div class="min-w-0 flex-1">
+    <h1 class="text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">{event.title}</h1>
+    <div class="mt-5">
+      <EventFacts event={event} whenLabel={severalDates ? 'Next date' : 'When'} />
+    </div>
+  </div>
+</header>

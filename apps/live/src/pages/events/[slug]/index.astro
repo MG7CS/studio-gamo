@@ -1,0 +1,100 @@
+---
+import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
+import { siteOrigin, siteUrl } from '@studio-gamo/ui/lib/sites';
+import {
+  descriptionParagraphs,
+  eventDateRows,
+  eventJsonLd,
+  eventMetaDescription,
+  eventPanel,
+  pickRelatedEvents,
+  splitDates,
+  type LiveEventDetail,
+  type LiveEventWithDetails,
+} from '@gamo/domain';
+import Layout from '../../../layouts/Layout.astro';
+import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
+import EventActionPanel from '../../../components/event/EventActionPanel.astro';
+import EventDates from '../../../components/event/EventDates.astro';
+import EventHeader from '../../../components/event/EventHeader.astro';
+import { openLive } from '../../../lib/registration';
+
+export const prerender = false;
+
+let event: LiveEventDetail | null;
+let related: LiveEventWithDetails[] = [];
+try {
+  const { catalog } = await openLive(Astro);
+  event = await catalog.getEvent((Astro.params.slug ?? '').trim());
+  if (event) {
+    const nearby = await catalog.listDiscoverableEvents({ upcomingOnly: true, limit: 24 });
+    related = pickRelatedEvents(event, nearby);
+  }
+} catch (error) {
+  console.error('[live:event] failed', (error as Error)?.name);
+  Astro.response.status = 503;
+  return Astro.rewrite('/500');
+}
+if (!event) {
+  Astro.response.status = 404;
+  return Astro.rewrite('/404');
+}
+
+const panel = eventPanel(event);
+const closed = panel.kind === 'canceled' || panel.kind === 'past';
+const dates = splitDates(eventDateRows(event));
+const severalDates = event.occurrences.length > 1;
+const url = siteUrl('live', `/events/${event.slug}`);
+const paragraphs = descriptionParagraphs(event.description);
+const crumbs = [
+  { label: 'Events', href: '/events' },
+  { label: event.regionLabel, href: event.metroSlug ? `/events/city/${event.metroSlug}` : undefined },
+  { label: event.title },
+];
+---
+
+<Layout
+  title={`${event.title} · ${event.city}`}
+  description={eventMetaDescription(event)}
+  ogType="event"
+  jsonLd={eventJsonLd(event, siteOrigin('live'))}
+>
+  <div class="mx-auto max-w-[1100px] px-4 pb-16 pt-4 sm:px-6 lg:px-8">
+    <Breadcrumbs items={crumbs} />
+    <div class="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-x-12">
+      <EventHeader event={event} muted={closed} severalDates={severalDates} />
+      <div class="lg:row-span-2 lg:col-start-2 lg:row-start-1">
+        <div class="lg:sticky lg:top-24">
+          <EventActionPanel panel={panel} shareUrl={url} severalDates={severalDates} />
+        </div>
+      </div>
+      <div class="flex flex-col gap-10 lg:col-start-1">
+        {paragraphs.length > 0 && (
+          <section aria-labelledby="event-about">
+            <h2 id="event-about" class="text-xl font-bold text-ink">
+              About this event
+            </h2>
+            <div class="mt-2 max-w-prose space-y-3 text-base leading-relaxed text-ink">
+              {paragraphs.map((p) => (
+                <p>{p}</p>
+              ))}
+            </div>
+          </section>
+        )}
+        {severalDates && <EventDates upcoming={dates.upcoming} past={dates.past} />}
+        {related.length > 0 && (
+          <section aria-labelledby="event-related">
+            <h2 id="event-related" class="text-xl font-bold text-ink">
+              More events
+            </h2>
+            <ul class="mt-3 grid gap-3">
+              {related.map((e) => (
+                <LiveDiscoveryCard event={e} />
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>

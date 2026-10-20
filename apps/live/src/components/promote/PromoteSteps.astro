@@ -1,35 +1,42 @@
 ---
 /** The four steps from "I have an event" to "people can find it", and what Gamo does at each. */
 const steps = [
-  { title: 'Create your account', body: 'Sign in with an emailed 6-digit code. No password to remember.' },
   {
-    title: 'Set up your organization',
-    body: 'Your church, ministry, band or group. People see who is behind every event.',
+    title: 'Create your organization',
+    body: 'Sign up and add your church, ministry, band or group. People see who is behind every event.',
   },
   {
-    title: 'List your event',
-    body: 'Date, place, who is performing, and whether people can come freely, register, or buy tickets elsewhere.',
+    title: 'Add your event',
+    body: 'Date, place, who is performing, and how people get in: free to attend, free with registration, or tickets sold on another site.',
   },
   {
-    title: 'Gamo reviews your first event',
-    body: 'We check that it is a real Christian event. After the first one is approved, later events publish directly.',
+    title: 'Gamo reviews the first one',
+    body: 'We check that it is a real Christian event. Once your first event is approved, later events publish directly.',
+  },
+  {
+    title: 'People find it',
+    body: 'Free events take registrations on Gamo Live. For ticketed events we link to the seller. Gamo Live does not sell tickets.',
   },
 ];
 ---
 
-<ol class="grid gap-4 md:grid-cols-2">
-  {steps.map((s, i) => (
-    <li class="flex gap-4 rounded-3xl bg-white p-6">
-      <span
-        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-terracotta text-[18px] font-black text-white"
-        aria-hidden="true"
-      >
-        {i + 1}
-      </span>
-      <div>
-        <h3 class="text-[18px] font-extrabold text-ink">{s.title}</h3>
-        <p class="mt-1 text-[15px] leading-relaxed text-muted">{s.body}</p>
-      </div>
-    </li>
-  ))}
-</ol>
+<section aria-labelledby="how-it-works" class="border-t border-tan bg-cream">
+  <div class="mx-auto grid max-w-[1340px] gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:gap-16 lg:px-8 lg:py-20">
+    <h2 id="how-it-works" class="text-3xl font-semibold tracking-tight text-ink">
+      How it works
+    </h2>
+    <ol class="divide-y divide-tan border-y border-tan">
+      {steps.map((step, i) => (
+        <li class="flex list-none gap-5 py-6">
+          <span aria-hidden="true" class="w-8 shrink-0 text-3xl font-bold leading-none text-terracotta">
+            {i + 1}
+          </span>
+          <div>
+            <h3 class="text-lg font-semibold text-ink">{step.title}</h3>
+            <p class="mt-1 text-[15px] leading-relaxed text-muted">{step.body}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

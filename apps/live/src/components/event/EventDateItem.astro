@@ -1,0 +1,32 @@
+---
+/** One date in the Dates list: when, its state in words, and a Register link when registering for it works. */
+import Button from '@studio-gamo/ui/components/ui/Button.astro';
+import type { EventDateRow } from '@gamo/domain';
+
+interface Props {
+  row: EventDateRow;
+}
+const { row } = Astro.props;
+---
+
+<li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-sand py-3 first:border-t-0">
+  <span
+    class:list={[
+      'text-sm',
+      row.state === 'past' ? 'text-muted' : 'text-ink',
+      row.state === 'canceled' ? 'line-through' : '',
+    ]}
+  >
+    {row.label}
+  </span>
+  {(row.note || row.registerHref) && (
+    <span class="flex items-center gap-3">
+      {row.note && <span class="text-sm font-semibold text-muted">{row.note}</span>}
+      {row.registerHref && (
+        <Button href={row.registerHref} variant="secondary">
+          Register<span class="sr-only"> for {row.label}</span>
+        </Button>
+      )}
+    </span>
+  )}
+</li>
