@@ -43,3 +43,6 @@ docs/api-reference/*.html
 # Generated staff-account SQL (contains password hashes; owner-reviewed, never committed)
 .staff-sql/
 .claude/worktrees/
+
+# Local-only screenshot baseline (tests/e2e/visual-baseline.spec.ts): about 70 MB, rendered by this computer's browser
+tests/e2e/__screenshots__/

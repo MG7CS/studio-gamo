@@ -28,6 +28,8 @@ Every page is rendered on demand so middleware and security headers always apply
 | `@gamo/db` (`packages/db`) | the old shared schema (`migrations/`, still read by the admin's Community queues), Gamo Live's own migrations (`live/migrations/0001`–`0012`), and the `node:sqlite` D1 facade for tests (`testing.ts`) |
 | `@gamo/integrations` (`packages/integrations`) | the Resend email adapter |
 
+**Layers.** Imports run downward only. Foundation: `config`, `ui`. Platform: `auth`, `db`, `integrations`. `domain` is transitional and is being split up (reported, not enforced). Apps sit on top and never import each other, and no package imports an app. `pnpm lint:layers` reports breaks (it never fails) and writes [`docs/reports/layers.md`](docs/reports/layers.md); the map is `scripts/layers/layer-map.mjs`. `pnpm typecheck:packages` covers every folder under `packages/` that has a `package.json`.
+
 ## Data
 
 - **`LIVE_DB`**: Gamo Live's own D1 database (`gamo-live-db-<env>`; schema `packages/db/live/migrations`, design `docs/LIVE_DATA_MODEL.md`), bound by `apps/live`, `apps/web` and `apps/admin`. Locally the three share one state folder (`.wrangler/shared-state`, `make live-db`). Preview and production databases are created by the owner (`docs/RUNBOOK.md` §5).
@@ -68,4 +70,5 @@ Variables are typed in `packages/config/env.ts` and validated per app in `env-va
 
 - **Unit:** `node:test` run with `tsx --test`, next to the code (`packages/**/*.test.ts`, `scripts/audit/*.test.ts`); D1 is the `node:sqlite` facade in `packages/db/testing.ts` (a batch is one transaction).
 - **Built-worker browser tests (Playwright):** `scripts/e2e/live-flow-server.ts` runs the built Live and admin workers together in Miniflare on one Live database, with Resend and Stripe answered locally, for `tests/e2e/live-flow.spec.ts` and the paid specs (`live-paid-checkout`, `live-door`, `live-payments-admin`); `scripts/e2e/admin-server.ts` runs the built admin for `tests/e2e/admin.spec.ts`; marketing smoke tests for the other apps.
+- **Screenshot baseline (opt-in, local only):** `tests/e2e/visual-baseline.spec.ts` takes full-page pictures of every public page of the five public apps, the admin Overview and the Live organizer Overview at 1280 and 390 px, so moves of code can be checked against them. It skips itself unless `VISUAL_BASELINE=1`; the pictures (about 70 MB) are rendered by this computer's browser, live in `tests/e2e/__screenshots__/` and are not committed. How to run it is at the top of the spec.
 - Tests run as `AGENTS.md` §2 says: targeted runs for what changed; broad runs only when the owner asks.
