@@ -9,6 +9,7 @@
     "typecheck:apps": "ASTRO_TELEMETRY_DISABLED=1 pnpm --filter \"./apps/**\" --workspace-concurrency=1 exec astro check --minimumFailingSeverity warning",
     "typecheck:packages": "tsx scripts/typecheck-packages.ts && tsc --noEmit -p scripts",
     "lint": "eslint . --cache --max-warnings 0",
+    "lint:layers": "tsx scripts/lint-layers.ts",
     "lint:fix": "eslint . --cache --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

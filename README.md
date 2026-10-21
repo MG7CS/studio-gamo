@@ -37,6 +37,7 @@ Local settings go in each app's `apps/<app>/.dev.vars` (see its `.dev.vars.examp
 | `make dev-<app>` / `make dev-all` / `make open-all` | Dev servers (fixed ports) and opening them |
 | `pnpm build` | Build all apps |
 | `pnpm typecheck` / `pnpm lint` / `pnpm format:check` | Static checks (ESLint with zero warnings, Prettier) |
+| `pnpm lint:layers` | Import-boundary report (never fails), writes `docs/reports/layers.md` |
 | `pnpm test` / `pnpm test:e2e` / `pnpm check` | Tests — run only when the owner asks (`AGENTS.md` §2) |
 | `pnpm db:migrate:local` / `db:seed:local` / `db:reset:local` | Local D1 database |
 
