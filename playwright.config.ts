@@ -59,6 +59,9 @@ if (liveKeys.length > 0) {
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  // Pictures of tests/e2e/visual-baseline.spec.ts, one folder per spec and no platform suffix: the baseline is
+  // recorded and compared on the owner's computer only (the spec is opt-in).
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFileName}/{arg}{ext}',
   fullyParallel: true,
   workers: process.env.CI ? 2 : 4,
   // One test covers every page of an app (sitemap-driven), so allow several minutes each.
