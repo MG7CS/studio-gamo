@@ -111,6 +111,12 @@ PUBLIC_CLERK_KEYLESS_DISABLED = "true"
 CLERK_AUTHORIZED_PARTIES_LIVE = "https://live.gamostudio.org"
 
 [[env.production.d1_databases]]
+binding = "LIVE_DB"
+database_name = "gamo-live-db-production"
+database_id = "92607078-4ce4-4706-9e37-8f3b301ec819"
+migrations_dir = "../../packages/db/live/migrations"
+
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "gamo-db-production"
 database_id = "d6db9fe7-77c0-4a50-836e-3d1924f00b53"
