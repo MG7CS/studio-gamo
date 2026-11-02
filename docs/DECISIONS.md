@@ -260,3 +260,8 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Gamo fee shape:** per ticket, `fixed_cents + percent_bps` of the discounted price, both 0; no fee on comps, cash, gifts or price-0 tickets.
 - **Webhook ordering:** an event that refers to something not yet recorded answers 500 so Stripe retries; duplicates still processing answer 409; mark checks the claim token (the old code's gap).
 - **Payouts (Mode B)** are prepared only after the event's date has passed, and sent only with the owner's approval.
+
+## 2026-11-01 — Marketing pages are no longer frozen
+- **Old rule (AGENTS.md §2 and §3):** the marketing pages of the five public apps, including every Gamo Live public page and its chrome, stay exactly as they are unless the owner names the page and the change; every task ends with a `git diff 98719de` check that they are unchanged.
+- **New rule:** marketing pages are owner-led like every other screen and are changed when the owner asks (one page, one section or a pass across the public pages). Their copy is short and mission-centered (what the work serves, no counts of programs or product language) with no em or en dashes. The Live event detail action panel keeps its states and forms.
+- **Reason:** the owner asked for a polish pass across all public pages (photo first on phones, shorter mission-centered copy, uapply.africa as a visual reference) and asked for the freeze to be removed so future sessions do not flag or undo that work.
