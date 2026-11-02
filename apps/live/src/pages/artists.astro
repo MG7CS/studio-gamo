@@ -9,11 +9,11 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import {
   LiveCatalog,
-  asSqlDatabase,
   getRuntimeEnv,
   formatLocalEventSchedule,
   type LiveEventWithDetails,
 } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/platform/db';
 
 export const prerender = false;
 

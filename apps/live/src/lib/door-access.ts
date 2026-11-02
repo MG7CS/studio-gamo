@@ -25,11 +25,11 @@ import {
   type CheckInOccurrence,
   type DoorOccurrence,
   type PaidEnv,
-  type SqlDatabase,
   type StaffActor,
   type StaffDevice,
 } from '@gamo/domain';
-import { isWellFormedPin, sha256Hex } from '@gamo/domain/security';
+import { type SqlDatabase } from '@gamo/platform/db';
+import { isWellFormedPin, sha256Hex } from '@gamo/platform/security';
 import { whenLabel } from './organizer-format';
 
 /** One date's door, as the door screen sees it. */

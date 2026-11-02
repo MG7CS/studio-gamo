@@ -10,7 +10,7 @@ import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import EventStatusPill from '../../../../components/organizer/EventStatusPill.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { ADMISSIONS, eventDatesView, eventPermissions, getOrganizerEvent } from '@gamo/domain';
 import {
   PREVIEWABLE_STATUSES,

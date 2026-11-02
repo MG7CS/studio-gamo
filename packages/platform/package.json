@@ -1,0 +1,22 @@
+{
+  "name": "@gamo/platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@gamo/config": "workspace:*",
+    "@gamo/core": "workspace:*",
+    "@gamo/db": "workspace:*",
+    "drizzle-orm": "^0.45.4"
+  },
+  "exports": {
+    "./security": "./security/index.ts",
+    "./security/app-locals": "./security/app-locals.d.ts",
+    "./db": "./db/index.ts",
+    "./db/testing": "./db/testing.ts",
+    "./identity": "./identity/index.ts",
+    "./email": "./email/index.ts",
+    "./terms": "./terms/index.ts",
+    "./db/schema": "./db/schema.ts"
+  }
+}

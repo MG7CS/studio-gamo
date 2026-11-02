@@ -14,7 +14,7 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createSqliteD1 } from '../../packages/db/testing.ts';
+import { createSqliteD1 } from '../../packages/platform/db/testing.ts';
 import { importCatalog } from '../../packages/domain/src/live/catalog-import.ts';
 import type { SeedCatalogDocument } from '../../packages/domain/src/services/live-external-discovery.ts';
 

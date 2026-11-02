@@ -5,7 +5,7 @@ import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayou
 import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import OrganizationSetupForm from '../../components/organizer/OrganizationSetupForm.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { SetupErrors, SetupStep } from '@gamo/domain';
 import { organizerPage } from '../../lib/organizer-session';
 import { runOrganizationSetup, type SetupValues } from '../../lib/organizer-setup';

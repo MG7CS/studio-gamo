@@ -9,8 +9,8 @@
  *   date, carrying the current capacities. A capacity below what is already taken fails the inventory `CHECK`, which
  *   `applyInventorySync` turns into `PaidError('invalid', { detail: 'capacity_below_sold' })`.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '@gamo/platform/db';
 import { isCents, parseDollarsToCents } from './money.ts';
 import { isCheckFailure } from './orders.ts';
 import { unitPriceAt, type PriceDeadline } from './pricing.ts';

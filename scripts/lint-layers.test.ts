@@ -16,11 +16,12 @@ async function kindsFor(filePath: string, code: string): Promise<string[]> {
 }
 
 test('a foundation package importing platform, domain or an app is reported', async () => {
-  assert.deepEqual(await kindsFor('packages/ui/src/x.ts', "import { a } from '@gamo/auth';\nvoid a;\n"), [
-    'upward',
-  ]);
   assert.deepEqual(
-    await kindsFor('packages/config/x.ts', "import { a } from '@gamo/db/testing';\nvoid a;\n"),
+    await kindsFor('packages/ui/src/x.ts', "import { a } from '@gamo/platform/security';\nvoid a;\n"),
+    ['upward'],
+  );
+  assert.deepEqual(
+    await kindsFor('packages/config/x.ts', "import { a } from '@gamo/platform/db/testing';\nvoid a;\n"),
     ['upward'],
   );
   assert.deepEqual(await kindsFor('packages/ui/src/x.ts', "import { a } from '@gamo/domain';\nvoid a;\n"), [
@@ -41,12 +42,37 @@ test('imports that go down, sideways inside a layer, or stay inside the package 
     await kindsFor('packages/ui/src/x.ts', "import { a } from '@gamo/config';\nvoid a;\n"),
     [],
   );
-  assert.deepEqual(await kindsFor('packages/auth/x.ts', "import { a } from '@gamo/config';\nvoid a;\n"), []);
+  assert.deepEqual(
+    await kindsFor('packages/platform/x.ts', "import { a } from '@gamo/config';\nvoid a;\n"),
+    [],
+  );
   assert.deepEqual(
     await kindsFor('packages/domain/src/x.ts', "import { a } from '@gamo/db';\nvoid a;\n"),
     [],
   );
   assert.deepEqual(await kindsFor('apps/live/src/x.ts', "import { a } from '@gamo/domain';\nvoid a;\n"), []);
+});
+
+test('a platform folder may import only the sibling folders the map allows', async () => {
+  assert.deepEqual(
+    await kindsFor('packages/platform/db/x.ts', "import { a } from '../security/crypto.ts';\nvoid a;\n"),
+    ['platform-folder'],
+  );
+  assert.deepEqual(
+    await kindsFor('packages/platform/security/x.ts', "import { a } from '@gamo/platform/email';\nvoid a;\n"),
+    ['platform-folder'],
+  );
+  assert.deepEqual(
+    await kindsFor('packages/platform/email/x.ts', "import { a } from '../security/crypto.ts';\nvoid a;\n"),
+    [],
+  );
+  assert.deepEqual(
+    await kindsFor('packages/platform/terms/x.ts', "import { a } from '@gamo/core';\nvoid a;\n"),
+    [],
+  );
+  assert.deepEqual(await kindsFor('packages/core/src/x.ts', "import { a } from '@gamo/config';\nvoid a;\n"), [
+    'standalone',
+  ]);
 });
 
 test('an app importing another app is reported, its own package name is not', async () => {
@@ -71,13 +97,13 @@ test('toFinding ignores messages that are not layer rules', () => {
 
 test('the report lists findings by kind and unmapped packages', () => {
   const report = renderReport(
-    [{ kind: 'upward', file: 'packages/ui/src/x.ts', line: 3, imported: '@gamo/auth', detail: 'why' }],
+    [{ kind: 'upward', file: 'packages/ui/src/x.ts', line: 3, imported: '@gamo/db', detail: 'why' }],
     ['newpkg'],
     120,
   );
   assert.match(report, /Files checked: 120/);
   assert.match(report, /\| `upward` \| .* \| 1 \|/);
-  assert.match(report, /`packages\/ui\/src\/x\.ts:3` imports `@gamo\/auth`: why/);
+  assert.match(report, /`packages\/ui\/src\/x\.ts:3` imports `@gamo\/db`: why/);
   assert.match(report, /`packages\/newpkg`/);
 });
 

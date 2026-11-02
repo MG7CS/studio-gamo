@@ -11,7 +11,7 @@ import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import Stat from '@studio-gamo/ui/components/ui/Stat.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { getOrganizerEvent, listEventRegistrations } from '@gamo/domain';
 import { organizerPage } from '../../../../lib/organizer-session';
 import { whenLabel } from '../../../../lib/organizer-format';

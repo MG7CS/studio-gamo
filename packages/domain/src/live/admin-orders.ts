@@ -1,7 +1,7 @@
 /**
  * Orders across every organization, for the admin's Payments tab (docs/LIVE_SCREENS.md C6). Read-only.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { OrderStatus } from './paid-types.ts';
 
 export interface AdminOrderFilter {

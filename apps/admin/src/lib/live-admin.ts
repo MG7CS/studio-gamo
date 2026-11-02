@@ -5,7 +5,7 @@
  * redirect carrying only a fixed outcome word, never text from the request. Emails go to the organization's owners
  * through `sendLiveEmail`; an email that cannot be sent never undoes a saved step (the page says so).
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { GamoEnv } from '@gamo/config/env';
 import {
   eventPlace,
@@ -35,7 +35,6 @@ import {
   type LiveEmail,
   type LivePendingEvent,
   type PaidEventReviewDetails,
-  type SqlDatabase,
   eventVisibilityEmail,
   organizationOwnerEmails,
   runLiveCleanup,
@@ -49,7 +48,8 @@ import {
   setReviewEveryEvent,
   type EventDecision,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import { type SqlDatabase } from '@gamo/platform/db';
+import { asSqlDatabase } from '@gamo/platform/db';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { meetingErrorField, readMeetingForm, type MeetingField } from './meeting-form';
 

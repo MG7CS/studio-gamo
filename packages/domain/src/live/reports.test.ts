@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { ledgerForRefund } from './ledger.ts';
 import { PAID_ENV, PAID_NOW, paidTestDatabase, seedPaidEvent } from './paid-testing.ts';
 import { createModeARouting } from './payments/mode-a.ts';

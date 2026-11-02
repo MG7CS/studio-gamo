@@ -12,9 +12,7 @@
 import {
   EmailUnavailableError,
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
-  TERMS_REGISTRY,
   availabilityFor,
   codeUnlocks,
   findUsableCode,
@@ -49,9 +47,11 @@ import {
   type PaymentRouting,
   type PolicySnapshot,
   type Quote,
-  type SqlDatabase,
   type TicketType,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
+import { type SqlDatabase } from '@gamo/platform/db';
 import type { LiveContext } from './registration';
 
 export type Tone = 'info' | 'success' | 'warning' | 'danger';

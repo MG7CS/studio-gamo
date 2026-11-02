@@ -11,8 +11,8 @@
  *   ledger's `payout` row is written only after Stripe accepted the transfer. A definite refusal marks the payout
  *   failed; a network error leaves it approved so the same request can be sent again safely.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '@gamo/platform/db';
 import { ledgerForPayout } from './ledger.ts';
 import { CURRENCY, PAID_ID_PREFIX, PaidError, type PaidEnv, type PayoutStatus } from './paid-types.ts';
 import { paymentDecisionStatement } from './payment-settings.ts';

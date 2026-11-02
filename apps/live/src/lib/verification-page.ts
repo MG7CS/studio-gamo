@@ -10,8 +10,8 @@ import {
   sendLiveEmail,
   type OrganizationVerificationView,
   type PaidEnv,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 
 export type { OrganizationVerificationView };
 

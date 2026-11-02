@@ -267,12 +267,15 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
+      '@gamo/core':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/core
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -298,15 +301,18 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
+      '@gamo/core':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/core
       '@gamo/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -332,18 +338,18 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
+      '@gamo/core':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/core
       '@gamo/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
-      '@studio-gamo/integrations':
+      '@gamo/platform':
         specifier: workspace:*
-        version: link:../../packages/integrations
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -369,12 +375,12 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
-        specifier: workspace:*
-        version: link:../../packages/auth
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -400,15 +406,18 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
+      '@gamo/core':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/core
       '@gamo/db':
         specifier: workspace:*
         version: link:../../packages/db
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -434,12 +443,15 @@ importers:
       '@astrojs/cloudflare':
         specifier: ^14.3.4
         version: 14.3.4(@types/node@26.6.5)(astro@7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(wrangler@4.149.0(@types/node@26.6.5))(yaml@2.9.1)
-      '@gamo/auth':
+      '@gamo/core':
         specifier: workspace:*
-        version: link:../../packages/auth
+        version: link:../../packages/core
       '@gamo/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -460,16 +472,15 @@ importers:
         specifier: workspace:*
         version: link:../../packages/config
 
-  packages/auth:
-    dependencies:
-      '@gamo/config':
-        specifier: workspace:*
-        version: link:../config
-
   packages/config: {}
+
+  packages/core: {}
 
   packages/db:
     dependencies:
+      '@gamo/core':
+        specifier: workspace:*
+        version: link:../core
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4
@@ -480,18 +491,18 @@ importers:
 
   packages/domain:
     dependencies:
-      '@gamo/auth':
-        specifier: workspace:*
-        version: link:../auth
       '@gamo/config':
         specifier: workspace:*
         version: link:../config
+      '@gamo/core':
+        specifier: workspace:*
+        version: link:../core
       '@gamo/db':
         specifier: workspace:*
         version: link:../db
-      '@studio-gamo/integrations':
+      '@gamo/platform':
         specifier: workspace:*
-        version: link:../integrations
+        version: link:../platform
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4
@@ -505,7 +516,20 @@ importers:
         specifier: ^3.24.2
         version: 3.25.76
 
-  packages/integrations: {}
+  packages/platform:
+    dependencies:
+      '@gamo/config':
+        specifier: workspace:*
+        version: link:../config
+      '@gamo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@gamo/db':
+        specifier: workspace:*
+        version: link:../db
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4
 
   packages/ui:
     dependencies:

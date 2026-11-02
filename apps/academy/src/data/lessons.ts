@@ -1,4 +1,4 @@
-import { formatUsd } from '@studio-gamo/ui/lib/format';
+import { formatUsd } from '@gamo/core';
 /**
  * SAMPLE lesson listings for the design phase. Tuition amounts are proposals only
  * and stored as integer minor units (cents). No booking or payment exists yet.

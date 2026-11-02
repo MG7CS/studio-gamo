@@ -8,8 +8,8 @@ import {
   parseDoorFilter,
   type DoorTicketFilter,
   type DoorTotalKey,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import type { DoorAccess } from './door-access';
 import { METHOD_LABEL } from './door-sell';
 import { whenLabel } from './organizer-format';

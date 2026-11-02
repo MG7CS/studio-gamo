@@ -4,7 +4,7 @@
  * `stripe_account_id`; the current platform default or organization override is never read for an existing order,
  * so a later change of mode cannot send a refund to the wrong account.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { FundsFlow, PaidEnv } from './paid-types.ts';
 import { stripeGatewayFor } from './payments/index.ts';
 import { createModeARouting } from './payments/mode-a.ts';

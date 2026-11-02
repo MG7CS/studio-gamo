@@ -14,10 +14,14 @@
       "project": ["src/**/*.{astro,ts}"]
     },
     "packages/db": {
-      "entry": ["index.ts", "testing.ts", "drizzle.config.ts"],
+      "entry": ["index.ts", "drizzle.config.ts"],
       "project": ["*.ts"]
     },
     "packages/*": {
+      "project": ["**/*.ts"]
+    },
+    "packages/platform": {
+      "entry": ["*/index.ts", "db/testing.ts", "security/app-locals.d.ts"],
       "project": ["**/*.ts"]
     }
   }

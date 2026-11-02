@@ -17,7 +17,7 @@
  *
  * An event about an order Gamo does not know yet (a refund or dispute before its payment) answers `retry`.
  */
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { handleDisputeClosed, handleDisputeOpenedOrUpdated } from './disputes.ts';
 import { sendLiveEmail, type LiveEmail } from './mail.ts';
 import { orderReceipt } from './order-links.ts';
@@ -51,7 +51,7 @@ import {
   settleRefundedAmountStatement,
   stripeRefundStatements,
 } from './refunds.ts';
-import { newPrefixedId } from '../security/ids.ts';
+import { newPrefixedId } from '@gamo/core';
 import { loadPaidOrder, loadPaidOrderByPayment, orderTokenFor, type PaidOrder } from './tickets.ts';
 
 /** What the handlers depend on (swapped in tests). */

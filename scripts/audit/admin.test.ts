@@ -7,8 +7,8 @@ import assert from 'node:assert/strict';
 import { createPublicKey, createSign, generateKeyPairSync } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/db/testing.ts';
-import { createSqliteD1 } from '../../packages/db/testing.ts';
+import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/platform/db/testing.ts';
+import { createSqliteD1 } from '../../packages/platform/db/testing.ts';
 import { checkGate, isLocalRuntime } from '../../apps/admin/src/lib/gate.ts';
 import { SECTIONS, sectionBadge, sectionOf, tabCount } from '../../apps/admin/src/lib/nav.ts';
 import { loadInbox, tallyCounts, waitingTotal } from '../../apps/admin/src/lib/inbox.ts';
@@ -37,7 +37,7 @@ import {
   registrySummary,
   summarizeLegal,
 } from '../../apps/admin/src/lib/legal-data.ts';
-import { TERMS_DOCUMENTS, recordTermsAcceptance } from '../../packages/domain/src/terms/index.ts';
+import { TERMS_DOCUMENTS, recordTermsAcceptance } from '../../packages/platform/terms/index.ts';
 import { formatWhen, timeAgo } from '../../apps/admin/src/lib/format.ts';
 
 const APP = 'apps/admin/src';

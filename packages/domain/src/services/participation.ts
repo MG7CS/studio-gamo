@@ -1,5 +1,5 @@
 import { and, desc, eq, ne } from 'drizzle-orm';
-import { participationInquiries, type GamoDatabase } from '@gamo/db';
+import { participationInquiries, type GamoDatabase } from '@gamo/platform/db';
 import { z } from 'zod';
 
 export const participationInputSchema = z

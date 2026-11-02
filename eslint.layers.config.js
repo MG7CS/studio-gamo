@@ -3,7 +3,14 @@
 // is unaffected while the layers are report-only.
 import tseslint from 'typescript-eslint';
 import astro from 'eslint-plugin-astro';
-import { APPS, PACKAGES, patternsForApp, patternsForPackage } from './scripts/layers/layer-map.mjs';
+import {
+  APPS,
+  PACKAGES,
+  PLATFORM_FOLDERS,
+  patternsForApp,
+  patternsForPackage,
+  patternsForPlatformFolder,
+} from './scripts/layers/layer-map.mjs';
 
 export default tseslint.config(
   { ignores: ['**/node_modules/**', '**/dist/**', '**/.astro/**', '**/.wrangler/**'] },
@@ -13,6 +20,15 @@ export default tseslint.config(
   ...Object.keys(PACKAGES).map((folder) => ({
     files: [`packages/${folder}/**/*.{ts,astro}`],
     rules: { 'no-restricted-imports': ['warn', { patterns: patternsForPackage(folder) }] },
+  })),
+  ...Object.keys(PLATFORM_FOLDERS).map((folder) => ({
+    files: [`packages/platform/${folder}/**/*.ts`],
+    rules: {
+      'no-restricted-imports': [
+        'warn',
+        { patterns: [...patternsForPackage('platform'), ...patternsForPlatformFolder(folder)] },
+      ],
+    },
   })),
   ...Object.keys(APPS).map((folder) => ({
     files: [`apps/${folder}/**/*.{ts,astro}`],

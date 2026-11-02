@@ -13,8 +13,8 @@ import {
   inferExternalProviderName,
   type SeedCatalogDocument,
 } from '../services/live-external-discovery.ts';
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 
 export interface CatalogImportOptions {
   /** Epoch seconds used for timestamps. */

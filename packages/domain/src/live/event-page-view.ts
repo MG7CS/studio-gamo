@@ -8,7 +8,7 @@ import {
   eventCalendarData,
   readCalendarState,
   type CalendarModel,
-} from '../calendar.ts';
+} from '@gamo/core';
 import type { OrganizerEventDetail } from './events.ts';
 
 const EDITABLE = ['draft', 'pending_review', 'changes_requested', 'rejected', 'published'];

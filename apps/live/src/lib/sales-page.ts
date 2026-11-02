@@ -5,7 +5,6 @@
  */
 import {
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
   paymentsRuntime,
   reconcileEvent,
@@ -14,8 +13,9 @@ import {
   type PaidEnv,
   type ReconciliationLine,
   type SalesSummary,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { METHOD_LABELS } from './orders-page';
 
 export interface SalesLine {

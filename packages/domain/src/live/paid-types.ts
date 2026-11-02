@@ -5,7 +5,7 @@
  *
  * Money is integer cents with its currency (`usd` only for now). Times are UTC epoch seconds.
  */
-import type { SqlDatabase, SqlStatementSpec } from '../security/sql-database.ts';
+import type { SqlDatabase, SqlStatementSpec } from '@gamo/platform/db';
 
 // ── Enumerations (match the migrations) ────────────────────────────────────────────────────────────────────────
 

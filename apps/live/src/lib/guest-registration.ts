@@ -6,8 +6,6 @@
 import {
   EmailUnavailableError,
   RegistrationError,
-  SecretNotConfiguredError,
-  TERMS_REGISTRY,
   buildEventIcs,
   canceledEmail,
   cancelRegistration,
@@ -38,6 +36,8 @@ import {
   type RegistrationView,
   type TicketView,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
 import { emailRegistrationLinkAgain } from './organizer-events';
 import { dateOptions, registrationMessage, whenWhere, type LiveContext } from './registration';
 

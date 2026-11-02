@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { PublicApp } from '../../packages/auth/page-access.ts';
+import type { PublicApp } from '../../packages/config/apps.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 
 const APPS: PublicApp[] = ['web', 'worship', 'academy', 'live', 'production'];

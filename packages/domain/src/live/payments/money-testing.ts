@@ -3,7 +3,7 @@
  * straight to the database with its ledger rows, as `markOrderPaid` would leave it, and a stand-in delivery wired to
  * the real webhook receiver.
  */
-import { runBatch, type SqlDatabase } from '../../security/sql-database.ts';
+import { runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { ledgerForPaidOrder } from '../ledger.ts';
 import { PAID_ENV } from '../paid-testing.ts';
 import type { FeePayer, FundsFlow, OrderChannel, PaymentMethod, StripeEventHandlers } from '../paid-types.ts';

@@ -270,3 +270,11 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Old (DESIGN.md "Bright Cinematic Editorial"):** sculptural masks and organic curves on photos (arch, leaf, pebble, one oversized corner).
 - **New:** every photo sits in a plain rounded rectangle with one radius (28 px; 20 px for small thumbnails). The `mask-arch`, `mask-arch-sm`, `mask-leaf`, `mask-leaf-alt` and `mask-pebble` utilities were removed from `packages/ui/src/styles/tokens.css`.
 - **Reason:** the owner found the shapes meaningless; they cropped faces and instruments. The chosen reference (uapply.africa) uses plain rounded photos.
+
+## 2026-11-01 — Platform layers, phases 2 and 3 (WO2 to WO4)
+- **`@gamo/core` imports nothing from the repo**, enforced by a `standalone` rule in the layer map. The enum-versus-migration test could not follow the enums there, so it lives beside the migrations as `packages/db/enums.test.ts`.
+- **`platform/security` may import `platform/db` for the helpers, not the type only** (the brief said type only): `rate-limit.ts` already used `changesOf`, and an ESLint pattern cannot tell a type import from a value import.
+- **The platform schema declares no foreign keys to legacy tables.** The three columns that point at `users`, `organizations` and `customer_profiles` are plain columns until those tables move in phase 5; the migration SQL enforces the keys, as it always did. Reason: `platform/db/schema.ts` must not import the legacy schema, or the two files import each other.
+- **Clerk is generic in `platform/identity`**, keyed by a product suffix (`clerkConfig(env, 'LIVE')`); each product keeps a thin wrapper. Live's organizer rows and sessions stay in `domain/live` until phase 5.
+- **`@gamo/auth` and `@studio-gamo/integrations` are deleted** (their contents live in `platform/security`, `platform/email` and `@gamo/config`).
+- **`services/notifications.ts` deleted** (unused, old notification tables).

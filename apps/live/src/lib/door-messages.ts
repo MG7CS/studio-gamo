@@ -3,7 +3,8 @@
  * to one plain sentence, and the one-time messages shown after a POST → redirect. Flash cookies carry only a key from
  * `DOOR_FLASH`, so nothing a request sends can become page text.
  */
-import { PaidError, SecretNotConfiguredError } from '@gamo/domain';
+import { PaidError } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 
 /** Messages for `code.detail` keys (most specific) and `code` keys. */
 const ERRORS: Record<string, string> = {

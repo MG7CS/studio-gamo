@@ -40,3 +40,6 @@ export const LOCAL_INSPECTOR_PORTS = {
 
 /** Dev servers bind IPv4 loopback so the http://127.0.0.1:432x cross-app URLs resolve. */
 export const LOCAL_HOST = '127.0.0.1';
+
+/** The five public apps (everything but the admin). */
+export type PublicApp = Exclude<AppName, 'admin'>;

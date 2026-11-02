@@ -2,7 +2,7 @@
  * What counts as "waiting for staff" in each review queue. The queue pages, the status filters and the
  * sidebar counts all read these, so a badge always matches the list it links to.
  */
-import type { ProviderRole, ProviderStatus } from '@gamo/domain/types';
+import type { ProviderRole, ProviderStatus } from '@gamo/core';
 
 export const CHURCH_ROLES: readonly ProviderRole[] = ['church'];
 export const PROVIDER_REVIEW_ROLES: readonly ProviderRole[] = [

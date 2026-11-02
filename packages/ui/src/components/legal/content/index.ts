@@ -1,6 +1,6 @@
 /**
  * All draft legal documents, keyed by terms slug (see `types.ts` for the hashing rule). The slugs mirror
- * `TERMS_SLUGS` in `@gamo/domain/types`; `scripts/audit/legal-drafts.test.ts` checks they agree.
+ * `TERMS_SLUGS` in `@gamo/core`; `scripts/audit/legal-drafts.test.ts` checks they agree.
  */
 import type { LegalDocumentContent } from './types.ts';
 import { siteTerms } from './site-terms.ts';

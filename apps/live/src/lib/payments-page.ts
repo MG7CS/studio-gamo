@@ -5,7 +5,6 @@
  */
 import {
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
   listPayouts,
   organizationPaymentsStatus,
@@ -19,9 +18,10 @@ import {
   type PaymentsStatus,
   type PaymentsUnavailableReason,
   type PayoutRow,
-  type SqlDatabase,
   type Statement,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { type SqlDatabase } from '@gamo/platform/db';
 
 export const PAYMENTS_PATH = '/organizer/organization/payments';
 

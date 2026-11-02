@@ -16,14 +16,8 @@
  * Every step returns the owners' emails and the email to send each of them (`verification-mail.ts`); the caller
  * sends them. Payment, sponsorship or partnership never changes verification.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import {
-  allRows,
-  runBatch,
-  type SqlDatabase,
-  type SqlParam,
-  type SqlStatementSpec,
-} from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlParam, type SqlStatementSpec } from '@gamo/platform/db';
 import { isTimeZone, zonedLocalToEpochSeconds } from '../services/meeting-time.ts';
 import type { LiveEmail } from './mail.ts';
 import {

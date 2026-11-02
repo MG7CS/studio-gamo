@@ -6,8 +6,8 @@
  * counted amounts (the difference is shown); a closed session never changes. A movement written into a session that is
  * not open makes its whole batch fail (a CHECK on the amount), so a sale can never land in a closed drawer.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '@gamo/platform/db';
 import {
   CURRENCY,
   PAID_ID_PREFIX,

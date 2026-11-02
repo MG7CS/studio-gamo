@@ -7,10 +7,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { TERMS_SLUGS } from '../../packages/domain/src/types/enums.ts';
-import { TERMS_DOCUMENTS, TERMS_REGISTRY } from '../../packages/domain/src/terms/registry.ts';
-import { syncTermsDocuments } from '../../packages/domain/src/terms/sync.ts';
-import { createMigratedD1 } from '../../packages/db/testing.ts';
+import { TERMS_SLUGS } from '../../packages/core/src/enums.ts';
+import { TERMS_DOCUMENTS, TERMS_REGISTRY } from '../../packages/platform/terms/registry.ts';
+import { syncTermsDocuments } from '../../packages/platform/terms/sync.ts';
+import { createMigratedD1 } from '../../packages/platform/db/testing.ts';
 import {
   LEGAL_DOCUMENT_CONTENT,
   getLegalDocumentContent,

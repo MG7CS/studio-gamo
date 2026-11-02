@@ -4,7 +4,7 @@
  * fails its result is not shown (the page says so) instead of showing zeros.
  */
 import { liveOldestWaiting, liveQueueCounts, type LiveQueueCounts } from '@gamo/domain';
-import { allRows, asSqlDatabase } from '@gamo/domain/security';
+import { allRows, asSqlDatabase } from '@gamo/platform/db';
 import { CHURCH_ROLES, OPEN_PROFILE_STATUSES, PROVIDER_REVIEW_ROLES } from './review-scope';
 
 export interface QueueCounts {

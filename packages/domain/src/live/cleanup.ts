@@ -2,8 +2,8 @@
  * The admin-run cleanup (docs/LIVE_DATA_MODEL.md, retention): removes what Gamo Live no longer needs and reports how
  * many rows went. There is no silent background job; the admin presses "Run cleanup".
  */
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
-import { purgeRateLimitCounters } from '../security/rate-limit.ts';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
+import { purgeRateLimitCounters } from '@gamo/platform/security';
 import { releaseExpiredOrders } from './orders.ts';
 import { releaseExpiredHolds } from './registration.ts';
 

@@ -6,7 +6,7 @@
  * and removes it from the list here.
  */
 import type { InferSelectModel } from 'drizzle-orm';
-import type { events, ticketTiers, users } from './schema.ts';
+import type { events, ticketTiers, users } from './legacy-schema.ts';
 
 type UserRow = InferSelectModel<typeof users>;
 type EventRow = InferSelectModel<typeof events>;

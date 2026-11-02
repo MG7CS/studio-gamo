@@ -3,7 +3,8 @@
 import Layout from '../../layouts/Layout.astro';
 import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayout.astro';
 import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
-import { liveClerkConfig, requestSecurityHeaders } from '@gamo/domain';
+import { liveClerkConfig } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { openLive } from '../../lib/registration';
 
 export const prerender = false;

@@ -8,7 +8,7 @@ import SettingsOrganizationsCard from '../../../components/organizer/SettingsOrg
 import SettingsDataCard from '../../../components/organizer/SettingsDataCard.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { listOrganizerSessions, type SettingsErrors, type SettingsInput } from '@gamo/domain';
 import { organizerPage, readCookie, SESSION_COOKIE } from '../../../lib/organizer-session';
 import { SETTINGS_FLASH, runSettingsAction } from '../../../lib/settings-page';

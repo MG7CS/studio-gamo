@@ -1,4 +1,4 @@
-import { formatUsd } from '@studio-gamo/ui/lib/format';
+import { formatUsd } from '@gamo/core';
 /**
  * Gamo Live showcase data & database mapper for the Gamo Studios main website (`apps/web/src/pages/live.astro`).
  *
@@ -11,13 +11,7 @@ import { formatUsd } from '@studio-gamo/ui/lib/format';
  *    with registration/ticket actions disabled.
  */
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
-import {
-  formatLocalEventSchedule,
-  getEventLifecycleStatus,
-  inferExternalProviderName,
-  isEventPast,
-  type LiveEventWithDetails,
-} from '@gamo/domain';
+import { formatLocalEventSchedule, getEventLifecycleStatus, inferExternalProviderName, isEventPast, type LiveEventWithDetails } from '@gamo/domain';
 
 export type EventCategory = 'concert' | 'worship' | 'bible' | 'conference' | 'youth';
 export type Ticketing = 'free' | 'preview' | 'external';

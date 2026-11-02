@@ -16,8 +16,8 @@
  * `verified`, so a bug here cannot publish an unreviewed church. Staff decisions live in
  * `services/provider-review.ts`. All times are epoch seconds.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import {
   PROVIDER_ROLES,
   STAFF_REVIEW_REQUIRED_ROLES,
@@ -25,9 +25,9 @@ import {
   type ProviderRole,
   type ProviderStatus,
   type TermsSlug,
-} from '../types/enums.ts';
-import { missingTermsAcceptances } from '../terms/acceptance.ts';
-import { getTermsDocument } from '../terms/registry.ts';
+} from '@gamo/core';
+import { missingTermsAcceptances } from '@gamo/platform/terms';
+import { getTermsDocument } from '@gamo/platform/terms';
 
 // --- Roles per product ----------------------------------------------------------------------
 

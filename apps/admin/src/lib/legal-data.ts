@@ -3,8 +3,8 @@
  * counts are a `COUNT(*)` over `terms_acceptances`. When the count query fails every count is reported as
  * unavailable rather than zero.
  */
-import { TERMS_DOCUMENTS, type TermsDocumentEntry } from '@gamo/domain/terms';
-import { allRows, asSqlDatabase } from '@gamo/domain/security';
+import { TERMS_DOCUMENTS, type TermsDocumentEntry } from '@gamo/platform/terms';
+import { allRows, asSqlDatabase } from '@gamo/platform/db';
 
 export type AcceptanceCounts = ReadonlyMap<string, number>;
 

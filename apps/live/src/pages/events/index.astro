@@ -10,13 +10,13 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import {
   LiveCatalog,
-  asSqlDatabase,
   getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
   resolveNearestMetroByCoordinates,
   type LiveEventWithDetails,
 } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/platform/db';
 
 export const prerender = false;
 

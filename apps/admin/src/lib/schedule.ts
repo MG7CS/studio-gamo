@@ -8,7 +8,7 @@ import {
   type AdminScheduleScope,
   type AdminScheduleView,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import { asSqlDatabase } from '@gamo/platform/db';
 import type { AdminBindings } from './inbox';
 
 export async function loadAdminSchedule(

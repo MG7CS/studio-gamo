@@ -13,8 +13,8 @@
  * (Gamo chased them); now an organization asks, so it is "organizations whose verification needs an admin action":
  * requested (to schedule) or meeting held (to decide). It equals `verifications + meetingsToDecide`.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import {
   assertMaySellTickets,
   expandOccurrences,

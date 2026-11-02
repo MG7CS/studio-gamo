@@ -11,8 +11,8 @@ import {
   eventCalendarData,
   readCalendarState,
   type CalendarModel,
-} from '../calendar.ts';
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+} from '@gamo/core';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 
 export type AdminScheduleScope = 'all' | 'catalog';
 export type AdminScheduleSource = 'organizer' | 'catalog' | 'meeting';

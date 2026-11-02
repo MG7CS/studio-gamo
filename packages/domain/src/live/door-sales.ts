@@ -15,7 +15,7 @@
  * Also: staff links for an event (expiry from the event's last date), door refunds, and door-day totals whose every
  * number is the length of a list with the same filter. Pages call one function here and render the result.
  */
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import {
   cashMovementStatement,
   findOpenCashSession,
@@ -39,7 +39,7 @@ import {
 } from './paid-types.ts';
 import { StripeApiError, type CheckoutLineItem, type PaymentRouting } from './payments/types.ts';
 import { getReader, readerStripeError } from './readers.ts';
-import { newPrefixedId } from '../security/ids.ts';
+import { newPrefixedId } from '@gamo/core';
 import {
   actorRef,
   createStaffLink,

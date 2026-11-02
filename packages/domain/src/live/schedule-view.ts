@@ -9,7 +9,7 @@ import {
   eventCalendarData,
   readCalendarState,
   type CalendarModel,
-} from '../calendar.ts';
+} from '@gamo/core';
 import { checkInWindow, type ScheduledDate } from './events.ts';
 
 export interface ScheduleDayItem {

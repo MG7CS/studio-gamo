@@ -12,7 +12,7 @@
  * - `owedToOrganization` / `modeBBalances`: what Gamo holds for organizations (`OWED_TO_ORGANIZATION_SQL`).
  * - `organizationStatement`: the ledger lines of a period with opening and closing balances.
  */
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { ledgerForProcessingCost, OWED_TO_ORGANIZATION_SQL } from './ledger.ts';
 import {
   PaidError,

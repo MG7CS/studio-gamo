@@ -3,7 +3,8 @@
  * 7): the current version, whether this person and any owner accepted it, and recording the acceptance in the
  * existing `terms_acceptances` table (one row per person, document and version; accepting twice changes nothing).
  */
-import { TERMS_REGISTRY, type SqlDatabase } from '@gamo/domain';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
+import { type SqlDatabase } from '@gamo/platform/db';
 
 export const ORGANIZER_TERMS = 'organizer-terms';
 

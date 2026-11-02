@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { runBatch } from '../security/sql-database.ts';
+import { runBatch } from '@gamo/platform/db';
 import {
   cashMovementStatement,
   cashSessionSummary,

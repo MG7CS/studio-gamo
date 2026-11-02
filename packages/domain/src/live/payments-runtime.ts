@@ -4,7 +4,7 @@
  * local development with the Stripe stand-in, delivering the stand-in's signed events to the same receiver before the
  * response is sent (a Worker may not run timers after it answers).
  */
-import type { SqlDatabase } from '../security/sql-database.ts';
+import type { SqlDatabase } from '@gamo/platform/db';
 import { readerWebhookHandlers } from './readers.ts';
 import { orderEventHandlers } from './order-events.ts';
 import { resolvePaymentRoutingForOrder } from './order-routing.ts';

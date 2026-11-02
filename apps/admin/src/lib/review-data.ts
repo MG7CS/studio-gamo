@@ -12,8 +12,8 @@ import {
   roleLabel,
   type ProviderProfile,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
-import type { ProviderRole } from '@gamo/domain/types';
+import { asSqlDatabase } from '@gamo/platform/db';
+import type { ProviderRole } from '@gamo/core';
 import { OPEN_PROFILE_STATUSES, STATUS_FILTERS } from './review-scope';
 
 export const QUEUE_LIMIT = 100;

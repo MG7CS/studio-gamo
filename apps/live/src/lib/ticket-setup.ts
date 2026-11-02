@@ -21,10 +21,10 @@ import {
   zonedLocalToEpochSeconds,
   type EventCode,
   type PaidEnv,
-  type SqlDatabase,
   type TicketType,
   type TicketTypeStatus,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { sendOrderConfirmation } from './orders-page';
 
 // ── Every error at once ──────────────────────────────────────────────────────────────────────────────────────────

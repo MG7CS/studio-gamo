@@ -3,8 +3,8 @@
  * personal data Gamo Live holds about them. Organization details live in `organizers.ts`; this file never touches
  * an organization.
  */
-import { sha256Hex } from '../security/crypto.ts';
-import { allRows, changesOf, type SqlDatabase } from '../security/sql-database.ts';
+import { sha256Hex } from '@gamo/platform/security';
+import { allRows, changesOf, type SqlDatabase } from '@gamo/platform/db';
 import { EVENT_TIME_ZONES } from './events.ts';
 
 export interface SettingsInput {

@@ -626,10 +626,13 @@ test('Gamo Live: changes requested, the review loop, direct publishing afterward
     await calendar.getByRole('link', { name: 'Month', exact: true }).click();
     await expect(calendar.getByRole('table')).toBeVisible();
 
-    // Choosing another day with a date changes the details beside the calendar.
-    const days = calendar.getByRole('link', { name: /, upcoming/ });
+    // Choosing another day with a date changes the details beside the calendar. The chosen day's name says
+    // ", selected"; the series may cross a month boundary, so when the month shows no other date, go to the next month.
+    const otherDays = calendar.getByRole('link', { name: /, upcoming(?!, selected)/ });
+    if ((await otherDays.count()) === 0)
+      await calendar.getByRole('link', { name: 'Next month', exact: true }).click();
     const before = await page.locator('#day h2').innerText();
-    await days.nth((await days.count()) - 1).click();
+    await otherDays.first().click();
     expect(await page.locator('#day h2').innerText()).not.toBe(before);
 
     // Canceling one date leaves the series; that day turns to "canceled".

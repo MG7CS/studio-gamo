@@ -16,7 +16,7 @@ import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { formatCents } from '@gamo/domain';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';

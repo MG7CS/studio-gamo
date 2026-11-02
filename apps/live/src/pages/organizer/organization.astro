@@ -12,7 +12,7 @@ import MembersPanel from '../../components/organizer/MembersPanel.astro';
 import OrganizationTabs from '../../components/organizer/OrganizationTabs.astro';
 import VerificationCard from '../../components/organizer/paid/VerificationCard.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { getOrganization, listInvitations, listMembers, type SetupErrors } from '@gamo/domain';
 import { organizerPage } from '../../lib/organizer-session';
 import { runOrganizationAction } from '../../lib/organization-page';

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { createSqliteD1 } from '@gamo/db/testing';
+import { createSqliteD1 } from '@gamo/platform/db/testing';
 import {
   adminEventHref,
   adminScheduleView,

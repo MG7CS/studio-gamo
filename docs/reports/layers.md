@@ -6,8 +6,8 @@ Written by `pnpm lint:layers` (`scripts/lint-layers.ts`, rules in `scripts/layer
 
 | Layer | Packages |
 | --- | --- |
-| foundation | `@gamo/config` (packages/config), `@studio-gamo/ui` (packages/ui) |
-| platform | `@gamo/auth` (packages/auth), `@gamo/db` (packages/db), `@studio-gamo/integrations` (packages/integrations) |
+| foundation | `@gamo/core` (packages/core), `@gamo/config` (packages/config), `@studio-gamo/ui` (packages/ui) |
+| platform | `@gamo/db` (packages/db), `@gamo/platform` (packages/platform) |
 | transitional (reported, not enforced) | `@gamo/domain` (packages/domain) |
 | apps | `apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin` |
 
@@ -15,7 +15,7 @@ Rules: no upward import, no app importing another app, no package importing an a
 
 ## Result
 
-Files checked: 693 (every .ts and .astro file under apps/ and packages/).
+Files checked: 722 (every .ts and .astro file under apps/ and packages/).
 
 | Kind | What | Count |
 | --- | --- | --- |
@@ -23,6 +23,8 @@ Files checked: 693 (every .ts and .astro file under apps/ and packages/).
 | `package-to-app` | a package imports an app | 0 |
 | `app-to-app` | an app imports another app | 0 |
 | `transitional` | a foundation or platform package imports @gamo/domain (reported, not enforced) | 0 |
+| `standalone` | a package that imports nothing from the repo (@gamo/core) imports another package | 0 |
+| `platform-folder` | a folder of packages/platform imports a sibling folder it may not use | 0 |
 
 No import breaks the layer map.
 
