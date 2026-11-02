@@ -15,6 +15,7 @@ interface Props {
   organizers?: Organizer[];
 }
 const { slides, organizers } = Astro.props;
+const isEmpty = slides.length === 0;
 ---
 
 <section
@@ -41,6 +42,11 @@ const { slides, organizers } = Astro.props;
       />
     </div>
   ))}
+  {isEmpty && (
+    <div class="absolute inset-0 -z-10" aria-hidden="true">
+      <Photo name="worshipLeaderGolden" sizes="100vw" priority class="h-full w-full object-cover" alt="" />
+    </div>
+  )}
   <div
     class="absolute inset-0 -z-10 bg-gradient-to-r from-night via-night/75 to-night/10"
     aria-hidden="true"
@@ -54,6 +60,24 @@ const { slides, organizers } = Astro.props;
     <AudienceSelector current="explore" class="self-start" />
     <h1 class="sr-only">Gamo Live — Christian concerts, worship gatherings and event promotion</h1>
     <div class="mt-6 max-w-3xl" aria-live="polite">
+      {isEmpty && (
+        <div>
+          <p class="eyebrow text-gold">Featured events</p>
+          <h2 class="display-xl spotlight-title mt-3 text-balance">New events are on the way.</h2>
+          <p class="mt-4 max-w-xl text-base md:text-lg text-cream/80">
+            There are no upcoming events listed right now. Check back soon, or submit your Christian event for
+            review.
+          </p>
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <ButtonLink href={siteUrl('live', '/events')} arrow>
+              Browse events
+            </ButtonLink>
+            <ButtonLink href={siteUrl('live', '/organizer')} variant="ghost-dark">
+              Submit an event
+            </ButtonLink>
+          </div>
+        </div>
+      )}
       {slides.map((e, i) => {
         const d = dateParts(e.date);
         const org = getOrganizer(e.organizer, organizers);
@@ -115,7 +139,7 @@ const { slides, organizers } = Astro.props;
       })}
     </div>
 
-    <div class="mt-auto pt-7">
+    <div class="mt-auto pt-7" hidden={isEmpty}>
       <div class="mb-3 flex items-center justify-between gap-4">
         <p class="text-sm font-semibold text-cream/80">Upcoming events</p>
         <div class="flex gap-2">
