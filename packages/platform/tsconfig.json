@@ -1,0 +1,5 @@
+{
+  "extends": "../config/tsconfig.base.json",
+  "include": ["**/*.ts", "../config/import-meta-env.d.ts"],
+  "exclude": ["node_modules"]
+}

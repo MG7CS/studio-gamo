@@ -21,18 +21,18 @@ import {
   hmacSha256Hex,
   randomBytes,
   sha256Hex,
-} from '../security/crypto.ts';
-import { resolveEnvSecret } from '../security/env-secret.ts';
-import { newPrefixedId } from '../security/ids.ts';
+} from '@gamo/platform/security';
+import { resolveEnvSecret } from '@gamo/platform/security';
+import { newPrefixedId } from '@gamo/core';
 import {
   generateScannerPin,
   hashScannerPin,
   PIN_LOCK_SECONDS,
   PIN_MAX_FAILED_ATTEMPTS,
   verifyScannerPin,
-} from '../security/pin.ts';
-import { checkRateLimits, rateLimitBucket } from '../security/rate-limit.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+} from '@gamo/platform/security';
+import { checkRateLimits, rateLimitBucket } from '@gamo/platform/security';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { PAID_ID_PREFIX, PaidError, type PaidEnv, type StaffPermission } from './paid-types.ts';
 
 /** A link stops working this long after its scope's last date (the event's last date ends). */

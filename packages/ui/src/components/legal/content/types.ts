@@ -1,7 +1,7 @@
 /**
  * Structured text of the draft legal documents (design §4.5). Plain data — no markup — so the exact text
  * people are asked to accept can be hashed: `terms_documents.content_hash` and the registry's `contentHash`
- * (`packages/domain/src/terms/registry.ts`) are the SHA-256 hex of `legalDocumentCanonicalText(doc)`.
+ * (`packages/platform/terms/registry.ts`) are the SHA-256 hex of `legalDocumentCanonicalText(doc)`.
  *
  * Changing any string here changes the hash: bump the document's version in the registry and update its
  * `contentHash` (`scripts/audit/legal-drafts.test.ts` fails until both are done).

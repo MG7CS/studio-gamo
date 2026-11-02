@@ -6,7 +6,6 @@
 import {
   EmailUnavailableError,
   OrganizerError,
-  SecretNotConfiguredError,
   createInvitation,
   invitationEmail,
   organizerErrorMessage,
@@ -20,6 +19,7 @@ import {
   type Organizer,
   type SetupErrors,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 import type { LiveContext } from './registration';
 import { fieldErrors, readOrganizationForm } from './organizer-forms';
 import { requestVerificationAction } from './verification-page';

@@ -6,7 +6,7 @@
  * of common mail domains (`gmial.com`, `hotmal.com`), while real look-alike domains (`ymail.com`, `mail.com`,
  * `live.com`, `me.com` …) are left alone.
  */
-import { normalizeEmail } from '../security/pii-hash.ts';
+import { normalizeEmail } from '@gamo/platform/security';
 
 /** Domains people commonly use; a near miss of one of these gets a hint. */
 export const COMMON_EMAIL_DOMAINS: readonly string[] = [

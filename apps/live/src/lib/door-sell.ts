@@ -36,9 +36,9 @@ import {
   type PaymentRouting,
   type PaymentsRuntime,
   type ReserveOrderLine,
-  type SqlDatabase,
 } from '@gamo/domain';
-import { isPlausibleEmail, normalizeEmail } from '@gamo/domain/security';
+import { type SqlDatabase } from '@gamo/platform/db';
+import { isPlausibleEmail, normalizeEmail } from '@gamo/platform/security';
 import type { DoorAccess } from './door-access';
 
 /** What door actions need for one request. Tests pass a fake runtime and email sender. */

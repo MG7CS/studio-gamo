@@ -3,11 +3,11 @@
  * `status = 'pending'` rule the sidebar badge counts; a reply goes through ParticipationService.review, and
  * what is written is visible to the person who sent the inquiry.
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { GamoEnv } from '@gamo/config/env';
-import { getDb } from '@gamo/db';
+import { getDb } from '@gamo/platform/db';
 import { ParticipationService, participationReviewSchema } from '@gamo/domain';
-import { allRows, asSqlDatabase } from '@gamo/domain/security';
+import { allRows, asSqlDatabase } from '@gamo/platform/db';
 
 export const INQUIRY_LIMIT = 100;
 

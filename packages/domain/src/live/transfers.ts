@@ -8,12 +8,12 @@
  * Who may transfer: the buyer from the order page (tickets never transferred yet), or the current holder from their
  * ticket link (which names the current version). Rate limits: 10 per hour per link, 3 per day per recipient.
  */
-import { randomBase32 } from '../security/base32.ts';
-import { resolveEnvSecret } from '../security/env-secret.ts';
-import { newPrefixedId } from '../security/ids.ts';
-import { hashEmail, hashPii, isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
-import { checkRateLimits, rateLimitBucket } from '../security/rate-limit.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { randomBase32 } from '@gamo/core';
+import { resolveEnvSecret } from '@gamo/platform/security';
+import { newPrefixedId } from '@gamo/core';
+import { hashEmail, hashPii, isPlausibleEmail, normalizeEmail } from '@gamo/platform/security';
+import { checkRateLimits, rateLimitBucket } from '@gamo/platform/security';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import type { LiveEmail } from './mail.ts';
 import { PaidError, type PaidEnv, type PolicySnapshot } from './paid-types.ts';
 import { ticketTransferredFromEmail, ticketTransferredToEmail } from './paid-mail.ts';

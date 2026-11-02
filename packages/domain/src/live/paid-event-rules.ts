@@ -4,8 +4,8 @@
  * an owner accepted the current organizer terms. The checklist names exactly what is missing and where it is fixed;
  * screens decide how to show it. Cash- and comp-only selling still needs verification and the terms.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
-import { TERMS_REGISTRY } from '../terms/registry.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
 import type { PaidEnv } from './paid-types.ts';
 import { organizationPaymentsStatus } from './payments/resolve.ts';
 import type { PaymentsUnavailableReason } from './payments/types.ts';

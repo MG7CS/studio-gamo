@@ -6,10 +6,10 @@
  *
  * Capacity is reserved in one D1 batch, so concurrent sign-ups can never oversell an occurrence.
  */
-import { encodeBase32 } from '../security/base32.ts';
-import { constantTimeEqual, hmacSha256, hmacSha256Hex, randomBytes } from '../security/crypto.ts';
-import { resolveEnvSecret } from '../security/env-secret.ts';
-import { newPrefixedId } from '../security/ids.ts';
+import { encodeBase32 } from '@gamo/core';
+import { constantTimeEqual, hmacSha256, hmacSha256Hex, randomBytes } from '@gamo/platform/security';
+import { resolveEnvSecret } from '@gamo/platform/security';
+import { newPrefixedId } from '@gamo/core';
 import {
   clientIp,
   hashEmail,
@@ -17,9 +17,9 @@ import {
   hashPii,
   isPlausibleEmail,
   normalizeEmail,
-} from '../security/pii-hash.ts';
-import { checkRateLimits, rateLimitBucket } from '../security/rate-limit.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+} from '@gamo/platform/security';
+import { checkRateLimits, rateLimitBucket } from '@gamo/platform/security';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 
 export const HOLD_SECONDS = 15 * 60;
 export const CODE_SECONDS = 10 * 60;

@@ -16,7 +16,7 @@ import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { eventTabCounts, paidEventPage } from '../../../../lib/event-page';

@@ -6,7 +6,7 @@
  * buyer may do now (transfer a ticket, request a refund) with the reason when not. The same route serves a ticket
  * link (a transferred ticket's holder sees only that ticket). The page verifies the token through `orderLinkView`.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { PaidEnv, PolicySnapshot, TicketStatus } from './paid-types.ts';
 import { sellerText, type ReceiptLine } from './paid-mail.ts';
 import { buyerRefundOptions, listOrderRefunds, type BuyerRefundOptions } from './refunds.ts';

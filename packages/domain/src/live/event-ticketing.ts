@@ -4,7 +4,7 @@
  * absorb), door sales and the per-order maximum. Each order copies the policies (`PolicySnapshot`); a later change
  * applies to an existing order only when it is better for the buyer (`isBetterForBuyer`, `effectivePolicy`).
  */
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { giftPresetsFromForm, parseGiftPresets } from './gifts.ts';
 import {
   FEE_PAYERS,

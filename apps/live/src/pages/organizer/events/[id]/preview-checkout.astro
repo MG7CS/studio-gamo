@@ -13,8 +13,9 @@ import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import EmptyState from '@studio-gamo/ui/components/ui/EmptyState.astro';
 import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
-import { requireSameOrigin } from '@gamo/auth';
-import { listTicketTypes, paymentsRuntime, priceNow, requestSecurityHeaders } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { listTicketTypes, paymentsRuntime, priceNow } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import {

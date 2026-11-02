@@ -10,8 +10,8 @@ import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import CodeForm from '../../../../components/register/CodeForm.astro';
-import { requireSameOrigin } from '@gamo/auth';
-import { requestSecurityHeaders } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { openLive } from '../../../../lib/registration';
 import { runConfirmStep, type ConfirmView } from '../../../../lib/guest-registration';
 

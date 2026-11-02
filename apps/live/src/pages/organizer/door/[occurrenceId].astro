@@ -7,7 +7,7 @@ import OrganizerLayout from '../../../components/organizer/OrganizerLayout.astro
 import PageTitle from '../../../components/organizer/PageTitle.astro';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import DoorScreen from '../../../components/door/DoorScreen.astro';
-import { requestSecurityHeaders } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { organizerPage } from '../../../lib/organizer-session';
 import { organizerDoorAccess } from '../../../lib/door-access';
 import { doorDeps, handleDoorRequest } from '../../../lib/door-actions';

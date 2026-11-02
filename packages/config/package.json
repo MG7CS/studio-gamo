@@ -9,7 +9,6 @@
     "./env-loader": "./env-loader.ts",
     "./env": "./env.ts",
     "./brand": "./brand.ts",
-    "./env-validation": "./env-validation.ts",
-    "./clerk-env": "./clerk-env.ts"
+    "./env-validation": "./env-validation.ts"
   }
 }

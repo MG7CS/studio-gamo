@@ -8,7 +8,6 @@ import {
   notifyHoldersOfChange as notifyHolders,
   CANCEL_EMAIL_LIMIT,
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
   cancelEvent,
   cancelOccurrence,
@@ -26,6 +25,7 @@ import {
   type PaidEnv,
   type PaidOrder,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 import { whenLabel } from './organizer-format';
 import { whenWhere, type LiveContext } from './registration';
 

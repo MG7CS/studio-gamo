@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { buildSitemapXml, xmlResponse } from '@studio-gamo/ui/lib/crawlers';
-import { TERMS_DOCUMENTS } from '@gamo/domain/terms';
+import { TERMS_DOCUMENTS } from '@gamo/platform/terms';
 
 export const prerender = false;
 

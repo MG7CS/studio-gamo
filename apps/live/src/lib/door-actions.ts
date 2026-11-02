@@ -4,15 +4,9 @@
  * draw (the typed-code form), or a redirect with a flash key. Each action calls one function in door-checkin.ts or
  * door-sell.ts; anything that touched Stripe or the stand-in has flushed it before this returns.
  */
-import { requireSameOrigin } from '@gamo/auth';
-import {
-  PaidError,
-  getOrganizerEvent,
-  hasPermission,
-  paymentsRuntime,
-  type PaidEnv,
-  type SqlDatabase,
-} from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { PaidError, getOrganizerEvent, hasPermission, paymentsRuntime, type PaidEnv } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { FLASH_COOKIE, flashRedirect, readFlash, type FlashRedirectContext } from '@studio-gamo/ui/lib/flash';
 import type { DoorAccess } from './door-access';

@@ -9,7 +9,7 @@ import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
 import ReceiptLines from '@studio-gamo/ui/components/ui/ReceiptLines.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { openLive } from '../../../../lib/registration';
 import {

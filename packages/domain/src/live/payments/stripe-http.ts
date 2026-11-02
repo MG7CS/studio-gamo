@@ -8,7 +8,7 @@
  *
  * Nothing here logs: the key, the request bodies and Stripe's answers may carry personal data.
  */
-import { bytesToHex, randomBytes } from '../../security/crypto.ts';
+import { bytesToHex, randomBytes } from '@gamo/platform/security';
 import {
   StripeApiError,
   type AccountParams,

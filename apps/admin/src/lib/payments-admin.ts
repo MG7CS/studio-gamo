@@ -7,7 +7,7 @@
  * (`paymentsRuntime(db, env).routingForOrder`) and `flush()` before redirecting. A payout is sent only through the
  * confirm step (`confirm=yes`), only in Stripe test mode, and the domain refuses live mode on its own.
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { GamoEnv } from '@gamo/config/env';
 import {
   ORDER_STATUSES,
@@ -50,9 +50,9 @@ import {
   ADMIN_ORDER_LIMIT,
   type AdminOrderFilter,
   type AdminOrderRow,
-  type SqlDatabase,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import { type SqlDatabase } from '@gamo/platform/db';
+import { asSqlDatabase } from '@gamo/platform/db';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
 export type PaymentsOutcome = { ok: true; location: string } | { ok: false; status: number; message: string };

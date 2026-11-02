@@ -11,8 +11,8 @@
  *   an Account Link sends the owner to Stripe; readiness is refreshed from Stripe on return and on `account.updated`.
  * - Reading for the admin: organizations whose payments are not ready, the fee history and the decision log.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import {
   FUNDS_FLOW_DEFAULTS,
   FUNDS_FLOWS,

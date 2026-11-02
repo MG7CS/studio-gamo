@@ -4,7 +4,7 @@
  * through the outbox, and says where to go next. Errors carry text written here or by ReviewError, never
  * text taken from the request.
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { GamoEnv } from '@gamo/config/env';
 import {
   DEFAULT_MEETING_TIME_ZONE,
@@ -15,7 +15,7 @@ import {
   reviewProviderProfile,
   type ProviderReviewAction,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import { asSqlDatabase } from '@gamo/platform/db';
 import { MEETING_FIELDS, readChurchMeeting } from './meeting-form';
 
 export type DecisionOutcome =

@@ -4,10 +4,10 @@
  * paid orders (as the buyer) or tickets transferred to it, one email carries their signed links (order links for the
  * buyer's orders, ticket links for transferred tickets). Rate limited: 10 per IP per 15 minutes, 3 per email per hour.
  */
-import { resolveEnvSecret } from '../security/env-secret.ts';
-import { hashEmail, isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
-import { checkRateLimits, rateLimitBucket, type RateLimitRule } from '../security/rate-limit.ts';
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { resolveEnvSecret } from '@gamo/platform/security';
+import { hashEmail, isPlausibleEmail, normalizeEmail } from '@gamo/platform/security';
+import { checkRateLimits, rateLimitBucket, type RateLimitRule } from '@gamo/platform/security';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { LiveEmail } from './mail.ts';
 import type { PaidEnv } from './paid-types.ts';
 import { findTicketsEmail } from './paid-mail.ts';

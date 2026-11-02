@@ -10,7 +10,6 @@ import {
   ORDER_STATUSES,
   PAYMENT_METHODS,
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
   approveRefund,
   declineRefund,
@@ -42,9 +41,10 @@ import {
   type PaidOrder,
   type PaymentMethod,
   type RefundRow,
-  type SqlDatabase,
   type TicketType,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { type SqlDatabase } from '@gamo/platform/db';
 
 // ── Words ────────────────────────────────────────────────────────────────────────────────────────────────────────
 

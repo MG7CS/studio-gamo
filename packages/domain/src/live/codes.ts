@@ -8,8 +8,8 @@
  *   given back when an unpaid order expires or is canceled (orders.ts).
  * - Codes are stored upper case; what a buyer types is normalized the same way.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import { isCents, parseDollarsToCents } from './money.ts';
 import {
   ORDER_HOLD_SECONDS,

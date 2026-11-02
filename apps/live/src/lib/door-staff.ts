@@ -3,8 +3,9 @@
  * device cookie is set and the page reloads); "Leave" signs it out; a GET shows the PIN form, why the link no longer
  * works, or the dates to choose from (straight to the only one). The page calls `handleStaffLink` once.
  */
-import { requireSameOrigin } from '@gamo/auth';
-import { requesterHash, type PaidEnv, type SqlDatabase } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { requesterHash, type PaidEnv } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { readCookie } from './organizer-session';
 import {
   doorCookieHeader,

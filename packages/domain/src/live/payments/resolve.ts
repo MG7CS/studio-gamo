@@ -5,7 +5,7 @@
  * Fail closed: no chosen mode, no Stripe configuration, no Connect webhook secret (Mode A) or an account that is not
  * ready all make card sales unavailable, with the reason. Cash and comp door sales do not need any of it.
  */
-import { allRows, type SqlDatabase } from '../../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { FeeSetting, FundsFlow, FundsFlowDefault, PaidEnv, Seller } from '../paid-types.ts';
 import type { PaymentsUnavailableReason } from './types.ts';
 

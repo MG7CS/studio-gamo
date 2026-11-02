@@ -11,7 +11,7 @@ import {
   type EventLifecycleStatus,
   type GamoLiveMetro,
 } from '../services/live-external-discovery.ts';
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { EVENT_CATEGORIES } from './events.ts';
 
 export type EventCategory = (typeof EVENT_CATEGORIES)[number]['value'];

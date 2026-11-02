@@ -11,8 +11,8 @@ import FormErrorSummary from '../../../../components/register/FormErrorSummary.a
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import { requireSameOrigin } from '@gamo/auth';
-import { requestSecurityHeaders } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { flashRedirect } from '@studio-gamo/ui/lib/flash';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { openLive } from '../../../../lib/registration';

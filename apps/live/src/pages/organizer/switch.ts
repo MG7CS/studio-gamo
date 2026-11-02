@@ -1,6 +1,6 @@
 /** POST /organizer/switch: choose which of your organizations the pages act on. Membership is checked. */
 import type { APIRoute } from 'astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { listMemberships, resolveOrganizerSession } from '@gamo/domain';
 import { ORGANIZATION_COOKIE, SESSION_COOKIE, cookieHeader, readCookie } from '../../lib/organizer-session';
 import { openLive } from '../../lib/registration';

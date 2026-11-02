@@ -3,7 +3,7 @@
  * link check as the order page; the file holds only the public event details (never the private link).
  */
 import type { APIRoute } from 'astro';
-import { requestSecurityHeaders } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { openLive } from '../../../lib/registration';
 import { orderCalendar } from '../../../lib/checkout-orders';

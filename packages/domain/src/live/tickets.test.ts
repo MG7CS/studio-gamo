@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allRows } from '../security/sql-database.ts';
+import { allRows } from '@gamo/platform/db';
 import { findMyTickets } from './find-tickets.ts';
 import { orderLinkView, orderPageView } from './order-links.ts';
 import { markOrderPaid, reserveOrder } from './orders.ts';

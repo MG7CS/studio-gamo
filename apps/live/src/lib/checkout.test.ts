@@ -3,11 +3,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PaidError,
-  SecretNotConfiguredError,
   type PaymentRouting,
   type OrderCheckoutInput,
   type StripeCheckoutSession,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 import { PAID_NOW } from '../../../../packages/domain/src/live/paid-testing.ts';
 import { fakeCookies, formOf as form, liveFixture } from './checkout-testing.ts';
 import {

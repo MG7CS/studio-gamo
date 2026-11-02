@@ -6,7 +6,7 @@
  */
 import CheckoutFrame from '../../../../components/checkout/CheckoutFrame.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { openLive } from '../../../../lib/registration';
 import { completeStandinOnboarding, openStandinOnboarding } from '../../../../lib/checkout-stripe';
 

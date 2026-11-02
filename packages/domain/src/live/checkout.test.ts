@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allRows } from '../security/sql-database.ts';
+import { allRows } from '@gamo/platform/db';
 import {
   CHECKOUT_RATE_LIMITS,
   checkoutLineItems,

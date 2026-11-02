@@ -24,8 +24,8 @@ import {
   type FeeSetting,
   type PaidEnv,
   type SellingChecklist,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { allFieldErrors } from './ticket-setup';
 import { holderChanges, notifyHoldersOfChange } from './organizer-events';
 

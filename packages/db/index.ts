@@ -1,9 +1,7 @@
-import { drizzle, type AnyD1Database } from 'drizzle-orm/d1';
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import * as schema from './schema.ts';
+import type * as schema from './legacy-schema.ts';
 
-export * from './schema.ts';
-export * from './client.ts';
+export * from './legacy-schema.ts';
 export * from './projections.ts';
 
 export type User = InferSelectModel<typeof schema.users>;
@@ -66,10 +64,7 @@ export type NewExternalListingRevision = InferInsertModel<typeof schema.external
 export type ExternalOutboundClick = InferSelectModel<typeof schema.externalOutboundClicks>;
 export type NewExternalOutboundClick = InferInsertModel<typeof schema.externalOutboundClicks>;
 
-// 0012/0013 identity and ticketing rows (TicketCategory = TicketTier, table ticket_tiers)
-export type Person = InferSelectModel<typeof schema.persons>;
-export type NewPerson = InferInsertModel<typeof schema.persons>;
-
+// 0012/0013 guest customer and ticketing rows (TicketCategory = TicketTier, table ticket_tiers); the platform tables' types are in @gamo/platform/db
 export type CustomerProfile = InferSelectModel<typeof schema.customerProfiles>;
 export type NewCustomerProfile = InferInsertModel<typeof schema.customerProfiles>;
 
@@ -78,30 +73,6 @@ export type NewCustomerAccessToken = InferInsertModel<typeof schema.customerAcce
 
 export type CustomerSession = InferSelectModel<typeof schema.customerSessions>;
 export type NewCustomerSession = InferInsertModel<typeof schema.customerSessions>;
-
-export type ProviderProfile = InferSelectModel<typeof schema.providerProfiles>;
-export type NewProviderProfile = InferInsertModel<typeof schema.providerProfiles>;
-
-export type VerificationRecord = InferSelectModel<typeof schema.verificationRecords>;
-export type NewVerificationRecord = InferInsertModel<typeof schema.verificationRecords>;
-
-export type TermsDocument = InferSelectModel<typeof schema.termsDocuments>;
-export type NewTermsDocument = InferInsertModel<typeof schema.termsDocuments>;
-
-export type TermsAcceptance = InferSelectModel<typeof schema.termsAcceptances>;
-export type NewTermsAcceptance = InferInsertModel<typeof schema.termsAcceptances>;
-
-export type MarketingConsent = InferSelectModel<typeof schema.marketingConsents>;
-export type NewMarketingConsent = InferInsertModel<typeof schema.marketingConsents>;
-
-export type RateLimitCounter = InferSelectModel<typeof schema.rateLimitCounters>;
-export type NewRateLimitCounter = InferInsertModel<typeof schema.rateLimitCounters>;
-
-export type EmailLogEntry = InferSelectModel<typeof schema.emailLog>;
-export type NewEmailLogEntry = InferInsertModel<typeof schema.emailLog>;
-
-export type EmailSuppression = InferSelectModel<typeof schema.emailSuppressions>;
-export type NewEmailSuppression = InferInsertModel<typeof schema.emailSuppressions>;
 
 export type TicketAccessLogEntry = InferSelectModel<typeof schema.ticketAccessLog>;
 export type NewTicketAccessLogEntry = InferInsertModel<typeof schema.ticketAccessLog>;
@@ -153,7 +124,3 @@ export type NewTicketOrder = InferInsertModel<typeof schema.ticketOrders>;
 
 export type TicketRow = InferSelectModel<typeof schema.tickets>;
 export type NewTicketRow = InferInsertModel<typeof schema.tickets>;
-
-export function createDb(d1: AnyD1Database) {
-  return drizzle(d1, { schema });
-}

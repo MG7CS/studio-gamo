@@ -4,7 +4,7 @@
  * shows the old and the new fee), door sales on or off platform-wide, and the history of these decisions. Also the
  * payments card of one organization's page. Every change is a domain call that records a decision with its reason.
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import type { GamoEnv } from '@gamo/config/env';
 import {
   FUNDS_FLOW_DEFAULTS,
@@ -32,9 +32,9 @@ import {
   type PaymentSettings,
   type PaymentsStatus,
   type PaymentsUnavailableReason,
-  type SqlDatabase,
 } from '@gamo/domain';
-import { asSqlDatabase } from '@gamo/domain/security';
+import { type SqlDatabase } from '@gamo/platform/db';
+import { asSqlDatabase } from '@gamo/platform/db';
 
 export type SettingsOutcome =
   | { ok: true; location: string }

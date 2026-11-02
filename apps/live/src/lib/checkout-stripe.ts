@@ -12,9 +12,9 @@ import {
   standinCompleteOnboarding,
   formatCents,
   type PaymentsRuntime,
-  type SqlDatabase,
   type PaidEnv,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import type { LiveContext } from './registration';
 
 // ── P9: webhooks ───────────────────────────────────────────────────────────────────────────────────────────────

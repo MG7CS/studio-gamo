@@ -3,7 +3,7 @@
  * what is wrong with a submission (every problem at once, each tied to its field), and small wording helpers
  * for the confirm page. No I/O, so the pages stay thin and this is unit-tested.
  */
-import { isPlausibleEmail } from '../security/pii-hash.ts';
+import { isPlausibleEmail } from '@gamo/platform/security';
 
 export type RegisterField = 'occurrence' | 'name' | 'email' | 'partySize' | 'consent';
 

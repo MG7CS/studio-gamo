@@ -52,4 +52,4 @@ export const opportunities: Opportunity[] = [
   { id: 'o5', church: 'Living Water Church', city: 'Glendale, AZ', date: 'Sun · Nov 15 · 8:30 AM call', role: 'Acoustic guitar', style: 'Bilingual services', payCents: 12000 },
 ];
 
-export { formatUsd } from '@studio-gamo/ui/lib/format';
+export { formatUsd } from '@gamo/core';

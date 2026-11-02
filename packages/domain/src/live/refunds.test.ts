@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allRows, runBatch } from '../security/sql-database.ts';
+import { allRows, runBatch } from '@gamo/platform/db';
 import type { LiveEmail } from './mail.ts';
 import { createOrderEventHandlers, type OrderEventDeps } from './order-events.ts';
 import { markOrderPaid, releaseOrder, reserveOrder } from './orders.ts';

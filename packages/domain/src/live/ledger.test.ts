@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runBatch } from '../security/sql-database.ts';
+import { runBatch } from '@gamo/platform/db';
 import {
   OWED_TO_ORGANIZATION_SQL,
   ledgerForDispute,

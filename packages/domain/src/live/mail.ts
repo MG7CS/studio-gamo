@@ -3,7 +3,7 @@
  * missing Resend key means nothing is sent and the caller answers "unavailable". Locally the message is
  * printed to the terminal instead (the dev server's output) so the emailed code can be read.
  */
-import { createResendClient } from '@studio-gamo/integrations/resend';
+import { createResendClient } from '@gamo/platform/email';
 
 type Env = { ENVIRONMENT?: unknown };
 

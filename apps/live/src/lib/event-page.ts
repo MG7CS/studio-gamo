@@ -5,9 +5,7 @@
 import {
   DOOR_TOTAL_FILTERS,
   PaidError,
-  SecretNotConfiguredError,
   StripeApiError,
-  TERMS_REGISTRY,
   listEventOrders,
   listEventRegistrations,
   listTicketTypes,
@@ -28,8 +26,10 @@ import {
   type DoorTotalKey,
   type MembershipSummary,
   type OrganizerEventDetail,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
+import { type SqlDatabase } from '@gamo/platform/db';
 import { cancelDateAndNotify, cancelEventAndNotify } from './organizer-events';
 import { NOT_VERIFIED_NOTICE, SELLING_NOT_READY_NOTICE, STATUS_AFTER_SAVE } from './event-editor';
 import type { LiveContext } from './registration';

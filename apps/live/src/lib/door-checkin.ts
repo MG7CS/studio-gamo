@@ -15,9 +15,9 @@ import {
   type DoorCheckInResult,
   type DoorMessage,
   type PaidEnv,
-  type SqlDatabase,
   type TicketCheckInResult,
 } from '@gamo/domain';
+import { type SqlDatabase } from '@gamo/platform/db';
 import type { DoorAccess } from './door-access';
 import { whenLabel } from './organizer-format';
 

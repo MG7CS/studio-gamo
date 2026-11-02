@@ -3,7 +3,7 @@
  * the first price deadline still ahead applies (early bird), else the type's own price. Every price a buyer sees is
  * computed here on the server; nothing is read from a form.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 
 export interface PriceDeadline {
   priceCents: number;

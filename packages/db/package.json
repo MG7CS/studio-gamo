@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
+    "@gamo/core": "workspace:*",
     "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {
@@ -12,6 +13,6 @@
   },
   "exports": {
     ".": "./index.ts",
-    "./testing": "./testing.ts"
+    "./legacy-schema": "./legacy-schema.ts"
   }
 }

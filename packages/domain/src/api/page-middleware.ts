@@ -1,9 +1,9 @@
-import type { GamoLocals } from '@gamo/auth/locals';
-import type { PublicApp } from '@gamo/auth/page-access';
+import type { GamoLocals } from '@gamo/platform/security';
+import type { PublicApp } from '@gamo/config/apps';
 import { checkEnvOnce } from '@gamo/config/env-validation';
 import type { GamoEnv } from '@gamo/config/env';
 import { getRuntimeEnv } from './response';
-import { withSecurityHeaders, type SecurityHeaderOptions } from '../http/security-headers.ts';
+import { withSecurityHeaders, type SecurityHeaderOptions } from '@gamo/platform/security';
 
 type Context = {
   request: Request;

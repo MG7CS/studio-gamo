@@ -11,9 +11,9 @@
  */
 import { GAMO_LIVE_METROS } from '../services/live-external-discovery.ts';
 import { zonedLocalToEpochSeconds, isTimeZone } from '../services/meeting-time.ts';
-import { bytesToBase64Url, randomBytes } from '../security/crypto.ts';
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase } from '../security/sql-database.ts';
+import { bytesToBase64Url, randomBytes } from '@gamo/platform/security';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase } from '@gamo/platform/db';
 import {
   cancelRegistration,
   checkIn,
@@ -29,7 +29,7 @@ import {
   readOrganizationPayments,
   readPaymentSettings,
 } from './payments/resolve.ts';
-import { TERMS_REGISTRY } from '../terms/registry.ts';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
 
 export const EVENT_CATEGORIES = [
   { value: 'concert', label: 'Concert' },

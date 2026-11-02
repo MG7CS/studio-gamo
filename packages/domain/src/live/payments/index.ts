@@ -2,7 +2,7 @@
  * Picks the payment routing for an organization (docs/LIVE_PAYMENTS.md §1). Pages and orchestration call
  * `resolvePaymentRouting` and then only the `PaymentRouting` methods; they never branch on the mode.
  */
-import type { SqlDatabase } from '../../security/sql-database.ts';
+import type { SqlDatabase } from '@gamo/platform/db';
 import type { PaidEnv } from '../paid-types.ts';
 import { createModeARouting } from './mode-a.ts';
 import { createModeBRouting } from './mode-b.ts';

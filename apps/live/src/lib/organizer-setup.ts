@@ -4,7 +4,6 @@
  */
 import {
   OrganizerError,
-  TERMS_REGISTRY,
   createOrganization,
   organizerErrorMessage,
   readSetupStep,
@@ -15,7 +14,8 @@ import {
   type SetupErrors,
   type SetupStep,
 } from '@gamo/domain';
-import type { SqlDatabase } from '@gamo/domain';
+import { TERMS_REGISTRY } from '@gamo/platform/terms';
+import type { SqlDatabase } from '@gamo/platform/db';
 import { ORGANIZATION_COOKIE, cookieHeader } from './organizer-session';
 import { fieldErrors } from './organizer-forms';
 

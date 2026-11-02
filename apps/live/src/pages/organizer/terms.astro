@@ -9,7 +9,7 @@ import PageTitle from '../../components/organizer/PageTitle.astro';
 import TermsCard from '../../components/organizer/paid/TermsCard.astro';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { organizerPage } from '../../lib/organizer-session';

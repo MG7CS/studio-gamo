@@ -10,7 +10,7 @@ import EventSummary from '../../../../components/register/EventSummary.astro';
 import FormErrorSummary from '../../../../components/register/FormErrorSummary.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { openLive } from '../../../../lib/registration';
 import {

@@ -1,6 +1,6 @@
 /** POST /account/signout: ends the organizer session and sends the browser to the signed-out page. */
 import type { APIRoute } from 'astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { endOrganizerSession } from '@gamo/domain';
 import { ORGANIZATION_COOKIE, SESSION_COOKIE, cookieHeader, readCookie } from '../../lib/organizer-session';
 import { openLive } from '../../lib/registration';

@@ -8,19 +8,21 @@
  *   available anywhere else.
  */
 import type { APIRoute } from 'astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import {
   ClerkUnavailableError,
   ClerkVerificationError,
-  SecretNotConfiguredError,
   fetchClerkUserProfile,
+  verifyClerkSessionToken,
+} from '@gamo/platform/identity';
+import {
   liveClerkConfig,
   localSimulatedSignInAllowed,
   requesterHash,
   signInRateLimit,
   startOrganizerSession,
-  verifyClerkSessionToken,
 } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 import { SESSION_COOKIE, cookieHeader, safeNext } from '../../lib/organizer-session';
 import { openLive } from '../../lib/registration';
 

@@ -6,8 +6,8 @@
  * The builders return SQL for the caller's batch. Every row has a `source_key`, so writing the same movement twice
  * is a no-op, and an optional guard makes the rows conditional on the order's status inside that same batch.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import type { SqlStatementSpec } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import type { SqlStatementSpec } from '@gamo/platform/db';
 import type {
   FeePayer,
   FundsFlow,

@@ -11,7 +11,7 @@ import {
   createMigratedD1,
   migrationFileNames,
   readMigrations,
-} from './testing.ts';
+} from '../platform/db/testing.ts';
 
 const FUTURE = Math.floor(Date.now() / 1000) + 30 * 86400; // 0003's trigger compares with the real clock
 const T = 1_900_000_000;

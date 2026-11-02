@@ -8,7 +8,7 @@ import CheckoutFrame from '../../components/checkout/CheckoutFrame.astro';
 import SplitField from '@studio-gamo/ui/components/split/SplitField.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { openLive } from '../../lib/registration';

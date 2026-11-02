@@ -2,15 +2,14 @@
 import {
   LiveCatalog,
   RegistrationError,
-  asSqlDatabase,
   formatLocalEventSchedule,
   getRuntimeEnv,
   waitPhrase,
   type LiveEventDetail,
   type RegisterDateOption,
   type RegistrationErrorCode,
-  type SqlDatabase,
 } from '@gamo/domain';
+import { asSqlDatabase, type SqlDatabase } from '@gamo/platform/db';
 
 export interface LiveContext {
   env: Awaited<ReturnType<typeof getRuntimeEnv>>;

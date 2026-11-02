@@ -4,7 +4,7 @@
  * everyone sees them, their online status asked from Stripe on each load) and every cash drawer with expected,
  * counted and difference. The page calls `loadDoorTab` to draw and `runDoorTabAction` for a POST.
  */
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import {
   PaidError,
   createEventStaffLink,

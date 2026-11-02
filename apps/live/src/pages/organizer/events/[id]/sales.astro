@@ -11,7 +11,7 @@ import ReconcileCard from '../../../../components/organizer/paid/ReconcileCard.a
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import TestModeNotice from '@studio-gamo/ui/components/ui/TestModeNotice.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { paymentsRuntime } from '@gamo/domain';
 import { eventTabCounts, paidEventPage } from '../../../../lib/event-page';
 import { runReconcile, salesPageView, type ReconcileResult } from '../../../../lib/sales-page';

@@ -7,7 +7,7 @@ import {
   requestSecurityHeaders,
   securityHeaders,
   withSecurityHeaders,
-} from '../../packages/domain/src/http/security-headers.ts';
+} from '../../packages/platform/security/security-headers.ts';
 import {
   applicationPages,
   pageSecurityHeaderOptions,

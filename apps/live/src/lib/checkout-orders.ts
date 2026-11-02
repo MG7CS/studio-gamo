@@ -37,7 +37,7 @@ import {
   type TicketPageView,
   type TransferBlockReason,
 } from '@gamo/domain';
-import { isPlausibleEmail, normalizeEmail } from '@gamo/domain/security';
+import { isPlausibleEmail, normalizeEmail } from '@gamo/platform/security';
 import {
   PAID_MESSAGES,
   clearCheckoutState,

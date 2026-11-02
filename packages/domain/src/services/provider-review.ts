@@ -16,10 +16,10 @@
  * All times are epoch seconds.
  */
 import type { GamoEnv } from '@gamo/config/env';
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
-import type { ProviderRole, ProviderStatus } from '../types/enums.ts';
-import { sendOutboxEmail } from './email-outbox.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '@gamo/platform/db';
+import type { ProviderRole, ProviderStatus } from '@gamo/core';
+import { sendOutboxEmail } from '@gamo/platform/email';
 import {
   getProviderProfile,
   requiresMeeting,

@@ -12,8 +12,9 @@ import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import Button from '@studio-gamo/ui/components/ui/Button.astro';
 import TicketCard from '../../components/register/TicketCard.astro';
 import TicketActions from '../../components/register/TicketActions.astro';
-import { requireSameOrigin } from '@gamo/auth';
-import { requestSecurityHeaders, ticketHeading } from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { requestSecurityHeaders } from '@gamo/platform/security';
+import { ticketHeading } from '@gamo/domain';
 import { flashRedirect, readFlash } from '@studio-gamo/ui/lib/flash';
 import { openLive } from '../../lib/registration';
 import {

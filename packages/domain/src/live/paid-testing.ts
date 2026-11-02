@@ -5,8 +5,8 @@
  * rows, and (optionally) a chosen funds-flow mode with a ready connected account.
  */
 import { readdirSync, readFileSync } from 'node:fs';
-import { createSqliteD1 } from '@gamo/db/testing';
-import type { SqlDatabase } from '../security/sql-database.ts';
+import { createSqliteD1 } from '@gamo/platform/db/testing';
+import type { SqlDatabase } from '@gamo/platform/db';
 import type { FundsFlow } from './paid-types.ts';
 
 const MIGRATIONS = new URL('../../../db/live/migrations/', import.meta.url);

@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/db/testing.ts';
+import { createInMemoryD1, applyMigrations, readMigrations } from '../../packages/platform/db/testing.ts';
 import {
   PAID_ENV,
   paidTestDatabase,
@@ -23,7 +23,7 @@ import { requestRefund } from '../../packages/domain/src/live/refunds.ts';
 import { paidEventReviewDetails } from '../../packages/domain/src/live/admin.ts';
 import { PaidError } from '../../packages/domain/src/live/paid-types.ts';
 import { LiveAdminError } from '../../packages/domain/src/live/admin.ts';
-import { allRows } from '../../packages/domain/src/security/sql-database.ts';
+import { allRows } from '../../packages/platform/db/sql-database.ts';
 import {
   MEETING_FIELDS,
   meetingDefaults,

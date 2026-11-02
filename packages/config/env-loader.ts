@@ -162,7 +162,7 @@ export interface LoadAppLocalEnvOptions {
  * also sets `CLERK_PRODUCT="<app>"` and bidirectional aliases between standard Clerk variable names
  * (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_APP_ID`,
  * `CLERK_AUTHORIZED_PARTIES`) and product-suffixed variable names (`*_WEB`, `*_LIVE`, etc.) when non-empty,
- * preserving full compatibility with both `@clerk/astro` and `@gamo/auth`.
+ * preserving full compatibility with both `@clerk/astro` and `@gamo/platform/identity`.
  */
 export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<string, string> {
   const appDir = resolve(options.appDir);

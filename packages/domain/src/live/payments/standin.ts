@@ -27,8 +27,8 @@
  *   world (paying on the hosted page, onboarding, presenting a card, disputes) are delivered before the function
  *   returns. A delivery answered with a non-2xx status stays pending and is retried by `standinDeliverPending`.
  */
-import { bytesToHex, randomBytes } from '../../security/crypto.ts';
-import { allRows, type SqlDatabase } from '../../security/sql-database.ts';
+import { bytesToHex, randomBytes } from '@gamo/platform/security';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import type { PaidEnv } from '../paid-types.ts';
 import { stripeModeOf, webhookSecretsOf } from './resolve.ts';
 import { signStripePayload } from './signature.ts';

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { LiveCatalog, asSqlDatabase, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
+import { LiveCatalog, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/platform/db';
 import { buildSitemapXml, xmlResponse, type SitemapEntry } from '@studio-gamo/ui/lib/crawlers';
 
 export const prerender = false;

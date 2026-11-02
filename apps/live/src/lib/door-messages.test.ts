@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PaidError, SecretNotConfiguredError } from '@gamo/domain';
+import { PaidError } from '@gamo/domain';
+import { SecretNotConfiguredError } from '@gamo/platform/security';
 import { isFlashKey } from '@studio-gamo/ui/lib/flash';
 import { DOOR_FLASH, doorErrorKey, doorErrorMessage, isDoorError } from './door-messages';
 

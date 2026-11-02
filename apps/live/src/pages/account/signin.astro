@@ -2,12 +2,8 @@
 /** signin for organizers (docs/LIVE_SCREENS.md B1). Already signed in? Straight to where you were going. */
 import Layout from '../../layouts/Layout.astro';
 import AuthScreen from '../../components/account/AuthScreen.astro';
-import {
-  liveClerkConfig,
-  localSimulatedSignInAllowed,
-  requestSecurityHeaders,
-  resolveOrganizerSession,
-} from '@gamo/domain';
+import { liveClerkConfig, localSimulatedSignInAllowed, resolveOrganizerSession } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import { SESSION_COOKIE, readCookie, safeNext } from '../../lib/organizer-session';
 import { openLive } from '../../lib/registration';
 

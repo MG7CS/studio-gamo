@@ -8,8 +8,8 @@
  * Handlers are idempotent and tolerate any order of delivery: a dispute for an order not known yet answers `retry`;
  * a late `created` after `closed` does not reopen anything.
  */
-import { newPrefixedId } from '../security/ids.ts';
-import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '../security/sql-database.ts';
+import { newPrefixedId } from '@gamo/core';
+import { allRows, runBatch, type SqlDatabase, type SqlStatementSpec } from '@gamo/platform/db';
 import { ledgerForDispute } from './ledger.ts';
 import {
   DISPUTE_OUTCOMES,

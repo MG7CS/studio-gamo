@@ -3,7 +3,7 @@
  * tickets stay valid, and each holder may ask for a refund under the event's policy. Used by the organizer's editor when
  * a change goes live at once, and by the admin when it approves a change that waited for review.
  */
-import { allRows, type SqlDatabase } from '../security/sql-database.ts';
+import { allRows, type SqlDatabase } from '@gamo/platform/db';
 import { CANCEL_EMAIL_LIMIT, type EventFormValues } from './events.ts';
 import { sendLiveEmail } from './mail.ts';
 import { listEventOrders } from './orders.ts';

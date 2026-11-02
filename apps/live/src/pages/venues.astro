@@ -7,13 +7,8 @@ import EmptyNotice from '../components/public/EmptyNotice.astro';
 import MetroLinks from '../components/public/MetroLinks.astro';
 import VenueCard from '../components/public/VenueCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import {
-  LiveCatalog,
-  asSqlDatabase,
-  getRuntimeEnv,
-  GAMO_LIVE_METROS,
-  resolveMetroBySlug,
-} from '@gamo/domain';
+import { LiveCatalog, getRuntimeEnv, GAMO_LIVE_METROS, resolveMetroBySlug } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/platform/db';
 
 export const prerender = false;
 

@@ -5,7 +5,7 @@ import PageTitle from '../../../../components/organizer/PageTitle.astro';
 import EventEditor from '../../../../components/organizer/EventEditor.astro';
 import Breadcrumbs from '@studio-gamo/ui/components/ui/Breadcrumbs.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
-import { requireSameOrigin } from '@gamo/auth';
+import { requireSameOrigin } from '@gamo/platform/security';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { getOrganizerEvent, reviewRuleFor } from '@gamo/domain';
 import { organizerPage } from '../../../../lib/organizer-session';

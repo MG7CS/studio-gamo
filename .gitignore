@@ -46,3 +46,7 @@ docs/api-reference/*.html
 
 # Local-only screenshot baseline (tests/e2e/visual-baseline.spec.ts): about 70 MB, rendered by this computer's browser
 tests/e2e/__screenshots__/
+
+# Owner documents kept in the repo root, never committed
+/Gamo Studios Shared Platform Architecture Plan/
+/Voting-Agreement-Updated-June-2026.docx

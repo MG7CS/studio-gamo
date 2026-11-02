@@ -5,14 +5,9 @@ import SplitScreenLayout from '@studio-gamo/ui/components/split/SplitScreenLayou
 import SplitHeading from '@studio-gamo/ui/components/split/SplitHeading.astro';
 import SplitNotice from '@studio-gamo/ui/components/split/SplitNotice.astro';
 import SplitButton from '@studio-gamo/ui/components/split/SplitButton.astro';
-import { requireSameOrigin } from '@gamo/auth';
-import {
-  OrganizerError,
-  acceptInvitation,
-  previewInvitation,
-  requestSecurityHeaders,
-  resolveOrganizerSession,
-} from '@gamo/domain';
+import { requireSameOrigin } from '@gamo/platform/security';
+import { OrganizerError, acceptInvitation, previewInvitation, resolveOrganizerSession } from '@gamo/domain';
+import { requestSecurityHeaders } from '@gamo/platform/security';
 import {
   ORGANIZATION_COOKIE,
   SESSION_COOKIE,

@@ -4,7 +4,7 @@
  * are accepted during a secret roll; `v0` and unknown schemes are ignored. Compared in constant time, 300 s
  * tolerance, JSON parsed only after a signature matched. Shared by the webhook receiver and the stand-in.
  */
-import { constantTimeEqual, hmacSha256Hex } from '../../security/crypto.ts';
+import { constantTimeEqual, hmacSha256Hex } from '@gamo/platform/security';
 import type { StripeEvent } from '../paid-types.ts';
 import type { VerifyStripeSignature } from './types.ts';
 

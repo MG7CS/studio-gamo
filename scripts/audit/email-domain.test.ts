@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { createResendClient } from '../../packages/integrations/src/resend.ts';
+import { createResendClient } from '../../packages/platform/email/resend.ts';
 
 const root = resolve(import.meta.dirname, '../..');
 const WRONG = `gamostudio${'s'}.org`;
