@@ -1,5 +1,7 @@
 .PHONY: help dev dev-all build check typecheck format lint test images print clean install status \
         dev-web dev-worship dev-academy dev-live dev-production dev-admin admin-phone open-all live-db \
+        stop-web stop-worship stop-academy stop-live stop-production stop-admin stop-all \
+        restart-web restart-worship restart-academy restart-live restart-production restart-admin restart-all \
         deploy-web deploy-worship deploy-academy deploy-live deploy-production deploy-all \
         preview-web preview-worship preview-academy preview-live preview-production preview-all \
         verify-deployment verify-config
@@ -20,6 +22,8 @@ help:
 	@echo "  \033[36mmake dev-production\033[0m    - Start apps/production; prints this-computer and same-Wi-Fi (phone) URLs and serves on both"
 	@echo "  \033[36mmake dev-admin\033[0m         - Prepare the local Live database, then start apps/admin; this computer only (http://127.0.0.1:4326). To open it on your phone use make admin-phone"
 	@echo "  \033[36mmake admin-phone\033[0m       - Prepare the local Live database, then start apps/admin for your phone on the same Wi-Fi: prints a link with a random secret and copies it to the clipboard; it works only while this runs, and the admin refuses every request without the secret"
+	@echo "  \033[36mmake stop-<app>\033[0m       - Stop that app's dev server (whatever listens on its port): stop-web, stop-worship, stop-academy, stop-live, stop-production, stop-admin; stop-all stops all 6"
+	@echo "  \033[36mmake restart-<app>\033[0m    - Stop that app's dev server, then start it again with its make dev-<app> target (restart-web ... restart-admin). restart-all stops all 6 and runs make dev-all"
 	@echo ""
 	@echo "\033[1;32mBuild & Verification\033[0m"
 	@echo "  \033[36mmake install\033[0m           - Install dependencies"
@@ -93,6 +97,22 @@ dev-admin: live-db
 
 admin-phone: live-db
 	@scripts/dev/admin-phone.sh
+
+# Stop / restart a dev server. These are for you to run: they stop whatever listens on the app's port from
+# packages/config/apps.ts (and its inspector port). `restart-<app>` then runs the same `make dev-<app>` target.
+APPS := web worship academy live production admin
+
+stop-web stop-worship stop-academy stop-live stop-production stop-admin: stop-%:
+	@scripts/dev/stop.sh $*
+
+stop-all:
+	@for app in $(APPS); do scripts/dev/stop.sh $$app; done
+
+restart-web restart-worship restart-academy restart-live restart-production restart-admin: restart-%: stop-%
+	@$(MAKE) --no-print-directory dev-$*
+
+restart-all: stop-all
+	@$(MAKE) --no-print-directory dev-all
 
 install:
 	@pnpm install
