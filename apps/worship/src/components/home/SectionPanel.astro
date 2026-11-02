@@ -1,0 +1,42 @@
+---
+/**
+ * Floating rounded panel on the cream page background. Every home section sits in one so the
+ * page reads as a stack of panels with the same gutter and rhythm on phones and desktop.
+ */
+interface Props {
+  id?: string;
+  /** id of the heading that names this section. */
+  labelledby?: string;
+  tone?: 'white' | 'ivory' | 'sand' | 'night';
+  /** Extra classes for the inner panel (for example `relative overflow-hidden`). */
+  class?: string;
+  /** Padding inside the panel. `none` lets a photo run edge to edge. */
+  padding?: 'default' | 'none';
+}
+const { id, labelledby, tone = 'white', class: className, padding = 'default' } = Astro.props;
+const surface = {
+  white: 'bg-white text-charcoal ring-1 ring-sand',
+  ivory: 'bg-ivory text-charcoal ring-1 ring-sand',
+  sand: 'bg-sand text-charcoal ring-1 ring-tan/60',
+  night: 'bg-night text-cream ring-1 ring-white/10',
+}[tone];
+const dark = tone === 'night';
+---
+
+<section
+  id={id}
+  aria-labelledby={labelledby}
+  data-surface={dark ? 'dark' : undefined}
+  class="px-4 py-2.5 sm:px-6 sm:py-3"
+>
+  <div
+    class:list={[
+      'mx-auto max-w-[1320px] rounded-[28px] shadow-[0_18px_50px_-30px_rgba(24,24,27,0.25)] sm:rounded-[36px]',
+      surface,
+      padding === 'default' && 'p-5 sm:p-8 lg:p-12',
+      className,
+    ]}
+  >
+    <slot />
+  </div>
+</section>

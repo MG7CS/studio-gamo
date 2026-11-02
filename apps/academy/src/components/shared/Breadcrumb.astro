@@ -1,0 +1,34 @@
+---
+/** Breadcrumb trail starting at the Academy home. The last crumb is the current page. */
+interface Props {
+  crumbs: { label: string; href: string }[];
+  class?: string;
+}
+const { crumbs, class: className } = Astro.props;
+---
+
+{crumbs.length > 0 && (
+  <nav aria-label="Breadcrumb" class:list={['text-sm text-ink-soft', className]}>
+    <ol class="flex flex-wrap items-center gap-x-2">
+      <li>
+        <a href="/" class="inline-flex min-h-11 items-center hover:text-terracotta">
+          Academy
+        </a>
+      </li>
+      {crumbs.map((c, i) => (
+        <li class="flex items-center gap-x-2">
+          <span aria-hidden="true">/</span>
+          {i === crumbs.length - 1 ? (
+            <span aria-current="page" class="inline-flex min-h-11 items-center font-medium text-charcoal">
+              {c.label}
+            </span>
+          ) : (
+            <a href={c.href} class="inline-flex min-h-11 items-center hover:text-terracotta">
+              {c.label}
+            </a>
+          )}
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}

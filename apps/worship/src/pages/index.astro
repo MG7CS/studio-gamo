@@ -1,5 +1,4 @@
 ---
-import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import HeroSection from '../components/home/HeroSection.astro';
 import AudienceSection from '../components/home/AudienceSection.astro';
@@ -10,13 +9,12 @@ import CoverageSection from '../components/home/CoverageSection.astro';
 import SchedulingSection from '../components/home/SchedulingSection.astro';
 import JoinSection from '../components/home/JoinSection.astro';
 import FaqSection from '../components/home/FaqSection.astro';
-import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import ClosingSection from '../components/home/ClosingSection.astro';
 ---
 
 <Layout
   title="Stronger Worship Starts Together"
-  description="Gamo Worship is a developing program helping churches find prepared, vetted musicians and helping musicians serve with dependable scheduling and fair pay."
+  description="Gamo Worship is a developing program that helps churches and other groups find prepared, vetted musicians for any occasion, with dependable scheduling and fair pay for musicians."
 >
   <HeroSection />
   <AudienceSection />
@@ -27,17 +25,6 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
   <SchedulingSection />
   <JoinSection />
   <FaqSection />
-  <CtaInvitation
-    eyebrow="Take part"
-    title="Strengthen worship together."
-    body="Churches can request prepared musicians, and instrumentalists or vocalists can apply to join our reviewed network."
-    photo="chapelSpring"
-  >
-    <ButtonLink href={providerSignupUrl('worship', 'church')} arrow>
-      Request musicians
-    </ButtonLink>
-    <ButtonLink href={providerSignupUrl('worship', 'musician')} variant="secondary">
-      Apply as a musician
-    </ButtonLink>
-  </CtaInvitation>
+  <ClosingSection />
+  <div class="h-6 sm:h-8"></div>
 </Layout>

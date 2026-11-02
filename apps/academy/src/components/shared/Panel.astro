@@ -1,0 +1,24 @@
+---
+/** Large rounded content panel floating on the cream page background. */
+interface Props {
+  tone?: 'white' | 'ivory' | 'sand' | 'dark';
+  pad?: 'sm' | 'md' | 'lg';
+  as?: 'div' | 'article' | 'li' | 'aside';
+  class?: string;
+}
+const { tone = 'white', pad = 'lg', as: Tag = 'div', class: className } = Astro.props;
+const surface = {
+  white: 'bg-white text-charcoal ring-1 ring-sand',
+  ivory: 'bg-ivory text-charcoal ring-1 ring-sand',
+  sand: 'bg-sand text-charcoal ring-1 ring-sand',
+  dark: 'bg-charcoal text-cream',
+}[tone];
+const padding = { sm: 'p-5', md: 'p-5 sm:p-7', lg: 'p-6 sm:p-10 lg:p-12' }[pad];
+---
+
+<Tag
+  data-surface={tone === 'dark' ? 'dark' : undefined}
+  class:list={['rounded-[28px] sm:rounded-[36px]', surface, padding, className]}
+>
+  <slot />
+</Tag>

@@ -1,6 +1,6 @@
 ---
 /**
- * Asymmetric four-program bento showcase matching /mission FourPrograms and ProgramCollection.
+ * Four-program showcase on the homepage: one card per program, photo first, short copy.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
@@ -28,11 +28,10 @@ interface ProgramCard {
 const programCards: ProgramCard[] = [
   {
     name: 'Gamo Live',
-    tag: 'Christian events nationwide',
+    tag: 'Events',
     title: 'Worship nights, concerts and gatherings.',
-    summary:
-      'Find and share Christian events nationwide, free or ticketed. Sponsored listings are always labeled.',
-    points: ['Open to Christian events nationwide', 'Free RSVP & ticketed event tools'],
+    summary: 'Find and share Christian events, free or ticketed. Sponsored listings are always labeled.',
+    points: ['Open to Christian events nationwide', 'Free registration and paid tickets'],
     href: siteUrl('web', '/live'),
     cta: 'Explore Gamo Live',
     photo: 'worshipNight',
@@ -43,14 +42,11 @@ const programCards: ProgramCard[] = [
   },
   {
     name: 'Gamo Worship',
-    tag: 'Churches & musicians',
+    tag: 'Musicians',
     title: 'Dependable musicians, well prepared.',
     summary:
       'Vetted worship musicians for services, concerts and events. Musician pay is always its own line item.',
-    points: [
-      'Auditioned vocalists, keys, guitar, bass & drums',
-      'Musician pay and administrative allocation separated',
-    ],
+    points: ['Vocals, keys, guitar, bass and drums', 'Pay shown separately from any Gamo allocation'],
     href: siteUrl('worship'),
     cta: 'Explore Gamo Worship',
     photo: 'worshipBand',
@@ -60,11 +56,10 @@ const programCards: ProgramCard[] = [
   },
   {
     name: 'Gamo Academy',
-    tag: 'Students & families',
+    tag: 'Lessons',
     title: 'Learn to Play the Instrument You Love.',
-    summary:
-      'Patient lessons in guitar, piano, vocals, bass and drums for anyone, plus production training.',
-    points: ['Private & small-group lessons', 'Planned church-hosted & scholarship pathways'],
+    summary: 'Patient lessons in guitar, piano, vocals, bass and drums, plus production training.',
+    points: ['Private and small-group lessons', 'Classes can be sponsored by a church or organization'],
     href: siteUrl('academy'),
     cta: 'Explore Gamo Academy',
     photo: 'girlGuitar',
@@ -74,11 +69,10 @@ const programCards: ProgramCard[] = [
   },
   {
     name: 'Gamo Production',
-    tag: 'Technical ministry',
+    tag: 'Production',
     title: 'Sound, livestream and lighting that serve the message.',
-    summary:
-      'Production support and hands-on volunteer training for churches.',
-    points: ['Sanctuary audio & livestream consultations', 'Side-by-side church volunteer training'],
+    summary: 'Production support and hands-on volunteer training for churches.',
+    points: ['Sanctuary audio and livestream help', 'Side-by-side volunteer training'],
     href: siteUrl('production'),
     cta: 'Explore Gamo Production',
     photo: 'soundEngineer',
@@ -95,84 +89,76 @@ const programCards: ProgramCard[] = [
   class="scroll-mt-24 bg-ivory px-5 section-space sm:px-8"
 >
   <div class="mx-auto max-w-[1320px]">
-    <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <EditorialHeading
         id="home-programs-title"
-        eyebrow="One mission · four programs"
-        title="Four connected ways"
-        accent="we serve together."
-        lede="Four programs serving one religious and educational mission."
+        eyebrow="How we serve"
+        eyebrowStyle="pill"
+        title="Serving the Church"
+        accent="together."
+        lede="Worship, learning and gathering that build up the Church."
       />
-      <ButtonLink href="/mission" variant="secondary" arrow>
-        Read our full mission
-      </ButtonLink>
+      <div class="button-stack">
+        <ButtonLink href="/mission" variant="secondary" arrow>
+          Read our mission
+        </ButtonLink>
+      </div>
     </div>
 
-    <div class="mt-12 grid gap-6 md:grid-cols-2">
-      {programCards.map((p) => {
-        return (
-          <article
-            data-reveal
-            data-surface={p.dark ? 'dark' : undefined}
-            class:list={[
-              'group flex flex-col justify-between overflow-hidden rounded-[34px] p-3.5 sm:p-4 transition-transform duration-300 hover:-translate-y-1',
-              p.surfaceClass,
-            ]}
-          >
-            <div>
-              <div class="relative aspect-[16/9] w-full overflow-hidden rounded-[26px] bg-sand">
-                <Photo
-                  name={p.photo}
-                  position={p.photoPosition}
-                  sizes="(min-width:1024px) 45vw, 94vw"
-                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
+    <div class="mt-10 grid gap-5 md:grid-cols-2 lg:gap-6">
+      {programCards.map((p) => (
+        <article
+          data-reveal
+          data-surface={p.dark ? 'dark' : undefined}
+          class:list={[
+            'group flex flex-col justify-between overflow-hidden rounded-[30px] p-3 sm:rounded-[34px] sm:p-4 transition-transform duration-300 hover:-translate-y-1',
+            p.surfaceClass,
+          ]}
+        >
+          <div>
+            <div class="relative aspect-[16/10] w-full overflow-hidden rounded-[22px] bg-sand sm:aspect-[16/9] sm:rounded-[26px]">
+              <Photo
+                name={p.photo}
+                position={p.photoPosition}
+                sizes="(min-width:1024px) 45vw, 94vw"
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              />
+            </div>
 
-              <div class="p-4 sm:p-6">
-                <div class="flex items-center gap-2.5">
-                  <span
+            <div class="p-3 pt-5 sm:p-6">
+              <p class:list={['eyebrow-pill', p.dark && 'bg-white/10 text-gold']}>
+                <Icon name={p.icon} class="h-3.5 w-3.5" />
+                {p.name} · {p.tag}
+              </p>
+
+              <h3 class="mt-4 text-xl font-bold tracking-tight sm:text-2xl">{p.title}</h3>
+              <p class:list={['mt-2 text-base leading-relaxed', p.dark ? 'text-cream/75' : 'text-ink-soft']}>
+                {p.summary}
+              </p>
+
+              <ul class="mt-4 grid gap-2">
+                {p.points.map((pt) => (
+                  <li
                     class:list={[
-                      'inline-flex h-9 w-9 items-center justify-center rounded-full',
-                      p.dark ? 'bg-white/10 text-gold' : 'bg-cream text-terracotta',
+                      'flex items-start gap-2 text-sm',
+                      p.dark ? 'text-cream/85' : 'text-charcoal',
                     ]}
                   >
-                    <Icon name={p.icon} class="h-4 w-4" />
-                  </span>
-                  <p class:list={['eyebrow', p.dark ? 'text-gold' : 'text-terracotta']}>
-                    {p.name} · {p.tag}
-                  </p>
-                </div>
-
-                <h3 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{p.title}</h3>
-                <p class:list={['mt-3 leading-relaxed', p.dark ? 'text-cream/75' : 'text-ink-soft']}>
-                  {p.summary}
-                </p>
-
-                <ul class="mt-5 grid gap-2 sm:grid-cols-2">
-                  {p.points.map((pt) => (
-                    <li
-                      class:list={[
-                        'flex items-start gap-2 text-sm',
-                        p.dark ? 'text-cream/85' : 'text-charcoal',
-                      ]}
-                    >
-                      <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
-                      <span>{pt}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" />
+                    <span>{pt}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
+          </div>
 
-            <div class="p-4 pt-0 sm:p-6 sm:pt-0">
-              <ButtonLink href={p.href} variant={p.dark ? 'ghost-dark' : 'secondary'} arrow>
-                {p.cta}
-              </ButtonLink>
-            </div>
-          </article>
-        );
-      })}
+          <div class="button-stack p-3 pt-0 sm:p-6 sm:pt-0">
+            <ButtonLink href={p.href} variant={p.dark ? 'ghost-dark' : 'secondary'} arrow>
+              {p.cta}
+            </ButtonLink>
+          </div>
+        </article>
+      ))}
     </div>
   </div>
 </section>

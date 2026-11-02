@@ -3,7 +3,18 @@ import { formatUsd } from '@studio-gamo/ui/lib/format';
 import Layout from '../../../layouts/Layout.astro';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
 import LiveDiscoveryCard from '../../../components/LiveDiscoveryCard.astro';
+import Container from '../../../components/public/Container.astro';
+import Surface from '../../../components/public/Surface.astro';
+import PhotoHero from '../../../components/public/PhotoHero.astro';
+import SectionHeading from '../../../components/public/SectionHeading.astro';
+import EyebrowPill from '../../../components/public/EyebrowPill.astro';
+import EmptyNotice from '../../../components/public/EmptyNotice.astro';
+import FilterPill from '../../../components/public/FilterPill.astro';
+import MetroLinks from '../../../components/public/MetroLinks.astro';
+import VenueCard from '../../../components/public/VenueCard.astro';
+import OrganizerCta from '../../../components/public/OrganizerCta.astro';
 import {
   LiveCatalog,
   asSqlDatabase,
@@ -72,7 +83,6 @@ if (!metro && !event) {
   Astro.response.status = unavailable ? 503 : 404;
 }
 
-// Event-specific computed properties (when rendering Case B)
 const isExternal = Boolean(
   event &&
   (event.listingType === 'external_discovery' || event.externalOnly || event.admissionType === 'external'),
@@ -122,10 +132,19 @@ const STAGE_HERO_FALLBACKS = [
   '/images/optimized/live-worship-night-hands-raised-1254w.webp',
   '/images/optimized/worship-gospel-worship-leader-golden-light-1122w.webp',
 ];
-const heroImage =
-  event?.artworkRightsVerified && event?.artworkUrl
-    ? event.artworkUrl
-    : STAGE_HERO_FALLBACKS[(event?.slug.length ?? 0) % STAGE_HERO_FALLBACKS.length];
+const hasArtwork = Boolean(event?.artworkRightsVerified && event?.artworkUrl);
+const heroImage = hasArtwork
+  ? event!.artworkUrl!
+  : STAGE_HERO_FALLBACKS[(event?.slug.length ?? 0) % STAGE_HERO_FALLBACKS.length];
+
+const METRO_HERO_IMAGES = [
+  '/images/optimized/live-worship-concert-crowd-wide-1600w.webp',
+  '/images/optimized/live-gospel-vocalists-concert-stage-1254w.webp',
+  '/images/optimized/live-worship-night-hands-raised-1254w.webp',
+];
+const metroHeroImage = metro
+  ? METRO_HERO_IMAGES[GAMO_LIVE_METROS.findIndex((m) => m.slug === metro.slug) % METRO_HERO_IMAGES.length]
+  : METRO_HERO_IMAGES[0];
 
 // Event structured data: only fields present in the event record are emitted.
 const eventPath = event ? `/events/${event.slug}` : '';
@@ -168,7 +187,6 @@ const jsonLd = event
             })),
           }
         : {}),
-      // Offers only when the record carries a real price.
       ...(typeof event.priceMinCents === 'number' && event.priceMinCents >= 0
         ? {
             offers: {
@@ -183,12 +201,12 @@ const jsonLd = event
   : null;
 
 const pageTitle = metro
-  ? `Christian Concerts & Worship Nights in ${metro.displayLabel}`
+  ? `Christian events in ${metro.displayLabel}`
   : event
-    ? `${event.title} — ${event.venueName} (${event.city}, ${event.state})`
+    ? `${event.title} · ${event.venueName}, ${event.city}, ${event.state}`
     : unavailable
       ? 'Events temporarily unavailable'
-      : 'Event unavailable';
+      : 'Event not found';
 
 const pageDescription = metro
   ? clampDescription(
@@ -200,7 +218,32 @@ const pageDescription = metro
     ? clampDescription(
         `${event.title} at ${event.venueName} in ${event.city}, ${event.state}${schedule && schedule.dateLabel !== 'Date TBA' ? ` on ${schedule.dateLabel}` : ''}. ${event.tagline || event.description || ''}`,
       )
-    : 'Only approved Christian concert and worship event listings are publicly available on Gamo Live.';
+    : 'Only approved events are shown on Gamo Live.';
+
+const metroItems = (allMetroSummaries.length > 0 ? allMetroSummaries : GAMO_LIVE_METROS).map((m) => ({
+  slug: m.slug,
+  label: m.displayLabel,
+  count:
+    'publishedEventCount' in m && typeof m.publishedEventCount === 'number'
+      ? m.publishedEventCount
+      : undefined,
+}));
+
+const categoryLabel = event
+  ? event.category === 'worship'
+    ? 'Worship night'
+    : event.category === 'concert'
+      ? 'Concert'
+      : event.category
+  : '';
+
+const toArtistSlug = (name: string) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-');
 ---
 
 <Layout
@@ -210,796 +253,625 @@ const pageDescription = metro
   noindex={!metro && !event}
 >
   {metro ? (
-    /* =======================================================================
-       CASE A: METRO CITY CONCERT DISCOVERY LANDING PAGE (/events/phoenix-az)
-       ======================================================================= */
+    /* CASE A: city page (/events/phoenix-az) */
     <div>
-      {/* Metro Hero */}
-      <section class="bg-ink text-ivory pt-8 pb-12 border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" class="text-xs text-cream/70 mb-5 flex items-center gap-2">
-            <a href="/" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
-              Home
-            </a>
-            <span aria-hidden="true">/</span>
-            <a href="/events" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
-              Events
-            </a>
-            <span aria-hidden="true">/</span>
-            <span class="text-terracotta-soft font-semibold">{metro.displayLabel}</span>
-          </nav>
+      <Container as="section" class="pt-4 sm:pt-5">
+        <nav aria-label="Breadcrumb" class="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+          <a
+            href="/"
+            class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-terracotta-deep"
+          >
+            Home
+          </a>
+          <span aria-hidden="true">/</span>
+          <a href="/events" class="inline-flex min-h-11 items-center hover:text-terracotta-deep">
+            Events
+          </a>
+          <span aria-hidden="true">/</span>
+          <span class="font-semibold text-ink">{metro.displayLabel}</span>
+        </nav>
 
-          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div class="max-w-3xl">
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-terracotta-soft text-xs font-semibold tracking-wider uppercase mb-3">
-                <span>{metro.regionLabel}</span>
-                <span class="w-1 h-1 rounded-full bg-terracotta"></span>
-                <span>
-                  {metroEvents.length} Published {metroEvents.length === 1 ? 'Event' : 'Events'}
-                </span>
-              </div>
-              <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
-                Christian Concerts & Worship Nights in {metro.displayLabel}
-              </h1>
-              <p class="mt-3 text-base sm:text-lg text-line leading-relaxed">{metro.introCopy}</p>
-              <p class="mt-2 text-xs text-cream/70">Serving communities across {metro.cities.join(', ')}.</p>
-            </div>
+        <PhotoHero src={metroHeroImage} alt="" position="object-center" priority>
+          <EyebrowPill tone="dark" class="mb-4">
+            {metro.regionLabel} · {metroEvents.length} {metroEvents.length === 1 ? 'event' : 'events'}
+          </EyebrowPill>
+          <h1 class="max-w-3xl text-[34px] font-black uppercase leading-[1.04] tracking-tight text-white sm:text-5xl lg:text-[56px]">
+            Events in {metro.displayLabel}
+          </h1>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">{metro.introCopy}</p>
+          <p class="mt-2 text-sm text-tan">Serving {metro.cities.join(', ')}.</p>
+        </PhotoHero>
+      </Container>
 
-            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-              <a
-                href={`/events/${metro.slug}`}
-                class={`inline-flex min-h-11 items-center px-4 rounded-full text-xs font-bold transition-colors ${
-                  !categoryFilter && !weekendFilter
-                    ? 'bg-terracotta text-white'
-                    : 'bg-white/10 text-sand hover:bg-white/15'
-                }`}
-              >
-                All in {metro.name}
-              </a>
-              <a
-                href={`/events/${metro.slug}?category=concert`}
-                class={`inline-flex min-h-11 items-center px-4 rounded-full text-xs font-bold transition-colors ${
-                  categoryFilter === 'concert'
-                    ? 'bg-terracotta text-white'
-                    : 'bg-white/10 text-sand hover:bg-white/15'
-                }`}
-              >
-                Concerts
-              </a>
-              <a
-                href={`/events/${metro.slug}?category=worship`}
-                class={`inline-flex min-h-11 items-center px-4 rounded-full text-xs font-bold transition-colors ${
-                  categoryFilter === 'worship'
-                    ? 'bg-terracotta text-white'
-                    : 'bg-white/10 text-sand hover:bg-white/15'
-                }`}
-              >
-                Worship Nights
-              </a>
-              <a
-                href={`/events/${metro.slug}?weekend=1`}
-                class={`inline-flex min-h-11 items-center px-4 rounded-full text-xs font-bold transition-colors ${
-                  weekendFilter ? 'bg-terracotta text-white' : 'bg-white/10 text-sand hover:bg-white/15'
-                }`}
-              >
-                This Weekend (Fri–Sun)
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Metro Events Grid */}
-      <section class="py-12 bg-ivory">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h2 class="text-2xl font-black text-ink uppercase">
-                Upcoming Gatherings in {metro.displayLabel}
-              </h2>
-              <p class="text-sm text-muted mt-0.5">
-                Every listing is verified with a confirmed venue, local schedule, and official HTTPS ticket or
-                organizer link.
-              </p>
-            </div>
+      <Container as="section" class="pt-5">
+        <Surface>
+          <SectionHeading
+            title="Upcoming events"
+            lede="Every listing has a confirmed venue, a local schedule and an official link."
+          >
             <a
+              slot="actions"
               href="/events?metro=all"
-              class="inline-flex min-h-11 items-center text-sm font-semibold text-terracotta hover:underline"
+              class="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-terracotta-deep hover:underline"
             >
-              View all U.S. cities &rarr;
+              All cities
+              <Icon name="arrow" class="h-4 w-4" strokeWidth={2} />
             </a>
+          </SectionHeading>
+
+          <div class="mt-5 flex flex-wrap gap-2">
+            <FilterPill href={`/events/${metro.slug}`} active={!categoryFilter && !weekendFilter}>
+              All
+            </FilterPill>
+            <FilterPill href={`/events/${metro.slug}?category=concert`} active={categoryFilter === 'concert'}>
+              Concerts
+            </FilterPill>
+            <FilterPill href={`/events/${metro.slug}?category=worship`} active={categoryFilter === 'worship'}>
+              Worship nights
+            </FilterPill>
+            <FilterPill href={`/events/${metro.slug}?weekend=1`} active={weekendFilter}>
+              This weekend
+            </FilterPill>
           </div>
 
           {metroEvents.length > 0 ? (
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {metroEvents.map((evt, idx) => (
                 <LiveDiscoveryCard event={evt} index={idx} />
               ))}
             </div>
           ) : (
-            <div class="bg-white rounded-2xl border border-sand p-8 text-center shadow-sm">
-              <h3 class="text-lg font-bold text-ink">No events in {metro.displayLabel} match that filter</h3>
-              <p class="text-sm text-muted mt-2">
-                Reset your category or weekend filter to view all published listings in {metro.displayLabel}.
-              </p>
+            <EmptyNotice
+              class="mt-6"
+              title={
+                categoryFilter || weekendFilter
+                  ? `No events in ${metro.displayLabel} match that filter`
+                  : `No upcoming events in ${metro.displayLabel} yet`
+              }
+              body={
+                categoryFilter || weekendFilter
+                  ? 'Clear the filter to see every event in this city.'
+                  : 'Organizers add events as they are approved. Check back soon, or list your own.'
+              }
+              primary={
+                categoryFilter || weekendFilter
+                  ? { href: `/events/${metro.slug}`, label: `All in ${metro.name}` }
+                  : { href: '/events?metro=all', label: 'All cities' }
+              }
+              secondary={{ href: '/organizer', label: 'List an event' }}
+            />
+          )}
+        </Surface>
+      </Container>
+
+      {metroVenues.length > 0 && (
+        <Container as="section" class="pt-5">
+          <Surface>
+            <SectionHeading
+              title={`Venues in ${metro.displayLabel}`}
+              lede="Places with upcoming events in this city."
+            >
               <a
-                href={`/events/${metro.slug}`}
-                class="mt-4 inline-flex items-center px-5 py-2.5 rounded-full bg-terracotta text-white text-xs font-bold hover:bg-terracotta-deep transition-colors"
+                slot="actions"
+                href={`/venues?metro=${metro.slug}`}
+                class="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-terracotta-deep hover:underline"
               >
-                Show all {metro.displayLabel} events
+                All venues
+                <Icon name="arrow" class="h-4 w-4" strokeWidth={2} />
               </a>
-            </div>
-          )}
-
-          {/* Verified Venues in this Metro */}
-          {metroVenues.length > 0 && (
-            <div class="mt-14 pt-10 border-t border-sand">
-              <div class="flex items-center justify-between gap-4 mb-6">
-                <div>
-                  <h2 class="text-xl sm:text-2xl font-black text-ink uppercase">
-                    Verified Concert Venues & Host Churches in {metro.displayLabel}
-                  </h2>
-                  <p class="text-sm text-muted mt-0.5">
-                    Locations hosting upcoming Christian concerts and worship gatherings in the {metro.name}{' '}
-                    area.
-                  </p>
-                </div>
-                <a
-                  href={`/venues?metro=${metro.slug}`}
-                  class="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-terracotta hover:underline"
-                >
-                  All Venues &rarr;
-                </a>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {metroVenues.map((v) => {
-                  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    [v.venueName, v.address, v.city, v.state].filter(Boolean).join(', '),
-                  )}`;
-                  return (
-                    <div class="bg-white rounded-2xl border border-sand p-5 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div class="flex items-start justify-between gap-3">
-                          <h3 class="font-bold text-ink text-base">{v.venueName}</h3>
-                          <span class="shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-cream text-terracotta-deep">
-                            {v.upcomingEventCount} {v.upcomingEventCount === 1 ? 'event' : 'events'}
-                          </span>
-                        </div>
-                        <p class="text-xs text-muted mt-1">
-                          {v.city}, {v.state}
-                          {v.address ? ` · ${v.address}` : ''}
-                        </p>
-                        <ul class="mt-3 border-t border-cream pt-1">
-                          {v.upcomingEvents.map((ev) => (
-                            <li>
-                              <a
-                                href={`/events/${ev.slug}`}
-                                class="text-xs font-semibold text-ink hover:text-terracotta flex min-h-11 items-center justify-between gap-2"
-                              >
-                                <span class="truncate">{ev.title}</span>
-                                <span class="text-muted shrink-0">{ev.startDateLocal}</span>
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div class="mt-4 pt-3 border-t border-cream flex items-center justify-between text-xs">
-                        <a
-                          href={`/events?venue=${encodeURIComponent(v.venueName)}`}
-                          class="inline-flex min-h-11 items-center font-semibold text-ink hover:text-terracotta"
-                        >
-                          Filter by venue
-                        </a>
-                        <a
-                          href={mapLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex min-h-11 items-center font-semibold text-terracotta hover:underline"
-                        >
-                          Open in Google Maps ↗
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Explore Other U.S. Metros */}
-          <div class="mt-14 pt-10 border-t border-sand">
-            <h2 class="text-lg font-bold text-ink mb-4">Explore Christian Concerts in Other U.S. Cities</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {(allMetroSummaries.length > 0 ? allMetroSummaries : GAMO_LIVE_METROS).map((m) => (
-                <a
-                  href={`/events/${m.slug}`}
-                  class={`p-3.5 rounded-xl border transition-colors flex items-center justify-between ${
-                    m.slug === metro.slug
-                      ? 'bg-ink text-white border-ink'
-                      : 'bg-white text-ink border-sand hover:border-terracotta'
-                  }`}
-                >
-                  <div>
-                    <div class="text-sm font-bold">{m.displayLabel}</div>
-                    {'publishedEventCount' in m && (
-                      <div class={`text-xs ${m.slug === metro.slug ? 'text-line' : 'text-muted'}`}>
-                        {m.publishedEventCount} upcoming{' '}
-                        {m.publishedEventCount === 1 ? 'listing' : 'listings'}
-                      </div>
-                    )}
-                  </div>
-                  <span aria-hidden="true" class="text-sm">
-                    &rarr;
-                  </span>
-                </a>
+            </SectionHeading>
+            <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {metroVenues.map((v) => (
+                <VenueCard venue={v} showMetro={false} />
               ))}
             </div>
-          </div>
+          </Surface>
+        </Container>
+      )}
 
-          {/* Organizer CTA Card */}
-          <div class="mt-12 bg-ink text-ivory rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div class="max-w-2xl">
-              <span class="text-xs font-bold uppercase tracking-wider text-terracotta-soft">
-                Church & Ministry Organizers
-              </span>
-              <h3 class="text-xl font-bold text-white mt-1">
-                Are you hosting a Christian concert or worship gathering in {metro.name}?
-              </h3>
-              <p class="text-sm text-line mt-1.5">
-                Submit your church worship night, conference, or concert for editorial verification and
-                inclusion in the {metro.displayLabel} directory.
-              </p>
-            </div>
-            <a
-              href="/promote"
-              class="shrink-0 inline-flex items-center px-6 py-3 rounded-full bg-terracotta hover:bg-terracotta-deep text-white text-sm font-bold transition-colors"
-            >
-              Submit an Event in {metro.name}
-            </a>
-          </div>
-        </div>
-      </section>
+      <Container as="section" class="pt-5">
+        <Surface>
+          <SectionHeading size="compact" title="Other cities" />
+          <MetroLinks
+            class="mt-4"
+            items={metroItems}
+            href={(slug) => `/events/${slug}`}
+            label="Cities"
+            activeSlug={metro.slug}
+          />
+        </Surface>
+      </Container>
+
+      <Container as="section" class="pb-6 pt-5">
+        <OrganizerCta
+          eyebrow="Churches, ministries and artists"
+          title={`Hosting an event in ${metro.name}?`}
+          body="List it on Gamo Live. Free listings and free registration; Gamo reviews every organization's first event."
+          ctaLabel="List an event"
+          ctaHref="/organizer"
+        />
+      </Container>
     </div>
   ) : event ? (
-    /* =======================================================================
-       CASE B: INDIVIDUAL EVENT DETAIL PAGE (/events/<slug> or /events/<id>)
-       ======================================================================= */
+    /* CASE B: event page (/events/<slug>) */
     <div>
-      {/* Event Detail Header */}
-      <section class="bg-ink text-ivory pt-8 pb-12 border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumbs */}
-          <nav aria-label="Breadcrumb" class="text-xs text-cream/70 mb-6 flex flex-wrap items-center gap-2">
-            <a href="/" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
-              Home
-            </a>
-            <span aria-hidden="true">/</span>
-            <a href="/events" class="inline-flex min-h-11 items-center hover:text-white transition-colors">
-              Events
-            </a>
-            {eventMetro && (
-              <>
-                <span aria-hidden="true">/</span>
-                <a
-                  href={`/events/${eventMetro.slug}`}
-                  class="inline-flex min-h-11 items-center hover:text-white transition-colors"
-                >
-                  {eventMetro.displayLabel}
-                </a>
-              </>
-            )}
-            <span aria-hidden="true">/</span>
-            <span class="text-terracotta-soft font-semibold line-clamp-1">{event.title}</span>
-          </nav>
+      <Container as="section" class="pt-4 sm:pt-5">
+        <nav aria-label="Breadcrumb" class="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+          <a
+            href="/"
+            class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-terracotta-deep"
+          >
+            Home
+          </a>
+          <span aria-hidden="true">/</span>
+          <a href="/events" class="inline-flex min-h-11 items-center hover:text-terracotta-deep">
+            Events
+          </a>
+          {eventMetro && (
+            <>
+              <span aria-hidden="true">/</span>
+              <a
+                href={`/events/${eventMetro.slug}`}
+                class="inline-flex min-h-11 items-center hover:text-terracotta-deep"
+              >
+                {eventMetro.displayLabel}
+              </a>
+            </>
+          )}
+        </nav>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left 7 Columns: Event Core Details */}
-            <div class="lg:col-span-7">
-              <div class="flex flex-wrap items-center gap-2 mb-3">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-terracotta/25 text-terracotta-soft border border-terracotta/40">
-                  {event.category === 'worship' ? 'Worship Night' : 'Concert'}
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-line">
-                  {event.city}, {event.state}
-                </span>
-                {isPast && (
-                  <span
-                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-700 text-stone-100 border border-stone-500"
-                    data-past-closed-badge
-                  >
-                    Past Event · Closed
-                  </span>
-                )}
-              </div>
-
-              <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight uppercase">
-                {event.title}
-              </h1>
-
-              {event.tagline && (
-                <p class="mt-3 text-base sm:text-lg text-line leading-relaxed">{event.tagline}</p>
-              )}
-
-              {/* Performers Badges */}
-              {event.performers && event.performers.length > 0 && (
-                <div class="mt-5">
-                  <p class="text-xs font-semibold uppercase tracking-wider text-cream/70 mb-2">
-                    Featured Artists & Worship Leaders
-                  </p>
-                  <div class="flex flex-wrap gap-2">
-                    {event.performers.map((performer) => {
-                      const artistSlug = performer.displayName
-                        .toLowerCase()
-                        .trim()
-                        .replace(/&/g, 'and')
-                        .replace(/[^a-z0-9\s-]/g, '')
-                        .replace(/\s+/g, '-');
-                      return (
-                        <a
-                          href={`/artists/${artistSlug}`}
-                          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition-colors min-h-11"
-                        >
-                          <span>{performer.displayName}</span>
-                          {performer.roleLabel && (
-                            <span class="text-[10px] text-terracotta-soft font-normal">
-                              · {performer.roleLabel}
-                            </span>
-                          )}
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Key Schedule & Venue Facts Box */}
-              <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-ink border border-white/10 rounded-2xl p-5">
-                <div>
-                  <div class="text-xs font-semibold uppercase tracking-wider text-cream/70">
-                    Local Date & Time
-                  </div>
-                  <div class="text-base font-bold text-white mt-1">
-                    {schedule ? schedule.dateLabel : 'Date TBA'}
-                  </div>
-                  <div class="text-sm text-terracotta-soft font-medium mt-0.5">
-                    {schedule ? schedule.timeLabel : 'Time TBA'}
-                    {event.timezone ? ` (${event.timezone})` : ''}
-                    {isPast ? ' · Past & Closed' : ''}
-                  </div>
-                </div>
-
-                <div>
-                  <div class="text-xs font-semibold uppercase tracking-wider text-cream/70">
-                    Venue & Location
-                  </div>
-                  <div class="text-base font-bold text-white mt-1">{event.venueName}</div>
-                  <div class="text-sm text-line mt-0.5">
-                    {event.address ? `${event.address}, ` : ''}
-                    {event.city}, {event.state}
-                  </div>
-                  <div class="mt-2">
-                    <a
-                      href={googleMapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1 text-xs font-bold text-terracotta-soft hover:text-white underline min-h-11"
-                    >
-                      <span>Open in Google Maps ↗</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right 5 Columns: Sticky / Prominent Action Card */}
-            <div class="lg:col-span-5">
-              {isClosed ? (
-                <div
-                  class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-2xl"
-                  data-event-closed-panel
-                >
-                  <div class="flex items-center justify-between gap-2 pb-4 border-b border-cream">
-                    <div>
-                      <span class="text-[11px] font-bold uppercase tracking-wider text-muted">
-                        Event Status
-                      </span>
-                      <h2 class="text-lg font-extrabold text-ink mt-0.5">
-                        {isPast ? 'Past Event · Closed' : 'Event Canceled · Closed'}
-                      </h2>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-lg bg-cream text-muted text-xs font-semibold">
-                      Closed
-                    </span>
-                  </div>
-                  <p class="mt-4 text-sm text-muted leading-relaxed">
-                    {isPast
-                      ? 'This event has already taken place. Ticket purchases and attendee registration are closed.'
-                      : 'This event has been canceled and is closed for registration.'}
-                  </p>
-                  <div class="mt-5">
-                    <a
-                      href="/events"
-                      class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-ink hover:bg-ink text-white font-bold text-sm transition-colors"
-                    >
-                      <span>Browse Upcoming Events</span>
-                    </a>
-                  </div>
-                </div>
-              ) : isExternal ? (
-                <div class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-2xl">
-                  <div class="flex items-center justify-between gap-2 pb-4 border-b border-cream">
-                    <div>
-                      <span class="text-[11px] font-bold uppercase tracking-wider text-terracotta">
-                        Official External Destination
-                      </span>
-                      <h2 class="text-lg font-extrabold text-ink mt-0.5">
-                        {event.externalTicketProvider
-                          ? `Tickets via ${event.externalTicketProvider}`
-                          : 'Official Event Page'}
-                      </h2>
-                    </div>
-                    {externalDomain && (
-                      <span class="px-2.5 py-1 rounded-lg bg-cream text-muted text-xs font-mono font-semibold">
-                        {externalDomain}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Pricing / Availability Note (Truthful — never invented) */}
-                  <div class="py-4 border-b border-cream">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-muted">
-                      Pricing & Seat Availability
-                    </div>
-                    {typeof event.priceMinCents === 'number' ? (
-                      <p class="text-base font-bold text-ink mt-1">
-                        Starting from {formatUsd(event.priceMinCents)} {event.currency || 'USD'}
-                      </p>
-                    ) : (
-                      <p class="text-sm text-muted mt-1 leading-relaxed">
-                        Check official ticket page for current pricing and seat availability.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Primary External Outbound CTA */}
-                  {event.externalUrl && (
-                    <div class="mt-5">
-                      <a
-                        href={event.externalUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-terracotta hover:bg-terracotta-deep text-white font-bold text-base shadow-md transition-colors"
-                      >
-                        <span>{externalCtaLabel}</span>
-                        <svg
-                          class="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2.2"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
-                          />
-                        </svg>
-                      </a>
-                      <p class="text-[11px] text-muted text-center mt-2">
-                        Opens <strong>{externalDomain || 'official site'}</strong> in a new tab
-                        {formattedVerifiedDate ? ` · Last verified ${formattedVerifiedDate}` : ''}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Save & Share Secondary Actions */}
-                  <div class="mt-4 pt-4 border-t border-cream flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      data-favorite-btn
-                      data-event-slug={event.slug}
-                      data-event-title={event.title}
-                      aria-pressed="false"
-                      class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-sand hover:border-terracotta text-xs font-bold text-ink transition-colors min-h-11"
-                    >
-                      <svg
-                        class="w-4 h-4 text-terracotta"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                        />
-                      </svg>
-                      <span data-favorite-label>Save event</span>
-                    </button>
-
-                    <button
-                      id="share-event-btn"
-                      type="button"
-                      class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-sand hover:border-ink text-xs font-bold text-ink transition-colors min-h-11"
-                    >
-                      <svg
-                        class="w-4 h-4 text-muted"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                        />
-                      </svg>
-                      <span id="share-event-label">Share event</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Organizer-Submitted Event Action Card (Preserves Free/Paid Organizer Flow) */
-                <div class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-xl">
-                  <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
-                    Published Event
-                  </span>
-                  <h2 class="text-xl font-bold text-ink mt-1">
-                    {event.venueName} · {event.city}, {event.state}
-                  </h2>
-                  <p class="text-sm text-muted mt-2">
-                    {event.startsAt.toLocaleString('en-US', {
-                      timeZone: event.timezone,
-                      dateStyle: 'full',
-                      timeStyle: 'short',
-                    })}{' '}
-                    ({event.timezone})
-                  </p>
-                  <p class="text-sm text-muted mt-2">
-                    Organized by <strong>{event.organizerName}</strong>
-                  </p>
-
-                  <p class="mt-2 text-xs text-muted">
-                    {event.organizerVerified ? 'Verified organizer' : 'Not yet verified by Gamo'}
-                  </p>
-                  {event.priceText && (
-                    <p class="mt-3 text-sm text-ink">
-                      <strong>Price:</strong> {event.priceText}
-                    </p>
-                  )}
-                  {event.refundPolicyText && (
-                    <p class="mt-1 text-sm text-ink">
-                      <strong>Refunds:</strong> {event.refundPolicyText}
-                    </p>
-                  )}
-                  {event.admission === 'paid_tickets' && event.paidTickets ? (
-                    event.paidTickets.state === 'on_sale' ? (
-                      <>
-                        <a
-                          class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
-                          href={`/events/${event.slug}/tickets`}
-                        >
-                          Get tickets
-                        </a>
-                        <p class="mt-2 text-xs text-muted">
-                          {event.paidTickets.fromCents != null
-                            ? `From ${formatUsd(event.paidTickets.fromCents)}. `
-                            : ''}
-                          No account needed. {event.paidTickets.refundLine}
-                          {event.paidTickets.sellerLine ? ` ${event.paidTickets.sellerLine}` : ''}
-                        </p>
-                      </>
-                    ) : (
-                      <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
-                        {event.paidTickets.state === 'sold_out'
-                          ? 'Sold out.'
-                          : event.paidTickets.state === 'not_open' && event.paidTickets.opensAt
-                            ? `Tickets go on sale ${new Date(event.paidTickets.opensAt * 1000).toLocaleString('en-US', { timeZone: event.timezone, dateStyle: 'medium', timeStyle: 'short' })}.`
-                            : 'Ticket sales have ended.'}
-                      </p>
-                    )
-                  ) : event.admission === 'free_registration' ? (
-                    event.capacity != null && event.seatsTaken >= event.capacity ? (
-                      <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
-                        Registration full. Check back in case seats open up.
-                      </p>
-                    ) : (
-                      <>
-                        <a
-                          class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
-                          href={`/events/${event.slug}/register`}
-                        >
-                          Register free
-                        </a>
-                        <p class="mt-2 text-xs text-muted">
-                          No account needed.
-                          {event.capacity != null
-                            ? ` ${Math.max(0, event.capacity - event.seatsTaken)} seats left.`
-                            : ''}
-                          {event.qrCheckin ? ' You will get a QR code for check-in.' : ''}
-                        </p>
-                      </>
-                    )
-                  ) : (
-                    <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
-                      Free event. No registration needed; just come.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Event Body & Editorial Summary */}
-      <section class="py-12 bg-ivory">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-7 space-y-8">
-              {/* Visual Stage Atmosphere Banner */}
-              <div class="relative rounded-2xl overflow-hidden border border-sand aspect-[16/9] bg-ink">
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-start">
+          {/* Photo first, then the title block */}
+          <div class="lg:col-span-7">
+            <Surface padding="none">
+              <div class="relative aspect-[16/10] bg-ink sm:aspect-[16/9]">
                 <img
                   src={heroImage}
-                  alt={
-                    event.artworkRightsVerified && event.artworkUrl
-                      ? `${event.title} official event artwork`
-                      : `Live worship and concert stage atmosphere for ${event.title}`
-                  }
-                  class="w-full h-full object-cover"
+                  alt={hasArtwork ? `${event.title} event artwork` : ''}
+                  fetchpriority="high"
+                  decoding="async"
+                  class="absolute inset-0 h-full w-full object-cover"
                 />
-                {!event.artworkRightsVerified && (
-                  <span class="absolute bottom-3 right-3 text-[11px] font-medium text-white/85 bg-black/55 px-2.5 py-1 rounded-md backdrop-blur-sm">
-                    Representative stage atmosphere · Official artwork remains on ticket provider site
+                {!hasArtwork && (
+                  <span class="absolute bottom-3 right-3 rounded-md bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white">
+                    Stage photo, not this event
                   </span>
                 )}
               </div>
 
-              {/* About this Gathering */}
-              <div class="bg-white rounded-2xl border border-sand p-6 sm:p-8 shadow-sm">
-                <h2 class="text-xl font-bold text-ink">About This Event</h2>
-                <p class="mt-3 text-base text-muted leading-relaxed whitespace-pre-line">
-                  {event.description}
-                </p>
+              <div class="p-5 sm:p-8">
+                <div class="flex flex-wrap items-center gap-2">
+                  <EyebrowPill>{categoryLabel}</EyebrowPill>
+                  <EyebrowPill>
+                    {event.city}, {event.state}
+                  </EyebrowPill>
+                  {isPast && (
+                    <span
+                      class="inline-flex items-center rounded-full bg-ink px-3 py-1 text-xs font-semibold text-cream"
+                      data-past-closed-badge
+                    >
+                      Past · Closed
+                    </span>
+                  )}
+                </div>
 
-                {isExternal && (
-                  <div class="mt-6 pt-6 border-t border-cream text-xs text-muted space-y-1.5">
-                    <p>
-                      <strong>Listing Attribution:</strong> Published by{' '}
-                      {event.publishedByLabel || 'Gamo Live Listings'}.
-                      {event.originalOrganizerName
-                        ? ` Original promoter/organizer: ${event.originalOrganizerName}.`
-                        : ''}
-                    </p>
-                    <p>
-                      <strong>External Ticketing Notice:</strong> Clicking "{externalCtaLabel}" takes you
-                      directly to <span class="font-mono">{externalDomain || 'the external event page'}</span>
-                      . Always verify final door times, bag policies, and seat prices on the official ticket
-                      page before traveling.
-                    </p>
+                <h1 class="mt-4 text-[28px] font-black uppercase leading-[1.06] tracking-tight text-ink sm:text-[40px] lg:text-[44px]">
+                  {event.title}
+                </h1>
+
+                {event.tagline && (
+                  <p class="mt-3 text-[15px] leading-relaxed text-muted sm:text-base">{event.tagline}</p>
+                )}
+
+                <div class="mt-6 grid grid-cols-1 gap-4 border-t border-cream pt-5 sm:grid-cols-2">
+                  <div class="flex gap-3">
+                    <Icon
+                      name="calendar"
+                      class="mt-0.5 h-5 w-5 shrink-0 text-terracotta-deep"
+                      strokeWidth={1.8}
+                    />
+                    <div>
+                      <p class="text-xs font-semibold text-muted">Date and time</p>
+                      <p class="mt-0.5 text-[15px] font-bold text-ink">
+                        {schedule ? schedule.dateLabel : 'Date TBA'}
+                      </p>
+                      <p class="text-sm text-muted">
+                        {schedule ? schedule.timeLabel : 'Time TBA'}
+                        {event.timezone ? ` (${event.timezone})` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex gap-3">
+                    <Icon name="pin" class="mt-0.5 h-5 w-5 shrink-0 text-terracotta-deep" strokeWidth={1.8} />
+                    <div>
+                      <p class="text-xs font-semibold text-muted">Venue</p>
+                      <p class="mt-0.5 text-[15px] font-bold text-ink">{event.venueName}</p>
+                      <p class="text-sm text-muted">
+                        {event.address ? `${event.address}, ` : ''}
+                        {event.city}, {event.state}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {event.performers && event.performers.length > 0 && (
+                  <div class="mt-5 border-t border-cream pt-5">
+                    <p class="text-xs font-semibold text-muted">Performers</p>
+                    <ul class="mt-2 flex flex-wrap gap-2">
+                      {event.performers.map((performer) => (
+                        <li>
+                          <a
+                            href={`/artists/${toArtistSlug(performer.displayName)}`}
+                            class="inline-flex min-h-11 items-center gap-2 rounded-full border border-sand bg-cream px-3.5 text-sm font-semibold text-ink transition-colors hover:border-terracotta-soft hover:text-terracotta-deep"
+                          >
+                            <span>{performer.displayName}</span>
+                            {performer.roleLabel && (
+                              <span class="text-xs font-normal text-muted">· {performer.roleLabel}</span>
+                            )}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
-            </div>
+            </Surface>
+          </div>
 
-            {/* Right 5 Columns: Venue Details Card */}
-            <div class="lg:col-span-5 space-y-6">
-              <div class="bg-white rounded-2xl border border-sand p-6 shadow-sm">
-                <h2 class="text-lg font-bold text-ink">Venue & Directions</h2>
-                <p class="text-base font-bold text-ink mt-3">{event.venueName}</p>
-                {event.address ? (
-                  <p class="text-sm text-muted mt-0.5">{event.address}</p>
-                ) : (
-                  <p class="text-xs text-muted mt-0.5">
-                    Street address not listed in summary — see official venue/ticket page or Google Maps.
-                  </p>
+          {/* Action panel: states and forms unchanged */}
+          <div class="lg:col-span-5 lg:sticky lg:top-24">
+            {isClosed ? (
+              <div
+                class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-2xl"
+                data-event-closed-panel
+              >
+                <div class="flex items-center justify-between gap-2 pb-4 border-b border-cream">
+                  <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-muted">
+                      Event Status
+                    </span>
+                    <h2 class="text-lg font-extrabold text-ink mt-0.5">
+                      {isPast ? 'Past Event · Closed' : 'Event Canceled · Closed'}
+                    </h2>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-cream text-muted text-xs font-semibold">Closed</span>
+                </div>
+                <p class="mt-4 text-sm text-muted leading-relaxed">
+                  {isPast
+                    ? 'This event has already taken place. Ticket purchases and attendee registration are closed.'
+                    : 'This event has been canceled and is closed for registration.'}
+                </p>
+                <div class="mt-5">
+                  <a
+                    href="/events"
+                    class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-ink hover:bg-ink text-white font-bold text-sm transition-colors"
+                  >
+                    <span>Browse Upcoming Events</span>
+                  </a>
+                </div>
+              </div>
+            ) : isExternal ? (
+              <div class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-2xl">
+                <div class="flex items-center justify-between gap-2 pb-4 border-b border-cream">
+                  <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-terracotta">
+                      Official External Destination
+                    </span>
+                    <h2 class="text-lg font-extrabold text-ink mt-0.5">
+                      {event.externalTicketProvider
+                        ? `Tickets via ${event.externalTicketProvider}`
+                        : 'Official Event Page'}
+                    </h2>
+                  </div>
+                  {externalDomain && (
+                    <span class="px-2.5 py-1 rounded-lg bg-cream text-muted text-xs font-mono font-semibold">
+                      {externalDomain}
+                    </span>
+                  )}
+                </div>
+
+                {/* Pricing / Availability Note (Truthful — never invented) */}
+                <div class="py-4 border-b border-cream">
+                  <div class="text-xs font-semibold uppercase tracking-wider text-muted">
+                    Pricing & Seat Availability
+                  </div>
+                  {typeof event.priceMinCents === 'number' ? (
+                    <p class="text-base font-bold text-ink mt-1">
+                      Starting from {formatUsd(event.priceMinCents)} {event.currency || 'USD'}
+                    </p>
+                  ) : (
+                    <p class="text-sm text-muted mt-1 leading-relaxed">
+                      Check official ticket page for current pricing and seat availability.
+                    </p>
+                  )}
+                </div>
+
+                {/* Primary External Outbound CTA */}
+                {event.externalUrl && (
+                  <div class="mt-5">
+                    <a
+                      href={event.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-terracotta hover:bg-terracotta-deep text-white font-bold text-base shadow-md transition-colors"
+                    >
+                      <span>{externalCtaLabel}</span>
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                        />
+                      </svg>
+                    </a>
+                    <p class="text-[11px] text-muted text-center mt-2">
+                      Opens <strong>{externalDomain || 'official site'}</strong> in a new tab
+                      {formattedVerifiedDate ? ` · Last verified ${formattedVerifiedDate}` : ''}
+                    </p>
+                  </div>
                 )}
-                <p class="text-sm text-muted mt-0.5">
-                  {event.city}, {event.state}
+
+                {/* Save & Share Secondary Actions */}
+                <div class="mt-4 pt-4 border-t border-cream flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    data-favorite-btn
+                    data-event-slug={event.slug}
+                    data-event-title={event.title}
+                    aria-pressed="false"
+                    class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-sand hover:border-terracotta text-xs font-bold text-ink transition-colors min-h-11"
+                  >
+                    <svg
+                      class="w-4 h-4 text-terracotta"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                      />
+                    </svg>
+                    <span data-favorite-label>Save event</span>
+                  </button>
+
+                  <button
+                    id="share-event-btn"
+                    type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-sand hover:border-ink text-xs font-bold text-ink transition-colors min-h-11"
+                  >
+                    <svg
+                      class="w-4 h-4 text-muted"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                      />
+                    </svg>
+                    <span id="share-event-label">Share event</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Organizer-Submitted Event Action Card (Preserves Free/Paid Organizer Flow) */
+              <div class="bg-white text-ink rounded-2xl border border-sand p-6 shadow-xl">
+                <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
+                  Published Event
+                </span>
+                <h2 class="text-xl font-bold text-ink mt-1">
+                  {event.venueName} · {event.city}, {event.state}
+                </h2>
+                <p class="text-sm text-muted mt-2">
+                  {event.startsAt.toLocaleString('en-US', {
+                    timeZone: event.timezone,
+                    dateStyle: 'full',
+                    timeStyle: 'short',
+                  })}{' '}
+                  ({event.timezone})
+                </p>
+                <p class="text-sm text-muted mt-2">
+                  Organized by <strong>{event.organizerName}</strong>
                 </p>
 
-                <div class="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cream hover:bg-sand text-xs font-bold text-ink transition-colors min-h-11"
-                  >
-                    <span>Open in Google Maps ↗</span>
-                  </a>
-                  <a
-                    href={`/events?venue=${encodeURIComponent(event.venueName)}`}
-                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-sand hover:border-ink text-xs font-semibold text-muted transition-colors min-h-11"
-                  >
-                    <span>More at {event.venueName}</span>
-                  </a>
-                </div>
+                <p class="mt-2 text-xs text-muted">
+                  {event.organizerVerified ? 'Verified organizer' : 'Not yet verified by Gamo'}
+                </p>
+                {event.priceText && (
+                  <p class="mt-3 text-sm text-ink">
+                    <strong>Price:</strong> {event.priceText}
+                  </p>
+                )}
+                {event.refundPolicyText && (
+                  <p class="mt-1 text-sm text-ink">
+                    <strong>Refunds:</strong> {event.refundPolicyText}
+                  </p>
+                )}
+                {event.admission === 'paid_tickets' && event.paidTickets ? (
+                  event.paidTickets.state === 'on_sale' ? (
+                    <>
+                      <a
+                        class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
+                        href={`/events/${event.slug}/tickets`}
+                      >
+                        Get tickets
+                      </a>
+                      <p class="mt-2 text-xs text-muted">
+                        {event.paidTickets.fromCents != null
+                          ? `From ${formatUsd(event.paidTickets.fromCents)}. `
+                          : ''}
+                        No account needed. {event.paidTickets.refundLine}
+                        {event.paidTickets.sellerLine ? ` ${event.paidTickets.sellerLine}` : ''}
+                      </p>
+                    </>
+                  ) : (
+                    <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                      {event.paidTickets.state === 'sold_out'
+                        ? 'Sold out.'
+                        : event.paidTickets.state === 'not_open' && event.paidTickets.opensAt
+                          ? `Tickets go on sale ${new Date(event.paidTickets.opensAt * 1000).toLocaleString('en-US', { timeZone: event.timezone, dateStyle: 'medium', timeStyle: 'short' })}.`
+                          : 'Ticket sales have ended.'}
+                    </p>
+                  )
+                ) : event.admission === 'free_registration' ? (
+                  event.capacity != null && event.seatsTaken >= event.capacity ? (
+                    <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                      Registration full. Check back in case seats open up.
+                    </p>
+                  ) : (
+                    <>
+                      <a
+                        class="mt-6 w-full inline-flex min-h-11 items-center justify-center rounded-full bg-terracotta hover:bg-terracotta-deep px-6 py-3 font-semibold text-white transition-colors"
+                        href={`/events/${event.slug}/register`}
+                      >
+                        Register free
+                      </a>
+                      <p class="mt-2 text-xs text-muted">
+                        No account needed.
+                        {event.capacity != null
+                          ? ` ${Math.max(0, event.capacity - event.seatsTaken)} seats left.`
+                          : ''}
+                        {event.qrCheckin ? ' You will get a QR code for check-in.' : ''}
+                      </p>
+                    </>
+                  )
+                ) : (
+                  <p class="mt-6 rounded-xl bg-cream p-4 text-sm text-ink">
+                    Free event. No registration needed; just come.
+                  </p>
+                )}
               </div>
+            )}
+          </div>
 
-              {eventMetro && (
-                <div class="bg-white rounded-2xl border border-sand p-6 shadow-sm">
-                  <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
-                    Metro Concert Guide
-                  </span>
-                  <h3 class="text-base font-bold text-ink mt-1">Exploring {eventMetro.displayLabel}?</h3>
-                  <p class="text-xs text-muted mt-1 leading-relaxed">{eventMetro.introCopy}</p>
-                  <a
-                    href={`/events/${eventMetro.slug}`}
-                    class="mt-4 inline-flex items-center gap-1 text-xs font-bold text-terracotta hover:underline"
-                  >
-                    <span>View all {eventMetro.displayLabel} concerts & worship nights</span>
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
+          {/* About, venue and city guide */}
+          <div class="space-y-5 lg:col-span-7">
+            <Surface>
+              <h2 class="text-xl font-bold text-ink">About this event</h2>
+              <p class="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted sm:text-base">
+                {event.description}
+              </p>
+
+              {isExternal && (
+                <div class="mt-6 space-y-1.5 border-t border-cream pt-5 text-xs text-muted">
+                  <p>
+                    Listed by {event.publishedByLabel || 'Gamo Live Listings'}.
+                    {event.originalOrganizerName ? ` Organizer: ${event.originalOrganizerName}.` : ''}
+                  </p>
+                  <p>
+                    "{externalCtaLabel}" opens{' '}
+                    <span class="font-mono">{externalDomain || 'the official event page'}</span>. Check door
+                    times, bag rules and prices there before you travel.
+                  </p>
                 </div>
               )}
-            </div>
-          </div>
+            </Surface>
 
-          {/* Related Upcoming Events */}
-          {relatedEvents.length > 0 && (
-            <div class="mt-14 pt-10 border-t border-sand">
-              <div class="flex items-center justify-between gap-4 mb-6">
-                <h2 class="text-2xl font-black text-ink uppercase">
-                  More Upcoming Concerts & Worship Gatherings
-                </h2>
+            <Surface>
+              <h2 class="text-xl font-bold text-ink">Venue</h2>
+              <p class="mt-3 text-[15px] font-bold text-ink">{event.venueName}</p>
+              {event.address ? (
+                <p class="text-sm text-muted">{event.address}</p>
+              ) : (
+                <p class="text-sm text-muted">
+                  No street address listed. Check the official page or the map.
+                </p>
+              )}
+              <p class="text-sm text-muted">
+                {event.city}, {event.state}
+              </p>
+              <div class="mt-5 flex flex-col gap-2.5 sm:flex-row">
                 <a
-                  href="/events"
-                  class="inline-flex min-h-11 items-center text-sm font-semibold text-terracotta hover:underline"
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-cream px-4 text-sm font-semibold text-ink transition-colors hover:bg-sand"
                 >
-                  Browse all events &rarr;
+                  Open in Google Maps
+                  <Icon name="external" class="h-3.5 w-3.5" strokeWidth={2} />
+                  <span class="sr-only">(opens in a new tab)</span>
+                </a>
+                <a
+                  href={`/events?venue=${encodeURIComponent(event.venueName)}`}
+                  class="inline-flex min-h-11 items-center justify-center rounded-full border border-sand px-4 text-sm font-semibold text-ink transition-colors hover:border-terracotta-soft"
+                >
+                  More at this venue
                 </a>
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedEvents.map((rel, idx) => (
-                  <LiveDiscoveryCard event={rel} index={idx} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-    </div>
-  ) : (
-    /* =======================================================================
-       CASE C: 404 / UNAVAILABLE STATE
-       ======================================================================= */
-    <section class="py-16 bg-ivory min-h-[60vh]">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 text-center">
-        <div class="bg-white rounded-2xl border border-sand p-8 sm:p-12 shadow-sm">
-          <span class="text-xs font-bold uppercase tracking-wider text-terracotta">
-            {unavailable ? 'Service Temporarily Unavailable' : 'Listing Not Found'}
-          </span>
-          <h1 class="text-2xl sm:text-3xl font-black text-ink mt-2 uppercase">
-            {unavailable ? 'Events are temporarily unavailable.' : 'This event is not available.'}
-          </h1>
-          <p class="text-sm text-muted mt-3 leading-relaxed">
-            Only approved Christian concert and worship event listings are publicly available. The event may
-            have ended, been held for editorial link verification, or moved.
-          </p>
-          <div class="mt-6 flex flex-wrap justify-center gap-3">
-            <a
-              href="/events"
-              class="inline-flex items-center px-6 py-3 rounded-full bg-terracotta text-white text-sm font-bold hover:bg-terracotta-deep transition-colors"
-            >
-              Browse events
-            </a>
-            <a
-              href="/events/phoenix-az"
-              class="inline-flex items-center px-6 py-3 rounded-full bg-cream text-ink text-sm font-semibold hover:bg-sand transition-colors"
-            >
-              Phoenix, AZ Concerts
-            </a>
+            </Surface>
+
+            {eventMetro && (
+              <Surface>
+                <EyebrowPill>City guide</EyebrowPill>
+                <h2 class="mt-3 text-xl font-bold text-ink">Going to {eventMetro.displayLabel}?</h2>
+                <p class="mt-2 text-sm leading-relaxed text-muted">{eventMetro.introCopy}</p>
+                <a
+                  href={`/events/${eventMetro.slug}`}
+                  class="mt-4 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-terracotta-deep hover:underline"
+                >
+                  All events in {eventMetro.displayLabel}
+                  <Icon name="arrow" class="h-4 w-4" strokeWidth={2} />
+                </a>
+              </Surface>
+            )}
           </div>
         </div>
+      </Container>
+
+      {relatedEvents.length > 0 && (
+        <Container as="section" class="pb-6 pt-5">
+          <Surface>
+            <SectionHeading title="More events">
+              <a
+                slot="actions"
+                href="/events"
+                class="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-terracotta-deep hover:underline"
+              >
+                All events
+                <Icon name="arrow" class="h-4 w-4" strokeWidth={2} />
+              </a>
+            </SectionHeading>
+            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedEvents.map((rel, idx) => (
+                <LiveDiscoveryCard event={rel} index={idx} />
+              ))}
+            </div>
+          </Surface>
+        </Container>
+      )}
+    </div>
+  ) : (
+    /* CASE C: not found or unavailable */
+    <Container as="section" class="pb-10 pt-6">
+      <div class="mx-auto max-w-2xl">
+        <h1 class="sr-only">{unavailable ? 'Events are temporarily unavailable' : 'Event not found'}</h1>
+        <EmptyNotice
+          title={unavailable ? 'Events are temporarily unavailable' : 'This event is not available'}
+          body={
+            unavailable
+              ? 'Please try again in a moment.'
+              : 'It may have ended, moved, or not been approved yet.'
+          }
+          primary={{ href: '/events', label: 'All events' }}
+          secondary={{ href: '/events/phoenix-az', label: 'Phoenix, AZ events' }}
+        />
       </div>
-    </section>
+    </Container>
   )}
 
   <script>
@@ -1054,7 +926,7 @@ const pageDescription = metro
           const url = window.location.href;
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(function () {
-              if (shareLabel) shareLabel.textContent = 'Link copied!';
+              if (shareLabel) shareLabel.textContent = 'Link copied';
               setTimeout(function () {
                 if (shareLabel) shareLabel.textContent = 'Share event';
               }, 2000);

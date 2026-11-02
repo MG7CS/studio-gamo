@@ -1,5 +1,5 @@
 /**
- * SAMPLE instructor profiles — fictional people for layout only.
+ * * SAMPLE instructor profiles: fictional people for layout only.
  * No photos are used for instructors; avatars render initials.
  */
 export interface Instructor {

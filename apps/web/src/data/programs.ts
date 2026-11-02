@@ -1,4 +1,4 @@
-/** The four interconnected Gamo Studios programs (organizational copy, not sample data). */
+/** The four connected Gamo Studios programs (organizational copy, not sample data). */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 import type { IconName } from '@studio-gamo/ui/lib/icons';
@@ -16,23 +16,23 @@ export interface Program {
 
 export const programs: Program[] = [
   {
-    key: 'worship', name: 'Gamo Worship', short: 'Find and request skilled worship musicians',
-    summary: 'A vetted collection of worship musicians helping churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
+    key: 'worship', name: 'Gamo Worship', short: 'Musicians for any occasion',
+    summary: 'Vetted worship musicians for services, concerts and events. Musician pay is always its own line item.',
     href: siteUrl('worship'), photo: 'worshipBand', icon: 'music', accent: 'var(--color-tan)',
   },
   {
     key: 'academy', name: 'Gamo Academy', short: 'Learn to Play the Instrument You Love.',
-    summary: 'Music lessons for students and families, taught by caring instructors, with community and church-hosted programs being planned.',
+    summary: 'Music lessons for anyone, taught by caring instructors. Classes can be sponsored by a church or organization.',
     href: siteUrl('academy'), photo: 'boyGuitar', icon: 'school', accent: 'var(--color-sand)',
   },
   {
-    key: 'live', name: 'Gamo Live', short: 'Discover Christian events nationwide',
-    summary: 'A place to share and discover worship nights, concerts and Christian community events across the country, with sponsored content always labeled.',
+    key: 'live', name: 'Gamo Live', short: 'Christian events nationwide',
+    summary: 'Find and share worship nights, concerts and gatherings across the country. Sponsored content is always labeled.',
     href: siteUrl('web', '/live'), photo: 'worshipNight', icon: 'calendar', accent: 'color-mix(in srgb, var(--color-terracotta-soft) 35%, var(--color-cream))',
   },
   {
-    key: 'production', name: 'Gamo Production', short: 'Sound, light and media support',
-    summary: 'Technical guidance and production support that helps churches and ministries serve their gatherings with clarity and care.',
+    key: 'production', name: 'Gamo Production', short: 'Sound, light and media',
+    summary: 'Technical guidance and production support so churches can serve their gatherings with clarity.',
     href: siteUrl('production'), photo: 'soundEngineer', icon: 'video', accent: 'var(--color-line)',
   },
 ];

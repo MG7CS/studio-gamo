@@ -1,0 +1,38 @@
+---
+/**
+ * A large rounded photo card with text over its lower part. The photo is the first thing on
+ * every screen size; content sits at the bottom left. Pass `priority` on the page's first hero.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  position?: string;
+  priority?: boolean;
+  class?: string;
+}
+const { src, alt, position = 'object-center', priority = false, class: className } = Astro.props;
+---
+
+<div
+  data-surface="dark"
+  class:list={[
+    'relative flex min-h-[520px] flex-col justify-end overflow-hidden rounded-[24px] bg-ink text-white sm:min-h-[560px] sm:rounded-[28px] lg:min-h-[600px]',
+    className,
+  ]}
+>
+  <img
+    src={src}
+    alt={alt}
+    class:list={['absolute inset-0 h-full w-full object-cover', position]}
+    fetchpriority={priority ? 'high' : undefined}
+    loading={priority ? undefined : 'lazy'}
+    decoding="async"
+  />
+  <div
+    class="absolute inset-0 bg-gradient-to-t from-night/95 via-night/45 to-night/5"
+    aria-hidden="true"
+  ></div>
+  <div class="relative z-10 p-5 pt-24 sm:p-10 lg:p-14">
+    <slot />
+  </div>
+</div>

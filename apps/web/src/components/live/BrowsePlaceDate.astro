@@ -11,16 +11,14 @@ const cities = [...new Set(events.map((e) => `${e.city}, ${e.state}`))];
 const dates = [...new Set(events.filter((e) => !e.isPast).map((e) => e.date))].sort().slice(0, 10);
 ---
 
-<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="browse-title">
+<section class="bg-ivory px-5 section-space sm:px-8" aria-labelledby="browse-title">
   <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
     <div class="min-w-0">
-      <p class="eyebrow text-terracotta">Browse by location</p>
-      <h2 id="browse-title" class="section-heading mt-3 text-balance">
+      <p class="eyebrow-pill">Browse by place</p>
+      <h2 id="browse-title" class="section-heading mt-4 text-balance">
         Christian events, <span class="text-terracotta">nationwide.</span>
       </h2>
-      <p class="mt-4 max-w-md text-ink-soft">
-        Choose a city to explore upcoming gatherings. No map tracking — just simple places.
-      </p>
+      <p class="mt-4 max-w-md text-base text-ink-soft">Choose a city to see its upcoming gatherings.</p>
       <ul class="mt-8 flex flex-wrap gap-2">
         {cities.map((c) => (
           <li>
@@ -36,8 +34,8 @@ const dates = [...new Set(events.filter((e) => !e.isPast).map((e) => e.date))].s
       </ul>
     </div>
     <div class="min-w-0">
-      <p class="eyebrow text-terracotta">Browse by date</p>
-      <h3 class="section-subheading mt-3">Pick a day.</h3>
+      <p class="eyebrow-pill">Browse by date</p>
+      <h3 class="section-subheading mt-4">Pick a day.</h3>
       <ol class="scroll-rail mt-8 flex snap-x gap-3 overflow-x-auto pb-3" aria-label="Upcoming event dates">
         {dates.map((iso, i) => {
           const d = dateParts(iso);
@@ -75,7 +73,7 @@ const dates = [...new Set(events.filter((e) => !e.isPast).map((e) => e.date))].s
         ].map(([l, h]) => (
           <a
             href={h}
-            class="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-sand hover:ring-terracotta"
+            class="flex min-h-11 items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-sand hover:ring-terracotta"
           >
             {l}
             <Icon name="arrow" class="h-4 w-4 text-terracotta" />

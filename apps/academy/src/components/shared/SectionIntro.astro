@@ -1,0 +1,69 @@
+---
+/**
+ * Section intro used on every Academy section: small pill eyebrow, short bold title
+ * (optional terracotta accent) and a one-line lede. Shared pattern so sections read the same.
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  accent?: string;
+  lede?: string;
+  as?: 'h1' | 'h2' | 'h3';
+  size?: 'hero' | 'page' | 'section' | 'sub';
+  tone?: 'light' | 'dark';
+  align?: 'left' | 'center';
+  id?: string;
+  class?: string;
+}
+const {
+  eyebrow,
+  title,
+  accent,
+  lede,
+  as: Tag = 'h2',
+  size = 'section',
+  tone = 'light',
+  align = 'left',
+  id,
+  class: className,
+} = Astro.props;
+const dark = tone === 'dark';
+const titleClass = {
+  hero: 'academy-title-hero',
+  page: 'academy-title-page',
+  section: 'academy-title-section',
+  sub: 'academy-title-sub',
+}[size];
+---
+
+<div class:list={['max-w-3xl', align === 'center' && 'mx-auto text-center', className]}>
+  {eyebrow && (
+    <p
+      class:list={[
+        'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+        dark ? 'bg-white/10 text-gold' : 'bg-cream text-terracotta-dark ring-1 ring-sand',
+      ]}
+    >
+      {eyebrow}
+    </p>
+  )}
+  <Tag
+    id={id}
+    class:list={[titleClass, 'text-balance', eyebrow && 'mt-4', dark ? 'text-cream' : 'text-charcoal']}
+  >
+    {title}
+    {accent && <span class:list={['block', dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>}
+  </Tag>
+  {lede && (
+    <p
+      class:list={[
+        'mt-4 max-w-2xl text-base leading-relaxed sm:text-lg',
+        align === 'center' && 'mx-auto',
+        dark ? 'text-cream/75' : 'text-ink-soft',
+      ]}
+    >
+      {lede}
+    </p>
+  )}
+  <slot />
+</div>

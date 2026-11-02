@@ -1,0 +1,58 @@
+---
+/**
+ * The one heading pattern for public pages: pill eyebrow, short bold title, one-line lede,
+ * and an optional `actions` slot that sits to the right on desktop and stacks on phones.
+ */
+import EyebrowPill from './EyebrowPill.astro';
+
+interface Props {
+  title: string;
+  eyebrow?: string;
+  lede?: string;
+  level?: 1 | 2 | 3;
+  size?: 'page' | 'section' | 'compact';
+  tone?: 'light' | 'dark';
+  id?: string;
+  class?: string;
+}
+const {
+  title,
+  eyebrow,
+  lede,
+  level = 2,
+  size = 'section',
+  tone = 'light',
+  id,
+  class: className,
+} = Astro.props;
+const Tag = `h${level}` as 'h1' | 'h2' | 'h3';
+const titleClass = {
+  page: 'text-[30px] leading-[1.04] sm:text-[40px] lg:text-[48px] font-black tracking-tight uppercase',
+  section: 'text-[24px] leading-[1.08] sm:text-[30px] font-black tracking-tight uppercase',
+  compact: 'text-[20px] leading-tight sm:text-[22px] font-extrabold tracking-tight',
+}[size];
+const dark = tone === 'dark';
+---
+
+<div class:list={['flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between', className]}>
+  <div class="max-w-2xl">
+    {eyebrow && (
+      <EyebrowPill tone={tone} class="mb-3">
+        {eyebrow}
+      </EyebrowPill>
+    )}
+    <Tag id={id} class:list={[titleClass, dark ? 'text-white' : 'text-ink']}>
+      {title}
+    </Tag>
+    {lede && (
+      <p class:list={['mt-3 text-[15px] leading-relaxed sm:text-base', dark ? 'text-sand' : 'text-muted']}>
+        {lede}
+      </p>
+    )}
+  </div>
+  {Astro.slots.has('actions') && (
+    <div class="flex flex-col gap-2.5 sm:shrink-0 sm:flex-row sm:items-center">
+      <slot name="actions" />
+    </div>
+  )}
+</div>

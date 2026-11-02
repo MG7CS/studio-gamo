@@ -1,54 +1,49 @@
 ---
-/** Instrument landing body: first-steps list beside a typographic “who it suits” panel. */
+/** Instrument page body: first-lessons list beside a tinted "who it suits" panel. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
+import Panel from '../shared/Panel.astro';
+import SectionIntro from '../shared/SectionIntro.astro';
 import type { Instrument } from '../../data/instruments';
 interface Props {
   instrument: Instrument;
 }
 const { instrument: i } = Astro.props;
+const suits = [i.ages, 'Complete beginners welcome', 'Private or group lessons', 'Online or in person'];
 ---
 
-<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-20" data-reveal>
-  <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-    <div class="rounded-[32px] bg-white p-8 ring-1 ring-sand sm:p-10">
-      <p class="eyebrow text-terracotta">Your first lessons</p>
-      <h2 class="section-subheading mt-3">What you'll learn first</h2>
-      <ol class="mt-8 space-y-5">
+<section class="px-4 pb-16 sm:px-8 lg:pb-20" data-reveal>
+  <div class="mx-auto grid max-w-[1320px] gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+    <Panel>
+      <SectionIntro eyebrow="First lessons" title="What you learn first" size="sub" />
+      <ol class="mt-6 divide-y divide-sand">
         {i.firstSteps.map((s, n) => (
-          <li class="flex items-center gap-5 border-b border-sand pb-5 last:border-0">
-            <span
-              aria-hidden="true"
-              data-glyph={String(n + 1).padStart(2, '0')}
-              class="text-4xl font-black tracking-tighter text-terracotta/30 after:content-[attr(data-glyph)]"
-            ></span>
-            <span class="text-lg font-semibold">{s}</span>
+          <li class="flex items-center gap-4 py-4">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-sm font-bold text-terracotta-dark">
+              {n + 1}
+            </span>
+            <span class="font-semibold sm:text-lg">{s}</span>
           </li>
         ))}
       </ol>
-    </div>
-    <div class:list={['relative overflow-hidden rounded-[32px] p-8 sm:p-10', i.tint]}>
+    </Panel>
+    <Panel tone={i.tint === 'bg-sand' ? 'sand' : 'ivory'} class="relative overflow-hidden">
       <span
         aria-hidden="true"
         data-glyph={i.short}
-        class="absolute -bottom-10 -right-4 text-[8rem] font-black leading-none tracking-tighter text-white/60 after:content-[attr(data-glyph)]"
+        class="absolute -bottom-8 -right-3 text-[7rem] font-black leading-none tracking-tighter text-white/60 after:content-[attr(data-glyph)]"
       ></span>
-      <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-terracotta">
-        <Icon name={i.icon} class="h-7 w-7" />
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-white text-terracotta">
+        <Icon name={i.icon} class="h-6 w-6" />
       </span>
-      <h2 class="mt-6 text-2xl font-bold">Who it suits</h2>
-      <ul class="relative mt-4 space-y-3">
-        {[
-          i.ages,
-          'Complete beginners welcome',
-          'Private or group formats',
-          'Online or in person (planned)',
-        ].map((t) => (
+      <h2 class="academy-title-sub mt-5">Who it suits</h2>
+      <ul class="relative mt-4 space-y-2.5">
+        {suits.map((t) => (
           <li class="flex items-center gap-2">
-            <Icon name="check" class="h-4 w-4 text-terracotta" />
+            <Icon name="check" class="h-4 w-4 shrink-0 text-terracotta" />
             {t}
           </li>
         ))}
       </ul>
-    </div>
+    </Panel>
   </div>
 </section>

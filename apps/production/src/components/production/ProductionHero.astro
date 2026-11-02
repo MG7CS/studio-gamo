@@ -1,54 +1,46 @@
 ---
+/** Production hero: one rounded card, photo first on phones and on the right on desktop. */
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
-/** Production hero: controlled headline beside a sculptural engineer photo with a floating mixer-strip preview. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import EyebrowPill from './EyebrowPill.astro';
+import Actions from './Actions.astro';
 import MixerStripPreview from './MixerStripPreview.astro';
 ---
 
-<section
-  class="relative overflow-hidden bg-cream pt-28 pb-16 lg:pt-32 lg:pb-16"
-  aria-labelledby="prod-hero-title"
->
-  <div class="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-12 lg:gap-8">
-    <div class="lg:col-span-6">
-      <p class="eyebrow text-terracotta">Gamo Production · Technical ministry</p>
+<section class="px-4 pt-24 pb-2 sm:px-6 sm:pt-28 sm:pb-3 lg:px-8" aria-labelledby="prod-hero-title">
+  <div class="mx-auto grid max-w-[1320px] overflow-hidden rounded-[2rem] bg-white ring-1 ring-sand lg:grid-cols-2">
+    <div class="relative aspect-[4/3] lg:order-2 lg:aspect-auto lg:min-h-[560px]">
+      <Photo
+        name="soundEngineer"
+        priority
+        sizes="(min-width:1024px) 660px, 100vw"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+      <MixerStripPreview class="absolute bottom-5 left-5 hidden w-52 sm:block" />
+    </div>
+    <div class="flex flex-col justify-center p-6 sm:p-10 lg:p-14">
+      <EyebrowPill>Gamo Production · Technical ministry</EyebrowPill>
       <h1 id="prod-hero-title" class="display-xl production-hero-title mt-4 text-charcoal">
-        Better Tools.
-        <br />
-        <span class="text-terracotta">Stronger Worship.</span>
+        Clear Sound.
+        <span class="block text-terracotta">Focused Worship.</span>
       </h1>
-      <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">
-        A proposed program helping churches grow in worship audio, video, lighting and livestreaming — and in
-        the volunteers who serve behind the board every Sunday.
+      <p class="mt-4 max-w-xl text-base leading-relaxed text-ink-soft md:text-lg">
+        A proposed program for church sound, video, lighting and livestream teams. Practical help for the
+        volunteers behind the board.
       </p>
-      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <Actions class="mt-7">
         <ButtonLink href={inquiryUrl('Production consultation')} arrow>
           Start a needs assessment
         </ButtonLink>
         <ButtonLink href="/services" variant="secondary">
-          Explore support areas
+          See support areas
         </ButtonLink>
-      </div>
-      <StatusPill kind="proposal" class="mt-6">
-        Technical ministry &amp; volunteer training
+      </Actions>
+      <StatusPill kind="proposal" class="mt-6 self-start">
+        Proposed program
       </StatusPill>
-    </div>
-    <div class="order-first lg:order-none relative lg:col-span-6">
-      <div class="relative ml-auto aspect-[4/5] w-full max-w-[480px] overflow-hidden rounded-[2.5rem] rounded-tl-[9rem] bg-night shadow-float sm:aspect-[5/4] lg:aspect-square">
-        <Photo
-          name="soundEngineer"
-          priority
-          sizes="(min-width:1024px) 45vw, 100vw"
-          class="h-full w-full object-cover"
-        />
-      </div>
-      <MixerStripPreview class="absolute -bottom-8 left-2 w-48 sm:left-0 md:-left-4 md:w-56" />
-      <div class="absolute right-3 top-5 hidden rounded-2xl bg-white/95 px-4 py-3 text-sm shadow-float sm:block">
-        <p class="font-semibold text-charcoal">Sunday line check</p>
-        <p class="text-ink-soft">All channels balanced</p>
-      </div>
     </div>
   </div>
 </section>

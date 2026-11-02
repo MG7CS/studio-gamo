@@ -1,7 +1,11 @@
 ---
-/** Bright intro band for inner pages: heading left, optional sculptural photo right. */
+/**
+ * Inner-page opener: the same rounded card as the home hero. With a photo the picture comes
+ * first on phones and sits on the right on desktop; without one the card holds the words only.
+ */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import SectionHeader from './SectionHeader.astro';
 interface Props {
   eyebrow: string;
   title: string;
@@ -13,41 +17,35 @@ interface Props {
 const { eyebrow, title, accent, lede, photo, crumb } = Astro.props;
 ---
 
-<section class="bg-cream page-intro-space">
-  <div class="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-12">
-    <div class:list={[photo ? 'lg:col-span-6' : 'lg:col-span-9']}>
+<section class="px-4 pt-24 pb-2 sm:px-6 sm:pt-28 sm:pb-3 lg:px-8">
+  <div
+    class:list={[
+      'mx-auto grid max-w-[1320px] overflow-hidden rounded-[2rem] bg-white ring-1 ring-sand',
+      photo && 'lg:grid-cols-2',
+    ]}
+  >
+    {photo && (
+      <div class="relative aspect-[16/10] lg:order-2 lg:aspect-auto lg:min-h-[460px]">
+        <Photo
+          name={photo}
+          priority
+          sizes="(min-width:1024px) 660px, 100vw"
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+      </div>
+    )}
+    <div class="flex flex-col justify-center p-6 sm:p-10 lg:p-14">
       {crumb && (
         <a
           href={crumb.href}
-          class="inline-flex min-h-11 items-center text-sm font-medium text-ink-soft underline-offset-4 hover:text-charcoal hover:underline"
+          class="mb-4 inline-flex min-h-11 items-center self-start text-sm font-medium text-ink-soft underline-offset-4 hover:text-charcoal hover:underline"
         >
           ← {crumb.label}
         </a>
       )}
-      <p class="eyebrow mt-4 text-terracotta">{eyebrow}</p>
-      <h1 class="display-lg mt-4 text-charcoal">
-        {title}
-        {accent && (
-          <>
-            <br />
-            <span class="text-terracotta">{accent}</span>
-          </>
-        )}
-      </h1>
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">{lede}</p>
-      <slot />
+      <SectionHeader as="h1" size="display" eyebrow={eyebrow} title={title} accent={accent} lede={lede}>
+        <slot />
+      </SectionHeader>
     </div>
-    {photo && (
-      <div class="order-first lg:order-none lg:col-span-6">
-        <div class="mx-auto aspect-[16/10] max-w-[520px] overflow-hidden rounded-[2.5rem] rounded-tr-[7rem] shadow-float lg:aspect-[5/4]">
-          <Photo
-            name={photo}
-            priority
-            sizes="(min-width:1024px) 38vw, 100vw"
-            class="h-full w-full object-cover"
-          />
-        </div>
-      </div>
-    )}
   </div>
 </section>

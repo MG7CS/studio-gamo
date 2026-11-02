@@ -1,0 +1,48 @@
+---
+/** An honest empty state: what is empty, one line why, and where to go next. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+
+interface Link {
+  href: string;
+  label: string;
+}
+interface Props {
+  title: string;
+  body?: string;
+  primary?: Link;
+  secondary?: Link;
+  id?: string;
+  class?: string;
+}
+const { title, body, primary, secondary, id, class: className } = Astro.props;
+---
+
+<div
+  id={id}
+  class:list={[
+    'rounded-[24px] border border-sand bg-white px-5 py-10 text-center sm:rounded-[28px] sm:px-8',
+    className,
+  ]}
+>
+  <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-cream text-terracotta-deep">
+    <Icon name="calendar" class="h-6 w-6" />
+  </div>
+  <h3 class="mt-4 text-lg font-bold text-ink">{title}</h3>
+  {body && <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">{body}</p>}
+  {(primary || secondary) && (
+    <div class="mt-6 flex flex-col items-stretch justify-center gap-2.5 sm:flex-row sm:items-center">
+      {primary && (
+        <ButtonLink href={primary.href} class="w-full sm:w-auto">
+          {primary.label}
+        </ButtonLink>
+      )}
+      {secondary && (
+        <ButtonLink href={secondary.href} variant="secondary" class="w-full sm:w-auto">
+          {secondary.label}
+        </ButtonLink>
+      )}
+    </div>
+  )}
+  <slot />
+</div>

@@ -1,8 +1,11 @@
 ---
+/** Detail body for one support area: what it covers, questions to think through, skills to build. */
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
-/** Detail body for one support area: coverage, volunteer skills and preparation questions. */
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SectionPanel from './SectionPanel.astro';
+import SectionHeader from './SectionHeader.astro';
+import Actions from './Actions.astro';
 import ChecklistPreview from './ChecklistPreview.astro';
 import type { SupportArea } from '../../data/production';
 interface Props {
@@ -11,26 +14,24 @@ interface Props {
 const { area } = Astro.props;
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="covers-title">
-  <div class="mx-auto grid max-w-7xl gap-12 px-5 md:px-8 lg:grid-cols-12">
+<SectionPanel labelledby="covers-title">
+  <div class="grid gap-10 lg:grid-cols-12 lg:gap-12">
     <div class="lg:col-span-7">
-      <h2 id="covers-title" class="section-subheading text-charcoal">
-        What support is intended to cover
-      </h2>
-      <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+      <SectionHeader id="covers-title" eyebrow="What it covers" title="Where support begins." size="sub" />
+      <ul class="mt-6 grid gap-3 sm:grid-cols-2">
         {area.covers.map((c) => (
-          <li class="flex items-start gap-3 rounded-3xl bg-white p-5 ring-1 ring-sand">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-terracotta">
+          <li class="flex items-start gap-3 rounded-2xl bg-cream p-4 ring-1 ring-sand">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-terracotta ring-1 ring-sand">
               <Icon name={area.icon} class="h-4 w-4" />
             </span>
-            <span class="font-medium text-charcoal">{c}</span>
+            <span class="text-sm font-medium leading-snug text-charcoal">{c}</span>
           </li>
         ))}
       </ul>
-      <h2 class="section-subheading mt-16 text-charcoal">Questions to consider first</h2>
-      <ol class="mt-6 space-y-4">
+      <SectionHeader eyebrow="Before we talk" title="Questions to consider first." size="sub" class="mt-12" />
+      <ol class="mt-5 divide-y divide-sand border-y border-sand">
         {area.questions.map((q, i) => (
-          <li class="flex gap-4 border-t border-sand pt-4 text-lg text-ink-soft">
+          <li class="flex gap-4 py-4 text-base text-ink-soft">
             <span class="font-semibold text-terracotta">{i + 1}.</span>
             {q}
           </li>
@@ -38,23 +39,20 @@ const { area } = Astro.props;
       </ol>
     </div>
     <aside class="lg:col-span-5">
-      <div class="lg:sticky lg:top-28">
-        <ChecklistPreview title="Volunteer skills to build" items={area.volunteerSkills} />
-        <div class="mt-6 rounded-3xl bg-charcoal p-6 text-cream" data-surface="dark">
-          <p class="font-semibold">Thinking about {area.title.toLowerCase()}?</p>
+      <div class="space-y-4 lg:sticky lg:top-28">
+        <ChecklistPreview title="Volunteer skills to build" items={area.volunteerSkills} badge="Skills" />
+        <div class="rounded-[1.75rem] bg-charcoal p-6 text-cream" data-surface="dark">
+          <p class="text-base font-semibold">Thinking about {area.title.toLowerCase()}?</p>
           <p class="mt-2 text-sm text-cream/75">
-            The needs assessment preview walks through your setup, priorities and team.
+            A needs assessment walks through your setup, priorities and team.
           </p>
-          <div class="mt-5 flex flex-wrap gap-3">
+          <Actions class="mt-5">
             <ButtonLink href={inquiryUrl('Production consultation')} arrow>
               Start assessment
             </ButtonLink>
-            <ButtonLink href={inquiryUrl('Production consultation')} variant="ghost-dark">
-              Consultation
-            </ButtonLink>
-          </div>
+          </Actions>
         </div>
       </div>
     </aside>
   </div>
-</section>
+</SectionPanel>

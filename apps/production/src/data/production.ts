@@ -1,5 +1,5 @@
 /**
- * Gamo Production — design-phase content.
+ * Gamo Production design-phase content.
  * Gamo Production is a proposed program of a developing Christian, mission-driven Public Benefit Corporation.
  * Nothing here describes completed projects, clients or partner churches.
  */
@@ -30,7 +30,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'sliders',
     photo: 'soundEngineer',
     summary:
-      'Help for sound teams who want every lyric, prayer and sermon to be heard clearly — from gain structure and monitor mixes to simple, repeatable Sunday routines.',
+      'Help for sound teams who want every lyric, prayer and sermon heard clearly. Gain structure, monitor mixes and simple Sunday routines.',
     covers: ['Gain staging and channel organization', 'Monitor and in-ear mix strategy', 'Speech intelligibility for preaching', 'Saving scenes and service templates'],
     volunteerSkills: ['Line check routine', 'Building a balanced worship mix', 'Feedback prevention', 'Calm troubleshooting during a service'],
     questions: ['What does your current mixer and speaker setup look like?', 'Where do people say the sound is hardest to hear?', 'How many volunteers run sound each month?'],
@@ -42,7 +42,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'video',
     photo: 'concertCrowdWide',
     summary:
-      'Guidance for churches serving homebound members, families and travelers online — camera placement, stream audio, encoder settings and a pre-service checklist.',
+      'Guidance for churches serving members who worship from home. Camera placement, stream audio, encoder settings and a pre-service checklist.',
     covers: ['Camera placement and framing', 'A dedicated stream audio mix', 'Encoder and bandwidth basics', 'Pre-service stream checklist'],
     volunteerSkills: ['Switching between camera shots', 'Monitoring stream health', 'Lower-thirds and scripture slides', 'Archiving services'],
     questions: ['Who watches your services online today?', 'Which part of the stream is least reliable?', 'What internet connection is available in the sanctuary?'],
@@ -54,7 +54,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'light',
     photo: 'gospelVocalists',
     summary:
-      'Support for lighting and presentation teams so faces are visible, lyrics are legible and the room serves worship rather than distracting from it.',
+      'Support for lighting and presentation teams. Faces visible, lyrics legible, and a room that serves worship instead of distracting from it.',
     covers: ['Front light for faces and cameras', 'Simple cue stacks for services', 'Lyric and scripture slide standards', 'Screen visibility and contrast'],
     volunteerSkills: ['Programming basic looks', 'Running lyrics in time with the band', 'Preparing slides before Sunday', 'Safe fixture handling'],
     questions: ['Can people on camera be seen clearly?', 'Who prepares lyrics and announcements?', 'Are any fixtures difficult or unsafe to reach?'],
@@ -66,7 +66,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'school',
     photo: 'guitarMentor',
     summary:
-      'Patient, hands-on teaching for volunteers of every experience level, so technical ministry does not depend on one person and new servers are welcomed well.',
+      'Patient, hands-on teaching for volunteers of every level, so technical ministry does not depend on one person. Classes are taught through Gamo Academy.',
     covers: ['Role-based onboarding paths', 'Hands-on practice sessions', 'Written routines for each position', 'Mentoring newer volunteers'],
     volunteerSkills: ['Audio fundamentals', 'Camera and switching basics', 'Lighting and presentation', 'Serving with humility under pressure'],
     questions: ['How are new technical volunteers trained today?', 'Which role is hardest to staff?', 'Would weekday or Saturday sessions work better?'],
@@ -78,7 +78,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'calendar',
     photo: 'worshipNight',
     summary:
-      'Planning support for Christmas and Easter services, worship nights and conferences — run-of-show, stage plots, input lists and a calm advance plan.',
+      'Planning support for Christmas and Easter services, worship nights and conferences. Run-of-show, stage plots, input lists and a calm advance plan.',
     covers: ['Run-of-show and cue planning', 'Stage plots and input lists', 'Rental and staffing considerations', 'Rehearsal and changeover timing'],
     volunteerSkills: ['Reading a run-of-show', 'Quick changeovers between sets', 'Clear headset communication', 'Post-event debrief'],
     questions: ['What event are you preparing for and when?', 'How large is the expected gathering?', 'What equipment would need to be added?'],
@@ -90,7 +90,7 @@ export const supportAreas: SupportArea[] = [
     icon: 'building',
     photo: 'churchModernDay',
     summary:
-      'Independent, stewardship-minded guidance on what to keep, repair, replace or wait on — so budgets serve the congregation and purchases fit the room.',
+      'Independent guidance on what to keep, repair, replace or wait on, so budgets serve the congregation and purchases fit the room.',
     covers: ['Equipment inventory and condition review', 'Room acoustics observations', 'Phased improvement planning', 'Questions to ask vendors'],
     volunteerSkills: ['Keeping an equipment inventory', 'Basic maintenance and cable care', 'Labeling and patch documentation', 'Planning within a budget'],
     questions: ['What equipment is failing or frustrating today?', 'Is a renovation or new building planned?', 'What budget range is realistic this year?'],
@@ -115,8 +115,8 @@ export const trainingTracks: TrainingTrack[] = [
 ];
 
 export const productionFaq = [
-  { q: 'How does a church get started with Gamo Production?', a: 'Start with our five-step church needs assessment or submit a consultation request so our team can review your current setup, room, and volunteer goals.' },
-  { q: 'How are contributions structured?', a: 'Any fees or suggested contributions remain proposals until approved, and support is designed to remain accessible to small and under-resourced congregations.' },
+  { q: 'How does a church get started with Gamo Production?', a: 'Send a consultation request. Our team reviews your current setup, room and volunteer goals, then follows up.' },
+  { q: 'How are contributions structured?', a: 'Any fees or suggested contributions are proposals until approved. Support is designed to stay accessible to small and under-resourced congregations.' },
   { q: 'Do you sell equipment?', a: 'No. Guidance is independent and stewardship-minded. Recommendations never depend on vendor relationships.' },
-  { q: 'Can small churches take part?', a: 'Yes — small congregations with volunteer teams are a central focus of Gamo Production.' },
+  { q: 'Can small churches take part?', a: 'Yes. Small congregations with volunteer teams are a central focus of Gamo Production.' },
 ];

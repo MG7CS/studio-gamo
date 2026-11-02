@@ -1,7 +1,7 @@
 ---
 /**
  * Shared rounded-edge editorial feature card section with a sculptural bottom-anchored
- * arch photo (`mask-arch`), structured icon highlights, and action buttons.
+ * arch photo (`rounded-[28px]`), structured icon highlights, and action buttons.
  *
  * Used across Academy, Worship, and the global Gamo Studios pages for visual continuity.
  */
@@ -85,13 +85,13 @@ const iconBadgeSurface = {
   >
     <div
       class:list={[
-        'flex flex-col justify-center p-7 sm:p-12 lg:col-span-7 lg:p-14 xl:p-16',
-        reverse && 'lg:order-2',
+        'flex flex-col justify-center p-6 sm:p-12 lg:col-span-7 lg:p-14 xl:p-16',
+        reverse ? 'lg:order-2' : 'lg:order-1',
       ]}
     >
       <div class="flex flex-wrap items-center gap-3">
+        {eyebrow && <p class:list={['eyebrow-pill', dark && 'bg-white/10 text-gold']}>{eyebrow}</p>}
         {pillText && <StatusPill kind={pillKind}>{pillText}</StatusPill>}
-        {eyebrow && <p class:list={['eyebrow', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
       </div>
 
       <h2 class="section-heading mt-4 text-balance">
@@ -125,20 +125,21 @@ const iconBadgeSurface = {
         </ul>
       )}
 
-      <div class="mt-8 flex flex-wrap items-center gap-3">
+      <div class="button-stack mt-8">
         <slot />
       </div>
     </div>
 
+    {/* Phones see the photo first; on desktop `reverse` decides which side it sits on. */}
     <div
       class:list={[
-        'relative min-h-[340px] sm:min-h-[420px] lg:col-span-5 lg:min-h-[520px]',
-        reverse && 'lg:order-1',
+        'relative order-first min-h-[320px] sm:min-h-[420px] lg:col-span-5 lg:min-h-[520px]',
+        reverse ? 'lg:order-1' : 'lg:order-2',
       ]}
     >
       <div
         class:list={[
-          'mask-arch absolute inset-x-6 bottom-0 top-6 overflow-hidden shadow-float sm:inset-x-10 sm:top-10 lg:inset-x-10 lg:top-12',
+          'rounded-[28px] absolute inset-x-6 bottom-0 top-6 overflow-hidden shadow-float sm:inset-x-10 sm:top-10 lg:inset-x-10 lg:top-12',
           dark ? 'ring-1 ring-white/15' : 'ring-1 ring-charcoal/10',
         ]}
       >

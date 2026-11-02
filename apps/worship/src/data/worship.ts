@@ -1,5 +1,5 @@
 /**
- * Gamo Worship — SAMPLE data for the design-first phase.
+ * Gamo Worship: SAMPLE data for the design-first phase.
  * Every person, church, service and amount below is fictional and must be labeled as sample in the UI.
  * Amounts are integer minor units (cents) and are PROPOSALS only.
  */
@@ -20,26 +20,27 @@ export const styles = ['Contemporary worship', 'Gospel', 'Hymns & traditional', 
 
 export interface Step { title: string; body: string }
 export const requestSteps: Step[] = [
-  { title: 'Share the service', body: 'Date, call time, location, style and the roles you need — one Sunday or a recurring pattern.' },
+  { title: 'Share the occasion', body: 'Date, call time, location, style and the roles you need. One date or a recurring pattern.' },
   { title: 'Add repertoire', body: 'Set list, keys, charts or recordings so musicians arrive prepared.' },
-  { title: 'Review the match', body: 'A coordinator proposes vetted musicians whose instruments, style and availability fit.' },
+  { title: 'Review the match', body: 'A coordinator proposes vetted musicians who fit the instruments, style and dates.' },
   { title: 'Confirm together', body: 'Your team confirms rehearsal details. Nothing is final until both sides agree.' },
 ];
 
 export const auditionSteps: Step[] = [
-  { title: 'Apply', body: 'Instruments, styles, experience and the churches or teams you have served with.' },
-  { title: 'Audition', body: 'Submit two recordings: one worship song and one of your choosing.' },
-  { title: 'Conversation', body: 'A short call about faith, preparation, punctuality and serving a congregation.' },
-  { title: 'Approval', body: 'Approved musicians join the collection and can receive opportunities.' },
+  { title: 'Apply', body: 'Instruments, styles, experience and the teams you have served with.' },
+  { title: 'Audition', body: 'Two recordings: one worship song and one of your choosing.' },
+  { title: 'Meet', body: 'A meeting with Gamo, on video or in person, about faith, preparation and reliability.' },
+  { title: 'Approval', body: 'Approved musicians join the collection and start receiving opportunities.' },
 ];
 
 export const faqs = [
-  { q: 'How does Gamo Worship work?', a: 'Churches submit a service request with their date, roles, and repertoire, and a Gamo Worship coordinator proposes vetted musicians whose instruments, style, and availability fit.' },
-  { q: 'How are musicians vetted?', a: 'Our review process includes an application, recorded audition, a conversation with a coordinator and reference review. Payment, sponsorship or partnership never affects vetting or how musicians are presented.' },
-  { q: 'What does a church contribute?', a: 'Contribution levels are still proposals awaiting board approval. When shown, musician pay and any Gamo administrative allocation always appear as separate line items.' },
-  { q: 'What happens if a musician cannot make it?', a: 'Where available, a standby musician who has received the same set list can be asked to step in. Standby support depends on local availability and is never guaranteed.' },
-  { q: 'Which churches can request musicians?', a: 'The program is designed to serve Christian congregations of any size, denomination, language or background. Service areas will be announced as the program develops.' },
-  { q: 'Are musicians paid fairly?', a: 'Fair, transparent compensation is a core principle. Musician pay is shown on its own line and is never reduced to fund other parts of the organization.' },
+  { q: 'How does Gamo Worship work?', a: 'A church or group submits a request with the date, roles and repertoire. A Gamo Worship coordinator proposes vetted musicians who fit.' },
+  { q: 'Who can request musicians?', a: 'Churches, ministries, families, schools and other groups, for a service, a concert, an event or almost any occasion, on any day.' },
+  { q: 'How are musicians vetted?', a: 'Application, recorded audition, a meeting with Gamo and a reference review. Payment, sponsorship or partnership never affects vetting or how musicians are presented.' },
+  { q: 'What does it cost?', a: 'Contribution levels are proposals until approved. When shown, musician pay and any Gamo administrative allocation are separate line items.' },
+  { q: 'What if a musician cannot make it?', a: 'Where available, a standby musician who received the same set list can step in. Standby support depends on local availability and is never guaranteed.' },
+  { q: 'Are musicians paid fairly?', a: 'Yes. Musician pay is shown on its own line and is never reduced to fund other parts of Gamo.' },
+  { q: 'Where is Gamo Worship available?', a: 'Service areas will be announced as the program develops.' },
 ];
 
 export interface Opportunity { id: string; church: string; city: string; date: string; role: string; style: string; recurring?: boolean; standby?: boolean; payCents: number }

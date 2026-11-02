@@ -1,0 +1,33 @@
+---
+/**
+ * Visual beside text. The `media` slot is first in source order, so phones always show the
+ * image before the eyebrow, heading and copy; desktop places it left or right (`reverse`).
+ */
+interface Props {
+  /** Put the visual on the right on desktop. */
+  reverse?: boolean;
+  /** Desktop width of the visual, in twelfths. */
+  mediaSpan?: 5 | 6 | 7;
+  /** Vertical alignment of the two columns on desktop. */
+  align?: 'center' | 'start';
+  class?: string;
+}
+const { reverse = false, mediaSpan = 5, align = 'center', class: className } = Astro.props;
+const media = { 5: 'lg:col-span-5', 6: 'lg:col-span-6', 7: 'lg:col-span-7' }[mediaSpan];
+const content = { 5: 'lg:col-span-7', 6: 'lg:col-span-6', 7: 'lg:col-span-5' }[mediaSpan];
+---
+
+<div
+  class:list={[
+    'grid gap-8 lg:grid-cols-12 lg:gap-12',
+    align === 'center' ? 'lg:items-center' : 'lg:items-start',
+    className,
+  ]}
+>
+  <div class:list={[media, reverse && 'lg:order-2']}>
+    <slot name="media" />
+  </div>
+  <div class:list={[content, reverse && 'lg:order-1']}>
+    <slot />
+  </div>
+</div>

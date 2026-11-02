@@ -4,7 +4,7 @@
 
 ## Approved 2026 public design phase
 
-The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Live uses a cinematic manual event spotlight; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
+The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, photos in plain rounded frames and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Live uses a cinematic manual event spotlight; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
 
 The original homepage hero remains approved and preserved. References under `design-reference/2026-brand-refresh` are composition guides only, never embedded webpage screenshots. Delivered PNG originals stay under `assets/images/2026-brand-refresh`; only responsive AVIF/WebP derivatives are served (see [asset inventory](docs/ASSET_INVENTORY_2026.md) and [image pipeline](docs/IMAGE_PIPELINE.md)).
 
@@ -12,17 +12,17 @@ Engineering review does not equal founder visual sign-off. The products are laun
 
 ## Design Identity
 
-Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, sculptural geometric layouts, and refined, layered application interfaces.
+Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, calm rounded layouts, and refined, layered application interfaces.
 
 The goal is to create the visual character of a sophisticated music brand while communicating the warmth, trustworthiness and reliability of a Christian, mission-driven Public Benefit Corporation serving churches and other groups, musicians and technicians, learners of any age, and the people who organize and attend Christian events.
 
 ## Core Principles
 
-**Photography is structural.** Large photographs shape the composition rather than merely illustrating the content. Images may form full-bleed backgrounds, asymmetric mosaics, organically cropped regions, or visual anchors beneath product interface overlays.
+**Photography is structural.** Large photographs shape the composition rather than merely illustrating the content. Images may form full-bleed backgrounds, asymmetric mosaics or visual anchors beneath interface overlays. On phones a section shows its photo first, then its text.
 
 **Layouts are deliberately asymmetric.** Favor varied visual proportions, editorial alignment, staggered image placement, and controlled overlaps over predictable centered layouts and equal-width grids.
 
-**Geometry connects the experience.** Use broad organic curves, flowing masks, angled boundaries, and occasional sculptural transitions to connect photographic and typographic regions. Geometry should feel purposeful, not decorative.
+**Photos keep their shape.** Every photo sits in a plain rounded rectangle with the same corner radius (28 px; 20 px for small thumbnails). No arch, leaf, pebble, blob or single oversized corner: those crops cut through faces and instruments and carry no meaning. Panels and cards use rounded corners too; nothing is cut into decorative shapes.
 
 **Typography is expressive.** Use Inter with bold, oversized headlines, tight visual proportions, intentional line breaks, and selective terracotta emphasis. Supporting copy remains brief and subordinate to the photography.
 
@@ -67,13 +67,13 @@ Before implementing a section, identify:
 
 1. Its dominant photographic region.
 2. Its typography region and visual hierarchy.
-3. Major geometric boundaries and masks.
+3. Major section boundaries and panels.
 4. Supporting image groups and their proportions.
 5. Overlapping interface elements.
 6. Primary user action and navigation behavior.
 7. Responsive adaptations.
 
-Reconstruct the layout using genuine responsive Astro components, CSS Grid/Flexbox, CSS masks or clip paths, and reusable UI primitives.
+Reconstruct the layout using genuine responsive Astro components, CSS Grid/Flexbox and reusable UI primitives (photos in plain rounded frames, no masks or clip paths).
 
 Do not use complete design screenshots as webpage backgrounds.
 
@@ -129,7 +129,7 @@ Apply these rules by default across all Gamo Studios design, redesign, and imple
    - Prefer one exceptionally executed visual element over several mediocre ones.
    - Before finalizing any design, ask: *What can be removed without compromising usability?*
 2. **Respect Design References**:
-   - Preserve overall composition, layout proportions, shapes, curves, distinctive geometry, spacing, whitespace, content density, typography hierarchy, image placement, and component relationships from approved references in `design-reference/`.
+   - Preserve overall composition, layout proportions, spacing, whitespace, content density, typography hierarchy, image placement, and component relationships from approved references in `design-reference/`.
    - Do not use a reference merely as loose inspiration when the instruction is to follow it closely.
 3. **Avoid Generic AI-Generated Interfaces**:
    - Never default to excessive rounded cards arranged in repetitive grids, unnecessary gradients/glowing effects, too many headings/subheadings/captions/explanatory paragraphs, repetitive feature lists, oversized dashboards with meaningless statistics, or excessive icons and badges.

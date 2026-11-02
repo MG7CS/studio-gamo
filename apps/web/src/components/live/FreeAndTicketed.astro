@@ -12,10 +12,10 @@ const hasFreeEvents = free.some((e) => e.ticketing === 'free');
 const cols = [
   {
     id: 'free',
-    title: hasFreeEvents ? 'Free events' : 'Worship & church-hosted nights',
+    title: hasFreeEvents ? 'Free events' : 'Worship and church-hosted nights',
     body: hasFreeEvents
       ? 'Open to all. Some hosts ask for a free registration so they can plan seating.'
-      : 'Verified church auditorium gatherings and regional worship nights from our live catalog.',
+      : 'Church gatherings and regional worship nights from the Gamo Live catalog.',
     list: free,
     href: siteUrl('live', '/events?category=worship'),
     dark: false,
@@ -23,7 +23,7 @@ const cols = [
   {
     id: 'ticketed',
     title: 'Ticketed events',
-    body: 'Each listing states whether tickets are issued through Gamo Live or sold directly by the official ticket provider or venue.',
+    body: 'Each listing says whether tickets come through Gamo Live or from the venue or its ticket provider.',
     list: ticketed,
     href: siteUrl('live', '/events'),
     dark: true,
@@ -31,13 +31,13 @@ const cols = [
 ];
 ---
 
-<section class="bg-ivory px-4 section-space sm:px-8" aria-label="Free and ticketed events">
+<section class="bg-ivory px-5 section-space sm:px-8" aria-label="Free and ticketed events">
   <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-2">
     {cols.map((c) => (
       <div
         data-surface={c.dark ? 'dark' : undefined}
         class:list={[
-          'rounded-[32px] p-6 sm:p-10',
+          'rounded-[32px] p-5 sm:p-10',
           c.dark ? 'bg-charcoal text-cream' : 'bg-white ring-1 ring-sand',
         ]}
       >
@@ -50,9 +50,9 @@ const cols = [
           >
             <Icon name={c.dark ? 'ticket' : 'heart'} class="h-5 w-5" />
           </span>
-          <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">{c.title}</h2>
+          <h2 class="text-xl font-semibold tracking-tight sm:text-3xl">{c.title}</h2>
         </div>
-        <p class:list={['mt-4 max-w-md', c.dark ? 'text-cream/70' : 'text-ink-soft']}>{c.body}</p>
+        <p class:list={['mt-4 max-w-md text-base', c.dark ? 'text-cream/70' : 'text-ink-soft']}>{c.body}</p>
         <ul class:list={['mt-8 divide-y', c.dark ? 'divide-white/10' : 'divide-sand']}>
           {c.list.map((e) => {
             const d = dateParts(e.date);

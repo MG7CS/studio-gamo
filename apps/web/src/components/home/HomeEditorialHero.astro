@@ -1,14 +1,14 @@
 ---
 /**
  * Global homepage hero crafted to match the bright editorial language of /mission, /partners,
- * /get-involved, Worship, Academy, and Production.
+ * /get-involved, Worship, Academy, and Production. Phones see the photo mosaic first.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
 <section
-  class="relative flex min-h-[100dvh] flex-col justify-center overflow-hidden bg-cream px-5 page-intro-space sm:px-8"
+  class="relative flex flex-col justify-center overflow-hidden bg-cream px-5 page-intro-space sm:px-8 lg:min-h-[100dvh]"
   aria-labelledby="home-hero-title"
 >
   <div
@@ -18,15 +18,15 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
   <div class="relative mx-auto grid w-full max-w-[1320px] items-center gap-10 lg:grid-cols-12 lg:gap-10">
     <div class="lg:col-span-6">
-      <p class="eyebrow text-terracotta">Christian, mission-driven organization</p>
-      <h1 id="home-hero-title" class="display-xl mt-4 max-w-[14ch] text-balance text-charcoal">
+      <p class="eyebrow-pill">Christian, mission-driven organization</p>
+      <h1 id="home-hero-title" class="display-xl mt-5 max-w-[14ch] text-balance text-charcoal">
         Worship, Learning &amp; <span class="block text-terracotta">Community.</span>
       </h1>
-      <p class="mt-6 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
-        Four connected programs for worship teams, music lessons, Christian events and production.
+      <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">
+        Helping churches worship well, people learn music and believers gather together.
       </p>
 
-      <div class="mt-7 flex flex-wrap items-center gap-3">
+      <div class="button-stack mt-7">
         <ButtonLink href="#programs" size="lg" arrow>
           Explore our programs
         </ButtonLink>
@@ -38,7 +38,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
     <div class="order-first relative mx-auto w-full max-w-[580px] lg:order-none lg:col-span-6">
       <div class="grid grid-cols-12 items-end gap-3 sm:gap-4">
-        <div class="col-span-7 aspect-[3/4] overflow-hidden mask-arch bg-sand shadow-float">
+        <div class="col-span-7 aspect-[3/4] overflow-hidden rounded-[28px] bg-sand shadow-float">
           <Photo
             name="worshipLeaderGolden"
             priority
@@ -47,14 +47,14 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
           />
         </div>
         <div class="col-span-5 flex flex-col gap-3 sm:gap-4">
-          <div class="aspect-square overflow-hidden mask-leaf-alt bg-sand shadow-float">
+          <div class="aspect-square overflow-hidden rounded-[28px] bg-sand shadow-float">
             <Photo
               name="boyGuitar"
               sizes="(min-width:1024px) 18vw, 38vw"
               class="h-full w-full object-cover"
             />
           </div>
-          <div class="aspect-[4/5] overflow-hidden rounded-[2rem] rounded-br-[5.5rem] bg-sand shadow-float">
+          <div class="aspect-[4/5] overflow-hidden rounded-[28px] bg-sand shadow-float">
             <Photo
               name="sanctuaryCongregation"
               sizes="(min-width:1024px) 18vw, 38vw"
@@ -66,7 +66,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
       </div>
 
       <aside
-        class="relative z-10 -mt-10 ml-2 max-w-[20rem] rounded-3xl border border-sand bg-white/95 p-4 shadow-float backdrop-blur-xs sm:absolute sm:-bottom-5 sm:left-0 sm:mt-0 sm:p-5 lg:-left-4"
+        class="relative z-10 -mt-8 ml-2 max-w-[20rem] rounded-3xl border border-sand bg-white/95 p-4 shadow-float backdrop-blur-xs sm:absolute sm:-bottom-5 sm:left-0 sm:mt-0 sm:p-5 lg:-left-4"
         aria-label="Mission overview card"
       >
         <p class="eyebrow whitespace-nowrap text-terracotta">One shared mission</p>

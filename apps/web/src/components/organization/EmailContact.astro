@@ -1,4 +1,5 @@
 ---
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { inquiryTopics } from '@studio-gamo/ui/lib/sites';
 
 interface Props {
@@ -13,22 +14,22 @@ const subject = topic ?? (partnership ? 'Partnership idea' : 'Question for Gamo 
 const href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`;
 ---
 
-<div class="rounded-[28px] bg-sand p-8 sm:p-10">
-  <h2 class="text-2xl font-black uppercase">Write to our team</h2>
-  <p class="mt-4 leading-relaxed text-ink-soft">
+<div class="rounded-[28px] bg-white p-6 ring-1 ring-sand sm:p-10">
+  <p class="eyebrow-pill">Email</p>
+  <h2 class="mt-4 text-xl font-black uppercase sm:text-2xl">Write to our team</h2>
+  <p class="mt-3 text-base leading-relaxed text-ink-soft">
     {topic
       ? `You are asking about: ${topic}.`
       : partnership
         ? 'Tell us about your church or organization and the partnership you have in mind.'
-        : 'Tell us what you are looking for and where you are.'}
-    A person on our team reads every message and replies by email.
+        : 'Tell us what you are looking for and where you are.'}{' '}
+    A person reads every message and replies by email.
   </p>
-  <a
-    href={href}
-    class="mt-6 inline-flex min-h-11 items-center rounded-full bg-terracotta px-6 font-semibold text-white hover:bg-terracotta-deep"
-  >
-    Email {EMAIL}
-  </a>
+  <div class="button-stack mt-6">
+    <ButtonLink href={href} arrow>
+      Email {EMAIL}
+    </ButtonLink>
+  </div>
   <p class="mt-4 text-sm text-ink-soft">
     The button opens your email app. You can also write to {EMAIL} directly.
   </p>

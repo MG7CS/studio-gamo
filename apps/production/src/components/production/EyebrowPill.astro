@@ -1,0 +1,18 @@
+---
+/** Small pill eyebrow that opens a section. Decorative text, never a control. */
+interface Props {
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { tone = 'light', class: className } = Astro.props;
+---
+
+<p
+  class:list={[
+    'inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ring-1 ring-inset',
+    tone === 'dark' ? 'bg-white/10 text-gold ring-white/15' : 'bg-cream text-terracotta-deep ring-sand',
+    className,
+  ]}
+>
+  <slot />
+</p>

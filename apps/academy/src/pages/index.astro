@@ -1,8 +1,7 @@
 ---
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
-import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import ClosingCta from '../components/shared/ClosingCta.astro';
 import AcademyHero from '../components/home/AcademyHero.astro';
 import InstrumentDiscovery from '../components/home/InstrumentDiscovery.astro';
 import LearningPaths from '../components/home/LearningPaths.astro';
@@ -14,7 +13,7 @@ import ChurchHosted from '../components/home/ChurchHosted.astro';
 import AcademyFaq from '../components/home/AcademyFaq.astro';
 ---
 
-<Layout description="Friendly, patient music lessons for students and families: private or small group, online or near home, with church-hosted and sponsored options planned.">
+<Layout description="Patient music lessons for kids, teens and adults: private or small group, online or close to home, with church-hosted and sponsored classes proposed.">
   <AcademyHero />
   <InstrumentDiscovery />
   <LearningPaths />
@@ -24,17 +23,18 @@ import AcademyFaq from '../components/home/AcademyFaq.astro';
   <SponsoredPrograms />
   <ChurchHosted />
   <AcademyFaq />
-  <CtaInvitation
-    eyebrow="Start your music journey"
-    title="Your first song is closer than you think."
-    body="Explore instruments, meet our instructors and register your family in five guided steps."
+  <ClosingCta
+    eyebrow="Start here"
+    title="Your first song"
+    accent="is closer than you think."
+    body="Pick an instrument, meet an instructor and start learning."
     photo="girlGuitar"
   >
     <ButtonLink href="/instruments" size="lg" arrow>
       Choose an instrument
     </ButtonLink>
-    <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" variant="secondary">
-      Register now
+    <ButtonLink href="/lessons" size="lg" variant="secondary">
+      Browse lessons
     </ButtonLink>
-  </CtaInvitation>
+  </ClosingCta>
 </Layout>

@@ -1,0 +1,36 @@
+---
+import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
+/** Closing invitation: chapel photo first, then the two paths. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SectionPanel from './SectionPanel.astro';
+import MediaSplit from './MediaSplit.astro';
+import PanelHeading from './PanelHeading.astro';
+---
+
+<SectionPanel tone="ivory" labelledby="closing-title">
+  <MediaSplit reverse mediaSpan={6}>
+    <div slot="media" class="aspect-[4/3] overflow-hidden rounded-[28px]">
+      <Photo name="chapelSpring" sizes="(min-width:1024px) 45vw, 100vw" />
+    </div>
+    <PanelHeading
+      id="closing-title"
+      eyebrow="Take part"
+      title="Strengthen worship"
+      accent="together."
+      lede="Request prepared musicians for your next service or event, or apply to serve as a musician."
+    />
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <ButtonLink href={providerSignupUrl('worship', 'church')} class="w-full sm:w-auto" arrow>
+        Request musicians
+      </ButtonLink>
+      <ButtonLink
+        href={providerSignupUrl('worship', 'musician')}
+        variant="secondary"
+        class="w-full sm:w-auto"
+      >
+        Apply as a musician
+      </ButtonLink>
+    </div>
+  </MediaSplit>
+</SectionPanel>

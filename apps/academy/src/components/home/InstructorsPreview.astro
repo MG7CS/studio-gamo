@@ -1,24 +1,21 @@
 ---
-/** Section 4: music instructors — sample profiles with initials avatars. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Section 4: sample instructor profiles with initials avatars, in an aligned grid. */
+import SectionIntro from '../shared/SectionIntro.astro';
 import InstructorCard from '../shared/InstructorCard.astro';
 import { instructors } from '../../data/instructors';
 ---
 
-<section class="bg-ivory px-4 section-space sm:px-8" data-reveal>
+<section class="px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto max-w-[1320px]">
-    <div class="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-end">
-      <EditorialHeading eyebrow="Music instructors" title="Teachers who care" accent="how you grow." />
-      <div>
-        <p class="text-lg leading-relaxed text-ink-soft">
-          Every Gamo Academy instructor goes through an application, teaching interview, and background review
-          before teaching students.
-        </p>
-      </div>
-    </div>
-    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {instructors.map((t, i) => (
-        <InstructorCard instructor={t} class={i % 2 ? 'lg:translate-y-8' : ''} />
+    <SectionIntro
+      eyebrow="Instructors"
+      title="Teachers who care"
+      accent="how you grow."
+      lede="Every instructor applies, does a teaching interview and passes a background review before teaching."
+    />
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {instructors.map((t) => (
+        <InstructorCard instructor={t} />
       ))}
     </div>
   </div>

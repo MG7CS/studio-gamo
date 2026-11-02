@@ -1,2 +1,32 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
+
+/* Academy title scale: the shared display utilities start at 36 to 40 px, which wraps an uppercase
+   headline into five lines on a 390 px phone. These start smaller and reach the shared sizes on desktop. */
+@utility academy-title-hero {
+  font-size: clamp(1.875rem, 4.4vw + 0.5rem, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+@utility academy-title-page {
+  font-size: clamp(1.75rem, 3.4vw + 0.5rem, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+@utility academy-title-section {
+  font-size: clamp(1.625rem, 2.6vw + 0.5rem, 2.875rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+@utility academy-title-sub {
+  font-size: clamp(1.25rem, 1.2vw + 0.75rem, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}

@@ -21,7 +21,7 @@ const organizationJsonLd = {
   url: origin,
   logo: `${origin}/logo-512.png`,
   description:
-    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together four connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, sharing Christian gatherings nationwide, and supporting technical ministry.',
+    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that serves churches, musicians, learners and families through worship teams, music lessons, Christian gatherings and technical ministry.',
   subOrganization: [
     { '@type': 'Organization', name: 'Gamo Worship', url: siteOrigin('worship') },
     { '@type': 'Organization', name: 'Gamo Academy', url: siteOrigin('academy') },
@@ -34,7 +34,7 @@ const organizationJsonLd = {
 <SiteLayout
   jsonLd={organizationJsonLd}
   title="Gamo Studios | Worship, Music Education, Christian Events and Production"
-  description="Gamo Studios connects Worship, Academy, Live and Production to serve churches, musicians, students and families through music and Christian gatherings."
+  description="Gamo Studios serves churches, musicians, learners and families through worship, music lessons, Christian gatherings and technical ministry."
 >
   <HomeEditorialHero />
   <HomeProgramsBento />
@@ -45,15 +45,15 @@ const organizationJsonLd = {
   <HomeCommunityPaths />
   <CtaInvitation
     eyebrow="Join the mission"
-    title="Ready to take your first step with Gamo Studios?"
-    body="Get started to explore workspaces across Worship, Academy, Live, and Production, or learn how your church or community can partner with us."
+    title="Ready for your first step?"
+    body="Tell us who you are and we will point you to the right program. Churches and organizations can also explore a partnership."
     photo="chapelSpring"
   >
     <ButtonLink href="/get-started" arrow>
       Get started
     </ButtonLink>
     <ButtonLink href="/partners" variant="secondary">
-      Explore church partnerships
+      Explore partnerships
     </ButtonLink>
   </CtaInvitation>
 </SiteLayout>

@@ -1,0 +1,23 @@
+---
+/** A filter chip that is a real link: the current one is filled terracotta. */
+interface Props {
+  href: string;
+  active?: boolean;
+  class?: string;
+}
+const { href, active = false, class: className } = Astro.props;
+---
+
+<a
+  href={href}
+  aria-current={active ? 'page' : undefined}
+  class:list={[
+    'inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors',
+    active
+      ? 'border-terracotta bg-terracotta text-white'
+      : 'border-sand bg-white text-ink hover:border-terracotta-soft hover:text-terracotta-deep',
+    className,
+  ]}
+>
+  <slot />
+</a>

@@ -16,7 +16,7 @@ if (!entry || !content) return Astro.rewrite('/404');
 ---
 
 <SiteLayout title={`${entry.title} (Draft) | Gamo Studios`} description={entry.summary}>
-  <section class="px-6 page-intro-space sm:px-12">
+  <section class="px-5 page-intro-space sm:px-12">
     <LegalDocument content={content} version={entry.version} />
   </section>
 </SiteLayout>

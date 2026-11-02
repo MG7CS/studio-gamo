@@ -1,0 +1,26 @@
+---
+/** A large white rounded panel on the cream page. Public pages are built from these. */
+interface Props {
+  as?: 'div' | 'section' | 'article' | 'aside';
+  id?: string;
+  /** `dark` is the ink surface for one accented card per page. */
+  tone?: 'light' | 'dark';
+  /** `none` leaves padding to the content (photo cards, split cards). */
+  padding?: 'default' | 'none';
+  class?: string;
+}
+const { as: Tag = 'div', id, tone = 'light', padding = 'default', class: className } = Astro.props;
+---
+
+<Tag
+  id={id}
+  data-surface={tone}
+  class:list={[
+    'overflow-hidden rounded-[24px] border sm:rounded-[28px]',
+    tone === 'dark' ? 'border-ink bg-ink text-cream' : 'border-sand bg-white text-ink',
+    padding === 'default' && 'p-5 sm:p-8',
+    className,
+  ]}
+>
+  <slot />
+</Tag>

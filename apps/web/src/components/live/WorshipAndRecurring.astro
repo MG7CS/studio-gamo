@@ -14,17 +14,17 @@ interface Props {
 const { worship, recurring } = Astro.props;
 ---
 
-<section class="bg-ivory px-4 section-space sm:px-8" aria-labelledby="worship-title">
+<section class="bg-ivory px-5 section-space sm:px-8" aria-labelledby="worship-title">
   <div class="mx-auto max-w-[1320px]">
     <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-end">
       <h2 id="worship-title" class="section-heading text-balance">
         Worship gatherings <span class="text-terracotta">&amp; regional nights.</span>
       </h2>
-      <p class="text-lg text-ink-soft">
-        Nights of praise, seasonal worship tours, and church-hosted gatherings across the country.
+      <p class="text-base text-ink-soft sm:text-lg">
+        Nights of praise, worship tours and church-hosted gatherings across the country.
       </p>
     </div>
-    <div class="mt-12 grid gap-5 md:grid-cols-3">
+    <div class="mt-10 grid gap-5 md:grid-cols-3">
       {worship.slice(0, 2).map((e, i) => {
         const d = dateParts(e.date);
         return (
@@ -63,7 +63,7 @@ const { worship, recurring } = Astro.props;
           <span class="grid h-10 w-10 place-items-center rounded-full bg-terracotta/10 text-terracotta">
             <Icon name="book" class="h-5 w-5" />
           </span>
-          <h3 class="text-xl font-semibold">More regional worship &amp; tour stops</h3>
+          <h3 class="text-xl font-semibold">More worship nights and tour stops</h3>
         </div>
         <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recurring.map((e) => (

@@ -1,0 +1,54 @@
+---
+/** Section opener: pill eyebrow, short heading (optional accent line) and a one or two sentence lede. */
+import EyebrowPill from './EyebrowPill.astro';
+interface Props {
+  eyebrow?: string;
+  title: string;
+  accent?: string;
+  lede?: string;
+  as?: 'h1' | 'h2' | 'h3';
+  size?: 'display' | 'section' | 'sub';
+  tone?: 'light' | 'dark';
+  id?: string;
+  class?: string;
+}
+const {
+  eyebrow,
+  title,
+  accent,
+  lede,
+  as: Tag = 'h2',
+  size = 'section',
+  tone = 'light',
+  id,
+  class: className,
+} = Astro.props;
+const dark = tone === 'dark';
+const sizeClass = {
+  display: 'display-lg production-hero-title',
+  section: 'section-heading',
+  sub: 'section-subheading',
+}[size];
+---
+
+<div class:list={['max-w-2xl', className]}>
+  {eyebrow && <EyebrowPill tone={tone}>{eyebrow}</EyebrowPill>}
+  <Tag
+    id={id}
+    class:list={[sizeClass, 'text-balance', eyebrow && 'mt-4', dark ? 'text-cream' : 'text-charcoal']}
+  >
+    {title}
+    {accent && <span class:list={['block', dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>}
+  </Tag>
+  {lede && (
+    <p
+      class:list={[
+        'mt-4 max-w-xl text-base leading-relaxed md:text-lg',
+        dark ? 'text-cream/75' : 'text-ink-soft',
+      ]}
+    >
+      {lede}
+    </p>
+  )}
+  <slot />
+</div>

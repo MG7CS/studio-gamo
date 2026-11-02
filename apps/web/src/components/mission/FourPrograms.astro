@@ -1,5 +1,5 @@
 ---
-/** One Mission, Four Programs — asymmetric bento of differently shaped photo panels. */
+/** One mission, four programs: one photo card per program. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { programs } from '../../data/programs';
@@ -15,16 +15,16 @@ const layout = [
 <section
   id="programs"
   aria-labelledby="programs-title"
-  class="scroll-mt-28 bg-cream px-5 py-20 sm:px-8 lg:py-28"
+  class="scroll-mt-28 bg-cream px-5 section-space sm:px-8"
 >
   <div class="mx-auto max-w-[1320px]">
     <div class="max-w-3xl">
-      <p class="eyebrow text-terracotta">One mission, four programs</p>
+      <p class="eyebrow-pill">How we serve</p>
       <h2 id="programs-title" class="section-heading mt-4 text-balance text-charcoal">
-        Interconnected programs serving one purpose.
+        Many gifts. <span class="text-terracotta">One body.</span>
       </h2>
     </div>
-    <div class="mt-12 grid gap-6 md:grid-cols-2">
+    <div class="mt-10 grid gap-5 md:grid-cols-2 lg:gap-6">
       {programs.map((p, i) => {
         const l = layout[i];
         return (
@@ -33,12 +33,12 @@ const layout = [
             data-reveal
             data-surface={l.dark ? 'dark' : undefined}
             class:list={[
-              'group flex flex-col justify-between overflow-hidden rounded-[34px] p-3.5 sm:p-4 ring-1 ring-black/5 transition-transform hover:-translate-y-1',
+              'group flex flex-col justify-between overflow-hidden rounded-[30px] p-3 ring-1 ring-black/5 transition-transform hover:-translate-y-1 sm:rounded-[34px] sm:p-4',
               l.tone,
             ]}
           >
             <div>
-              <div class="relative aspect-[16/9] w-full overflow-hidden rounded-[26px] bg-sand">
+              <div class="relative aspect-[16/10] w-full overflow-hidden rounded-[22px] bg-sand sm:aspect-[16/9] sm:rounded-[26px]">
                 <Photo
                   name={p.photo}
                   sizes="(min-width:1024px) 45vw, 92vw"
@@ -46,24 +46,29 @@ const layout = [
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
-              <div class="p-4 sm:p-6">
+              <div class="p-3 pt-5 sm:p-6">
                 <span
                   class="inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal"
                   style={`background:${p.accent}`}
                 >
                   <Icon name={p.icon} class="h-5 w-5" />
                 </span>
-                <h3 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">{p.name}</h3>
-                <p class:list={['mt-2 max-w-xl leading-relaxed', l.dark ? 'text-cream/75' : 'text-ink-soft']}>
+                <h3 class="mt-4 text-xl font-bold tracking-tight sm:text-2xl">{p.name}</h3>
+                <p
+                  class:list={[
+                    'mt-2 max-w-xl text-base leading-relaxed',
+                    l.dark ? 'text-cream/75' : 'text-ink-soft',
+                  ]}
+                >
                   {p.summary}
                 </p>
               </div>
             </div>
-            <div class="flex items-center justify-between p-4 pt-0 sm:p-6 sm:pt-0">
+            <div class="flex items-center justify-between gap-4 p-3 pt-0 sm:p-6 sm:pt-0">
               <span class:list={['text-sm font-semibold', l.dark ? 'text-cream/90' : 'text-charcoal']}>
                 {p.short}
               </span>
-              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-terracotta text-white transition-transform group-hover:translate-x-1">
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-terracotta text-white transition-transform group-hover:translate-x-1">
                 <Icon name="arrow" class="h-5 w-5" />
               </span>
             </div>

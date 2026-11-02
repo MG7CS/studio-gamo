@@ -1,20 +1,23 @@
 ---
-/** Section 6: sponsored & scholarship-supported programs — clearly marked as planned. */
-import EditorialFeatureCard, {
-  type EditorialFeaturePoint,
-} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+/** Section 6: sponsored classes, clearly marked as a proposal. Photo first on phones. */
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Panel from '../shared/Panel.astro';
+import MediaText from '../shared/MediaText.astro';
+import SectionIntro from '../shared/SectionIntro.astro';
+import PointList, { type Point } from '../shared/PointList.astro';
+import Actions from '../shared/Actions.astro';
 
-const ideas: EditorialFeaturePoint[] = [
+const ideas: Point[] = [
   {
     icon: 'heart',
-    title: 'Need-based tuition support',
-    body: 'Proposed reduced or no-cost lessons for families who need it.',
+    title: 'Need-based support',
+    body: 'Proposed reduced-cost or free lessons for families who need it.',
   },
   {
     icon: 'church',
-    title: 'Church-sponsored cohorts',
-    body: 'Proposed groups a congregation could underwrite for its community.',
+    title: 'Sponsored classes',
+    body: 'A church or any organization can sponsor a class. Fully sponsored classes are free to the learner.',
   },
   {
     icon: 'school',
@@ -24,19 +27,22 @@ const ideas: EditorialFeaturePoint[] = [
 ];
 ---
 
-<EditorialFeatureCard
-  pillText="Sponsored & scholarship pathways"
-  pillKind="proposal"
-  title="Music lessons should not depend on"
-  accent="a family's budget."
-  body="Gamo Academy coordinates sponsored and scholarship-supported lessons alongside church partners and community supporters so every student has room to learn."
-  points={ideas}
-  photo="boyGuitar"
-  photoPosition="50% 30%"
-  caption="Scholarship & church-sponsored cohort pathways"
-  tone="sand"
->
-  <ButtonLink href="/sponsored" arrow>
-    Explore sponsored programs
-  </ButtonLink>
-</EditorialFeatureCard>
+<section class="px-4 section-space sm:px-8" data-reveal>
+  <Panel tone="sand" class="mx-auto max-w-[1320px]">
+    <MediaText photo="boyGuitar" photoPosition="50% 30%">
+      <StatusPill kind="proposal">Proposal</StatusPill>
+      <SectionIntro
+        class="mt-4"
+        title="Lessons should not depend"
+        accent="on a family's budget."
+        lede="Churches and other organizations can sponsor classes so cost never stands in the way."
+      />
+      <PointList points={ideas} class="mt-6" />
+      <Actions class="mt-6">
+        <ButtonLink href="/sponsored" arrow>
+          Sponsored programs
+        </ButtonLink>
+      </Actions>
+    </MediaText>
+  </Panel>
+</section>

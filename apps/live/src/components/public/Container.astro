@@ -1,0 +1,13 @@
+---
+/** Page-width wrapper for the public pages: one max width and one gutter everywhere. */
+interface Props {
+  as?: 'div' | 'section' | 'nav' | 'header';
+  id?: string;
+  class?: string;
+}
+const { as: Tag = 'div', id, class: className } = Astro.props;
+---
+
+<Tag id={id} class:list={['mx-auto w-full max-w-[1340px] px-4 sm:px-6 lg:px-8', className]}>
+  <slot />
+</Tag>

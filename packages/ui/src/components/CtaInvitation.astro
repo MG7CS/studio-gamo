@@ -26,18 +26,26 @@ const dark = tone === 'dark';
       dark ? 'bg-night text-cream' : 'bg-ivory text-charcoal ring-1 ring-sand',
     ]}
   >
-    <div class="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
-      {eyebrow && <p class:list={['eyebrow mb-4', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
+    <div class="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
+      {eyebrow && (
+        <p class:list={['eyebrow-pill mb-4 self-start', dark && 'bg-white/10 text-gold']}>{eyebrow}</p>
+      )}
       <h2 class="section-heading text-balance">{title}</h2>
-      <p class:list={['mt-5 max-w-xl text-lg leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>
+      <p
+        class:list={[
+          'mt-4 max-w-xl text-base leading-relaxed sm:text-lg',
+          dark ? 'text-cream/75' : 'text-ink-soft',
+        ]}
+      >
         {body}
       </p>
-      <div class="mt-8 flex flex-wrap gap-3">
+      <div class="button-stack mt-7">
         <slot />
       </div>
     </div>
-    <div class="relative min-h-[300px] lg:min-h-[400px]">
-      <div class="absolute inset-3 overflow-hidden rounded-[28px] lg:inset-4 lg:rounded-[200px_28px_28px_28px]">
+    {/* Phones see the photo first, then the invitation; desktop keeps the text on the left. */}
+    <div class="relative order-first min-h-[260px] sm:min-h-[320px] lg:order-none lg:min-h-[400px]">
+      <div class="absolute inset-3 overflow-hidden rounded-[24px] lg:inset-4">
         <Photo
           name={photo}
           sizes="(min-width:1024px) 45vw, 100vw"

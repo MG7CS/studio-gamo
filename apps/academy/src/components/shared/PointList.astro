@@ -1,0 +1,44 @@
+---
+/** Compact list of icon + title + one-line body rows, used inside feature panels. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { IconName } from '@studio-gamo/ui/lib/icons';
+export interface Point {
+  icon: IconName;
+  title: string;
+  body: string;
+}
+interface Props {
+  points: Point[];
+  tone?: 'light' | 'dark';
+  columns?: 1 | 2;
+  class?: string;
+}
+const { points, tone = 'light', columns = 1, class: className } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<ul class:list={['grid gap-3', columns === 2 && 'sm:grid-cols-2', className]}>
+  {points.map((pt) => (
+    <li
+      class:list={[
+        'flex items-start gap-3.5 rounded-2xl p-4',
+        dark ? 'bg-white/5 ring-1 ring-white/10' : 'bg-white ring-1 ring-sand',
+      ]}
+    >
+      <span
+        class:list={[
+          'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
+          dark ? 'bg-white/10 text-gold' : 'bg-cream text-terracotta',
+        ]}
+      >
+        <Icon name={pt.icon} class="h-5 w-5" />
+      </span>
+      <div class="min-w-0">
+        <p class="font-bold leading-snug">{pt.title}</p>
+        <p class:list={['mt-0.5 text-sm leading-relaxed', dark ? 'text-cream/70' : 'text-ink-soft']}>
+          {pt.body}
+        </p>
+      </div>
+    </li>
+  ))}
+</ul>

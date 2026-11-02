@@ -14,10 +14,10 @@ const d = lead ? dateParts(lead.date) : null;
 ---
 
 {lead && d && (
-  <section class="bg-cream px-4 section-space sm:px-8" aria-labelledby="gospel-title">
+  <section class="bg-cream px-5 section-space sm:px-8" aria-labelledby="gospel-title">
     <div class="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-20">
       <div class="relative">
-        <div class="aspect-[4/5] overflow-hidden rounded-[200px_200px_32px_32px] sm:aspect-[5/4] lg:aspect-[5/6]">
+        <div class="aspect-[4/5] overflow-hidden rounded-[28px] sm:aspect-[5/4] lg:aspect-[5/6]">
           <Photo
             name="worshipLeaderGolden"
             sizes="(min-width:1024px) 45vw, 100vw"
@@ -27,7 +27,7 @@ const d = lead ? dateParts(lead.date) : null;
         </div>
         <a
           href={siteUrl('live', lead.productPath)}
-          class="absolute -bottom-6 right-2 w-64 rounded-[24px] bg-white p-4 shadow-float ring-1 ring-sand sm:right-2 lg:right-[-1rem]"
+          class="absolute -bottom-6 right-2 w-[min(16rem,80%)] rounded-[24px] bg-white p-4 shadow-float ring-1 ring-sand lg:right-[-1rem]"
         >
           {lead.isPast || lead.status === 'past' ? (
             <StatusPill kind="past">Past · Closed</StatusPill>
@@ -44,15 +44,14 @@ const d = lead ? dateParts(lead.date) : null;
         </a>
       </div>
       <div>
-        <p class="eyebrow text-terracotta">Christian concerts</p>
-        <h2 id="gospel-title" class="section-heading mt-3 text-balance">
+        <p class="eyebrow-pill">Christian concerts</p>
+        <h2 id="gospel-title" class="section-heading mt-4 text-balance">
           Choirs, bands and voices <span class="text-terracotta">lifted together.</span>
         </h2>
-        <p class="mt-4 max-w-lg text-lg text-ink-soft">
-          From church-hall worship nights to full arena tours, each listing shows the verified venue and
-          official ticket provider.
+        <p class="mt-4 max-w-lg text-base text-ink-soft sm:text-lg">
+          From church-hall nights to arena tours. Each listing names the venue and the ticket provider.
         </p>
-        <div class="mt-8 space-y-3">
+        <div class="mt-6 space-y-3">
           {events.map((e) => (
             <EventCard event={e} variant="row" />
           ))}
