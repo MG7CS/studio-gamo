@@ -54,6 +54,7 @@ Deploys, secrets, DNS and database changes are owner-only. The procedure is in [
 - [`docs/REBUILD_PLAN.md`](docs/REBUILD_PLAN.md) — the rebuild: inventory, decisions, phases
 - [`docs/ADMIN_REQUIREMENTS.md`](docs/ADMIN_REQUIREMENTS.md) — the admin
 - [`docs/LIVE_REQUIREMENTS.md`](docs/LIVE_REQUIREMENTS.md), [`docs/LIVE_DATA_MODEL.md`](docs/LIVE_DATA_MODEL.md), [`docs/LIVE_SCREENS.md`](docs/LIVE_SCREENS.md), [`docs/LIVE_PAYMENTS.md`](docs/LIVE_PAYMENTS.md) — Gamo Live
+- [`docs/OPEN_QUESTIONS.md`](docs/OPEN_QUESTIONS.md) — every open question for the owner, with a recommended answer and a Decision column
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — deploy, rollback, Cloudflare setup, Live catalog import
 - [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md), [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) — mission and legal prerequisites (historical file names; the PBC statement in `AGENTS.md` prevails)
 - [`docs/DECISIONS.md`](docs/DECISIONS.md), [`docs/BUILD_LOG.md`](docs/BUILD_LOG.md) — history logs (not rules)

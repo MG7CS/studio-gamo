@@ -981,3 +981,7 @@
 - **Checked:** unit tests next to the moved code (identity, Live clerk, db enums and migrations, rate limit, terms, outbox, layer lint, audit admin, legal drafts, admin paid, crawler files, organizers, events: 151 pass); `pnpm typecheck` (packages and all six apps); `pnpm lint`; `pnpm format:check`; `pnpm lint:layers` (0 findings); `tests/e2e/admin.spec.ts` and `tests/e2e/live-flow.spec.ts` once each on the rebuilt workers (results below). **Not run:** the full unit suite, the other Playwright specs. Dependencies changed: restart the dev servers.
 
 - **Update after WO4:** `pnpm build` first failed with a package cycle (`@gamo/db` depended on `@gamo/platform`, which depends on `@gamo/db`). The legacy schema's two references into platform tables (`users.person_id`, the academy registration acceptance ids) are now plain columns, as the platform schema already does in the other direction; the SQL still enforces the keys. After that: `pnpm build` of all apps passes, `tests/e2e/admin.spec.ts` (11) and `tests/e2e/live-flow.spec.ts` (2) pass on that build.
+
+## 2026-11-01 — Open questions collected (branch `platform-layers`, not committed)
+
+- `docs/OPEN_QUESTIONS.md` lists every open question from the Worship, Academy and Production requirements drafts and the Live ticketing review, with a recommended answer and a Decision column (all `open`). Linked from the README. Also new: `make stop-<app>`, `make restart-<app>`, `make stop-all` and `make restart-all` with `scripts/dev/stop.sh` (the owner runs them; sessions do not).
