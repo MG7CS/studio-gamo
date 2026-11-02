@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
+@import '@gamo/site/styles/sources.css';
 
 /* Academy title scale: the shared display utilities start at 36 to 40 px, which wraps an uppercase
    headline into five lines on a 390 px phone. These start smaller and reach the shared sizes on desktop. */

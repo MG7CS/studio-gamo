@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { LiveCatalog, getRuntimeEnv, GAMO_LIVE_METROS } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
+import { LiveCatalog, GAMO_LIVE_METROS } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/platform/db';
-import { buildSitemapXml, xmlResponse, type SitemapEntry } from '@studio-gamo/ui/lib/crawlers';
+import { sitemapRoute, type SitemapEntry } from '@gamo/site/lib/crawlers';
 
 export const prerender = false;
 
@@ -39,13 +40,14 @@ async function publishedEventEntries(context: Parameters<APIRoute>[0]): Promise<
   }
 }
 
-export const GET: APIRoute = async (context) => {
+async function allEntries(context: Parameters<APIRoute>[0]): Promise<SitemapEntry[]> {
   const metroEntries: SitemapEntry[] = GAMO_LIVE_METROS.map((metro) => ({
     path: `/events/${metro.slug}`,
     priority: metro.isPrimaryLaunchMarket ? '0.9' : '0.8',
     changefreq: 'daily',
   }));
-  const entries = [...STATIC_ENTRIES, ...metroEntries, ...(await publishedEventEntries(context))];
-  // Event listings change more often than the other apps' static pages.
-  return xmlResponse(buildSitemapXml('live', entries), 900);
-};
+  return [...STATIC_ENTRIES, ...metroEntries, ...(await publishedEventEntries(context))];
+}
+
+// Event listings change more often than the other apps' static pages, so the cache is 15 minutes.
+export const GET = sitemapRoute('live', allEntries, 900);

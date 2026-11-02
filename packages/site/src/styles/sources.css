@@ -1,0 +1,2 @@
+/* Tailwind must scan this package's components for class names: every public app imports this file after tokens.css. */
+@source "../components";

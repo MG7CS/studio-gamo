@@ -2,7 +2,7 @@ import type { GamoLocals } from '@gamo/platform/security';
 import type { PublicApp } from '@gamo/config/apps';
 import { checkEnvOnce } from '@gamo/config/env-validation';
 import type { GamoEnv } from '@gamo/config/env';
-import { getRuntimeEnv } from './response';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { withSecurityHeaders, type SecurityHeaderOptions } from '@gamo/platform/security';
 
 type Context = {

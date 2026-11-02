@@ -1,7 +1,7 @@
 ---
 /** One profile page: details, history and decisions. POST applies a decision. */
 import ProfilePage from '../../components/ProfilePage.astro';
-import { getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { decideProfile } from '../../lib/provider-actions';
 import { getAdminEmail } from '../../lib/gate';
 import { loadProviderDetail, outcomeFrom } from '../../lib/review-data';

@@ -15,7 +15,7 @@ import {
   LEGAL_DOCUMENT_CONTENT,
   getLegalDocumentContent,
   legalDocumentCanonicalText,
-} from '../../packages/ui/src/components/legal/content/index.ts';
+} from '../../packages/site/src/components/legal/content/index.ts';
 
 /**
  * Every (slug, version) ever published with its text hash. Append a row when you bump a version; never
@@ -119,10 +119,10 @@ test('drafts use approved status wording only and cover the required points', ()
 });
 
 test('every legal page and the components show the DRAFT banner; pages are on demand', () => {
-  const banner = readFileSync('packages/ui/src/components/legal/LegalDraftBanner.astro', 'utf8');
+  const banner = readFileSync('packages/site/src/components/legal/LegalDraftBanner.astro', 'utf8');
   assert.match(banner, /DRAFT — requires legal review/);
   assert.match(banner, /Not yet in effect/);
-  const documentComponent = readFileSync('packages/ui/src/components/legal/LegalDocument.astro', 'utf8');
+  const documentComponent = readFileSync('packages/site/src/components/legal/LegalDocument.astro', 'utf8');
   assert.match(documentComponent, /<LegalDraftBanner[^>]*version=\{version\}/);
   assert.equal((documentComponent.match(/<h1\s/g) ?? []).length, 1);
   const slugPage = readFileSync('apps/web/src/pages/legal/[slug].astro', 'utf8');
@@ -132,10 +132,10 @@ test('every legal page and the components show the DRAFT banner; pages are on de
   assert.match(indexPage, /<LegalDraftBanner/);
   for (const source of [slugPage, indexPage]) assert.doesNotMatch(source, /prerender\s*=\s*true/);
   for (const file of [
-    'packages/ui/src/components/legal/LegalDraftBanner.astro',
-    'packages/ui/src/components/legal/LegalDocument.astro',
-    'packages/ui/src/components/legal/LegalSection.astro',
-    'packages/ui/src/components/legal/LegalIndexList.astro',
+    'packages/site/src/components/legal/LegalDraftBanner.astro',
+    'packages/site/src/components/legal/LegalDocument.astro',
+    'packages/site/src/components/legal/LegalSection.astro',
+    'packages/site/src/components/legal/LegalIndexList.astro',
     'apps/web/src/pages/legal/index.astro',
   ]) {
     const source = readFileSync(file, 'utf8');
@@ -146,7 +146,7 @@ test('every legal page and the components show the DRAFT banner; pages are on de
 });
 
 test('every footer links the legal documents', () => {
-  const shared = readFileSync('packages/ui/src/components/SiteFooter.astro', 'utf8');
+  const shared = readFileSync('packages/site/src/components/SiteFooter.astro', 'utf8');
   const live = readFileSync('apps/live/src/components/LiveFooter.astro', 'utf8');
   for (const footer of [shared, live]) {
     assert.match(footer, /\/legal'/);

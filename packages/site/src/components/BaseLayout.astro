@@ -1,13 +1,13 @@
 ---
-import HeadIcons from './HeadIcons.astro';
-import FontPreload from './FontPreload.astro';
+import HeadIcons from '@studio-gamo/ui/components/HeadIcons.astro';
+import FontPreload from '@studio-gamo/ui/components/FontPreload.astro';
 /**
  * Shared document shell for every public Gamo Studios app.
  * Each app's own Layout imports its `app.css` and then wraps this component.
  */
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
-import { siteOrigin, type SiteKey } from '../lib/sites';
+import { siteOrigin, type SiteKey } from '@studio-gamo/ui/lib/sites';
 
 interface Props {
   title: string;

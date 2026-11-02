@@ -1,9 +1,7 @@
 ---
 /** Gamo Academy page shell: shared ProgramLayout + this app's stylesheet. */
 import '../app.css';
-import ProgramLayout, {
-  type Props as ProgramLayoutProps,
-} from '@studio-gamo/ui/components/ProgramLayout.astro';
+import ProgramLayout, { type Props as ProgramLayoutProps } from '@gamo/site/components/ProgramLayout.astro';
 
 type Props = Omit<ProgramLayoutProps, 'program'>;
 ---

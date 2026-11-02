@@ -8,9 +8,9 @@ import EmptyNotice from '../../components/public/EmptyNotice.astro';
 import MetroLinks from '../../components/public/MetroLinks.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import {
   LiveCatalog,
-  getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
   resolveNearestMetroByCoordinates,

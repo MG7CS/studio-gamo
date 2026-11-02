@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { matchLegacyRedirect, type LegacyRedirect } from '../../packages/domain/src/api/page-middleware';
+import { matchLegacyRedirect, type LegacyRedirect } from '../../packages/site/src/lib/page-middleware.ts';
 import { legacyRedirects as web } from '../../apps/web/src/lib/legacy-redirects';
 import { legacyRedirects as worship } from '../../apps/worship/src/lib/legacy-redirects';
 import { legacyRedirects as academy } from '../../apps/academy/src/lib/legacy-redirects';

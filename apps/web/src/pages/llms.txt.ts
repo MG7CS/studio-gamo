@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
-import { textResponse } from '@studio-gamo/ui/lib/crawlers';
+import { textResponse } from '@gamo/site/lib/crawlers';
 
 export const prerender = false;
 

@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
+@import '@gamo/site/styles/sources.css';
 
 /* Homepage-specific focus overrides for dark sections (shared defaults live in tokens.css). */
 footer :focus-visible,

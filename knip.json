@@ -23,6 +23,10 @@
     "packages/platform": {
       "entry": ["*/index.ts", "db/testing.ts", "security/app-locals.d.ts"],
       "project": ["**/*.ts"]
+    },
+    "packages/site": {
+      "entry": ["src/components/**/*.astro", "src/lib/*.ts"],
+      "project": ["src/**/*.{astro,ts}"]
     }
   }
 }

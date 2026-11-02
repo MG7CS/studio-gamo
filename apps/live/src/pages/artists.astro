@@ -7,12 +7,8 @@ import EmptyNotice from '../components/public/EmptyNotice.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
-import {
-  LiveCatalog,
-  getRuntimeEnv,
-  formatLocalEventSchedule,
-  type LiveEventWithDetails,
-} from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
+import { LiveCatalog, formatLocalEventSchedule, type LiveEventWithDetails } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/platform/db';
 
 export const prerender = false;

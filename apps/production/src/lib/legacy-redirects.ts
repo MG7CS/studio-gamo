@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+import type { LegacyRedirect } from '@gamo/site/lib/page-middleware';
 import { inquiryUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
 
 /** Retired Gamo Production URLs (accounts, workspaces and the demo flows were removed in the rebuild). */

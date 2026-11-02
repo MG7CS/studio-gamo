@@ -16,6 +16,7 @@
     "@gamo/core": "workspace:*",
     "@gamo/domain": "workspace:*",
     "@gamo/platform": "workspace:*",
+    "@gamo/site": "workspace:*",
     "@studio-gamo/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.8",

@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+import type { LegacyRedirect } from '@gamo/site/lib/page-middleware';
 
 /** Retired gamostudio.org URLs (accounts and the partner area were removed in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [

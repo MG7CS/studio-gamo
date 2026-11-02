@@ -4,8 +4,8 @@
  * src/pages/500.astro), so the header, footer and program name match the site. Never shows
  * error details.
  */
-import ButtonLink from './ButtonLink.astro';
-import { siteUrl } from '../lib/sites';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
 interface Props {
   status: 404 | 500;

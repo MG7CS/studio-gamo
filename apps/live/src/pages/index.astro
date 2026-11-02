@@ -10,9 +10,9 @@ import EmptyNotice from '../components/public/EmptyNotice.astro';
 import OrganizerCta from '../components/public/OrganizerCta.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import {
   LiveCatalog,
-  getRuntimeEnv,
   GAMO_LIVE_METROS,
   resolveMetroBySlug,
   formatLocalEventSchedule,

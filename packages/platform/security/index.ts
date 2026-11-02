@@ -13,3 +13,4 @@ export * from './env-secret.ts';
 export * from './security-headers.ts';
 export * from './request-guards.ts';
 export type * from './locals.ts';
+export * from './defer.ts';

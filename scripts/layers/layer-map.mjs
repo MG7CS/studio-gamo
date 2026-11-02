@@ -14,6 +14,7 @@ export const PACKAGES = {
   ui: { specifier: '@studio-gamo/ui', layer: 'foundation' },
   db: { specifier: '@gamo/db', layer: 'platform' },
   platform: { specifier: '@gamo/platform', layer: 'platform' },
+  site: { specifier: '@gamo/site', layer: 'platform' },
   domain: { specifier: '@gamo/domain', layer: 'transitional' },
 };
 
