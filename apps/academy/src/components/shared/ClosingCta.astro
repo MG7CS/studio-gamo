@@ -1,0 +1,28 @@
+---
+/** Closing invitation at the end of a page: photo first on phones, buttons in the default slot. */
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import Panel from './Panel.astro';
+import MediaText from './MediaText.astro';
+import SectionIntro from './SectionIntro.astro';
+import Actions from './Actions.astro';
+interface Props {
+  eyebrow?: string;
+  title: string;
+  accent?: string;
+  body: string;
+  photo: PhotoKey;
+  photoPosition?: string;
+}
+const { eyebrow, title, accent, body, photo, photoPosition } = Astro.props;
+---
+
+<section class="px-4 section-space sm:px-8">
+  <Panel tone="ivory" class="mx-auto max-w-[1320px]">
+    <MediaText photo={photo} photoPosition={photoPosition}>
+      <SectionIntro eyebrow={eyebrow} title={title} accent={accent} lede={body} />
+      <Actions class="mt-8">
+        <slot />
+      </Actions>
+    </MediaText>
+  </Panel>
+</section>

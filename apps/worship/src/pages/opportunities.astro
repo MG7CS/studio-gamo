@@ -1,26 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import PanelHeading from '../components/home/PanelHeading.astro';
 import OpportunityBoard from '../components/dashboard/OpportunityBoard.astro';
 ---
 
 <Layout
   title="Musician Opportunities"
-  description="Explore open Sunday and special service needs across local congregations and find a place to serve as a worship musician with Gamo Worship."
+  description="Sample open roles for services and events, showing how Gamo Worship opportunities will look for musicians."
 >
-  <section class="bg-cream page-intro-space">
-    <div class="mx-auto max-w-7xl px-5 sm:px-8">
-      <EditorialHeading
+  <section
+    class="px-4 pb-2.5 pt-[5.5rem] sm:px-6 sm:pb-3 sm:pt-24 lg:pt-28"
+    aria-labelledby="opportunities-title"
+  >
+    <div class="mx-auto max-w-[1320px] rounded-[28px] bg-white p-5 shadow-[0_18px_50px_-30px_rgba(24,24,27,0.25)] ring-1 ring-sand sm:rounded-[36px] sm:p-8 lg:p-12">
+      <PanelHeading
         as="h1"
-        size="section"
-        eyebrow="For musicians · Service opportunities"
+        id="opportunities-title"
+        eyebrow="For musicians"
         title="Find a place"
         accent="to serve."
-        lede="Explore open Sunday and special service needs across local congregations."
+        lede="Open roles for services and events. These are sample listings that show how real ones will look."
       />
-      <div class="mt-8">
-        <OpportunityBoard />
-      </div>
     </div>
   </section>
+  <OpportunityBoard />
+  <div class="h-6 sm:h-8"></div>
 </Layout>

@@ -1,64 +1,55 @@
 ---
-/** Section 6 — event production support as a dark cinematic advance-planning timeline. */
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+/** Event production support: dark panel with the photo and a four-step advance plan. */
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SectionPanel from './SectionPanel.astro';
+import SectionHeader from './SectionHeader.astro';
+import SplitMedia from './SplitMedia.astro';
+import PhotoFrame from './PhotoFrame.astro';
+import Actions from './Actions.astro';
 const phases = [
   {
     when: '8 weeks out',
-    what: 'Vision & scope',
-    detail: 'Clarify the gathering, room and expected attendance.',
+    what: 'Vision and scope',
+    detail: 'Clarify the gathering, the room and expected attendance.',
   },
   {
     when: '4 weeks out',
-    what: 'Stage plot & input list',
+    what: 'Stage plot and input list',
     detail: 'Map instruments, microphones and staffing needs.',
   },
-  { when: 'Event week', what: 'Rehearsal & run-of-show', detail: 'Time changeovers and confirm every cue.' },
+  {
+    when: 'Event week',
+    what: 'Rehearsal and run-of-show',
+    detail: 'Time changeovers and confirm every cue.',
+  },
   { when: 'After', what: 'Debrief', detail: 'Capture lessons for the next event.' },
 ];
 ---
 
-<section
-  class="relative overflow-hidden bg-night section-space text-cream"
-  aria-labelledby="events-title"
-  data-surface="dark"
-  data-reveal
->
-  <div class="absolute inset-y-0 right-0 hidden w-1/2 lg:block">
-    <Photo
-      name="worshipNight"
-      sizes="(min-width:1024px) 50vw, 0px"
-      class="h-full w-full object-cover opacity-60"
-      alt=""
+<SectionPanel tone="dark" labelledby="events-title">
+  <SplitMedia>
+    <PhotoFrame slot="media" name="worshipNight" />
+    <SectionHeader
+      id="events-title"
+      tone="dark"
+      eyebrow="Event support"
+      title="Big services, planned calmly."
+      lede="Planning help for Christmas, Easter, worship nights and conferences, so the team is ready long before the doors open."
     />
-    <div class="absolute inset-0 bg-gradient-to-r from-night via-night/40 to-transparent"></div>
-  </div>
-  <div class="relative mx-auto max-w-7xl px-5 md:px-8">
-    <div class="max-w-xl">
-      <p class="eyebrow text-gold">06 · Event production support</p>
-      <h2 id="events-title" class="section-heading mt-4 text-cream">
-        Christmas, Easter and worship nights — planned calmly.
-      </h2>
-      <p class="mt-5 text-lg text-cream/75">
-        Planning help for special services and conferences, so the team is prepared long before the doors
-        open.
-      </p>
-    </div>
-    <div class="mt-8 aspect-[16/10] overflow-hidden rounded-[2rem] lg:hidden">
-      <Photo name="worshipNight" sizes="100vw" class="h-full w-full object-cover" />
-    </div>
-    <ol class="mt-12 grid max-w-xl gap-0 border-l border-white/20 pl-6">
+    <ol class="mt-8 border-l border-white/20 pl-6">
       {phases.map((p) => (
-        <li class="relative pb-8 last:pb-0">
+        <li class="relative pb-6 last:pb-0">
           <span class="absolute -left-[31px] top-1 h-3 w-3 rounded-full bg-terracotta ring-4 ring-night"></span>
           <p class="text-xs font-semibold uppercase tracking-wider text-gold">{p.when}</p>
-          <h3 class="mt-1 text-lg font-semibold">{p.what}</h3>
+          <h3 class="mt-1 text-base font-semibold">{p.what}</h3>
           <p class="mt-1 text-sm text-cream/70">{p.detail}</p>
         </li>
       ))}
     </ol>
-    <ButtonLink href="/services/event-support" variant="ghost-dark" arrow class="mt-10">
-      Event support details
-    </ButtonLink>
-  </div>
-</section>
+    <Actions class="mt-8">
+      <ButtonLink href="/services/event-support" variant="ghost-dark" arrow>
+        Event support details
+      </ButtonLink>
+    </Actions>
+  </SplitMedia>
+</SectionPanel>

@@ -1,28 +1,32 @@
 ---
 import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
-/** How churches request musicians. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** How churches and groups request musicians. */
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import ProcessSteps from './ProcessSteps.astro';
+import SectionPanel from './SectionPanel.astro';
+import PanelHeading from './PanelHeading.astro';
 import { requestSteps } from '../../data/worship';
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="request-title">
-  <div class="mx-auto max-w-7xl px-5 sm:px-8">
-    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-      <EditorialHeading
-        id="request-title"
-        eyebrow="For churches"
-        title="Requesting musicians,"
-        accent="in four calm steps."
-        class="max-w-2xl"
-      />
-      <ButtonLink href={providerSignupUrl('worship', 'church')} variant="secondary" arrow>
-        Start a request
-      </ButtonLink>
-    </div>
-    <div class="mt-14">
-      <ProcessSteps steps={requestSteps} />
-    </div>
+<SectionPanel labelledby="request-title">
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <PanelHeading
+      id="request-title"
+      eyebrow="For churches and groups"
+      title="Request musicians"
+      accent="made simple."
+      lede="For a service, a concert, an event or almost any occasion, on any day."
+    />
+    <ButtonLink
+      href={providerSignupUrl('worship', 'church')}
+      variant="secondary"
+      class="w-full sm:w-auto"
+      arrow
+    >
+      Start a request
+    </ButtonLink>
   </div>
-</section>
+  <div class="mt-8">
+    <ProcessSteps steps={requestSteps} />
+  </div>
+</SectionPanel>

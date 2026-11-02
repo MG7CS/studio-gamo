@@ -1,0 +1,35 @@
+---
+/** Rounded photo frame used by every split section, so all pictures share one shape. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+interface Props {
+  name: PhotoKey;
+  /** Aspect utilities; phones get a wide frame, desktop a squarer one. */
+  aspect?: string;
+  sizes?: string;
+  position?: string;
+  alt?: string;
+  priority?: boolean;
+  class?: string;
+}
+const {
+  name,
+  aspect = 'aspect-[16/10] lg:aspect-[5/4]',
+  sizes = '(min-width:1024px) 620px, 100vw',
+  position,
+  alt,
+  priority = false,
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['overflow-hidden rounded-[1.75rem] bg-sand', aspect, className]}>
+  <Photo
+    name={name}
+    sizes={sizes}
+    position={position}
+    alt={alt}
+    priority={priority}
+    class="h-full w-full object-cover"
+  />
+</div>

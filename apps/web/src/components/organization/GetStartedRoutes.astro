@@ -1,64 +1,64 @@
 ---
-/** "I am a…" routing cards for /get-started. Each links to a real or documented planned route. */
+/** "I am…" routing cards for /get-started. Each links to a real route. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { providerSignupUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 
-const routes: { who: string; next: string; href: string; photo: PhotoKey; shape: string }[] = [
+const routes: { who: string; next: string; href: string; photo: PhotoKey }[] = [
   {
-    who: 'a church or ministry',
-    next: 'Request worship musicians or explore partnership',
+    who: 'a church or group',
+    next: 'Request musicians or explore a partnership',
     href: providerSignupUrl('worship', 'church'),
     photo: 'churchModernDay',
-    shape: 'rounded-[28px] rounded-tl-[90px]',
   },
   {
     who: 'a musician',
-    next: 'Learn about joining the musician collection',
+    next: 'Join the musician collection',
     href: providerSignupUrl('worship', 'musician'),
     photo: 'acousticLeader',
-    shape: 'mask-arch-sm',
   },
   {
-    who: 'a student or family',
+    who: 'a learner',
     next: 'Find an instrument and a lesson',
     href: siteUrl('academy', '/lessons'),
     photo: 'girlGuitar',
-    shape: 'rounded-[28px] rounded-br-[90px]',
   },
   {
     who: 'an event organizer',
     next: 'Share a Christian event on Gamo Live',
-    href: siteUrl('live', '/promote'),
+    href: siteUrl('live', '/organizer'),
     photo: 'gospelVocalists',
-    shape: 'mask-pebble',
   },
   {
     who: 'a supporter',
     next: 'See ways to support and partner',
     href: '/support',
     photo: 'youngPianist',
-    shape: 'rounded-[28px] rounded-tr-[90px]',
   },
 ];
 ---
 
-<ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+<ul class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-5">
   {routes.map((r) => (
     <li data-reveal>
       <a
         href={r.href}
-        class="group flex h-full flex-col rounded-[30px] bg-white p-3 ring-1 ring-sand transition-transform hover:-translate-y-1 hover:shadow-float"
+        class="group flex h-full flex-col rounded-[28px] bg-white p-3 ring-1 ring-sand transition-transform hover:-translate-y-1 hover:shadow-float"
       >
-        <div class:list={['aspect-square overflow-hidden', r.shape]}>
-          <Photo name={r.photo} sizes="(min-width:1024px) 18vw, (min-width:640px) 45vw, 92vw" alt="" />
+        <div class="aspect-[4/3] overflow-hidden rounded-[28px] sm:aspect-square">
+          <Photo
+            name={r.photo}
+            sizes="(min-width:1024px) 18vw, (min-width:640px) 45vw, 92vw"
+            alt=""
+            class="h-full w-full object-cover"
+          />
         </div>
-        <div class="flex flex-1 flex-col p-3 pt-5">
+        <div class="flex flex-1 flex-col p-2 pt-4 sm:p-3 sm:pt-5">
           <p class="text-sm text-ink-soft">I am</p>
-          <h2 class="text-xl font-bold tracking-tight text-charcoal">{r.who}</h2>
-          <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{r.next}</p>
-          <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-terracotta">
+          <h2 class="text-lg font-bold tracking-tight text-charcoal sm:text-xl">{r.who}</h2>
+          <p class="mt-1.5 flex-1 text-sm leading-relaxed text-ink-soft">{r.next}</p>
+          <span class="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-terracotta">
             Continue <Icon name="arrow" class="h-4 w-4" />
           </span>
         </div>

@@ -9,7 +9,7 @@ export const GET: APIRoute = () => {
   const web = siteOrigin('web');
   const body = `# Gamo Studios
 
-> Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together four connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, sharing Christian gatherings nationwide, and supporting technical ministry.
+> Gamo Studios is a Christian, mission-driven Public Benefit Corporation that serves churches, musicians, learners and families through worship teams, music lessons, Christian gatherings and technical ministry.
 
 ## Programs
 
@@ -20,7 +20,7 @@ export const GET: APIRoute = () => {
 
 ## About Gamo Studios
 
-- [Our mission](${web}/mission): how the four programs connect.
+- [Our mission](${web}/mission): why we serve and how.
 - [Get started](${web}/get-started): find the right program for you.
 - [Get involved](${web}/get-involved): practical ways to take part.
 - [Partnership inquiries](${web}/partners): how churches and community organizations can start a conversation.

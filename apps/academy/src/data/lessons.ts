@@ -31,7 +31,7 @@ export const lessons: Lesson[] = [
     slug: 'first-piano-steps', title: 'First Piano Steps', instrument: 'Piano', instrumentSlug: 'piano',
     instructorSlug: 'maya-thompson', level: 'Beginner', ages: ['Kids'], format: 'Private',
     schedule: 'Weekly · 30 min', length: '10 weeks', location: 'Online or in person', proposedTuitionCents: 3000,
-    summary: 'A gentle introduction to the keyboard for children ages 6–10, with a practice plan for families.',
+    summary: 'A gentle introduction to the keyboard for children ages 6 to 10, with a practice plan for families.',
     outcomes: ['Play simple melodies with both hands', 'Read basic notation', 'Build a 10-minute daily practice habit'],
     sample: true,
   },

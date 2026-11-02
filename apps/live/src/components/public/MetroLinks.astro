@@ -1,0 +1,42 @@
+---
+/**
+ * The list of city pills (events, venues, footer). A count on a pill is the number of
+ * upcoming events on the page it opens, so it is only shown when the page passes real counts.
+ */
+import FilterPill from './FilterPill.astro';
+
+interface Item {
+  slug: string;
+  label: string;
+  count?: number;
+}
+interface Props {
+  items: Item[];
+  href: (slug: string) => string;
+  label: string;
+  activeSlug?: string | null;
+  /** An "All cities" pill in front of the list. */
+  all?: { href: string; active?: boolean };
+  class?: string;
+}
+const { items, href, label, activeSlug = null, all, class: className } = Astro.props;
+---
+
+<nav aria-label={label} class:list={['flex flex-wrap gap-2', className]}>
+  {all && (
+    <FilterPill href={all.href} active={Boolean(all.active)}>
+      All cities
+    </FilterPill>
+  )}
+  {items.map((item) => (
+    <FilterPill href={href(item.slug)} active={activeSlug === item.slug}>
+      <span>{item.label}</span>
+      {typeof item.count === 'number' && item.count > 0 && (
+        <span class="text-xs font-medium">
+          <span aria-hidden="true">({item.count})</span>
+          <span class="sr-only">{item.count} upcoming</span>
+        </span>
+      )}
+    </FilterPill>
+  ))}
+</nav>

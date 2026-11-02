@@ -1,7 +1,6 @@
 ---
 /**
- * Gamo Live dark editorial section ("Christian events nationwide") matching the dark
- * contrast sections on /mission and /partners.
+ * Gamo Live dark editorial section ("Christian events nationwide") with three Sample event cards.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -18,39 +17,35 @@ interface FeaturedEvent {
   admission: string;
   photo: PhotoKey;
   href: string;
-  shape: string;
 }
 
 const featuredEvents: FeaturedEvent[] = [
   {
-    title: 'Desert Valley Night of Worship & Prayer',
+    title: 'Desert Valley Night of Worship',
     category: 'Worship gathering',
     location: 'Phoenix, AZ · Mesa Arts Pavilion',
     dateLabel: 'Fri · Nov 14 · 7:00 PM',
-    admission: 'Free RSVP',
+    admission: 'Free registration',
     photo: 'worshipNight',
     href: siteUrl('live', '/events'),
-    shape: 'rounded-[24px] rounded-tl-[72px]',
   },
   {
     title: 'Voices of Grace Gospel Choir Evening',
     category: 'Gospel concert',
     location: 'Atlanta, GA · Symphony Hall',
     dateLabel: 'Sat · Nov 22 · 6:30 PM',
-    admission: 'Ticketed admission',
+    admission: 'Ticketed',
     photo: 'gospelVocalists',
     href: siteUrl('live', '/events'),
-    shape: 'rounded-[24px] rounded-tr-[72px]',
   },
   {
-    title: 'NextGen Youth & Young Adults Summit',
-    category: 'Conference & youth',
+    title: 'NextGen Youth Summit',
+    category: 'Conference',
     location: 'Dallas, TX · Trinity Civic Center',
     dateLabel: 'Sat · Dec 06 · 9:30 AM',
-    admission: 'Community registration',
+    admission: 'Free registration',
     photo: 'concertCrowdWide',
     href: siteUrl('live', '/events'),
-    shape: 'rounded-[24px] rounded-br-[72px]',
   },
 ];
 ---
@@ -62,48 +57,48 @@ const featuredEvents: FeaturedEvent[] = [
   class="bg-night px-5 section-space text-cream sm:px-8"
 >
   <div class="mx-auto max-w-[1320px]">
-    <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="max-w-2xl">
-        <p class="eyebrow text-gold">03 · Gamo Live</p>
+        <p class="eyebrow-pill bg-white/10 text-gold">03 · Gamo Live</p>
         <h2 id="home-live-title" class="section-heading mt-4 text-balance text-cream">
-          Gatherings worth sharing. <span class="text-gold">Discoverable nationwide.</span>
+          Christian events, <span class="text-gold">nationwide.</span>
         </h2>
         <p class="mt-4 text-base leading-relaxed text-cream/75 sm:text-lg">
           Worship nights, concerts and conferences, free or ticketed, in one trusted place.
         </p>
       </div>
 
-      <div class="flex flex-wrap gap-3">
+      <div class="button-stack">
         <ButtonLink href={siteUrl('live')} arrow>
-          Explore upcoming events
+          Explore events
         </ButtonLink>
-        <ButtonLink href={siteUrl('live', '/promote')} variant="ghost-dark">
-          Promote a Christian event
+        <ButtonLink href={siteUrl('live', '/organizer')} variant="ghost-dark">
+          List an event
         </ButtonLink>
       </div>
     </div>
 
-    <div class="mt-12 grid gap-6 lg:grid-cols-3">
+    <div class="mt-10 grid gap-5 md:grid-cols-3">
       {featuredEvents.map((ev) => (
         <article
           data-reveal
-          class="group flex flex-col overflow-hidden rounded-[30px] bg-charcoal/90 p-3.5 ring-1 ring-white/10 transition hover:-translate-y-1"
+          class="group flex flex-col overflow-hidden rounded-[28px] bg-charcoal/90 p-3 ring-1 ring-white/10 transition hover:-translate-y-1"
         >
-          <div class:list={['relative aspect-[16/10] overflow-hidden bg-charcoal', ev.shape]}>
+          <div class="relative aspect-[16/10] overflow-hidden rounded-[28px] bg-charcoal">
             <Photo
               name={ev.photo}
-              sizes="(min-width:1024px) 30vw, 92vw"
+              sizes="(min-width:768px) 30vw, 92vw"
               class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
             <div class="absolute left-3 top-3">
-              <StatusPill kind="sample">Sample · {ev.category}</StatusPill>
+              <StatusPill kind="sample">Sample</StatusPill>
             </div>
           </div>
 
-          <div class="flex flex-1 flex-col justify-between p-4 sm:p-5">
+          <div class="flex flex-1 flex-col justify-between p-3 pt-4 sm:p-4">
             <div>
               <p class="text-xs font-semibold uppercase tracking-wider text-gold">{ev.category}</p>
-              <h3 class="mt-2 text-xl font-bold tracking-tight text-cream">{ev.title}</h3>
+              <h3 class="mt-2 text-lg font-bold tracking-tight text-cream">{ev.title}</h3>
               <p class="mt-2 flex items-center gap-2 text-sm text-cream/70">
                 <Icon name="calendar" class="h-4 w-4 shrink-0 text-gold" />
                 <span>{ev.dateLabel}</span>
@@ -114,11 +109,11 @@ const featuredEvents: FeaturedEvent[] = [
               </p>
             </div>
 
-            <div class="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+            <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
               <span class="text-xs font-medium text-cream/75">{ev.admission}</span>
               <a
                 href={ev.href}
-                class="inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:underline min-h-11"
+                class="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-gold hover:underline"
               >
                 View event <Icon name="arrow" class="h-4 w-4" />
               </a>
@@ -128,13 +123,8 @@ const featuredEvents: FeaturedEvent[] = [
       ))}
     </div>
 
-    <div class="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-cream/75 sm:text-sm">
-      <p>
-        Every event is reviewed before it is published. Sponsored listings are always labeled.
-      </p>
-      <a href={siteUrl('live', '/promote')} class="font-semibold text-gold hover:underline">
-        Submit an event for review →
-      </a>
-    </div>
+    <p class="mt-6 text-sm text-cream/75">
+      Every event is reviewed before it is published. Sponsored listings are always labeled.
+    </p>
   </div>
 </section>

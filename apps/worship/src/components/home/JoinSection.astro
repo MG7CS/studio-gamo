@@ -1,47 +1,70 @@
 ---
 import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
-/** Joining the musician collection: shared rounded-edge EditorialFeatureCard with arch photo. */
-import EditorialFeatureCard, {
-  type EditorialFeaturePoint,
-} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+/** Joining the musician collection: arch photo first, then the values and actions. */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import type { IconName } from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SectionPanel from './SectionPanel.astro';
+import MediaSplit from './MediaSplit.astro';
+import PanelHeading from './PanelHeading.astro';
 
-const values: EditorialFeaturePoint[] = [
+const values: { icon: IconName; title: string; body: string }[] = [
   {
     icon: 'heart',
     title: 'Faith and character first',
-    body: 'Every musician is reviewed for musical readiness, humility, and care for the local church.',
+    body: 'Every musician is reviewed for musical readiness, humility and care for the people they serve.',
   },
   {
     icon: 'shield',
     title: 'Prepared, punctual, teachable',
-    body: 'Clear chord charts, rehearsal expectations, and reliable communication with worship leaders.',
+    body: 'Clear charts, rehearsal expectations and reliable communication with worship leaders.',
   },
   {
     icon: 'music',
-    title: 'Transparent, fair pay on its own line',
-    body: 'Musician compensation and any proposed Gamo administrative allocation are always shown separately.',
+    title: 'Fair pay on its own line',
+    body: 'Musician pay and any Gamo administrative allocation are always shown separately.',
   },
 ];
 ---
 
-<EditorialFeatureCard
-  eyebrow="The musician collection"
-  pillText="Reviewed musician network"
-  pillKind="verified"
-  title="Serve local congregations"
-  accent="with your gift."
-  body="Join a reviewed community of Christian instrumentalists and vocalists helping churches cover Sunday services, special gatherings, and seasons of transition."
-  points={values}
-  photo="guitarMentor"
-  photoPosition="50% 35%"
-  caption="Choose the services and schedules you accept"
-  tone="sand"
->
-  <ButtonLink href={providerSignupUrl('worship', 'musician')} arrow>
-    Start an application
-  </ButtonLink>
-  <ButtonLink href="/opportunities" variant="secondary">
-    Browse opportunities
-  </ButtonLink>
-</EditorialFeatureCard>
+<SectionPanel tone="sand" labelledby="join-title">
+  <MediaSplit reverse>
+    <div slot="media" class="relative">
+      <div class="aspect-[4/5] overflow-hidden rounded-[28px] shadow-float ring-1 ring-charcoal/10 sm:mx-8 lg:mx-0">
+        <Photo name="guitarMentor" sizes="(min-width:1024px) 36vw, 90vw" position="50% 35%" />
+      </div>
+      <p class="absolute bottom-4 left-4 rounded-2xl border border-sand bg-white px-4 py-2.5 text-xs font-semibold text-charcoal shadow-float sm:left-12 lg:left-4">
+        You choose the dates you accept
+      </p>
+    </div>
+    <PanelHeading
+      id="join-title"
+      eyebrow="For musicians"
+      title="Serve with"
+      accent="your gift."
+      lede="Use your gift to serve the Church. Play for services, concerts and events, and choose the dates you accept."
+    />
+    <ul class="mt-7 grid gap-3">
+      {values.map((v) => (
+        <li class="flex items-start gap-3.5 rounded-2xl bg-white/80 p-4 ring-1 ring-sand">
+          <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-cream text-terracotta">
+            <Icon name={v.icon} class="h-5 w-5" />
+          </span>
+          <div class="min-w-0">
+            <p class="font-bold leading-snug">{v.title}</p>
+            <p class="mt-0.5 text-sm leading-relaxed text-ink-soft">{v.body}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <ButtonLink href={providerSignupUrl('worship', 'musician')} class="w-full sm:w-auto" arrow>
+        Start an application
+      </ButtonLink>
+      <ButtonLink href="/opportunities" variant="secondary" class="w-full sm:w-auto">
+        Browse opportunities
+      </ButtonLink>
+    </div>
+  </MediaSplit>
+</SectionPanel>

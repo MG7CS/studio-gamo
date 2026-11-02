@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
 
-/* Keep the approved two-line statement legible within its half-width column. */
+/* Hero and page titles: a smaller floor so two short lines fit beside the photo and on a 360 px phone. */
 .production-hero-title {
-  font-size: clamp(2.5rem, 4.4vw, 4rem);
+  font-size: clamp(2.125rem, 4.2vw, 3.75rem);
   text-wrap: balance;
 }

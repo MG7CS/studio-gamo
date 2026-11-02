@@ -78,8 +78,8 @@ const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0,
 ---
 
 <SiteLayout
-  title="Gamo Live — Christian Concerts, Worship Gatherings & Event Promotion | Gamo Studios"
-  description="Find verified Christian concerts, worship nights and ministry gatherings across the U.S., or submit your own Christian event to Gamo Live for review."
+  title="Gamo Live | Christian Concerts, Worship Gatherings and Events | Gamo Studios"
+  description="Find Christian concerts, worship nights and ministry gatherings across the U.S., or submit your own Christian event to Gamo Live for review."
   current="live"
   headerTheme="dark"
 >
@@ -99,20 +99,20 @@ const ticketedEvents = liveEvents.filter((e) => e.ticketing !== 'free').slice(0,
   <FreeAndTicketed free={freeOrChurchEvents} ticketed={ticketedEvents} />
   <LiveEcosystemPillars />
   <FeaturedOrganizers events={liveEvents} organizers={organizers} />
-  <section class="bg-cream px-4 pb-4 sm:px-8">
+  <section class="bg-cream px-5 pb-4 sm:px-8">
     <TrustLegend class="mx-auto max-w-[1320px]" />
   </section>
   <CtaInvitation
-    eyebrow="For churches, organizers & artists"
-    title="Hosting or performing at a Christian event?"
-    body="Submit your gathering, manage ticket tiers and door check-in, or coordinate artist bookings and event production. Every listing is reviewed before publishing."
+    eyebrow="For churches, organizers and artists"
+    title="Hosting a Christian event?"
+    body="Share your gathering, welcome people with free registration or tickets, and check them in at the door. Every listing is reviewed first."
     photo="worshipBand"
   >
-    <ButtonLink href={siteUrl('live', '/promote')} arrow>
+    <ButtonLink href={siteUrl('live', '/organizer')} arrow>
       List an event
     </ButtonLink>
     <ButtonLink href={siteUrl('live', '/artists')} variant="secondary">
-      Artist &amp; agent participation
+      Artists on Gamo Live
     </ButtonLink>
   </CtaInvitation>
 </SiteLayout>

@@ -8,20 +8,21 @@ import { generalFaq } from '../data/organization';
 
 <SiteLayout
   title="Frequently Asked Questions | Gamo Studios"
-  description="Answers to common questions about the Gamo Studios mission, its four programs, and how churches, families and musicians can take part."
+  description="Answers to common questions about the Gamo Studios mission and how churches, learners and musicians can take part."
 >
-  <section class="px-6 page-intro-space sm:px-12">
+  <section class="px-5 page-intro-space sm:px-12">
     <div class="mx-auto max-w-[1050px]">
       <EditorialHeading
         eyebrow="A little more clarity"
+        eyebrowStyle="pill"
         title="Good questions."
         accent="Honest answers."
         as="h1"
         size="display"
-        lede="Answers about our mission, programs, and how churches, families, and musicians participate."
+        lede="About our mission, our programs, and how churches, families and musicians take part."
       />
-      <FaqAccordion items={generalFaq} class="mt-12" />
-      <div class="mt-10">
+      <FaqAccordion items={generalFaq} class="mt-10" />
+      <div class="button-stack mt-8">
         <ButtonLink href="/contact" arrow>
           Contact our team
         </ButtonLink>

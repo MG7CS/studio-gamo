@@ -265,3 +265,8 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Old rule (AGENTS.md §2 and §3):** the marketing pages of the five public apps, including every Gamo Live public page and its chrome, stay exactly as they are unless the owner names the page and the change; every task ends with a `git diff 98719de` check that they are unchanged.
 - **New rule:** marketing pages are owner-led like every other screen and are changed when the owner asks (one page, one section or a pass across the public pages). Their copy is short and mission-centered (what the work serves, no counts of programs or product language) with no em or en dashes. The Live event detail action panel keeps its states and forms.
 - **Reason:** the owner asked for a polish pass across all public pages (photo first on phones, shorter mission-centered copy, uapply.africa as a visual reference) and asked for the freeze to be removed so future sessions do not flag or undo that work.
+
+## 2026-11-01 — No decorative photo shapes
+- **Old (DESIGN.md "Bright Cinematic Editorial"):** sculptural masks and organic curves on photos (arch, leaf, pebble, one oversized corner).
+- **New:** every photo sits in a plain rounded rectangle with one radius (28 px; 20 px for small thumbnails). The `mask-arch`, `mask-arch-sm`, `mask-leaf`, `mask-leaf-alt` and `mask-pebble` utilities were removed from `packages/ui/src/styles/tokens.css`.
+- **Reason:** the owner found the shapes meaningless; they cropped faces and instruments. The chosen reference (uapply.africa) uses plain rounded photos.

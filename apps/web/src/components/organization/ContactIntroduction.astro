@@ -1,4 +1,5 @@
 ---
+/** Left column of the contact pages: photo first on phones, then the heading and the service-area note. */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 interface Props {
   partnership?: boolean;
@@ -6,29 +7,27 @@ interface Props {
 const { partnership = false } = Astro.props;
 ---
 
-<div>
-  <p class="eyebrow text-terracotta">
-    {partnership ? 'Build something together' : 'Questions · ideas · possibilities'}
-  </p>
-  <h1 class="display-lg mt-5">
-    {partnership ? 'Every partnership' : "Let's start"}
-    <span class="block text-terracotta">{partnership ? 'starts with an idea.' : 'a conversation.'}</span>
-  </h1>
-  <p class="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">
-    {partnership
-      ? 'Explore hosting, education sponsorships, worship development or shared resources with our team.'
-      : 'Explore a program, a way to serve or a community collaboration with the Gamo Studios team.'}
-  </p>
-  <div class="mt-7 h-[240px] overflow-hidden rounded-[120px_28px_28px_28px]">
+<div class="flex flex-col">
+  <div class="order-first h-[220px] overflow-hidden rounded-[28px] sm:h-[240px] lg:order-none lg:mt-7">
     <Photo
       name={partnership ? 'churchModernDay' : 'guitarMentor'}
       sizes="(min-width:1024px) 40vw, 100vw"
       priority
     />
   </div>
+  <div class="mt-6 lg:order-first lg:mt-0">
+    <p class="eyebrow-pill">{partnership ? 'Partnership inquiry' : 'Questions · ideas · possibilities'}</p>
+    <h1 class="display-lg mt-5">
+      {partnership ? "Let's build" : 'Say hello.'}
+      <span class="block text-terracotta">{partnership ? 'together.' : "We're listening."}</span>
+    </h1>
+    <p class="mt-5 max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">
+      {partnership
+        ? 'Hosting, class sponsorships, worship development or shared resources. Tell us what you have in mind.'
+        : 'A program, a way to serve or a collaboration. Tell us what you are looking for.'}
+    </p>
+  </div>
   <p class="mt-5 text-sm leading-relaxed text-ink-soft">
-    Initial local program area: Phoenix metropolitan area, Arizona.
-    <br />
-    Gamo Live is designed for Christian events nationwide.
+    Local programs start in the Phoenix area, Arizona. Gamo Live serves Christian events nationwide.
   </p>
 </div>

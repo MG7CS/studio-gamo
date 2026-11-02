@@ -16,7 +16,7 @@ const d = c ? dateParts(c.date) : null;
 ---
 
 {c && d && (
-  <section class="bg-cream px-4 section-space sm:px-8" aria-label="Arena gatherings and church-hosted events">
+  <section class="bg-cream px-5 section-space sm:px-8" aria-label="Arena gatherings and church-hosted events">
     <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.25fr_1fr]">
       <article class="relative flex flex-col overflow-hidden rounded-[32px] bg-white ring-1 ring-sand">
         <div class="relative aspect-[16/10] overflow-hidden">
@@ -28,13 +28,13 @@ const d = c ? dateParts(c.date) : null;
           />
         </div>
         <div class="flex flex-1 flex-col p-6 sm:p-8">
-          <p class="eyebrow text-terracotta">Arena &amp; theatre gatherings</p>
-          <h2 class="section-subheading mt-2">{c.title}</h2>
-          <p class="mt-2 text-ink-soft">
+          <p class="eyebrow-pill">Arena and theatre gatherings</p>
+          <h2 class="section-subheading mt-3">{c.title}</h2>
+          <p class="mt-2 text-base text-ink-soft">
             {d.long} · {c.venue}, {c.city}, {c.state}
           </p>
           <EventPills event={c} class="mt-4" />
-          <div class="mt-6 flex flex-wrap gap-3">
+          <div class="button-stack mt-6">
             <ButtonLink href={siteUrl('live', c.productPath)} arrow>
               View event
             </ButtonLink>
@@ -48,7 +48,7 @@ const d = c ? dateParts(c.date) : null;
         </div>
       </article>
       <div class="flex flex-col">
-        <div class="relative overflow-hidden rounded-[32px_32px_32px_160px] bg-night">
+        <div class="relative overflow-hidden rounded-[28px] bg-night">
           <Photo
             name="boyGuitar"
             sizes="(min-width:1024px) 40vw, 100vw"
@@ -56,8 +56,8 @@ const d = c ? dateParts(c.date) : null;
             alt="Young boy playing acoustic guitar"
           />
         </div>
-        <p class="eyebrow mt-8 text-terracotta">Church &amp; hall gatherings</p>
-        <h2 class="section-subheading mt-2">Gatherings the whole family can share.</h2>
+        <p class="eyebrow-pill mt-8 self-start">Church and hall gatherings</p>
+        <h2 class="section-subheading mt-3">For the whole family.</h2>
         <div class="mt-6 space-y-3">
           {youth.map((e) => (
             <EventCard event={e} variant="row" />

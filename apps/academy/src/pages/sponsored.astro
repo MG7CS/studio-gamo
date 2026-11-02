@@ -2,88 +2,82 @@
 import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '../components/shared/PageHero.astro';
+import Panel from '../components/shared/Panel.astro';
+import SectionIntro from '../components/shared/SectionIntro.astro';
+import PointList, { type Point } from '../components/shared/PointList.astro';
+import Actions from '../components/shared/Actions.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
-const principles = [
-  ['heart', 'Need first', 'Support would be guided by family need, never by ability to pay.'],
-  ['shield', 'Dignity & privacy', 'Family financial information would be handled privately and minimally.'],
-  [
-    'users',
-    'Fair to instructors',
-    'Instructors would be paid fully for sponsored lessons, shown as a separate line item.',
-  ],
-  ['book', 'Open to all', 'Not limited to church members, worship teams or any background.'],
-] as const;
+const principles: Point[] = [
+  { icon: 'heart', title: 'Need first', body: 'Support follows family need, never ability to pay.' },
+  {
+    icon: 'shield',
+    title: 'Privacy',
+    body: 'Family financial details are handled privately and kept minimal.',
+  },
+  {
+    icon: 'users',
+    title: 'Fair to instructors',
+    body: 'Instructors are paid in full for sponsored lessons, shown as a separate line item.',
+  },
+  {
+    icon: 'book',
+    title: 'Open to all',
+    body: 'Not limited to church members, worship teams or any background.',
+  },
+];
 const qa = [
   {
-    q: 'How do families request tuition support?',
-    a: 'Families can note scholarship or sponsored cohort interest when registering, and our team reviews requests confidentially based on family need.',
+    q: 'How does a family ask for support?',
+    a: 'Mention it when you write to us about a lesson. Our team reviews each request privately, based on family need.',
   },
   {
-    q: 'How can a church or supporter underwrite a cohort?',
-    a: 'Churches and community partners can inquire about hosting or underwriting a learning cohort.',
+    q: 'How can a church or organization sponsor a class?',
+    a: 'Any church or organization can sponsor a class or a cohort. Write to us and we will talk it through on a call.',
   },
   {
-    q: 'Do sponsored students have different instructors?',
-    a: 'No. Sponsored students learn with the same instructors and curriculum as every other student.',
+    q: 'Do sponsored students get different instructors?',
+    a: 'No. Sponsored students learn with the same instructors and curriculum as everyone else.',
   },
 ];
 ---
 
 <Layout
-  title="Sponsored & Scholarship Programs"
-  description="Gamo Academy coordinates sponsored and scholarship-supported lessons with community partners, guided by family need and never by ability to pay."
+  title="Sponsored Classes"
+  description="Churches and other organizations can sponsor Gamo Academy classes. Fully sponsored classes are free to the learner, and support follows family need, never ability to pay."
 >
   <PageHero
-    eyebrow="Sponsored programs"
+    eyebrow="Sponsored classes"
     title="Music for every family,"
     accent="whatever the budget."
-    lede="Gamo Academy coordinates sponsored and scholarship-supported lessons alongside community partners so cost never stands in the way of learning."
+    lede="Churches and other organizations can sponsor classes. Fully sponsored classes are free to the learner."
     photo="boyGuitar"
-    mask="mask-arch"
-    crumbs={[{ label: 'Sponsored programs', href: '/sponsored' }]}
+    crumbs={[{ label: 'Sponsored classes', href: '/sponsored' }]}
   >
-    <div class="mt-6">
-      <StatusPill kind="proposal">Sponsored &amp; scholarship pathways</StatusPill>
+    <div class="mt-5">
+      <StatusPill kind="proposal">Proposal</StatusPill>
     </div>
   </PageHero>
-  <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24">
-    <div class="mx-auto max-w-[1320px]">
-      <EditorialHeading eyebrow="Guiding principles" title="How support is" accent="meant to work." />
-      <ul class="mt-10 grid gap-4 sm:grid-cols-2">
-        {principles.map(([icon, t, d], i) => (
-          <li
-            class:list={[
-              'flex gap-5 rounded-[28px] bg-white p-7 ring-1 ring-sand',
-              i % 2 && 'sm:translate-y-6',
-            ]}
-          >
-            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cream text-terracotta">
-              <Icon name={icon} class="h-6 w-6" />
-            </span>
-            <div>
-              <h3 class="text-xl font-bold">{t}</h3>
-              <p class="mt-1 text-ink-soft">{d}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
+  <section class="px-4 section-space sm:px-8">
+    <Panel class="mx-auto max-w-[1320px]">
+      <SectionIntro eyebrow="Principles" title="How support" accent="is meant to work." />
+      <PointList points={principles} columns={2} class="mt-8 [&>li]:bg-ivory" />
+    </Panel>
   </section>
-  <section class="px-4 py-16 sm:px-8 lg:py-24">
-    <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-      <div>
-        <EditorialHeading eyebrow="Questions" title="How sponsored learning works" />
-        <div class="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href={providerSignupUrl('academy', 'church')} variant="secondary" arrow>
-            Apply to host lessons
-          </ButtonLink>
+  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
+    <Panel class="mx-auto max-w-[1320px]">
+      <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-12">
+        <div>
+          <SectionIntro eyebrow="Questions" title="Sponsored learning" accent="in practice." />
+          <Actions class="mt-6">
+            <ButtonLink href={providerSignupUrl('academy', 'church')} variant="secondary" arrow>
+              Apply to host lessons
+            </ButtonLink>
+          </Actions>
         </div>
+        <FaqAccordion items={qa} />
       </div>
-      <FaqAccordion items={qa} />
-    </div>
+    </Panel>
   </section>
 </Layout>

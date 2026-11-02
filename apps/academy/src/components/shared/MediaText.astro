@@ -1,0 +1,64 @@
+---
+/**
+ * Photo beside text. On phones the photo always comes first, then the text (default slot).
+ * On desktop the photo sits on the right, or on the left with `reverse`.
+ * Pass a `media` slot to replace the photo with other visual content.
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+interface Props {
+  photo?: PhotoKey;
+  photoPosition?: string;
+  priority?: boolean;
+  reverse?: boolean;
+  /** Photo column aspect on phones; on desktop the photo stretches to the text height. */
+  aspect?: 'wide' | 'tall';
+  /** Grid column split on desktop. */
+  split?: 'even' | 'text' | 'photo';
+  class?: string;
+}
+const {
+  photo,
+  photoPosition,
+  priority = false,
+  reverse = false,
+  aspect = 'wide',
+  split = 'even',
+  class: className,
+} = Astro.props;
+const cols = {
+  even: 'lg:grid-cols-2',
+  text: reverse ? 'lg:grid-cols-[0.85fr_1.15fr]' : 'lg:grid-cols-[1.15fr_0.85fr]',
+  photo: reverse ? 'lg:grid-cols-[1.15fr_0.85fr]' : 'lg:grid-cols-[0.85fr_1.15fr]',
+}[split];
+const hasMedia = Astro.slots.has('media');
+---
+
+<div class:list={['grid items-center gap-6 sm:gap-8 lg:gap-12', cols, className]}>
+  <div class:list={['order-last min-w-0', reverse ? 'lg:order-2' : 'lg:order-1']}>
+    <slot />
+  </div>
+  <div class:list={['order-first min-w-0', reverse ? 'lg:order-1' : 'lg:order-2']}>
+    {hasMedia ? (
+      <slot name="media" />
+    ) : (
+      photo && (
+        <div
+          class:list={[
+            'overflow-hidden rounded-[24px] sm:rounded-[32px] lg:h-full lg:min-h-[420px]',
+            aspect === 'tall' ? 'aspect-[4/5] sm:aspect-[4/3]' : 'aspect-[4/3]',
+            'lg:aspect-auto',
+          ]}
+        >
+          <Photo
+            name={photo}
+            priority={priority}
+            position={photoPosition}
+            sizes="(min-width:1024px) 45vw, 100vw"
+            class="h-full w-full object-cover"
+          />
+        </div>
+      )
+    )}
+  </div>
+</div>

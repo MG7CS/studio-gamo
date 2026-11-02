@@ -1,0 +1,27 @@
+---
+/** The one heading pattern used by every panel: shared EditorialHeading with its pill eyebrow. */
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  accent?: string;
+  lede?: string;
+  tone?: 'light' | 'dark';
+  as?: 'h1' | 'h2';
+  class?: string;
+}
+const { id, eyebrow, title, accent, lede, tone = 'light', as = 'h2', class: className } = Astro.props;
+---
+
+<EditorialHeading
+  id={id}
+  as={as}
+  eyebrow={eyebrow}
+  eyebrowStyle="pill"
+  title={title}
+  accent={accent}
+  lede={lede}
+  tone={tone}
+  class={className}
+/>

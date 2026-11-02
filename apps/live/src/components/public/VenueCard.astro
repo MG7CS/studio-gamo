@@ -1,0 +1,91 @@
+---
+/** One venue with its upcoming events (venues page and the city pages). */
+import { formatLocalEventSchedule, resolveMetroBySlug, type LiveCatalog } from '@gamo/domain';
+
+type Venue = Awaited<ReturnType<LiveCatalog['listDiscoverableVenues']>>[number];
+
+interface Props {
+  venue: Venue;
+  /** Show the city pill above the name (off on a page that is already one city). */
+  showMetro?: boolean;
+}
+const { venue, showMetro = true } = Astro.props;
+const metro = venue.metroSlug ? resolveMetroBySlug(venue.metroSlug) : null;
+const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  [venue.venueName, venue.address, venue.city, venue.state].filter(Boolean).join(', '),
+)}`;
+const eventsHref = `/events?venue=${encodeURIComponent(venue.venueName)}`;
+const countLabel = `${venue.upcomingEventCount} ${venue.upcomingEventCount === 1 ? 'event' : 'events'}`;
+---
+
+<article class="flex flex-col justify-between rounded-[24px] border border-sand bg-white p-5 sm:p-6">
+  <div>
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        {showMetro && metro && (
+          <a
+            href={`/events/${metro.slug}`}
+            class="inline-flex min-h-11 items-center text-xs font-semibold text-terracotta-deep hover:underline"
+          >
+            {metro.displayLabel}
+          </a>
+        )}
+        <h3 class="text-lg font-extrabold leading-snug text-ink">{venue.venueName}</h3>
+        <p class="mt-1 text-sm text-muted">
+          {venue.address ? `${venue.address} · ` : ''}
+          {venue.city}, {venue.state}
+        </p>
+      </div>
+      <a
+        href={eventsHref}
+        class="inline-flex min-h-11 shrink-0 items-center rounded-full bg-cream px-3 text-xs font-bold text-terracotta-deep hover:bg-sand"
+      >
+        {countLabel}
+      </a>
+    </div>
+
+    {venue.upcomingEvents.length > 0 && (
+      <ul class="mt-4 divide-y divide-cream border-t border-cream">
+        {venue.upcomingEvents.map((evt) => {
+          const sched = formatLocalEventSchedule(
+            evt.startDateLocal,
+            evt.startTimeLocal,
+            evt.timezone,
+            evt.startsAt,
+          );
+          return (
+            <li>
+              <a
+                href={`/events/${evt.slug}`}
+                class="flex min-h-11 flex-col justify-center py-2 text-sm hover:text-terracotta-deep"
+              >
+                <span class="truncate font-semibold text-ink">{evt.title}</span>
+                <span class="text-xs text-muted">
+                  {sched.shortDateLabel} · {sched.timeLabel}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+
+  <div class="mt-4 flex items-center justify-between gap-3 border-t border-cream pt-3 text-sm">
+    <a
+      href={eventsHref}
+      class="inline-flex min-h-11 items-center font-semibold text-ink hover:text-terracotta-deep"
+    >
+      Events here
+    </a>
+    <a
+      href={mapsHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center px-2 font-semibold text-terracotta-deep hover:underline"
+    >
+      Map
+      <span class="sr-only">(opens Google Maps in a new tab)</span>
+    </a>
+  </div>
+</article>

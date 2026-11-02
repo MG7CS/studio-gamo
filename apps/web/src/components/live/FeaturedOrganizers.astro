@@ -17,15 +17,16 @@ interface Props {
 const { events = fallbackEvents, organizers = fallbackOrganizers } = Astro.props;
 ---
 
-<section class="bg-cream px-4 section-space sm:px-8" aria-labelledby="orgs-title">
+<section class="bg-cream px-5 section-space sm:px-8" aria-labelledby="orgs-title">
   <div class="mx-auto max-w-[1320px]">
     <EditorialHeading
       id="orgs-title"
-      eyebrow="Verified venues & hosts"
+      eyebrow="Venues and hosts"
+      eyebrowStyle="pill"
       title="Know where you are gathering."
-      lede="Every listing names its verified venue, city, and ticket provider so attendees know exactly who is hosting."
+      lede="Every listing names its venue, city and ticket provider, so you know who is hosting."
     />
-    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {organizers.map((o, i) => {
         const count = events.filter((e) => e.organizer === o.slug && !e.isPast).length;
         return (

@@ -1,21 +1,24 @@
 ---
+/** Section 7: church-hosted lessons. Photo first on phones, on the left on desktop. */
 import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
-/** Section 7: church-hosted lessons — uses shared EditorialFeatureCard in reversed layout. */
-import EditorialFeatureCard, {
-  type EditorialFeaturePoint,
-} from '@studio-gamo/ui/components/EditorialFeatureCard.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Panel from '../shared/Panel.astro';
+import MediaText from '../shared/MediaText.astro';
+import SectionIntro from '../shared/SectionIntro.astro';
+import PointList, { type Point } from '../shared/PointList.astro';
+import Actions from '../shared/Actions.astro';
 
-const roles: EditorialFeaturePoint[] = [
+const roles: Point[] = [
   {
     icon: 'church',
-    title: 'A church provides',
+    title: 'The church provides',
     body: 'A welcoming room, a schedule window and an invitation to its neighborhood.',
   },
   {
     icon: 'shield',
     title: 'Gamo Academy provides',
-    body: 'Reviewed instructors, curriculum and family communication.',
+    body: 'Reviewed instructors, the curriculum and family communication.',
   },
   {
     icon: 'users',
@@ -25,21 +28,23 @@ const roles: EditorialFeaturePoint[] = [
 ];
 ---
 
-<EditorialFeatureCard
-  eyebrow="Church-hosted lessons"
-  pillText="Community hosting model"
-  pillKind="proposal"
-  title="Lessons in the heart"
-  accent="of the neighborhood."
-  body="Churches can apply to host Gamo Academy lessons for their members and the wider community."
-  points={roles}
-  photo="churchModernDay"
-  photoPosition="50% 40%"
-  caption="Local congregation classrooms · Community hosting"
-  tone="ivory"
-  reverse={true}
->
-  <ButtonLink href={providerSignupUrl('academy', 'church')} arrow>
-    Apply to host lessons
-  </ButtonLink>
-</EditorialFeatureCard>
+<section class="px-4 section-space sm:px-8" data-reveal>
+  <Panel tone="ivory" class="mx-auto max-w-[1320px]">
+    <MediaText photo="churchModernDay" photoPosition="50% 40%" reverse>
+      <StatusPill kind="proposal">Proposal</StatusPill>
+      <SectionIntro
+        class="mt-4"
+        eyebrow="Church-hosted lessons"
+        title="Lessons in the heart"
+        accent="of the neighborhood."
+        lede="A church can host Gamo Academy lessons for its members and the wider community."
+      />
+      <PointList points={roles} class="mt-6" />
+      <Actions class="mt-6">
+        <ButtonLink href={providerSignupUrl('academy', 'church')} arrow>
+          Apply to host lessons
+        </ButtonLink>
+      </Actions>
+    </MediaText>
+  </Panel>
+</section>

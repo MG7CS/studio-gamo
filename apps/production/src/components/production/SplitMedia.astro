@@ -1,0 +1,28 @@
+---
+/**
+ * Two-column section body: the `media` slot comes first in source order, so phones always show
+ * the picture, then the words. On desktop `reverse` moves the picture to the right.
+ */
+interface Props {
+  reverse?: boolean;
+  /** Vertical alignment of the two columns on desktop. */
+  align?: 'center' | 'start';
+  class?: string;
+}
+const { reverse = false, align = 'center', class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    'grid gap-8 lg:grid-cols-2 lg:gap-12',
+    align === 'center' ? 'lg:items-center' : 'lg:items-start',
+    className,
+  ]}
+>
+  <div class:list={['relative', reverse && 'lg:order-2']}>
+    <slot name="media" />
+  </div>
+  <div class:list={[reverse && 'lg:order-1']}>
+    <slot />
+  </div>
+</div>

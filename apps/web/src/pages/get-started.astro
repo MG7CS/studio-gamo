@@ -6,26 +6,30 @@ import GetStartedRoutes from '../components/organization/GetStartedRoutes.astro'
 
 <SiteLayout
   title="Get Started | Gamo Studios"
-  description="Tell us who you are and we'll point you to the right Gamo Studios program, whether you are a church, musician, student, family or event organizer."
+  description="Tell us who you are and we will point you to the right Gamo Studios program: church, musician, learner, event organizer or supporter."
 >
   <section class="px-5 page-intro-space sm:px-10">
     <div class="mx-auto max-w-[1320px]">
       <EditorialHeading
         eyebrow="Get started"
+        eyebrowStyle="pill"
         title="Where would you"
         accent="like to begin?"
         as="h1"
         size="display"
-        lede="Tell us who you are and we'll point you to the right program."
+        lede="Tell us who you are and we will point you to the right program."
       />
       <GetStartedRoutes />
-      <p class="mt-10 text-ink-soft">
+      <p class="mt-8 text-base text-ink-soft">
         Not sure?{' '}
-        <a href="/get-involved" class="font-semibold text-terracotta underline">
+        <a
+          href="/get-involved"
+          class="inline-flex min-h-11 items-center font-semibold text-terracotta underline"
+        >
           See every way to get involved
         </a>{' '}
         or{' '}
-        <a href="/contact" class="font-semibold text-terracotta underline">
+        <a href="/contact" class="inline-flex min-h-11 items-center font-semibold text-terracotta underline">
           contact us
         </a>
         .

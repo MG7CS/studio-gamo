@@ -1,7 +1,13 @@
 ---
-/** Interior page hero: editorial heading left, optional masked photo right, breadcrumb above. */
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+/**
+ * Interior page hero: one rounded panel with breadcrumb, pill eyebrow, title and lede.
+ * With a photo, the photo comes first on phones and sits on the right on desktop.
+ */
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import Panel from './Panel.astro';
+import MediaText from './MediaText.astro';
+import SectionIntro from './SectionIntro.astro';
+import Breadcrumb from './Breadcrumb.astro';
 interface Props {
   eyebrow: string;
   title: string;
@@ -9,63 +15,27 @@ interface Props {
   lede: string;
   photo?: PhotoKey;
   photoPosition?: string;
-  mask?: 'mask-arch' | 'mask-leaf' | 'mask-leaf-alt' | 'mask-pebble';
   crumbs?: { label: string; href: string }[];
 }
-const { eyebrow, title, accent, lede, photo, photoPosition, mask = 'mask-arch', crumbs = [] } = Astro.props;
+const { eyebrow, title, accent, lede, photo, photoPosition, crumbs = [] } = Astro.props;
 ---
 
-<section class="relative overflow-hidden px-4 page-intro-space sm:px-8">
-  <div aria-hidden="true" class="absolute -left-40 top-10 h-[420px] w-[420px] rounded-full bg-ivory"></div>
-  <div
-    class:list={[
-      'relative mx-auto grid max-w-[1320px] items-center gap-10',
-      photo && 'lg:grid-cols-[1.05fr_0.95fr]',
-    ]}
-  >
-    <div>
-      {crumbs.length > 0 && (
-        <nav aria-label="Breadcrumb" class="mb-5 text-sm text-ink-soft">
-          <ol class="flex flex-wrap items-center gap-2">
-            <li>
-              <a href="/" class="inline-flex min-h-11 min-w-11 items-center hover:text-terracotta">
-                Academy
-              </a>
-            </li>
-            {crumbs.map((c) => (
-              <li class="flex items-center gap-2">
-                <span aria-hidden="true">/</span>
-                <a href={c.href} class="inline-flex min-h-11 min-w-11 items-center hover:text-terracotta">
-                  {c.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-      <p class="eyebrow text-terracotta">{eyebrow}</p>
-      <h1 class="display-lg mt-4 max-w-[16ch] text-balance">
-        {title}
-        {accent && <span class="block text-terracotta">{accent}</span>}
-      </h1>
-      <p class="mt-5 max-w-2xl text-base lg:text-lg leading-relaxed text-ink-soft">{lede}</p>
-      <slot />
-    </div>
-    {photo && (
-      <div
-        class:list={[
-          'order-first lg:order-none relative mx-auto aspect-[4/5] w-full max-w-[280px] overflow-hidden shadow-float sm:max-w-[320px] lg:max-w-[360px]',
-          mask,
-        ]}
-      >
-        <Photo
-          name={photo}
-          priority
-          position={photoPosition}
-          sizes="(min-width:1024px) 30vw, 90vw"
-          class="h-full w-full object-cover"
-        />
+<section class="px-4 page-intro-space sm:px-8">
+  <Panel tone="ivory" class="mx-auto max-w-[1320px]">
+    {photo ? (
+      <MediaText photo={photo} photoPosition={photoPosition} priority split="text" aspect="tall">
+        <Breadcrumb crumbs={crumbs} class="mb-5" />
+        <SectionIntro as="h1" size="page" eyebrow={eyebrow} title={title} accent={accent} lede={lede}>
+          <slot />
+        </SectionIntro>
+      </MediaText>
+    ) : (
+      <div>
+        <Breadcrumb crumbs={crumbs} class="mb-5" />
+        <SectionIntro as="h1" size="page" eyebrow={eyebrow} title={title} accent={accent} lede={lede}>
+          <slot />
+        </SectionIntro>
       </div>
     )}
-  </div>
+  </Panel>
 </section>

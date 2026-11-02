@@ -1,0 +1,11 @@
+---
+/** Row of ButtonLinks: full width and stacked on phones, inline from `sm` up. */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<div class:list={['flex flex-col gap-3 sm:flex-row sm:flex-wrap', '[&>a]:w-full sm:[&>a]:w-auto', className]}>
+  <slot />
+</div>

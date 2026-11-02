@@ -1,0 +1,27 @@
+---
+/** Closing invitation at the end of inner pages: picture first on phones, words beside it on desktop. */
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import SectionPanel from './SectionPanel.astro';
+import SectionHeader from './SectionHeader.astro';
+import SplitMedia from './SplitMedia.astro';
+import PhotoFrame from './PhotoFrame.astro';
+import Actions from './Actions.astro';
+interface Props {
+  eyebrow?: string;
+  title: string;
+  body: string;
+  photo: PhotoKey;
+  id?: string;
+}
+const { eyebrow, title, body, photo, id = 'closing-title' } = Astro.props;
+---
+
+<SectionPanel tone="soft" labelledby={id}>
+  <SplitMedia>
+    <PhotoFrame slot="media" name={photo} />
+    <SectionHeader id={id} eyebrow={eyebrow} title={title} lede={body} />
+    <Actions class="mt-7">
+      <slot />
+    </Actions>
+  </SplitMedia>
+</SectionPanel>

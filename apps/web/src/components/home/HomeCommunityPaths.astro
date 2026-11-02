@@ -1,7 +1,6 @@
 ---
 /**
- * Audience routing & stewardship section matching /get-started GetStartedRoutes
- * and /partners PartnershipOpportunities.
+ * Audience routing section: the first six participation paths from /get-involved.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
@@ -13,37 +12,37 @@ const featuredPaths = participation.slice(0, 6);
 
 <section id="paths" aria-labelledby="home-paths-title" class="bg-ivory px-5 section-space sm:px-8">
   <div class="mx-auto max-w-[1320px]">
-    <div class="flex flex-wrap items-end justify-between gap-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
       <EditorialHeading
         id="home-paths-title"
         eyebrow="Who we serve"
+        eyebrowStyle="pill"
         title="Find your place"
         accent="in the mission."
         lede="Lead, play, learn or organize. There is a path for you."
       />
       <a
         href="/get-involved"
-        class="inline-flex items-center gap-2 text-sm font-semibold text-terracotta hover:underline"
+        class="inline-flex min-h-11 items-center gap-2 self-start text-sm font-semibold text-terracotta hover:underline"
       >
-        See all ways to get involved <Icon name="arrow" class="h-4 w-4" />
+        See every way to get involved <Icon name="arrow" class="h-4 w-4" />
       </a>
     </div>
 
-    <div class="mt-10 grid gap-x-10 md:grid-cols-2">
-      {featuredPaths.map((p, i) => (
-        <a href={p.href} data-reveal class="group flex items-center gap-5 border-t border-sand py-6 sm:gap-6">
-          <div
-            class:list={[
-              'h-[120px] w-[96px] shrink-0 overflow-hidden bg-sand sm:h-[145px] sm:w-[118px]',
-              i % 2 ? 'rounded-[56px_20px_20px_20px]' : 'rounded-[64px_64px_20px_20px]',
-            ]}
-          >
+    <div class="mt-8 grid gap-x-10 md:grid-cols-2">
+      {featuredPaths.map((p) => (
+        <a
+          href={p.href}
+          data-reveal
+          class="group flex items-center gap-4 border-t border-sand py-5 sm:gap-6 sm:py-6"
+        >
+          <div class="h-[104px] w-[84px] shrink-0 overflow-hidden bg-sand sm:h-[145px] sm:w-[118px] rounded-[20px]">
             <Photo name={p.photo} sizes="120px" alt="" class="h-full w-full object-cover" />
           </div>
           <div class="min-w-0">
-            <h3 class="text-xl font-bold tracking-tight text-charcoal sm:text-2xl">{p.title}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</p>
-            <span class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-terracotta group-hover:underline">
+            <h3 class="text-lg font-bold tracking-tight text-charcoal sm:text-2xl">{p.title}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-ink-soft sm:text-base">{p.body}</p>
+            <span class="mt-2.5 inline-flex items-center gap-2 text-sm font-semibold text-terracotta group-hover:underline">
               {p.action}
               <Icon name="arrow" class="h-4 w-4 shrink-0" />
             </span>

@@ -15,14 +15,14 @@ const area: SupportArea = found;
 
 <Layout title={area.title} description={clampDescription(area.summary)} headerTheme="light">
   <PageIntro
-    eyebrow="Technical support category"
+    eyebrow="Support area"
     title={area.title}
     lede={area.summary}
     photo={area.photo}
     crumb={{ label: 'All support areas', href: '/services' }}
   >
     <StatusPill kind="proposal" class="mt-6">
-      Technical ministry support
+      Proposed support
     </StatusPill>
   </PageIntro>
   <AreaDetail area={area} />

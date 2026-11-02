@@ -20,10 +20,7 @@ const { instructor: t, class: className } = Astro.props;
   <div class="flex items-center justify-between">
     <span
       aria-hidden="true"
-      class:list={[
-        'grid h-16 w-16 place-items-center rounded-[22px_22px_22px_6px] text-xl font-bold',
-        t.tone,
-      ]}
+      class:list={['grid h-16 w-16 place-items-center rounded-[22px] text-xl font-bold', t.tone]}
     >
       {t.initials}
     </span>

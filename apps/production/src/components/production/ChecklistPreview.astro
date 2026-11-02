@@ -4,17 +4,20 @@ interface Props {
   title?: string;
   items?: string[];
   tone?: 'light' | 'dark';
+  /** Small tag in the corner. */
+  badge?: string;
   class?: string;
 }
 const {
   title = 'Pre-service stream checklist',
   items = [
     'Stream audio mix checked',
-    'Cameras framed & white-balanced',
+    'Cameras framed and white-balanced',
     'Encoder bitrate stable',
-    'Lyrics & lower-thirds loaded',
+    'Lyrics and lower-thirds loaded',
   ],
   tone = 'light',
+  badge = 'Sunday',
   class: className,
 } = Astro.props;
 const dark = tone === 'dark';
@@ -36,7 +39,7 @@ const dark = tone === 'dark';
         dark ? 'bg-white/15' : 'bg-gold/25 text-terracotta-deep',
       ]}
     >
-      Sunday
+      {badge}
     </span>
   </figcaption>
   <ol class="mt-4 space-y-2.5 text-sm">

@@ -19,24 +19,19 @@ const lighting = getArea('lighting-media')!;
 
 <Layout
   title="Technical Ministry Support"
-  description="A proposed Gamo Production program helping churches grow in worship audio, video, lighting and livestreaming, and the volunteers behind the board."
+  description="A proposed Gamo Production program helping churches with worship audio, video, lighting and livestreaming, and the volunteers behind the board."
   headerTheme="light"
 >
   <ProductionHero />
   <MinistryIntro />
-  <SupportAreaFeature
-    area={{ ...audio, photo: 'worshipBand' }}
-    index={2}
-    tone="cream"
-    mask="rounded-[2.5rem] rounded-bl-[8rem]"
-  >
-    <MixerStripPreview slot="preview" class="w-60" />
+  <SupportAreaFeature area={{ ...audio, photo: 'worshipBand' }}>
+    <MixerStripPreview slot="preview" class="w-56" />
   </SupportAreaFeature>
-  <SupportAreaFeature area={stream} index={3} reverse tone="dark" mask="rounded-[2.5rem] rounded-tr-[8rem]">
-    <ChecklistPreview slot="preview" tone="dark" class="max-w-xs bg-night/90 backdrop-blur" />
+  <SupportAreaFeature area={stream} reverse tone="dark">
+    <ChecklistPreview slot="preview" tone="dark" class="w-64 bg-night/90 backdrop-blur" />
   </SupportAreaFeature>
-  <SupportAreaFeature area={lighting} index={4} tone="ivory" mask="mask-arch">
-    <CueStackPreview slot="preview" />
+  <SupportAreaFeature area={lighting}>
+    <CueStackPreview slot="preview" class="w-64" />
   </SupportAreaFeature>
   <TrainingSection />
   <EventSupportSection />

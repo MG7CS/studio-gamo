@@ -1,80 +1,94 @@
 ---
 import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
-/** Worship landing hero: editorial headline left, curved photo composition + sample match card right. */
+/**
+ * Worship landing hero: one large rounded photo card. Phones show the photo, then the copy
+ * below it; desktop lays the copy over the photo with a sample match card in the corner.
+ */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 ---
 
-<section
-  class="relative flex min-h-[100dvh] flex-col justify-center overflow-hidden bg-cream page-intro-space"
-  aria-labelledby="hero-title"
->
-  <div class="mx-auto grid w-full max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-12 lg:gap-8">
-    <div class="lg:col-span-6">
-      <p class="eyebrow text-terracotta">Gamo Worship · a developing program</p>
-      <h1 id="hero-title" class="display-xl worship-hero-title mt-4 text-balance text-charcoal">
-        Stronger Worship <span class="block text-terracotta">Starts Together.</span>
+<section class="px-4 pb-2.5 pt-[5.5rem] sm:px-6 sm:pb-3 sm:pt-24 lg:pt-28" aria-labelledby="hero-title">
+  <div class="relative mx-auto max-w-[1320px] overflow-hidden rounded-[28px] bg-ivory shadow-[0_18px_50px_-30px_rgba(24,24,27,0.25)] ring-1 ring-sand sm:rounded-[36px] lg:min-h-[620px]">
+    <div class="aspect-[4/5] sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto">
+      <Photo name="worshipBand" priority sizes="(min-width:1024px) 1320px, 100vw" position="55% 35%" />
+    </div>
+    <div class="worship-hero-scrim hidden lg:block" aria-hidden="true"></div>
+
+    <div class="relative p-5 sm:p-8 lg:flex lg:min-h-[620px] lg:max-w-2xl lg:flex-col lg:justify-end lg:p-14">
+      <p class="eyebrow-pill lg:bg-white/15 lg:text-cream">Gamo Worship · A developing program</p>
+      <h1 id="hero-title" class="display-xl worship-hero-title mt-4 text-balance text-charcoal lg:text-cream">
+        Stronger Worship <span class="block text-terracotta lg:text-gold">Starts Together.</span>
       </h1>
-      <p class="mt-5 max-w-xl text-base lg:text-lg leading-relaxed text-ink-soft">
-        We are building a trusted way for churches to find prepared, vetted musicians — and for musicians to
-        serve congregations with excellence, dependable scheduling and fair pay.
+      <p class="mt-4 max-w-xl text-base leading-relaxed text-ink-soft lg:text-lg lg:text-cream/85">
+        Prepared, vetted musicians for any service, concert or event, on any day. Dependable scheduling and
+        fair pay for the people who play.
       </p>
-      <div class="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href={providerSignupUrl('worship', 'church')} size="lg" arrow>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ButtonLink href={providerSignupUrl('worship', 'church')} size="lg" class="w-full sm:w-auto" arrow>
           Request musicians
         </ButtonLink>
-        <ButtonLink href={providerSignupUrl('worship', 'musician')} size="lg" variant="secondary">
+        <ButtonLink
+          href={providerSignupUrl('worship', 'musician')}
+          size="lg"
+          variant="secondary"
+          class="w-full sm:w-auto lg:border-cream/50 lg:bg-white/15 lg:text-cream lg:hover:bg-white/25"
+        >
           Apply as a musician
         </ButtonLink>
       </div>
     </div>
 
-    <div class="order-first lg:order-none relative lg:col-span-6">
-      <div class="relative ml-auto grid max-w-[500px] grid-cols-5 gap-3 sm:gap-4">
-        <div class="col-span-3 row-span-2 aspect-[3/4] overflow-hidden mask-arch shadow-float">
-          <Photo name="worshipLeaderGolden" priority sizes="(min-width:1024px) 30vw, 60vw" />
-        </div>
-        <div class="col-span-2 aspect-square self-end overflow-hidden mask-leaf-alt">
-          <Photo name="worshipBand" sizes="(min-width:1024px) 18vw, 38vw" />
-        </div>
-        <div class="col-span-2 aspect-[4/5] overflow-hidden rounded-[2rem] rounded-br-[6rem]">
-          <Photo name="churchModernDay" sizes="(min-width:1024px) 18vw, 38vw" />
-        </div>
+    <aside
+      class="relative mx-5 mb-5 rounded-2xl border border-sand bg-white p-4 sm:mx-8 sm:mb-8 sm:max-w-sm lg:absolute lg:bottom-14 lg:right-14 lg:m-0 lg:w-80 lg:shadow-float"
+      aria-label="Sample match overview"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Service match</p>
+        <StatusPill kind="sample">Sample · Confirmed</StatusPill>
       </div>
-
-      <aside
-        class="relative z-10 -mt-14 ml-2 w-[min(19rem,88%)] rounded-3xl border border-sand bg-white/95 p-5 shadow-float sm:absolute sm:bottom-8 sm:left-0 sm:mt-0 lg:-left-4"
-        aria-label="Musician match overview"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <p class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Sunday match</p>
-          <StatusPill kind="sample">Sample · Confirmed</StatusPill>
-        </div>
-        <p class="mt-3 font-semibold text-charcoal">Riverside Fellowship</p>
-        <p class="text-sm text-ink-soft">Sun · 8:00 AM call · Contemporary</p>
-        <ul class="mt-4 space-y-2 text-sm">
-          <li class="flex items-center gap-2">
-            <Icon name="piano" class="h-4 w-4 text-terracotta" /> Keys —{' '}
-            <span class="font-medium">Ana R.</span>
-            <span class="ml-auto text-xs text-emerald-700">Primary</span>
-          </li>
-          <li class="flex items-center gap-2">
-            <Icon name="repeat" class="h-4 w-4 text-terracotta" /> Standby —{' '}
-            <span class="font-medium">David K.</span>
-            <span class="ml-auto text-xs text-ink-soft">Set list shared</span>
-          </li>
-        </ul>
-      </aside>
-    </div>
+      <p class="mt-3 font-semibold text-charcoal">Riverside Fellowship</p>
+      <p class="text-sm text-ink-soft">Sun · 8:00 AM call · Contemporary</p>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li class="flex items-center gap-2">
+          <Icon name="piano" class="h-4 w-4 shrink-0 text-terracotta" />
+          <span>
+            Keys: <span class="font-medium">Ana R.</span>
+          </span>
+          <span class="ml-auto text-xs font-semibold text-status-success">Primary</span>
+        </li>
+        <li class="flex items-center gap-2">
+          <Icon name="repeat" class="h-4 w-4 shrink-0 text-terracotta" />
+          <span>
+            Standby: <span class="font-medium">David K.</span>
+          </span>
+          <span class="ml-auto text-xs text-ink-soft">Set list shared</span>
+        </li>
+      </ul>
+    </aside>
   </div>
 </section>
 
 <style>
+  .worship-hero-title {
+    font-size: clamp(2rem, 8.4vw, 4rem);
+  }
   @media (min-width: 1024px) {
     .worship-hero-title {
       font-size: clamp(3rem, 4.4vw, 4rem);
     }
+  }
+  /* Desktop only: darkens the left side of the photo so the cream copy stays readable. */
+  .worship-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgb(24 24 27 / 0.78) 0%,
+      rgb(24 24 27 / 0.45) 45%,
+      rgb(24 24 27 / 0.05) 80%
+    );
   }
 </style>

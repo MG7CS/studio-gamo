@@ -20,20 +20,20 @@ const copy =
     ? {
         eyebrow: 'Error 404',
         title: 'Page not found',
-        body: `This page doesn't exist on ${siteName}, or it has moved. Check the address, or start again from the home page.`,
+        body: `This page does not exist on ${siteName}, or it has moved. Check the address or start from the home page.`,
       }
     : {
         eyebrow: 'Error 500',
         title: 'Something went wrong',
-        body: 'We could not load this page. Please try again in a moment. If it keeps happening, let us know.',
+        body: 'We could not load this page. Try again in a moment. If it keeps happening, let us know.',
       };
 ---
 
 <section class="page-intro-space mx-auto flex min-h-[70vh] max-w-3xl flex-col justify-center px-5 md:px-8">
-  <p class="eyebrow text-terracotta">{copy.eyebrow}</p>
+  <p class="eyebrow-pill self-start">{copy.eyebrow}</p>
   <h1 class="display-lg mt-4 text-charcoal">{copy.title}</h1>
-  <p class="mt-6 max-w-xl text-lg text-ink-soft">{copy.body}</p>
-  <div class="mt-10 flex flex-wrap gap-3">
+  <p class="mt-5 max-w-xl text-base leading-relaxed text-ink-soft sm:text-lg">{copy.body}</p>
+  <div class="button-stack mt-8">
     <ButtonLink href={homeHref} arrow>
       {siteName} home
     </ButtonLink>

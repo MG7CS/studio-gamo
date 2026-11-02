@@ -1,7 +1,6 @@
 ---
 /**
- * Gamo Production spotlight on the global homepage using the shared rounded-edge
- * EditorialFeatureCard component for visual continuity across public pages.
+ * Gamo Production spotlight on the global homepage using the shared EditorialFeatureCard.
  */
 import EditorialFeatureCard, {
   type EditorialFeaturePoint,
@@ -12,18 +11,18 @@ import { siteUrl, inquiryUrl } from '@studio-gamo/ui/lib/sites';
 const areas: EditorialFeaturePoint[] = [
   {
     icon: 'sliders',
-    title: 'Sanctuary & stage audio',
-    body: 'Clear vocal presence, balanced monitor mixes, and practical room gain staging.',
+    title: 'Sanctuary and stage audio',
+    body: 'Clear vocals, balanced monitor mixes and sensible gain staging.',
   },
   {
     icon: 'video',
-    title: 'Livestream & broadcast clarity',
-    body: 'Reliable camera workflows and dedicated broadcast audio for homebound congregants.',
+    title: 'Livestream and broadcast',
+    body: 'Reliable cameras and dedicated broadcast audio for people at home.',
   },
   {
     icon: 'users',
-    title: 'Volunteer team training',
-    body: 'Patient, hands-on coaching so church volunteers feel confident behind the console.',
+    title: 'Volunteer training',
+    body: 'Hands-on coaching so volunteers feel confident behind the console.',
   },
 ];
 ---
@@ -31,10 +30,10 @@ const areas: EditorialFeaturePoint[] = [
 <EditorialFeatureCard
   id="production"
   eyebrow="04 · Gamo Production"
-  pillText="Proposed technical ministry"
+  pillText="Proposal"
   pillKind="proposal"
-  title="Better tools and training"
-  accent="for the team behind the board."
+  title="Serving those"
+  accent="behind the board."
   body="Good sound and media keep the focus on worship. We equip churches and train volunteers."
   points={areas}
   photo="soundEngineer"
@@ -46,7 +45,7 @@ const areas: EditorialFeaturePoint[] = [
   <ButtonLink href={inquiryUrl('Production consultation')} arrow>
     Request a needs assessment
   </ButtonLink>
-  <ButtonLink href={siteUrl('production', '/training')} variant="secondary">
-    Explore volunteer training
+  <ButtonLink href={siteUrl('academy', '/#production-training')} variant="secondary">
+    Volunteer training
   </ButtonLink>
 </EditorialFeatureCard>

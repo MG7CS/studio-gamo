@@ -1,0 +1,36 @@
+---
+/**
+ * Floating rounded panel on the cream page background. Every marketing section on the
+ * Production site sits in one of these so the rhythm (gap, radius, padding) is identical.
+ */
+interface Props {
+  id?: string;
+  tone?: 'white' | 'soft' | 'dark';
+  /** id of the heading that names this section. */
+  labelledby?: string;
+  /** Accessible name when the section has no heading. */
+  label?: string;
+  /** Adds the header clearance for the first panel on a page. */
+  first?: boolean;
+  class?: string;
+}
+const { id, tone = 'white', labelledby, label, first = false, class: className } = Astro.props;
+const dark = tone === 'dark';
+const surface = {
+  white: 'bg-white ring-1 ring-sand',
+  soft: 'bg-ivory ring-1 ring-sand',
+  dark: 'bg-night text-cream',
+}[tone];
+---
+
+<section
+  id={id}
+  aria-labelledby={labelledby}
+  aria-label={label}
+  data-surface={dark ? 'dark' : undefined}
+  class:list={['px-4 py-2 sm:px-6 sm:py-3 lg:px-8', first && 'pt-24 sm:pt-28', className]}
+>
+  <div class:list={['mx-auto max-w-[1320px] rounded-[2rem] p-6 sm:p-10 lg:p-14', surface]} data-reveal>
+    <slot />
+  </div>
+</section>

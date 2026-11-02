@@ -1,7 +1,9 @@
 ---
-/** Section 1: instrument discovery — asymmetric mix of photo and typographic cards. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Section 1: instrument discovery. Bento grid on desktop, single column on phones. */
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
+import SectionIntro from '../shared/SectionIntro.astro';
 import InstrumentCard from '../shared/InstrumentCard.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
 const spans = [
@@ -16,27 +18,46 @@ const spans = [
 
 <section id="instruments" class="px-4 section-space sm:px-8" data-reveal>
   <div class="mx-auto max-w-[1320px]">
-    <div class="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-      <EditorialHeading
-        eyebrow="Discover your instrument"
+    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <SectionIntro
+        eyebrow="Instruments"
         title="Every musician starts"
         accent="with one song."
-        lede="Not sure where to begin? Explore each instrument, see what first lessons look like and pick the one that excites you."
+        lede="See what first lessons cover and pick the instrument that excites you."
       />
-      <ButtonLink href="/instruments" variant="secondary" arrow>
+      <ButtonLink href="/instruments" variant="secondary" class="w-full shrink-0 sm:w-auto" arrow>
         All instruments
       </ButtonLink>
     </div>
-    <div class="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
       {instruments.map((i, idx) => (
         <InstrumentCard instrument={i} class:list={[spans[idx], idx === 0 && 'lg:min-h-[620px]']} />
       ))}
     </div>
-    <div class="mt-6 flex flex-wrap items-center gap-2 rounded-[28px] border border-dashed border-sand p-5">
-      <span class="mr-2 text-sm font-semibold">More planned:</span>
+    <div class="mt-4 flex flex-wrap items-center gap-2 rounded-[24px] bg-white p-5 ring-1 ring-sand">
+      <span class="mr-1 text-sm font-semibold">Coming as instructors join:</span>
       {plannedInstruments.map((p) => (
-        <span class="rounded-full bg-white px-3 py-1.5 text-sm text-ink-soft ring-1 ring-sand">{p}</span>
+        <span class="rounded-full bg-cream px-3 py-1.5 text-sm text-ink-soft ring-1 ring-sand">{p}</span>
       ))}
+    </div>
+    <div
+      id="production-training"
+      class="mt-4 flex scroll-mt-28 flex-col gap-4 rounded-[24px] bg-white p-5 ring-1 ring-sand sm:flex-row sm:items-center sm:justify-between sm:p-6"
+    >
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h3 class="text-base font-semibold text-charcoal">Production training</h3>
+          <StatusPill kind="proposal" size="sm">
+            Planned
+          </StatusPill>
+        </div>
+        <p class="mt-1 text-sm text-ink-soft">
+          Sound, livestream and lighting classes for church media teams and volunteers.
+        </p>
+      </div>
+      <ButtonLink href={inquiryUrl('Lesson interest')} variant="secondary" class="w-full shrink-0 sm:w-auto">
+        Ask about production training
+      </ButtonLink>
     </div>
   </div>
 </section>

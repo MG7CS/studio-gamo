@@ -1,82 +1,61 @@
 ---
 /**
- * Reusable support-area feature: sculptural photo + copy + list, with a `preview` slot
- * for a small contextual UI mock. Layout and tone vary per section to avoid repetitive rows.
+ * One support area on the homepage: photo (with an optional small UI mock in the `preview` slot),
+ * then heading, summary, what it covers and a link to the detail page.
  */
-import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SectionPanel from './SectionPanel.astro';
+import SectionHeader from './SectionHeader.astro';
+import SplitMedia from './SplitMedia.astro';
+import PhotoFrame from './PhotoFrame.astro';
+import Actions from './Actions.astro';
 import type { SupportArea } from '../../data/production';
 
 interface Props {
   area: SupportArea;
-  index: number;
   reverse?: boolean;
-  tone?: 'cream' | 'ivory' | 'dark';
-  mask?: string;
+  tone?: 'white' | 'soft' | 'dark';
 }
-const { area, index, reverse = false, tone = 'cream', mask = 'rounded-[2.5rem]' } = Astro.props;
+const { area, reverse = false, tone = 'white' } = Astro.props;
 const dark = tone === 'dark';
-const bg = { cream: 'bg-cream', ivory: 'bg-ivory', dark: 'bg-night text-cream' }[tone];
 const id = `area-${area.slug}`;
 ---
 
-<section
-  class:list={[bg, 'section-space']}
-  aria-labelledby={id}
-  data-surface={dark ? 'dark' : undefined}
-  data-reveal
->
-  <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 md:px-8 lg:grid-cols-12 lg:gap-16">
-    <div class:list={['relative lg:col-span-6', reverse && 'lg:order-2']}>
-      <div class:list={['aspect-[5/4] overflow-hidden bg-sand shadow-float', mask]}>
-        <Photo
-          name={area.photo}
-          position={area.photoPosition}
-          sizes="(min-width:1024px) 45vw, 100vw"
-          class="h-full w-full object-cover"
-        />
-      </div>
-      <div
-        class:list={[
-          'relative -mt-16 px-4 sm:absolute sm:-bottom-10 sm:mt-0 sm:px-0',
-          reverse ? 'sm:-left-4' : 'sm:-right-4',
-        ]}
-      >
+<SectionPanel tone={tone} labelledby={id}>
+  <SplitMedia reverse={reverse}>
+    <div slot="media" class="relative">
+      <PhotoFrame name={area.photo} position={area.photoPosition} />
+      <div class:list={['absolute bottom-5 hidden sm:block', reverse ? 'right-5' : 'left-5']}>
         <slot name="preview" />
       </div>
     </div>
-    <div class:list={['lg:col-span-6', reverse && 'lg:order-1']}>
-      <p class:list={['eyebrow flex items-center gap-2', dark ? 'text-gold' : 'text-terracotta']}>
-        <Icon name={area.icon} class="h-4 w-4" /> 0{index} · Support area
-      </p>
-      <h2 id={id} class:list={['section-heading mt-4', dark ? 'text-cream' : 'text-charcoal']}>
-        {area.title}
-      </h2>
-      <p class:list={['mt-5 text-lg leading-relaxed', dark ? 'text-cream/75' : 'text-ink-soft']}>
-        {area.summary}
-      </p>
-      <ul class="mt-8 grid gap-3 sm:grid-cols-2">
-        {area.covers.map((c) => (
-          <li
-            class:list={[
-              'flex items-start gap-3 border-t pt-3 text-sm',
-              dark ? 'border-white/15 text-cream/85' : 'border-sand text-charcoal',
-            ]}
-          >
-            <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" strokeWidth={2} />
-            {c}
-          </li>
-        ))}
-      </ul>
-      <ButtonLink
-        href={`/services/${area.slug}`}
-        variant={dark ? 'ghost-dark' : 'secondary'}
-        arrow
-        class="mt-8"
-      >
+    <SectionHeader
+      id={id}
+      eyebrow="Support area"
+      title={area.title}
+      lede={area.summary}
+      tone={dark ? 'dark' : 'light'}
+    />
+    <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+      {area.covers.map((c) => (
+        <li
+          class:list={[
+            'flex items-start gap-3 rounded-2xl p-4 text-sm leading-snug',
+            dark
+              ? 'bg-white/5 text-cream/90 ring-1 ring-white/10'
+              : 'bg-cream text-charcoal ring-1 ring-sand',
+          ]}
+        >
+          <Icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-terracotta" strokeWidth={2} />
+          {c}
+        </li>
+      ))}
+    </ul>
+    <Actions class="mt-7">
+      <ButtonLink href={`/services/${area.slug}`} variant={dark ? 'ghost-dark' : 'secondary'} arrow>
         Explore {area.title.toLowerCase()}
       </ButtonLink>
-    </div>
-  </div>
-</section>
+    </Actions>
+  </SplitMedia>
+</SectionPanel>

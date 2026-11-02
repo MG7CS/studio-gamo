@@ -10,6 +10,8 @@ interface Props {
   tone?: 'light' | 'dark';
   size?: 'display' | 'section' | 'sub';
   as?: 'h1' | 'h2' | 'h3';
+  /** 'text' is the classic tracked eyebrow; 'pill' renders it as a small sand pill. */
+  eyebrowStyle?: 'text' | 'pill';
   id?: string;
   class?: string;
 }
@@ -22,6 +24,7 @@ const {
   tone = 'light',
   size = 'section',
   as: Tag = 'h2',
+  eyebrowStyle = 'text',
   id,
   class: className,
 } = Astro.props;
@@ -29,7 +32,10 @@ const sizeClass = { display: 'display-lg', section: 'section-heading', sub: 'sec
 ---
 
 <div class:list={[align === 'center' ? 'mx-auto text-center' : '', 'max-w-3xl', className]}>
-  {eyebrow && (
+  {eyebrow && eyebrowStyle === 'pill' && (
+    <p class:list={['eyebrow-pill mb-4', tone === 'dark' && 'bg-white/10 text-gold']}>{eyebrow}</p>
+  )}
+  {eyebrow && eyebrowStyle === 'text' && (
     <p class:list={['eyebrow mb-4', tone === 'dark' ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>
   )}
   <Tag id={id} class:list={[sizeClass, tone === 'dark' ? 'text-cream' : 'text-charcoal', 'text-balance']}>
@@ -41,7 +47,7 @@ const sizeClass = { display: 'display-lg', section: 'section-heading', sub: 'sec
   {lede && (
     <p
       class:list={[
-        'mt-5 text-lg leading-relaxed',
+        'mt-4 text-base leading-relaxed sm:text-lg',
         align === 'center' && 'mx-auto',
         'max-w-2xl',
         tone === 'dark' ? 'text-cream/75' : 'text-ink-soft',

@@ -25,7 +25,7 @@ const columns = [
       { label: 'Request a Musician', url: providerSignupUrl('worship', 'church') },
       { label: 'Join the Musician Collection', url: providerSignupUrl('worship', 'musician') },
       { label: 'Find a Lesson', url: siteUrl('academy', '/lessons') },
-      { label: 'Promote an Event', url: siteUrl('live', '/promote') },
+      { label: 'List an Event', url: siteUrl('live', '/organizer') },
       { label: 'Partnerships', url: siteUrl('web', '/partners') },
     ],
   },
@@ -66,8 +66,8 @@ const socials = [
           <Logo width="210" height="45" />
         </a>
         <p class="mt-5 max-w-[300px] text-base leading-relaxed text-cream/80">
-          A Christian, mission-driven organization strengthening worship and community through musicians,
-          music education, Christian events and technical support.
+          A Christian, mission-driven organization serving worship, music education, Christian events and
+          production.
         </p>
         <ul class="mt-7 flex gap-3" aria-label="Social media">
           {socials.map((s) => (
@@ -104,9 +104,9 @@ const socials = [
         </nav>
       ))}
       <div class="col-span-2 lg:col-span-1">
-        <h2 class="mb-5 text-base font-semibold text-white">Stay in the Loop</h2>
+        <h2 class="mb-5 text-base font-semibold text-white">Walk With Us</h2>
         <p class="max-w-xs text-sm leading-relaxed text-cream/80">
-          Updates on programs, upcoming events and ways to get involved.
+          News of gatherings, classes and ways to serve.
         </p>
         {/* No mailing-list provider is approved yet (CLEANUP_LOG O-15): link to the contact form instead of a form that goes nowhere. */}
         <a

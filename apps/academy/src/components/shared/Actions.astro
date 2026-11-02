@@ -1,0 +1,16 @@
+---
+/** Button row: full-width stacked buttons on phones, an inline row from the sm breakpoint. */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center [&>a]:w-full sm:[&>a]:w-auto',
+    className,
+  ]}
+>
+  <slot />
+</div>
