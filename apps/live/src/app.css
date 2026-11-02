@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
+@import '@gamo/site/styles/sources.css';
 
 /* Spotlight grows with long titles; the rail no longer forces an 860px hero. */
 .spotlight-frame {

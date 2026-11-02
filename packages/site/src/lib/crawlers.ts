@@ -4,7 +4,8 @@
  * Each app serves its own /robots.txt and /sitemap.xml (they are separate origins), but the
  * bot lists and the rendering of both files live here so the policy is changed in one place.
  */
-import { siteOrigin, type SiteKey } from './sites';
+import type { APIRoute } from 'astro';
+import { siteOrigin, type SiteKey } from '@studio-gamo/ui/lib/sites';
 
 /** AI search / answer bots: fetch a page because a person asked an assistant about it. */
 export const AI_ANSWER_BOTS = [
@@ -108,3 +109,25 @@ export const xmlResponse = (body: string, maxAgeSeconds = 3600) =>
       'Cache-Control': `public, max-age=${maxAgeSeconds}`,
     },
   });
+
+/** The `/robots.txt` route of a public app: `export const GET = robotsRoute('web')`. */
+export const robotsRoute =
+  (app: SiteKey, privatePaths: readonly string[] = []): APIRoute =>
+  () =>
+    textResponse(buildRobotsTxt({ app, privatePaths }));
+
+/**
+ * The `/sitemap.xml` route of a public app. `entries` is the app's own route list, or a function that builds it
+ * for the request (Live reads its published events). `maxAgeSeconds` is the cache time (default one hour).
+ */
+export const sitemapRoute =
+  (
+    app: SiteKey,
+    entries: readonly SitemapEntry[] | ((context: Parameters<APIRoute>[0]) => Promise<SitemapEntry[]>),
+    maxAgeSeconds?: number,
+  ): APIRoute =>
+  async (context) =>
+    xmlResponse(
+      buildSitemapXml(app, typeof entries === 'function' ? await entries(context) : entries),
+      maxAgeSeconds,
+    );

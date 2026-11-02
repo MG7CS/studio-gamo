@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+import type { LegacyRedirect } from '@gamo/site/lib/page-middleware';
 
 /** Retired Gamo Live URLs (the old organizer tools, ticketing and account pages were replaced in the rebuild). */
 export const legacyRedirects: LegacyRedirect[] = [

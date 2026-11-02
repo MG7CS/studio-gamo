@@ -6,10 +6,11 @@
  * date/time has passed is clearly marked `Past · Closed`.
  */
 import SiteLayout from '../layouts/SiteLayout.astro';
-import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import CtaInvitation from '@gamo/site/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
-import { LiveCatalog, getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
+import { LiveCatalog } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/platform/db';
 import EventSpotlightHero from '../components/live/EventSpotlightHero.astro';
 import NearbyRail from '../components/live/NearbyRail.astro';

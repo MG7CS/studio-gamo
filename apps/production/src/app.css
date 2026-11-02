@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@studio-gamo/ui/styles/tokens.css';
+@import '@gamo/site/styles/sources.css';
 
 /* Hero and page titles: a smaller floor so two short lines fit beside the photo and on a 360 px phone. */
 .production-hero-title {

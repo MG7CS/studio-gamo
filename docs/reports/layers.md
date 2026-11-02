@@ -7,7 +7,7 @@ Written by `pnpm lint:layers` (`scripts/lint-layers.ts`, rules in `scripts/layer
 | Layer | Packages |
 | --- | --- |
 | foundation | `@gamo/core` (packages/core), `@gamo/config` (packages/config), `@studio-gamo/ui` (packages/ui) |
-| platform | `@gamo/db` (packages/db), `@gamo/platform` (packages/platform) |
+| platform | `@gamo/db` (packages/db), `@gamo/platform` (packages/platform), `@gamo/site` (packages/site) |
 | transitional (reported, not enforced) | `@gamo/domain` (packages/domain) |
 | apps | `apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin` |
 
@@ -15,7 +15,7 @@ Rules: no upward import, no app importing another app, no package importing an a
 
 ## Result
 
-Files checked: 722 (every .ts and .astro file under apps/ and packages/).
+Files checked: 721 (every .ts and .astro file under apps/ and packages/).
 
 | Kind | What | Count |
 | --- | --- | --- |

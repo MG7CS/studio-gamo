@@ -2,11 +2,11 @@
 /**
  * gamostudio.org/legal/<slug> — one draft legal document (design §4.5). Rendered on demand so middleware and
  * security headers apply; an unknown slug renders the branded 404 page. Version and status come from the
- * terms registry (`@gamo/platform/terms`), the text from `@studio-gamo/ui/components/legal/content`.
+ * terms registry (`@gamo/platform/terms`), the text from `@gamo/site/components/legal/content`.
  */
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import LegalDocument from '@studio-gamo/ui/components/legal/LegalDocument.astro';
-import { getLegalDocumentContent } from '@studio-gamo/ui/components/legal/content/index.ts';
+import LegalDocument from '@gamo/site/components/legal/LegalDocument.astro';
+import { getLegalDocumentContent } from '@gamo/site/components/legal/content/index.ts';
 import { getTermsDocument } from '@gamo/platform/terms';
 
 const slug = String(Astro.params.slug ?? '');

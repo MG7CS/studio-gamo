@@ -6,7 +6,7 @@ import OrganizationList from '../../components/OrganizationList.astro';
 import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import VerificationQueueList from '../../components/verification/VerificationQueueList.astro';
-import { getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { ORGANIZATION_FILTERS, loadOrganizationList, organizationFilterFrom } from '../../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);

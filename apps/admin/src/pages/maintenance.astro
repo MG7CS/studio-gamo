@@ -5,7 +5,7 @@ import ConfirmAction from '@studio-gamo/ui/components/ui/ConfirmAction.astro';
 import Panel from '@studio-gamo/ui/components/ui/Panel.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
-import { getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { handleCleanupForm, outcomeFrom } from '../lib/live-admin';
 
 const env = await getRuntimeEnv(Astro);

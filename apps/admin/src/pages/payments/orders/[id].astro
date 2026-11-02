@@ -10,7 +10,7 @@ import OrderSummaryCard from '../../../components/payments/order/OrderSummaryCar
 import OrderTicketsCard from '../../../components/payments/order/OrderTicketsCard.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import PaymentsConfigNotice from '../../../components/payments/PaymentsConfigNotice.astro';
-import { getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { paymentsConfig } from '../../../lib/live-settings';
 import { handleAdminOrderForm, loadAdminOrderPage, paymentsOutcomeFrom } from '../../../lib/payments-admin';
 

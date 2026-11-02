@@ -6,7 +6,8 @@ import LivePublishedEventList from '../components/LivePublishedEventList.astro';
 import Notice from '@studio-gamo/ui/components/ui/Notice.astro';
 import PageHeader from '@studio-gamo/ui/components/ui/PageHeader.astro';
 import Toolbar from '@studio-gamo/ui/components/ui/Toolbar.astro';
-import { getRuntimeEnv, listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
+import { listPendingEvents, listPublishedOrganizerEvents } from '@gamo/domain';
 import { asSqlDatabase } from '@gamo/platform/db';
 import { handleEventForm, loadPaidReviewDetails, outcomeFrom } from '../lib/live-admin';
 

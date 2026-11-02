@@ -1,9 +1,9 @@
 /** Shared helpers for the registration pages (A4–A6 in docs/LIVE_SCREENS.md). */
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import {
   LiveCatalog,
   RegistrationError,
   formatLocalEventSchedule,
-  getRuntimeEnv,
   waitPhrase,
   type LiveEventDetail,
   type RegisterDateOption,

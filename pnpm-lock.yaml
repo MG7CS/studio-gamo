@@ -276,6 +276,9 @@ importers:
       '@gamo/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@gamo/site':
+        specifier: workspace:*
+        version: link:../../packages/site
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -350,6 +353,9 @@ importers:
       '@gamo/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@gamo/site':
+        specifier: workspace:*
+        version: link:../../packages/site
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -381,6 +387,9 @@ importers:
       '@gamo/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@gamo/site':
+        specifier: workspace:*
+        version: link:../../packages/site
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -418,6 +427,9 @@ importers:
       '@gamo/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@gamo/site':
+        specifier: workspace:*
+        version: link:../../packages/site
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -452,6 +464,9 @@ importers:
       '@gamo/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@gamo/site':
+        specifier: workspace:*
+        version: link:../../packages/site
       '@studio-gamo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -530,6 +545,27 @@ importers:
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4
+
+  packages/site:
+    dependencies:
+      '@gamo/config':
+        specifier: workspace:*
+        version: link:../config
+      '@gamo/core':
+        specifier: workspace:*
+        version: link:../core
+      '@gamo/platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@studio-gamo/ui':
+        specifier: workspace:*
+        version: link:../ui
+      astro:
+        specifier: ^7.0.0
+        version: 7.3.8(@types/node@26.6.5)(esbuild@0.28.2)(idb-keyval@6.2.1)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      tailwindcss:
+        specifier: ^4.0.0
+        version: 4.3.3
 
   packages/ui:
     dependencies:

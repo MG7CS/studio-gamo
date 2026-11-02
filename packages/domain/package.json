@@ -14,7 +14,6 @@
     "zod": "^3.24.2"
   },
   "exports": {
-    ".": "./index.ts",
-    "./page-middleware": "./src/api/page-middleware.ts"
+    ".": "./index.ts"
   }
 }

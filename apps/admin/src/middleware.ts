@@ -2,7 +2,7 @@ import { checkEnvOnce } from '@gamo/config/env-validation';
 import { defineMiddleware } from 'astro/middleware';
 import type { MiddlewareHandler } from 'astro';
 import { generateCspNonce, withSecurityHeaders } from '@gamo/platform/security';
-import { getRuntimeEnv } from '@gamo/domain';
+import { getRuntimeEnv } from '@gamo/config/runtime-env';
 import { checkGate, setAdminEmail } from './lib/gate';
 
 /**

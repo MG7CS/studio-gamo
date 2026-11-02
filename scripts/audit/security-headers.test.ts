@@ -8,10 +8,7 @@ import {
   securityHeaders,
   withSecurityHeaders,
 } from '../../packages/platform/security/security-headers.ts';
-import {
-  applicationPages,
-  pageSecurityHeaderOptions,
-} from '../../packages/domain/src/api/page-middleware.ts';
+import { applicationPages, pageSecurityHeaderOptions } from '../../packages/site/src/lib/page-middleware.ts';
 
 const directive = (csp: string, name: string) =>
   csp

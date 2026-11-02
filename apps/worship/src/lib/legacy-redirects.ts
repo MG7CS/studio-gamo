@@ -1,4 +1,4 @@
-import type { LegacyRedirect } from '@gamo/domain/page-middleware';
+import type { LegacyRedirect } from '@gamo/site/lib/page-middleware';
 import { providerSignupUrl, siteUrl } from '@studio-gamo/ui/lib/sites';
 
 /** Retired Gamo Worship URLs (accounts, workspaces and demo flows were removed in the rebuild). */

@@ -6,7 +6,7 @@
  *
  * Versioning: bump `version` whenever a document's text changes (acceptances reference slug + version, and
  * `terms_documents.content_hash` is immutable per version). `contentHash` is the SHA-256 hex of the
- * published text (`legalDocumentCanonicalText` in `@studio-gamo/ui/components/legal/content`); a null hash
+ * published text (`legalDocumentCanonicalText` in `@gamo/site/components/legal/content`); a null hash
  * falls back to SHA-256 of `terms|<slug>|<version>` (`termsContentHash`). Text edits need both a new
  * version and a new hash (enforced by `scripts/audit/legal-drafts.test.ts`).
  */
@@ -14,7 +14,7 @@ import type { LegalReviewStatus, TermsSlug, TermsStatus } from '@gamo/core';
 import { TERMS_SLUGS } from '@gamo/core';
 import { sha256Hex } from '../security/crypto.ts';
 
-/** draft.2: first full draft texts (packages/ui/src/components/legal/content), hashed into `contentHash`. */
+/** draft.2: first full draft texts (packages/site/src/components/legal/content), hashed into `contentHash`. */
 export const TERMS_DRAFT_VERSION = '2026-10-18-draft.2';
 
 export interface TermsDocumentEntry {
@@ -33,7 +33,7 @@ export interface TermsDocumentEntry {
 }
 
 /**
- * SHA-256 hex of `legalDocumentCanonicalText()` of each draft text (packages/ui/src/components/legal/content).
+ * SHA-256 hex of `legalDocumentCanonicalText()` of each draft text (packages/site/src/components/legal/content).
  * `scripts/audit/legal-drafts.test.ts` recomputes them: edit a text → bump the version and update its hash.
  */
 const DRAFT_CONTENT_HASHES: Readonly<Record<TermsSlug, string>> = {
