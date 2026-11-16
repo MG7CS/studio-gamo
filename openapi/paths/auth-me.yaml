@@ -12,7 +12,7 @@ get:
   security:
     - BrowserSession: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: implemented
   x-authorization: Active D1 session required.
   x-idempotency: Read-only.

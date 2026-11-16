@@ -14,7 +14,7 @@ post:
     with 200. Answers 503 when the secret is not configured.
   security: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: implemented
   x-authorization: Svix signature with this product's Clerk webhook secret.
   x-idempotency: Revocations are conditional; replays change nothing.

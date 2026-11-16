@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 2.1.0
+  version: 3.0.0
   description: Authoritative contract for Gamo Studios, a Christian,
     mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly
     labeled. Internal operations must not be published. No production readiness
@@ -10,8 +10,8 @@ info:
   license:
     name: Private repository; no public API license
 servers:
-  - url: http://127.0.0.1:4324
-    description: Local Gamo Live; each path specifies its owning application.
+  - url: http://127.0.0.1:4321
+    description: Local global site (web); each path specifies its owning application.
 security: []
 tags:
   - name: Identity and Accounts
@@ -22,8 +22,6 @@ tags:
     description: Worship domain. No endpoint existence implied by tag.
   - name: Academy
     description: Academy domain. No endpoint existence implied by tag.
-  - name: Live
-    description: Live domain. No endpoint existence implied by tag.
   - name: Production
     description: Production domain. No endpoint existence implied by tag.
   - name: Partnerships
@@ -32,8 +30,8 @@ tags:
     description: Media domain. No endpoint existence implied by tag.
   - name: Administration
     description: Administration domain. No endpoint existence implied by tag.
-  - name: Payments
-    description: Payments domain. No endpoint existence implied by tag.
+  - name: Email
+    description: Email delivery domain (provider delivery events and suppressions). No endpoint existence implied by tag.
 paths:
   /api/participation:
     $ref: paths/participation.yaml
@@ -53,42 +51,6 @@ paths:
     $ref: paths/auth-me.yaml
   /api/organizations:
     $ref: paths/organizations.yaml
-  /api/events:
-    $ref: paths/events.yaml
-  /api/events/{id}:
-    $ref: paths/events-id.yaml
-  /api/events/{id}/register:
-    $ref: paths/events-id-register.yaml
-  /api/events/{id}/team:
-    $ref: paths/events-id-team.yaml
-  /api/events/{id}/production-requests:
-    $ref: paths/events-id-production-requests.yaml
-  /api/tickets/lookup:
-    $ref: paths/tickets-lookup.yaml
-  /api/tickets/scan:
-    $ref: paths/tickets-scan.yaml
-  /api/artists:
-    $ref: paths/artists.yaml
-  /api/artists/{id}/representatives:
-    $ref: paths/artists-id-representatives.yaml
-  /api/representations/{id}/revoke:
-    $ref: paths/representations-id-revoke.yaml
-  /api/bookings/inquiries:
-    $ref: paths/bookings-inquiries.yaml
-  /api/bookings/inquiries/{id}/offers:
-    $ref: paths/bookings-inquiries-id-offers.yaml
-  /api/bookings/offers/{id}/accept:
-    $ref: paths/bookings-offers-id-accept.yaml
-  /api/orders/{id}/refund:
-    $ref: paths/orders-id-refund.yaml
-  /api/checkout/session:
-    $ref: paths/checkout-session.yaml
-  /api/webhook/stripe:
-    $ref: paths/webhook-stripe.yaml
-  /api/events/pending:
-    $ref: paths/events-pending.yaml
-  /api/events/{id}/review:
-    $ref: paths/events-id-review.yaml
   /api/staff/provision:
     $ref: paths/staff-provision.yaml
   # --- agent A (identity, onboarding, review) ---
@@ -100,41 +62,9 @@ paths:
     $ref: paths/account-providers.yaml
   /api/review/providers/{id}:
     $ref: paths/review-providers-id.yaml
-  /api/review/events/{id}:
-    $ref: paths/review-events-id.yaml
-  /api/review/organizers/{id}:
-    $ref: paths/review-organizers-id.yaml
   # --- end agent A ---
-  # --- agent C --- (door scanning, offline manifest, venue blueprints)
-  /api/scanner/scan:
-    $ref: paths/scanner-scan.yaml
-  /api/scanner/lookup:
-    $ref: paths/scanner-lookup.yaml
-  /api/scanner/override:
-    $ref: paths/scanner-override.yaml
-  /api/scanner/manifest:
-    $ref: paths/scanner-manifest.yaml
-  /api/scanner/sync:
-    $ref: paths/scanner-sync.yaml
-  /api/scanner/headcount:
-    $ref: paths/scanner-headcount.yaml
-  /api/venue-maps/{id}:
-    $ref: paths/venue-maps-id.yaml
-  # --- end agent C ---
-  # --- agent B --- (Gamo Live ticketing)
-  /api/orders/confirm:
-    $ref: paths/orders-confirm.yaml
-  /api/tickets/{id}/transfer:
-    $ref: paths/tickets-id-transfer.yaml
-  /api/tickets/{id}/reissue:
-    $ref: paths/tickets-id-reissue.yaml
-  /api/events/{id}/changes:
-    $ref: paths/events-id-changes.yaml
-  /api/events/{id}/waitlist:
-    $ref: paths/events-id-waitlist.yaml
   /api/webhook/resend:
     $ref: paths/webhook-resend.yaml
-  # --- end agent B ---
 components:
   schemas:
     Identifier:
@@ -173,96 +103,10 @@ components:
       $ref: components/schemas/organizations/CreateOrganizationInput.yaml
     CreateOrganizationResponse:
       $ref: components/schemas/organizations/CreateOrganizationResponse.yaml
-    TierInput:
-      $ref: components/schemas/live/TierInput.yaml
-    Tier:
-      $ref: components/schemas/live/Tier.yaml
-    CreateEvent:
-      $ref: components/schemas/live/CreateEvent.yaml
-    RegisterAttendee:
-      $ref: components/schemas/live/RegisterAttendee.yaml
-    ReviewDecision:
-      $ref: components/schemas/administration/ReviewDecision.yaml
     ProvisionStaffInput:
       $ref: components/schemas/administration/ProvisionStaffInput.yaml
     ProvisionStaffResponse:
       $ref: components/schemas/administration/ProvisionStaffResponse.yaml
-    CheckoutInput:
-      $ref: components/schemas/payments/CheckoutInput.yaml
-    CheckoutResponse:
-      $ref: components/schemas/payments/CheckoutResponse.yaml
-    StripeEvent:
-      $ref: components/schemas/payments/StripeEvent.yaml
-    WebhookResponse:
-      $ref: components/schemas/payments/WebhookResponse.yaml
-    Event:
-      $ref: components/schemas/live/Event.yaml
-    EventDetails:
-      $ref: components/schemas/live/EventDetails.yaml
-    EventListResponse:
-      $ref: components/schemas/live/EventListResponse.yaml
-    EventResponse:
-      $ref: components/schemas/live/EventResponse.yaml
-    CreateEventResponse:
-      $ref: components/schemas/live/CreateEventResponse.yaml
-    Registration:
-      $ref: components/schemas/live/Registration.yaml
-    RegistrationResponse:
-      $ref: components/schemas/live/RegistrationResponse.yaml
-    PendingResponse:
-      $ref: components/schemas/administration/PendingResponse.yaml
-    ReviewResponse:
-      $ref: components/schemas/administration/ReviewResponse.yaml
-    EventFilters:
-      $ref: components/schemas/live/EventFilters.yaml
-    AssignEventTeamInput:
-      $ref: components/schemas/live/AssignEventTeamInput.yaml
-    AssignEventTeamResponse:
-      $ref: components/schemas/live/AssignEventTeamResponse.yaml
-    RevokeEventTeamInput:
-      $ref: components/schemas/live/RevokeEventTeamInput.yaml
-    RevokeEventTeamResponse:
-      $ref: components/schemas/live/RevokeEventTeamResponse.yaml
-    TicketLookupInput:
-      $ref: components/schemas/live/TicketLookupInput.yaml
-    TicketLookupResponse:
-      $ref: components/schemas/live/TicketLookupResponse.yaml
-    TicketScanInput:
-      $ref: components/schemas/live/TicketScanInput.yaml
-    TicketScanResponse:
-      $ref: components/schemas/live/TicketScanResponse.yaml
-    CreateArtistInput:
-      $ref: components/schemas/live/CreateArtistInput.yaml
-    ArtistProfileResponse:
-      $ref: components/schemas/live/ArtistProfileResponse.yaml
-    ArtistListResponse:
-      $ref: components/schemas/live/ArtistListResponse.yaml
-    AuthorizeRepresentativeInput:
-      $ref: components/schemas/live/AuthorizeRepresentativeInput.yaml
-    RepresentationResponse:
-      $ref: components/schemas/live/RepresentationResponse.yaml
-    RevokeRepresentationInput:
-      $ref: components/schemas/live/RevokeRepresentationInput.yaml
-    CreateBookingInquiryInput:
-      $ref: components/schemas/live/CreateBookingInquiryInput.yaml
-    BookingInquiryResponse:
-      $ref: components/schemas/live/BookingInquiryResponse.yaml
-    ProposeBookingOfferInput:
-      $ref: components/schemas/live/ProposeBookingOfferInput.yaml
-    BookingOfferResponse:
-      $ref: components/schemas/live/BookingOfferResponse.yaml
-    BookingAcceptResponse:
-      $ref: components/schemas/live/BookingAcceptResponse.yaml
-    OrderRefundInput:
-      $ref: components/schemas/live/OrderRefundInput.yaml
-    OrderRefundResponse:
-      $ref: components/schemas/live/OrderRefundResponse.yaml
-    CreateEventProductionRequestInput:
-      $ref: components/schemas/live/CreateEventProductionRequestInput.yaml
-    EventProductionRequestResponse:
-      $ref: components/schemas/live/EventProductionRequestResponse.yaml
-    EventProductionRequestListResponse:
-      $ref: components/schemas/live/EventProductionRequestListResponse.yaml
     ParticipationInput:
       $ref: components/schemas/participation/ParticipationInput.yaml
     ParticipationReviewInput:
@@ -288,105 +132,19 @@ components:
       $ref: components/schemas/identity/ProviderAccountForm.yaml
     ProviderReviewForm:
       $ref: components/schemas/administration/ProviderReviewForm.yaml
-    EventReviewForm:
-      $ref: components/schemas/administration/EventReviewForm.yaml
-    OrganizerReviewForm:
-      $ref: components/schemas/administration/OrganizerReviewForm.yaml
     # --- end agent A ---
-    # --- agent C --- (door scanning)
-    ScannerScanInput:
-      $ref: components/schemas/live/scanner/ScannerScanInput.yaml
-    ScannerScanResponse:
-      $ref: components/schemas/live/scanner/ScannerScanResponse.yaml
-    ScannerLookupInput:
-      $ref: components/schemas/live/scanner/ScannerLookupInput.yaml
-    ScannerLookupResponse:
-      $ref: components/schemas/live/scanner/ScannerLookupResponse.yaml
-    ScannerOverrideInput:
-      $ref: components/schemas/live/scanner/ScannerOverrideInput.yaml
-    ScannerManifestResponse:
-      $ref: components/schemas/live/scanner/ScannerManifestResponse.yaml
-    ScannerSyncInput:
-      $ref: components/schemas/live/scanner/ScannerSyncInput.yaml
-    ScannerSyncResponse:
-      $ref: components/schemas/live/scanner/ScannerSyncResponse.yaml
-    ScannerHeadcountResponse:
-      $ref: components/schemas/live/scanner/ScannerHeadcountResponse.yaml
-    # --- end agent C ---
-    # --- agent B --- (Gamo Live ticketing)
-    TicketingError:
-      $ref: components/schemas/ticketing/TicketingError.yaml
-    OrderItemInput:
-      $ref: components/schemas/ticketing/OrderItemInput.yaml
-    OrderInput:
-      $ref: components/schemas/ticketing/OrderInput.yaml
-    TicketCheckoutInput:
-      $ref: components/schemas/ticketing/TicketCheckoutInput.yaml
-    VerificationRequired:
-      $ref: components/schemas/ticketing/VerificationRequired.yaml
-    CheckoutStarted:
-      $ref: components/schemas/ticketing/CheckoutStarted.yaml
-    ConfirmOrderInput:
-      $ref: components/schemas/ticketing/ConfirmOrderInput.yaml
-    ConfirmOrderResponse:
-      $ref: components/schemas/ticketing/ConfirmOrderResponse.yaml
-    RecoveryInput:
-      $ref: components/schemas/ticketing/RecoveryInput.yaml
-    AcceptedMessage:
-      $ref: components/schemas/ticketing/AcceptedMessage.yaml
-    TransferInput:
-      $ref: components/schemas/ticketing/TransferInput.yaml
-    TicketVersionResponse:
-      $ref: components/schemas/ticketing/TicketVersionResponse.yaml
-    ReissueInput:
-      $ref: components/schemas/ticketing/ReissueInput.yaml
-    RefundInput:
-      $ref: components/schemas/ticketing/RefundInput.yaml
-    RefundResponse:
-      $ref: components/schemas/ticketing/RefundResponse.yaml
-    EventChangeInput:
-      $ref: components/schemas/ticketing/EventChangeInput.yaml
-    EventChangeResponse:
-      $ref: components/schemas/ticketing/EventChangeResponse.yaml
-    WaitlistInput:
-      $ref: components/schemas/ticketing/WaitlistInput.yaml
-    CategoryInput:
-      $ref: components/schemas/ticketing/CategoryInput.yaml
-    LocalDateTime:
-      $ref: components/schemas/ticketing/LocalDateTime.yaml
-    EventPolicyInput:
-      $ref: components/schemas/ticketing/EventPolicyInput.yaml
-    EventCreateRequest:
-      $ref: components/schemas/ticketing/EventCreateRequest.yaml
-    EventEditInput:
-      $ref: components/schemas/ticketing/EventEditInput.yaml
-    EventSavedResponse:
-      $ref: components/schemas/ticketing/EventSavedResponse.yaml
     ResendEvent:
-      $ref: components/schemas/ticketing/ResendEvent.yaml
+      $ref: components/schemas/email/ResendEvent.yaml
     ResendWebhookResponse:
-      $ref: components/schemas/ticketing/ResendWebhookResponse.yaml
-    StripeWebhookResponse:
-      $ref: components/schemas/ticketing/StripeWebhookResponse.yaml
-    # --- end agent B ---
+      $ref: components/schemas/email/ResendWebhookResponse.yaml
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml
     CloudflareAccess:
       $ref: components/security/CloudflareAccess.yaml
-    StripeSignature:
-      $ref: components/security/StripeSignature.yaml
-    # --- agent C ---
-    ScannerDevice:
-      $ref: components/security/ScannerDevice.yaml
-    # --- end agent C ---
     EmergencyBearer:
       $ref: components/security/EmergencyBearer.yaml
     EmergencyKey:
       $ref: components/security/EmergencyKey.yaml
     EmergencyBasic:
       $ref: components/security/EmergencyBasic.yaml
-    # --- agent B ---
-    CustomerSession:
-      $ref: components/security/CustomerSession.yaml
-    # --- end agent B ---

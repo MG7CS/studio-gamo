@@ -1,8 +1,8 @@
 # Gamo Studios — HTTP API inventory and reconciliation
 
-Updated 2026-10-14. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v1.3.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
+Updated 2026-11-16. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v3.0.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); compatibility: [API_COMPATIBILITY.md](API_COMPATIBILITY.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
 
-The source baseline **cb97c37** / **1cb3434** / **6103121** was expanded in the Backend Stabilization Phase (`v1.2.0`) and Standalone Live Consumer Platform Evolution (`v1.3.0`) to **26 API source files and 30 method/path operations**: Web 6, Worship 2, Live 19, Admin 3; Academy and Production 0 (with linked Production requests routed via `POST/GET /api/events/{id}/production-requests` on Live). All 30 are specified in OpenAPI 3.1.1 (`v1.3.0`) and exercised over isolated loopback HTTP (`pnpm api:check`), adversarial Node SQLite tests (`scripts/audit/security.test.ts`), and domain slice tests (`pnpm test`).
+**2026-11-16 (contract 3.0.0): Gamo Live was removed** (owner decision; design: [superpowers/specs/2026-11-16-remove-gamo-live-design.md](superpowers/specs/2026-11-16-remove-gamo-live-design.md)). Every `apps/live` operation (events, registration, orders, checkout, tickets, scanner, venue maps, artists, representations, bookings, Stripe webhook) and the four admin event/organizer review operations are gone from the contract and the code; the Resend webhook moved to the global site (`apps/web`). The contract now has **17 method/path operations**: Web 11, Worship 1, Admin 4, plus 29 replicated copies of the shared auth/account operations in Worship, Academy and Production (46 implemented handlers, matched one-to-one by `scripts/api/check.mjs`). Contract tests cover 30 application operations over isolated loopback HTTP (`pnpm api:check`).
 
 ## Reconciliation table
 
@@ -14,30 +14,17 @@ The source baseline **cb97c37** / **1cb3434** / **6103121** was expanded in the 
 | Web POST /api/organizations | Yes | Yes | Wire matches; requires `requireVerifiedAuth` (`403` if unverified) + creates org, `owner` membership, `organizer_profiles`, and `audit_logs` (`409` on duplicate slug) | HTTP + workerd + Playwright E2E |
 | Web POST /api/auth/session | Local demo only (`403` outside local loopback) | Yes | Wire matches; same-origin + session rotation + explicit `SESSION_SECRET` required | HTTP + workerd success/validation/non-local 403/CSRF denial |
 | Web DELETE /api/auth/session | Yes | Yes | Wire matches; same-origin enforced; idempotent revoke | HTTP + Playwright E2E cookie clearing, cross-origin 403 |
-| Live GET /api/events | Yes | Yes | Wire matches; supports `category`, `city`, `artist`, `venue`, `dateFrom`; fixed 50-row cap, deterministic `startsAt, id` order | HTTP + workerd schema/filter/cap/order |
-| Live POST /api/events | Yes | Yes | Wire matches; same-origin + active org `owner`/`admin` enforced; past/invalid time window rejected (`409`) | HTTP + workerd + Playwright E2E success/400/401/403/409/64 KiB cap |
-| Live GET /api/events/{id} | Yes | Yes | Wire matches; unpublished/rejected/revision_requested detail hidden (`404`) | HTTP + workerd 200/404 |
-| Live POST /api/events/{id}/register | Yes (with outbox processor) | Yes | Wire matches; atomic D1 capacity triggers (`0003`), transactional `notification_jobs` outbox + `NotificationService` processor (`0004`), duplicate `200` hides attendee PII/`qrToken` | HTTP + workerd + security + Playwright E2E (201, 12-way race, duplicate privacy 200, 409 capacity, outbox retry/sent) |
-| Live POST /api/events/{id}/team | Yes | Yes | Wire matches; requires `requireVerifiedAuth` + primary org `owner`/`admin`; assigns role-scoped team permissions (`0006`) without conflating publishing and refund/settlement authority | HTTP contract test (201, permission separation) |
-| Live GET /api/events/{id}/production-requests | Yes | Yes | Wire matches; requires `coordinate_production` permission; returns linked Gamo Production requests without exposing financial/purchaser data | HTTP contract test (200) |
-| Live POST /api/events/{id}/production-requests | Yes | Yes | Wire matches; requires `coordinate_production` permission; creates linked `production_requests` record with `event_id` (`0006`) | HTTP contract test (201) |
-| Live POST /api/tickets/lookup | Yes | Yes | Wire matches; requires valid 6-digit email verification challenge code (`401` on invalid/expired code) to prevent email-only enumeration; returns verified orders, tickets, and free registrations | HTTP contract test (200/401) |
-| Live POST /api/tickets/scan | Yes | Yes | Wire matches; requires `scan_tickets` event permission; admits active QR token once, blocks replay (`already_scanned`), and records `ticket_scans` audit trail | HTTP contract test (200 admitted/replay/403) |
-| Live GET /api/artists | Yes | Yes | Wire matches; public directory of verified concert/event artist profiles (`0006`), separate from Worship rankings | HTTP contract test (200) |
-| Live POST /api/artists | Yes | Yes | Wire matches; requires `requireVerifiedAuth`; creates `artist_profiles` optionally referencing verified `musician_profiles` identity | HTTP contract test (201) |
-| Live POST /api/artists/{id}/representatives | Yes | Yes | Wire matches; requires artist owner or superadmin; creates `artist_representatives` + `representation_authorizations` and blocks conflicting exclusive territory authority (`409` via trigger) | HTTP contract test (201/409) |
-| Live POST /api/representations/{id}/revoke | Yes | Yes | Wire matches; revokes representation authority (`status = 'revoked'`) while preserving prior signed engagements and audit history | HTTP contract test (200) |
-| Live POST /api/bookings/inquiries | Yes | Yes | Wire matches; requires organizer `owner`/`admin` or `negotiate_booking` permission; creates `booking_inquiries` and initial `booking_offers` | HTTP contract test (201) |
-| Live POST /api/bookings/inquiries/{id}/offers | Yes | Yes | Wire matches; requires organizer or active unrevoked artist/representative negotiation authority; records counteroffer with separate artist fee, agent commission, and platform allocation | HTTP contract test (201) |
-| Live POST /api/bookings/offers/{id}/accept | Yes | Yes | Wire matches; enforces counterparty acceptance (`403` on self-acceptance), locks offer as immutable (`0006` trigger), and creates `performance_engagements` with `deposit_collection_status = 'disabled_pending_policy'` | HTTP contract test (200/403) |
-| Live POST /api/orders/{id}/refund | Yes | Yes | Wire matches; requires explicit `approve_refunds` permission (`403` for content-only co-organizers); voids tickets, releases capacity, and records `refund_records` | HTTP contract test (200/403) |
-| Live POST /api/checkout/session | Gated (`503`) / Sandbox (`200`) | Yes | Wire matches; fails closed (`503`) unless event is approved, paid, and organizer is verified with `ticketing_authorized_at`; when authorized, creates expiring `ticket_holds` + `ticket_orders` (`pending_payment`) and Stripe sandbox session | HTTP + workerd 400/503 + verified organizer sandbox 200 |
-| Live POST /api/webhook/stripe | Gated (`503`) / Sandbox (`200`) | Yes | Wire matches; raw-body HMAC + 300s timestamp window + `livemode: false`; fulfills pending `ticket_orders` idempotently into `tickets` (`fulfilled`), or fails closed (`503`) for unbacked financial events | HTTP + security suite signature/timestamp/live 400, financial 503, order fulfillment 200 |
+| Web POST /api/auth/clerk-session | Yes (optional Clerk; replicated in Worship, Academy, Production) | Yes | Exchanges this product's own Clerk session for a Gamo session; `503` when Clerk is not configured | HTTP + auth suites |
+| Web POST /api/auth/clerk-webhook | Yes (replicated) | Yes | Svix-signed events from this product's own Clerk application | Auth suites |
+| Web POST /api/account/person-link | Yes (replicated) | Yes | Links/unlinks this product's user to the shared person record (verified email only) | Identity suites |
+| Worship POST /api/account/providers | Yes (replicated in Academy, Production) | Yes | Provider profile form (303 redirect) | Identity suites |
+| Web GET/POST /api/participation | Yes | Yes | Own participation inquiries; verified account | HTTP contract test |
+| Web POST /api/webhook/resend | Yes (moved from Live, 3.0.0) | Yes | Svix-signed Resend events update `email_log` and `email_suppressions` for every program's mail; `200 {received, applied}`, `400`/`503` `LegacyError` | HTTP contract test (200/400/503) |
 | Admin POST /api/staff/provision | Internal staff provisioning | Yes, internal | Wire matches; requires `requireSuperadmin` + `verifyStaffBoundaryIdentity`; binds immutable Cloudflare Access `sub` in `external_identities` (`409` on cross-account conflict) | HTTP + workerd + security + Playwright E2E |
-| Admin GET /api/events/pending | Internal staff queue (unbounded) | Yes, internal | Wire matches; requires RS256 Access JWT (when enabled) + active D1 `staff_reviewer`/`superadmin` session + email & `external_identities` `sub` match | HTTP middleware + security suite 200/401/403 |
-| Admin POST /api/events/{id}/review | Internal staff moderation | Yes, internal | Wire matches; same-origin + D1 staff session + Access `sub` match + self-moderation denial + atomic D1 batch preserving `approved`/`rejected`/`revision_requested` + re-review `409` | HTTP + workerd + security + Playwright E2E 200/400/401/403/404/409 |
+| Admin GET /api/participation/review-queue, POST /api/participation/{id}/review | Internal staff review | Yes, internal | Staff boundary + staff session | HTTP contract test |
+| Admin POST /api/review/providers/{id} | Internal provider review (303 form) | Yes, internal | Staff boundary + `staff_reviewer`/`superadmin` session; conditional on `expected_status` | Provider review suites |
 
-Counts: specified-and-implemented/stub/gated **30**; contract-tested **30**; specified-but-unimplemented **0**; wire mismatches remaining **0**.
+Counts: specified-and-implemented **17** operations (46 handlers with replicas); contract-tested over HTTP **30** application operations; specified-but-unimplemented **0**; wire mismatches remaining **0**.
 
 ## Per-operation contracts and evidence
 
@@ -47,16 +34,10 @@ All paths below are relative to `apps/<app>/src/pages/api/`. Responses are exact
 | --- | --- | --- | --- | --- | --- |
 | web `auth/session.ts` | POST /api/auth/session, demo identity provisioning | Local loopback only (`ENVIRONMENT=local` + `ALLOW_DEMO_SESSION=true`) + same-origin; **not verified login** | SessionInput: email, optional displayName, JSON (<=64 KiB) | 200 SessionResponse + host-only `Set-Cookie`; 400/403/500 LegacyError | `users`, `sessions`; rotates prior session; HTTP + workerd + security tests |
 | web `auth/session.ts` | DELETE /api/auth/session, revoke | Same-origin; optional signed cookie; no-cookie logout permitted | No body | 200 LogoutResponse + cleared cookie; 403/500 LegacyError | `sessions`; HTTP + security tests |
-| live `events/index.ts` | GET /api/events, approved discovery | Public | `category` enum, exact `city`; no date/cursor/limit | 200 EventListResponse; 400/500 LegacyError | `events`, `organizer_profiles`, `organizations`, `ticket_tiers`, `event_registrations`; HTTP + workerd tests |
-| live `events/index.ts` | POST /api/events, proposal | Same-origin + browser session; active `owner`/`admin` of `organizationId` or global `superadmin` | CreateEvent incl tiers; RFC3339 future window and IANA timezone | 201 CreateEventResponse; 400/401/403/409/500 LegacyError | `events`, `organizer_profiles`, `ticket_tiers`, `organization_members`, `users`, `sessions`, `user_roles`; HTTP + workerd + security tests |
-| live `events/[id]/index.ts` | GET /api/events/{id}, approved details | Public | Path ID or slug | 200 EventResponse; 400/404/500 LegacyError | Discovery tables; HTTP + workerd tests |
-| live `events/[id]/register.ts` | POST /api/events/{id}/register, free attendance | Public; authenticated session `user.id` bound when present; client `userId` forbidden | RegisterAttendee: `name`, `email`, `quantity` 1–10, optional `tierId` | 201 (`registration` included) or duplicate 200 (`registration` omitted for privacy); 400/404/409/500 LegacyError | `event_registrations`, `ticket_tiers`, `events`, `notification_jobs` (triggers in `0003`); 12-way race tested in Node SQLite & workerd |
-| live `checkout/session.ts` | POST /api/checkout/session, gated checkout | Protective gate (`503`) after schema validation | CheckoutInput: `eventId`, integer `tierIndex >= 0`, `quantity` 1–10, optional `email` | 400/503 SimpleError (200 disabled while gated) | Validation + fail-closed `503` verified in HTTP + workerd |
-| live `webhook/stripe.ts` | POST /api/webhook/stripe, provider events | Raw-body Stripe Signature (`t=`, `v1=`, 300s window); `livemode: false` | StripeEvent | 200 WebhookResponse (`ignored`/`duplicate` for non-financial events); 400/500/503 SimpleError | `stripe_webhook_events`; financial events gated with `503` before processed claim; HTTP + security tests |
-| admin `events/pending.ts` | GET /api/events/pending, moderation queue | Cloudflare Access RS256 JWT + D1 session with global `staff_reviewer`/`superadmin` + email match | No body/filters | 200 PendingResponse; 401/403/500 LegacyError | `events`, `organizer_profiles`, `organizations`, `users`, `sessions`, `user_roles`; HTTP + security + workerd tests |
-| admin `events/[id]/review.ts` | POST /api/events/{id}/review, moderation | Same boundary + same-origin + self-moderation denial (`reviewer` not member of organizer org) | ReviewDecision: `approved`/`rejected`/`revision_requested`, optional `notes` | 200 ReviewResponse; 400/401/403/404/409/500 LegacyError | `events`, `moderation_reviews`, `audit_logs` in atomic D1 batch + `moderation_pending` trigger; HTTP + security + workerd tests |
 
 ## Findings and disposition (post-audit update)
+
+> Findings C02–C04, C06, C08, C10 and C11 concerned Gamo Live event, registration, checkout and moderation endpoints that were removed in contract 3.0.0 (2026-11-16); they are kept below as history.
 
 | ID / priority | Classification | Evidence and disposition |
 | --- | --- | --- |
@@ -77,15 +58,10 @@ All paths below are relative to `apps/<app>/src/pages/api/`. Responses are exact
 
 ## Planned but unimplemented capabilities
 
-The **34 candidate future operations** below remain **proposals with unresolved request/response, roles and policy**; none is added to OpenAPI paths or generated clients. Write an authoritative contract only when implementing an approved slice.
+The **28 candidate future operations** below remain **proposals with unresolved request/response, roles and policy**; none is added to OpenAPI paths or generated clients. Write an authoritative contract only when implementing an approved slice.
 
 | Method | Historical candidate path | Status | Intended audience | Purpose |
 | --- | --- | --- | --- | --- |
-| `GET` | `/api/organizer/events` | **Planned** | Organizer Role | Lists events belonging to the caller's organization. |
-| `GET` | `/api/organizer/events/[id]/stats` | **Planned** | Organizer Role | Returns attendee counts, ticket tier allocations, and headcount analytics. |
-| `POST` | `/api/organizer/verify` | **Planned** | Organizer Role | Submits ministry documentation for ticketing authorization. |
-| `POST` | `/api/tickets/[token]/scan` | **Planned** | Scanner / Staff | Idempotently scans and admits an attendee QR token. |
-| `POST` | `/api/promote/request` | **Planned** | Organizer Role | Requests manual campaign promotion assistance from Gamo staff. |
 | `POST` | `/api/apply/musician` | **Planned** | Candidate | Submits musician profile, instruments, home zone, and audition links. |
 | `POST` | `/api/gigs/request` | **Planned** | Church Admin | Submits worship service staffing request with required instrument slots. |
 | `GET` | `/api/gigs` | **Planned** | Church Admin | Lists active, confirmed, and pending church service requests. |
@@ -108,14 +84,15 @@ The **34 candidate future operations** below remain **proposals with unresolved 
 | `POST` | `/api/partnerships/inquire` | **Planned** | Church Leader | Inquires about church partnership, hosting, or mutual support. |
 | `POST` | `/api/contact` | **Planned** | Public | General inquiry intake routed to appropriate program director. |
 | `POST` | `/api/admin/auditions/[id]/review` | **Planned** | Worship Director | Evaluates musician audition recordings against musical rubric. |
-| `POST` | `/api/admin/organizers/[id]/verify` | **Planned** | Staff Reviewer | Authorizes organizer for ticket sales upon identity/legal review. |
 | `GET` | `/api/admin/radar` | **Planned** | Operations Staff | Sunday morning live check-in monitoring and emergency standby radar. |
 | `GET` | `/api/admin/ledger` | **Planned** | Finance Director | Nonprofit fund accounting entries, program breakdowns, and payables. |
 | `POST` | `/api/admin/placements` | **Planned** | Staff Reviewer | Schedules homepage editorial, sponsored, and program placements. |
 | `GET` | `/api/admin/audit-logs` | **Planned** | Superadmin | Paginated audit trail of all administrative mutations. |
 | `POST` | `/api/admin/dispatches/[id]/override` | **Planned** | Operations Staff | Manual dispatch reassignment override for Sunday worship. |
-| `GET` | `/api/admin/metrics` | **Planned** | Executive Director | High-level non-financial impact metrics across all four programs. |
+| `GET` | `/api/admin/metrics` | **Planned** | Executive Director | High-level non-financial impact metrics across all three programs. |
 
 See [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md) for the mandatory 5-gate checklist required before enabling production traffic.
 
 > **2026-10-18 (contract 2.0.0):** the worship `POST /api/check-in/confirm` and `POST /api/check-in/fail` demo stubs were removed. See `docs/API_COMPATIBILITY.md` 2.0.0.
+
+> **2026-11-16 (contract 3.0.0):** all Gamo Live operations and the admin event/organizer review operations were removed; `POST /api/webhook/resend` moved to `apps/web`. See `docs/API_COMPATIBILITY.md` 3.0.0.

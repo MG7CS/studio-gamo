@@ -11,7 +11,7 @@ post:
     verified email challenge flow is available separately.
   security: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: local-demo-only
   x-authorization: Public
   x-idempotency: Unsupported; client keys are ignored.
@@ -44,7 +44,7 @@ delete:
   description: Revoke current session
   security: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: implemented
   x-authorization: Public
   x-idempotency: Revocation is repeatable, including absent or invalid cookies.

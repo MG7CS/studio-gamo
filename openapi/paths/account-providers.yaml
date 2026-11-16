@@ -17,7 +17,7 @@ post:
   security:
     - BrowserSession: []
   x-application: worship
-  x-replicated-applications: [live, academy, production]
+  x-replicated-applications: [academy, production]
   x-status: implemented
   x-authorization: >-
     Verified session with an active account in this product; same origin; the profile must
