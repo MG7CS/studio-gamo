@@ -68,6 +68,7 @@ async function stripePost<T = { id: string; url: string }>(
   idempotencyKey?: string,
   fetchImpl: typeof fetch = (...args) => fetch(...args),
   method: 'POST' | 'GET' = 'POST',
+  extraHeaders: Record<string, string> = {},
 ): Promise<T> {
   // GETs are safe to retry; POSTs only with an idempotency key (Stripe replays the original result).
   const attempts = idempotencyKey || method === 'GET' ? 2 : 1;
@@ -78,6 +79,7 @@ async function stripePost<T = { id: string; url: string }>(
         method,
         headers: {
           Authorization: `Bearer ${secretKey}`,
+          ...extraHeaders,
           ...(method === 'POST' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
           ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
         },
@@ -294,6 +296,197 @@ export async function verifyStripeWebhookSignature(
 }
 
 /**
+ * Stripe Invoicing (test mode only).
+ *
+ * Invoicing requests pin `Stripe-Version` (see the decision record in
+ * packages/domain/src/invoices/stripe-invoicing.ts); webhook payloads use the version set on the
+ * webhook endpoint, so `parseInvoiceEvent` only reads fields that are stable across versions.
+ */
+export const STRIPE_INVOICING_API_VERSION = '2026-10-28.endive';
+
+export type StripeInvoiceStatus = 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
+const STRIPE_INVOICE_STATUSES: readonly string[] = ['draft', 'open', 'paid', 'void', 'uncollectible'];
+
+export interface StripeCustomerInput {
+  name: string;
+  email: string;
+  metadata?: Record<string, string>;
+  /** Required: sent as the Idempotency-Key header (POST /customers). */
+  idempotencyKey: string;
+}
+
+export interface StripeCustomer {
+  id: string;
+}
+
+export interface StripeInvoiceLineInput {
+  description: string;
+  /** Integer USD cents PER UNIT; the line total is `amountCents * quantity`. */
+  amountCents: number;
+  /** Integer >= 1; defaults to 1. */
+  quantity?: number;
+}
+
+export interface CreateStripeInvoiceInput {
+  customerId: string;
+  /** Integer 1..365; with `collection_method=send_invoice` this is what lets Stripe mark it past due. */
+  daysUntilDue: number;
+  lines: StripeInvoiceLineInput[];
+  metadata?: Record<string, string>;
+  /** Required. Each Stripe POST of this call derives its own key from it (`<key>:invoice`, `<key>:item:<n>`). */
+  idempotencyKey: string;
+  description?: string;
+}
+
+export interface StripeInvoice {
+  id: string;
+  number?: string | null;
+  status: StripeInvoiceStatus;
+  hosted_invoice_url: string | null;
+  /** Integer cents still due. */
+  amount_due: number;
+  /** Integer cents paid. */
+  amount_paid: number;
+  metadata: Record<string, string>;
+  /** ISO timestamp; only set when Stripe reports `status_transitions.paid_at`. */
+  paidAt?: string;
+}
+
+interface RawStripeInvoice {
+  id?: unknown;
+  number?: unknown;
+  status?: unknown;
+  hosted_invoice_url?: unknown;
+  amount_due?: unknown;
+  amount_paid?: unknown;
+  metadata?: unknown;
+  status_transitions?: { paid_at?: unknown } | null;
+}
+
+const isStringMap = (v: unknown): v is Record<string, string> =>
+  typeof v === 'object' &&
+  v !== null &&
+  !Array.isArray(v) &&
+  Object.values(v).every((x) => typeof x === 'string');
+
+const isoFromEpochSeconds = (v: unknown): string | undefined =>
+  typeof v === 'number' && Number.isFinite(v) && v > 0 ? new Date(v * 1000).toISOString() : undefined;
+
+/** Normalizes a raw Stripe invoice object; throws without echoing the body if the shape is wrong. */
+function toStripeInvoice(raw: RawStripeInvoice): StripeInvoice {
+  if (
+    typeof raw?.id !== 'string' ||
+    typeof raw.status !== 'string' ||
+    !STRIPE_INVOICE_STATUSES.includes(raw.status)
+  ) {
+    throw new Error('Unexpected Stripe invoice response shape.');
+  }
+  const paidAt = isoFromEpochSeconds(raw.status_transitions?.paid_at);
+  return {
+    id: raw.id,
+    number: typeof raw.number === 'string' ? raw.number : null,
+    status: raw.status as StripeInvoiceStatus,
+    hosted_invoice_url: typeof raw.hosted_invoice_url === 'string' ? raw.hosted_invoice_url : null,
+    amount_due: typeof raw.amount_due === 'number' ? raw.amount_due : 0,
+    amount_paid: typeof raw.amount_paid === 'number' ? raw.amount_paid : 0,
+    metadata: isStringMap(raw.metadata) ? raw.metadata : {},
+    ...(paidAt ? { paidAt } : {}),
+  };
+}
+
+const STRIPE_ID = /^[a-z]{2,4}_[A-Za-z0-9_]{1,80}$/;
+function assertStripeId(prefix: 'cus' | 'in', id: string): void {
+  if (!STRIPE_ID.test(id) || !id.startsWith(`${prefix}_`)) {
+    throw new Error(`Invalid Stripe ${prefix} id.`);
+  }
+}
+
+function assertIdempotencyKey(key: string): void {
+  if (typeof key !== 'string' || key.length < 8 || key.length > 200) {
+    throw new Error('An idempotency key of 8 to 200 characters is required.');
+  }
+}
+
+function assertMetadata(metadata: Record<string, string> | undefined): void {
+  if (!metadata) return;
+  const entries = Object.entries(metadata);
+  if (entries.length > 50) throw new Error('Stripe metadata allows at most 50 keys.');
+  for (const [k, v] of entries) {
+    if (k.length === 0 || k.length > 40 || typeof v !== 'string' || v.length > 500) {
+      throw new Error('Stripe metadata keys are max 40 and values max 500 characters.');
+    }
+  }
+}
+
+function appendMetadata(params: URLSearchParams, metadata: Record<string, string> | undefined): void {
+  for (const [k, v] of Object.entries(metadata ?? {})) params.append(`metadata[${k}]`, v);
+}
+
+function assertInvoiceInput(input: CreateStripeInvoiceInput): void {
+  assertStripeId('cus', input.customerId);
+  assertIdempotencyKey(input.idempotencyKey);
+  if (!Number.isInteger(input.daysUntilDue) || input.daysUntilDue < 1 || input.daysUntilDue > 365) {
+    throw new Error('daysUntilDue must be an integer from 1 to 365.');
+  }
+  if (input.lines.length < 1 || input.lines.length > 250) {
+    throw new Error('An invoice needs 1 to 250 lines.');
+  }
+  for (const line of input.lines) {
+    const quantity = line.quantity ?? 1;
+    if (!Number.isSafeInteger(line.amountCents) || line.amountCents < 1) {
+      throw new Error('Invoice line amounts must be positive integer cents.');
+    }
+    if (!Number.isSafeInteger(quantity) || quantity < 1) {
+      throw new Error('Invoice line quantity must be an integer of at least 1.');
+    }
+    if (line.description.trim().length === 0 || line.description.length > 500) {
+      throw new Error('Invoice line descriptions must be 1 to 500 characters.');
+    }
+  }
+  assertMetadata(input.metadata);
+}
+
+export type InvoiceEventStatus = 'paid' | 'payment_failed';
+
+export interface ParsedInvoiceEvent {
+  stripeInvoiceId: string;
+  status: InvoiceEventStatus;
+  /** ISO timestamp (paid events only, when Stripe reports it). */
+  paidAt?: string;
+  /** Integer cents (paid events only). */
+  amountPaid?: number;
+  metadata: Record<string, string>;
+}
+
+/**
+ * Reads an `invoice.paid` / `invoice.payment_failed` event (already signature-verified through
+ * `verifyStripeWebhookSignature`). Returns `null` for any other event type or a malformed object, so
+ * the webhook route can acknowledge-and-ignore it. `invoice.paid` covers card/ACH payments and
+ * out-of-band payments alike, so it is the only success event we listen to.
+ */
+export function parseInvoiceEvent(event: StripeWebhookEvent<unknown>): ParsedInvoiceEvent | null {
+  const status: InvoiceEventStatus | null =
+    event.type === 'invoice.paid'
+      ? 'paid'
+      : event.type === 'invoice.payment_failed'
+        ? 'payment_failed'
+        : null;
+  if (!status) return null;
+  const obj = event.data?.object as RawStripeInvoice | undefined;
+  if (!obj || typeof obj.id !== 'string' || !obj.id.startsWith('in_')) return null;
+  const metadata = isStringMap(obj.metadata) ? obj.metadata : {};
+  if (status === 'payment_failed') return { stripeInvoiceId: obj.id, status, metadata };
+  const paidAt = isoFromEpochSeconds(obj.status_transitions?.paid_at);
+  return {
+    stripeInvoiceId: obj.id,
+    status,
+    ...(paidAt ? { paidAt } : {}),
+    ...(typeof obj.amount_paid === 'number' ? { amountPaid: obj.amount_paid } : {}),
+    metadata,
+  };
+}
+
+/**
  * Creates a test-mode Stripe client suitable for Cloudflare Workers.
  */
 export function createStripeTestClient(config?: StripeConfig) {
@@ -307,6 +500,31 @@ export function createStripeTestClient(config?: StripeConfig) {
     if (isRealTestKey(secretKey)) return false;
     if (!allowMock) throw new StripeNotConfiguredError();
     return true;
+  };
+
+  const INVOICING_HEADERS = { 'Stripe-Version': STRIPE_INVOICING_API_VERSION };
+
+  /** Invoicing never simulates: a real test key is required (see createCustomer). */
+  const invoicingKey = (): string => {
+    assertStripeTestMode(secretKey);
+    if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
+    return secretKey;
+  };
+
+  const retrieveInvoice = async (invoiceId: string): Promise<StripeInvoice> => {
+    const key = invoicingKey();
+    assertStripeId('in', invoiceId);
+    return toStripeInvoice(
+      await stripePost<RawStripeInvoice>(
+        key,
+        `/invoices/${invoiceId}`,
+        null,
+        undefined,
+        fetchImpl,
+        'GET',
+        INVOICING_HEADERS,
+      ),
+    );
   };
 
   return {
@@ -431,6 +649,122 @@ export function createStripeTestClient(config?: StripeConfig) {
         url: data.url,
         mock: false,
       };
+    },
+
+    /**
+     * Invoicing (test mode). Unlike checkout there is no simulated path, not even locally: without a
+     * real test key every invoicing call throws StripeNotConfiguredError and the caller falls back
+     * to the manual invoice flow. Live keys already throw in createStripeTestClient.
+     */
+    async createCustomer(input: StripeCustomerInput): Promise<StripeCustomer> {
+      const key = invoicingKey();
+      assertIdempotencyKey(input.idempotencyKey);
+      assertMetadata(input.metadata);
+      const params = new URLSearchParams();
+      params.append('name', input.name);
+      params.append('email', input.email);
+      appendMetadata(params, input.metadata);
+      const data = await stripePost<{ id: string }>(
+        key,
+        '/customers',
+        params,
+        input.idempotencyKey,
+        fetchImpl,
+        'POST',
+        INVOICING_HEADERS,
+      );
+      return { id: data.id };
+    },
+
+    /**
+     * Creates a DRAFT send_invoice invoice (card + ACH) and attaches one invoice item per line.
+     * Order matters: the invoice is created first and items are attached with `invoice=<id>`, so
+     * nothing is ever left as a customer-level pending item that another invoice could sweep up.
+     * Finalize separately with `finalizeInvoice`.
+     */
+    async createInvoice(input: CreateStripeInvoiceInput): Promise<StripeInvoice> {
+      const key = invoicingKey();
+      assertInvoiceInput(input);
+
+      const invoiceParams = new URLSearchParams();
+      invoiceParams.append('customer', input.customerId);
+      invoiceParams.append('collection_method', 'send_invoice');
+      invoiceParams.append('days_until_due', String(input.daysUntilDue));
+      invoiceParams.append('currency', 'usd');
+      invoiceParams.append('auto_advance', 'false');
+      invoiceParams.append('pending_invoice_items_behavior', 'exclude');
+      invoiceParams.append('payment_settings[payment_method_types][0]', 'card');
+      invoiceParams.append('payment_settings[payment_method_types][1]', 'us_bank_account');
+      if (input.description) invoiceParams.append('description', input.description);
+      appendMetadata(invoiceParams, input.metadata);
+      const draft = toStripeInvoice(
+        await stripePost<RawStripeInvoice>(
+          key,
+          '/invoices',
+          invoiceParams,
+          `${input.idempotencyKey}:invoice`,
+          fetchImpl,
+          'POST',
+          INVOICING_HEADERS,
+        ),
+      );
+
+      for (const [i, line] of input.lines.entries()) {
+        const itemParams = new URLSearchParams();
+        itemParams.append('customer', input.customerId);
+        itemParams.append('invoice', draft.id);
+        itemParams.append('currency', 'usd');
+        itemParams.append('description', line.description);
+        itemParams.append('quantity', String(line.quantity ?? 1));
+        itemParams.append('unit_amount_decimal', String(line.amountCents));
+        await stripePost(
+          key,
+          '/invoiceitems',
+          itemParams,
+          `${input.idempotencyKey}:item:${i}`,
+          fetchImpl,
+          'POST',
+          INVOICING_HEADERS,
+        );
+      }
+      // Re-read so amount_due reflects the attached items.
+      return retrieveInvoice(draft.id);
+    },
+
+    /** Finalizes a draft (draft -> open); the response carries `hosted_invoice_url`. Sends no email. */
+    async finalizeInvoice(invoiceId: string): Promise<StripeInvoice> {
+      const key = invoicingKey();
+      assertStripeId('in', invoiceId);
+      return toStripeInvoice(
+        await stripePost<RawStripeInvoice>(
+          key,
+          `/invoices/${invoiceId}/finalize`,
+          new URLSearchParams({ auto_advance: 'false' }),
+          `gamo-finalize-${invoiceId}`,
+          fetchImpl,
+          'POST',
+          INVOICING_HEADERS,
+        ),
+      );
+    },
+
+    retrieveInvoice,
+
+    /** Voids an `open` (or uncollectible) invoice. A draft cannot be voided; Stripe rejects it (400). */
+    async voidInvoice(invoiceId: string): Promise<StripeInvoice> {
+      const key = invoicingKey();
+      assertStripeId('in', invoiceId);
+      return toStripeInvoice(
+        await stripePost<RawStripeInvoice>(
+          key,
+          `/invoices/${invoiceId}/void`,
+          null,
+          `gamo-void-${invoiceId}`,
+          fetchImpl,
+          'POST',
+          INVOICING_HEADERS,
+        ),
+      );
     },
   };
 }
