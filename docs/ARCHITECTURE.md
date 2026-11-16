@@ -23,11 +23,11 @@ Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloud
 | Package | Responsibility |
 | --- | --- |
 | `packages/config` (`@gamo/config`) | `apps.ts` (domains, ports), `env.ts` (`GamoEnv`, the typed Worker env), `env-validation.ts` (per-isolate checks), `env-loader.ts` (local `.env`/`.dev.vars` loading + Astro/Cloudflare config factory), `brand.ts` |
-| `packages/auth` (`@gamo/auth`) | D1-backed sessions with HMAC-signed host-only cookies, `requireAuth`/`requireProductAuth`/`requireStaff`, `requireSameOrigin` (CSRF), page-access rules (`page-access.ts`), Clerk verification (`clerk.ts`), admin gateway and Cloudflare Access checks, `GamoLocals` |
-| `packages/domain` (`@gamo/domain`) | Services (`IdentityService`, `NotificationService`, `AdminService`, …), API helpers (`api/response.ts`: JSON errors, `getRuntimeEnv`), the shared page middleware (`api/page-middleware.ts`), security headers (`http/security-headers.ts`) |
+| `packages/auth` (`@gamo/auth`) | Staff (admin) sessions with HMAC-signed host-only cookies, `requireStaff`, `requireSameOrigin` (CSRF), admin gateway and Cloudflare Access checks, `GamoLocals` (public accounts and Clerk removed 2026-11-16) |
+| `packages/domain` (`@gamo/domain`) | Services (`NotificationService`, `AdminService`, customers, email outbox, …), API helpers (`api/response.ts`: JSON errors, `getRuntimeEnv`), the shared page middleware (`api/page-middleware.ts`), security headers (`http/security-headers.ts`) |
 | `packages/db` (`@gamo/db`) | Drizzle schema, SQL migrations (`migrations/0000…0018`; `0018` drops the Gamo Live tables), `getDb`, SQLite-backed D1 for tests (`testing.ts`) — see `docs/DATABASE.md` |
 | `packages/integrations` (`@studio-gamo/integrations`) | Stripe (test mode only), Resend, R2 storage; each fails closed when unconfigured outside local |
-| `packages/ui` (`@studio-gamo/ui`) | Layouts (`ProgramLayout`, `ErrorPage`), header/footer, shared auth experience (`components/auth/GamoAuthExperience.astro`), design tokens (`styles/tokens.css`), self-hosted Inter, crawler helpers |
+| `packages/ui` (`@studio-gamo/ui`) | Layouts (`ProgramLayout`, `ErrorPage`), header/footer, form kit (`components/forms`), design tokens (`styles/tokens.css`), self-hosted Inter, crawler helpers |
 | `packages/api-contracts` | Types and validators **generated** from `openapi/root.yaml` by `scripts/api/generate.mjs` (do not edit) |
 
 ## Request flow
@@ -36,35 +36,22 @@ Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloud
 request → Worker (Astro) → src/middleware.ts
             └─ applicationPages(app, { legacyRedirects })      packages/domain/src/api/page-middleware.ts
                  1. checkEnvOnce()      unsafe config (e.g. ENVIRONMENT=local on a real host) → 503
-                 2. resolve session     cookie → D1 session → locals.auth (GamoLocals)
-                 3. private-page guard  page-access.ts → sign-in redirect / 403
-                 4. legacy redirects    old URLs → new (after the guard, so private paths never leak)
-                 5. render page / API route
-                 6. withSecurityHeaders CSP, HSTS, nosniff, frame/referrer/permissions policies,
+                 2. legacy redirects    old URLs (incl. retired /account/* and workspace paths) → new
+                 3. render page / API route
+                 4. withSecurityHeaders CSP, HSTS, nosniff, frame/referrer/permissions policies,
                                         Cache-Control: private, no-store on pages
 ```
 
 API routes (`src/pages/api/**`) follow `openapi/root.yaml`: auth check first, then `requireSameOrigin` on state-changing requests, then input validation; errors are `{ error: { code, message } }` from `api/response.ts`. Crawler files (`robots.txt`, `sitemap.xml`, `llms.txt`) are public and cacheable.
 
-Admin adds its own middleware: Cloudflare Access JWT (`CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD`) **and** an admin gateway session are both required; optional break-glass (`ENABLE_BREAK_GLASS_AUTH`) uses constant-time comparison and logs a warning.
+Public apps have no session (no public accounts since 2026-11-16). Admin adds its own middleware: Cloudflare Access JWT (`CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD`) **and** an admin gateway session are both required; optional break-glass (`ENABLE_BREAK_GLASS_AUTH`) uses constant-time comparison and logs a warning.
 
-## Authentication and accounts
+## Accounts and people (2026-11-16)
 
-- Each product has **its own accounts**: a product account row per product, and its own Clerk application (`CLERK_*_<APP>` variables). Nothing links accounts across products automatically (AGENTS.md "Product Account Independence").
-- Without Clerk keys, sign-in uses Gamo's own emailed verification codes. `ALLOW_AUTH_SIMULATION=true` shows the code on screen — local only; any local-only flag outside `ENVIRONMENT=local` is a fatal config error (503).
-- All sign-in/sign-up/verify/recover pages use `GamoAuthExperience` from `packages/ui`.
+There are **no public accounts**: public sign-in, Clerk, onboarding, provider profiles, the shared person record and per-program dashboards were removed (owner decision; spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`; AGENTS.md "Forms, emails and admin").
 
-### Clerk is optional and deferred
-
-Launch signs everyone in with Gamo's **emailed verification codes** (6-digit, single use, sent through Resend from `Gamo Studios <hello@gamostudio.org>`; the code and session logic is in `packages/domain/src/http/auth.ts` and `packages/auth`). Clerk is already integrated (`packages/auth/clerk.ts`) and activates per product only when that product's `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>` are all set; otherwise nothing Clerk-related runs and the CSP omits Clerk origins. If enabled later, each product needs its **own production Clerk instance** and the DNS records Clerk requires for that domain (`docs/RUNBOOK.md` §3a). Do not run `clerk init` or the Clerk CLI in this repository.
-- Session cookie: HMAC-signed with `SESSION_SECRET`, `HttpOnly; Secure; SameSite=Lax`, host-only (no cross-subdomain cookie).
-
-## People, identity and customers (2026-10-18)
-
-Two kinds of people (full design: `docs/design/identity-and-ticketing.md`; what was built: `docs/IDENTITY.md`):
-
-- **Customers** (parents, students) have no account. `customer_profiles` is keyed by email; they act through signed, expiring emailed links (`customer_access_tokens`, HMAC-stored, scoped, product-bound) that open a short cookie session (`customer_sessions`). Optional account claim attaches a verified sign-up to the customer's `persons` row.
-- **Providers** (musicians, technicians, churches, teachers) have accounts per product (emailed code or that product's own Clerk app). A D1 `persons` row keyed by a **verified** email links a provider's per-product users so `provider_profiles` and terms acceptances carry across products; sessions, product accounts, Clerk apps and authorization roles stay per product (AGENTS.md exception). Provider publishing is gated (verified email, complete profile, accepted terms, staff review for church/musician/technician); staff work in the admin app (`/review/*`) with a shared self-review check and an append-only `verification_records` trail.
+- **Staff** sign in to the admin app only (Cloudflare Access + admin password; `users`, `sessions`, `roles`, `user_roles`, `admin_credentials`). Session cookie: HMAC-signed with `SESSION_SECRET`, `HttpOnly; Secure; SameSite=Lax`, host-only.
+- **Everyone else** is identified by email. Musicians, technicians, churches and contacts submit staff-editable forms; staff approve musicians and technicians into a private roster and send offers by email with signed single-purpose links. Parents and students use Academy registration with signed, expiring emailed manage links (`customer_profiles`, `customer_access_tokens`).
 
 Shared plumbing: `@gamo/domain/security` (link tokens, rate limiter, Turnstile, PII hashing), `@gamo/domain/public-form-guard` (bounded body read, Turnstile, per-IP/per-email limits for every public form), `@gamo/domain/terms` (versioned terms registry; all documents are drafts), `services/customers.ts`, `services/email-outbox.ts` (idempotent sends, suppression; the Resend/Svix bounce-complaint webhook is served by `apps/web` at `/api/webhook/resend`), and the form kit in `packages/ui/src/components/forms`.
 
@@ -85,12 +72,12 @@ Shared plumbing: `@gamo/domain/security` (link tokens, rate limiter, Turnstile, 
 
 ## Removed: Gamo Live (2026-11-16)
 
-`apps/live`, its workers (`gamo-live`, `gamo-live-preview`), ticketing, door scanning, the event catalog and their D1 tables (migration `0018`) were removed. Database CHECK constraints that still list `'live'` as a product value were deliberately not rebuilt. Shared account, sign-in, Clerk, customer-link, email and Academy Stripe code stays until the second cleanup. History: `docs/DECISIONS.md` (2026-11-16) and tag `four-programs-snapshot`.
+`apps/live`, its workers (`gamo-live`, `gamo-live-preview`), ticketing, door scanning, the event catalog and their D1 tables (migration `0018`) were removed. Database CHECK constraints that still list `'live'` as a product value were deliberately not rebuilt. Shared account, sign-in and Clerk code was removed by the second cleanup (2026-11-16); customer-link, email and Academy Stripe code stays. History: `docs/DECISIONS.md` (2026-11-16) and tag `four-programs-snapshot`.
 
 ## Front end
 
-Astro components with minimal client JavaScript, no inline scripts (CSP `script-src 'self'` plus the Clerk origin when configured). Admin also sends a per-request `'nonce-…'` in `script-src` (`generateCspNonce()`): Cloudflare JavaScript Detections (on with Bot Fight Mode) injects an inline script whose content, and so hash, changes on every load, and Cloudflare stamps the nonce from the CSP header onto it. Admin pages themselves have no inline script; `scripts/audit/admin-csp-e2e.test.mjs` fails if one ships. Tailwind 4 with tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`), self-hosted Inter variable, titles 900 uppercase, 44 px minimum tap targets.
+Astro components with minimal client JavaScript, no inline scripts (CSP `script-src 'self'`, plus Turnstile on pages with a protected form). Admin also sends a per-request `'nonce-…'` in `script-src` (`generateCspNonce()`): Cloudflare JavaScript Detections (on with Bot Fight Mode) injects an inline script whose content, and so hash, changes on every load, and Cloudflare stamps the nonce from the CSP header onto it. Admin pages themselves have no inline script; `scripts/audit/admin-csp-e2e.test.mjs` fails if one ships. Tailwind 4 with tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`), self-hosted Inter variable, titles 900 uppercase, 44 px minimum tap targets.
 
 ## Testing
 
-`pnpm check` runs everything (see README). Notable suites: `scripts/audit/private-routes.test.ts` (every private page/API denies anonymous and foreign sessions), `security-headers.test.ts`, `admin-csp-e2e.test.mjs` (every admin page against its own CSP), `legacy-redirects.test.ts`, `crawler-files.test.ts`, `scripts/api/contract.test.ts` (HTTP contract), `packages/integrations/src/http-retry.test.ts`, the Miniflare browser journeys, and `tests/e2e/smoke.spec.ts` (every sitemap page: 200, one h1, no console/CSP errors, no broken images/links, axe WCAG 2.2 AA serious/critical, no overflow at 360 px).
+`pnpm check` runs everything (see README). Notable suites: `scripts/audit/private-routes.test.ts` (admin pages/APIs deny anonymous requests; no public private roots remain), `security-headers.test.ts`, `admin-csp-e2e.test.mjs` (every admin page against its own CSP), `legacy-redirects.test.ts`, `crawler-files.test.ts`, `scripts/api/contract.test.ts` (HTTP contract), `packages/integrations/src/http-retry.test.ts`, the Miniflare browser journeys, and `tests/e2e/smoke.spec.ts` (every sitemap page: 200, one h1, no console/CSP errors, no broken images/links, axe WCAG 2.2 AA serious/critical, no overflow at 360 px).

@@ -1,5 +1,7 @@
 # Gamo Studios — Cloudflare Backend & API Architecture
 
+> **2026-11-16 — public accounts removed (owner decision).** Public sign-in, accounts, Clerk, onboarding, provider profiles, participation and the shared person record were removed; the public programs are forms, emails and invoices run from admin. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 > **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. The Gamo Live data domain (§4 item 4), the Stripe ticket webhook handling (§7) and the "First End-to-End Functional Slice: Gamo Live" (§8) are historical. Programs are now Gamo Academy, Gamo Worship and Gamo Production.
 
 <!-- status-banner: 2026-10 foundation pass -->

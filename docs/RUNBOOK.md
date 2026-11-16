@@ -1,8 +1,10 @@
 # Runbook
 
-Operational procedures for Gamo Studios. **Every step that touches Cloudflare, Stripe, Clerk, Resend, DNS or a remote database is an owner-only action** (AGENTS.md). Agents prepare and verify locally; the owner runs the remote commands.
+Operational procedures for Gamo Studios. **Every step that touches Cloudflare, Stripe, Resend, DNS or a remote database is an owner-only action** (AGENTS.md). Agents prepare and verify locally; the owner runs the remote commands.
 
 > **2026-11-16 — Gamo Live removed.** `apps/live` and its workers are gone from the repository (snapshot: tag `four-programs-snapshot`). Owner actions are in [§12](#12-owner-actions-after-removing-gamo-live-2026-11-16).
+
+> **2026-11-16 — public accounts removed.** Public sign-in, Clerk, onboarding, provider profiles and per-program dashboards are gone (spec: `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`). The admin app (Cloudflare Access + admin password, §8) is the only signed-in surface. Owner actions are in [§13](#13-owner-actions-after-removing-public-accounts-2026-11-16).
 
 All commands run from the repository root unless stated. Account: `ebae7bded6ab45950aeba1d6cf51eb7f` (in each `wrangler.toml` and the Makefile).
 
@@ -25,7 +27,7 @@ pnpm preflight all --env production --no-remote   # configuration only, no Cloud
 `pnpm preflight [app|all] --env preview|production` is read-only and never prints a secret value:
 
 1. **Configuration (offline).** Reads each `apps/*/wrangler.toml` and reports, with the offending id: empty or placeholder KV/D1 ids and R2 bucket names, KV/D1/R2 resources **shared between environments** (this is how the single KV namespace of CLEANUP_LOG H-01 shows up), `ENVIRONMENT` not matching the environment, local-only flags set to `true`, a production Worker without a `custom_domain` route, preview and production sharing one Worker name, and an admin Worker that is not `workers_dev = false`.
-2. **Worker secrets (remote, read-only).** If `wrangler` is logged in, runs `wrangler secret list --env <env> --format json` for each app and compares the **names** with §3: missing required secrets are errors; missing `RESEND_API_KEY`/`EMAIL_FROM` (needed for emailed sign-in codes) are warnings; Stripe and break-glass names are noted as optional; a partly filled Clerk group is a warning. A Worker that does not exist yet is reported as "not deployed yet".
+2. **Worker secrets (remote, read-only).** If `wrangler` is logged in, runs `wrangler secret list --env <env> --format json` for each app and compares the **names** with §3: missing required secrets are errors; missing `RESEND_API_KEY`/`EMAIL_FROM` (needed for form, offer and invoice emails) are warnings; Stripe and break-glass names are noted as optional. A Worker that does not exist yet is reported as "not deployed yet".
 3. **Not logged in →** the remote part is skipped with a message (log in yourself with `pnpm exec wrangler login`). `--no-remote` skips it on purpose; `--require-remote` turns a skipped or failed remote check into a failure.
 
 Exit code: `1` if any error was found (✗), otherwise `0`; `2` for bad arguments. Warnings (`!`) do not fail the run. The checks live in `scripts/preflight/` and are covered by `scripts/preflight/preflight.test.ts`.
@@ -63,7 +65,7 @@ Rollback restores code and vars, not secrets or the database. If a migration was
 
 ## 3. Environment variables and secrets
 
-Plain vars (`ENVIRONMENT`, `PUBLIC_SITE_URL_*`, `PUBLIC_ROOT_DOMAIN`, `PLATFORM_*`, `CLERK_APP_ID_*`, `CLERK_AUTHORIZED_PARTIES_*`, `REQUIRE_ADMIN_AUTH`, `STRIPE_SANDBOX_ENABLED`) live in each `wrangler.toml` per environment. Secrets are set per app and environment:
+Plain vars (`ENVIRONMENT`, `PUBLIC_SITE_URL_*`, `PUBLIC_ROOT_DOMAIN`, `PLATFORM_*`, `REQUIRE_ADMIN_AUTH`, `STRIPE_SANDBOX_ENABLED`) live in each `wrangler.toml` per environment. Secrets are set per app and environment:
 
 ```sh
 cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
@@ -72,12 +74,12 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 | App | Required | Optional (feature unavailable without it) |
 | --- | --- | --- |
 | all five | `SESSION_SECRET` (≥ 32 chars; same value across apps is not required) | — |
-| web, worship, academy, production | — | `RESEND_API_KEY` + `EMAIL_FROM` (email delivery — **needed for sign-in codes at launch**; the sender domain `gamostudio.org` is verified in Resend, and when `EMAIL_FROM` is unset mail goes out as `Gamo Studios <hello@gamostudio.org>` with Reply-To `hello@gamostudio.org`); Clerk for that product (optional, deferred — see §3a) |
+| web, worship, academy, production | — | `RESEND_API_KEY` + `EMAIL_FROM` (email delivery — **needed for form confirmations, staff notices, offers and invoices**; the sender domain `gamostudio.org` is verified in Resend, and when `EMAIL_FROM` is unset mail goes out as `Gamo Studios <hello@gamostudio.org>` with Reply-To `hello@gamostudio.org`) |
 | academy | — | `STRIPE_SECRET_KEY` (test mode `sk_test_`/`rk_test_` only; paid registration answers 503 in production regardless) |
 | web | — | `RESEND_WEBHOOK_SECRET` (see below) |
 | admin | `CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD` | Break-glass: `ENABLE_BREAK_GLASS_AUTH`, `ADMIN_ACCESS_TOKEN`, `ADMIN_SECRET_KEY`, `ADMIN_BASIC_AUTH_USER`, `ADMIN_BASIC_AUTH_PASS` (leave unset unless needed) |
 
-**Identity and email** (docs/design/identity-and-ticketing.md §10). All optional at startup; each one switches on a feature that otherwise **fails closed**. Missing ones are logged by name as warnings; a Gamo HMAC key shorter than 32 characters, or one that reuses `SESSION_SECRET` or another key, is an error. Generate each HMAC key separately, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`, and set it with `wrangler secret put`.
+**Forms, links and email.** All optional at startup; each one switches on a feature that otherwise **fails closed**. Missing ones are logged by name as warnings; a Gamo HMAC key shorter than 32 characters, or one that reuses `SESSION_SECRET` or another key, is an error. Generate each HMAC key separately, e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`, and set it with `wrangler secret put`.
 
 | Name | Apps | Kind | Same value across apps? | You generate it, or a service issues it? | Without it (outside local) |
 | --- | --- | --- | --- | --- | --- |
@@ -87,47 +89,26 @@ cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>
 | `TURNSTILE_SECRET_KEY` | web, worship, academy, production | secret | Must be the secret of the widget whose site key the same app uses | **Cloudflare issues it** (shown with the site key) | protected public forms answer 503 |
 | `STRIPE_TEST_CHECKOUT` | academy | var, `true` only in local/preview | per app | You set it | paid checkout answers 503. **`true` in production is fatal** (the app answers 503 everywhere; preflight reports `test-checkout-in-production`). |
 | `RESEND_WEBHOOK_SECRET` | web only | secret (`whsec_…`) | single app; **different for preview and production** (separate webhooks) | **Resend issues it** when you create the webhook | `/api/webhook/resend` answers 503; no delivery/bounce updates |
-| `CLERK_WEBHOOK_SECRET_WEB`, `_WORSHIP`, `_ACADEMY`, `_PRODUCTION` | the matching app, only if that product uses Clerk | secret (`whsec_…`) | **Unique per app** (one per Clerk application) | **Clerk issues it** when you add the endpoint | `/api/auth/clerk-webhook` answers 503; a session ended in Clerk stays valid here up to 7 days |
-| `CLERK_GOOGLE_ENABLED_WEB`, `_WORSHIP`, `_ACADEMY`, `_PRODUCTION` | the matching app | var (`true`) | per app | You set it, after enabling Google in that product's Clerk app | "Continue with Google" stays hidden (also hidden while that product's Clerk is off) |
 
-Rules that apply to every row: each environment (preview, production) gets its **own** values — never copy production values into preview; generated secrets are random and at least 32 characters (`openssl rand -base64 48`); within one app no two of these HMAC keys, and not `SESSION_SECRET`, may share a value (startup reports an error by name). Setting a secret: `cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>`; the two Turnstile and `*_ENABLED` / `STRIPE_TEST_CHECKOUT` entries that are vars can live in `wrangler.toml` per environment.
+Rules that apply to every row: each environment (preview, production) gets its **own** values — never copy production values into preview; generated secrets are random and at least 32 characters (`openssl rand -base64 48`); within one app no two of these HMAC keys, and not `SESSION_SECRET`, may share a value (startup reports an error by name). Setting a secret: `cd apps/<app> && pnpm exec wrangler secret put <NAME> --env <preview|production>`; the Turnstile site key and `STRIPE_TEST_CHECKOUT` entries that are vars can live in `wrangler.toml` per environment.
 
 **Webhook URLs to register** (owner action; each service shows the signing secret once, after you save the endpoint):
 
 | Service | URL to register | Events to select | Secret you copy back |
 | --- | --- | --- | --- |
 | Resend (one webhook per environment; the global site serves it and updates the shared database for mail sent by every app) | `https://gamostudio.org/api/webhook/resend` (preview: `https://gamo-web-preview.gamostudio.workers.dev/api/webhook/resend`) | `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.failed` | `RESEND_WEBHOOK_SECRET` on web |
-| Clerk — Gamo Web application | `https://gamostudio.org/api/auth/clerk-webhook` | `session.ended`, `session.revoked`, `session.removed`, `user.deleted`, `user.banned` | `CLERK_WEBHOOK_SECRET_WEB` on web |
-| Clerk — Gamo Worship application | `https://worship.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_WORSHIP` on worship |
-| Clerk — Gamo Academy application | `https://academy.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_ACADEMY` on academy |
-| Clerk — Gamo Production application | `https://production.gamostudio.org/api/auth/clerk-webhook` | same five events | `CLERK_WEBHOOK_SECRET_PRODUCTION` on production |
 
-Clerk webhooks are only needed for products that have Clerk switched on (§3a); each Clerk application points only at its own product's host. For a preview Clerk instance use that app's `https://gamo-<app>-preview.gamostudio.workers.dev/api/auth/clerk-webhook`. The Gamo Live Stripe webhook (`/api/webhook/stripe`) was removed with `apps/live` on 2026-11-16; no Stripe webhook is registered.
+Clerk webhooks were removed with public accounts on 2026-11-16. The Gamo Live Stripe webhook (`/api/webhook/stripe`) was removed with `apps/live` on 2026-11-16; no Stripe webhook is registered yet (the forms/invoices plan adds an `invoice.paid` webhook on web in test mode; its setup will be documented here when it lands).
 
-`<APP>` is `WEB`, `WORSHIP`, `ACADEMY` or `PRODUCTION`; each product uses its **own** Clerk application — never copy keys between products. The Clerk secret names are `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>`, `CLERK_SECRET_KEY_<APP>`, `CLERK_JWT_KEY_<APP>` and `CLERK_ISSUER_<APP>`; `EMAIL_FROM` must be on `gamostudio.org`.
+`EMAIL_FROM` must be on `gamostudio.org`.
 
-Never set `ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION` or `ALLOW_PUBLIC_DEMO_WORKSPACES` to `true` outside local: the app refuses to serve (503).
+Never set a local-only flag (the list in `packages/config/env-validation.ts`) to `true` outside local: the app refuses to serve (503).
 
 On the first request each isolate logs missing configuration by **name** (`[env:<app>] error: …`). Check with `pnpm exec wrangler tail --env <env>` from `apps/<app>`.
 
-### 3a. Clerk is optional (deferred)
+### 3a. (Removed) Clerk
 
-**Launch uses Gamo's own emailed verification codes** (Resend, sender `gamostudio.org`). Do not set any Clerk variable for launch; with none set, every product signs people in by emailed code and `pnpm preflight` reports "Clerk not configured (optional)". Everything about Clerk (how it works, the full variable list, the Clerk dashboard checklist for the four public applications, Development → Production, and the manual test script) is in **[docs/AUTH.md](AUTH.md)**.
-
-Clerk is already integrated (`packages/auth/clerk.ts`, shared auth UI) and switches on per product when that product's keys are set under the **product-suffixed names** (the only names a deployed Worker reads):
-
-```
-PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>   CLERK_SECRET_KEY_<APP>   CLERK_JWT_KEY_<APP>   CLERK_ISSUER_<APP>
-```
-
-If you enable it later:
-
-- each product needs **its own production Clerk instance** (never share keys or instances between products; no automatic account linking — AGENTS.md);
-- a Clerk production instance needs its own **DNS records** on the product's domain (Clerk shows them in its dashboard) — add them in Cloudflare DNS yourself, and wait until Clerk shows the domain as verified;
-- put the keys in `apps/<app>/.dev.vars` (or a file you pass) and run `scripts/set-clerk-secrets.sh --env preview|production [--app <app>] [--dry-run]`: it reads values without printing them, handles PEM keys with line breaks, quotes or literal `\n`, always sets the `<APP>`-suffixed names a deployed Worker reads, accepts only Production instance keys (`pk_live_`/`sk_live_`) for production, refuses one key used for two products, and prints only `ok <app> <NAME>`. Production writes need a person at an interactive terminal who types `production` (no `--yes`); under a test or CI the script refuses production writes and the real wrangler entirely. Keep `CLERK_APP_ID_<APP>`/`CLERK_AUTHORIZED_PARTIES_<APP>` in `wrangler.toml`; deploy to preview and complete CLEANUP_LOG H-05 (sign-in works under the CSP) before production;
-- a startup log line names any missing Clerk variable (`wrangler tail`), and `pnpm preflight` warns about un-suffixed Clerk secrets left on a Worker.
-
-Do **not** run `clerk init`, the Clerk CLI or a dashboard-generated Clerk setup prompt in this repository; they would replace the existing integration.
+Removed 2026-11-16 with public accounts: no Clerk variables, secrets, webhooks or DNS records are used, and `scripts/set-clerk-secrets.sh` is gone. If Clerk applications or Clerk DNS records were ever created, see §13.
 
 ## 4. Database (D1)
 
@@ -161,7 +142,7 @@ For each public host:
 
 - `/` returns 200; `/robots.txt`, `/sitemap.xml` return 200 (and `/llms.txt` on gamostudio.org).
 - An unknown path shows the branded 404.
-- `/account/signin` renders; a private page (e.g. `academy…/family`) redirects anonymous visitors to sign-in.
+- Old account URLs (e.g. `/account/signin`) redirect (302) as listed in each app's `legacy-redirects.ts`; there is no public sign-in.
 - Academy: paid registration answers 503 in production by design; "Reserve" works.
 - `wrangler tail` shows no `[env:<app>] fatal` or `error` lines.
 - Admin: an unauthenticated visit is stopped by Cloudflare Access.
@@ -211,21 +192,13 @@ Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-code
 
 Generated files live only in `.staff-sql/` (git-ignored). Repeat for preview. The historical password stays in git history; rewriting history before the repository is ever public is a separate owner decision (H-02).
 
-## 9. Identity, onboarding and staff review (Phase 2, Agent A)
+## 9. (Removed) Identity, onboarding and staff review
 
-Owner steps (nothing here was done remotely):
-
-1. **Turnstile.** Create one widget per public hostname; set `PUBLIC_TURNSTILE_SITE_KEY` (var) and `TURNSTILE_SECRET_KEY` (secret) on web, worship, academy and production. Without them the emailed-code sign-up/sign-in answers 503 outside local.
-2. **Hash key.** Set `PII_HASH_SECRET` (>= 32 random chars, different from other secrets) on every public app; consent recording and rate limits need it.
-3. **Clerk webhooks (only if a product uses Clerk).** In that product's Clerk application add an endpoint `https://<host>/api/auth/clerk-webhook` with events session.ended, session.revoked, session.removed, user.deleted, user.banned; put its signing secret in `CLERK_WEBHOOK_SECRET_<APP>`.
-4. **Google (only if Clerk is on).** Enable Google in each product's Clerk application (production needs its own Google OAuth client and consent screen), add `/account/sso-callback` as an allowed redirect, set `CLERK_GOOGLE_ENABLED_<APP>=true`.
-5. **Legal.** All terms are drafts ("DRAFT — requires legal review"); counsel must review before any version is marked active.
-6. **Staff.** Reviewers need a staff gateway account with the `staff_reviewer` role (section 8). Review pages: `/review/churches`, `/review/providers`.
-7. **Erasure on request** (hello@gamostudio.org): see `docs/IDENTITY.md` section 8.
+Removed 2026-11-16 with public accounts. Still needed for public forms: Turnstile (`PUBLIC_TURNSTILE_SITE_KEY` var, `TURNSTILE_SECRET_KEY` secret) and `PII_HASH_SECRET` on every public app (§3). All terms remain drafts ("DRAFT — requires legal review") until counsel reviews them. Erasure requests (hello@gamostudio.org) are handled by staff in admin.
 
 ## 10. Browser test servers
 
-- **Test servers never use real Clerk keys:** `pnpm test:e2e` blanks every Clerk variable in each build's `dist/server/.dev.vars` before `astro preview` (`scripts/e2e/test-servers.ts`), never reuses a server already on a port, and refuses to start while a local env file holds a live key (`pk_live_`/`sk_live_`/`rk_live_`; `pnpm dev` prints the same warning). Clerk switched on is covered with fake keys and no network by `scripts/audit/clerk-configured-fake-keys-e2e.test.mjs` (part of `pnpm test:journeys`).
+- `pnpm test:e2e` builds each app and serves it with `astro preview` (`scripts/e2e/test-servers.ts`); it never reuses a server already on a port.
 
 (Door scanning and venue maps were Gamo Live features, removed 2026-11-16.)
 
@@ -242,3 +215,12 @@ Nothing was done remotely by agents. In Cloudflare and Resend:
 3. **Move the Resend webhook to web:** in Resend, edit (or recreate) the webhook so its URL is `https://gamostudio.org/api/webhook/resend` (preview: `https://gamo-web-preview.gamostudio.workers.dev/api/webhook/resend`), events as in §3; then set its signing secret on web: `cd apps/web && pnpm exec wrangler secret put RESEND_WEBHOOK_SECRET --env <preview|production>`. A recreated webhook issues a new `whsec_…`; use that value.
 4. **Apply migration `0018_remove_gamo_live.sql`** (drops the Live tables; destructive, owner-approved; production holds only test data) following §4: back up first, apply, then deploy.
 5. **Optional clean-up:** delete the Gamo Live Clerk application (if one was ever created) and remove `live.gamostudio.org` from any Turnstile widget. Live-only secrets (`TICKET_QR_SECRET_GL1`, `SCANNER_SESSION_SECRET`, `STRIPE_WEBHOOK_SECRET`) disappear with the Workers.
+
+## 13. Owner actions after removing public accounts (2026-11-16)
+
+Nothing was done remotely by agents. When the forms/emails/invoices release is deployed (once, at the end of the plan):
+
+1. **Apply migration `0019_remove_public_accounts.sql`** (drops the public-account tables; destructive, owner-approved with the plan; production holds only test data) following §4: back up first, apply, then deploy.
+2. **Clerk clean-up (if anything was ever created):** delete the Gamo Web, Worship, Academy and Production Clerk applications; remove any Clerk DNS records (for example `clerk.`, `accounts.`, `clk._domainkey` CNAMEs) from the `gamostudio.org` zone; delete any `CLERK_*` / `PUBLIC_CLERK_*` secrets left on the Workers (`pnpm exec wrangler secret delete <NAME> --env <env>` from `apps/<app>`).
+3. **Delete retired secrets/vars** if set: `CLERK_WEBHOOK_SECRET_<APP>`, `CLERK_GOOGLE_ENABLED_<APP>`, `CLERK_APP_ID_<APP>`, `CLERK_AUTHORIZED_PARTIES_<APP>`.
+4. Admin staff authentication (Cloudflare Access + admin password, §8) is unchanged.

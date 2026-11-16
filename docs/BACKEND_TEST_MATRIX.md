@@ -1,5 +1,7 @@
 # Gamo Studios — Backend Test Matrix & Evidence Register
 
+> **2026-11-16 — public accounts removed (owner decision).** Public sign-in, accounts, Clerk, onboarding, provider profiles, participation and the shared person record were removed; their rows are historical. Admin staff auth is unchanged. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 > **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. Section 2.2 (Gamo Live event lifecycle) and the Live checkout/webhook rows of section 2.3 describe deleted code and tests; they are historical. Snapshot: tag `four-programs-snapshot`.
 
 **Prepared:** 2026-10-13  

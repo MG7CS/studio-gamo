@@ -4,6 +4,8 @@ Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial i
 
 > **2026-11-16:** Gamo Live was dropped. `apps/live` (public pages and workspaces), the web `/live` page and the admin `/live/*` demo screens were removed; their rows are deleted below. The four public apps are web, worship, academy and production. The previous inventory is at tag `four-programs-snapshot`. **UI ready** means implemented as a local frontend preview, not launched or connected. Engineering evidence is in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md); new screens await founder visual acceptance.
 
+> **2026-11-16 (second cleanup):** public accounts and every non-admin dashboard were removed (spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`). The account entry screens, the church partner workspace, and the Worship (`/musician`, `/church`), Academy (`/family`, `/instructor`, `/host`, `/dashboard`) and Production (`/client`, `/crew`) workspaces are deleted from this inventory; their old URLs redirect (each app's `legacy-redirects.ts`). Worship and Production now have placeholder `/apply` and `/request` pages that the staff-editable forms replace in Phase 2. The admin app is the only dashboard.
+
 ## Organization hub — apps/web — port 4321
 
 | Routes | Screens | Status |
@@ -12,12 +14,11 @@ Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial i
 | /mission | Mission, needs, programs, audiences, values, invitation | UI ready |
 | /get-involved | Churches, musicians, families, instructors, volunteers, organizers, supporters | UI ready |
 | /partners | Hosting, sponsorship, shared resources and partnership integrity | UI ready |
-| /partners/interest | Local inquiry; required/invalid-email/preview/reset states | UI ready |
+| /partners/interest | Shows `hello@gamostudio.org` until the staff-editable partner-interest form lands (Phase 2) | Placeholder |
 | /support | Education, resources, institutional support, volunteering, stewardship | UI ready |
-| /contact | Local contact preview, no sending or storage | UI ready |
+| /contact | Shows `hello@gamostudio.org` until the staff-editable contact form lands (Phase 2) | Placeholder |
 | /faq | Native accessible FAQ expansion | UI ready |
 | /legal | Current status and policies pending review | UI ready; not final legal terms |
-| /signin | Public sample-workspace entry, no credentials | UI ready |
 | /get-started | Audience routing to real program preview destinations | UI ready |
 | /preview/hero-2026 | Separate bright hero and four photographic program cards | UI ready; replacement pending approval |
 
@@ -27,17 +28,12 @@ No filler news pages, donation checkout or automatic homepage hero rotation. Par
 
 | Routes | Screens | Status |
 | --- | --- | --- |
-| / | Bright worship hero, audience switch, instruments, preparation, primary/standby, recurring needs, FAQs | UI ready |
-| /apply, /apply/profile, /apply/audition, /apply/status | Application start, instrument/genre profile, audition-link validation, sample review status | UI ready |
-| /hire, /hire/repertoire, /hire/schedule, /hire/summary | Church request, rehearsal/repertoire, scheduling, local review; pay/allocation separated | UI ready |
-| /church/roster | Sample church roster | UI ready |
-| /opportunities | Filterable sample opportunity board | UI ready |
-| /apply/identity, /apply/logistics | Legacy redirects to current preview | UI ready |
-| /hire/checkout, /hire/gig-details, /hire/success | Legacy redirects to non-transactional request screens | UI ready |
-| /check-in/[id], /check-in/success, /check-in/standby-notified | Honest illustrative states, no attendance or dispatch submission | Preserved preview |
-| /admin, /admin/assign/[id] | Older staff prototypes | Preserved; outside public redesign |
+| / | Bright worship hero, instruments, preparation, FAQs; CTAs "Apply to serve" → /apply, "Request a musician" → /request | UI ready |
+| /apply | Musician application placeholder; becomes the staff-editable `musician_application` form (photo, video by link or upload, PDFs) in Phase 2 | Placeholder |
+| /request | Church request placeholder; becomes the staff-editable `church_request` form in Phase 2 | Placeholder |
+| /offers/[token] | One-click offer Accept/Decline page (GET shows details, POST acts) — Phase 3 | Planned |
 
-Identity capture, real vetting/approvals, payments, dispatch and persistence are deferred. Older redirect-only API stubs are not live integration evidence.
+Approvals, the private roster, offers and invoices run in admin (Phases 2–3). Old `/musician/*`, `/church/*`, `/opportunities` and `/check-in/*` URLs redirect.
 
 ## Gamo Academy — apps/academy — port 4323
 
@@ -47,8 +43,8 @@ Identity capture, real vetting/approvals, payments, dispatch and persistence are
 | /instruments, /instruments/[slug] | Discovery and piano, acoustic/electric guitar, bass, percussion, vocals detail | UI ready |
 | /instructors/[slug] | Sample instructor profile | UI ready |
 | /lessons, /lessons/[slug] | Filterable discovery and sample lesson details | UI ready |
-| /register | Local family registration, guardian/learner fields, validation, review | UI ready |
-| /dashboard | Sample student/family dashboard | UI ready |
+| /register/[lesson] | Account-free family registration (parent-completed), validation, review | Real (D1) |
+| /registrations/find, /open, /manage, /receipt | Emailed manage-link flow, no account | Real (D1) |
 | /sponsored | Proposed sponsored/scholarship details | UI ready |
 | /host-apply | Church hosting/sponsorship interest preview | UI ready |
 
@@ -58,132 +54,17 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 
 | Routes | Screens | Status |
 | --- | --- | --- |
-| / | Technical ministry, audio/video/lighting, volunteers, event support, equipment, honest project empty state | UI ready |
-| /services, /services/[slug] | Six support categories, learning skills and planning prompts | UI ready |
+| / | Technical ministry, audio/video/lighting, volunteers, event support | UI ready |
+| /services, /services/[slug] | Support categories, learning skills and planning prompts | UI ready |
 | /training | Proposed technical/volunteer training | UI ready |
-| /assessment | Required fields, Back/Next and actual local answer review | UI ready |
-| /consultation, /consultation/confirmation | Required/invalid-email inquiry and explicit demo confirmation | UI ready |
-| /contact | Legacy redirect to /consultation | UI ready |
+| /apply | Technician application placeholder; becomes the staff-editable `technician_application` form in Phase 2 | Placeholder |
+| /request | Production request placeholder; becomes the staff-editable `production_request` form in Phase 2 | Placeholder |
 
 No completed projects, customers, scheduled consultations or available training places are claimed.
 
-## Authenticated Dashboard UI System (design-first preview)
+### Internal Staff Operations Application — apps/admin — port 4326 (the only dashboard)
 
-All authenticated experiences operate in **design-first preview mode** with a persistent demo banner, fixed fictional identity (Jordan Avery), local-only interactions, and zero live authentication or backend writes.
-
-### Account Entry & Personal Account — apps/web — port 4321
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /account/signin | Focused sign in preview; links to signup/recover; demo redirect | UI ready |
-| /account/signup | Account registration preview; demo validation | UI ready |
-| /account/recover | Password recovery simulation; no email sent | UI ready |
-| /account/onboarding | Multi-step role & interest onboarding wizard | UI ready |
-| /account/signed-out | Safe signed-out confirmation preview | UI ready |
-| /account/access-denied | Clear authorization boundary explanation & role request link | UI ready |
-| /account | Personal account hub; one account holding multiple program workspaces | UI ready |
-| /account/roles | Program role affiliations & role request modal | UI ready |
-| /account/organizations | Church & organizational affiliations; boundary notices | UI ready |
-| /account/profile | Profile management form (demo validation) | UI ready |
-| /account/notifications | Cross-program notification center & delivery preferences | UI ready |
-| /account/settings | Password change demo, privacy & account closure controls | UI ready |
-
-### Church Partner & Supporter Workspace — apps/web — port 4321
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /partner | Grace Fellowship (sample) partnership hub & overview | UI ready |
-| /partner/programs | Supported programs: Worship, Academy, Production | UI ready |
-| /partner/commitments | Proposed sponsorships & in-kind facility agreements | UI ready |
-| /partner/activities | Calendar and guidelines for hosted church activities | UI ready |
-| /partner/updates | Mission bulletins & ministry updates | UI ready |
-| /partner/contributions | Illustrative contribution statements; nonprofit notice | UI ready |
-| /partner/reports | Stewardship documents & governance publications | UI ready |
-| /partner/contacts | Church liaison contact details & Gamo liaisons | UI ready |
-
-### Gamo Worship Workspaces — apps/worship — port 4322
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /musician | Musician overview: next service, open requests, readiness | UI ready |
-| /musician/opportunities | Filterable opportunity board (primary vs standby) | UI ready |
-| /musician/assignments | Confirmed services, call times & rehearsal schedule | UI ready |
-| /musician/availability | Interactive calendar & weekly recurring availability | UI ready |
-| /musician/standby | Standby coverage window & activation workflow | UI ready |
-| /musician/gig, /musician/service | Service details, setlist, logistics, payment statement (aliases: /musician/service, /musician/assignment) | UI ready |
-| /musician/repertoire | Instruments, musical styles, reading capabilities, bio | UI ready |
-| /musician/verification | Application & audition review progress steps | UI ready |
-| /musician/statements | Sample payment statements (musician pay vs admin allocation) | UI ready |
-| /musician/notifications | Worship assignment alerts & notifications | UI ready |
-| /musician/settings | Profile visibility & contact preferences | UI ready |
-| /church | Church overview: upcoming services, open requests, standby | UI ready |
-| /church/request | Comprehensive musician request form (rehearsal, style, standby) | UI ready |
-| /church/requests | Active musician requests filterable by status | UI ready |
-| /church/services | Upcoming church services agenda & calendar | UI ready |
-| /church/musicians | Assigned musicians roster with approval status (aliases: /church/roster) | UI ready |
-| /church/standby | Standby coverage monitoring per service | UI ready |
-| /church/recurring | Recurring weekly scheduling & pattern manager | UI ready |
-| /church/history | Service & request fulfillment history | UI ready |
-| /church/statements | Church financial records (musician pay vs allocation separate) | UI ready |
-| /church/profile | Church profile & team permission access control | UI ready |
-| /church/roster | Legacy redirect and route alias to /church/musicians | UI ready |
-| /admin, /admin/assign/[id] | Legacy prototypes redirect to apps/admin (/worship/placement) | UI ready |
-
-### Gamo Academy Workspaces — apps/academy — port 4323
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /family | Student / Family overview: next lesson, learning tracks | UI ready |
-| /family/lessons | Upcoming lessons & rehearsal agenda | UI ready |
-| /family/programs | Enrolled instrument programs & class details | UI ready |
-| /family/schedule | Interactive lesson calendar & reschedule request | UI ready |
-| /family/tracks | Instrument progression & skill milestones | UI ready |
-| /family/instructors | Instructor profiles & contact via program office (aliases: /family/teachers) | UI ready |
-| /family/practice | Practice materials, audio stems & chord charts | UI ready |
-| /family/progress | Attendance record & term evaluation notes | UI ready |
-| /family/learners | Household learner management (minors privacy protected) | UI ready |
-| /family/announcements | Academy term news & recital schedules | UI ready |
-| /dashboard | Legacy redirect to /family | UI ready |
-| /instructor | Instructor overview: teaching agenda, readiness, assigned classes | UI ready |
-| /instructor/calendar | Interactive teaching calendar & studio availability | UI ready |
-| /instructor/classes | Assigned group classes & church-hosted clinics | UI ready |
-| /instructor/roster | Student roster (first name + initial, level, attendance only) | UI ready |
-| /instructor/preparation | Lesson plan builder & curriculum preparation form | UI ready |
-| /instructor/attendance | Daily attendance recording & status checklist | UI ready |
-| /instructor/resources | Teaching curriculum, sheet music & pedagogical resources | UI ready |
-| /instructor/qualifications | Screening and credential verification steps | UI ready |
-| /instructor/statements | Teaching compensation statements (pay vs allocation separate) | UI ready |
-| /instructor/profile | Teaching biography, instruments, formats | UI ready |
-| /host | Church host & sponsor overview (Grace Fellowship sample) | UI ready |
-| /host/classes | Hosted class schedule & room assignments | UI ready |
-| /host/facility | Classroom inventory, piano availability, access rules | UI ready |
-| /host/instructors | Assigned guest instructors & liaison details | UI ready |
-| /host/enrollments | Aggregate enrollment summaries (no private minor data) | UI ready |
-| /host/sponsorship | Proposed youth scholarships & in-kind hosting support | UI ready |
-| /host/outcomes | Community educational impact & student recital reports | UI ready |
-| /host/communications | Church host coordination & program office messages | UI ready |
-
-### Gamo Production Workspaces — apps/production — port 4325
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /client | Church client overview: project milestones, support requests | UI ready |
-| /client/requests | Technical assistance inquiries (audio, video, lighting) | UI ready |
-| /client/assessments | Sanctuary acoustic & gear needs assessment review | UI ready |
-| /client/consultations | Technical consultation calendar & booking request | UI ready |
-| /client/milestones | Project milestone tracker for soundboard upgrade | UI ready |
-| /client/documents | Technical schematics, equipment recommendations, PDFs | UI ready |
-| /client/history | Completed support requests and equipment audits | UI ready |
-| /client/messages | Technical coordinator communication thread | UI ready |
-| /crew | Volunteer / Technician overview: tasks, projects, training | UI ready |
-| /crew/tasks | Operational tasks queue (cables, mics, console patches) | UI ready |
-| /crew/availability | Studio & Sunday service technical availability calendar | UI ready |
-| /crew/checklists | Stage audio, broadcast video, and wireless mic checklists | UI ready |
-| /crew/training | Volunteer live audio & broadcast training tracks | UI ready |
-| /crew/team | Technical crew communications & mentor directory | UI ready |
-| /crew/resources | Dante networking, gain staging, and mixer cheat-sheets | UI ready |
-
-### Internal Staff Operations Application — apps/admin — port 4326
+> 2026-11-16: provider/church review (`/review/*`) and participation pages were removed. Phases 2–3 add `/forms`, `/forms/[id]` (builder), `/submissions`, `/submissions/[id]`, `/files/[id]`, `/roster`, `/requests`, offers and invoices. The demo rows below remain until those screens replace them.
 
 | Routes | Screens | Status |
 | --- | --- | --- |

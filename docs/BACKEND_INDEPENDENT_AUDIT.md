@@ -1,5 +1,7 @@
 # Gamo Studios — Independent Backend Security & Reliability Audit
 
+> **2026-11-16 — public accounts removed (owner decision).** Public sign-in, accounts, Clerk, onboarding, provider profiles, participation and the shared person record were removed; findings about them are closed by removal. Admin staff auth is unchanged. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 > **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. Findings **A03, A04, A05, A07 and A11** and the moderation part of **A02** concerned that code; they are **closed by removal, not by repair**, and remaining-blocker item 2 (ticketing order and webhook fulfillment) no longer applies. The record below is kept as written (2026-10-13). Snapshot: tag `four-programs-snapshot`.
 
 **Prepared:** 2026-10-13  

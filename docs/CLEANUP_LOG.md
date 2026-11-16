@@ -733,3 +733,11 @@ Files: `packages/domain/src/services/academy-registrations.ts` (+ test, 6 cases)
 - **Kept for cleanup two:** shared account, sign-in, Clerk, customer-link, email and Academy Stripe code. Cleanup two (designed separately) will make the remaining programs simple forms, emails and invoices with the admin dashboard as the only dashboard.
 - **Superseded entries above:** findings, decisions and owner questions in this log that concern Gamo Live (ticketing, scanner, events, D-113, D-121, D-122, O-13/H-03 catalog) are closed by removal; they are left as written.
 - **Owner actions:** `docs/RUNBOOK.md` §12.
+
+## 2026-11-16 — Second program cleanup: public accounts removed (not deployed)
+
+- **Why:** owner decision — Academy, Worship and Production should be public pages, forms, emails and invoices with admin as the only dashboard. Spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`, plan `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`.
+- **Scope (Phase 1):** public `/account/*`, `api/auth/*`, `api/account/*`, `api/organizations`, Clerk pages/webhooks, demo workspaces, shared auth/account/onboarding UI, Clerk config and scripts, identity/person/provider/participation services, admin provider/church review and participation pages; migration `0019` drops public-account tables. **Kept:** admin staff auth, customer profiles and link tokens (Academy manage links), terms, email outbox, rate limits, Turnstile guard.
+- **Superseded entries above:** the Phase 2 Agent A identity, sign-in, onboarding and review decisions (D-100–D-119, D-120 sign-in code budgets) and findings about Clerk, public sessions, private pages and demo workspaces are closed by removal; they are left as written.
+- **AGENTS.md:** Shared Authentication, Product Account Independence and Independent Clerk rules retired (see `docs/DECISIONS.md` 2026-11-16).
+- **Owner actions:** `docs/RUNBOOK.md` §13.

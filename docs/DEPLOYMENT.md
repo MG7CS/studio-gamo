@@ -51,14 +51,9 @@ Access protection is enforced at two distinct layers:
    - If unauthenticated, the middleware returns `HTTP 401 Unauthorized` with `WWW-Authenticate: Basic realm="Gamo Studios Operations"` and blocks the request.
    - `workers_dev = false` is explicitly configured in `apps/admin/wrangler.toml` to prevent public edge exposure on `workers.dev`.
 
-### 2.2 Server-Enforced Workspace Authorization & Isolated Local Demo Mode
+### 2.2 Public applications have no accounts (2026-11-16)
 
-Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`) enforce server-side page and API authentication via `applicationPages(app)` middleware (`packages/domain/src/api/page-middleware.ts`) and `packages/auth/page-access.ts`:
-
-- Unauthenticated visitors requesting private routes (`/account`, `/partner`, `/church`, `/musician`, `/check-in`, `/family`, `/instructor`, `/host`, `/dashboard`, `/workspaces`, `/client`, `/crew`) receive an HTTP `303` redirect to `/account/signin?next=...` with `Cache-Control: no-store`.
-- Authenticated users whose verified account lacks required program roles or organization memberships receive an HTTP `303` redirect to `/account/access-denied` (`HTTP 403`).
-- Query-parameter bypasses (`?demo_key=...`) and unsigned cookie hints (`gamo_profile_hint`) are permanently ignored for authorization.
-- Demonstration workspace screens (`DashboardShell`) are restricted strictly to isolated local loopback requests (`localhost`, `127.0.0.1`, `[::1]`) when both `ENVIRONMENT=local` and `ALLOW_PUBLIC_DEMO_WORKSPACES=true` are set. In staging and production, `ALLOW_PUBLIC_DEMO_WORKSPACES` and `ALLOW_AUTH_SIMULATION` must remain `false` or unset.
+Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`) have no sign-in, sessions, private pages or demo workspaces since public accounts were removed (spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`). Their middleware runs env check → legacy redirects → page → security headers; retired `/account/*` and workspace URLs redirect via each app's `legacy-redirects.ts`. Public forms are protected by the public form guard (Turnstile, rate limits, bounded bodies). Staff work only in admin (§2.1). Local-only flags listed in `packages/config/env-validation.ts` must remain `false` or unset outside local.
 
 ---
 

@@ -1,5 +1,8 @@
 # Identity, onboarding and staff review
 
+> [!WARNING]
+> **Retired 2026-11-16 (owner decision).** Public accounts, onboarding, provider profiles, the shared person record and staff provider review were removed and their tables are dropped by migration `0019`. Musicians and technicians now apply through staff-editable forms and are approved into a private roster in admin. Current model: [forms, emails and invoices spec](superpowers/specs/2026-11-16-forms-emails-invoices-design.md); rules in `AGENTS.md` ("Forms, emails and admin"). Kept as a historical record only; do not build from it.
+
 Built by Phase 2 Agent A; design of record: `docs/design/identity-and-ticketing.md` §4. Decisions: `docs/CLEANUP_LOG.md` D-100–D-115 (and D-120s legal, D-130s Academy).
 
 ## 1. People

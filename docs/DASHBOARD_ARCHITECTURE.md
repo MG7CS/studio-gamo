@@ -1,5 +1,7 @@
 # Authenticated Dashboard Architecture & UX Guidelines
 
+> **2026-11-16 — public accounts removed (owner decision).** All public program dashboards and workspaces were removed and `page-access.ts` no longer guards public pages; the admin app is the only dashboard. Guidance below applies only to admin. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 <!-- status-banner: 2026-10 foundation pass -->
 > **2026-11-16:** Gamo Live workspaces (`/organizer`, `/me`) were removed with `apps/live`; the Live rows below are historical.
 > **Partly stale.** Dashboard UX guidance still applies; access rules are now enforced by `packages/auth/page-access.ts` and tested in `scripts/audit/private-routes.test.ts`. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md).

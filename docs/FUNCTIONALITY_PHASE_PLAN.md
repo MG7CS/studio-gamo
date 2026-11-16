@@ -1,5 +1,7 @@
 # Gamo Studios: Functionality Phase Plan
 
+> **2026-11-16 — public accounts removed (owner decision).** Public accounts, sign-in, Clerk, onboarding and per-program dashboards were removed; the active plan is `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 > **2026-11-16:** Gamo Live was dropped (programs: Academy, Worship, Production). Phase 4 and the Live parts of Phase 4b are withdrawn; the Gamo Live slice mentioned below was removed with `apps/live` (snapshot: tag `four-programs-snapshot`). A second cleanup (later, designed separately) will simplify the remaining programs into forms, emails and invoices.
 
 **2026-10-13 Status Update — Backend Foundation & First Functional Slice Completed:**

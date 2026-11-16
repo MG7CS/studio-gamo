@@ -3,7 +3,9 @@
 <!-- status-banner: 2026-10 foundation pass -->
 > Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
 
-> **2026-11-16 scope change:** Gamo Live was dropped (owner decision after talking with church ministers and pastors). The programs are **Gamo Academy, Gamo Worship and Gamo Production**; Milestone 3 below is withdrawn and kept only as history. Snapshot: tag `four-programs-snapshot`. A second cleanup (later, designed separately) will simplify the remaining programs into forms, emails and invoices, with the admin dashboard as the only dashboard.
+> **2026-11-16 scope change:** Gamo Live was dropped (owner decision after talking with church ministers and pastors). The programs are **Gamo Academy, Gamo Worship and Gamo Production**; Milestone 3 below is withdrawn and kept only as history. Snapshot: tag `four-programs-snapshot`. 
+
+> **2026-11-16 second cleanup (approved, in progress):** public accounts, sign-in, Clerk, onboarding, provider profiles and per-program dashboards are removed; Academy, Worship and Production become public pages, staff-editable forms, emails and invoices, and the admin app is the only dashboard. The active plan is `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md` (spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`); it supersedes the account, login, dashboard and dispatch items in Milestones 1, 2 and 4 below, which are kept as history.
 
 > **Current phase override:** [DESIGN_FIRST_OVERRIDES.md](DESIGN_FIRST_OVERRIDES.md) governs build order. Design-first remains in force: complete and approve screens before functionality, one application at a time. Organizational direction: [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md).
 
@@ -48,7 +50,7 @@ Future functional priorities require the preceding approval gate. The current pu
 
 ## Milestone 1 — Gamo Worship working vertical slice (highest program priority)
 
-- [ ] Global login/session demo with secure server-side role checks; real auth provider evaluated and decision recorded.
+- [x] ~~Global login/session demo~~ Superseded 2026-11-16: no public accounts; staff-only admin auth (Cloudflare Access + admin password).
 - [ ] Musician application draft / profile / travel / audition link / submitted status; identity verification safely sandboxed.
 - [ ] Church request wizard and gig creation with plan selection, details, repertoire links and demo checkout state; **musician agreed pay and any Gamo administrative allocation shown as separate line items** (amounts are placeholders until approved).
 - [ ] Admin queue: review auditions, approve/reject, assign confirmed musicians.
@@ -64,7 +66,7 @@ Future functional priorities require the preceding approval gate. The current pu
 - [ ] Private lessons, church-hosted classes and clinics with registrations and sandbox payment flow.
 - [ ] Sponsored and scholarship-supported enrollment states (demo), with funding source recorded separately from instructor pay.
 - [ ] Guardian consent and safeguarding placeholders clearly marked; no minor bookings or student document collection until policy approval.
-- [ ] Student/guardian dashboard; church host and sponsor intake.
+- [ ] ~~Student/guardian dashboard~~ (superseded 2026-11-16: emailed manage links, no dashboard); church host and sponsor intake via forms.
 
 **Exit:** end-to-end testable demo lesson/class enrollment (tuition, sponsored and scholarship variants) with permission separation.
 
@@ -84,7 +86,7 @@ Future functional priorities require the preceding approval gate. The current pu
 ## Milestone 4 — Gamo Production and cross-app polish
 
 - [ ] Production program site: technical support, training and volunteer development; real-asset portfolio placeholders; consultation intake.
-- [ ] Central account navigation, global legal draft routes, user account management.
+- [ ] Global legal draft routes. (~~Central account navigation, user account management~~ superseded 2026-11-16: no public accounts.)
 - [ ] Cross-app visual, accessibility, search engine and performance refinement.
 - [ ] Audit and operational dashboards, basic observability, documented data backup/restore.
 

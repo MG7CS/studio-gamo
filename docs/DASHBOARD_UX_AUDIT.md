@@ -1,5 +1,7 @@
 # Gamo Studios — Comprehensive Dashboard UX Audit
 
+> **2026-11-16 — public accounts removed (owner decision).** All public program dashboards and workspaces were removed; the admin app is the only dashboard. Non-admin rows below are historical. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
 > **2026-11-16:** Gamo Live (`apps/live`, organizer and attendee workspaces, admin Live screens) was removed; the Live rows below are historical.
 
 **Date:** 2026-10-13  

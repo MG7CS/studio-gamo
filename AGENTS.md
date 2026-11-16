@@ -2,9 +2,11 @@
 
 You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Treat this file as persistent project instructions. Follow `SECURITY.md` before every external integration.
 
+> **2026-11-16 note:** public accounts, sign-in, Clerk, onboarding, provider profiles, the shared person record and all per-program dashboards were removed by owner decision. The former Shared Authentication, Product Account Independence and Independent Clerk rules are retired; see "Forms, emails and admin" below.
+
 ## Organizational mission (permanent — read first)
 
-**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Studios is a **Public Benefit Corporation** (confirmed by the owner), formed to be mission-driven and not only profit-seeking. Gamo Academy, Gamo Worship and Gamo Production are the three interconnected programs serving one religious and educational mission, not independent profit centers. (Owner decision 2026-11-16, after talking with church ministers and pastors: Gamo Live — events, ticketing, scanner, Promote/Explore Events — was dropped; the four-program state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot`. A second cleanup, designed separately later, will turn the remaining programs into simple forms, emails and invoices with the admin dashboard as the only dashboard.) The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
+**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Studios is a **Public Benefit Corporation** (confirmed by the owner), formed to be mission-driven and not only profit-seeking. Gamo Academy, Gamo Worship and Gamo Production are the three interconnected programs serving one religious and educational mission, not independent profit centers. (Owner decision 2026-11-16, after talking with church ministers and pastors: Gamo Live — events, ticketing, scanner, Promote/Explore Events — was dropped; the four-program state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot`. A second cleanup (owner decision 2026-11-16; spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`) turns the remaining programs into public pages, staff-editable forms, emails and invoices, with the admin dashboard as the only dashboard; see "Forms, emails and admin" below.) The authoritative reference is [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md); it overrides any older commercial guidance anywhere in the repository.
 
 - Evaluate success by religious and educational impact, program accessibility, service reliability, musician and instructor fairness, community trust, church collaboration, responsible stewardship, financial sustainability and long-term mission effectiveness.
 - **Do not**, without explicit founder/board authorization: introduce commercialization strategies, maximize or add fees, turn free/sponsored programs into paid services, deduct from musician or instructor pay, or let payment/sponsorship/partnership affect vetting, rankings or trust signals.
@@ -70,12 +72,12 @@ On each meaningful change:
 - **Test economy (owner direction, 2026-10-18):** while iterating run only the test file for the code you changed (`pnpm exec tsx --test <file>`, or `E2E_APPS=academy pnpm exec playwright test <spec>` after building just that app); use `pnpm check:quick` (lint, format, unit tests) as the cheap gate; run the full `pnpm check` (typecheck, build of all apps, journeys, whole Playwright suite) **once** per merge or release, never as a loop, and never run it while other test runs share the machine. One reviewer/test pass per change, not one per finding. Agents in parallel worktrees must not run the broad suites at all; the lead runs them once after merging.
 - **`pnpm check` must pass before every commit.** It runs typecheck, lint (zero warnings), Prettier check, unit/integration tests, `api:check`, build, the Miniflare journeys and the Playwright smoke suite. In an agent shell, run Astro commands with `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT` so they stay in the foreground.
 - **Hosts and ports** come from `packages/config/apps.ts`; cross-app links from `packages/ui/src/lib/sites.ts` (`siteUrl`, `inquiryUrl`). Never hard-code an origin.
-- **Typed runtime:** read bindings through `getRuntimeEnv()` (`GamoEnv`) and `Astro.locals` (`GamoLocals`); never read secrets from `import.meta.env`. New env vars go in `packages/config/env.ts`, `env-validation.ts` (if required), the relevant `.dev.vars.example` and `docs/RUNBOOK.md` §3.
-- **Middleware order** (`applicationPages`): env check → session → private-page guard → legacy redirects → page → security headers. New private areas go in `packages/auth/page-access.ts` *and* the app's `robots.txt`; `scripts/audit/private-routes.test.ts` and `crawler-files.test.ts` enforce both.
+- **Typed runtime:** read bindings through `getRuntimeEnv()` (`GamoEnv`) and `Astro.locals` (`GamoLocals`; only the admin app carries a staff session); never read secrets from `import.meta.env`. New env vars go in `packages/config/env.ts`, `env-validation.ts` (if required), the relevant `.dev.vars.example` and `docs/RUNBOOK.md` §3.
+- **Middleware order** (`applicationPages`): public apps (web, academy, worship, production) run env check → legacy redirects → page → security headers, with no public session and no private-page guard (there are no public accounts since 2026-11-16). The admin app adds the staff session and staff guard (Cloudflare Access + admin password) before the page. Any new private area belongs in admin, and also in admin's `robots.txt`; `scripts/audit/private-routes.test.ts` and `crawler-files.test.ts` enforce the crawler rules.
 - **Renamed or removed URLs** get an entry in the app's `src/lib/legacy-redirects.ts` (default 302; keep the status the old route used — 301 for permanent page moves, 303 for old form endpoints), covered by `scripts/audit/legacy-redirects.test.ts`.
 - **API routes:** auth check first, then `requireSameOrigin` on every state-changing request, then validation; errors via `api/response.ts`. Change `openapi/root.yaml` first.
-- **Fail closed:** integrations take `allowMock` only for `ENVIRONMENT=local`; outside local a missing key means the feature answers 503/unavailable, never a fake success. Local-only flags (`ALLOW_DEMO_SESSION`, `ALLOW_AUTH_SIMULATION`, `ALLOW_PUBLIC_DEMO_WORKSPACES`) are fatal elsewhere. Paid checkout stays 503.
-- **CSP:** no inline `<script>` or `on*=` handlers, no third-party script origins beyond the product's Clerk Frontend API; styles and fonts are self-hosted. Pages are on-demand (not prerendered) so middleware and headers always apply.
+- **Fail closed:** integrations take `allowMock` only for `ENVIRONMENT=local`; outside local a missing key means the feature answers 503/unavailable, never a fake success. Local-only flags (the list in `packages/config/env-validation.ts`) are fatal elsewhere; the public sign-in and demo-workspace flags were retired with public accounts on 2026-11-16. Stripe stays in test mode (`assertStripeTestMode`) and paid checkout stays 503 until the owner approves real charges.
+- **CSP:** no inline `<script>` or `on*=` handlers, no third-party script origins except Turnstile (`https://challenges.cloudflare.com`) on pages that show a protected form (Clerk origins were removed 2026-11-16); styles and fonts are self-hosted. Pages are on-demand (not prerendered) so middleware and headers always apply.
 - **UI:** tokens from `packages/ui/src/styles/tokens.css` only (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`); Inter (self-hosted variable); titles weight 900 uppercase; interactive targets ≥ 44 × 44 px; exactly one `<h1>` per page; every page passes axe WCAG 2.2 AA (serious/critical) and has no horizontal overflow at 360 px.
 - **Sample content:** any fictional person, booking, event or story is visibly labeled *Sample*/*Example*. Sponsored content is always labeled and church partnership or payment never affects musician vetting or rankings (`docs/GAMO_NONPROFIT_MODEL.md` §4).
 - **Database:** add a new numbered migration in `packages/db/migrations` (never edit an applied one; additive by default), update the Drizzle schema and `docs/DATABASE.md`. Local: `pnpm db:migrate:local`, `db:seed:local`, `db:reset:local`.
@@ -133,53 +135,20 @@ These custom agents are located in `.agents/agents/` and can be delegated tasks 
 
 `openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning six applications; no seventh API application by default.
 
-Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Demo session issuance is explicitly local-only. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
+Read `docs/API_INVENTORY.md` before claiming functionality: the original cb97c37 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
 
-## Shared Authentication Design Rule
+## Forms, emails and admin (owner decision, 2026-11-16)
 
-All Gamo Studios applications must use the approved shared authentication UI components for sign-in, registration, email verification, and account recovery.
+Spec: [`docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`](docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md); plan: `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`.
 
-Never independently implement, duplicate, or restyle authentication pages within individual applications.
+- **No public accounts.** Gamo Academy, Gamo Worship and Gamo Production are public pages, staff-editable forms, emails and invoices. There is no public sign-in, sign-up, Clerk, onboarding, provider profile, shared person record, workspace or per-program dashboard. Do not reintroduce any of them without explicit founder approval.
+- **Admin is the only dashboard.** Staff sign in to the admin app with Cloudflare Access plus the admin password (`requireStaff`, `staffContext`). Staff edit forms (versioned on publish), review submissions, approve musicians and technicians into a private roster, match service requests, send offers and issue invoices there.
+- **Forms** are rendered by the shared `DynamicForm` renderer, work without JavaScript and are protected by the public form guard (Turnstile, rate limits, bounded bodies). Uploads go through our Worker into R2 and are served to staff only.
+- **People are identified by email, not accounts.** Submitters, churches, parents and musicians act through emails and signed, expiring single-purpose links (offer Accept/Decline acts on POST only; Academy manage links). Email subjects never contain names; logs never contain personal data or tokens.
+- **Money flows through Gamo.** Gamo invoices the church or family and pays the musician; musician pay and any Gamo administrative line are always separate, and a Gamo administrative line is refused unless the owner has approved it. Invoices use Stripe Invoicing in test mode or manual "mark paid"; integer cents.
+- **Daily cron** (approved) retries the email outbox and enforces retention.
+- The retired Shared Authentication, Product Account Independence (including the shared person record exception) and Independent Clerk rules are recorded in `docs/DECISIONS.md` (2026-11-16); `docs/AUTH.md`, `docs/IDENTITY.md` and `docs/design/identity-and-ticketing.md` are historical.
 
-Authentication routes must use the shared full-viewport desktop layout and approved mobile layout.
-
-Application-specific differences must be supplied through supported component configuration.
-
-Any proposed exception requires explicit founder approval.
-
-When developing a new application or authentication route, reuse the existing shared components by default.
-
-### Shared Authentication Component Locations & Usage Conventions
-
-- **Canonical Shared Package Directory**: `packages/ui/src/components/auth/` (`@studio-gamo/ui/components/auth/*`)
-  - `GamoAuthExperience.astro` — Top-level full-screen 4-mode authentication experience (`mode="signin" | "signup" | "verify" | "recover"`, `program`, `brandHref`, `brandLabel`, `photos`).
-- **Route Usage Convention**:
-  - Every application's `/account/signin.astro`, `/account/signup.astro`, `/account/verify.astro`, and `/account/recover.astro` must wrap `<GamoAuthExperience mode="..." program="..." />` inside the app layout with `chrome={false}` so no marketing navigation header or footer surrounds the authentication screen.
-
-## Product Account Independence Rule
-
-Gamo Studios applications are independent products.
-
-Authentication UI components should be reused across the ecosystem, but product registration, membership, permissions, onboarding, and workspaces must remain separate.
-
-Never interpret shared UI components or authentication infrastructure as permission to create automatic cross-product accounts or grant cross-application access.
-
-Any cross-product identity linking, enrollment, or integration must be explicitly designed and authorized.
-
-**Approved exception — shared person record (owner decision, 2026-10-18; design: `docs/design/identity-and-ticketing.md` §4.6, built: `docs/IDENTITY.md`).** A D1 `persons` row keyed by a **verified** email links a provider's per-product users so that provider profiles, provider roles (musician, technician, church, teacher and the other roles defined in `docs/IDENTITY.md`) and terms acceptances carry across products. Linking happens only after the product has verified the email itself (its own emailed code or its own Clerk application); a typed-but-unproven email never links. Still separate per product: users, product accounts, sessions and cookies, Clerk applications and identity links, staff and program authorization roles, workspaces and onboarding. The person record never grants product access, staff roles or a session in another product, and a person can unlink a product. Customers (parents, students) need no account: their identity is their email (`customer_profiles`) and they manage their requests and purchases through signed, expiring emailed links.
-
-## Independent Clerk Authentication Rule
-
-Every Gamo Studios product uses its own Clerk application and independent authentication accounts and sessions.
-
-All products reuse the approved shared authentication UI components.
-
-Never reuse one product's Clerk credentials in another product. Never automatically grant memberships or authorize cross-product access based on matching email addresses; the only email-based link is the approved shared person record above (verified email, profile data only).
-
-Authentication and business authorization are separate responsibilities.
-
-Do not introduce shared single sign-on or alter product-account independence without explicit founder approval.
-
-**Never run `clerk init`, the Clerk CLI, or any dashboard-generated Clerk setup prompt in this repository, and never replace the existing Clerk integration.** Clerk is already integrated in `packages/auth/clerk.ts` (with the shared auth UI) and is optional: launch uses Gamo's emailed verification codes. If Clerk is enabled later, each product needs its own production Clerk instance and DNS records (`docs/RUNBOOK.md` §3a). Deployed Clerk variables are always product-suffixed (`CLERK_SECRET_KEY_<APP>`, …; defined once in `packages/config/clerk-env.ts`), set with `scripts/set-clerk-secrets.sh`; everything else about auth is in `docs/AUTH.md`.
+## Email
 
 **Email domain:** the verified sending domain is `gamostudio.org` (contact `hello@gamostudio.org`). The Resend bounce/complaint webhook lives in `apps/web` (`/api/webhook/resend` on `gamostudio.org`). `scripts/audit/email-domain.test.ts` fails if the misspelled extra-"s" domain appears anywhere in the repository.

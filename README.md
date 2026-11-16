@@ -2,7 +2,9 @@
 
 Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This repository holds the five web applications for its three programs — **Gamo Academy**, **Gamo Worship** and **Gamo Production** — plus the organization site and the staff admin app.
 
-> **2026-11-16:** Gamo Live (events, ticketing, scanner) was removed after the owner's conversations with church ministers and pastors. Its last state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot`. A second cleanup (later, designed separately) will turn the remaining programs into simple forms, emails and invoices with the admin dashboard as the only dashboard.
+> **2026-11-16:** Gamo Live (events, ticketing, scanner) was removed after the owner's conversations with church ministers and pastors. Its last state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot`. 
+
+> **2026-11-16 (second cleanup, in progress):** public accounts, sign-in, Clerk, onboarding, provider profiles and per-program dashboards are removed. Academy, Worship and Production become public pages, staff-editable forms, emails and invoices; the admin app is the only dashboard. Spec: [`docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`](docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
 
 > Read [`AGENTS.md`](AGENTS.md) before changing anything: it holds the organization's rules for copy, legal wording, payments and data. [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) is the organizational reference (its file name is historical; the PBC statement above prevails).
 
@@ -10,15 +12,15 @@ Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This rep
 
 | App | Host | Local | What it is |
 | --- | --- | --- | --- |
-| `apps/web` | gamostudio.org | http://127.0.0.1:4321 | Organization site, mission, partnerships, contact/inquiries, account hub |
-| `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician and church journeys, workspaces |
-| `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, family/instructor/host workspaces |
-| `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support areas and training |
-| `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | Staff operations, behind Cloudflare Access + an admin gateway |
+| `apps/web` | gamostudio.org | http://127.0.0.1:4321 | Organization site, mission, partnerships, contact and partner-interest forms |
+| `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician application and church request forms, offer links |
+| `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, account-free registration with emailed manage links |
+| `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support, technician application and request forms |
+| `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | The only dashboard: forms, submissions, roster, requests, offers, invoices; behind Cloudflare Access + admin password |
 
-Shared packages: `@studio-gamo/ui` (components, layouts, design tokens), `@gamo/domain` (services, API helpers, middleware), `@gamo/auth` (sessions, Clerk, page access), `@gamo/db` (Drizzle schema, migrations), `@studio-gamo/integrations` (Stripe, Resend, R2), `@gamo/config` (hosts, ports, env, brand), `@gamo/api-contracts` (generated from `openapi/`). See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Shared packages: `@studio-gamo/ui` (components, layouts, design tokens), `@gamo/domain` (services, API helpers, middleware), `@gamo/auth` (staff sessions, CSRF, Cloudflare Access), `@gamo/db` (Drizzle schema, migrations), `@studio-gamo/integrations` (Stripe, Resend, R2), `@gamo/config` (hosts, ports, env, brand), `@gamo/api-contracts` (generated from `openapi/`). See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-**Stack:** Astro 7 (SSR) on Cloudflare Workers, Tailwind CSS 4, D1 + Drizzle, KV, R2, Clerk (optional per product), Stripe (test mode only), Resend. pnpm workspace, Node 22.
+**Stack:** Astro 7 (SSR) on Cloudflare Workers, Tailwind CSS 4, D1 + Drizzle, KV, R2, Turnstile, Stripe (test mode only), Resend. pnpm workspace, Node 22.
 
 ## Quick start
 
@@ -31,7 +33,7 @@ pnpm db:migrate:local         # create each app's local D1 database
 pnpm dev:all                  # all five apps; or `pnpm dev` for apps/web only
 ```
 
-Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.dev.vars` — see each `.dev.vars.example`. Everything works without them: sign-in falls back to emailed codes (with `ALLOW_AUTH_SIMULATION=true` the code is shown locally), paid checkout returns 503, email is simulated locally.
+Per-app secrets (Stripe test keys, Turnstile, Cloudflare Access) go in `apps/<app>/.dev.vars` — see each `.dev.vars.example`. Everything works locally without them: paid checkout returns 503, email is simulated locally.
 
 ## Commands
 
@@ -44,7 +46,7 @@ Per-app secrets (Clerk, Stripe test keys, Cloudflare Access) go in `apps/<app>/.
 | `pnpm format` / `pnpm format:check` | Prettier |
 | `pnpm test` | Unit and integration tests (`node --test` via tsx) |
 | `pnpm test:e2e` | Playwright smoke suite against production builds (`pnpm build` first) |
-| `pnpm test:journeys` | Browser sign-up/workspace journeys on built Workers (Miniflare) |
+| `pnpm test:journeys` | Browser journeys on built Workers (Miniflare) |
 | `pnpm api:check` | OpenAPI lint, generated-artifact drift, route coverage, HTTP contract tests |
 | `pnpm build` | Build all five apps (local configuration) |
 | `pnpm db:migrate:local` / `db:seed:local` / `db:reset:local` | Local D1 (see [`docs/DATABASE.md`](docs/DATABASE.md)) |

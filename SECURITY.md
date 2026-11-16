@@ -8,7 +8,8 @@
 ## Identity and access
 
 - Server-side authN/authZ on every private route, webhook, action and storage fetch.
-- Roles/scopes: visitor, student, musician applicant, approved musician, church member/director, academy host/instructor, staff reviewer, dispatcher, finance administrator and superadmin. Define exact permissions, deny by default.
+- Since 2026-11-16 there are **no public accounts**: the only private surface is the admin app (Cloudflare Access + admin password). Public actions use guarded forms (Turnstile, rate limits, bounded bodies) and signed, expiring, single-purpose emailed links (token hash stored only; state changes on POST only). Uploaded files are verified (size + magic bytes) and served to staff only with `nosniff` and a sandbox CSP. Spec: `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`.
+- Roles/scopes: staff roles only (staff reviewer, dispatcher, finance administrator, superadmin); applicants, roster musicians, churches and families are identified by email, not accounts. Define exact permissions, deny by default.
 - Admin routes must additionally support Cloudflare Access or equivalent staff boundary where feasible.
 - Real webcam capture does not prove a living person or a valid ID. A specialist identity verification provider must verify identity and/or liveness when required; never treat a local demo as real verification.
 - Government ID images, selfies and background screening data are highly sensitive. No raw ID photographs exposed to church customers. Favor vendor tokens/results and minimal retention, encryption and narrow staff controls.

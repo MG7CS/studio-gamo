@@ -1,5 +1,8 @@
 # Authentication
 
+> [!WARNING]
+> **Retired 2026-11-16 (owner decision).** Public sign-in, Clerk and the per-product accounts this document describes were removed. Staff authentication for the admin app (Cloudflare Access plus the admin password) is unchanged and documented in `docs/RUNBOOK.md` §8. Current model: [forms, emails and invoices spec](superpowers/specs/2026-11-16-forms-emails-invoices-design.md); rules in `AGENTS.md` ("Forms, emails and admin"). Kept as a historical record only; do not build from it.
+
 How people sign in to the four public apps (`web`, `worship`, `academy`, `production`; Gamo Live and its Clerk application were removed on 2026-11-16), what the owner must configure, and how to test it by hand. `admin` does not use Clerk: it sits behind Cloudflare Access plus a D1 superadmin password (`docs/RUNBOOK.md` §8).
 
 Rules that never change (AGENTS.md): every product has its **own** Clerk application, users and keys; nothing links accounts across products; the sign-in screens are the shared `GamoAuthExperience`; nobody runs `clerk init`, the Clerk CLI or a dashboard-generated setup prompt in this repository.

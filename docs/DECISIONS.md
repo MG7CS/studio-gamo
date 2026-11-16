@@ -187,3 +187,18 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   6. **Deferred to cleanup two**: shared account, sign-in, Clerk, customer-link, email and Academy Stripe code stays even where it still names `'live'` in a type or list. A second cleanup (designed separately, later) will turn the remaining programs into simple forms, emails and invoices with the admin dashboard as the only dashboard.
 - **Rules carried forward**: the church-partnership, sponsored-labeling ("Sponsored" / "Featured" / "Gamo Program" / "Example") and dynamic-homepage rules from the deleted `docs/GAMO_LIVE_AND_PARTNERS.md` now live in `docs/GAMO_NONPROFIT_MODEL.md` §4, §4.1 and §6. The AGENTS.md "Past Event Closure & Real Database Events Rule" (Decision 014) is retired.
 - **Owner actions** (remote, not done by agents): delete the `gamo-live` and `gamo-live-preview` workers and the `live.gamostudio.org` route; repoint the Resend webhook and set `RESEND_WEBHOOK_SECRET` on web; apply migration `0018`. Steps: `docs/RUNBOOK.md` §12.
+
+---
+
+## 2026-11-16 — Cleanup two: no public accounts; forms, emails and invoices; admin is the only dashboard
+
+- **Context**: after dropping Gamo Live, the owner wants Academy, Worship and Production to be simple: public pages, forms, emails and invoices. Only two forms persisted anything, Worship/Production pushed people into account sign-up, and every non-admin dashboard was demo data.
+- **Decision** (owner, 2026-11-16; spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`, plan `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`):
+  1. **Remove public accounts first**: public sign-in/sign-up, Clerk, onboarding, provider profiles, the shared person record, participation, staff provider/church review and all per-program dashboards and demo workspaces. Old URLs redirect (`legacy-redirects.ts`). Migration `0019_remove_public_accounts.sql` drops the public-account tables (destructive; owner approved with the plan; production holds test data only). OpenAPI 4.0.0 is a breaking release (`docs/API_COMPATIBILITY.md`).
+  2. **Admin is the only dashboard**, behind Cloudflare Access plus the admin password (unchanged: `users`, `sessions`, `roles`, `user_roles`, `admin_credentials`, `requireStaff`, `staffContext`).
+  3. **Staff-editable forms** (Google-Forms question types, links, photo/video/PDF uploads to R2, versioned on publish) replace account flows; Academy registration keeps its account-free flow with emailed manage links.
+  4. **Money flows through Gamo**: Gamo invoices the church or family and pays the musician; musician pay and any Gamo administrative line stay separate, and a Gamo line is refused until the owner approves the fee. Stripe Invoicing in test mode plus manual "mark paid".
+  5. **Daily cron approved** for email retry and retention.
+- **Retired AGENTS.md rules**: "Shared Authentication Design Rule" (and its component locations/route convention), "Product Account Independence Rule" (including the 2026-10-18 shared person record exception) and "Independent Clerk Authentication Rule". The email-domain rule is kept under "Email". The 2026-10-15 entries above (shared authentication components, product account independence) and the 2026-10-18 Clerk test-server entry are superseded and left as written.
+- **Docs retired**: `docs/AUTH.md`, `docs/IDENTITY.md` and `docs/design/identity-and-ticketing.md` carry a retired banner; `docs/CLERK_ARCHITECTURE_AND_MIGRATION.md` was deleted (history at tag `four-programs-snapshot`).
+- **Owner actions**: `docs/RUNBOOK.md` §13 (apply `0019`; delete any Clerk applications, DNS records and `CLERK_*` secrets).
