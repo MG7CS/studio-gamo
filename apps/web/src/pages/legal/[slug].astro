@@ -5,6 +5,7 @@
  * terms registry (`@gamo/domain/terms`), the text from `@studio-gamo/ui/components/legal/content`.
  */
 import SiteLayout from '../../layouts/SiteLayout.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import LegalDocument from '@studio-gamo/ui/components/legal/LegalDocument.astro';
 import { getLegalDocumentContent } from '@studio-gamo/ui/components/legal/content/index.ts';
 import { getTermsDocument } from '@gamo/domain/terms';
@@ -16,7 +17,7 @@ if (!entry || !content) return Astro.rewrite('/404');
 ---
 
 <SiteLayout title={`${entry.title} (Draft) | Gamo Studios`} description={entry.summary}>
-  <section class="px-6 page-intro-space sm:px-12">
+  <Container class="page-intro-space">
     <LegalDocument content={content} version={entry.version} />
-  </section>
+  </Container>
 </SiteLayout>

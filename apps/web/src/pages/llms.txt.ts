@@ -9,13 +9,13 @@ export const GET: APIRoute = () => {
   const web = siteOrigin('web');
   const body = `# Gamo Studios
 
-> Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together three connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, and supporting technical ministry.
+> Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together three connected programs serving students, families, churches and musicians: teaching instruments, preparing worship teams and supporting technical ministry.
 
 ## Programs
 
-- [Gamo Worship](${siteOrigin('worship')}): a developing program helping churches find prepared, vetted musicians, and helping musicians serve congregations with dependable scheduling and fair pay.
-- [Gamo Academy](${siteOrigin('academy')}): friendly, patient music lessons for students and families, private or in small groups, online or close to home, including planned church-hosted and sponsored programs.
-- [Gamo Production](${siteOrigin('production')}): a proposed program helping churches grow in worship audio, video, lighting and livestreaming, and the volunteers who serve behind the board.
+- [Gamo Academy](${siteOrigin('academy')}): friendly, patient music lessons for students and families, private or in small groups. "Learn to Play the Instrument You Love."
+- [Gamo Worship](${siteOrigin('worship')}): helps churches find prepared, vetted worship musicians, and helps musicians serve congregations with dependable scheduling and fair pay shown as its own line item.
+- [Gamo Production](${siteOrigin('production')}): helps churches grow in worship audio, video, lighting and livestreaming, with hands-on training for the volunteers who serve behind the board.
 
 ## About Gamo Studios
 

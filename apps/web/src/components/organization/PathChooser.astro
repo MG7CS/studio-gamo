@@ -1,0 +1,29 @@
+---
+/**
+ * "Find your place" path chooser: one LinkCard per way to take part (Academy → Worship → Production →
+ * organization). Used on the homepage and /get-started; the surrounding Section or page owns the heading.
+ */
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import { participation } from '../../data/organization';
+
+interface Props {
+  /** Heading level of each card title. Default h3. */
+  headingLevel?: 'h2' | 'h3';
+  /** Card surface. Default raised. */
+  tone?: 'raised' | 'outline';
+}
+const { headingLevel = 'h3', tone = 'raised' } = Astro.props;
+---
+
+<FeatureGrid as="ul" max={3}>
+  {participation.map((p) => (
+    <LinkCard as="li" href={p.href} title={p.title} headingLevel={headingLevel} tone={tone}>
+      <Badge slot="eyebrow" size="sm">
+        {p.area}
+      </Badge>
+      <p>{p.next}</p>
+    </LinkCard>
+  ))}
+</FeatureGrid>

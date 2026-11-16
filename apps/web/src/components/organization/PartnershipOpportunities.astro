@@ -1,72 +1,59 @@
 ---
-import Photo from '@studio-gamo/ui/components/Photo.astro';
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Partnership pathways (Academy → Worship → Production → shared resources) and the principles band. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+
 const paths = [
-  [
-    'Sponsor a learning cohort',
-    'Help shape a proposed program where young people can learn together. Funding, eligibility and delivery arrangements remain under development.',
-  ],
-  [
-    'Host an Academy program',
-    'Explore offering classroom space, instruments and local support for a future education program.',
-  ],
-  [
-    'Develop worship musicians',
-    'Collaborate on preparation, shared repertoire and opportunities for musicians to serve and grow.',
-  ],
-  [
-    'Equip technical ministry',
-    'Explore volunteer training and practical support for sanctuary sound, livestreaming and lighting through Gamo Production.',
-  ],
-  [
-    'Share practical resources',
-    'Facilities, instruments, sound equipment and professional skills can all support the mission.',
-  ],
+  {
+    title: 'Host an Academy program',
+    body: 'Offer classroom space, instruments and local support for lessons close to home.',
+  },
+  {
+    title: 'Support a learning cohort',
+    body: 'Help young people learn together in a group program; funding, eligibility and delivery are agreed with each partner.',
+  },
+  {
+    title: 'Develop worship musicians',
+    body: 'Collaborate on preparation, shared repertoire and opportunities for musicians to serve and grow.',
+  },
+  {
+    title: 'Equip technical ministry',
+    body: 'Volunteer training and practical support for sanctuary sound, livestreaming and lighting through Gamo Production.',
+  },
+  {
+    title: 'Share practical resources',
+    body: 'Facilities, instruments, sound equipment and professional skills all support the mission.',
+  },
 ];
 ---
 
-<section id="opportunities" class="px-6 section-space sm:px-12">
-  <div class="mx-auto grid max-w-[1320px] gap-14 lg:grid-cols-[.85fr_1.15fr] lg:gap-24">
-    <div>
-      <EditorialHeading eyebrow="Partnership possibilities" title="What can we" accent="build together?" />
-      <div class="mt-10 h-[390px] overflow-hidden mask-arch">
-        <Photo name="guitarMentor" sizes="(min-width:1024px) 37vw, 100vw" />
-      </div>
-      <p class="mt-5 text-sm text-ink-soft">
-        Photography illustrates the mission; it does not identify an existing partner.
-      </p>
-    </div>
-    <div>
-      {paths.map(([title, body], i) => (
-        <article class="border-t border-sand py-7">
-          <p class="eyebrow text-terracotta">0{i + 1} · Proposed pathway</p>
-          <h3 class="mt-3 text-2xl font-semibold tracking-tight">{title}</h3>
-          <p class="mt-3 max-w-xl leading-relaxed text-ink-soft">{body}</p>
-        </article>
-      ))}
-      <ButtonLink href="/partners/interest" arrow>
-        Start a partnership inquiry
-      </ButtonLink>
-    </div>
+<Section id="opportunities" title="What can we build together?">
+  <Fragment slot="eyebrow">Partnership pathways</Fragment>
+  <div slot="intro" class="flex flex-col items-start gap-3">
+    <Badge tone="proposal">Proposal</Badge>
+    <p>Each pathway is shaped with the church or organization before anything begins.</p>
   </div>
-</section>
-<section data-surface="dark" class="bg-charcoal px-6 py-16 text-cream sm:px-12">
-  <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-2 lg:gap-24">
-    <h2 class="section-heading">
-      Shared mission.
-      <br />
-      <span class="text-gold">Clear principles.</span>
-    </h2>
-    <div class="space-y-5 text-lg leading-relaxed text-cream/80">
-      <p>
-        Ordinary participation never requires a partnership. Supporting contributions do not influence
-        musician auditions, trust indicators or rankings.
-      </p>
-      <p>
-        Church membership contributions, recognition and sponsorship arrangements are still being developed.
-        No membership tiers or contribution amounts are approved.
-      </p>
-    </div>
+  <ButtonLink slot="actions" href="/partners/interest" arrow>
+    Start a partnership inquiry
+  </ButtonLink>
+  <FeatureGrid as="ul" max={3}>
+    {paths.map((p) => (
+      <Card as="li" padding="lg" data-reveal>
+        <h3 class="text-xl font-black tracking-tight text-balance uppercase">{p.title}</h3>
+        <p class="mt-3 text-body-sm text-fg-muted">{p.body}</p>
+      </Card>
+    ))}
+  </FeatureGrid>
+</Section>
+<Section tone="dark" title="Shared mission. Clear principles.">
+  <div class="flex max-w-prose flex-col gap-5 text-lg leading-relaxed text-fg-muted">
+    <p>
+      Ordinary participation never requires a partnership. Partnerships and contributions never influence
+      musician auditions, trust indicators or rankings.
+    </p>
+    <p>No fees, tiers or contribution amounts have been approved.</p>
   </div>
-</section>
+</Section>

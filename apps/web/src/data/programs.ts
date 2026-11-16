@@ -1,33 +1,55 @@
-/** The three interconnected Gamo Studios programs (organizational copy, not sample data). */
+/**
+ * The three interconnected Gamo Studios programs (organizational copy, not sample data), in owner order:
+ * Gamo Academy, then Gamo Worship, then Gamo Production (AGENTS.md "Program order").
+ */
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
-import type { IconName } from '@studio-gamo/ui/lib/icons';
 
 export interface Program {
-  key: 'worship' | 'academy' | 'production';
+  key: 'academy' | 'worship' | 'production';
   name: string;
-  short: string;
+  /** Who the program speaks to first (short eyebrow label). */
+  audience: string;
+  /** One-line lead; Academy's is the approved headline. */
+  lead: string;
   summary: string;
   href: string;
   photo: PhotoKey;
-  icon: IconName;
-  accent: string;
+  photoPosition?: string;
 }
 
 export const programs: Program[] = [
   {
-    key: 'worship', name: 'Gamo Worship', short: 'Find and request skilled worship musicians',
-    summary: 'A vetted collection of worship musicians helping churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
-    href: siteUrl('worship'), photo: 'worshipBand', icon: 'music', accent: 'var(--color-tan)',
+    key: 'academy',
+    name: 'Gamo Academy',
+    audience: 'Students & families',
+    lead: 'Learn to Play the Instrument You Love.',
+    summary:
+      'Patient, caring lessons in piano, guitar, voice, bass and drums for children, teens and adults, private or in small groups.',
+    href: siteUrl('academy'),
+    photo: 'girlGuitar',
+    photoPosition: '50% 28%',
   },
   {
-    key: 'academy', name: 'Gamo Academy', short: 'Learn to Play the Instrument You Love.',
-    summary: 'Music lessons for students and families, taught by caring instructors, with community and church-hosted programs being planned.',
-    href: siteUrl('academy'), photo: 'boyGuitar', icon: 'school', accent: 'var(--color-sand)',
+    key: 'worship',
+    name: 'Gamo Worship',
+    audience: 'Churches & musicians',
+    lead: 'Prepared musicians for every service.',
+    summary:
+      'Vetted worship musicians who help churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
+    href: siteUrl('worship'),
+    photo: 'worshipBand',
+    photoPosition: '55% 35%',
   },
   {
-    key: 'production', name: 'Gamo Production', short: 'Sound, light and media support',
-    summary: 'Technical guidance and production support that helps churches and ministries serve their gatherings with clarity and care.',
-    href: siteUrl('production'), photo: 'soundEngineer', icon: 'video', accent: 'var(--color-line)',
+    key: 'production',
+    name: 'Gamo Production',
+    audience: 'Church technical teams',
+    lead: 'Clear sound, light and livestreams.',
+    summary:
+      'Practical audio, livestream and lighting support, with hands-on training for the church volunteers behind the board.',
+    href: siteUrl('production'),
+    photo: 'soundEngineer',
+    photoPosition: '40% 40%',
   },
 ];

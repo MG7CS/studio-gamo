@@ -1,8 +1,8 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import OrganizationHero from '../components/organization/OrganizationHero.astro';
+import ProgramsShowcase from '../components/organization/ProgramsShowcase.astro';
 import WhyWeExist from '../components/mission/WhyWeExist.astro';
-import MissionPrograms from '../components/mission/MissionPrograms.astro';
 import WhoWeServe from '../components/mission/WhoWeServe.astro';
 import OurValues from '../components/mission/OurValues.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -11,16 +11,16 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 
 <SiteLayout
   title="Our Mission | Gamo Studios"
-  description="Helping churches, musicians, students and families grow through music and shared Christian experiences: three connected programs, one developing mission."
+  description="Helping students, families, churches and musicians grow through music and shared Christian experiences: three connected programs, one mission."
   current="mission"
 >
   <OrganizationHero
     eyebrow="Faith expressed through music"
     title="Music. Worship."
     accent="Community."
-    body="Helping churches, musicians, students and families grow through music and shared Christian experiences. Three connected programs. One developing mission."
+    body="Helping students, families, churches and musicians grow through music and shared Christian experiences. Three connected programs. One mission."
     photo="sanctuaryCongregation"
-    inset="girlGuitar"
+    photoPosition="50% 40%"
   >
     <ButtonLink href="#programs" arrow>
       Explore our programs
@@ -30,13 +30,20 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </ButtonLink>
   </OrganizationHero>
   <WhyWeExist />
-  <MissionPrograms />
+  <ProgramsShowcase
+    id="programs"
+    tone="default"
+    eyebrow="One mission, three programs"
+    title="Interconnected programs serving one purpose."
+    intro="Academy teaches, Worship prepares and serves, Production equips. Together they serve students, families, churches and musicians."
+    action={{ label: 'Find where to begin', href: '/get-started' }}
+  />
   <WhoWeServe />
   <OurValues />
   <CtaInvitation
     eyebrow="Get involved"
     title="Your gifts can help shape what comes next."
-    body="Churches, musicians, instructors, families and volunteers each have a practical way to take part as Gamo Studios develops its programs."
+    body="Families, instructors, churches, musicians and volunteers each have a practical way to take part."
     photo="guitarMentor"
   >
     <ButtonLink href="/get-involved" arrow>

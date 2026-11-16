@@ -1,17 +1,21 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import ContactIntroduction from '../components/organization/ContactIntroduction.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import EmailUsBlock from '../components/organization/EmailUsBlock.astro';
 ---
 
 <SiteLayout
   title="Contact | Gamo Studios"
-  description="Contact the Gamo Studios team to explore a program, a way to serve or a community collaboration. Initial local program area: Phoenix, Arizona."
+  description="Contact the Gamo Studios team about a program, a way to serve or a community collaboration. Programs begin in Phoenix, Arizona."
 >
-  <section class="px-6 page-intro-space sm:px-12">
-    <div class="mx-auto grid max-w-[1320px] items-start gap-12 lg:grid-cols-[1fr_1fr] lg:gap-24">
-      <ContactIntroduction />
-      <EmailUsBlock />
+  <PageHero eyebrow="Questions · ideas · possibilities">
+    <Fragment slot="title">
+      Let's start <span class="block text-action">a conversation.</span>
+    </Fragment>
+    <div slot="intro" class="flex flex-col gap-4">
+      <p>Ask about a program, a way to serve or a community collaboration with the Gamo Studios team.</p>
+      <p class="text-small">Programs begin in the Phoenix metropolitan area, Arizona.</p>
     </div>
-  </section>
+    <EmailUsBlock slot="media" />
+  </PageHero>
 </SiteLayout>

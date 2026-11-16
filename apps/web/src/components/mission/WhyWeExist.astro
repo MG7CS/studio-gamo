@@ -1,6 +1,13 @@
 ---
-/** Four grounded needs, set as an editorial numbered list beside a sticky statement. */
+/** Why we exist: four practical needs (Academy → Worship → Production) as aligned numbered items. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
+
 const needs = [
+  {
+    title: 'Families want access to music education.',
+    body: 'Learning an instrument can shape a young person for life, yet lessons are often out of reach.',
+  },
   {
     title: 'Churches need dependable musicians.',
     body: 'Many congregations, especially smaller ones, struggle to keep worship teams staffed week to week.',
@@ -10,40 +17,17 @@ const needs = [
     body: 'Skilled worship musicians should be paid clearly and treated as partners in ministry.',
   },
   {
-    title: 'Families want access to music education.',
-    body: 'Learning an instrument can shape a young person for life, yet lessons are often out of reach.',
-  },
-  {
     title: 'Ministries need technical support.',
     body: 'Good sound, light and media help people focus on worship rather than distractions.',
   },
 ];
 ---
 
-<section aria-labelledby="why-title" class="bg-ivory px-5 py-20 sm:px-8 lg:py-28">
-  <div class="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-    <div class="lg:sticky lg:top-32 lg:self-start">
-      <p class="eyebrow text-terracotta">Why we exist</p>
-      <h2 id="why-title" class="section-heading mt-4 text-balance text-charcoal">
-        Worship is carried by people. We want to help them.
-      </h2>
-      <p class="mt-5 max-w-md text-lg leading-relaxed text-ink-soft">
-        Gamo Studios is a developing Christian, mission-driven Public Benefit Corporation shaped around a few
-        practical needs we see in churches and communities.
-      </p>
-    </div>
-    <ol class="divide-y divide-sand border-y border-sand">
-      {needs.map((n, i) => (
-        <li data-reveal class="grid grid-cols-[3.5rem_1fr] gap-4 py-8 sm:grid-cols-[5rem_1fr]">
-          <span class="text-4xl font-extrabold tracking-tight text-terracotta/80 sm:text-5xl">
-            {String(i + 1).padStart(2, '0')}
-          </span>
-          <div>
-            <h3 class="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">{n.title}</h3>
-            <p class="mt-2 max-w-xl text-lg leading-relaxed text-ink-soft">{n.body}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
-  </div>
-</section>
+<Section tone="raised" title="Worship is carried by people. We want to help them.">
+  <Fragment slot="eyebrow">Why we exist</Fragment>
+  <p slot="intro">
+    Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and
+    not only profit-seeking. Our programs answer a few practical needs we see in churches and communities.
+  </p>
+  <NumberedSteps items={needs} />
+</Section>

@@ -1,17 +1,26 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import ContactIntroduction from '../../components/organization/ContactIntroduction.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import EmailUsBlock from '../../components/organization/EmailUsBlock.astro';
 ---
 
 <SiteLayout
   title="Partnership Inquiry | Gamo Studios"
-  description="Share a partnership idea with Gamo Studios: hosting, education sponsorships, worship development or shared resources for your church or organization."
+  description="Share a partnership idea with Gamo Studios: hosting lessons, learning cohorts, worship development or shared resources for your church or organization."
 >
-  <section class="px-6 page-intro-space sm:px-12">
-    <div class="mx-auto grid max-w-[1320px] items-start gap-12 lg:grid-cols-2 lg:gap-24">
-      <ContactIntroduction partnership />
-      <EmailUsBlock partnership />
+  <PageHero
+    eyebrow="Build something together"
+    breadcrumbs={[{ label: 'Partnerships', href: '/partners' }, { label: 'Inquiry' }]}
+  >
+    <Fragment slot="title">
+      Every partnership <span class="block text-action">starts with an idea.</span>
+    </Fragment>
+    <div slot="intro" class="flex flex-col gap-4">
+      <p>
+        Talk with our team about hosting lessons, learning cohorts, worship development or shared resources.
+      </p>
+      <p class="text-small">Programs begin in the Phoenix metropolitan area, Arizona.</p>
     </div>
-  </section>
+    <EmailUsBlock slot="media" partnership />
+  </PageHero>
 </SiteLayout>

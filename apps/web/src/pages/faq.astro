@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { generalFaq } from '../data/organization';
@@ -8,24 +9,22 @@ import { generalFaq } from '../data/organization';
 
 <SiteLayout
   title="Frequently Asked Questions | Gamo Studios"
-  description="Answers to common questions about the Gamo Studios mission, its three programs, and how churches, families and musicians can take part."
+  description="Answers to common questions about the Gamo Studios mission, its three programs, and how families, churches and musicians can take part."
 >
-  <section class="px-6 page-intro-space sm:px-12">
-    <div class="mx-auto max-w-[1050px]">
-      <EditorialHeading
-        eyebrow="A little more clarity"
-        title="Good questions."
-        accent="Honest answers."
-        as="h1"
-        size="display"
-        lede="Answers about our mission, programs, and how churches, families, and musicians participate."
-      />
-      <FaqAccordion items={generalFaq} class="mt-12" />
-      <div class="mt-10">
-        <ButtonLink href="/contact" arrow>
-          Contact our team
-        </ButtonLink>
-      </div>
+  <PageHero eyebrow="A little more clarity" width="narrow">
+    <Fragment slot="title">
+      Good questions. <span class="block text-action">Honest answers.</span>
+    </Fragment>
+    <p slot="intro">
+      Answers about our mission, programs, and how families, churches and musicians take part.
+    </p>
+  </PageHero>
+  <Section width="narrow" spacing="none" class="pb-20">
+    <FaqAccordion items={generalFaq} />
+    <div class="mt-10">
+      <ButtonLink href="/contact" arrow>
+        Contact our team
+      </ButtonLink>
     </div>
-  </section>
+  </Section>
 </SiteLayout>

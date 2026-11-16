@@ -1,17 +1,16 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import HomeEditorialHero from '../components/home/HomeEditorialHero.astro';
-import HomeProgramsBento from '../components/home/HomeProgramsBento.astro';
-import HomeWorshipSpotlight from '../components/home/HomeWorshipSpotlight.astro';
-import HomeAcademySpotlight from '../components/home/HomeAcademySpotlight.astro';
-import HomeProductionSpotlight from '../components/home/HomeProductionSpotlight.astro';
-import HomeCommunityPaths from '../components/home/HomeCommunityPaths.astro';
+import ProgramsShowcase from '../components/organization/ProgramsShowcase.astro';
+import PathChooser from '../components/organization/PathChooser.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
+import { programs } from '../data/programs';
 
 const origin = siteOrigin('web');
-// Organization facts only: name, URLs, logo, description and the three programs. No legal-status claims.
+// Organization facts only: name, URLs, logo, description and the three programs (owner order). No legal-status claims.
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -20,30 +19,39 @@ const organizationJsonLd = {
   url: origin,
   logo: `${origin}/logo-512.png`,
   description:
-    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together three connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, and supporting technical ministry.',
-  subOrganization: [
-    { '@type': 'Organization', name: 'Gamo Worship', url: siteOrigin('worship') },
-    { '@type': 'Organization', name: 'Gamo Academy', url: siteOrigin('academy') },
-    { '@type': 'Organization', name: 'Gamo Production', url: siteOrigin('production') },
-  ],
+    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together three connected programs serving students, families, churches and musicians: teaching instruments, preparing worship teams and supporting technical ministry.',
+  subOrganization: programs.map((p) => ({ '@type': 'Organization', name: p.name, url: siteOrigin(p.key) })),
 };
 ---
 
 <SiteLayout
   jsonLd={organizationJsonLd}
-  title="Gamo Studios — Worship, Music Education & Technical Ministry"
-  description="Gamo Studios connects Worship, Academy and Production to serve churches, musicians, students and families through music and worship."
+  title="Gamo Studios — Music Education, Worship & Technical Ministry"
+  description="Gamo Studios connects Academy, Worship and Production to serve students, families, churches and musicians through music and worship."
 >
   <HomeEditorialHero />
-  <HomeProgramsBento />
-  <HomeWorshipSpotlight />
-  <HomeAcademySpotlight />
-  <HomeProductionSpotlight />
-  <HomeCommunityPaths />
+  <ProgramsShowcase
+    id="programs"
+    eyebrow="One mission · three programs"
+    title="Three connected ways we serve together."
+    intro="Gamo Academy, Gamo Worship and Gamo Production serve one religious and educational mission. Each program has its own site with the details."
+    action={{ label: 'Read our mission', href: '/mission' }}
+  />
+  <Section title="Find your place in the mission.">
+    <Fragment slot="eyebrow">Where to begin</Fragment>
+    <p slot="intro">
+      Learning an instrument, leading a congregation, playing in a worship team or serving behind the sound
+      board: start here.
+    </p>
+    <ButtonLink slot="actions" href="/get-involved" variant="secondary" arrow>
+      See every way to get involved
+    </ButtonLink>
+    <PathChooser />
+  </Section>
   <CtaInvitation
     eyebrow="Join the mission"
     title="Ready to take your first step with Gamo Studios?"
-    body="Find your place in Worship, Academy or Production, or learn how your church or community can partner with us."
+    body="Find your place in Academy, Worship or Production, or talk with us about how your church or community can partner with us."
     photo="chapelSpring"
   >
     <ButtonLink href="/get-started" arrow>
