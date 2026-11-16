@@ -4,6 +4,8 @@ import { safeReturnPath } from '@gamo/auth/page-access';
 /** Retired gamostudio.org URLs. */
 export const legacyRedirects: LegacyRedirect[] = [
   { from: '/partner/*', to: '/account/inquiries' },
+  // Gamo Live was retired (2026-11-16); /live and anything below it go to the homepage.
+  { from: '/live/*', to: '/' },
   {
     from: '/signin',
     to: (url) => {

@@ -4,7 +4,6 @@ import HomeEditorialHero from '../components/home/HomeEditorialHero.astro';
 import HomeProgramsBento from '../components/home/HomeProgramsBento.astro';
 import HomeWorshipSpotlight from '../components/home/HomeWorshipSpotlight.astro';
 import HomeAcademySpotlight from '../components/home/HomeAcademySpotlight.astro';
-import HomeLiveSpotlight from '../components/home/HomeLiveSpotlight.astro';
 import HomeProductionSpotlight from '../components/home/HomeProductionSpotlight.astro';
 import HomeCommunityPaths from '../components/home/HomeCommunityPaths.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -12,7 +11,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 
 const origin = siteOrigin('web');
-// Organization facts only: name, URLs, logo, description and the four programs. No legal-status claims.
+// Organization facts only: name, URLs, logo, description and the three programs. No legal-status claims.
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -21,11 +20,10 @@ const organizationJsonLd = {
   url: origin,
   logo: `${origin}/logo-512.png`,
   description:
-    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together four connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, sharing Christian gatherings nationwide, and supporting technical ministry.',
+    'Gamo Studios is a Christian, mission-driven Public Benefit Corporation that brings together three connected programs serving churches, musicians, students, and families: preparing worship teams, teaching instruments, and supporting technical ministry.',
   subOrganization: [
     { '@type': 'Organization', name: 'Gamo Worship', url: siteOrigin('worship') },
     { '@type': 'Organization', name: 'Gamo Academy', url: siteOrigin('academy') },
-    { '@type': 'Organization', name: 'Gamo Live', url: siteOrigin('live') },
     { '@type': 'Organization', name: 'Gamo Production', url: siteOrigin('production') },
   ],
 };
@@ -33,20 +31,19 @@ const organizationJsonLd = {
 
 <SiteLayout
   jsonLd={organizationJsonLd}
-  title="Gamo Studios — Worship, Music Education, Christian Events & Technical Ministry"
-  description="Gamo Studios connects Worship, Academy, Live and Production to serve churches, musicians, students and families through music and Christian gatherings."
+  title="Gamo Studios — Worship, Music Education & Technical Ministry"
+  description="Gamo Studios connects Worship, Academy and Production to serve churches, musicians, students and families through music and worship."
 >
   <HomeEditorialHero />
   <HomeProgramsBento />
   <HomeWorshipSpotlight />
   <HomeAcademySpotlight />
-  <HomeLiveSpotlight />
   <HomeProductionSpotlight />
   <HomeCommunityPaths />
   <CtaInvitation
     eyebrow="Join the mission"
     title="Ready to take your first step with Gamo Studios?"
-    body="Create your account to explore workspaces across Worship, Academy, Live, and Production, or learn how your church or community can partner with us."
+    body="Create your account to explore workspaces across Worship, Academy, and Production, or learn how your church or community can partner with us."
     photo="chapelSpring"
   >
     <ButtonLink href="/account/signup" arrow>

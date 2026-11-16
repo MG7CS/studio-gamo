@@ -12,7 +12,6 @@ export const GET: APIRoute = () =>
       { path: '/get-started', priority: '0.8', changefreq: 'monthly' },
       { path: '/get-involved', priority: '0.8', changefreq: 'monthly' },
       { path: '/partners', priority: '0.8', changefreq: 'monthly' },
-      { path: '/live', priority: '0.8', changefreq: 'monthly' },
       { path: '/support', priority: '0.8', changefreq: 'monthly' },
       { path: '/faq', priority: '0.8', changefreq: 'monthly' },
       { path: '/contact', priority: '0.8', changefreq: 'monthly' },
