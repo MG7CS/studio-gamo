@@ -47,6 +47,10 @@ Financial sustainability is important, but it is subordinate to the mission.
 - Never silently add providers/services (Twilio, Firebase, Supabase, proprietary AI APIs, analytics etc.). Request approval for a new paid/external dependency; use adapters for future options.
 - Never substitute fictional screenshots or invented test results for real browser evidence.
 
+## Research first (owner rule, 2026-11-16)
+
+Before fixing or improving anything non-trivial (UI/UX, shared components, architecture, performance, accessibility, security, a recurring bug), do web research first to gather ideas and current best practice: prefer official docs and recognised practitioners, check that the sources are current, and compare at least two approaches before choosing one. Briefly record what was found and chosen (sources and the decision) in the relevant doc (`docs/DECISIONS.md`, the spec or plan, or `docs/FRONTEND_ARCHITECTURE.md`). Every agent brief for such work must say to research first. Skip only for trivial changes (typos, copy edits, renames, mechanical refactors) and say so.
+
 ## Build sequence
 
 `inspect → plan → scaffold → implement real vertical slice → test → inspect browser → improve → document → commit → next slice`
