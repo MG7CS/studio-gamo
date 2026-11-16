@@ -13,18 +13,27 @@ The schema is defined twice and the two must agree:
 - **`packages/db/migrations/*.sql`** — what actually runs (applied by Wrangler, tracked in the `d1_migrations` table).
 - **`packages/db/schema.ts`** — the Drizzle model the code queries through (`getDb(env.DB)` in `@gamo/db`).
 
-## Tables by area (42)
+## Tables by area (20)
 
 | Area | Tables |
 | --- | --- |
-| Identity & access | `users`, `sessions`, `product_accounts`, `clerk_identity_links`, `roles`, `user_roles`, `organizations`, `organization_members`, `auth_challenges`, `external_identities`, `admin_credentials` |
-| Shared person, guests, providers (0012) | `persons`, `customer_profiles`, `customer_access_tokens`, `customer_sessions`, `provider_profiles`, `verification_records` |
+| Staff identity & access (admin) | `users`, `sessions`, `roles`, `user_roles`, `external_identities` (Cloudflare Access subject), `admin_credentials` |
+| Shared person, guests (0012) | `persons`, `customer_profiles`, `customer_access_tokens`, `customer_sessions` |
 | Terms, consent, abuse, email (0012) | `terms_documents`, `terms_acceptances`, `marketing_consents`, `rate_limit_counters`, `email_log`, `email_suppressions` |
-| Gamo Worship | `musician_profiles`, `musician_skills`, `applications`, `churches`, `gigs`, `gig_positions`, `gig_assignments`, `checkins`, `standby_dispatches` |
-| Gamo Academy | `instructor_profiles`, `classes`, `enrollments`, `academy_registrations` (0012, guests) |
-| Organization | `church_partnerships`, `sponsorships`, `participation_inquiries`, `media_files`, `audit_logs`, `moderation_reviews` |
+| Gamo Academy | `academy_registrations` (0012, guests) |
+| Organization | `media_files`, `audit_logs`, `moderation_reviews` |
 
-Integrity rules live in **triggers** (8): `media_prohibit_sensitive_docs`, `provider_publish_gate_insert/update`, `provider_identity_immutable`, `verification_records_no_update/no_delete`, `terms_documents_content_immutable`, `terms_acceptances_immutable`. Money is always an integer number of cents.
+Integrity rules live in **triggers** (3): `media_prohibit_sensitive_docs`, `terms_documents_content_immutable`, `terms_acceptances_immutable`. Money is always an integer number of cents.
+
+## Public account removal (0019)
+
+On 2026-11-16 the owner removed public sign-in and every public dashboard; the admin app is the only signed-in surface (plan: [`docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`](superpowers/plans/2026-11-16-forms-emails-invoices.md), Task 1.4). Migration `0019_remove_public_accounts.sql` is a **destructive, owner-approved** forward migration (production held only test data). It drops 22 tables:
+
+- **Public sign-in and accounts:** `product_accounts`, `clerk_identity_links`, `auth_challenges` (emailed sign-in codes; admin uses its password gateway).
+- **Organizations and providers:** `organizations`, `organization_members`, `provider_profiles`, `verification_records` (provider review log), `participation_inquiries`.
+- **Never-used demo tables from 0001/0002:** `musician_profiles`, `musician_skills`, `applications`, `churches`, `gigs`, `gig_positions`, `gig_assignments`, `checkins`, `standby_dispatches`, `instructor_profiles`, `classes`, `enrollments`, `church_partnerships`, `sponsorships`.
+
+It first drops the five triggers on those tables (`provider_publish_gate_insert/update`, `provider_identity_immutable`, `verification_records_no_update/no_delete`), then the tables children-first. Kept on purpose: `persons` (`users.person_id`, `customer_profiles.person_id` and `terms_acceptances.person_id` reference it; dropping it would need table rebuilds), `external_identities` (staff provisioning binds the Cloudflare Access subject; `verifyStaffBoundaryIdentity` checks it), and `customer_sessions`, `marketing_consents`, `moderation_reviews`, `media_files`. Rows of former public users stay in `users`/`sessions` (no foreign key needs them gone; admin only accepts sessions without a product). `packages/db/migrations.test.ts` checks that exactly the kept tables remain, that no trigger, view or foreign key names a dropped table, and applies 0019 over a database holding rows in every dropped table.
 
 ## Gamo Live removal (0018)
 
@@ -37,7 +46,7 @@ On 2026-11-16 the owner narrowed Gamo Studios to Academy, Worship and Production
 - **Production links to events:** `production_requests`, `production_projects` (no code used them).
 - **Never-used payment tables:** `payment_records`, `ledger_entries`, `stripe_webhook_events`.
 
-It first drops the 47 triggers on those tables (so the cascades of DROP TABLE's implicit delete cannot fire ticketing guards) and `moderation_pending`, the one trigger on a kept table (`moderation_reviews`) that read `events` and would otherwise have failed every later insert. Tables are then dropped children-first. No kept table has a foreign key into a dropped one, and no kept table was rebuilt: CHECK constraints that still list `'live'` as a product value (`customer_access_tokens.product`, `customer_sessions.product`, `provider_profiles.product_origin`, …) stay — a harmless value, not worth risky table rebuilds. The four-program state is preserved at tag `four-programs-snapshot`.
+It first drops the 47 triggers on those tables (so the cascades of DROP TABLE's implicit delete cannot fire ticketing guards) and `moderation_pending`, the one trigger on a kept table (`moderation_reviews`) that read `events` and would otherwise have failed every later insert. Tables are then dropped children-first. No kept table has a foreign key into a dropped one, and no kept table was rebuilt: CHECK constraints that still list `'live'` as a product value (`customer_access_tokens.product`, `customer_sessions.product`, `provider_profiles.product_origin`, …) stay — a harmless value, not worth risky table rebuilds (`provider_profiles` itself went with 0019). The four-program state is preserved at tag `four-programs-snapshot`.
 
 ## Migrations
 
@@ -62,8 +71,9 @@ It first drops the 47 triggers on those tables (so the cascades of DROP TABLE's 
 | `0016_agent_followups.sql` | `ticket_orders.attendees_json`, `users.person_link_opt_out_at` |
 | `0017_review_hardening.sql` | product scope on customer link tokens and sessions; seats-per-ticket lock |
 | `0018_remove_gamo_live.sql` | **drops every Gamo Live table** (see above) |
+| `0019_remove_public_accounts.sql` | **drops public accounts, organizations, provider review and old demo tables** (see above) |
 
-Tables created by 0002–0016 for Live no longer exist after 0018; the files stay because applied migrations are never edited.
+Tables created by 0001–0016 for Live, public accounts and the old demos no longer exist after 0018/0019; the files stay because applied migrations are never edited.
 
 **Rules for new migrations**
 
@@ -75,8 +85,8 @@ Tables created by 0002–0016 for Live no longer exist after 0018; the files sta
 **Known drift** between `schema.ts` and the migrated database (`docs/CLEANUP_LOG.md` F-15), left as is because fixing it needs SQLite table rebuilds:
 
 - `user_roles.id` is a primary key in `schema.ts` but a nullable column in the database.
-- 11 foreign keys declare `onDelete: cascade/set null` in `schema.ts` but are `NO ACTION` in the database (`sessions.user_id`, `user_roles.user_id`/`role_id`, `musician_profiles.user_id`, `gigs.church_id`, `gig_positions.gig_id`, `gig_assignments.position_id`/`musician_id`, `checkins.assignment_id`, `applications.musician_id`, `churches.organization_id`). Code must not rely on cascading deletes.
-- Some indexes exist only in `schema.ts`; the partial unique index `product_account_clerk_product_user_unique` exists only in the database.
+- 3 foreign keys declare `onDelete: cascade/set null` in `schema.ts` but are `NO ACTION` in the database (`sessions.user_id`, `user_roles.user_id`/`role_id`); the other 8 went with the tables 0019 dropped. Code must not rely on cascading deletes.
+- Some indexes exist only in `schema.ts`.
 - CHECK constraints and triggers exist only in the SQL; `schema.ts` models tables, columns, defaults, foreign keys and indexes.
 - `packages/db/migrations/meta/_journal.json` (drizzle-kit) only knows `0000`–`0002`. **Do not run `drizzle-kit generate`**; write migrations by hand.
 
@@ -86,12 +96,11 @@ Design of record: [`docs/design/identity-and-ticketing.md`](design/identity-and-
 
 | Trigger | Guarantees |
 | --- | --- |
-| `provider_publish_gate_*`, `provider_identity_immutable` | a profile needing staff review is public only while `verified` (suspending must clear `published_at`); church/musician/technician always need review (CHECK). |
-| `verification_records_no_update/no_delete`, `terms_*_immutable` | the staff verification log is append-only; terms texts and acceptances can't be rewritten (erasure may null emails/IP hashes). |
+| `terms_*_immutable` | terms texts and acceptances can't be rewritten (erasure may null emails/IP hashes). |
 
-Partial unique indexes: one active terms version per slug, one provider role per (person, role, organization). Tests: `packages/db/migrations.test.ts` (kept schema, identity/consent constraints, and 0018 applied from scratch and over a database still holding Live rows).
+Provider profiles and their verification log were dropped by 0019. Partial unique index: one active terms version per slug. Tests: `packages/db/migrations.test.ts` (kept schema, identity/consent constraints, and 0018/0019 applied from scratch and over a database still holding rows in the dropped tables).
 
-**Retention (to be enforced by the owner-enabled cron, O-19; helpers exist):** link tokens deleted 30 days after expiry (`CustomerLinkTokens.purgeExpired`); `rate_limit_counters` purged once the window ends (`purgeRateLimitCounters`); `email_log.recipient_email` nulled after 180 days (hash kept); `verification_records` is an audit record. Erasure: `persons`/`customer_profiles.erased_at`, email replaced by a hash.
+**Retention (to be enforced by the owner-enabled cron, O-19; helpers exist):** link tokens deleted 30 days after expiry (`CustomerLinkTokens.purgeExpired`); `rate_limit_counters` purged once the window ends (`purgeRateLimitCounters`); `email_log.recipient_email` nulled after 180 days (hash kept). Erasure: `persons`/`customer_profiles.erased_at`, email replaced by a hash.
 
 **Never stored in clear:** customer link tokens (HMAC with `CUSTOMER_LINK_SECRET`). IPs and emails in logs, buckets and suppressions are HMAC hashes with `PII_HASH_SECRET` (`hashIp`, `hashEmail`).
 
@@ -114,4 +123,4 @@ pnpm exec wrangler d1 migrations list gamo-db-production --remote
 pnpm exec wrangler d1 migrations apply gamo-db-production --remote
 ```
 
-Back up first (`wrangler d1 export gamo-db-production --remote --output backup.sql`) and apply to `gamo-db-preview` before production. `0018` is destructive: take the backup before applying it. See `docs/RUNBOOK.md`.
+Back up first (`wrangler d1 export gamo-db-production --remote --output backup.sql`) and apply to `gamo-db-preview` before production. `0018` and `0019` are destructive: take the backup before applying them. See `docs/RUNBOOK.md`.

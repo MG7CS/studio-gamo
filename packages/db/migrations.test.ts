@@ -1,6 +1,7 @@
 /**
- * Migrations: 0012 (identity, terms, customers) constraints, and 0018 (remove Gamo Live) applied both
- * from scratch and on top of a database that still holds Live rows.
+ * Migrations: 0012 (identity, terms, customers) constraints, 0018 (remove Gamo Live) and 0019 (remove
+ * public accounts and legacy demo tables), each applied both from scratch and on top of a database that
+ * still holds rows in the tables it drops.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ const FUTURE = Math.floor(Date.now() / 1000) + 30 * 86400; // 0003's trigger com
 const T = 1_900_000_000;
 
 /** Tables 0018 drops (Gamo Live, its production links, and the never-used payment tables). */
-const DROPPED_TABLES = [
+const LIVE_TABLES = [
   'events',
   'event_occurrences',
   'event_registrations',
@@ -60,8 +61,8 @@ const DROPPED_TABLES = [
   'stripe_webhook_events',
 ];
 
-/** Tables kept code still uses; 0018 must leave them in place. */
-const KEPT_TABLES = [
+/** Tables 0018 left in place (some of them 0019 drops later). */
+const KEPT_AFTER_0018 = [
   'users',
   'sessions',
   'organizations',
@@ -85,6 +86,61 @@ const KEPT_TABLES = [
   'audit_logs',
 ];
 
+/** Tables 0019 drops: public sign-in, product accounts, organizations, provider review and old demo tables. */
+const ACCOUNT_TABLES = [
+  'product_accounts',
+  'clerk_identity_links',
+  'auth_challenges',
+  'provider_profiles',
+  'verification_records',
+  'participation_inquiries',
+  'organizations',
+  'organization_members',
+  'church_partnerships',
+  'sponsorships',
+  'churches',
+  'musician_profiles',
+  'musician_skills',
+  'applications',
+  'gigs',
+  'gig_positions',
+  'gig_assignments',
+  'checkins',
+  'standby_dispatches',
+  'instructor_profiles',
+  'classes',
+  'enrollments',
+];
+
+/**
+ * Exactly the tables left after 0019. persons stays because users, customer_profiles and
+ * terms_acceptances hold person_id foreign keys; external_identities binds the Cloudflare Access subject
+ * of staff; customer_sessions, marketing_consents and moderation_reviews are read by kept code or kept
+ * staff tooling.
+ */
+const KEPT_AFTER_0019 = [
+  'users',
+  'sessions',
+  'roles',
+  'user_roles',
+  'admin_credentials',
+  'external_identities',
+  'persons',
+  'customer_profiles',
+  'customer_access_tokens',
+  'customer_sessions',
+  'academy_registrations',
+  'terms_documents',
+  'terms_acceptances',
+  'marketing_consents',
+  'email_log',
+  'email_suppressions',
+  'rate_limit_counters',
+  'audit_logs',
+  'media_files',
+  'moderation_reviews',
+];
+
 const NEW_COLUMNS: Record<string, string[]> = {
   users: ['person_id'],
   sessions: ['clerk_session_id'],
@@ -96,19 +152,12 @@ const NEW_INDEXES = [
   'users_person_idx',
   'sessions_clerk_session_idx',
   'customer_tokens_expires_idx',
-  'provider_profiles_person_role_org_unique',
   'terms_documents_one_active_unique',
   'rate_limit_counters_expires_idx',
   'email_log_retry_idx',
 ];
 
-const NEW_TRIGGERS = [
-  'provider_publish_gate_insert',
-  'provider_publish_gate_update',
-  'verification_records_no_update',
-  'verification_records_no_delete',
-  'terms_acceptances_immutable',
-];
+const NEW_TRIGGERS = ['terms_acceptances_immutable'];
 
 type Db = Awaited<ReturnType<typeof createMigratedD1>>;
 const names = (d1: Db, type: string) =>
@@ -124,25 +173,33 @@ const columns = (d1: Db, table: string) =>
 const get = (d1: Db, sql: string, ...p: Array<string | number | null>) =>
   ({ ...(d1.sqlite.prepare(sql).get(...p) as object) }) as Record<string, unknown>;
 const run = (d1: Db, sql: string, ...p: Array<string | number | null>) => d1.sqlite.prepare(sql).run(...p);
+const userTables = (d1: Db) => [...names(d1, 'table')].filter((t) => !t.startsWith('sqlite_')).sort();
+const DROPPED_BY_0019 = [...LIVE_TABLES, ...ACCOUNT_TABLES];
+
+/** The database exactly as it was after 0018 (before 0019). */
+async function migratedThrough0018() {
+  const d1 = createInMemoryD1();
+  await applyMigrations(d1, readMigrations('0019'));
+  return d1;
+}
 
 /** Nothing left in the schema may name a dropped table (a trigger or view would fail at run time). */
-function assertNoReferencesToDroppedTables(d1: Db) {
+function assertNoReferencesToDroppedTables(d1: Db, dropped: string[], kept: string[]) {
   const tables = names(d1, 'table');
-  for (const t of DROPPED_TABLES) assert.ok(!tables.has(t), `table ${t} dropped`);
-  for (const t of KEPT_TABLES) assert.ok(tables.has(t), `table ${t} kept`);
+  for (const t of dropped) assert.ok(!tables.has(t), `table ${t} dropped`);
+  for (const t of kept) assert.ok(tables.has(t), `table ${t} kept`);
   const objects = d1.sqlite
     .prepare(
       "SELECT type, name, sql FROM sqlite_master WHERE sql IS NOT NULL AND type IN ('trigger', 'view')",
     )
     .all() as Array<{ type: string; name: string; sql: string }>;
   for (const o of objects)
-    for (const t of DROPPED_TABLES)
+    for (const t of dropped)
       assert.ok(!new RegExp(`\\b${t}\\b`).test(o.sql), `${o.type} ${o.name} still reads ${t}`);
   for (const t of tables) {
     if (t.startsWith('sqlite_')) continue;
     const fks = d1.sqlite.prepare(`PRAGMA foreign_key_list(${t})`).all() as Array<{ table: string }>;
-    for (const fk of fks)
-      assert.ok(!DROPPED_TABLES.includes(fk.table), `${t} references dropped ${fk.table}`);
+    for (const fk of fks) assert.ok(!dropped.includes(fk.table), `${t} references dropped ${fk.table}`);
   }
   assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
 }
@@ -151,7 +208,9 @@ describe('from scratch', () => {
   test('migration files are numbered and every kept table, column, index and trigger exists', async () => {
     const files = migrationFileNames();
     assert.ok(
-      files.includes('0012_identity_terms_customers.sql') && files.includes('0018_remove_gamo_live.sql'),
+      files.includes('0012_identity_terms_customers.sql') &&
+        files.includes('0018_remove_gamo_live.sql') &&
+        files.includes('0019_remove_public_accounts.sql'),
     );
     assert.deepEqual([...files].sort(), files);
     const d1 = await createMigratedD1();
@@ -167,7 +226,20 @@ describe('from scratch', () => {
   });
 
   test('0018 leaves no Live table, and nothing kept references one', async () => {
-    assertNoReferencesToDroppedTables(await createMigratedD1());
+    assertNoReferencesToDroppedTables(await migratedThrough0018(), LIVE_TABLES, KEPT_AFTER_0018);
+  });
+
+  test('0019 leaves exactly the kept tables, and nothing kept references a dropped one', async () => {
+    const d1 = await createMigratedD1();
+    assertNoReferencesToDroppedTables(d1, DROPPED_BY_0019, KEPT_AFTER_0019);
+    assert.deepEqual(userTables(d1), [...KEPT_AFTER_0019].sort());
+    const triggers = names(d1, 'trigger');
+    for (const t of [
+      'provider_publish_gate_insert',
+      'provider_identity_immutable',
+      'verification_records_no_delete',
+    ])
+      assert.ok(!triggers.has(t), `trigger ${t} dropped`);
   });
 
   test('every trigger is written on one line (Wrangler remote splitter rule)', () => {
@@ -181,8 +253,9 @@ describe('from scratch', () => {
 
   test('applying twice is harmless for IF NOT EXISTS / IF EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
     const d1 = await createMigratedD1();
-    const only0018 = readMigrations().slice(readMigrations('0018').length);
-    await applyMigrations(d1, only0018);
+    const only0018And0019 = readMigrations().slice(readMigrations('0018').length);
+    assert.equal(only0018And0019.length, 2);
+    await applyMigrations(d1, only0018And0019);
     const only0017 = readMigrations('0018').slice(readMigrations('0017').length);
     await assert.rejects(() => applyMigrations(d1, only0017), /duplicate column/);
   });
@@ -230,83 +303,6 @@ describe('identity and consent constraints', () => {
     assert.throws(
       () => run(d1, "UPDATE users SET person_id = 'per_missing' WHERE id = 'usr_1'"),
       /FOREIGN KEY/,
-    );
-  });
-
-  test('provider profiles: church/musician/technician always need review; publishing requires verified', async () => {
-    const d1 = await createMigratedD1();
-    run(
-      d1,
-      "INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('per_1', 'church@example.org', 1, 1, 1)",
-    );
-    const insert = (id: string, role: string, review: number, status: string, published: number | null) =>
-      run(
-        d1,
-        "INSERT INTO provider_profiles (id, person_id, role, product_origin, display_name, status, published_at, requires_staff_review, created_at, updated_at) VALUES (?, 'per_1', ?, 'worship', 'Sample', ?, ?, ?, 1, 1)",
-        id,
-        role,
-        status,
-        published,
-        review,
-      );
-    assert.throws(() => insert('pp_a', 'church', 0, 'draft', null), /CHECK/);
-    assert.throws(() => insert('pp_b', 'church', 1, 'submitted', 5), /PROVIDER_NOT_VERIFIED/);
-    insert('pp_c', 'church', 1, 'draft', null);
-    assert.throws(
-      () => run(d1, "UPDATE provider_profiles SET published_at = 5 WHERE id = 'pp_c'"),
-      /PROVIDER_NOT_VERIFIED/,
-    );
-    run(d1, "UPDATE provider_profiles SET status = 'verified', published_at = 5 WHERE id = 'pp_c'");
-    assert.throws(
-      () => run(d1, "UPDATE provider_profiles SET status = 'suspended' WHERE id = 'pp_c'"),
-      /PROVIDER_NOT_VERIFIED/,
-      'suspending must unpublish',
-    );
-    run(d1, "UPDATE provider_profiles SET status = 'suspended', published_at = NULL WHERE id = 'pp_c'");
-    assert.throws(
-      () => insert('pp_d', 'church', 1, 'draft', null),
-      /UNIQUE/,
-      'one church role per person without an organization',
-    );
-    insert('pp_e', 'organizer', 0, 'draft', 5);
-    assert.throws(
-      () => run(d1, "UPDATE provider_profiles SET role = 'agent' WHERE id = 'pp_e'"),
-      /PROVIDER_IMMUTABLE/,
-    );
-  });
-
-  test('verification records are append-only and need staff identity for decisions', async () => {
-    const d1 = await createMigratedD1();
-    const add = (
-      id: string,
-      action: string,
-      staff: string | null,
-      notes: string | null,
-      meeting: number | null = null,
-    ) =>
-      run(
-        d1,
-        "INSERT INTO verification_records (id, subject_type, subject_id, action, staff_user_id, staff_name, notes, meeting_at, created_at) VALUES (?, 'provider_profile', 'pp_1', ?, ?, ?, ?, ?, 1)",
-        id,
-        action,
-        staff,
-        staff ? 'Sample Staff' : null,
-        notes,
-        meeting,
-      );
-    assert.throws(() => add('v1', 'verify', null, 'Met in person'), /CHECK/);
-    assert.throws(() => add('v2', 'verify', 'usr_staff', '  '), /CHECK/);
-    assert.throws(() => add('v3', 'schedule_meeting', 'usr_staff', null), /CHECK/);
-    add('v4', 'schedule_meeting', 'usr_staff', null, T);
-    add('v5', 'verify', 'usr_staff', 'Met the pastor on site');
-    add('v6', 'submit', null, null);
-    assert.throws(
-      () => run(d1, "UPDATE verification_records SET notes = 'x' WHERE id = 'v5'"),
-      /VERIFICATION_RECORD_IMMUTABLE/,
-    );
-    assert.throws(
-      () => run(d1, "DELETE FROM verification_records WHERE id = 'v5'"),
-      /VERIFICATION_RECORD_IMMUTABLE/,
     );
   });
 
@@ -462,13 +458,13 @@ describe('0018 on a database that still holds Live rows', () => {
       INSERT INTO moderation_reviews (id, reviewer_user_id, target_type, target_id, decision, reviewed_at) VALUES ('mod_1', 'usr_staff', 'provider_profile', 'pp_1', 'approved', ${T});
     `);
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM notification_jobs').n, 1);
-    await applyMigrations(d1, readMigrations().slice(readMigrations('0018').length));
+    await applyMigrations(d1, readMigrations('0019').slice(readMigrations('0018').length));
     return d1;
   }
 
   test('drops every Live table with rows present and keeps people, customers and reviews', async () => {
     const d1 = await liveDb();
-    assertNoReferencesToDroppedTables(d1);
+    assertNoReferencesToDroppedTables(d1, LIVE_TABLES, KEPT_AFTER_0018);
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM users').n, 1);
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM organizations').n, 1);
     assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, 'per_1');
@@ -483,5 +479,82 @@ describe('0018 on a database that still holds Live rows', () => {
       T,
     );
     assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM moderation_reviews').n, 2);
+  });
+});
+
+describe('0019 on a database that still holds account, provider and demo rows', () => {
+  async function accountsDb() {
+    const d1 = await migratedThrough0018();
+    d1.sqlite.exec(`
+      INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('per_1', 'sample@example.org', 1, 1, 1);
+      INSERT INTO users (id, email, created_at, person_id) VALUES ('usr_staff', 'staff@example.org', ${T}, NULL);
+      INSERT INTO users (id, email, created_at, person_id) VALUES ('usr_1', 'sample@example.org', ${T}, 'per_1');
+      INSERT INTO roles (id, code) VALUES ('role_admin', 'admin');
+      INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_1', 'usr_staff', 'role_admin', ${T});
+      INSERT INTO admin_credentials (user_id, password_hash, updated_at, created_at) VALUES ('usr_staff', 'pbkdf2$sample', ${T}, ${T});
+      INSERT INTO sessions (id, user_id, expires_at, created_at) VALUES ('ses_staff', 'usr_staff', ${T + 3600}, ${T});
+      INSERT INTO sessions (id, user_id, expires_at, created_at, product) VALUES ('ses_1', 'usr_1', ${T + 3600}, ${T}, 'worship');
+      INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_1', 'usr_staff', 'cloudflare_access', 'sub_1', 'staff@example.org', ${T}, ${T});
+      INSERT INTO customer_profiles (id, email_normalized, person_id, email_verified_at, created_at, updated_at) VALUES ('cus_1', 'sample@example.org', 'per_1', 2, 1, 1);
+      INSERT INTO terms_documents (id, slug, version, title, status, content_hash, created_at) VALUES ('td', 'provider-terms', '1', 'DRAFT', 'active', '${'a'.repeat(64)}', 1);
+      INSERT INTO terms_acceptances (id, document_slug, document_version, user_id, person_id, context, accepted_at) VALUES ('ta', 'provider-terms', '1', 'usr_1', 'per_1', 'provider:pp_1', 1);
+      INSERT INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_s', 'Sample Church', 'sample-church', 'church', 'active', ${T});
+      INSERT INTO organization_members (id, organization_id, user_id, role, created_at) VALUES ('om_1', 'org_s', 'usr_1', 'owner', ${T});
+      INSERT INTO church_partnerships (id, organization_id, program, participation_kind, started_at) VALUES ('cp_1', 'org_s', 'worship', 'host', ${T});
+      INSERT INTO sponsorships (id, sponsor_org_id, program, created_at) VALUES ('sp_1', 'org_s', 'academy', ${T});
+      INSERT INTO product_accounts (id, user_id, product, created_at, updated_at) VALUES ('pa_1', 'usr_1', 'worship', ${T}, ${T});
+      INSERT INTO clerk_identity_links (id, product, clerk_app_id, clerk_issuer, clerk_user_id, clerk_email, user_id, product_account_id, linked_at, updated_at) VALUES ('cil_1', 'worship', 'app_1', 'https://sample.clerk', 'cu_1', 'sample@example.org', 'usr_1', 'pa_1', ${T}, ${T});
+      INSERT INTO auth_challenges (id, email, code_hash, expires_at, created_at) VALUES ('ac_1', 'sample@example.org', 'hash', ${T + 600}, ${T});
+      INSERT INTO provider_profiles (id, person_id, role, product_origin, organization_id, display_name, status, published_at, requires_staff_review, created_at, updated_at) VALUES ('pp_1', 'per_1', 'church', 'worship', 'org_s', 'Sample Church', 'verified', 5, 1, 1, 1);
+      INSERT INTO verification_records (id, subject_type, subject_id, action, staff_user_id, staff_name, notes, created_at) VALUES ('vr_1', 'provider_profile', 'pp_1', 'verify', 'usr_staff', 'Sample Staff', 'Met the pastor on site', 1);
+      INSERT INTO participation_inquiries (id, user_id, kind, interest, name, message, created_at) VALUES ('pi_1', 'usr_1', 'general', 'worship', 'Sample Person', 'Sample message', ${T});
+      INSERT INTO churches (id, name, contact_user_id, organization_id) VALUES ('ch_1', 'Sample Church', 'usr_1', 'org_s');
+      INSERT INTO musician_profiles (id, user_id) VALUES ('mp_1', 'usr_1');
+      INSERT INTO musician_skills (id, musician_id, instrument) VALUES ('ms_1', 'mp_1', 'keys');
+      INSERT INTO applications (id, musician_id) VALUES ('app_1', 'mp_1');
+      INSERT INTO gigs (id, church_id, plan, starts_at, ends_at) VALUES ('gig_1', 'ch_1', 'sunday', ${T}, ${T + 7200});
+      INSERT INTO gig_positions (id, gig_id, instrument) VALUES ('gp_1', 'gig_1', 'keys');
+      INSERT INTO gig_assignments (id, position_id, musician_id, kind) VALUES ('ga_1', 'gp_1', 'mp_1', 'primary');
+      INSERT INTO gig_assignments (id, position_id, musician_id, kind) VALUES ('ga_2', 'gp_1', 'mp_1', 'standby');
+      INSERT INTO checkins (id, assignment_id, status, recorded_at) VALUES ('ci_1', 'ga_1', 'arrived', ${T});
+      INSERT INTO standby_dispatches (id, gig_id, failed_assignment_id, standby_assignment_id, created_at) VALUES ('sd_1', 'gig_1', 'ga_1', 'ga_2', ${T});
+      INSERT INTO instructor_profiles (id, user_id) VALUES ('ip_1', 'usr_1');
+      INSERT INTO classes (id, instructor_id, host_org_id, title, instrument, created_at) VALUES ('cl_1', 'ip_1', 'org_s', 'Sample Piano', 'piano', ${T});
+      INSERT INTO enrollments (id, class_id, student_user_id, enrolled_at) VALUES ('en_1', 'cl_1', 'usr_1', ${T});
+    `);
+    for (const t of ACCOUNT_TABLES)
+      assert.ok(Number(get(d1, `SELECT COUNT(*) AS n FROM ${t}`).n) > 0, `${t} seeded`);
+    await applyMigrations(d1, readMigrations().slice(readMigrations('0019').length));
+    return d1;
+  }
+
+  test('drops every account and demo table with rows present and keeps staff, customers and terms', async () => {
+    const d1 = await accountsDb();
+    assertNoReferencesToDroppedTables(d1, DROPPED_BY_0019, KEPT_AFTER_0019);
+    assert.deepEqual(userTables(d1), [...KEPT_AFTER_0019].sort());
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM users').n, 2);
+    assert.equal(get(d1, 'SELECT user_id AS u FROM admin_credentials').u, 'usr_staff');
+    assert.equal(get(d1, "SELECT COUNT(*) AS n FROM user_roles WHERE user_id = 'usr_staff'").n, 1);
+    assert.equal(get(d1, "SELECT COUNT(*) AS n FROM sessions WHERE id = 'ses_staff'").n, 1);
+    assert.equal(get(d1, 'SELECT provider_subject AS s FROM external_identities').s, 'sub_1');
+    assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, 'per_1');
+    assert.equal(get(d1, "SELECT person_id AS p FROM users WHERE id = 'usr_1'").p, 'per_1');
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM terms_acceptances').n, 1);
+  });
+
+  test('kept tables still accept writes after 0019 (staff credentials, persons, terms)', async () => {
+    const d1 = await accountsDb();
+    run(d1, "INSERT INTO users (id, email, created_at) VALUES ('usr_new', 'new-staff@example.org', ?)", T);
+    run(
+      d1,
+      "INSERT INTO admin_credentials (user_id, password_hash, updated_at, created_at) VALUES ('usr_new', 'pbkdf2$sample', ?, ?)",
+      T,
+      T,
+    );
+    run(d1, "DELETE FROM users WHERE id = 'usr_new'");
+    assert.equal(get(d1, "SELECT COUNT(*) AS n FROM admin_credentials WHERE user_id = 'usr_new'").n, 0);
+    run(d1, "DELETE FROM persons WHERE id = 'per_1'");
+    assert.equal(get(d1, "SELECT person_id AS p FROM users WHERE id = 'usr_1'").p, null);
+    assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, null);
   });
 });

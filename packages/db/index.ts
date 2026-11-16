@@ -12,18 +12,6 @@ export type NewUser = InferInsertModel<typeof schema.users>;
 export type Session = InferSelectModel<typeof schema.sessions>;
 export type NewSession = InferInsertModel<typeof schema.sessions>;
 
-export type ProductAccount = InferSelectModel<typeof schema.productAccounts>;
-export type NewProductAccount = InferInsertModel<typeof schema.productAccounts>;
-
-export type ClerkIdentityLink = InferSelectModel<typeof schema.clerkIdentityLinks>;
-export type NewClerkIdentityLink = InferInsertModel<typeof schema.clerkIdentityLinks>;
-
-export type Organization = InferSelectModel<typeof schema.organizations>;
-export type NewOrganization = InferInsertModel<typeof schema.organizations>;
-
-export type OrganizationMember = InferSelectModel<typeof schema.organizationMembers>;
-export type NewOrganizationMember = InferInsertModel<typeof schema.organizationMembers>;
-
 export type MediaFile = InferSelectModel<typeof schema.mediaFiles>;
 export type NewMediaFile = InferInsertModel<typeof schema.mediaFiles>;
 
@@ -33,13 +21,10 @@ export type NewAuditLog = InferInsertModel<typeof schema.auditLogs>;
 export type ModerationReview = InferSelectModel<typeof schema.moderationReviews>;
 export type NewModerationReview = InferInsertModel<typeof schema.moderationReviews>;
 
-export type AuthChallenge = InferSelectModel<typeof schema.authChallenges>;
-export type NewAuthChallenge = InferInsertModel<typeof schema.authChallenges>;
-
 export type ExternalIdentity = InferSelectModel<typeof schema.externalIdentities>;
 export type NewExternalIdentity = InferInsertModel<typeof schema.externalIdentities>;
 
-// 0012 identity, terms, customers and Academy rows
+// 0012 person, terms, customers and Academy rows
 export type Person = InferSelectModel<typeof schema.persons>;
 export type NewPerson = InferInsertModel<typeof schema.persons>;
 
@@ -51,12 +36,6 @@ export type NewCustomerAccessToken = InferInsertModel<typeof schema.customerAcce
 
 export type CustomerSession = InferSelectModel<typeof schema.customerSessions>;
 export type NewCustomerSession = InferInsertModel<typeof schema.customerSessions>;
-
-export type ProviderProfile = InferSelectModel<typeof schema.providerProfiles>;
-export type NewProviderProfile = InferInsertModel<typeof schema.providerProfiles>;
-
-export type VerificationRecord = InferSelectModel<typeof schema.verificationRecords>;
-export type NewVerificationRecord = InferInsertModel<typeof schema.verificationRecords>;
 
 export type TermsDocument = InferSelectModel<typeof schema.termsDocuments>;
 export type NewTermsDocument = InferInsertModel<typeof schema.termsDocuments>;
