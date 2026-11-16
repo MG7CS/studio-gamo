@@ -1,0 +1,23 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      formId:
+        $ref: ../shared/Identifier.yaml
+      versionId:
+        $ref: ../shared/Identifier.yaml
+      version:
+        type: integer
+        minimum: 1
+    required:
+      - formId
+      - versionId
+      - version
+required:
+  - success
+  - data

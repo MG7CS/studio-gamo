@@ -1,0 +1,31 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      invoiceId:
+        $ref: ../shared/Identifier.yaml
+      mode:
+        type: string
+        enum:
+          - stripe
+          - manual
+        description: stripe only with Stripe test credentials; otherwise manual instructions are emailed.
+      hostedUrl:
+        type:
+          - string
+          - 'null'
+        format: uri
+      status:
+        const: open
+    required:
+      - invoiceId
+      - mode
+      - status
+required:
+  - success
+  - data

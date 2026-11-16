@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  nextCursor:
+    type:
+      - string
+      - 'null'
+    description: Opaque keyset cursor scoped to the filters; null on the last page.
+required:
+  - nextCursor

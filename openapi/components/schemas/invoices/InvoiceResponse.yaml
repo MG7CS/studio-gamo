@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    $ref: ./Invoice.yaml
+required:
+  - success
+  - data

@@ -1,0 +1,8 @@
+type: string
+enum:
+  - stripe
+  - check
+  - zelle
+  - ach
+  - cash
+  - other

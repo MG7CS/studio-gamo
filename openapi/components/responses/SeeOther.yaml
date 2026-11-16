@@ -1,0 +1,6 @@
+description: Form-post form of the action succeeded; redirects back to the admin screen (the JSON
+  form answers 200).
+headers:
+  Location:
+    schema:
+      type: string

@@ -1,0 +1,19 @@
+type: object
+additionalProperties: true
+description: 'Stripe event payload (signature-verified). Handled types: invoice.paid,
+  invoice.payment_failed; any other type is acknowledged without change. livemode events are refused
+  while live Stripe is not approved.'
+properties:
+  id:
+    type: string
+  type:
+    type: string
+  livemode:
+    type: boolean
+  data:
+    type: object
+    additionalProperties: true
+required:
+  - id
+  - type
+  - data

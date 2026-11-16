@@ -1,0 +1,45 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  slug:
+    type: string
+  program:
+    $ref: ./FormProgram.yaml
+  kind:
+    $ref: ./FormKind.yaml
+  title:
+    type: string
+  description:
+    type:
+      - string
+      - 'null'
+  status:
+    $ref: ./FormStatus.yaml
+  confirmationMessage:
+    type:
+      - string
+      - 'null'
+  currentVersionId:
+    oneOf:
+      - $ref: ../shared/Identifier.yaml
+      - type: 'null'
+  currentVersion:
+    type:
+      - integer
+      - 'null'
+    minimum: 1
+  draftSchema:
+    $ref: ./FormSchema.yaml
+  updatedAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - id
+  - slug
+  - program
+  - kind
+  - title
+  - status
+  - draftSchema
+  - updatedAt

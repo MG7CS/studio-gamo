@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "4.0.0",
+    "version": "4.1.0",
     "description": "Authoritative contract for Gamo Studios, a Christian, mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
@@ -44,6 +44,18 @@
     {
       "name": "Email",
       "description": "Email delivery domain (provider delivery events and suppressions). No endpoint existence implied by tag."
+    },
+    {
+      "name": "Forms",
+      "description": "Staff-edited public forms, chunked file uploads, submissions and the staff file viewer (planned in 4.1.0)."
+    },
+    {
+      "name": "Roster and requests",
+      "description": "Private roster, service requests, offers and application decisions (planned in 4.1.0)."
+    },
+    {
+      "name": "Invoicing",
+      "description": "Invoices, manual and Stripe test-mode payment, musician payouts and the Stripe invoice webhook (planned in 4.1.0)."
     }
   ],
   "paths": {
@@ -193,6 +205,1986 @@
             }
           }
         }
+      }
+    },
+    "/api/forms/{slug}/upload-session": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "createFormUploadSession",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Start a signed upload session for a public form",
+        "description": "Verifies a Turnstile token and returns a signed session token valid for 2 hours, used by the chunked uploader. At most 10 files per session. Works only for a published form that has a file_upload question. Success bodies of the upload endpoints are flat (not the success/data envelope) because the browser uploader consumes them directly.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public. Same-origin check (requireSameOrigin) on every state-changing request. Cloudflare Turnstile verified server-side (503 when unconfigured outside local). Rate limited per IP (429 with Retry-After).",
+        "x-source": "apps/web/src/pages/api/forms/[slug]/upload-session.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadSessionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "startFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Start a multipart upload to R2",
+        "description": "Validates the declared type and size against the per-kind caps (video 500 MB mp4/quicktime/webm, photo 10 MB jpeg/png/webp/heic, PDF 10 MB each and at most 5, at most 10 files per session) and opens an R2 multipart upload. Files of 8 MiB or less use a single part.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with an upload-session token in the body. Same-origin check (requireSameOrigin) on every state-changing request. Rate limited (429).",
+        "x-source": "apps/web/src/pages/api/forms/uploads/index.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartUploadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload opened.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "delete": {
+        "operationId": "deleteFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Abandon a pending upload",
+        "description": "Aborts the multipart upload or deletes the pending object. Only uploads that belong to the session token and are not yet attached to a submission.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Naturally repeatable: deleting a missing upload answers 204.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted (or already gone)."
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}/parts/{n}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "put": {
+        "operationId": "putFormUploadPart",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Upload one part (binary body)",
+        "description": "Raw bytes of the part, at most 8 MiB. Re-sending the same part number replaces it, so a retry after a lost connection is safe.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Idempotent per (upload, part number): a retry overwrites the part and returns the same result.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/parts/[n].ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/partNumber"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Part stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}/complete": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "completeFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Complete and verify an upload",
+        "description": "Completes the R2 multipart upload, checks the stored size against the declared size and the first bytes against the declared type (ftyp, EBML, JPEG, PNG, %PDF-). A failed check deletes the object and answers 200 with status rejected. Photos are re-encoded to 1200 px WebP without metadata.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Completing an already verified or rejected upload returns the stored result; never re-verifies or re-completes.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/complete.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteUploadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/webhook/stripe": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "receiveStripeWebhook",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Receive a signed Stripe invoice event",
+        "description": "Stripe-Signature verified over the raw body with STRIPE_WEBHOOK_SECRET (503 without it outside local). Handles invoice.paid (marks the matching invoice paid, sends the receipt) and invoice.payment_failed (records the failure for staff); every other type is acknowledged with applied false. Test mode only: events with livemode true are refused with 400 while live Stripe is not approved.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public (Stripe signature, timestamp tolerance). No session, no same-origin check.",
+        "x-idempotency": "Keyed on the Stripe event id and the invoice state: a replayed event changes nothing and answers 200 applied false.",
+        "x-source": "apps/web/src/pages/api/webhook/stripe.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeWebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event received; applied says whether it changed an invoice.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/worship/offers/{token}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "get": {
+        "operationId": "showOffer",
+        "tags": [
+          "Worship"
+        ],
+        "summary": "Show an emailed offer with Accept and Decline buttons",
+        "description": "HTML page. GET never mutates anything, because email security scanners prefetch links. Shows the service details and pay, or the current state (already accepted, declined, expired, no longer available). Responses carry Referrer-Policy no-referrer and Cache-Control no-store.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public; the unguessable token (32 random bytes, only its SHA-256 hash is stored, expires at the earlier of 72 hours or the service start) is the credential.",
+        "x-source": "apps/web/src/pages/worship/offers/[token].astro",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/offerToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Offer or its current state.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "headers": {
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token; generic page with no details.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "respondToOffer",
+        "tags": [
+          "Worship"
+        ],
+        "summary": "Accept or decline an offer",
+        "description": "Form post from the offer page (application/x-www-form-urlencoded with action accept or decline). One conditional update where status is pending decides the outcome; a repeated click shows the current state. Accept emails the church a confirmation and the staff inbox; decline emails staff and returns the request to matching. Only one acceptance per request and role wins.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public; token credential. Same-origin check (requireSameOrigin) on every state-changing request. POST is rate limited per IP (429).",
+        "x-idempotency": "Single conditional update WHERE status = pending: repeats render already_accepted or already_declined; withdrawn, expired or superseded offers render unavailable. Nothing changes twice.",
+        "x-source": "apps/web/src/pages/worship/offers/[token].astro",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/offerToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferResponseForm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result page: accepted, declined, already_accepted, already_declined or unavailable.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid action.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin post refused.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Temporarily unavailable.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forms": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "listForms",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "List forms",
+        "description": "All forms with status and latest published version.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/index.ts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Forms.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "post": {
+        "operationId": "createForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Create a draft form",
+        "description": "Creates a draft. The slug is unique; seeded forms exist already.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/index.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFormInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFormInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "getForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Get a form with its draft schema",
+        "description": "Returns the draft definition (draftSchema), not a published version.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "put": {
+        "operationId": "saveFormDraft",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save the draft schema",
+        "description": "Replaces the draft after parseFormSchema validation (400 with the failing path). Published versions are immutable and unaffected.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Replaces the whole draft; repeating the same body is a no-op.",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFormDraftInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveFormDraftInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/publish": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "publishForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Publish the draft as a new immutable version",
+        "description": "Snapshots the draft into a new form_versions row after checkPublishable. Refused with 400 (details list the reasons) when a bind key required by the form kind is missing, ids are duplicated, or a showIf points at an unknown or later question. Submissions keep the version they answered.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/publish.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishFormResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "listSubmissions",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "List submissions",
+        "description": "Newest first, deterministic by submittedAt then id. Optional filters; keyset paging (default 25, maximum 100).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/submissions/index.ts",
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "program",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/FormProgram"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/SubmissionStatus"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "getSubmission",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Get a submission with the schema version it answered",
+        "description": "Answers are returned with the form version the applicant saw, plus uploads (stream them through GET /files/{id}).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/submissions/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/{id}/status": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "setSubmissionStatus",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Set a submission status",
+        "description": "Moves a submission between new, in_review and closed and records optional staff notes. Approve and decline are separate actions.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Setting the same status again is a no-op.",
+        "x-source": "apps/admin/src/pages/api/submissions/[id]/status.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmissionStatusInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmissionStatusInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionStatusResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/{id}/approve": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "approveApplication",
+        "tags": [
+          "Roster and requests"
+        ],
+        "summary": "Approve an application",
+        "description": "Applies to musician_application and technician_application submissions only (409 otherwise). Creates one private roster member from the bind keys (there is no public directory), sends the approval email.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "A second call on an already decided submission changes nothing (changed false).",
+        "x-source": "apps/admin/src/pages/api/submissions/[id]/approve.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationDecisionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationDecisionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDecisionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/{id}/decline": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "declineApplication",
+        "tags": [
+          "Roster and requests"
+        ],
+        "summary": "Decline an application",
+        "description": "Applies to musician_application and technician_application submissions only (409 otherwise). Moves uploaded files to forms/declined, sets deletion at 12 months (files 90 days) and sends the decline email.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "A second call on an already decided submission changes nothing (changed false).",
+        "x-source": "apps/admin/src/pages/api/submissions/[id]/decline.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationDecisionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationDecisionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decided.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationDecisionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/roster": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "listRoster",
+        "tags": [
+          "Roster and requests"
+        ],
+        "summary": "List the private roster",
+        "description": "Staff-only roster for matching. Filter by role (contained in roles), city and status.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/roster/index.ts",
+        "parameters": [
+          {
+            "name": "program",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "worship",
+                "production",
+                "academy"
+              ]
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "paused",
+                "removed"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roster members.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/requests/{id}/offers": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "sendOffer",
+        "tags": [
+          "Roster and requests"
+        ],
+        "summary": "Send an offer for a service request",
+        "description": "The path id is the service request. Creates a pending offer, stores only the token hash and emails the musician a link to /worship/offers/{token}. Pay is a separate integer amount in USD cents.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Not idempotent; each call creates a new offer. A pending offer for the same roster member and role returns 409.",
+        "x-source": "apps/admin/src/pages/api/requests/[id]/offers.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOfferInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOfferInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Offer sent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendOfferResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/offers/{id}/withdraw": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "withdrawOffer",
+        "tags": [
+          "Roster and requests"
+        ],
+        "summary": "Withdraw a pending offer",
+        "description": "Revokes the link; the musician then sees no longer available. 409 when the offer was already answered.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Withdrawing an already withdrawn offer returns 200 unchanged.",
+        "x-source": "apps/admin/src/pages/api/offers/[id]/withdraw.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Withdrawn.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawOfferResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/invoices": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "listInvoices",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "List invoices",
+        "description": "Newest first, by createdAt then id. Filter by status; keyset paging.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/invoices/index.ts",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "open",
+                "paid",
+                "void"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoices.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "post": {
+        "operationId": "createInvoice",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Create a draft invoice",
+        "description": "Creates a draft with number GS-YYYY-NNNN (sequential per year), integer-cent USD lines and a computed total. For a service_request source with no lines, lines are prefilled from accepted offers. A gamo_admin line is refused with 400 gamo_admin_not_approved unless GAMO_ADMIN_FEE_APPROVED=true.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/invoices/index.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoiceInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoiceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/invoices/{id}/send": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "sendInvoice",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Send an invoice",
+        "description": "Moves a draft to open. With Stripe test credentials creates a Stripe customer and invoice (send_invoice, card and ACH), finalizes it and emails the hosted link; otherwise emails manual payment instructions (INVOICE_PAYMENT_INSTRUCTIONS). Live Stripe keys are refused. 503 when the email or Stripe dependency is unavailable.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Sending an invoice that is already open returns 200 with the existing hosted link and does not email again; 409 for paid or void.",
+        "x-source": "apps/admin/src/pages/api/invoices/[id]/send.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendInvoiceResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/invoices/{id}/mark-paid": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "markInvoicePaid",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Mark an invoice paid",
+        "description": "Records a payment received outside the webhook (check, Zelle, ACH, cash, other or stripe) and sends the receipt. Staff may always use this.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Marking an already paid invoice returns 200 unchanged; 409 for void.",
+        "x-source": "apps/admin/src/pages/api/invoices/[id]/mark-paid.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkPaidInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkPaidInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/invoices/{id}/void": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "voidInvoice",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Void an invoice",
+        "description": "Voids a draft or open invoice (also voids the Stripe invoice when one exists). 409 for paid invoices.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "Voiding an already void invoice returns 200 unchanged.",
+        "x-source": "apps/admin/src/pages/api/invoices/[id]/void.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/invoice-lines/{id}/payout": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "recordInvoiceLinePayout",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Record the musician payout for a line",
+        "description": "Records that the musician_pay line was paid out by Gamo (method and reference). The amount is the line amount, never reduced by an administrative allocation. Refused with 409 for non-musician lines, unpaid invoices or an already recorded payout.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-idempotency": "At most one payout per line: a second call returns 409 and records nothing.",
+        "x-source": "apps/admin/src/pages/api/invoice-lines/[id]/payout.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordPayoutInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordPayoutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordPayoutResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/files/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "get": {
+        "operationId": "getUploadedFile",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Stream an uploaded file (staff only)",
+        "description": "Streams a verified upload from R2. Images and video are inline, everything else is Content-Disposition attachment. Always sends X-Content-Type-Options nosniff and Content-Security-Policy sandbox. Supports Range for video (206). Rejected, unverified and missing uploads answer 404.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/files/[id].ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "name": "Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Single byte range, e.g. bytes=0-1048575."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File bytes.",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "const": "nosniff"
+                }
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "const": "sandbox"
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes"
+                }
+              }
+            },
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Partial content.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "416": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
       }
     }
   },
@@ -502,6 +2494,1437 @@
           "received",
           "applied"
         ]
+      },
+      "CursorMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque keyset cursor scoped to the filters; null on the last page."
+          }
+        },
+        "required": [
+          "nextCursor"
+        ]
+      },
+      "FormProgram": {
+        "type": "string",
+        "enum": [
+          "worship",
+          "production",
+          "academy",
+          "web"
+        ],
+        "description": "Program that hosts the public form page."
+      },
+      "FormKind": {
+        "type": "string",
+        "enum": [
+          "musician_application",
+          "technician_application",
+          "church_request",
+          "production_request",
+          "contact",
+          "partner_interest"
+        ],
+        "description": "Decides which bind keys a form must define before it can be published."
+      },
+      "FormStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "published",
+          "closed"
+        ]
+      },
+      "SubmissionStatus": {
+        "type": "string",
+        "enum": [
+          "new",
+          "in_review",
+          "approved",
+          "declined",
+          "closed"
+        ]
+      },
+      "FormSchema": {
+        "$comment": "Authoritative definition (question types, validation rules, sections, showIf, bind keys) is the zod schema in packages/domain/src/forms/schema.ts (parseFormSchema). It is deliberately not mirrored here; the server validates with parseFormSchema and rejects invalid drafts with 400.",
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Form definition: sections of questions as parsed by parseFormSchema. Open-ended on the wire; staff-authored drafts and published versions both use this shape."
+      },
+      "FormSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "program": {
+            "$ref": "#/components/schemas/FormProgram"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FormKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FormStatus"
+          },
+          "currentVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Latest published version number; null while only a draft exists."
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "program",
+          "kind",
+          "title",
+          "status",
+          "currentVersion",
+          "updatedAt"
+        ]
+      },
+      "FormDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "program": {
+            "$ref": "#/components/schemas/FormProgram"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FormKind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/FormStatus"
+          },
+          "confirmationMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentVersionId": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currentVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "draftSchema": {
+            "$ref": "#/components/schemas/FormSchema"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "program",
+          "kind",
+          "title",
+          "status",
+          "draftSchema",
+          "updatedAt"
+        ]
+      },
+      "CreateFormInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "program": {
+            "$ref": "#/components/schemas/FormProgram"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FormKind"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "confirmationMessage": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "schema": {
+            "$ref": "#/components/schemas/FormSchema"
+          }
+        },
+        "required": [
+          "slug",
+          "program",
+          "kind",
+          "title"
+        ]
+      },
+      "SaveFormDraftInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "confirmationMessage": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "schema": {
+            "$ref": "#/components/schemas/FormSchema"
+          }
+        },
+        "required": [
+          "schema"
+        ]
+      },
+      "FormResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/FormDetail"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "FormListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormSummary"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "PublishFormResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "formId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "versionId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "formId",
+              "versionId",
+              "version"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "FormUploadSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "questionId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video",
+              "pdf",
+              "other"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "questionId",
+          "kind",
+          "filename",
+          "contentType",
+          "bytes",
+          "status"
+        ]
+      },
+      "SubmissionSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Human reference such as GW-2026-0001 (GW worship, GP production, GS web)."
+          },
+          "formId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "formTitle": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FormKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubmissionStatus"
+          },
+          "submitterName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "submitterEmail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "submittedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "formId",
+          "formTitle",
+          "kind",
+          "status",
+          "submittedAt"
+        ]
+      },
+      "SubmissionDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "formId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "formVersionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FormKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubmissionStatus"
+          },
+          "submitterName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "submitterEmail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "submitterPhone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "schema": {
+            "$ref": "#/components/schemas/FormSchema",
+            "description": "The form version the applicant answered, so removed questions still render."
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Answers keyed by question id."
+          },
+          "binds": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Values extracted through bind keys (contact.*, roster.*, request.*)."
+          },
+          "uploads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormUploadSummary"
+            }
+          },
+          "staffNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "submittedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "reviewedAt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "formId",
+          "formVersionId",
+          "kind",
+          "status",
+          "schema",
+          "answers",
+          "uploads",
+          "submittedAt"
+        ]
+      },
+      "SubmissionListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionSummary"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CursorMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SubmissionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SubmissionDetail"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SubmissionStatusInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "in_review",
+              "closed"
+            ],
+            "description": "approved and declined are set only by the approve and decline actions."
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SubmissionStatusResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "status": {
+                "$ref": "#/components/schemas/SubmissionStatus"
+              }
+            },
+            "required": [
+              "id",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "ApplicationDecisionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "notes": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        }
+      },
+      "ApplicationDecisionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "approved",
+                  "declined"
+                ]
+              },
+              "rosterMemberId": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/Identifier"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Set on approval; null on decline."
+              },
+              "changed": {
+                "type": "boolean",
+                "description": "false when the submission was already decided (repeat is a no-op)."
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "rosterMemberId",
+              "changed"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "UploadSessionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "turnstileToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "turnstileToken"
+        ]
+      },
+      "UploadSessionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Signed upload-session token; send as X-Upload-Token or in the start body."
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "token",
+          "expiresAt"
+        ]
+      },
+      "StartUploadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "questionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Declared size in bytes; checked against the stored object on completion."
+          },
+          "contentType": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "token",
+          "questionId",
+          "filename",
+          "size",
+          "contentType"
+        ]
+      },
+      "StartUploadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "uploadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "partSize": {
+            "type": "integer",
+            "const": 8388608,
+            "description": "Bytes per part (8 MiB); the last part may be shorter."
+          },
+          "parts": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of parts to send, numbered from 1."
+          }
+        },
+        "required": [
+          "uploadId",
+          "partSize",
+          "parts"
+        ]
+      },
+      "UploadPartResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "etag": {
+            "type": "string"
+          }
+        }
+      },
+      "CompleteUploadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "rejected"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Present when rejected: safe, generic reason code. The stored object is deleted."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "RosterMember": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "submissionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "program": {
+            "type": "string",
+            "enum": [
+              "worship",
+              "production",
+              "academy"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canTeach": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "removed"
+            ]
+          },
+          "w9ReceivedAt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date received only; no tax identifiers are stored."
+          },
+          "approvedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "submissionId",
+          "program",
+          "displayName",
+          "email",
+          "roles",
+          "canTeach",
+          "status",
+          "approvedAt"
+        ]
+      },
+      "RosterListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RosterMember"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CursorMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SendOfferInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rosterMemberId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Integer minor units (USD cents) offered to the musician; never reduced by an administrative allocation."
+          }
+        },
+        "required": [
+          "rosterMemberId",
+          "role",
+          "payCents"
+        ]
+      },
+      "SendOfferResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "offerId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "expiresAt": {
+                "$ref": "#/components/schemas/Timestamp",
+                "description": "Earlier of 72 hours after sending or the service start."
+              }
+            },
+            "required": [
+              "offerId",
+              "expiresAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "WithdrawOfferResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "offerId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "status": {
+                "const": "withdrawn"
+              }
+            },
+            "required": [
+              "offerId",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "OfferResponseForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "decline"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "description": "application/x-www-form-urlencoded body of the offer page POST."
+      },
+      "InvoiceLineKind": {
+        "type": "string",
+        "enum": [
+          "musician_pay",
+          "lesson",
+          "production",
+          "other",
+          "gamo_admin"
+        ],
+        "description": "gamo_admin lines are refused (400 gamo_admin_not_approved) unless GAMO_ADMIN_FEE_APPROVED=true; fees are proposals until approved. Musician pay and Gamo lines are always separate line items."
+      },
+      "PaymentMethod": {
+        "type": "string",
+        "enum": [
+          "stripe",
+          "check",
+          "zelle",
+          "ach",
+          "cash",
+          "other"
+        ]
+      },
+      "InvoiceLine": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/InvoiceLineKind"
+          },
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unitAmountCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "amountCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "quantity x unitAmountCents, integer minor units."
+          },
+          "payeeRosterMemberId": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set for musician_pay lines."
+          },
+          "payoutRecordedAt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "description",
+          "quantity",
+          "unitAmountCents",
+          "amountCents"
+        ]
+      },
+      "Invoice": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "number": {
+            "type": "string",
+            "pattern": "^GS-[0-9]{4}-[0-9]{4,}$",
+            "description": "Sequential per year, e.g. GS-2026-0001."
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "service_request",
+              "academy_registration",
+              "manual"
+            ]
+          },
+          "sourceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billToName": {
+            "type": "string"
+          },
+          "billToEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "open",
+              "paid",
+              "void"
+            ]
+          },
+          "currency": {
+            "const": "usd"
+          },
+          "totalCents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dueDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "stripeInvoiceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hostedUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "paidAt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paidMethod": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PaymentMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paidReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            }
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "sourceType",
+          "billToName",
+          "billToEmail",
+          "status",
+          "currency",
+          "totalCents",
+          "lines",
+          "createdAt"
+        ]
+      },
+      "CreateInvoiceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "service_request",
+              "academy_registration",
+              "manual"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "description": "Service request or academy registration id; omit for manual invoices."
+          },
+          "billToName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "billToEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "lines": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "When omitted for a service_request source, lines are prefilled from accepted offers.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "$ref": "#/components/schemas/InvoiceLineKind"
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1
+                },
+                "unitAmountCents": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "payeeRosterMemberId": {
+                  "$ref": "#/components/schemas/Identifier"
+                }
+              },
+              "required": [
+                "kind",
+                "description",
+                "unitAmountCents"
+              ]
+            }
+          }
+        },
+        "required": [
+          "sourceType",
+          "billToName",
+          "billToEmail"
+        ]
+      },
+      "InvoiceResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Invoice"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InvoiceListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CursorMeta"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SendInvoiceResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "invoiceId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "stripe",
+                  "manual"
+                ],
+                "description": "stripe only with Stripe test credentials; otherwise manual instructions are emailed."
+              },
+              "hostedUrl": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "status": {
+                "const": "open"
+              }
+            },
+            "required": [
+              "invoiceId",
+              "mode",
+              "status"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "MarkPaidInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "RecordPayoutInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/PaymentMethod"
+          },
+          "reference": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "RecordPayoutResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "success": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "payoutId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "invoiceLineId": {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              "amountCents": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "payoutId",
+              "invoiceLineId",
+              "amountCents"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "StripeWebhookEvent": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Stripe event payload (signature-verified). Handled types: invoice.paid, invoice.payment_failed; any other type is acknowledged without change. livemode events are refused while live Stripe is not approved.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "livemode": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "data"
+        ]
+      },
+      "StripeWebhookResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "const": true
+          },
+          "applied": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "received",
+          "applied"
+        ]
       }
     },
     "securitySchemes": {
@@ -543,6 +3966,134 @@
               "$ref": "#/components/schemas/LegacyError"
             }
           }
+        }
+      },
+      "RateLimited": {
+        "description": "Too many requests.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LegacyError"
+            }
+          }
+        }
+      },
+      "StaffUnauthorized": {
+        "description": "Admin middleware denies access (no staff session).",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          },
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LegacyError"
+            }
+          }
+        }
+      },
+      "SeeOther": {
+        "description": "Form-post form of the action succeeded; redirects back to the admin screen (the JSON form answers 200).",
+        "headers": {
+          "Location": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "slug": {
+        "name": "slug",
+        "in": "path",
+        "required": true,
+        "description": "Form slug (lowercase letters, digits and hyphens).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource identifier from the path.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque case-sensitive resource identifier; never parse for authority."
+        }
+      },
+      "uploadToken": {
+        "name": "X-Upload-Token",
+        "in": "header",
+        "required": true,
+        "description": "Upload-session token from upload-session.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "partNumber": {
+        "name": "n",
+        "in": "path",
+        "required": true,
+        "description": "Part number starting at 1; re-sending a part replaces it.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "offerToken": {
+        "name": "token",
+        "in": "path",
+        "required": true,
+        "description": "Opaque single-use offer token from the emailed link; only its SHA-256 hash is stored.",
+        "schema": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 128
+        }
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 25
+        }
+      },
+      "cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "description": "Opaque keyset cursor from meta.nextCursor.",
+        "schema": {
+          "type": "string",
+          "maxLength": 512
         }
       }
     }

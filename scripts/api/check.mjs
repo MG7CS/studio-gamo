@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 const spec = JSON.parse(readFileSync('openapi/bundled/internal.json', 'utf8'));
 const publicSpec = JSON.parse(readFileSync('openapi/bundled/public.json', 'utf8'));
@@ -18,9 +18,30 @@ for (const file of walk('apps').filter((f) => /\/pages\/api\/.*\.ts$/.test(f))) 
     implemented.push([file.split('/')[1], match[1].toLowerCase(), path]);
 }
 const specified = [];
+const planned = [];
 for (const [path, item] of Object.entries(spec.paths))
   for (const [method, op] of Object.entries(item))
     if (op.operationId) {
+      const isApiRoute = String(op['x-source']).includes('/pages/api/');
+      const isBuilt = implemented.some(
+        (x) => x[0] === op['x-application'] && x[1] === method && x[2] === path,
+      );
+      if (op['x-application'] === 'admin')
+        assert.equal(op['x-internal'], true, `Admin operation must be internal: ${op.operationId}`);
+      if (op['x-internal'])
+        assert.ok(!publicSpec.paths[path]?.[method], `Internal operation leaked: ${op.operationId}`);
+      // Page routes (HTML pages and streaming endpoints outside pages/api) cannot be inventoried
+      // from `export const GET|POST`; they only need their documented source file once implemented.
+      if (!isApiRoute) {
+        if (op['x-status'] === 'implemented')
+          assert.ok(existsSync(op['x-source']), `Missing page route source ${op['x-source']}`);
+        continue;
+      }
+      // Planned operations are contract-first: skipped until the route exists, then checked like any other.
+      if (op['x-status'] === 'planned' && !isBuilt) {
+        planned.push(`${op['x-application']} ${method.toUpperCase()} ${path}`);
+        continue;
+      }
       specified.push([op['x-application'], method, path]);
       for (const app of op['x-replicated-applications'] ?? []) {
         specified.push([app, method, path]);
@@ -44,10 +65,6 @@ for (const [path, item] of Object.entries(spec.paths))
           : undefined,
         `Source mismatch ${op.operationId}`,
       );
-      if (op['x-application'] === 'admin')
-        assert.equal(op['x-internal'], true, `Admin operation must be internal: ${op.operationId}`);
-      if (op['x-internal'])
-        assert.ok(!publicSpec.paths[path]?.[method], `Internal operation leaked: ${op.operationId}`);
     }
 assert.deepEqual(
   specified.sort(),
@@ -70,5 +87,5 @@ for (const file of files) {
   );
 }
 console.log(
-  `${implemented.length} operations have matching source paths; public filtering and artifact secret scan passed.`,
+  `${implemented.length} operations have matching source paths; ${planned.length} planned operations are not built yet; public filtering and artifact secret scan passed.`,
 );

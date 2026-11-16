@@ -1,0 +1,20 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      offerId:
+        $ref: ../shared/Identifier.yaml
+      expiresAt:
+        $ref: ../shared/Timestamp.yaml
+        description: Earlier of 72 hours after sending or the service start.
+    required:
+      - offerId
+      - expiresAt
+required:
+  - success
+  - data

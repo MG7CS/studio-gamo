@@ -1,0 +1,54 @@
+type: object
+additionalProperties: false
+properties:
+  sourceType:
+    type: string
+    enum:
+      - service_request
+      - academy_registration
+      - manual
+  sourceId:
+    type: string
+    description: Service request or academy registration id; omit for manual invoices.
+  billToName:
+    type: string
+    minLength: 1
+    maxLength: 200
+  billToEmail:
+    type: string
+    format: email
+  dueDate:
+    type: string
+    format: date
+  lines:
+    type: array
+    minItems: 1
+    maxItems: 50
+    description: When omitted for a service_request source, lines are prefilled from accepted offers.
+    items:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          $ref: ./InvoiceLineKind.yaml
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+        unitAmountCents:
+          type: integer
+          minimum: 0
+        payeeRosterMemberId:
+          $ref: ../shared/Identifier.yaml
+      required:
+        - kind
+        - description
+        - unitAmountCents
+required:
+  - sourceType
+  - billToName
+  - billToEmail

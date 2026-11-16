@@ -1,5 +1,43 @@
 # API compatibility decisions
 
+## 4.1.0
+
+Base: a2fecb7
+
+Additive release (2026-11-16; design: `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`, plan:
+`docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`, Phases 2 and 3). Contract first: 28 new operations are
+specified with `x-status: planned` before any route exists. No existing operation, schema, parameter, response or
+security scheme changed on the wire (`node scripts/api/compatibility.mjs a2fecb7` reports no existing change).
+
+- Web (public, `x-application: web`): `POST /api/forms/{slug}/upload-session`, `POST /api/forms/uploads`,
+  `PUT /api/forms/uploads/{id}/parts/{n}`, `POST /api/forms/uploads/{id}/complete`, `DELETE /api/forms/uploads/{id}`,
+  `POST /api/webhook/stripe` (Stripe signature; `invoice.paid`, `invoice.payment_failed`; 200/400/503; idempotent) and
+  the HTML offer page `GET|POST /worship/offers/{token}` (GET never mutates; POST is `application/x-www-form-urlencoded`
+  with `action=accept|decline`; idempotent). Upload and webhook success bodies are flat (no `success/data` envelope), like
+  the Resend acknowledgement; errors use `LegacyError`.
+- Admin (internal, `x-application: admin`, `BrowserSession` plus same-origin): `GET|POST /api/forms`,
+  `GET|PUT /api/forms/{id}`, `POST /api/forms/{id}/publish`, `GET /api/submissions`, `GET /api/submissions/{id}`,
+  `POST /api/submissions/{id}/{status,approve,decline}`, `GET /api/roster`, `POST /api/requests/{id}/offers`,
+  `POST /api/offers/{id}/withdraw`, `GET|POST /api/invoices`, `POST /api/invoices/{id}/{send,mark-paid,void}`,
+  `POST /api/invoice-lines/{id}/payout` and the staff-only file stream `GET /files/{id}`. Mutations accept JSON or
+  form posts (`303` redirect for form posts, `200 {success,data}` for JSON); lists use opaque keyset cursors.
+- New schemas under `components/schemas/{forms,roster,invoices}` and `shared/CursorMeta`; new parameters (`slug`, `n`,
+  `token`, `X-Upload-Token`, `cursor`, `limit`) and responses (`RateLimited`, `StaffUnauthorized`, `SeeOther`).
+  `FormSchema` is an intentionally open object that points at `packages/domain/src/forms/schema.ts`; question types are
+  not mirrored in OpenAPI.
+- Tooling: `scripts/api/check.mjs` skips `x-status: planned` operations until their route file exists (then they are
+  matched like any other) and no longer expects page routes outside `pages/api` (`/worship/offers/{token}`,
+  `/files/{id}`) in the API inventory, only checks that their `x-source` exists once `x-status: implemented`.
+  `scripts/api/contract.test.ts` loads only non-planned operations and asserts the planned list. `redocly.yaml` turns
+  `no-ambiguous-paths` off: operations of different apps share one path namespace, and Astro resolves static segments
+  before params (for example web `/api/forms/uploads/{id}` against admin `/api/forms/{id}/publish`).
+- Rollout: when a route lands, flip its `x-status` to `implemented`, add a loopback test in
+  `scripts/api/contract.test.ts` (raise the coverage count) and update `docs/API_INVENTORY.md`. Planned web operations
+  already appear in `openapi/bundled/public.json` and `public.d.ts` so the browser uploader can use generated types.
+- Verification: `pnpm api:lint` valid (no warnings); `node scripts/api/generate.mjs` regenerated bundles, types and
+  validators (`--check` current); `node scripts/api/check.mjs` passes (2 implemented, 25 planned API operations);
+  `pnpm exec tsx --test scripts/api/contract.test.ts` passes (6 tests).
+
 ## 4.0.0
 
 Base: c6ac44b

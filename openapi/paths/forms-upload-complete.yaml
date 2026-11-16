@@ -1,0 +1,37 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+post:
+  operationId: completeFormUpload
+  tags:
+    - Forms
+  summary: Complete and verify an upload
+  description: Completes the R2 multipart upload, checks the stored size against the declared size and
+    the first bytes against the declared type (ftyp, EBML, JPEG, PNG, %PDF-). A failed check deletes
+    the object and answers 200 with status rejected. Photos are re-encoded to 1200 px WebP without
+    metadata.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every
+    state-changing request.
+  x-idempotency: Completing an already verified or rejected upload returns the stored result; never
+    re-verifies or re-completes.
+  x-source: apps/web/src/pages/api/forms/uploads/[id]/complete.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+    - $ref: ../components/parameters/uploadToken.yaml
+  responses:
+    '200':
+      description: Verification result.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/CompleteUploadResponse.yaml
+    '401': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '404': *a1
+    '429':
+      $ref: ../components/responses/RateLimited.yaml
+    '500': *a1
+    '503': *a1

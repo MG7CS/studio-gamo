@@ -1,0 +1,35 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  kind:
+    $ref: ./InvoiceLineKind.yaml
+  description:
+    type: string
+  quantity:
+    type: integer
+    minimum: 1
+  unitAmountCents:
+    type: integer
+    minimum: 0
+  amountCents:
+    type: integer
+    minimum: 0
+    description: quantity x unitAmountCents, integer minor units.
+  payeeRosterMemberId:
+    oneOf:
+      - $ref: ../shared/Identifier.yaml
+      - type: 'null'
+    description: Set for musician_pay lines.
+  payoutRecordedAt:
+    oneOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: 'null'
+required:
+  - id
+  - kind
+  - description
+  - quantity
+  - unitAmountCents
+  - amountCents

@@ -1,0 +1,9 @@
+type: string
+enum:
+  - musician_application
+  - technician_application
+  - church_request
+  - production_request
+  - contact
+  - partner_interest
+description: Decides which bind keys a form must define before it can be published.

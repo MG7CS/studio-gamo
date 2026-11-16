@@ -1,0 +1,79 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  number:
+    type: string
+    pattern: ^GS-[0-9]{4}-[0-9]{4,}$
+    description: Sequential per year, e.g. GS-2026-0001.
+  sourceType:
+    type: string
+    enum:
+      - service_request
+      - academy_registration
+      - manual
+  sourceId:
+    type:
+      - string
+      - 'null'
+  billToName:
+    type: string
+  billToEmail:
+    type: string
+    format: email
+  status:
+    type: string
+    enum:
+      - draft
+      - open
+      - paid
+      - void
+  currency:
+    const: usd
+  totalCents:
+    type: integer
+    minimum: 0
+  dueDate:
+    type:
+      - string
+      - 'null'
+    format: date
+  stripeInvoiceId:
+    type:
+      - string
+      - 'null'
+  hostedUrl:
+    type:
+      - string
+      - 'null'
+    format: uri
+  paidAt:
+    oneOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: 'null'
+  paidMethod:
+    oneOf:
+      - $ref: ./PaymentMethod.yaml
+      - type: 'null'
+  paidReference:
+    type:
+      - string
+      - 'null'
+  lines:
+    type: array
+    items:
+      $ref: ./InvoiceLine.yaml
+  createdAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - id
+  - number
+  - sourceType
+  - billToName
+  - billToEmail
+  - status
+  - currency
+  - totalCents
+  - lines
+  - createdAt

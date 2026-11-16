@@ -1,0 +1,75 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: getForm
+  tags:
+    - Forms
+  summary: Get a form with its draft schema
+  description: Returns the draft definition (draftSchema), not a published version.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/forms/[id]/index.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '200':
+      description: Form.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/FormResponse.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '404': *a1
+    '500': *a1
+  x-internal: true
+put:
+  operationId: saveFormDraft
+  tags:
+    - Forms
+  summary: Save the draft schema
+  description: Replaces the draft after parseFormSchema validation (400 with the failing path).
+    Published versions are immutable and unaffected.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: Replaces the whole draft; repeating the same body is a no-op.
+  x-source: apps/admin/src/pages/api/forms/[id]/index.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema: &a2
+          $ref: ../components/schemas/forms/SaveFormDraftInput.yaml
+      application/x-www-form-urlencoded:
+        schema: *a2
+  responses:
+    '200':
+      description: Saved.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/FormResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': *a1
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '404': *a1
+    '500': *a1
+  x-internal: true

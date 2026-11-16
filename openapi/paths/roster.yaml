@@ -1,0 +1,62 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: listRoster
+  tags:
+    - Roster and requests
+  summary: List the private roster
+  description: Staff-only roster for matching. Filter by role (contained in roles), city and status.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/roster/index.ts
+  parameters:
+    - name: program
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - worship
+          - production
+          - academy
+    - name: role
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: city
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - active
+          - paused
+          - removed
+    - $ref: ../components/parameters/limit.yaml
+    - $ref: ../components/parameters/cursor.yaml
+  responses:
+    '200':
+      description: Roster members.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/roster/RosterListResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '500': *a1
+  x-internal: true

@@ -1,6 +1,8 @@
 # Gamo Studios — HTTP API inventory and reconciliation
 
-Updated 2026-11-16. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v4.0.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); compatibility: [API_COMPATIBILITY.md](API_COMPATIBILITY.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
+Updated 2026-11-16. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v4.1.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); compatibility: [API_COMPATIBILITY.md](API_COMPATIBILITY.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
+
+**2026-11-16 (contract 4.1.0): forms, uploads, offers and invoicing are specified as planned.** The contract now holds **30 method/path operations**: 2 implemented (Web `POST /api/webhook/resend`, Admin `POST /api/staff/provision`) and **28 planned** (`x-status: planned`; no route exists yet): Web 8 (`POST /api/forms/{slug}/upload-session`, `POST /api/forms/uploads`, `PUT /api/forms/uploads/{id}/parts/{n}`, `POST /api/forms/uploads/{id}/complete`, `DELETE /api/forms/uploads/{id}`, `POST /api/webhook/stripe`, `GET|POST /worship/offers/{token}`) and Admin 20 (forms builder, submissions, application decisions, roster, offers, invoices, payouts, `GET /files/{id}`). Planned operations are not counted as specified-but-unimplemented defects: `scripts/api/check.mjs` skips them until the route file exists. Details and evidence in [API_COMPATIBILITY.md](API_COMPATIBILITY.md) 4.1.0. The tables below describe the implemented operations only until each planned route ships.
 
 **2026-11-16 (contract 4.0.0): public accounts were removed** (owner decision; plan: [superpowers/plans/2026-11-16-forms-emails-invoices.md](superpowers/plans/2026-11-16-forms-emails-invoices.md), "Account removal (Phase 1)"). People reach Gamo through forms and emailed links; only staff sign in, to the admin app. Every public sign-in and account operation (`/api/auth/*`, `/api/account/*`, `/api/organizations`, `/api/participation`) and the admin participation and provider review operations are gone from the contract and the code. The contract now has **2 method/path operations**: Web 1 (`POST /api/webhook/resend`) and Admin 1 (`POST /api/staff/provision`), with no replicated copies (2 implemented handlers, matched one-to-one by `scripts/api/check.mjs`). Contract tests cover both over isolated loopback HTTP (`pnpm api:check`).
 
@@ -23,6 +25,26 @@ All paths below are relative to `apps/<app>/src/pages/api/`. Responses are exact
 | --- | --- | --- | --- | --- | --- |
 | web `webhook/resend.ts` | POST /api/webhook/resend, provider delivery events | Public; Svix signature with `RESEND_WEBHOOK_SECRET` (`503` without it) | `ResendEvent`, raw JSON body | 200 `ResendWebhookResponse` `{received, applied}`; 400/503 LegacyError | `email_log`, `email_suppressions`; HTTP contract test (200/400/503) |
 | admin `staff/provision.ts` | POST /api/staff/provision, staff role + Access subject binding | Admin Access boundary (or configured break-glass) AND D1 superadmin session | `ProvisionStaffInput`, JSON | 200 `ProvisionStaffResponse`; 400/403/409/500 LegacyError; 401 middleware | `users`, `roles`, `user_roles`, `external_identities`, `audit_logs`; HTTP contract test (401/403/200/409) |
+
+## Planned in 4.1.0 (forms, offers, invoicing; contract first, not built)
+
+Sources are relative to `apps/<app>/src/pages/`. All admin rows are internal (not in the public bundle), require a staff session (`BrowserSession`) and `requireSameOrigin` on mutations; role scoping beyond any staff role is not specified or enforced yet.
+
+| App | Method and path | Purpose | Auth and guards | Idempotency / notes |
+| --- | --- | --- | --- | --- |
+| web | POST /api/forms/{slug}/upload-session | Turnstile-verified 2 h upload token | Public, same-origin, Turnstile, per-IP limit | Flat `{token, expiresAt}` |
+| web | POST /api/forms/uploads | Start R2 multipart (`{uploadId, partSize, parts}`) | Upload token in body | Per-kind caps, 10 files/session |
+| web | PUT /api/forms/uploads/{id}/parts/{n} | Upload one 8 MiB part | `X-Upload-Token` | Retrying a part number overwrites it |
+| web | POST /api/forms/uploads/{id}/complete | Verify size and magic bytes (`verified`/`rejected`) | `X-Upload-Token` | Repeats return the stored result |
+| web | DELETE /api/forms/uploads/{id} | Abandon a pending upload | `X-Upload-Token` | Naturally repeatable (204) |
+| web | POST /api/webhook/stripe | `invoice.paid`, `invoice.payment_failed` | Stripe signature; 200/400/503; test mode only | Keyed on event id and invoice state |
+| web | GET, POST /worship/offers/{token} | Offer page (GET shows, POST accept/decline) | Token credential; POST same-origin and rate limited | GET never mutates; POST is one conditional update |
+| admin | GET, POST /api/forms; GET, PUT /api/forms/{id}; POST /api/forms/{id}/publish | Form builder and versions | Staff | Publish refused when required bind keys are missing |
+| admin | GET /api/submissions, GET /api/submissions/{id}, POST .../status, .../approve, .../decline | Inbox and application decisions | Staff | Approve and decline repeat as no-ops |
+| admin | GET /api/roster | Private roster search | Staff | Keyset paging |
+| admin | POST /api/requests/{id}/offers, POST /api/offers/{id}/withdraw | Send and withdraw offers | Staff | Token hash stored only |
+| admin | GET, POST /api/invoices; POST /api/invoices/{id}/{send,mark-paid,void}; POST /api/invoice-lines/{id}/payout | Invoices and musician payouts | Staff | `gamo_admin` lines refused unless `GAMO_ADMIN_FEE_APPROVED=true`; one payout per line |
+| admin | GET /files/{id} | Staff-only file stream (Range, attachment, nosniff, CSP sandbox) | Staff | Rejected uploads answer 404 |
 
 ## Findings and disposition (post-audit update)
 
@@ -85,3 +107,5 @@ See [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md) for the mandato
 > **2026-11-16 (contract 3.0.0):** all Gamo Live operations and the admin event/organizer review operations were removed; `POST /api/webhook/resend` moved to `apps/web`. See `docs/API_COMPATIBILITY.md` 3.0.0.
 
 > **2026-11-16 (contract 4.0.0):** all public sign-in/account operations, organizations, participation and the admin participation/provider review operations were removed. See `docs/API_COMPATIBILITY.md` 4.0.0.
+
+> **2026-11-16 (contract 4.1.0):** 28 operations for forms, uploads, offers and invoicing were added as `x-status: planned`. See `docs/API_COMPATIBILITY.md` 4.1.0.

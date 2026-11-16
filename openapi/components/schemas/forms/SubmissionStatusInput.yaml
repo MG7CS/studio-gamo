@@ -1,0 +1,15 @@
+type: object
+additionalProperties: false
+properties:
+  status:
+    type: string
+    enum:
+      - new
+      - in_review
+      - closed
+    description: approved and declined are set only by the approve and decline actions.
+  notes:
+    type: string
+    maxLength: 4000
+required:
+  - status

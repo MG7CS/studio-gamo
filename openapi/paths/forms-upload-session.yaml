@@ -1,0 +1,41 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+post:
+  operationId: createFormUploadSession
+  tags:
+    - Forms
+  summary: Start a signed upload session for a public form
+  description: Verifies a Turnstile token and returns a signed session token valid for 2 hours, used
+    by the chunked uploader. At most 10 files per session. Works only for a published form that has
+    a file_upload question. Success bodies of the upload endpoints are flat (not the success/data
+    envelope) because the browser uploader consumes them directly.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public. Same-origin check (requireSameOrigin) on every state-changing request.
+    Cloudflare Turnstile verified server-side (503 when unconfigured outside local). Rate limited
+    per IP (429 with Retry-After).
+  x-source: apps/web/src/pages/api/forms/[slug]/upload-session.ts
+  parameters:
+    - $ref: ../components/parameters/slug.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/forms/UploadSessionInput.yaml
+  responses:
+    '200':
+      description: Session created.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/UploadSessionResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '404': *a1
+    '429':
+      $ref: ../components/responses/RateLimited.yaml
+    '500': *a1
+    '503': *a1

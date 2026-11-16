@@ -1,0 +1,70 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: listForms
+  tags:
+    - Forms
+  summary: List forms
+  description: All forms with status and latest published version.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/forms/index.ts
+  parameters: []
+  responses:
+    '200':
+      description: Forms.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/FormListResponse.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '500': *a1
+  x-internal: true
+post:
+  operationId: createForm
+  tags:
+    - Forms
+  summary: Create a draft form
+  description: Creates a draft. The slug is unique; seeded forms exist already.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/forms/index.ts
+  parameters: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema: &a2
+          $ref: ../components/schemas/forms/CreateFormInput.yaml
+      application/x-www-form-urlencoded:
+        schema: *a2
+  responses:
+    '200':
+      description: Created.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/FormResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': *a1
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '409': *a1
+    '500': *a1
+  x-internal: true

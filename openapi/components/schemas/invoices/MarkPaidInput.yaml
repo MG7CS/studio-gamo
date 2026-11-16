@@ -1,0 +1,10 @@
+type: object
+additionalProperties: false
+properties:
+  method:
+    $ref: ./PaymentMethod.yaml
+  reference:
+    type: string
+    maxLength: 200
+required:
+  - method

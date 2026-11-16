@@ -1,0 +1,10 @@
+type: string
+enum:
+  - musician_pay
+  - lesson
+  - production
+  - other
+  - gamo_admin
+description: gamo_admin lines are refused (400 gamo_admin_not_approved) unless
+  GAMO_ADMIN_FEE_APPROVED=true; fees are proposals until approved. Musician pay and Gamo lines are
+  always separate line items.

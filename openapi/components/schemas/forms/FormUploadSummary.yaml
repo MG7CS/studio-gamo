@@ -1,0 +1,35 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  questionId:
+    type: string
+  kind:
+    type: string
+    enum:
+      - image
+      - video
+      - pdf
+      - other
+  filename:
+    type: string
+  contentType:
+    type: string
+  bytes:
+    type: integer
+    minimum: 0
+  status:
+    type: string
+    enum:
+      - pending
+      - verified
+      - rejected
+required:
+  - id
+  - questionId
+  - kind
+  - filename
+  - contentType
+  - bytes
+  - status

@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "Gamo Studios HTTP API — local foundation",
-    "version": "4.0.0",
+    "version": "4.1.0",
     "description": "Authoritative contract for Gamo Studios, a Christian, mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly labeled. Internal operations must not be published. No production readiness or payment authorization implied.",
     "license": {
       "name": "Private repository; no public API license"
@@ -44,6 +44,18 @@
     {
       "name": "Email",
       "description": "Email delivery domain (provider delivery events and suppressions). No endpoint existence implied by tag."
+    },
+    {
+      "name": "Forms",
+      "description": "Staff-edited public forms, chunked file uploads, submissions and the staff file viewer (planned in 4.1.0)."
+    },
+    {
+      "name": "Roster and requests",
+      "description": "Private roster, service requests, offers and application decisions (planned in 4.1.0)."
+    },
+    {
+      "name": "Invoicing",
+      "description": "Invoices, manual and Stripe test-mode payment, musician payouts and the Stripe invoice webhook (planned in 4.1.0)."
     }
   ],
   "paths": {
@@ -97,10 +109,540 @@
           }
         }
       }
+    },
+    "/api/forms/{slug}/upload-session": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "createFormUploadSession",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Start a signed upload session for a public form",
+        "description": "Verifies a Turnstile token and returns a signed session token valid for 2 hours, used by the chunked uploader. At most 10 files per session. Works only for a published form that has a file_upload question. Success bodies of the upload endpoints are flat (not the success/data envelope) because the browser uploader consumes them directly.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public. Same-origin check (requireSameOrigin) on every state-changing request. Cloudflare Turnstile verified server-side (503 when unconfigured outside local). Rate limited per IP (429 with Retry-After).",
+        "x-source": "apps/web/src/pages/api/forms/[slug]/upload-session.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadSessionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "startFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Start a multipart upload to R2",
+        "description": "Validates the declared type and size against the per-kind caps (video 500 MB mp4/quicktime/webm, photo 10 MB jpeg/png/webp/heic, PDF 10 MB each and at most 5, at most 10 files per session) and opens an R2 multipart upload. Files of 8 MiB or less use a single part.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with an upload-session token in the body. Same-origin check (requireSameOrigin) on every state-changing request. Rate limited (429).",
+        "x-source": "apps/web/src/pages/api/forms/uploads/index.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartUploadInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload opened.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "delete": {
+        "operationId": "deleteFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Abandon a pending upload",
+        "description": "Aborts the multipart upload or deletes the pending object. Only uploads that belong to the session token and are not yet attached to a submission.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Naturally repeatable: deleting a missing upload answers 204.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted (or already gone)."
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}/parts/{n}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "put": {
+        "operationId": "putFormUploadPart",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Upload one part (binary body)",
+        "description": "Raw bytes of the part, at most 8 MiB. Re-sending the same part number replaces it, so a retry after a lost connection is safe.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Idempotent per (upload, part number): a retry overwrites the part and returns the same result.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/parts/[n].ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/partNumber"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Part stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "409": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "413": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/forms/uploads/{id}/complete": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "completeFormUpload",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Complete and verify an upload",
+        "description": "Completes the R2 multipart upload, checks the stored size against the declared size and the first bytes against the declared type (ftyp, EBML, JPEG, PNG, %PDF-). A failed check deletes the object and answers 200 with status rejected. Photos are re-encoded to 1200 px WebP without metadata.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every state-changing request.",
+        "x-idempotency": "Completing an already verified or rejected upload returns the stored result; never re-verifies or re-completes.",
+        "x-source": "apps/web/src/pages/api/forms/uploads/[id]/complete.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/uploadToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteUploadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/api/webhook/stripe": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "post": {
+        "operationId": "receiveStripeWebhook",
+        "tags": [
+          "Invoicing"
+        ],
+        "summary": "Receive a signed Stripe invoice event",
+        "description": "Stripe-Signature verified over the raw body with STRIPE_WEBHOOK_SECRET (503 without it outside local). Handles invoice.paid (marks the matching invoice paid, sends the receipt) and invoice.payment_failed (records the failure for staff); every other type is acknowledged with applied false. Test mode only: events with livemode true are refused with 400 while live Stripe is not approved.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public (Stripe signature, timestamp tolerance). No session, no same-origin check.",
+        "x-idempotency": "Keyed on the Stripe event id and the invoice state: a replayed event changes nothing and answers 200 applied false.",
+        "x-source": "apps/web/src/pages/api/webhook/stripe.ts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeWebhookEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event received; applied says whether it changed an invoice.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "503": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        }
+      }
+    },
+    "/worship/offers/{token}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4321",
+          "description": "Local global site (web)"
+        }
+      ],
+      "get": {
+        "operationId": "showOffer",
+        "tags": [
+          "Worship"
+        ],
+        "summary": "Show an emailed offer with Accept and Decline buttons",
+        "description": "HTML page. GET never mutates anything, because email security scanners prefetch links. Shows the service details and pay, or the current state (already accepted, declined, expired, no longer available). Responses carry Referrer-Policy no-referrer and Cache-Control no-store.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public; the unguessable token (32 random bytes, only its SHA-256 hash is stored, expires at the earlier of 72 hours or the service start) is the credential.",
+        "x-source": "apps/web/src/pages/worship/offers/[token].astro",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/offerToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Offer or its current state.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "headers": {
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token; generic page with no details.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "respondToOffer",
+        "tags": [
+          "Worship"
+        ],
+        "summary": "Accept or decline an offer",
+        "description": "Form post from the offer page (application/x-www-form-urlencoded with action accept or decline). One conditional update where status is pending decides the outcome; a repeated click shows the current state. Accept emails the church a confirmation and the staff inbox; decline emails staff and returns the request to matching. Only one acceptance per request and role wins.",
+        "security": [],
+        "x-application": "web",
+        "x-status": "planned",
+        "x-authorization": "Public; token credential. Same-origin check (requireSameOrigin) on every state-changing request. POST is rate limited per IP (429).",
+        "x-idempotency": "Single conditional update WHERE status = pending: repeats render already_accepted or already_declined; withdrawn, expired or superseded offers render unavailable. Nothing changes twice.",
+        "x-source": "apps/web/src/pages/worship/offers/[token].astro",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/offerToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferResponseForm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result page: accepted, declined, already_accepted, already_declined or unavailable.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid action.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin post refused.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown token.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Temporarily unavailable.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Identifier": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Opaque case-sensitive resource identifier; never parse for authority."
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
       "LegacyError": {
         "type": "object",
         "additionalProperties": false,
@@ -189,6 +731,182 @@
           "received",
           "applied"
         ]
+      },
+      "UploadSessionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "turnstileToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "turnstileToken"
+        ]
+      },
+      "UploadSessionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Signed upload-session token; send as X-Upload-Token or in the start body."
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "token",
+          "expiresAt"
+        ]
+      },
+      "StartUploadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "questionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Declared size in bytes; checked against the stored object on completion."
+          },
+          "contentType": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "token",
+          "questionId",
+          "filename",
+          "size",
+          "contentType"
+        ]
+      },
+      "StartUploadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "uploadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "partSize": {
+            "type": "integer",
+            "const": 8388608,
+            "description": "Bytes per part (8 MiB); the last part may be shorter."
+          },
+          "parts": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of parts to send, numbered from 1."
+          }
+        },
+        "required": [
+          "uploadId",
+          "partSize",
+          "parts"
+        ]
+      },
+      "UploadPartResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "etag": {
+            "type": "string"
+          }
+        }
+      },
+      "CompleteUploadResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "rejected"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Present when rejected: safe, generic reason code. The stored object is deleted."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "OfferResponseForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "decline"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "description": "application/x-www-form-urlencoded body of the offer page POST."
+      },
+      "StripeWebhookEvent": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Stripe event payload (signature-verified). Handled types: invoice.paid, invoice.payment_failed; any other type is acknowledged without change. livemode events are refused while live Stripe is not approved.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "livemode": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "data"
+        ]
+      },
+      "StripeWebhookResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "const": true
+          },
+          "applied": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "received",
+          "applied"
+        ]
       }
     },
     "responses": {
@@ -200,6 +918,81 @@
               "$ref": "#/components/schemas/LegacyError"
             }
           }
+        }
+      },
+      "RateLimited": {
+        "description": "Too many requests.",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds to wait.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LegacyError"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "slug": {
+        "name": "slug",
+        "in": "path",
+        "required": true,
+        "description": "Form slug (lowercase letters, digits and hyphens).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource identifier from the path.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque case-sensitive resource identifier; never parse for authority."
+        }
+      },
+      "uploadToken": {
+        "name": "X-Upload-Token",
+        "in": "header",
+        "required": true,
+        "description": "Upload-session token from upload-session.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "partNumber": {
+        "name": "n",
+        "in": "path",
+        "required": true,
+        "description": "Part number starting at 1; re-sending a part replaces it.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "offerToken": {
+        "name": "token",
+        "in": "path",
+        "required": true,
+        "description": "Opaque single-use offer token from the emailed link; only its SHA-256 hash is stored.",
+        "schema": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 128
         }
       }
     }

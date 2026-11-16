@@ -1,0 +1,12 @@
+description: Admin middleware denies access (no staff session).
+headers:
+  WWW-Authenticate:
+    schema:
+      type: string
+content:
+  text/html:
+    schema:
+      type: string
+  application/json:
+    schema:
+      $ref: ../schemas/shared/LegacyError.yaml

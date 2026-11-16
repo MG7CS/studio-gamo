@@ -1,0 +1,50 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: listSubmissions
+  tags:
+    - Forms
+  summary: List submissions
+  description: Newest first, deterministic by submittedAt then id. Optional filters; keyset paging
+    (default 25, maximum 100).
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/submissions/index.ts
+  parameters:
+    - name: formId
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: program
+      in: query
+      required: false
+      schema:
+        $ref: ../components/schemas/forms/FormProgram.yaml
+    - name: status
+      in: query
+      required: false
+      schema:
+        $ref: ../components/schemas/forms/SubmissionStatus.yaml
+    - $ref: ../components/parameters/limit.yaml
+    - $ref: ../components/parameters/cursor.yaml
+  responses:
+    '200':
+      description: Submissions.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/SubmissionListResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '500': *a1
+  x-internal: true

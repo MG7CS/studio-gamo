@@ -1,0 +1,11 @@
+description: Too many requests.
+headers:
+  Retry-After:
+    description: Seconds to wait.
+    schema:
+      type: integer
+      minimum: 1
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/shared/LegacyError.yaml

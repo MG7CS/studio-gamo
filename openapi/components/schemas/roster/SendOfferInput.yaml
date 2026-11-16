@@ -1,0 +1,17 @@
+type: object
+additionalProperties: false
+properties:
+  rosterMemberId:
+    $ref: ../shared/Identifier.yaml
+  role:
+    type: string
+    minLength: 1
+  payCents:
+    type: integer
+    minimum: 0
+    description: Integer minor units (USD cents) offered to the musician; never reduced by an
+      administrative allocation.
+required:
+  - rosterMemberId
+  - role
+  - payCents

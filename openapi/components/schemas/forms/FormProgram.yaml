@@ -1,0 +1,7 @@
+type: string
+enum:
+  - worship
+  - production
+  - academy
+  - web
+description: Program that hosts the public form page.

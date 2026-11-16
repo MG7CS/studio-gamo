@@ -1,0 +1,26 @@
+type: object
+additionalProperties: false
+properties:
+  token:
+    type: string
+    minLength: 1
+  questionId:
+    type: string
+    minLength: 1
+  filename:
+    type: string
+    minLength: 1
+    maxLength: 255
+  size:
+    type: integer
+    minimum: 1
+    description: Declared size in bytes; checked against the stored object on completion.
+  contentType:
+    type: string
+    minLength: 1
+required:
+  - token
+  - questionId
+  - filename
+  - size
+  - contentType

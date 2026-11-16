@@ -1,0 +1,108 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+get:
+  operationId: showOffer
+  tags:
+    - Worship
+  summary: Show an emailed offer with Accept and Decline buttons
+  description: HTML page. GET never mutates anything, because email security scanners prefetch links.
+    Shows the service details and pay, or the current state (already accepted, declined, expired, no
+    longer available). Responses carry Referrer-Policy no-referrer and Cache-Control no-store.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public; the unguessable token (32 random bytes, only its SHA-256 hash is stored,
+    expires at the earlier of 72 hours or the service start) is the credential.
+  x-source: apps/web/src/pages/worship/offers/[token].astro
+  parameters:
+    - $ref: ../components/parameters/offerToken.yaml
+  responses:
+    '200':
+      description: Offer or its current state.
+      content:
+        text/html:
+          schema:
+            type: string
+      headers:
+        Referrer-Policy:
+          schema:
+            const: no-referrer
+        Cache-Control:
+          schema:
+            const: no-store
+    '404':
+      description: Unknown token; generic page with no details.
+      content:
+        text/html:
+          schema:
+            type: string
+    '429':
+      description: Too many requests.
+      content:
+        text/html:
+          schema:
+            type: string
+post:
+  operationId: respondToOffer
+  tags:
+    - Worship
+  summary: Accept or decline an offer
+  description: Form post from the offer page (application/x-www-form-urlencoded with action accept or
+    decline). One conditional update where status is pending decides the outcome; a repeated click
+    shows the current state. Accept emails the church a confirmation and the staff inbox; decline
+    emails staff and returns the request to matching. Only one acceptance per request and role wins.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public; token credential. Same-origin check (requireSameOrigin) on every
+    state-changing request. POST is rate limited per IP (429).
+  x-idempotency: 'Single conditional update WHERE status = pending: repeats render already_accepted or
+    already_declined; withdrawn, expired or superseded offers render unavailable. Nothing changes
+    twice.'
+  x-source: apps/web/src/pages/worship/offers/[token].astro
+  parameters:
+    - $ref: ../components/parameters/offerToken.yaml
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/roster/OfferResponseForm.yaml
+  responses:
+    '200':
+      description: 'Result page: accepted, declined, already_accepted, already_declined or unavailable.'
+      content:
+        text/html:
+          schema:
+            type: string
+    '400':
+      description: Missing or invalid action.
+      content:
+        text/html:
+          schema:
+            type: string
+    '403':
+      description: Cross-origin post refused.
+      content:
+        text/html:
+          schema:
+            type: string
+    '404':
+      description: Unknown token.
+      content:
+        text/html:
+          schema:
+            type: string
+    '429':
+      description: Too many requests.
+      content:
+        text/html:
+          schema:
+            type: string
+    '503':
+      description: Temporarily unavailable.
+      content:
+        text/html:
+          schema:
+            type: string

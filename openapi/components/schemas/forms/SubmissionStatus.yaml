@@ -1,0 +1,7 @@
+type: string
+enum:
+  - new
+  - in_review
+  - approved
+  - declined
+  - closed

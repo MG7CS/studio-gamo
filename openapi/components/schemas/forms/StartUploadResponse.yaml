@@ -1,0 +1,17 @@
+type: object
+additionalProperties: false
+properties:
+  uploadId:
+    $ref: ../shared/Identifier.yaml
+  partSize:
+    type: integer
+    const: 8388608
+    description: Bytes per part (8 MiB); the last part may be shorter.
+  parts:
+    type: integer
+    minimum: 1
+    description: Number of parts to send, numbered from 1.
+required:
+  - uploadId
+  - partSize
+  - parts

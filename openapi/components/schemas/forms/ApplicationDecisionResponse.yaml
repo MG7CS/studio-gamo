@@ -1,0 +1,32 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      id:
+        $ref: ../shared/Identifier.yaml
+      status:
+        type: string
+        enum:
+          - approved
+          - declined
+      rosterMemberId:
+        oneOf:
+          - $ref: ../shared/Identifier.yaml
+          - type: 'null'
+        description: Set on approval; null on decline.
+      changed:
+        type: boolean
+        description: false when the submission was already decided (repeat is a no-op).
+    required:
+      - id
+      - status
+      - rosterMemberId
+      - changed
+required:
+  - success
+  - data

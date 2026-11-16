@@ -1,0 +1,34 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: getSubmission
+  tags:
+    - Forms
+  summary: Get a submission with the schema version it answered
+  description: Answers are returned with the form version the applicant saw, plus uploads (stream them
+    through GET /files/{id}).
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/submissions/[id]/index.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '200':
+      description: Submission.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/SubmissionResponse.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '404': *a1
+    '500': *a1
+  x-internal: true

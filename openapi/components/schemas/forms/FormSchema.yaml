@@ -1,0 +1,7 @@
+$comment: Authoritative definition (question types, validation rules, sections, showIf, bind keys)
+  is the zod schema in packages/domain/src/forms/schema.ts (parseFormSchema). It is deliberately not
+  mirrored here; the server validates with parseFormSchema and rejects invalid drafts with 400.
+type: object
+additionalProperties: true
+description: 'Form definition: sections of questions as parsed by parseFormSchema. Open-ended on the
+  wire; staff-authored drafts and published versions both use this shape.'

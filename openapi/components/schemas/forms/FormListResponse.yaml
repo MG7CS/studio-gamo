@@ -1,0 +1,12 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: array
+    items:
+      $ref: ./FormSummary.yaml
+required:
+  - success
+  - data

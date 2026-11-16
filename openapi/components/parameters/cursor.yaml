@@ -1,0 +1,7 @@
+name: cursor
+in: query
+required: false
+description: Opaque keyset cursor from meta.nextCursor.
+schema:
+  type: string
+  maxLength: 512

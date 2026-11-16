@@ -1,0 +1,6 @@
+type: object
+additionalProperties: false
+properties:
+  notes:
+    type: string
+    maxLength: 4000

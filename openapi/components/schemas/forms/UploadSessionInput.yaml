@@ -1,0 +1,8 @@
+type: object
+additionalProperties: false
+properties:
+  turnstileToken:
+    type: string
+    minLength: 1
+required:
+  - turnstileToken

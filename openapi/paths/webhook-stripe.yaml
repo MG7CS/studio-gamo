@@ -1,0 +1,37 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+post:
+  operationId: receiveStripeWebhook
+  tags:
+    - Invoicing
+  summary: Receive a signed Stripe invoice event
+  description: 'Stripe-Signature verified over the raw body with STRIPE_WEBHOOK_SECRET (503 without it
+    outside local). Handles invoice.paid (marks the matching invoice paid, sends the receipt) and
+    invoice.payment_failed (records the failure for staff); every other type is acknowledged with
+    applied false. Test mode only: events with livemode true are refused with 400 while live Stripe
+    is not approved.'
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public (Stripe signature, timestamp tolerance). No session, no same-origin check.
+  x-idempotency: 'Keyed on the Stripe event id and the invoice state: a replayed event changes nothing
+    and answers 200 applied false.'
+  x-source: apps/web/src/pages/api/webhook/stripe.ts
+  parameters: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/invoices/StripeWebhookEvent.yaml
+  responses:
+    '200':
+      description: Event received; applied says whether it changed an invoice.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/invoices/StripeWebhookResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '503': *a1

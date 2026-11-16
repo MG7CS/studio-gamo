@@ -1,0 +1,13 @@
+type: object
+additionalProperties: false
+properties:
+  status:
+    type: string
+    enum:
+      - verified
+      - rejected
+  reason:
+    type: string
+    description: 'Present when rejected: safe, generic reason code. The stored object is deleted.'
+required:
+  - status

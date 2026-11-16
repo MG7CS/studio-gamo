@@ -1,0 +1,8 @@
+name: n
+in: path
+required: true
+description: Part number starting at 1; re-sending a part replaces it.
+schema:
+  type: integer
+  minimum: 1
+  maximum: 1000

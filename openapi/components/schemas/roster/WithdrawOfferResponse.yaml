@@ -1,0 +1,19 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      offerId:
+        $ref: ../shared/Identifier.yaml
+      status:
+        const: withdrawn
+    required:
+      - offerId
+      - status
+required:
+  - success
+  - data

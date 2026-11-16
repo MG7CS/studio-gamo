@@ -70,6 +70,7 @@ before(async () => {
       for (const [method, op] of Object.entries<any>(item))
         if (
           op.operationId &&
+          op['x-status'] !== 'planned' &&
           (op['x-application'] === app || op['x-replicated-applications']?.includes(app))
         ) {
           const module = await import(
@@ -269,16 +270,55 @@ test('error responses never leak implementation details', async () => {
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
 });
 
-test('only the staff provisioning and Resend webhook operations remain (public accounts removed in 4.0.0)', () => {
-  const operations = Object.entries<any>(spec.paths)
+const NEW_IN_4_1_0 = [
+  'admin GET /api/forms',
+  'admin GET /api/forms/{id}',
+  'admin GET /api/invoices',
+  'admin GET /api/roster',
+  'admin GET /api/submissions',
+  'admin GET /api/submissions/{id}',
+  'admin GET /files/{id}',
+  'admin POST /api/forms',
+  'admin POST /api/forms/{id}/publish',
+  'admin POST /api/invoice-lines/{id}/payout',
+  'admin POST /api/invoices',
+  'admin POST /api/invoices/{id}/mark-paid',
+  'admin POST /api/invoices/{id}/send',
+  'admin POST /api/invoices/{id}/void',
+  'admin POST /api/offers/{id}/withdraw',
+  'admin POST /api/requests/{id}/offers',
+  'admin POST /api/submissions/{id}/approve',
+  'admin POST /api/submissions/{id}/decline',
+  'admin POST /api/submissions/{id}/status',
+  'admin PUT /api/forms/{id}',
+  'web DELETE /api/forms/uploads/{id}',
+  'web GET /worship/offers/{token}',
+  'web POST /api/forms/uploads',
+  'web POST /api/forms/uploads/{id}/complete',
+  'web POST /api/forms/{slug}/upload-session',
+  'web POST /api/webhook/stripe',
+  'web POST /worship/offers/{token}',
+  'web PUT /api/forms/uploads/{id}/parts/{n}',
+];
+const listOperations = (filter: (op: any) => boolean = () => true) =>
+  Object.entries<any>(spec.paths)
     .flatMap(([path, item]) =>
       Object.entries<any>(item)
-        .filter(([, op]) => op?.operationId)
+        .filter(([, op]) => op?.operationId && filter(op))
         .map(([method, op]) => `${op['x-application']} ${method.toUpperCase()} ${path}`),
     )
     .sort();
-  assert.deepEqual(operations, ['admin POST /api/staff/provision', 'web POST /api/webhook/resend']);
-  assert.equal(spec.info.version, '4.0.0');
+test('operation inventory: 2 implemented operations plus the forms, offers and invoicing routes planned in 4.1.0', () => {
+  assert.deepEqual(
+    listOperations((op) => op['x-status'] !== 'planned'),
+    ['admin POST /api/staff/provision', 'web POST /api/webhook/resend'],
+  );
+  assert.deepEqual(
+    listOperations((op) => op['x-status'] === 'planned'),
+    [...NEW_IN_4_1_0].sort(),
+  );
+  assert.equal(listOperations().length, 30);
+  assert.equal(spec.info.version, '4.1.0');
   for (const name of Object.keys(spec.components.schemas))
     assert.doesNotMatch(
       name,
@@ -287,6 +327,43 @@ test('only the staff provisioning and Resend webhook operations remain (public a
   for (const op of Object.values<any>(spec.paths).flatMap((item) => Object.values<any>(item)))
     assert.equal(op['x-replicated-applications'], undefined);
 });
-test('contract coverage reaches every remaining operation', () => {
+test('every planned operation declares its boundary: app, source, authorization, internal admin, idempotency', () => {
+  for (const [path, item] of Object.entries<any>(spec.paths))
+    for (const [method, op] of Object.entries<any>(item)) {
+      if (!op?.operationId || op['x-status'] !== 'planned') continue;
+      const label = `${method.toUpperCase()} ${path}`;
+      assert.ok(['web', 'admin'].includes(op['x-application']), label);
+      assert.ok(op['x-source'].startsWith(`apps/${op['x-application']}/src/pages/`), label);
+      assert.ok(op['x-authorization'], `${label} needs x-authorization`);
+      assert.ok(
+        op.responses['400'] || op.responses['404'] || op.responses['401'],
+        `${label} needs an error response`,
+      );
+      if (op['x-application'] === 'admin') {
+        assert.equal(op['x-internal'], true, label);
+        assert.deepEqual(op.security, [{ BrowserSession: [] }], label);
+        assert.ok(op.responses['401'], `${label} documents the middleware 401`);
+      }
+    }
+  for (const [method, path] of [
+    ['post', '/worship/offers/{token}'],
+    ['post', '/api/webhook/stripe'],
+    ['put', '/api/forms/uploads/{id}/parts/{n}'],
+    ['post', '/api/forms/uploads/{id}/complete'],
+  ])
+    assert.ok(spec.paths[path][method]['x-idempotency'], `${method} ${path} declares idempotency`);
+  assert.deepEqual(
+    Object.keys(spec.paths['/worship/offers/{token}'])
+      .filter((k) => k !== 'servers')
+      .sort(),
+    ['get', 'post'],
+  );
+  assert.ok(
+    spec.paths['/worship/offers/{token}'].post.requestBody.content['application/x-www-form-urlencoded'],
+  );
+  assert.ok(spec.components.schemas.InvoiceLineKind.enum.includes('gamo_admin'));
+});
+// When a planned route is built, flip its x-status to implemented, add a loopback test and raise this count.
+test('contract coverage reaches every implemented operation', () => {
   assert.equal(covered.size, 2);
 });

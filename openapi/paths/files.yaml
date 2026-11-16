@@ -1,0 +1,68 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+get:
+  operationId: getUploadedFile
+  tags:
+    - Forms
+  summary: Stream an uploaded file (staff only)
+  description: Streams a verified upload from R2. Images and video are inline, everything else is
+    Content-Disposition attachment. Always sends X-Content-Type-Options nosniff and
+    Content-Security-Policy sandbox. Supports Range for video (206). Rejected, unverified and
+    missing uploads answer 404.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/files/[id].ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+    - name: Range
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Single byte range, e.g. bytes=0-1048575.
+  responses:
+    '200':
+      description: File bytes.
+      headers:
+        Content-Disposition:
+          schema:
+            type: string
+        X-Content-Type-Options:
+          schema:
+            const: nosniff
+        Content-Security-Policy:
+          schema:
+            const: sandbox
+        Accept-Ranges:
+          schema:
+            const: bytes
+      content:
+        '*/*':
+          schema:
+            type: string
+            format: binary
+    '206':
+      description: Partial content.
+      headers:
+        Content-Range:
+          schema:
+            type: string
+      content:
+        '*/*':
+          schema:
+            type: string
+            format: binary
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '404': *a1
+    '416': *a1
+    '500': *a1
+  x-internal: true

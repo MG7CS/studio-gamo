@@ -1,0 +1,55 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  submissionId:
+    $ref: ../shared/Identifier.yaml
+  program:
+    type: string
+    enum:
+      - worship
+      - production
+      - academy
+  displayName:
+    type: string
+  email:
+    type: string
+    format: email
+  phone:
+    type:
+      - string
+      - 'null'
+  roles:
+    type: array
+    items:
+      type: string
+  city:
+    type:
+      - string
+      - 'null'
+  canTeach:
+    type: boolean
+  status:
+    type: string
+    enum:
+      - active
+      - paused
+      - removed
+  w9ReceivedAt:
+    oneOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: 'null'
+    description: Date received only; no tax identifiers are stored.
+  approvedAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - id
+  - submissionId
+  - program
+  - displayName
+  - email
+  - roles
+  - canTeach
+  - status
+  - approvedAt

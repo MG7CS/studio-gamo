@@ -1,0 +1,38 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+post:
+  operationId: startFormUpload
+  tags:
+    - Forms
+  summary: Start a multipart upload to R2
+  description: Validates the declared type and size against the per-kind caps (video 500 MB
+    mp4/quicktime/webm, photo 10 MB jpeg/png/webp/heic, PDF 10 MB each and at most 5, at most 10
+    files per session) and opens an R2 multipart upload. Files of 8 MiB or less use a single part.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public with an upload-session token in the body. Same-origin check
+    (requireSameOrigin) on every state-changing request. Rate limited (429).
+  x-source: apps/web/src/pages/api/forms/uploads/index.ts
+  parameters: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/forms/StartUploadInput.yaml
+  responses:
+    '200':
+      description: Upload opened.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/StartUploadResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401': *a1
+    '429':
+      $ref: ../components/responses/RateLimited.yaml
+    '500': *a1
+    '503': *a1

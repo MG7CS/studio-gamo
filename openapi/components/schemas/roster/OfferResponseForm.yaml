@@ -1,0 +1,11 @@
+type: object
+additionalProperties: false
+properties:
+  action:
+    type: string
+    enum:
+      - accept
+      - decline
+required:
+  - action
+description: application/x-www-form-urlencoded body of the offer page POST.

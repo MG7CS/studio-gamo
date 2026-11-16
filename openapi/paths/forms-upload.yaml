@@ -1,0 +1,30 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+delete:
+  operationId: deleteFormUpload
+  tags:
+    - Forms
+  summary: Abandon a pending upload
+  description: Aborts the multipart upload or deletes the pending object. Only uploads that belong to
+    the session token and are not yet attached to a submission.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every
+    state-changing request.
+  x-idempotency: 'Naturally repeatable: deleting a missing upload answers 204.'
+  x-source: apps/web/src/pages/api/forms/uploads/[id]/index.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+    - $ref: ../components/parameters/uploadToken.yaml
+  responses:
+    '204':
+      description: Deleted (or already gone).
+    '401': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '409': *a1
+    '429':
+      $ref: ../components/responses/RateLimited.yaml
+    '500': *a1
+    '503': *a1

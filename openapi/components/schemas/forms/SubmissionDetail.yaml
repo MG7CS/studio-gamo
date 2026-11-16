@@ -1,0 +1,64 @@
+type: object
+additionalProperties: false
+properties:
+  id:
+    $ref: ../shared/Identifier.yaml
+  reference:
+    type: string
+  formId:
+    $ref: ../shared/Identifier.yaml
+  formVersionId:
+    $ref: ../shared/Identifier.yaml
+  kind:
+    $ref: ./FormKind.yaml
+  status:
+    $ref: ./SubmissionStatus.yaml
+  submitterName:
+    type:
+      - string
+      - 'null'
+  submitterEmail:
+    type:
+      - string
+      - 'null'
+    format: email
+  submitterPhone:
+    type:
+      - string
+      - 'null'
+  schema:
+    $ref: ./FormSchema.yaml
+    description: The form version the applicant answered, so removed questions still render.
+  answers:
+    type: object
+    additionalProperties: true
+    description: Answers keyed by question id.
+  binds:
+    type: object
+    additionalProperties: true
+    description: Values extracted through bind keys (contact.*, roster.*, request.*).
+  uploads:
+    type: array
+    items:
+      $ref: ./FormUploadSummary.yaml
+  staffNotes:
+    type:
+      - string
+      - 'null'
+  submittedAt:
+    $ref: ../shared/Timestamp.yaml
+  reviewedAt:
+    oneOf:
+      - $ref: ../shared/Timestamp.yaml
+      - type: 'null'
+required:
+  - id
+  - reference
+  - formId
+  - formVersionId
+  - kind
+  - status
+  - schema
+  - answers
+  - uploads
+  - submittedAt

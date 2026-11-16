@@ -1,0 +1,45 @@
+servers:
+  - url: http://127.0.0.1:4321
+    description: Local global site (web)
+put:
+  operationId: putFormUploadPart
+  tags:
+    - Forms
+  summary: Upload one part (binary body)
+  description: Raw bytes of the part, at most 8 MiB. Re-sending the same part number replaces it, so a
+    retry after a lost connection is safe.
+  security: []
+  x-application: web
+  x-status: planned
+  x-authorization: Public with X-Upload-Token. Same-origin check (requireSameOrigin) on every
+    state-changing request.
+  x-idempotency: 'Idempotent per (upload, part number): a retry overwrites the part and returns the same result.'
+  x-source: apps/web/src/pages/api/forms/uploads/[id]/parts/[n].ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+    - $ref: ../components/parameters/partNumber.yaml
+    - $ref: ../components/parameters/uploadToken.yaml
+  requestBody:
+    required: true
+    content:
+      application/octet-stream:
+        schema:
+          type: string
+          format: binary
+  responses:
+    '200':
+      description: Part stored.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/UploadPartResponse.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401': *a1
+    '404': *a1
+    '409': *a1
+    '413': *a1
+    '429':
+      $ref: ../components/responses/RateLimited.yaml
+    '500': *a1
+    '503': *a1

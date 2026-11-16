@@ -1,0 +1,43 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: sendInvoice
+  tags:
+    - Invoicing
+  summary: Send an invoice
+  description: Moves a draft to open. With Stripe test credentials creates a Stripe customer and
+    invoice (send_invoice, card and ACH), finalizes it and emails the hosted link; otherwise emails
+    manual payment instructions (INVOICE_PAYMENT_INSTRUCTIONS). Live Stripe keys are refused. 503
+    when the email or Stripe dependency is unavailable.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: Sending an invoice that is already open returns 200 with the existing hosted link and
+    does not email again; 409 for paid or void.
+  x-source: apps/admin/src/pages/api/invoices/[id]/send.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '200':
+      description: Done.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/invoices/SendInvoiceResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '404': *a1
+    '409': *a1
+    '500': *a1
+    '503': *a1
+  x-internal: true

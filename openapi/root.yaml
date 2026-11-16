@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 4.0.0
+  version: 4.1.0
   description: Authoritative contract for Gamo Studios, a Christian,
     mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly
     labeled. Internal operations must not be published. No production readiness
@@ -28,11 +28,65 @@ tags:
     description: Administration domain. No endpoint existence implied by tag.
   - name: Email
     description: Email delivery domain (provider delivery events and suppressions). No endpoint existence implied by tag.
+  - name: Forms
+    description: Staff-edited public forms, chunked file uploads, submissions and the staff file viewer (planned in 4.1.0).
+  - name: Roster and requests
+    description: Private roster, service requests, offers and application decisions (planned in 4.1.0).
+  - name: Invoicing
+    description: Invoices, manual and Stripe test-mode payment, musician payouts and the Stripe invoice webhook (planned in 4.1.0).
 paths:
   /api/staff/provision:
     $ref: paths/staff-provision.yaml
   /api/webhook/resend:
     $ref: paths/webhook-resend.yaml
+  /api/forms/{slug}/upload-session:
+    $ref: paths/forms-upload-session.yaml
+  /api/forms/uploads:
+    $ref: paths/forms-uploads.yaml
+  /api/forms/uploads/{id}:
+    $ref: paths/forms-upload.yaml
+  /api/forms/uploads/{id}/parts/{n}:
+    $ref: paths/forms-upload-part.yaml
+  /api/forms/uploads/{id}/complete:
+    $ref: paths/forms-upload-complete.yaml
+  /api/webhook/stripe:
+    $ref: paths/webhook-stripe.yaml
+  /worship/offers/{token}:
+    $ref: paths/worship-offer-response.yaml
+  /api/forms:
+    $ref: paths/forms.yaml
+  /api/forms/{id}:
+    $ref: paths/forms-item.yaml
+  /api/forms/{id}/publish:
+    $ref: paths/forms-publish.yaml
+  /api/submissions:
+    $ref: paths/submissions.yaml
+  /api/submissions/{id}:
+    $ref: paths/submissions-item.yaml
+  /api/submissions/{id}/status:
+    $ref: paths/submissions-status.yaml
+  /api/submissions/{id}/approve:
+    $ref: paths/submissions-approve.yaml
+  /api/submissions/{id}/decline:
+    $ref: paths/submissions-decline.yaml
+  /api/roster:
+    $ref: paths/roster.yaml
+  /api/requests/{id}/offers:
+    $ref: paths/request-offers.yaml
+  /api/offers/{id}/withdraw:
+    $ref: paths/offer-withdraw.yaml
+  /api/invoices:
+    $ref: paths/invoices.yaml
+  /api/invoices/{id}/send:
+    $ref: paths/invoice-send.yaml
+  /api/invoices/{id}/mark-paid:
+    $ref: paths/invoice-mark-paid.yaml
+  /api/invoices/{id}/void:
+    $ref: paths/invoice-void.yaml
+  /api/invoice-lines/{id}/payout:
+    $ref: paths/invoice-line-payout.yaml
+  /files/{id}:
+    $ref: paths/files.yaml
 components:
   schemas:
     Identifier:
@@ -57,6 +111,100 @@ components:
       $ref: components/schemas/email/ResendEvent.yaml
     ResendWebhookResponse:
       $ref: components/schemas/email/ResendWebhookResponse.yaml
+    CursorMeta:
+      $ref: components/schemas/shared/CursorMeta.yaml
+    FormProgram:
+      $ref: components/schemas/forms/FormProgram.yaml
+    FormKind:
+      $ref: components/schemas/forms/FormKind.yaml
+    FormStatus:
+      $ref: components/schemas/forms/FormStatus.yaml
+    SubmissionStatus:
+      $ref: components/schemas/forms/SubmissionStatus.yaml
+    FormSchema:
+      $ref: components/schemas/forms/FormSchema.yaml
+    FormSummary:
+      $ref: components/schemas/forms/FormSummary.yaml
+    FormDetail:
+      $ref: components/schemas/forms/FormDetail.yaml
+    CreateFormInput:
+      $ref: components/schemas/forms/CreateFormInput.yaml
+    SaveFormDraftInput:
+      $ref: components/schemas/forms/SaveFormDraftInput.yaml
+    FormResponse:
+      $ref: components/schemas/forms/FormResponse.yaml
+    FormListResponse:
+      $ref: components/schemas/forms/FormListResponse.yaml
+    PublishFormResponse:
+      $ref: components/schemas/forms/PublishFormResponse.yaml
+    FormUploadSummary:
+      $ref: components/schemas/forms/FormUploadSummary.yaml
+    SubmissionSummary:
+      $ref: components/schemas/forms/SubmissionSummary.yaml
+    SubmissionDetail:
+      $ref: components/schemas/forms/SubmissionDetail.yaml
+    SubmissionListResponse:
+      $ref: components/schemas/forms/SubmissionListResponse.yaml
+    SubmissionResponse:
+      $ref: components/schemas/forms/SubmissionResponse.yaml
+    SubmissionStatusInput:
+      $ref: components/schemas/forms/SubmissionStatusInput.yaml
+    SubmissionStatusResponse:
+      $ref: components/schemas/forms/SubmissionStatusResponse.yaml
+    ApplicationDecisionInput:
+      $ref: components/schemas/forms/ApplicationDecisionInput.yaml
+    ApplicationDecisionResponse:
+      $ref: components/schemas/forms/ApplicationDecisionResponse.yaml
+    UploadSessionInput:
+      $ref: components/schemas/forms/UploadSessionInput.yaml
+    UploadSessionResponse:
+      $ref: components/schemas/forms/UploadSessionResponse.yaml
+    StartUploadInput:
+      $ref: components/schemas/forms/StartUploadInput.yaml
+    StartUploadResponse:
+      $ref: components/schemas/forms/StartUploadResponse.yaml
+    UploadPartResponse:
+      $ref: components/schemas/forms/UploadPartResponse.yaml
+    CompleteUploadResponse:
+      $ref: components/schemas/forms/CompleteUploadResponse.yaml
+    RosterMember:
+      $ref: components/schemas/roster/RosterMember.yaml
+    RosterListResponse:
+      $ref: components/schemas/roster/RosterListResponse.yaml
+    SendOfferInput:
+      $ref: components/schemas/roster/SendOfferInput.yaml
+    SendOfferResponse:
+      $ref: components/schemas/roster/SendOfferResponse.yaml
+    WithdrawOfferResponse:
+      $ref: components/schemas/roster/WithdrawOfferResponse.yaml
+    OfferResponseForm:
+      $ref: components/schemas/roster/OfferResponseForm.yaml
+    InvoiceLineKind:
+      $ref: components/schemas/invoices/InvoiceLineKind.yaml
+    PaymentMethod:
+      $ref: components/schemas/invoices/PaymentMethod.yaml
+    InvoiceLine:
+      $ref: components/schemas/invoices/InvoiceLine.yaml
+    Invoice:
+      $ref: components/schemas/invoices/Invoice.yaml
+    CreateInvoiceInput:
+      $ref: components/schemas/invoices/CreateInvoiceInput.yaml
+    InvoiceResponse:
+      $ref: components/schemas/invoices/InvoiceResponse.yaml
+    InvoiceListResponse:
+      $ref: components/schemas/invoices/InvoiceListResponse.yaml
+    SendInvoiceResponse:
+      $ref: components/schemas/invoices/SendInvoiceResponse.yaml
+    MarkPaidInput:
+      $ref: components/schemas/invoices/MarkPaidInput.yaml
+    RecordPayoutInput:
+      $ref: components/schemas/invoices/RecordPayoutInput.yaml
+    RecordPayoutResponse:
+      $ref: components/schemas/invoices/RecordPayoutResponse.yaml
+    StripeWebhookEvent:
+      $ref: components/schemas/invoices/StripeWebhookEvent.yaml
+    StripeWebhookResponse:
+      $ref: components/schemas/invoices/StripeWebhookResponse.yaml
   securitySchemes:
     BrowserSession:
       $ref: components/security/BrowserSession.yaml

@@ -1,0 +1,19 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: object
+    additionalProperties: false
+    properties:
+      id:
+        $ref: ../shared/Identifier.yaml
+      status:
+        $ref: ./SubmissionStatus.yaml
+    required:
+      - id
+      - status
+required:
+  - success
+  - data

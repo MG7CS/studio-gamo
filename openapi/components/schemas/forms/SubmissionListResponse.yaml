@@ -1,0 +1,14 @@
+type: object
+additionalProperties: false
+properties:
+  success:
+    const: true
+  data:
+    type: array
+    items:
+      $ref: ./SubmissionSummary.yaml
+  meta:
+    $ref: ../shared/CursorMeta.yaml
+required:
+  - success
+  - data

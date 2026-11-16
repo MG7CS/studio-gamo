@@ -1,0 +1,48 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: markInvoicePaid
+  tags:
+    - Invoicing
+  summary: Mark an invoice paid
+  description: Records a payment received outside the webhook (check, Zelle, ACH, cash, other or
+    stripe) and sends the receipt. Staff may always use this.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: Marking an already paid invoice returns 200 unchanged; 409 for void.
+  x-source: apps/admin/src/pages/api/invoices/[id]/mark-paid.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema: &a1
+          $ref: ../components/schemas/invoices/MarkPaidInput.yaml
+      application/x-www-form-urlencoded:
+        schema: *a1
+  responses:
+    '200':
+      description: Done.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/invoices/InvoiceResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &a2
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a2
+    '404': *a2
+    '409': *a2
+    '500': *a2
+    '503': *a2
+  x-internal: true

@@ -1,0 +1,8 @@
+name: token
+in: path
+required: true
+description: Opaque single-use offer token from the emailed link; only its SHA-256 hash is stored.
+schema:
+  type: string
+  minLength: 20
+  maxLength: 128

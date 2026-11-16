@@ -1,0 +1,40 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: voidInvoice
+  tags:
+    - Invoicing
+  summary: Void an invoice
+  description: Voids a draft or open invoice (also voids the Stripe invoice when one exists). 409 for
+    paid invoices.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: Voiding an already void invoice returns 200 unchanged.
+  x-source: apps/admin/src/pages/api/invoices/[id]/void.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  responses:
+    '200':
+      description: Done.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/invoices/InvoiceResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '404': *a1
+    '409': *a1
+    '500': *a1
+    '503': *a1
+  x-internal: true

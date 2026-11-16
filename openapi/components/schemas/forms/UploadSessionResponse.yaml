@@ -1,0 +1,11 @@
+type: object
+additionalProperties: false
+properties:
+  token:
+    type: string
+    description: Signed upload-session token; send as X-Upload-Token or in the start body.
+  expiresAt:
+    $ref: ../shared/Timestamp.yaml
+required:
+  - token
+  - expiresAt

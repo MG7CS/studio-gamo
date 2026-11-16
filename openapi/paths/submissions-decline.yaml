@@ -1,0 +1,49 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: declineApplication
+  tags:
+    - Roster and requests
+  summary: Decline an application
+  description: Applies to musician_application and technician_application submissions only (409
+    otherwise). Moves uploaded files to forms/declined, sets deletion at 12 months (files 90 days)
+    and sends the decline email.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: A second call on an already decided submission changes nothing (changed false).
+  x-source: apps/admin/src/pages/api/submissions/[id]/decline.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/forms/ApplicationDecisionInput.yaml
+      application/x-www-form-urlencoded:
+        schema:
+          $ref: ../components/schemas/forms/ApplicationDecisionInput.yaml
+  responses:
+    '200':
+      description: Decided.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/ApplicationDecisionResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &a1
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a1
+    '404': *a1
+    '409': *a1
+    '500': *a1
+  x-internal: true

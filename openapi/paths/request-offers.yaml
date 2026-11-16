@@ -1,0 +1,49 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: sendOffer
+  tags:
+    - Roster and requests
+  summary: Send an offer for a service request
+  description: The path id is the service request. Creates a pending offer, stores only the token hash
+    and emails the musician a link to /worship/offers/{token}. Pay is a separate integer amount in
+    USD cents.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-idempotency: Not idempotent; each call creates a new offer. A pending offer for the same roster
+    member and role returns 409.
+  x-source: apps/admin/src/pages/api/requests/[id]/offers.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema: &a1
+          $ref: ../components/schemas/roster/SendOfferInput.yaml
+      application/x-www-form-urlencoded:
+        schema: *a1
+  responses:
+    '200':
+      description: Offer sent.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/roster/SendOfferResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &a2
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *a2
+    '404': *a2
+    '409': *a2
+    '500': *a2
+  x-internal: true
