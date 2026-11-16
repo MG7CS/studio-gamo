@@ -1,0 +1,56 @@
+# Forms, emails, invoices; admin is the only dashboard — design (approved 2026-11-16)
+
+## Context
+
+After dropping Gamo Live (cleanup one, shipped 2026-11-16), the owner wants Academy, Worship and Production to be simple: public pages, forms, emails and invoices — no accounts, onboarding, workspaces or per-program dashboards. Admin is the single dashboard. Today only two forms persist anything (Academy registration; web contact, which oddly requires sign-in); Worship/Production push people into account sign-up; every non-admin dashboard is demo data; nothing emails staff; no invoice code exists.
+
+## Owner decisions (this conversation)
+
+1. Worship flow as proposed: musicians apply → staff approve into a private roster → churches submit requests → staff pick a musician → offer email with Accept/Decline → church confirmation → invoice after service. Money flows **through Gamo** (Gamo invoices church, pays musician). Academy and Production follow the same pattern.
+2. Musician application needs **photo, video, and PDFs (PDFs required for those applying to teach)**, accepts **links**, and must support **every Google-Forms question type**. Video storage must be cheap.
+3. **Staff edit forms in admin** (form builder), not developers.
+4. Payments: **Stripe Invoicing in test mode + manual "mark paid"** (check/Zelle/ACH). Live Stripe stays blocked by `assertStripeTestMode` until the owner approves real charges.
+5. **Daily cron approved** (email retry + retention).
+6. **Remove public accounts first**, then build forms. Nothing is deployed between phases; deploy once at the end.
+
+## Design
+
+### Forms engine
+- **Question types** (Google-Forms parity + two extras): `short_text` (validation: number/text-contains/email/url/length/regex, custom message), `paragraph` (length/regex), `multiple_choice` (+"Other", shuffle), `checkboxes` (+"Other", at least/at most/exactly N), `dropdown`, `file_upload` (accept groups image/video/pdf/document/audio, max files, max MB), `linear_scale` (0|1 → 2..10, end labels), `rating` (3..10), `choice_grid` / `checkbox_grid` (rows×cols, require each row, one per column), `date` (year/time toggles), `time` (clock|duration), plus `link` (URL with provider allow-list) and `statement` (text block). Every question: `id`, `label`, `help`, `required`, optional `showIf {questionId, equals | includes}`, optional `bind` key.
+- **Sections** group questions (rendered as fieldsets on one page; "Step n of N" headings). Branching uses `showIf` (accessible, checkable server-side) instead of go-to-section jumps.
+- **Versioning:** staff edit a draft; Publish snapshots an immutable `form_versions` row. Submissions reference the version they answered.
+- **Bind keys** connect answers to flows: `contact.name`, `contact.email`, `contact.phone`, `roster.roles`, `roster.city`, `roster.can_teach`, `request.church_name`, `request.date`, `request.start_time`, `request.address`, `request.roles_needed`. Publishing a form whose `kind` needs a bind key that is missing is refused.
+- **Form kinds:** `musician_application`, `technician_application`, `church_request`, `production_request`, `contact`, `partner_interest`. Seeded forms (staff-editable): Worship `/apply`, Worship `/request`, Production `/request`, Production `/apply`, web `/contact`, web `/partners/interest`. Academy registration keeps its existing dedicated flow (already account-free, real, tested); admin gets a registrations screen and invoices for it.
+- **Rendering:** shared `DynamicForm.astro` works without JavaScript (all sections visible; server ignores hidden-by-`showIf` answers). Progressive JS hides/shows sections and runs the chunked uploader. Accessibility: label per input, fieldset/legend for groups and each grid row, error summary with focus, `aria-describedby`/`aria-invalid`, required marked in text, allowed types/sizes stated before picking, ≥44×44 targets, one `<h1>`.
+
+### Uploads (cheap video)
+- Applicant chooses **link or upload** for video. Links: https only, exact host allow-list (`youtube.com`, `www.youtube.com`, `youtu.be`, `vimeo.com`, `player.vimeo.com`, `drive.google.com`, `www.dropbox.com`); IDs extracted; YouTube/Vimeo oEmbed check built from the extracted ID (never fetch the raw URL; `redirect:'manual'`, 3 s timeout). Admin embeds YouTube via `youtube-nocookie.com/embed/{id}`.
+- Uploads go **through our Worker in 8 MiB parts into R2 multipart** (`MEDIA_BUCKET.createMultipartUpload` / `resumeMultipartUpload().uploadPart` / `complete`). Small files (≤ 8 MiB) single PUT. Caps: video 500 MB (mp4/quicktime/webm), photo 10 MB (jpeg/png/webp/heic), PDF 10 MB each, ≤ 5 PDFs. No-JS fallback: video by link; photo/PDF via normal multipart form post (≤ 25 MB total).
+- **Upload session:** client gets a session token (Turnstile-verified, signed, 2 h, per-IP limited, ≤ 10 files) before the first upload; parts and completion require it. Keys: `forms/pending/{sessionId}/{uuid}`; on submit copied to `forms/submissions/{submissionId}/{uuid}`; on decline moved to `forms/declined/…`.
+- **Verification after complete:** `head()` size check + first-64-bytes magic check (`ftyp`@4 for mp4/mov/heic, `1A45DFA3` webm, `FFD8FF` jpeg, `89504E47` png, `%PDF-`); fail → delete object, status `rejected`. Photos re-encoded through `IMAGES` to 1200 px WebP without metadata; original deleted.
+- **Serving (admin only):** `/files/{uploadId}` streams from R2 with `Content-Disposition: attachment` for PDFs/other, inline for image/video, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: sandbox`, Range support for video, staff auth.
+- **Cost:** R2 ~$0.015/GB-month, zero egress, ops within free tier; estimate $0–2/month. **R2 lifecycle rules (owner action):** `forms/pending/` expire 2 days; `forms/declined/` expire 90 days; abort incomplete multipart 7 days.
+
+### Worship / Production flow
+- Approving a `musician_application`/`technician_application` creates a `roster_members` row (roles, city, can_teach, contact) — staff-only, no public directory. W-9 tracked as a received date only (no tax IDs stored).
+- Submitting a `church_request`/`production_request` creates a `service_requests` row.
+- Staff match in admin: filter roster by role/city, set pay, **Send offer** → email with a link to `worship /offers/{token}`. **GET shows details + Accept/Decline buttons; only POST acts** (email scanners prefetch GETs). Token: 32 random bytes, only SHA-256 hash stored, expires at the earlier of 72 h or service start, single conditional update `WHERE status='pending'`, repeat clicks show current state, withdrawn offers revoke, `Referrer-Policy: no-referrer`, POST rate-limited.
+- Accept → church confirmation email (musician first name, role, arrival time) + staff email; decline → staff email, request returns to matching.
+
+### Invoices
+- Created in admin from a service request (lines prefilled from accepted offers) or an academy registration. Line kinds: `musician_pay`, `lesson`, `production`, `other`, and `gamo_admin` — **`gamo_admin` refused unless `GAMO_ADMIN_FEE_APPROVED=true`** (fees are proposals until approved). Musician pay and Gamo lines always separate. Integer cents, USD.
+- **Send:** if Stripe test credentials exist → Stripe customer + invoice (`collection_method=send_invoice`, `days_until_due`, card + ACH) → finalize → our email carries `hosted_invoice_url`; `invoice.paid` webhook on **apps/web** `/api/webhook/stripe` marks paid. Otherwise manual: our email lists payment instructions (`INVOICE_PAYMENT_INSTRUCTIONS`). Staff can always **Mark paid** (method: stripe/check/zelle/ach/cash/other + reference) and **Record musician payout** per `musician_pay` line.
+- Invoice numbers `GS-YYYY-NNNN`, sequential per year.
+
+### Emails (all via `sendOutboxEmail`, idempotency key per event)
+Submission received (to submitter: reference + what next, no answers echoed) · staff notification (to `INQUIRY_INBOX_EMAIL`, subject `New {form title} #{ref}` — no names, Reply-To submitter, link to admin) · application approved/declined · offer sent · offer accepted (church + staff) · offer declined (staff) · invoice sent · invoice paid receipt. A render registry by `kind` lets the cron retry without stored bodies.
+
+### Daily cron (approved)
+Custom worker entry for apps/web (`@astrojs/cloudflare/handler` + `scheduled`), `[triggers] crons = ["0 6 * * *"]`: retry due outbox emails; delete pending upload sessions/objects > 48 h; delete declined submissions' files > 90 days and records > 12 months; expire stale offers; purge expired link tokens.
+
+### Privacy & retention
+Privacy notice linked on every form (what, why, who, how long). References: name, relationship, contact only, with a "permission to share" checkbox. No DOB/SSN/TIN in forms. Academy stays parent-completed (COPPA). Minor teaching applicants: guardian contact + consent question (seeded). Retention: declined 12 months (files 90 days), inactive roster 3 years, financial 7 years.
+
+### Account removal (Phase 1)
+Remove from web/academy/worship/production: `/account/*`, `api/auth/*`, `api/account/*`, `api/organizations`, sso/Clerk pages and webhooks, demo workspaces (`family|instructor|host`, `musician|church`, `client|crew`, worship `opportunities`, `check-in`), web `account/inquiries`. Remove shared auth UI (`packages/ui/src/components/{auth,account,onboarding}`, `auth-flow-client.ts`, `clerk-browser.ts`, `session-viewer.ts`), `packages/auth/clerk.ts`, `packages/config/clerk-env.ts`, Clerk env vars and scripts, public sign-in handlers (`domain/http/auth.ts` public parts, `account.ts`, `account-pages.ts`, `identity*.ts`, `persons.ts`, `providers.ts`, `provider-review.ts`, `participation.ts`), admin provider/church review and participation pages. **Keep:** admin staff auth (Cloudflare Access + admin password, `users`, `sessions`, `roles`, `user_roles`, `admin_credentials`, `requireStaff`, `staffContext`), `customer_profiles`/`customer_access_tokens`/link tokens (Academy manage links), terms, email outbox, rate limits, Turnstile guard. Contact/partner pages show `hello@gamostudio.org` until Phase 2 forms land (not deployed in between). Legacy redirects for removed URLs. Forward migration drops public-account-only tables (exact list verified by grep at execution, like 0018; owner approved destructive drop with this plan; production holds test data only). AGENTS.md: retire the Shared Authentication, Product Account Independence and Independent Clerk rules (owner decision 2026-11-16); OpenAPI 4.0.0 breaking release.
+
