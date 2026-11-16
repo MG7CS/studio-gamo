@@ -32,3 +32,6 @@ TURNSTILE_SECRET_KEY=
 CLERK_WEBHOOK_SECRET_WEB=
 # OPTIONAL. "true" shows "Continue with Google" — only once Google is enabled in this product's own Clerk app.
 CLERK_GOOGLE_ENABLED_WEB=
+
+# Resend webhook signing secret (Svix). Without it /api/webhook/resend answers 503.
+RESEND_WEBHOOK_SECRET=
