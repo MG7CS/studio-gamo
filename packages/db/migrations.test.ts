@@ -1,7 +1,6 @@
 /**
- * Migrations 0012/0013 (identity and ticketing): applied from scratch and on top of a database that
- * already holds pre-0012 rows. Inventory/scanning atomicity is tested with the statement builders
- * in packages/domain/src/ticketing/sql.test.ts.
+ * Migrations: 0012 (identity, terms, customers) constraints, and 0018 (remove Gamo Live) applied both
+ * from scratch and on top of a database that still holds Live rows.
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +15,57 @@ import {
 const FUTURE = Math.floor(Date.now() / 1000) + 30 * 86400; // 0003's trigger compares with the real clock
 const T = 1_900_000_000;
 
-const NEW_TABLES = [
+/** Tables 0018 drops (Gamo Live, its production links, and the never-used payment tables). */
+const DROPPED_TABLES = [
+  'events',
+  'event_occurrences',
+  'event_registrations',
+  'event_organizations',
+  'event_team_members',
+  'event_performers',
+  'event_policies',
+  'event_changes',
+  'ticket_tiers',
+  'ticket_holds',
+  'ticket_orders',
+  'order_items',
+  'tickets',
+  'ticket_scans',
+  'ticket_scan_events',
+  'ticket_presence',
+  'ticket_access_log',
+  'refund_records',
+  'settlement_records',
+  'waitlist_entries',
+  'scanner_sessions',
+  'scanner_devices',
+  'venues',
+  'venue_maps',
+  'venue_sections',
+  'venue_seats',
+  'artist_profiles',
+  'artist_representatives',
+  'representation_authorizations',
+  'booking_inquiries',
+  'booking_offers',
+  'performance_engagements',
+  'organizer_profiles',
+  'production_requests',
+  'production_projects',
+  'external_listing_revisions',
+  'external_outbound_clicks',
+  'notification_jobs',
+  'payment_records',
+  'ledger_entries',
+  'stripe_webhook_events',
+];
+
+/** Tables kept code still uses; 0018 must leave them in place. */
+const KEPT_TABLES = [
+  'users',
+  'sessions',
+  'organizations',
+  'organization_members',
   'persons',
   'customer_profiles',
   'customer_access_tokens',
@@ -29,96 +78,18 @@ const NEW_TABLES = [
   'rate_limit_counters',
   'email_log',
   'email_suppressions',
-  'ticket_access_log',
   'academy_registrations',
-  'venues',
-  'venue_maps',
-  'venue_sections',
-  'venue_seats',
-  'order_items',
-  'event_policies',
-  'event_changes',
-  'waitlist_entries',
-  'scanner_sessions',
-  'scanner_devices',
-  'ticket_scan_events',
-  'ticket_presence',
+  'participation_inquiries',
+  'media_files',
+  'moderation_reviews',
+  'audit_logs',
 ];
 
 const NEW_COLUMNS: Record<string, string[]> = {
   users: ['person_id'],
   sessions: ['clerk_session_id'],
-  organizer_profiles: ['first_event_approved_at', 'always_review'],
-  events: [
-    'venue_id',
-    'venue_map_id',
-    'first_event_review',
-    'cancelled_at',
-    'rescheduled_from_starts_at',
-    'door_sales_cash_enabled',
-  ],
-  ticket_tiers: [
-    'kind',
-    'description',
-    'sold_count',
-    'per_order_limit',
-    'min_age',
-    'max_age',
-    'seats_per_ticket',
-    'zone_codes_json',
-    'valid_days_json',
-    'sales_start_at',
-    'sales_end_at',
-    'requires_companion_of',
-    'currency',
-    'sort_order',
-    'status',
-  ],
-  ticket_holds: [
-    'order_id',
-    'order_item_id',
-    'section_id',
-    'seat_id',
-    'customer_profile_id',
-    'stripe_checkout_session_id',
-    'released_at',
-  ],
-  ticket_orders: [
-    'customer_profile_id',
-    'order_reference',
-    'hold_expires_at',
-    'stripe_checkout_expires_at',
-    'amount_refunded_cents',
-    'payment_status',
-    'payment_method',
-    'disputed_at',
-    'cancelled_at',
-    'policy_snapshot_json',
-    'source',
-    'verification_required',
-    'email_verified_at',
-    'updated_at',
-  ],
-  tickets: [
-    'order_item_id',
-    'section_id',
-    'seat_id',
-    'customer_profile_id',
-    'version',
-    'qr_salt',
-    'qr_key_id',
-    'seq',
-    'zone_code',
-    'gate_label',
-    'transferred_from_ticket_email',
-    'transfer_count',
-    'voided_at',
-    'void_reason',
-    'refunded_at',
-    'issued_at',
-    'updated_at',
-    'released_on_void',
-  ],
+  customer_access_tokens: ['product'],
+  customer_sessions: ['product'],
 };
 
 const NEW_INDEXES = [
@@ -129,14 +100,6 @@ const NEW_INDEXES = [
   'terms_documents_one_active_unique',
   'rate_limit_counters_expires_idx',
   'email_log_retry_idx',
-  'ticket_holds_seat_unique',
-  'ticket_holds_event_sweep_idx',
-  'tickets_order_item_seq_unique',
-  'tickets_seat_unique',
-  'ticket_orders_reference_unique',
-  'ticket_scan_events_client_unique',
-  'waitlist_entries_unique',
-  'venue_sections_event_code_unique',
 ];
 
 const NEW_TRIGGERS = [
@@ -145,26 +108,6 @@ const NEW_TRIGGERS = [
   'verification_records_no_update',
   'verification_records_no_delete',
   'terms_acceptances_immutable',
-  'tier_validate_category_insert',
-  'tier_validate_category_update',
-  'section_validate_insert',
-  'section_validate_update',
-  'external_event_block_sections',
-  'external_event_block_order_items',
-  'order_validate_insert',
-  'order_validate_update',
-  'order_refund_bounds',
-  'order_item_validate_insert',
-  'order_item_immutable',
-  'hold_validate_managed_insert',
-  'hold_transition_guard',
-  'hold_reserve',
-  'hold_release',
-  'hold_convert',
-  'ticket_issue_validate',
-  'ticket_terminal_guard',
-  'ticket_managed_immutable',
-  'ticket_release',
 ];
 
 type Db = Awaited<ReturnType<typeof createMigratedD1>>;
@@ -182,50 +125,36 @@ const get = (d1: Db, sql: string, ...p: Array<string | number | null>) =>
   ({ ...(d1.sqlite.prepare(sql).get(...p) as object) }) as Record<string, unknown>;
 const run = (d1: Db, sql: string, ...p: Array<string | number | null>) => d1.sqlite.prepare(sql).run(...p);
 
-function seedOrganizer(d1: Db) {
-  d1.sqlite.exec(`
-    INSERT INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_s', 'Sample Church', 'sample-church', 'church', 'active', ${T});
-    INSERT INTO organizer_profiles (id, organization_id, created_at) VALUES ('op_s', 'org_s', ${T});
-  `);
-}
-
-function seedFreeEvent(d1: Db, id = 'evt_free', capacity = 2) {
-  run(
-    d1,
-    "INSERT INTO events (id, organizer_id, title, slug, category, description, venue_name, city, state, starts_at, admission_type, status, created_at) VALUES (?, 'op_s', 'Sample Free Night', ?, 'worship', 'Sample', 'Sample Hall', 'Phoenix', 'AZ', ?, 'free', 'approved', ?)",
-    id,
-    id,
-    FUTURE,
-    T,
-  );
-  run(
-    d1,
-    "INSERT INTO ticket_tiers (id, event_id, name, price_cents, capacity) VALUES (?, ?, 'General', 0, ?)",
-    `tier_${id}`,
-    id,
-    capacity,
-  );
-}
-
-function seedExternalEvent(d1: Db) {
-  run(
-    d1,
-    "INSERT INTO events (id, organizer_id, title, slug, category, description, venue_name, city, state, starts_at, admission_type, status, listing_type, editorial_status, external_url, created_at) VALUES ('evt_ext', 'op_s', 'Sample External', 'evt-ext', 'concert', 'Sample', 'Arena', 'Phoenix', 'AZ', ?, 'external', 'approved', 'external_discovery', 'published', 'https://tickets.example.org/e', ?)",
-    FUTURE,
-    T,
-  );
+/** Nothing left in the schema may name a dropped table (a trigger or view would fail at run time). */
+function assertNoReferencesToDroppedTables(d1: Db) {
+  const tables = names(d1, 'table');
+  for (const t of DROPPED_TABLES) assert.ok(!tables.has(t), `table ${t} dropped`);
+  for (const t of KEPT_TABLES) assert.ok(tables.has(t), `table ${t} kept`);
+  const objects = d1.sqlite
+    .prepare(
+      "SELECT type, name, sql FROM sqlite_master WHERE sql IS NOT NULL AND type IN ('trigger', 'view')",
+    )
+    .all() as Array<{ type: string; name: string; sql: string }>;
+  for (const o of objects)
+    for (const t of DROPPED_TABLES)
+      assert.ok(!new RegExp(`\\b${t}\\b`).test(o.sql), `${o.type} ${o.name} still reads ${t}`);
+  for (const t of tables) {
+    if (t.startsWith('sqlite_')) continue;
+    const fks = d1.sqlite.prepare(`PRAGMA foreign_key_list(${t})`).all() as Array<{ table: string }>;
+    for (const fk of fks)
+      assert.ok(!DROPPED_TABLES.includes(fk.table), `${t} references dropped ${fk.table}`);
+  }
+  assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
 }
 
 describe('from scratch', () => {
-  test('migration files are numbered and every new table, column, index and trigger exists', async () => {
+  test('migration files are numbered and every kept table, column, index and trigger exists', async () => {
     const files = migrationFileNames();
     assert.ok(
-      files.includes('0012_identity_terms_customers.sql') && files.includes('0013_live_ticketing.sql'),
+      files.includes('0012_identity_terms_customers.sql') && files.includes('0018_remove_gamo_live.sql'),
     );
     assert.deepEqual([...files].sort(), files);
     const d1 = await createMigratedD1();
-    const tables = names(d1, 'table');
-    for (const t of NEW_TABLES) assert.ok(tables.has(t), `table ${t}`);
     for (const [table, cols] of Object.entries(NEW_COLUMNS)) {
       const have = columns(d1, table);
       for (const c of cols) assert.ok(have.has(c), `${table}.${c}`);
@@ -234,14 +163,11 @@ describe('from scratch', () => {
     for (const i of NEW_INDEXES) assert.ok(indexes.has(i), `index ${i}`);
     const triggers = names(d1, 'trigger');
     for (const t of NEW_TRIGGERS) assert.ok(triggers.has(t), `trigger ${t}`);
-    for (const t of [
-      'registration_validate',
-      'registration_reserve',
-      'tier_validate_update',
-      'external_event_block_tickets',
-    ])
-      assert.ok(triggers.has(t), `existing trigger ${t} kept`);
-    assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
+    assert.ok(!triggers.has('moderation_pending'), 'the event-moderation trigger is gone');
+  });
+
+  test('0018 leaves no Live table, and nothing kept references one', async () => {
+    assertNoReferencesToDroppedTables(await createMigratedD1());
   });
 
   test('every trigger is written on one line (Wrangler remote splitter rule)', () => {
@@ -253,10 +179,12 @@ describe('from scratch', () => {
         }
   });
 
-  test('applying twice is harmless for IF NOT EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
+  test('applying twice is harmless for IF NOT EXISTS / IF EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
     const d1 = await createMigratedD1();
-    const only0013 = readMigrations('0014').slice(readMigrations('0013').length);
-    await assert.rejects(() => applyMigrations(d1, only0013), /duplicate column/);
+    const only0018 = readMigrations().slice(readMigrations('0018').length);
+    await applyMigrations(d1, only0018);
+    const only0017 = readMigrations('0018').slice(readMigrations('0017').length);
+    await assert.rejects(() => applyMigrations(d1, only0017), /duplicate column/);
   });
 });
 
@@ -496,210 +424,64 @@ describe('identity and consent constraints', () => {
   });
 });
 
-describe('upgrade from 0011 with existing rows', () => {
-  async function legacyDb() {
+describe('0018 on a database that still holds Live rows', () => {
+  async function liveDb() {
     const d1 = createInMemoryD1();
     await applyMigrations(d1, readMigrations('0012'));
-    seedOrganizer(d1);
-    seedFreeEvent(d1, 'evt_free', 5);
-    // A legacy free RSVP: registration (0003 trigger reserves) → order → ticket, as live.ts writes them.
     d1.sqlite.exec(`
-      INSERT INTO event_registrations (id, event_id, tier_id, attendee_name, attendee_email, quantity, qr_token, created_at)
-        VALUES ('reg_1', 'evt_free', 'tier_evt_free', 'Sample Guest', 'guest@example.org', 2, 'gamt_evt_free_${'0'.repeat(32)}', ${T});
-      INSERT INTO ticket_orders (id, order_number, event_id, tier_id, purchaser_name, purchaser_email, quantity, order_kind, idempotency_key, status, created_at)
-        VALUES ('ord_legacy', 'GL-LEGACY-1', 'evt_free', 'tier_evt_free', 'Sample Guest', 'guest@example.org', 2, 'free', 'idem_legacy', 'confirmed', ${T});
-      INSERT INTO tickets (id, order_id, event_id, tier_id, registration_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at)
-        VALUES ('tkt_ord_legacy_0', 'ord_legacy', 'evt_free', 'tier_evt_free', 'reg_1', 'Sample Guest', 'guest@example.org', 'gamt_evt_free_${'0'.repeat(32)}', 'x', 'checked_in', ${T});
-      INSERT INTO ticket_holds (id, event_id, tier_id, purchaser_email, quantity, idempotency_key, status, expires_at, created_at)
-        VALUES ('hold_legacy', 'evt_free', 'tier_evt_free', 'guest@example.org', 1, 'idem_hold_legacy', 'held', ${T + 900}, ${T});
+      INSERT INTO users (id, email, created_at) VALUES ('usr_staff', 'staff@example.org', ${T});
+      INSERT INTO organizations (id, name, slug, type, status, created_at) VALUES ('org_s', 'Sample Church', 'sample-church', 'church', 'active', ${T});
+      INSERT INTO organizer_profiles (id, organization_id, created_at) VALUES ('op_s', 'org_s', ${T});
     `);
-    assert.equal(get(d1, 'SELECT reserved_count AS r FROM ticket_tiers').r, 2);
-    await applyMigrations(d1, readMigrations().slice(readMigrations('0012').length));
+    run(
+      d1,
+      "INSERT INTO events (id, organizer_id, title, slug, category, description, venue_name, city, state, starts_at, admission_type, status, created_at) VALUES ('evt_free', 'op_s', 'Sample Free Night', 'evt-free', 'worship', 'Sample', 'Sample Hall', 'Phoenix', 'AZ', ?, 'free', 'approved', ?)",
+      FUTURE,
+      T,
+    );
+    // A free RSVP (0003 trigger reserves and queues a notification job) → order → ticket, plus a hold.
+    d1.sqlite.exec(`
+      INSERT INTO ticket_tiers (id, event_id, name, price_cents, capacity) VALUES ('tier_free', 'evt_free', 'General', 0, 5);
+      INSERT INTO event_registrations (id, event_id, tier_id, attendee_name, attendee_email, quantity, qr_token, created_at)
+        VALUES ('reg_1', 'evt_free', 'tier_free', 'Sample Guest', 'guest@example.org', 2, 'gamt_evt_free_${'0'.repeat(32)}', ${T});
+      INSERT INTO ticket_orders (id, order_number, event_id, tier_id, purchaser_name, purchaser_email, quantity, order_kind, idempotency_key, status, created_at)
+        VALUES ('ord_1', 'GL-SAMPLE-1', 'evt_free', 'tier_free', 'Sample Guest', 'guest@example.org', 2, 'free', 'idem_1', 'confirmed', ${T});
+      INSERT INTO tickets (id, order_id, event_id, tier_id, registration_id, holder_name, holder_email, qr_token, qr_signature_hash, status, created_at)
+        VALUES ('tkt_1', 'ord_1', 'evt_free', 'tier_free', 'reg_1', 'Sample Guest', 'guest@example.org', 'gamt_evt_free_${'0'.repeat(32)}', 'x', 'checked_in', ${T});
+      INSERT INTO ticket_holds (id, event_id, tier_id, purchaser_email, quantity, idempotency_key, status, expires_at, created_at)
+        VALUES ('hold_1', 'evt_free', 'tier_free', 'guest@example.org', 1, 'idem_hold_1', 'held', ${T + 900}, ${T});
+    `);
+    await applyMigrations(d1, readMigrations('0018').slice(readMigrations('0012').length));
+    d1.sqlite.exec(`
+      INSERT INTO persons (id, email_normalized, email_verified_at, created_at, updated_at) VALUES ('per_1', 'guest@example.org', 1, 1, 1);
+      INSERT INTO customer_profiles (id, email_normalized, person_id, email_verified_at, created_at, updated_at) VALUES ('cus_1', 'guest@example.org', 'per_1', 2, 1, 1);
+      INSERT INTO venues (id, organization_id, name, timezone, created_at, updated_at) VALUES ('ven_1', 'org_s', 'Sample Hall', 'America/Phoenix', 1, 1);
+      INSERT INTO venue_sections (id, event_id, tier_id, code, name, capacity, created_at, updated_at) VALUES ('sec_1', 'evt_free', 'tier_free', 'A', 'Sample', 5, 1, 1);
+      INSERT INTO venue_seats (id, section_id, row_label, seat_label, created_at) VALUES ('seat_1', 'sec_1', 'A', '1', 1);
+      INSERT INTO order_items (id, order_id, event_id, tier_id, section_id, quantity, unit_price_cents, subtotal_cents, created_at, updated_at) VALUES ('oit_1', 'ord_1', 'evt_free', 'tier_free', 'sec_1', 1, 0, 0, 1, 1);
+      INSERT INTO moderation_reviews (id, reviewer_user_id, target_type, target_id, decision, reviewed_at) VALUES ('mod_1', 'usr_staff', 'provider_profile', 'pp_1', 'approved', ${T});
+    `);
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM notification_jobs').n, 1);
+    await applyMigrations(d1, readMigrations().slice(readMigrations('0018').length));
     return d1;
   }
 
-  test('old rows stay valid and take the new defaults', async () => {
-    const d1 = await legacyDb();
-    assert.deepEqual(
-      get(
-        d1,
-        'SELECT kind, sold_count, seats_per_ticket, currency, status, sort_order, reserved_count FROM ticket_tiers',
-      ),
-      {
-        kind: 'general',
-        sold_count: 0,
-        seats_per_ticket: 1,
-        currency: 'usd',
-        status: 'active',
-        sort_order: 0,
-        reserved_count: 2,
-      },
-    );
-    assert.deepEqual(
-      get(
-        d1,
-        'SELECT source, amount_refunded_cents, verification_required, order_reference FROM ticket_orders',
-      ),
-      {
-        source: 'online',
-        amount_refunded_cents: 0,
-        verification_required: 0,
-        order_reference: null,
-      },
-    );
-    assert.deepEqual(
-      get(d1, 'SELECT version, transfer_count, released_on_void, order_item_id, status FROM tickets'),
-      {
-        version: 1,
-        transfer_count: 0,
-        released_on_void: 0,
-        order_item_id: null,
-        status: 'checked_in',
-      },
-    );
-    assert.deepEqual(get(d1, 'SELECT always_review, first_event_approved_at FROM organizer_profiles'), {
-      always_review: 0,
-      first_event_approved_at: null,
-    });
-    assert.deepEqual(get(d1, 'SELECT first_event_review, door_sales_cash_enabled, venue_id FROM events'), {
-      first_event_review: 0,
-      door_sales_cash_enabled: 0,
-      venue_id: null,
-    });
-    assert.deepEqual(d1.sqlite.prepare('PRAGMA foreign_key_check').all(), []);
+  test('drops every Live table with rows present and keeps people, customers and reviews', async () => {
+    const d1 = await liveDb();
+    assertNoReferencesToDroppedTables(d1);
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM users').n, 1);
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM organizations').n, 1);
+    assert.equal(get(d1, "SELECT person_id AS p FROM customer_profiles WHERE id = 'cus_1'").p, 'per_1');
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM moderation_reviews').n, 1);
   });
 
-  test('legacy holds and tickets keep their own bookkeeping (no trigger double-counts them)', async () => {
-    const d1 = await legacyDb();
-    run(d1, "UPDATE ticket_holds SET status = 'expired' WHERE id = 'hold_legacy'");
-    run(d1, "UPDATE ticket_holds SET status = 'held' WHERE id = 'hold_legacy'"); // legacy holds are not state-guarded
-    run(d1, "UPDATE tickets SET status = 'refunded' WHERE id = 'tkt_ord_legacy_0'");
-    assert.equal(
-      get(d1, 'SELECT reserved_count AS r FROM ticket_tiers').r,
-      2,
-      'unchanged: legacy code adjusts counts itself',
+  test('moderation reviews of any target insert again (no trigger reads the dropped events table)', async () => {
+    const d1 = await liveDb();
+    run(
+      d1,
+      "INSERT INTO moderation_reviews (id, reviewer_user_id, target_type, target_id, decision, reviewed_at) VALUES ('mod_2', 'usr_staff', 'event', 'evt_free', 'approved', ?)",
+      T,
     );
-    assert.throws(
-      () => run(d1, "UPDATE tickets SET status = 'valid' WHERE id = 'tkt_ord_legacy_0'"),
-      /TICKET_TERMINAL/,
-    );
-    assert.throws(
-      () => run(d1, "UPDATE ticket_holds SET order_item_id = 'oit_x' WHERE id = 'hold_legacy'"),
-      /HOLD_TRANSITION_INVALID|FOREIGN KEY/,
-    );
-    assert.throws(
-      () => run(d1, "UPDATE ticket_orders SET status = 'shipped' WHERE id = 'ord_legacy'"),
-      /ORDER_INVALID/,
-    );
-    run(d1, "UPDATE ticket_orders SET status = 'canceled' WHERE id = 'ord_legacy'"); // legacy spelling still accepted
-  });
-
-  test('0003 free-registration triggers still enforce capacity and release on cancel', async () => {
-    const d1 = await legacyDb();
-    const register = (id: string, quantity: number) =>
-      run(
-        d1,
-        "INSERT INTO event_registrations (id, event_id, tier_id, attendee_name, attendee_email, quantity, qr_token, created_at) VALUES (?, 'evt_free', 'tier_evt_free', 'Sample Guest', ?, ?, ?, ?)",
-        id,
-        `${id}@example.org`,
-        quantity,
-        `gamt_evt_free_${id.padEnd(32, '0')}`,
-        T,
-      );
-    register('reg_2', 3);
-    assert.equal(get(d1, 'SELECT reserved_count AS r FROM ticket_tiers').r, 5);
-    assert.throws(() => register('reg_3', 1), /REGISTRATION_UNAVAILABLE/);
-    run(d1, "UPDATE event_registrations SET status = 'canceled' WHERE id = 'reg_2'");
-    assert.equal(get(d1, 'SELECT reserved_count AS r FROM ticket_tiers').r, 2);
-    register('reg_4', 3);
-    assert.throws(
-      () => run(d1, 'UPDATE ticket_tiers SET capacity = 4'),
-      /TIER_INVALID/,
-      'capacity cannot drop below what is reserved',
-    );
-    assert.throws(
-      () => run(d1, 'UPDATE ticket_tiers SET sold_count = 6'),
-      /TIER_INVALID/,
-      'sold never exceeds reserved',
-    );
-  });
-
-  test('external listings still cannot get tiers, sections, orders, items, holds or tickets', async () => {
-    const d1 = await legacyDb();
-    seedExternalEvent(d1);
-    assert.throws(
-      () => run(d1, "INSERT INTO ticket_tiers (id, event_id, name) VALUES ('t_ext', 'evt_ext', 'GA')"),
-      /EXTERNAL_EVENT_NO_TIERS/,
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO venue_sections (id, event_id, tier_id, code, name, capacity, created_at, updated_at) VALUES ('s_ext', 'evt_ext', 'tier_evt_free', 'A', 'A', 5, 1, 1)",
-        ),
-      /EXTERNAL_EVENT_NO_SECTIONS|SECTION_INVALID/, // an external event has no category to attach a section to
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO ticket_orders (id, order_number, event_id, purchaser_name, purchaser_email, idempotency_key, created_at) VALUES ('o_ext', 'n', 'evt_ext', 'a', 'a@example.org', 'k', 1)",
-        ),
-      /EXTERNAL_EVENT_NO_ORDERS/,
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO order_items (id, order_id, event_id, tier_id, quantity, unit_price_cents, subtotal_cents, created_at, updated_at) VALUES ('i_ext', 'ord_legacy', 'evt_ext', 'tier_evt_free', 1, 0, 0, 1, 1)",
-        ),
-      /EXTERNAL_EVENT_NO_ORDERS|ORDER_ITEM_INVALID/,
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO ticket_holds (id, event_id, tier_id, purchaser_email, quantity, idempotency_key, expires_at, created_at) VALUES ('h_ext', 'evt_ext', 'tier_evt_free', 'a@example.org', 1, 'k2', 1, 1)",
-        ),
-      /EXTERNAL_EVENT_NO_HOLDS/,
-    );
-    assert.throws(
-      () =>
-        run(
-          d1,
-          "INSERT INTO tickets (id, order_id, event_id, holder_name, holder_email, qr_token, qr_signature_hash, created_at) VALUES ('t_ext', 'ord_legacy', 'evt_ext', 'a', 'a@example.org', 'q', 'x', 1)",
-        ),
-      /EXTERNAL_EVENT_NO_TICKETS/,
-    );
-  });
-
-  test('section and category CHECKs: capacity bounds, companion category on the same event, json columns', async () => {
-    const d1 = await legacyDb();
-    const section = (id: string, capacity: number, reserved = 0) =>
-      run(
-        d1,
-        "INSERT INTO venue_sections (id, event_id, tier_id, code, name, capacity, reserved_count, created_at, updated_at) VALUES (?, 'evt_free', 'tier_evt_free', ?, 'Sample', ?, ?, 1, 1)",
-        id,
-        id.toUpperCase(),
-        capacity,
-        reserved,
-      );
-    assert.throws(() => section('sa', 0), /CHECK|SECTION_INVALID/);
-    assert.throws(() => section('sb', 2, 3), /SECTION_INVALID/);
-    section('sc', 5);
-    section('sd', 5);
-    assert.throws(
-      () => run(d1, "UPDATE venue_sections SET code = 'SC' WHERE id = 'sd'"),
-      /UNIQUE/,
-      'codes are unique per event',
-    );
-    assert.throws(
-      () => run(d1, "UPDATE venue_sections SET reserved_count = 6 WHERE id = 'sc'"),
-      /SECTION_INVALID/,
-    );
-    assert.throws(() => run(d1, 'UPDATE ticket_tiers SET requires_companion_of = id'), /TIER_INVALID/);
-    assert.throws(() => run(d1, "UPDATE ticket_tiers SET zone_codes_json = 'not json'"), /CHECK/);
-    assert.throws(() => run(d1, "UPDATE ticket_tiers SET kind = 'balcony'"), /CHECK/);
-    assert.throws(() => run(d1, 'UPDATE ticket_tiers SET min_age = 18, max_age = 12'), /TIER_INVALID/);
+    assert.equal(get(d1, 'SELECT COUNT(*) AS n FROM moderation_reviews').n, 2);
   });
 });

@@ -25,7 +25,7 @@ export interface SqliteD1 {
 
 /**
  * Creates a D1-compatible database on Node's native SQLite (`:memory:` by default, or a file path).
- * Used by tests, migration verification and the editorial CLI.
+ * Used by tests and migration verification.
  */
 export function createSqliteD1(path = ':memory:'): SqliteD1 {
   const sqlite = new DatabaseSync(path);
