@@ -11,7 +11,7 @@ interface Props {
   loading?: 'eager' | 'lazy';
   decoding?: 'async' | 'sync' | 'auto';
   fetchpriority?: 'high' | 'low' | 'auto';
-  /** Optional intrinsic dimensions (prevents layout shift when the box is not sized by CSS). */
+  /** Optional dimensions, set on the img and on every source (prevents layout shift when the box is not sized by CSS). */
   width?: number;
   height?: number;
   /** Optional CSS object-position for art-directed crops. */
@@ -43,8 +43,8 @@ const fallback = asset(available[available.length - 1], 'webp');
 ---
 
 <picture class={pictureClass}>
-  <source type="image/avif" srcset={srcset('avif')} sizes={sizes} />
-  <source type="image/webp" srcset={srcset('webp')} sizes={sizes} />
+  <source type="image/avif" srcset={srcset('avif')} sizes={sizes} width={width} height={height} />
+  <source type="image/webp" srcset={srcset('webp')} sizes={sizes} width={width} height={height} />
   <img
     src={fallback}
     alt={alt}

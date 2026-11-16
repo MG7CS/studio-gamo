@@ -11,6 +11,30 @@
  */
 import manifest from './image-manifest.json';
 
+/**
+ * The four frame ratios as width / height (docs/FRONTEND_ARCHITECTURE.md "Photo frames"). The CSS
+ * tokens `--ratio-*` in tokens.frame.css hold the same values; frames.test.ts checks they agree.
+ */
+export const PHOTO_RATIOS = {
+  portrait: 4 / 5,
+  landscape: 3 / 2,
+  wide: 21 / 8,
+  square: 1,
+} as const;
+export type PhotoRatio = keyof typeof PHOTO_RATIOS;
+
+/** Share of the source picture that stays inside a frame of `target` ratio (object-fit: cover). */
+export function cropKept(source: number, target: number): number {
+  return target > source ? source / target : target / source;
+}
+
+/**
+ * A ratio is allowed for a photo when at least this share of the source stays in frame. One focal
+ * point cannot serve every crop: a 4:5 portrait source keeps 30% of itself as a 21:8 banner (not
+ * allowed) but 53% as a 3:2 landscape (allowed).
+ */
+export const MIN_CROP_KEPT = 0.5;
+
 export interface PhotoEntry {
   stem: string;
   widths: number[];
@@ -19,6 +43,10 @@ export interface PhotoEntry {
   alt: string;
   position: string;
   tone: 'bright' | 'warm' | 'dark';
+  /** Focal point in percent (derived from `position`). Frames map it to object-position. */
+  focal: { x: number; y: number };
+  /** Frame ratios this photo may be cropped to: derived from its size, unless the entry sets `ratios`. */
+  ratios: PhotoRatio[];
 }
 
 const meta = {
@@ -118,12 +146,22 @@ const meta = {
     position: '40% 40%',
     tone: 'dark',
   },
-} as const satisfies Record<string, Pick<PhotoEntry, 'stem' | 'alt' | 'position' | 'tone'>>;
+} as const satisfies Record<
+  string,
+  Pick<PhotoEntry, 'stem' | 'alt' | 'position' | 'tone'> & { ratios?: readonly PhotoRatio[] }
+>;
 
 export type PhotoKey = keyof typeof meta;
 
 type ManifestEntry = { width: number; height: number; widths: number[] };
 const m = manifest as Record<string, ManifestEntry>;
+
+/** "50% 22%" → { x: 50, y: 22 }. Only the two-percentage form is allowed so every photo has a focal point. */
+function focalFromPosition(key: string, position: string): { x: number; y: number } {
+  const m = /^\s*(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*$/.exec(position);
+  if (!m) throw new Error(`Photo "${key}" position "${position}" must be two percentages, e.g. "50% 30%".`);
+  return { x: Number(m[1]), y: Number(m[2]) };
+}
 
 export const photos = Object.fromEntries(
   Object.entries(meta).map(([key, value]) => {
@@ -132,6 +170,23 @@ export const photos = Object.fromEntries(
       throw new Error(
         `Photo "${key}" (${value.stem}) missing from image-manifest.json — run \`make images\`.`,
       );
-    return [key, { ...value, widths: entry.widths, width: entry.width, height: entry.height }];
+    const source = entry.width / entry.height;
+    const override = (value as { ratios?: readonly PhotoRatio[] }).ratios;
+    const ratios = override
+      ? [...override]
+      : (Object.keys(PHOTO_RATIOS) as PhotoRatio[]).filter(
+          (r) => cropKept(source, PHOTO_RATIOS[r]) >= MIN_CROP_KEPT,
+        );
+    return [
+      key,
+      {
+        ...value,
+        widths: entry.widths,
+        width: entry.width,
+        height: entry.height,
+        focal: focalFromPosition(key, value.position),
+        ratios,
+      },
+    ];
   }),
 ) as Record<PhotoKey, PhotoEntry>;

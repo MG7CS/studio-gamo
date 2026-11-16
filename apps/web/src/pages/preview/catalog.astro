@@ -7,13 +7,14 @@
  */
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import LayoutCatalog from '../../components/catalog/LayoutCatalog.astro';
 import ContentCatalog from '../../components/catalog/ContentCatalog.astro';
 import FormsCatalog from '../../components/catalog/FormsCatalog.astro';
 import ExistingCatalog from '../../components/catalog/ExistingCatalog.astro';
+import FramesCatalog from '../../components/catalog/FramesCatalog.astro';
 ---
 
 <SiteLayout
@@ -36,15 +37,18 @@ import ExistingCatalog from '../../components/catalog/ExistingCatalog.astro';
     <ButtonLink slot="actions" href="#catalog-programs" variant="secondary">
       Program order
     </ButtonLink>
-    <Photo
+    <Frame
       slot="media"
-      name="acousticLeader"
-      sizes="(min-width:1024px) 40vw, 100vw"
-      class="aspect-landscape w-full rounded-hero object-cover"
+      photo="acousticLeader"
+      ratio="landscape"
+      sizes="half"
+      priority
+      alt="Worship leader singing and playing acoustic guitar on stage"
     />
   </PageHero>
   <LayoutCatalog />
   <ContentCatalog />
   <FormsCatalog />
+  <FramesCatalog />
   <ExistingCatalog />
 </SiteLayout>

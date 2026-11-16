@@ -7,6 +7,9 @@ import type { HTMLAttributes } from 'astro/types';
  * Usage:
  *   <Card tone="raised" padding="lg" as="article"><h3>…</h3><p>…</p></Card>
  *   <FeatureGrid as="ul">{items.map((i) => <Card as="li">…</Card>)}</FeatureGrid>
+ *
+ * A `Frame` inside a padded Card gets the nested radius automatically: the card sets `--frame-radius`
+ * to its own radius minus its padding (never below 0), so inner and outer corners stay concentric.
  */
 import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
 
@@ -35,3 +38,16 @@ const { tone = 'raised', padding = 'md', as: Tag = 'div', class: className, ...r
 >
   <slot />
 </Tag>
+
+<style>
+  /* Nested radius = outer radius − padding (clamped at 0), read by Frame. */
+  [data-padding='sm'] {
+    --frame-radius: max(0rem, calc(var(--radius-card) - 1.25rem));
+  }
+  [data-padding='md'] {
+    --frame-radius: max(0rem, calc(var(--radius-card) - 1.5rem));
+  }
+  [data-padding='lg'] {
+    --frame-radius: max(0rem, calc(var(--radius-card) - 2rem));
+  }
+</style>

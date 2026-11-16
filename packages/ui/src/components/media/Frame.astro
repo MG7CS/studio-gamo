@@ -1,0 +1,203 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+/**
+ * Frame: the only way to show a photo (AGENTS.md rule 14, docs/FRONTEND_ARCHITECTURE.md "Photo frames").
+ * A rounded rectangle with one radius token and one of four fixed ratios, the photo cropped with its
+ * catalog focal point. Apps cannot set a radius, mask, aspect, fit, position, class or style.
+ *
+ * Usage:
+ *   <Frame photo="guitarMentor" ratio="landscape" alt="Guitar instructor guiding a student" sizes="half" />
+ *   <Frame photo="churchModernDay" ratio="wide" decorative sizes="full" priority />
+ *   <Frame photo="boyGuitar" ratio="portrait" alt="…" caption="A first lesson (Sample)" />
+ *   <Frame photo="worshipBand" ratio="landscape" alt="…" scrim="bottom"><h3>Title on the photo</h3></Frame>
+ *
+ * Props
+ * - photo: catalog id (PhotoKey from lib/images.ts).
+ * - ratio: portrait 4/5 | landscape 3/2 | wide 21/8 | square 1/1 (required). `wide` shows as landscape
+ *   inside containers narrower than 30rem. Build fails when the photo cannot be cropped to the ratio
+ *   (the catalog lists each photo's allowed ratios).
+ * - alt: description, OR decorative: true for alt="" (exactly one; enforced by the TypeScript union).
+ * - sizes: full | half | third | grid-tall (default full): presets from media/frame.ts.
+ * - priority: eager + fetchpriority="high". Use on at most one frame per page (the likely LCP image).
+ * - caption: renders <figure>/<figcaption> BELOW the photo, never over it.
+ * - scrim: 'none' (default) | 'bottom'. With 'bottom' the default slot is placed over the photo on a
+ *   dark scrim (text contrast in tokens.frame.css). The slot is only allowed with scrim="bottom".
+ * - Any other HTML attribute (data-reveal, id, data-*, aria-*) goes onto the outer wrapper.
+ * - NOT accepted: class, class:list, style.
+ *
+ * Structure and behaviour
+ * - `.frame-wrap` (container-type: inline-size) > `.frame` (aspect-ratio, radius, clip) > picture/img.
+ *   The wrapper is a size container, so give it a width (block layout, a grid or flex track).
+ * - Radius is `--frame-radius` if an ancestor sets it, else `--radius-photo`. Inside a padded card set
+ *   `--frame-radius` to (card radius − padding, never below 0) on the card, not on the frame.
+ * - Safari: rounded overflow:hidden fails with composited children, so the frame also clips with
+ *   `clip-path: inset(0 round R)` and never transforms; a data-reveal transform is dropped for a
+ *   plain fade.
+ * - Linked cards: put the link (and its focus ring) on the OUTER element, never inside the clipped
+ *   frame, or the ring is cut off. Do not place focusable content inside the scrim slot near the edge.
+ * - width/height attributes come from the ratio, so space is reserved before the image loads.
+ *
+ * @internal `fill` is used only by PhotoGrid: the wrapper fills its grid cell instead of using the
+ * ratio. Apps must not pass it.
+ */
+import ResponsivePicture from '../ResponsivePicture.astro';
+import { photos, type PhotoKey } from '../../lib/images';
+import {
+  FRAME_RATIOS,
+  FRAME_SIZES,
+  assertAlt,
+  assertFrameRatio,
+  type FrameAlt,
+  type FrameRatio,
+  type FrameSizes,
+} from './frame';
+
+interface FrameBase extends Omit<HTMLAttributes<'div'>, 'class' | 'class:list' | 'style' | 'children'> {
+  photo: PhotoKey;
+  ratio: FrameRatio;
+  sizes?: FrameSizes;
+  priority?: boolean;
+  caption?: string;
+  scrim?: 'none' | 'bottom';
+  /** @internal PhotoGrid only. */
+  fill?: boolean;
+}
+type Props = FrameBase & FrameAlt;
+
+const {
+  photo,
+  ratio,
+  alt,
+  decorative,
+  sizes = 'full',
+  priority = false,
+  caption,
+  scrim = 'none',
+  fill = false,
+  ...rest
+} = Astro.props;
+
+for (const forbidden of ['class', 'class:list', 'style']) {
+  if (forbidden in rest) {
+    throw new Error(`Frame: "${forbidden}" is not accepted; a frame's shape is set by ratio only.`);
+  }
+}
+assertAlt(`Frame "${photo}"`, { alt, decorative });
+assertFrameRatio(photo, ratio);
+if (!(sizes in FRAME_SIZES)) {
+  throw new Error(`Frame "${photo}": unknown sizes preset "${String(sizes)}".`);
+}
+if (scrim === 'none' && Astro.slots.has('default')) {
+  throw new Error(`Frame "${photo}": slot content needs scrim="bottom" so the text stays readable.`);
+}
+
+const entry = photos[photo];
+const WIDTH = 1200;
+const width = WIDTH;
+const height = Math.round(WIDTH / FRAME_RATIOS[ratio]);
+const Outer = caption ? 'figure' : 'div';
+---
+
+<Outer class="frame-wrap" data-fill={fill ? '' : undefined} {...rest}>
+  <div class="frame" data-ratio={ratio} data-scrim={scrim}>
+    <ResponsivePicture
+      stem={entry.stem}
+      widths={entry.widths}
+      width={width}
+      height={height}
+      sizes={FRAME_SIZES[sizes]}
+      alt={decorative ? '' : alt!}
+      position={`${entry.focal.x}% ${entry.focal.y}%`}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding={priority ? 'sync' : 'async'}
+      fetchpriority={priority ? 'high' : undefined}
+      pictureClass="frame__picture"
+      class="frame__img"
+    />
+    {scrim === 'bottom' && (
+      <div class="frame__overlay" data-surface="dark">
+        <slot />
+      </div>
+    )}
+  </div>
+  {caption && <figcaption class="frame__caption">{caption}</figcaption>}
+</Outer>
+
+<style>
+  .frame-wrap {
+    container-type: inline-size;
+    display: block;
+    margin: 0;
+    min-inline-size: 0;
+  }
+  .frame-wrap[data-fill] {
+    position: absolute;
+    inset: 0;
+  }
+  .frame {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--frame-radius, var(--radius-photo));
+    clip-path: inset(0 round var(--frame-radius, var(--radius-photo)));
+    background: var(--photo-placeholder);
+    aspect-ratio: var(--ratio-landscape);
+  }
+  .frame[data-ratio='portrait'] {
+    aspect-ratio: var(--ratio-portrait);
+  }
+  .frame[data-ratio='landscape'] {
+    aspect-ratio: var(--ratio-landscape);
+  }
+  .frame[data-ratio='wide'] {
+    aspect-ratio: var(--ratio-wide);
+  }
+  .frame[data-ratio='square'] {
+    aspect-ratio: var(--ratio-square);
+  }
+  /* A 21:8 strip is too thin in a narrow container: fall back to landscape. */
+  @container (max-width: 30rem) {
+    .frame[data-ratio='wide'] {
+      aspect-ratio: var(--ratio-landscape);
+    }
+  }
+  /* PhotoGrid cells: the cell sets the shape, the frame fills it. */
+  .frame-wrap[data-fill] .frame {
+    block-size: 100%;
+    aspect-ratio: auto;
+  }
+  .frame :global(.frame__picture),
+  .frame :global(.frame__img) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .frame :global(.frame__img) {
+    object-fit: cover;
+  }
+
+  .frame__overlay {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 1;
+    padding: var(--photo-scrim-fade) 1.25rem 1.25rem;
+    background: var(--photo-scrim);
+    color: var(--ui-fg);
+  }
+  .frame__caption {
+    margin-block-start: 0.625rem;
+    font-size: var(--text-small);
+    line-height: var(--text-small--line-height);
+    color: var(--ui-fg-muted);
+  }
+
+  /* Reveal is a fade only on frames: a transform on the wrapper would re-composite the clipped photo. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html.js) .frame-wrap[data-reveal][data-reveal] {
+      transform: none;
+    }
+  }
+</style>

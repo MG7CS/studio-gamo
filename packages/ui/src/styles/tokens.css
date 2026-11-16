@@ -13,6 +13,7 @@
    Apps and pages use semantic tokens only; see the header of tokens.semantic.css. */
 @import './tokens.base.css';
 @import './tokens.semantic.css';
+@import './tokens.frame.css';
 
 @source "../components";
 
@@ -63,7 +64,7 @@
   font-weight: 600;
 }
 
-/* Sculptural photo masks */
+/* Sculptural photo masks: RETIRED (AGENTS.md rule 14). Use <Frame>/<PhotoGrid>; removed once apps have migrated. */
 @utility mask-arch {
   border-radius: 999px 999px 32px 32px;
 }

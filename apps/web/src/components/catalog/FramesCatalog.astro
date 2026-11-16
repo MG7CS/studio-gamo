@@ -1,0 +1,181 @@
+---
+/**
+ * FramesCatalog — the photo frame language for the private catalog: `Frame` in all four ratios,
+ * the wide → landscape fallback, scrim with overlay text, captions, alt vs decorative, a linked frame,
+ * a Frame inside a padded Card (nested radius), and every `PhotoGrid` layout (pair, trio, quad, hero).
+ * Photos are catalog stock; any person or caption is labelled Sample.
+ */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
+import Specimen from './Specimen.astro';
+---
+
+<Section title="Media · Frame" id="catalog-frames" tone="inset">
+  <Fragment slot="eyebrow">media/Frame</Fragment>
+  <p slot="intro">
+    One radius, four ratios, the photo cropped on its catalog focal point. Apps pass a photo id and a ratio;
+    they never set radius, aspect or crop.
+  </p>
+  <Stack gap="xl">
+    <div class="grid gap-8 md:grid-cols-3">
+      <Specimen name='Frame · ratio="portrait"' note="4 / 5">
+        <Frame
+          photo="boyGuitar"
+          ratio="portrait"
+          sizes="third"
+          alt="Smiling boy learning to play acoustic guitar in a sunlit room"
+        />
+      </Specimen>
+      <Specimen name='Frame · ratio="landscape"' note="3 / 2">
+        <Frame
+          photo="guitarMentor"
+          ratio="landscape"
+          sizes="third"
+          alt="Guitar instructor guiding a young student through a chord"
+        />
+      </Specimen>
+      <Specimen name='Frame · ratio="square"' note="1 / 1">
+        <Frame
+          photo="worshipBand"
+          ratio="square"
+          sizes="third"
+          alt="Worship team leading in a bright sanctuary"
+        />
+      </Specimen>
+    </div>
+
+    <Specimen
+      name='Frame · ratio="wide"'
+      note="21 / 8 in a wide container; the same frame in a narrow one (under 30rem) falls back to landscape."
+    >
+      <div class="grid items-start gap-8 lg:grid-cols-3">
+        <div class="lg:col-span-2">
+          <Frame
+            photo="churchModernDay"
+            ratio="wide"
+            sizes="full"
+            alt="Modern church building with a cross on a sunny day"
+          />
+        </div>
+        <Frame
+          photo="churchModernDay"
+          ratio="wide"
+          sizes="third"
+          alt="Modern church building with a cross on a sunny day, narrow container"
+        />
+      </div>
+    </Specimen>
+
+    <div class="grid gap-8 md:grid-cols-2">
+      <Specimen name='Frame · scrim="bottom"' note="Overlay text sits on a dark scrim with known contrast.">
+        <Frame
+          photo="worshipBand"
+          ratio="landscape"
+          sizes="half"
+          scrim="bottom"
+          alt="Worship team with vocalists, guitar, drums and keys in a bright sanctuary"
+        >
+          <p class="eyebrow text-fg">Sample</p>
+          <p class="text-xl font-black tracking-tight text-fg uppercase">Sunday worship team</p>
+          <p class="text-body-sm text-fg">Overlay text stays readable on a bright photo.</p>
+        </Frame>
+      </Specimen>
+      <Specimen name="Frame · caption" note="Caption renders below the photo as figcaption, never over it.">
+        <Frame
+          photo="sanctuaryCongregation"
+          ratio="landscape"
+          sizes="half"
+          alt="Congregation worshipping together in a sunlit sanctuary"
+          caption="A Sunday morning in a sunlit sanctuary (Sample caption)."
+        />
+      </Specimen>
+      <Specimen
+        name="Frame · decorative"
+        note='Decorative: true gives alt="" and takes no screen-reader space.'
+      >
+        <Frame photo="chapelSpring" ratio="landscape" sizes="half" decorative />
+      </Specimen>
+      <Specimen name="Frame · inside a link" note="The link owns the focus ring, so it is never clipped.">
+        <a href="#catalog-frames" class="frame-link" data-testid="frame-link">
+          <Frame
+            photo="girlGuitar"
+            ratio="landscape"
+            sizes="half"
+            alt="Young girl practicing acoustic guitar beside a music stand. Link to the top of this section."
+          />
+        </a>
+      </Specimen>
+      <Specimen
+        name="Frame · inside a padded Card"
+        note="Radius = card radius minus padding (set by Card as --frame-radius)."
+      >
+        <Card padding="md">
+          <Frame
+            photo="youngPianist"
+            ratio="landscape"
+            sizes="half"
+            alt="Young pianist smiling while playing a keyboard in a bright classroom"
+          />
+        </Card>
+      </Specimen>
+    </div>
+  </Stack>
+</Section>
+
+<Section title="Media · PhotoGrid" id="catalog-photogrid">
+  <Fragment slot="eyebrow">media/PhotoGrid</Fragment>
+  <p slot="intro">
+    Two to four photos, placed by the layout. The grid collapses by its own width: resize the window or look
+    at the 360 px and 1280 px baselines.
+  </p>
+  <Stack gap="xl">
+    <Specimen name='PhotoGrid · layout="pair"' note="2 photos: stacked landscapes, two portraits from 32rem.">
+      <PhotoGrid
+        layout="pair"
+        photos={[
+          { photo: 'guitarMentor', alt: 'Guitar instructor guiding a young student through a chord' },
+          { photo: 'worshipBand', alt: 'Worship team in a bright sanctuary', caption: 'Sample caption' },
+        ]}
+      />
+    </Specimen>
+    <Specimen
+      name='PhotoGrid · layout="trio"'
+      note="3 photos: landscape above two squares, tall left from 40rem."
+    >
+      <PhotoGrid
+        layout="trio"
+        photos={[
+          { photo: 'worshipBand', alt: 'Worship team with vocalists, guitar, drums and keys' },
+          { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
+          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar' },
+        ]}
+      />
+    </Specimen>
+    <Specimen name='PhotoGrid · layout="quad"' note="4 photos: 2×2 squares, mosaic from 48rem.">
+      <PhotoGrid
+        layout="quad"
+        photos={[
+          { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
+          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar' },
+          { photo: 'youngPianist', alt: 'Young pianist smiling at a keyboard' },
+          { photo: 'worshipBand', alt: 'Worship team in a bright sanctuary' },
+        ]}
+      />
+    </Specimen>
+    <Specimen
+      name='PhotoGrid · layout="hero"'
+      note="2 photos: dominant landscape; portrait companion from 48rem (hidden below)."
+    >
+      <PhotoGrid
+        layout="hero"
+        photos={[
+          { photo: 'churchModernDay', alt: 'Modern church building with a cross on a sunny day' },
+          { photo: 'youngPianist', alt: 'Young pianist smiling at a keyboard' },
+        ]}
+      />
+    </Specimen>
+  </Stack>
+</Section>

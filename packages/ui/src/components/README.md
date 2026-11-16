@@ -51,6 +51,29 @@ Behaviour notes:
 - Label fictional content with `<Badge tone="sample" />` and unapproved fees or tiers with
   `<Badge tone="proposal" />`.
 
+## Photo frames (`media/`)
+
+AGENTS.md rule 14; decision in `docs/DECISIONS.md` and `docs/FRONTEND_ARCHITECTURE.md` ("Photo frames").
+Photos are shown only through `Frame` (one) or `PhotoGrid` (two to four). No class or style props, so an
+app cannot set a radius, mask, aspect or crop; the catalog gives each photo's focal point and allowed ratios.
+
+| Component   | Props                                                                                                                                  | Slots                                   |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `Frame`     | `photo` (catalog id), `ratio` portrait \| landscape \| wide \| square (required), `alt` OR `decorative: true`, `sizes` full \| half \| third \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
+| `PhotoGrid` | `layout` pair (2) \| trio (3) \| quad (4) \| hero (2), `photos` ordered `{ photo, alt \| decorative, caption?, priority? }[]`            | none                                    |
+
+- `<Frame photo="guitarMentor" ratio="landscape" sizes="half" alt="Guitar instructor with a student" />`;
+  `<PhotoGrid layout="trio" photos={[{ photo: 'worshipBand', alt: '…', priority: true }, { photo: 'boyGuitar', alt: '…' }, { photo: 'girlGuitar', decorative: true }]} />`.
+- Ratios 4/5, 3/2, 21/8, 1/1; one radius `--radius-photo`; `wide` becomes landscape under 30rem. The build throws when
+  a photo cannot be cropped to a ratio (see `ratios` on the catalog entry) or a grid gets the wrong count.
+- `priority` on at most one frame per page (the likely LCP image). `caption` renders below the photo.
+- Extra attributes (`data-reveal`, `id`, `aria-*`) go to the wrapper. Reveal on a frame is a fade only.
+- A Frame is a size container: give it a width (block, grid or flex track). Inside a padded `Card` it takes the
+  nested radius automatically. For a linked photo put the link outside: `<a href class="frame-link"><Frame … /></a>`
+  so the focus ring is never clipped. Do not put focusable content near the edge of the scrim slot.
+- `fill` on `Frame` is internal to `PhotoGrid`; apps must not pass it. `Photo` / `ResponsivePicture` remain
+  low-level pieces inside shared components (e.g. `MediaCard`); pages use `Frame`.
+
 ## Forms (`forms/`)
 
 Field primitives share one look from `forms/field.ts` (`CONTROL_CLASS`) and `FieldShell`/`FieldError`:

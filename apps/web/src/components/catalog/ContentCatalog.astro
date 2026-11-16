@@ -15,7 +15,7 @@ import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
@@ -213,12 +213,7 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
     {(['light', 'dark'] as const).map((tone, i) => (
       <Specimen name={`FloatingPreviewCard · tone="${tone}"`}>
         <div class="relative">
-          <Photo
-            name={i === 0 ? 'girlGuitar' : 'worshipNight'}
-            sizes="(min-width:768px) 45vw, 100vw"
-            alt=""
-            class="aspect-landscape w-full rounded-card object-cover"
-          />
+          <Frame photo={i === 0 ? 'girlGuitar' : 'worshipNight'} ratio="landscape" sizes="half" decorative />
           <FloatingPreviewCard
             title={i === 0 ? 'Next lesson' : 'Service plan'}
             tone={tone}
@@ -248,11 +243,12 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
   <ButtonLink href="#catalog-container" variant="light">
     Sample action
   </ButtonLink>
-  <Photo
+  <Frame
     slot="media"
-    name="worshipBand"
-    sizes="(min-width:1024px) 50vw, 100vw"
-    class="aspect-portrait w-full rounded-hero object-cover"
+    photo="worshipBand"
+    ratio="portrait"
+    sizes="half"
+    alt="Worship team with vocalists, guitar, drums and keys in a bright sanctuary (Sample)"
   />
 </SplitHero>
 
@@ -262,11 +258,12 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
   <p class="text-lg text-fg-muted">
     The default media side is end. <Badge tone="sample" size="sm" />
   </p>
-  <Photo
+  <Frame
     slot="media"
-    name="guitarMentor"
-    sizes="(min-width:1024px) 50vw, 100vw"
-    class="aspect-landscape w-full rounded-hero object-cover"
+    photo="guitarMentor"
+    ratio="landscape"
+    sizes="half"
+    alt="Guitar instructor guiding a young student through a chord (Sample)"
   />
 </SplitHero>
 
@@ -282,11 +279,12 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
   <p class="text-lg text-fg-muted">
     Lifts the band onto the raised surface; extra HTML attributes pass through.
   </p>
-  <Photo
+  <Frame
     slot="media"
-    name="churchModernDay"
-    sizes="(min-width:1024px) 50vw, 100vw"
-    class="aspect-landscape w-full rounded-hero object-cover"
+    photo="churchModernDay"
+    ratio="landscape"
+    sizes="half"
+    alt="Modern church building on a sunny day (Sample)"
   />
 </SplitHero>
 

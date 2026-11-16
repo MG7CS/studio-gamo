@@ -1,0 +1,47 @@
+/*
+ * Photo-frame tokens (AGENTS.md rule 14, docs/FRONTEND_ARCHITECTURE.md "Photo frames"). Only the
+ * shared `Frame` and `PhotoGrid` (packages/ui/src/components/media/) read these; apps never do.
+ *
+ * Ratios (width / height): the only four a photo may have. Numbers match PHOTO_RATIOS in lib/images.ts
+ * (scripts/audit/frames.test.ts keeps them in step).
+ *   --ratio-portrait 4/5, --ratio-landscape 3/2, --ratio-wide 21/8, --ratio-square 1/1
+ *
+ * --radius-photo: the one photo radius. A frame inside a padded card sets --frame-radius on the card
+ *   (outer radius minus padding, never below 0) and the frame reads it.
+ * --photo-gap: gap between photos in a PhotoGrid; scales with the grid's own width (cqi), 8 to 16 px.
+ * --photo-placeholder: what shows while the photo loads (sand role).
+ *
+ * Scrim (text on a photo): ink at 72% at the bottom edge, 62% across the text zone, fading to 0 over
+ * --photo-scrim-fade above it. Worst case is a pure white pixel under the weakest part of the text zone
+ * (alpha .62 → rgb(112 112 114)): white text 4.96:1, cream text (--ui-fg on data-surface="dark",
+ * #F9F6F0) 4.60:1, both at or above the WCAG 1.4.3 body-text minimum of 4.5:1. Overlay content must
+ * stay inside the text zone, which the Frame guarantees by padding its overlay by the fade height.
+ */
+:root {
+  --ratio-portrait: 4 / 5;
+  --ratio-landscape: 3 / 2;
+  --ratio-wide: 21 / 8;
+  --ratio-square: 1 / 1;
+
+  --radius-photo: 1.25rem;
+  --photo-gap: clamp(0.5rem, 1.5cqi, 1rem);
+  --photo-placeholder: var(--color-sand);
+
+  --photo-scrim-fade: 3rem;
+  --photo-scrim: linear-gradient(
+    to top,
+    rgb(24 24 27 / 0.72) 0,
+    rgb(24 24 27 / 0.62) calc(100% - var(--photo-scrim-fade)),
+    rgb(24 24 27 / 0) 100%
+  );
+}
+
+/*
+ * A link around a Frame (linked photo cards): the link owns the focus ring so it is never clipped by
+ * the frame's own clip. It takes the photo radius so the ring follows the rounded corners.
+ *   <a href="…" class="frame-link"><Frame … /></a>
+ */
+@utility frame-link {
+  display: block;
+  border-radius: var(--radius-photo);
+}

@@ -1,6 +1,6 @@
 ---
 /**
- * ExistingCatalog — key root components (ButtonLink, EditorialHeading, Photo, StatusPill, FaqAccordion,
+ * ExistingCatalog — key root components (ButtonLink, EditorialHeading, Frame, StatusPill, FaqAccordion,
  * CtaInvitation) in every variant and tone, plus the Academy → Worship → Production program example.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
@@ -10,7 +10,7 @@ import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
 import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -138,14 +138,15 @@ const programBlurb: Record<string, string> = {
   </Stack>
 </Section>
 
-<Section tone="raised" title="Photo and FaqAccordion" id="catalog-photo">
-  <Fragment slot="eyebrow">Photo · FaqAccordion</Fragment>
+<Section tone="raised" title="Frame and FaqAccordion" id="catalog-photo">
+  <Fragment slot="eyebrow">Frame · FaqAccordion</Fragment>
   <div class="grid gap-10 md:grid-cols-2">
-    <Specimen name="Photo · catalog alt, aspect-portrait">
-      <Photo
-        name="chapelSpring"
-        sizes="(min-width:768px) 45vw, 100vw"
-        class="aspect-portrait w-full rounded-card object-cover"
+    <Specimen name='Frame · ratio="portrait"' note="Full coverage in FramesCatalog below.">
+      <Frame
+        photo="chapelSpring"
+        ratio="portrait"
+        sizes="half"
+        alt="White chapel with a steeple surrounded by spring trees"
       />
     </Specimen>
     <Specimen name='FaqAccordion · tone="light"'>

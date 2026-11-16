@@ -1,0 +1,196 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+/**
+ * PhotoGrid: the only way to show two to four photos together (AGENTS.md rule 14). Apps pass an
+ * ordered list of catalog photos, never positions; the layout places them and every cell is a Frame.
+ * Layouts collapse by the grid's own width (container queries), not the viewport.
+ *
+ * Usage:
+ *   <PhotoGrid layout="trio" photos={[
+ *     { photo: 'worshipBand', alt: 'Worship team in a bright sanctuary', priority: true },
+ *     { photo: 'boyGuitar', alt: 'Smiling boy learning guitar' },
+ *     { photo: 'soundEngineer', decorative: true, caption: 'Sample caption' },
+ *   ]} />
+ *
+ * Props
+ * - layout: 'pair' (2 photos) | 'trio' (3) | 'quad' (4) | 'hero' (2). Any other count throws at build
+ *   time; five or more photos are two clusters in different sections.
+ * - photos: ordered { photo, alt | decorative, caption?, priority? }. `priority` only on the first.
+ *   Each photo must allow every crop its cell takes (assertGridPhotos names the cell and ratios).
+ * - Extra HTML attributes (data-reveal, id, aria-*) go onto the wrapper. No class, no style.
+ *
+ * Shapes (container width of the grid itself)
+ * - pair: two stacked landscapes; two portraits side by side from 32rem.
+ * - trio: landscape above two squares; from 40rem one tall photo left, two landscapes right.
+ * - quad: 2×2 squares; from 48rem a mosaic: portrait left, two squares and a landscape right.
+ * - hero: one dominant landscape; from 48rem a portrait companion beside it (hidden below, so give
+ *   the companion a description that the page does not depend on).
+ * Captions sit below their photo (never over it).
+ */
+import Frame from './Frame.astro';
+import { GRID_LAYOUTS, assertGridPhotos, type GridLayout, type GridPhoto } from './frame';
+
+interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'class:list' | 'style' | 'children'> {
+  layout: GridLayout;
+  photos: GridPhoto[];
+}
+const { layout, photos: items, ...rest } = Astro.props;
+
+for (const forbidden of ['class', 'class:list', 'style']) {
+  if (forbidden in rest) {
+    throw new Error(`PhotoGrid: "${forbidden}" is not accepted; the layout sets every shape.`);
+  }
+}
+assertGridPhotos(layout, items);
+const cells = GRID_LAYOUTS[layout];
+---
+
+<div class="photo-grid" data-layout={layout} {...rest}>
+  <div class="photo-grid__tiles">
+    {items.map((item, i) => {
+      const Tag = item.caption ? 'figure' : 'div';
+      const cell = cells[i]!;
+      return (
+        <Tag class="photo-grid__cell" data-cell={i + 1}>
+          <div class="photo-grid__media">
+            <Frame
+              fill
+              photo={item.photo}
+              ratio={cell.nominal}
+              sizes={cell.sizes}
+              priority={i === 0 && item.priority === true}
+              {...(item.decorative ? { decorative: true as const } : { alt: item.alt as string })}
+            />
+          </div>
+          {item.caption && <figcaption class="photo-grid__caption">{item.caption}</figcaption>}
+        </Tag>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .photo-grid {
+    container-type: inline-size;
+    display: block;
+    min-inline-size: 0;
+  }
+  .photo-grid__tiles {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--photo-gap);
+  }
+  .photo-grid__cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    margin: 0;
+    min-inline-size: 0;
+    min-block-size: 0;
+  }
+  .photo-grid__media {
+    position: relative;
+    flex: 1 1 auto;
+    min-block-size: 0;
+    aspect-ratio: var(--ratio-landscape);
+  }
+  .photo-grid__caption {
+    font-size: var(--text-small);
+    line-height: var(--text-small--line-height);
+    color: var(--ui-fg-muted);
+  }
+
+  /* pair: stacked landscapes → two portraits from 32rem. */
+  @container (min-width: 32rem) {
+    [data-layout='pair'] .photo-grid__tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    [data-layout='pair'] .photo-grid__media {
+      aspect-ratio: var(--ratio-portrait);
+    }
+  }
+
+  /* trio: landscape above two squares → tall left, two landscapes right from 40rem. */
+  [data-layout='trio'] .photo-grid__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-layout='trio'] [data-cell='1'] {
+    grid-column: 1 / -1;
+  }
+  [data-layout='trio'] [data-cell='2'] .photo-grid__media,
+  [data-layout='trio'] [data-cell='3'] .photo-grid__media {
+    aspect-ratio: var(--ratio-square);
+  }
+  @container (min-width: 40rem) {
+    [data-layout='trio'] .photo-grid__tiles {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      aspect-ratio: var(--ratio-landscape);
+    }
+    [data-layout='trio'] [data-cell='1'] {
+      grid-column: 1;
+      grid-row: 1 / 3;
+    }
+    [data-layout='trio'] [data-cell='2'] {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    [data-layout='trio'] [data-cell='3'] {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    [data-layout='trio'] .photo-grid__media {
+      aspect-ratio: auto;
+    }
+  }
+
+  /* quad: 2×2 squares → mosaic from 48rem (portrait left; two squares and a landscape right). */
+  [data-layout='quad'] .photo-grid__tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-layout='quad'] .photo-grid__media {
+    aspect-ratio: var(--ratio-square);
+  }
+  @container (min-width: 48rem) {
+    [data-layout='quad'] .photo-grid__tiles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: minmax(0, 3fr) minmax(0, 4fr);
+      aspect-ratio: 12 / 7;
+    }
+    [data-layout='quad'] [data-cell='1'] {
+      grid-column: 1 / 3;
+      grid-row: 1 / 3;
+    }
+    [data-layout='quad'] [data-cell='2'] {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    [data-layout='quad'] [data-cell='3'] {
+      grid-column: 4;
+      grid-row: 1;
+    }
+    [data-layout='quad'] [data-cell='4'] {
+      grid-column: 3 / 5;
+      grid-row: 2;
+    }
+    [data-layout='quad'] .photo-grid__media {
+      aspect-ratio: auto;
+    }
+  }
+
+  /* hero: one landscape; a portrait companion beside it from 48rem. */
+  [data-layout='hero'] [data-cell='2'] {
+    display: none;
+  }
+  @container (min-width: 48rem) {
+    [data-layout='hero'] .photo-grid__tiles {
+      grid-template-columns: minmax(0, 15fr) minmax(0, 8fr);
+      aspect-ratio: 23 / 10;
+    }
+    [data-layout='hero'] [data-cell='2'] {
+      display: flex;
+    }
+    [data-layout='hero'] .photo-grid__media {
+      aspect-ratio: auto;
+    }
+  }
+</style>
