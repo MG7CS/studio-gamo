@@ -30,6 +30,10 @@ test('retired Gamo Live URLs on the global site go to the homepage', () => {
   assert.deepEqual(redirect(web, '/live/'), { status: 302, location: '/' });
   assert.deepEqual(redirect(web, '/live/events/abc-123'), { status: 302, location: '/' });
   assert.equal(redirect(web, '/lively'), null, 'prefix must stop at a path segment');
+  // Retired Gamo Live legal drafts go to the legal index instead of a 404.
+  assert.deepEqual(redirect(web, '/legal/ticket-terms'), { status: 302, location: '/legal' });
+  assert.deepEqual(redirect(web, '/legal/organizer-terms'), { status: 302, location: '/legal' });
+  assert.equal(redirect(web, '/legal/site-terms'), null);
 });
 
 test('program demo flows keep the original 303 status of their stubs', () => {
