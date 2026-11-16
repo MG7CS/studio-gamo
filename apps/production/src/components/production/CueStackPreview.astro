@@ -1,5 +1,6 @@
 ---
-/** Static lighting cue-stack preview (illustrative). */
+/** Lighting cue-stack preview (illustrative product UI) in the shared FloatingPreviewCard. */
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 interface Props {
   class?: string;
 }
@@ -11,30 +12,18 @@ const cues = [
 ];
 ---
 
-<figure
-  class:list={[
-    'w-full max-w-xs rounded-3xl border border-sand bg-white p-5 text-charcoal shadow-float',
-    className,
-  ]}
-  aria-label="Lighting cue list"
->
-  <figcaption class="flex items-center justify-between text-sm font-semibold">
-    Service cues{' '}
-    <span class="rounded-full bg-gold/25 px-2 py-0.5 text-[10px] uppercase tracking-wider text-terracotta-deep">
-      Sunday
-    </span>
-  </figcaption>
-  <ul class="mt-4 space-y-2 text-sm">
+<FloatingPreviewCard title="Service cues" as="figure" class:list={['w-full max-w-xs', className]}>
+  <ul class="space-y-2 text-small">
     {cues.map((c) => (
       <li
         class:list={[
           'flex items-center gap-3 rounded-xl px-3 py-2',
-          c.on ? 'bg-terracotta text-white' : 'bg-cream text-ink-soft',
+          c.on ? 'bg-action text-on-action' : 'bg-surface text-fg-muted',
         ]}
       >
-        <span class="font-mono text-xs">Q{c.n}</span>
+        <span class="font-mono text-caption">Q{c.n}</span>
         {c.label}
       </li>
     ))}
   </ul>
-</figure>
+</FloatingPreviewCard>

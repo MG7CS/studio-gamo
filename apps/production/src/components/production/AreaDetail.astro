@@ -1,8 +1,10 @@
 ---
-/** Detail body for one support area: coverage, volunteer skills and preparation questions. */
+/** Detail body for one support area: what it covers, questions to consider and volunteer skills. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import ChecklistPreview from './ChecklistPreview.astro';
 import type { SupportArea } from '../../data/production';
 interface Props {
   area: SupportArea;
@@ -10,47 +12,53 @@ interface Props {
 const { area } = Astro.props;
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="covers-title">
-  <div class="mx-auto grid max-w-7xl gap-12 px-5 md:px-8 lg:grid-cols-12">
+<Section tone="raised">
+  <div class="grid gap-12 lg:grid-cols-12">
     <div class="lg:col-span-7">
-      <h2 id="covers-title" class="section-subheading text-charcoal">
-        What support is intended to cover
-      </h2>
-      <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+      <h2 class="section-subheading text-fg">What this support covers</h2>
+      <FeatureGrid as="ul" min="sm" max={2} class="mt-8">
         {area.covers.map((c) => (
-          <li class="flex items-start gap-3 rounded-3xl bg-white p-5 ring-1 ring-sand">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-cream text-terracotta">
-              <Icon name={area.icon} class="h-4 w-4" />
+          <Card as="li" tone="outline" padding="sm" class="flex-row items-start gap-3">
+            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-surface text-action-strong">
+              <Icon name={area.icon} class="size-4" />
             </span>
-            <span class="font-medium text-charcoal">{c}</span>
-          </li>
+            <span class="font-medium text-fg">{c}</span>
+          </Card>
         ))}
-      </ul>
-      <h2 class="section-subheading mt-16 text-charcoal">Questions to consider first</h2>
+      </FeatureGrid>
+      <h2 class="section-subheading mt-16 text-fg">Questions to consider first</h2>
       <ol class="mt-6 space-y-4">
         {area.questions.map((q, i) => (
-          <li class="flex gap-4 border-t border-sand pt-4 text-lg text-ink-soft">
-            <span class="font-semibold text-terracotta">{i + 1}.</span>
+          <li class="flex gap-4 border-t border-border pt-4 text-lg text-fg-muted">
+            <span class="font-semibold text-action-strong">{i + 1}.</span>
             {q}
           </li>
         ))}
       </ol>
     </div>
-    <aside class="lg:col-span-5">
-      <div class="lg:sticky lg:top-28">
-        <ChecklistPreview title="Volunteer skills to build" items={area.volunteerSkills} />
-        <div class="mt-6 rounded-3xl bg-charcoal p-6 text-cream" data-surface="dark">
+    <aside class="lg:col-span-5" aria-label={`${area.title}: next steps`}>
+      <div class="flex flex-col gap-6 lg:sticky lg:top-28">
+        <Card tone="raised" padding="md" class="border border-border">
+          <h2 class="text-small font-semibold text-fg">Volunteer skills to build</h2>
+          <ul class="mt-4 space-y-2.5 text-small">
+            {area.volunteerSkills.map((skill) => (
+              <li class="flex items-start gap-3 text-fg-muted">
+                <Icon name="check" class="mt-0.5 size-4 shrink-0 text-action" strokeWidth={2} />
+                {skill}
+              </li>
+            ))}
+          </ul>
+        </Card>
+        <Card tone="dark" padding="md">
           <p class="font-semibold">Thinking about {area.title.toLowerCase()}?</p>
-          <p class="mt-2 text-sm text-cream/75">
+          <p class="mt-2 text-small text-fg-muted">
             A consultation request walks through your setup, priorities and team.
           </p>
-          <div class="mt-5 flex flex-wrap gap-3">
-            <ButtonLink href="/request" arrow>
-              Request a consultation
-            </ButtonLink>
-          </div>
-        </div>
+          <ButtonLink href="/request" arrow class="mt-5 self-start">
+            Request a consultation
+          </ButtonLink>
+        </Card>
       </div>
     </aside>
   </div>
-</section>
+</Section>

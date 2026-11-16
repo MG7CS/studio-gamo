@@ -108,10 +108,10 @@ export interface TrainingTrack {
 }
 
 export const trainingTracks: TrainingTrack[] = [
-  { title: 'Sound Team Foundations', level: 'New volunteers', format: 'Proposed · 4 hands-on sessions', icon: 'sliders', topics: ['Signal flow from mic to speaker', 'Line check routine', 'Building a vocal-forward mix'] },
-  { title: 'Livestream Operator', level: 'New to intermediate', format: 'Proposed · 3 sessions', icon: 'video', topics: ['Camera framing for worship', 'Stream audio mix', 'Pre-service checklist'] },
-  { title: 'Lighting & Presentation', level: 'New volunteers', format: 'Proposed · 2 sessions', icon: 'light', topics: ['Front light for faces', 'Simple service cues', 'Lyric timing with the band'] },
-  { title: 'Technical Team Leaders', level: 'Experienced volunteers', format: 'Proposed · 3 sessions', icon: 'users', topics: ['Scheduling and onboarding', 'Writing team routines', 'Leading calmly under pressure'] },
+  { title: 'Sound Team Foundations', level: 'New volunteers', format: '4 hands-on sessions', icon: 'sliders', topics: ['Signal flow from mic to speaker', 'Line check routine', 'Building a vocal-forward mix'] },
+  { title: 'Livestream Operator', level: 'New to intermediate', format: '3 sessions', icon: 'video', topics: ['Camera framing for worship', 'Stream audio mix', 'Pre-service checklist'] },
+  { title: 'Lighting & Presentation', level: 'New volunteers', format: '2 sessions', icon: 'light', topics: ['Front light for faces', 'Simple service cues', 'Lyric timing with the band'] },
+  { title: 'Technical Team Leaders', level: 'Experienced volunteers', format: '3 sessions', icon: 'users', topics: ['Scheduling and onboarding', 'Writing team routines', 'Leading calmly under pressure'] },
 ];
 
 export const productionFaq = [

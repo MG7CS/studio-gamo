@@ -1,65 +1,74 @@
 ---
-/** Section 5 — technical education & volunteer training: photo collage + proposed tracks list. */
+/** Technical education & volunteer training: photo collage beside the training tracks. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import { trainingTracks } from '../../data/production';
+interface Props {
+  /** Show the "See training opportunities" link (hidden on the training page itself). */
+  showLink?: boolean;
+}
+const { showLink = true } = Astro.props;
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="training-title" data-reveal>
-  <div class="mx-auto max-w-7xl px-5 md:px-8">
-    <div class="grid gap-10 lg:grid-cols-12 lg:items-end">
-      <div class="lg:col-span-7">
-        <p class="eyebrow text-terracotta">05 · Technical education</p>
-        <h2 id="training-title" class="section-heading mt-4 text-charcoal">
-          Train the volunteers.
-          <br />
-          <span class="text-terracotta">Strengthen the team.</span>
-        </h2>
+<Section tone="raised">
+  <Fragment slot="eyebrow">05 · Technical education</Fragment>
+  <Fragment slot="title">
+    Train the volunteers. <span class="text-action">Strengthen the team.</span>
+  </Fragment>
+  <p slot="intro">
+    Hands-on training paths so no church depends on a single technical volunteer — and every new server is
+    welcomed and equipped.
+  </p>
+  <div class="grid gap-10 lg:grid-cols-12">
+    <div class="grid grid-cols-5 gap-4 lg:col-span-5" aria-hidden="true">
+      <div class="col-span-3 aspect-3/4 overflow-hidden rounded-hero">
+        <Photo
+          name="guitarMentor"
+          alt=""
+          sizes="(min-width:1024px) 24vw, 60vw"
+          class="h-full w-full object-cover"
+        />
       </div>
-      <p class="text-lg leading-relaxed text-ink-soft lg:col-span-5">
-        Proposed hands-on training paths so no church depends on a single technical volunteer — and every new
-        server is welcomed and equipped.
-      </p>
+      <div class="col-span-2 mt-16 aspect-3/4 overflow-hidden rounded-pill">
+        <Photo
+          name="worshipBand"
+          alt=""
+          sizes="(min-width:1024px) 16vw, 40vw"
+          class="h-full w-full object-cover"
+        />
+      </div>
     </div>
-    <div class="mt-14 grid gap-8 lg:grid-cols-12">
-      <div class="grid grid-cols-5 gap-4 lg:col-span-5">
-        <div class="col-span-3 aspect-[3/4] overflow-hidden rounded-[2rem] rounded-br-[6rem]">
-          <Photo
-            name="guitarMentor"
-            sizes="(min-width:1024px) 24vw, 60vw"
-            class="h-full w-full object-cover"
-          />
-        </div>
-        <div class="col-span-2 mt-16 aspect-[3/4] overflow-hidden rounded-full">
-          <Photo
-            name="worshipBand"
-            sizes="(min-width:1024px) 16vw, 40vw"
-            class="h-full w-full object-cover"
-          />
-        </div>
+    <div class="lg:col-span-7">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="text-small font-semibold text-fg">Training tracks</h3>
+        <Badge tone="proposal">Proposed tracks</Badge>
       </div>
-      <ol class="divide-y divide-sand border-y border-sand lg:col-span-7">
+      <ol class="mt-4 divide-y divide-border border-y border-border">
         {trainingTracks.map((t) => (
-          <li class="grid gap-3 py-6 sm:grid-cols-[auto_1fr_auto] sm:items-start sm:gap-6">
-            <span class="grid h-11 w-11 place-items-center rounded-2xl bg-cream text-terracotta">
+          <li class="flex flex-wrap items-start gap-x-6 gap-y-3 py-6">
+            <span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-surface text-action-strong">
               <Icon name={t.icon} />
             </span>
-            <div>
-              <h3 class="text-lg font-semibold text-charcoal">{t.title}</h3>
-              <p class="mt-1 text-sm text-ink-soft">{t.topics.join(' · ')}</p>
+            <div class="min-w-0 flex-1 basis-56">
+              <h4 class="text-lg font-semibold text-fg">{t.title}</h4>
+              <p class="mt-1 text-small text-fg-muted">{t.topics.join(' · ')}</p>
             </div>
-            <div class="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-              <span class="text-xs font-medium text-ink-soft">{t.level}</span>
-              <StatusPill kind="proposal">{t.format}</StatusPill>
-            </div>
+            <p class="text-small text-fg-muted sm:text-end">
+              {t.level}
+              <br />
+              {t.format}
+            </p>
           </li>
         ))}
       </ol>
     </div>
+  </div>
+  {showLink && (
     <ButtonLink href="/training" arrow class="mt-10">
       See training opportunities
     </ButtonLink>
-  </div>
-</section>
+  )}
+</Section>

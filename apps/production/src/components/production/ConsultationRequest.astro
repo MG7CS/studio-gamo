@@ -1,8 +1,9 @@
 ---
 /**
- * Consultation request card: explains what to include and links to this app's /request page,
- * where staff review each request.
+ * Consultation request card: what to include, then links to this app's /request page (staff review
+ * each request) and to /apply for technicians.
  */
+import Card from '@studio-gamo/ui/components/content/Card.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 interface Props {
   class?: string;
@@ -16,31 +17,26 @@ const helpful = [
 ];
 ---
 
-<section
-  class:list={['rounded-[2rem] border border-sand bg-white p-6 shadow-float md:p-10', className]}
-  aria-labelledby="consult-request-title"
->
-  <h3 id="consult-request-title" class="text-2xl font-semibold text-charcoal">
-    Consultation request
-  </h3>
-  <p class="mt-2 text-ink-soft">
+<Card tone="raised" padding="lg" class={className}>
+  <h3 class="text-2xl font-semibold text-fg">Consultation request</h3>
+  <p class="mt-2 text-fg-muted">
     Our team reviews each consultation request and follows up. It helps to include:
   </p>
-  <ul class="mt-6 space-y-3 text-charcoal">
+  <ul class="mt-6 space-y-3 text-fg">
     {helpful.map((item) => (
       <li class="flex gap-3">
-        <span aria-hidden="true" class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-terracotta" />
+        <span aria-hidden="true" class="mt-2 size-1.5 shrink-0 rounded-pill bg-action" />
         <span>{item}</span>
       </li>
     ))}
   </ul>
-  <ButtonLink href="/request" class="mt-8" arrow>
+  <ButtonLink href="/request" class="mt-8 self-start" arrow>
     Request a consultation
   </ButtonLink>
-  <p class="mt-4 text-charcoal">
+  <p class="mt-4 text-fg">
     Are you a sound, video or livestream technician?{' '}
-    <a href="/apply" class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline">
+    <a href="/apply" class="inline-flex min-h-11 items-center font-semibold text-action-strong underline">
       Join the technician team
     </a>
   </p>
-</section>
+</Card>

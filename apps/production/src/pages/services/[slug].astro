@@ -1,9 +1,9 @@
 ---
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
-import PageIntro from '../../components/production/PageIntro.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
 import AreaDetail from '../../components/production/AreaDetail.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import { supportAreas, type SupportArea } from '../../data/production';
 
 // Rendered on demand (not prerendered) so the page gets the same security and cache headers
@@ -14,16 +14,25 @@ const area: SupportArea = found;
 ---
 
 <Layout title={area.title} description={clampDescription(area.summary)} headerTheme="light">
-  <PageIntro
-    eyebrow="Technical support category"
+  <PageHero
     title={area.title}
-    lede={area.summary}
-    photo={area.photo}
-    crumb={{ label: 'All support areas', href: '/services' }}
+    eyebrow="Technical support area"
+    breadcrumbs={[
+      { label: 'Home', href: '/' },
+      { label: 'Support areas', href: '/services' },
+      { label: area.title },
+    ]}
   >
-    <StatusPill kind="proposal" class="mt-6">
-      Technical ministry support
-    </StatusPill>
-  </PageIntro>
+    <p slot="intro">{area.summary}</p>
+    <div slot="media" class="aspect-landscape overflow-hidden rounded-hero shadow-float">
+      <Photo
+        name={area.photo}
+        position={area.photoPosition}
+        priority
+        sizes="(min-width:1024px) 40vw, 100vw"
+        class="h-full w-full object-cover"
+      />
+    </div>
+  </PageHero>
   <AreaDetail area={area} />
 </Layout>

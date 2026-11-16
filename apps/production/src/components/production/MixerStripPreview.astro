@@ -1,5 +1,10 @@
 ---
-/** Small static mock of a mixer channel strip (decorative, illustrative UI preview). */
+/**
+ * Mixer channel-strip preview (illustrative product UI over photography). The frame is the shared
+ * FloatingPreviewCard (with its Sample badge); the channel levels are data-driven, so each bar's
+ * height stays an inline percentage.
+ */
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 interface Props {
   class?: string;
 }
@@ -12,25 +17,15 @@ const channels = [
 ];
 ---
 
-<figure
-  class:list={['rounded-3xl border border-sand bg-white p-4 shadow-float', className]}
-  aria-label="Mixer channel levels"
->
-  <figcaption class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-ink-soft">
-    <span>Worship mix</span>
-    <span class="rounded-full bg-gold/25 px-2 py-0.5 text-[10px] text-terracotta-deep">Ch 1–4</span>
-  </figcaption>
-  <div class="mt-4 grid grid-cols-4 gap-3" aria-hidden="true">
+<FloatingPreviewCard title="Worship mix" as="figure" class={className}>
+  <div class="grid grid-cols-4 gap-3" aria-hidden="true">
     {channels.map((c) => (
       <div class="flex flex-col items-center gap-2">
-        <div class="relative h-24 w-2 rounded-full bg-cream">
-          <div
-            class="absolute bottom-0 w-2 rounded-full bg-gradient-to-t from-terracotta to-gold"
-            style={`height:${c.level}%`}
-          ></div>
+        <div class="relative h-24 w-2 rounded-pill bg-surface-inset">
+          <div class="absolute bottom-0 w-2 rounded-pill bg-action" style={`height:${c.level}%`} />
         </div>
-        <span class="text-center text-[10px] font-medium leading-tight text-charcoal">{c.name}</span>
+        <span class="text-center text-caption font-medium">{c.name}</span>
       </div>
     ))}
   </div>
-</figure>
+</FloatingPreviewCard>

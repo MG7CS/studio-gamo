@@ -1,6 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
+import WhatHappensNext from '../components/production/WhatHappensNext.astro';
+const steps = [
+  {
+    title: 'Send your request',
+    body: 'Email your church and city, the area you need help with and a short description of your setup.',
+  },
+  { title: 'We review it', body: 'Our team reads every request and may ask a few questions.' },
+  { title: 'We plan next steps', body: 'We follow up to arrange a consultation with your team.' },
+];
 ---
 
 <Layout
@@ -13,4 +22,5 @@ import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astr
     intro="Tell us about your church, your current setup and what your technical team hopes to improve. Our team reviews every request and follows up."
     email="hello@gamostudio.org"
   />
+  <WhatHappensNext steps={steps} />
 </Layout>

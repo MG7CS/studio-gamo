@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PageIntro from '../../components/production/PageIntro.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import ServicesIndex from '../../components/production/ServicesIndex.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -10,24 +11,21 @@ import { productionFaq } from '../../data/production';
 
 <Layout
   title="Support Areas"
-  description="Six proposed ways Gamo Production could support technical ministry: audio, livestream and video, lighting, training, event support and facility guidance."
+  description="Six ways Gamo Production supports technical ministry: audio, livestream and video, lighting, training, event support and facility guidance."
   headerTheme="light"
 >
-  <PageIntro
-    eyebrow="Service overview"
-    title="Six ways to support"
-    accent="technical ministry."
-    lede="Proposed support areas for churches and their volunteer teams. Each is designed around people first, equipment second."
-  />
+  <PageHero eyebrow="Service overview">
+    <Fragment slot="title">
+      Six ways to support <span class="text-action">technical ministry.</span>
+    </Fragment>
+    <p slot="intro">
+      Support for churches and their volunteer teams, designed around people first and equipment second.
+    </p>
+  </PageHero>
   <ServicesIndex />
-  <section class="bg-cream py-16 md:py-24" aria-labelledby="faq-title">
-    <div class="mx-auto max-w-3xl px-5 md:px-8">
-      <h2 id="faq-title" class="section-heading text-charcoal">
-        Questions
-      </h2>
-      <FaqAccordion items={productionFaq} class="mt-8" />
-    </div>
-  </section>
+  <Section title="Questions" width="narrow">
+    <FaqAccordion items={productionFaq} />
+  </Section>
   <CtaInvitation
     eyebrow="Not sure where to begin?"
     title="Start with a needs assessment."

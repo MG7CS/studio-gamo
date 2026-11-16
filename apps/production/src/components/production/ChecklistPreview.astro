@@ -1,61 +1,37 @@
 ---
-/** Static signal-flow / pre-service checklist card (illustrative UI preview). */
+/** Pre-service stream checklist preview (illustrative product UI) in the shared FloatingPreviewCard. */
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 interface Props {
-  title?: string;
-  items?: string[];
   tone?: 'light' | 'dark';
   class?: string;
 }
-const {
-  title = 'Pre-service stream checklist',
-  items = [
-    'Stream audio mix checked',
-    'Cameras framed & white-balanced',
-    'Encoder bitrate stable',
-    'Lyrics & lower-thirds loaded',
-  ],
-  tone = 'light',
-  class: className,
-} = Astro.props;
-const dark = tone === 'dark';
+const { tone = 'light', class: className } = Astro.props;
+const items = [
+  'Stream audio mix checked',
+  'Cameras framed & white-balanced',
+  'Encoder bitrate stable',
+  'Lyrics & lower-thirds loaded',
+];
 ---
 
-<figure
-  class:list={[
-    'rounded-3xl p-5 shadow-float',
-    dark ? 'bg-white/10 text-cream ring-1 ring-white/15' : 'border border-sand bg-white text-charcoal',
-    className,
-  ]}
-  aria-label={title}
->
-  <figcaption class="flex items-center justify-between gap-3 text-sm font-semibold">
-    <span>{title}</span>
-    <span
-      class:list={[
-        'rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wider',
-        dark ? 'bg-white/15' : 'bg-gold/25 text-terracotta-deep',
-      ]}
-    >
-      Sunday
-    </span>
-  </figcaption>
-  <ol class="mt-4 space-y-2.5 text-sm">
-    {items.map((item, i) => (
-      <li class="flex items-center gap-3">
-        <span
-          class:list={[
-            'grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold',
-            i < items.length - 1
-              ? 'bg-terracotta text-white'
-              : dark
-                ? 'ring-1 ring-white/30'
-                : 'ring-1 ring-sand',
-          ]}
-        >
-          {i + 1}
-        </span>
-        <span class={dark ? 'text-cream/85' : 'text-ink-soft'}>{item}</span>
-      </li>
-    ))}
+<FloatingPreviewCard title="Pre-service stream checklist" tone={tone} as="figure" class={className}>
+  <ol class="space-y-2.5 text-small">
+    {items.map((item, i) => {
+      const done = i < items.length - 1;
+      return (
+        <li class="flex items-center gap-3">
+          <span
+            class:list={[
+              'grid size-6 shrink-0 place-items-center rounded-pill text-caption font-semibold',
+              done ? 'bg-action text-on-action' : 'ring-1 ring-border',
+            ]}
+          >
+            {i + 1}
+          </span>
+          <span class="text-fg-muted">{item}</span>
+          {done && <span class="sr-only">(done)</span>}
+        </li>
+      );
+    })}
   </ol>
-</figure>
+</FloatingPreviewCard>
