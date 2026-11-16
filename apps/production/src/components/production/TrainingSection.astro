@@ -2,7 +2,7 @@
 /** Technical education & volunteer training: photo collage beside the training tracks. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Badge from '@studio-gamo/ui/components/content/Badge.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { trainingTracks } from '../../data/production';
@@ -23,23 +23,14 @@ const { showLink = true } = Astro.props;
     welcomed and equipped.
   </p>
   <div class="grid gap-10 lg:grid-cols-12">
-    <div class="grid grid-cols-5 gap-4 lg:col-span-5" aria-hidden="true">
-      <div class="col-span-3 aspect-3/4 overflow-hidden rounded-hero">
-        <Photo
-          name="guitarMentor"
-          alt=""
-          sizes="(min-width:1024px) 24vw, 60vw"
-          class="h-full w-full object-cover"
-        />
-      </div>
-      <div class="col-span-2 mt-16 aspect-3/4 overflow-hidden rounded-pill">
-        <Photo
-          name="worshipBand"
-          alt=""
-          sizes="(min-width:1024px) 16vw, 40vw"
-          class="h-full w-full object-cover"
-        />
-      </div>
+    <div class="lg:col-span-5">
+      <PhotoGrid
+        layout="pair"
+        photos={[
+          { photo: 'guitarMentor', decorative: true },
+          { photo: 'worshipBand', decorative: true },
+        ]}
+      />
     </div>
     <div class="lg:col-span-7">
       <div class="flex flex-wrap items-center justify-between gap-3">

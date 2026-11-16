@@ -1,10 +1,10 @@
 ---
 /**
- * Production landing hero: the shared SplitHero with the page's <h1> beside a sculptural engineer
+ * Production landing hero: the shared SplitHero with the page's <h1> beside an engineer
  * photo and a floating mixer-strip preview.
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import MixerStripPreview from './MixerStripPreview.astro';
 ---
@@ -29,12 +29,13 @@ import MixerStripPreview from './MixerStripPreview.astro';
     </ButtonLink>
   </div>
   <div slot="media" class="relative pb-10">
-    <div class="mask-leaf-alt ms-auto aspect-portrait w-full max-w-md overflow-hidden bg-surface-inverse shadow-float sm:aspect-square">
-      <Photo
-        name="soundEngineer"
+    <div class="ms-auto w-full max-w-md">
+      <Frame
+        photo="soundEngineer"
+        ratio="portrait"
         priority
-        sizes="(min-width:1024px) 45vw, 100vw"
-        class="h-full w-full object-cover"
+        sizes="half"
+        alt="Sound engineer wearing headphones at a digital mixing console during worship"
       />
     </div>
     <MixerStripPreview class="absolute bottom-0 start-2 w-56 md:-start-4" />

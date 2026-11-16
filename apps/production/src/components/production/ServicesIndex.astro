@@ -14,11 +14,7 @@ import { supportAreas } from '../../data/production';
         href={`/services/${a.slug}`}
         title={a.title}
         headingLevel="h2"
-        image={{
-          name: a.photo,
-          sizes: '(min-width:1024px) 30vw, (min-width:640px) 50vw, 100vw',
-          position: a.photoPosition,
-        }}
+        image={{ name: a.photo, sizes: 'third' }}
       >
         <p slot="eyebrow" class="eyebrow text-action-strong">
           {String(i + 1).padStart(2, '0')}

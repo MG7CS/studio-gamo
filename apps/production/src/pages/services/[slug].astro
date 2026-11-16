@@ -2,7 +2,8 @@
 import { clampDescription } from '@studio-gamo/ui/lib/seo';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import { photos } from '@studio-gamo/ui/lib/images';
 import AreaDetail from '../../components/production/AreaDetail.astro';
 import { supportAreas, type SupportArea } from '../../data/production';
 
@@ -24,14 +25,8 @@ const area: SupportArea = found;
     ]}
   >
     <p slot="intro">{area.summary}</p>
-    <div slot="media" class="aspect-landscape overflow-hidden rounded-hero shadow-float">
-      <Photo
-        name={area.photo}
-        position={area.photoPosition}
-        priority
-        sizes="(min-width:1024px) 40vw, 100vw"
-        class="h-full w-full object-cover"
-      />
+    <div slot="media">
+      <Frame photo={area.photo} ratio="landscape" priority sizes="half" alt={photos[area.photo].alt} />
     </div>
   </PageHero>
   <AreaDetail area={area} />

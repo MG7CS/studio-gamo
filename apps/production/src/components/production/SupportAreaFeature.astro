@@ -1,32 +1,25 @@
 ---
 /**
- * One support area on the landing page: the shared SplitHero (as a section) with a sculptural photo,
- * an optional floating `preview` (a FloatingPreviewCard recipe) and the area's copy. Tone, side and
- * photo shape vary per area so consecutive rows do not repeat.
+ * One support area on the landing page: the shared SplitHero (as a section) with a photo,
+ * an optional floating `preview` (a FloatingPreviewCard recipe) and the area's copy. Tone and side vary per
+ * area so consecutive rows do not repeat.
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import { photos } from '@studio-gamo/ui/lib/images';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import type { SupportArea } from '../../data/production';
 
-type Shape = 'rounded' | 'leaf' | 'leaf-alt' | 'arch';
 interface Props {
   area: SupportArea;
   index: number;
   /** Puts the photo on the start side in wide containers. */
   reverse?: boolean;
   tone?: 'default' | 'raised' | 'dark';
-  shape?: Shape;
 }
-const { area, index, reverse = false, tone = 'default', shape = 'rounded' } = Astro.props;
+const { area, index, reverse = false, tone = 'default' } = Astro.props;
 const dark = tone === 'dark';
-const shapeClass: Record<Shape, string> = {
-  rounded: 'rounded-hero',
-  leaf: 'mask-leaf',
-  'leaf-alt': 'mask-leaf-alt',
-  arch: 'mask-arch',
-};
 const id = `area-${area.slug}`;
 ---
 
@@ -56,14 +49,7 @@ const id = `area-${area.slug}`;
     Explore {area.title.toLowerCase()}
   </ButtonLink>
   <div slot="media" class="relative">
-    <div class:list={['aspect-landscape overflow-hidden bg-surface-inset shadow-float', shapeClass[shape]]}>
-      <Photo
-        name={area.photo}
-        position={area.photoPosition}
-        sizes="(min-width:1024px) 45vw, 100vw"
-        class="h-full w-full object-cover"
-      />
-    </div>
+    <Frame photo={area.photo} ratio="landscape" sizes="half" alt={photos[area.photo].alt} />
     {Astro.slots.has('preview') && (
       <div
         class:list={[

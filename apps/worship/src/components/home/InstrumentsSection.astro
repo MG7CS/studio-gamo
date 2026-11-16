@@ -1,7 +1,7 @@
 ---
-/** Instruments & musician categories: typographic list beside a sculptural photo pair. */
+/** Instruments & musician categories: typographic list beside a pair of photos. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import { instruments, styles } from '../../data/worship';
 ---
@@ -14,13 +14,17 @@ import { instruments, styles } from '../../data/worship';
   </p>
 
   <div class="grid items-center gap-14 lg:grid-cols-12">
-    <div class="relative order-2 lg:order-1 lg:col-span-5">
-      <div class="aspect-portrait w-4/5 overflow-hidden mask-arch-sm">
-        <Photo name="acousticLeader" sizes="(min-width:1024px) 32vw, 80vw" />
-      </div>
-      <div class="absolute -bottom-6 end-0 aspect-square w-2/5 overflow-hidden rounded-pill border-8 border-surface">
-        <Photo name="soundEngineer" sizes="(min-width:1024px) 16vw, 40vw" />
-      </div>
+    <div class="order-2 lg:order-1 lg:col-span-5">
+      <PhotoGrid
+        layout="pair"
+        photos={[
+          { photo: 'acousticLeader', alt: 'Worship leader singing and playing acoustic guitar on stage' },
+          {
+            photo: 'soundEngineer',
+            alt: 'Sound engineer wearing headphones at a digital mixing console during worship',
+          },
+        ]}
+      />
     </div>
     <div class="order-1 lg:order-2 lg:col-span-7">
       <ul class="border-t border-border" data-reveal>

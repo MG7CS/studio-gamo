@@ -12,7 +12,6 @@ export interface SupportArea {
   short: string;
   icon: IconName;
   photo: PhotoKey;
-  photoPosition?: string;
   summary: string;
   /** What support in this area is intended to cover. */
   covers: string[];

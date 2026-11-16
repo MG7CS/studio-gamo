@@ -1,7 +1,7 @@
 ---
 /** Event production support: dark SplitHero with the advance-planning timeline beside a worship-night photo. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const phases = [
   {
@@ -41,7 +41,12 @@ const phases = [
   <ButtonLink href="/services/event-support" variant="ghost-dark" arrow class="mt-2">
     Event support details
   </ButtonLink>
-  <div slot="media" class="aspect-portrait overflow-hidden rounded-hero">
-    <Photo name="worshipNight" sizes="(min-width:1024px) 45vw, 100vw" class="h-full w-full object-cover" />
+  <div slot="media">
+    <Frame
+      photo="worshipNight"
+      ratio="portrait"
+      sizes="half"
+      alt="Worship night audience with raised hands under colourful stage lights"
+    />
   </div>
 </SplitHero>

@@ -1,8 +1,8 @@
 ---
-/** Worship landing hero: shared SplitHero with the editorial headline, curved photo mosaic and a Sample match preview. */
+/** Worship landing hero: shared SplitHero with the editorial headline, photo mosaic and a Sample match preview. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 ---
@@ -26,16 +26,22 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
   </div>
 
   <div slot="media" class="relative">
-    <div class="relative ms-auto grid max-w-lg grid-cols-5 gap-3 sm:gap-4">
-      <div class="col-span-3 row-span-2 aspect-portrait overflow-hidden mask-arch shadow-float">
-        <Photo name="worshipLeaderGolden" priority sizes="(min-width:1024px) 30vw, 60vw" />
-      </div>
-      <div class="col-span-2 aspect-square self-end overflow-hidden mask-leaf-alt">
-        <Photo name="worshipBand" sizes="(min-width:1024px) 18vw, 38vw" />
-      </div>
-      <div class="col-span-2 aspect-portrait overflow-hidden mask-leaf">
-        <Photo name="churchModernDay" sizes="(min-width:1024px) 18vw, 38vw" />
-      </div>
+    <div class="ms-auto max-w-xl">
+      <PhotoGrid
+        layout="trio"
+        photos={[
+          {
+            photo: 'worshipLeaderGolden',
+            alt: 'Gospel worship leader singing with eyes closed in warm golden light',
+            priority: true,
+          },
+          {
+            photo: 'worshipBand',
+            alt: 'Worship team with vocalists, guitar, drums and keys leading in a bright sanctuary',
+          },
+          { photo: 'churchModernDay', alt: 'Modern church building with a cross on a sunny day' },
+        ]}
+      />
     </div>
 
     <FloatingPreviewCard

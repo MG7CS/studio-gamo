@@ -1,8 +1,8 @@
 ---
-/** Primary & standby coordination: wide photo band with a Sample coverage timeline preview. */
+/** Primary & standby coordination: photo with a Sample coverage timeline preview. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 
 const timeline = [
@@ -27,12 +27,17 @@ const timeline = [
   </Fragment>
 
   <div class="relative lg:pb-10">
-    <div class="aspect-landscape overflow-hidden rounded-hero lg:aspect-wide">
-      <Photo name="worshipBand" sizes="(min-width:1320px) 1260px, 100vw" position="55% 40%" />
+    <div class="lg:w-4/5">
+      <Frame
+        photo="worshipBand"
+        ratio="landscape"
+        sizes="grid-tall"
+        alt="Worship team with vocalists, guitar, drums and keys leading in a bright sanctuary"
+      />
     </div>
     <FloatingPreviewCard
       title="Keys coverage"
-      class="relative -mt-16 ms-auto me-4 w-11/12 sm:w-80 lg:absolute lg:start-8 lg:bottom-0 lg:mt-0"
+      class="relative -mt-16 ms-auto me-4 w-11/12 sm:w-80 lg:absolute lg:end-0 lg:bottom-0 lg:mt-0"
     >
       <ol class="space-y-3">
         {timeline.map((s) => (

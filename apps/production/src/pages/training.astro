@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import TrainingSection from '../components/production/TrainingSection.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -17,12 +17,13 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
       Equip every <span class="text-action">volunteer who serves.</span>
     </Fragment>
     <p slot="intro">Hands-on training paths for sound, livestream, lighting and team leadership.</p>
-    <div slot="media" class="aspect-landscape overflow-hidden rounded-hero shadow-float">
-      <Photo
-        name="guitarMentor"
+    <div slot="media">
+      <Frame
+        photo="guitarMentor"
+        ratio="landscape"
         priority
-        sizes="(min-width:1024px) 40vw, 100vw"
-        class="h-full w-full object-cover"
+        sizes="half"
+        alt="Guitar instructor guiding a young student through a chord"
       />
     </div>
   </PageHero>

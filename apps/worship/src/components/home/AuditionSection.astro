@@ -1,8 +1,8 @@
 ---
-/** Audition & preparation process on a dark band: aligned steps beside a sculptural photo pair. */
+/** Audition & preparation process on a dark band: aligned steps beside a pair of photos. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import { auditionSteps } from '../../data/worship';
 ---
 
@@ -17,13 +17,17 @@ import { auditionSteps } from '../../data/worship';
 
   <div class="grid items-center gap-12 lg:grid-cols-12">
     <NumberedSteps items={auditionSteps} class="lg:col-span-7" />
-    <div class="grid grid-cols-2 gap-4 lg:col-span-5">
-      <div class="aspect-portrait overflow-hidden mask-leaf">
-        <Photo name="gospelVocalists" sizes="(min-width:1024px) 20vw, 45vw" />
-      </div>
-      <div class="mt-12 aspect-portrait overflow-hidden mask-arch-sm">
-        <Photo name="acousticLeaderAlt" sizes="(min-width:1024px) 20vw, 45vw" />
-      </div>
+    <div class="lg:col-span-5">
+      <PhotoGrid
+        layout="pair"
+        photos={[
+          { photo: 'gospelVocalists', alt: 'Gospel vocalists leading a concert as the audience worships' },
+          {
+            photo: 'acousticLeaderAlt',
+            alt: 'Musician leading worship with an acoustic guitar under warm stage lights',
+          },
+        ]}
+      />
     </div>
   </div>
 </Section>

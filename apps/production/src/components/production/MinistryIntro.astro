@@ -1,8 +1,8 @@
 ---
-/** Introduction to technical ministry support: statement, arch photo and three principles. */
+/** Introduction to technical ministry support: statement, photo and three principles. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 const principles = [
   {
     k: 'Serve the room',
@@ -26,13 +26,12 @@ const principles = [
       </p>
     </div>
     <div class="hidden lg:col-span-5 lg:block">
-      <div class="mask-arch aspect-landscape overflow-hidden bg-surface-inset">
-        <Photo
-          name="sanctuaryCongregation"
-          sizes="(min-width:1024px) 34vw, 0px"
-          class="h-full w-full object-cover"
-        />
-      </div>
+      <Frame
+        photo="sanctuaryCongregation"
+        ratio="landscape"
+        sizes="third"
+        alt="Congregation worshipping together in a sunlit sanctuary"
+      />
     </div>
   </div>
   <FeatureGrid as="ol" min="md" max={3} gap="lg" class="mt-12 border-t border-border pt-10">

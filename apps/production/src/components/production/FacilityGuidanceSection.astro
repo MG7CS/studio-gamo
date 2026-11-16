@@ -1,9 +1,9 @@
 ---
-/** Equipment & facility guidance: stewardship decision cards beside a sculptural church photo. */
+/** Equipment & facility guidance: stewardship decision cards beside a church photo. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 const choices = [
   { k: 'Keep', v: 'Working well — document and maintain it.' },
@@ -31,7 +31,12 @@ const choices = [
   <ButtonLink href="/services/facility-guidance" variant="secondary" arrow class="mt-2">
     Facility guidance details
   </ButtonLink>
-  <div slot="media" class="mask-leaf aspect-portrait overflow-hidden">
-    <Photo name="churchModernDay" sizes="(min-width:1024px) 45vw, 100vw" class="h-full w-full object-cover" />
+  <div slot="media">
+    <Frame
+      photo="churchModernDay"
+      ratio="portrait"
+      sizes="half"
+      alt="Modern church building with a cross on a sunny day"
+    />
   </div>
 </SplitHero>

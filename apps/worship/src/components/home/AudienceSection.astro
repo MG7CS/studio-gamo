@@ -3,7 +3,7 @@
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import type { IconName } from '@studio-gamo/ui/components/Icon.astro';
 
@@ -39,8 +39,14 @@ const panels: { slot: string; items: Item[]; href: string; cta: string }[] = [
   </p>
 
   <div class="grid gap-12 lg:grid-cols-12">
-    <div class="hidden aspect-landscape overflow-hidden mask-leaf lg:col-span-5 lg:block">
-      <Photo name="sanctuaryCongregation" sizes="35vw" />
+    <div class="hidden lg:col-span-5 lg:block">
+      <Frame
+        photo="sanctuaryCongregation"
+        ratio="landscape"
+        sizes="half"
+        alt="Congregation worshipping together in a sunlit sanctuary"
+        data-reveal
+      />
     </div>
     <div class="lg:col-span-7" data-reveal>
       <AudienceSwitch

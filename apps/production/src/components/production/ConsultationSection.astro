@@ -1,7 +1,7 @@
 ---
 /** Consultation band on the landing page: invitation copy beside the consultation request card. */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ConsultationRequest from './ConsultationRequest.astro';
 ---
 
@@ -12,8 +12,13 @@ import ConsultationRequest from './ConsultationRequest.astro';
     Share your sanctuary goals, technical challenges or volunteer training needs and our production team will
     follow up to plan next steps.
   </p>
-  <div class="mask-pebble mt-5 hidden aspect-square w-full max-w-sm overflow-hidden lg:block">
-    <Photo name="chapelSpring" sizes="(min-width:1024px) 28vw, 0px" class="h-full w-full object-cover" />
+  <div class="mt-5 hidden w-full max-w-sm lg:block">
+    <Frame
+      photo="chapelSpring"
+      ratio="square"
+      sizes="third"
+      alt="White chapel with a steeple surrounded by spring trees"
+    />
   </div>
   <ConsultationRequest slot="media" />
 </SplitHero>
