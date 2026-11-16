@@ -44,7 +44,7 @@ It is **not** a commission-maximizing marketplace, advertising agency, concert p
 
 ### 1.2 Proposed mission statement — *Proposed (working text)*
 
-> **Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, expanding access to music education, and helping people discover and participate in Christian events.**
+> **Gamo Studios strengthens Christian worship and communities by developing musical talent, connecting churches with skilled musicians, and expanding access to music education.**
 
 Use this wording throughout the repository. It has **not** been formally adopted by a governing board or included in legal filings.
 
