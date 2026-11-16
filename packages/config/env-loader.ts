@@ -4,17 +4,12 @@
  * Bridges the Gamo Studios monorepo environment hierarchy for Astro + `@astrojs/cloudflare`:
  *
  * 1. Root Shared Local Configuration (`studio-gamo/.env` and optional `studio-gamo/.dev.vars`):
- *    - Shared non-product-specific local defaults (`ENVIRONMENT`, `SESSION_SECRET`,
- *      `ALLOW_DEMO_SESSION`, `ALLOW_TEST_CHALLENGE_OUTBOX`, `REQUIRE_ADMIN_AUTH`, `RESEND_API_KEY`, etc.).
- *    - Any product-suffixed Clerk variables (`*_WEB`, `*_ACADEMY`, `*_WORSHIP`, `*_PRODUCTION`)
- *      belonging to a DIFFERENT application are strictly filtered out so one app never inherits
- *      another product's Clerk keys.
+ *    - Shared local defaults (`ENVIRONMENT`, `SESSION_SECRET`, `REQUIRE_ADMIN_AUTH`, `RESEND_API_KEY`, etc.).
+ *    - Admin-only variables (`CF_ACCESS_*`, `ADMIN_*`) reach only the admin app.
  *
  * 2. Application-Specific Local Configuration (`apps/<app>/.env` and `apps/<app>/.dev.vars`):
- *    - Independent Clerk credentials for `web`, `academy`, `worship`, and `production`
- *      (supporting both standard Clerk variable names `PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY`
- *      and product-suffixed names `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>` / `CLERK_SECRET_KEY_<APP>`).
- *    - Local Cloudflare Worker secret bindings in `apps/<app>/.dev.vars` override `.env` values.
+ *    - Per-app local settings; local Cloudflare Worker secret bindings in `apps/<app>/.dev.vars`
+ *      override `.env` values.
  *
  * 3. Build & Preview Safety:
  *    - Injects local file bindings ONLY during local development (`astro dev` / `NODE_ENV !== 'production'`
@@ -29,12 +24,6 @@ import { createRequire } from 'node:module';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCAL_HOST, LOCAL_INSPECTOR_PORTS, LOCAL_PORTS, type AppName } from './apps.ts';
-
-/**
- * Product suffixes of Clerk variables. `LIVE` belongs to the removed Gamo Live app; it stays listed so a
- * leftover `*_LIVE` Clerk key in a local env file is still stripped instead of reaching another app.
- */
-const ALL_PRODUCT_SUFFIXES = ['WEB', 'WORSHIP', 'ACADEMY', 'LIVE', 'PRODUCTION'] as const;
 
 /**
  * Parses a standard `.env` / `.dev.vars` file content into key-value pairs without logging or printing secrets.
@@ -88,60 +77,15 @@ export function readEnvFileIfExists(filePath: string): Record<string, string> {
 }
 
 /**
- * Determines whether a variable key from a root config file is allowed to be inherited by `app`.
- * Prevents cross-product Clerk credential leakage and prevents standard un-suffixed Clerk keys
- * at the repository root from being shared across multiple products.
+ * Determines whether a variable key from a root config file is allowed to be inherited by `app`:
+ * admin-only variables stay with admin.
  */
 export function isRootVarAllowedForApp(key: string, app: AppName): boolean {
   const upperKey = key.toUpperCase();
 
-  // Standard un-suffixed Clerk credentials must NEVER be inherited from the monorepo root,
-  // because every Gamo product uses its own independent Clerk application.
-  if (
-    upperKey === 'PUBLIC_CLERK_PUBLISHABLE_KEY' ||
-    upperKey === 'CLERK_SECRET_KEY' ||
-    upperKey === 'CLERK_JWT_KEY' ||
-    upperKey === 'CLERK_ISSUER' ||
-    upperKey === 'CLERK_APP_ID' ||
-    upperKey === 'CLERK_AUTHORIZED_PARTIES'
-  ) {
-    return false;
-  }
-
-  // Product-suffixed Clerk variables at the root may only be read by that specific product (and never by admin).
-  if (upperKey.includes('CLERK_')) {
-    for (const suffix of ALL_PRODUCT_SUFFIXES) {
-      if (upperKey.endsWith(`_${suffix}`)) {
-        return app.toUpperCase() === suffix;
-      }
-    }
-  }
-
   // Admin-only Cloudflare Access / Admin bootstrap variables should only be inherited by admin.
   if ((upperKey.startsWith('CF_ACCESS_') || upperKey.startsWith('ADMIN_')) && app !== 'admin') {
     return false;
-  }
-
-  return true;
-}
-
-/**
- * Determines whether a variable key from an application's own `.env` or `.dev.vars` file is allowed for `app`.
- * Rejects suffixed Clerk variables belonging to a different product.
- */
-export function isAppVarAllowedForApp(key: string, app: AppName): boolean {
-  const upperKey = key.toUpperCase();
-
-  if (app === 'admin' && upperKey.includes('CLERK_') && !upperKey.includes('KEYLESS_DISABLED')) {
-    return false;
-  }
-
-  if (upperKey.includes('CLERK_')) {
-    for (const suffix of ALL_PRODUCT_SUFFIXES) {
-      if (upperKey.endsWith(`_${suffix}`)) {
-        return app.toUpperCase() === suffix;
-      }
-    }
   }
 
   return true;
@@ -159,14 +103,8 @@ export interface LoadAppLocalEnvOptions {
  * Precedence (lowest to highest):
  * 1. `<monorepoRoot>/.dev.vars` (legacy root fallback, filtered by `isRootVarAllowedForApp`)
  * 2. `<monorepoRoot>/.env` (shared local configuration, filtered by `isRootVarAllowedForApp`)
- * 3. `apps/<app>/.env` (application-specific Clerk keys and local config)
+ * 3. `apps/<app>/.env` (application-specific local config)
  * 4. `apps/<app>/.dev.vars` (application-specific Cloudflare Worker secret overrides)
- *
- * For the 4 public Clerk-enabled products (`web`, `worship`, `academy`, `production`),
- * also sets `CLERK_PRODUCT="<app>"` and bidirectional aliases between standard Clerk variable names
- * (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_APP_ID`,
- * `CLERK_AUTHORIZED_PARTIES`) and product-suffixed variable names (`*_WEB`, `*_ACADEMY`, etc.) when non-empty,
- * preserving full compatibility with both `@clerk/astro` and `@gamo/auth`.
  */
 export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<string, string> {
   const appDir = resolve(options.appDir);
@@ -191,73 +129,13 @@ export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<stri
 
   for (const source of [appDotEnv, appDevVars]) {
     for (const [key, value] of Object.entries(source)) {
-      if (!isAppVarAllowedForApp(key, app)) continue;
       if (value !== '') {
         merged[key] = value;
       }
     }
   }
 
-  if (app !== 'admin') {
-    const suffix = app.toUpperCase();
-    merged.CLERK_PRODUCT = app;
-
-    const pairs: Array<[string, string]> = [
-      ['PUBLIC_CLERK_PUBLISHABLE_KEY', `PUBLIC_CLERK_PUBLISHABLE_KEY_${suffix}`],
-      ['CLERK_SECRET_KEY', `CLERK_SECRET_KEY_${suffix}`],
-      ['CLERK_JWT_KEY', `CLERK_JWT_KEY_${suffix}`],
-      ['CLERK_ISSUER', `CLERK_ISSUER_${suffix}`],
-      ['CLERK_APP_ID', `CLERK_APP_ID_${suffix}`],
-      ['CLERK_AUTHORIZED_PARTIES', `CLERK_AUTHORIZED_PARTIES_${suffix}`],
-    ];
-
-    for (const [standardKey, suffixedKey] of pairs) {
-      const stdVal = merged[standardKey]?.trim();
-      const sufVal = merged[suffixedKey]?.trim();
-      // If standard key is set in apps/<app>/.env, mirror it to suffixed key unless suffixed key already has a non-placeholder value
-      if (stdVal && (!sufVal || sufVal.includes('REPLACE_WITH') || sufVal.startsWith('pending_clerk_app_'))) {
-        merged[suffixedKey] = stdVal;
-      } else if (sufVal && !stdVal) {
-        merged[standardKey] = sufVal;
-      }
-    }
-  }
-
   return merged;
-}
-
-/**
- * The Clerk variables a test server must never see (e2e preview servers, journeys): every credential
- * name, un-suffixed and product-suffixed, plus the app id so a pasted id of another product cannot trip
- * the product-isolation guard. With all of them blank, Clerk is off and the emailed-code path is used.
- */
-const CLERK_TEST_BLANKED =
-  /^(PUBLIC_CLERK_PUBLISHABLE_KEY|CLERK_SECRET_KEY|CLERK_JWT_KEY|CLERK_ISSUER|CLERK_WEBHOOK_SECRET|CLERK_APP_ID)(_(WEB|WORSHIP|ACADEMY|LIVE|PRODUCTION|ADMIN))?$/;
-
-export function isClerkTestBlankedName(key: string): boolean {
-  return CLERK_TEST_BLANKED.test(key.toUpperCase());
-}
-
-/** Every blanked Clerk name with an empty value, for a test server's bindings. */
-export function clerkOffTestVars(): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const base of [
-    'PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'CLERK_SECRET_KEY',
-    'CLERK_JWT_KEY',
-    'CLERK_ISSUER',
-    'CLERK_WEBHOOK_SECRET',
-    'CLERK_APP_ID',
-  ]) {
-    out[base] = '';
-    for (const suffix of [...ALL_PRODUCT_SUFFIXES, 'ADMIN']) out[`${base}_${suffix}`] = '';
-  }
-  return out;
-}
-
-/** Set by the e2e runner for the servers it starts: Clerk values from local files are dropped. */
-export function isTestServer(): boolean {
-  return process.env.GAMO_TEST_SERVER === '1';
 }
 
 export interface LiveKeyFinding {
@@ -268,7 +146,7 @@ export interface LiveKeyFinding {
 
 /**
  * Local env files of `app` (the ones `resolveAppLocalEnv` and `astro preview` read) that hold a
- * live key: Clerk Production instance (`pk_live_`/`sk_live_`) or Stripe live (`sk_live_`/`rk_live_`).
+ * live key (`pk_live_`/`sk_live_`/`rk_live_`, e.g. Stripe live mode).
  * Returns file and variable names only, never values.
  */
 export function findLiveKeysInLocalEnv(options: LoadAppLocalEnvOptions): LiveKeyFinding[] {
@@ -293,9 +171,8 @@ export function describeLiveKeyFindings(findings: LiveKeyFinding[]): string {
   return [
     'Live (production) keys found in local env files:',
     ...findings.map((f) => `  ${f.file}: ${f.name}`),
-    'Clerk Production instances reject 127.0.0.1 (400) and a live Stripe key can move real money, so local',
-    'servers would fail in confusing ways or touch production. Keep only Development/test keys locally;',
-    'set production keys with scripts/set-clerk-secrets.sh from a temporary --file (docs/AUTH.md §7).',
+    'A live key can move real money or touch production data, so local servers must never hold one.',
+    'Keep only test keys locally; production secrets are set with `wrangler secret put` (docs/RUNBOOK.md §3).',
   ].join('\n');
 }
 
@@ -459,7 +336,7 @@ export function isLocalDevEnvironment(): boolean {
  * Creates the `@astrojs/cloudflare` adapter options for a Gamo Studios application.
  * - Loads shared local settings from root `.env` and app-specific settings from `apps/<app>/.env` + `apps/<app>/.dev.vars`.
  * - Populates `process.env` for build/dev time (`import.meta.env`) and merges into Miniflare Worker `vars` during local dev
- *   so `cloudflare:workers` (`getRuntimeEnv`) receives both root shared config and per-app Clerk credentials.
+ *   so `cloudflare:workers` (`getRuntimeEnv`) receives both root shared config and per-app settings.
  * - Gives each app its own workerd inspector port and its own persisted local state
  *   (`apps/<app>/.wrangler/state`: D1, KV, R2), so all six apps can run at once.
  */
@@ -468,10 +345,7 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   const isLocalDev = isLocalDevEnvironment();
   const localVars = isLocalDev ? resolveAppLocalEnv({ app, appDir }) : {};
 
-  if (isLocalDev && isTestServer()) {
-    for (const key of Object.keys(localVars)) if (isClerkTestBlankedName(key)) delete localVars[key];
-    Object.assign(localVars, clerkOffTestVars());
-  } else if (isLocalDev && !warnedLiveKeys) {
+  if (isLocalDev && !warnedLiveKeys) {
     const findings = findLiveKeysInLocalEnv({ app, appDir });
     if (findings.length > 0) {
       warnedLiveKeys = true;

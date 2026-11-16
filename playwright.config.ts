@@ -7,11 +7,8 @@
  * clone or CI runner has real tables instead of answering 503 on database-backed pages.
  * `env -u …` keeps Astro from detaching into the background when it detects an AI agent shell.
  *
- * Clerk is always off for these servers: scripts/e2e/test-servers.ts blanks every Clerk variable in the
- * build's dist/server/.dev.vars before `astro preview` starts, and GAMO_TEST_SERVER=1 drops Clerk values
- * from local files. Servers already running on the ports are never reused (they could carry real keys).
- * A live key (pk_live_/sk_live_/rk_live_) in a local env file stops the run here with an explanation.
- * Clerk switched on is covered with fake keys by scripts/audit/clerk-configured-fake-keys-e2e.test.mjs.
+ * Servers already running on the ports are never reused (they could carry real keys). A live key
+ * (pk_live_/sk_live_/rk_live_) in a local env file stops the run here with an explanation.
  */
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
@@ -74,10 +71,9 @@ export default defineConfig({
       // A local DB made by the old editorial CLI has tables but no migration records; the apply then
       // fails, so warn instead of blocking (fix once with `pnpm db:reset:local`).
       command:
-        `pnpm exec tsx scripts/e2e/test-servers.ts prepare ${app} && ` +
         `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
         `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
-        `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 GAMO_TEST_SERVER=1 pnpm --filter apps-${app} exec astro preview`,
+        `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 pnpm --filter apps-${app} exec astro preview`,
       url: `http://127.0.0.1:${port}/robots.txt`,
       reuseExistingServer: false,
       timeout: 120_000,

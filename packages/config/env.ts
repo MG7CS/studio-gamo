@@ -61,33 +61,9 @@ export interface GamoEnv {
   ADMIN_BASIC_AUTH_USER?: string;
   ADMIN_BASIC_AUTH_PASS?: string;
 
-  // Local-only flags (also require a loopback request host)
-  ALLOW_DEMO_SESSION?: string;
-  ALLOW_AUTH_SIMULATION?: string;
-  ALLOW_PUBLIC_DEMO_WORKSPACES?: string;
-
-  // Clerk (`CLERK_*`, `CLERK_*_<PRODUCT>`, incl. `CLERK_WEBHOOK_SECRET_<APP>` and
-  // `CLERK_GOOGLE_ENABLED_<APP>` — see CLERK_WEBHOOK_SECRET_NAMES / CLERK_GOOGLE_ENABLED_NAMES)
-  // and public site URLs (`PUBLIC_*`)
-  [key: `CLERK_${string}`]: string | undefined;
+  // Public site URLs and other public values (`PUBLIC_*`)
   [key: `PUBLIC_${string}`]: string | undefined;
 }
-
-/** Svix signing secret for `POST /api/webhook/clerk`, one per product (design §4.3). */
-export const CLERK_WEBHOOK_SECRET_NAMES = [
-  'CLERK_WEBHOOK_SECRET_WEB',
-  'CLERK_WEBHOOK_SECRET_WORSHIP',
-  'CLERK_WEBHOOK_SECRET_ACADEMY',
-  'CLERK_WEBHOOK_SECRET_PRODUCTION',
-] as const;
-
-/** `true` shows "Continue with Google" for that product (only when its Clerk app has Google enabled). */
-export const CLERK_GOOGLE_ENABLED_NAMES = [
-  'CLERK_GOOGLE_ENABLED_WEB',
-  'CLERK_GOOGLE_ENABLED_WORSHIP',
-  'CLERK_GOOGLE_ENABLED_ACADEMY',
-  'CLERK_GOOGLE_ENABLED_PRODUCTION',
-] as const;
 
 /** Identity secrets that must be ≥ 32 characters when set (design §10). */
 export const HMAC_SECRET_NAMES = ['CUSTOMER_LINK_SECRET', 'PII_HASH_SECRET'] as const;

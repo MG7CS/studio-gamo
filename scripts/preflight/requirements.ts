@@ -14,8 +14,6 @@ export interface SecretRequirements {
   recommended: string[];
   /** Missing → noted only. */
   optional: string[];
-  /** All-or-nothing group: some set but not all → warning. */
-  clerk: string[];
 }
 
 export function requirementsFor(app: PreflightApp): SecretRequirements {
@@ -30,10 +28,8 @@ export function requirementsFor(app: PreflightApp): SecretRequirements {
         'ADMIN_BASIC_AUTH_USER',
         'ADMIN_BASIC_AUTH_PASS',
       ],
-      clerk: [],
     };
   }
-  const suffix = app.toUpperCase();
   // Identity (design §10): each unlocks a feature that otherwise answers 503.
   const identity = ['PII_HASH_SECRET', 'PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'];
   const optional =
@@ -43,15 +39,10 @@ export function requirementsFor(app: PreflightApp): SecretRequirements {
         ? ['CUSTOMER_LINK_SECRET', ...identity]
         : identity;
   return {
-    required: ['SESSION_SECRET'],
-    // Launch signs people in with emailed codes, so email delivery is effectively needed.
+    // Public products have no accounts or sessions (removed 2026-11-16); only admin signs sessions.
+    required: [],
+    // Form receipts, notifications and Academy manage links go out by email.
     recommended: ['RESEND_API_KEY', 'EMAIL_FROM'],
-    optional: [...optional, `CLERK_WEBHOOK_SECRET_${suffix}`],
-    clerk: [
-      `PUBLIC_CLERK_PUBLISHABLE_KEY_${suffix}`,
-      `CLERK_SECRET_KEY_${suffix}`,
-      `CLERK_JWT_KEY_${suffix}`,
-      `CLERK_ISSUER_${suffix}`,
-    ],
+    optional,
   };
 }

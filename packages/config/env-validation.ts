@@ -9,7 +9,6 @@
  */
 import type { AppName } from './apps.ts';
 import { HMAC_SECRET_NAMES, type GamoEnv } from './env.ts';
-import { diagnoseClerkEnv } from './clerk-env.ts';
 
 export type EnvSeverity = 'fatal' | 'error' | 'warning';
 
@@ -20,11 +19,6 @@ export interface EnvProblem {
 }
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
-const LOCAL_ONLY_FLAGS = [
-  'ALLOW_DEMO_SESSION',
-  'ALLOW_AUTH_SIMULATION',
-  'ALLOW_PUBLIC_DEMO_WORKSPACES',
-] as const;
 
 const present = (value: unknown): boolean => typeof value === 'string' && value.trim().length > 0;
 
@@ -50,10 +44,6 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     return problems;
   }
 
-  for (const flag of LOCAL_ONLY_FLAGS) {
-    if (env[flag] === 'true')
-      add('fatal', flag, 'is a local-only flag and must not be enabled outside ENVIRONMENT=local');
-  }
   if (environment === 'production' && env.STRIPE_TEST_CHECKOUT === 'true')
     add(
       'fatal',
@@ -61,12 +51,12 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       'must not be "true" in production; paid checkout stays closed (503) in production',
     );
 
-  if (!env.DB) add('error', 'DB', 'D1 binding is missing; accounts and data features are unavailable');
-  if (!present(env.SESSION_SECRET) || (env.SESSION_SECRET?.length ?? 0) < 32) {
-    add('error', 'SESSION_SECRET', 'must be set to at least 32 characters; sign-in is unavailable');
-  }
+  if (!env.DB) add('error', 'DB', 'D1 binding is missing; data features are unavailable');
 
   if (app === 'admin') {
+    // Only staff sign in (public products have no accounts), so only admin signs sessions.
+    if (!present(env.SESSION_SECRET) || (env.SESSION_SECRET?.length ?? 0) < 32)
+      add('error', 'SESSION_SECRET', 'must be set to at least 32 characters; staff sign-in is unavailable');
     if (!present(env.CF_ACCESS_TEAM_NAME))
       add('error', 'CF_ACCESS_TEAM_NAME', 'Cloudflare Access is required for admin');
     if (!present(env.CF_ACCESS_AUD)) add('error', 'CF_ACCESS_AUD', 'Cloudflare Access is required for admin');
@@ -88,7 +78,6 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       );
     }
   }
-  addClerkProblems(app, env, add);
   addIdentitySecretProblems(app, env, add);
   return problems;
 }
@@ -145,56 +134,6 @@ function addIdentitySecretProblems(
       'warning',
       present(env.TURNSTILE_SECRET_KEY) ? 'PUBLIC_TURNSTILE_SITE_KEY' : 'TURNSTILE_SECRET_KEY',
       'Turnstile is not configured (PUBLIC_TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY); protected public forms answer 503',
-    );
-  }
-
-  const suffix = app.toUpperCase();
-  const clerk = diagnoseClerkEnv(app, values);
-  const webhookName = `CLERK_WEBHOOK_SECRET_${suffix}`;
-  if (clerk.state === 'ready' && !present(values[webhookName]))
-    add(
-      'warning',
-      webhookName,
-      'Clerk is on but its webhook is off: a session ended in Clerk stays valid here for up to 7 days',
-    );
-  const googleName = `CLERK_GOOGLE_ENABLED_${suffix}`;
-  if (values[googleName] === 'true' && clerk.state !== 'ready')
-    add(
-      'warning',
-      googleName,
-      'is true but Clerk is not configured for this product; the Google button stays hidden',
-    );
-}
-
-/** Clerk is optional. These problems mean it is half set up (and therefore off) or set up with the wrong names. */
-function addClerkProblems(
-  app: Exclude<AppName, 'admin'>,
-  env: GamoEnv,
-  add: (severity: EnvSeverity, name: string, message: string) => void,
-): void {
-  const clerk = diagnoseClerkEnv(app, env as Record<string, unknown>);
-  if (clerk.state === 'partial') {
-    add(
-      'error',
-      clerk.missing[0] ?? 'CLERK',
-      `Clerk is partly configured and stays off (sign-in uses emailed codes). Missing: ${clerk.missing.join(', ')}`,
-    );
-  }
-  if (clerk.legacy.length > 0) {
-    add(
-      'error',
-      clerk.legacy[0],
-      `un-suffixed Clerk names are ignored when deployed; set the ${app.toUpperCase()}-suffixed names instead (${clerk.legacy.join(', ')}) — docs/AUTH.md`,
-    );
-  }
-  for (const name of clerk.developmentKeysInProduction) {
-    add('error', name, 'is a Clerk development key; production needs the production instance keys');
-  }
-  if (clerk.state === 'ready' && clerk.recommended.length > 0) {
-    add(
-      'warning',
-      clerk.recommended[0],
-      `Clerk is on; also set ${clerk.recommended.join(', ')} (offline token verification, exact CSP origin)`,
     );
   }
 }

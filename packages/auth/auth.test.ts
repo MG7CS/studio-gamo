@@ -1,6 +1,14 @@
-import type { GamoEnv } from '@gamo/config/env';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
+import { createDb, users, roles, userRoles, sessions } from '@gamo/db';
+import { eq } from 'drizzle-orm';
+import * as auth from './index.ts';
+import * as pageAccess from './page-access.ts';
+import { isPrivatePage } from './page-access.ts';
 import {
   signValue,
   verifySignedValue,
@@ -10,13 +18,20 @@ import {
   extractSessionCookie,
   hasSystemRole,
   isStaffOrAdmin,
-  hasOrgRole,
+  createSession,
+  validateSession,
+  resolveAuth,
+  requireStaff,
+  requireSuperadmin,
+  requireSameOrigin,
+  AuthError,
   type SessionData,
 } from './index.ts';
 
-describe('Auth & Session Cookie Cryptography', () => {
-  const secret = 'super_secret_test_key_minimum_32_characters_long_12345';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const secret = 'super_secret_test_key_minimum_32_characters_long_12345';
 
+describe('Auth & Session Cookie Cryptography', () => {
   test('signs and verifies a session ID with HMAC-SHA256', async () => {
     const sessionId = generateSessionId();
     assert.equal(sessionId.length, 48);
@@ -32,49 +47,32 @@ describe('Auth & Session Cookie Cryptography', () => {
     const sessionId = generateSessionId();
     const signed = await signValue(sessionId, secret);
 
-    // Tamper with session id
     const tamperedPayload = 'tampered' + signed.slice(8);
-    const result1 = await verifySignedValue(tamperedPayload, secret);
-    assert.equal(result1, null);
+    assert.equal(await verifySignedValue(tamperedPayload, secret), null);
 
-    // Tamper with signature
     const tamperedSig = signed.slice(0, -2) + 'xx';
-    const result2 = await verifySignedValue(tamperedSig, secret);
-    assert.equal(result2, null);
+    assert.equal(await verifySignedValue(tamperedSig, secret), null);
   });
 
   test('rejects signatures created with a different secret', async () => {
-    const sessionId = generateSessionId();
-    const signed = await signValue(sessionId, secret);
-
+    const signed = await signValue(generateSessionId(), secret);
     const wrongSecret = 'another_secret_key_minimum_32_characters_long_abcde';
-    const verified = await verifySignedValue(signed, wrongSecret);
-    assert.equal(verified, null);
+    assert.equal(await verifySignedValue(signed, wrongSecret), null);
   });
 
   test('serializes and extracts HTTP-only session cookie', () => {
     const expires = new Date('2026-12-31T00:00:00Z');
-    const cookie = buildSessionCookie('test_session_token_123', expires, {
-      domain: '.gamostudio.org',
-      secure: true,
-      sameSite: 'Lax',
-    });
+    const cookie = buildSessionCookie('test_session_token_123', expires, { secure: true, sameSite: 'Lax' });
 
     assert.ok(cookie.includes('__session=test_session_token_123'));
     assert.ok(cookie.includes('HttpOnly'));
     assert.ok(cookie.includes('Secure'));
     assert.ok(cookie.includes('SameSite=Lax'));
-    assert.ok(cookie.includes('Domain=.gamostudio.org'));
 
-    // Test extraction from incoming request
-    const mockRequest = new Request('https://gamostudio.org', {
-      headers: {
-        cookie: 'theme=light; __session=test_session_token_123; tracking=no',
-      },
+    const mockRequest = new Request('https://admin.gamostudio.org', {
+      headers: { cookie: 'theme=light; __session=test_session_token_123; tracking=no' },
     });
-
-    const extracted = extractSessionCookie(mockRequest);
-    assert.equal(extracted, 'test_session_token_123');
+    assert.equal(extractSessionCookie(mockRequest), 'test_session_token_123');
   });
 
   test('builds cleared session cookie on logout', () => {
@@ -84,187 +82,74 @@ describe('Auth & Session Cookie Cryptography', () => {
   });
 });
 
-describe('Authorization & Multi-Tenant Role Enforcement', () => {
-  const mockStaffSession: SessionData = {
+describe('Staff roles', () => {
+  const session = (roleCodes: string[]): SessionData => ({
     user: {
-      id: 'usr_staff_1',
-      email: 'jordan@gamostudio.org',
-      displayName: 'Jordan Avery',
+      id: 'usr_1',
+      email: 'staff@example.org',
+      displayName: 'Example Staff',
       verifiedEmailAt: new Date(0),
       status: 'active',
       createdAt: new Date(0),
     },
-    roles: ['staff_reviewer'],
-    memberships: [
-      {
-        organizationId: 'org_gamo_ops',
-        role: 'admin',
-        orgName: 'Gamo Operations',
-        orgSlug: 'gamo-ops',
-        orgType: 'ministry',
-        status: 'active',
-      },
-    ],
+    roles: roleCodes,
     sessionId: 'sess_1',
     expiresAt: new Date(Date.now() + 86400000),
-  };
-
-  const mockOrganizerSession: SessionData = {
-    user: {
-      id: 'usr_organizer_1',
-      email: 'pastor@riverside.org',
-      displayName: 'Pastor David',
-      verifiedEmailAt: new Date(0),
-      status: 'active',
-      createdAt: new Date(0),
-    },
-    roles: ['organizer'],
-    memberships: [
-      {
-        organizationId: 'org_riverside_1',
-        role: 'owner',
-        orgName: 'Riverside Fellowship',
-        orgSlug: 'riverside-fellowship',
-        orgType: 'church',
-        status: 'active',
-      },
-    ],
-    sessionId: 'sess_2',
-    expiresAt: new Date(Date.now() + 86400000),
-  };
-
-  test('correctly identifies staff roles and capabilities', () => {
-    assert.equal(hasSystemRole(mockStaffSession, 'staff_reviewer'), true);
-    assert.equal(hasSystemRole(mockStaffSession, 'worship_leader'), false);
-    assert.equal(isStaffOrAdmin(mockStaffSession), true);
-
-    assert.equal(hasSystemRole(mockOrganizerSession, 'staff_reviewer'), false);
-    assert.equal(isStaffOrAdmin(mockOrganizerSession), false);
   });
 
-  test('strictly enforces tenant isolation across organizations', () => {
-    // Organizer has owner role on their own organization
-    assert.equal(hasOrgRole(mockOrganizerSession, 'org_riverside_1', ['owner']), true);
-    assert.equal(hasOrgRole(mockOrganizerSession, 'org_riverside_1', ['member', 'admin', 'owner']), true);
-
-    // Cross-tenant access denied: organizer attempting to act on a different organization
-    assert.equal(hasOrgRole(mockOrganizerSession, 'org_cornerstone_2', ['owner', 'admin']), false);
-    assert.equal(hasOrgRole(mockOrganizerSession, 'org_gamo_ops', ['member']), false);
-  });
-
-  test('superadmin role overrides organization checks', () => {
-    const superAdminSession: SessionData = {
-      user: {
-        id: 'usr_super_1',
-        email: 'admin@gamostudio.org',
-        displayName: 'Super Admin',
-        verifiedEmailAt: new Date(0),
-        status: 'active',
-        createdAt: new Date(0),
-      },
-      roles: ['superadmin'],
-      memberships: [],
-      sessionId: 'sess_admin',
-      expiresAt: new Date(Date.now() + 86400000),
-    };
-
-    assert.equal(hasSystemRole(superAdminSession, 'staff_reviewer'), true);
-    assert.equal(isStaffOrAdmin(superAdminSession), true);
-    // Superadmin has access to any org
-    assert.equal(hasOrgRole(superAdminSession, 'org_riverside_1', ['owner']), true);
+  test('staff_reviewer and superadmin are staff; other roles are not', () => {
+    assert.equal(hasSystemRole(session(['staff_reviewer']), 'staff_reviewer'), true);
+    assert.equal(hasSystemRole(session(['staff_reviewer']), 'worship_leader'), false);
+    assert.equal(isStaffOrAdmin(session(['staff_reviewer'])), true);
+    assert.equal(isStaffOrAdmin(session(['organizer'])), false);
+    assert.equal(isStaffOrAdmin(null), false);
+    assert.equal(hasSystemRole(session(['superadmin']), 'staff_reviewer'), true);
+    assert.equal(isStaffOrAdmin(session(['superadmin'])), true);
   });
 });
 
-import { generateKeyPairSync, createSign } from 'node:crypto';
-import { readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createInMemoryD1, applyMigrations } from '@gamo/db/testing';
-import {
-  createDb,
-  users,
-  productAccounts,
-  organizations,
-  organizationMembers,
-  clerkIdentityLinks,
-} from '@gamo/db';
-import { eq } from 'drizzle-orm';
-import {
-  CLERK_PRODUCT_APPS,
-  resolveProductClerkConfig,
-  resolveAuth,
-  requireProductAuth,
-  AuthError,
-} from './index.ts';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const WORSHIP_CLERK_APP_ID = 'app_worship_isolated_instance_88';
-
-function signTestClerkJwt(
-  privateKeyPem: string,
-  payload: Record<string, unknown>,
-  kid = 'ins_test_key_1',
-): string {
-  const header = { alg: 'RS256', typ: 'JWT', kid };
-  const encode = (obj: unknown) =>
-    Buffer.from(JSON.stringify(obj))
-      .toString('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
-  const signingInput = `${encode(header)}.${encode(payload)}`;
-  const signer = createSign('RSA-SHA256');
-  signer.update(signingInput);
-  signer.end();
-  const signature = signer
-    .sign(privateKeyPem)
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-  return `${signingInput}.${signature}`;
-}
-
-function buildTestPublishableKey(frontendApiHost: string): string {
-  const b64 = Buffer.from(`${frontendApiHost}$`).toString('base64').replace(/=+$/, '');
-  return `pk_test_${b64}`;
-}
-
-describe('Independent Clerk Applications & Product Account Isolation', () => {
-  const sessionSecret = 'super_secret_test_key_minimum_32_characters_long_12345';
-
-  // Generate separate RSA keypairs for Gamo Worship and Gamo Academy Clerk instances
-  const worshipKeys = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-  });
-  const academyKeys = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+describe('Public product accounts are gone (2026-11-16)', () => {
+  test('no public account, product or organization exports remain', () => {
+    for (const name of [
+      'PRODUCT_DISPLAY_NAMES',
+      'hasProductAccess',
+      'hasOrgRole',
+      'requireVerifiedAuth',
+      'requireProductAuth',
+      'requireOrgAccess',
+      'loadVerifiedChurchOrganizationIds',
+      'resolveProductClerkConfig',
+      'verifyClerkProductToken',
+      'extractClerkJwtFromRequest',
+      'resolveOrProvisionClerkProductSession',
+      'ClerkUnavailableError',
+      'CLERK_PRODUCT_APPS',
+    ]) {
+      assert.ok(!(name in auth), `${name} should no longer be exported`);
+    }
   });
 
-  const worshipIssuer = 'https://worship-instance-01.clerk.accounts.dev';
-  const academyIssuer = 'https://academy-instance-02.clerk.accounts.dev';
+  test('public apps have no private pages left', () => {
+    for (const [app, path] of [
+      ['web', '/account'],
+      ['web', '/partner/workspace'],
+      ['worship', '/musician/profile'],
+      ['worship', '/church'],
+      ['academy', '/family'],
+      ['production', '/crew/schedule'],
+    ] as const)
+      assert.equal(isPrivatePage(app, path), false, `${app} ${path}`);
+    for (const name of ['canAccessPage', 'isIsolatedDemo', 'safeReturnPath', 'pageCacheControl'])
+      assert.ok(!(name in pageAccess), `${name} should no longer be exported`);
+  });
 
-  const testEnv: GamoEnv = {
-    SESSION_SECRET: sessionSecret,
-    CLERK_APP_ID_WORSHIP: WORSHIP_CLERK_APP_ID,
-    PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: buildTestPublishableKey('worship-instance-01.clerk.accounts.dev'),
-    CLERK_SECRET_KEY_WORSHIP: 'sk_test_worship_isolated_secret_key',
-    CLERK_JWT_KEY_WORSHIP: worshipKeys.publicKey,
-    CLERK_ISSUER_WORSHIP: worshipIssuer,
-    CLERK_AUTHORIZED_PARTIES_WORSHIP: 'http://127.0.0.1:4322,https://worship.gamostudio.org',
+  test('the Clerk modules are deleted', () => {
+    assert.equal(existsSync(resolve(__dirname, 'clerk.ts')), false);
+    assert.equal(existsSync(resolve(__dirname, '../config/clerk-env.ts')), false);
+  });
+});
 
-    CLERK_APP_ID_ACADEMY: 'app_academy_isolated_instance_99',
-    PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY: buildTestPublishableKey('academy-instance-02.clerk.accounts.dev'),
-    CLERK_SECRET_KEY_ACADEMY: 'sk_test_academy_isolated_secret_key',
-    CLERK_JWT_KEY_ACADEMY: academyKeys.publicKey,
-    CLERK_ISSUER_ACADEMY: academyIssuer,
-    CLERK_AUTHORIZED_PARTIES_ACADEMY: 'http://127.0.0.1:4323,https://academy.gamostudio.org',
-  };
-
+describe('Staff sessions in D1', () => {
   async function createMigratedDb() {
     const d1 = createInMemoryD1();
     const migrationDir = resolve(__dirname, '../db/migrations');
@@ -276,235 +161,96 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     return createDb(d1);
   }
 
-  test('lists one Clerk application per remaining product; the removed Gamo Live has none', () => {
-    assert.deepEqual(Object.keys(CLERK_PRODUCT_APPS).sort(), ['academy', 'production', 'web', 'worship']);
-    assert.equal(CLERK_PRODUCT_APPS.web.provisioningStatus, 'pending_founder_provisioning');
-    assert.equal(CLERK_PRODUCT_APPS.worship.provisioningStatus, 'pending_founder_provisioning');
-    assert.equal(CLERK_PRODUCT_APPS.academy.provisioningStatus, 'pending_founder_provisioning');
-    assert.equal(CLERK_PRODUCT_APPS.production.provisioningStatus, 'pending_founder_provisioning');
-
-    // Stale Gamo Live keys in the environment never switch Clerk on for 'live'
-    assert.equal(
-      resolveProductClerkConfig('live', {
-        ...testEnv,
-        PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: testEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP,
-        CLERK_SECRET_KEY_LIVE: 'sk_test_stale_live_key',
-      }).isConfigured,
-      false,
-    );
-    assert.equal(resolveProductClerkConfig('worship', testEnv).isConfigured, true);
-  });
-
-  test('authenticates a valid Gamo Worship Clerk JWT on Gamo Worship and provisions isolated product account', async () => {
-    const db = await createMigratedDb();
-    const nowSec = Math.floor(Date.now() / 1000);
-    const token = signTestClerkJwt(worshipKeys.privateKey, {
-      iss: worshipIssuer,
-      sub: 'user_2worshipClerk999',
-      sid: 'sess_worshipClerk999',
-      azp: 'https://worship.gamostudio.org',
-      email: 'artist@worshipcollective.org',
-      email_verified: true,
-      name: 'Naomi Brooks',
-      iat: nowSec - 10,
-      exp: nowSec + 3600,
-    });
-
-    const req = new Request('https://worship.gamostudio.org/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const session = await resolveAuth(req, db, {
-      secret: sessionSecret,
-      product: 'worship',
-      env: testEnv,
-    });
-
-    assert.ok(session, 'Expected Gamo Worship Clerk session to resolve');
-    assert.equal(session.sessionProduct, 'worship');
-    assert.equal(session.user.email, 'artist@worshipcollective.org');
-    assert.equal(session.user.displayName, 'Naomi Brooks');
-    assert.deepEqual(session.products, ['worship']);
-
-    const links = await db.select().from(clerkIdentityLinks);
-    assert.equal(links.length, 1);
-    assert.equal(links[0]!.product, 'worship');
-    assert.equal(links[0]!.clerkAppId, WORSHIP_CLERK_APP_ID);
-    assert.equal(links[0]!.clerkUserId, 'user_2worshipClerk999');
-  });
-
-  test('rejects a valid Gamo Worship Clerk JWT when presented to Academy, Production, or Studios', async () => {
-    const db = await createMigratedDb();
-    const nowSec = Math.floor(Date.now() / 1000);
-    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
-      iss: worshipIssuer,
-      sub: 'user_2worshipClerkCrossTest',
-      sid: 'sess_worshipClerkCrossTest',
-      azp: 'https://worship.gamostudio.org',
-      email: 'crossproduct@example.org',
-      email_verified: true,
-      iat: nowSec - 10,
-      exp: nowSec + 3600,
-    });
-
-    for (const targetProduct of ['academy', 'production', 'web'] as const) {
-      const req = new Request(`https://${targetProduct}.gamostudio.org/api/auth/me`, {
-        headers: { Authorization: `Bearer ${worshipToken}` },
-      });
-
-      const resolved = await resolveAuth(req, db, {
-        secret: sessionSecret,
-        product: targetProduct,
-        env: testEnv,
-      });
-      assert.equal(resolved, null, `Gamo Worship token must not authenticate against ${targetProduct}`);
-
-      await assert.rejects(
-        () =>
-          requireProductAuth(req, db, targetProduct, {
-            secret: sessionSecret,
-            env: testEnv,
-          }),
-        (err: unknown) => err instanceof AuthError && err.status === 401,
-      );
-    }
-  });
-
-  test('keeps accounts strictly separate when the same email registers on Gamo Worship and Gamo Academy', async () => {
-    const db = await createMigratedDb();
-    const sharedEmail = 'family@gracefellowship.org';
-    const nowSec = Math.floor(Date.now() / 1000);
-
-    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
-      iss: worshipIssuer,
-      sub: 'user_worship_same_email_1',
-      sid: 'sess_worship_1',
-      azp: 'https://worship.gamostudio.org',
-      email: sharedEmail,
-      email_verified: true,
-      name: 'Grace Worship Coordinator',
-      iat: nowSec - 10,
-      exp: nowSec + 3600,
-    });
-
-    const academyToken = signTestClerkJwt(academyKeys.privateKey, {
-      iss: academyIssuer,
-      sub: 'user_academy_same_email_2',
-      sid: 'sess_academy_2',
-      azp: 'https://academy.gamostudio.org',
-      email: sharedEmail,
-      email_verified: true,
-      name: 'Grace Academy Parent',
-      iat: nowSec - 10,
-      exp: nowSec + 3600,
-    });
-
-    const worshipSession = await resolveAuth(
-      new Request('https://worship.gamostudio.org/account', {
-        headers: { Authorization: `Bearer ${worshipToken}` },
-      }),
-      db,
-      { secret: sessionSecret, product: 'worship', env: testEnv },
-    );
-
-    const academySession = await resolveAuth(
-      new Request('https://academy.gamostudio.org/account', {
-        headers: { Authorization: `Bearer ${academyToken}` },
-      }),
-      db,
-      { secret: sessionSecret, product: 'academy', env: testEnv },
-    );
-
-    assert.ok(worshipSession);
-    assert.ok(academySession);
-
-    // Must be two completely independent D1 users and product accounts
-    assert.notEqual(
-      worshipSession.user.id,
-      academySession.user.id,
-      'Identical email across independent Clerk apps must NEVER auto-merge D1 users',
-    );
-    assert.equal(worshipSession.user.email, sharedEmail);
-    assert.equal(academySession.user.email, sharedEmail);
-    assert.deepEqual(worshipSession.products, ['worship']);
-    assert.deepEqual(academySession.products, ['academy']);
-  });
-
-  test('safely claims pre-existing same-product legacy D1 account on verified Clerk login while preserving domain ownership', async () => {
-    const db = await createMigratedDb();
-    const now = new Date();
-    const legacyUserId = 'usr_legacy_worship_coordinator';
-    const legacyEmail = 'pastor.legacy@cornerstone.org';
-
+  async function seedUser(db: Awaited<ReturnType<typeof createMigratedDb>>, id: string, role?: string) {
     await db.insert(users).values({
-      id: legacyUserId,
-      email: legacyEmail,
-      verifiedEmailAt: now,
-      displayName: 'Pastor Legacy',
+      id,
+      email: `${id}@example.org`,
+      displayName: 'Example',
+      verifiedEmailAt: new Date(),
       status: 'active',
-      createdAt: now,
+      createdAt: new Date(),
+    });
+    if (role) {
+      const [existing] = await db.select().from(roles).where(eq(roles.code, role)).limit(1);
+      const roleId = existing?.id ?? `role_${role}`;
+      if (!existing) await db.insert(roles).values({ id: roleId, code: role, description: role });
+      await db.insert(userRoles).values({ id: `ur_${id}`, userId: id, roleId, createdAt: new Date() });
+    }
+  }
+
+  const adminRequest = (cookieValue: string, init: RequestInit = {}) =>
+    new Request('https://admin.gamostudio.org/api/x', {
+      ...init,
+      headers: { cookie: `__session=${encodeURIComponent(cookieValue)}`, ...(init.headers ?? {}) },
     });
 
-    await db.insert(productAccounts).values({
-      id: 'pa_legacy_worship_1',
-      userId: legacyUserId,
-      product: 'worship',
-      status: 'active',
-      onboardingStatus: 'completed',
-      createdAt: now,
-      updatedAt: now,
-    });
+  test('a staff session resolves with roles only (no product or organization data)', async () => {
+    const db = await createMigratedDb();
+    await seedUser(db, 'usr_staff', 'staff_reviewer');
+    const { cookieValue, sessionId } = await createSession(db, 'usr_staff', secret);
 
-    await db.insert(organizations).values({
-      id: 'org_cornerstone_legacy',
-      name: 'Cornerstone Church',
-      slug: 'cornerstone-church',
-      type: 'church',
-      verifiedAt: now,
-      createdAt: now,
-    });
-
-    await db.insert(organizationMembers).values({
-      id: 'om_cornerstone_owner',
-      organizationId: 'org_cornerstone_legacy',
-      userId: legacyUserId,
-      role: 'owner',
-      createdAt: now,
-    });
-
-    const nowSec = Math.floor(Date.now() / 1000);
-    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
-      iss: worshipIssuer,
-      sub: 'user_clerk_claimed_legacy',
-      sid: 'sess_clerk_claimed_legacy',
-      azp: 'https://worship.gamostudio.org',
-      email: legacyEmail,
-      email_verified: true,
-      iat: nowSec - 10,
-      exp: nowSec + 3600,
-    });
-
-    const session = await resolveAuth(
-      new Request('https://worship.gamostudio.org/workspaces', {
-        headers: { Authorization: `Bearer ${worshipToken}` },
-      }),
-      db,
-      { secret: sessionSecret, product: 'worship', env: testEnv },
+    const data = await validateSession(db, cookieValue, secret);
+    assert.ok(data);
+    assert.equal(data.sessionId, sessionId);
+    assert.deepEqual(data.roles, ['staff_reviewer']);
+    assert.deepEqual(
+      Object.keys(data).sort(),
+      ['expiresAt', 'roles', 'sessionId', 'user'],
+      'session carries no product accounts, memberships or person data',
     );
+    const [row] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
+    assert.equal(row.product, null);
 
-    assert.ok(session);
-    assert.equal(session.user.id, legacyUserId, 'Should preserve legacy D1 user ID for same-product account');
-    assert.equal(session.memberships.length, 1);
-    assert.equal(session.memberships[0]!.organizationId, 'org_cornerstone_legacy');
-    assert.equal(session.memberships[0]!.role, 'owner');
+    const resolved = await requireStaff(adminRequest(cookieValue), db, secret);
+    assert.equal(resolved.user.id, 'usr_staff');
+    await assert.rejects(
+      requireSuperadmin(adminRequest(cookieValue), db, secret),
+      (e: unknown) => e instanceof AuthError && e.status === 403,
+    );
+  });
 
-    const [link] = await db
-      .select()
-      .from(clerkIdentityLinks)
-      .where(eq(clerkIdentityLinks.clerkUserId, 'user_clerk_claimed_legacy'))
-      .limit(1);
-    assert.ok(link);
-    assert.equal(link.migrationSource, 'verified_domain_claim');
-    assert.equal(link.userId, legacyUserId);
+  test('a signed-in user without a staff role is refused; no cookie is unauthenticated', async () => {
+    const db = await createMigratedDb();
+    await seedUser(db, 'usr_plain');
+    const { cookieValue } = await createSession(db, 'usr_plain', secret);
+    await assert.rejects(
+      requireStaff(adminRequest(cookieValue), db, secret),
+      (e: unknown) => e instanceof AuthError && e.code === 'FORBIDDEN',
+    );
+    await assert.rejects(
+      requireStaff(new Request('https://admin.gamostudio.org/api/x'), db, secret),
+      (e: unknown) => e instanceof AuthError && e.code === 'UNAUTHENTICATED' && e.status === 401,
+    );
+    assert.equal(await resolveAuth(adminRequest('bogus.value'), db, secret), null);
+  });
+
+  test('a leftover public-product session row never authenticates', async () => {
+    const db = await createMigratedDb();
+    await seedUser(db, 'usr_old', 'staff_reviewer');
+    const { cookieValue, sessionId } = await createSession(db, 'usr_old', secret);
+    await db.update(sessions).set({ product: 'worship' }).where(eq(sessions.id, sessionId));
+    assert.equal(await validateSession(db, cookieValue, secret), null);
+  });
+
+  test('cross-origin mutations are refused before the session is read', async () => {
+    const db = await createMigratedDb();
+    await seedUser(db, 'usr_staff2', 'staff_reviewer');
+    const { cookieValue } = await createSession(db, 'usr_staff2', secret);
+    await assert.rejects(
+      requireStaff(
+        adminRequest(cookieValue, { method: 'POST', headers: { origin: 'https://evil.example' } }),
+        db,
+        secret,
+      ),
+      (e: unknown) => e instanceof AuthError && e.code === 'FORBIDDEN',
+    );
+    assert.doesNotThrow(() =>
+      requireSameOrigin(
+        new Request('https://admin.gamostudio.org/x', {
+          method: 'POST',
+          headers: { origin: 'https://admin.gamostudio.org' },
+        }),
+      ),
+    );
   });
 });

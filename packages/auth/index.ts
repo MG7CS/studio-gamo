@@ -1,49 +1,26 @@
 import type { GamoEnv } from '@gamo/config/env';
 import type { GamoLocals } from './locals.ts';
 /**
- * @gamo/auth — Cloudflare-Native Authentication & Authorization
+ * @gamo/auth — staff authentication for the admin app.
  *
- * Implements a lightweight, zero-external-dependency session manager built on:
- * - Standard Web Crypto API (HMAC-SHA256 cookie signing and verification).
- * - Cloudflare D1 persistence for sessions, users, roles, and organization memberships.
- * - HTTP-only, Secure, SameSite=Lax host-only cookies.
- * - Server-side Role-Based Access Control (RBAC) and Multi-Tenant Organization Authorization.
+ * Public products have no accounts (removed 2026-11-16); only staff sign in, at admin.gamostudio.org
+ * behind Cloudflare Access plus the admin password. Built on:
+ * - Web Crypto HMAC-SHA256 cookie signing and verification.
+ * - D1 `users`, `sessions`, `roles`, `user_roles`, `admin_credentials` (and `external_identities` for the
+ *   Cloudflare Access subject binding).
+ * - HTTP-only, Secure, SameSite=Lax host-only cookies and server-side role checks.
  */
 
 import { eq, and, gt, isNull } from 'drizzle-orm';
 import {
   users,
   sessions,
-  productAccounts,
   userRoles,
   roles,
-  organizations,
-  organizationMembers,
   externalIdentities,
-  clerkIdentityLinks,
   adminCredentials,
-  providerProfiles,
   type GamoDatabase,
 } from '@gamo/db';
-import {
-  extractClerkJwtFromRequest,
-  verifyClerkProductToken,
-  resolveOrProvisionClerkProductSession,
-} from './clerk.ts';
-
-/**
- * 'live' stays in this union only because stored product values (product_accounts CHECK, customer links,
- * signed tokens) may still carry it. Gamo Live was removed (2026-11-16); no app serves it.
- */
-export type ProductKey = 'web' | 'worship' | 'academy' | 'live' | 'production';
-
-export const PRODUCT_DISPLAY_NAMES: Record<ProductKey, string> = {
-  web: 'Gamo Studios',
-  worship: 'Gamo Worship',
-  academy: 'Gamo Academy',
-  live: 'Gamo Live',
-  production: 'Gamo Production',
-};
 
 export interface AuthUser {
   id: string;
@@ -54,35 +31,15 @@ export interface AuthUser {
   createdAt: Date;
 }
 
-export interface OrgMembership {
-  organizationId: string;
-  role: string;
-  orgName: string;
-  orgSlug: string;
-  orgType: string;
-  status: string;
-}
-
 export interface SessionData {
   user: AuthUser;
   roles: string[];
-  memberships: OrgMembership[];
-  products?: string[];
-  sessionProduct?: string | null;
   sessionId: string;
   expiresAt: Date;
-  clerkUserId?: string;
-  clerkAppId?: string;
-  clerkIssuer?: string;
-  /** Shared person of this user (`users.person_id`), set only from a verified email (design §4.6). */
-  personId?: string | null;
-  /** Organizations whose church profile staff verified for this person (Worship `/church` gate). */
-  verifiedChurchOrganizationIds?: string[];
 }
 
 export interface AuthResolutionOptions {
   secret?: string;
-  product?: ProductKey;
   env?: GamoEnv;
 }
 
@@ -92,9 +49,6 @@ export interface SessionOptions {
   ttlSeconds?: number; // Default 30 days
   ipHash?: string;
   userAgent?: string;
-  product?: ProductKey;
-  /** Clerk `sid` behind this session (exchange only), so the Clerk webhook can revoke it. */
-  clerkSessionId?: string;
 }
 
 export interface CookieOptions {
@@ -188,40 +142,18 @@ export async function createSession(
   await db.insert(sessions).values({
     id: sessionId,
     userId,
-    product: options?.product ?? null,
     expiresAt,
     ipHash: options?.ipHash,
     userAgent: options?.userAgent,
-    clerkSessionId: options?.clerkSessionId ?? null,
     createdAt: now,
   });
-
-  if (options?.product) {
-    const [existingProduct] = await db
-      .select({ id: productAccounts.id })
-      .from(productAccounts)
-      .where(and(eq(productAccounts.userId, userId), eq(productAccounts.product, options.product)))
-      .limit(1);
-
-    if (!existingProduct) {
-      await db.insert(productAccounts).values({
-        id: `pacc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        userId,
-        product: options.product,
-        status: 'active',
-        onboardingStatus: 'pending',
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
-  }
 
   const cookieValue = await signValue(sessionId, secret);
   return { sessionId, cookieValue, expiresAt };
 }
 
 /**
- * Validates a session cookie against D1 and resolves user identity, system roles, product accounts, and organization memberships.
+ * Validates a session cookie against D1 and resolves the user and their unscoped system roles.
  */
 export async function validateSession(
   db: GamoDatabase,
@@ -242,7 +174,8 @@ export async function validateSession(
     .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, now), isNull(sessions.revokedAt)))
     .limit(1);
 
-  if (!sessionRecord) return null;
+  // A session issued for a public product (before public accounts were removed) never authenticates.
+  if (!sessionRecord || sessionRecord.product) return null;
 
   // 2. Fetch associated user
   const [userRecord] = await db
@@ -264,38 +197,6 @@ export async function validateSession(
 
   const roleCodes = userRoleRows.map((r) => r.code);
 
-  // 4. Resolve active product accounts
-  let productCodes: string[];
-  try {
-    const productRows = await db
-      .select({ product: productAccounts.product })
-      .from(productAccounts)
-      .where(and(eq(productAccounts.userId, userRecord.id), eq(productAccounts.status, 'active')));
-    productCodes = productRows.map((p) => p.product);
-  } catch {
-    productCodes = [];
-  }
-
-  // 5. Resolve organization memberships
-  const memberRows = await db
-    .select({
-      organizationId: organizationMembers.organizationId,
-      role: organizationMembers.role,
-      orgName: organizations.name,
-      orgSlug: organizations.slug,
-      orgType: organizations.type,
-      status: organizationMembers.status,
-    })
-    .from(organizationMembers)
-    .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
-    .where(
-      and(
-        eq(organizationMembers.userId, userRecord.id),
-        eq(organizationMembers.status, 'active'),
-        eq(organizations.status, 'active'),
-      ),
-    );
-
   return {
     user: {
       id: userRecord.id,
@@ -306,36 +207,9 @@ export async function validateSession(
       createdAt: userRecord.createdAt,
     },
     roles: roleCodes,
-    memberships: memberRows,
-    personId: userRecord.personId ?? null,
-    verifiedChurchOrganizationIds: await loadVerifiedChurchOrganizationIds(db, userRecord.personId),
-    products: productCodes,
-    sessionProduct: sessionRecord.product ?? null,
     sessionId: sessionRecord.id,
     expiresAt: sessionRecord.expiresAt,
   };
-}
-
-/**
- * Organizations whose church provider profile staff verified for this person. A church organization
- * membership alone never opens the Worship church workspace (design §4.4).
- */
-export async function loadVerifiedChurchOrganizationIds(
-  db: GamoDatabase,
-  personId: string | null | undefined,
-): Promise<string[]> {
-  if (!personId) return [];
-  const rows = await db
-    .select({ organizationId: providerProfiles.organizationId })
-    .from(providerProfiles)
-    .where(
-      and(
-        eq(providerProfiles.personId, personId),
-        eq(providerProfiles.role, 'church'),
-        eq(providerProfiles.status, 'verified'),
-      ),
-    );
-  return rows.map((r) => r.organizationId).filter((id): id is string => Boolean(id));
 }
 
 /**
@@ -411,7 +285,7 @@ export function extractSessionCookie(request: Request): string | null {
     if (name === DEFAULT_COOKIE_NAME) {
       try {
         const value = decodeURIComponent(val.join('='));
-        // Clerk's session JWT (three dot-separated parts) uses the same cookie name; ours is `id.signature`.
+        // Ours is `id.signature`; skip a JWT (three parts) of the same name, e.g. an old third-party cookie.
         if (value.split('.').length === 3) continue;
         return value;
       } catch {
@@ -427,14 +301,10 @@ export function extractSessionCookie(request: Request): string | null {
 // ============================================================================
 
 export class AuthError extends Error {
-  code: 'UNAUTHENTICATED' | 'FORBIDDEN' | 'ORGANIZATION_FORBIDDEN';
+  code: 'UNAUTHENTICATED' | 'FORBIDDEN';
   status: number;
 
-  constructor(
-    code: 'UNAUTHENTICATED' | 'FORBIDDEN' | 'ORGANIZATION_FORBIDDEN',
-    message: string,
-    status: number = 401,
-  ) {
+  constructor(code: 'UNAUTHENTICATED' | 'FORBIDDEN', message: string, status: number = 401) {
     super(message);
     this.name = 'AuthError';
     this.code = code;
@@ -458,67 +328,6 @@ export function isStaffOrAdmin(auth: SessionData | null | undefined): boolean {
   return auth.roles.includes('superadmin') || auth.roles.includes('staff_reviewer');
 }
 
-/**
- * Checks if the authenticated session has product membership and session scope for a specific Gamo product.
- * Sharing authentication infrastructure does not grant automatic cross-product access.
- */
-export function hasProductAccess(auth: SessionData | null | undefined, product: ProductKey): boolean {
-  if (!auth || !auth.user.verifiedEmailAt || auth.user.status !== 'active') return false;
-  if (auth.roles.includes('superadmin')) return true;
-
-  // If the session was explicitly issued for a product, it cannot be used to authenticate into another product.
-  if (auth.sessionProduct && auth.sessionProduct !== product) {
-    return false;
-  }
-
-  // If product accounts are present on the session, require explicit membership for the target product.
-  if (Array.isArray(auth.products)) {
-    return auth.products.includes(product);
-  }
-
-  return true;
-}
-
-/**
- * Checks if the user has an allowed role within a target organization.
- */
-export function hasOrgRole(
-  auth: SessionData | null | undefined,
-  organizationId: string,
-  allowedRoles: string[] = ['owner', 'admin', 'member'],
-): boolean {
-  if (!auth) return false;
-  if (auth.roles.includes('superadmin')) return true; // Superadmins have global tenant override
-
-  const membership = auth.memberships.find((m) => m.organizationId === organizationId);
-  if (!membership) return false;
-
-  return allowedRoles.includes(membership.role);
-}
-
-function inferProductFromRequest(request: Request, explicitProduct?: ProductKey): ProductKey | undefined {
-  if (explicitProduct) return explicitProduct;
-  try {
-    const url = new URL(request.url);
-    const host = url.hostname.toLowerCase();
-    const port = url.port;
-    if (
-      port === '4321' ||
-      host === 'gamostudio.org' ||
-      host === 'www.gamostudio.org' ||
-      host.startsWith('gamo-web')
-    )
-      return 'web';
-    if (port === '4322' || host.startsWith('worship.') || host.startsWith('gamo-worship')) return 'worship';
-    if (port === '4323' || host.startsWith('academy.') || host.startsWith('gamo-academy')) return 'academy';
-    if (port === '4325' || host.startsWith('production.') || host.startsWith('gamo-production'))
-      return 'production';
-  } catch {
-    // ignore URL parse error
-  }
-  return undefined;
-}
-
 function normalizeAuthOptions(secretOrOptions?: SecretOrAuthOptions): AuthResolutionOptions {
   if (!secretOrOptions) return {};
   if (typeof secretOrOptions === 'string') {
@@ -528,13 +337,7 @@ function normalizeAuthOptions(secretOrOptions?: SecretOrAuthOptions): AuthResolu
 }
 
 /**
- * Resolves session auth from an Astro or Worker Request.
- * Supports:
- * 1. Product-isolated Clerk JWT sessions (`__session` JWT cookie or `Authorization: Bearer <jwt>`)
- *    verified against the specific product's Clerk application (`CLERK_SECRET_KEY_<PRODUCT>` / `CLERK_JWT_KEY_<PRODUCT>`,
- *    issuer `iss`, and `authorizedParties`).
- * 2. D1 product-scoped HMAC session cookies (`__session` 2-part signed ID) for local simulation, rollback safety,
- *    and internal Admin Gateway sessions.
+ * Resolves the staff session (D1 HMAC-signed `__session` cookie) of an Astro or Worker request.
  */
 export async function resolveAuth(
   request: Request,
@@ -542,63 +345,9 @@ export async function resolveAuth(
   secretOrOptions?: SecretOrAuthOptions,
 ): Promise<SessionData | null> {
   const opts = normalizeAuthOptions(secretOrOptions);
-  const signingSecret = opts.secret ?? opts.env?.SESSION_SECRET;
-  const product = inferProductFromRequest(
-    request,
-    opts.product ?? (opts.env?.CLERK_PRODUCT as ProductKey | undefined),
-  );
-
-  // 1. Check for a 3-segment Clerk JWT token first when targeting a public product
-  const clerkJwt = extractClerkJwtFromRequest(request);
-  if (clerkJwt && product) {
-    // Throws ClerkUnavailableError when Clerk cannot be reached (callers answer 503, not "signed out").
-    const verifiedClerk = await verifyClerkProductToken(clerkJwt, product, opts.env);
-    if (verifiedClerk) {
-      try {
-        return await resolveOrProvisionClerkProductSession(db, verifiedClerk);
-      } catch (error) {
-        if (error instanceof AuthError) throw error;
-        // First sign-in fires several requests at once; the loser of the insert race hits a unique
-        // index. By now the winner's rows exist, so one more pass resolves the same account.
-        return await resolveOrProvisionClerkProductSession(db, verifiedClerk);
-      }
-    }
-    // An unverifiable Clerk token (expired, another product's, tampered) never authenticates by itself.
-    // A valid Gamo emailed-code session, if the browser also sends one, still can.
-  }
-
-  // 2. Fallback to D1 signed session cookie (local simulation, migration rollback, or Admin Gateway)
   const cookie = extractSessionCookie(request);
   if (!cookie) return null;
-  const d1Session = await validateSession(db, cookie, signingSecret);
-  if (!d1Session) return null;
-
-  // Enforce strict product session boundary when product is known
-  if (
-    product &&
-    d1Session.sessionProduct &&
-    d1Session.sessionProduct !== product &&
-    !d1Session.roles.includes('superadmin')
-  ) {
-    return null;
-  }
-
-  // A session that began with a Clerk sign-in ends when that identity is suspended or revoked here.
-  if (product) {
-    const [link] = await db
-      .select({ status: clerkIdentityLinks.status })
-      .from(clerkIdentityLinks)
-      .where(and(eq(clerkIdentityLinks.userId, d1Session.user.id), eq(clerkIdentityLinks.product, product)))
-      .limit(1);
-    if (link && link.status !== 'active') return null;
-  }
-
-  // Ensure email display strips any internal `#<product>:<clerkId>` suffix
-  if (d1Session.user.email.includes('#')) {
-    d1Session.user.email = d1Session.user.email.split('#')[0] || d1Session.user.email;
-  }
-
-  return d1Session;
+  return validateSession(db, cookie, opts.secret ?? opts.env?.SESSION_SECRET);
 }
 
 /**
@@ -613,43 +362,6 @@ export async function requireAuth(
   const auth = await resolveAuth(request, db, secretOrOptions);
   if (!auth) {
     throw new AuthError('UNAUTHENTICATED', 'Authentication required for this operation.', 401);
-  }
-  return auth;
-}
-
-/**
- * Enforces authenticated session with verified email; throws AuthError(FORBIDDEN, 403) if email is unverified.
- */
-export async function requireVerifiedAuth(
-  request: Request,
-  db: GamoDatabase,
-  secretOrOptions?: SecretOrAuthOptions,
-): Promise<SessionData> {
-  const auth = await requireAuth(request, db, secretOrOptions);
-  if (!auth.user.verifiedEmailAt) {
-    throw new AuthError('FORBIDDEN', 'Verified email address required for this operation.', 403);
-  }
-  return auth;
-}
-
-/**
- * Enforces authenticated session with verified email AND explicit product account membership for the given product.
- */
-export async function requireProductAuth(
-  request: Request,
-  db: GamoDatabase,
-  product: ProductKey,
-  secretOrOptions?: SecretOrAuthOptions,
-): Promise<SessionData> {
-  const baseOpts = normalizeAuthOptions(secretOrOptions);
-  const auth = await requireVerifiedAuth(request, db, { ...baseOpts, product });
-  if (!hasProductAccess(auth, product)) {
-    const label = PRODUCT_DISPLAY_NAMES[product] || product;
-    throw new AuthError(
-      'FORBIDDEN',
-      `Your account does not have an active ${label} membership. Please create or sign in to a ${label} account.`,
-      403,
-    );
   }
   return auth;
 }
@@ -733,28 +445,6 @@ export async function verifyStaffBoundaryIdentity(
   }
 }
 
-/**
- * Enforces organization membership and role permissions.
- */
-export async function requireOrgAccess(
-  request: Request,
-  db: GamoDatabase,
-  organizationId: string,
-  allowedRoles: string[] = ['owner', 'admin'],
-  secretOrOptions?: SecretOrAuthOptions,
-): Promise<SessionData> {
-  const auth = await requireAuth(request, db, secretOrOptions);
-  if (!hasOrgRole(auth, organizationId, allowedRoles)) {
-    throw new AuthError(
-      'ORGANIZATION_FORBIDDEN',
-      'You do not have required permissions for this organization.',
-      403,
-    );
-  }
-  return auth;
-}
-
-/** Reject browser cross-origin mutations, including sibling subdomains. */
 /**
  * CSRF guard for state-changing requests. Browsers send `Origin` on every cross-origin POST/PUT/
  * PATCH/DELETE and `Sec-Fetch-Site` on all modern engines, so:
@@ -1185,5 +875,3 @@ export async function verifyAdminGateCookie(
 
   return constantTimeCompare(verified, `${expectedSessionId}:${expectedUserId}`);
 }
-
-export * from './clerk.ts';

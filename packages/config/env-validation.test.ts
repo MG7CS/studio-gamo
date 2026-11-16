@@ -18,22 +18,38 @@ test('missing or unknown ENVIRONMENT is fatal', () => {
   assert.deepEqual(names(validateEnv('academy', { ENVIRONMENT: 'staging' }, 'x'), 'fatal'), ['ENVIRONMENT']);
 });
 
-test('local-only flags are fatal outside local', () => {
+test('retired public sign-in flags and Clerk variables are no longer checked', () => {
   const problems = validateEnv(
     'web',
-    { ENVIRONMENT: 'production', DB: {}, SESSION_SECRET: SECRET, ALLOW_DEMO_SESSION: 'true' },
+    {
+      ENVIRONMENT: 'production',
+      DB: {},
+      ALLOW_DEMO_SESSION: 'true',
+      CLERK_SECRET_KEY_WEB: 'sk_test_x',
+      CLERK_GOOGLE_ENABLED_WEB: 'true',
+    } as never,
     'gamostudio.org',
   );
-  assert.deepEqual(names(problems, 'fatal'), ['ALLOW_DEMO_SESSION']);
+  assert.deepEqual(names(problems, 'fatal'), []);
+  assert.ok(problems.every((p) => !/CLERK|ALLOW_/.test(p.name)));
 });
 
-test('deployed apps require DB and a 32+ character SESSION_SECRET', () => {
-  const problems = validateEnv(
-    'worship',
-    { ENVIRONMENT: 'production', SESSION_SECRET: 'short' },
-    'worship.gamostudio.org',
+test('deployed apps require DB; only admin (staff sessions) requires SESSION_SECRET', () => {
+  assert.deepEqual(
+    names(validateEnv('worship', { ENVIRONMENT: 'production' }, 'worship.gamostudio.org'), 'error'),
+    ['DB'],
   );
-  assert.deepEqual(names(problems, 'error'), ['DB', 'SESSION_SECRET']);
+  assert.deepEqual(
+    names(
+      validateEnv(
+        'admin',
+        { ENVIRONMENT: 'production', DB: {}, SESSION_SECRET: 'short' },
+        'admin.gamostudio.org',
+      ),
+      'error',
+    ),
+    ['SESSION_SECRET', 'CF_ACCESS_TEAM_NAME', 'CF_ACCESS_AUD'],
+  );
 });
 
 test('admin requires Cloudflare Access settings; web warns about unconfigured integrations', () => {
@@ -134,15 +150,5 @@ test('STRIPE_TEST_CHECKOUT=true is fatal in production and allowed in preview an
       'fatal',
     ),
     [],
-  );
-});
-
-test('Clerk webhook and Google flags are reported per product only when they matter', () => {
-  const base = { ENVIRONMENT: 'production', DB: {}, SESSION_SECRET: SECRET } as const;
-  const google = validateEnv('worship', { ...base, CLERK_GOOGLE_ENABLED_WORSHIP: 'true' }, 'h');
-  assert.ok(names(google, 'warning').includes('CLERK_GOOGLE_ENABLED_WORSHIP'));
-  assert.ok(
-    !names(validateEnv('worship', base, 'h'), 'warning').includes('CLERK_WEBHOOK_SECRET_WORSHIP'),
-    'Clerk off: no webhook warning',
   );
 });

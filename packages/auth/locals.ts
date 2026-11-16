@@ -1,21 +1,15 @@
 import type { GamoEnv } from '@gamo/config/env';
-import type { ResolvedProductClerkConfig } from './clerk.ts';
 import type { SessionData } from './index.ts';
 import type { PublicApp } from './page-access.ts';
 
 /**
  * Request-scoped values set by middleware (`applicationPages()` in public apps, the admin
- * gateway in apps/admin) and read by pages and shared components.
+ * gateway in apps/admin) and read by pages and shared components. Public apps have no sessions.
  */
 export interface GamoLocals {
   /** App that served the request. */
   product?: PublicApp;
-  /** Signed-in identity with access to this product, or null. */
-  auth?: SessionData | null;
   runtimeEnv?: GamoEnv;
-  clerkConfig?: ResolvedProductClerkConfig;
-  /** Explicitly enabled loopback demo (fictional workspace data, no sign-in). */
-  isolatedDemo?: boolean;
   noindexPage?: boolean;
   /**
    * Per-page header additions requested with `requestSecurityHeaders(Astro.locals, …)` from

@@ -195,10 +195,6 @@ export function analyzeConfigs(
         message: `[env.${env}.vars] ENVIRONMENT is "${r.vars.ENVIRONMENT ?? ''}", expected "${env}".`,
       });
     }
-    for (const flag of ['ALLOW_DEMO_SESSION', 'ALLOW_AUTH_SIMULATION', 'ALLOW_PUBLIC_DEMO_WORKSPACES']) {
-      if (r.vars[flag] === 'true')
-        add({ severity: 'error', app, code: 'local-flag', message: `${flag} is true in ${env}.` });
-    }
     if (env === 'production' && r.vars.STRIPE_TEST_CHECKOUT === 'true')
       add({
         severity: 'error',

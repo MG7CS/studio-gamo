@@ -158,22 +158,15 @@ test('the real repository has no configuration errors other than the shared KV n
 });
 
 test('secret evaluation reports names only and distinguishes required, recommended and optional', () => {
-  const found = evaluateSecrets(
-    'academy',
-    'production',
-    new Set(['SESSION_SECRET', 'CLERK_SECRET_KEY_ACADEMY']),
-    {},
-  );
+  const found = evaluateSecrets('academy', 'production', new Set(['CLERK_SECRET_KEY_ACADEMY']), {});
   const byCode = (c: string) => found.filter((f) => f.code === c).map((f) => f.message);
-  assert.deepEqual(byCode('secret-missing'), []);
+  assert.deepEqual(byCode('secret-missing'), [], 'public apps have no sessions, so nothing is required');
   assert.equal(byCode('secret-recommended').length, 2);
-  assert.match(byCode('clerk-partial')[0], /PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY/);
-  for (const name of [
-    'CUSTOMER_LINK_SECRET',
-    'PII_HASH_SECRET',
-    'TURNSTILE_SECRET_KEY',
-    'CLERK_WEBHOOK_SECRET_ACADEMY',
-  ])
+  assert.ok(
+    found.every((f) => !/clerk/i.test(f.code) && !/CLERK/.test(f.message)),
+    'Clerk is no longer evaluated',
+  );
+  for (const name of ['CUSTOMER_LINK_SECRET', 'PII_HASH_SECRET', 'TURNSTILE_SECRET_KEY'])
     assert.ok(
       byCode('secret-optional').some((m) => m.startsWith(`${name} `)),
       name,
@@ -183,7 +176,7 @@ test('secret evaluation reports names only and distinguishes required, recommend
   });
   assert.deepEqual(
     web.filter((f) => f.code === 'secret-optional').map((f) => f.message.split(' ')[0]),
-    ['RESEND_WEBHOOK_SECRET', 'TURNSTILE_SECRET_KEY', 'CLERK_WEBHOOK_SECRET_WEB'],
+    ['RESEND_WEBHOOK_SECRET', 'TURNSTILE_SECRET_KEY'],
   );
 
   const admin = evaluateSecrets('admin', 'production', new Set(['SESSION_SECRET']), {
@@ -277,14 +270,18 @@ test('CLI: skips the remote part when logged out, never prints a secret value, e
     assert.ok(!lines.join('\n').includes(secretValue));
     assert.match(lines.join('\n'), /web: required secrets present/);
 
-    // A required secret missing → non-zero.
+    // A required secret missing → non-zero (admin signs staff sessions; public apps require none).
     const missing: Exec = (args) =>
       args[0] === 'whoami'
         ? { status: 0, stdout: 'Account', stderr: '' }
         : { status: 0, stdout: '[]', stderr: '' };
     assert.equal(
-      runPreflight(root, parseArgs(['web', '--env', 'preview']), missing, () => {}),
+      runPreflight(root, parseArgs(['admin', '--env', 'preview']), missing, () => {}),
       1,
+    );
+    assert.equal(
+      runPreflight(root, parseArgs(['web', '--env', 'preview']), missing, () => {}),
+      0,
     );
   } finally {
     rmSync(root, { recursive: true, force: true });
