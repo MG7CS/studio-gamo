@@ -1,24 +1,33 @@
 ---
 /**
- * Badge: short, non-interactive label on one line (truncates instead of wrapping). Use it for
+ * Badge: short, non-interactive label, on one line by default (truncates instead of wrapping; pass
+ * `wrap` to let a longer label break onto several lines on small screens). Use it for
  * eyebrow chips, statuses and the honest labels AGENTS.md requires: tone="sample" for fictional
  * people, bookings or stories and tone="proposal" for fees, contributions and tiers not yet approved.
  * Those two tones print "Sample" / "Proposal" when no text is given.
+ *
+ * Default text pitfall: the fallback only shows when the slot is truly empty. A child expression
+ * that evaluates to nothing, e.g. `<Badge tone="sample">{undefined}</Badge>` or
+ * `<Badge tone="sample">{item.label}</Badge>` with a missing label, still counts as slot content in
+ * Astro and renders an EMPTY badge. Render `<Badge tone="sample" />` (no children) when there is no text.
  *
  * Usage:
  *   <Badge tone="sample" />
  *   <Badge tone="proposal">Proposed fee</Badge>
  *   <Badge tone="accent">Ages 6 and up</Badge>
  *   <Badge tone="success" size="sm">Confirmed</Badge>
+ *   <Badge tone="accent" wrap>Church-hosted lessons for families</Badge>
  */
 type Tone = 'neutral' | 'accent' | 'proposal' | 'sample' | 'success' | 'danger';
 type Size = 'sm' | 'md';
 interface Props {
   tone?: Tone;
   size?: Size;
+  /** Allow the label to wrap onto several lines instead of truncating. Default false. */
+  wrap?: boolean;
   class?: string;
 }
-const { tone = 'neutral', size = 'md', class: className } = Astro.props;
+const { tone = 'neutral', size = 'md', wrap = false, class: className } = Astro.props;
 const toneClass: Record<Tone, string> = {
   neutral: 'border-border bg-surface-raised text-fg',
   accent: 'border-transparent bg-action text-on-action',
@@ -33,15 +42,17 @@ const fallback: Partial<Record<Tone, string>> = { sample: 'Sample', proposal: 'P
 
 <span
   class:list={[
-    'inline-flex max-w-full shrink-0 items-center rounded-pill border text-caption font-semibold tracking-eyebrow whitespace-nowrap uppercase',
+    'inline-flex max-w-full shrink-0 items-center border text-caption font-semibold tracking-eyebrow uppercase',
+    wrap ? 'rounded-card text-balance' : 'rounded-pill whitespace-nowrap',
     toneClass[tone],
     sizeClass[size],
     className,
   ]}
   data-tone={tone}
   data-size={size}
+  data-wrap={wrap ? '' : undefined}
 >
-  <span class="truncate">
+  <span class:list={[wrap ? 'min-w-0 break-words' : 'truncate']}>
     <slot>{fallback[tone]}</slot>
   </span>
 </span>

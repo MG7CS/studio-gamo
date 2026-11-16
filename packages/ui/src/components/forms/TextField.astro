@@ -20,9 +20,12 @@
  * - class?: string — wrapper classes.
  *
  * Slot `after`: content rendered after the error (EmailField's suggestion button).
- * Styles: Inter, ink text on white, 1px ink/50 border (3.3:1, WCAG 1.4.11), 44 px min height, terracotta
- * focus ring; error state uses terracotta-deep border + text (≥ 7:1 on white) and an "Error:" prefix.
+ * Built on FieldShell and CONTROL_CLASS (same semantic tokens as every other field: text-fg on
+ * bg-surface-raised, border-fg-muted, danger border and text on error, global focus ring).
  */
+import FieldShell from './FieldShell.astro';
+import { CONTROL_CLASS, fieldIds } from './field';
+
 interface Props {
   id: string;
   name: string;
@@ -69,30 +72,13 @@ const {
   class: className,
 } = Astro.props;
 
-const hintId = `${id}-hint`;
-const errorId = `${id}-error`;
-const describedBy = [hint ? hintId : null, errorId].filter(Boolean).join(' ');
+const ids = fieldIds(id, Boolean(hint));
 const dataAttributes = Object.fromEntries(
   Object.entries(data).map(([k, v]) => [`data-${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`, v]),
 );
 ---
 
-<div class:list={['gamo-field', className]}>
-  <label for={id} class="block text-[15px] font-semibold text-ink">
-    {label}
-    {required && (
-      <span class="font-normal text-muted">
-        {' '}
-        <span aria-hidden="true">*</span>
-        <span class="sr-only">(required)</span>
-      </span>
-    )}
-  </label>
-  {hint && (
-    <p id={hintId} class="mt-1 text-sm text-muted">
-      {hint}
-    </p>
-  )}
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
   <input
     id={id}
     name={name}
@@ -109,28 +95,11 @@ const dataAttributes = Object.fromEntries(
     autocapitalize={autocapitalize}
     disabled={disabled}
     readonly={readonly}
-    aria-describedby={describedBy}
+    aria-describedby={ids.describedBy}
     aria-invalid={error ? 'true' : undefined}
     data-server-error={error ? 'true' : undefined}
     {...dataAttributes}
-    class:list={[
-      'mt-2 block min-h-11 w-full rounded-xl border bg-white px-4 py-2.5 text-base text-ink placeholder:text-muted/80',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
-      'disabled:cursor-not-allowed disabled:bg-sand/40',
-      error ? 'border-2 border-terracotta-deep' : 'border-ink/50 focus:border-terracotta',
-    ]}
+    class={CONTROL_CLASS}
   />
-  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
-    <span class="sr-only">Error: </span>
-    <span data-error-text>{error}</span>
-  </p>
-  <slot name="after" />
-</div>
-
-<style>
-  /* The client module toggles aria-invalid on inputs it validates; mirror the server error style. */
-  .gamo-field input[aria-invalid='true'] {
-    border-width: 2px;
-    border-color: var(--color-terracotta-deep);
-  }
-</style>
+  <slot name="after" slot="after" />
+</FieldShell>

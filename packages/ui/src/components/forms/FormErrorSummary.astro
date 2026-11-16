@@ -33,26 +33,23 @@ const titleId = `${id}-title`;
     tabindex="-1"
     aria-labelledby={titleId}
     data-error-summary
-    class:list={[
-      'rounded-2xl border-2 border-terracotta-deep bg-white p-5 text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2',
-      className,
-    ]}
+    class:list={['rounded-card border-2 border-danger bg-surface-raised p-5 text-fg', className]}
   >
     <h2 id={titleId} class="text-base font-bold">
       {title}
     </h2>
     <ul class="mt-2 space-y-1">
       {errors.map((e) => (
-        <li class="text-[15px]">
+        <li class="text-body-sm">
           {e.fieldId ? (
             <a
               href={`#${e.fieldId}`}
-              class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink"
+              class="inline-flex min-h-11 items-center font-semibold text-danger underline underline-offset-4 hover:text-fg"
             >
               {e.message}
             </a>
           ) : (
-            <span class="font-semibold text-terracotta-deep">{e.message}</span>
+            <span class="font-semibold text-danger">{e.message}</span>
           )}
         </li>
       ))}

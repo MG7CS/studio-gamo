@@ -1,5 +1,10 @@
 ---
-/** Pill link-button. Always a real <a>; use a <button> elsewhere for in-page actions. */
+/**
+ * Pill link-button. Always a real <a>; use a <button> elsewhere for in-page actions.
+ * Variants: primary and secondary follow the parent's colour roles; `ghost-dark` (outline) and
+ * `light` (cream fill) are for dark bands and set data-surface="dark" on the link so text, fill and
+ * focus ring stay readable whether or not the band itself declares its surface.
+ */
 import Icon from './Icon.astro';
 interface Props {
   href: string;
@@ -11,18 +16,20 @@ interface Props {
 }
 const { href, variant = 'primary', size = 'md', arrow = false, class: className, ...rest } = Astro.props;
 const variants = {
-  primary: 'bg-terracotta text-white hover:bg-terracotta-dark',
-  secondary: 'border border-charcoal/20 bg-white/60 text-charcoal hover:bg-white',
-  'ghost-dark': 'border border-cream/45 text-cream hover:bg-white/10',
-  light: 'bg-cream text-charcoal hover:bg-white',
+  primary: 'bg-action text-on-action hover:bg-action-strong',
+  secondary: 'border border-fg/20 bg-surface-raised/60 text-fg hover:bg-surface-raised',
+  'ghost-dark': 'border border-fg/45 text-fg hover:bg-fg/10',
+  light: 'bg-surface-inverse text-fg-inverse hover:bg-surface-inverse/85',
 };
+const onDark = variant === 'ghost-dark' || variant === 'light';
 const sizes = { md: 'min-h-11 px-5 py-3 text-sm', lg: 'min-h-12 px-6 py-3 text-base' };
 ---
 
 <a
   href={href}
+  data-surface={onDark ? 'dark' : undefined}
   class:list={[
-    'inline-flex items-center justify-center gap-3 rounded-full font-semibold transition-colors',
+    'inline-flex items-center justify-center gap-3 rounded-pill font-semibold transition-colors',
     variants[variant],
     sizes[size],
     className,

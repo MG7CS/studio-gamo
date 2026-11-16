@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * Card: rounded surface for grouped content. Content-agnostic; put headings, text and actions in
  * the default slot. For a card that is one link use LinkCard; for a photo card use MediaCard.
@@ -9,7 +10,7 @@
  */
 import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
   /** raised (default), inset (sand well), dark (ink), outline (hairline only). */
   tone?: CardTone;
   /** none, sm, md (default), lg. */
@@ -17,10 +18,11 @@ interface Props {
   as?: 'div' | 'article' | 'li' | 'section' | 'aside';
   class?: string;
 }
-const { tone = 'raised', padding = 'md', as: Tag = 'div', class: className } = Astro.props;
+const { tone = 'raised', padding = 'md', as: Tag = 'div', class: className, ...rest } = Astro.props;
 ---
 
 <Tag
+  {...rest}
   class:list={[
     'relative flex min-w-0 flex-col rounded-card',
     cardToneClass[tone],

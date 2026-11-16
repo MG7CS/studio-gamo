@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * Container: centres content at a token width with the page side gutter.
  * Replaces hand-written centred wrappers with raw max widths and breakpoint gutters.
@@ -8,7 +9,7 @@
  *   <Container as="header" gutter={false}>…</Container>
  */
 type Width = 'page' | 'narrow' | 'prose';
-interface Props {
+interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
   /** page 82.5rem (default), narrow 56rem, prose 42rem. */
   width?: Width;
   /** Adds the fluid page side gutter (padding-inline). Default true. */
@@ -16,7 +17,7 @@ interface Props {
   as?: 'div' | 'header' | 'footer' | 'article' | 'nav';
   class?: string;
 }
-const { width = 'page', gutter = true, as: Tag = 'div', class: className } = Astro.props;
+const { width = 'page', gutter = true, as: Tag = 'div', class: className, ...rest } = Astro.props;
 const widthClass: Record<Width, string> = {
   page: 'max-w-page',
   narrow: 'max-w-narrow',
@@ -24,6 +25,10 @@ const widthClass: Record<Width, string> = {
 };
 ---
 
-<Tag class:list={['mx-auto w-full', widthClass[width], gutter && 'gutter-x', className]} data-width={width}>
+<Tag
+  {...rest}
+  class:list={['mx-auto w-full', widthClass[width], gutter && 'gutter-x', className]}
+  data-width={width}
+>
   <slot />
 </Tag>

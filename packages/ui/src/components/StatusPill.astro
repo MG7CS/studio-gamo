@@ -3,9 +3,15 @@
  * Status / trust label. Use the semantic `kind` so trust states stay visually consistent:
  * sample (demo content), verified, free, paid, external, canceled, rescheduled, pending, proposal, info.
  * Never render `verified` for fictional organizers — use `sample` instead.
+ *
+ * Never icon-only: pass the visible text as `label`, or (rarely, when the text is shown elsewhere)
+ * an `ariaLabel` read by screen readers. TypeScript requires exactly one of the two.
+ *
+ * Usage: <StatusPill kind="sample" label="Sample" />  ·  <StatusPill kind="verified" ariaLabel="Verified" />
  */
 import Icon, { type IconName } from './Icon.astro';
-interface Props {
+type Labelled = { label: string; ariaLabel?: never } | { ariaLabel: string; label?: never };
+type Props = Labelled & {
   kind?:
     | 'sample'
     | 'verified'
@@ -22,8 +28,8 @@ interface Props {
   class?: string;
   tone?: 'light' | 'dark';
   size?: 'sm' | 'md';
-}
-const { kind = 'info', class: className, tone = 'light', size = 'md' } = Astro.props;
+};
+const { kind = 'info', class: className, tone = 'light', size = 'md', label, ariaLabel } = Astro.props;
 const styles: Record<string, [string, IconName | null]> = {
   sample: ['bg-gold/25 text-terracotta-deep ring-gold/50', 'info'],
   verified: ['bg-emerald-50 text-emerald-800 ring-emerald-200', 'verified'],
@@ -55,5 +61,5 @@ const sizeClass = size === 'sm' ? 'gap-1 px-2 py-0.5 text-[11px]' : 'gap-1.5 px-
   ]}
 >
   {icon && <Icon name={icon} class={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} strokeWidth={2} />}
-  <slot />
+  {label ?? <span class="sr-only">{ariaLabel}</span>}
 </span>

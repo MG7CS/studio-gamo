@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * MediaCard: photo card whose text is always readable.
  *   variant="adaptive" (default): photo above the text in narrow containers, photo beside the text
@@ -30,7 +31,7 @@ export interface MediaCardImage {
   position?: string;
   priority?: boolean;
 }
-interface Props {
+interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
   /** Passed to Photo (name, sizes, alt, position, priority). */
   image: MediaCardImage;
   title?: string;
@@ -52,12 +53,14 @@ const {
   tone = 'raised',
   as: Tag = 'article',
   class: className,
+  ...rest
 } = Astro.props;
 const overlay = variant === 'overlay';
 const hasTitle = Boolean(title) || Astro.slots.has('title');
 ---
 
 <Tag
+  {...rest}
   class:list={[
     'media-card group @container relative min-w-0 overflow-hidden rounded-card',
     overlay ? 'bg-surface-inverse' : cardToneClass[tone],

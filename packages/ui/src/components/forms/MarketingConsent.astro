@@ -9,7 +9,8 @@
  * - id?: string (default 'marketing-opt-in'); name?: string (default 'marketing_opt_in'; value 'yes').
  * - class?: string.
  *
- * There is intentionally no `checked` prop.
+ * There is intentionally no `checked` prop. The whole row is the `<label>` (≥ 44 px, as in ChoiceItem);
+ * the hint sits under it, aligned with the label text.
  */
 interface Props {
   label: string;
@@ -29,21 +30,19 @@ const {
 const hintId = `${id}-hint`;
 ---
 
-<div class:list={['flex min-h-11 items-start gap-3', className]}>
-  <input
-    id={id}
-    name={name}
-    type="checkbox"
-    value="yes"
-    aria-describedby={hintId}
-    class="mt-0.5 h-6 w-6 shrink-0 rounded border-ink/60 accent-terracotta focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:outline-none"
-  />
-  <div>
-    <label for={id} class="text-[15px] leading-6 text-ink">
-      {label}
-    </label>
-    <p id={hintId} class="text-sm text-muted">
-      {hint}
-    </p>
-  </div>
+<div class:list={['gamo-choice', className]}>
+  <label for={id} class="flex min-h-11 cursor-pointer items-start gap-3 py-2.5 text-body-sm text-fg">
+    <input
+      id={id}
+      name={name}
+      type="checkbox"
+      value="yes"
+      aria-describedby={hintId}
+      class="mt-0.5 size-6 shrink-0 accent-action"
+    />
+    <span>{label}</span>
+  </label>
+  <p id={hintId} class="-mt-1.5 ps-9 pb-1 text-small text-fg-muted">
+    {hint}
+  </p>
 </div>

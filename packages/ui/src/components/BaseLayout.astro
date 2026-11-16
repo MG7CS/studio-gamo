@@ -27,7 +27,7 @@ interface Props {
   /** Absolute or root-relative 1200x630 share image; defaults to the app's /og-image.png (scripts/generate-share-images.mjs). */
   ogImage?: string;
   ogType?: 'website' | 'article' | 'event';
-  /** Opt a page out of indexing metadata (no canonical or social tags). Private routes are detected automatically. */
+  /** Opt a page out of indexing: outputs `<meta name="robots" content="noindex, nofollow">` and drops canonical and social tags. Private routes are detected automatically. */
   noindex?: boolean;
   /** Structured data blocks, serialized as JSON-LD. */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
@@ -68,6 +68,7 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && (
       <>

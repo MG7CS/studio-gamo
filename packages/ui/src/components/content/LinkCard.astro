@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * LinkCard: a card that is one link. The title's link is stretched over the whole card, so the
  * entire card is the (≥ 44 px) target, screen readers hear one link named by the title, and
@@ -16,7 +17,7 @@
 import Icon from '../Icon.astro';
 import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
   href: string;
   title?: string;
   /** Heading level for the title. Default h3. */
@@ -37,11 +38,13 @@ const {
   as: Tag = 'article',
   external = false,
   class: className,
+  ...rest
 } = Astro.props;
 const hasBody = Astro.slots.has('body');
 ---
 
 <Tag
+  {...rest}
   class:list={[
     'link-card group relative flex min-w-0 flex-col rounded-card transition-shadow hover:shadow-float',
     cardToneClass[tone],

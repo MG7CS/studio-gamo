@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * Section: a page band with a surface tone, token width, vertical rhythm and an optional header
  * (eyebrow, title, intro, actions). With a title it renders <section aria-labelledby>; without one
@@ -19,7 +20,7 @@ import Container from './Container.astro';
 
 type Tone = 'default' | 'raised' | 'inset' | 'dark';
 type Spacing = 'default' | 'tight' | 'none';
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'class' | 'id' | 'title'> {
   /** default keeps the parent surface; raised lifts it; inset and dark switch colour roles. */
   tone?: Tone;
   width?: 'page' | 'narrow' | 'prose';
@@ -42,6 +43,7 @@ const {
   titleAs: Heading = 'h2',
   id,
   class: className,
+  ...rest
 } = Astro.props;
 
 const hasTitle = Boolean(title) || Astro.slots.has('title');
@@ -61,6 +63,7 @@ const spacingClass: Record<Spacing, string> = { default: 'section-space', tight:
 ---
 
 <Tag
+  {...rest}
   class:list={[toneClass[tone], spacingClass[spacing], className]}
   aria-labelledby={hasTitle ? headingId : undefined}
   data-tone={tone}
@@ -70,7 +73,8 @@ const spacingClass: Record<Spacing, string> = { default: 'section-space', tight:
     {hasHeader && (
       <div
         class:list={[
-          'mb-10 flex flex-col gap-4',
+          Astro.slots.has('default') && 'mb-10',
+          'flex flex-col gap-4',
           align === 'center' ? 'items-center text-center' : 'items-start',
         ]}
       >

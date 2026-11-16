@@ -50,9 +50,7 @@ const split = (d: string) => {
                 {it.title}
               </p>
               {it.badge && (
-                <StatusPill kind={it.badge.tone ?? 'info'} class="shrink-0">
-                  {it.badge.badge}
-                </StatusPill>
+                <StatusPill kind={it.badge.tone ?? 'info'} class="shrink-0" label={it.badge.badge} />
               )}
             </div>
             <p class="mt-1 text-[12px] leading-4 text-ink-soft">

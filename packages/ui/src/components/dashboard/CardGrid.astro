@@ -44,7 +44,7 @@ const { items } = Astro.props;
             )}
             {c.badge && (
               <div class="hidden @xl:block">
-                <StatusPill kind={c.badge.tone ?? 'info'}>{c.badge.badge}</StatusPill>
+                <StatusPill kind={c.badge.tone ?? 'info'} label={c.badge.badge} />
               </div>
             )}
           </div>
@@ -55,9 +55,7 @@ const { items } = Astro.props;
               </h3>
               {c.badge && (
                 <div class="shrink-0 @xl:hidden">
-                  <StatusPill kind={c.badge.tone ?? 'info'} size="sm">
-                    {c.badge.badge}
-                  </StatusPill>
+                  <StatusPill kind={c.badge.tone ?? 'info'} size="sm" label={c.badge.badge} />
                 </div>
               )}
             </div>

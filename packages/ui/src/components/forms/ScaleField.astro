@@ -12,7 +12,8 @@
  * - minLabel?: string; maxLabel?: string — e.g. 'Not likely' / 'Very likely'.
  * - kind?: 'scale' | 'rating' (default 'scale') — 'rating' adds a star to each point and reads
  *   "n of max".
- * - hint?: string; error?: string; required?: boolean — native `required` plus the marker.
+ * - hint?: string; required?: boolean — native `required` plus the marker.
+ * - error?: string — the message under the group; every point also shows the invalid state (danger border).
  * - class?: string.
  */
 import Fieldset from './Fieldset.astro';
@@ -73,7 +74,8 @@ const endText = (n: number) => (n === min ? minLabel : n === max ? maxLabel : un
         <label
           for={`${id}-${n}`}
           class:list={[
-            'grid size-11 cursor-pointer place-items-center rounded-pill border border-fg-muted bg-surface-raised',
+            'grid size-11 cursor-pointer place-items-center rounded-pill border bg-surface-raised',
+            error ? 'border-2 border-danger' : 'border-fg-muted',
             'text-body-sm font-semibold text-fg transition-colors hover:border-action',
             'has-checked:border-action has-checked:bg-action has-checked:text-on-action',
             'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus',

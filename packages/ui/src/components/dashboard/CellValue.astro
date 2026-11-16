@@ -13,7 +13,5 @@ const { value } = Astro.props;
 ) : typeof value === 'string' ? (
   <Fragment>{value}</Fragment>
 ) : (
-  <StatusPill kind={value.tone ?? 'info'} class="whitespace-nowrap">
-    {value.badge}
-  </StatusPill>
+  <StatusPill kind={value.tone ?? 'info'} class="whitespace-nowrap" label={value.badge} />
 )}

@@ -14,8 +14,11 @@
  *   whether the box is needed (e.g. guardian consent only for a student under 18).
  * - class?: string.
  *
- * Never pre-checked (there is no `checked` prop).
+ * Never pre-checked (there is no `checked` prop). The whole row is the `<label>` (≥ 44 px, as in
+ * ChoiceItem), so the 24 px box is never the only target; the document links inside it still work.
  */
+import FieldError from './FieldError.astro';
+import RequiredMark from './RequiredMark.astro';
 import type { TermsConsentDocument } from '../../lib/terms-links';
 
 interface Props {
@@ -48,7 +51,7 @@ const joiner = (i: number) => (i === 0 ? '' : i === documents.length - 1 ? ' and
       <input type="hidden" name="terms_version" value={doc.version} />
     </>
   ))}
-  <div class="flex min-h-11 items-start gap-3">
+  <label for={id} class="flex min-h-11 cursor-pointer items-start gap-3 py-2.5 text-body-sm text-fg">
     <input
       id={id}
       name={name}
@@ -58,13 +61,9 @@ const joiner = (i: number) => (i === 0 ? '' : i === documents.length - 1 ? ' and
       aria-describedby={errorId}
       aria-invalid={error ? 'true' : undefined}
       data-server-error={error ? 'true' : undefined}
-      class:list={[
-        'mt-0.5 h-6 w-6 shrink-0 rounded border-ink/60 accent-terracotta',
-        'focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:outline-none',
-        error && 'outline-2 outline-terracotta-deep',
-      ]}
+      class="mt-0.5 size-6 shrink-0 accent-action aria-invalid:outline-2 aria-invalid:outline-danger"
     />
-    <label for={id} class="text-[15px] leading-6 text-ink">
+    <span>
       I agree to the{' '}
       {documents.map((doc, i) => (
         <>
@@ -73,18 +72,15 @@ const joiner = (i: number) => (i === 0 ? '' : i === documents.length - 1 ? ' and
             href={doc.href}
             target={newTab ? '_blank' : undefined}
             rel={newTab ? 'noopener' : undefined}
-            class="font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink"
+            class="font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
           >
             {doc.label}
             {newTab && <span class="sr-only"> (opens in a new tab)</span>}
           </a>
         </>
       ))}
-      .
-    </label>
-  </div>
-  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
-    <span class="sr-only">Error: </span>
-    <span data-error-text>{error}</span>
-  </p>
+      .{required && <RequiredMark />}
+    </span>
+  </label>
+  <FieldError id={errorId} error={error} />
 </div>

@@ -1,4 +1,5 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 /**
  * SplitHero: copy and media side by side once the hero's container is ≥ 48rem; stacked (copy
  * first) in narrower containers. The copy slot is free-form: on a landing page put the page's
@@ -16,12 +17,12 @@
  */
 import Container from '../layout/Container.astro';
 
-type Tone = 'default' | 'inset' | 'dark';
+type Tone = 'default' | 'raised' | 'inset' | 'dark';
 type Spacing = 'hero' | 'section' | 'none';
-interface Props {
+interface Props extends Omit<HTMLAttributes<'section'>, 'class'> {
   /** Which side the media takes in wide containers. Default end. */
   mediaSide?: 'start' | 'end';
-  /** default keeps the parent surface; inset and dark switch colour roles. */
+  /** default keeps the parent surface; raised lifts it; inset and dark switch colour roles. */
   tone?: Tone;
   width?: 'page' | 'narrow';
   /** hero clears the site header (page-intro rhythm), section uses the section rhythm. */
@@ -36,6 +37,7 @@ const {
   spacing = 'hero',
   as: Tag = 'header',
   class: className,
+  ...rest
 } = Astro.props;
 const spacingClass: Record<Spacing, string> = {
   hero: 'page-intro-space',
@@ -45,10 +47,16 @@ const spacingClass: Record<Spacing, string> = {
 ---
 
 <Tag
-  class:list={['text-fg', tone !== 'default' && 'bg-surface', spacingClass[spacing], className]}
+  {...rest}
+  class:list={[
+    'text-fg',
+    tone === 'raised' ? 'bg-surface-raised' : tone !== 'default' && 'bg-surface',
+    spacingClass[spacing],
+    className,
+  ]}
   data-tone={tone}
   data-media-side={mediaSide}
-  data-surface={tone === 'default' ? undefined : tone}
+  data-surface={tone === 'default' || tone === 'raised' ? undefined : tone}
 >
   <Container width={width} class="@container">
     <div class="grid gap-10 @3xl:grid-cols-2 @3xl:items-center @3xl:gap-16">

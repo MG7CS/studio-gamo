@@ -1,6 +1,7 @@
 ---
 /**
- * PageHero: the top of an inner page. Owns the page's single <h1>, an optional breadcrumb trail,
+ * PageHero: the top of an inner page. Owns the page's single <h1> (`titleAs`, default h1; pass
+ * titleAs="h2" for a second hero on a page that already has its <h1>), an optional breadcrumb trail,
  * eyebrow, intro, actions and an optional media slot that moves beside the copy once the hero's
  * container is ≥ 56rem (stacked below it in narrower containers).
  *
@@ -24,6 +25,8 @@ export interface BreadcrumbItem {
 type Tone = 'default' | 'inset' | 'dark';
 interface Props {
   title?: string;
+  /** Heading level for the title. Default h1 (the page's single <h1>). */
+  titleAs?: 'h1' | 'h2';
   eyebrow?: string;
   breadcrumbs?: BreadcrumbItem[];
   /** default keeps the parent surface; inset and dark switch colour roles. */
@@ -34,6 +37,7 @@ interface Props {
 }
 const {
   title,
+  titleAs: TitleTag = 'h1',
   eyebrow,
   breadcrumbs = [],
   tone = 'default',
@@ -95,9 +99,9 @@ const centered = align === 'center' && !hasMedia;
             <slot name="eyebrow">{eyebrow}</slot>
           </p>
         )}
-        <h1 class="display-lg max-w-narrow text-balance text-fg">
+        <TitleTag class="display-lg max-w-narrow text-balance text-fg">
           <slot name="title">{title}</slot>
-        </h1>
+        </TitleTag>
         {Astro.slots.has('intro') && (
           <div class="max-w-prose text-lg leading-relaxed text-fg-muted">
             <slot name="intro" />

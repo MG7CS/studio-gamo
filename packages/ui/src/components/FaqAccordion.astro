@@ -1,5 +1,8 @@
 ---
-/** Accessible FAQ list built on native <details>/<summary> (works without JS). */
+/**
+ * Accessible FAQ list built on native <details>/<summary> (works without JS). Semantic tokens only;
+ * `tone="dark"` sets data-surface="dark" for use on a dark band.
+ */
 import Icon from './Icon.astro';
 interface Props {
   items: { q: string; a: string }[];
@@ -10,28 +13,18 @@ const { items, tone = 'light', class: className } = Astro.props;
 ---
 
 <div
-  class:list={[
-    'divide-y border-y',
-    tone === 'dark' ? 'divide-white/15 border-white/15' : 'divide-sand border-sand',
-    className,
-  ]}
+  data-surface={tone === 'dark' ? 'dark' : undefined}
+  class:list={['divide-y divide-border border-y border-border', className]}
 >
   {items.map((item) => (
     <details class="group py-1">
       <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-xl py-5 text-left text-lg font-semibold [&::-webkit-details-marker]:hidden">
         {item.q}
-        <span
-          class:list={[
-            'flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform group-open:rotate-45',
-            tone === 'dark' ? 'bg-white/10' : 'bg-white',
-          ]}
-        >
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-pill bg-surface-raised transition-transform group-open:rotate-45">
           <Icon name="plus" class="h-4 w-4" strokeWidth={2} />
         </span>
       </summary>
-      <p class:list={['max-w-3xl pb-6 leading-relaxed', tone === 'dark' ? 'text-cream/75' : 'text-ink-soft']}>
-        {item.a}
-      </p>
+      <p class="max-w-3xl pb-6 leading-relaxed text-fg-muted">{item.a}</p>
     </details>
   ))}
 </div>

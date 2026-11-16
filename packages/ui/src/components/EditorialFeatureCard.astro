@@ -4,6 +4,12 @@
  * arch photo (`mask-arch`), structured icon highlights, and action buttons.
  *
  * Used across Academy, Worship, and the global Gamo Studios pages for visual continuity.
+ *
+ * tone (semantic surfaces, default 'inset'):
+ * - 'inset' — sand panel (data-surface="inset").
+ * - 'raised' — ivory panel on the current surface.
+ * - 'dark' — night panel with cream text (data-surface="dark").
+ * Deprecated aliases: 'sand' → 'inset', 'ivory' → 'raised' (still accepted; migrate callers).
  */
 import Photo from './Photo.astro';
 import StatusPill from './StatusPill.astro';
@@ -17,6 +23,14 @@ export interface EditorialFeaturePoint {
   body: string;
 }
 
+export type EditorialFeatureTone = 'raised' | 'inset' | 'dark';
+/** @deprecated Use 'inset' (was 'sand') or 'raised' (was 'ivory'). */
+export type DeprecatedEditorialFeatureTone = 'sand' | 'ivory';
+const TONE_ALIAS: Record<DeprecatedEditorialFeatureTone, EditorialFeatureTone> = {
+  sand: 'inset',
+  ivory: 'raised',
+};
+
 interface Props {
   id?: string;
   eyebrow?: string;
@@ -29,7 +43,7 @@ interface Props {
   photo: PhotoKey;
   photoPosition?: string;
   caption?: string;
-  tone?: 'sand' | 'ivory' | 'dark';
+  tone?: EditorialFeatureTone | DeprecatedEditorialFeatureTone;
   reverse?: boolean;
   sectionClass?: string;
 }
@@ -46,40 +60,40 @@ const {
   photo,
   photoPosition = '50% 30%',
   caption,
-  tone = 'sand',
+  tone: toneProp = 'inset',
   reverse = false,
   sectionClass = '',
 } = Astro.props;
 
+const tone: EditorialFeatureTone =
+  toneProp === 'sand' || toneProp === 'ivory' ? TONE_ALIAS[toneProp] : toneProp;
 const dark = tone === 'dark';
+/** data-surface for the panel: inset and dark re-map colour roles; raised keeps the parent's. */
+const surface = tone === 'raised' ? undefined : tone;
 const cardSurface = {
-  sand: 'bg-sand text-charcoal ring-1 ring-sand/90',
-  ivory: 'bg-ivory text-charcoal ring-1 ring-sand',
-  dark: 'bg-night text-cream ring-1 ring-white/10',
+  inset: 'bg-surface text-fg',
+  raised: 'bg-surface-raised text-fg ring-1 ring-border',
+  dark: 'bg-surface-inset text-fg ring-1 ring-border',
 }[tone];
 
 const pointSurface = {
-  sand: 'bg-white/75 ring-1 ring-sand/70',
-  ivory: 'bg-white ring-1 ring-sand/80',
-  dark: 'bg-white/5 ring-1 ring-white/10',
+  inset: 'bg-surface-raised/75 ring-1 ring-border/60',
+  raised: 'bg-surface-raised ring-1 ring-border',
+  dark: 'bg-surface-raised ring-1 ring-border',
 }[tone];
 
 const iconBadgeSurface = {
-  sand: 'bg-cream text-terracotta',
-  ivory: 'bg-cream text-terracotta',
-  dark: 'bg-white/10 text-gold',
+  inset: 'bg-surface-inset text-action',
+  raised: 'bg-surface text-action',
+  dark: 'bg-surface-raised text-accent',
 }[tone];
 ---
 
-<section
-  id={id}
-  data-surface={dark ? 'dark' : undefined}
-  class:list={['px-4 section-space sm:px-8', sectionClass]}
-  data-reveal
->
+<section id={id} data-tone={tone} class:list={['px-4 section-space sm:px-8', sectionClass]} data-reveal>
   <div
+    data-surface={surface}
     class:list={[
-      'mx-auto grid max-w-[1320px] overflow-hidden rounded-[40px] shadow-[0_24px_60px_-28px_rgba(29,35,35,0.18)] lg:grid-cols-12',
+      'mx-auto grid max-w-page overflow-hidden rounded-hero shadow-panel lg:grid-cols-12',
       cardSurface,
     ]}
   >
@@ -90,22 +104,15 @@ const iconBadgeSurface = {
       ]}
     >
       <div class="flex flex-wrap items-center gap-3">
-        {pillText && <StatusPill kind={pillKind}>{pillText}</StatusPill>}
-        {eyebrow && <p class:list={['eyebrow', dark ? 'text-gold' : 'text-terracotta']}>{eyebrow}</p>}
+        {pillText && <StatusPill kind={pillKind} label={pillText} />}
+        {eyebrow && <p class="eyebrow text-accent">{eyebrow}</p>}
       </div>
 
       <h2 class="section-heading mt-4 text-balance">
-        {title} {accent && <span class:list={[dark ? 'text-gold' : 'text-terracotta']}>{accent}</span>}
+        {title} {accent && <span class="text-accent">{accent}</span>}
       </h2>
 
-      <p
-        class:list={[
-          'mt-4 max-w-xl text-base leading-relaxed sm:text-lg',
-          dark ? 'text-cream/75' : 'text-ink-soft',
-        ]}
-      >
-        {body}
-      </p>
+      <p class="mt-4 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">{body}</p>
 
       {points.length > 0 && (
         <ul class="mt-7 grid gap-3">
@@ -116,9 +123,7 @@ const iconBadgeSurface = {
               </span>
               <div class="min-w-0">
                 <p class="font-bold leading-snug">{pt.title}</p>
-                <p class:list={['mt-0.5 text-sm leading-relaxed', dark ? 'text-cream/70' : 'text-ink-soft']}>
-                  {pt.body}
-                </p>
+                <p class="mt-0.5 text-sm leading-relaxed text-fg-muted">{pt.body}</p>
               </div>
             </li>
           ))}
@@ -130,16 +135,11 @@ const iconBadgeSurface = {
       </div>
     </div>
 
-    <div
-      class:list={[
-        'relative min-h-[340px] sm:min-h-[420px] lg:col-span-5 lg:min-h-[520px]',
-        reverse && 'lg:order-1',
-      ]}
-    >
+    <div class:list={['relative min-h-85 sm:min-h-105 lg:col-span-5 lg:min-h-130', reverse && 'lg:order-1']}>
       <div
         class:list={[
           'mask-arch absolute inset-x-6 bottom-0 top-6 overflow-hidden shadow-float sm:inset-x-10 sm:top-10 lg:inset-x-10 lg:top-12',
-          dark ? 'ring-1 ring-white/15' : 'ring-1 ring-charcoal/10',
+          dark ? 'ring-1 ring-border' : 'ring-1 ring-fg/10',
         ]}
       >
         <Photo
@@ -156,8 +156,8 @@ const iconBadgeSurface = {
             'absolute bottom-4 rounded-2xl px-4 py-2.5 text-xs font-semibold shadow-float backdrop-blur-md sm:bottom-6',
             reverse ? 'left-8 sm:left-12' : 'right-8 sm:right-12',
             dark
-              ? 'border border-white/15 bg-charcoal/90 text-cream'
-              : 'border border-sand bg-white/95 text-charcoal',
+              ? 'border border-border bg-surface/90 text-fg'
+              : 'border border-border bg-surface-raised/95 text-fg',
           ]}
         >
           {caption}

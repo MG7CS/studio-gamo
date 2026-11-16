@@ -20,6 +20,8 @@
  *   visible "Bot check skipped (local)" note.
  * - No key elsewhere: a notice that the form can't be sent right now (the server answers 503 anyway).
  */
+import FieldError from './FieldError.astro';
+
 interface Props {
   action: string;
   id?: string;
@@ -51,7 +53,7 @@ const mode = siteKey ? 'widget' : environment === 'local' ? 'local' : 'unavailab
     <>
       <div
         id={id}
-        class="cf-turnstile min-h-[65px]"
+        class="cf-turnstile min-h-16"
         data-sitekey={siteKey}
         data-action={action}
         data-theme="light"
@@ -61,7 +63,7 @@ const mode = siteKey ? 'widget' : environment === 'local' ? 'local' : 'unavailab
       />
       <script is:inline src={TURNSTILE_SCRIPT} async defer />
       <noscript>
-        <p class="mt-2 text-sm text-ink">
+        <p class="mt-2 text-small text-fg">
           This form uses a security check that needs JavaScript. Please turn JavaScript on, then reload the
           page to send it.
         </p>
@@ -69,18 +71,15 @@ const mode = siteKey ? 'widget' : environment === 'local' ? 'local' : 'unavailab
     </>
   )}
   {mode === 'local' && (
-    <p id={id} class="text-sm text-muted">
+    <p id={id} class="text-small text-fg-muted">
       <input type="hidden" name="cf-turnstile-response" value={TURNSTILE_DUMMY_TOKEN} />
       Bot check skipped (local)
     </p>
   )}
   {mode === 'unavailable' && (
-    <p id={id} class="rounded-xl border border-ink/50 bg-sand/50 px-4 py-3 text-sm text-ink">
+    <p id={id} class="rounded-xl border border-fg-muted bg-surface-inset px-4 py-3 text-small text-fg">
       The security check isn't available right now, so this form can't be sent. Please try again later.
     </p>
   )}
-  <p id={errorId} class="mt-1.5 text-sm font-semibold text-terracotta-deep" hidden={!error}>
-    <span class="sr-only">Error: </span>
-    <span data-error-text>{error}</span>
-  </p>
+  <FieldError id={errorId} error={error} />
 </div>

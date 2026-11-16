@@ -57,15 +57,15 @@ const {
 >
   <Fragment slot="after">
     {suggestion && (
-      <p class="mt-1.5 text-sm text-ink">
+      <p class="mt-1.5 text-small text-fg">
         Did you mean <strong class="font-semibold">{suggestion}</strong>? Check the address, then send the
         form again.
       </p>
     )}
-    <p data-email-suggestion-for={id} class="mt-1.5 text-sm text-ink" aria-live="polite" hidden>
+    <p data-email-suggestion-for={id} class="mt-1.5 text-small text-fg" aria-live="polite" hidden>
       <button
         type="button"
-        class="inline-flex min-h-11 items-center rounded-lg px-1 text-left font-semibold text-terracotta-deep underline underline-offset-4 hover:text-ink focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:outline-none"
+        class="inline-flex min-h-11 items-center rounded-lg px-1 text-left font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
       >
         Did you mean&nbsp;<span data-suggestion-value></span>?
       </button>

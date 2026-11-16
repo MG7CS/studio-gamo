@@ -12,6 +12,8 @@
  *   action           primary action fill and large accent type (terracotta / terracotta-soft)
  *   action-strong    hover/pressed action, small accent text (terracotta-deep / terracotta-pale)
  *   on-action        text and icons on an action fill (cream / ink)
+ *   accent           editorial eyebrows and accent title lines (terracotta / terracotta-deep on
+ *                    inset / tan on dark); never a button fill — use action for that
  *   border           hairlines, dividers, field borders (line / white 16%)
  *   focus            focus-visible outline colour (terracotta / cream); used by the global ring
  *   danger           error text, invalid borders, destructive actions (crimson)
@@ -28,7 +30,8 @@
  *   text-caption (12px/16px), text-small (14px/20px), text-body-sm (15px/24px)
  *     — replace text-[12px] … text-[15px]
  *   tracking-eyebrow (0.16em)
- *   shadow-raised (subtle card lift); shadow-float stays for floating product UI (tokens.css)
+ *   shadow-raised (subtle card lift), shadow-panel (large editorial panels); shadow-float stays for
+ *     floating product UI (tokens.css)
  *
  * Theming: wrappers switch roles, components never fork for a theme.
  *   data-surface="light" | "dark" | "inset"  — re-maps every colour role for the subtree.
@@ -56,6 +59,7 @@
     --ui-action: var(--color-terracotta);
     --ui-action-strong: var(--color-terracotta-deep);
     --ui-on-action: var(--color-cream);
+    --ui-accent: var(--color-terracotta);
     --ui-border: var(--color-line);
     --ui-focus: var(--color-terracotta);
     --ui-danger: var(--color-crimson);
@@ -75,6 +79,7 @@
     /* Small terracotta text is only 4.2:1 on sand; strong action (deep) is 6.0:1. */
     --ui-action-strong: var(--color-terracotta-deep);
     --ui-on-action: var(--color-cream);
+    --ui-accent: var(--color-terracotta-deep);
     --ui-border: var(--color-tan);
     --ui-focus: var(--color-terracotta-deep);
     --ui-danger: var(--color-crimson);
@@ -93,6 +98,7 @@
     --ui-action: var(--color-terracotta-soft);
     --ui-action-strong: var(--color-terracotta-pale);
     --ui-on-action: var(--color-ink);
+    --ui-accent: var(--color-tan);
     --ui-border: rgb(249 246 240 / 0.16);
     --ui-focus: var(--color-cream);
     --ui-danger: var(--color-crimson-soft);
@@ -114,6 +120,7 @@
   --color-action: var(--ui-action);
   --color-action-strong: var(--ui-action-strong);
   --color-on-action: var(--ui-on-action);
+  --color-accent: var(--ui-accent);
   --color-border: var(--ui-border);
   --color-focus: var(--ui-focus);
   --color-danger: var(--ui-danger);
@@ -154,6 +161,7 @@
 
   /* Elevation (shadow-raised). shadow-float is a utility in tokens.css. */
   --shadow-raised: 0 1px 2px rgb(24 24 27 / 0.06), 0 10px 30px -14px rgb(24 24 27 / 0.22);
+  --shadow-panel: 0 24px 60px -28px rgb(24 24 27 / 0.18);
 }
 
 /* Page side gutter as one utility (padding-inline: var(--spacing-gutter)). */

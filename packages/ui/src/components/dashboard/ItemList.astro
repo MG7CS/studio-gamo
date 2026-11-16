@@ -33,7 +33,7 @@ const { items } = Astro.props;
               <p class="break-words [overflow-wrap:anywhere] text-[14px] font-semibold group-hover:underline">
                 {it.title}
               </p>
-              {it.badge && <StatusPill kind={it.badge.tone ?? 'info'}>{it.badge.badge}</StatusPill>}
+              {it.badge && <StatusPill kind={it.badge.tone ?? 'info'} label={it.badge.badge} />}
             </div>
             {it.body && (
               <p class="mt-0.5 break-words [overflow-wrap:anywhere] text-[13px] text-charcoal/80">

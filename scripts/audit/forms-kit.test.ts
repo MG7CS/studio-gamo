@@ -177,9 +177,34 @@ test('choices have 44 px hit areas and are never pre-ticked by default', () => {
   assert.match(markup('ChoiceCard.astro'), /min-h-11/);
   assert.match(markup('ScaleField.astro'), /size-11/, 'scale points are 44 × 44');
   // The 24 px audit finding: no bare 24 px checkbox without a 44 px label around it.
-  for (const name of files.filter((f) => !['TermsConsent.astro', 'MarketingConsent.astro'].includes(f))) {
+  for (const name of files) {
     assert.ok(!/type="checkbox"[^>]*h-6 w-6/.test(markup(name)), `${name}: use ChoiceItem for checkboxes`);
   }
+  // Consent rows: the whole row is the label (≥ 44 px), with the checkbox inside it.
+  for (const name of ['TermsConsent.astro', 'MarketingConsent.astro']) {
+    const text = markup(name);
+    assert.match(
+      text,
+      /<label\b[^>]*for=\{id\}[^>]*min-h-11[\s\S]*?<input\b[\s\S]*?<\/label>/,
+      `${name}: row label`,
+    );
+  }
+});
+
+test('Academy uses the shared TermsConsent (its TermsCheckbox recipe is gone)', () => {
+  assert.ok(!existsSync('apps/academy/src/components/registration/TermsCheckbox.astro'));
+  const consents = readFileSync('apps/academy/src/components/registration/ConsentFields.astro', 'utf8');
+  assert.match(consents, /from '@studio-gamo\/ui\/components\/forms\/TermsConsent\.astro'/);
+  const names = [...consents.matchAll(/<TermsConsent\b[^>]*?name="([a-z_]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(names, ['terms_accept', 'guardian_consent', 'child_safety_consent']);
+});
+
+test('form error red is one token everywhere (text-danger / border-danger)', () => {
+  for (const name of files) {
+    const text = markup(name);
+    assert.ok(!/terracotta-deep|crimson/.test(text), `${name}: use the danger role for errors`);
+  }
+  assert.match(markup('ScaleField.astro'), /border-danger/, 'scale points show the invalid state');
 });
 
 test('file inputs state the allowed types and size before picking', () => {
@@ -194,10 +219,10 @@ test('file inputs state the allowed types and size before picking', () => {
   );
 });
 
-test('new primitives use semantic tokens only: no base palette names, arbitrary values or inline styles', () => {
+test('every form component uses semantic tokens only: no base palette names, arbitrary values or inline styles', () => {
   const base =
     /\b(?:bg|text|border|outline|ring|accent|fill|from|to|placeholder|file:bg|file:text)-(?:terracotta|ink|cream|sand|tan|line|muted|ivory|night|charcoal|gold|white|black|stone|crimson|forest)\b/;
-  for (const name of PRIMITIVES) {
+  for (const name of files) {
     const text = markup(name);
     assert.ok(!base.test(text), `${name}: ${text.match(base)?.[0]} is a base token`);
     assert.ok(!/\w-\[[^\]]+\]/.test(text), `${name}: no arbitrary values`);
@@ -206,16 +231,20 @@ test('new primitives use semantic tokens only: no base palette names, arbitrary 
   }
 });
 
+const SHARED_COMING_SOON = /from '@studio-gamo\/ui\/components\/forms\/FormComingSoon\.astro'/;
+
 test('FormComingSoon is shared: app copies are gone and pages pass the contact email', () => {
   for (const app of ['worship', 'production']) {
     assert.ok(!existsSync(`apps/${app}/src/components/FormComingSoon.astro`), `${app} copy removed`);
     for (const page of ['apply', 'request']) {
       const text = readFileSync(`apps/${app}/src/pages/${page}.astro`, 'utf8');
-      assert.match(
-        text,
-        /from '@studio-gamo\/ui\/components\/forms\/FormComingSoon\.astro'/,
-        `${app}/${page}`,
-      );
+      // Directly, or through one app wrapper component that renders the shared piece.
+      const wrapper = text.match(/from '\.\.\/(components\/[^']+\.astro)'/g) ?? [];
+      const viaWrapper = wrapper.some((m) => {
+        const path = `apps/${app}/src/${m.slice(9, -1)}`;
+        return existsSync(path) && SHARED_COMING_SOON.test(readFileSync(path, 'utf8'));
+      });
+      assert.ok(SHARED_COMING_SOON.test(text) || viaWrapper, `${app}/${page} uses the shared FormComingSoon`);
       assert.match(text, /email="hello@gamostudio\.org"/, `${app}/${page} passes the email`);
     }
   }
@@ -224,6 +253,58 @@ test('FormComingSoon is shared: app copies are gone and pages pass the contact e
     !/gamostudio|Worship|Production|Academy/.test(text),
     'no app or contact copy in the shared piece',
   );
-  assert.match(text, /<h1\b/, 'owns the page h1');
+  assert.match(source('FormComingSoon.astro'), /titleAs: TitleTag = 'h1'/, 'owns the page h1 by default');
+  assert.match(text, /<TitleTag\b/, 'heading level from titleAs');
   assert.match(text, /encodeURIComponent\(subject\)/);
+});
+
+const UI = 'packages/ui/src/components';
+const ui = (path: string) => readFileSync(`${UI}/${path}`, 'utf8').replace(/\/\*\*[\s\S]*?\*\//g, '');
+
+test('BaseLayout states noindex in a robots meta tag', () => {
+  assert.match(ui('BaseLayout.astro'), /noindex && <meta name="robots" content="noindex, nofollow" \/>/);
+  assert.ok(
+    !/name="robots"/.test(readFileSync('apps/web/src/pages/preview/catalog.astro', 'utf8')),
+    'the catalog no longer needs its own robots meta',
+  );
+});
+
+test('PageHero takes titleAs (h1 by default)', () => {
+  assert.match(readFileSync(`${UI}/content/PageHero.astro`, 'utf8'), /titleAs: TitleTag = 'h1'/);
+  assert.match(ui('content/PageHero.astro'), /<TitleTag\b/);
+});
+
+test('NumberedSteps never leaves an empty cell for 5 or 6 steps', () => {
+  const text = ui('content/NumberedSteps.astro');
+  assert.match(text, /data-cols=\{cols\}/);
+  assert.match(text, /:last-child/, 'a short last row is centred or stretched');
+});
+
+test('Badge can wrap and documents the {undefined} child pitfall', () => {
+  const text = readFileSync(`${UI}/content/Badge.astro`, 'utf8');
+  assert.match(text, /wrap\?: boolean/);
+  assert.match(text, /\{undefined\}/, 'JSDoc warns about the {undefined} child');
+});
+
+test('StatusPill always has a text label or an aria-label', () => {
+  const text = readFileSync(`${UI}/StatusPill.astro`, 'utf8');
+  assert.match(text, /\{ label: string; ariaLabel\?: never \}/);
+  assert.match(text, /\{ ariaLabel: string; label\?: never \}/);
+  assert.ok(!/<slot\s*\/>/.test(text), 'no slot: the label is a prop');
+});
+
+test('editorial pieces and ButtonLink use semantic tokens, not base palette names', () => {
+  const base =
+    /\b(?:bg|text|border|ring|divide|from|to)-(?:terracotta|ink|ink-soft|cream|sand|ivory|night|charcoal|gold|white|black|stone)\b/;
+  for (const name of [
+    'EditorialHeading.astro',
+    'EditorialFeatureCard.astro',
+    'FaqAccordion.astro',
+    'ButtonLink.astro',
+  ]) {
+    const text = ui(name);
+    assert.ok(!base.test(text), `${name}: ${text.match(base)?.[0]} is a base token`);
+    assert.ok(!/\w-\[[^\]]+\]/.test(text), `${name}: no arbitrary values`);
+  }
+  assert.match(readFileSync(`${UI}/EditorialFeatureCard.astro`, 'utf8'), /'raised' \| 'inset' \| 'dark'/);
 });
