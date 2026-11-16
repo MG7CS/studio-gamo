@@ -2,7 +2,7 @@
  * The one naming scheme for Clerk variables, and a check that reports what is missing.
  *
  * Every public product has its own Clerk application, so every deployed variable carries the
- * product suffix (`<NAME>_WEB`, `_WORSHIP`, `_ACADEMY`, `_LIVE`, `_PRODUCTION`). The un-suffixed
+ * product suffix (`<NAME>_WEB`, `_WORSHIP`, `_ACADEMY`, `_PRODUCTION`). The un-suffixed
  * names (`CLERK_SECRET_KEY`, …) that Clerk's own tools print are accepted only on a developer
  * machine, where `env-loader.ts` aliases them to the suffixed names; a deployed Worker ignores
  * them so one product can never pick up another product's key by accident.
@@ -11,10 +11,7 @@
  * Variables are reported by NAME only, never by value.
  */
 
-/** Gamo Live's Clerk application. It belongs to Live alone; any other product using it is refused. */
-export const GAMO_LIVE_CLERK_APP_ID = 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt';
-
-export const CLERK_PRODUCTS = ['web', 'worship', 'academy', 'live', 'production'] as const;
+export const CLERK_PRODUCTS = ['web', 'worship', 'academy', 'production'] as const;
 export type ClerkProductName = (typeof CLERK_PRODUCTS)[number];
 
 /** Un-suffixed names: local development only. */

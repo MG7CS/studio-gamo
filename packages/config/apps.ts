@@ -1,5 +1,5 @@
 /**
- * The six Gamo Studios applications: production hosts and fixed local dev ports.
+ * The five Gamo Studios applications: production hosts and fixed local dev ports.
  */
 
 export const ROOT_DOMAIN = 'gamostudio.org';
@@ -8,7 +8,6 @@ export const SUBDOMAINS = {
   web: 'gamostudio.org',
   worship: 'worship.gamostudio.org',
   academy: 'academy.gamostudio.org',
-  live: 'live.gamostudio.org',
   production: 'production.gamostudio.org',
   admin: 'admin.gamostudio.org',
 } as const;
@@ -20,7 +19,6 @@ export const LOCAL_PORTS = {
   web: 4321,
   worship: 4322,
   academy: 4323,
-  live: 4324,
   production: 4325,
   admin: 4326,
 } as const satisfies Record<AppName, number>;
@@ -33,7 +31,6 @@ export const LOCAL_INSPECTOR_PORTS = {
   web: 9321,
   worship: 9322,
   academy: 9323,
-  live: 9324,
   production: 9325,
   admin: 9326,
 } as const satisfies Record<AppName, number>;

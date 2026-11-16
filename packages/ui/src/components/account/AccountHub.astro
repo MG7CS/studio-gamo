@@ -9,7 +9,6 @@ const clerkConfig = Astro.locals.clerkConfig;
 const clerkPublishableKey = clerkConfig?.isConfigured ? (clerkConfig.publishableKey ?? '') : '';
 if (!auth) return Astro.redirect('/account/signin', 303);
 const memberships = auth.memberships ?? [];
-const isLive = program === 'Gamo Live';
 const isAcademy = program === 'Gamo Academy';
 const isWorship = program === 'Gamo Worship';
 const isProduction = program === 'Gamo Production';
@@ -35,8 +34,6 @@ const isProduction = program === 'Gamo Production';
 
   <nav class="mt-6 flex flex-wrap gap-6 text-sm font-medium text-terracotta" aria-label="Account actions">
     {workspaceHref && <a href={workspaceHref}>Open {program} workspace →</a>}
-    {isLive && <a href="/promote/create">List a Christian event →</a>}
-    {isLive && <a href="/tickets/find">My tickets & passes →</a>}
     {isAcademy && <a href="/family">Family enrollment workspace →</a>}
     {isWorship && <a href="/account/onboarding?role=musician">Musician application →</a>}
     {isProduction && <a href="/client">Ministry production requests →</a>}
@@ -47,43 +44,6 @@ const isProduction = program === 'Gamo Production';
     </button>
   </nav>
   <p class="mt-4 text-sm" data-account-status role="status" aria-live="polite"></p>
-
-  {isLive && (
-    <section
-      class="mt-10 rounded-2xl border border-sand bg-white p-6"
-      aria-labelledby="live-onboarding-title"
-    >
-      <h2 id="live-onboarding-title" class="text-lg font-semibold text-charcoal">
-        Gamo Live Onboarding & Access
-      </h2>
-      <p class="mt-2 text-sm text-ink-soft">
-        Your verified Gamo Live account includes attendee pass recovery and access to start organizer or
-        artist onboarding. Privileged operations require explicit authorization:
-      </p>
-      <ul class="mt-4 space-y-2.5 text-sm text-charcoal">
-        <li>
-          <strong>1. Event Organizer Onboarding:</strong> Register your church or ministry below, then submit
-          event listings for staff editorial review (
-          <a href="/promote/create" class="font-medium text-terracotta underline">
-            Submit an event
-          </a>
-          ).
-        </li>
-        <li>
-          <strong>2. Artist & Representative Onboarding:</strong> Create an artist profile in your{' '}
-          <a href="/workspaces" class="font-medium text-terracotta underline">
-            Gamo Live workspace
-          </a>
-          . Booking agent representation requires explicit artist authorization.
-        </li>
-        <li>
-          <strong>3. Privileged Operations Gate:</strong> A general Gamo Live account does not automatically
-          grant public event publishing, artist representation, refund approval, settlement access, or door
-          scanner permissions.
-        </li>
-      </ul>
-    </section>
-  )}
 
   <section class="mt-12 border-t border-sand pt-8" aria-labelledby="org-title">
     <h2 id="org-title" class="text-xl font-semibold text-charcoal">
@@ -106,7 +66,7 @@ const isProduction = program === 'Gamo Production';
     <details class="mt-6 rounded-2xl border border-sand bg-white p-5">
       <summary class="cursor-pointer text-sm font-semibold text-charcoal">Create an organization</summary>
       <p class="mt-2.5 text-sm text-ink-soft">
-        Register a church, ministry, or event-organizing team you are authorized to represent in {program}.
+        Register a church, ministry, or school you are authorized to represent in {program}.
       </p>
       <form data-organization-form class="mt-5 space-y-4">
         <label class="block text-sm font-medium text-charcoal">
@@ -141,7 +101,7 @@ const isProduction = program === 'Gamo Production';
             <option value="church">Church</option>
             <option value="ministry">Ministry</option>
             <option value="school">School</option>
-            <option value="other">Event-organizing team / Other</option>
+            <option value="other">Other</option>
           </select>
         </label>
         <button class="rounded-full bg-charcoal px-6 py-2.5 text-sm font-semibold text-cream" type="submit">

@@ -473,7 +473,7 @@ describe('Clerk users in D1', () => {
     for (const [id, code] of [
       ['role_t_a', 'test_unscoped'],
       ['role_t_b', 'test_web_scoped'],
-      ['role_t_c', 'test_live_scoped'],
+      ['role_t_c', 'test_academy_scoped'],
     ] as const) {
       await db.insert(roles).values({ id, code, description: null });
     }
@@ -499,7 +499,7 @@ describe('Clerk users in D1', () => {
         userId: first.user.id,
         roleId: 'role_t_c',
         scopeType: 'program',
-        scopeId: 'live',
+        scopeId: 'academy',
         createdAt: when,
       },
     ]);

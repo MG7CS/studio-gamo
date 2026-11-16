@@ -2,7 +2,7 @@
 /**
  * Organization-wide pill navigation, shared by every public app.
  * - theme="light": cream/white pill for bright pages (default).
- * - theme="dark":  charcoal glass pill for cinematic heroes (Live, Production, home).
+ * - theme="dark":  charcoal glass pill for cinematic heroes (Production, home).
  * On scroll the bar compacts into a floating pill with stronger contrast.
  * Local UI state only (mobile menu); no account functionality is wired yet.
  */
@@ -11,7 +11,7 @@ import Icon from './Icon.astro';
 import { primaryNav, siteUrl } from '../lib/sites';
 
 interface Props {
-  /** Key of the active primary item: mission | worship | academy | live | production. */
+  /** Key of the active primary item: mission | worship | academy | production. */
   current?: string;
   /** Accepted for backwards compatibility; header styling is now unified across all pages. */
   theme?: 'light' | 'dark';

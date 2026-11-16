@@ -77,10 +77,9 @@ export function siteUrl(site: SiteKey, path = '/'): string {
  * Provider sign-up on the product that owns the role (Phase 2 identity): the person creates that
  * product's account, picks the role on the sign-up screen and continues in its onboarding. Musicians and
  * churches join on Gamo Worship, teachers and church hosts on Gamo Academy, technicians on Gamo
- * Production, organizers, artists and agents on Gamo Live.
+ * Production.
  */
-export type ProviderSignupRole =
-  'musician' | 'technician' | 'church' | 'agent' | 'organizer' | 'teacher' | 'artist';
+export type ProviderSignupRole = 'musician' | 'technician' | 'church' | 'teacher';
 
 export function providerSignupUrl(site: Exclude<SiteKey, 'web' | 'admin'>, role: ProviderSignupRole): string {
   return siteUrl(site, `/account/signup?role=${role}`);
@@ -108,13 +107,12 @@ export interface NavItem {
   href: string;
 }
 
-/** Organization-wide primary navigation (Mission · Worship · Academy · Live · Production). */
+/** Organization-wide primary navigation (Mission · Worship · Academy · Production). */
 export function primaryNav(): NavItem[] {
   return [
     { key: 'mission', label: 'Mission', href: siteUrl('web', '/mission') },
     { key: 'worship', label: 'Worship', href: siteUrl('worship') },
     { key: 'academy', label: 'Academy', href: siteUrl('academy') },
-    { key: 'live', label: 'Live', href: siteUrl('web', '/live') },
     { key: 'production', label: 'Production', href: siteUrl('production') },
   ];
 }

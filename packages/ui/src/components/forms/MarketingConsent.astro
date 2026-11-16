@@ -4,14 +4,14 @@
  * `recordMarketingConsent` only when ticked (an unticked box is not a withdrawal of an earlier choice).
  *
  * Props
- * - product: 'web' | 'worship' | 'academy' | 'live' | 'production' — picks the neutral default wording.
+ * - product: 'web' | 'worship' | 'academy' | 'production' — picks the neutral default wording.
  * - id?: string (default 'marketing-opt-in'); name?: string (default 'marketing_opt_in'; value 'yes').
  * - label?: string — override the wording (keep it neutral; no guilt or pressure).
  * - class?: string.
  *
  * There is intentionally no `checked` prop.
  */
-type ProductKey = 'web' | 'worship' | 'academy' | 'live' | 'production';
+type ProductKey = 'web' | 'worship' | 'academy' | 'production';
 
 interface Props {
   product: ProductKey;
@@ -25,7 +25,6 @@ const DEFAULT_LABELS: Record<ProductKey, string> = {
   web: 'Send me occasional news from Gamo Studios',
   worship: 'Send me occasional news from Gamo Worship',
   academy: 'Send me occasional news about Gamo Academy lessons and programs',
-  live: 'Send me occasional news about Gamo Live events',
   production: 'Send me occasional news from Gamo Production',
 };
 

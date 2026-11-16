@@ -191,7 +191,6 @@ import {
 import { eq } from 'drizzle-orm';
 import {
   CLERK_PRODUCT_APPS,
-  GAMO_LIVE_CLERK_APP_ID,
   resolveProductClerkConfig,
   resolveAuth,
   requireProductAuth,
@@ -199,6 +198,7 @@ import {
 } from './index.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const WORSHIP_CLERK_APP_ID = 'app_worship_isolated_instance_88';
 
 function signTestClerkJwt(
   privateKeyPem: string,
@@ -233,8 +233,8 @@ function buildTestPublishableKey(frontendApiHost: string): string {
 describe('Independent Clerk Applications & Product Account Isolation', () => {
   const sessionSecret = 'super_secret_test_key_minimum_32_characters_long_12345';
 
-  // Generate separate RSA keypairs for Gamo Live and Gamo Academy Clerk instances
-  const liveKeys = generateKeyPairSync('rsa', {
+  // Generate separate RSA keypairs for Gamo Worship and Gamo Academy Clerk instances
+  const worshipKeys = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
@@ -245,17 +245,17 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
 
-  const liveIssuer = 'https://live-instance-01.clerk.accounts.dev';
+  const worshipIssuer = 'https://worship-instance-01.clerk.accounts.dev';
   const academyIssuer = 'https://academy-instance-02.clerk.accounts.dev';
 
   const testEnv: GamoEnv = {
     SESSION_SECRET: sessionSecret,
-    CLERK_APP_ID_LIVE: GAMO_LIVE_CLERK_APP_ID,
-    PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: buildTestPublishableKey('live-instance-01.clerk.accounts.dev'),
-    CLERK_SECRET_KEY_LIVE: 'sk_test_live_isolated_secret_key',
-    CLERK_JWT_KEY_LIVE: liveKeys.publicKey,
-    CLERK_ISSUER_LIVE: liveIssuer,
-    CLERK_AUTHORIZED_PARTIES_LIVE: 'http://127.0.0.1:4324,https://live.gamostudio.org',
+    CLERK_APP_ID_WORSHIP: WORSHIP_CLERK_APP_ID,
+    PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: buildTestPublishableKey('worship-instance-01.clerk.accounts.dev'),
+    CLERK_SECRET_KEY_WORSHIP: 'sk_test_worship_isolated_secret_key',
+    CLERK_JWT_KEY_WORSHIP: worshipKeys.publicKey,
+    CLERK_ISSUER_WORSHIP: worshipIssuer,
+    CLERK_AUTHORIZED_PARTIES_WORSHIP: 'http://127.0.0.1:4322,https://worship.gamostudio.org',
 
     CLERK_APP_ID_ACADEMY: 'app_academy_isolated_instance_99',
     PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY: buildTestPublishableKey('academy-instance-02.clerk.accounts.dev'),
@@ -276,43 +276,33 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     return createDb(d1);
   }
 
-  test('binds app_3KlWyOBL2xL2YzhJuvgk8QdrWIt exclusively to Gamo Live and forbids credential reuse', () => {
-    assert.equal(CLERK_PRODUCT_APPS.live.clerkAppId, 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt');
-    assert.equal(CLERK_PRODUCT_APPS.live.provisioningStatus, 'provisioned_by_founder');
+  test('lists one Clerk application per remaining product; the removed Gamo Live has none', () => {
+    assert.deepEqual(Object.keys(CLERK_PRODUCT_APPS).sort(), ['academy', 'production', 'web', 'worship']);
     assert.equal(CLERK_PRODUCT_APPS.web.provisioningStatus, 'pending_founder_provisioning');
     assert.equal(CLERK_PRODUCT_APPS.worship.provisioningStatus, 'pending_founder_provisioning');
     assert.equal(CLERK_PRODUCT_APPS.academy.provisioningStatus, 'pending_founder_provisioning');
     assert.equal(CLERK_PRODUCT_APPS.production.provisioningStatus, 'pending_founder_provisioning');
 
-    // Attempting to reuse Gamo Live's Clerk App ID on Academy must throw FORBIDDEN
-    assert.throws(
-      () =>
-        resolveProductClerkConfig('academy', {
-          ...testEnv,
-          CLERK_APP_ID_ACADEMY: GAMO_LIVE_CLERK_APP_ID,
-        }),
-      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
+    // Stale Gamo Live keys in the environment never switch Clerk on for 'live'
+    assert.equal(
+      resolveProductClerkConfig('live', {
+        ...testEnv,
+        PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: testEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP,
+        CLERK_SECRET_KEY_LIVE: 'sk_test_stale_live_key',
+      }).isConfigured,
+      false,
     );
-
-    // Attempting to reuse Gamo Live's publishable key on Worship must throw FORBIDDEN
-    assert.throws(
-      () =>
-        resolveProductClerkConfig('worship', {
-          ...testEnv,
-          PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP: testEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE,
-        }),
-      (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
-    );
+    assert.equal(resolveProductClerkConfig('worship', testEnv).isConfigured, true);
   });
 
-  test('authenticates a valid Gamo Live Clerk JWT on Gamo Live and provisions isolated product account', async () => {
+  test('authenticates a valid Gamo Worship Clerk JWT on Gamo Worship and provisions isolated product account', async () => {
     const db = await createMigratedDb();
     const nowSec = Math.floor(Date.now() / 1000);
-    const token = signTestClerkJwt(liveKeys.privateKey, {
-      iss: liveIssuer,
-      sub: 'user_2liveClerk999',
-      sid: 'sess_liveClerk999',
-      azp: 'https://live.gamostudio.org',
+    const token = signTestClerkJwt(worshipKeys.privateKey, {
+      iss: worshipIssuer,
+      sub: 'user_2worshipClerk999',
+      sid: 'sess_worshipClerk999',
+      azp: 'https://worship.gamostudio.org',
       email: 'artist@worshipcollective.org',
       email_verified: true,
       name: 'Naomi Brooks',
@@ -320,46 +310,46 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
       exp: nowSec + 3600,
     });
 
-    const req = new Request('https://live.gamostudio.org/api/auth/me', {
+    const req = new Request('https://worship.gamostudio.org/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     const session = await resolveAuth(req, db, {
       secret: sessionSecret,
-      product: 'live',
+      product: 'worship',
       env: testEnv,
     });
 
-    assert.ok(session, 'Expected Gamo Live Clerk session to resolve');
-    assert.equal(session.sessionProduct, 'live');
+    assert.ok(session, 'Expected Gamo Worship Clerk session to resolve');
+    assert.equal(session.sessionProduct, 'worship');
     assert.equal(session.user.email, 'artist@worshipcollective.org');
     assert.equal(session.user.displayName, 'Naomi Brooks');
-    assert.deepEqual(session.products, ['live']);
+    assert.deepEqual(session.products, ['worship']);
 
     const links = await db.select().from(clerkIdentityLinks);
     assert.equal(links.length, 1);
-    assert.equal(links[0]!.product, 'live');
-    assert.equal(links[0]!.clerkAppId, GAMO_LIVE_CLERK_APP_ID);
-    assert.equal(links[0]!.clerkUserId, 'user_2liveClerk999');
+    assert.equal(links[0]!.product, 'worship');
+    assert.equal(links[0]!.clerkAppId, WORSHIP_CLERK_APP_ID);
+    assert.equal(links[0]!.clerkUserId, 'user_2worshipClerk999');
   });
 
-  test('rejects a valid Gamo Live Clerk JWT when presented to Academy, Worship, Production, or Studios', async () => {
+  test('rejects a valid Gamo Worship Clerk JWT when presented to Academy, Production, or Studios', async () => {
     const db = await createMigratedDb();
     const nowSec = Math.floor(Date.now() / 1000);
-    const liveToken = signTestClerkJwt(liveKeys.privateKey, {
-      iss: liveIssuer,
-      sub: 'user_2liveClerkCrossTest',
-      sid: 'sess_liveClerkCrossTest',
-      azp: 'https://live.gamostudio.org',
+    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
+      iss: worshipIssuer,
+      sub: 'user_2worshipClerkCrossTest',
+      sid: 'sess_worshipClerkCrossTest',
+      azp: 'https://worship.gamostudio.org',
       email: 'crossproduct@example.org',
       email_verified: true,
       iat: nowSec - 10,
       exp: nowSec + 3600,
     });
 
-    for (const targetProduct of ['academy', 'worship', 'production', 'web'] as const) {
+    for (const targetProduct of ['academy', 'production', 'web'] as const) {
       const req = new Request(`https://${targetProduct}.gamostudio.org/api/auth/me`, {
-        headers: { Authorization: `Bearer ${liveToken}` },
+        headers: { Authorization: `Bearer ${worshipToken}` },
       });
 
       const resolved = await resolveAuth(req, db, {
@@ -367,7 +357,7 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
         product: targetProduct,
         env: testEnv,
       });
-      assert.equal(resolved, null, `Gamo Live token must not authenticate against ${targetProduct}`);
+      assert.equal(resolved, null, `Gamo Worship token must not authenticate against ${targetProduct}`);
 
       await assert.rejects(
         () =>
@@ -380,19 +370,19 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     }
   });
 
-  test('keeps accounts strictly separate when the same email registers on Gamo Live and Gamo Academy', async () => {
+  test('keeps accounts strictly separate when the same email registers on Gamo Worship and Gamo Academy', async () => {
     const db = await createMigratedDb();
     const sharedEmail = 'family@gracefellowship.org';
     const nowSec = Math.floor(Date.now() / 1000);
 
-    const liveToken = signTestClerkJwt(liveKeys.privateKey, {
-      iss: liveIssuer,
-      sub: 'user_live_same_email_1',
-      sid: 'sess_live_1',
-      azp: 'https://live.gamostudio.org',
+    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
+      iss: worshipIssuer,
+      sub: 'user_worship_same_email_1',
+      sid: 'sess_worship_1',
+      azp: 'https://worship.gamostudio.org',
       email: sharedEmail,
       email_verified: true,
-      name: 'Grace Live Organizer',
+      name: 'Grace Worship Coordinator',
       iat: nowSec - 10,
       exp: nowSec + 3600,
     });
@@ -409,12 +399,12 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
       exp: nowSec + 3600,
     });
 
-    const liveSession = await resolveAuth(
-      new Request('https://live.gamostudio.org/account', {
-        headers: { Authorization: `Bearer ${liveToken}` },
+    const worshipSession = await resolveAuth(
+      new Request('https://worship.gamostudio.org/account', {
+        headers: { Authorization: `Bearer ${worshipToken}` },
       }),
       db,
-      { secret: sessionSecret, product: 'live', env: testEnv },
+      { secret: sessionSecret, product: 'worship', env: testEnv },
     );
 
     const academySession = await resolveAuth(
@@ -425,25 +415,25 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
       { secret: sessionSecret, product: 'academy', env: testEnv },
     );
 
-    assert.ok(liveSession);
+    assert.ok(worshipSession);
     assert.ok(academySession);
 
     // Must be two completely independent D1 users and product accounts
     assert.notEqual(
-      liveSession.user.id,
+      worshipSession.user.id,
       academySession.user.id,
       'Identical email across independent Clerk apps must NEVER auto-merge D1 users',
     );
-    assert.equal(liveSession.user.email, sharedEmail);
+    assert.equal(worshipSession.user.email, sharedEmail);
     assert.equal(academySession.user.email, sharedEmail);
-    assert.deepEqual(liveSession.products, ['live']);
+    assert.deepEqual(worshipSession.products, ['worship']);
     assert.deepEqual(academySession.products, ['academy']);
   });
 
   test('safely claims pre-existing same-product legacy D1 account on verified Clerk login while preserving domain ownership', async () => {
     const db = await createMigratedDb();
     const now = new Date();
-    const legacyUserId = 'usr_legacy_live_organizer';
+    const legacyUserId = 'usr_legacy_worship_coordinator';
     const legacyEmail = 'pastor.legacy@cornerstone.org';
 
     await db.insert(users).values({
@@ -456,9 +446,9 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     });
 
     await db.insert(productAccounts).values({
-      id: 'pa_legacy_live_1',
+      id: 'pa_legacy_worship_1',
       userId: legacyUserId,
-      product: 'live',
+      product: 'worship',
       status: 'active',
       onboardingStatus: 'completed',
       createdAt: now,
@@ -483,11 +473,11 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     });
 
     const nowSec = Math.floor(Date.now() / 1000);
-    const liveToken = signTestClerkJwt(liveKeys.privateKey, {
-      iss: liveIssuer,
+    const worshipToken = signTestClerkJwt(worshipKeys.privateKey, {
+      iss: worshipIssuer,
       sub: 'user_clerk_claimed_legacy',
       sid: 'sess_clerk_claimed_legacy',
-      azp: 'https://live.gamostudio.org',
+      azp: 'https://worship.gamostudio.org',
       email: legacyEmail,
       email_verified: true,
       iat: nowSec - 10,
@@ -495,11 +485,11 @@ describe('Independent Clerk Applications & Product Account Isolation', () => {
     });
 
     const session = await resolveAuth(
-      new Request('https://live.gamostudio.org/workspaces', {
-        headers: { Authorization: `Bearer ${liveToken}` },
+      new Request('https://worship.gamostudio.org/workspaces', {
+        headers: { Authorization: `Bearer ${worshipToken}` },
       }),
       db,
-      { secret: sessionSecret, product: 'live', env: testEnv },
+      { secret: sessionSecret, product: 'worship', env: testEnv },
     );
 
     assert.ok(session);

@@ -6,12 +6,12 @@
  * 1. Root Shared Local Configuration (`studio-gamo/.env` and optional `studio-gamo/.dev.vars`):
  *    - Shared non-product-specific local defaults (`ENVIRONMENT`, `SESSION_SECRET`,
  *      `ALLOW_DEMO_SESSION`, `ALLOW_TEST_CHALLENGE_OUTBOX`, `REQUIRE_ADMIN_AUTH`, `RESEND_API_KEY`, etc.).
- *    - Any product-suffixed Clerk variables (`*_WEB`, `*_LIVE`, `*_ACADEMY`, `*_WORSHIP`, `*_PRODUCTION`)
+ *    - Any product-suffixed Clerk variables (`*_WEB`, `*_ACADEMY`, `*_WORSHIP`, `*_PRODUCTION`)
  *      belonging to a DIFFERENT application are strictly filtered out so one app never inherits
  *      another product's Clerk keys.
  *
  * 2. Application-Specific Local Configuration (`apps/<app>/.env` and `apps/<app>/.dev.vars`):
- *    - Independent Clerk credentials for `web`, `live`, `academy`, `worship`, and `production`
+ *    - Independent Clerk credentials for `web`, `academy`, `worship`, and `production`
  *      (supporting both standard Clerk variable names `PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY`
  *      and product-suffixed names `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>` / `CLERK_SECRET_KEY_<APP>`).
  *    - Local Cloudflare Worker secret bindings in `apps/<app>/.dev.vars` override `.env` values.
@@ -30,6 +30,10 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCAL_HOST, LOCAL_INSPECTOR_PORTS, LOCAL_PORTS, type AppName } from './apps.ts';
 
+/**
+ * Product suffixes of Clerk variables. `LIVE` belongs to the removed Gamo Live app; it stays listed so a
+ * leftover `*_LIVE` Clerk key in a local env file is still stripped instead of reaching another app.
+ */
 const ALL_PRODUCT_SUFFIXES = ['WEB', 'WORSHIP', 'ACADEMY', 'LIVE', 'PRODUCTION'] as const;
 
 /**
@@ -158,10 +162,10 @@ export interface LoadAppLocalEnvOptions {
  * 3. `apps/<app>/.env` (application-specific Clerk keys and local config)
  * 4. `apps/<app>/.dev.vars` (application-specific Cloudflare Worker secret overrides)
  *
- * For the 5 public Clerk-enabled products (`web`, `worship`, `academy`, `live`, `production`),
+ * For the 4 public Clerk-enabled products (`web`, `worship`, `academy`, `production`),
  * also sets `CLERK_PRODUCT="<app>"` and bidirectional aliases between standard Clerk variable names
  * (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_KEY`, `CLERK_ISSUER`, `CLERK_APP_ID`,
- * `CLERK_AUTHORIZED_PARTIES`) and product-suffixed variable names (`*_WEB`, `*_LIVE`, etc.) when non-empty,
+ * `CLERK_AUTHORIZED_PARTIES`) and product-suffixed variable names (`*_WEB`, `*_ACADEMY`, etc.) when non-empty,
  * preserving full compatibility with both `@clerk/astro` and `@gamo/auth`.
  */
 export function resolveAppLocalEnv(options: LoadAppLocalEnvOptions): Record<string, string> {
@@ -257,7 +261,7 @@ export function isTestServer(): boolean {
 }
 
 export interface LiveKeyFinding {
-  /** Path relative to the repository root, e.g. `apps/live/.dev.vars`. */
+  /** Path relative to the repository root, e.g. `apps/academy/.dev.vars`. */
   file: string;
   name: string;
 }
