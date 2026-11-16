@@ -5,7 +5,6 @@ import { matchLegacyRedirect, type LegacyRedirect } from '../../packages/domain/
 import { legacyRedirects as web } from '../../apps/web/src/lib/legacy-redirects';
 import { legacyRedirects as worship } from '../../apps/worship/src/lib/legacy-redirects';
 import { legacyRedirects as academy } from '../../apps/academy/src/lib/legacy-redirects';
-import { legacyRedirects as live } from '../../apps/live/src/lib/legacy-redirects';
 import { legacyRedirects as production } from '../../apps/production/src/lib/legacy-redirects';
 
 const redirect = (rules: readonly LegacyRedirect[], path: string) => {
@@ -26,20 +25,11 @@ test('exact, prefix and trailing-slash matching', () => {
   assert.equal(redirect(rules, '/bc'), null, 'prefix must stop at a path segment');
 });
 
-test('Gamo Live legacy routes keep working and never shadow real routes', () => {
-  assert.equal(redirect(live, '/organizer/scan')?.location, '/workspaces');
-  assert.equal(redirect(live, '/artist')?.location, '/workspaces');
-  assert.equal(redirect(live, '/artists'), null);
-  assert.equal(redirect(live, '/artists/some-artist'), null);
-  assert.equal(redirect(live, '/promote')?.location, '/promote/create');
-  assert.equal(redirect(live, '/promote/create'), null);
-  assert.equal(redirect(live, '/events/abc-123/tickets')?.location, '/events/abc-123');
-  assert.equal(redirect(live, '/events/abc-123'), null);
-  assert.equal(redirect(live, '/organizers/grace-church')?.location, '/events?q=grace%20church');
-  assert.equal(redirect(live, '/my-tickets')?.location, '/tickets/find');
-  assert.equal(redirect(live, '/my-tickets')?.status, 301);
-  assert.equal(redirect(live, '/checkout')?.location, '/events');
-  assert.equal(redirect(live, '/tickets/find'), null);
+test('retired Gamo Live URLs on the global site go to the homepage', () => {
+  assert.deepEqual(redirect(web, '/live'), { status: 302, location: '/' });
+  assert.deepEqual(redirect(web, '/live/'), { status: 302, location: '/' });
+  assert.deepEqual(redirect(web, '/live/events/abc-123'), { status: 302, location: '/' });
+  assert.equal(redirect(web, '/lively'), null, 'prefix must stop at a path segment');
 });
 
 test('program demo flows keep the original 303 status of their stubs', () => {
@@ -91,7 +81,7 @@ test('same-app redirect targets resolve to a page that exists', () => {
       existsSync(`apps/${app}/src/pages/${segments[0]}/[...slug].astro`)
     );
   };
-  const tables = { web, worship, academy, live, production } as const;
+  const tables = { web, worship, academy, production } as const;
   for (const [app, rules] of Object.entries(tables)) {
     for (const rule of rules) {
       if (typeof rule.to !== 'string') continue;

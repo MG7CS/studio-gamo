@@ -1,5 +1,5 @@
 /**
- * HMAC-signed, expiring cookie values (customer cookie from a link, scanner device cookie):
+ * HMAC-signed, expiring cookie values (e.g. the customer cookie opened from an emailed link):
  *   <value>.<expiresAt>.<mac>    mac = base64url(HMAC-SHA256(secret, purpose|value|expiresAt))
  * `purpose` separates uses of one secret. The value itself is not secret (an id); never put PII in it.
  */
@@ -16,7 +16,7 @@ export async function signValue(input: {
   value: string;
   expiresAt: number;
   secret: string | undefined;
-  /** e.g. `customer-session`, `scanner-device`. */
+  /** e.g. `customer-session`. */
   purpose: string;
   /** Variable name reported if the secret is missing (default SESSION_SECRET). */
   secretName?: string;

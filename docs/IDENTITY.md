@@ -4,8 +4,8 @@ Built by Phase 2 Agent A; design of record: `docs/design/identity-and-ticketing.
 
 ## 1. People
 
-- **Customers** (ticket buyers, parents, students): no account; `customer_profiles` keyed by email; they manage purchases through emailed links.
-- **Providers** (musician, technician, church, agent, organizer, teacher, artist): per-product account (emailed code or that product's Clerk) plus a `provider_profiles` row.
+- **Customers** (parents, students): no account; `customer_profiles` keyed by email; they manage registrations through emailed links. (Ticket buyers and door staff left scope with Gamo Live on 2026-11-16.)
+- **Providers** (musician, technician, church, teacher; the database still accepts the retired Live roles agent, organizer and artist): per-product account (emailed code or that product's Clerk) plus a `provider_profiles` row.
 - **Staff**: Cloudflare Access + gateway session; reviewers hold `staff_reviewer`.
 - **Person**: `persons`, one row per verified email, shared across products (AGENTS.md exception). It carries display name, provider profiles and terms acceptances. It never grants sessions, accounts, roles or workspaces anywhere.
 
@@ -34,11 +34,11 @@ Linked only from an address the product verified itself (emailed code, its own C
 
 ## 6. Customer claim
 
-A verified sign-up/sign-in attaches the guest `customer_profiles` row with the same address to the person; the account page lists orders and registrations read-only. Pages can embed `ClaimAccountPrompt` (`packages/ui/src/components/account/`); `/account/signup?claim=tickets|registration` adjusts the wording.
+A verified sign-up/sign-in attaches the guest `customer_profiles` row with the same address to the person; the account page lists registrations read-only. Pages can embed `ClaimAccountPrompt` (`packages/ui/src/components/account/`); `/account/signup?claim=registration` adjusts the wording.
 
 ## 7. Provider gates and review
 
-Publish needs: verified email, complete profile, current Provider (or Organizer) Terms, staff verification for church/musician/technician/teacher; payout setup reads "not available yet" and never blocks a profile. A DB trigger backs the review gate. States: draft -> submitted -> meeting_scheduled -> in_review -> verified (or changes_requested / rejected / suspended). Staff decide in `/review/*`; each decision is one batch (conditional status update + `verification_records` + audit). Stale forms and concurrent decisions conflict; `assertNotSelfReview` blocks own profile and own organization. Churches need a scheduled in-person meeting (default America/Phoenix, explicit zone). Worship `/church` needs a verified church profile. Organizers' first events are reviewed; `always_review` toggles every event. Providers are emailed (`provider_status`), with honest status when email is unconfigured.
+Publish needs: verified email, complete profile, current Provider Terms, staff verification for church/musician/technician/teacher; payout setup reads "not available yet" and never blocks a profile. A DB trigger backs the review gate. States: draft -> submitted -> meeting_scheduled -> in_review -> verified (or changes_requested / rejected / suspended). Staff decide in `/review/*`; each decision is one batch (conditional status update + `verification_records` + audit). Stale forms and concurrent decisions conflict; `assertNotSelfReview` blocks own profile and own organization. Churches need a scheduled in-person meeting (default America/Phoenix, explicit zone). Worship `/church` needs a verified church profile. Organizers' first events are reviewed; `always_review` toggles every event. Providers are emailed (`provider_status`), with honest status when email is unconfigured.
 
 ## 8. Retention and erasure (staff procedure)
 

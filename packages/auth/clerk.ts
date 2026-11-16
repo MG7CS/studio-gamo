@@ -1,6 +1,5 @@
 import type { GamoEnv } from '@gamo/config/env';
 import {
-  GAMO_LIVE_CLERK_APP_ID,
   deriveFrontendApiFromPublishableKey,
   isRealClerkValue,
   normalizePemValue,
@@ -9,14 +8,14 @@ import {
  * @gamo/auth/clerk — Product-Isolated Clerk Authentication & Identity Bridge
  *
  * Enforces the Gamo Studios Independent Clerk Authentication Rule:
- * - Every Gamo Studios product ('web', 'worship', 'academy', 'live', 'production')
+ * - Every Gamo Studios product ('web', 'worship', 'academy', 'production')
  *   has its own independent Clerk application, publishable key, secret key,
  *   JWT verification key, issuer, and authorized parties.
  * - Never reuses one product's Clerk credentials in another product.
  * - Never automatically links users, grants memberships, or authorizes cross-product
  *   access based on matching email addresses across products.
- * - Preserves existing D1 domain records (`events`, `organizations`, `enrollments`,
- *   `musician_profiles`, `production_requests`, `artist_profiles`, etc.) by safely
+ * - Preserves existing D1 domain records (`organizations`, `enrollments`,
+ *   `musician_profiles`, etc.) by safely
  *   claiming a legacy pre-Clerk product account ONLY within the same product when
  *   verified by Clerk, while creating completely isolated D1 user records (`usr_<product>_<clerkUserId>`)
  *   for new Clerk registrations.
@@ -43,8 +42,14 @@ import {
   type SessionData,
 } from './index.ts';
 
+/**
+ * Products that have a Clerk application. `ProductKey` still lists 'live' because stored product values
+ * (product accounts, customer links) may carry it; Gamo Live itself was removed and has no Clerk app.
+ */
+export type ClerkProductKey = Exclude<ProductKey, 'live'>;
+
 export interface ProductClerkAppSpec {
-  product: ProductKey;
+  product: ClerkProductKey;
   programName: string;
   packageName: string;
   clerkAppId: string;
@@ -69,35 +74,11 @@ export interface ProductClerkAppSpec {
 }
 
 /**
- * Canonical Clerk Application Architecture Matrix across all 5 public Gamo Studios products.
+ * Canonical Clerk Application Architecture Matrix across the 4 public Gamo Studios products.
  * Note: `apps/admin` is intentionally excluded from public Clerk product authentication
  * and uses its isolated Cloudflare Zero Trust Access + PBKDF2 Admin Gateway boundary.
  */
-export const CLERK_PRODUCT_APPS: Record<ProductKey, ProductClerkAppSpec> = {
-  live: {
-    product: 'live',
-    programName: 'Gamo Live',
-    packageName: 'apps/live',
-    clerkAppId: 'app_3KlWyOBL2xL2YzhJuvgk8QdrWIt',
-    provisioningStatus: 'provisioned_by_founder',
-    localOrigin: 'http://127.0.0.1:4324',
-    previewOrigin: 'https://gamo-live-preview.gamostudio.workers.dev',
-    productionOrigins: ['https://live.gamostudio.org'],
-    signInUrl: '/account/signin',
-    signUpUrl: '/account/signup',
-    verifyUrl: '/account/verify',
-    recoverUrl: '/account/recover',
-    afterSignInUrl: '/account',
-    afterSignUpUrl: '/account',
-    envVarNames: {
-      appId: 'CLERK_APP_ID_LIVE',
-      publishableKey: 'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
-      secretKey: 'CLERK_SECRET_KEY_LIVE',
-      jwtKey: 'CLERK_JWT_KEY_LIVE',
-      issuer: 'CLERK_ISSUER_LIVE',
-      authorizedParties: 'CLERK_AUTHORIZED_PARTIES_LIVE',
-    },
-  },
+export const CLERK_PRODUCT_APPS: Record<ClerkProductKey, ProductClerkAppSpec> = {
   web: {
     product: 'web',
     programName: 'Gamo Studios',
@@ -232,41 +213,35 @@ export class ClerkUnavailableError extends Error {
   }
 }
 
-export { GAMO_LIVE_CLERK_APP_ID };
-
 /**
  * Resolves the Clerk configuration for a specific Gamo product from its Worker runtime environment.
  * Enforces strict product isolation:
  * - The canonical names are product-suffixed (`PUBLIC_CLERK_PUBLISHABLE_KEY_<PRODUCT>`, `CLERK_SECRET_KEY_<PRODUCT>`, …;
  *   see `@gamo/config/clerk-env`). They are the only names a deployed Worker (`ENVIRONMENT` preview or production) reads.
  * - Un-suffixed names (`PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, …) are a local-development convenience, read only
- *   when `ENVIRONMENT` is not a deployed one and `CLERK_PRODUCT` is unset or matches the target product (and
- *   `apps/live`'s `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or keys can never be reused in another product).
+ *   when `ENVIRONMENT` is not a deployed one and `CLERK_PRODUCT` is unset or matches the target product.
+ * - A product without a Clerk application (the removed 'live') always resolves as not configured.
  */
 export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): ResolvedProductClerkConfig {
+  if (product === 'live') {
+    return {
+      product,
+      programName: PRODUCT_DISPLAY_NAMES[product],
+      clerkAppId: 'none',
+      publishableKey: undefined,
+      secretKey: undefined,
+      jwtKey: undefined,
+      issuer: undefined,
+      authorizedParties: [],
+      isConfigured: false,
+    };
+  }
   const spec = CLERK_PRODUCT_APPS[product];
   const suffix = product.toUpperCase();
 
-  const rawEnv = env as Record<string, unknown> | undefined;
   const configuredProduct = readEnvString(env, 'CLERK_PRODUCT')?.toLowerCase();
   const deployed = env?.ENVIRONMENT === 'preview' || env?.ENVIRONMENT === 'production';
   const allowGenericKeys = !deployed && (!configuredProduct || configuredProduct === product);
-
-  const rawConfiguredAppId =
-    rawEnv?.[spec.envVarNames.appId] || (allowGenericKeys ? rawEnv?.['CLERK_APP_ID'] : undefined);
-
-  // Hard guard: Never allow Gamo Live's Clerk application ID to be configured on non-Live products
-  if (
-    product !== 'live' &&
-    typeof rawConfiguredAppId === 'string' &&
-    rawConfiguredAppId.trim() === CLERK_PRODUCT_APPS.live.clerkAppId
-  ) {
-    throw new AuthError(
-      'FORBIDDEN',
-      `Clerk application ${CLERK_PRODUCT_APPS.live.clerkAppId} belongs exclusively to Gamo Live and cannot be reused for ${spec.programName}.`,
-      403,
-    );
-  }
 
   const publishableKey =
     readEnvString(env, spec.envVarNames.publishableKey) ||
@@ -293,21 +268,6 @@ export function resolveProductClerkConfig(product: ProductKey, env?: GamoEnv): R
       : publishableKey && (secretKey || jwtKey)
         ? `clerk_app_gamo_${product}`
         : spec.clerkAppId);
-
-  if (product !== 'live') {
-    const livePubKey = readEnvString(env, CLERK_PRODUCT_APPS.live.envVarNames.publishableKey);
-    const liveSecretKey = readEnvString(env, CLERK_PRODUCT_APPS.live.envVarNames.secretKey);
-    if (
-      (publishableKey && livePubKey && publishableKey === livePubKey) ||
-      (secretKey && liveSecretKey && secretKey === liveSecretKey)
-    ) {
-      throw new AuthError(
-        'FORBIDDEN',
-        `Gamo Live Clerk credentials cannot be reused for ${spec.programName}. Each product requires its own independent Clerk application.`,
-        403,
-      );
-    }
-  }
 
   const derivedIssuer = deriveFrontendApiFromPublishableKey(publishableKey);
   const issuer =
@@ -553,7 +513,7 @@ export async function verifyClerkProductToken(
  *      - If found, safely claims that legacy product account for `(product, clerkUserId)` (`migration_source = 'verified_domain_claim'`)
  *        so existing event ownership, organizer memberships, artist/agent authorizations, academy enrollments, worship profiles, and production requests
  *        for that product are preserved without data loss.
- *    - If the email exists in D1 ONLY under OTHER products (e.g., user registered on Gamo Live and now registers on Gamo Academy with the same email),
+ *    - If the email exists in D1 ONLY under OTHER products (e.g., user registered on Gamo Worship and now registers on Gamo Academy with the same email),
  *      DO NOT reuse or merge with the other product's user record or grant cross-product access!
  *      Instead, create an independent product-scoped D1 user record (`usr_<product>_<clerkUserId>`) with a product-scoped email identifier
  *      or isolated `product_accounts` row so identical emails across separate Clerk applications never result in automatic cross-product linking.

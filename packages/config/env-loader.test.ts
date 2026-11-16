@@ -9,7 +9,7 @@ import {
   isAppVarAllowedForApp,
   resolveAppLocalEnv,
 } from './env-loader.ts';
-import { resolveProductClerkConfig, GAMO_LIVE_CLERK_APP_ID, AuthError } from '../auth/index.ts';
+import { resolveProductClerkConfig } from '../auth/index.ts';
 
 describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)', () => {
   test('parses .env and .dev.vars syntax accurately without mutating values', () => {
@@ -30,23 +30,25 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
   });
 
   test('blocks un-suffixed Clerk keys and cross-product Clerk keys from root .env inheritance', () => {
-    assert.equal(isRootVarAllowedForApp('ENVIRONMENT', 'live'), true);
+    assert.equal(isRootVarAllowedForApp('ENVIRONMENT', 'worship'), true);
     assert.equal(isRootVarAllowedForApp('SESSION_SECRET', 'academy'), true);
     assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_KEYLESS_DISABLED', 'web'), true);
 
     // Un-suffixed Clerk credentials at root must NEVER be inherited by any app
-    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY', 'live'), false);
+    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY', 'worship'), false);
     assert.equal(isRootVarAllowedForApp('CLERK_SECRET_KEY', 'academy'), false);
 
     // Product-suffixed Clerk credentials at root are only allowed for that specific product
-    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE', 'live'), true);
-    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE', 'academy'), false);
+    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP', 'worship'), true);
+    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP', 'academy'), false);
+    assert.equal(isRootVarAllowedForApp('CLERK_SECRET_KEY_WORSHIP', 'web'), false);
+    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP', 'admin'), false);
+    // Leftover keys of the removed Gamo Live app reach no app
     assert.equal(isRootVarAllowedForApp('CLERK_SECRET_KEY_LIVE', 'web'), false);
-    assert.equal(isRootVarAllowedForApp('PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE', 'admin'), false);
 
     // Admin-only variables are only inherited by admin
     assert.equal(isRootVarAllowedForApp('CF_ACCESS_TEAM_NAME', 'admin'), true);
-    assert.equal(isRootVarAllowedForApp('CF_ACCESS_TEAM_NAME', 'live'), false);
+    assert.equal(isRootVarAllowedForApp('CF_ACCESS_TEAM_NAME', 'worship'), false);
   });
 
   test('blocks cross-product suffixed Clerk variables inside an application directory', () => {
@@ -59,7 +61,7 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
 
   test('loads shared root .env settings and bridges per-app standard Clerk keys to suffixed keys with strict isolation', () => {
     const tempRoot = join(tmpdir(), `gamo-monorepo-env-test-${Date.now()}`);
-    const apps = ['web', 'live', 'academy', 'worship', 'production', 'admin'] as const;
+    const apps = ['web', 'academy', 'worship', 'production', 'admin'] as const;
 
     try {
       for (const app of apps) {
@@ -80,14 +82,14 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
       );
 
       // 2. Write per-app .env files using standard Clerk variable names
-      const livePubKey = `pk_test_${Buffer.from('live-app.clerk.accounts.dev$').toString('base64').replace(/=+$/, '')}`;
+      const worshipPubKey = `pk_test_${Buffer.from('worship-app.clerk.accounts.dev$').toString('base64').replace(/=+$/, '')}`;
       const academyPubKey = `pk_test_${Buffer.from('academy-app.clerk.accounts.dev$').toString('base64').replace(/=+$/, '')}`;
 
       writeFileSync(
-        join(tempRoot, 'apps/live/.env'),
+        join(tempRoot, 'apps/worship/.env'),
         [
-          `PUBLIC_CLERK_PUBLISHABLE_KEY="${livePubKey}"`,
-          'CLERK_SECRET_KEY="sk_test_live_isolated_secret"',
+          `PUBLIC_CLERK_PUBLISHABLE_KEY="${worshipPubKey}"`,
+          'CLERK_SECRET_KEY="sk_test_worship_isolated_secret"',
         ].join('\n'),
       );
 
@@ -96,20 +98,21 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
         [
           `PUBLIC_CLERK_PUBLISHABLE_KEY="${academyPubKey}"`,
           'CLERK_SECRET_KEY="sk_test_academy_isolated_secret"',
-          // Even if someone accidentally pasted a _LIVE key in apps/academy/.env, it must be stripped
+          // Even if someone accidentally pasted another product's key in apps/academy/.env, it must be stripped
+          'PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP="pk_test_accidental_worship_leak"',
           'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE="pk_test_accidental_live_leak"',
         ].join('\n'),
       );
 
-      // 3. Write apps/live/.dev.vars override for Worker-specific Stripe secret
+      // 3. Write apps/worship/.dev.vars override for a Worker-specific secret
       writeFileSync(
-        join(tempRoot, 'apps/live/.dev.vars'),
-        'STRIPE_SECRET_KEY="sk_test_live_worker_override"\n',
+        join(tempRoot, 'apps/worship/.dev.vars'),
+        'STRIPE_SECRET_KEY="sk_test_worship_worker_override"\n',
       );
 
-      const liveEnv = resolveAppLocalEnv({
-        app: 'live',
-        appDir: join(tempRoot, 'apps/live'),
+      const worshipEnv = resolveAppLocalEnv({
+        app: 'worship',
+        appDir: join(tempRoot, 'apps/worship'),
         monorepoRoot: tempRoot,
       });
 
@@ -132,45 +135,45 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
       });
 
       // Shared root .env settings are inherited by every app
-      assert.equal(liveEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
+      assert.equal(worshipEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(academyEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(webEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(adminEnv.SESSION_SECRET, 'shared_local_session_secret_32_chars_min');
       assert.equal(adminEnv.REQUIRE_ADMIN_AUTH, 'true');
 
-      // Live loads only its own Clerk keys and .dev.vars overrides
-      assert.equal(liveEnv.CLERK_PRODUCT, 'live');
-      assert.equal(liveEnv.PUBLIC_CLERK_PUBLISHABLE_KEY, livePubKey);
-      assert.equal(liveEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE, livePubKey);
-      assert.equal(liveEnv.CLERK_SECRET_KEY, 'sk_test_live_isolated_secret');
-      assert.equal(liveEnv.CLERK_SECRET_KEY_LIVE, 'sk_test_live_isolated_secret');
-      assert.equal(liveEnv.STRIPE_SECRET_KEY, 'sk_test_live_worker_override');
-      assert.equal(liveEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY, undefined);
+      // Worship loads only its own Clerk keys and .dev.vars overrides
+      assert.equal(worshipEnv.CLERK_PRODUCT, 'worship');
+      assert.equal(worshipEnv.PUBLIC_CLERK_PUBLISHABLE_KEY, worshipPubKey);
+      assert.equal(worshipEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP, worshipPubKey);
+      assert.equal(worshipEnv.CLERK_SECRET_KEY, 'sk_test_worship_isolated_secret');
+      assert.equal(worshipEnv.CLERK_SECRET_KEY_WORSHIP, 'sk_test_worship_isolated_secret');
+      assert.equal(worshipEnv.STRIPE_SECRET_KEY, 'sk_test_worship_worker_override');
+      assert.equal(worshipEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY, undefined);
 
-      // Academy loads only its own Clerk keys and strips accidental _LIVE keys
+      // Academy loads only its own Clerk keys and strips accidental keys of other products
       assert.equal(academyEnv.CLERK_PRODUCT, 'academy');
       assert.equal(academyEnv.PUBLIC_CLERK_PUBLISHABLE_KEY, academyPubKey);
       assert.equal(academyEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY, academyPubKey);
       assert.equal(academyEnv.CLERK_SECRET_KEY, 'sk_test_academy_isolated_secret');
       assert.equal(academyEnv.CLERK_SECRET_KEY_ACADEMY, 'sk_test_academy_isolated_secret');
+      assert.equal(academyEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP, undefined);
       assert.equal(academyEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE, undefined);
 
-      // Web has no app .env yet and must NOT inherit root un-suffixed Clerk keys or Live's keys
+      // Web has no app .env yet and must NOT inherit root un-suffixed Clerk keys or Worship's keys
       assert.equal(webEnv.PUBLIC_CLERK_PUBLISHABLE_KEY, undefined);
       assert.equal(webEnv.PUBLIC_CLERK_PUBLISHABLE_KEY_WEB, undefined);
 
       // Verify @gamo/auth resolveProductClerkConfig works seamlessly with standard Clerk keys in apps/<app>/.env
-      const resolvedLiveClerk = resolveProductClerkConfig('live', liveEnv);
-      assert.equal(resolvedLiveClerk.isConfigured, true);
-      assert.equal(resolvedLiveClerk.clerkAppId, GAMO_LIVE_CLERK_APP_ID);
-      assert.equal(resolvedLiveClerk.publishableKey, livePubKey);
-      assert.equal(resolvedLiveClerk.issuer, 'https://live-app.clerk.accounts.dev');
+      const resolvedWorshipClerk = resolveProductClerkConfig('worship', worshipEnv);
+      assert.equal(resolvedWorshipClerk.isConfigured, true);
+      assert.equal(resolvedWorshipClerk.publishableKey, worshipPubKey);
+      assert.equal(resolvedWorshipClerk.issuer, 'https://worship-app.clerk.accounts.dev');
 
       const resolvedAcademyClerk = resolveProductClerkConfig('academy', academyEnv);
       assert.equal(resolvedAcademyClerk.isConfigured, true);
       assert.equal(resolvedAcademyClerk.publishableKey, academyPubKey);
       assert.equal(resolvedAcademyClerk.issuer, 'https://academy-app.clerk.accounts.dev');
-      assert.notEqual(resolvedAcademyClerk.clerkAppId, GAMO_LIVE_CLERK_APP_ID);
+      assert.notEqual(resolvedAcademyClerk.clerkAppId, resolvedWorshipClerk.clerkAppId);
 
       // Unconfigured web app cleanly falls back to pre-cutover state (isConfigured = false)
       const resolvedWebClerk = resolveProductClerkConfig('web', webEnv);
@@ -183,16 +186,8 @@ describe('Monorepo Environment Loader & Product Clerk Isolation (@gamo/config)',
       });
       assert.equal(templateAcademyClerk.isConfigured, false);
 
-      // Reusing Gamo Live's Clerk App ID in Academy via standard CLERK_APP_ID throws 403 FORBIDDEN
-      assert.throws(
-        () =>
-          resolveProductClerkConfig('academy', {
-            CLERK_APP_ID: GAMO_LIVE_CLERK_APP_ID,
-            PUBLIC_CLERK_PUBLISHABLE_KEY: academyPubKey,
-            CLERK_SECRET_KEY: 'sk_test_academy_isolated_secret',
-          }),
-        (err: unknown) => err instanceof AuthError && err.code === 'FORBIDDEN',
-      );
+      // The removed Gamo Live product has no Clerk application: it never resolves as configured
+      assert.equal(resolveProductClerkConfig('live', worshipEnv).isConfigured, false);
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }

@@ -1,5 +1,40 @@
 # API compatibility decisions
 
+## 3.0.0
+
+Base: 413fe51
+
+Intentional breaking removal (2026-11-16, owner decision: Gamo Studios narrows to Gamo Academy, Gamo Worship
+and Gamo Production; design: `docs/superpowers/specs/2026-11-16-remove-gamo-live-design.md`). Nothing is deployed
+and no external client is known; the removed Live and admin UIs were the only consumers and are deleted with them.
+
+- Removed every `apps/live` operation: `GET/POST /api/events`, `GET/PATCH /api/events/{id}`,
+  `POST /api/events/{id}/register`, `POST|DELETE /api/events/{id}/team`, `GET/POST /api/events/{id}/production-requests`,
+  `POST /api/events/{id}/changes`, `POST /api/events/{id}/waitlist`, `POST /api/orders/confirm`,
+  `POST /api/orders/{id}/refund`, `POST /api/checkout/session`, `POST /api/tickets/lookup`, `POST /api/tickets/scan`,
+  `POST /api/tickets/{id}/transfer`, `POST /api/tickets/{id}/reissue`, `/api/scanner/{scan,lookup,override,manifest,sync,headcount}`,
+  `GET /api/venue-maps/{id}`, `GET/POST /api/artists`, `POST /api/artists/{id}/representatives`,
+  `POST /api/representations/{id}/revoke`, `POST /api/bookings/inquiries`, `POST /api/bookings/inquiries/{id}/offers`,
+  `POST /api/bookings/offers/{id}/accept` and `POST /api/webhook/stripe`.
+- Removed the admin Live review operations: `GET /api/events/pending`, `POST /api/events/{id}/review`,
+  `POST /api/review/events/{id}` and `POST /api/review/organizers/{id}`.
+- Removed the now-unreferenced schemas (`components/schemas/live/**`, `ticketing/**`, `payments/**`, administration
+  `ReviewDecision`, `PendingResponse`, `ReviewResponse`, `EventReviewForm`, `OrganizerReviewForm`), the
+  `TicketingError` response, the `StripeSignature`, `ScannerDevice` and `CustomerSession` security schemes, and the
+  `Live` and `Payments` tags.
+- `POST /api/webhook/resend` (`receiveResendWebhook`) is kept and moved from `apps/live` to `apps/web`
+  (`x-application: web`, `x-source: apps/web/src/pages/api/webhook/resend.ts`, server port 4321), retagged to a new
+  `Email` tag. Wire shape unchanged for success (`200 {received, applied}`); `400`/`503` now reference the standard
+  `LegacyError` response (`{success:false,error:{code,message,details?}}`) instead of `TicketingError` (the route
+  only ever sent `code` and `message`). `ResendEvent` and `ResendWebhookResponse` moved to `components/schemas/email/`.
+  The owner points the Resend webhook at `https://gamostudio.org/api/webhook/resend`.
+- `live` removed from `x-replicated-applications` on the shared auth/account operations. The `product` enum on
+  `AuthChallengeInput`/`AuthVerifyInput` still lists `live` (kept product key, deferred to cleanup two).
+- Root `servers` now points at the global site (`http://127.0.0.1:4321`) instead of Gamo Live (4324).
+- Verification: `pnpm api:lint` (3 intentional redirect-only warnings), `node scripts/api/generate.mjs` regenerated
+  bundles, types and validators; `scripts/api/contract.test.ts` updated (Live tests removed, Resend test now runs
+  against web; 30 application operations over loopback HTTP).
+
 ## Unreleased — Gamo Live ticketing (Phase 12c, Agent B; the lead assigns the version)
 
 Breaking changes (no external client is known; the Live UI is the only consumer and was rewritten with them):

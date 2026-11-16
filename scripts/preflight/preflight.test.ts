@@ -115,9 +115,9 @@ test('STRIPE_TEST_CHECKOUT=true is an error in production only', () => {
       .replace('ENVIRONMENT = "preview"', 'ENVIRONMENT = "preview"\nSTRIPE_TEST_CHECKOUT = "true"'),
   );
   try {
-    assert.deepEqual(analyzeConfigs(root, ['live'], 'preview'), []);
+    assert.deepEqual(analyzeConfigs(root, ['academy'], 'preview'), []);
     assert.deepEqual(
-      analyzeConfigs(root, ['live'], 'production').map((f) => f.code),
+      analyzeConfigs(root, ['academy'], 'production').map((f) => f.code),
       ['test-checkout-in-production'],
     );
   } finally {
@@ -135,12 +135,12 @@ test('KV, D1 and placeholder problems are reported with the offending id', () =>
     }),
   );
   try {
-    const preview = analyzeConfigs(root, ['web', 'live'], 'preview');
+    const preview = analyzeConfigs(root, ['web', 'academy'], 'preview');
     const codes = preview.map((f) => `${f.app}:${f.code}`);
     assert.ok(codes.includes('web:kv-shared'));
-    assert.ok(codes.includes('live:kv-shared'));
+    assert.ok(codes.includes('academy:kv-shared'));
     assert.ok(codes.includes('web:d1-placeholder'));
-    assert.ok(!codes.includes('live:d1-placeholder'));
+    assert.ok(!codes.includes('academy:d1-placeholder'));
     assert.match(preview.find((f) => f.code === 'kv-shared')!.message, /cccccccccccccccccccccccccccccccc/);
     assert.ok(preview.every((f) => f.severity === 'error'));
   } finally {
@@ -159,24 +159,20 @@ test('the real repository has no configuration errors other than the shared KV n
 
 test('secret evaluation reports names only and distinguishes required, recommended and optional', () => {
   const found = evaluateSecrets(
-    'live',
+    'academy',
     'production',
-    new Set(['SESSION_SECRET', 'CLERK_SECRET_KEY_LIVE']),
+    new Set(['SESSION_SECRET', 'CLERK_SECRET_KEY_ACADEMY']),
     {},
   );
   const byCode = (c: string) => found.filter((f) => f.code === c).map((f) => f.message);
   assert.deepEqual(byCode('secret-missing'), []);
   assert.equal(byCode('secret-recommended').length, 2);
-  assert.match(byCode('clerk-partial')[0], /PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE/);
-  assert.ok(byCode('secret-optional').some((m) => m.includes('STRIPE_SECRET_KEY')));
+  assert.match(byCode('clerk-partial')[0], /PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY/);
   for (const name of [
-    'TICKET_QR_SECRET_GL1',
     'CUSTOMER_LINK_SECRET',
     'PII_HASH_SECRET',
-    'SCANNER_SESSION_SECRET',
     'TURNSTILE_SECRET_KEY',
-    'RESEND_WEBHOOK_SECRET',
-    'CLERK_WEBHOOK_SECRET_LIVE',
+    'CLERK_WEBHOOK_SECRET_ACADEMY',
   ])
     assert.ok(
       byCode('secret-optional').some((m) => m.startsWith(`${name} `)),
@@ -187,7 +183,7 @@ test('secret evaluation reports names only and distinguishes required, recommend
   });
   assert.deepEqual(
     web.filter((f) => f.code === 'secret-optional').map((f) => f.message.split(' ')[0]),
-    ['TURNSTILE_SECRET_KEY', 'CLERK_WEBHOOK_SECRET_WEB'],
+    ['RESEND_WEBHOOK_SECRET', 'TURNSTILE_SECRET_KEY', 'CLERK_WEBHOOK_SECRET_WEB'],
   );
 
   const admin = evaluateSecrets('admin', 'production', new Set(['SESSION_SECRET']), {
@@ -235,9 +231,9 @@ test('login detection and secret listing parse wrangler output without keeping v
 });
 
 test('CLI: argument validation', () => {
-  assert.deepEqual(parseArgs(['live', '--env', 'preview']).apps, ['live']);
+  assert.deepEqual(parseArgs(['academy', '--env', 'preview']).apps, ['academy']);
   assert.equal(parseArgs(['--env=production']).apps.length, APPS.length);
-  assert.throws(() => parseArgs(['live']), /Usage/);
+  assert.throws(() => parseArgs(['academy']), /Usage/);
   assert.throws(() => parseArgs(['--env', 'staging']), /Usage/);
   assert.throws(() => parseArgs(['nope', '--env', 'preview']), /Unknown app/);
 });

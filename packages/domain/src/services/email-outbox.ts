@@ -4,10 +4,10 @@
  * recipient address is stored for support and nulled after 180 days (`purgeRecipientEmails`), the
  * keyed hash (`hashEmail`) stays for suppression matching.
  *
- *   const r = await sendOutboxEmail(db, env, { kind: 'ticket_email', idempotencyKey: `ticket_email:${orderId}`,
- *     to, subject, html, text, attachments, relatedType: 'order', relatedId: orderId, product: 'live', now });
+ *   const r = await sendOutboxEmail(db, env, { kind: 'academy_receipt', idempotencyKey: `academy_receipt:${id}`,
+ *     to, subject, html, text, relatedType: 'academy_registration', relatedId: id, product: 'academy', now });
  *   if (r.status === 'not_configured' || r.status === 'failed')
- *     show("We couldn't send the email; download your tickets below.");
+ *     show("We couldn't send the email; your registration is saved.");
  *
  * - Same idempotency key again: a sent/delivered row is returned without sending; a queued/failed/
  *   not_configured row is retried (attempts counted, exponential backoff in `next_attempt_at`); a claimed
@@ -53,9 +53,9 @@ export const OUTBOX_LEASE_SECONDS = 60;
 export const RECIPIENT_EMAIL_RETENTION_SECONDS = 180 * 24 * 60 * 60;
 
 export interface OutboxMessage {
-  /** `[a-z0-9_]`, ≤ 64, e.g. `ticket_email`, `customer_link`, `academy_receipt`. */
+  /** `[a-z0-9_]`, ≤ 64, e.g. `customer_link`, `academy_receipt`. */
   kind: string;
-  /** Unique per message (≤ 256 chars, Resend's limit), e.g. `ticket_email:ord_…`. */
+  /** Unique per message (≤ 256 chars, Resend's limit), e.g. `academy_receipt:acr_…`. */
   idempotencyKey: string;
   to: string;
   subject: string;

@@ -59,11 +59,11 @@ export interface ApplicationPagesOptions {
 
 /**
  * Header options for one page response: Clerk and Turnstile origins from configuration
- * (`PUBLIC_TURNSTILE_SITE_KEY` present → Turnstile allowed), geolocation for Live, plus whatever the
- * page asked for with `requestSecurityHeaders(Astro.locals, …)` (form-action origins, camera).
+ * (`PUBLIC_TURNSTILE_SITE_KEY` present → Turnstile allowed), plus whatever the page asked for with
+ * `requestSecurityHeaders(Astro.locals, …)` (form-action origins, no-referrer).
  */
 export function pageSecurityHeaderOptions(
-  app: PublicApp,
+  _app: PublicApp,
   context: { url: URL; locals: GamoLocals },
   env: GamoEnv,
   enforceCsp: boolean,
@@ -74,11 +74,9 @@ export function pageSecurityHeaderOptions(
     clerkFrontendApi: clerk?.isConfigured ? clerk.issuer : undefined,
     enforceCsp,
     https: context.url.protocol === 'https:',
-    allowGeolocation: app === 'live',
     turnstile:
       typeof env.PUBLIC_TURNSTILE_SITE_KEY === 'string' && env.PUBLIC_TURNSTILE_SITE_KEY.trim() !== '',
     formActionOrigins: requested?.formActionOrigins,
-    camera: requested?.camera === true,
     noReferrer: requested?.noReferrer === true,
   };
 }

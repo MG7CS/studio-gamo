@@ -1,5 +1,5 @@
 /**
- * Gamo Live brand configuration for UI components. The configuration itself lives in
+ * Platform brand configuration for UI components. The configuration itself lives in
  * `@gamo/config/brand`; this module adds the request-time resolver used by layouts.
  */
 import { getPlatformBrandConfig, type PlatformBrandConfig, type PlatformBrandEnv } from '@gamo/config/brand';

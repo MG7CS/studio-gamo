@@ -1,7 +1,7 @@
 import type { GamoEnv } from '@gamo/config/env';
 import { hasProductAccess, type SessionData } from './index.ts';
 
-export type PublicApp = 'web' | 'worship' | 'academy' | 'live' | 'production';
+export type PublicApp = 'web' | 'worship' | 'academy' | 'production';
 const within = (path: string, base: string) => path === base || path.startsWith(`${base}/`);
 export function isPrivatePage(app: PublicApp, path: string): boolean {
   if (/^\/account\/(signin|signup|verify|recover|access-denied|signed-out|sso-callback)\/?$/.test(path))
@@ -11,16 +11,6 @@ export function isPrivatePage(app: PublicApp, path: string): boolean {
     web: ['/partner'],
     worship: ['/church', '/musician', '/check-in', '/admin', '/apply/status'],
     academy: ['/family', '/instructor', '/host', '/dashboard'],
-    live: [
-      '/organizer',
-      '/artist',
-      '/agent',
-      '/me',
-      '/workspaces',
-      '/promote/create',
-      '/promote/status',
-      '/promote/events',
-    ],
     production: ['/client', '/crew'],
   };
   return roots[app].some((base) => within(path, base));
@@ -67,7 +57,7 @@ export function canAccessPage(app: PublicApp, path: string, auth: SessionData): 
       (m) => ['church', 'school'].includes(m.orgType) && ['owner', 'admin'].includes(m.role),
     );
   if (app === 'production' && within(path, '/crew')) return role('production_crew', 'staff_reviewer');
-  // Live pages perform resource-scoped ownership checks; a Gamo Live account may start onboarding without a privileged role.
+  // Remaining private pages need only product access; they perform their own resource-scoped checks.
   return true;
 }
 export function isIsolatedDemo(request: Request, env: GamoEnv): boolean {

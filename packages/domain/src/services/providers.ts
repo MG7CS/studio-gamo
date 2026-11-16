@@ -6,7 +6,7 @@
  *
  *   1. verified email (the product verified it; the person exists only from a verified email),
  *   2. the role's onboarding steps are complete,
- *   3. the current Provider Terms (or Organizer Terms for organizers) are accepted,
+ *   3. the current Provider Terms are accepted,
  *   4. staff review where required — `STAFF_REVIEW_REQUIRED_ROLES` (church, musician, technician) and,
  *      for child safety, teachers (D-104); churches are verified after an in-person meeting,
  *   5. payout setup for paid events — Stripe Connect is not built, so this gate always reads
@@ -31,11 +31,11 @@ import { getTermsDocument } from '../terms/registry.ts';
 
 // --- Roles per product ----------------------------------------------------------------------
 
-/** Role chips on each product's sign-up screen (design §4.3). Web (the hub) has none. */
+/** Role chips on each product's sign-up screen (design §4.3). Web (the hub) has none; 'live' (removed) has none. */
 export const SIGNUP_ROLES: Readonly<Record<Product, readonly ProviderRole[]>> = {
   web: [],
   worship: ['musician', 'technician', 'church'],
-  live: ['organizer', 'artist', 'agent', 'church'],
+  live: [],
   academy: ['teacher', 'church'],
   production: ['technician'],
 };
@@ -76,8 +76,8 @@ export function requiresMeeting(role: ProviderRole): boolean {
 }
 
 /** The terms a provider of this role accepts before submitting or publishing. */
-export function providerTermsFor(role: ProviderRole): TermsSlug {
-  return role === 'organizer' ? 'organizer-terms' : 'provider-terms';
+export function providerTermsFor(_role: ProviderRole): TermsSlug {
+  return 'provider-terms';
 }
 
 // --- Step schemas ---------------------------------------------------------------------------

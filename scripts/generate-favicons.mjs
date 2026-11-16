@@ -46,7 +46,7 @@ function ico(images) {
   return Buffer.concat([header, ...images.map((im) => im.data)]);
 }
 
-const apps = ['web', 'worship', 'academy', 'live', 'production', 'admin'];
+const apps = ['web', 'worship', 'academy', 'production', 'admin'];
 const flat = flatSvg(RUST);
 const files = {
   'favicon.svg': Buffer.from(faviconSvg),

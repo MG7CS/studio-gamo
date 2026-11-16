@@ -5,9 +5,12 @@
 
 **Status:** Governing organizational direction, updated 2026-10-13. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and updates earlier assumptions that a single legal/tax form had already been finalized.
 
+> [!NOTE]
+> **Program scope changed (owner decision, 2026-11-16):** after conversations with church ministers and pastors, Gamo Studios runs **three programs: Gamo Academy, Gamo Worship and Gamo Production**. Gamo Live (events, ticketing, scanner, Promote/Explore Events) was dropped; its last state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot` (commit `1f764d6`). See [DECISIONS.md](DECISIONS.md). The church-partnership, sponsored-labeling and dynamic-homepage rules formerly kept in `GAMO_LIVE_AND_PARTNERS.md` now live in [§4](#4-church-partnerships) and [§6](#6-public-website-and-messaging) of this document.
+
 **This is the authoritative reference** for Gamo Studios' purpose, mission, programs, governance, sustainability and financial stewardship. Other documents link here and must not restate conflicting descriptions. If any repository document conflicts with this one on organizational purpose, programs, fees, membership or funding, **this document wins** and the conflict should be fixed.
 
-Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [GAMO_LIVE_AND_PARTNERS.md](GAMO_LIVE_AND_PARTNERS.md) · [README.md](../README.md) · [ROADMAP.md](../ROADMAP.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
+Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [README.md](../README.md) · [ROADMAP.md](../ROADMAP.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
 
 > [!IMPORTANT]
 > Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has **not** incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe payments or contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
@@ -30,7 +33,7 @@ Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) 
 
 Gamo Studios is a **Christian, mission-driven organization** serving churches, musicians, students, families, Christian artists and faith communities. Its purpose is **religious, educational and community service, not maximizing commercial returns.** Its software and financial architecture are **legal-structure-neutral** so they support the mission faithfully while final entity incorporation and tax status remain undecided.
 
-It strengthens Christian worship and community life through musical education, dependable worship support, accessible Christian events and shared technical resources. Gamo Studios builds and maintains the infrastructure, relationships, programs and resources that let:
+It strengthens Christian worship and community life through musical education, dependable worship support and shared technical resources. Gamo Studios builds and maintains the infrastructure, relationships, programs and resources that let:
 
 - talented musicians develop their skills and serve;
 - churches connect with qualified musicians;
@@ -111,20 +114,19 @@ Operating surplus is **reinvested** in programs, reserves, infrastructure, acces
 
 ### 2.4 Legal and tax review — *Pending approval*
 
-All legal- and tax-sensitive operational details require review by qualified U.S. legal and accounting professionals. In particular, **do not assume** a specific tax-exempt status or tax treatment for musician-engagement fees, ticketing fees, promotional services, production services, sponsorships or contributions. Keep the platform legal-structure-neutral; do not present unverified legal or tax conclusions as settled.
+All legal- and tax-sensitive operational details require review by qualified U.S. legal and accounting professionals. In particular, **do not assume** a specific tax-exempt status or tax treatment for musician-engagement fees, production services, sponsorships or contributions. Keep the platform legal-structure-neutral; do not present unverified legal or tax conclusions as settled.
 
 ---
 
 ## 3. The program ecosystem
 
-The four applications are **connected programs of one nonprofit mission**, not independent profit centers competing for attention. The technology, features and design already built are retained; what changes is **why** they exist, **how** they operate and **how** they are sustained.
+The three programs (Academy, Worship, Production) are **connected programs of one mission**, not independent profit centers competing for attention. The technology, features and design already built are retained; what changes is **why** they exist, **how** they operate and **how** they are sustained.
 
 | Program | Domain | Purpose |
 | --- | --- | --- |
 | Organization hub | `gamostudio.org` | Mission, programs, church partnerships, support pathways, account access, legal |
 | **Gamo Worship** | `worship.gamostudio.org` | Dependable worship music through connections with qualified, vetted musicians |
 | **Gamo Academy** | `academy.gamostudio.org` | Accessible instrument instruction for children, teens, adults and families |
-| **Gamo Live** | `live.gamostudio.org` | Trusted discovery, attendance, organizing and support of **Christian events** |
 | **Gamo Production** | `production.gamostudio.org` | Technical capacity for worship, education and Christian events |
 | Administration | `admin.gamostudio.org` | Governance, staff operations, program administration, financial accountability, reporting |
 
@@ -173,31 +175,7 @@ The four applications are **connected programs of one nonprofit mission**, not i
 
 **Safeguarding — Decided requirement.** Instruction involving minors requires a safeguarding policy, instructor screening, guardian consent and messaging rules **before** any real booking (see [SECURITY.md](../SECURITY.md)).
 
-### 3.3 Gamo Live
-
-**Purpose — Decided.** A trusted destination for discovering, attending, organizing and supporting **Christian events nationwide**. Eligibility is defined by Christian purpose, **not** ethnicity or nationality. Early activity may reflect the communities Gamo can reach first, but the platform is not limited to any ethnic or national community.
-
-**Supported events — Decided scope:** gospel concerts; Christian artist tours; worship nights; choir festivals; church conferences; prayer gatherings; Bible studies; Christian youth events; retreats; church community events; sponsored music workshops; free educational gatherings; recurring religious activities; other eligible Christian events. Non-Christian, political-campaign and secular commercial events are out of scope unless the board approves a policy change.
-
-**Two experiences — Decided:**
-
-- **Promote Event** — for churches, artists, ministries and authorized organizers.
-- **Explore Events** — for individuals, families and communities looking for events to attend.
-
-**Organizer capabilities — Decided scope:** submission; organizer identity and authority verification; review and approval; one-time and recurring schedules; free event discovery; optional registration; paid ticketing where applicable; official ticket distribution; QR admission where needed; updates and cancellations; organizer communication; attendance and ticket reports.
-
-**Trust — Decided.**
-
-- Distinguish **verified organizers** from unverified submissions.
-- Sell tickets **only** where Gamo has documented authorization from the organizer.
-- Show transparent prices, fees, refund policy and organizer information before purchase.
-- Never invent verified status, authorized relationships, ticket availability or real upcoming events.
-
-**Financial sustainability — Proposed.** Ticketing or registration administration fees may cover payment processing, platform operations, support and other legitimate costs. For free or sponsored religious and educational gatherings, minimize barriers to participation (free listing and free registration are the default intent; final policy Pending approval).
-
-**Promotion — Proposed.** Gamo may help churches and Christian organizers raise awareness through featured website placement, social media, community outreach, creative production, partner communications and sponsored campaigns. This is a **service to increase participation**, not the central purpose of Gamo Live. Paid placement is always labeled and distinguishable from editorial recommendations. Detailed rules: [GAMO_LIVE_AND_PARTNERS.md](GAMO_LIVE_AND_PARTNERS.md).
-
-### 3.4 Gamo Production
+### 3.3 Gamo Production
 
 **Purpose — Decided.** Strengthen churches' technical capacity for worship, education and Christian events.
 
@@ -211,16 +189,36 @@ The four applications are **connected programs of one nonprofit mission**, not i
 
 **Decided:** The *Gamo Church Partners* concept is retained but **redefined**. It is no longer primarily a subscription that buys advertising exposure or commercial discounts. It is a **sustained network of churches working together** to advance the religious and educational mission.
 
-**Potential participation — Proposed:** supporting instrument education; sponsoring students or instructors; hosting Academy classes; sharing community events through Gamo Live; accessing worship-musician coordination; collaborative music programs; appropriate operational support; contributing shared equipment and educational resources; supporting youth music development and outreach.
+**Potential participation — Proposed:** supporting instrument education; sponsoring students or instructors; hosting Academy classes; accessing worship-musician coordination; collaborative music programs; appropriate operational support; contributing shared equipment and educational resources; supporting youth music development and outreach.
 
 **Potential contribution structures — Proposed:** annual supporting-church contributions; monthly recurring contributions; program-specific sponsorships; institutional grants; in-kind donations; facility and equipment support; volunteer and professional contributions.
+
+**Ordinary participation never requires partnership — Decided.** Requesting musicians, enrolling students or asking for production help never requires a church to be a partner.
+
+**Ways a church may participate — Proposed:**
+
+| Area | Examples |
+| --- | --- |
+| Education | Host Academy classes; sponsor students, instructors or youth programs |
+| Worship | Participate in the musician network; collaborative music programs |
+| Resources | Contribute equipment, facilities, volunteers or professional skills |
+| Support | Annual or monthly supporting contributions; program sponsorships; in-kind gifts |
 
 **Rules — Decided:**
 
 - **No mandatory prices or membership tiers** without founder/board approval.
 - Do not assume a payment is a tax-deductible gift when the church receives substantial goods or services in return (quid pro quo disclosure rules may apply after recognition).
 - **No pay-to-win.** Partnership never produces preferential vetting outcomes, musician rankings, trust indicators or exclusive access to shared community resources.
-- Any partner recognition on the website must reflect **signed, real** relationships.
+- Any partner recognition on the website must reflect **signed, real** relationships; no church is named as a partner on public pages without a signed agreement.
+- Musicians' agreed pay is never reduced to fund partner benefits.
+
+### 4.1 Sponsored content labeling — *Decided*
+
+- Paid or sponsored placements are **always labeled "Sponsored"** and visually distinct from editorial picks, which are labeled **"Featured"**; Gamo's own program content is labeled **"Gamo Program"**; design-phase content is labeled **"Example"**.
+- Partnership, sponsorship or payment **never** influences musician vetting, reliability rankings, professional scores, trust indicators or access to shared community resources.
+- Staff manage any awareness campaign manually. No advertising-platform API (Meta, Google, TikTok, etc.) is assumed connected; any integration requires separate approval.
+- Staff may reject sponsored content or creative that falls outside the Christian mission or content policy.
+- Sponsored density on any page is capped (value Pending approval).
 
 ---
 
@@ -240,8 +238,7 @@ The four applications are **connected programs of one nonprofit mission**, not i
 8. In-kind contributions of instruments, equipment and facilities.
 9. Appropriate cost-sharing for music instruction.
 10. Reasonable administrative allocations associated with facilitated musician engagements.
-11. Reasonable ticketing or registration administration fees.
-12. Mission-aligned event and production service cost recovery.
+11. Mission-aligned production service cost recovery.
 
 These sustain programs; they are **not** separate profit centers that must individually maximize returns. Other channels may be added later. **No financial projections, contribution rates, fee percentages or prices are approved.** Do not invent them.
 
@@ -264,8 +261,8 @@ These sustain programs; they are **not** separate profit centers that must indiv
 | --- | --- | --- |
 | `charitable_contribution` | Donations and gifts (restricted or unrestricted) | Yes — contribution income |
 | `sponsorship` | Program or event sponsorships (may include recognition benefits) | Yes — treatment Pending review |
-| `program_service_receipt` | Tuition, administrative service charges, production cost recovery, ticketing administration fees | Yes — earned program income |
-| `third_party_payable` | Musician pay, instructor pay, ticket proceeds owed to organizers, organizer-funded media budgets | **No** — held for and paid to third parties |
+| `program_service_receipt` | Tuition, administrative service charges, production cost recovery | Yes — earned program income |
+| `third_party_payable` | Musician pay, instructor pay, other amounts collected for and owed to third parties | **No** — held for and paid to third parties |
 | `processing_cost` | Payment-processor fees | Expense |
 | `refund` / `dispute` | Reversals and chargebacks | Adjustment |
 
@@ -276,11 +273,16 @@ Stripe Connect may be the payout rail; **Stripe is not a regulated escrow servic
 ## 6. Public website and messaging
 
 - **Hero:** "**Keep Worship Going.**" remains the recognizable brand message. The homepage must not imply Gamo exists only to supply musicians to churches.
-- The homepage introduces Gamo as a **unified Christian music and community organization** and shows how the four programs work together.
-- Audiences: churches and ministries; musicians; students and families; Christian artists; event organizers; people discovering events; potential supporting churches; donors and sponsors; community partners.
-- A **dynamic hero** may eventually spotlight the mission, sponsored programs, concerts, events, Academy, Worship opportunities, church partnerships and special initiatives. **No carousel is implemented without explicit approval.**
+- The homepage introduces Gamo as a **unified Christian music and community organization** and shows how the three programs work together.
+- Audiences: churches and ministries; musicians; students and families; Christian artists; potential supporting churches; donors and sponsors; community partners.
+- A **dynamic hero** may eventually spotlight the mission, sponsored programs, Academy, Worship opportunities, Production support, church partnerships and special initiatives. **No carousel is implemented without explicit approval.** Future content rules (not approved for implementation):
+  - The approved hero composition is preserved; slides swap content within it.
+  - **Motion:** auto-advance ~8–10 s; manual prev/next and indicators; pause on hover, focus and interaction; no auto-rotation under `prefers-reduced-motion`; pause control available.
+  - **Not hardcoded:** slides eventually come from placement records weighing campaign window, approximate location, editorial priority and mission priorities. Partnership status may grant recognition but never displaces mission/editorial balance.
+  - **Geographic relevance** is approximate, opt-outable and never required.
+  - Each slide is labeled *Sponsored*, *Featured* (editorial) or *Gamo Program* (see [§4.1](#41-sponsored-content-labeling--decided)); design-phase slides are labeled *Example*.
 - **Church Partnerships** and **Support Our Mission** pathways are planned (see [SCREEN_INVENTORY.md](SCREEN_INVENTORY.md)). Until legal and donation infrastructure is ready: **no donation processing, no tax-deductibility claims.**
-- Footer: Our Mission · Gamo Worship · Gamo Academy · Gamo Live · Gamo Production · Church Partnerships · Opportunities to Support · Contact and legal — with accurate legal status only (§2.1 wording).
+- Footer: Our Mission · Gamo Worship · Gamo Academy · Gamo Production · Church Partnerships · Opportunities to Support · Contact and legal — with accurate legal status only (§2.1 wording).
 - All fictional musicians, events, bookings and profiles stay labeled as samples.
 
 ---
@@ -314,8 +316,8 @@ Financial sustainability is important, but it is **subordinate to the mission**.
 | 6 | Musician and instructor worker classification | Legal counsel |
 | 7 | Academy tuition, sliding-scale and scholarship policy | Board |
 | 8 | Minor safeguarding policy, screening provider and guardian consent | Board + legal counsel |
-| 9 | Gamo Live eligibility/content policy, verification standard, free-event policy | Board |
-| 10 | Ticketing/registration administration fee: amount, payer, refund policy | Board + legal/tax review |
+| 9 | ~~Gamo Live eligibility/content policy, verification standard, free-event policy~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
+| 10 | ~~Ticketing/registration administration fee: amount, payer, refund policy~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
 | 11 | Paid placement / sponsored-campaign policy and density cap | Board |
 | 12 | Church partnership contribution structures, recognition and benefits | Board + tax review |
 | 13 | Donation acknowledgment, restricted-fund and gift acceptance policies | Board + accountant |
@@ -336,5 +338,6 @@ Financial sustainability is important, but it is **subordinate to the mission**.
 | Revenue-based promotion rankings / pay-to-win placement | Superseded → prohibited |
 | Separate profitable business verticals | Superseded → connected nonprofit programs |
 | Gamo Live framed around a specific ethnic community | Superseded → Christian events nationwide |
+| Gamo Live as a fourth program (events, ticketing, scanner) | Dropped 2026-11-16 → three programs; archived at tag `four-programs-snapshot` |
 | Academy framed mainly as worship-team training / commission source | Superseded → education for individuals and families first |
 | "Escrow" language for held funds | Always prohibited |

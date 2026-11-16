@@ -3,7 +3,7 @@
 # In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/web.
 
 # OPTIONAL. Clerk sign-in for this product only. When unset, sign-in uses Gamo's own email
-# verification codes (D1 sessions). Use this product's own Clerk application — never Gamo Live's
+# verification codes (D1 sessions). Use this product's own Clerk application — never another product's
 # keys (the app refuses to start auth with them). Locally the un-suffixed names (CLERK_SECRET_KEY, …) also work; a deployed Worker reads only the *_WEB names.
 # Local development uses the Clerk DEVELOPMENT instance (pk_test_/sk_test_). Production keys are never kept here:
 # set them with scripts/set-clerk-secrets.sh --env production (docs/AUTH.md). CLERK_JWT_KEY is a PEM public key,
@@ -32,3 +32,6 @@ TURNSTILE_SECRET_KEY=
 CLERK_WEBHOOK_SECRET_WEB=
 # OPTIONAL. "true" shows "Continue with Google" — only once Google is enabled in this product's own Clerk app.
 CLERK_GOOGLE_ENABLED_WEB=
+
+# Resend webhook signing secret (Svix). Without it /api/webhook/resend answers 503.
+RESEND_WEBHOOK_SECRET=

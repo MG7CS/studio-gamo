@@ -2,17 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SecretNotConfiguredError } from './crypto.ts';
 import { clientIp, hashEmail, hashIp, hashPii, isPlausibleEmail, normalizeEmail } from './pii-hash.ts';
-import {
-  generateScannerPin,
-  hashScannerPin,
-  isWellFormedPin,
-  PIN_PBKDF2_ITERATIONS,
-  verifyScannerPin,
-} from './pin.ts';
 import { signValue, verifySignedValue } from './signed-value.ts';
 
 const PII = 'pii-hash-secret-for-tests-only-000000001';
-const PEPPER = 'scanner-session-secret-for-tests-0000001';
 
 test('pii hashing: keyed, deterministic, domain-separated, fails closed without a secret', async () => {
   const a = await hashPii('203.0.113.7', PII);
@@ -41,44 +33,12 @@ test('email normalisation keeps dots and plus-tags; plausibility check is simple
 });
 
 test('clientIp trusts only cf-connecting-ip', () => {
-  const req = (headers: Record<string, string>) => new Request('https://live.gamostudio.org/', { headers });
+  const req = (headers: Record<string, string>) => new Request('https://gamostudio.org/', { headers });
   assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' })), '203.0.113.7');
   assert.equal(clientIp(req({ 'cf-connecting-ip': '2001:db8::1' })), '2001:db8::1');
   assert.equal(clientIp(req({ 'x-forwarded-for': '198.51.100.1' })), null);
   assert.equal(clientIp(req({ 'cf-connecting-ip': '<script>' })), null);
   assert.equal(clientIp(req({})), null);
-});
-
-test('scanner PINs: 6 digits, uniform-looking, PBKDF2 with salt and pepper, constant-time verify', async () => {
-  const pins = Array.from({ length: 2000 }, generateScannerPin);
-  assert.ok(pins.every(isWellFormedPin));
-  assert.ok(new Set(pins).size > 1900, 'no obvious repetition');
-  const firstDigits = new Map<string, number>();
-  for (const p of pins) firstDigits.set(p[0], (firstDigits.get(p[0]) ?? 0) + 1);
-  assert.equal(firstDigits.size, 10, 'leading zeros and every digit occur');
-
-  const stored = await hashScannerPin('012345', { pepper: PEPPER });
-  assert.match(stored.hash, new RegExp(`^pbkdf2_sha256\\$${PIN_PBKDF2_ITERATIONS}\\$[0-9a-f]{64}$`));
-  assert.match(stored.salt, /^[0-9a-f]{32}$/);
-  assert.notEqual((await hashScannerPin('012345', { pepper: PEPPER })).hash, stored.hash, 'salted');
-  assert.equal(await verifyScannerPin('012345', stored, { pepper: PEPPER }), true);
-  assert.equal(await verifyScannerPin('012346', stored, { pepper: PEPPER }), false);
-  assert.equal(await verifyScannerPin('012345', stored), false, 'the pepper is required');
-  assert.equal(await verifyScannerPin('012345', stored, { pepper: PEPPER.replace('1', '2') }), false);
-  for (const bad of ['12345', '1234567', 'abcdef', 12345, null])
-    assert.equal(await verifyScannerPin(bad, stored, { pepper: PEPPER }), false, String(bad));
-  assert.equal(await verifyScannerPin('012345', { hash: 'md5$x', salt: stored.salt }), false);
-  assert.equal(
-    await verifyScannerPin('012345', { hash: 'pbkdf2_sha256$999999999$aa', salt: stored.salt }),
-    false,
-  );
-  assert.equal(await verifyScannerPin('012345', { hash: stored.hash, salt: 'zz' }), false);
-  await assert.rejects(() => hashScannerPin('12a456'), RangeError);
-  await assert.rejects(
-    () => hashScannerPin('123456', { iterations: 200_000 }),
-    RangeError,
-    'Workers cap PBKDF2 at 100 000',
-  );
 });
 
 test('signed values: tamper-evident, expiring, purpose-bound', async () => {
@@ -100,7 +60,7 @@ test('signed values: tamper-evident, expiring, purpose-bound', async () => {
     'expired',
   );
   assert.equal(
-    await verifySignedValue({ signed, now: 1, secret, purpose: 'scanner-device' }),
+    await verifySignedValue({ signed, now: 1, secret, purpose: 'other-purpose' }),
     null,
     'other purpose',
   );
@@ -140,8 +100,8 @@ test('signed values: tamper-evident, expiring, purpose-bound', async () => {
         expiresAt: 1,
         secret: undefined,
         purpose: 'p',
-        secretName: 'SCANNER_SESSION_SECRET',
+        secretName: 'CUSTOMER_SESSION_SECRET',
       }),
-    (e: unknown) => e instanceof SecretNotConfiguredError && e.variable === 'SCANNER_SESSION_SECRET',
+    (e: unknown) => e instanceof SecretNotConfiguredError && e.variable === 'CUSTOMER_SESSION_SECRET',
   );
 });

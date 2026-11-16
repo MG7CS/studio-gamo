@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 
-const require = createRequire(new URL('../../apps/live/package.json', import.meta.url));
+const require = createRequire(new URL('../../apps/academy/package.json', import.meta.url));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -40,7 +40,6 @@ const mf = new Miniflare({
           SESSION_SECRET: 'browser-e2e-workerd-secret-0123456789abcdef',
           ENVIRONMENT: 'local',
           ALLOW_AUTH_SIMULATION: 'true',
-          STRIPE_SANDBOX_ENABLED: 'false',
         },
       },
     ],
@@ -58,7 +57,7 @@ const signupTerms = () => ['site-terms', 'privacy-policy'].map((slug) => ({ slug
 const hashOtp = async (email, code) => {
   const buf = await crypto.subtle.digest(
     'SHA-256',
-    new TextEncoder().encode(`${email.toLowerCase()}:signin:live:signup:${code}`),
+    new TextEncoder().encode(`${email.toLowerCase()}:signin:academy:signup:${code}`),
   );
   return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
 };
@@ -120,33 +119,7 @@ try {
   const orgId = await page.getAttribute('[data-org-current]', 'data-org-id');
   assert.ok(orgId?.startsWith('org_'));
 
-  // 4. Create a free event (capacity = 2) from the authenticated browser session
-  const createdEvent = await page.evaluate(async (organizationId) => {
-    const res = await fetch('/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        organizationId,
-        title: 'Browser E2E Free Worship Night',
-        category: 'worship',
-        tagline: 'Community worship night',
-        description: 'Open gathering for prayer and worship.',
-        venueName: 'Grace Sanctuary',
-        address: '100 Main St',
-        city: 'Dallas',
-        state: 'TX',
-        startsAt: '2026-12-01T19:00:00Z',
-        timezone: 'America/Chicago',
-        admissionType: 'free',
-        tiers: [{ name: 'Free Registration', priceCents: 0, capacity: 2 }],
-      }),
-    });
-    return { status: res.status, body: await res.json() };
-  }, orgId);
-  assert.equal(createdEvent.status, 201, JSON.stringify(createdEvent.body));
-  const eventId = createdEvent.body.data.event.id;
-
-  // 5. Provision a superadmin + staff reviewer in D1/API and approve the event
+  // 4. Provision a superadmin + staff reviewer in D1/API; the reviewer signs in with a verified code
   await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -231,67 +204,10 @@ try {
       terms: signupTerms(),
     }),
   });
-  const staffCookie = staffVerify.headers.get('set-cookie').split(';')[0];
+  assert.equal(staffVerify.status, 200);
+  assert.ok(staffVerify.headers.get('set-cookie')?.includes('='));
 
-  const approveRes = await mf.dispatchFetch(`${baseUrl}/api/events/${eventId}/review`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      cookie: staffCookie,
-      'cf-access-authenticated-user-email': 'reviewer-e2e@gamostudio.org',
-      'cf-access-authenticated-user-id': 'cf-access-sub-browser-e2e',
-    },
-    body: JSON.stringify({ decision: 'approved', notes: 'Approved for browser E2E test' }),
-  });
-  assert.equal(approveRes.status, 200);
-
-  // 6. Reserve 2 free tickets in the browser, confirm the emailed code, and get 2 signed tickets
-  await page.goto(`${baseUrl}/events/${eventId}/register`, { waitUntil: 'networkidle' });
-  await page.fill('[data-reg-form] input[name="attendeeName"]', 'Hannah Attendee');
-  await page.fill('[data-reg-form] input[name="attendeeEmail"]', 'hannah@example.org');
-  await page.fill('[data-reg-form] input[name="quantity"]', '2');
-  await page.click('[data-reg-submit]');
-  await page.waitForSelector('[data-confirm-form]:not([hidden])');
-  const confirmToken = await page.getAttribute('[data-free-registration]', 'data-confirm-token');
-  const { code } = await (
-    await mf.dispatchFetch(`${baseUrl}/test/order-code?t=${encodeURIComponent(confirmToken)}`)
-  ).json();
-  assert.match(code, /^\d{6}$/);
-  // Nothing is issued before the email is confirmed; the seats are held.
-  assert.equal((await db.prepare('SELECT count(*) n FROM tickets').first()).n, 0);
-  await page.fill('[data-confirm-form] input[name="code"]', code);
-  await page.click('[data-confirm-submit]');
-  await page.waitForFunction(() =>
-    (document.querySelector('[data-reg-status]')?.textContent || '').includes('Tickets issued: 2'),
-  );
-
-  const orderRow = await db
-    .prepare("SELECT status, quantity FROM ticket_orders WHERE purchaser_email = 'hannah@example.org'")
-    .first();
-  assert.deepEqual(
-    { status: orderRow.status, quantity: orderRow.quantity },
-    { status: 'confirmed', quantity: 2 },
-  );
-  assert.equal((await db.prepare("SELECT count(*) n FROM tickets WHERE status = 'valid'").first()).n, 2);
-  // The ticket email went through the outbox (simulated locally).
-  const emailRow = await db
-    .prepare("SELECT status FROM email_log WHERE kind = 'ticket_confirmation'")
-    .first();
-  assert.ok(['sent', 'not_configured'].includes(emailRow.status));
-
-  // 7. A registration that does not fit the remaining capacity is refused with an explanation
-  await page.goto(`${baseUrl}/events/${eventId}/register`, { waitUntil: 'networkidle' });
-  await page.fill('[data-reg-form] input[name="attendeeName"]', 'Late Guest');
-  await page.fill('[data-reg-form] input[name="attendeeEmail"]', 'late@example.org');
-  await page.fill('[data-reg-form] input[name="quantity"]', '2');
-  await page.click('[data-reg-submit]');
-  await page.waitForFunction(() =>
-    (document.querySelector('[data-reg-status]')?.textContent || '').includes('Not enough tickets'),
-  );
-  const capErrorText = await page.textContent('[data-reg-status]');
-  assert.match(capErrorText || '', /Not enough tickets are left/);
-
-  // 8. Navigate back to /account/signin, click Sign out, and verify session termination in browser
+  // 5. Navigate back to /account/signin, click Sign out, and verify session termination in browser
   await page.goto(`${baseUrl}/account/signin`, { waitUntil: 'networkidle' });
   await page.waitForSelector('[data-step-authenticated]:not([hidden])');
   await page.click('[data-btn-signout]');

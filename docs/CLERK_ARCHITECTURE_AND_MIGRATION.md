@@ -1,11 +1,13 @@
 # Gamo Studios — Independent Clerk Authentication Architecture & Migration Guide
 
+> **2026-11-16:** Gamo Live (`apps/live`) and its Clerk application (`app_3KlWyOBL2xL2YzhJuvgk8QdrWIt`) were removed from the repository; the owner may delete that Clerk application. The four public products are web, worship, academy and production. Current, shorter reference: [AUTH.md](AUTH.md).
+
 ## 1. Architectural Mandate
 
 Every Gamo Studios product operates its own **independent Clerk application, authentication lifecycle, sessions, and user accounts**, while reusing the single approved Gamo shared authentication UI (`@studio-gamo/ui/components/auth/*`).
 
 1. **Product Account Independence**:
-   - Registering on Gamo Live (`apps/live`) creates an account **only** in Gamo Live. It never creates or links an account in Gamo Academy, Gamo Worship, Gamo Production, or Gamo Studios (`apps/web`).
+   - Registering on Gamo Academy (`apps/academy`) creates an account **only** in Gamo Academy. It never creates or links an account in Gamo Worship, Gamo Production, or Gamo Studios (`apps/web`).
    - Users may register with the same email address across multiple Gamo products; each product maintains an isolated Clerk user ID and an isolated D1 `product_accounts` + `clerk_identity_links` record.
    - Cross-product session tokens (`__session` cookie or `Authorization: Bearer <jwt>`) are cryptographically rejected (`401`/`403`) via product-specific RSA keys (`CLERK_JWT_KEY_<PRODUCT>` / `CLERK_SECRET_KEY_<PRODUCT>`), issuer (`iss`) validation, and `authorizedParties` (`azp`) checks.
 2. **Internal Admin Boundary (`apps/admin`)**:
@@ -32,12 +34,6 @@ studio-gamo/
 │   ├── web/
 │   │   ├── .env                # Gamo Studios Clerk keys (gitignored)
 │   │   ├── .env.example        # Gamo Studios Clerk template (tracked)
-│   │   ├── .dev.vars           # Optional local Worker secret overrides (gitignored)
-│   │   └── .dev.vars.example   # Local Worker secret template (tracked)
-│   │
-│   ├── live/
-│   │   ├── .env                # Gamo Live Clerk keys (gitignored)
-│   │   ├── .env.example        # Gamo Live Clerk template (tracked)
 │   │   ├── .dev.vars           # Optional local Worker secret overrides (gitignored)
 │   │   └── .dev.vars.example   # Local Worker secret template (tracked)
 │   │
@@ -85,7 +81,6 @@ studio-gamo/
 
 | Product | Workspace Package | Local Config Files | Clerk App ID | Status | Local Dev Origin | Production Domain(s) | Supported Clerk Variable Names |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gamo Live** | `apps/live` | `apps/live/.env`<br>`apps/live/.dev.vars` | `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` | **Provisioned by Founder** | `http://127.0.0.1:4324` | `https://live.gamostudio.org` | `PUBLIC_CLERK_PUBLISHABLE_KEY` / `PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE`<br>`CLERK_SECRET_KEY` / `CLERK_SECRET_KEY_LIVE` |
 | **Gamo Studios** | `apps/web` | `apps/web/.env`<br>`apps/web/.dev.vars` | `pending_clerk_app_gamo_web` | Pending Founder Approval | `http://127.0.0.1:4321` | `https://gamostudio.org`, `https://www.gamostudio.org` | `PUBLIC_CLERK_PUBLISHABLE_KEY` / `PUBLIC_CLERK_PUBLISHABLE_KEY_WEB`<br>`CLERK_SECRET_KEY` / `CLERK_SECRET_KEY_WEB` |
 | **Gamo Worship** | `apps/worship` | `apps/worship/.env`<br>`apps/worship/.dev.vars` | `pending_clerk_app_gamo_worship` | Pending Founder Approval | `http://127.0.0.1:4322` | `https://worship.gamostudio.org` | `PUBLIC_CLERK_PUBLISHABLE_KEY` / `PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP`<br>`CLERK_SECRET_KEY` / `CLERK_SECRET_KEY_WORSHIP` |
 | **Gamo Academy** | `apps/academy` | `apps/academy/.env`<br>`apps/academy/.dev.vars` | `pending_clerk_app_gamo_academy` | Pending Founder Approval | `http://127.0.0.1:4323` | `https://academy.gamostudio.org` | `PUBLIC_CLERK_PUBLISHABLE_KEY` / `PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY`<br>`CLERK_SECRET_KEY` / `CLERK_SECRET_KEY_ACADEMY` |
@@ -93,13 +88,13 @@ studio-gamo/
 | **Gamo Admin** | `apps/admin` | `apps/admin/.env`<br>`apps/admin/.dev.vars` | *N/A (Cloudflare Access + Admin Gate)* | Active Internal Boundary | `http://127.0.0.1:4326` | `https://admin.gamostudio.org` | `CF_ACCESS_TEAM_NAME`, `CF_ACCESS_AUD`, `REQUIRE_ADMIN_AUTH` |
 
 > [!IMPORTANT]
-> `resolveProductClerkConfig()` in [`packages/auth/clerk.ts`](file:///Users/gamo/Desktop/studio-gamo/packages/auth/clerk.ts) enforces a hard runtime guard: if `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or Gamo Live's publishable/secret keys are ever configured on `web`, `worship`, `academy`, or `production`, the server immediately throws `403 FORBIDDEN`.
+> `resolveProductClerkConfig()` in [`packages/auth/clerk.ts`](file:///Users/gamo/Desktop/studio-gamo/packages/auth/clerk.ts) enforces a hard runtime guard: if `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` or Gamo Live's publishable/secret keys are ever configured on `web`, `worship`, `academy`, or `production`, the server immediately throws `403 FORBIDDEN`. *(Gamo Live was removed on 2026-11-16; this guard may be retired in the second cleanup.)*
 
 ---
 
 ## 3. Shared Authentication Component Inventory
 
-All five public products render the same shared components from `packages/ui/src/components/auth/` inside `Layout` with `chrome={false}`:
+All four public products render the same shared components from `packages/ui/src/components/auth/` inside `Layout` with `chrome={false}`:
 
 - [`GamoAuthExperience.astro`](file:///Users/gamo/Desktop/studio-gamo/packages/ui/src/components/auth/GamoAuthExperience.astro) — Reads `Astro.locals.clerkConfig` (populated by [`page-middleware.ts`](file:///Users/gamo/Desktop/studio-gamo/packages/domain/src/api/page-middleware.ts)) and passes `clerkPublishableKey` and `clerkAppId` to `AuthLayout`.
 - [`AuthLayout.astro`](file:///Users/gamo/Desktop/studio-gamo/packages/ui/src/components/auth/AuthLayout.astro) — Full-viewport split-screen layout with `AuthPhotoPanel.astro` and `AuthCurvedDivider.astro`, binding `data-clerk-publishable-key` and `data-clerk-app-id` on `[data-verified-auth]`.
@@ -125,7 +120,7 @@ When a user authenticates with a verified Clerk JWT on product `P` (`resolveOrPr
 1. **Existing Link**: If `(P, clerkUserId)` exists in `clerk_identity_links` and `clerk_issuer` matches, resolves the linked D1 `user_id` and `product_account_id`.
 2. **Same-Product Legacy Claim (`verified_domain_claim`)**: If no Clerk link exists yet, checks whether an **unlinked** `product_accounts` row already exists for `(legacyUser.id, P)` with the same verified email.
    - If found, links that existing `product_accounts` row to `(P, clerkAppId, clerkUserId, clerkIssuer)` and records an audit log (`clerk.legacy_product_account_claimed`).
-   - All existing `events`, `organizer_profiles`, `organization_members`, `artist_profiles`, `artist_representatives`, `representation_authorizations`, `enrollments`, `musician_profiles`, `production_requests`, and `participation_inquiries` remain intact.
+   - All existing `organization_members`, `enrollments`, `musician_profiles` and `participation_inquiries` remain intact. (The Live tables and the unused `production_requests` table listed here before 2026-11-16 were dropped in migration `0018`.)
 3. **Cross-Product Email Isolation (`clerk_registration`)**: If the email exists in D1 **only under other products** (or does not exist at all), the system **never** merges or links with the other product's user record. Instead, it creates a dedicated product-scoped D1 user (`usr_<product>_<clerkUserId>`) and `product_accounts` row (`pacc_<product>_<clerkUserId>`).
 
 ### Rollback Plan
@@ -136,33 +131,7 @@ When a user authenticates with a verified Clerk JWT on product `P` (`resolveOrPr
 
 ## 5. Owner Provisioning Steps for Remaining Clerk Applications
 
-### A. Configure Gamo Live (`apps/live` — `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt`)
-1. In the Clerk Dashboard for application `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt`:
-   - Enable **Email Address** with **Email verification code (OTP)** for both Sign-up and Sign-in.
-   - Under **Session management → Customize session token**, include claims:
-     ```json
-     {
-       "email": "{{user.primary_email_address}}",
-       "email_verified": "{{user.email_verified}}",
-       "name": "{{user.full_name}}",
-       "product": "live",
-       "app_id": "app_3KlWyOBL2xL2YzhJuvgk8QdrWIt"
-     }
-     ```
-   - Set **Paths / Component paths** to custom application routes:
-     - Sign-in URL: `/account/signin`
-     - Sign-up URL: `/account/signup`
-     - After sign-in / sign-up fallback: `/account`
-   - Set **Allowed Origins / Authorized Parties**:
-     - Development: `http://127.0.0.1:4324`, `http://localhost:4324`
-     - Production: `https://live.gamostudio.org`
-2. Populate `apps/live/.env` (from `apps/live/.env.example`) or `apps/live/.dev.vars` (from `apps/live/.dev.vars.example`) for local dev, and set Cloudflare Worker secrets for preview/production:
-   ```bash
-   pnpm --filter apps-live exec wrangler secret put CLERK_SECRET_KEY_LIVE --env production
-   pnpm --filter apps-live exec wrangler secret put CLERK_JWT_KEY_LIVE --env production
-   ```
-
-### B. Provision the 4 Remaining Clerk Applications (Upon Founder Approval)
+### Provision the 4 Clerk Applications (Upon Founder Approval)
 Create **four separate Clerk applications** in the Clerk Dashboard (or via `npx @clerk/cli@latest` per app directory):
 1. **Gamo Studios (`apps/web/.env`)** → Set `PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` (or `CLERK_APP_ID_WEB`, `PUBLIC_CLERK_PUBLISHABLE_KEY_WEB`, `CLERK_SECRET_KEY_WEB`, `CLERK_JWT_KEY_WEB`, `CLERK_ISSUER_WEB`).
 2. **Gamo Worship (`apps/worship/.env`)** → Set `PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` (or `CLERK_APP_ID_WORSHIP`, `PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP`, `CLERK_SECRET_KEY_WORSHIP`, `CLERK_JWT_KEY_WORSHIP`, `CLERK_ISSUER_WORSHIP`).
@@ -172,5 +141,5 @@ Create **four separate Clerk applications** in the Clerk Dashboard (or via `npx 
 For each application:
 - Enable **Email verification code (OTP)** for Sign-up and Sign-in.
 - Configure custom session token claims with `"product": "<web|worship|academy|production>"`.
-- Restrict cookies to the product's own host (`live.gamostudio.org`, `academy.gamostudio.org`, `worship.gamostudio.org`, `production.gamostudio.org`, `gamostudio.org`) — **never** set a shared `.gamostudio.org` Clerk session cookie across products.
+- Restrict cookies to the product's own host (`academy.gamostudio.org`, `worship.gamostudio.org`, `production.gamostudio.org`, `gamostudio.org`) — **never** set a shared `.gamostudio.org` Clerk session cookie across products.
 

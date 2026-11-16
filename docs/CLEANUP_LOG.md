@@ -724,3 +724,12 @@ Files: `packages/domain/src/services/academy-registrations.ts` (+ test, 6 cases)
 | D-121 | Event review rules | only the form handler | `AdminService.reviewEvent` applies `assertNotSelfReview` and records the first approval/verification record for every caller. |
 | D-122 | Event team | any editor | Only org owner/admin grants ticketing, scanning or production access, changes or reinstates an existing row, or revokes (DELETE `/api/events/{id}/team`, audited). Non-admins may add new members without those flags. |
 | D-123 | API caching | per handler | Page middleware adds `Cache-Control: no-store` to any `/api/*` response lacking one. |
+
+## 2026-11-16 — First program cleanup: Gamo Live removed (not deployed)
+
+- **Why:** owner decision after talking with church ministers and pastors — the important work is Gamo Academy, the Gamo Worship musician/church tech network and Gamo Production. Gamo Live is dropped.
+- **Snapshot:** commit `1f764d6` = branch `archive/four-programs-2026-11-16` = tag `four-programs-snapshot`.
+- **Scope (rule: remove the Live app and what is unique to it, keep what public pages or admin still use):** `apps/live` and workers; Live-only services, security (ticket QR, scanner PIN), types, Stripe ticket helpers, unused `PaymentService`; Live OpenAPI paths and admin event/organizer review paths; web/admin Live surfaces; Live tests, scripts and docs; migration `0018` drops the Live tables plus unused payment/ledger/webhook tables. CHECK constraints listing `'live'` are kept.
+- **Kept for cleanup two:** shared account, sign-in, Clerk, customer-link, email and Academy Stripe code. Cleanup two (designed separately) will make the remaining programs simple forms, emails and invoices with the admin dashboard as the only dashboard.
+- **Superseded entries above:** findings, decisions and owner questions in this log that concern Gamo Live (ticketing, scanner, events, D-113, D-121, D-122, O-13/H-03 catalog) are closed by removal; they are left as written.
+- **Owner actions:** `docs/RUNBOOK.md` §12.

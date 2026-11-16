@@ -21,17 +21,6 @@ const PRIVATE_SAMPLES: Record<PublicApp, string[]> = {
     '/account/signin',
   ],
   academy: ['/family', '/instructor/classes', '/host/rooms', '/dashboard', '/account/verify'],
-  live: [
-    '/organizer/dashboard',
-    '/artist/profile',
-    '/agent/clients',
-    '/me/tickets',
-    '/workspaces',
-    '/promote/create',
-    '/promote/status',
-    '/promote/events/evt_1/edit',
-    '/account/recover',
-  ],
   production: ['/client', '/client/projects', '/crew/schedule', '/account/signin'],
 };
 

@@ -118,19 +118,19 @@ test('fresh identity verifies once, persists across logout and repeat sign-in, a
   }
 });
 
-test('registering for Gamo Live creates a Gamo Live account only and blocks access to Academy, Worship, and Production until explicitly enrolled', async () => {
+test('registering for Gamo Production creates a Gamo Production account only and blocks access to Academy, Worship, and Studios until explicitly enrolled', async () => {
   const f = await fixture();
   try {
-    const liveAuth = createAuthHandlers('live');
+    const productionAuth = createAuthHandlers('production');
     const academyAuth = createAuthHandlers('academy');
     const worshipAuth = createAuthHandlers('worship');
-    const productionAuth = createAuthHandlers('production');
+    const webAuth = createAuthHandlers('web');
 
-    const email = 'live.only@example.invalid';
-    const chalRes = await liveAuth.challengePOST(
+    const email = 'production.only@example.invalid';
+    const chalRes = await productionAuth.challengePOST(
       f.context('/api/auth/challenge', {
         email,
-        displayName: 'Live Participant',
+        displayName: 'Production Participant',
         intent: 'signup',
         ...LOCAL_TURNSTILE,
       }),
@@ -139,43 +139,44 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     const chalBody = (await chalRes.json()) as any;
     const code = chalBody.data.message.match(/Local test code: (\d{6})/)[1];
 
-    const verifyRes = await liveAuth.verifyPOST(
+    const verifyRes = await productionAuth.verifyPOST(
       f.context('/api/auth/verify', {
         email,
         code,
-        displayName: 'Live Participant',
+        displayName: 'Production Participant',
         intent: 'signup',
         terms: signupTerms(),
       }),
     );
     assert.equal(verifyRes.status, 200);
-    const liveCookie = verifyRes.headers.get('set-cookie')!.split(';')[0];
+    const productionCookie = verifyRes.headers.get('set-cookie')!.split(';')[0];
 
-    // Live /api/auth/me succeeds and shows only ['live'] product membership
-    const liveMe = await liveAuth.meGET(f.context('/api/auth/me', undefined, liveCookie));
-    assert.equal(liveMe.status, 200);
-    const liveMeData = ((await liveMe.json()) as any).data;
-    assert.deepEqual(liveMeData.products, ['live']);
-    assert.equal(liveMeData.product, 'live');
+    // Production /api/auth/me succeeds and shows only ['production'] product membership
+    const productionMe = await productionAuth.meGET(f.context('/api/auth/me', undefined, productionCookie));
+    assert.equal(productionMe.status, 200);
+    const productionMeData = ((await productionMe.json()) as any).data;
+    assert.deepEqual(productionMeData.products, ['production']);
+    assert.equal(productionMeData.product, 'production');
 
-    // A Live session is not a session for any other product: resolveAuth rejects the product
-    // mismatch, so Academy, Worship and Production treat the caller as signed out (401).
-    assert.equal((await academyAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
-    assert.equal((await worshipAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
-    assert.equal((await productionAuth.meGET(f.context('/api/auth/me', undefined, liveCookie))).status, 401);
+    // A Production session is not a session for any other product: resolveAuth rejects the product
+    // mismatch, so Academy, Worship and Studios treat the caller as signed out (401).
+    for (const handlers of [academyAuth, worshipAuth, webAuth])
+      assert.equal(
+        (await handlers.meGET(f.context('/api/auth/me', undefined, productionCookie))).status,
+        401,
+      );
 
     // Validating the session confirms page-level isolation across products
-    const rawCookieVal = decodeURIComponent(liveCookie.split('=')[1]);
+    const rawCookieVal = decodeURIComponent(productionCookie.split('=')[1]);
     const sessionData = (await validateSession(f.db, rawCookieVal, secret))!;
-    assert.equal(canAccessPage('live', '/account', sessionData), true);
-    assert.equal(canAccessPage('live', '/workspaces', sessionData), true);
+    assert.equal(canAccessPage('production', '/account', sessionData), true);
     assert.equal(canAccessPage('academy', '/account', sessionData), false);
     assert.equal(canAccessPage('academy', '/family', sessionData), false);
     assert.equal(canAccessPage('worship', '/account', sessionData), false);
-    assert.equal(canAccessPage('production', '/account', sessionData), false);
+    assert.equal(canAccessPage('web', '/account', sessionData), false);
 
     // Signing in to Academy without an Academy account answers like any other address (no 403, nothing
-    // about Live), sends nothing and creates nothing; no code can create the account either.
+    // about Production), sends nothing and creates nothing; no code can create the account either.
     const challengesBefore = (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any)
       .n;
     const acadSigninTry = await academyAuth.challengePOST(
@@ -183,7 +184,7 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     );
     assert.equal(acadSigninTry.status, 200);
     const acadSigninBody = JSON.stringify(await acadSigninTry.json());
-    assert.doesNotMatch(acadSigninBody, /Gamo Live/);
+    assert.doesNotMatch(acadSigninBody, /Gamo Production/);
     assert.equal(
       (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any).n,
       challengesBefore,
@@ -216,11 +217,11 @@ test('registering for Gamo Live creates a Gamo Live account only and blocks acce
     const acadMe = await academyAuth.meGET(f.context('/api/auth/me', undefined, acadCookie));
     assert.equal(acadMe.status, 200);
     const acadMeData = ((await acadMe.json()) as any).data;
-    assert.deepEqual(acadMeData.products.sort(), ['academy', 'live']);
+    assert.deepEqual(acadMeData.products.sort(), ['academy', 'production']);
     assert.equal(acadMeData.product, 'academy');
 
-    // Still not enrolled in Worship or Production: sign-in creates no challenge there.
-    for (const handlers of [worshipAuth, productionAuth]) {
+    // Still not enrolled in Worship or Studios: sign-in creates no challenge there.
+    for (const handlers of [worshipAuth, webAuth]) {
       const before = (f.d1.sqlite.prepare('SELECT COUNT(*) AS n FROM auth_challenges').get() as any).n;
       const res = await handlers.challengePOST(
         f.context('/api/auth/challenge', { email, intent: 'signin', ...LOCAL_TURNSTILE }),

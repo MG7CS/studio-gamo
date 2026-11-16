@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 import { chromium } from 'playwright';
 
-const require = createRequire(new URL('../../apps/live/package.json', import.meta.url));
+const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -16,7 +16,6 @@ const APPS = [
   { name: 'web', port: 14321 },
   { name: 'worship', port: 14322 },
   { name: 'academy', port: 14323 },
-  { name: 'live', port: 14324 },
   { name: 'production', port: 14325 },
   { name: 'admin', port: 14326 },
 ];
@@ -102,7 +101,6 @@ for (const app of APPS) {
       PUBLIC_SITE_URL_WEB: 'http://127.0.0.1:14321',
       PUBLIC_SITE_URL_WORSHIP: 'http://127.0.0.1:14322',
       PUBLIC_SITE_URL_ACADEMY: 'http://127.0.0.1:14323',
-      PUBLIC_SITE_URL_LIVE: 'http://127.0.0.1:14324',
       PUBLIC_SITE_URL_PRODUCTION: 'http://127.0.0.1:14325',
       PUBLIC_SITE_URL_ADMIN: 'http://127.0.0.1:14326',
     },
@@ -208,10 +206,6 @@ try {
     ['web', '/', 'Gamo Studios'],
     ['web', '/get-involved', "There's a place"],
     ['web', '/contact', 'Send an inquiry'],
-    ['live', '/', 'Gamo Live'],
-    ['live', '/events', 'Find a gathering worth showing up for.'],
-    ['live', '/artists', 'Artists on tour & artist onboarding'],
-    ['live', '/tickets/find', 'Find your tickets.'],
     ['worship', '/', 'Gamo Worship'],
     ['academy', '/', 'Learn to Play the Instrument You Love'],
     ['production', '/', 'Gamo Production'],
@@ -223,11 +217,6 @@ try {
     assert.ok(bodyText.includes(expectedText), `Expected "${expectedText}" on ${app}${path}`);
     assert.ok(!bodyText.includes('Jordan Avery'), `Must not expose demo persona on ${app}${path}`);
   }
-
-  // Legacy promotional /promote on standalone Gamo Live redirects directly into event creation (/promote/create)
-  const promoteRedirectRes = await fetch(`${urls.live}/promote`, { redirect: 'manual' });
-  assert.equal(promoteRedirectRes.status, 303, 'Expected 303 redirect on legacy promotional live/promote');
-  assert.match(promoteRedirectRes.headers.get('location') || '', /\/promote\/create$/);
 
   // Legacy mock multi-step forms redirect to persistent /contact?interest=... flow
   // Provider roles go to their product's own sign-up with the role chosen; lessons to /lessons;
@@ -249,12 +238,6 @@ try {
   const privateRouteChecks = [
     ['web', '/account'],
     ['web', '/partner'],
-    ['live', '/account'],
-    ['live', '/workspaces'],
-    ['live', '/promote/create'],
-    ['live', '/organizer'],
-    ['live', '/artist'],
-    ['live', '/agent'],
     ['worship', '/account'],
     ['worship', '/church'],
     ['worship', '/musician'],
@@ -465,7 +448,7 @@ try {
   // nothing about other products) and no code can create the account; sign-up is the only way in.
   await progPage.waitForSelector('[data-step-verify]:not([hidden])');
   const neutral = (await progPage.textContent('[data-auth-status]')) || '';
-  assert.doesNotMatch(neutral, /Gamo Studios|Gamo Live|No Gamo Worship account was found/);
+  assert.doesNotMatch(neutral, /Gamo Studios|No Gamo Worship account was found/);
   await progPage.fill('[data-step-verify] input[name="code"]', '123456');
   await progPage.click('[data-step-verify] button[type="submit"]');
   await progPage.waitForFunction(() =>
@@ -531,194 +514,6 @@ try {
   assert.equal(deniedInstructorRes.status(), 403);
   await progContext.close();
 
-  // =========================================================================
-  // CHECK 2, 3, 4, 6, 7, 8: Gamo Live (apps/live) End-to-End Public-to-Workspace
-  // & Verified Ticket Recovery Journey
-  // =========================================================================
-  const liveContext = await browser.newContext();
-  const livePage = await liveContext.newPage();
-  livePage.setDefaultTimeout(10000);
-
-  // Visitor clicks "List an event" -> redirected to /account/signin?next=%2Fpromote%2Fcreate -> switches to Create account
-  await livePage.goto(`${urls.live}/promote/create`, { waitUntil: 'networkidle' });
-  assert.equal(livePage.url(), `${urls.live}/account/signin?next=%2Fpromote%2Fcreate`);
-  await livePage.click('a[href^="/account/signup"]');
-  await livePage.waitForURL(`${urls.live}/account/signup?next=%2Fpromote%2Fcreate`);
-
-  await livePage.fill('[data-step-challenge] input[name="firstName"]', 'Pastor Daniel');
-  await livePage.fill('[data-step-challenge] input[name="lastName"]', 'Bekele');
-  await livePage.fill('[data-step-challenge] input[name="email"]', 'organizer.live@example.org');
-  await livePage.check('[data-step-challenge] input[name="terms_accept"]');
-  await livePage.click('[data-step-challenge] button[type="submit"]');
-  await livePage.waitForSelector('[data-step-verify]:not([hidden])');
-  const liveCode = (await livePage.textContent('[data-auth-status]')).match(/Local test code: (\d{6})/)[1];
-  await livePage.fill('[data-step-verify] input[name="code"]', liveCode);
-  await Promise.all([
-    livePage.waitForURL(`${urls.live}/promote/create`),
-    livePage.click('[data-step-verify] button[type="submit"]'),
-  ]);
-
-  // Without an organization, /promote/create prompts the user to set up their organization first
-  assert.match((await livePage.textContent('main#main-content')) || '', /Set up your organization first/);
-
-  // Go to /account, create an organization, and verify persistence
-  await livePage.goto(`${urls.live}/account`, { waitUntil: 'networkidle' });
-  await livePage.click('details summary');
-  await livePage.fill('[data-organization-form] input[name="name"]', 'New Jerusalem Fellowship');
-  await livePage.fill('[data-organization-form] input[name="slug"]', 'new-jerusalem-fellowship');
-  await livePage.selectOption('[data-organization-form] select[name="type"]', 'church');
-  await Promise.all([
-    livePage.waitForNavigation({ waitUntil: 'networkidle' }),
-    livePage.click('[data-organization-form] button[type="submit"]'),
-  ]);
-  assert.match((await livePage.textContent('main#main-content')) || '', /New Jerusalem Fellowship/);
-
-  // Return to /promote/create and submit a real event listing
-  await livePage.goto(`${urls.live}/promote/create`, { waitUntil: 'networkidle' });
-  const eventDay = new Date(Date.now() + 60 * 86400_000).toISOString().slice(0, 10);
-  await livePage.fill('#title', 'Autumn Night of Worship & Prayer');
-  await livePage.selectOption('#category', 'worship');
-  await livePage.fill(
-    '#description',
-    'An evening of congregational worship, scripture reading, and prayer open to the community.',
-  );
-  await livePage.fill('#venueName', 'New Jerusalem Sanctuary');
-  await livePage.fill('#city', 'Dallas');
-  await livePage.fill('#state', 'TX');
-  await livePage.selectOption('#timezone', 'America/Chicago');
-  await livePage.fill('#startDate', eventDay);
-  await livePage.fill('#startTime', '19:00');
-  await livePage.fill('[id="cat.0.capacity"]', '150');
-  await Promise.all([
-    livePage.waitForURL(/\/promote\/events\/evt_.*\/edit\?saved=/),
-    livePage.click('#event-form button[type="submit"]'),
-  ]);
-  await livePage.goto(`${urls.live}/workspaces`, { waitUntil: 'networkidle' });
-
-  // Verify /workspaces displays the pending event and allows creating an artist profile
-  const workspacesText1 = await livePage.textContent('main#main-content');
-  assert.match(workspacesText1 || '', /Autumn Night of Worship & Prayer/);
-  assert.match(workspacesText1 || '', /Dallas, TX · pending review/);
-  assert.match(workspacesText1 || '', /Create an artist profile to manage your presence on Gamo Live\./);
-
-  await livePage.fill('#artist-profile input[name="stageName"]', 'New Jerusalem Worship Collective');
-  await livePage.fill('#artist-profile input[name="genre"]', 'Worship');
-  await livePage.fill('#artist-profile input[name="homeCity"]', 'Dallas');
-  await livePage.fill('#artist-profile input[name="homeState"]', 'TX');
-  await livePage.click('#artist-profile button[type="submit"]');
-  await livePage.waitForFunction(() => {
-    const el = document.querySelector('#artist-feedback');
-    return el && (el.textContent || '').includes('Your profile has been saved');
-  });
-  await livePage.reload({ waitUntil: 'networkidle' });
-  assert.match((await livePage.textContent('main#main-content')) || '', /New Jerusalem Worship Collective/);
-
-  // Logout from Gamo Live, sign back in, and verify event + artist profile persist
-  await livePage.goto(`${urls.live}/account`, { waitUntil: 'networkidle' });
-  await Promise.all([
-    livePage.waitForURL(`${urls.live}/account/signin`),
-    livePage.click('[data-account-logout]'),
-  ]);
-  await livePage.goto(`${urls.live}/account/signin?next=%2Fworkspaces`, { waitUntil: 'networkidle' });
-  await livePage.fill('[data-step-challenge] input[name="email"]', 'organizer.live@example.org');
-  await livePage.click('[data-step-challenge] button[type="submit"]');
-  await livePage.waitForSelector('[data-step-verify]:not([hidden])');
-  const liveReloginCode = (await livePage.textContent('[data-auth-status]')).match(
-    /Local test code: (\d{6})/,
-  )[1];
-  await livePage.fill('[data-step-verify] input[name="code"]', liveReloginCode);
-  await Promise.all([
-    livePage.waitForURL(`${urls.live}/workspaces`),
-    livePage.click('[data-step-verify] button[type="submit"]'),
-  ]);
-  const workspacesAfterRelogin = await livePage.textContent('main#main-content');
-  assert.match(workspacesAfterRelogin || '', /Autumn Night of Worship & Prayer/);
-  assert.match(workspacesAfterRelogin || '', /New Jerusalem Worship Collective/);
-
-  // Staff approves the event -> public visitor gets tickets and recovers them on /tickets/find
-  const pendingEventRow = await db
-    .prepare("SELECT id FROM events WHERE title = 'Autumn Night of Worship & Prayer' LIMIT 1")
-    .first();
-  assert.ok(pendingEventRow?.id);
-  const approveEventRes = await fetch(`${urls.admin}/api/events/${pendingEventRow.id}/review`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Origin: urls.admin,
-      Authorization: `Bearer ${ADMIN_ACCESS_TOKEN}`,
-      Cookie: staffSessionCookie,
-    },
-    body: JSON.stringify({ decision: 'approved', notes: 'Approved for public listing' }),
-  });
-  assert.equal(approveEventRes.status, 200);
-
-  // Public attendee reserves tickets with the shared form kit (no account), confirms the emailed code
-  // (read from the local test inbox) and lands on the order page with her tickets.
-  const attendeeEmail = 'miriam.attendee@example.org';
-  const tierRow = await db
-    .prepare('SELECT id FROM ticket_tiers WHERE event_id = ? LIMIT 1')
-    .bind(pendingEventRow.id)
-    .first();
-  await livePage.goto(`${urls.live}/events/${pendingEventRow.id}/register`, { waitUntil: 'networkidle' });
-  assert.match((await livePage.textContent('h1')) || '', /Autumn Night of Worship & Prayer/);
-  await livePage.fill(`[id="qty.${tierRow.id}"]`, '2');
-  await livePage.fill('#purchaser-name', 'Miriam Attendee');
-  await livePage.fill('#email', attendeeEmail);
-  await livePage.fill('#email-confirm', attendeeEmail);
-  await livePage.check('#terms-accept');
-  await Promise.all([
-    livePage.waitForURL(/\/tickets\/confirm\?t=/),
-    livePage.click('#order-form button[type="submit"]'),
-  ]);
-
-  const readInbox = async (kind) => {
-    const html = await (
-      await fetch(`${urls.live}/local-test/inbox?email=${encodeURIComponent(attendeeEmail)}`)
-    ).text();
-    const m = new RegExp(`data-kind="${kind}"[\\s\\S]*?<pre[^>]*>([\\s\\S]*?)</pre>`).exec(html);
-    return m ? m[1] : '';
-  };
-  const code = (await readInbox('order_verification')).match(/Your code: (\d{6})/)[1];
-  // A wrong code must not issue tickets.
-  await livePage.fill('#code', code === '000001' ? '000002' : '000001');
-  await livePage.click('form button[type="submit"]');
-  await livePage.waitForSelector('[data-error-summary]');
-  assert.equal((await db.prepare('SELECT count(*) n FROM tickets').first()).n, 0);
-  await livePage.fill('#code', code);
-  await Promise.all([
-    livePage.waitForURL(/\/tickets\/orders\/ord_/),
-    livePage.click('form button[type="submit"]'),
-  ]);
-  assert.equal(await livePage.locator('[data-ticket-card]').count(), 2);
-
-  // Attendee recovers the same tickets by email link from /tickets/find (new browser context, no cookies).
-  const recoveryContext = await browser.newContext();
-  const recoveryPage = await recoveryContext.newPage();
-  await recoveryPage.goto(`${urls.live}/tickets/find`, { waitUntil: 'networkidle' });
-  await recoveryPage.fill('#email', 'nobody.here@example.org');
-  await recoveryPage.click('form button[type="submit"]');
-  const unknownAnswer = await recoveryPage.textContent('#recovery-answer');
-  await recoveryPage.goto(`${urls.live}/tickets/find`, { waitUntil: 'networkidle' });
-  await recoveryPage.fill('#email', attendeeEmail);
-  await recoveryPage.click('form button[type="submit"]');
-  assert.equal(
-    await recoveryPage.textContent('#recovery-answer'),
-    unknownAnswer,
-    'same answer for every address',
-  );
-  const link = (await readInbox('ticket_recovery')).match(/(http:\/\/\S+\/link\?t=[A-Za-z0-9_-]+)/)[1];
-  await recoveryPage.goto(link);
-  await Promise.all([
-    recoveryPage.waitForURL(`${urls.live}/tickets/manage`),
-    recoveryPage.click('button:has-text("Open my tickets")'),
-  ]);
-  assert.match(
-    (await recoveryPage.textContent('main#main-content')) || '',
-    /Autumn Night of Worship & Prayer/,
-  );
-  await recoveryContext.close();
-
-  await liveContext.close();
   console.log('PHASE1_FRESH_BROWSER_JOURNEYS_E2E_OK');
 } finally {
   await browser.close();

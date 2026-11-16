@@ -9,7 +9,7 @@
  */
 import type { AppName } from './apps.ts';
 import { HMAC_SECRET_NAMES, type GamoEnv } from './env.ts';
-import { GAMO_LIVE_CLERK_APP_ID, clerkVariableNames, diagnoseClerkEnv } from './clerk-env.ts';
+import { diagnoseClerkEnv } from './clerk-env.ts';
 
 export type EnvSeverity = 'fatal' | 'error' | 'warning';
 
@@ -89,42 +89,26 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     }
   }
   addClerkProblems(app, env, add);
-  if (app === 'live') {
-    if (!present(env.STRIPE_SECRET_KEY))
-      add('warning', 'STRIPE_SECRET_KEY', 'paid checkout is unavailable (503)');
-    if (!present(env.STRIPE_WEBHOOK_SECRET))
-      add('warning', 'STRIPE_WEBHOOK_SECRET', 'Stripe webhooks are rejected');
-  }
-  addIdentityTicketingProblems(app, env, add);
+  addIdentitySecretProblems(app, env, add);
   return problems;
 }
 
-/** What each identity/ticketing secret switches on (design §10), for messages. */
+/** What each identity secret switches on (design §10), for messages. */
 const SECRET_FEATURES: Record<(typeof HMAC_SECRET_NAMES)[number], string> = {
-  TICKET_QR_SECRET_GL1: 'ticket issue and scanning answer 503',
-  TICKET_QR_SECRET_GL2: 'QR key rotation to GL2 is unavailable',
-  CUSTOMER_LINK_SECRET: 'ticket/registration manage and recovery links answer 503',
+  CUSTOMER_LINK_SECRET: 'registration manage and recovery links answer 503',
   PII_HASH_SECRET: 'forms that record consent or rate-limit by address answer 503',
-  SCANNER_SESSION_SECRET: 'door scanning answers 503',
 };
 
 /** Secrets each public app uses (missing → warning by name). */
 function optionalSecretsFor(
   app: Exclude<AppName, 'admin'>,
 ): Array<(typeof HMAC_SECRET_NAMES)[number] | 'RESEND_WEBHOOK_SECRET'> {
-  if (app === 'live')
-    return [
-      'TICKET_QR_SECRET_GL1',
-      'CUSTOMER_LINK_SECRET',
-      'PII_HASH_SECRET',
-      'SCANNER_SESSION_SECRET',
-      'RESEND_WEBHOOK_SECRET',
-    ];
+  if (app === 'web') return ['PII_HASH_SECRET', 'RESEND_WEBHOOK_SECRET'];
   if (app === 'academy') return ['CUSTOMER_LINK_SECRET', 'PII_HASH_SECRET'];
   return ['PII_HASH_SECRET'];
 }
 
-function addIdentityTicketingProblems(
+function addIdentitySecretProblems(
   app: Exclude<AppName, 'admin'>,
   env: GamoEnv,
   add: (severity: EnvSeverity, name: string, message: string) => void,
@@ -189,14 +173,6 @@ function addClerkProblems(
   add: (severity: EnvSeverity, name: string, message: string) => void,
 ): void {
   const clerk = diagnoseClerkEnv(app, env as Record<string, unknown>);
-  const appIdName = clerkVariableNames(app).appId;
-  if (app !== 'live' && (env as Record<string, unknown>)[appIdName] === GAMO_LIVE_CLERK_APP_ID) {
-    add(
-      'error',
-      appIdName,
-      "is Gamo Live's Clerk application id; this product needs its own (sign-in pages answer 503 until fixed)",
-    );
-  }
   if (clerk.state === 'partial') {
     add(
       'error',

@@ -1,5 +1,7 @@
 # Gamo Studios — Backend Release Readiness Assessment
 
+> **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. The *Gamo Live Free Registration* and *Paid Ticketing & Stripe Webhooks* rows and **Gate 2** (ticketing order authority) no longer apply; any future paid flow (Academy) needs its own order/fulfillment review. Rate-limit targets for `/api/events*` and `/api/webhook/stripe` are moot. Snapshot: tag `four-programs-snapshot`.
+
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
 **Audit Reference:** [`docs/BACKEND_INDEPENDENT_AUDIT.md`](BACKEND_INDEPENDENT_AUDIT.md)  
@@ -37,7 +39,7 @@ However, **public production deployment remains NO-GO** until all remaining rele
 1. **Verified Transactional Email Domain**: Configure SPF, DKIM, and DMARC for Gamo Studios' sender domain and provision `RESEND_API_KEY` and `EMAIL_FROM` secrets so `POST /api/auth/challenge` and `NotificationService` send real emails rather than local/preview mock deliveries.
 2. **Cloudflare Zero Trust Access Policy**: Configure the production Cloudflare Access application for `admin.gamostudio.org`, set `CF_ACCESS_TEAM_NAME` and `CF_ACCESS_AUD` in Worker secrets, and provision initial `superadmin` and `staff_reviewer` `external_identities` (`sub`) in D1.
 
-### Gate 2 — Ticketing, Order Authority & Financial Governance (Owner + Legal + Engineering)
+### Gate 2 — Ticketing, Order Authority & Financial Governance (Owner + Legal + Engineering) — withdrawn 2026-11-16 (Gamo Live removed)
 1. **Legal & Entity Prerequisites**: Complete the entity formation, governance, and banking steps in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](NONPROFIT_TRANSITION_CHECKLIST.md) before enabling any live payment, donation, sponsorship, or membership collection.
 2. **Authoritative Order & Hold Model**:
    - Introduce an `orders` table tracking state (`pending_payment`, `paid`, `expired`, `refunded`, `canceled`) and reserving `ticket_tiers` capacity with a bounded expiration hold before redirecting to Stripe Checkout.

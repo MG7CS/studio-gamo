@@ -1,5 +1,7 @@
 # Gamo Studios: Functionality Phase Plan
 
+> **2026-11-16:** Gamo Live was dropped (programs: Academy, Worship, Production). Phase 4 and the Live parts of Phase 4b are withdrawn; the Gamo Live slice mentioned below was removed with `apps/live` (snapshot: tag `four-programs-snapshot`). A second cleanup (later, designed separately) will simplify the remaining programs into forms, emails and invoices.
+
 **2026-10-13 Status Update — Backend Foundation & First Functional Slice Completed:**
 The backend infrastructure phase has commenced and completed its core foundational milestones:
 1. Complete relational schema in `packages/db` with D1 migrations 0000–0002 covering all 33 entity tables.
@@ -45,7 +47,7 @@ This document outlines the phased backend integration strategy for the Gamo Stud
    - Implement sandbox payment flow for lesson bookings.
    - Record booking entries in D1 and trigger email confirmations.
 
-## Phase 4: Live Events Vertical
+## Phase 4: Live Events Vertical (withdrawn 2026-11-16)
 1. **Event Ticketing (`apps/live`)**
    - Connect event details to D1.
    - Implement atomic inventory decrements and lock mechanism for concurrent reservations.
@@ -59,8 +61,8 @@ This document outlines the phased backend integration strategy for the Gamo Stud
    - Free-event registration records and attendee "my tickets".
 
 ## Phase 4b: Promotion, Placements, Church Partnerships & Stewardship (separately approved, after Phase 4)
-Ordered per ROADMAP priorities 7–8. See `docs/GAMO_NONPROFIT_MODEL.md` and `docs/GAMO_LIVE_AND_PARTNERS.md`.
-1. **Organizer verification** — verification states and recorded ticketing authorization; unverified organizers cannot sell tickets.
+Ordered per ROADMAP priorities 7–8. See `docs/GAMO_NONPROFIT_MODEL.md` §4 (church partnerships and sponsored labeling).
+1. ~~**Organizer verification**~~ — withdrawn with Gamo Live (2026-11-16).
 2. **Optional promotion requests** — staff-managed intake and status; manual reporting entry. No ad-platform APIs.
 3. **Placements** — admin scheduler for homepage/featured slots with `sponsored | editorial | gamo_program` kinds, date windows and region; homepage reads placements instead of static content (carousel only if approved).
 4. **Nonprofit ledger** — `charitable_contribution`, `sponsorship`, `program_service_receipt`, `third_party_payable`, `processing_cost`, refund/dispute categories with `program` and `fund_id`; tests proving categories never mix and that musician/instructor pay is never netted against Gamo allocations.

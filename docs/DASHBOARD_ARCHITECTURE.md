@@ -1,6 +1,7 @@
 # Authenticated Dashboard Architecture & UX Guidelines
 
 <!-- status-banner: 2026-10 foundation pass -->
+> **2026-11-16:** Gamo Live workspaces (`/organizer`, `/me`) were removed with `apps/live`; the Live rows below are historical.
 > **Partly stale.** Dashboard UX guidance still applies; access rules are now enforced by `packages/auth/page-access.ts` and tested in `scripts/audit/private-routes.test.ts`. Current reference: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Updated 2026-10-13 following the comprehensive UX audit and refinement pass. This document describes the **UI system** for signed-in experiences across Gamo Studios, the **reusable UX and responsive design patterns**, and the **intended future authorization boundaries**.

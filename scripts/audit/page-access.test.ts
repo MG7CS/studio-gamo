@@ -9,14 +9,6 @@ import {
 import { hasProductAccess } from '../../packages/auth/index.ts';
 import { resolveWorkspaceViewer } from '../../packages/ui/src/lib/session-viewer.ts';
 
-const liveAuth: any = {
-  user: { id: 'live_user', email: 'live@example.test', verifiedEmailAt: new Date(), status: 'active' },
-  roles: [],
-  memberships: [],
-  products: ['live'],
-  sessionProduct: 'live',
-};
-
 const academyAuth: any = {
   user: { id: 'academy_user', email: 'academy@example.test', verifiedEmailAt: new Date(), status: 'active' },
   roles: [],
@@ -51,23 +43,17 @@ test('all application private route families are gated without gating public lea
     ['academy', '/family'],
     ['academy', '/instructor'],
     ['academy', '/host'],
-    ['live', '/artist'],
-    ['live', '/agent/bookings'],
-    ['live', '/organizer/scan'],
-    ['live', '/workspaces'],
-    ['live', '/promote/create'],
-    ['live', '/promote/events/evt_1/orders'],
     ['production', '/crew'],
     ['production', '/client'],
   ] as const)
     assert.equal(isPrivatePage(app, path), true, `${app}${path}`);
-  for (const app of ['web', 'worship', 'academy', 'live', 'production'] as const) {
+  for (const app of ['web', 'worship', 'academy', 'production'] as const) {
     assert.equal(isPrivatePage(app, '/'), false);
     assert.equal(isPrivatePage(app, '/account/signin'), false);
     assert.equal(isPrivatePage(app, '/account/signup/'), false);
   }
-  assert.equal(isPrivatePage('live', '/artists'), false);
-  assert.equal(isPrivatePage('live', '/organizers/public-ministry'), false);
+  assert.equal(isPrivatePage('academy', '/instruments'), false);
+  assert.equal(isPrivatePage('academy', '/lessons/sample-lesson'), false);
 });
 
 test('new accounts cannot assign themselves privileged program roles', () => {
@@ -83,43 +69,37 @@ test('new accounts cannot assign themselves privileged program roles', () => {
   ] as const)
     assert.equal(canAccessPage(app, path, academyAuth), false);
   assert.equal(canAccessPage('production', '/crew', productionAuth), false);
-  assert.equal(canAccessPage('live', '/organizer', liveAuth), true); // Scoped onboarding; records separately filtered.
   assert.equal(
-    canAccessPage('live', '/account', { ...liveAuth, user: { ...liveAuth.user, verifiedEmailAt: null } }),
+    canAccessPage('academy', '/account', {
+      ...academyAuth,
+      user: { ...academyAuth.user, verifiedEmailAt: null },
+    }),
     false,
   );
 });
 
-test('product accounts are strictly isolated across Gamo Live, Academy, Worship, Production, and Studios', () => {
-  // Gamo Live account can access Live general onboarding/account routes, but NEVER Academy, Worship, Production, or Studios
-  assert.equal(hasProductAccess(liveAuth, 'live'), true);
-  assert.equal(canAccessPage('live', '/account', liveAuth), true);
-  assert.equal(canAccessPage('live', '/workspaces', liveAuth), true);
-  assert.equal(canAccessPage('live', '/promote/create', liveAuth), true);
-
-  assert.equal(hasProductAccess(liveAuth, 'academy'), false);
-  assert.equal(canAccessPage('academy', '/account', liveAuth), false);
-  assert.equal(canAccessPage('academy', '/family', liveAuth), false);
-  assert.equal(canAccessPage('worship', '/account', liveAuth), false);
-  assert.equal(canAccessPage('production', '/account', liveAuth), false);
-  assert.equal(canAccessPage('production', '/client', liveAuth), false);
-  assert.equal(canAccessPage('web', '/account', liveAuth), false);
-
-  // Gamo Academy account can access Academy general family/account routes, but NEVER Worship, Live, or Production
+test('product accounts are strictly isolated across Academy, Worship, Production, and Studios', () => {
+  // Gamo Academy account can access Academy general family/account routes, but NEVER Worship, Production or Studios
   assert.equal(hasProductAccess(academyAuth, 'academy'), true);
   assert.equal(canAccessPage('academy', '/account', academyAuth), true);
   assert.equal(canAccessPage('academy', '/family', academyAuth), true);
+  assert.equal(hasProductAccess(academyAuth, 'worship'), false);
   assert.equal(canAccessPage('worship', '/account', academyAuth), false);
-  assert.equal(canAccessPage('live', '/account', academyAuth), false);
-  assert.equal(canAccessPage('live', '/workspaces', academyAuth), false);
   assert.equal(canAccessPage('production', '/account', academyAuth), false);
+  assert.equal(canAccessPage('production', '/client', academyAuth), false);
+  assert.equal(canAccessPage('web', '/account', academyAuth), false);
 
-  // Gamo Worship account can access Worship general account/apply status, but NEVER Academy, Live, or Production
+  // Gamo Worship account can access Worship general account/apply status, but NEVER Academy or Production
   assert.equal(canAccessPage('worship', '/account', worshipAuth), true);
   assert.equal(canAccessPage('worship', '/apply/status', worshipAuth), true);
   assert.equal(canAccessPage('academy', '/account', worshipAuth), false);
-  assert.equal(canAccessPage('live', '/account', worshipAuth), false);
+  assert.equal(canAccessPage('academy', '/family', worshipAuth), false);
   assert.equal(canAccessPage('production', '/account', worshipAuth), false);
+
+  // Gamo Production account stays in Production
+  assert.equal(canAccessPage('production', '/account', productionAuth), true);
+  assert.equal(canAccessPage('academy', '/account', productionAuth), false);
+  assert.equal(canAccessPage('worship', '/account', productionAuth), false);
 });
 
 test('return paths reject external redirects and authentication loops', () => {
@@ -132,7 +112,7 @@ test('return paths reject external redirects and authentication loops', () => {
     '/\n/evil.test',
   ])
     assert.equal(safeReturnPath(path), '/account');
-  assert.equal(safeReturnPath('/promote/create?step=1'), '/promote/create?step=1');
+  assert.equal(safeReturnPath('/family?step=1'), '/family?step=1');
 });
 
 test('sample workspaces require explicit isolated local environment, never a query key', () => {
@@ -155,7 +135,7 @@ test('unsigned profile hint and arbitrary session cookies never establish a view
   });
   assert.equal((await resolveWorkspaceViewer(request)).authenticated, false);
   assert.equal(
-    (await resolveWorkspaceViewer({ request, locals: { auth: liveAuth } })).email,
-    liveAuth.user.email,
+    (await resolveWorkspaceViewer({ request, locals: { auth: academyAuth } })).email,
+    academyAuth.user.email,
   );
 });

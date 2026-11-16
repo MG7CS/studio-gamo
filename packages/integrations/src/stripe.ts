@@ -11,7 +11,7 @@
  *
  * Stripe Best Practices Applied:
  * - Dynamic payment methods enabled by default (never hardcodes `payment_method_types`).
- * - Supports one-time payments (Gamo Live event tickets) & recurring billing (Academy lessons).
+ * - Supports one-time payments & recurring billing (Academy lessons).
  * - Automatic tax calculation integration readiness.
  * - Cryptographic webhook signature verification via Web Crypto API (HMAC-SHA256).
  * - Webhook deduplication / idempotency management to prevent double-fulfillment.
@@ -432,115 +432,5 @@ export function createStripeTestClient(config?: StripeConfig) {
         mock: false,
       };
     },
-
-    /**
-     * Gamo Live ticket checkout (test mode only; no simulation here — local mocks live in the caller).
-     * One line item per order item, `expires_at` (Stripe allows 30 min – 24 h after creation),
-     * `metadata` + `client_reference_id` for reconciliation, and the idempotency key.
-     */
-    async createTicketCheckoutSession(options: TicketCheckoutOptions): Promise<TicketCheckoutResult> {
-      assertStripeTestMode(secretKey);
-      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
-      const params = new URLSearchParams();
-      params.append('mode', 'payment');
-      params.append('success_url', options.successUrl);
-      params.append('cancel_url', options.cancelUrl);
-      params.append('expires_at', String(Math.floor(options.expiresAt)));
-      if (options.customerEmail) params.append('customer_email', options.customerEmail);
-      if (options.clientReferenceId) params.append('client_reference_id', options.clientReferenceId);
-      options.lineItems.forEach((item, i) => {
-        params.append(`line_items[${i}][price_data][currency]`, options.currency);
-        params.append(`line_items[${i}][price_data][product_data][name]`, item.name.slice(0, 250));
-        params.append(`line_items[${i}][price_data][unit_amount]`, String(item.unitAmount));
-        params.append(`line_items[${i}][quantity]`, String(item.quantity));
-      });
-      for (const [k, v] of Object.entries(options.metadata ?? {})) {
-        params.append(`metadata[${k}]`, v);
-        params.append(`payment_intent_data[metadata][${k}]`, v);
-      }
-      const data = await stripePost<{ id: string; url: string; expires_at?: number }>(
-        secretKey,
-        '/checkout/sessions',
-        params,
-        options.idempotencyKey,
-        fetchImpl,
-      );
-      return { id: data.id, url: data.url, expiresAt: data.expires_at ?? options.expiresAt };
-    },
-
-    /** Reads a Checkout Session (payment status, amount, payment intent). */
-    async retrieveCheckoutSession(sessionId: string): Promise<StripeCheckoutSessionObject> {
-      assertStripeTestMode(secretKey);
-      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
-      if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) throw new StripeApiError(400, 'invalid_session_id');
-      return stripePost<StripeCheckoutSessionObject>(
-        secretKey,
-        `/checkout/sessions/${sessionId}`,
-        null,
-        undefined,
-        fetchImpl,
-        'GET',
-      );
-    },
-
-    /** Refunds part or all of a payment (test mode). The idempotency key makes a retry safe. */
-    async createRefund(options: RefundOptions): Promise<StripeRefundObject> {
-      assertStripeTestMode(secretKey);
-      if (!isRealTestKey(secretKey)) throw new StripeNotConfiguredError();
-      const params = new URLSearchParams();
-      params.append('payment_intent', options.paymentIntentId);
-      params.append('amount', String(options.amountMinorUnits));
-      params.append('reason', options.reason ?? 'requested_by_customer');
-      for (const [k, v] of Object.entries(options.metadata ?? {})) params.append(`metadata[${k}]`, v);
-      return stripePost<StripeRefundObject>(secretKey, '/refunds', params, options.idempotencyKey, fetchImpl);
-    },
   };
-}
-
-export interface TicketCheckoutOptions {
-  lineItems: Array<{ name: string; unitAmount: number; quantity: number }>;
-  currency: string;
-  customerEmail?: string;
-  successUrl: string;
-  cancelUrl: string;
-  /** Epoch seconds; 30 minutes to 24 hours after creation. */
-  expiresAt: number;
-  metadata?: Record<string, string>;
-  clientReferenceId?: string;
-  idempotencyKey: string;
-}
-
-export interface TicketCheckoutResult {
-  id: string;
-  url: string;
-  expiresAt: number;
-}
-
-export interface StripeCheckoutSessionObject {
-  id: string;
-  object?: 'checkout.session';
-  status?: 'open' | 'complete' | 'expired';
-  payment_status?: 'paid' | 'unpaid' | 'no_payment_required';
-  amount_total?: number | null;
-  currency?: string | null;
-  payment_intent?: string | null;
-  client_reference_id?: string | null;
-  metadata?: Record<string, string> | null;
-  expires_at?: number;
-  livemode?: boolean;
-}
-
-export interface RefundOptions {
-  paymentIntentId: string;
-  amountMinorUnits: number;
-  idempotencyKey: string;
-  reason?: 'requested_by_customer' | 'duplicate' | 'fraudulent';
-  metadata?: Record<string, string>;
-}
-
-export interface StripeRefundObject {
-  id: string;
-  status?: string;
-  amount?: number;
-  payment_intent?: string | null;
 }

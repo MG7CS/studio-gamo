@@ -22,12 +22,11 @@ const apps = [
   ['web', 4321],
   ['worship', 4322],
   ['academy', 4323],
-  ['live', 4324],
   ['production', 4325],
 ] as const;
 
-// `E2E_APPS=live,web pnpm test:e2e tests/e2e/live-tickets.spec.ts` starts only the listed apps' preview
-// servers (default: all five), so a single spec does not pay for five servers.
+// `E2E_APPS=academy,web pnpm test:e2e tests/e2e/<spec>.spec.ts` starts only the listed apps' preview
+// servers (default: all four), so a single spec does not pay for four servers.
 const wanted = (process.env.E2E_APPS ?? '')
   .split(',')
   .map((a) => a.trim())

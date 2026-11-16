@@ -14,7 +14,7 @@ export const organizationScreens: DashScreen[] = [
     slug: '',
     title: 'Operations command center',
     description:
-      'Unified operational control, cross-program queues, system safety gates, and real-time analytics across Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production.',
+      'Unified operational control, cross-program queues, system safety gates, and real-time analytics across Gamo Worship, Gamo Academy, and Gamo Production.',
     actions: [
       { label: 'Executive analytics', href: '/analytics', icon: 'chart', variant: 'primary' },
       { label: 'Export summary (CSV)', exportReport: 'csv', icon: 'download', variant: 'secondary' },
@@ -31,7 +31,7 @@ export const organizationScreens: DashScreen[] = [
             value: '26',
             delta: '8 priority today',
             deltaTone: 'neutral',
-            hint: 'Worship · Academy · Live · Production',
+            hint: 'Worship · Academy · Production',
             icon: 'clipboard',
           },
           {
@@ -51,12 +51,12 @@ export const organizationScreens: DashScreen[] = [
             icon: 'school',
           },
           {
-            label: 'Gamo Live active events',
-            value: '18',
-            delta: '31 verified artists',
+            label: 'Production projects active',
+            value: '9',
+            delta: 'On milestone schedule',
             deltaTone: 'up',
-            hint: '3 events awaiting moderation',
-            icon: 'ticket',
+            hint: '86 volunteers trained',
+            icon: 'wrench',
           },
         ],
       },
@@ -65,7 +65,7 @@ export const organizationScreens: DashScreen[] = [
         span: 2,
         title: 'Weekly operational throughput & review velocity',
         description:
-          'Completed staff reviews, musician placements, student enrollments, and Gamo Live event approvals over the past 6 weeks.',
+          'Completed staff reviews, musician placements, student enrollments, and production intakes over the past 6 weeks.',
         variant: 'trend',
         exportFilename: 'gamo-admin-weekly-throughput',
         summary: [
@@ -88,7 +88,7 @@ export const organizationScreens: DashScreen[] = [
             ],
           },
           {
-            label: 'Gamo Live events, artists & bookings',
+            label: 'Academy enrollments & instructor reviews',
             color: 'charcoal',
             points: [
               { label: 'Wk 1', value: 9 },
@@ -100,7 +100,7 @@ export const organizationScreens: DashScreen[] = [
             ],
           },
           {
-            label: 'Academy & Production intakes',
+            label: 'Production assessments & projects',
             color: 'sage',
             points: [
               { label: 'Wk 1', value: 11 },
@@ -122,8 +122,7 @@ export const organizationScreens: DashScreen[] = [
           { label: 'Data export center (CSV/JSON)', href: '/analytics/exports', icon: 'download' },
           { label: 'System controls & safety gates', href: '/controls', icon: 'sliders' },
           { label: 'Worship Sunday dispatch', href: '/worship/dispatch', icon: 'bell' },
-          { label: 'Gamo Live event moderation', href: '/live/submissions', icon: 'ticket' },
-          { label: 'Gamo Live artists & bookings', href: '/live/artists', icon: 'mic' },
+          { label: 'Production tech requests', href: '/production/requests', icon: 'speaker' },
           { label: 'Academy safeguarding board', href: '/academy/safeguarding', icon: 'shield' },
           { label: 'Financial ledger separation', href: '/analytics/financials', icon: 'wallet' },
         ],
@@ -156,22 +155,6 @@ export const organizationScreens: DashScreen[] = [
             status: b('In review', 'pending'),
           },
           {
-            item: 'Desert Light Gospel Choir — Live event submission',
-            program: 'Gamo Live',
-            queueType: 'Event moderation & ticket tier check',
-            submitted: 'Oct 12',
-            priority: 'High',
-            status: b('Submitted', 'info'),
-          },
-          {
-            item: 'Selah Collective — Artist verification & agent mandate',
-            program: 'Gamo Live',
-            queueType: 'Artist profile + representation scope approval',
-            submitted: 'Oct 13',
-            priority: 'Normal',
-            status: b('Pending verification', 'pending'),
-          },
-          {
             item: 'Elena R. — Piano instructor safeguarding clearance',
             program: 'Gamo Academy',
             queueType: 'Adult screening verification before class assignment',
@@ -189,7 +172,7 @@ export const organizationScreens: DashScreen[] = [
           },
         ],
         'program',
-        ['Gamo Worship', 'Gamo Live', 'Gamo Academy', 'Gamo Production'],
+        ['Gamo Worship', 'Gamo Academy', 'Gamo Production'],
         { label: 'Take action', dialog: 'command-action-dialog', icon: 'check' }
       ),
       decisionDialog('command-action-dialog', 'Execute priority queue decision', 'Hillside Baptist — Bass request'),
@@ -210,7 +193,7 @@ export const organizationScreens: DashScreen[] = [
         type: 'notice',
         tone: 'warning',
         title: 'Protected financial & legal release gates',
-        body: 'Live card charging, artist booking deposits, and contribution processing remain fail-closed (HTTP 503) at the Worker runtime layer until legal formation and board prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are verified.',
+        body: 'Card charging and contribution processing remain fail-closed (HTTP 503) at the Worker runtime layer until legal formation and board prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are verified.',
       },
       {
         type: 'stats',
@@ -218,10 +201,10 @@ export const organizationScreens: DashScreen[] = [
         items: [
           {
             label: 'Platform brand',
-            value: 'Gamo Live',
-            delta: 'Retained default',
+            value: 'Gamo Studios',
+            delta: 'Three programs',
             deltaTone: 'up',
-            hint: 'Configurable via PLATFORM_BRAND',
+            hint: 'Worship · Academy · Production',
             icon: 'verified',
           },
           {
@@ -259,13 +242,8 @@ export const organizationScreens: DashScreen[] = [
             title: 'Financial & Payment Safety Gates (Server-Enforced)',
             toggles: [
               {
-                label: 'Enforce fail-closed 503 lock on paid ticket checkout (/api/checkout/session)',
-                description: 'Blocks real card processing until Stripe Connect order/inventory settlement authority is approved.',
-                on: true,
-              },
-              {
-                label: 'Enforce fail-closed 503 lock on artist booking deposits',
-                description: 'Allows full booking inquiry, counteroffer, and contract confirmation while blocking live deposit charges.',
+                label: 'Enforce fail-closed 503 lock on paid checkout',
+                description: 'Blocks real card processing until settlement authority is approved.',
                 on: true,
               },
               {
@@ -279,11 +257,6 @@ export const organizationScreens: DashScreen[] = [
             title: 'Trust, Safeguarding & Content Moderation Controls',
             toggles: [
               {
-                label: 'Require staff review before new Gamo Live events publish publicly',
-                description: 'All organizer event drafts enter pending review and prevent self-approval.',
-                on: true,
-              },
-              {
                 label: 'Enforce mandatory adult safeguarding & screening gate for Gamo Academy',
                 description: 'Blocks unscreened instructors or volunteers from being assigned to youth classes.',
                 on: true,
@@ -295,27 +268,17 @@ export const organizationScreens: DashScreen[] = [
               },
               {
                 label: 'Enforce strict sponsored-listing disclosure & ranking non-interference',
-                description: 'Guarantees partnership or sponsorship never alters musician vetting or event discovery rank.',
+                description: 'Guarantees partnership or sponsorship never alters musician vetting or program rankings.',
                 on: true,
               },
             ],
           },
           {
-            title: 'Authentication, Outbox & Brand Controls',
+            title: 'Authentication & Outbox Controls',
             toggles: [
               {
                 label: 'Require Cloudflare Zero Trust or PBKDF2 Admin Gateway session on admin.gamostudio.org',
                 description: 'Enforces 5-attempt lockout, signed __admin_gate cookies, and same-origin CSRF checks.',
-                on: true,
-              },
-              {
-                label: 'Require strong order reference + verification token for public ticket lookup',
-                description: 'Prevents attendee enumeration by email or phone number alone on /my-tickets.',
-                on: true,
-              },
-              {
-                label: 'Retain Gamo Live as customer-facing software brand',
-                description: 'Preserves PLATFORM_BRAND configuration layer for future legal/domain review.',
                 on: true,
               },
             ],
@@ -333,7 +296,6 @@ export const organizationScreens: DashScreen[] = [
           ['Email outbox', b('Transactional outbox + backoff', 'success')],
           ['Admin auth gateway', b('Zero Trust + PBKDF2-SHA256', 'verified')],
           ['Stripe webhook mode', b('HMAC-SHA256 · 503 financial gate', 'info')],
-          ['Live software brand', 'Gamo Live (retained)'],
           ['Parent disclosure', 'Gamo Studios (legal/transactional)'],
         ],
       },
@@ -349,16 +311,9 @@ export const organizationScreens: DashScreen[] = [
         [
           {
             gateId: 'GATE-FIN-CHECKOUT',
-            subsystem: 'Gamo Live Paid Checkout & Stripe Webhooks',
-            mode: 'HTTP 503 Fail-Closed (Free RSVPs & holds active)',
+            subsystem: 'Paid Checkout & Stripe Webhooks',
+            mode: 'HTTP 503 Fail-Closed',
             authority: 'Founder + Board + Independent Security Sign-off',
-            status: b('Locked safe', 'verified'),
-          },
-          {
-            gateId: 'GATE-FIN-BOOKING',
-            subsystem: 'Gamo Live Artist Booking Deposits & Payouts',
-            mode: 'Contracts & offers active · Deposits HTTP 503',
-            authority: 'Founder + Legal Counsel Escrow Review',
             status: b('Locked safe', 'verified'),
           },
           {
@@ -375,16 +330,9 @@ export const organizationScreens: DashScreen[] = [
             authority: 'Permanent Security Policy (SECURITY.md)',
             status: b('Enforced', 'success'),
           },
-          {
-            gateId: 'GATE-BRAND-LIVE',
-            subsystem: 'Gamo Live Customer-Facing Brand Layer',
-            mode: 'Retained as Gamo Live · Rebrand-ready config',
-            authority: 'Founder & Trademark Counsel',
-            status: b('Active', 'success'),
-          },
         ],
         'status',
-        ['Locked safe', 'Enforced', 'Active'],
+        ['Locked safe', 'Enforced'],
         { label: 'Configure', dialog: 'gate-control-dialog', icon: 'sliders' }
       ),
       decisionDialog('gate-control-dialog', 'Update system gate or operational policy', 'GATE-FIN-CHECKOUT', [
@@ -430,14 +378,14 @@ export const organizationScreens: DashScreen[] = [
           {
             name: 'Jordan Avery',
             email: 'jordan.avery@example.invalid',
-            roles: 'Musician, Church Admin, Organizer, Production Crew',
+            roles: 'Musician, Church Admin, Production Crew',
             org: 'Grace Fellowship',
             status: b('Verified active', 'verified'),
           },
           {
             name: 'Pastor David Clark',
             email: 'd.clark@gracefellowship.example',
-            roles: 'Church Admin, Host Partner, Event Organizer',
+            roles: 'Church Admin, Host Partner',
             org: 'Grace Fellowship',
             status: b('Verified active', 'verified'),
           },
@@ -451,15 +399,15 @@ export const organizationScreens: DashScreen[] = [
           {
             name: 'Marcus Thompson',
             email: 'marcus.t@worship.example',
-            roles: 'Vetted Musician (Bass), Live Artist',
+            roles: 'Vetted Musician (Bass)',
             org: 'Grace Collective',
             status: b('Verified active', 'verified'),
           },
           {
             name: 'Hannah Brooks',
-            email: 'h.brooks@selahtalent.example',
-            roles: 'Authorized Booking Agent (3 artists)',
-            org: 'Selah Talent Agency',
+            email: 'h.brooks@academy.example',
+            roles: 'Approved Instructor (Voice)',
+            org: 'Gamo Academy Faculty',
             status: b('Verified active', 'verified'),
           },
           {
@@ -493,7 +441,7 @@ export const organizationScreens: DashScreen[] = [
     slug: 'organizations',
     title: 'Organizations & ministries',
     description:
-      'Churches, Christian event organizers, host campuses, artist collectives, and talent agencies operating across Gamo Studios.',
+      'Churches, host campuses, and Christian ministries operating across Gamo Studios.',
     actions: [
       { label: 'Review organization', dialog: 'org-control-dialog', icon: 'building', variant: 'primary' },
       { label: 'Export organizations (CSV)', exportReport: 'csv', icon: 'download', variant: 'secondary' },
@@ -505,8 +453,8 @@ export const organizationScreens: DashScreen[] = [
         span: 3,
         items: [
           { label: 'Verified churches', value: '48', delta: '+6 in Q4', deltaTone: 'up', icon: 'church' },
-          { label: 'Event organizers', value: '24', delta: 'Gamo Live verified', deltaTone: 'up', icon: 'ticket' },
-          { label: 'Talent agencies', value: '9', delta: '14 active mandates', deltaTone: 'neutral', icon: 'users' },
+          { label: 'Church-hosted campuses', value: '7', delta: 'Gamo Academy hosts', deltaTone: 'up', icon: 'school' },
+          { label: 'Production assessments', value: '12', delta: 'Churches served', deltaTone: 'neutral', icon: 'speaker' },
           { label: 'Pending onboarding', value: '5', delta: 'Awaiting staff check', deltaTone: 'neutral', icon: 'clock' },
         ],
       },
@@ -525,31 +473,23 @@ export const organizationScreens: DashScreen[] = [
             org: 'Grace Fellowship',
             type: 'Church & Host Partner',
             location: 'Phoenix, AZ',
-            programs: 'Worship, Academy, Live, Production',
+            programs: 'Worship, Academy, Production',
             lead: 'Pastor David Clark',
             status: b('Verified', 'verified'),
           },
           {
             org: 'Cornerstone Bible Church',
-            type: 'Church & Event Host',
+            type: 'Church',
             location: 'Dallas, TX',
-            programs: 'Worship, Live',
+            programs: 'Worship',
             lead: 'Elder Mark Lewis',
             status: b('Verified', 'verified'),
           },
           {
-            org: 'Selah Talent Agency',
-            type: 'Booking Agency',
-            location: 'Atlanta, GA',
-            programs: 'Gamo Live (Representation)',
-            lead: 'Hannah Brooks',
-            status: b('Verified', 'verified'),
-          },
-          {
             org: 'Desert Light Ministries',
-            type: 'Event Organizer',
+            type: 'Church',
             location: 'Scottsdale, AZ',
-            programs: 'Gamo Live',
+            programs: 'Worship, Production',
             lead: 'Pastor Samuel Ortiz',
             status: b('In review', 'pending'),
           },
@@ -576,7 +516,7 @@ export const organizationScreens: DashScreen[] = [
       ),
       decisionDialog('org-control-dialog', 'Organization verification & permissions control', 'Grace Fellowship', [
         'Approve & verify organization',
-        'Approve for Gamo Live event publishing',
+        'Approve as Academy host campus',
         'Request EIN / ministry leadership verification',
         'Pause organization publishing privileges',
       ]),
@@ -596,7 +536,7 @@ export const organizationScreens: DashScreen[] = [
         type: 'notice',
         tone: 'info',
         title: 'Strict contextual authority rule',
-        body: 'Switching workspaces or organizations in the UI never grants authority by itself. Every API mutation verifies D1 session membership, scoped organization role, and separate permissions for event publishing, ticketing, refunds, settlement, booking negotiation, and representation.',
+        body: 'Switching workspaces or organizations in the UI never grants authority by itself. Every API mutation verifies D1 session membership, scoped organization role, and separate permissions for placements, enrollments, safeguarding, and finance.',
       },
       queue(
         'Server-enforced RBAC & permission boundaries',
@@ -618,41 +558,20 @@ export const organizationScreens: DashScreen[] = [
           {
             role: 'staff_reviewer',
             scope: 'Global Moderation',
-            permitted: 'Review events, musicians, instructors, artists, and production requests',
-            prohibited: 'Cannot approve own organization events or provision other staff',
+            permitted: 'Review musicians, instructors, churches, and production requests',
+            prohibited: 'Cannot approve their own organization or provision other staff',
             enforcement: b('D1 Conflict Check', 'verified'),
-          },
-          {
-            role: 'event_owner / lead_promoter',
-            scope: 'Organization / Event',
-            permitted: 'Create event drafts, manage lineup, invite team, submit for moderation',
-            prohibited: 'Cannot self-approve public listing or alter another org payout account',
-            enforcement: b('Scoped Event RBAC', 'success'),
-          },
-          {
-            role: 'ticketing_admin / check_in_staff',
-            scope: 'Event Operations',
-            permitted: 'Configure ticket tiers, manage holds, scan QR passes at venue doors',
-            prohibited: 'Cannot issue post-settlement refunds or modify artist contracts',
-            enforcement: b('Scoped Event RBAC', 'success'),
           },
           {
             role: 'finance_contact',
             scope: 'Organization Finance',
-            permitted: 'View settlement statements, approve refund requests, reconcile payouts',
-            prohibited: 'Separated from casual content editors and check-in volunteers',
+            permitted: 'View statements, approve refund requests, reconcile musician and instructor pay',
+            prohibited: 'Separated from content editors and volunteers',
             enforcement: b('Scoped Finance RBAC', 'success'),
-          },
-          {
-            role: 'artist / booking_agent',
-            scope: 'Talent & Representation',
-            permitted: 'Respond to booking inquiries, counteroffer within active mandate scope',
-            prohibited: 'Agent cannot access artist personal bank details or act after revocation',
-            enforcement: b('Mandate Scope Check', 'verified'),
           },
         ],
         'scope',
-        ['Global Platform', 'Global Moderation', 'Organization / Event', 'Event Operations', 'Organization Finance', 'Talent & Representation']
+        ['Global Platform', 'Global Moderation', 'Organization Finance']
       ),
       {
         type: 'dialog',
@@ -675,7 +594,7 @@ export const organizationScreens: DashScreen[] = [
     slug: 'reviews',
     title: 'Unified review & moderation queues',
     description:
-      'Consolidated view of every pending application, event submission, artist verification, and church request across Gamo Studios.',
+      'Consolidated view of every pending application, instructor screening, production assessment, and church request across Gamo Studios.',
     actions: [
       { label: 'Record review decision', dialog: 'unified-review-dialog', icon: 'check', variant: 'primary' },
       { label: 'Export queue (CSV)', exportReport: 'csv', icon: 'download', variant: 'secondary' },
@@ -718,22 +637,6 @@ export const organizationScreens: DashScreen[] = [
             status: b('In review', 'pending'),
           },
           {
-            subject: 'Phoenix Night of Worship — Grace Fellowship',
-            division: 'Gamo Live',
-            category: 'Event listing moderation',
-            submitted: 'Oct 12',
-            sla: 'Within 24h',
-            status: b('Submitted', 'info'),
-          },
-          {
-            subject: 'Selah Collective — Touring Worship Ensemble',
-            division: 'Gamo Live',
-            category: 'Artist verification & booking profile',
-            submitted: 'Oct 13',
-            sla: 'Within 48h',
-            status: b('Pending', 'pending'),
-          },
-          {
             subject: 'Grace Fellowship — Sanctuary Soundboard Upgrade',
             division: 'Gamo Production',
             category: 'Technical assessment & spec review',
@@ -743,7 +646,7 @@ export const organizationScreens: DashScreen[] = [
           },
         ],
         'division',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live', 'Gamo Production'],
+        ['Gamo Worship', 'Gamo Academy', 'Gamo Production'],
         { label: 'Review item', dialog: 'unified-review-dialog', icon: 'check' }
       ),
       decisionDialog('unified-review-dialog', 'Record unified moderation decision', 'Sarah M. — Vocals & Acoustic Guitar'),
@@ -781,17 +684,17 @@ export const organizationScreens: DashScreen[] = [
           {
             timestamp: '2026-10-14 17:15:04',
             actor: 'reviewer@example.invalid',
-            action: 'live.event.approve',
-            target: 'evt_phoenix_worship_2026',
-            reason: 'Verified host church leadership, venue capacity (450), and free RSVP tier',
+            action: 'academy.instructor.approve',
+            target: 'inst_elena_piano',
+            reason: 'Verified adult screening clearance and teaching references',
             outcome: b('Approved', 'success'),
           },
           {
             timestamp: '2026-10-14 15:30:22',
             actor: 'reviewer@example.invalid',
-            action: 'live.representation.verify',
-            target: 'rep_selah_agency_01',
-            reason: 'Confirmed dual-party artist approval and non-conflicting regional booking scope',
+            action: 'church.verify',
+            target: 'org_cornerstone_bible',
+            reason: 'Confirmed church leadership contact and service address',
             outcome: b('Verified', 'verified'),
           },
           {
@@ -855,15 +758,15 @@ export const organizationScreens: DashScreen[] = [
         [
           {
             jobId: 'ntf_2026_8841',
-            channel: 'Gamo Live · Pass & QR Confirmation',
-            recipient: 'h***@example.org',
+            channel: 'Gamo Academy · Enrollment Confirmation',
+            recipient: 'p***@example.org',
             attempts: '1 / 5',
             status: b('Sent', 'success'),
           },
           {
             jobId: 'ntf_2026_8842',
-            channel: 'Gamo Live · Booking Offer Countered',
-            recipient: 'h***@selahtalent.example',
+            channel: 'Gamo Worship · Placement Offer',
+            recipient: 'm***@worship.example',
             attempts: '1 / 5',
             status: b('Sent', 'success'),
           },
@@ -883,7 +786,7 @@ export const organizationScreens: DashScreen[] = [
           },
           {
             jobId: 'ntf_2026_8845',
-            channel: 'Gamo Live · Production Support Request',
+            channel: 'Gamo Production · Support Request',
             recipient: 'p***@gamostudio.org',
             attempts: '2 / 5 (next retry +60s)',
             status: b('Retry scheduled', 'pending'),

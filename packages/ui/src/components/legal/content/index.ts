@@ -5,8 +5,6 @@
 import type { LegalDocumentContent } from './types.ts';
 import { siteTerms } from './site-terms.ts';
 import { privacyPolicy } from './privacy-policy.ts';
-import { ticketTerms } from './ticket-terms.ts';
-import { organizerTerms } from './organizer-terms.ts';
 import { providerTerms } from './provider-terms.ts';
 import { academyEnrollmentTerms } from './academy-enrollment-terms.ts';
 import { academyGuardianConsent } from './academy-guardian-consent.ts';
@@ -18,8 +16,6 @@ export { legalDocumentCanonicalText } from './types.ts';
 export const LEGAL_DOCUMENT_CONTENT: Readonly<Record<string, LegalDocumentContent>> = Object.freeze({
   'site-terms': siteTerms,
   'privacy-policy': privacyPolicy,
-  'ticket-terms': ticketTerms,
-  'organizer-terms': organizerTerms,
   'provider-terms': providerTerms,
   'academy-enrollment-terms': academyEnrollmentTerms,
   'academy-guardian-consent': academyGuardianConsent,

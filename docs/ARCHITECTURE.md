@@ -1,17 +1,16 @@
 # Architecture
 
-Current as of the 2026-10 foundation pass (`docs/CLEANUP_LOG.md`). The older root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` hold historical design notes; where they differ, this file describes what the code does.
+Current as of the 2026-10 foundation pass (`docs/CLEANUP_LOG.md`), updated 2026-11-16 for the removal of Gamo Live (programs: Academy, Worship, Production; the four-program state is at tag `four-programs-snapshot`). The older root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` hold historical design notes; where they differ, this file describes what the code does.
 
 ## Applications
 
-Six Astro 7 SSR apps, each built with `@astrojs/cloudflare` into its own Cloudflare Worker:
+Five Astro 7 SSR apps, each built with `@astrojs/cloudflare` into its own Cloudflare Worker:
 
 | App | Worker (production / preview) | Domain | Local port |
 | --- | --- | --- | --- |
 | `apps/web` | `gamo-web` / `gamo-web-preview` | gamostudio.org | 4321 |
 | `apps/worship` | `gamo-worship` / `gamo-worship-preview` | worship.gamostudio.org | 4322 |
 | `apps/academy` | `gamo-academy` / `gamo-academy-preview` | academy.gamostudio.org | 4323 |
-| `apps/live` | `gamo-live` / `gamo-live-preview` | live.gamostudio.org | 4324 |
 | `apps/production` | `gamo-production` / `gamo-production-preview` | production.gamostudio.org | 4325 |
 | `apps/admin` | `gamo-admin` / `gamo-admin-preview` | admin.gamostudio.org (no workers.dev) | 4326 |
 
@@ -25,8 +24,8 @@ Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloud
 | --- | --- |
 | `packages/config` (`@gamo/config`) | `apps.ts` (domains, ports), `env.ts` (`GamoEnv`, the typed Worker env), `env-validation.ts` (per-isolate checks), `env-loader.ts` (local `.env`/`.dev.vars` loading + Astro/Cloudflare config factory), `brand.ts` |
 | `packages/auth` (`@gamo/auth`) | D1-backed sessions with HMAC-signed host-only cookies, `requireAuth`/`requireProductAuth`/`requireStaff`, `requireSameOrigin` (CSRF), page-access rules (`page-access.ts`), Clerk verification (`clerk.ts`), admin gateway and Cloudflare Access checks, `GamoLocals` |
-| `packages/domain` (`@gamo/domain`) | Services (`LiveService`, `NotificationService`, …), API helpers (`api/response.ts`: JSON errors, `getRuntimeEnv`), the shared page middleware (`api/page-middleware.ts`), security headers (`http/security-headers.ts`) |
-| `packages/db` (`@gamo/db`) | Drizzle schema, SQL migrations (`migrations/0000…0017`), `getDb`, SQLite-backed D1 for tests (`testing.ts`) — see `docs/DATABASE.md` |
+| `packages/domain` (`@gamo/domain`) | Services (`IdentityService`, `NotificationService`, `AdminService`, …), API helpers (`api/response.ts`: JSON errors, `getRuntimeEnv`), the shared page middleware (`api/page-middleware.ts`), security headers (`http/security-headers.ts`) |
+| `packages/db` (`@gamo/db`) | Drizzle schema, SQL migrations (`migrations/0000…0018`; `0018` drops the Gamo Live tables), `getDb`, SQLite-backed D1 for tests (`testing.ts`) — see `docs/DATABASE.md` |
 | `packages/integrations` (`@studio-gamo/integrations`) | Stripe (test mode only), Resend, R2 storage; each fails closed when unconfigured outside local |
 | `packages/ui` (`@studio-gamo/ui`) | Layouts (`ProgramLayout`, `ErrorPage`), header/footer, shared auth experience (`components/auth/GamoAuthExperience.astro`), design tokens (`styles/tokens.css`), self-hosted Inter, crawler helpers |
 | `packages/api-contracts` | Types and validators **generated** from `openapi/root.yaml` by `scripts/api/generate.mjs` (do not edit) |
@@ -62,43 +61,31 @@ Launch signs everyone in with Gamo's **emailed verification codes** (6-digit, si
 
 ## People, identity and customers (2026-10-18)
 
-Three kinds of people (full design: `docs/design/identity-and-ticketing.md`; what was built: `docs/IDENTITY.md`):
+Two kinds of people (full design: `docs/design/identity-and-ticketing.md`; what was built: `docs/IDENTITY.md`):
 
-- **Customers** (ticket buyers, parents, students) have no account. `customer_profiles` is keyed by email; they act through signed, expiring emailed links (`customer_access_tokens`, HMAC-stored, scoped, product-bound) that open a short cookie session (`customer_sessions`). Optional account claim attaches a verified sign-up to the customer's `persons` row.
-- **Providers** (musicians, technicians, churches, agents, organizers, teachers) have accounts per product (emailed code or that product's own Clerk app). A D1 `persons` row keyed by a **verified** email links a provider's per-product users so `provider_profiles` and terms acceptances carry across products; sessions, product accounts, Clerk apps and authorization roles stay per product (AGENTS.md exception). Provider publishing is gated (verified email, complete profile, accepted terms, staff review for church/musician/technician, first event of every organizer); staff work in the admin app (`/review/*`) with a shared self-review check and an append-only `verification_records` trail.
-- **Door staff** use event-scoped scanner links plus a PIN (`scanner_sessions` → `scanner_devices` cookie), never an account.
+- **Customers** (parents, students) have no account. `customer_profiles` is keyed by email; they act through signed, expiring emailed links (`customer_access_tokens`, HMAC-stored, scoped, product-bound) that open a short cookie session (`customer_sessions`). Optional account claim attaches a verified sign-up to the customer's `persons` row.
+- **Providers** (musicians, technicians, churches, teachers) have accounts per product (emailed code or that product's own Clerk app). A D1 `persons` row keyed by a **verified** email links a provider's per-product users so `provider_profiles` and terms acceptances carry across products; sessions, product accounts, Clerk apps and authorization roles stay per product (AGENTS.md exception). Provider publishing is gated (verified email, complete profile, accepted terms, staff review for church/musician/technician); staff work in the admin app (`/review/*`) with a shared self-review check and an append-only `verification_records` trail.
 
-Shared plumbing: `@gamo/domain/security` (QR codec, link tokens, rate limiter, Turnstile, PII hashing, PIN), `@gamo/domain/public-form-guard` (bounded body read, Turnstile, per-IP/per-email limits for every public form), `@gamo/domain/terms` (versioned terms registry; all documents are drafts), `services/customers.ts`, `services/email-outbox.ts` (idempotent sends, suppression, Resend/Svix webhooks), and the form kit in `packages/ui/src/components/forms`.
-
-## Gamo Live ticketing (2026-10-18)
-
-Details: `docs/TICKETING.md` (buying, tickets, email, webhooks) and `docs/TICKETING_SCANNER.md` (door scanning, offline, venue maps).
-
-- **Inventory authority is D1 itself** (no Durable Object): inserting a hold reserves its units through a trigger on the category and section counters; overflow aborts the whole `db.batch`. Hold expiry/release and sale conversion are triggers on the hold status; voiding or refunding a ticket releases exactly once. Ticket issuance is idempotent per (order item, seq). `ticket_tiers` are the "ticket categories"; `venue_sections` carry per-section price/capacity.
-- **Tickets** carry a version and a random salt; the QR is `GL1.<ticket>.<version>.<MAC>` (HMAC-SHA256, no personal data). Transfers and reissues bump the version so old screenshots die. The server decides every scan with one conditional upsert on `ticket_presence`; offline devices verify against a manifest of MAC digests and sync later, with conflicts flagged.
-- **Payments** are Stripe Checkout in test mode only; production answers 503 in code. The webhook claims each event, verifies signature/livemode/amount/currency, and issues tickets in one batch. Refunds are per ticket.
-- **Rendering** uses pure-JS libraries (`uqr` for the QR, `pdf-lib` for PDF, a tiny PNG encoder) to fit Workers limits; PDFs may be cached in R2.
-- **Email** goes through the outbox (`email_log`, suppressions, bounce/complaint webhook); the on-screen download never depends on email.
-- **Local only:** `/local-test/*` (mock Stripe checkout, test inbox, fixtures) answers 404 unless `ENVIRONMENT=local`.
+Shared plumbing: `@gamo/domain/security` (link tokens, rate limiter, Turnstile, PII hashing), `@gamo/domain/public-form-guard` (bounded body read, Turnstile, per-IP/per-email limits for every public form), `@gamo/domain/terms` (versioned terms registry; all documents are drafts), `services/customers.ts`, `services/email-outbox.ts` (idempotent sends, suppression; the Resend/Svix bounce-complaint webhook is served by `apps/web` at `/api/webhook/resend`), and the form kit in `packages/ui/src/components/forms`.
 
 ## Payments
 
 - Stripe runs in **test mode only**; live-mode keys are refused at runtime.
-- Paid checkout on Gamo Live **fails closed with 503** before any hold is created, until order/inventory authority exists (see `docs/BACKEND_RELEASE_READINESS.md`). Free registration works.
-- `POST /api/webhook/stripe` verifies the signature with `STRIPE_WEBHOOK_SECRET`; events are recorded idempotently. Financial fulfillment stays fail-closed.
+- Academy paid registration uses the Stripe Checkout test path only where `STRIPE_TEST_CHECKOUT=true` in local/preview; production answers 503 in code. "Reserve" (no payment) works everywhere.
+- The Gamo Live Stripe webhook (`/api/webhook/stripe`), ticket checkout and the unused `payment_records`/`ledger_entries`/`stripe_webhook_events` tables were removed on 2026-11-16.
 - Outbound Stripe/Resend calls: 10 s timeout, `Idempotency-Key`, one retry on network error/429/5xx only.
 - No donation, membership or sponsorship payments (AGENTS.md).
 
 ## Data and storage
 
-- **D1** (`DB`): one database per environment (`gamo-db-local`, `gamo-db-preview`, `gamo-db-production`) shared by all six apps; migrations in `packages/db/migrations`.
+- **D1** (`DB`): one database per environment (`gamo-db-local`, `gamo-db-preview`, `gamo-db-production`) shared by all five apps; migrations in `packages/db/migrations`.
 - **KV** (`SESSION`, `SESSION_KV`): Astro session storage. All environments currently point at the same namespace id — see CLEANUP_LOG H-01.
 - **R2** (`MEDIA_BUCKET`): `gamo-media-<env>`.
 - Locally, each app keeps its own Miniflare state in `apps/<app>/.wrangler/state`, so apps don't share a local database file.
 
-## Gamo Live catalog
+## Removed: Gamo Live (2026-11-16)
 
-Public Live pages read real events from D1 through `LiveService` (never hard-coded samples). The verified external discovery catalog (`data/gamo_live_verified_events_2026-10-15.json`, bundled as `verified-catalog-2026-10-15.ts`) is seeded automatically only in local development or when `LIVE_CATALOG_AUTOSEED=true`; otherwise it is imported deliberately (`docs/RUNBOOK.md`). Past events are shown as `Past · Closed` and cannot be registered for.
+`apps/live`, its workers (`gamo-live`, `gamo-live-preview`), ticketing, door scanning, the event catalog and their D1 tables (migration `0018`) were removed. Database CHECK constraints that still list `'live'` as a product value were deliberately not rebuilt. Shared account, sign-in, Clerk, customer-link, email and Academy Stripe code stays until the second cleanup. History: `docs/DECISIONS.md` (2026-11-16) and tag `four-programs-snapshot`.
 
 ## Front end
 

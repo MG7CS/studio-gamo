@@ -1,7 +1,7 @@
 name: id
 in: path
 required: true
-description: Event identifier; public detail additionally accepts a slug.
+description: Resource identifier from the path.
 schema:
   type: string
   minLength: 1

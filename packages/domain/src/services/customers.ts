@@ -1,13 +1,14 @@
 /**
- * Customer core (design §4.1, §4.2, T-07, T-11): guests who buy tickets or register students without an
- * account. The email is their identity; a `persons` link is made only once the email is proven.
+ * Customer core (design §4.1, §4.2, T-07, T-11): guests who register students without an account. The
+ * email is their identity; a `persons` link is made only once the email is proven.
  *
- * Shared by Gamo Live (ticketing) and Gamo Academy (guest registration). All times are epoch seconds.
+ * Used by Gamo Academy (guest registration). All times are epoch seconds.
  *
- *   const profile = await upsertCustomerProfile(db, { email, now });   // names go on the order, not here
+ *   const profile = await upsertCustomerProfile(db, { email, now });   // names go on the registration
  *   const link = await issueCustomerLink(db, env, { customerProfileId: profile.id, scope: 'customer:all',
- *     purpose: 'recovery', expiresAt: recoveryLinkExpiresAt(now), now, ipHash, openPath: '/tickets/open' });
- *   // email siteUrl('live', link.path)
+ *     purpose: 'recovery', expiresAt: recoveryLinkExpiresAt(now), now, ipHash, product: 'academy',
+ *     openPath: '/registrations/open' });
+ *   // email siteUrl('academy', link.path)
  *   const opened = await openCustomerLink(db, env, { token, now, https });
  *   if (!opened.ok) show(opened.message);                    // one message for every failure
  *   else 303 to a token-free URL with headers { 'Set-Cookie': opened.cookie, 'Referrer-Policy': 'no-referrer' }
@@ -31,7 +32,7 @@ import { isPlausibleEmail, normalizeEmail } from '../security/pii-hash.ts';
 import { signValue, verifySignedValue } from '../security/signed-value.ts';
 import { runBatch, type SqlDatabase } from '../security/sql-database.ts';
 
-/** One cookie name and one signing purpose per product: a Live cookie is not an Academy cookie (D-116). */
+/** One cookie name and one signing purpose per product: one product's cookie never opens another's (D-116). */
 export function customerCookieName(product: LinkProduct): string {
   if (!isLinkProduct(product)) throw new RangeError('customerCookieName: product');
   return `__gamo_customer_${product}`;
@@ -138,7 +139,7 @@ export async function findCustomerProfileByEmail(
  * Finds or creates the guest profile for an email (normalised). An existing profile is returned unchanged.
  *
  * Names (design D-77): an unauthenticated form never sets or changes a profile's display name — anyone can
- * type anyone's address. Purchaser and attendee names belong on the order/tickets/registration. The profile
+ * type anyone's address. Student and guardian names belong on the registration. The profile
  * name comes only from the verified customer (`setVerifiedCustomerName`, behind a customer session).
  * Callers must check `erasedAt` before using an existing profile.
  */
@@ -201,7 +202,7 @@ export class PersonErasedError extends Error {
  *
  * `displayName` (D-77) is written only when the person is created, and only from a verified flow: the name
  * entered in the same sign-up whose code was just verified, or the person's own input while signed in.
- * Never pass a name from a guest form, an order or a ticket.
+ * Never pass a name from a guest form or a registration.
  */
 export async function findOrCreatePersonForVerifiedEmail(
   db: SqlDatabase,
@@ -284,7 +285,7 @@ export interface IssueCustomerLinkInput {
   now: number;
   ipHash?: string | null;
   maxUses?: number | null;
-  /** The product whose customer this link is for (`live` | `academy`); a link opens only there. */
+  /** The product whose customer this link is for (`academy`); a link opens only there. */
   product: LinkProduct;
   /** Path of the product page that opens links (default `/link`); the token is added as `?t=`. */
   openPath?: string;

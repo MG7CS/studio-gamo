@@ -53,6 +53,6 @@ export const privacy = (body: string): DashBlock => ({ type: 'notice', tone: 'pr
 export const fairness: DashBlock = {
   type: 'notice',
   tone: 'info',
-  body: 'Payment, sponsorship or partnership never affects musician vetting, placement order, artist verification, or discovery rankings.',
+  body: 'Payment, sponsorship or partnership never affects musician or instructor vetting, placement order, or rankings.',
 };
 export type { BadgeValue };

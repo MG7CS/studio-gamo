@@ -4,7 +4,7 @@ export const providerTerms: LegalDocumentContent = {
   slug: 'provider-terms',
   title: 'Provider and Church Terms with Code of Conduct',
   intro:
-    'These terms apply to musicians, technicians, teachers, artists, agents and churches who serve through Gamo Worship, Gamo Academy, Gamo Live and Gamo Production.',
+    'These terms apply to musicians, technicians, teachers and churches who serve through Gamo Worship, Gamo Academy and Gamo Production.',
   sections: [
     {
       id: 'profiles',
@@ -20,7 +20,7 @@ export const providerTerms: LegalDocumentContent = {
       heading: 'Review and verification',
       items: [
         'Churches are verified in person: a member of Gamo Studios staff meets with the church before its profile can be published. The staff member, date and notes are recorded.',
-        'Musicians and technicians are reviewed by staff before they are published. Teachers, artists and agents may also be reviewed.',
+        'Musicians and technicians are reviewed by staff before they are published. Teachers may also be reviewed.',
         'Staff may ask for changes, decline a profile or suspend a published one, and will tell you why.',
         'Payment, sponsorship or partnership never affects vetting, review decisions or rankings.',
       ],
@@ -37,11 +37,11 @@ export const providerTerms: LegalDocumentContent = {
       heading: 'Code of Conduct',
       items: [
         'Serve with integrity, humility and respect for the church, the congregation and one another.',
-        'Arrive prepared and on time, and tell the organizer as early as possible if you cannot serve.',
+        'Arrive prepared and on time, and tell the church or program coordinator as early as possible if you cannot serve.',
         'Never harass, demean or discriminate against anyone. Eligibility never depends on ethnicity or nationality.',
-        'Keep the personal information you receive (contact details, attendee lists, student details) private and use it only for the service.',
+        'Keep the personal information you receive (contact details, student details) private and use it only for the service.',
         'With students under 18: follow the Academy child-safety rules, never be alone with a student out of view of others, and communicate through the parent or guardian.',
-        'Report safety concerns to the event organizer and to hello@gamostudio.org without delay.',
+        'Report safety concerns to the church or program coordinator and to hello@gamostudio.org without delay.',
       ],
     },
     {

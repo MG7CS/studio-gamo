@@ -1,5 +1,7 @@
 # Gamo Studios — Cloudflare Backend & API Architecture
 
+> **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. The Gamo Live data domain (§4 item 4), the Stripe ticket webhook handling (§7) and the "First End-to-End Functional Slice: Gamo Live" (§8) are historical. Programs are now Gamo Academy, Gamo Worship and Gamo Production.
+
 <!-- status-banner: 2026-10 foundation pass -->
 > **Design notes.** For what the code does today see [ARCHITECTURE.md](ARCHITECTURE.md) and `openapi/root.yaml`.
 
@@ -13,7 +15,7 @@
 
 ## 1. Executive Summary & Architectural Principles
 
-Gamo Studios operates as a Christian nonprofit organization supporting interconnected programs: Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production, coordinated by Gamo Web and administered via Gamo Admin.
+Gamo Studios operates as a Christian nonprofit organization supporting interconnected programs: Gamo Worship, Gamo Academy and Gamo Production (Gamo Live was dropped on 2026-11-16), coordinated by Gamo Web and administered via Gamo Admin.
 
 The backend infrastructure is **Cloudflare-native**, leveraging:
 - **Cloudflare D1**: Serverless SQLite relational database for structured entities, ACID transactions, foreign keys, and durable ledger records.

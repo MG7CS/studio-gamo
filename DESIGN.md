@@ -5,7 +5,7 @@
 
 ## Approved 2026 public design phase
 
-The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Live uses a cinematic manual event spotlight; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
+The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
 
 The original homepage hero remains approved and preserved. Its bright alternative is isolated at `/preview/hero-2026`; it does not replace `/` without visual acceptance. References under `design-reference/2026-brand-refresh` are composition guides only, never embedded webpage screenshots. Delivered PNG originals stay under `assets/images/2026-brand-refresh`; only responsive AVIF/WebP derivatives are served. See [asset inventory](docs/ASSET_INVENTORY_2026.md), [component ownership](docs/COMPONENT_ARCHITECTURE.md) and [multi-page review](docs/MULTIPAGE_DESIGN_REVIEW.md).
 
@@ -85,15 +85,15 @@ Review the rendered page against the approved reference for geometry, photograph
 
 ## Approved homepage narrative
 
-The homepage introduces Gamo Studios as a **unified Christian music and community organization** and shows how its four programs work together. It must not read as a service that only supplies musicians to churches. Copy rules: [docs/GAMO_NONPROFIT_MODEL.md §6](docs/GAMO_NONPROFIT_MODEL.md#6-public-website-and-messaging).
+The homepage introduces Gamo Studios as a **unified Christian music and community organization** and shows how its three programs (Academy, Worship, Production) work together. Gamo Live was dropped on 2026-11-16 and has no homepage section. It must not read as a service that only supplies musicians to churches. Copy rules: [docs/GAMO_NONPROFIT_MODEL.md §6](docs/GAMO_NONPROFIT_MODEL.md#6-public-website-and-messaging).
 
-1. **Hero — Keep Worship Going:** strong photo-led composition, two core paths, no invented stats. The hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon; those changes take precedence over older mockups. Supporting copy now introduces the mission across programs. "Keep Worship Going" stays as the permanent brand message. A future dynamic spotlight (mission, sponsored programs, concerts, events, Academy, worship opportunities, church partnerships, nonprofit initiatives) may rotate **within the approved composition** — **not implemented without explicit approval**. If approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
+1. **Hero — Keep Worship Going:** strong photo-led composition, two core paths, no invented stats. The hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon; those changes take precedence over older mockups. Supporting copy now introduces the mission across programs. "Keep Worship Going" stays as the permanent brand message. A future dynamic spotlight (mission, sponsored programs, Academy, worship opportunities, Production support, church partnerships, special initiatives) may rotate **within the approved composition** — **not implemented without explicit approval**. If approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
 2. **Meet the Musicians (The Gamo Collection):** musicians presented as skilled people who serve — preparation, trust, contribution and fair pay — never as inventory. Verified status only for actually verified members (sample names explicitly labeled). Never visually boost musicians based on payment, sponsorship or partnership.
 3. **How It Works:** pill selector switching between *For Churches* and *Join the Collection*; framed as a community-supporting coordination process; primary/standby workflow; no absolute attendance guarantee.
 4. **Gamo Academy:** headline exactly **"Learn to Play the Instrument You Love."** Speaks first to students, parents and families; church-hosted and sponsored classes as a secondary pathway.
-5. **Gamo Live:** a trusted home for **Christian events** (no ethnic exclusivity). Pill selector: *Promote Event* (churches, ministries, artists, organizers; CTA "Promote an Event") and *Explore Events* (attendees; CTA "Explore Events"). Highlights free gatherings, concerts, recurring religious activities. *Sample* event previews until events are real.
+5. *(Gamo Live section removed 2026-11-16 with the program.)*
 6. **Final CTA:** "Get involved" invitation to churches, musicians, students, families and supporters; testimonials only once consented real statements exist.
-7. **Footer:** Our Mission · Gamo Worship · Gamo Academy · Gamo Live · Gamo Production · Church Partnerships · Opportunities to Support · contact and legal, with the approved legal-status statement. Social links once verified.
+7. **Footer:** Our Mission · Gamo Worship · Gamo Academy · Gamo Production · Church Partnerships · Opportunities to Support · contact and legal, with the approved legal-status statement. Social links once verified.
 
 **Planned sections requiring design approval (not built):** a *Church Partnerships* homepage section and a *Support Our Mission* section. Propose compositions through the design-lead before implementation; see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md).
 
@@ -113,7 +113,7 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 
 ## UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality
 
-Apply these rules by default across all Gamo Studios design, redesign, and implementation work (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin`, and `packages/ui`):
+Apply these rules by default across all Gamo Studios design, redesign, and implementation work (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`, `apps/admin`, and `packages/ui`):
 
 1. **Design Restraint Is Mandatory ("Less, But Better")**:
    - Minimize text, cards, badges, icons, buttons, and decorative components.

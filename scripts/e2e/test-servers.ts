@@ -16,7 +16,7 @@ import { clerkOffTestVars, isClerkTestBlankedName } from '../../packages/config/
 import { parseDotenv } from '../clerk/dotenv-value.ts';
 
 const repoRoot = resolve(fileURLToPath(import.meta.url), '../../..');
-const APPS = ['web', 'worship', 'academy', 'live', 'production', 'admin'];
+const APPS = ['web', 'worship', 'academy', 'production', 'admin'];
 
 /** Quotes a value the way @cloudflare/vite-plugin does, so wrangler reads it back unchanged. */
 export function quoteForDotenv(value: string): string {

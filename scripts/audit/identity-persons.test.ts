@@ -45,7 +45,7 @@ async function setup() {
 async function signUp(
   identity: IdentityService,
   email: string,
-  product: 'web' | 'worship' | 'academy' | 'live' | 'production',
+  product: 'web' | 'worship' | 'academy' | 'production',
 ) {
   const c = await identity.issueEmailChallenge(email, { product, intent: 'signup' });
   return identity.verifyEmailChallenge(email, c.code, {
@@ -58,13 +58,13 @@ async function signUp(
 test('two products, same verified email → one person; sign-in keeps it; nothing else is granted', async () => {
   const { d1, one, identity } = await setup();
   const worshipUser = await signUp(identity, 'shared@example.org', 'worship');
-  const liveUser = await signUp(identity, 'Shared@Example.org', 'live');
+  const productionUser = await signUp(identity, 'Shared@Example.org', 'production');
   assert.ok(worshipUser.personId);
-  assert.equal(liveUser.personId, worshipUser.personId);
+  assert.equal(productionUser.personId, worshipUser.personId);
   assert.equal(one<{ n: number }>('SELECT COUNT(*) AS n FROM persons').n, 1);
 
   // A Clerk-provisioned, product-scoped user row for Academy with the same verified email links to the
-  // same person — but gets no Worship/Live account, role or session from it.
+  // same person — but gets no Worship/Production account, role or session from it.
   d1.sqlite
     .prepare(
       "INSERT INTO users (id, email, display_name, verified_email_at, status, created_at) VALUES ('usr_academy_x', 'shared@example.org#academy:x', NULL, ?1, 'active', ?1)",
@@ -89,7 +89,7 @@ test('two products, same verified email → one person; sign-in keeps it; nothin
     products.products.map((p) => [p.name, p.current]),
     [
       ['Gamo Worship', true],
-      ['Gamo Live', false],
+      ['Gamo Production', false],
     ],
   );
 });
@@ -108,14 +108,14 @@ test('an unverified email never links: guest forms and unverified Clerk emails c
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
-  const host = 'live-instance.clerk.accounts.dev';
+  const host = 'production-instance.clerk.accounts.dev';
   const b64 = (x: string | Buffer) => Buffer.from(x).toString('base64url');
   const input = `${b64(JSON.stringify({ alg: 'RS256', typ: 'JWT', kid: 'k' }))}.${b64(
     JSON.stringify({
       iss: `https://${host}`,
       sub: 'user_unverified',
       sid: 'sess_unverified',
-      azp: 'https://live.gamostudio.org',
+      azp: 'https://production.gamostudio.org',
       email: 'guest@example.org',
       email_verified: false,
       iat: Math.floor(Date.now() / 1000) - 5,
@@ -130,18 +130,18 @@ test('an unverified email never links: guest forms and unverified Clerk emails c
     DB: d1,
     SESSION_SECRET: SECRET,
     ...GUARD_SECRETS,
-    CLERK_APP_ID_LIVE: 'app_live_test',
-    PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: `pk_live_${Buffer.from(`${host}$`).toString('base64').replace(/=+$/, '')}`,
-    CLERK_JWT_KEY_LIVE: keys.publicKey,
-    CLERK_ISSUER_LIVE: `https://${host}`,
-    CLERK_AUTHORIZED_PARTIES_LIVE: 'https://live.gamostudio.org',
+    CLERK_APP_ID_PRODUCTION: 'app_production_test',
+    PUBLIC_CLERK_PUBLISHABLE_KEY_PRODUCTION: `pk_live_${Buffer.from(`${host}$`).toString('base64').replace(/=+$/, '')}`,
+    CLERK_JWT_KEY_PRODUCTION: keys.publicKey,
+    CLERK_ISSUER_PRODUCTION: `https://${host}`,
+    CLERK_AUTHORIZED_PARTIES_PRODUCTION: 'https://production.gamostudio.org',
   };
-  const res = await createAuthHandlers('live').clerkSessionPOST({
-    request: new Request('https://live.gamostudio.org/api/auth/clerk-session', {
+  const res = await createAuthHandlers('production').clerkSessionPOST({
+    request: new Request('https://production.gamostudio.org/api/auth/clerk-session', {
       method: 'POST',
-      headers: { origin: 'https://live.gamostudio.org', authorization: `Bearer ${token}` },
+      headers: { origin: 'https://production.gamostudio.org', authorization: `Bearer ${token}` },
     }),
-    locals: { runtime: { env }, product: 'live' },
+    locals: { runtime: { env }, product: 'production' },
   });
   assert.equal(res.status, 403);
   assert.equal(one<{ n: number }>('SELECT COUNT(*) AS n FROM persons').n, 0);
@@ -194,13 +194,13 @@ test('unlink clears the link, writes an audit row and keeps automatic re-linking
 
 test("a Clerk email change never moves another product's person link (commit 2b08ce3 rule)", async () => {
   const { d1, one, identity } = await setup();
-  // One users row backs Worship and Live accounts (emailed-code flow).
+  // One users row backs Worship and Production accounts (emailed-code flow).
   const shared = await signUp(identity, 'old@example.org', 'worship');
-  await signUp(identity, 'old@example.org', 'live');
+  await signUp(identity, 'old@example.org', 'production');
   const kept = await linkUserToVerifiedPerson(d1, {
     userId: shared.id,
     email: 'new@example.org',
-    product: 'live',
+    product: 'production',
     source: 'clerk',
     allowRelink: true,
     now: NOW,
@@ -214,26 +214,26 @@ test("a Clerk email change never moves another product's person link (commit 2b0
   // A product-only row (Clerk registration) follows its own verified email.
   d1.sqlite
     .prepare(
-      "INSERT INTO users (id, email, verified_email_at, status, created_at) VALUES ('usr_live_solo', 'solo@example.org', ?1, 'active', ?1)",
+      "INSERT INTO users (id, email, verified_email_at, status, created_at) VALUES ('usr_production_solo', 'solo@example.org', ?1, 'active', ?1)",
     )
     .run(NOW);
   d1.sqlite
     .prepare(
-      "INSERT INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES ('pacc_solo', 'usr_live_solo', 'live', 'active', 'pending', ?1, ?1)",
+      "INSERT INTO product_accounts (id, user_id, product, status, onboarding_status, created_at, updated_at) VALUES ('pacc_solo', 'usr_production_solo', 'production', 'active', 'pending', ?1, ?1)",
     )
     .run(NOW);
   const first = await linkUserToVerifiedPerson(d1, {
-    userId: 'usr_live_solo',
+    userId: 'usr_production_solo',
     email: 'solo@example.org',
-    product: 'live',
+    product: 'production',
     source: 'clerk',
     allowRelink: true,
     now: NOW,
   });
   const moved = await linkUserToVerifiedPerson(d1, {
-    userId: 'usr_live_solo',
+    userId: 'usr_production_solo',
     email: 'solo.new@example.org',
-    product: 'live',
+    product: 'production',
     source: 'clerk',
     allowRelink: true,
     now: NOW + 1,
@@ -311,9 +311,12 @@ function svixHeaders(secretB64: string, body: string, id = 'msg_1', ts = Math.fl
 
 test('Clerk webhook: Svix-verified session.ended revokes only the matching sessions of this product; user.deleted suspends the link', async () => {
   const { d1, db, one, identity } = await setup();
-  const user = await signUp(identity, 'clerk@example.org', 'live');
-  const keep = await createSession(db, user.id, SECRET, { product: 'live' });
-  const ended = await createSession(db, user.id, SECRET, { product: 'live', clerkSessionId: 'sess_ended' });
+  const user = await signUp(identity, 'clerk@example.org', 'production');
+  const keep = await createSession(db, user.id, SECRET, { product: 'production' });
+  const ended = await createSession(db, user.id, SECRET, {
+    product: 'production',
+    clerkSessionId: 'sess_ended',
+  });
   const otherProduct = await createSession(db, user.id, SECRET, {
     product: 'worship',
     clerkSessionId: 'sess_ended',
@@ -323,18 +326,18 @@ test('Clerk webhook: Svix-verified session.ended revokes only the matching sessi
     ENVIRONMENT: 'production',
     DB: d1,
     SESSION_SECRET: SECRET,
-    CLERK_WEBHOOK_SECRET_LIVE: `whsec_${secretB64}`,
+    CLERK_WEBHOOK_SECRET_PRODUCTION: `whsec_${secretB64}`,
   };
-  const hook = createAuthHandlers('live').clerkWebhookPOST;
+  const hook = createAuthHandlers('production').clerkWebhookPOST;
   const send = (payload: unknown, headers?: Record<string, string>, e: Record<string, unknown> = env) => {
     const body = JSON.stringify(payload);
     return hook({
-      request: new Request('https://live.gamostudio.org/api/auth/clerk-webhook', {
+      request: new Request('https://production.gamostudio.org/api/auth/clerk-webhook', {
         method: 'POST',
         headers: headers ?? svixHeaders(secretB64, body),
         body,
       }),
-      locals: { runtime: { env: e }, product: 'live' },
+      locals: { runtime: { env: e }, product: 'production' },
     });
   };
 
@@ -359,7 +362,7 @@ test('Clerk webhook: Svix-verified session.ended revokes only the matching sessi
     (
       await send({ type: 'session.ended', data: { id: 'sess_ended' } }, undefined, {
         ...env,
-        CLERK_WEBHOOK_SECRET_LIVE: undefined,
+        CLERK_WEBHOOK_SECRET_PRODUCTION: undefined,
       })
     ).status,
     503,
@@ -389,14 +392,14 @@ test('Clerk webhook: Svix-verified session.ended revokes only the matching sessi
     'ignored',
   );
 
-  // user.deleted: every Live session of the linked user ends and the identity link is suspended.
+  // user.deleted: every Production session of the linked user ends and the identity link is suspended.
   d1.sqlite
     .prepare(
-      "INSERT INTO clerk_identity_links (id, product, clerk_app_id, clerk_issuer, clerk_user_id, clerk_email, user_id, product_account_id, status, linked_at, updated_at) SELECT 'clink_1', 'live', 'app', 'https://x', 'user_clerk_1', 'clerk@example.org', ?1, id, 'active', ?2, ?2 FROM product_accounts WHERE user_id = ?1 AND product = 'live'",
+      "INSERT INTO clerk_identity_links (id, product, clerk_app_id, clerk_issuer, clerk_user_id, clerk_email, user_id, product_account_id, status, linked_at, updated_at) SELECT 'clink_1', 'production', 'app', 'https://x', 'user_clerk_1', 'clerk@example.org', ?1, id, 'active', ?2, ?2 FROM product_accounts WHERE user_id = ?1 AND product = 'production'",
     )
     .run(user.id, NOW);
   const outcome = await applyClerkWebhookEvent(d1, {
-    product: 'live',
+    product: 'production',
     type: 'user.deleted',
     data: { id: 'user_clerk_1' },
     now: NOW,
@@ -408,10 +411,10 @@ test('Clerk webhook: Svix-verified session.ended revokes only the matching sessi
     one<{ status: string }>("SELECT status FROM clerk_identity_links WHERE id = 'clink_1'").status,
     'suspended',
   );
-  const later = new Request('https://live.gamostudio.org/account', {
+  const later = new Request('https://production.gamostudio.org/account', {
     headers: { cookie: `__session=${encodeURIComponent(keep.cookieValue)}` },
   });
-  assert.equal(await resolveAuth(later, db, { secret: SECRET, product: 'live' }), null);
+  assert.equal(await resolveAuth(later, db, { secret: SECRET, product: 'production' }), null);
 });
 
 test('legacy unlink (audit row only, column NULL) still counts as opted out and is backfilled', async () => {

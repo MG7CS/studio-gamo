@@ -1,5 +1,7 @@
 # Gamo Studios — Comprehensive Dashboard UX Audit
 
+> **2026-11-16:** Gamo Live (`apps/live`, organizer and attendee workspaces, admin Live screens) was removed; the Live rows below are historical.
+
 **Date:** 2026-10-13  
 **Status:** Completed & Approved for Implementation  
 **Auditor:** Senior Product Designer, Frontend Architect, A11y Specialist & QA Lead  

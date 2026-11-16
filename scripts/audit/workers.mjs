@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-const require = createRequire(new URL('../../apps/live/package.json', import.meta.url));
+const require = createRequire(new URL('../../apps/academy/package.json', import.meta.url));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -40,7 +40,6 @@ const mf = new Miniflare({
           ALLOW_DEMO_SESSION: 'true',
           ALLOW_AUTH_SIMULATION: 'true',
           SESSION_SECRET: 'workerd-audit-only-session-secret-32-characters',
-          STRIPE_WEBHOOK_SECRET: 'audit-only-webhook',
         },
       },
     ],
@@ -100,7 +99,7 @@ try {
     { name: 'Sample Audit Ministry', slug: 'sample-audit', type: 'church' },
     cookie,
   );
-  const orgId = orgCreated.json.data.organization.id;
+  assert.ok(orgCreated.json.data.organization.id);
   // 2. Superadmin provisions staff reviewer identity with Cloudflare Access sub
   const superSession = await call('/api/auth/session', 200, { email: 'superadmin@example.invalid' });
   const superCookie = superSession.response.headers.get('set-cookie').split(';')[0];
@@ -124,86 +123,12 @@ try {
     },
     superCookie,
   );
-  const reviewer = await call('/api/auth/session', 200, { email: 'reviewer@example.invalid' });
-  const staffCookie = reviewer.response.headers.get('set-cookie').split(';')[0];
-  const input = {
-    organizationId: orgId,
-    title: 'Sample Audit Worship',
-    category: 'worship',
-    description: 'Fictional local runtime test gathering.',
-    venueName: 'Sample Hall',
-    city: 'Phoenix',
-    state: 'AZ',
-    startsAt: new Date(Date.now() + 86400000).toISOString(),
-    timezone: 'America/Phoenix',
-    tiers: [{ name: 'Free', priceCents: 0, capacity: 3 }],
-  };
-  await call('/api/events', 401, input);
-  const created = await call('/api/events', 201, input, cookie);
-  const id = created.json.data.event.id;
-  await call(`/api/events/${id}`, 404);
-  await call(`/api/events/${id}/review`, 403, { decision: 'approved' }, cookie);
-  await call('/api/events/pending', 200, undefined, staffCookie);
-  await call(`/api/events/${id}/review`, 200, { decision: 'approved' }, staffCookie);
-  await call(`/api/events/${id}`, 200);
-  const detail = await call(`/api/events/${id}`, 200);
-  const categoryId = detail.json.data.tiers[0].id;
-  const termsVersion = '2026-10-18-draft.1';
-  const orderBody = (email, idempotencyKey, quantity = 1) => ({
-    items: [{ categoryId, quantity }],
-    purchaserName: 'Sample Attendee',
-    email,
-    emailConfirm: email,
-    termsAccepted: true,
-    termsDocuments: [
-      { slug: 'ticket-terms', version: termsVersion },
-      { slug: 'privacy-policy', version: termsVersion },
-    ],
-    idempotencyKey,
-    'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
-  });
-  // 12 parallel RSVPs for 3 seats under workerd: exactly 3 hold seats, 9 are told what is left.
-  const attempts = await Promise.all(
-    Array.from({ length: 12 }, (_, n) =>
-      mf.dispatchFetch(`http://localhost/api/events/${id}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderBody(`sample${n}@example.invalid`, `idem_workerd_audit_${n}_xxxxxxxx`)),
-      }),
-    ),
-  );
-  assert.equal(attempts.filter((x) => x.status === 202).length, 3);
-  assert.equal(attempts.filter((x) => x.status === 409).length, 9);
-  for (const response of attempts) {
-    const body = await response.json();
-    assert.equal(body.data?.registration, undefined);
-  }
-  assert.equal(
-    (await db.prepare("SELECT count(*) n FROM ticket_orders WHERE status = 'pending_verification'").first())
-      .n,
-    3,
-  );
-  assert.equal(
-    (await db.prepare('SELECT reserved_count n FROM ticket_tiers WHERE id = ?').bind(categoryId).first()).n,
-    3,
-  );
-  // A double submit (same idempotency key) answers the same and holds nothing more.
-  const winner = (await Promise.all(attempts.map(async (r, n) => [r.status, n]))).find(
-    ([st]) => st === 202,
-  )[1];
-  const again = await call(
-    `/api/events/${id}/register`,
-    202,
-    orderBody(`sample${winner}@example.invalid`, `idem_workerd_audit_${winner}_xxxxxxxx`),
-  );
-  assert.equal(again.json.data.registration, undefined);
-  assert.equal((await db.prepare('SELECT count(*) n FROM ticket_orders').first()).n, 3);
+  await call('/api/auth/session', 200, { email: 'reviewer@example.invalid' });
   assert.deepEqual((await db.prepare('PRAGMA foreign_key_check').all()).results, []);
   const r2 = await call('/test/r2', 200);
   assert.deepEqual(r2.json, { denied: true, owner: true });
-  await call('/api/checkout/session', 400, { eventId: id });
   await call('/api/auth/session', 200, undefined, cookie, 'DELETE');
-  await call('/api/events', 401, input, cookie);
+  await call('/api/auth/me', 401, undefined, cookie);
 } finally {
   await mf.dispose();
 }
@@ -222,5 +147,5 @@ for (const rel of sqliteFiles) {
 }
 rmSync(dir, { recursive: true, force: true });
 console.log(
-  'PASS workerd: actual routes, D1 migrations, persisted D1 SQLite PRAGMA integrity_check + foreign_key_check, verified email challenge/verify, org onboarding, staff provisioning, moderation, 12-way capacity race, duplicate privacy, notification outbox sent, R2 binding, checkout gate.',
+  'PASS workerd: actual routes, D1 migrations, persisted D1 SQLite PRAGMA integrity_check + foreign_key_check, verified email challenge/verify, org onboarding, staff provisioning, R2 binding, sign-out.',
 );

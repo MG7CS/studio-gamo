@@ -55,9 +55,8 @@ const effectiveSubtext = subtext || copy.subtext;
 const accent = mode === 'signin' ? 'terracotta' : 'lavender';
 const primaryActionLabel = mode === 'signup' ? `Create ${program} account` : 'Email me a code';
 const showGoogle = googleEnabled && (mode === 'signin' || mode === 'signup');
-const marketingProduct = (
-  ['web', 'worship', 'academy', 'live', 'production'].includes(product) ? product : 'web'
-) as 'web' | 'worship' | 'academy' | 'live' | 'production';
+const marketingProduct = (['web', 'worship', 'academy', 'production'].includes(product) ? product : 'web') as
+  'web' | 'worship' | 'academy' | 'production';
 ---
 
 <AuthNavBar mode={mode} />

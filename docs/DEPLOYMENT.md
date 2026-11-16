@@ -1,7 +1,8 @@
 # Gamo Studios — Cloudflare Deployment Guide
 
 <!-- status-banner: 2026-10 foundation pass -->
-> **Superseded by [RUNBOOK.md](RUNBOOK.md)** (deploy, rollback, secrets per app, migrations, Live catalog). Some details below are out of date (migration file names, the demo-banner check).
+> **Superseded by [RUNBOOK.md](RUNBOOK.md)** (deploy, rollback, secrets per app, migrations). Some details below are out of date (migration file names, the demo-banner check).
+> **2026-11-16:** Gamo Live (`apps/live`, workers `gamo-live` / `gamo-live-preview`, `live.gamostudio.org`) was removed. The owner deletes those workers and the route in Cloudflare — see [RUNBOOK.md §12](RUNBOOK.md#12-owner-actions-after-removing-gamo-live-2026-11-16).
 
 **Canonical Production Domain:** `gamostudio.org`  
 **Active Cloudflare Account:** `gamostudios` (Account ID: `ebae7bded6ab45950aeba1d6cf51eb7f`)  
@@ -13,14 +14,13 @@
 
 ## 1. Architecture & Domain Topology
 
-Gamo Studios is deployed as six discrete Cloudflare Workers corresponding to the applications in `apps/`:
+Gamo Studios is deployed as five discrete Cloudflare Workers corresponding to the applications in `apps/`:
 
 | Application | Monorepo Path | Proposed Production Domain | Preview URL (`workers.dev`) | Access Policy |
 | :--- | :--- | :--- | :--- | :--- |
 | **Gamo Web** | `apps/web` | `gamostudio.org` / `www.gamostudio.org` | `https://gamo-web.gamostudio.workers.dev` | Public |
 | **Gamo Worship** | `apps/worship` | `worship.gamostudio.org` | `https://gamo-worship.gamostudio.workers.dev` | Public |
 | **Gamo Academy** | `apps/academy` | `academy.gamostudio.org` | `https://gamo-academy.gamostudio.workers.dev` | Public |
-| **Gamo Live** | `apps/live` | `live.gamostudio.org` | `https://gamo-live.gamostudio.workers.dev` | Public |
 | **Gamo Production** | `apps/production` | `production.gamostudio.org` | `https://gamo-production.gamostudio.workers.dev` | Public |
 | **Gamo Admin** | `apps/admin` | `admin.gamostudio.org` | *Disabled* (`workers_dev = false`) | **Restricted: Cloudflare Zero Trust Access Required** |
 
@@ -53,9 +53,9 @@ Access protection is enforced at two distinct layers:
 
 ### 2.2 Server-Enforced Workspace Authorization & Isolated Local Demo Mode
 
-Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`) enforce server-side page and API authentication via `applicationPages(app)` middleware (`packages/domain/src/api/page-middleware.ts`) and `packages/auth/page-access.ts`:
+Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`) enforce server-side page and API authentication via `applicationPages(app)` middleware (`packages/domain/src/api/page-middleware.ts`) and `packages/auth/page-access.ts`:
 
-- Unauthenticated visitors requesting private routes (`/account`, `/partner`, `/church`, `/musician`, `/check-in`, `/family`, `/instructor`, `/host`, `/dashboard`, `/organizer`, `/artist`, `/agent`, `/me`, `/workspaces`, `/promote/create`, `/promote/status`, `/ticket`, `/checkout`, `/client`, `/crew`) receive an HTTP `303` redirect to `/account/signin?next=...` with `Cache-Control: no-store`.
+- Unauthenticated visitors requesting private routes (`/account`, `/partner`, `/church`, `/musician`, `/check-in`, `/family`, `/instructor`, `/host`, `/dashboard`, `/workspaces`, `/client`, `/crew`) receive an HTTP `303` redirect to `/account/signin?next=...` with `Cache-Control: no-store`.
 - Authenticated users whose verified account lacks required program roles or organization memberships receive an HTTP `303` redirect to `/account/access-denied` (`HTTP 403`).
 - Query-parameter bypasses (`?demo_key=...`) and unsigned cookie hints (`gamo_profile_hint`) are permanently ignored for authorization.
 - Demonstration workspace screens (`DashboardShell`) are restricted strictly to isolated local loopback requests (`localhost`, `127.0.0.1`, `[::1]`) when both `ENVIRONMENT=local` and `ALLOW_PUBLIC_DEMO_WORKSPACES=true` are set. In staging and production, `ALLOW_PUBLIC_DEMO_WORKSPACES` and `ALLOW_AUTH_SIMULATION` must remain `false` or unset.
@@ -84,7 +84,7 @@ CLOUDFLARE_ACCOUNT_ID=ebae7bded6ab45950aeba1d6cf51eb7f pnpm --filter apps-web ex
 
 ### 3.2 KV Namespaces (Sessions & Caching)
 
-All six applications bind the session KV namespace:
+All five applications bind the session KV namespace:
 - `SESSION` / `SESSION_KV`: `7d35f3e994d04c00a8a404a552978674`
 
 ---
@@ -95,12 +95,11 @@ Worker secrets are managed securely via the Cloudflare CLI. **Never commit real 
 
 ### 4.1 Resend Integration (Email Verification & Transactional Delivery)
 
-Configure transactional email delivery for 6-digit email verification challenges (`/api/auth/challenge`), ticket lookup challenges, and registration confirmations. Without `RESEND_API_KEY` and `EMAIL_FROM` in non-local environments, `/api/auth/challenge` fails closed with `503 Service Unavailable`:
+Configure transactional email delivery for 6-digit email verification challenges (`/api/auth/challenge`) and registration confirmations. Without `RESEND_API_KEY` and `EMAIL_FROM` in non-local environments, `/api/auth/challenge` fails closed with `503 Service Unavailable`:
 
 ```bash
-# Set secret on each public worker (apps/web, apps/live, apps/worship, apps/academy, apps/production):
+# Set secret on each public worker (apps/web, apps/worship, apps/academy, apps/production):
 pnpm --filter apps-web exec wrangler secret put RESEND_API_KEY --env production
-pnpm --filter apps-live exec wrangler secret put RESEND_API_KEY --env production
 pnpm --filter apps-worship exec wrangler secret put RESEND_API_KEY --env production
 pnpm --filter apps-academy exec wrangler secret put RESEND_API_KEY --env production
 pnpm --filter apps-production exec wrangler secret put RESEND_API_KEY --env production
@@ -117,9 +116,8 @@ Public sender variable (configured in `wrangler.toml` or `.dev.vars`):
 > Only Stripe Test Mode keys (`sk_test_...` and `pk_test_...`) are authorized when `STRIPE_SANDBOX_ENABLED=true`. By default, `STRIPE_SANDBOX_ENABLED` is `false` and paid checkout fails closed (`503`).
 
 ```bash
-# Configure Stripe Test Mode secret for apps/live (sandbox testing only):
-pnpm --filter apps-live exec wrangler secret put STRIPE_SECRET_KEY --env preview
-pnpm --filter apps-live exec wrangler secret put STRIPE_WEBHOOK_SECRET --env preview
+# Configure Stripe Test Mode secret for apps/academy (sandbox testing only):
+pnpm --filter apps-academy exec wrangler secret put STRIPE_SECRET_KEY --env preview
 ```
 
 Public variable:
@@ -127,10 +125,10 @@ Public variable:
 
 ### 4.3 Session & Admin Protection Secrets
 
-All six workers verify `__session` cookies against `SESSION_SECRET` and D1 `sessions`. Configure the shared `SESSION_SECRET` across every Worker sharing the D1 database:
+All five workers verify `__session` cookies against `SESSION_SECRET` and D1 `sessions`. Configure the shared `SESSION_SECRET` across every Worker sharing the D1 database:
 
 ```bash
-for app in apps-web apps-live apps-worship apps-academy apps-production apps-admin; do
+for app in apps-web apps-worship apps-academy apps-production apps-admin; do
   pnpm --filter "$app" exec wrangler secret put SESSION_SECRET --env production
 done
 
@@ -150,7 +148,6 @@ In `wrangler.toml`, each worker defines its custom domains under `[env.productio
 - `gamostudio.org` and `www.gamostudio.org` → `gamo-web`
 - `worship.gamostudio.org` → `gamo-worship`
 - `academy.gamostudio.org` → `gamo-academy`
-- `live.gamostudio.org` → `gamo-live`
 - `production.gamostudio.org` → `gamo-production`
 - `admin.gamostudio.org` → `gamo-admin`
 
@@ -204,9 +201,8 @@ Deploy applications in this strict order:
 1. **`make deploy-web`** — The global hub and root domain (`gamostudio.org`). Verifies apex routing and asset delivery.
 2. **`make deploy-worship`** — Gamo Worship (`worship.gamostudio.org`).
 3. **`make deploy-academy`** — Gamo Academy (`academy.gamostudio.org`).
-4. **`make deploy-live`** — Gamo Live (`live.gamostudio.org`).
-5. **`make deploy-production`** — Gamo Production (`production.gamostudio.org`).
-6. **`make deploy-admin`** — Gamo Admin (`admin.gamostudio.org`). **Verify Cloudflare Zero Trust Access is armed before directing staff.**
+4. **`make deploy-production`** — Gamo Production (`production.gamostudio.org`).
+5. **`make deploy-admin`** — Gamo Admin (`admin.gamostudio.org`). **Verify Cloudflare Zero Trust Access is armed before directing staff.**
 
 Or deploy all sequentially:
 
@@ -219,7 +215,7 @@ make deploy-all
 ## 7. Post-Deployment Verification Checklist
 
 - [ ] **Apex & WWW**: `https://gamostudio.org` and `https://www.gamostudio.org` resolve with valid SSL.
-- [ ] **Subdomains**: `worship`, `academy`, `live`, `production` load corresponding program homepages.
+- [ ] **Subdomains**: `worship`, `academy`, `production` load corresponding program homepages.
 - [ ] **Cross-App Navigation**: Header and footer navigation links transition correctly between subdomains without broken links.
 - [ ] **Asset Delivery**: Optimized WebP/AVIF images and Inter web fonts render without 404s.
 - [ ] **Admin Security**: Navigating to `https://admin.gamostudio.org/` prompts for Cloudflare Access authentication or returns `401 Unauthorized`.

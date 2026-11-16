@@ -1,5 +1,7 @@
 # Gamo Studios — Backend Test Matrix & Evidence Register
 
+> **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. Section 2.2 (Gamo Live event lifecycle) and the Live checkout/webhook rows of section 2.3 describe deleted code and tests; they are historical. Snapshot: tag `four-programs-snapshot`.
+
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
 **Contract Version:** `1.2.0` ([`openapi/root.yaml`](../openapi/root.yaml))  

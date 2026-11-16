@@ -17,7 +17,7 @@ interface Props {
   headerTheme?: 'light' | 'dark';
   /** Background/text classes for <body>. */
   bodyClass?: string;
-  /** Hide shared chrome for focused flows (e.g. sign-in, scanner). */
+  /** Hide shared chrome for focused flows (e.g. sign-in). */
   chrome?: boolean;
   /** Absolute or root-relative 1200x630 share image; defaults to the app's /og-image.png (scripts/generate-share-images.mjs). */
   ogImage?: string;
@@ -29,7 +29,7 @@ interface Props {
 }
 const {
   title,
-  description = 'Gamo Studios brings together Worship, Academy, Live and Production to serve churches, musicians, students and families through music and Christian gatherings.',
+  description = 'Gamo Studios brings together Worship, Academy and Production to serve churches, musicians, students and families through music.',
   current,
   headerTheme = 'light',
   bodyClass = 'bg-cream text-charcoal',

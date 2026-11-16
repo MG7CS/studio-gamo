@@ -16,7 +16,7 @@ import { applicationPages } from '../../packages/domain/src/api/page-middleware.
 import type { PublicApp } from '../../packages/auth/page-access.ts';
 
 const SECRET = 'private-routes-test-session-secret-0123456789';
-const PUBLIC_APPS: PublicApp[] = ['web', 'worship', 'academy', 'live', 'production'];
+const PUBLIC_APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
 const AUTH_PAGES = [
   '/account/signin',
   '/account/signup',
@@ -35,7 +35,6 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
   web: [
     '/',
     '/mission',
-    '/live',
     '/get-started',
     '/get-involved',
     '/support',
@@ -70,41 +69,6 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
-  live: [
-    '/',
-    '/events',
-    '/events/[id]',
-    // Free RSVP and email-verified ticket recovery are public by design.
-    '/events/[id]/register',
-    '/link',
-    '/waitlist/confirm',
-    '/tickets/find',
-    '/tickets/confirm',
-    '/tickets/manage',
-    '/tickets/orders/[id]',
-    '/tickets/orders/[id]/tickets.pdf',
-    '/tickets/orders/[id]/event.ics',
-    '/tickets/[id]/transfer',
-    '/tickets/[id]/ticket.svg',
-    '/tickets/[id]/ticket.pdf',
-    '/tickets/[id]/qr.png',
-    '/local-test/inbox',
-    '/local-test/fixtures',
-    '/local-test/stripe-checkout/[session]',
-    '/venues',
-    '/artists',
-    '/artists/[slug]',
-    // Door scanner (Agent C): gated by the scanner device cookie or an organizer session with
-    // scan_tickets inside the page; anyone else sees "open the scanner link" (no account needed).
-    '/scan',
-    '/scan/[event]',
-    '/scan/[event]/unlock',
-    '/scan/[event]/lookup',
-    '/scan/[event]/door',
-    ...AUTH_PAGES,
-    ...CRAWLER_FILES,
-    ...ERROR_PAGES,
-  ],
   production: [
     '/',
     '/services',
@@ -122,18 +86,8 @@ const PUBLIC_API = new Set([
   'POST /api/auth/verify',
   'POST /api/auth/session', // demo session: local + loopback only, 403 elsewhere
   'DELETE /api/auth/session', // signing out without a session is harmless
-  'GET /api/events',
-  'GET /api/events/[id]',
-  'GET /api/artists',
-  'POST /api/events/[id]/register', // free RSVP (Turnstile + limits; tickets after email confirmation)
-  'POST /api/tickets/lookup', // emails a link; same answer for every address
-  'POST /api/checkout/session', // guest checkout; fails closed without Stripe
-  'POST /api/webhook/stripe', // Stripe signature
   'POST /api/auth/clerk-webhook', // Svix signature with this product's CLERK_WEBHOOK_SECRET_<APP>
-  'GET /api/venue-maps/[id]', // venue blueprint image (random id, sandboxed image response)
   'POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
-  'POST /api/orders/confirm', // emailed one-time code, limited per order
-  'POST /api/events/[id]/waitlist', // Turnstile + rate limits; same answer for every address
 ]);
 
 function walk(dir: string, base = ''): string[] {
@@ -160,7 +114,6 @@ async function migratedEnv() {
     ENVIRONMENT: 'production',
     DB: d1,
     SESSION_SECRET: SECRET,
-    STRIPE_WEBHOOK_SECRET: 'whsec_test_only',
   };
 }
 
@@ -238,8 +191,8 @@ for (const app of PUBLIC_APPS) {
         checked++;
       }
     }
-    // Every app has at least GET /api/auth/me and POST /api/organizations; live has many more.
-    assert.ok(checked >= (app === 'live' ? 13 : 2), `${app}: only ${checked} private API methods exercised`);
+    // Every app has at least GET /api/auth/me and POST /api/organizations.
+    assert.ok(checked >= 2, `${app}: only ${checked} private API methods exercised`);
   });
 }
 
@@ -251,11 +204,7 @@ test('admin: pages and APIs reject anonymous requests through the admin middlewa
     CF_ACCESS_AUD: 'a',
   };
   const { onRequest } = await import('../../apps/admin/src/middleware.ts');
-  const routes = [
-    ...walk('apps/admin/src/pages').map((f) => toRoute(f)),
-    '/live/submissions',
-    '/__admin_auth/password',
-  ];
+  const routes = [...walk('apps/admin/src/pages').map((f) => toRoute(f)), '/__admin_auth/password'];
   for (const route of routes) {
     const url = new URL(`https://admin.example.test${toSamplePath(route)}`);
     for (const method of route.startsWith('/api/') ? ['GET', 'POST'] : ['GET']) {
@@ -276,41 +225,27 @@ test('admin: pages and APIs reject anonymous requests through the admin middlewa
   }
 });
 
-test('Stripe webhook rejects unsigned and badly signed payloads before touching the database', async () => {
+test('Resend webhook rejects unsigned and badly signed payloads before touching the database', async () => {
   const env = await migratedEnv();
-  const { POST } = await import('../../apps/live/src/pages/api/webhook/stripe.ts');
-  const body = JSON.stringify({
-    id: 'evt_1',
-    type: 'checkout.session.completed',
-    livemode: false,
-    data: { object: {} },
-  });
-  // Production never processes paid checkout: 503 whatever is configured. Pre-production checks the signature first.
-  const preview = { ...env, ENVIRONMENT: 'preview' };
-  const postUnsigned = async (e: typeof env) =>
+  const { POST } = await import('../../apps/web/src/pages/api/webhook/resend.ts');
+  const body = JSON.stringify({ type: 'email.bounced', data: { email_id: 're_1' } });
+  const post = async (e: Record<string, unknown>, headers: Record<string, string>) =>
     (
       await POST({
-        request: new Request('https://live.example.test/api/webhook/stripe', {
+        request: new Request('https://web.example.test/api/webhook/resend', {
           method: 'POST',
-          headers: { 'content-type': 'application/json', 'stripe-signature': 't=1,v1=deadbeef' },
+          headers: { 'content-type': 'application/json', ...headers },
           body,
         }),
         locals: { runtime: { env: e } },
         params: {},
       } as never)
     ).status;
-  if (String((env as { ENVIRONMENT?: unknown }).ENVIRONMENT) === 'production')
-    assert.equal(await postUnsigned(env), 503, 'production answers 503 once the request is signed');
-  for (const signature of [undefined, 't=1,v1=deadbeef']) {
-    const request = new Request('https://live.example.test/api/webhook/stripe', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(signature ? { 'stripe-signature': signature } : {}),
-      },
-      body,
-    });
-    const response = await POST({ request, locals: { runtime: { env: preview } }, params: {} } as never);
-    assert.equal(response.status, 400, `signature ${signature ?? '(none)'}`);
-  }
+  const ts = String(Math.floor(Date.now() / 1000));
+  const signed = { 'svix-id': 'msg_1', 'svix-timestamp': ts, 'svix-signature': 'v1,deadbeef' };
+  // Without RESEND_WEBHOOK_SECRET the route is unavailable (503), never a fake success.
+  assert.equal(await post(env, signed), 503);
+  const configured = { ...env, RESEND_WEBHOOK_SECRET: `whsec_${btoa('private-routes-resend-secret')}` };
+  assert.equal(await post(configured, {}), 400, 'no Svix headers');
+  assert.equal(await post(configured, signed), 400, 'bad signature');
 });

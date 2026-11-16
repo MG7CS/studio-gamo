@@ -1,5 +1,5 @@
 /**
- * Staff review of provider profiles (design §4.4) and organizers' first events.
+ * Staff review of provider profiles (design §4.4).
  *
  * Church verification:  submitted → meeting_scheduled → verified (staff name, meeting date, notes) → the
  * church publishes. Other providers (musician, technician, teacher, artist, agent): the same without the
@@ -130,16 +130,19 @@ async function personEmail(db: SqlDatabase, personId: string): Promise<string | 
   return row.email_normalized;
 }
 
-export type ReviewSubject =
-  | { kind: 'provider_profile'; id: string; personId: string; organizationId: string | null }
-  | { kind: 'organizer'; organizerProfileId: string };
+export type ReviewSubject = {
+  kind: 'provider_profile';
+  id: string;
+  personId: string;
+  organizationId: string | null;
+};
 
 /**
- * One self-moderation rule for every staff review action (verification transitions, first-event review,
- * always_review; D-106): staff may not act on a subject they own or belong to —
+ * One self-moderation rule for every staff review action (verification transitions; D-106): staff may not
+ * act on a subject they own or belong to —
  *   - the provider profile's person is the staff member's person, or its verified email is theirs;
  *   - the staff member (by user id, by person, or by email) is an active member of the organization
- *     behind the profile or the organizer.
+ *     behind the profile.
  * A refusal writes a `review.self_review_refused` audit row and throws `ReviewError('SELF_REVIEW')`.
  */
 export async function assertNotSelfReview(
@@ -148,25 +151,12 @@ export async function assertNotSelfReview(
   subject: ReviewSubject,
   now: number,
 ): Promise<void> {
-  let organizationId: string | null;
-  let ownPerson = false;
-  let entity: { type: string; id: string };
-  if (subject.kind === 'provider_profile') {
-    entity = { type: 'provider_profile', id: subject.id };
-    organizationId = subject.organizationId;
-    const ownerEmail = await personEmail(db, subject.personId);
-    ownPerson =
-      (staff.personId !== null && staff.personId === subject.personId) ||
-      (ownerEmail !== null && normalizeEmail(staff.email) === ownerEmail);
-  } else {
-    entity = { type: 'organizer_profile', id: subject.organizerProfileId };
-    const [row] = await allRows<{ organization_id: string }>(db, {
-      sql: 'SELECT organization_id FROM organizer_profiles WHERE id = ?1',
-      params: [subject.organizerProfileId],
-    });
-    if (!row) throw new ReviewError('NOT_FOUND', 'That organizer no longer exists.');
-    organizationId = row.organization_id;
-  }
+  const entity = { type: 'provider_profile', id: subject.id };
+  const organizationId = subject.organizationId;
+  const ownerEmail = await personEmail(db, subject.personId);
+  const ownPerson =
+    (staff.personId !== null && staff.personId === subject.personId) ||
+    (ownerEmail !== null && normalizeEmail(staff.email) === ownerEmail);
   let member = false;
   if (!ownPerson && organizationId) {
     const [hit] = await allRows<{ n: number }>(db, {
@@ -527,7 +517,7 @@ export interface VerificationRecordView {
 
 export async function listVerificationRecords(
   db: SqlDatabase,
-  subjectType: 'provider_profile' | 'event' | 'organizer',
+  subjectType: 'provider_profile',
   subjectId: string,
 ): Promise<VerificationRecordView[]> {
   const rows = await allRows<{
@@ -557,87 +547,4 @@ export async function listVerificationRecords(
     notes: r.notes,
     createdAt: Number(r.created_at),
   }));
-}
-
-/**
- * After staff approve an organizer's event: records the first approval (`first_event_approved_at`, set
- * once) and a `verification_records` row for the event. Later events of a verified organizer may publish
- * without review unless `always_review` is set (enforced by Live's event creation).
- */
-export async function recordEventReviewDecision(
-  db: SqlDatabase,
-  input: {
-    eventId: string;
-    organizerProfileId: string;
-    decision: 'approved' | 'rejected' | 'revision_requested';
-    staff: StaffActor;
-    notes?: string | null;
-    now: number;
-  },
-): Promise<{ firstApproval: boolean }> {
-  await assertNotSelfReview(
-    db,
-    input.staff,
-    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
-    input.now,
-  );
-  const action =
-    input.decision === 'approved'
-      ? 'approve_event'
-      : input.decision === 'rejected'
-        ? 'reject_event'
-        : 'request_changes';
-  const results = await runBatch(db, [
-    {
-      sql: `UPDATE organizer_profiles SET first_event_approved_at = ?2
-             WHERE id = ?1 AND first_event_approved_at IS NULL AND ?3 = 'approved' RETURNING id`,
-      params: [input.organizerProfileId, input.now, input.decision],
-    },
-    {
-      sql: `INSERT INTO verification_records (id, subject_type, subject_id, action, from_status, to_status, staff_user_id, staff_name, notes, created_at)
-            VALUES (?1, 'event', ?2, ?3, 'pending_review', ?4, ?5, ?6, ?7, ?8)`,
-      params: [
-        newPrefixedId('ver'),
-        input.eventId,
-        action,
-        input.decision,
-        input.staff.userId,
-        clean(input.staff.name, 120),
-        clean(input.notes, 2000) || null,
-        input.now,
-      ],
-    },
-  ]);
-  return { firstApproval: (results[0] as unknown[]).length === 1 };
-}
-
-/** Staff toggle: review every event of this organizer, not only the first. */
-export async function setOrganizerAlwaysReview(
-  db: SqlDatabase,
-  input: { organizerProfileId: string; alwaysReview: boolean; staff: StaffActor; now: number },
-): Promise<boolean> {
-  await assertNotSelfReview(
-    db,
-    input.staff,
-    { kind: 'organizer', organizerProfileId: input.organizerProfileId },
-    input.now,
-  );
-  const results = await runBatch(db, [
-    {
-      sql: 'UPDATE organizer_profiles SET always_review = ?2 WHERE id = ?1 RETURNING id',
-      params: [input.organizerProfileId, input.alwaysReview ? 1 : 0],
-    },
-    {
-      sql: `INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, payload_json, created_at)
-            SELECT ?1, ?2, 'organizer.always_review', 'organizer_profile', ?3, ?4, ?5 WHERE changes() = 1`,
-      params: [
-        `audit_${crypto.randomUUID()}`,
-        input.staff.userId,
-        input.organizerProfileId,
-        JSON.stringify({ alwaysReview: input.alwaysReview }),
-        input.now,
-      ],
-    },
-  ]);
-  return (results[0] as unknown[]).length === 1;
 }

@@ -1,9 +1,0 @@
-type: object
-additionalProperties: false
-properties:
-  reason:
-    type: string
-    minLength: 3
-    maxLength: 500
-required:
-  - reason

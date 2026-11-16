@@ -14,7 +14,7 @@ post:
   security:
     - BrowserSession: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: implemented
   x-authorization: Verified session with an active account in this product; same origin.
   x-idempotency: Repeating the same action leaves the link unchanged.

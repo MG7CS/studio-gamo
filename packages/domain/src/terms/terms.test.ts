@@ -37,8 +37,8 @@ test('registry: every TERMS_SLUGS document, all drafts requiring legal review, a
   }
   assert.equal(getTermsDocument('nope'), null);
   assert.deepEqual(
-    termsDocumentsFor(['ticket-terms', 'privacy-policy']).map((d) => d.title),
-    ['Ticket Terms', 'Privacy Policy'],
+    termsDocumentsFor(['academy-enrollment-terms', 'privacy-policy']).map((d) => d.title),
+    ['Academy Enrollment Terms', 'Privacy Policy'],
   );
   assert.ok(Object.isFrozen(TERMS_REGISTRY));
 });
@@ -46,24 +46,24 @@ test('registry: every TERMS_SLUGS document, all drafts requiring legal review, a
 test('recordTermsAcceptance writes documents and acceptances in one batch; repeats reuse the document row', async () => {
   const db = await createMigratedD1();
   const documents = [
-    { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
+    { slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION },
     { slug: 'privacy-policy', version: TERMS_DRAFT_VERSION },
   ];
   const first = await recordTermsAcceptance(db, {
     documents,
     subject: { email: ' Sam@Example.org ' },
-    context: 'order:ord_sample',
+    context: 'registration:acr_sample',
     ipHash: IP_HASH,
     now: NOW,
   });
   assert.deepEqual(
     first.map((r) => r.slug),
-    ['ticket-terms', 'privacy-policy'],
+    ['academy-enrollment-terms', 'privacy-policy'],
   );
   await recordTermsAcceptance(db, {
     documents,
     subject: { email: 'other@example.org' },
-    context: 'order:ord_other',
+    context: 'registration:acr_other',
     now: NOW + 5,
   });
   const docs = db.sqlite
@@ -71,9 +71,9 @@ test('recordTermsAcceptance writes documents and acceptances in one batch; repea
     .all();
   assert.equal(docs.length, 2);
   assert.deepEqual(
-    { ...docs[1] },
+    { ...docs[0] },
     {
-      slug: 'ticket-terms',
+      slug: 'academy-enrollment-terms',
       version: TERMS_DRAFT_VERSION,
       status: 'draft',
       legal_review_status: 'draft_requires_review',
@@ -84,7 +84,12 @@ test('recordTermsAcceptance writes documents and acceptances in one batch; repea
     .get(first[0].id) as Record<string, unknown>;
   assert.deepEqual(
     { ...row },
-    { email_normalized: 'sam@example.org', context: 'order:ord_sample', ip_hash: IP_HASH, accepted_at: NOW },
+    {
+      email_normalized: 'sam@example.org',
+      context: 'registration:acr_sample',
+      ip_hash: IP_HASH,
+      accepted_at: NOW,
+    },
   );
 });
 
@@ -93,7 +98,7 @@ test('unknown slugs, stale versions, duplicates and missing subjects are refused
   const attempt = (
     documents: { slug: string; version: string }[],
     subject: object = { email: 'sam@example.org' },
-  ) => recordTermsAcceptance(db, { documents, subject, context: 'order:ord_x', now: NOW });
+  ) => recordTermsAcceptance(db, { documents, subject, context: 'registration:acr_x', now: NOW });
   const expectCode = async (p: Promise<unknown>, code: string) =>
     assert.rejects(p, (err: unknown) => {
       assert.ok(err instanceof TermsAcceptanceError);
@@ -103,30 +108,33 @@ test('unknown slugs, stale versions, duplicates and missing subjects are refused
   await expectCode(attempt([{ slug: 'made-up-terms', version: TERMS_DRAFT_VERSION }]), 'UNKNOWN_TERMS');
   await expectCode(
     attempt([
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
+      { slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION },
       { slug: 'privacy-policy', version: '2026-01-01-draft.0' },
     ]),
     'OUTDATED_TERMS',
   );
   await expectCode(
     attempt([
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
-      { slug: 'ticket-terms', version: TERMS_DRAFT_VERSION },
+      { slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION },
+      { slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION },
     ]),
     'UNKNOWN_TERMS',
   );
   await expectCode(attempt([]), 'NO_DOCUMENTS');
-  await expectCode(attempt([{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }], {}), 'NO_SUBJECT');
+  await expectCode(
+    attempt([{ slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION }], {}),
+    'NO_SUBJECT',
+  );
   await expectCode(
     recordTermsAcceptance(db, {
-      documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+      documents: [{ slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION }],
       subject: { email: 'sam@example.org' },
       context: '',
       now: NOW,
     }),
     'INVALID_CONTEXT',
   );
-  await assert.rejects(attempt([{ slug: 'ticket-terms', version: 'old' }]), /reload the page/);
+  await assert.rejects(attempt([{ slug: 'academy-enrollment-terms', version: 'old' }]), /reload the page/);
   assert.equal(
     (db.sqlite.prepare('SELECT count(*) AS n FROM terms_acceptances').get() as { n: number }).n,
     0,
@@ -137,9 +145,9 @@ test('a failed batch rolls back the document rows too (customer profile that doe
   const db = await createMigratedD1();
   await assert.rejects(
     recordTermsAcceptance(db, {
-      documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+      documents: [{ slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION }],
       subject: { customerProfileId: 'cus_missing' },
-      context: 'order:ord_x',
+      context: 'registration:acr_x',
       now: NOW,
     }),
   );
@@ -149,45 +157,50 @@ test('a failed batch rolls back the document rows too (customer profile that doe
 test('missingTermsAcceptances lists what must be accepted again', async () => {
   const db = await createMigratedD1();
   await recordTermsAcceptance(db, {
-    documents: [{ slug: 'ticket-terms', version: TERMS_DRAFT_VERSION }],
+    documents: [{ slug: 'academy-enrollment-terms', version: TERMS_DRAFT_VERSION }],
     subject: { email: 'sam@example.org' },
-    context: 'order:ord_1',
+    context: 'registration:acr_1',
     now: NOW,
   });
   assert.deepEqual(
-    await missingTermsAcceptances(db, { email: 'SAM@example.org' }, ['ticket-terms', 'privacy-policy']),
+    await missingTermsAcceptances(db, { email: 'SAM@example.org' }, [
+      'academy-enrollment-terms',
+      'privacy-policy',
+    ]),
     ['privacy-policy'],
   );
-  assert.deepEqual(await missingTermsAcceptances(db, {}, ['ticket-terms']), ['ticket-terms']);
+  assert.deepEqual(await missingTermsAcceptances(db, {}, ['academy-enrollment-terms']), [
+    'academy-enrollment-terms',
+  ]);
 });
 
 test('marketing consent: separate rows, latest wins, validated', async () => {
   const db = await createMigratedD1();
-  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'live'), null);
+  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'academy'), null);
   await recordMarketingConsent(db, {
     email: 'Sam@Example.org',
-    product: 'live',
+    product: 'academy',
     granted: true,
-    source: 'live.rsvp',
+    source: 'academy.registration',
     ipHash: IP_HASH,
     now: NOW,
   });
-  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'live'), true);
-  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'academy'), null, 'per product');
+  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'academy'), true);
+  assert.equal(await currentMarketingConsent(db, 'sam@example.org', 'worship'), null, 'per product');
   await recordMarketingConsent(db, {
     email: 'sam@example.org',
-    product: 'live',
+    product: 'academy',
     granted: false,
     source: 'unsubscribe',
     now: NOW,
   });
   assert.equal(
-    await currentMarketingConsent(db, 'sam@example.org', 'live'),
+    await currentMarketingConsent(db, 'sam@example.org', 'academy'),
     false,
     'same second: the later row wins',
   );
   await assert.rejects(
-    recordMarketingConsent(db, { email: 'nope', product: 'live', granted: true, source: 'x', now: NOW }),
+    recordMarketingConsent(db, { email: 'nope', product: 'academy', granted: true, source: 'x', now: NOW }),
     TermsAcceptanceError,
   );
   await assert.rejects(

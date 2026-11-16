@@ -3,7 +3,7 @@
  * by hashed IP, verify Cloudflare Turnstile, then rate-limit by hashed email (design T-08, §4.2).
  *
  *   const guard = await guardPublicForm(context, {
- *     route: 'live.rsvp',
+ *     route: 'academy.register',
  *     turnstileAction: 'rsvp',
  *     limits: { perIp: { limit: 20, windowSeconds: 600 }, perEmail: { limit: 5, windowSeconds: 3600 } },
  *   });
@@ -43,7 +43,7 @@ export interface PublicFormLimit {
 }
 
 export interface PublicFormGuardOptions {
-  /** Short stable label used in rate-limit buckets and logs, e.g. `live.rsvp` (`[a-z0-9._/-]`). */
+  /** Short stable label used in rate-limit buckets and logs, e.g. `academy.register` (`[a-z0-9._/-]`). */
   route: string;
   /** Expected widget `data-action`; when set, a token from another form is refused. */
   turnstileAction?: string;

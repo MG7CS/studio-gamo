@@ -105,7 +105,10 @@ test('sign-in for an unknown address answers exactly like a known one, sends not
     }
     assert.deepEqual(bodies[0], bodies[1], 'known and unknown addresses get the same answer');
     assert.deepEqual(bodies[1], bodies[2], 'recovery is sign-in');
-    assert.doesNotMatch(JSON.stringify(bodies), /Gamo Live|Gamo Academy|not found|No .* account was found/);
+    assert.doesNotMatch(
+      JSON.stringify(bodies),
+      /Gamo Production|Gamo Academy|not found|No .* account was found/,
+    );
     assert.equal(mail.sent.length, before.sent + 1, 'only the known address was emailed');
     assert.deepEqual(mail.sent.at(-1)!.to, ['known@example.org']);
     assert.equal(count("SELECT COUNT(*) AS n FROM auth_challenges WHERE email = 'nobody@example.org'"), 0);
@@ -132,13 +135,16 @@ test('sign-in for an unknown address answers exactly like a known one, sends not
 test('codes are bound to their product and flow: a sign-up code from one product never signs in to another', async () => {
   const { db, env, count } = await setup(LOCAL);
   const service = new IdentityService(db);
-  const live = await service.issueEmailChallenge('bound@example.org', { product: 'live', intent: 'signup' });
+  const academy = await service.issueEmailChallenge('bound@example.org', {
+    product: 'academy',
+    intent: 'signup',
+  });
   const worship = createAuthHandlers('worship');
   for (const intent of ['signup', 'signin']) {
     const res = await worship.verifyPOST(
       post('worship', '/api/auth/verify', env, {
         email: 'bound@example.org',
-        code: live.code,
+        code: academy.code,
         intent,
         ...(intent === 'signup' ? { terms: signupTerms() } : {}),
       }),
@@ -146,34 +152,37 @@ test('codes are bound to their product and flow: a sign-up code from one product
     assert.equal(res.status, 401, intent);
   }
   assert.equal(count('SELECT COUNT(*) AS n FROM users'), 0);
-  // A Live sign-in code is not a Live sign-up code either.
+  // An Academy sign-up code is not an Academy sign-in code either.
   const signin = await service.issueEmailChallenge('bound@example.org', {
-    product: 'live',
+    product: 'academy',
     intent: 'signup',
   });
   await assert.rejects(
     () =>
-      service.verifyEmailChallenge('bound@example.org', signin.code, { product: 'live', intent: 'signin' }),
+      service.verifyEmailChallenge('bound@example.org', signin.code, {
+        product: 'academy',
+        intent: 'signin',
+      }),
     /Invalid or expired/,
   );
 });
 
 test('sign-up records the current Site Terms and Privacy versions; a missing or stale consent keeps the code usable', async () => {
   const { db, env, count } = await setup(LOCAL);
-  const live = createAuthHandlers('live');
+  const academy = createAuthHandlers('academy');
   const email = 'newprovider@example.org';
-  const challenge = await live.challengePOST(
-    post('live', '/api/auth/challenge', env, { email, intent: 'signup', ...LOCAL_TURNSTILE }),
+  const challenge = await academy.challengePOST(
+    post('academy', '/api/auth/challenge', env, { email, intent: 'signup', ...LOCAL_TURNSTILE }),
   );
   const code = ((await challenge.json()) as { data: { message: string } }).data.message.match(/(\d{6})/)![1];
 
-  const missing = await live.verifyPOST(
-    post('live', '/api/auth/verify', env, { email, code, intent: 'signup' }),
+  const missing = await academy.verifyPOST(
+    post('academy', '/api/auth/verify', env, { email, code, intent: 'signup' }),
   );
   assert.equal(missing.status, 400);
   assert.equal(((await missing.json()) as { error: { code: string } }).error.code, 'TERMS_REQUIRED');
-  const stale = await live.verifyPOST(
-    post('live', '/api/auth/verify', env, {
+  const stale = await academy.verifyPOST(
+    post('academy', '/api/auth/verify', env, {
       email,
       code,
       intent: 'signup',
@@ -184,20 +193,20 @@ test('sign-up records the current Site Terms and Privacy versions; a missing or 
   assert.equal(((await stale.json()) as { error: { code: string } }).error.code, 'TERMS_OUTDATED');
   assert.equal(count('SELECT COUNT(*) AS n FROM users'), 0, 'no account before consent');
 
-  const ok = await live.verifyPOST(
-    post('live', '/api/auth/verify', env, {
+  const ok = await academy.verifyPOST(
+    post('academy', '/api/auth/verify', env, {
       email,
       code,
       intent: 'signup',
-      displayName: 'Sample Organizer',
-      role: 'organizer',
+      displayName: 'Sample Teacher',
+      role: 'teacher',
       terms: signupTerms(),
       marketingOptIn: false,
     }),
   );
   assert.equal(ok.status, 200, 'the same code still works once consent is given');
   const data = ((await ok.json()) as { data: { next?: string } }).data;
-  assert.equal(data.next, '/account/onboarding?role=organizer');
+  assert.equal(data.next, '/account/onboarding?role=teacher');
   const accepted = db.$client.sqlite
     .prepare(
       'SELECT document_slug AS slug, document_version AS version, context, ip_hash FROM terms_acceptances ORDER BY document_slug',
@@ -207,14 +216,14 @@ test('sign-up records the current Site Terms and Privacy versions; a missing or 
     accepted.map((a) => a.slug),
     ['privacy-policy', 'site-terms'],
   );
-  assert.ok(accepted.every((a) => a.context === 'signup:live' && a.ip_hash && a.ip_hash.length === 64));
+  assert.ok(accepted.every((a) => a.context === 'signup:academy' && a.ip_hash && a.ip_hash.length === 64));
   assert.equal(
     count('SELECT COUNT(*) AS n FROM marketing_consents'),
     0,
     'unticked marketing records nothing',
   );
   assert.equal(
-    count("SELECT COUNT(*) AS n FROM provider_profiles WHERE role = 'organizer' AND status = 'draft'"),
+    count("SELECT COUNT(*) AS n FROM provider_profiles WHERE role = 'teacher' AND status = 'draft'"),
     1,
   );
   // Session and challenge carry the hashed IP, never the address.

@@ -1,6 +1,6 @@
 ---
 /**
- * Asymmetric four-program bento showcase matching /mission FourPrograms and ProgramCollection.
+ * Asymmetric three-program bento showcase: a full-width featured Worship panel above Academy and Production.
  */
 import Photo from '@studio-gamo/ui/components/Photo.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
@@ -23,24 +23,11 @@ interface ProgramCard {
   icon: IconName;
   surfaceClass: string;
   dark?: boolean;
+  /** Spans the full row on tablet and up, so three programs fill the bento without an empty slot. */
+  featured?: boolean;
 }
 
 const programCards: ProgramCard[] = [
-  {
-    name: 'Gamo Live',
-    tag: 'Christian events nationwide',
-    title: 'Discover worship nights, gospel concerts, and community gatherings.',
-    summary:
-      'A trusted place to find and share Christian events across the country — with clear moderation, free or ticketed registration, and sponsored listings always labeled.',
-    points: ['Open to Christian events nationwide', 'Free RSVP & ticketed event tools'],
-    href: siteUrl('web', '/live'),
-    cta: 'Explore Gamo Live',
-    photo: 'worshipNight',
-    photoPosition: '50% 40%',
-    icon: 'calendar',
-    surfaceClass: 'bg-night text-cream',
-    dark: true,
-  },
   {
     name: 'Gamo Worship',
     tag: 'Churches & musicians',
@@ -56,7 +43,9 @@ const programCards: ProgramCard[] = [
     photo: 'worshipBand',
     photoPosition: '55% 35%',
     icon: 'music',
-    surfaceClass: 'bg-white ring-1 ring-sand',
+    surfaceClass: 'bg-night text-cream',
+    dark: true,
+    featured: true,
   },
   {
     name: 'Gamo Academy',
@@ -98,10 +87,10 @@ const programCards: ProgramCard[] = [
     <div class="flex flex-wrap items-end justify-between gap-6">
       <EditorialHeading
         id="home-programs-title"
-        eyebrow="One mission · four programs"
-        title="Four connected ways"
+        eyebrow="One mission · three programs"
+        title="Three connected ways"
         accent="we serve together."
-        lede="Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production are interconnected programs serving one religious and educational mission — never separate commercial silos."
+        lede="Gamo Worship, Gamo Academy, and Gamo Production are interconnected programs serving one religious and educational mission — never separate commercial silos."
       />
       <ButtonLink href="/mission" variant="secondary" arrow>
         Read our full mission
@@ -117,14 +106,20 @@ const programCards: ProgramCard[] = [
             class:list={[
               'group flex flex-col justify-between overflow-hidden rounded-[34px] p-3.5 sm:p-4 transition-transform duration-300 hover:-translate-y-1',
               p.surfaceClass,
+              p.featured && 'md:col-span-2',
             ]}
           >
             <div>
-              <div class="relative aspect-[16/9] w-full overflow-hidden rounded-[26px] bg-sand">
+              <div
+                class:list={[
+                  'relative w-full overflow-hidden rounded-[26px] bg-sand',
+                  p.featured ? 'aspect-[16/9] md:aspect-[21/8]' : 'aspect-[16/9]',
+                ]}
+              >
                 <Photo
                   name={p.photo}
                   position={p.photoPosition}
-                  sizes="(min-width:1024px) 45vw, 94vw"
+                  sizes={p.featured ? '(min-width:1024px) 92vw, 94vw' : '(min-width:1024px) 45vw, 94vw'}
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>

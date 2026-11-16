@@ -284,20 +284,23 @@ test('set-clerk-secrets.sh refuses one key used by two products, and missing fil
     ].join('\n'),
   );
   writeFileSync(
-    sharedJwt.devVars('live'),
+    sharedJwt.devVars('worship'),
     [
-      `PUBLIC_CLERK_PUBLISHABLE_KEY=${pk('clerk.live.gamostudio.org')}`,
-      'CLERK_SECRET_KEY=sk_live_live_two',
+      `PUBLIC_CLERK_PUBLISHABLE_KEY=${pk('clerk.worship.gamostudio.org')}`,
+      'CLERK_SECRET_KEY=sk_live_worship_two',
       jwtLine,
     ].join('\n'),
   );
-  const jwtDup = sharedJwt.run(['--env', 'production', '--app', 'academy', '--app', 'live', '--dry-run']);
+  const jwtDup = sharedJwt.run(['--env', 'production', '--app', 'academy', '--app', 'worship', '--dry-run']);
   assert.notEqual(jwtDup.status, 0);
-  assert.match(jwtDup.stderr, /refused live CLERK_JWT_KEY_LIVE: the same key is used by another product/);
+  assert.match(
+    jwtDup.stderr,
+    /refused worship CLERK_JWT_KEY_WORSHIP: the same key is used by another product/,
+  );
 
-  const missing = h.run(['--env', 'production', '--app', 'live', '--dry-run']);
+  const missing = h.run(['--env', 'production', '--app', 'worship', '--dry-run']);
   assert.notEqual(missing.status, 0);
-  assert.match(missing.stderr, /skip live: .* not found/);
+  assert.match(missing.stderr, /skip worship: .* not found/);
 
   writeFileSync(h.devVars('production'), `PUBLIC_CLERK_PUBLISHABLE_KEY=${pk('clerk.gamostudio.org')}`);
   const partial = h.run(['--env', 'preview', '--app', 'production']);
@@ -309,21 +312,21 @@ test('set-clerk-secrets.sh: --dry-run calls nothing, --file needs one app, produ
   const h = harness();
   const file = join(h.dir, 'custom.vars');
   writeFileSync(file, fileFor('clerk.gamostudio.org', 'live', ['CLERK_ISSUER=https://clerk.gamostudio.org']));
-  const dry = h.run(['--env', 'production', '--app', 'live', '--file', file, '--dry-run']);
+  const dry = h.run(['--env', 'production', '--app', 'worship', '--file', file, '--dry-run']);
   assert.equal(dry.status, 0, dry.stderr);
-  assert.match(dry.stdout, /would set live CLERK_SECRET_KEY_LIVE --env production/);
+  assert.match(dry.stdout, /would set worship CLERK_SECRET_KEY_WORSHIP --env production/);
   assert.ok(!existsSync(join(h.log, 'argv')));
   assert.notEqual(h.run(['--env', 'production', '--file', file]).status, 0, '--file without --app');
   assert.notEqual(h.run(['--env', 'staging', '--app', 'web']).status, 0, 'unknown env');
   assert.notEqual(h.run(['--env', 'preview', '--app', 'admin']).status, 0, 'admin does not use Clerk');
-  const underTest = h.run(['--env', 'production', '--app', 'live', '--file', file]);
+  const underTest = h.run(['--env', 'production', '--app', 'worship', '--file', file]);
   assert.notEqual(underTest.status, 0);
   assert.match(underTest.stderr, /started by a test or CI: --env production is refused/);
-  const yes = h.run(['--env', 'production', '--app', 'live', '--file', file, '--yes']);
+  const yes = h.run(['--env', 'production', '--app', 'worship', '--file', file, '--yes']);
   assert.notEqual(yes.status, 0, '--yes no longer exists');
   assert.match(yes.stderr, /unknown argument: --yes/);
   // Outside a test marker but with stdin not a terminal: still refused before any prompt.
-  const noTty = h.run(['--env', 'production', '--app', 'live', '--file', file], {
+  const noTty = h.run(['--env', 'production', '--app', 'worship', '--file', file], {
     NODE_TEST_CONTEXT: undefined,
     CI: undefined,
   });

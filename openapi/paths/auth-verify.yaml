@@ -12,7 +12,7 @@ post:
     __session cookie.
   security: []
   x-application: web
-  x-replicated-applications: [live, worship, academy, production]
+  x-replicated-applications: [worship, academy, production]
   x-status: implemented
   x-authorization: Public (same-origin enforced; valid unconsumed challenge code required)
   x-idempotency: Single-use challenge code; replay after consumption returns 401.

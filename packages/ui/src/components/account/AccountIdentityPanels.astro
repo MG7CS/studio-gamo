@@ -135,11 +135,11 @@ const shared = extras.person.otherProducts.filter((p) => p.sharesSignInRecord).m
 
   <section class="border-t border-sand pt-8" aria-labelledby="customer-records-title">
     <h2 id="customer-records-title" class="text-xl font-bold text-ink">
-      Tickets and registrations
+      Registrations
     </h2>
     <p class="mt-2 text-[15px] text-ink">
-      Tickets and Academy registrations you made as a guest with this verified email. Each one is managed on
-      its own site through the link we email you.
+      Academy registrations you made as a guest with this verified email. Each one is managed on its own site
+      through the link we email you.
     </p>
     {extras.customerRecords.length ? (
       <ul class="mt-4 divide-y divide-sand">
@@ -148,7 +148,7 @@ const shared = extras.person.otherProducts.filter((p) => p.sharesSignInRecord).m
             <span class="min-w-0">
               <span class="block font-semibold capitalize text-ink">{r.title}</span>
               <span class="block text-sm text-muted">
-                {r.kind === 'ticket_order' ? 'Gamo Live order' : 'Gamo Academy registration'}
+                Gamo Academy registration
                 {r.reference ? ` · ${r.reference}` : ''} · {r.status.replace(/_/g, ' ')} ·{' '}
                 {formatDate(r.createdAt)}
               </span>

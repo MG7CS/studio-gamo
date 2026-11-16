@@ -1,5 +1,7 @@
 # Gamo Studios — CURRENT PHASE OVERRIDE (read before AGENTS.md and ROADMAP.md)
 
+**Scope change — 2026-11-16:** Gamo Live (and `apps/live`) was dropped; the remaining programs are Gamo Academy, Gamo Worship and Gamo Production. References to Live below are historical.
+
 **Approved scope update — 2026-10-12:** the founder authorized the complete public multi-page frontend brief (organization pages, Worship, Academy, Live and Production), including organization support/partnership pages and an isolated bright homepage-hero proposal. Earlier statements requiring separate permission to build these pages are superseded by that instruction. The approved `/` hero is preserved; `/preview/hero-2026` is awaiting visual acceptance. No backend, external integrations or Admin expansion is authorized. Current evidence: [docs/MULTIPAGE_DESIGN_REVIEW.md](docs/MULTIPAGE_DESIGN_REVIEW.md).
 
 **This document overrides older build-order instructions in `AGENTS.md`, `ROADMAP.md`, and `prompts/MASTER-PROMPT.md` when they conflict on build sequence.** Organizational purpose, program positioning and public messaging are governed by [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (Gamo Studios is a proposed Christian nonprofit); every screen built under this override must follow its copy and legal-status rules.
@@ -10,7 +12,7 @@ Current milestone: **complete ALL planned responsive screens and UI states befor
 
 1. Inspect the existing repo and `git status` before doing anything; do not reset/replace/overwrite any running project, source code, user changes, or config. This bundle's `original-starter-docs/` is reference archival material only, not files to blindly copy over current root docs.
 2. Copy or integrate the files in `design-reference/` and this override document into the actual `studio-gamo` repository root. Edit existing root `AGENTS.md`, `ROADMAP.md`, and `DESIGN.md` **in place** to link to this override and remove ambiguity; preserve useful content.
-3. Build a route-by-route UI screen inventory for the six apps: root hub, worship, academy, live, production, admin. Mark each `Not started`, `In progress`, `UI ready`, or `Reviewed`. Include mobile and desktop plus major empty/loading/error/validation views.
+3. Build a route-by-route UI screen inventory for the apps: root hub, worship, academy, production, admin (live was removed 2026-11-16). Mark each `Not started`, `In progress`, `UI ready`, or `Reviewed`. Include mobile and desktop plus major empty/loading/error/validation views.
 4. Prioritize visually complete public site pages, then all application screens and dashboards, then secondary flows. Preserve responsive layouts, accessible controls, coherent demo content, and shared components. Use minimal local UI state only for visual demonstrations (tabs, modals, filters, forms), not real transactions.
 5. Do **not** set up production auth, Stripe payouts, payment capture, Resend sending, live ID capture, background checks, dispatch, real ticket locking, persistent DB CRUD, sensitive document handling, or external API credentials yet. Make plausible mock states and clearly mark demo flows.
 6. Compare running page screenshots against `design-reference/` screenshots and improve until consistent with brand system. Record real screenshots and checklist progress in `docs/SCREEN_INVENTORY.md` and `docs/BUILD_LOG.md`.

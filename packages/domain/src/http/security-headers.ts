@@ -27,8 +27,6 @@ export interface SecurityHeaderOptions {
    * across responses. Values that are not plain base64/base64url are dropped.
    */
   nonce?: string;
-  /** Allow `navigator.geolocation` for this origin (Gamo Live "near me"). */
-  allowGeolocation?: boolean;
   /**
    * Cloudflare Turnstile is configured for this app (`PUBLIC_TURNSTILE_SITE_KEY` set): allow its
    * script and frame origin. Turnstile's CSP reference lists only `script-src` and `frame-src`
@@ -41,8 +39,6 @@ export interface SecurityHeaderOptions {
    * `form-action` to redirects after a form submission). Anything that is not a plain https origin is dropped.
    */
   formActionOrigins?: readonly string[];
-  /** `Permissions-Policy: camera=(self)` for this response (the door scanner); otherwise `camera=()`. */
-  camera?: boolean;
   /** `Referrer-Policy: no-referrer` for this response (pages that carry a link token in the URL). */
   noReferrer?: boolean;
 }
@@ -51,7 +47,7 @@ export interface SecurityHeaderOptions {
  * Per-page additions a page can request, through `requestSecurityHeaders(Astro.locals, …)` in the
  * page's frontmatter. The page middleware reads them after the page has rendered its head.
  */
-export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'camera' | 'noReferrer'>;
+export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'noReferrer'>;
 
 /** Turnstile's script and widget frame origin (also used by Clerk's bot protection). */
 export const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
@@ -137,12 +133,12 @@ export function securityHeaders(options: SecurityHeaderOptions): Record<string, 
     'X-Frame-Options': 'DENY',
     'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     'Permissions-Policy': [
-      `camera=${options.camera ? '(self)' : '()'}`,
+      'camera=()',
       'microphone=()',
       'payment=()',
       'usb=()',
       'browsing-topics=()',
-      `geolocation=${options.allowGeolocation ? '(self)' : '()'}`,
+      'geolocation=()',
     ].join(', '),
   };
   if (options.https) headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
@@ -156,7 +152,7 @@ export function securityHeaders(options: SecurityHeaderOptions): Record<string, 
  * the middleware sets headers). Repeated calls merge.
  *
  *   requestSecurityHeaders(Astro.locals, { formActionOrigins: ['https://checkout.stripe.com'] });
- *   requestSecurityHeaders(Astro.locals, { camera: true });
+ *   requestSecurityHeaders(Astro.locals, { noReferrer: true });
  */
 export function requestSecurityHeaders(
   locals: { securityRequest?: PageSecurityRequest },
@@ -168,7 +164,6 @@ export function requestSecurityHeaders(
       ...(current.formActionOrigins ?? []),
       ...(request.formActionOrigins ?? []),
     ]),
-    camera: Boolean(current.camera || request.camera),
     noReferrer: Boolean(current.noReferrer || request.noReferrer),
   };
 }
@@ -176,7 +171,7 @@ export function requestSecurityHeaders(
 /** Sets the headers on `response`, copying it first if its headers are immutable. */
 export function withSecurityHeaders(response: Response, options: SecurityHeaderOptions): Response {
   const headers = securityHeaders(options);
-  // A response that already sandboxes itself (uploaded venue blueprints, Agent C) keeps its stricter CSP.
+  // A response that already sandboxes itself (e.g. an uploaded SVG) keeps its stricter CSP.
   if (/(^|;)\s*sandbox\b/.test(response.headers.get('content-security-policy') ?? ''))
     delete headers['Content-Security-Policy'];
   let target = response;

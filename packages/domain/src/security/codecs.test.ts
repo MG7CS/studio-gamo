@@ -15,14 +15,10 @@ import {
 } from './crypto.ts';
 import {
   isOrderReference,
-  isTicketId,
   newOrderReference,
   newPrefixedId,
-  newTicketId,
   normalizeOrderReference,
-  qrPartToTicketId,
   REFERENCE_ALPHABET,
-  ticketIdToQrPart,
 } from './ids.ts';
 
 test('base32: known vectors, round trips, upper-case output', () => {
@@ -53,24 +49,6 @@ test('base32: rejects invalid characters, look-alikes and non-canonical padding'
   const r = randomBase32(26);
   assert.match(r, /^[0-9A-HJKMNP-TV-Z]{26}$/);
   assert.throws(() => randomBase32(0), RangeError);
-});
-
-test('ids: ticket ids carry 26 random symbols and map to and from the QR part', () => {
-  const seen = new Set<string>();
-  for (let i = 0; i < 200; i++) {
-    const id = newTicketId();
-    assert.match(id, /^tkt_[0-9a-hjkmnp-tv-z]{26}$/);
-    assert.ok(isTicketId(id));
-    const part = ticketIdToQrPart(id)!;
-    assert.equal(part, id.slice(4).toUpperCase());
-    assert.equal(qrPartToTicketId(part), id);
-    assert.equal(qrPartToTicketId(part.toLowerCase()), id);
-    seen.add(id);
-  }
-  assert.equal(seen.size, 200);
-  assert.equal(isTicketId('tkt_ord_1_0'), false, 'legacy deterministic ids are not QR-addressable');
-  assert.equal(ticketIdToQrPart('tkt_short'), null);
-  assert.equal(qrPartToTicketId('IIIIIIIIIIIIIIIIIIIIIIIIII'), null);
 });
 
 test('ids: prefixed ids validate the prefix', () => {

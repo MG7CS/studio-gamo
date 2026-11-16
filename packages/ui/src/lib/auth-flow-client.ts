@@ -12,13 +12,10 @@ export const PROGRAM_TO_PRODUCT_KEY: Record<string, string> = {
   'Gamo Studios': 'web',
   'Gamo Worship': 'worship',
   'Gamo Academy': 'academy',
-  'Gamo Live': 'live',
   'Gamo Production': 'production',
 };
 
 const PROGRAM_SIGNUP_SUBTEXT: Record<string, string> = {
-  'Gamo Live':
-    'Create a Gamo Live account to list Christian events, manage an artist or agent profile, or verify your church. Ticket buyers do not need an account.',
   'Gamo Academy':
     'Create a Gamo Academy account to teach or host lessons. Families can register a student without an account.',
   'Gamo Worship':

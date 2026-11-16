@@ -7,7 +7,7 @@ export const analyticsScreens: DashScreen[] = [
     slug: 'analytics',
     title: 'Executive & mission analytics',
     description:
-      'Cross-program impact, service reliability, educational access, event participation, and stewardship intelligence across Gamo Studios.',
+      'Cross-program impact, service reliability, educational access, volunteer training, and stewardship intelligence across Gamo Studios.',
     actions: [
       { label: 'Export full report (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
       { label: 'Export JSON', exportReport: 'json', icon: 'file', variant: 'secondary' },
@@ -35,12 +35,12 @@ export const analyticsScreens: DashScreen[] = [
             icon: 'school',
           },
           {
-            label: 'Gamo Live verified attendance',
-            value: '2,840',
-            delta: '+24% MoM',
+            label: 'Production volunteers trained',
+            value: '86',
+            delta: '+14% vs Q3',
             deltaTone: 'up',
-            hint: '18 approved Christian events',
-            icon: 'ticket',
+            hint: '12 churches served',
+            icon: 'speaker',
           },
           {
             label: 'Pass-through pay protected',
@@ -57,26 +57,26 @@ export const analyticsScreens: DashScreen[] = [
         span: 2,
         title: 'Cross-program participation & ministry growth (6-month trend)',
         description:
-          'Monthly volume of completed Sunday musician placements, active Academy enrollments, and Gamo Live event registrations.',
+          'Monthly volume of completed Sunday musician placements, active Academy enrollments, and Production volunteers trained.',
         variant: 'trend',
         exportFilename: 'gamo-executive-growth-trend',
         summary: [
           { label: 'Worship placements (6m)', value: '412', delta: '+19%', tone: 'up' },
           { label: 'Academy active seats', value: '112', delta: '+22%', tone: 'up' },
-          { label: 'Live passes issued (6m)', value: '2,840', delta: '+31%', tone: 'up' },
+          { label: 'Worship services covered (Oct)', value: '82', delta: '+52% vs May', tone: 'up' },
           { label: 'Production volunteers trained', value: '86', delta: '+14%', tone: 'up' },
         ],
         series: [
           {
-            label: 'Gamo Live registrations (÷10)',
+            label: 'Production volunteers trained (cumulative)',
             color: 'terracotta',
             points: [
-              { label: 'May', value: 32, displayValue: '320 passes' },
-              { label: 'Jun', value: 39, displayValue: '390 passes' },
-              { label: 'Jul', value: 44, displayValue: '440 passes' },
-              { label: 'Aug', value: 51, displayValue: '510 passes' },
-              { label: 'Sep', value: 56, displayValue: '560 passes' },
-              { label: 'Oct', value: 62, displayValue: '620 passes' },
+              { label: 'May', value: 48, displayValue: '48 volunteers' },
+              { label: 'Jun', value: 56, displayValue: '56 volunteers' },
+              { label: 'Jul', value: 64, displayValue: '64 volunteers' },
+              { label: 'Aug', value: 72, displayValue: '72 volunteers' },
+              { label: 'Sep', value: 79, displayValue: '79 volunteers' },
+              { label: 'Oct', value: 86, displayValue: '86 volunteers' },
             ],
           },
           {
@@ -111,7 +111,7 @@ export const analyticsScreens: DashScreen[] = [
         type: 'chart',
         span: 1,
         title: 'Regional activity distribution',
-        description: 'Active churches, musicians, instructors, and organizers by metro hub.',
+        description: 'Active churches, musicians, instructors, and production volunteers by metro hub.',
         variant: 'distribution',
         exportFilename: 'gamo-regional-distribution',
         series: [
@@ -119,11 +119,11 @@ export const analyticsScreens: DashScreen[] = [
             label: 'Active ministry participants',
             color: 'terracotta',
             points: [
-              { label: 'Phoenix & Valley, AZ', value: 148, displayValue: '148 participants (31%)', note: '14 partner churches · 42 musicians · 6 Live venues' },
-              { label: 'Dallas–Fort Worth, TX', value: 112, displayValue: '112 participants (23%)', note: '11 churches · 34 musicians · 5 Live events' },
-              { label: 'Atlanta Metro, GA', value: 86, displayValue: '86 participants (18%)', note: '8 churches · 29 musicians · 4 touring artists' },
+              { label: 'Phoenix & Valley, AZ', value: 148, displayValue: '148 participants (31%)', note: '14 partner churches · 42 musicians · 3 Academy hosts' },
+              { label: 'Dallas–Fort Worth, TX', value: 112, displayValue: '112 participants (23%)', note: '11 churches · 34 musicians · 2 Production crews' },
+              { label: 'Atlanta Metro, GA', value: 86, displayValue: '86 participants (18%)', note: '8 churches · 29 musicians · 1 Academy host' },
               { label: 'Seattle–Tacoma, WA', value: 58, displayValue: '58 participants (12%)', note: '6 churches · 19 musicians · 2 Academy hosts' },
-              { label: 'Chicago & Midwest, IL', value: 44, displayValue: '44 participants (9%)', note: '5 churches · 16 musicians · 2 Live events' },
+              { label: 'Chicago & Midwest, IL', value: 44, displayValue: '44 participants (9%)', note: '5 churches · 16 musicians · 1 Academy host' },
               { label: 'Denver Front Range, CO', value: 34, displayValue: '34 participants (7%)', note: '4 churches · 12 musicians · 1 Production crew' },
             ],
           },
@@ -154,14 +154,6 @@ export const analyticsScreens: DashScreen[] = [
             current: '94.2% attendance · 66% subsidized/sponsored',
             target: '≥ 90.0% attendance',
             turnaround: '24 hrs family onboarding',
-            status: b('On target', 'success'),
-          },
-          {
-            program: 'Gamo Live',
-            kpi: 'Event moderation, artist booking & QR check-in',
-            current: '18 live events · 99.1% scan accuracy',
-            target: '100% verified organizers',
-            turnaround: '14.5 hrs event review',
             status: b('On target', 'success'),
           },
           {
@@ -196,7 +188,7 @@ export const analyticsScreens: DashScreen[] = [
     slug: 'analytics/programs',
     title: 'Program performance & cohort analysis',
     description:
-      'Deep-dive operational graphs for Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production.',
+      'Deep-dive operational graphs for Gamo Worship, Gamo Academy, and Gamo Production.',
     actions: [
       { label: 'Export program analytics (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
       { label: 'Export JSON', exportReport: 'json', icon: 'file', variant: 'secondary' },
@@ -285,43 +277,7 @@ export const analyticsScreens: DashScreen[] = [
       },
       {
         type: 'chart',
-        span: 2,
-        title: 'Gamo Live: Event categories, registrations & artist bookings',
-        description: 'Attendance volume and confirmed artist/agent engagements across approved Christian event categories.',
-        variant: 'bar',
-        exportFilename: 'gamo-live-category-performance',
-        summary: [
-          { label: 'Published events', value: '18', delta: '+5 this month', tone: 'up' },
-          { label: 'Free RSVPs', value: '1,920', delta: '67.6% of passes', tone: 'up' },
-          { label: 'Ticketed passes', value: '920', delta: '32.4% of passes', tone: 'neutral' },
-          { label: 'Artist bookings', value: '24', delta: '92% contract SLA', tone: 'up' },
-        ],
-        series: [
-          {
-            label: 'Registered attendees (÷10)',
-            color: 'terracotta',
-            points: [
-              { label: 'Worship Nights', value: 112, displayValue: '1,120 attendees' },
-              { label: 'Gospel Concerts', value: 78, displayValue: '780 attendees' },
-              { label: 'Youth Gatherings', value: 54, displayValue: '540 attendees' },
-              { label: 'Conferences', value: 40, displayValue: '400 attendees' },
-            ],
-          },
-          {
-            label: 'Checked-in QR scans (÷10)',
-            color: 'sage',
-            points: [
-              { label: 'Worship Nights', value: 98, displayValue: '980 scanned (87.5%)' },
-              { label: 'Gospel Concerts', value: 71, displayValue: '710 scanned (91.0%)' },
-              { label: 'Youth Gatherings', value: 49, displayValue: '490 scanned (90.7%)' },
-              { label: 'Conferences', value: 37, displayValue: '370 scanned (92.5%)' },
-            ],
-          },
-        ],
-      },
-      {
-        type: 'chart',
-        span: 1,
+        span: 3,
         title: 'Gamo Production: Ministry tracks',
         description: 'Completed church evaluations and trained volunteer operators by specialty.',
         variant: 'distribution',
@@ -383,14 +339,6 @@ export const analyticsScreens: DashScreen[] = [
             status: b('Expanding', 'info'),
           },
           {
-            cohort: 'Verified Touring Artists & Worship Leaders',
-            division: 'Gamo Live',
-            activeCount: '31 verified artists · 9 agents',
-            completionRate: '24 confirmed engagements',
-            satisfaction: 'Zero representation conflicts',
-            status: b('Healthy', 'success'),
-          },
-          {
             cohort: 'Church Sound & Livestream Volunteer Clinics',
             division: 'Gamo Production',
             activeCount: '86 church volunteers',
@@ -400,7 +348,7 @@ export const analyticsScreens: DashScreen[] = [
           },
         ],
         'division',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live', 'Gamo Production']
+        ['Gamo Worship', 'Gamo Academy', 'Gamo Production']
       ),
     ],
   },
@@ -408,7 +356,7 @@ export const analyticsScreens: DashScreen[] = [
     slug: 'analytics/financials',
     title: 'Financial & ledger separation analytics',
     description:
-      'Audit-ready analysis of pass-through musician/instructor/artist compensation, program cost-recovery, scholarship funds, and proposed administrative allocations.',
+      'Audit-ready analysis of pass-through musician/instructor compensation, program cost-recovery, scholarship funds, and proposed administrative allocations.',
     actions: [
       { label: 'Export financial ledger (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
       { label: 'Export JSON', exportReport: 'json', icon: 'file', variant: 'secondary' },
@@ -418,7 +366,7 @@ export const analyticsScreens: DashScreen[] = [
         type: 'notice',
         tone: 'info',
         title: 'Strict compensation & fund separation rule',
-        body: 'Musician, instructor, artist, and event organizer payouts are tracked as 100% separate pass-through line items in integer minor currency units. Gamo Studios never deducts hidden commissions from musician or instructor pay, and all administrative allocations remain proposals until board approval.',
+        body: 'Musician and instructor payouts are tracked as 100% separate pass-through line items in integer minor currency units. Gamo Studios never deducts hidden commissions from musician or instructor pay, and all administrative allocations remain proposals until board approval.',
       },
       {
         type: 'stats',
@@ -429,7 +377,7 @@ export const analyticsScreens: DashScreen[] = [
             value: '$28,400',
             delta: '100% to recipients',
             deltaTone: 'up',
-            hint: 'Musicians, instructors & artists',
+            hint: 'Musicians & instructors',
             icon: 'wallet',
           },
           {
@@ -449,7 +397,7 @@ export const analyticsScreens: DashScreen[] = [
             icon: 'chart',
           },
           {
-            label: 'Live payment gate',
+            label: 'Payment collection gate',
             value: 'Fail-closed (503)',
             delta: 'Safety lock active',
             deltaTone: 'neutral',
@@ -463,19 +411,19 @@ export const analyticsScreens: DashScreen[] = [
         span: 2,
         title: 'Monthly ledger separation: Pass-through pay vs. program support vs. admin allocation',
         description:
-          'Demonstrates strict accounting separation between direct talent/instructor compensation, student subsidies, and modest administrative overhead proposals.',
+          'Demonstrates strict accounting separation between direct musician/instructor compensation, student subsidies, and modest administrative overhead proposals.',
         variant: 'stacked',
         unit: '$',
         exportFilename: 'gamo-financial-ledger-separation',
         summary: [
           { label: 'Musician & instructor pay', value: '$28,400', delta: '66.4% of flow', tone: 'up' },
-          { label: 'Student & event subsidies', value: '$11,060', delta: '25.8% of flow', tone: 'up' },
+          { label: 'Student & standby subsidies', value: '$11,060', delta: '25.8% of flow', tone: 'up' },
           { label: 'Proposed admin allocation', value: '$3,340', delta: '7.8% of flow', tone: 'neutral' },
           { label: 'Musician pay deductions', value: '$0.00', delta: 'Strictly prohibited', tone: 'up' },
         ],
         series: [
           {
-            label: 'Direct musician/instructor/artist pay (100% pass-through)',
+            label: 'Direct musician/instructor pay (100% pass-through)',
             color: 'sage',
             points: [
               { label: 'Jul 2026', value: 6200 },
@@ -505,7 +453,7 @@ export const analyticsScreens: DashScreen[] = [
             ],
           },
         ],
-        footnote: 'Illustrative accounting model in USD. Live payment collection and payouts remain disabled until legal prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are completed.',
+        footnote: 'Illustrative accounting model in USD. Payment collection and payouts remain disabled until legal prerequisites in docs/NONPROFIT_TRANSITION_CHECKLIST.md are completed.',
       },
       {
         type: 'chart',
@@ -523,7 +471,6 @@ export const analyticsScreens: DashScreen[] = [
               { label: 'General Mission Fund', value: 18240, note: 'Unrestricted operational reserve' },
               { label: 'Academy Scholarship Fund', value: 12450, note: 'Restricted to student tuition sponsorship' },
               { label: 'Worship Musician Escrow', value: 8600, note: '100% pass-through church service stipends' },
-              { label: 'Gamo Live Ticketing Trust', value: 3510, note: 'Organizer & artist settlement escrow' },
             ],
           },
         ],
@@ -563,25 +510,9 @@ export const analyticsScreens: DashScreen[] = [
             fundPool: 'Academy Scholarship Fund',
             status: b('Reconciled', 'success'),
           },
-          {
-            reference: 'LDG-2026-1044',
-            program: 'Gamo Live',
-            recipientPay: '$2,500.00 (Artist honorarium + 10% agent split)',
-            adminAlloc: '$0.00 (Deposit gate locked · contract recorded)',
-            fundPool: 'Live Ticketing Trust',
-            status: b('Contract only', 'info'),
-          },
-          {
-            reference: 'LDG-2026-1045',
-            program: 'Gamo Live',
-            recipientPay: '$1,440.00 (Organizer net ticket proceeds)',
-            adminAlloc: '$72.00 (Buyer-facing service fee proposal)',
-            fundPool: 'Live Ticketing Trust',
-            status: b('Sandbox hold', 'pending'),
-          },
         ],
         'program',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live'],
+        ['Gamo Worship', 'Gamo Academy'],
         { label: 'Audit entry', dialog: 'ledger-audit-dialog', icon: 'shield' }
       ),
       decisionDialog('ledger-audit-dialog', 'Verify ledger line-item separation', 'LDG-2026-1041', [
@@ -595,7 +526,7 @@ export const analyticsScreens: DashScreen[] = [
     slug: 'analytics/trust',
     title: 'Trust, vetting & safeguarding analytics',
     description:
-      'Verification funnels, minor safeguarding compliance, artist/agent representation integrity, and sponsored content non-interference audits.',
+      'Verification funnels, minor safeguarding compliance, and sponsored content non-interference audits.',
     actions: [
       { label: 'Export trust audit (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
       { label: 'Export JSON', exportReport: 'json', icon: 'file', variant: 'secondary' },
@@ -625,12 +556,12 @@ export const analyticsScreens: DashScreen[] = [
             icon: 'shield',
           },
           {
-            label: 'Active agent authorizations',
-            value: '14',
-            delta: '0 exclusivity conflicts',
+            label: 'Verified churches',
+            value: '48',
+            delta: '+6 in Q4',
             deltaTone: 'up',
-            hint: 'Cryptographically audited scopes',
-            icon: 'users',
+            hint: 'Leadership contact confirmed',
+            icon: 'church',
           },
           {
             label: 'Ranking interference',
@@ -656,8 +587,7 @@ export const analyticsScreens: DashScreen[] = [
             points: [
               { label: 'Worship Musicians', value: 184 },
               { label: 'Academy Instructors', value: 39 },
-              { label: 'Live Organizers', value: 29 },
-              { label: 'Live Performing Artists', value: 41 },
+              { label: 'Churches', value: 56 },
             ],
           },
           {
@@ -666,8 +596,7 @@ export const analyticsScreens: DashScreen[] = [
             points: [
               { label: 'Worship Musicians', value: 162 },
               { label: 'Academy Instructors', value: 33 },
-              { label: 'Live Organizers', value: 26 },
-              { label: 'Live Performing Artists', value: 36 },
+              { label: 'Churches', value: 52 },
             ],
           },
           {
@@ -676,8 +605,7 @@ export const analyticsScreens: DashScreen[] = [
             points: [
               { label: 'Worship Musicians', value: 142 },
               { label: 'Academy Instructors', value: 28 },
-              { label: 'Live Organizers', value: 24 },
-              { label: 'Live Performing Artists', value: 31 },
+              { label: 'Churches', value: 48 },
             ],
           },
         ],
@@ -697,14 +625,13 @@ export const analyticsScreens: DashScreen[] = [
             points: [
               { label: 'Active instructor background clearance', value: 100, note: '28 of 28 active instructors cleared' },
               { label: 'Minor PII redaction in staff views', value: 100, note: 'Enforced by schema & storage triggers' },
-              { label: 'Sponsored event badge disclosure', value: 100, note: 'All sponsored listings clearly labeled' },
-              { label: 'Artist representation dual-approval', value: 100, note: '14 of 14 active scopes artist-approved' },
+              { label: 'Sponsored content disclosure', value: 100, note: 'All sponsored content clearly labeled' },
             ],
           },
         ],
       },
       queue(
-        'Trust, representation & safeguarding compliance log',
+        'Trust & safeguarding compliance log',
         [
           ['checkId', 'Audit ID'],
           ['domain', 'Program domain'],
@@ -728,20 +655,6 @@ export const analyticsScreens: DashScreen[] = [
             outcome: b('Passed · 100% cleared', 'verified'),
           },
           {
-            checkId: 'TR-2026-093',
-            domain: 'Gamo Live',
-            control: 'Exclusive agent representation conflict detector',
-            subject: 'Selah Talent Agency · 14 artist mandates',
-            outcome: b('Passed · No overlapping exclusives', 'verified'),
-          },
-          {
-            checkId: 'TR-2026-094',
-            domain: 'Gamo Live',
-            control: 'Self-service ticket lookup anti-enumeration gate',
-            subject: 'Public pass lookup (/my-tickets)',
-            outcome: b('Passed · Order ref + token required', 'verified'),
-          },
-          {
             checkId: 'TR-2026-095',
             domain: 'Platform Storage',
             control: 'Sensitive ID & minor document upload block',
@@ -750,7 +663,7 @@ export const analyticsScreens: DashScreen[] = [
           },
         ],
         'domain',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live', 'Platform Storage']
+        ['Gamo Worship', 'Gamo Academy', 'Platform Storage']
       ),
     ],
   },
@@ -783,7 +696,6 @@ export const analyticsScreens: DashScreen[] = [
               'All Gamo Studios Programs (Consolidated)',
               'Gamo Worship (Placements, Standby & Roster)',
               'Gamo Academy (Aggregate Enrollment & Sponsored Seats)',
-              'Gamo Live (Events, Ticketing, Artists, Agents & Bookings)',
               'Gamo Production (Church Assessments, Projects & Crew)',
               'Stewardship & Financial Reconciliation (Pass-Through vs Admin)',
               'Security, Moderation & Governance Audit Log',
@@ -895,22 +807,6 @@ export const analyticsScreens: DashScreen[] = [
             privacyLevel: b('Aggregate / No minor PII', 'verified'),
           },
           {
-            datasetId: 'EXP-LIVE-01',
-            name: 'Gamo Live Events, Ticket Tiers & Scan Telemetry',
-            division: 'Gamo Live',
-            records: '18 events · 2,840 passes',
-            fields: 'event_id, organizer, category, admission_type, capacity, reserved, scanned_count',
-            privacyLevel: b('Organizer & aggregate', 'verified'),
-          },
-          {
-            datasetId: 'EXP-LIVE-02',
-            name: 'Artist Bookings, Offers & Agent Representation Audit',
-            division: 'Gamo Live',
-            records: '24 bookings · 14 mandates',
-            fields: 'inquiry_id, artist, agent, agreed_fee_cents, commission_pct, contract_state',
-            privacyLevel: b('Scoped financial', 'verified'),
-          },
-          {
             datasetId: 'EXP-PROD-01',
             name: 'Church Technical Assessments & Volunteer Crew Roster',
             division: 'Gamo Production',
@@ -936,7 +832,7 @@ export const analyticsScreens: DashScreen[] = [
           },
         ],
         'division',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live', 'Gamo Production', 'Stewardship', 'Internal'],
+        ['Gamo Worship', 'Gamo Academy', 'Gamo Production', 'Stewardship', 'Internal'],
         { label: 'Configure export', dialog: 'dataset-export-dialog', icon: 'download' }
       ),
       queue(
@@ -947,8 +843,6 @@ export const analyticsScreens: DashScreen[] = [
           ['standbySaves', 'Standby saves'],
           ['academyStudents', 'Academy students'],
           ['sponsoredSeats', 'Sponsored seats'],
-          ['liveAttendees', 'Gamo Live attendees'],
-          ['artistBookings', 'Artist bookings'],
           ['productionTrained', 'Production volunteers'],
           ['passthroughUsd', 'Direct pass-through pay'],
         ],
@@ -959,8 +853,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '2',
             academyStudents: '74',
             sponsoredSeats: '30',
-            liveAttendees: '320',
-            artistBookings: '2',
             productionTrained: '48',
             passthroughUsd: '$18,900.00',
           },
@@ -970,8 +862,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '3',
             academyStudents: '82',
             sponsoredSeats: '34',
-            liveAttendees: '390',
-            artistBookings: '3',
             productionTrained: '56',
             passthroughUsd: '$21,200.00',
           },
@@ -981,8 +871,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '2',
             academyStudents: '88',
             sponsoredSeats: '37',
-            liveAttendees: '440',
-            artistBookings: '4',
             productionTrained: '64',
             passthroughUsd: '$23,400.00',
           },
@@ -992,8 +880,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '4',
             academyStudents: '96',
             sponsoredSeats: '40',
-            liveAttendees: '510',
-            artistBookings: '4',
             productionTrained: '72',
             passthroughUsd: '$25,100.00',
           },
@@ -1003,8 +889,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '3',
             academyStudents: '105',
             sponsoredSeats: '43',
-            liveAttendees: '560',
-            artistBookings: '5',
             productionTrained: '79',
             passthroughUsd: '$26,850.00',
           },
@@ -1014,8 +898,6 @@ export const analyticsScreens: DashScreen[] = [
             standbySaves: '4',
             academyStudents: '112',
             sponsoredSeats: '46',
-            liveAttendees: '620',
-            artistBookings: '6',
             productionTrained: '86',
             passthroughUsd: '$28,400.00',
           },
