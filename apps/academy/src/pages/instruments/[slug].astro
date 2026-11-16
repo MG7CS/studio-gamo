@@ -1,11 +1,13 @@
 ---
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import InstrumentOverview from '../../components/instruments/InstrumentOverview.astro';
 import LessonCard from '../../components/shared/LessonCard.astro';
 import InstructorCard from '../../components/shared/InstructorCard.astro';
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments, type Instrument } from '../../data/instruments';
 import { lessons } from '../../data/lessons';
@@ -27,39 +29,33 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   <PageHero
     eyebrow={instrument.ages}
     title={instrument.name}
-    lede={instrument.blurb}
-    photo={instrument.photo}
-    mask="mask-leaf"
-    crumbs={[
+    breadcrumbs={[
+      { label: 'Academy', href: '/' },
       { label: 'Instruments', href: '/instruments' },
-      { label: instrument.short, href: `/instruments/${instrument.slug}` },
+      { label: instrument.short },
     ]}
   >
-    <div class="mt-8 flex flex-wrap gap-3">
+    <p slot="intro">{instrument.blurb}</p>
+    <Fragment slot="actions">
       <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" arrow>
         Register for {instrument.short.toLowerCase()}
       </ButtonLink>
       <ButtonLink href="/lessons" size="lg" variant="secondary">
         All lessons
       </ButtonLink>
-    </div>
+    </Fragment>
+    {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} mask="mask-leaf" />}
   </PageHero>
   <InstrumentOverview instrument={instrument} />
-  <section class="px-4 py-16 sm:px-8 lg:py-20">
-    <div class="mx-auto max-w-[1320px]">
-      <EditorialHeading
-        eyebrow="Available lessons"
-        title={`Ways to learn ${instrument.short.toLowerCase()}`}
-        size="sub"
-      />
-      <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {related.map((l) => (
-          <LessonCard lesson={l} />
-        ))}
-        {teachers.map((t) => (
-          <InstructorCard instructor={t} />
-        ))}
-      </div>
-    </div>
-  </section>
+  <Section title={`Ways to learn ${instrument.short.toLowerCase()}`}>
+    <Fragment slot="eyebrow">Available lessons</Fragment>
+    <FeatureGrid as="ul" max={3}>
+      {related.map((l) => (
+        <LessonCard lesson={l} />
+      ))}
+      {teachers.map((t) => (
+        <InstructorCard instructor={t} as="li" />
+      ))}
+    </FeatureGrid>
+  </Section>
 </Layout>

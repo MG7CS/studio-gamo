@@ -19,8 +19,10 @@ import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
 import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
 import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
 import TurnstileWidget from '@studio-gamo/ui/components/forms/TurnstileWidget.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
 import { nowSeconds, registrationDb } from '../../lib/registration';
 
@@ -87,25 +89,27 @@ if (Astro.request.method === 'POST') {
   description="Get a link to view, update or cancel a Gamo Academy registration."
   noindex
 >
-  <PageHero
-    eyebrow="Gamo Academy · Registration"
-    title="Find your registration"
-    lede="Enter the email address you registered with. We'll email you a private link to your registrations."
-  />
-  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
-    <div class="mx-auto max-w-xl space-y-6">
+  <PageHero eyebrow="Gamo Academy · Registration" title="Find your registration">
+    <p slot="intro">
+      Enter the email address you registered with. We'll email you a private link to your registrations.
+    </p>
+  </PageHero>
+  <Container width="prose" class="pb-16 lg:pb-24">
+    <div class="space-y-6">
       {sent && (
         <RegistrationNotice tone="success" title="Check your email">
           <p>{REGISTRATION_RECOVERY_MESSAGE}</p>
           <p>Can't find it? Check your spam folder, or try again in a few minutes.</p>
         </RegistrationNotice>
       )}
-      <form method="post" class="space-y-5 rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-8">
-        <FormErrorSummary errors={summary} />
-        <EmailField label="Email address" value={email} error={emailError} />
-        <TurnstileWidget action="registrations_find" error={turnstileError} />
-        <SubmitButton label="Email me a link" pendingLabel="Sending…" />
-      </form>
+      <Card padding="lg">
+        <form method="post" class="space-y-5">
+          <FormErrorSummary errors={summary} />
+          <EmailField label="Email address" value={email} error={emailError} />
+          <TurnstileWidget action="registrations_find" error={turnstileError} />
+          <SubmitButton label="Email me a link" pendingLabel="Sending…" />
+        </form>
+      </Card>
     </div>
-  </section>
+  </Container>
 </Layout>

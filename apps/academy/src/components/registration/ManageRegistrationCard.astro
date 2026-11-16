@@ -22,7 +22,7 @@ const phoneId = `phone-${r.id}`;
 <article data-registration={r.reference}>
   <RegistrationDetails registration={r} lessonTitle={lessonTitle}>
     {active && (
-      <div class="mt-6 grid gap-6 border-t border-sand pt-6 md:grid-cols-2">
+      <div class="mt-6 grid gap-6 border-t border-border pt-6 md:grid-cols-2">
         <form method="post" class="space-y-3">
           <input type="hidden" name="intent" value="phone" />
           <input type="hidden" name="registration_id" value={r.id} />
@@ -42,8 +42,8 @@ const phoneId = `phone-${r.id}`;
         <form method="post" class="space-y-3">
           <input type="hidden" name="intent" value="cancel" />
           <input type="hidden" name="registration_id" value={r.id} />
-          <p class="text-[15px] font-semibold">Cancel this registration</p>
-          <p class="text-sm text-muted">
+          <p class="text-body-sm font-semibold">Cancel this registration</p>
+          <p class="text-small text-fg-muted">
             {r.status === 'paid'
               ? 'You can cancel any time before the first lesson. Because it was paid, our team will arrange the refund and email you.'
               : 'You can cancel any time before the first lesson. Nothing has been charged.'}
@@ -52,12 +52,12 @@ const phoneId = `phone-${r.id}`;
         </form>
       </div>
     )}
-    <div class="mt-6 rounded-2xl bg-ivory p-4 text-sm ring-1 ring-sand">
+    <div class="mt-6 rounded-2xl border border-border bg-surface-inset p-4 text-small">
       <p class="font-semibold">Manage billing</p>
-      <p class="mt-1 text-muted">
+      <p class="mt-1 text-fg-muted">
         Billing management is not available yet: there is no recurring billing for lessons. Questions about a
         payment? Write to{' '}
-        <a href="mailto:hello@gamostudio.org" class="font-semibold text-terracotta-deep underline">
+        <a href="mailto:hello@gamostudio.org" class="font-semibold text-action-strong underline">
           hello@gamostudio.org
         </a>
         .

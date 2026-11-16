@@ -1,54 +1,37 @@
 ---
-/** Instrument landing body: first-steps list beside a typographic “who it suits” panel. */
+/** Instrument landing body: first-steps list beside a "who it suits" panel. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import type { Instrument } from '../../data/instruments';
 interface Props {
   instrument: Instrument;
 }
 const { instrument: i } = Astro.props;
+const suits = [i.ages, 'Complete beginners welcome', 'Private or group formats', 'Online or in person'];
 ---
 
-<section class="bg-ivory px-4 py-16 sm:px-8 lg:py-20" data-reveal>
-  <div class="mx-auto grid max-w-[1320px] gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-    <div class="rounded-[32px] bg-white p-8 ring-1 ring-sand sm:p-10">
-      <p class="eyebrow text-terracotta">Your first lessons</p>
+<Section tone="raised" data-reveal>
+  <div class="grid gap-6 lg:grid-cols-5">
+    <Card padding="lg" class="lg:col-span-3">
+      <p class="eyebrow text-action-strong">Your first lessons</p>
       <h2 class="section-subheading mt-3">What you'll learn first</h2>
-      <ol class="mt-8 space-y-5">
-        {i.firstSteps.map((s, n) => (
-          <li class="flex items-center gap-5 border-b border-sand pb-5 last:border-0">
-            <span
-              aria-hidden="true"
-              data-glyph={String(n + 1).padStart(2, '0')}
-              class="text-4xl font-black tracking-tighter text-terracotta/30 after:content-[attr(data-glyph)]"
-            ></span>
-            <span class="text-lg font-semibold">{s}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
-    <div class:list={['relative overflow-hidden rounded-[32px] p-8 sm:p-10', i.tint]}>
-      <span
-        aria-hidden="true"
-        data-glyph={i.short}
-        class="absolute -bottom-10 -right-4 text-[8rem] font-black leading-none tracking-tighter text-white/60 after:content-[attr(data-glyph)]"
-      ></span>
-      <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-terracotta">
-        <Icon name={i.icon} class="h-7 w-7" />
+      <NumberedSteps items={i.firstSteps.map((title) => ({ title }))} class="mt-8" />
+    </Card>
+    <Card tone="inset" padding="lg" class="lg:col-span-2">
+      <span class="grid size-14 place-items-center rounded-2xl bg-surface-raised text-action-strong">
+        <Icon name={i.icon} class="size-7" />
       </span>
       <h2 class="mt-6 text-2xl font-bold">Who it suits</h2>
-      <ul class="relative mt-4 space-y-3">
-        {[
-          i.ages,
-          'Complete beginners welcome',
-          'Private or group formats',
-          'Online or in person (planned)',
-        ].map((t) => (
+      <ul class="mt-4 space-y-3">
+        {suits.map((t) => (
           <li class="flex items-center gap-2">
-            <Icon name="check" class="h-4 w-4 text-terracotta" />
+            <Icon name="check" class="size-4 text-action-strong" />
             {t}
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   </div>
-</section>
+</Section>

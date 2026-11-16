@@ -19,7 +19,9 @@ import {
 } from '@gamo/domain';
 import { siteOrigin } from '@studio-gamo/ui/lib/sites';
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
 import RegistrationForm from '../../components/registration/RegistrationForm.astro';
 import RegistrationLessonSummary from '../../components/registration/RegistrationLessonSummary.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
@@ -169,16 +171,21 @@ if (Astro.request.method === 'POST') {
   <PageHero
     eyebrow="Register · no account needed"
     title={`Register for ${lesson.title}`}
-    lede="Tell us about the student and how to reach you. We email a receipt with a private link to view, update or cancel the registration."
-    crumbs={[
+    breadcrumbs={[
+      { label: 'Academy', href: '/' },
       { label: 'Lessons', href: '/lessons' },
       { label: lesson.title, href: `/lessons/${lesson.slug}` },
-      { label: 'Register', href: `/register/${lesson.slug}` },
+      { label: 'Register' },
     ]}
-  />
-  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
-    <div class="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-[1.3fr_0.7fr]">
-      <div class="min-w-0 space-y-6 rounded-[28px] bg-white p-5 ring-1 ring-sand sm:p-8">
+  >
+    <p slot="intro">
+      Tell us about the student and how to reach you. We email a receipt with a private link to view, update
+      or cancel the registration.
+    </p>
+  </PageHero>
+  <Container class="pb-16 lg:pb-24">
+    <div class="grid gap-8 lg:grid-cols-3">
+      <Card padding="lg" class="space-y-6 lg:col-span-2">
         {pageProblem && (
           <RegistrationNotice tone="problem" title="We couldn't send the form">
             <p>{pageProblem}</p>
@@ -190,7 +197,7 @@ if (Astro.request.method === 'POST') {
               This is a sample lesson shown for preview; registration opens when real lessons are published.
             </p>
             <p>
-              <a href="/lessons" class="font-semibold text-terracotta-deep underline underline-offset-4">
+              <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
                 Browse lessons
               </a>
             </p>
@@ -207,17 +214,14 @@ if (Astro.request.method === 'POST') {
             turnstileError={turnstileError}
           />
         )}
-        <p class="text-sm text-muted">
+        <p class="text-small text-fg-muted">
           Already registered?{' '}
-          <a
-            href="/registrations/find"
-            class="font-semibold text-terracotta-deep underline underline-offset-4"
-          >
+          <a href="/registrations/find" class="font-semibold text-action-strong underline underline-offset-4">
             Find your registration
           </a>
         </p>
-      </div>
+      </Card>
       <RegistrationLessonSummary lesson={lesson} class="lg:sticky lg:top-32 lg:self-start" />
     </div>
-  </section>
+  </Container>
 </Layout>

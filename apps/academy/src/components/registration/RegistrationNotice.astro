@@ -10,18 +10,18 @@ interface Props {
 }
 const { tone = 'info', title, class: className } = Astro.props;
 const styles = {
-  success: 'border-emerald-700/40 bg-emerald-50',
-  info: 'border-ink/30 bg-white',
-  problem: 'border-2 border-terracotta-deep bg-white',
+  success: 'border-2 border-success',
+  info: 'border-border',
+  problem: 'border-2 border-danger',
 };
 ---
 
 <div
   role={tone === 'problem' ? 'alert' : 'status'}
-  class:list={['rounded-2xl border p-5 text-ink', styles[tone], className]}
+  class:list={['rounded-2xl border bg-surface-raised p-5 text-fg', styles[tone], className]}
 >
   <p class="text-base font-bold">{title}</p>
-  <div class="mt-1 space-y-2 text-[15px] leading-6">
+  <div class="mt-1 space-y-2 text-body-sm">
     <slot />
   </div>
 </div>

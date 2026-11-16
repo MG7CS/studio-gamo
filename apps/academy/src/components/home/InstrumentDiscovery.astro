@@ -1,42 +1,38 @@
 ---
-/** Section 1: instrument discovery — asymmetric mix of photo and typographic cards. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Section 1: instrument discovery — instrument cards in a FeatureGrid (no empty cell), planned instruments. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import InstrumentCard from '../shared/InstrumentCard.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
-const spans = [
-  'lg:col-span-5 lg:row-span-2',
-  'lg:col-span-4',
-  'lg:col-span-3',
-  'lg:col-span-3',
-  'lg:col-span-4',
-  'sm:col-span-2 lg:col-span-12',
-];
 ---
 
-<section id="instruments" class="px-4 section-space sm:px-8" data-reveal>
-  <div class="mx-auto max-w-[1320px]">
-    <div class="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-      <EditorialHeading
-        eyebrow="Discover your instrument"
-        title="Every musician starts"
-        accent="with one song."
-        lede="Not sure where to begin? Explore each instrument, see what first lessons look like and pick the one that excites you."
-      />
-      <ButtonLink href="/instruments" variant="secondary" arrow>
-        All instruments
-      </ButtonLink>
-    </div>
-    <div class="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
-      {instruments.map((i, idx) => (
-        <InstrumentCard instrument={i} class:list={[spans[idx], idx === 0 && 'lg:min-h-[620px]']} />
-      ))}
-    </div>
-    <div class="mt-6 flex flex-wrap items-center gap-2 rounded-[28px] border border-dashed border-sand p-5">
-      <span class="mr-2 text-sm font-semibold">More planned:</span>
+<Section id="instruments" data-reveal>
+  <Fragment slot="eyebrow">Discover your instrument</Fragment>
+  <Fragment slot="title">
+    Every musician starts <span class="block text-action">with one song.</span>
+  </Fragment>
+  <p slot="intro">
+    Not sure where to begin? Explore each instrument, see what first lessons look like and pick the one that
+    excites you.
+  </p>
+  <ButtonLink slot="actions" href="/instruments" variant="secondary" arrow>
+    All instruments
+  </ButtonLink>
+  <FeatureGrid as="ul" max={3}>
+    {instruments.map((i) => (
+      <InstrumentCard instrument={i} />
+    ))}
+  </FeatureGrid>
+  <div class="mt-6 flex flex-wrap items-center gap-2 rounded-card border border-dashed border-border p-5">
+    <span class="me-2 text-small font-semibold">More planned:</span>
+    <ul class="flex flex-wrap gap-2">
       {plannedInstruments.map((p) => (
-        <span class="rounded-full bg-white px-3 py-1.5 text-sm text-ink-soft ring-1 ring-sand">{p}</span>
+        <li>
+          <Badge>{p}</Badge>
+        </li>
       ))}
-    </div>
+    </ul>
   </div>
-</section>
+</Section>

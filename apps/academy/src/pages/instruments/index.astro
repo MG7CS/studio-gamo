@@ -1,6 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import HeroPhoto from '../../components/shared/HeroPhoto.astro';
 import InstrumentCard from '../../components/shared/InstrumentCard.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -13,31 +18,36 @@ import { instruments, plannedInstruments } from '../../data/instruments';
 >
   <PageHero
     eyebrow="Browse instruments"
-    title="Find the sound"
-    accent="that moves you."
-    lede="Each instrument page shows who it suits, what first lessons cover and available lessons you can explore."
-    photo="youngPianist"
-    mask="mask-arch"
-    crumbs={[{ label: 'Instruments', href: '/instruments' }]}
-  />
-  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
-    <div class="mx-auto grid max-w-[1320px] gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Instruments' }]}
+  >
+    <Fragment slot="title">
+      Find the sound <span class="block text-action">that moves you.</span>
+    </Fragment>
+    <p slot="intro">
+      Each instrument page shows who it suits, what first lessons cover and available lessons you can explore.
+    </p>
+    <HeroPhoto slot="media" photo="youngPianist" />
+  </PageHero>
+  <Container class="pb-16 lg:pb-24">
+    <FeatureGrid as="ul" max={3}>
       {instruments.map((i) => (
-        <InstrumentCard instrument={i} />
+        <InstrumentCard instrument={i} headingLevel="h2" />
       ))}
-    </div>
-    <div class="mx-auto mt-10 max-w-[1320px] rounded-[28px] bg-ivory p-8 ring-1 ring-sand">
+    </FeatureGrid>
+    <Card tone="inset" padding="lg" class="mt-10">
       <h2 class="section-subheading">Additional instruments</h2>
-      <p class="mt-2 text-ink-soft">
+      <p class="mt-2 text-fg-muted">
         These instruments are added as specialized instructors join local cohorts.
       </p>
       <ul class="mt-5 flex flex-wrap gap-2">
         {plannedInstruments.map((p) => (
-          <li class="rounded-full bg-white px-4 py-2 text-sm ring-1 ring-sand">{p}</li>
+          <li>
+            <Badge>{p}</Badge>
+          </li>
         ))}
       </ul>
-    </div>
-  </section>
+    </Card>
+  </Container>
   <CtaInvitation
     eyebrow="Still deciding?"
     title="Find a lesson path that fits."

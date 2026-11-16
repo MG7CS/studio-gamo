@@ -1,17 +1,20 @@
 ---
-/** Part 1 of the form: the student's first name and age group. */
+/** Part 1 of the form: the student's first name and age group (no birth dates are collected). */
+import { AGE_BAND_LABELS } from '@gamo/domain';
+import { STUDENT_AGE_BANDS } from '@gamo/domain/types';
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
 import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
-import AgeBandField from './AgeBandField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
 
 interface Props {
   values: Record<string, string>;
   errors: Record<string, string>;
 }
 const { values, errors } = Astro.props;
+const ageBands = STUDENT_AGE_BANDS.map((band) => ({ value: band, label: AGE_BAND_LABELS[band] }));
 ---
 
-<fieldset class="space-y-5">
-  <legend class="text-lg font-bold">Student</legend>
+<Fieldset id="student-section" legend="Student" variant="section">
   <TextField
     id="student-first-name"
     name="student_first_name"
@@ -23,5 +26,15 @@ const { values, errors } = Astro.props;
     value={values.student_first_name}
     error={errors.student_first_name}
   />
-  <AgeBandField value={values.student_age_band} error={errors.student_age_band} />
-</fieldset>
+  <SelectField
+    id="student-age-band"
+    name="student_age_band"
+    label="Age group"
+    hint="We ask for an age group only, never a birth date."
+    placeholder="Choose an age group"
+    options={ageBands}
+    value={values.student_age_band}
+    error={errors.student_age_band}
+    required
+  />
+</Fieldset>

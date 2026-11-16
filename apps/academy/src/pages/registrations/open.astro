@@ -6,7 +6,8 @@
  */
 import { getRuntimeEnv, openCustomerLink } from '@gamo/domain';
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
 import { nowSeconds, registrationDb } from '../../lib/registration';
 
@@ -44,24 +45,22 @@ if (Astro.response.status === 200) Astro.response.status = 400;
 
 <Layout title="Open your registration" description="Open a Gamo Academy registration link." noindex>
   <meta slot="head" name="referrer" content="no-referrer" />
-  <PageHero
-    eyebrow="Gamo Academy · Registration"
-    title="Open your registration"
-    lede="Registration links are personal and expire for your safety."
-  />
-  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
-    <div class="mx-auto max-w-3xl space-y-6">
+  <PageHero eyebrow="Gamo Academy · Registration" title="Open your registration">
+    <p slot="intro">Registration links are personal and expire for your safety.</p>
+  </PageHero>
+  <Container width="narrow" class="pb-16 lg:pb-24">
+    <div class="space-y-6">
       <RegistrationNotice tone="problem" title="We couldn't open this link">
         <p>{message}</p>
         <p>
           <a
             href="/registrations/find"
-            class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4"
+            class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
           >
             Email me a new link
           </a>
         </p>
       </RegistrationNotice>
     </div>
-  </section>
+  </Container>
 </Layout>

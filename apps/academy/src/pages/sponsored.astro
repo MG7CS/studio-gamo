@@ -1,10 +1,14 @@
 ---
 import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
-import PageHero from '../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import HeroPhoto from '../components/shared/HeroPhoto.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 const principles = [
@@ -39,43 +43,42 @@ const qa = [
 >
   <PageHero
     eyebrow="Sponsored programs"
-    title="Music for every family,"
-    accent="whatever the budget."
-    lede="Gamo Academy coordinates sponsored and scholarship-supported lessons alongside community partners so cost never stands in the way of learning."
-    photo="boyGuitar"
-    mask="mask-arch"
-    crumbs={[{ label: 'Sponsored programs', href: '/sponsored' }]}
+    breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}
   >
-    <div class="mt-6">
-      <StatusPill kind="proposal">Sponsored &amp; scholarship pathways</StatusPill>
-    </div>
+    <Fragment slot="title">
+      Music for every family, <span class="block text-action">whatever the budget.</span>
+    </Fragment>
+    <p slot="intro">
+      Gamo Academy coordinates sponsored and scholarship-supported lessons alongside community partners so
+      cost never stands in the way of learning.
+    </p>
+    <Badge slot="actions" tone="proposal" />
+    <HeroPhoto slot="media" photo="boyGuitar" />
   </PageHero>
-  <section class="bg-ivory px-4 py-16 sm:px-8 lg:py-24">
-    <div class="mx-auto max-w-[1320px]">
-      <EditorialHeading eyebrow="Guiding principles" title="How support is" accent="meant to work." />
-      <ul class="mt-10 grid gap-4 sm:grid-cols-2">
-        {principles.map(([icon, t, d], i) => (
-          <li
-            class:list={[
-              'flex gap-5 rounded-[28px] bg-white p-7 ring-1 ring-sand',
-              i % 2 && 'sm:translate-y-6',
-            ]}
-          >
-            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cream text-terracotta">
-              <Icon name={icon} class="h-6 w-6" />
+  <Section tone="raised">
+    <Fragment slot="eyebrow">Guiding principles</Fragment>
+    <Fragment slot="title">
+      How support is <span class="block text-action">meant to work.</span>
+    </Fragment>
+    <FeatureGrid as="ul" min="lg" max={2}>
+      {principles.map(([icon, t, d]) => (
+        <Card as="li" padding="lg">
+          <div class="flex gap-5">
+            <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-surface-inset text-action-strong">
+              <Icon name={icon} class="size-6" />
             </span>
             <div>
               <h3 class="text-xl font-bold">{t}</h3>
-              <p class="mt-1 text-ink-soft">{d}</p>
+              <p class="mt-1 text-fg-muted">{d}</p>
             </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-  <section class="px-4 py-16 sm:px-8 lg:py-24">
-    <div class="mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-      <div>
+          </div>
+        </Card>
+      ))}
+    </FeatureGrid>
+  </Section>
+  <Section>
+    <div class="grid gap-10 lg:grid-cols-5">
+      <div class="lg:col-span-2">
         <EditorialHeading eyebrow="Questions" title="How sponsored learning works" />
         <div class="mt-6 flex flex-wrap gap-3">
           <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
@@ -83,7 +86,7 @@ const qa = [
           </ButtonLink>
         </div>
       </div>
-      <FaqAccordion items={qa} />
+      <FaqAccordion items={qa} class="lg:col-span-3" />
     </div>
-  </section>
+  </Section>
 </Layout>

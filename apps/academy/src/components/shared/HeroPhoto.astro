@@ -1,0 +1,34 @@
+---
+/**
+ * Masked portrait photo for the shared PageHero `media` slot on Academy interior pages.
+ *
+ * Usage:
+ *   <HeroPhoto slot="media" photo="youngPianist" mask="mask-leaf" />
+ */
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+
+interface Props {
+  photo: PhotoKey;
+  position?: string;
+  mask?: 'mask-arch' | 'mask-leaf' | 'mask-leaf-alt' | 'mask-pebble';
+  class?: string;
+}
+const { photo, position, mask = 'mask-arch', class: className } = Astro.props;
+---
+
+<div
+  class:list={[
+    'relative mx-auto aspect-portrait w-full max-w-xs overflow-hidden shadow-float lg:max-w-sm',
+    mask,
+    className,
+  ]}
+>
+  <Photo
+    name={photo}
+    priority
+    position={position}
+    sizes="(min-width:1024px) 30vw, 90vw"
+    class="h-full w-full object-cover"
+  />
+</div>

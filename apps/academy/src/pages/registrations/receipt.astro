@@ -12,7 +12,8 @@ import {
   registrationLinkExpiresAt,
 } from '@gamo/domain';
 import Layout from '../../layouts/Layout.astro';
-import PageHero from '../../components/shared/PageHero.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
 import RegistrationDetails from '../../components/registration/RegistrationDetails.astro';
 import {
@@ -74,14 +75,15 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
   <PageHero
     eyebrow="Gamo Academy · Registration"
     title={registration ? 'Registration received' : 'Registration receipt'}
-    lede={
-      registration
+  >
+    <p slot="intro">
+      {registration
         ? 'Thank you. Keep the reference below; the email has a private link to manage the registration.'
-        : 'This receipt link has expired. Your registration is safe — find it again with your email address.'
-    }
-  />
-  <section class="px-4 pb-16 sm:px-8 lg:pb-24">
-    <div class="mx-auto max-w-3xl space-y-6">
+        : 'This receipt link has expired. Your registration is safe — find it again with your email address.'}
+    </p>
+  </PageHero>
+  <Container width="narrow" class="pb-16 lg:pb-24">
+    <div class="space-y-6">
       {unavailable && (
         <RegistrationNotice tone="problem" title="We couldn't load the receipt">
           <p>Please reload the page in a moment. Your registration was saved if you saw no error before.</p>
@@ -124,7 +126,7 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
                 <a
                   href={previewLink}
                   data-preview-manage-link
-                  class="font-semibold text-terracotta-deep underline underline-offset-4"
+                  class="font-semibold text-action-strong underline underline-offset-4"
                 >
                   Open the manage page
                 </a>
@@ -133,14 +135,14 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
           )}
         </>
       )}
-      <p class="text-[15px]">
+      <p class="text-body-sm">
         <a
           href="/registrations/find"
-          class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline underline-offset-4"
+          class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
         >
           Find your registration
         </a>
       </p>
     </div>
-  </section>
+  </Container>
 </Layout>
