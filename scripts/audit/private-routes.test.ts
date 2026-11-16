@@ -39,6 +39,7 @@ const ERROR_PAGES = ['/404', '/500'];
 const PUBLIC_PAGES: Record<PublicApp, string[]> = {
   web: [
     '/',
+    '/preview/catalog',
     '/mission',
     '/get-started',
     '/get-involved',

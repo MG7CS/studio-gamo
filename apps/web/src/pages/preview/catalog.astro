@@ -1,0 +1,50 @@
+---
+/**
+ * Private component catalog (/preview/catalog): every shared layout, content and form primitive and key
+ * root components in every variant, with Sample content. noindex, and /preview/ is disallowed in
+ * robots.txt. Regression gate for shared UI changes: tests/e2e/catalog.spec.ts (axe, overflow, hit
+ * areas, screenshots at 360 px and 1280 px).
+ */
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import LayoutCatalog from '../../components/catalog/LayoutCatalog.astro';
+import ContentCatalog from '../../components/catalog/ContentCatalog.astro';
+import FormsCatalog from '../../components/catalog/FormsCatalog.astro';
+import ExistingCatalog from '../../components/catalog/ExistingCatalog.astro';
+---
+
+<SiteLayout
+  title="Component catalog | Gamo Studios"
+  description="Private catalog of shared components."
+  noindex
+>
+  <PageHero
+    title="Component catalog"
+    eyebrow="Private preview"
+    breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Preview' }, { label: 'Catalog' }]}
+  >
+    <p slot="intro">
+      Every shared primitive and pattern in every variant. All people, lessons and schedules are Sample
+      content. <Badge tone="sample" size="sm" />
+    </p>
+    <ButtonLink slot="actions" href="#catalog-forms" arrow>
+      Jump to forms
+    </ButtonLink>
+    <ButtonLink slot="actions" href="#catalog-programs" variant="secondary">
+      Program order
+    </ButtonLink>
+    <Photo
+      slot="media"
+      name="acousticLeader"
+      sizes="(min-width:1024px) 40vw, 100vw"
+      class="aspect-landscape w-full rounded-hero object-cover"
+    />
+  </PageHero>
+  <LayoutCatalog />
+  <ContentCatalog />
+  <FormsCatalog />
+  <ExistingCatalog />
+</SiteLayout>

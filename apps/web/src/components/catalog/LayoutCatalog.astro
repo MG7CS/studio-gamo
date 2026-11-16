@@ -1,0 +1,95 @@
+---
+/**
+ * LayoutCatalog — layout primitives (Container, Section, Stack) in every variant, for the private catalog.
+ */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Specimen from './Specimen.astro';
+
+const tones = ['default', 'raised', 'inset', 'dark'] as const;
+const gaps = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+const aligns = ['stretch', 'start', 'center'] as const;
+const widths = ['page', 'narrow', 'prose'] as const;
+---
+
+<Section title="Layout · Container" id="catalog-container">
+  <Fragment slot="eyebrow">layout/Container</Fragment>
+  <p slot="intro">Token widths with the page gutter. Each bar below is a Container inside this section.</p>
+  <Stack gap="lg">
+    {widths.map((width) => (
+      <Specimen name={`Container · width="${width}"`}>
+        <Container width={width} gutter={false}>
+          <Card tone="inset" padding="sm">
+            <p class="text-small">max-w-{width}</p>
+          </Card>
+        </Container>
+      </Specimen>
+    ))}
+    <Specimen name="Container · gutter={true} (default)" note="Adds the fluid side gutter inside the width.">
+      <Container width="narrow" data-catalog="container-gutter">
+        <Card tone="outline" padding="sm">
+          <p class="text-small">Narrow, with gutter</p>
+        </Card>
+      </Container>
+    </Specimen>
+  </Stack>
+</Section>
+
+{tones.map((tone) => (
+  <Section tone={tone} title={`Section · tone="${tone}"`} id={`catalog-section-${tone}`}>
+    <Fragment slot="eyebrow">layout/Section</Fragment>
+    <p slot="intro">
+      Eyebrow, title, intro and actions slots. Colour roles switch with the tone, so text, links and buttons
+      stay readable.
+    </p>
+    <ButtonLink slot="actions" href="#catalog-container" variant={tone === 'dark' ? 'light' : 'primary'}>
+      Sample action
+    </ButtonLink>
+    <p class="max-w-prose text-fg-muted">
+      Body copy in the muted role. <Badge tone="sample" size="sm" />
+    </p>
+  </Section>
+))}
+
+<Section tone="raised" spacing="tight" align="center" title='Section · spacing="tight", align="center"'>
+  <p slot="intro">Tight vertical rhythm with a centred header.</p>
+</Section>
+
+<Section spacing="none" width="narrow" data-catalog="section-untitled">
+  <Card tone="outline" padding="sm">
+    <p class="text-small">
+      Section · spacing="none", width="narrow", no title (renders a plain div; extra attributes such as data-*
+      pass through)
+    </p>
+  </Card>
+</Section>
+
+<Section title="Layout · Stack" id="catalog-stack">
+  <Fragment slot="eyebrow">layout/Stack</Fragment>
+  <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+    {gaps.map((gap) => (
+      <Specimen name={`Stack · gap="${gap}"`}>
+        <Stack gap={gap}>
+          <Card tone="inset" padding="sm">
+            <p class="text-small">One</p>
+          </Card>
+          <Card tone="inset" padding="sm">
+            <p class="text-small">Two</p>
+          </Card>
+        </Stack>
+      </Specimen>
+    ))}
+    {aligns.map((align) => (
+      <Specimen name={`Stack · align="${align}"`}>
+        <Stack gap="sm" align={align}>
+          <Badge tone="neutral">Short</Badge>
+          <Badge tone="accent">A longer item</Badge>
+        </Stack>
+      </Specimen>
+    ))}
+  </div>
+</Section>

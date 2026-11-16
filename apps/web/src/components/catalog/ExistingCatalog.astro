@@ -1,0 +1,198 @@
+---
+/**
+ * ExistingCatalog — key root components (ButtonLink, EditorialHeading, Photo, StatusPill, FaqAccordion,
+ * CtaInvitation) in every variant and tone, plus the Academy → Worship → Production program example.
+ */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
+import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
+import { PROGRAMS } from '@gamo/config/programs';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+import Specimen from './Specimen.astro';
+
+const pillKinds = [
+  'sample',
+  'verified',
+  'free',
+  'paid',
+  'external',
+  'canceled',
+  'rescheduled',
+  'past',
+  'pending',
+  'proposal',
+  'info',
+  'success',
+] as const;
+const faq = [
+  {
+    q: 'Sample question: who are lessons for?',
+    a: 'Sample answer: students of every age and their families.',
+  },
+  {
+    q: 'Sample question: where do lessons happen?',
+    a: 'Sample answer: in person or online, depending on the teacher.',
+  },
+];
+const programBlurb: Record<string, string> = {
+  academy: 'Music lessons for students and families.',
+  worship: 'Musicians for church services and events.',
+  production: 'Sound, light and video for ministry.',
+};
+---
+
+<Section title="ButtonLink" id="catalog-buttons">
+  <Fragment slot="eyebrow">ButtonLink</Fragment>
+  <Stack gap="lg">
+    {(['md', 'lg'] as const).map((size) => (
+      <Specimen name={`ButtonLink · size="${size}"`}>
+        <div class="flex flex-wrap gap-3">
+          <ButtonLink href="#catalog-buttons" size={size}>
+            Primary
+          </ButtonLink>
+          <ButtonLink href="#catalog-buttons" size={size} arrow>
+            Primary, arrow
+          </ButtonLink>
+          <ButtonLink href="#catalog-buttons" size={size} variant="secondary">
+            Secondary
+          </ButtonLink>
+        </div>
+      </Specimen>
+    ))}
+  </Stack>
+</Section>
+
+<Section tone="dark" title="ButtonLink on dark" id="catalog-buttons-dark">
+  <div class="flex flex-wrap gap-3">
+    <ButtonLink href="#catalog-buttons-dark" variant="light">
+      Light
+    </ButtonLink>
+    <ButtonLink href="#catalog-buttons-dark" variant="ghost-dark" arrow>
+      Ghost dark
+    </ButtonLink>
+    <ButtonLink href="#catalog-buttons-dark" variant="light" size="lg" arrow>
+      Light, large
+    </ButtonLink>
+  </div>
+</Section>
+
+<Section title="EditorialHeading" id="catalog-editorial">
+  <Fragment slot="eyebrow">EditorialHeading</Fragment>
+  <Stack gap="xl">
+    <EditorialHeading
+      eyebrow="size display"
+      title="A calm, honest title."
+      accent="With an accent line."
+      lede="Lede copy under the title."
+      size="display"
+    />
+    <EditorialHeading
+      eyebrow="size section, centred"
+      title="Section heading"
+      lede="Centred lede copy."
+      align="center"
+    />
+    <EditorialHeading eyebrow="size sub" title="Sub heading" size="sub" as="h3" />
+  </Stack>
+</Section>
+
+<Section tone="dark" title="EditorialHeading, FAQ and pills on dark" id="catalog-dark-existing">
+  <Stack gap="xl">
+    <EditorialHeading
+      eyebrow="tone dark"
+      title="Dark heading"
+      accent="Accent on dark."
+      lede="Lede copy on dark."
+      tone="dark"
+      as="h3"
+    />
+    <FaqAccordion items={faq} tone="dark" />
+    <div class="flex flex-wrap gap-2">
+      {pillKinds.map((kind) => (
+        <StatusPill kind={kind} tone="dark" label={kind} />
+      ))}
+    </div>
+  </Stack>
+</Section>
+
+<Section title="StatusPill" id="catalog-pills">
+  <Fragment slot="eyebrow">StatusPill</Fragment>
+  <Stack gap="lg">
+    {(['md', 'sm'] as const).map((size) => (
+      <Specimen name={`StatusPill · size="${size}"`}>
+        <div class="flex flex-wrap gap-2">
+          {pillKinds.map((kind) => (
+            <StatusPill kind={kind} size={size} label={kind} />
+          ))}
+        </div>
+      </Specimen>
+    ))}
+  </Stack>
+</Section>
+
+<Section tone="raised" title="Photo and FaqAccordion" id="catalog-photo">
+  <Fragment slot="eyebrow">Photo · FaqAccordion</Fragment>
+  <div class="grid gap-10 md:grid-cols-2">
+    <Specimen name="Photo · catalog alt, aspect-portrait">
+      <Photo
+        name="chapelSpring"
+        sizes="(min-width:768px) 45vw, 100vw"
+        class="aspect-portrait w-full rounded-card object-cover"
+      />
+    </Specimen>
+    <Specimen name='FaqAccordion · tone="light"'>
+      <FaqAccordion items={faq} />
+    </Specimen>
+  </div>
+</Section>
+
+<CtaInvitation
+  id="catalog-cta-light"
+  eyebrow="CtaInvitation · light"
+  title="Sample closing invitation"
+  body="Sample body copy inviting the reader to take one next step."
+  photo="churchGoldenHour"
+>
+  <ButtonLink href="#catalog-cta-light" arrow>
+    Sample action
+  </ButtonLink>
+</CtaInvitation>
+
+<CtaInvitation
+  id="catalog-cta-dark"
+  eyebrow="CtaInvitation · dark"
+  title="Sample closing invitation on dark"
+  body="Sample body copy on the dark tone."
+  photo="sanctuaryCongregation"
+  tone="dark"
+>
+  <ButtonLink href="#catalog-cta-dark" variant="light" arrow>
+    Sample action
+  </ButtonLink>
+</CtaInvitation>
+
+<Section tone="inset" title="Programs in owner order" id="catalog-programs">
+  <Fragment slot="eyebrow">Example</Fragment>
+  <p slot="intro">
+    Wherever programs appear together they follow one order: Gamo Academy, then Gamo Worship, then Gamo
+    Production (from <code>@gamo/config/programs</code>).
+  </p>
+  <FeatureGrid max={3} as="ol">
+    {PROGRAMS.map((program) => (
+      <LinkCard as="li" href={siteUrl(program.id)} title={program.fullName}>
+        <Badge slot="eyebrow" tone="accent" size="sm">
+          {program.name}
+        </Badge>
+        <p>{programBlurb[program.id]}</p>
+      </LinkCard>
+    ))}
+  </FeatureGrid>
+</Section>

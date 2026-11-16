@@ -1,0 +1,25 @@
+---
+/**
+ * Specimen — one labelled example in the component catalog: the component and variant name above the
+ * rendered example. The label is an h3 so the catalog outline reads section → specimen.
+ *
+ * Props
+ * - name: string — e.g. 'Badge · tone="sample"'.
+ * - note?: string — one line about the variant.
+ * - class?: string.
+ */
+interface Props {
+  name: string;
+  note?: string;
+  class?: string;
+}
+const { name, note, class: className } = Astro.props;
+---
+
+<div class:list={['flex min-w-0 flex-col gap-3', className]}>
+  <div>
+    <h3 class="font-mono text-small font-semibold text-fg">{name}</h3>
+    {note && <p class="text-small text-fg-muted">{note}</p>}
+  </div>
+  <slot />
+</div>

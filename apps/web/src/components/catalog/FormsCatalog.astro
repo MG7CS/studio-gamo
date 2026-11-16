@@ -1,0 +1,384 @@
+---
+/**
+ * FormsCatalog — every shared form primitive in default, hint, error and required states, for the
+ * private catalog. The form is never submitted anywhere (it has no action handler); values are Sample.
+ */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import EmailField from '@studio-gamo/ui/components/forms/EmailField.astro';
+import ConfirmEmailField from '@studio-gamo/ui/components/forms/ConfirmEmailField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import DateField from '@studio-gamo/ui/components/forms/DateField.astro';
+import TimeField from '@studio-gamo/ui/components/forms/TimeField.astro';
+import FileField from '@studio-gamo/ui/components/forms/FileField.astro';
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import CheckboxGroup from '@studio-gamo/ui/components/forms/CheckboxGroup.astro';
+import RadioGroup from '@studio-gamo/ui/components/forms/RadioGroup.astro';
+import ScaleField from '@studio-gamo/ui/components/forms/ScaleField.astro';
+import ChoiceCard from '@studio-gamo/ui/components/forms/ChoiceCard.astro';
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import MarketingConsent from '@studio-gamo/ui/components/forms/MarketingConsent.astro';
+import TermsConsent from '@studio-gamo/ui/components/forms/TermsConsent.astro';
+import TurnstileWidget from '@studio-gamo/ui/components/forms/TurnstileWidget.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { OTHER_VALUE } from '@studio-gamo/ui/components/forms/field.ts';
+import Specimen from './Specimen.astro';
+
+const instruments = [
+  { value: 'piano', label: 'Piano' },
+  { value: 'guitar', label: 'Guitar', hint: 'Acoustic or electric.' },
+  { value: 'voice', label: 'Voice' },
+  { value: 'drums', label: 'Drums', disabled: true },
+];
+const days = [
+  { value: 'mon', label: 'Monday' },
+  { value: 'wed', label: 'Wednesday' },
+  { value: 'sat', label: 'Saturday' },
+];
+const yesNo = [
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
+];
+const sampleTerms = [{ slug: 'terms', label: 'Sample terms', href: '#catalog-forms', version: 'sample' }];
+---
+
+<Section title="Forms · fields and states" id="catalog-forms">
+  <Fragment slot="eyebrow">forms/*</Fragment>
+  <p slot="intro">Each field in its default, hint, error and required states. Values are Sample.</p>
+  <form method="get" action="#catalog-forms" novalidate class="flex flex-col gap-16">
+    <Specimen name="FormErrorSummary" note="Shown after a failed submit; with JS it takes focus.">
+      <FormErrorSummary
+        id="catalog-error-summary"
+        errors={[
+          { message: 'Enter your full name', fieldId: 'cat-text-error' },
+          { message: 'Choose a lesson day', fieldId: 'cat-radio-error' },
+          { message: 'A message without a field link' },
+        ]}
+      />
+    </Specimen>
+
+    <Fieldset id="cat-text" legend="TextField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <TextField id="cat-text-default" name="t1" label="Default" />
+        <TextField id="cat-text-hint" name="t2" label="With hint" hint="As it appears on official papers." />
+        <TextField id="cat-text-error" name="t3" label="With error" value="S" error="Enter your full name" />
+        <TextField id="cat-text-required" name="t4" label="Required" required autocomplete="name" />
+        <TextField
+          id="cat-text-placeholder"
+          name="t5"
+          label="Phone (placeholder)"
+          type="tel"
+          placeholder="e.g. 555 0100"
+        />
+        <TextField id="cat-text-disabled" name="t6" label="Disabled" value="Sample value" disabled />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-email" legend="EmailField and ConfirmEmailField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <EmailField id="cat-email" name="email" hint="We reply to this address." />
+        <ConfirmEmailField emailId="cat-email" id="cat-email-confirm" name="email_confirm" />
+        <EmailField
+          id="cat-email-error"
+          name="email2"
+          label="Email with error and suggestion"
+          value="sample@gmial.com"
+          suggestion="sample@gmail.com"
+          error="Check the email address"
+        />
+        <ConfirmEmailField
+          emailId="cat-email-error"
+          id="cat-email-confirm-error"
+          name="email2_confirm"
+          value="other@example.com"
+          error="The two email addresses don't match"
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-textarea" legend="TextareaField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <TextareaField id="cat-ta-default" name="ta1" label="Default" rows={3} />
+        <TextareaField
+          id="cat-ta-hint"
+          name="ta2"
+          label="Hint, limit and counter"
+          hint="Tell us a little about the student."
+          maxlength={500}
+          counter
+          rows={3}
+        />
+        <TextareaField
+          id="cat-ta-error"
+          name="ta3"
+          label="With error"
+          rows={3}
+          error="Tell us what you need"
+          required
+        />
+        <TextareaField id="cat-ta-required" name="ta4" label="Required" rows={3} required />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-select" legend="SelectField, DateField, TimeField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <SelectField id="cat-select-default" name="s1" label="Instrument" options={instruments} />
+        <SelectField
+          id="cat-select-hint"
+          name="s2"
+          label="Instrument (hint, value)"
+          options={instruments}
+          value="guitar"
+          hint="You can change this later."
+        />
+        <SelectField
+          id="cat-select-error"
+          name="s3"
+          label="Instrument (error)"
+          options={instruments}
+          error="Choose an instrument"
+          required
+        />
+        <SelectField
+          id="cat-select-required"
+          name="s4"
+          label="Instrument (required)"
+          options={instruments}
+          required
+        />
+        <DateField id="cat-date" name="d1" label="Preferred start date" hint="Format: day, month, year." />
+        <DateField
+          id="cat-date-error"
+          name="d2"
+          label="Event date (error)"
+          required
+          error="Enter a date in the future"
+        />
+        <TimeField id="cat-time" name="tm1" label="Preferred time" value="16:30" />
+        <TimeField
+          id="cat-time-required"
+          name="tm2"
+          label="Arrival time (required)"
+          required
+          hint="24-hour clock."
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-file" legend="FileField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <FileField
+          id="cat-file-default"
+          name="f1"
+          label="Recording"
+          accept="audio/mpeg,.mp3"
+          typesLabel="MP3"
+          maxSizeMb={20}
+        />
+        <FileField
+          id="cat-file-error"
+          name="f2"
+          label="Documents (error, required)"
+          accept="application/pdf,.pdf"
+          typesLabel="PDF"
+          multiple
+          maxFiles={3}
+          maxSizeMb={10}
+          hint="Upload the sample documents."
+          required
+          error="Choose the file again"
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-check" legend="Checkbox and CheckboxGroup" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <Stack gap="sm">
+          <Checkbox id="cat-cb-default" name="cb1" label="Default checkbox" />
+          <Checkbox id="cat-cb-hint" name="cb2" label="With hint" hint="Only if you can teach in person." />
+          <Checkbox id="cat-cb-required" name="cb3" label="Required" required />
+          <Checkbox
+            id="cat-cb-error"
+            name="cb4"
+            label="With error"
+            required
+            error="Tick this box to continue"
+          />
+          <Checkbox id="cat-cb-checked" name="cb5" label="Checked (re-rendered after submit)" checked />
+          <Checkbox id="cat-cb-disabled" name="cb6" label="Disabled" disabled />
+        </Stack>
+        <Stack gap="lg">
+          <CheckboxGroup
+            id="cat-cbg"
+            name="days"
+            legend="Lesson days"
+            options={days}
+            values={['wed']}
+            min={1}
+            max={2}
+            hint="Sample schedule."
+          />
+          <CheckboxGroup
+            id="cat-cbg-error"
+            name="days2"
+            legend="Lesson days (error, other)"
+            options={days}
+            other
+            values={[OTHER_VALUE]}
+            otherValue="Sunday afternoon"
+            required
+            error="Choose at least one day"
+          />
+        </Stack>
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-radio" legend="RadioGroup" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <RadioGroup
+          id="cat-radio-default"
+          name="r1"
+          legend="Instrument"
+          options={instruments}
+          value="piano"
+          hint="Pick one."
+        />
+        <RadioGroup
+          id="cat-radio-error"
+          name="r2"
+          legend="Lesson day (error, other)"
+          options={days}
+          other
+          required
+          error="Choose a lesson day"
+        />
+        <RadioGroup
+          id="cat-radio-inline"
+          name="r3"
+          legend="Has the student played before? (inline)"
+          options={yesNo}
+          layout="inline"
+          required
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-scale" legend="ScaleField" variant="section">
+      <FeatureGrid min="md" max={2} gap="lg">
+        <ScaleField
+          id="cat-scale"
+          name="sc1"
+          legend="How confident do you feel?"
+          minLabel="Not yet"
+          maxLabel="Very"
+          value={3}
+        />
+        <ScaleField
+          id="cat-scale-0"
+          name="sc2"
+          legend="0 to 10, required"
+          min={0}
+          max={10}
+          required
+          hint="Sample question."
+        />
+        <ScaleField
+          id="cat-rating"
+          name="sc3"
+          legend="Rating (error)"
+          kind="rating"
+          error="Choose a rating"
+          required
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset
+      id="cat-cards"
+      legend="Lesson length (ChoiceCard radios)"
+      hint="Sample options."
+      required
+      role="radiogroup"
+    >
+      <FeatureGrid min="sm" max={3}>
+        <ChoiceCard
+          id="cat-card-30"
+          name="length"
+          value="30"
+          label="30 minutes"
+          description="Good for younger students."
+          checked
+          required
+        />
+        <ChoiceCard
+          id="cat-card-45"
+          name="length"
+          value="45"
+          label="45 minutes"
+          description="The usual length."
+          required
+        />
+        <ChoiceCard
+          id="cat-card-60"
+          name="length"
+          value="60"
+          label="60 minutes"
+          description="Not offered yet."
+          disabled
+          required
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-cards-cb" legend="Extras (ChoiceCard checkboxes)">
+      <FeatureGrid min="sm" max={2}>
+        <ChoiceCard
+          type="checkbox"
+          id="cat-card-recital"
+          name="extras"
+          value="recital"
+          label="Recital"
+          description="Sample: one each term."
+          checked
+        />
+        <ChoiceCard
+          type="checkbox"
+          id="cat-card-theory"
+          name="extras"
+          value="theory"
+          label="Theory"
+          description="Sample: reading music."
+        />
+      </FeatureGrid>
+    </Fieldset>
+
+    <Fieldset id="cat-consent" legend="Consent, security check and submit" variant="section">
+      <Stack gap="lg">
+        <MarketingConsent id="cat-marketing" label="Send me occasional news from Gamo Studios." />
+        <TermsConsent id="cat-terms" documents={sampleTerms} />
+        <TermsConsent
+          id="cat-terms-2"
+          name="terms2"
+          documents={sampleTerms}
+          error="Please agree to the terms to continue."
+        />
+        <TurnstileWidget id="cat-turnstile-local" action="catalog" siteKey="" environment="local" />
+        <TurnstileWidget
+          id="cat-turnstile-unavailable"
+          action="catalog"
+          siteKey=""
+          environment="production"
+          error="Complete the security check"
+        />
+        <div class="flex flex-wrap gap-3">
+          <SubmitButton id="cat-submit" label="Send (primary)" />
+          <SubmitButton id="cat-submit-secondary" label="Save (secondary)" variant="secondary" />
+        </div>
+      </Stack>
+    </Fieldset>
+  </form>
+</Section>

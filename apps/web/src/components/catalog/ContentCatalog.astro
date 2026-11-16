@@ -1,0 +1,318 @@
+---
+/**
+ * ContentCatalog — content primitives and patterns (Badge, Card, LinkCard, MediaCard, FeatureGrid,
+ * NumberedSteps, FloatingPreviewCard, SplitHero, a second PageHero tone) in every variant, plus
+ * FormComingSoon as an h2, for the private catalog.
+ * All people, lessons and schedules shown are labelled Sample.
+ */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
+import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
+import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
+import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
+import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
+import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
+import Photo from '@studio-gamo/ui/components/Photo.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
+import Specimen from './Specimen.astro';
+
+const badgeTones = ['neutral', 'accent', 'proposal', 'sample', 'success', 'danger'] as const;
+const cardTones = ['raised', 'inset', 'dark', 'outline'] as const;
+const paddings = ['none', 'sm', 'md', 'lg'] as const;
+const stepTones = ['plain', 'raised', 'inset'] as const;
+const steps = [
+  { title: 'Tell us about the student', body: 'Sample step: age, instrument and a good time for lessons.' },
+  { title: 'Meet the teacher', body: 'Sample step: a short first lesson to get to know each other.' },
+  { title: 'Keep playing', body: 'Sample step: weekly lessons and a recital each term.' },
+];
+const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
+const photoSizes = '(min-width:1024px) 33vw, 100vw';
+---
+
+<Section title="Content · Badge" id="catalog-badge">
+  <Fragment slot="eyebrow">content/Badge</Fragment>
+  <Stack gap="lg">
+    {(['md', 'sm'] as const).map((size) => (
+      <Specimen name={`Badge · size="${size}"`}>
+        <div class="flex flex-wrap gap-3">
+          {badgeTones.map((tone) =>
+            tone === 'sample' || tone === 'proposal' ? (
+              <Badge tone={tone} size={size} />
+            ) : (
+              <Badge tone={tone} size={size}>
+                {tone}
+              </Badge>
+            ),
+          )}
+        </div>
+      </Specimen>
+    ))}
+    <Specimen name="Badge · wrap" note="Long labels break onto several lines instead of truncating.">
+      <div class="flex max-w-xs flex-wrap gap-3">
+        <Badge tone="accent" wrap>
+          Church-hosted lessons for children, teens and adults
+        </Badge>
+        <Badge tone="sample" wrap />
+      </div>
+    </Specimen>
+  </Stack>
+</Section>
+
+<Section tone="dark" title="Content · Badge on a dark section" id="catalog-badge-dark">
+  <div class="flex flex-wrap gap-3">
+    {badgeTones.map((tone) =>
+      tone === 'sample' || tone === 'proposal' ? <Badge tone={tone} /> : <Badge tone={tone}>{tone}</Badge>,
+    )}
+  </div>
+</Section>
+
+<Section title="Content · Card" id="catalog-card">
+  <Fragment slot="eyebrow">content/Card</Fragment>
+  <Stack gap="xl">
+    <FeatureGrid min="sm" max={4} as="ul">
+      {cardTones.map((tone) => (
+        <Card as="li" tone={tone}>
+          <p class="font-mono text-small font-semibold">tone="{tone}"</p>
+          <p class="mt-2 text-fg-muted">Grouped content on a rounded surface.</p>
+        </Card>
+      ))}
+    </FeatureGrid>
+    <FeatureGrid min="sm" max={4} as="ul">
+      {paddings.map((padding) => (
+        <Card as="li" tone="outline" padding={padding} data-catalog={`card-padding-${padding}`}>
+          <p class="font-mono text-small font-semibold">padding="{padding}"</p>
+        </Card>
+      ))}
+    </FeatureGrid>
+  </Stack>
+</Section>
+
+<Section tone="inset" title="Content · LinkCard" id="catalog-linkcard">
+  <Fragment slot="eyebrow">content/LinkCard</Fragment>
+  <p slot="intro">The whole card is one link named by its title.</p>
+  <FeatureGrid min="sm" max={4} as="ul">
+    {cardTones.map((tone, i) => (
+      <LinkCard
+        as="li"
+        href="#catalog-linkcard"
+        title={`Sample link · ${tone}`}
+        tone={tone}
+        padding={i === 3 ? 'lg' : i === 0 ? 'sm' : 'md'}
+        headingLevel="h3"
+      >
+        <Badge slot="eyebrow" tone="sample" size="sm" />
+        <p>Short body copy about where this link goes.</p>
+        <Fragment slot="meta">Sample meta line</Fragment>
+      </LinkCard>
+    ))}
+  </FeatureGrid>
+</Section>
+
+<Section title="Content · MediaCard" id="catalog-mediacard">
+  <Fragment slot="eyebrow">content/MediaCard</Fragment>
+  <p slot="intro">
+    Adaptive keeps text on the card surface (photo beside the text in wide containers); overlay puts text in a
+    scrim band.
+  </p>
+  <Stack gap="xl">
+    <FeatureGrid max={3} as="ul">
+      <MediaCard
+        as="li"
+        image={{ name: 'boyGuitar', sizes: photoSizes }}
+        title="Guitar · overlay, link"
+        href="#catalog-mediacard"
+        variant="overlay"
+      >
+        <Badge slot="on-media" tone="sample" />
+        <p>Sample lesson: acoustic guitar from first chords.</p>
+      </MediaCard>
+      <MediaCard as="li" image={{ name: 'youngPianist', sizes: photoSizes }} title="Piano · adaptive, raised">
+        <Badge slot="eyebrow" tone="sample" size="sm" />
+        <p>Sample lesson: weekly piano for beginners.</p>
+        <Fragment slot="meta">Sample · 30 minutes</Fragment>
+      </MediaCard>
+      <MediaCard
+        as="li"
+        image={{ name: 'gospelVocalists', sizes: photoSizes }}
+        title="Voice · adaptive, inset"
+        tone="inset"
+        href="#catalog-mediacard"
+      >
+        <Badge slot="on-media" tone="sample" />
+        <p>Sample lesson: singing in a worship team.</p>
+      </MediaCard>
+    </FeatureGrid>
+    <Specimen name='MediaCard · variant="adaptive", tone="dark" (wide container)'>
+      <MediaCard
+        image={{ name: 'soundEngineer', sizes: '(min-width:1024px) 60vw, 100vw' }}
+        title="Sound · dark"
+        tone="dark"
+      >
+        <Badge slot="eyebrow" tone="sample" size="sm" />
+        <p>Sample: the photo moves beside the text once the card is at least 36rem wide.</p>
+      </MediaCard>
+    </Specimen>
+  </Stack>
+</Section>
+
+<Section tone="raised" title="Content · FeatureGrid" id="catalog-featuregrid">
+  <Fragment slot="eyebrow">content/FeatureGrid</Fragment>
+  <Stack gap="xl">
+    {(
+      [
+        { min: 'sm', max: 4, lastRow: 'stretch', gap: 'md' },
+        { min: 'md', max: 3, lastRow: 'center', gap: 'lg' },
+        { min: 'lg', max: 2, lastRow: 'stretch', gap: 'md' },
+      ] as const
+    ).map((g) => (
+      <Specimen name={`FeatureGrid · min="${g.min}" max={${g.max}} lastRow="${g.lastRow}" gap="${g.gap}"`}>
+        <FeatureGrid min={g.min} max={g.max} lastRow={g.lastRow} gap={g.gap} as="ul">
+          {gridItems.map((label) => (
+            <Card as="li" tone="inset" padding="sm">
+              <p class="text-small">{label}</p>
+            </Card>
+          ))}
+        </FeatureGrid>
+      </Specimen>
+    ))}
+  </Stack>
+</Section>
+
+<Section title="Content · NumberedSteps" id="catalog-steps">
+  <Fragment slot="eyebrow">content/NumberedSteps</Fragment>
+  <Stack gap="xl">
+    {stepTones.map((tone) => (
+      <Specimen name={`NumberedSteps · tone="${tone}"`}>
+        <NumberedSteps items={steps} tone={tone} headingLevel="h4" />
+      </Specimen>
+    ))}
+    <Specimen
+      name="NumberedSteps · start={4}, five items"
+      note="Five steps read 3 + 2 with the short last row centred; no empty cell."
+    >
+      <NumberedSteps items={[...steps, ...steps.slice(0, 2)]} start={4} headingLevel="h4" />
+    </Specimen>
+    <Specimen name='NumberedSteps · six items, tone="raised"' note="Six steps read 3 + 3.">
+      <NumberedSteps items={[...steps, ...steps]} tone="raised" headingLevel="h4" />
+    </Specimen>
+  </Stack>
+</Section>
+
+<Section tone="dark" title="Content · NumberedSteps on dark" id="catalog-steps-dark">
+  <NumberedSteps items={steps} headingLevel="h3" />
+</Section>
+
+<Section tone="inset" title="Content · FloatingPreviewCard" id="catalog-preview-card">
+  <Fragment slot="eyebrow">content/FloatingPreviewCard</Fragment>
+  <div class="grid gap-10 md:grid-cols-2">
+    {(['light', 'dark'] as const).map((tone, i) => (
+      <Specimen name={`FloatingPreviewCard · tone="${tone}"`}>
+        <div class="relative">
+          <Photo
+            name={i === 0 ? 'girlGuitar' : 'worshipNight'}
+            sizes="(min-width:768px) 45vw, 100vw"
+            alt=""
+            class="aspect-landscape w-full rounded-card object-cover"
+          />
+          <FloatingPreviewCard
+            title={i === 0 ? 'Next lesson' : 'Service plan'}
+            tone={tone}
+            class="absolute end-4 bottom-4 w-64 max-w-full"
+            data-catalog={`preview-card-${tone}`}
+          >
+            <p class="text-small">{i === 0 ? 'Guitar · Thursday 4:30 pm' : 'Sunday · 3 musicians'}</p>
+          </FloatingPreviewCard>
+        </div>
+      </Specimen>
+    ))}
+    <Specimen name='FloatingPreviewCard · as="aside", badge slot'>
+      <FloatingPreviewCard title="Proposed contribution" as="aside">
+        <Badge slot="badge" tone="proposal" size="sm" />
+        <p class="text-small">Sample amount, not approved.</p>
+      </FloatingPreviewCard>
+    </Specimen>
+  </div>
+</Section>
+
+<SplitHero as="section" spacing="section" mediaSide="start" tone="dark">
+  <p class="eyebrow text-action-strong">content/SplitHero</p>
+  <h2 class="section-heading text-balance">SplitHero · tone="dark", mediaSide="start"</h2>
+  <p class="text-lg text-fg-muted">
+    Copy and media side by side from a 48rem container. Used lower on a page it takes an h2.
+  </p>
+  <ButtonLink href="#catalog-container" variant="light">
+    Sample action
+  </ButtonLink>
+  <Photo
+    slot="media"
+    name="worshipBand"
+    sizes="(min-width:1024px) 50vw, 100vw"
+    class="aspect-portrait w-full rounded-hero object-cover"
+  />
+</SplitHero>
+
+<SplitHero as="section" spacing="section" tone="inset">
+  <p class="eyebrow text-action-strong">content/SplitHero</p>
+  <h2 class="section-heading text-balance">SplitHero · tone="inset", mediaSide="end"</h2>
+  <p class="text-lg text-fg-muted">
+    The default media side is end. <Badge tone="sample" size="sm" />
+  </p>
+  <Photo
+    slot="media"
+    name="guitarMentor"
+    sizes="(min-width:1024px) 50vw, 100vw"
+    class="aspect-landscape w-full rounded-hero object-cover"
+  />
+</SplitHero>
+
+<SplitHero
+  as="section"
+  spacing="section"
+  tone="raised"
+  aria-label="SplitHero raised example"
+  data-catalog="split-hero-raised"
+>
+  <p class="eyebrow text-action-strong">content/SplitHero</p>
+  <h2 class="section-heading text-balance">SplitHero · tone="raised", forwarded attributes</h2>
+  <p class="text-lg text-fg-muted">
+    Lifts the band onto the raised surface; extra HTML attributes pass through.
+  </p>
+  <Photo
+    slot="media"
+    name="churchModernDay"
+    sizes="(min-width:1024px) 50vw, 100vw"
+    class="aspect-landscape w-full rounded-hero object-cover"
+  />
+</SplitHero>
+
+<SplitHero as="div" spacing="section">
+  <p class="eyebrow text-action-strong">content/SplitHero</p>
+  <h2 class="section-heading text-balance">SplitHero · tone="default", copy only</h2>
+  <p class="text-lg text-fg-muted">Without media the copy takes the first column.</p>
+</SplitHero>
+
+<PageHero titleAs="h2" tone="dark" title='PageHero · tone="dark", titleAs="h2"' eyebrow="content/PageHero">
+  <p slot="intro">A second hero on one page takes an h2, so the page keeps a single h1.</p>
+  <ButtonLink slot="actions" href="#catalog-forms" variant="light">
+    Sample action
+  </ButtonLink>
+</PageHero>
+
+<PageHero titleAs="h2" tone="inset" align="center" title='PageHero · tone="inset", centred'>
+  <p slot="intro">
+    Centred copy without media. <Badge tone="sample" size="sm" />
+  </p>
+</PageHero>
+
+<FormComingSoon
+  titleAs="h2"
+  eyebrow='forms/FormComingSoon · titleAs="h2"'
+  title="Sample form coming soon"
+  intro="Sample: what the form will ask and what happens next."
+  email="hello@gamostudio.org"
+/>
