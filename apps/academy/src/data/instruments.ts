@@ -14,7 +14,6 @@ export interface Instrument {
   icon: InstrumentIcon;
   /** Only set when a genuinely matching photo exists; otherwise a typographic card is used. */
   photo?: PhotoKey;
-  photoPosition?: string;
   ages: string;
   firstSteps: string[];
 }

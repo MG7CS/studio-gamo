@@ -1,7 +1,10 @@
 ---
 /**
- * Shared rounded-edge editorial feature card section with a sculptural bottom-anchored
- * arch photo (`mask-arch`), structured icon highlights, and action buttons.
+ * Shared rounded-edge editorial feature card section with a photo in a shared `Frame` (one radius,
+ * catalog focal point, inset in the panel so corners stay concentric), structured icon highlights,
+ * and action buttons. `photoAlt`: omit for the catalog description, '' when decorative.
+ * `photoRatio`: landscape (default), portrait or square; the build fails when the photo cannot take it.
+ * `caption` renders below the photo.
  *
  * Used across Academy, Worship, and the global Gamo Studios pages for visual continuity.
  *
@@ -11,10 +14,11 @@
  * - 'dark' — night panel with cream text (data-surface="dark").
  * Deprecated aliases: 'sand' → 'inset', 'ivory' → 'raised' (still accepted; migrate callers).
  */
-import Photo from './Photo.astro';
+import Frame from './media/Frame.astro';
 import StatusPill from './StatusPill.astro';
 import Icon from './Icon.astro';
-import type { PhotoKey } from '../lib/images';
+import { photos, type PhotoKey } from '../lib/images';
+import type { FrameRatio } from './media/frame';
 import type { IconName } from '../lib/icons';
 
 export interface EditorialFeaturePoint {
@@ -41,7 +45,8 @@ interface Props {
   body: string;
   points?: EditorialFeaturePoint[];
   photo: PhotoKey;
-  photoPosition?: string;
+  photoAlt?: string;
+  photoRatio?: Exclude<FrameRatio, 'wide'>;
   caption?: string;
   tone?: EditorialFeatureTone | DeprecatedEditorialFeatureTone;
   reverse?: boolean;
@@ -58,7 +63,8 @@ const {
   body,
   points = [],
   photo,
-  photoPosition = '50% 30%',
+  photoAlt,
+  photoRatio = 'landscape',
   caption,
   tone: toneProp = 'inset',
   reverse = false,
@@ -67,7 +73,7 @@ const {
 
 const tone: EditorialFeatureTone =
   toneProp === 'sand' || toneProp === 'ivory' ? TONE_ALIAS[toneProp] : toneProp;
-const dark = tone === 'dark';
+const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 /** data-surface for the panel: inset and dark re-map colour roles; raised keeps the parent's. */
 const surface = tone === 'raised' ? undefined : tone;
 const cardSurface = {
@@ -135,34 +141,10 @@ const iconBadgeSurface = {
       </div>
     </div>
 
-    <div class:list={['relative min-h-85 sm:min-h-105 lg:col-span-5 lg:min-h-130', reverse && 'lg:order-1']}>
-      <div
-        class:list={[
-          'mask-arch absolute inset-x-6 bottom-0 top-6 overflow-hidden shadow-float sm:inset-x-10 sm:top-10 lg:inset-x-10 lg:top-12',
-          dark ? 'ring-1 ring-border' : 'ring-1 ring-fg/10',
-        ]}
-      >
-        <Photo
-          name={photo}
-          sizes="(min-width:1024px) 36vw, 90vw"
-          position={photoPosition}
-          class="h-full w-full object-cover"
-        />
+    <div class:list={['flex items-center p-5 lg:col-span-5', reverse && 'lg:order-1']}>
+      <div class="w-full">
+        <Frame photo={photo} ratio={photoRatio} sizes="half" caption={caption} {...frameAlt} />
       </div>
-
-      {caption && (
-        <div
-          class:list={[
-            'absolute bottom-4 rounded-2xl px-4 py-2.5 text-xs font-semibold shadow-float backdrop-blur-md sm:bottom-6',
-            reverse ? 'left-8 sm:left-12' : 'right-8 sm:right-12',
-            dark
-              ? 'border border-border bg-surface/90 text-fg'
-              : 'border border-border bg-surface-raised/95 text-fg',
-          ]}
-        >
-          {caption}
-        </div>
-      )}
     </div>
   </div>
 </section>

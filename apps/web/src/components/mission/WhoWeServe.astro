@@ -1,7 +1,7 @@
 ---
 /** Who we serve: audience list beside a photo (SplitHero used as a section band). */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 
 const audiences = [
   { title: 'Students & families', body: 'Young learners and parents who want a caring path into music.' },
@@ -35,7 +35,11 @@ const audiences = [
       </div>
     ))}
   </dl>
-  <div slot="media" class="aspect-portrait overflow-hidden shadow-float mask-arch">
-    <Photo name="sanctuaryCongregation" sizes="(min-width:1024px) 45vw, 94vw" position="50% 40%" />
-  </div>
+  <Frame
+    slot="media"
+    photo="sanctuaryCongregation"
+    ratio="portrait"
+    sizes="half"
+    alt="Congregation worshipping together in a sunlit sanctuary"
+  />
 </SplitHero>

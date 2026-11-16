@@ -15,7 +15,6 @@ export interface Program {
   summary: string;
   href: string;
   photo: PhotoKey;
-  photoPosition?: string;
 }
 
 export const programs: Program[] = [
@@ -28,7 +27,6 @@ export const programs: Program[] = [
       'Patient, caring lessons in piano, guitar, voice, bass and drums for children, teens and adults, private or in small groups.',
     href: siteUrl('academy'),
     photo: 'girlGuitar',
-    photoPosition: '50% 28%',
   },
   {
     key: 'worship',
@@ -39,7 +37,6 @@ export const programs: Program[] = [
       'Vetted worship musicians who help churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
     href: siteUrl('worship'),
     photo: 'worshipBand',
-    photoPosition: '55% 35%',
   },
   {
     key: 'production',
@@ -50,6 +47,5 @@ export const programs: Program[] = [
       'Practical audio, livestream and lighting support, with hands-on training for the church volunteers behind the board.',
     href: siteUrl('production'),
     photo: 'soundEngineer',
-    photoPosition: '40% 40%',
   },
 ];

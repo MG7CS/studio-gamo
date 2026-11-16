@@ -31,7 +31,6 @@ const steps = [
   { title: 'Keep playing', body: 'Sample step: weekly lessons and a recital each term.' },
 ];
 const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
-const photoSizes = '(min-width:1024px) 33vw, 100vw';
 ---
 
 <Section title="Content · Badge" id="catalog-badge">
@@ -116,14 +115,14 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
 <Section title="Content · MediaCard" id="catalog-mediacard">
   <Fragment slot="eyebrow">content/MediaCard</Fragment>
   <p slot="intro">
-    Adaptive keeps text on the card surface (photo beside the text in wide containers); overlay puts text in a
-    scrim band.
+    Adaptive keeps text on the card surface (photo beside the text in wide containers); overlay puts text on
+    the photo's bottom scrim.
   </p>
   <Stack gap="xl">
     <FeatureGrid max={3} as="ul">
       <MediaCard
         as="li"
-        image={{ name: 'boyGuitar', sizes: photoSizes }}
+        image={{ name: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar (Sample)' }}
         title="Guitar · overlay, link"
         href="#catalog-mediacard"
         variant="overlay"
@@ -131,14 +130,18 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
         <Badge slot="on-media" tone="sample" />
         <p>Sample lesson: acoustic guitar from first chords.</p>
       </MediaCard>
-      <MediaCard as="li" image={{ name: 'youngPianist', sizes: photoSizes }} title="Piano · adaptive, raised">
+      <MediaCard
+        as="li"
+        image={{ name: 'youngPianist', alt: 'Young pianist smiling at a keyboard (Sample)' }}
+        title="Piano · adaptive, raised"
+      >
         <Badge slot="eyebrow" tone="sample" size="sm" />
         <p>Sample lesson: weekly piano for beginners.</p>
         <Fragment slot="meta">Sample · 30 minutes</Fragment>
       </MediaCard>
       <MediaCard
         as="li"
-        image={{ name: 'gospelVocalists', sizes: photoSizes }}
+        image={{ name: 'gospelVocalists', alt: 'Gospel vocalists leading a concert (Sample)' }}
         title="Voice · adaptive, inset"
         tone="inset"
         href="#catalog-mediacard"
@@ -149,7 +152,7 @@ const photoSizes = '(min-width:1024px) 33vw, 100vw';
     </FeatureGrid>
     <Specimen name='MediaCard · variant="adaptive", tone="dark" (wide container)'>
       <MediaCard
-        image={{ name: 'soundEngineer', sizes: '(min-width:1024px) 60vw, 100vw' }}
+        image={{ name: 'soundEngineer', alt: 'Sound engineer at a mixing console (Sample)', sizes: 'half' }}
         title="Sound · dark"
         tone="dark"
       >

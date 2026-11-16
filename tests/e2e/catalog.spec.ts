@@ -105,12 +105,29 @@ for (const width of WIDTHS) {
         const problems: string[] = [];
         const frames = Array.from(document.querySelectorAll<HTMLElement>('.frame'));
         for (const [i, frame] of frames.entries()) {
+          if (frame.getClientRects().length === 0) continue; // hidden by design (e.g. a hero companion on narrow screens)
           const style = getComputedStyle(frame);
-          const inCard = frame.closest('[data-padding]');
-          const expectedRadius = inCard ? Math.max(0, 28 - 1.5 * rem) : photoRadius;
+          // The only allowed radius is the token, or the nested radius a padded card sets through
+          // --frame-radius (card radius minus padding), resolved where the frame sits.
+          const probe = document.createElement('div');
+          probe.style.width = 'var(--frame-radius, var(--radius-photo))';
+          frame.parentElement!.append(probe);
+          const expectedRadius = probe.getBoundingClientRect().width;
+          probe.remove();
+          if (expectedRadius > photoRadius + 0.5) {
+            problems.push(`frame ${i} nested radius ${expectedRadius}px is larger than the photo radius`);
+          }
           for (const corner of ['borderTopLeftRadius', 'borderBottomRightRadius'] as const) {
             if (Math.abs(parseFloat(style[corner]) - expectedRadius) > 0.5) {
-              problems.push(`frame ${i} ${corner} ${style[corner]} expected ${expectedRadius}px`);
+              problems.push(
+                `frame ${i} ${corner} ${style[corner]} expected ${expectedRadius}px (in ${
+                  frame.closest('[data-padding]')
+                    ? `card padding=${frame.closest<HTMLElement>('[data-padding]')!.dataset.padding}`
+                    : 'no padded card'
+                }, own --frame-radius="${getComputedStyle(frame).getPropertyValue('--frame-radius')}", section "${
+                  frame.closest('section')?.getAttribute('aria-labelledby') ?? ''
+                }")`,
+              );
             }
           }
           if (!style.clipPath.startsWith('inset(')) problems.push(`frame ${i} clip-path ${style.clipPath}`);

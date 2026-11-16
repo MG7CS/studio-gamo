@@ -1,45 +1,56 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
 /**
- * MediaCard: photo card whose text is always readable.
+ * MediaCard: photo card whose text is always readable. The photo is a shared `Frame` (one radius, four
+ * ratios, catalog focal point); the card never sets a radius, mask, aspect or crop on it.
  *   variant="adaptive" (default): photo above the text in narrow containers, photo beside the text
- *     once the card's own container is ≥ 36rem. Text sits on the card surface, never on the photo.
- *   variant="overlay": text sits on the photo inside a scrim band that switches to dark colour
- *     roles (data-surface="dark"), so contrast holds on bright photos.
- * The `on-media` slot places chips over the photo's top corner (Badge carries its own background).
- * With `href`, the title link is stretched over the whole card (one link, ring around the card).
+ *     once the card's own container is ≥ 36rem. Text sits on the card surface, never on the photo. The
+ *     card is padded so the photo's corners stay concentric with the card's.
+ *   variant="overlay": the whole card is the photo; text sits on it inside a bottom scrim (dark colour
+ *     roles, contrast set in tokens.frame.css). With `href` the whole card is one link.
+ * The `on-media` slot is shown first in the text (adaptive: on the card surface; overlay: on the scrim).
+ * With `href`, the title link is stretched over the whole card (adaptive: one link, ring around the
+ * card; overlay: the card is wrapped in the link).
  *
  * Usage:
- *   <MediaCard image={{ name: 'boyGuitar', sizes: '(min-width:1024px) 33vw, 100vw' }}
+ *   <MediaCard image={{ name: 'boyGuitar', alt: 'Smiling boy with a guitar' }}
  *              title="Guitar" href="/instruments/guitar" variant="overlay">
  *     <Badge slot="on-media" tone="neutral">Ages 8 and up</Badge>
  *     <p>Acoustic and electric, from first chords to worship sets.</p>
  *   </MediaCard>
  *
+ * `image`: { name (catalog id), alt (omit for the catalog description, '' for decorative), ratio
+ * (default landscape; portrait for overlay), sizes (Frame preset, default third), priority }. A photo that
+ * cannot take the ratio fails the build: pick another ratio or photo.
+ *
  * Slots: on-media, eyebrow, title (overrides `title`), default (body), meta.
  */
-import Photo from '../Photo.astro';
-import type { PhotoKey } from '../../lib/images';
+import Frame from '../media/Frame.astro';
+import { photos, type PhotoKey } from '../../lib/images';
+import type { FrameRatio, FrameSizes } from '../media/frame';
 import { cardSurface, cardToneClass, type CardTone } from './card-tone';
 
-/** Photo props the card passes through; the card owns the image class. */
+/** Photo props the card passes to its Frame; the card owns the shape. */
 export interface MediaCardImage {
   name: PhotoKey;
-  sizes: string;
-  /** alt="" only when the photo is purely decorative. */
+  /** Omit for the catalog description; alt="" only when the photo is purely decorative. */
   alt?: string;
-  position?: string;
+  /** Frame ratio. Default landscape (adaptive) or portrait (overlay). */
+  ratio?: FrameRatio;
+  /** Frame `sizes` preset. Default third. */
+  sizes?: FrameSizes;
+  /** One per page at most (the likely LCP image). */
   priority?: boolean;
 }
 interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'title'> {
-  /** Passed to Photo (name, sizes, alt, position, priority). */
+  /** The photo, shown in a shared Frame. */
   image: MediaCardImage;
   title?: string;
   /** Heading level for the title. Default h3. */
   headingLevel?: 'h2' | 'h3' | 'h4';
   href?: string;
   variant?: 'adaptive' | 'overlay';
-  /** Surface of the text area in the adaptive variant. Default raised. */
+  /** Surface of the card in the adaptive variant. Default raised. */
   tone?: Exclude<CardTone, 'outline'>;
   as?: 'div' | 'article' | 'li';
   class?: string;
@@ -57,52 +68,82 @@ const {
 } = Astro.props;
 const overlay = variant === 'overlay';
 const hasTitle = Boolean(title) || Astro.slots.has('title');
+const frameAlt =
+  image.alt === '' ? { decorative: true as const } : { alt: image.alt ?? photos[image.name].alt };
+const ratio = image.ratio ?? (overlay ? 'portrait' : 'landscape');
+const Wrap = overlay && href ? 'a' : 'div';
+const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link' } : {};
 ---
 
 <Tag
   {...rest}
   class:list={[
-    'media-card group @container relative min-w-0 overflow-hidden rounded-card',
-    overlay ? 'bg-surface-inverse' : cardToneClass[tone],
-    href && 'transition-shadow hover:shadow-float',
+    'media-card group @container relative min-w-0',
+    !overlay && ['rounded-card p-3', cardToneClass[tone], href && 'transition-shadow hover:shadow-float'],
     className,
   ]}
   data-variant={variant}
   data-surface={overlay ? undefined : cardSurface(tone)}
 >
-  <div class:list={['grid h-full', !overlay && '@xl:grid-cols-5']}>
-    <div
-      class:list={[
-        'relative overflow-hidden',
-        overlay
-          ? 'col-start-1 row-start-1 aspect-portrait'
-          : 'aspect-landscape @xl:col-span-2 @xl:aspect-auto @xl:min-h-56',
-      ]}
-    >
-      <Photo
-        {...image}
-        class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      {Astro.slots.has('on-media') && (
-        <div class="absolute start-4 end-4 top-4 flex flex-wrap gap-2">
-          <slot name="on-media" />
-        </div>
-      )}
-    </div>
-    <div
-      class:list={[
-        'z-10 flex min-w-0 flex-col',
-        overlay ? 'col-start-1 row-start-1 self-end text-fg' : '@xl:col-span-3 @xl:justify-center',
-      ]}
-      data-surface={overlay ? 'dark' : undefined}
-    >
-      {overlay && <div class="h-16 bg-linear-to-t from-scrim to-transparent" aria-hidden="true" />}
-      <div
-        class:list={[
-          'flex min-w-0 flex-1 flex-col gap-3 p-6',
-          overlay ? 'bg-scrim pt-0' : '@xl:justify-center @xl:p-8',
-        ]}
+  {overlay ? (
+    <Wrap {...wrapProps}>
+      <Frame
+        photo={image.name}
+        ratio={ratio}
+        sizes={image.sizes ?? 'third'}
+        priority={image.priority}
+        scrim="bottom"
+        {...frameAlt}
       >
+        <div class="flex min-w-0 flex-col gap-3">
+          {Astro.slots.has('on-media') && (
+            <div class="flex flex-wrap gap-2">
+              <slot name="on-media" />
+            </div>
+          )}
+          {Astro.slots.has('eyebrow') && (
+            <div class="flex min-w-0 flex-wrap gap-2">
+              <slot name="eyebrow" />
+            </div>
+          )}
+          {hasTitle && (
+            <Heading
+              class:list={[
+                'text-xl font-black tracking-tight text-balance text-fg uppercase',
+                href && 'decoration-2 underline-offset-4 group-hover:underline',
+              ]}
+            >
+              <slot name="title">{title}</slot>
+            </Heading>
+          )}
+          <div class="text-body-sm text-fg">
+            <slot />
+          </div>
+          {Astro.slots.has('meta') && (
+            <div class="pt-1 text-small text-fg">
+              <slot name="meta" />
+            </div>
+          )}
+        </div>
+      </Frame>
+    </Wrap>
+  ) : (
+    <div class="grid h-full gap-4 @xl:grid-cols-5 @xl:items-center @xl:gap-6">
+      <div class="min-w-0 @xl:col-span-2">
+        <Frame
+          photo={image.name}
+          ratio={ratio}
+          sizes={image.sizes ?? 'third'}
+          priority={image.priority}
+          {...frameAlt}
+        />
+      </div>
+      <div class="flex min-w-0 flex-col gap-3 px-3 pb-3 @xl:col-span-3 @xl:p-4 @xl:ps-0">
+        {Astro.slots.has('on-media') && (
+          <div class="flex flex-wrap gap-2">
+            <slot name="on-media" />
+          </div>
+        )}
         {Astro.slots.has('eyebrow') && (
           <div class="flex min-w-0 flex-wrap gap-2">
             <slot name="eyebrow" />
@@ -119,22 +160,26 @@ const hasTitle = Boolean(title) || Astro.slots.has('title');
             )}
           </Heading>
         )}
-        <div class:list={['text-body-sm', overlay ? 'text-fg' : 'text-fg-muted']}>
+        <div class="text-body-sm text-fg-muted">
           <slot />
         </div>
         {Astro.slots.has('meta') && (
-          <div class:list={['mt-auto pt-2 text-small', overlay ? 'text-fg' : 'text-fg-muted']}>
+          <div class="mt-auto pt-2 text-small text-fg-muted">
             <slot name="meta" />
           </div>
         )}
       </div>
     </div>
-  </div>
+  )}
 </Tag>
 
 <style>
-  /* The text column is a static grid item (z-index without position), so the root card is the
-     containing block and the stretched link covers the whole card, photo included. */
+  /* The padded card hands its photo the nested radius: card radius minus padding. */
+  .media-card[data-variant='adaptive'] {
+    --frame-radius: max(0rem, calc(var(--radius-card) - 0.75rem));
+  }
+  /* The text column is a static grid item, so the root card is the containing block and the stretched
+     link covers the whole card, photo included. */
   .media-card__link::after {
     content: '';
     position: absolute;
@@ -148,5 +193,11 @@ const hasTitle = Boolean(title) || Astro.slots.has('title');
   .media-card:has(.media-card__link:focus-visible) {
     outline: 2px solid var(--ui-focus);
     outline-offset: 3px;
+    border-radius: var(--radius-card);
+  }
+  /* Overlay: the card is one link; its title is a plain heading inside it. */
+  .media-card__cover {
+    text-decoration: none;
+    color: inherit;
   }
 </style>

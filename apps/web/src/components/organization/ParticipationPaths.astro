@@ -11,12 +11,7 @@ import { participation } from '../../data/organization';
   <p slot="intro">Different gifts. Different starting points. One shared purpose.</p>
   <FeatureGrid as="ul" max={3}>
     {participation.map((p) => (
-      <MediaCard
-        as="li"
-        image={{ name: p.photo, sizes: '(min-width:1024px) 30vw, (min-width:640px) 45vw, 94vw', alt: '' }}
-        title={p.title}
-        href={p.href}
-      >
+      <MediaCard as="li" image={{ name: p.photo, alt: '' }} title={p.title} href={p.href}>
         <Badge slot="eyebrow" size="sm">
           {p.area}
         </Badge>

@@ -32,15 +32,7 @@ const [featured, ...others] = programs;
   </ButtonLink>
   <Stack gap="lg">
     {featured && (
-      <MediaCard
-        image={{
-          name: featured.photo,
-          sizes: '(min-width:1024px) 34vw, 94vw',
-          position: featured.photoPosition,
-        }}
-        title={featured.name}
-        href={featured.href}
-      >
+      <MediaCard image={{ name: featured.photo, sizes: 'half' }} title={featured.name} href={featured.href}>
         <Badge slot="eyebrow" tone="accent">
           {featured.audience}
         </Badge>
@@ -50,12 +42,7 @@ const [featured, ...others] = programs;
     )}
     <FeatureGrid max={2} min="lg" gap="lg" as="ul">
       {others.map((p) => (
-        <MediaCard
-          as="li"
-          image={{ name: p.photo, sizes: '(min-width:1024px) 45vw, 94vw', position: p.photoPosition }}
-          title={p.name}
-          href={p.href}
-        >
+        <MediaCard as="li" image={{ name: p.photo, sizes: 'half' }} title={p.name} href={p.href}>
           <Badge slot="eyebrow">{p.audience}</Badge>
           <p class="font-bold text-fg">{p.lead}</p>
           <p class="mt-2">{p.summary}</p>

@@ -51,12 +51,7 @@ const groups: {
   </Fragment>
   <FeatureGrid as="ul" max={3}>
     {groups.map((g) => (
-      <MediaCard
-        as="li"
-        href={`/lessons?ages=${g.age}`}
-        title={g.title}
-        image={{ name: g.photo, alt: '', sizes: '(min-width:1024px) 30vw, 100vw' }}
-      >
+      <MediaCard as="li" href={`/lessons?ages=${g.age}`} title={g.title} image={{ name: g.photo, alt: '' }}>
         <Badge slot="eyebrow" tone="accent">
           {g.label}
         </Badge>

@@ -29,7 +29,8 @@ import {
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const MEDIA = join(ROOT, 'packages/ui/src/components/media');
-const STRICT = process.env.FRAMES_STRICT === '1';
+// The frame migration is finished: the guards are always strict (set FRAMES_STRICT=0 only to debug).
+const STRICT = process.env.FRAMES_STRICT !== '0';
 const DUMP = process.env.FRAMES_DUMP === '1';
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.astro', '.wrangler', 'generated', '.turbo', 'coverage']);
 const rel = (abs: string) => relative(ROOT, abs).split(sep).join('/');
@@ -198,7 +199,7 @@ function retiredMaskUsages(): string[] {
   return out;
 }
 
-test('retired organic masks are gone (reports the remaining usages; fails with FRAMES_STRICT=1)', () => {
+test('retired organic masks are gone (always strict)', () => {
   const usages = retiredMaskUsages();
   const total = usages.reduce((sum, u) => sum + Number(u.split(' x')[1]), 0);
   if (DUMP || usages.length) {
@@ -266,24 +267,9 @@ test('photo tag guard finds geometry classes only inside photo tags', () => {
  * Photo geometry classes per file at the start of the frame migration. Numbers may only go down.
  * Printed with FRAMES_DUMP=1.
  */
-const PHOTO_CLASS_BASELINE: Record<string, number> = {
-  'apps/academy/src/components/home/AcademyHero.astro': 3,
-  'apps/academy/src/components/home/HowLessonsWork.astro': 1,
-  'apps/academy/src/components/home/InstructionFormats.astro': 1,
-  'apps/academy/src/components/shared/HeroPhoto.astro': 1,
-  'apps/production/src/components/production/ConsultationSection.astro': 1,
-  'apps/production/src/components/production/EventSupportSection.astro': 1,
-  'apps/production/src/components/production/FacilityGuidanceSection.astro': 1,
-  'apps/production/src/components/production/MinistryIntro.astro': 1,
-  'apps/production/src/components/production/ProductionHero.astro': 1,
-  'apps/production/src/components/production/SupportAreaFeature.astro': 1,
-  'apps/production/src/components/production/TrainingSection.astro': 2,
-  'apps/production/src/pages/services/[slug].astro': 1,
-  'apps/production/src/pages/training.astro': 1,
-  'apps/web/src/components/home/HomeEditorialHero.astro': 3,
-};
+const PHOTO_CLASS_BASELINE: Record<string, number> = {};
 
-test('apps/*/src photos set no geometry classes (baseline ratchets down; fails with FRAMES_STRICT=1)', () => {
+test('apps/*/src photos set no geometry classes (always strict)', () => {
   const found: Record<string, number> = {};
   const appsDir = join(ROOT, 'apps');
   for (const app of readdirSync(appsDir).sort()) {

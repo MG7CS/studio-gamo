@@ -44,7 +44,7 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
         All lessons
       </ButtonLink>
     </Fragment>
-    {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} mask="mask-leaf" />}
+    {instrument.photo && <HeroPhoto slot="media" photo={instrument.photo} />}
   </PageHero>
   <InstrumentOverview instrument={instrument} />
   <Section title={`Ways to learn ${instrument.short.toLowerCase()}`}>

@@ -10,8 +10,11 @@ import type { HTMLAttributes } from 'astro/types';
  *     <h1 class="display-xl">Learn to Play the Instrument You Love</h1>
  *     <p>Lessons for students and families.</p>
  *     <ButtonLink href="/enroll">Enroll</ButtonLink>
- *     <Photo slot="media" name="boyGuitar" sizes="(min-width:1024px) 50vw, 100vw" class="aspect-portrait w-full rounded-hero object-cover" />
+ *     <Frame slot="media" photo="boyGuitar" ratio="portrait" sizes="half" alt="Smiling boy learning guitar" priority />
  *   </SplitHero>
+ *
+ * mediaWidth="wide" gives the media seven twelfths instead of half, for a PhotoGrid mosaic that needs
+ * a wide column (the trio/quad mosaics start at 40rem/48rem of the grid's own width).
  *
  * Slots: default (copy), media.
  */
@@ -27,6 +30,8 @@ interface Props extends Omit<HTMLAttributes<'section'>, 'class'> {
   width?: 'page' | 'narrow';
   /** hero clears the site header (page-intro rhythm), section uses the section rhythm. */
   spacing?: Spacing;
+  /** half (default) or wide: the media takes 7/12 of the width and the copy 5/12. */
+  mediaWidth?: 'half' | 'wide';
   as?: 'header' | 'section' | 'div';
   class?: string;
 }
@@ -35,6 +40,7 @@ const {
   tone = 'default',
   width = 'page',
   spacing = 'hero',
+  mediaWidth = 'half',
   as: Tag = 'header',
   class: className,
   ...rest
@@ -59,7 +65,11 @@ const spacingClass: Record<Spacing, string> = {
   data-surface={tone === 'default' || tone === 'raised' ? undefined : tone}
 >
   <Container width={width} class="@container">
-    <div class="grid gap-10 @3xl:grid-cols-2 @3xl:items-center @3xl:gap-16">
+    <div
+      class="split-hero__grid grid gap-10 @3xl:items-center @3xl:gap-16"
+      data-media-width={mediaWidth}
+      data-media-side={mediaSide}
+    >
       <div class="flex min-w-0 flex-col items-start gap-5">
         <slot />
       </div>
@@ -71,3 +81,17 @@ const spacingClass: Record<Spacing, string> = {
     </div>
   </Container>
 </Tag>
+
+<style>
+  @container (min-width: 48rem) {
+    .split-hero__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .split-hero__grid[data-media-width='wide'] {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    }
+    .split-hero__grid[data-media-width='wide'][data-media-side='start'] {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+</style>

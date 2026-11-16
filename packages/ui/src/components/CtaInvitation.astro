@@ -1,17 +1,22 @@
 ---
-/** Warm photographic closing invitation used at the end of pages. */
-import Photo from './Photo.astro';
-import type { PhotoKey } from '../lib/images';
+/**
+ * Warm photographic closing invitation used at the end of pages. The photo is a landscape `Frame` (one
+ * radius, catalog focal point) inset in the panel so the corners stay concentric.
+ * `photoAlt`: omit for the catalog description, '' when the photo is purely decorative.
+ */
+import Frame from './media/Frame.astro';
+import { photos, type PhotoKey } from '../lib/images';
 interface Props {
   eyebrow?: string;
   title: string;
   body: string;
   photo: PhotoKey;
-  photoPosition?: string;
+  photoAlt?: string;
   tone?: 'light' | 'dark';
   id?: string;
 }
-const { eyebrow, title, body, photo, photoPosition, tone = 'light', id } = Astro.props;
+const { eyebrow, title, body, photo, photoAlt, tone = 'light', id } = Astro.props;
+const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 const dark = tone === 'dark';
 ---
 
@@ -36,14 +41,9 @@ const dark = tone === 'dark';
         <slot />
       </div>
     </div>
-    <div class="relative min-h-75 lg:min-h-100">
-      <div class="absolute inset-3 overflow-hidden rounded-card lg:inset-4 lg:rounded-tl-[12.5rem]">
-        <Photo
-          name={photo}
-          sizes="(min-width:1024px) 45vw, 100vw"
-          position={photoPosition}
-          class="h-full w-full object-cover"
-        />
+    <div class="flex items-center p-5">
+      <div class="w-full">
+        <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
       </div>
     </div>
   </div>

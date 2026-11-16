@@ -1,7 +1,7 @@
 ---
 /**
- * Instrument card recipe. With a genuinely matching photo it is a MediaCard (text in the scrim band,
- * readable on bright photos); without one it is a LinkCard with the instrument's icon, never a bare
+ * Instrument card recipe. With a genuinely matching photo it is a MediaCard (the photo is a Frame; text on
+ * its scrim, readable on bright photos); without one it is a LinkCard with the instrument's icon, never a bare
  * typographic "ghost" word. The whole card is one link to the instrument page.
  */
 import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
@@ -27,12 +27,7 @@ const href = `/instruments/${i.slug}`;
     title={i.name}
     headingLevel={headingLevel}
     variant="overlay"
-    image={{
-      name: i.photo,
-      alt: '',
-      position: i.photoPosition,
-      sizes: '(min-width:1024px) 30vw, (min-width:640px) 50vw, 100vw',
-    }}
+    image={{ name: i.photo, alt: '' }}
     class={className}
   >
     <Badge slot="on-media" tone="neutral">

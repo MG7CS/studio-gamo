@@ -1,19 +1,19 @@
 ---
 /**
- * Academy landing hero: SplitHero with the approved headline (the page's <h1>), the masked photo cluster
+ * Academy landing hero: SplitHero with the approved headline (the page's <h1>), the photo cluster (shared PhotoGrid trio)
  * with a Sample next-lesson preview, and the quick instrument picker below.
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments } from '../../data/instruments';
 ---
 
 <header class="page-intro-space relative overflow-hidden">
-  <SplitHero as="div" spacing="none">
+  <SplitHero as="div" spacing="none" mediaWidth="wide">
     <p class="eyebrow text-action-strong">Gamo Academy · For kids, teens &amp; adults</p>
     <h1 class="display-xl text-balance">
       Learn to Play the <span class="text-action">Instrument You Love.</span>
@@ -31,25 +31,25 @@ import { instruments } from '../../data/instruments';
       </ButtonLink>
     </div>
 
-    <div slot="media" class="academy-hero-photos relative mx-auto w-full max-w-xl">
-      <div aria-hidden="true" class="absolute -end-32 top-24 size-140 rounded-full bg-surface-raised"></div>
-      <div class="mask-arch absolute start-1/7 top-0 h-3/4 w-4/7 overflow-hidden shadow-float sm:h-7/8">
-        <Photo
-          name="boyGuitar"
-          priority
-          sizes="(min-width:1024px) 30vw, 60vw"
-          class="h-full w-full object-cover"
-        />
-      </div>
-      <div class="mask-leaf absolute end-0 top-1/16 h-2/5 w-1/3 overflow-hidden shadow-float">
-        <Photo name="girlGuitar" sizes="(min-width:1024px) 16vw, 34vw" class="h-full w-full object-cover" />
-      </div>
-      <div class="mask-pebble absolute end-1/24 bottom-2/7 h-5/12 w-3/8 overflow-hidden border-4 border-surface shadow-float sm:bottom-0">
-        <Photo name="youngPianist" sizes="(min-width:1024px) 16vw, 36vw" class="h-full w-full object-cover" />
-      </div>
+    <div slot="media" class="relative w-full">
+      <PhotoGrid
+        layout="trio"
+        photos={[
+          {
+            photo: 'boyGuitar',
+            alt: 'Smiling boy learning to play acoustic guitar in a sunlit room',
+            priority: true,
+          },
+          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar beside a music stand' },
+          {
+            photo: 'youngPianist',
+            alt: 'Young pianist smiling while playing a keyboard in a bright classroom',
+          },
+        ]}
+      />
       <FloatingPreviewCard
         title="Next lesson"
-        class="absolute start-0 bottom-0 w-56 gap-2 p-4 shadow-float sm:bottom-1/16 sm:w-64"
+        class="mt-4 w-full max-w-xs gap-2 p-4 shadow-float xl:absolute xl:start-4 xl:-bottom-6 xl:mt-0 xl:w-64"
       >
         <p class="font-bold">Guitar · Week 3</p>
         <p class="flex items-center gap-1.5 text-small text-fg-muted">
@@ -83,14 +83,3 @@ import { instruments } from '../../data/instruments';
     </nav>
   </Container>
 </header>
-
-<style>
-  .academy-hero-photos {
-    height: clamp(22rem, 64vw, 28rem);
-  }
-  @media (min-width: 1024px) {
-    .academy-hero-photos {
-      height: clamp(24rem, 33vw, 29rem);
-    }
-  }
-</style>

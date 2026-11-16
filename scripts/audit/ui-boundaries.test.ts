@@ -214,7 +214,7 @@ const STYLE_BASELINE: Record<string, Counts> = {
   // Data-driven level height of the mixer bars.
   'apps/production/src/components/production/MixerStripPreview.astro': { style: 1 },
   // Approved hero: two values kept so the hero looks the same.
-  'apps/web/src/components/home/HomeEditorialHero.astro': { arbitrary: 2 },
+  'apps/web/src/components/home/HomeEditorialHero.astro': { arbitrary: 1 },
 };
 
 test('apps/*/src raw styling never grows (baseline ratchets down)', () => {

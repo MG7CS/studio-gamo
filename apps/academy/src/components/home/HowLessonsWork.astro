@@ -3,7 +3,7 @@
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 const steps = [
   { title: 'Choose an instrument', body: 'Explore instruments and first lessons to find what excites you.' },
   {
@@ -31,8 +31,13 @@ const steps = [
         accent="steady progress."
         lede="A clear rhythm for students and parents, so everyone knows what comes next."
       />
-      <div class="mask-leaf mt-10 hidden aspect-4/3 overflow-hidden lg:block">
-        <Photo name="youngPianist" sizes="35vw" position="50% 35%" class="h-full w-full object-cover" />
+      <div class="mt-10 hidden lg:block">
+        <Frame
+          photo="youngPianist"
+          ratio="landscape"
+          sizes="half"
+          alt="Young pianist smiling while playing a keyboard in a bright classroom"
+        />
       </div>
     </div>
     <NumberedSteps items={steps} tone="raised" />

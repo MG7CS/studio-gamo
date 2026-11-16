@@ -1,13 +1,13 @@
 ---
 /**
  * Organization-page hero (mission, get-involved, partners, support): the shared PageHero with a two-line
- * title (second line in the accent colour), an intro, actions and one photo in the media slot.
+ * title (second line in the accent colour), an intro, actions and one landscape photo Frame in the media slot (the page's priority image).
  *
  * Slots: default (actions), caption (optional note under the photo).
  */
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
-import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface Props {
   eyebrow: string;
@@ -15,10 +15,11 @@ interface Props {
   accent: string;
   body: string;
   photo: PhotoKey;
-  photoPosition?: string;
+  /** Omit for the catalog description. */
+  photoAlt?: string;
   tone?: 'default' | 'inset';
 }
-const { eyebrow, title, accent, body, photo, photoPosition, tone = 'default' } = Astro.props;
+const { eyebrow, title, accent, body, photo, photoAlt, tone = 'default' } = Astro.props;
 const hasCaption = Astro.slots.has('caption');
 ---
 
@@ -32,9 +33,7 @@ const hasCaption = Astro.slots.has('caption');
     <slot />
   </Fragment>
   <figure slot="media">
-    <div class="aspect-landscape overflow-hidden rounded-hero bg-surface-inset @4xl:aspect-square">
-      <Photo name={photo} position={photoPosition} sizes="(min-width:1024px) 45vw, 94vw" priority />
-    </div>
+    <Frame photo={photo} ratio="landscape" sizes="half" alt={photoAlt ?? photos[photo].alt} priority />
     {hasCaption && (
       <figcaption class="mt-3 text-small text-fg-muted">
         <slot name="caption" />

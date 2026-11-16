@@ -27,7 +27,7 @@ the same page takes `titleAs="h2"`.
 | `Badge`               | `tone` neutral \| accent \| proposal \| sample \| success \| danger, `size` sm \| md, `wrap` (false)          | default (`sample` → "Sample", `proposal` → "Proposal")     |
 | `Card`                | `tone` raised \| inset \| dark \| outline, `padding` none–lg, `as` div \| article \| li \| section \| aside   | default                                                    |
 | `LinkCard`            | `href`, `title`, `headingLevel` h2–h4, `tone`, `padding`, `as`, `external`                                    | `eyebrow`, `title`, `body` (or default), `meta`            |
-| `MediaCard`           | `image` (Photo props), `title`, `headingLevel`, `href`, `variant` adaptive \| overlay, `tone`, `as`           | `on-media`, `eyebrow`, `title`, default, `meta`            |
+| `MediaCard`           | `image` {name, alt?, ratio?, sizes?, priority?} (shown in a `Frame`), `title`, `headingLevel`, `href`, `variant` adaptive \| overlay, `tone`, `as`           | `on-media`, `eyebrow`, `title`, default, `meta`            |
 | `PageHero`            | `title`, `titleAs` h1 \| h2 (h1), `eyebrow`, `breadcrumbs` {label, href?}[], `tone` default \| inset \| dark, `width`, `align` | `eyebrow`, `title`, `intro`, `actions`, `media` |
 | `SplitHero`           | `mediaSide` start \| end, `tone`, `width`, `spacing` hero \| section \| none, `as`                            | default (copy), `media`                                    |
 | `FeatureGrid`         | `min` sm \| md \| lg, `max` 2 \| 3 \| 4, `lastRow` stretch \| center, `gap` md \| lg, `as` div \| ul \| ol    | default (items)                                            |
@@ -38,8 +38,11 @@ Behaviour notes:
 
 - `LinkCard` / `MediaCard` with `href`: the title link is stretched over the card (one link, whole
   card is the target, focus ring drawn around the card). Put no other links or buttons inside.
-- `MediaCard` never puts text on a bare photo: `adaptive` keeps text on the card surface (photo
-  beside the text from a 36rem container), `overlay` puts text in a scrim band with dark roles.
+- `MediaCard` shows its photo in a `Frame` (never its own radius, mask or hover transform): `adaptive` is a
+  padded card with text on the card surface (photo above, beside the text from a 36rem container; landscape
+  ratio, concentric corners), `overlay` is the photo itself (portrait ratio) with the text on the Frame's
+  bottom scrim in dark roles; with `href` the whole overlay card is wrapped in one link. `on-media` content
+  is the first item of the text. A photo that cannot take the ratio fails the build (`image.ratio`).
 - `FeatureGrid` items share a row height; a short last row stretches or centres, never leaving an
   empty cell. Columns step up by the grid's own width.
 - `NumberedSteps` is an `<ol>`; numbers are aligned, steps are top-aligned in one row from a 48rem
@@ -71,8 +74,8 @@ app cannot set a radius, mask, aspect or crop; the catalog gives each photo's fo
 - A Frame is a size container: give it a width (block, grid or flex track). Inside a padded `Card` it takes the
   nested radius automatically. For a linked photo put the link outside: `<a href class="frame-link"><Frame … /></a>`
   so the focus ring is never clipped. Do not put focusable content near the edge of the scrim slot.
-- `fill` on `Frame` is internal to `PhotoGrid`; apps must not pass it. `Photo` / `ResponsivePicture` remain
-  low-level pieces inside shared components (e.g. `MediaCard`); pages use `Frame`.
+- `fill` on `Frame` is internal to `PhotoGrid`; apps must not pass it. `Photo` / `ResponsivePicture` are
+  low-level pieces; shared components and pages use `Frame`.
 
 ## Forms (`forms/`)
 
@@ -96,7 +99,9 @@ on `FieldShell`.
   dark bands and set `data-surface="dark"` on the link.
 - `EditorialHeading`, `FaqAccordion`: `tone` light \| dark (dark sets `data-surface="dark"`).
 - `EditorialFeatureCard`: `tone` inset (default) \| raised \| dark; `sand` → inset and `ivory` → raised are
-  deprecated aliases.
+  deprecated aliases. The photo is a `Frame` inset in the panel: `photo`, `photoAlt` (omit = catalog
+  description, `''` = decorative), `photoRatio` landscape (default) \| portrait \| square, `caption` (below the photo).
+- `CtaInvitation`: `photo` and `photoAlt` (same convention), shown as a landscape `Frame` inset in the panel.
 - `BaseLayout`: `noindex` outputs `<meta name="robots" content="noindex, nofollow">` and drops
   canonical and social tags.
 - Semantic colour role `accent` (`text-accent`): editorial eyebrows and accent lines (terracotta on light,

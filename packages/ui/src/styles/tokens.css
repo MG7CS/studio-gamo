@@ -64,22 +64,6 @@
   font-weight: 600;
 }
 
-/* Sculptural photo masks: RETIRED (AGENTS.md rule 14). Use <Frame>/<PhotoGrid>; removed once apps have migrated. */
-@utility mask-arch {
-  border-radius: 999px 999px 32px 32px;
-}
-@utility mask-arch-sm {
-  border-radius: 400px 400px 24px 24px;
-}
-@utility mask-leaf {
-  border-radius: 48px 220px 48px 220px;
-}
-@utility mask-leaf-alt {
-  border-radius: 220px 48px 220px 48px;
-}
-@utility mask-pebble {
-  border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%;
-}
 @utility shadow-float {
   box-shadow:
     0 24px 60px -24px rgb(24 24 27 / 0.35),

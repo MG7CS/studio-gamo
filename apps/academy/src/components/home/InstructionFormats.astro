@@ -4,7 +4,7 @@ import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
-import Photo from '@studio-gamo/ui/components/Photo.astro';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import Icon from '@studio-gamo/ui/components/Icon.astro';
 const formats = [
   {
@@ -24,18 +24,14 @@ const formats = [
 
 <Section data-reveal>
   <div class="grid items-center gap-12 lg:grid-cols-2">
-    <div class="relative mx-auto w-full max-w-lg">
-      <div class="mask-arch-sm aspect-portrait overflow-hidden">
-        <Photo
-          name="guitarMentor"
-          sizes="(min-width:1024px) 45vw, 100vw"
-          position="40% 50%"
-          class="h-full w-full object-cover"
-        />
-      </div>
-      <p class="absolute end-4 -bottom-5 rounded-pill bg-surface-inverse px-5 py-3 text-small font-semibold text-fg-inverse shadow-float sm:end-10">
-        Private or group — you choose
-      </p>
+    <div class="mx-auto w-full max-w-lg">
+      <Frame
+        photo="guitarMentor"
+        ratio="portrait"
+        sizes="half"
+        alt="Guitar instructor guiding a young student through a chord"
+        caption="Private or group — you choose"
+      />
     </div>
     <div>
       <EditorialHeading

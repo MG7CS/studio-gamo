@@ -1,34 +1,22 @@
 ---
 /**
- * Masked portrait photo for the shared PageHero `media` slot on Academy interior pages.
+ * Photo for the shared PageHero `media` slot on Academy interior pages: one shared Frame (rounded
+ * rectangle, catalog focal point) and the page's priority image.
  *
  * Usage:
- *   <HeroPhoto slot="media" photo="youngPianist" mask="mask-leaf" />
+ *   <HeroPhoto slot="media" photo="youngPianist" />
+ *   <HeroPhoto slot="media" photo="guitarMentor" alt="Guitar instructor with a student" ratio="portrait" />
  */
-import Photo from '@studio-gamo/ui/components/Photo.astro';
-import type { PhotoKey } from '@studio-gamo/ui/lib/images';
+import Frame from '@studio-gamo/ui/components/media/Frame.astro';
+import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface Props {
   photo: PhotoKey;
-  position?: string;
-  mask?: 'mask-arch' | 'mask-leaf' | 'mask-leaf-alt' | 'mask-pebble';
-  class?: string;
+  /** Omit for the catalog description. */
+  alt?: string;
+  ratio?: 'landscape' | 'portrait' | 'square';
 }
-const { photo, position, mask = 'mask-arch', class: className } = Astro.props;
+const { photo, alt, ratio = 'landscape' } = Astro.props;
 ---
 
-<div
-  class:list={[
-    'relative mx-auto aspect-portrait w-full max-w-xs overflow-hidden shadow-float lg:max-w-sm',
-    mask,
-    className,
-  ]}
->
-  <Photo
-    name={photo}
-    priority
-    position={position}
-    sizes="(min-width:1024px) 30vw, 90vw"
-    class="h-full w-full object-cover"
-  />
-</div>
+<Frame photo={photo} ratio={ratio} sizes="half" alt={alt ?? photos[photo].alt} priority />
