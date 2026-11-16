@@ -231,9 +231,8 @@ describe('0020 and 0021 exist and apply from scratch', () => {
 });
 
 describe('Drizzle models match the migrated tables', () => {
-  const models = [...Object.values(formsSchema), ...Object.values(rosterSchema)].filter(
-    (v): v is SQLiteTable => is(v, SQLiteTable),
-  );
+  const candidates: unknown[] = [...Object.values(formsSchema), ...Object.values(rosterSchema)];
+  const models = candidates.filter((v): v is SQLiteTable => is(v, SQLiteTable));
 
   test('every new table has a model and every model has a table', async () => {
     const modelNames = models.map((m) => getTableName(m)).sort();
