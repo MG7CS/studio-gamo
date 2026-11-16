@@ -230,7 +230,8 @@ describe('from scratch', () => {
   });
 
   test('0019 leaves exactly the kept tables, and nothing kept references a dropped one', async () => {
-    const d1 = await createMigratedD1();
+    const d1 = createInMemoryD1(); // as 0019 left it; 0020+ add forms/roster tables (migrations-forms.test.ts)
+    await applyMigrations(d1, readMigrations('0020'));
     assertNoReferencesToDroppedTables(d1, DROPPED_BY_0019, KEPT_AFTER_0019);
     assert.deepEqual(userTables(d1), [...KEPT_AFTER_0019].sort());
     const triggers = names(d1, 'trigger');
@@ -253,7 +254,7 @@ describe('from scratch', () => {
 
   test('applying twice is harmless for IF NOT EXISTS / IF EXISTS objects but ALTERs are not re-runnable (Wrangler tracks them)', async () => {
     const d1 = await createMigratedD1();
-    const only0018And0019 = readMigrations().slice(readMigrations('0018').length);
+    const only0018And0019 = readMigrations('0020').slice(readMigrations('0018').length);
     assert.equal(only0018And0019.length, 2);
     await applyMigrations(d1, only0018And0019);
     const only0017 = readMigrations('0018').slice(readMigrations('0017').length);
@@ -524,7 +525,7 @@ describe('0019 on a database that still holds account, provider and demo rows', 
     `);
     for (const t of ACCOUNT_TABLES)
       assert.ok(Number(get(d1, `SELECT COUNT(*) AS n FROM ${t}`).n) > 0, `${t} seeded`);
-    await applyMigrations(d1, readMigrations().slice(readMigrations('0019').length));
+    await applyMigrations(d1, readMigrations('0020').slice(readMigrations('0019').length));
     return d1;
   }
 

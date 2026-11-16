@@ -3,6 +3,8 @@ import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import * as schema from './schema.ts';
 
 export * from './schema.ts';
+export * from './schema.forms.ts';
+export * from './schema.roster.ts';
 export * from './client.ts';
 export * from './projections.ts';
 

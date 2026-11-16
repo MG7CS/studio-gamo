@@ -13,7 +13,7 @@ The schema is defined twice and the two must agree:
 - **`packages/db/migrations/*.sql`** — what actually runs (applied by Wrangler, tracked in the `d1_migrations` table).
 - **`packages/db/schema.ts`** — the Drizzle model the code queries through (`getDb(env.DB)` in `@gamo/db`).
 
-## Tables by area (20)
+## Tables by area (33)
 
 | Area | Tables |
 | --- | --- |
@@ -22,8 +22,12 @@ The schema is defined twice and the two must agree:
 | Terms, consent, abuse, email (0012) | `terms_documents`, `terms_acceptances`, `marketing_consents`, `rate_limit_counters`, `email_log`, `email_suppressions` |
 | Gamo Academy | `academy_registrations` (0012, guests) |
 | Organization | `media_files`, `audit_logs`, `moderation_reviews` |
+| Forms engine (0020) | `forms`, `form_versions`, `form_submissions`, `form_submission_events`, `form_operations`, `form_reference_counters` |
+| Chunked uploads (0020) | `upload_sessions`, `form_uploads` |
+| Roster, requests, offers (0021) | `roster_members`, `service_requests`, `offers` |
+| Invoices (0021) | `invoices`, `invoice_lines`, `musician_payouts`, `invoice_number_counters` |
 
-Integrity rules live in **triggers** (3): `media_prohibit_sensitive_docs`, `terms_documents_content_immutable`, `terms_acceptances_immutable`. Money is always an integer number of cents.
+Integrity rules live in **triggers** (5): `media_prohibit_sensitive_docs`, `terms_documents_content_immutable`, `terms_acceptances_immutable`, `form_versions_immutable`, `form_submission_events_immutable`. Money is always an integer number of cents.
 
 ## Public account removal (0019)
 
@@ -34,6 +38,39 @@ On 2026-11-16 the owner removed public sign-in and every public dashboard; the a
 - **Never-used demo tables from 0001/0002:** `musician_profiles`, `musician_skills`, `applications`, `churches`, `gigs`, `gig_positions`, `gig_assignments`, `checkins`, `standby_dispatches`, `instructor_profiles`, `classes`, `enrollments`, `church_partnerships`, `sponsorships`.
 
 It first drops the five triggers on those tables (`provider_publish_gate_insert/update`, `provider_identity_immutable`, `verification_records_no_update/no_delete`), then the tables children-first. Kept on purpose: `persons` (`users.person_id`, `customer_profiles.person_id` and `terms_acceptances.person_id` reference it; dropping it would need table rebuilds), `external_identities` (staff provisioning binds the Cloudflare Access subject; `verifyStaffBoundaryIdentity` checks it), and `customer_sessions`, `marketing_consents`, `moderation_reviews`, `media_files`. Rows of former public users stay in `users`/`sessions` (no foreign key needs them gone; admin only accepts sessions without a product). `packages/db/migrations.test.ts` checks that exactly the kept tables remain, that no trigger, view or foreign key names a dropped table, and applies 0019 over a database holding rows in every dropped table.
+
+## Forms, roster, offers and invoices (0020, 0021)
+
+Additive migrations for the forms, emails and invoices feature (plan: [`docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`](superpowers/plans/2026-11-16-forms-emails-invoices.md), Tasks 2.2, 2.4, 3.1-3.3). Drizzle models: `packages/db/schema.forms.ts` and `packages/db/schema.roster.ts`. Times are epoch seconds; `service_date`/`due_date` are ISO `YYYY-MM-DD` text and `start_time` is `HH:MM`; money is integer USD cents; emails are stored lower-case and trimmed (`*_email_normalized`, CHECK).
+
+**0020 forms engine**
+
+| Table | Notes |
+| --- | --- |
+| `forms` | `slug` unique (lower-case); `program` web/worship/academy/production; `kind` free text (service validates); `status` draft/published/closed; `draft_schema_json`; `revision` (optimistic concurrency, starts 1, bumped on every draft save); `retention_months` (null = program default); `updated_by_user_id` |
+| `form_versions` | immutable snapshot per publish, `UNIQUE(form_id, version)`, `change_note`, `content_hash`; trigger `form_versions_immutable` refuses rewriting form, number, schema, hash or time |
+| `form_submissions` | `reference` unique, `idempotency_key` unique; status new/in_review/handled/spam/archived/approved/declined (approved/declined for applications); `form_version_id` must belong to `form_id` (composite FK); `delete_after` drives retention |
+| `form_submission_events` | append-only history and internal notes (`kind` status/note/export); trigger refuses UPDATE; rows go with their submission (cascade) |
+| `form_operations` | `op_id` primary key: idempotent builder actions (double-click safe); cascades with the form |
+| `form_reference_counters` | `prefix_year` (`GW-2026`) to `next_value` (the next number to hand out) |
+| `upload_sessions` | 48 h session token (`token_hash` unique), `file_count` |
+| `form_uploads` | one row per file; `r2_key` unique; multipart state in `parts_json`; status started/uploaded/verified/rejected/deleted |
+
+Deliberate gaps in referential integrity: `forms.current_version_id` has no FK (forms and versions would be a cycle; the publish batch sets it); every `*_user_id` column has no FK to `users` (staff attribution survives staff removal, like `audit_logs`); `form_uploads.submission_id` has no FK (a file uploads before its submission exists; the retention job deletes files before the submission); `form_uploads.session_id` is nullable with `ON DELETE SET NULL`, so purging a 48 h session never deletes files already attached to a submission.
+
+**0021 roster, requests, offers, invoices**
+
+| Table | Notes |
+| --- | --- |
+| `roster_members` | one per approved application (`submission_id` unique FK); status active/paused/removed; `w9_received_at` is only a date (no tax IDs stored) |
+| `service_requests` | one per church/production request submission (`submission_id` unique FK); status new/matching/offered/confirmed/completed/cancelled |
+| `offers` | `token_hash` (SHA-256; the token is never stored) unique; status pending/accepted/declined/withdrawn/expired; accepted/declined need `responded_at`; partial unique index `offers_one_accepted_per_role` on `(request_id, role) WHERE status='accepted'` makes the loser of an accept race fail |
+| `invoices` | `number` (`GS-YYYY-NNNN`) unique; `stripe_invoice_id` unique when set; USD only; `paid` needs `paid_at` and `paid_method` (stripe/check/zelle/ach/cash/other); `source_id` required unless `manual` |
+| `invoice_lines` | kind musician_pay/lesson/production/other/gamo_admin (the service refuses `gamo_admin` unless approved); `amount_cents = quantity x unit_amount_cents` (CHECK); `musician_pay` needs `payee_roster_member_id`; cascades with a draft invoice |
+| `musician_payouts` | one per `musician_pay` line (`invoice_line_id` unique); a recorded payout blocks deleting its invoice |
+| `invoice_number_counters` | `year` to `next_value` (the next number to hand out) |
+
+Musician pay and Gamo administrative lines are always separate `invoice_lines` kinds. Tests: `packages/db/migrations-forms.test.ts` (tables, foreign keys, uniques, the one-accepted-offer rule, enums, immutability triggers, and that the Drizzle models match the migrated tables column by column and foreign key by foreign key).
 
 ## Gamo Live removal (0018)
 
@@ -72,6 +109,8 @@ It first drops the 47 triggers on those tables (so the cascades of DROP TABLE's 
 | `0017_review_hardening.sql` | product scope on customer link tokens and sessions; seats-per-ticket lock |
 | `0018_remove_gamo_live.sql` | **drops every Gamo Live table** (see above) |
 | `0019_remove_public_accounts.sql` | **drops public accounts, organizations, provider review and old demo tables** (see above) |
+| `0020_forms.sql` | forms engine, submissions, submission events, builder operations, reference counters, upload sessions and uploads (additive) |
+| `0021_roster_requests_offers_invoices.sql` | roster, service requests, offers, invoices, lines, payouts, invoice number counters (additive) |
 
 Tables created by 0001–0016 for Live, public accounts and the old demos no longer exist after 0018/0019; the files stay because applied migrations are never edited.
 
@@ -80,7 +119,7 @@ Tables created by 0001–0016 for Live, public accounts and the old demos no lon
 1. Never edit a migration that has been applied anywhere; add a new file (`00NN_short_name.sql`).
 2. Additive only (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, `ALTER TABLE … ADD COLUMN`). Anything destructive (drops, table rebuilds, data deletes) needs owner approval and a backup.
 3. Keep each trigger on one statement line (`BEGIN SELECT RAISE(…); END;`) — Wrangler's remote SQL splitter requires it.
-4. Update `packages/db/schema.ts` in the same commit; tests (`pnpm test`) apply every migration in order to an in-memory database on every run.
+4. Update the Drizzle model (`packages/db/schema.ts`, `schema.forms.ts` or `schema.roster.ts`) in the same commit; tests (`pnpm test`) apply every migration in order to an in-memory database on every run.
 
 **Known drift** between `schema.ts` and the migrated database (`docs/CLEANUP_LOG.md` F-15), left as is because fixing it needs SQLite table rebuilds:
 
