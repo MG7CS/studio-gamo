@@ -30,21 +30,12 @@ test('CSP forbids inline and third-party script, framing, plugins and foreign fo
   assert.ok(!buildContentSecurityPolicy({ https: false }).includes('upgrade-insecure-requests'));
 });
 
-test("Clerk adds its Frontend API and Cloudflare's bot-protection origin to script-src, and only when configured", () => {
-  const csp = buildContentSecurityPolicy({
-    https: true,
-    clerkFrontendApi: 'https://clerk.example.com/v1/whatever',
-  });
-  assert.equal(
-    directive(csp, 'script-src'),
-    "script-src 'self' https://challenges.cloudflare.com https://clerk.example.com",
-  );
-  assert.match(directive(csp, 'connect-src')!, /https:\/\/clerk\.example\.com/);
-  assert.match(directive(csp, 'frame-src')!, /challenges\.cloudflare\.com/);
-  assert.equal(
-    directive(buildContentSecurityPolicy({ https: true, clerkFrontendApi: 'not a url' }), 'script-src'),
-    "script-src 'self'",
-  );
+test('no Clerk: public accounts are gone, so no CSP directive ever names a Clerk origin', () => {
+  for (const options of [{ https: true }, { https: true, turnstile: true }, { https: false }]) {
+    const csp = buildContentSecurityPolicy(options);
+    assert.doesNotMatch(csp, /clerk/i);
+    assert.equal(directive(csp, 'connect-src'), "connect-src 'self'");
+  }
 });
 
 test('baseline headers; HSTS only over HTTPS; camera and geolocation always off', () => {
@@ -77,16 +68,6 @@ test('Turnstile adds exactly its script and frame origin, and only when configur
   assert.equal(directive(csp, 'frame-src'), "frame-src 'self' https://challenges.cloudflare.com");
   assert.equal(directive(csp, 'connect-src'), "connect-src 'self'");
   assert.ok(!csp.includes('*'), 'no wildcard origin');
-  const both = buildContentSecurityPolicy({
-    https: true,
-    turnstile: true,
-    clerkFrontendApi: 'https://clerk.example.com',
-  });
-  assert.equal(
-    directive(both, 'script-src'),
-    "script-src 'self' https://challenges.cloudflare.com https://clerk.example.com",
-    'the Cloudflare origin appears once with Clerk and Turnstile both on',
-  );
   const off = buildContentSecurityPolicy({ https: true, turnstile: false });
   assert.ok(!off.includes('challenges.cloudflare.com'));
 });

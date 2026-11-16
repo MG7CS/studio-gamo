@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
-import { IdentityService } from '../../packages/domain/index.ts';
+import { StaffIdentityService } from '../../packages/domain/src/services/staff-identity.ts';
 import { svixSignature } from '../../packages/domain/src/services/email-outbox.ts';
 import {
   createSession,
@@ -15,6 +15,18 @@ import {
 } from '../../packages/auth/index.ts';
 import { verifyCloudflareAccessJwt } from '../../apps/admin/src/lib/cf-access.ts';
 import { readContract } from '../../packages/api-contracts/src/runtime.ts';
+import { staffContext } from '../../packages/domain/src/http/staff.ts';
+import { handleApiError } from '../../packages/domain/src/api/response.ts';
+
+/** A stand-in admin handler: passes the staff gate every admin action uses, then answers 200. */
+async function staffGatedHandler(context: any): Promise<Response> {
+  try {
+    await staffContext(context);
+    return Response.json({ ok: true });
+  } catch (err) {
+    return handleApiError(err);
+  }
+}
 
 /** Admin middleware wrapped so every call resolves to a Response (the tests never call `next()` lazily). */
 async function loadAdminMiddleware() {
@@ -35,23 +47,16 @@ async function fixture() {
   const d1 = createInMemoryD1();
   await applyMigrations(d1, migrations());
   const db = createDb(d1);
-  const identity = new IdentityService(db);
-  const owner = await identity.findOrCreateUser('owner@example.invalid');
+  const identity = new StaffIdentityService(db);
+  const owner = await identity.findOrCreateUser('owner@example.invalid', 'Sample Audit Owner');
   const staff = await identity.findOrCreateUser('reviewer@example.invalid');
   await identity.assignSystemRole(staff.id, 'staff_reviewer');
-  const org = await identity.createOrganization(
-    'Sample Audit Ministry',
-    'audit-ministry',
-    'church',
-    owner.id,
-  );
   return {
     d1,
     db,
     identity,
     owner,
     staff,
-    org,
   };
 }
 test('D1 session persistence: rotation, concurrent sessions, expiry, revocation, disabling and role refresh', async () => {
@@ -86,19 +91,19 @@ test('malformed cookie and sibling-origin mutation fail safely', () => {
     extractSessionCookie(new Request('https://gamostudio.org', { headers: { cookie: '__session=%' } })),
     null,
   );
-  for (const origin of ['https://evil.invalid', 'https://worship.gamostudio.org', 'null'])
+  for (const origin of ['https://evil.invalid', 'https://academy.gamostudio.org', 'null'])
     assert.throws(() =>
       requireSameOrigin(
-        new Request('https://academy.gamostudio.org/api/organizations', {
+        new Request('https://admin.gamostudio.org/api/staff/provision', {
           method: 'POST',
           headers: { origin },
         }),
       ),
     );
   requireSameOrigin(
-    new Request('https://academy.gamostudio.org/api/organizations', {
+    new Request('https://admin.gamostudio.org/api/staff/provision', {
       method: 'POST',
-      headers: { origin: 'https://academy.gamostudio.org' },
+      headers: { origin: 'https://admin.gamostudio.org' },
     }),
   );
 });
@@ -141,13 +146,13 @@ test('D1 batches roll back as a whole and foreign keys hold', async () => {
   try {
     await assert.rejects(
       f.db.batch([
-        f.db.run("UPDATE organizations SET name='Should rollback'"),
+        f.db.run("UPDATE users SET display_name='Should rollback'"),
         f.db.run('INSERT INTO nonexistent VALUES (1)'),
       ]),
     );
     assert.equal(
-      (f.d1.sqlite.prepare('SELECT name FROM organizations WHERE id=?').get(f.org.id) as any).name,
-      'Sample Audit Ministry',
+      (f.d1.sqlite.prepare('SELECT display_name FROM users WHERE id=?').get(f.owner.id) as any).display_name,
+      'Sample Audit Owner',
     );
     assert.throws(() =>
       f.d1.sqlite.exec("INSERT INTO sessions(id,user_id,expires_at) VALUES('bad','missing',9999999999)"),
@@ -164,9 +169,13 @@ test('bounded contract reader rejects chunked oversized bodies and forged user b
       new Request('https://example.invalid', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'X'.repeat(70000), slug: 'sample-ministry', type: 'church' }),
+        body: JSON.stringify({
+          email: 'staff@example.invalid',
+          role: 'staff_reviewer',
+          accessSubject: 'X'.repeat(70000),
+        }),
       }),
-      'CreateOrganizationInput',
+      'ProvisionStaffInput',
     ),
   );
   await assert.rejects(
@@ -175,13 +184,13 @@ test('bounded contract reader rejects chunked oversized bodies and forged user b
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'Sample Ministry',
-          slug: 'sample-ministry',
-          type: 'church',
+          email: 'staff@example.invalid',
+          role: 'staff_reviewer',
+          accessSubject: 'cf-sub-1',
           userId: 'victim',
         }),
       }),
-      'CreateOrganizationInput',
+      'ProvisionStaffInput',
     ),
   );
 });
@@ -212,7 +221,7 @@ test('scoped system role rows never grant global staff permissions', async () =>
   try {
     f.d1.sqlite
       .prepare("UPDATE user_roles SET scope_type='organization',scope_id=? WHERE user_id=?")
-      .run(f.org.id, f.staff.id);
+      .run('org_sample', f.staff.id);
     const session = await createSession(f.db, f.staff.id, secret);
     assert.deepEqual((await validateSession(f.db, session.cookieValue, secret))?.roles, []);
   } finally {
@@ -221,7 +230,6 @@ test('scoped system role rows never grant global staff permissions', async () =>
 });
 test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejects forged headers or mismatched staff identity', async () => {
   const onRequest = await loadAdminMiddleware();
-  const { GET: pending } = await import('../../apps/admin/src/pages/api/participation/review-queue.ts');
   const f = await fixture();
   const oldFetch = globalThis.fetch;
   try {
@@ -267,9 +275,9 @@ test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejec
       CF_ACCESS_TEAM_NAME: 'gamoteam',
     };
     const runMiddleware = async (headers: Record<string, string>) => {
-      const request = new Request('https://admin.gamostudio.org/api/participation/review-queue', { headers });
+      const request = new Request('https://admin.gamostudio.org/api/staff/provision', { headers });
       const context: any = { request, params: {}, locals: { runtime: { env } } };
-      return onRequest(context, async () => pending(context));
+      return onRequest(context, async () => staffGatedHandler(context));
     };
     // 1. Forged header without valid signature rejected with 401
     const wrongKp = await crypto.subtle.generateKey(
@@ -328,7 +336,7 @@ test('Admin middleware verifies real RS256 Access JWT via trusted JWKS and rejec
     );
     // 4. Behind Access but not signed in to the gateway, a workspace PAGE shows the gateway
     //    sign-in (401, email prefilled) instead of redirecting into a sign-in loop.
-    const pageRequest = new Request('https://admin.gamostudio.org/participation', {
+    const pageRequest = new Request('https://admin.gamostudio.org/security', {
       headers: { 'cf-access-jwt-assertion': validJwt },
     });
     const pageContext: any = { request: pageRequest, params: {}, locals: { runtime: { env } } };
@@ -517,46 +525,6 @@ test('R2 storage enforces key scope prefix, ticket expiry, MIME spoofing rejecti
     /SENSITIVE_DOCUMENT_PROHIBITED/,
   );
 });
-test('verified email challenge enforces SHA-256 hashing, 10-min expiry, 5-attempt lockout, rate limiting, and single-use consumption', async () => {
-  const f = await fixture();
-  try {
-    const email = 'verify-audit@example.invalid';
-    const issued = await f.identity.issueEmailChallenge(email);
-    // Plaintext code must never be stored in D1
-    const stored = f.d1.sqlite
-      .prepare('SELECT code_hash, attempts FROM auth_challenges WHERE id=?')
-      .get(issued.challengeId) as any;
-    assert.notEqual(stored.code_hash, issued.code);
-    assert.equal(stored.code_hash.length, 64);
-    // Expired challenge rejected
-    const expired = await f.identity.issueEmailChallenge('expired@example.invalid', { ttlSeconds: -5 });
-    await assert.rejects(
-      () => f.identity.verifyEmailChallenge('expired@example.invalid', expired.code),
-      /Invalid or expired/,
-    );
-    // 4 wrong attempts increment counter; 5th attempt locks out with RATE_LIMITED
-    for (let i = 0; i < 4; i++) {
-      await assert.rejects(() => f.identity.verifyEmailChallenge(email, '000000'), /Invalid or expired/);
-    }
-    await assert.rejects(() => f.identity.verifyEmailChallenge(email, '000000'), /RATE_LIMITED/);
-    // Even presenting the right code after 5 failed attempts is rejected
-    await assert.rejects(() => f.identity.verifyEmailChallenge(email, issued.code), /RATE_LIMITED/);
-    // Issue fresh challenge and verify successfully
-    const fresh = await f.identity.issueEmailChallenge(email);
-    const verifiedUser = await f.identity.verifyEmailChallenge(email, fresh.code, {
-      displayName: 'Verified Ministry Leader',
-    });
-    assert.ok(verifiedUser.verifiedEmailAt);
-    // Replay of consumed code rejected
-    await assert.rejects(() => f.identity.verifyEmailChallenge(email, fresh.code), /Invalid or expired/);
-    // Per-address cap (direct calls count every IP): 6 codes per hour; the 7th is rejected with RATE_LIMITED.
-    // (`issued` and `fresh` above are two; four more fit.)
-    for (let i = 0; i < 4; i++) await f.identity.issueEmailChallenge(email);
-    await assert.rejects(() => f.identity.issueEmailChallenge(email), /RATE_LIMITED/);
-  } finally {
-    f.d1.sqlite.close();
-  }
-});
 test('staff identity provisioning binds immutable Cloudflare Access sub and blocks subject spoofing or cross-account binding', async () => {
   const { verifyStaffBoundaryIdentity } = await import('../../packages/auth/index.ts');
   const f = await fixture();
@@ -660,7 +628,6 @@ test('email HTML escaping and the sensitive-document guard on media uploads', as
 });
 test('Admin password gateway never provisions implicitly; explicit local fixture enforces lockout and rotation', async () => {
   const onRequest = await loadAdminMiddleware();
-  const { GET: pending } = await import('../../apps/admin/src/pages/api/participation/review-queue.ts');
   const { authenticateAdminPassword, changeAdminPassword, ensureBootstrapAdminAccount } =
     await import('../../apps/admin/src/lib/admin-password-auth.ts');
   // Test-only identity; real bootstrap identities are never committed.
@@ -718,11 +685,11 @@ test('Admin password gateway never provisions implicitly; explicit local fixture
     assert.match(cookieHeader, /__session=/);
     assert.match(cookieHeader, /__admin_gate=/);
     // 3. Authenticated request with __session + __admin_gate accesses Admin API & UI
-    const apiReq = new Request('https://admin.gamostudio.org/api/participation/review-queue', {
+    const apiReq = new Request('https://admin.gamostudio.org/api/staff/provision', {
       headers: { cookie: cookieHeader },
     });
     const apiCtx: any = { request: apiReq, params: {}, locals: { runtime: { env } } };
-    const apiRes = await onRequest(apiCtx, async () => pending(apiCtx));
+    const apiRes = await onRequest(apiCtx, async () => staffGatedHandler(apiCtx));
     assert.equal(apiRes.status, 200);
     // 4. Changing password updates hash and disables temporary password
     const changed = await changeAdminPassword(

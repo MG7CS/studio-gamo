@@ -1,21 +1,37 @@
 /**
  * robots.txt, sitemap.xml and llms.txt for every app, through each app's real route handler.
- * Robots rules are checked against the same private-route rules the page middleware enforces,
- * so a new private area cannot be added without also keeping crawlers out of it.
+ * Public apps have no accounts or dashboards (removed 2026-11-16); robots.txt keeps crawlers out
+ * of the API and of the transactional pages that carry signed links or personal records.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isPrivatePage, type PublicApp } from '../../packages/auth/page-access.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 
+type PublicApp = 'web' | 'worship' | 'academy' | 'production';
 const APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
-/** Private roots per app (mirrors packages/auth/page-access.ts; the test below keeps them honest). */
-const PRIVATE_ROOTS: Record<PublicApp, string[]> = {
-  web: ['/partner'],
-  worship: ['/church', '/musician', '/check-in', '/admin'],
-  academy: ['/family', '/instructor', '/host'],
-  production: ['/client', '/crew'],
+/** Paths crawlers must never fetch per app (guest registration receipts and manage links). */
+const NO_CRAWL: Record<PublicApp, string[]> = {
+  web: [],
+  worship: [],
+  academy: ['/registrations'],
+  production: [],
 };
+/** Retired account and workspace roots: they only redirect now and must never be in a sitemap. */
+const RETIRED_ROOTS = [
+  '/account',
+  '/partner',
+  '/church',
+  '/musician',
+  '/check-in',
+  '/opportunities',
+  '/family',
+  '/instructor',
+  '/host',
+  '/dashboard',
+  '/client',
+  '/crew',
+];
+const within = (path: string, base: string) => path === base || path.startsWith(`${base}/`);
 // Partial APIContext: the crawler routes only read request/url/locals.
 const context = (url: string): any => ({
   request: new Request(url),
@@ -43,7 +59,7 @@ for (const app of APPS) {
     assert.ok(groups.length >= 3, 'search, AI answer and AI training groups');
     for (const group of groups) {
       const rules = [...group.matchAll(/^Disallow: (.+)$/gm)].map((m) => m[1].trim());
-      for (const root of ['/api/', '/account', ...PRIVATE_ROOTS[app]]) {
+      for (const root of ['/api/', ...NO_CRAWL[app]]) {
         const sample = root.endsWith('/') ? `${root}x` : `${root}/x`;
         assert.ok(
           disallowed(rules, sample),
@@ -53,13 +69,6 @@ for (const app of APPS) {
       assert.ok(!disallowed(rules, '/'), `${app} robots must allow the home page`);
     }
     assert.match(body, new RegExp(`Sitemap: ${siteOrigin(app)}/sitemap\\.xml`));
-  });
-
-  test(`${app}: the private roots listed here are really private`, () => {
-    for (const root of PRIVATE_ROOTS[app]) {
-      const sample = `${root}/x`;
-      assert.ok(isPrivatePage(app, sample), `${app} ${sample} should be private`);
-    }
   });
 
   test(`${app}: sitemap.xml is well-formed and lists only public, same-origin pages`, async () => {
@@ -78,8 +87,9 @@ for (const app of APPS) {
     assert.equal(new Set(locs.map((u) => u.href)).size, locs.length, 'no duplicate URLs');
     for (const loc of locs) {
       assert.equal(loc.origin, siteOrigin(app), `${loc.href} is not on ${app}'s origin`);
-      assert.ok(!isPrivatePage(app, loc.pathname), `${loc.pathname} is private`);
-      assert.ok(!loc.pathname.startsWith('/account') && !loc.pathname.startsWith('/api/'));
+      assert.ok(!loc.pathname.startsWith('/api/'), `${loc.pathname} is an API route`);
+      for (const root of [...RETIRED_ROOTS, ...NO_CRAWL[app]])
+        assert.ok(!within(loc.pathname, root), `${loc.pathname} is retired or private`);
     }
     assert.equal(xml.split('<url>').length - 1, locs.length, 'every <url> has a <loc>');
   });

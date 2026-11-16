@@ -28,7 +28,6 @@ test('the kit has every component, each with a props comment block', () => {
     'TurnstileWidget.astro',
     'FormErrorSummary.astro',
     'SubmitButton.astro',
-    'OnboardingStepper.astro',
   ]) {
     assert.ok(files.includes(name), name);
     assert.match(source(name), /^---\n\/\*\*[\s\S]*?Props/, `${name} documents its props`);

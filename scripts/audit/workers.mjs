@@ -37,8 +37,6 @@ const mf = new Miniflare({
         r2Buckets: ['ASSETS'],
         bindings: {
           ENVIRONMENT: 'local',
-          ALLOW_DEMO_SESSION: 'true',
-          ALLOW_AUTH_SIMULATION: 'true',
           SESSION_SECRET: 'workerd-audit-only-session-secret-32-characters',
         },
       },
@@ -58,77 +56,49 @@ try {
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
   }
-  const call = async (path, status, body, cookie, method) => {
+  const call = async (path, status, body, headers = {}) => {
     const response = await mf.dispatchFetch('http://localhost' + path, {
-      method: method ?? (body ? 'POST' : 'GET'),
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(cookie ? { cookie } : {}) },
+      method: body ? 'POST' : 'GET',
+      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
     const json = await response.json();
     assert.equal(response.status, status, JSON.stringify(json));
     return { json, response };
   };
-  // 1. Verified email challenge -> verify -> /api/auth/me -> /api/organizations onboarding
-  const knownCode = '482910';
-  const hashBuf = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(`owner@example.invalid:signin:${knownCode}`),
-  );
-  const codeHash = Array.from(new Uint8Array(hashBuf), (b) => b.toString(16).padStart(2, '0')).join('');
-  await call('/api/auth/challenge', 200, {
-    email: 'owner@example.invalid',
-    displayName: 'Sample Ministry Owner',
+  const cookieOf = (res) => res.response.headers.get('set-cookie').split(';')[0];
+  // 1. A superadmin (test fixture session) provisions a staff reviewer bound to a Cloudflare Access sub.
+  const superSession = await call('/test/staff-session', 200, {
+    email: 'superadmin@example.invalid',
+    role: 'superadmin',
   });
-  await db
-    .prepare(
-      "INSERT INTO auth_challenges(id,email,code_hash,purpose,attempts,expires_at,created_at) VALUES('chl_workerd_1','owner@example.invalid',?,'signin',0,unixepoch()+600,unixepoch()+1)",
-    )
-    .bind(codeHash)
-    .run();
-  const owner = await call('/api/auth/verify', 200, {
-    email: 'owner@example.invalid',
-    code: knownCode,
-    displayName: 'Sample Ministry Owner',
+  const superCookie = cookieOf(superSession);
+  const provision = {
+    email: 'reviewer@example.invalid',
+    role: 'staff_reviewer',
+    accessSubject: 'cf-access-sub-workerd-1',
+    displayName: 'Workerd Reviewer',
+  };
+  // Without a session, and as a non-superadmin, provisioning is refused.
+  await call('/api/staff/provision', 401, provision);
+  const plain = await call('/test/staff-session', 200, {
+    email: 'staff@example.invalid',
+    role: 'staff_reviewer',
   });
-  const cookie = owner.response.headers.get('set-cookie').split(';')[0];
-  const meRes = await call('/api/auth/me', 200, undefined, cookie);
-  assert.ok(meRes.json.data.user.verifiedEmailAt);
-  const orgCreated = await call(
-    '/api/organizations',
-    201,
-    { name: 'Sample Audit Ministry', slug: 'sample-audit', type: 'church' },
-    cookie,
-  );
-  assert.ok(orgCreated.json.data.organization.id);
-  // 2. Superadmin provisions staff reviewer identity with Cloudflare Access sub
-  const superSession = await call('/api/auth/session', 200, { email: 'superadmin@example.invalid' });
-  const superCookie = superSession.response.headers.get('set-cookie').split(';')[0];
-  const superId = superSession.json.data.user.id;
-  await db.batch([
-    db.prepare("INSERT INTO roles(id,code) VALUES('role_superadmin','superadmin')"),
-    db
-      .prepare(
-        "INSERT INTO user_roles(id,user_id,role_id,created_at) VALUES('ur_super',?,'role_superadmin',unixepoch())",
-      )
-      .bind(superId),
-  ]);
+  await call('/api/staff/provision', 403, provision, { cookie: cookieOf(plain) });
+  const provisioned = await call('/api/staff/provision', 200, provision, { cookie: superCookie });
+  assert.equal(provisioned.json.data.accessSubject, 'cf-access-sub-workerd-1');
+  // 2. Re-binding the same Access subject to another user is a conflict.
   await call(
     '/api/staff/provision',
-    200,
-    {
-      email: 'reviewer@example.invalid',
-      role: 'staff_reviewer',
-      accessSubject: 'cf-access-sub-workerd-1',
-      displayName: 'Workerd Reviewer',
-    },
-    superCookie,
+    409,
+    { ...provision, email: 'other@example.invalid' },
+    { cookie: superCookie },
   );
-  await call('/api/auth/session', 200, { email: 'reviewer@example.invalid' });
   assert.deepEqual((await db.prepare('PRAGMA foreign_key_check').all()).results, []);
+  // 3. R2 restricted objects are denied to staff and readable by their owner.
   const r2 = await call('/test/r2', 200);
   assert.deepEqual(r2.json, { denied: true, owner: true });
-  await call('/api/auth/session', 200, undefined, cookie, 'DELETE');
-  await call('/api/auth/me', 401, undefined, cookie);
 } finally {
   await mf.dispose();
 }
@@ -147,5 +117,5 @@ for (const rel of sqliteFiles) {
 }
 rmSync(dir, { recursive: true, force: true });
 console.log(
-  'PASS workerd: actual routes, D1 migrations, persisted D1 SQLite PRAGMA integrity_check + foreign_key_check, verified email challenge/verify, org onboarding, staff provisioning, R2 binding, sign-out.',
+  'PASS workerd: actual routes, D1 migrations, persisted D1 SQLite PRAGMA integrity_check + foreign_key_check, staff provisioning (anonymous, non-superadmin, conflict), R2 binding.',
 );

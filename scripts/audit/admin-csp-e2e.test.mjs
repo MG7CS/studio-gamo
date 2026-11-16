@@ -125,7 +125,7 @@ try {
   assert.equal(cspViolations('<a href="javascript:void(0)">x</a>', "script-src 'self'").length, 1);
 
   // Every page the workspace links to, found by following its own navigation, plus the fixed routes.
-  const queue = ['/', '/security', '/security?welcome=1', '/legal', '/participation', '/no-such-page'];
+  const queue = ['/', '/security', '/security?welcome=1', '/legal', '/no-such-page'];
   const pages = new Map();
   const nonces = [];
   while (queue.length) {

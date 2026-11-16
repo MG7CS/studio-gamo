@@ -1,36 +1,41 @@
 /**
- * Every route in every app is either explicitly public or denies anonymous visitors.
+ * Public apps have no accounts, sign-in or dashboards (removed 2026-11-16): every page is public by
+ * allowlist and renders for an anonymous visitor, retired account URLs redirect home, and the only
+ * public-app API methods are allowlisted ones that enforce their own gate. The admin app stays fully
+ * private through its middleware (Cloudflare Access + admin password).
  *
- * Pages: each file under apps/<app>/src/pages is classified. Public ones must be listed in
- * PUBLIC_PAGES (so a new private-looking page cannot ship public by accident); every other page
- * is run through the real `applicationPages()` middleware anonymously and must redirect to sign-in.
- * APIs: every exported method of every apps/<app>/src/pages/api route that is not in PUBLIC_API is
- * called anonymously and must answer 401 or 403. The admin app is checked through its middleware.
+ * Pages: each file under apps/<app>/src/pages must be listed in PUBLIC_PAGES (so a page cannot ship
+ * without someone deciding it is public) and is run through the real `applicationPages()` middleware
+ * anonymously. APIs: every exported method of every apps/<app>/src/pages/api route must be listed in
+ * PUBLIC_API. The admin app is checked through its middleware.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { applicationPages } from '../../packages/domain/src/api/page-middleware.ts';
-import type { PublicApp } from '../../packages/auth/page-access.ts';
+import { legacyRedirects as webRedirects } from '../../apps/web/src/lib/legacy-redirects.ts';
+import { legacyRedirects as worshipRedirects } from '../../apps/worship/src/lib/legacy-redirects.ts';
+import { legacyRedirects as academyRedirects } from '../../apps/academy/src/lib/legacy-redirects.ts';
+import { legacyRedirects as productionRedirects } from '../../apps/production/src/lib/legacy-redirects.ts';
 
+type PublicApp = 'web' | 'worship' | 'academy' | 'production';
+/** The public-site middleware exactly as each app's src/middleware.ts configures it. */
+const LEGACY = {
+  web: webRedirects,
+  worship: worshipRedirects,
+  academy: academyRedirects,
+  production: productionRedirects,
+};
+const appMiddleware = (app: PublicApp) => applicationPages(app, { legacyRedirects: LEGACY[app] });
 const SECRET = 'private-routes-test-session-secret-0123456789';
 const PUBLIC_APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
-const AUTH_PAGES = [
-  '/account/signin',
-  '/account/signup',
-  '/account/verify',
-  '/account/recover',
-  '/account/access-denied',
-  '/account/signed-out',
-  '/account/sso-callback',
-];
 const CRAWLER_FILES = ['/robots.txt', '/sitemap.xml'];
 /** Error pages render for any path (Astro uses them for unmatched routes and server errors). */
 const ERROR_PAGES = ['/404', '/500'];
 
-/** Pages anyone may view. Anything not listed here must be private. */
+/** Pages anyone may view. Every page of a public app must be listed here. */
 const PUBLIC_PAGES: Record<PublicApp, string[]> = {
   web: [
     '/',
@@ -45,11 +50,11 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/partners',
     '/partners/interest',
     '/llms.txt',
-    ...AUTH_PAGES,
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
-  worship: ['/', '/opportunities', ...AUTH_PAGES, ...CRAWLER_FILES, ...ERROR_PAGES],
+  // Apply to serve / request musicians: placeholder pages until the Phase 2 forms engine lands.
+  worship: ['/', '/apply', '/request', ...CRAWLER_FILES, ...ERROR_PAGES],
   academy: [
     '/',
     '/instruments',
@@ -65,7 +70,6 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/registrations/open',
     '/registrations/receipt',
     '/registrations/manage',
-    ...AUTH_PAGES,
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
@@ -74,20 +78,16 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/services',
     '/services/[slug]',
     '/training',
-    ...AUTH_PAGES,
+    '/apply',
+    '/request',
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
 };
 
-/** API methods anyone may call (each enforces its own gate: OTP, signature, local-only, etc.). */
+/** API methods anyone may call (each enforces its own gate: signature, Turnstile, signed link, etc.). */
 const PUBLIC_API = new Set([
-  'POST /api/auth/challenge',
-  'POST /api/auth/verify',
-  'POST /api/auth/session', // demo session: local + loopback only, 403 elsewhere
-  'DELETE /api/auth/session', // signing out without a session is harmless
-  'POST /api/auth/clerk-webhook', // Svix signature with this product's CLERK_WEBHOOK_SECRET_<APP>
-  'POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
+  'web POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
 ]);
 
 function walk(dir: string, base = ''): string[] {
@@ -138,61 +138,73 @@ function apiContext(
   };
 }
 
+function pageContext(app: PublicApp, path: string, env: Record<string, unknown>) {
+  const url = new URL(`https://${app}.example.test${path}`);
+  return {
+    request: new Request(url),
+    url,
+    locals: { runtime: { env } } as Record<string, unknown>,
+    redirect: (location: string, status = 302) =>
+      new Response(null, { status, headers: { Location: location } }),
+  };
+}
+
 for (const app of PUBLIC_APPS) {
-  test(`${app}: every page is public by allowlist or redirects anonymous visitors to sign-in`, async () => {
+  test(`${app}: every page is allowlisted as public and renders for an anonymous visitor`, async () => {
     const env = await migratedEnv();
-    const middleware = applicationPages(app);
+    const middleware = appMiddleware(app);
     const routes = walk(`apps/${app}/src/pages`)
       .filter((f) => !f.startsWith('/api/'))
       .map(toRoute);
     const allow = new Set(PUBLIC_PAGES[app]);
     for (const listed of allow)
       assert.ok(routes.includes(listed), `${app}: allowlisted ${listed} has no page`);
-
-    const privateRoutes = routes.filter((r) => !allow.has(r));
-    assert.ok(privateRoutes.length > 0, `${app}: no private pages were exercised`);
-    for (const route of privateRoutes) {
-      const url = new URL(`https://${app}.example.test${toSamplePath(route)}`);
-      const context = {
-        request: new Request(url),
-        url,
-        locals: { runtime: { env } } as Record<string, unknown>,
-        redirect: (path: string, status = 302) => new Response(null, { status, headers: { Location: path } }),
-      };
+    for (const route of routes) {
+      assert.ok(
+        allow.has(route),
+        `${app}: ${route} is not in PUBLIC_PAGES (public apps have no private pages)`,
+      );
       let rendered = false;
-      const response = await middleware(context as never, async () => {
+      const response = await middleware(pageContext(app, toSamplePath(route), env) as never, async () => {
         rendered = true;
         return new Response('page body');
       });
-      assert.equal(rendered, false, `${app} ${route} rendered for an anonymous visitor`);
-      assert.equal(response.status, 303, `${app} ${route}`);
-      assert.match(response.headers.get('location') ?? '', /^\/account\/signin\?next=/, `${app} ${route}`);
+      assert.equal(rendered, true, `${app} ${route} did not render for an anonymous visitor`);
+      assert.equal(response.status, 200, `${app} ${route}`);
+      assert.doesNotMatch(response.headers.get('location') ?? '', /\/account\//, `${app} ${route}`);
     }
   });
 
-  test(`${app}: every non-public API method rejects anonymous callers with 401/403`, async () => {
+  test(`${app}: retired account and sign-in URLs redirect home without rendering`, async () => {
     const env = await migratedEnv();
-    let checked = 0;
+    const middleware = appMiddleware(app);
+    for (const path of ['/account', '/account/signin', '/account/signup?role=church', '/account/profile']) {
+      let rendered = false;
+      const response = await middleware(pageContext(app, path, env) as never, async () => {
+        rendered = true;
+        return new Response('page body');
+      });
+      assert.equal(rendered, false, `${app} ${path} rendered`);
+      assert.equal(response.status, 302, `${app} ${path}`);
+      assert.equal(response.headers.get('location'), '/', `${app} ${path}`);
+    }
+  });
+
+  test(`${app}: no account, auth or organization API routes remain; every API method is allowlisted`, async () => {
+    for (const gone of ['auth', 'account', 'organizations', 'participation'])
+      assert.ok(!existsSync(`apps/${app}/src/pages/api/${gone}`), `${app}: api/${gone} still exists`);
+    if (!existsSync(`apps/${app}/src/pages/api`)) return;
     for (const file of walk(`apps/${app}/src/pages/api`)) {
       const route = `/api${toRoute(file)}`;
       const mod = (await import(`../../apps/${app}/src/pages/api${file}`)) as Record<string, unknown>;
       for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
-        const handler = mod[method];
-        if (typeof handler !== 'function' || PUBLIC_API.has(`${method} ${route}`)) continue;
-        const url = `https://${app}.example.test${toSamplePath(route)}`;
-        const params = Object.fromEntries(
-          [...route.matchAll(/\[(?:\.\.\.)?([a-z]+)\]/g)].map((m) => [m[1], 'sample']),
-        );
-        const response = (await handler(apiContext(url, method, env, params))) as Response;
+        if (typeof mod[method] !== 'function') continue;
         assert.ok(
-          [401, 403].includes(response.status),
-          `${app} ${method} ${route} answered ${response.status}`,
+          PUBLIC_API.has(`${app} ${method} ${route}`),
+          `${app} ${method} ${route} is not allowlisted`,
         );
-        checked++;
       }
     }
-    // Every app has at least GET /api/auth/me and POST /api/organizations.
-    assert.ok(checked >= 2, `${app}: only ${checked} private API methods exercised`);
   });
 }
 

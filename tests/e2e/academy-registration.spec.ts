@@ -85,9 +85,9 @@ for (const viewport of [
     await page.locator('[data-preview-manage-link]').click();
     await expect(page).toHaveURL(`${ORIGIN}/registrations/manage`);
     await expect(page.locator(`[data-registration="${reference}"]`)).toBeVisible();
-    await expect(
-      page.getByRole('link', { name: 'Create a Gamo Academy account with this email' }),
-    ).toHaveAttribute('href', '/account/signup?claim=registration');
+    // Public accounts were removed (2026-11-16): nothing offers to create an account.
+    await expect(page.getByRole('link', { name: /create .*account/i })).toHaveCount(0);
+    await expect(page.locator('a[href*="/account/"]')).toHaveCount(0);
     await checkPage(page, 'manage', errors);
 
     await page.getByRole('button', { name: 'Cancel registration' }).click();

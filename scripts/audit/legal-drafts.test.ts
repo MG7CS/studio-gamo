@@ -25,10 +25,12 @@ const PUBLISHED_VERSIONS: Record<string, Record<string, string>> = {
   'site-terms': {
     '2026-10-18-draft.2': '4b11245915577c29c065ee875e1689f9f315792c9a955ce858d5453dff48588f',
     '2026-11-16-draft.3': 'a650f638a419988575dc97012c061d02d8798198f7654396516912a9af36332a',
+    '2026-11-16-draft.4': '3288a7716e76ba9e567534086109f86f162fbae3149fde1eaa0928d4a6999cab',
   },
   'privacy-policy': {
     '2026-10-18-draft.2': '1b4f267a5f962991584df2558602287b31d07c6f40bcb70790aebc8068a2262d',
     '2026-11-16-draft.3': '7fe7aa36fce06ed3f8fdc3cbe404722929aaffe7cfe2f45cd81a1485c9a07161',
+    '2026-11-16-draft.4': '09ed0bbdbc5c63b713a013f31d89cfac5d0feb14f6eeed19c628031c76831906',
   },
   'ticket-terms': {
     '2026-10-18-draft.2': '616ab80c8dff8cf2f8fe43ae65e25195fab97aaa1ae263e5da6c3e6179e92c10',
@@ -39,18 +41,22 @@ const PUBLISHED_VERSIONS: Record<string, Record<string, string>> = {
   'provider-terms': {
     '2026-10-18-draft.2': '9f81eb4d39d3147404476153d37ef4b580fbcf203a3a1c77fad874b8d82e2155',
     '2026-11-16-draft.3': '07d1feef49664ddbdfc88205910639a36c08b4ad4b02bff3d1b39034cbff3223',
+    '2026-11-16-draft.4': 'edcc187be6cc10dde84891b7ab9c9c09bf5cb5d01dbdef432fd28ea7d3dbc426',
   },
   'academy-enrollment-terms': {
     '2026-10-18-draft.2': '828e9d4ec877cbb186d55572dccb92510e67f328897612fc07085b4b5afc89ae',
     '2026-11-16-draft.3': '828e9d4ec877cbb186d55572dccb92510e67f328897612fc07085b4b5afc89ae',
+    '2026-11-16-draft.4': '828e9d4ec877cbb186d55572dccb92510e67f328897612fc07085b4b5afc89ae',
   },
   'academy-guardian-consent': {
     '2026-10-18-draft.2': '7e825c193a223b647672ba33423765c4fa0c23e6d3d68520cc00e05694274fdf',
     '2026-11-16-draft.3': '7e825c193a223b647672ba33423765c4fa0c23e6d3d68520cc00e05694274fdf',
+    '2026-11-16-draft.4': '7e825c193a223b647672ba33423765c4fa0c23e6d3d68520cc00e05694274fdf',
   },
   'academy-child-safety-consent': {
     '2026-10-18-draft.2': 'e83055c744bbc5e1468b7fc7511b4a5012909c7119ef3b1e13b0af9f663715a2',
     '2026-11-16-draft.3': 'e83055c744bbc5e1468b7fc7511b4a5012909c7119ef3b1e13b0af9f663715a2',
+    '2026-11-16-draft.4': 'e83055c744bbc5e1468b7fc7511b4a5012909c7119ef3b1e13b0af9f663715a2',
   },
 };
 
@@ -105,7 +111,6 @@ test('drafts use approved status wording only and cover the required points', ()
     'Stripe',
     'test mode',
     'Resend',
-    'Clerk',
   ])
     assert.ok(privacy.includes(point), `privacy policy mentions ${point}`);
   const provider = allText('provider-terms');

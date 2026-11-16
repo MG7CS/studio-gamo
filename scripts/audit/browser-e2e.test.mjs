@@ -39,7 +39,6 @@ const mf = new Miniflare({
         bindings: {
           SESSION_SECRET: 'browser-e2e-workerd-secret-0123456789abcdef',
           ENVIRONMENT: 'local',
-          ALLOW_AUTH_SIMULATION: 'true',
         },
       },
     ],
@@ -48,19 +47,6 @@ const mf = new Miniflare({
 });
 
 const browser = await chromium.launch({ headless: true });
-
-// Current terms version, read from the registry source (this .mjs test cannot import TypeScript).
-const TERMS_VERSION = /TERMS_DRAFT_VERSION = '([^']+)'/.exec(
-  readFileSync('packages/domain/src/terms/registry.ts', 'utf8'),
-)[1];
-const signupTerms = () => ['site-terms', 'privacy-policy'].map((slug) => ({ slug, version: TERMS_VERSION }));
-const hashOtp = async (email, code) => {
-  const buf = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(`${email.toLowerCase()}:signin:academy:signup:${code}`),
-  );
-  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
-};
 
 try {
   const baseUrl = (await mf.ready).toString().replace(/\/$/, '');
@@ -77,148 +63,82 @@ try {
     }
   }
 
+  // Public accounts were removed (2026-11-16): the only signed-in users are admin staff. The staff
+  // session comes from the test fixture route (it stands in for the admin gateway sign-in, which
+  // tests/e2e/admin-signin.spec.ts drives in a real browser); the session cookie then travels with
+  // real browser requests to the real provisioning route.
   const context = await browser.newContext();
   const page = await context.newPage();
   page.setDefaultTimeout(5000);
+  await page.goto(`${baseUrl}/test/r2`, { waitUntil: 'domcontentloaded' });
+  assert.deepEqual(JSON.parse((await page.textContent('body')) || '{}'), { denied: true, owner: true });
 
-  // 1. Navigate to /account/signin and request an email verification challenge
-  await page.goto(`${baseUrl}/account/signin`, { waitUntil: 'networkidle' });
-  await page.fill('[data-step-challenge] input[name="email"]', 'organizer@grace-e2e.org');
-  await page.fill('[data-step-challenge] input[name="displayName"]', 'Pastor Grace E2E');
-  await page.click('[data-btn-challenge]');
+  const provision = (body) =>
+    page.evaluate(async (payload) => {
+      const res = await fetch('/api/staff/provision', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'cf-access-authenticated-user-email': 'root@gamostudio.org',
+          'cf-access-authenticated-user-id': 'cf-access-sub-super-e2e',
+        },
+        body: JSON.stringify(payload),
+      });
+      return { status: res.status, body: await res.json() };
+    }, body);
+  const reviewer = {
+    email: 'reviewer-e2e@gamostudio.org',
+    displayName: 'E2E Staff Reviewer',
+    role: 'staff_reviewer',
+    accessSubject: 'cf-access-sub-browser-e2e',
+  };
 
-  await page.waitForSelector('[data-step-verify]:not([hidden])');
-  const statusAfterChallenge = await page.textContent('[data-auth-status]');
-  assert.match(statusAfterChallenge || '', /Verification code sent/);
+  // 1. Without a staff session the browser is refused.
+  const anonymous = await provision(reviewer);
+  assert.equal(anonymous.status, 401);
+  assert.equal(anonymous.body.error.code, 'UNAUTHENTICATED');
 
-  // 2. Verify challenge row was persisted in D1 and complete verification in browser
-  const knownCode = '482910';
-  const codeHash = await hashOtp('organizer@grace-e2e.org', knownCode);
-  const updateRes = await db
-    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'organizer@grace-e2e.org'")
-    .bind(codeHash)
-    .run();
-  assert.equal(updateRes.meta.changes, 1);
-
-  await page.fill('[data-step-verify] input[name="code"]', knownCode);
-  await page.click('[data-btn-verify]');
-
-  await page.waitForSelector('[data-step-authenticated]:not([hidden])');
-  const sessionSummary = await page.textContent('[data-session-summary]');
-  assert.equal(sessionSummary?.trim(), 'organizer@grace-e2e.org (Verified)');
-
-  // 3. Onboard a new organization in browser and verify active org membership
-  await page.fill('[data-form-org] input[name="name"]', 'Grace Chapel E2E');
-  await page.fill('[data-form-org] input[name="slug"]', 'grace-chapel-e2e');
-  await page.selectOption('[data-form-org] select[name="type"]', 'church');
-  await page.click('[data-btn-create-org]');
-
-  await page.waitForSelector('[data-org-current]:not([hidden])');
-  const orgSummary = await page.textContent('[data-org-summary]');
-  assert.equal(orgSummary?.trim(), 'Grace Chapel E2E (church · owner)');
-  const orgId = await page.getAttribute('[data-org-current]', 'data-org-id');
-  assert.ok(orgId?.startsWith('org_'));
-
-  // 4. Provision a superadmin + staff reviewer in D1/API; the reviewer signs in with a verified code
-  await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      email: 'root@gamostudio.org',
-      displayName: 'Root Superadmin',
-      intent: 'signup',
-      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
-    }),
-  });
-  const superCodeHash = await hashOtp('root@gamostudio.org', '111222');
-  await db
-    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'root@gamostudio.org'")
-    .bind(superCodeHash)
-    .run();
-  const superVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      email: 'root@gamostudio.org',
-      code: '111222',
-      displayName: 'Root Superadmin',
-      intent: 'signup',
-      terms: signupTerms(),
-    }),
-  });
-  const superCookie = superVerify.headers.get('set-cookie').split(';')[0];
-  const superBody = await superVerify.json();
-  const superUserId = superBody.data.user.id;
-  await db.batch([
-    db.prepare("INSERT OR IGNORE INTO roles (id, code) VALUES ('role_superadmin', 'superadmin')"),
-    db
-      .prepare(
-        "INSERT INTO user_roles (id, user_id, role_id, created_at) VALUES ('ur_super_e2e', ?, 'role_superadmin', unixepoch())",
-      )
-      .bind(superUserId),
-    db
-      .prepare(
-        "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudio.org', unixepoch(), unixepoch())",
-      )
-      .bind(superUserId),
-  ]);
-
-  const provRes = await mf.dispatchFetch(`${baseUrl}/api/staff/provision`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      cookie: superCookie,
-      'cf-access-authenticated-user-email': 'root@gamostudio.org',
-      'cf-access-authenticated-user-id': 'cf-access-sub-super-e2e',
-    },
-    body: JSON.stringify({
-      email: 'reviewer-e2e@gamostudio.org',
-      displayName: 'E2E Staff Reviewer',
-      role: 'staff_reviewer',
-      accessSubject: 'cf-access-sub-browser-e2e',
-    }),
-  });
-  assert.equal(provRes.status, 200);
-
-  await mf.dispatchFetch(`${baseUrl}/api/auth/challenge`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      email: 'reviewer-e2e@gamostudio.org',
-      intent: 'signup',
-      'cf-turnstile-response': 'XXXX.DUMMY.TOKEN.XXXX',
-    }),
-  });
-  const staffCodeHash = await hashOtp('reviewer-e2e@gamostudio.org', '333444');
-  await db
-    .prepare("UPDATE auth_challenges SET code_hash = ? WHERE email = 'reviewer-e2e@gamostudio.org'")
-    .bind(staffCodeHash)
-    .run();
-  const staffVerify = await mf.dispatchFetch(`${baseUrl}/api/auth/verify`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      email: 'reviewer-e2e@gamostudio.org',
-      code: '333444',
-      intent: 'signup',
-      terms: signupTerms(),
-    }),
-  });
-  assert.equal(staffVerify.status, 200);
-  assert.ok(staffVerify.headers.get('set-cookie')?.includes('='));
-
-  // 5. Navigate back to /account/signin, click Sign out, and verify session termination in browser
-  await page.goto(`${baseUrl}/account/signin`, { waitUntil: 'networkidle' });
-  await page.waitForSelector('[data-step-authenticated]:not([hidden])');
-  await page.click('[data-btn-signout]');
-  await page.waitForSelector('[data-step-challenge]:not([hidden])');
-
-  const meAfterLogout = await page.evaluate(async () => {
-    const res = await fetch('/api/auth/me');
+  // 2. A superadmin session (bound to its Access subject) provisions the reviewer.
+  const signIn = await page.evaluate(async () => {
+    const res = await fetch('/test/staff-session', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'root@gamostudio.org', role: 'superadmin' }),
+    });
     return { status: res.status, body: await res.json() };
   });
-  assert.equal(meAfterLogout.status, 401);
-  assert.equal(meAfterLogout.body.error.code, 'UNAUTHENTICATED');
+  assert.equal(signIn.status, 200);
+  await db
+    .prepare(
+      "INSERT INTO external_identities (id, user_id, provider, provider_subject, provider_email, verified_at, created_at) VALUES ('ext_super_e2e', ?, 'cloudflare_access', 'cf-access-sub-super-e2e', 'root@gamostudio.org', unixepoch(), unixepoch())",
+    )
+    .bind(signIn.body.data.user.id)
+    .run();
+  assert.ok((await context.cookies()).some((c) => c.name === '__session'));
+  const ok = await provision(reviewer);
+  assert.equal(ok.status, 200, JSON.stringify(ok.body));
+  assert.equal(ok.body.data.role, 'staff_reviewer');
+  const row = await db
+    .prepare(
+      "SELECT provider_subject FROM external_identities WHERE provider_email = 'reviewer-e2e@gamostudio.org'",
+    )
+    .first();
+  assert.equal(row?.provider_subject, 'cf-access-sub-browser-e2e');
+
+  // 3. A spoofed Access subject for the signed-in superadmin is refused.
+  const spoofed = await page.evaluate(async () => {
+    const res = await fetch('/api/staff/provision', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'cf-access-authenticated-user-email': 'root@gamostudio.org',
+        'cf-access-authenticated-user-id': 'cf-access-sub-spoofed',
+      },
+      body: JSON.stringify({ email: 'x@gamostudio.org', role: 'staff_reviewer', accessSubject: 'cf-sub-x' }),
+    });
+    return res.status;
+  });
+  assert.equal(spoofed, 403);
 
   console.log('PLAYWRIGHT_BROWSER_E2E_WORKERD_D1_OK');
 } finally {

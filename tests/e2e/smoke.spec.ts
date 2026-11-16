@@ -15,12 +15,15 @@ const APPS = {
   academy: 'http://127.0.0.1:4323',
   production: 'http://127.0.0.1:4325',
 } as const;
-/** Public pages that are intentionally not in a sitemap. */
+/**
+ * Pages always checked even if a sitemap drops them. Public accounts were removed (2026-11-16); Worship and
+ * Production keep their public apply/request placeholder pages until the forms engine lands.
+ */
 const EXTRA_PAGES: Record<keyof typeof APPS, string[]> = {
-  web: ['/account/signin', '/account/signup'],
-  worship: ['/account/signin'],
-  academy: ['/account/signin'],
-  production: ['/account/signin'],
+  web: [],
+  worship: ['/apply', '/request'],
+  academy: [],
+  production: ['/apply', '/request'],
 };
 const LOCAL_ORIGIN = /^http:\/\/127\.0\.0\.1:432[1-6]$/;
 
@@ -137,6 +140,14 @@ for (const [app, origin] of Object.entries(APPS) as Array<[keyof typeof APPS, st
     const response = await page.goto(`${origin}/this-page-does-not-exist`);
     expect(response?.status()).toBe(404);
     await expect(page.locator('h1')).toHaveText(/page not found/i);
+  });
+
+  test(`${app}: retired account URLs redirect to the homepage`, async ({ request }) => {
+    for (const path of ['/account/signin', '/account/signup', '/account']) {
+      const res = await request.get(`${origin}${path}`, { maxRedirects: 0, failOnStatusCode: false });
+      expect(res.status(), path).toBe(302);
+      expect(res.headers()['location'], path).toBe('/');
+    }
   });
 
   test(`${app}: crawler files are public and cacheable`, async ({ request }) => {
