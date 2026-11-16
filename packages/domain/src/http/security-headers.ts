@@ -16,8 +16,6 @@
  */
 
 export interface SecurityHeaderOptions {
-  /** Origin of this product's Clerk Frontend API (e.g. https://clerk.example.com), when Clerk is configured. */
-  clerkFrontendApi?: string;
   /** Enforce the CSP (production builds). Off under `astro dev`, whose HMR client injects inline scripts. */
   enforceCsp: boolean;
   /** Request was served over HTTPS (enables HSTS and upgrade-insecure-requests). */
@@ -49,23 +47,8 @@ export interface SecurityHeaderOptions {
  */
 export type PageSecurityRequest = Pick<SecurityHeaderOptions, 'formActionOrigins' | 'noReferrer'>;
 
-/** Turnstile's script and widget frame origin (also used by Clerk's bot protection). */
+/** Turnstile's script and widget frame origin. */
 export const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
-
-const CLERK_SUPPORT_ORIGINS = {
-  img: 'https://img.clerk.com',
-  telemetry: 'https://clerk-telemetry.com',
-  captcha: TURNSTILE_ORIGIN,
-};
-
-function originOf(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  try {
-    return new URL(url).origin;
-  } catch {
-    return undefined;
-  }
-}
 
 /**
  * Keeps only exact `https://host[:port]` origins (no path, wildcard, credentials or other scheme),
@@ -97,23 +80,18 @@ export function generateCspNonce(): string {
 }
 
 export function buildContentSecurityPolicy(
-  options: Pick<
-    SecurityHeaderOptions,
-    'clerkFrontendApi' | 'https' | 'turnstile' | 'formActionOrigins' | 'nonce'
-  >,
+  options: Pick<SecurityHeaderOptions, 'https' | 'turnstile' | 'formActionOrigins' | 'nonce'>,
 ): string {
-  const clerk = originOf(options.clerkFrontendApi);
-  const withClerk = (...sources: string[]) => (clerk ? [...sources, clerk] : sources);
-  // Turnstile (ours, or Clerk's bot protection) loads its script and frame from challenges.cloudflare.com.
-  const captcha = clerk || options.turnstile ? [CLERK_SUPPORT_ORIGINS.captcha] : [];
+  // Turnstile loads its script and frame from challenges.cloudflare.com.
+  const captcha = options.turnstile ? [TURNSTILE_ORIGIN] : [];
   const nonce = options.nonce && NONCE_PATTERN.test(options.nonce) ? options.nonce : undefined;
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': withClerk("'self'", ...(nonce ? [`'nonce-${nonce}'`] : []), ...captcha),
+    'script-src': ["'self'", ...(nonce ? [`'nonce-${nonce}'`] : []), ...captcha],
     'style-src': ["'self'", "'unsafe-inline'"],
     'font-src': ["'self'", 'data:'],
-    'img-src': ["'self'", 'data:', 'blob:', ...(clerk ? [CLERK_SUPPORT_ORIGINS.img] : [])],
-    'connect-src': withClerk("'self'", ...(clerk ? [CLERK_SUPPORT_ORIGINS.telemetry] : [])),
+    'img-src': ["'self'", 'data:', 'blob:'],
+    'connect-src': ["'self'"],
     'frame-src': ["'self'", ...captcha],
     'worker-src': ["'self'", 'blob:'],
     'form-action': ["'self'", ...exactHttpsOrigins(options.formActionOrigins)],

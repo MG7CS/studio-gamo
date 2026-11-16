@@ -1,2 +1,2 @@
-/** Typed enums and domain shapes for identity, providers and Academy. Import as `@gamo/domain/types`. */
+/** Typed enums and domain shapes for terms, email and Academy. Import as `@gamo/domain/types`. */
 export * from './enums.ts';

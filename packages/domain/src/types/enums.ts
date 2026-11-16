@@ -1,65 +1,17 @@
 /**
- * Every status and enum the identity, email and Academy schema stores (migrations 0012/0013).
+ * Every status and enum the terms, email and Academy schema stores (migrations 0012/0013). Provider and
+ * verification enums went away with public accounts (2026-11-16).
  * Each list matches a SQL CHECK or validation trigger; `packages/domain/src/types/types.test.ts`
  * asserts that every value is present in the migration SQL.
  */
 
-/** Narrowing helper: `isOneOf(PROVIDER_STATUSES, value)`. */
+/** Narrowing helper: `isOneOf(STUDENT_AGE_BANDS, value)`. */
 export function isOneOf<const T extends readonly string[]>(list: T, value: unknown): value is T[number] {
   return typeof value === 'string' && (list as readonly string[]).includes(value);
 }
 
 export const PRODUCTS = ['web', 'worship', 'academy', 'live', 'production'] as const;
 export type Product = (typeof PRODUCTS)[number];
-
-// --- Identity -------------------------------------------------------------------------------
-
-export const PROVIDER_ROLES = [
-  'musician',
-  'technician',
-  'church',
-  'agent',
-  'organizer',
-  'teacher',
-  'artist',
-] as const;
-export type ProviderRole = (typeof PROVIDER_ROLES)[number];
-/** Roles that always need staff review before publishing (owner decision 4; a CHECK enforces it). */
-export const STAFF_REVIEW_REQUIRED_ROLES = [
-  'church',
-  'musician',
-  'technician',
-] as const satisfies readonly ProviderRole[];
-
-export const PROVIDER_STATUSES = [
-  'draft',
-  'submitted',
-  'meeting_scheduled',
-  'in_review',
-  'changes_requested',
-  'verified',
-  'rejected',
-  'suspended',
-] as const;
-export type ProviderStatus = (typeof PROVIDER_STATUSES)[number];
-
-export const VERIFICATION_SUBJECT_TYPES = ['provider_profile', 'event', 'organizer'] as const;
-export type VerificationSubjectType = (typeof VERIFICATION_SUBJECT_TYPES)[number];
-
-export const VERIFICATION_ACTIONS = [
-  'submit',
-  'schedule_meeting',
-  'start_review',
-  'verify',
-  'request_changes',
-  'reject',
-  'suspend',
-  'reinstate',
-  'approve_event',
-  'reject_event',
-  'note',
-] as const;
-export type VerificationAction = (typeof VERIFICATION_ACTIONS)[number];
 
 /** Terms documents (slugs are free-form `[a-z0-9-]` in SQL; these are the ones the product uses). */
 export const TERMS_SLUGS = [

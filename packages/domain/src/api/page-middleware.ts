@@ -1,17 +1,17 @@
-import { getDb } from '@gamo/db';
-import { resolveAuth, hasProductAccess, resolveProductClerkConfig } from '@gamo/auth';
-import {
-  canAccessPage,
-  isPrivatePage,
-  isIsolatedDemo,
-  pageCacheControl,
-  type PublicApp,
-} from '@gamo/auth/page-access';
 import type { GamoLocals } from '@gamo/auth/locals';
 import { checkEnvOnce } from '@gamo/config/env-validation';
 import type { GamoEnv } from '@gamo/config/env';
 import { getRuntimeEnv } from './response';
 import { withSecurityHeaders, type SecurityHeaderOptions } from '../http/security-headers.ts';
+
+/** The four public sites. They have no accounts or sessions (public accounts were removed 2026-11-16). */
+export type PublicApp = 'web' | 'worship' | 'academy' | 'production';
+
+/**
+ * Cache-Control for rendered (non-API) pages. Pages stay private/no-store until marketing caching is
+ * deliberately turned on (forms render per-request CSRF/Turnstile state).
+ */
+export const PAGE_CACHE_CONTROL = 'private, no-store';
 
 type Context = {
   request: Request;
@@ -58,9 +58,9 @@ export interface ApplicationPagesOptions {
 }
 
 /**
- * Header options for one page response: Clerk and Turnstile origins from configuration
- * (`PUBLIC_TURNSTILE_SITE_KEY` present → Turnstile allowed), plus whatever the page asked for with
- * `requestSecurityHeaders(Astro.locals, …)` (form-action origins, no-referrer).
+ * Header options for one page response: Turnstile allowed when `PUBLIC_TURNSTILE_SITE_KEY` is configured,
+ * plus whatever the page asked for with `requestSecurityHeaders(Astro.locals, …)` (form-action origins,
+ * no-referrer).
  */
 export function pageSecurityHeaderOptions(
   _app: PublicApp,
@@ -69,9 +69,7 @@ export function pageSecurityHeaderOptions(
   enforceCsp: boolean,
 ): SecurityHeaderOptions {
   const requested = context.locals.securityRequest;
-  const clerk = context.locals.clerkConfig;
   return {
-    clerkFrontendApi: clerk?.isConfigured ? clerk.issuer : undefined,
     enforceCsp,
     https: context.url.protocol === 'https:',
     turnstile:
@@ -81,14 +79,14 @@ export function pageSecurityHeaderOptions(
   };
 }
 
+/** Public-site middleware: env check → legacy redirects → page → security headers. No session, no guard. */
 export function applicationPages(app: PublicApp, options: ApplicationPagesOptions = {}) {
   const handle = async (context: Context, next: () => Promise<Response>, env: GamoEnv): Promise<Response> => {
     const { pathname } = context.url;
     context.locals.product = app;
     const misconfigured = checkEnvOnce(app, env, context.request);
     if (misconfigured) return misconfigured;
-    // API handlers own their contract-specific authorization and status codes.
-    // robots.txt, sitemap.xml and llms.txt are public crawler files and must stay cacheable.
+    // API handlers own their contract-specific status codes.
     if (pathname.startsWith('/api/')) {
       // Every API answer is private unless the handler said otherwise (D-123).
       const response = await next();
@@ -101,6 +99,7 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
         headers,
       });
     }
+    // robots.txt, sitemap.xml and llms.txt are public crawler files and must stay cacheable.
     if (
       pathname.startsWith('/_') ||
       pathname === '/robots.txt' ||
@@ -109,54 +108,10 @@ export function applicationPages(app: PublicApp, options: ApplicationPagesOption
     )
       return next();
     context.locals.runtimeEnv = env;
-    context.locals.auth = null;
-    context.locals.isolatedDemo = isIsolatedDemo(context.request, env);
-    let unavailable = false;
-    let rawAuth = null;
-    try {
-      context.locals.clerkConfig = resolveProductClerkConfig(app, env);
-      if (env.DB && (env.SESSION_SECRET || context.locals.clerkConfig?.isConfigured)) {
-        rawAuth = await resolveAuth(context.request, getDb(env.DB), {
-          secret: env.SESSION_SECRET,
-          product: app,
-          env,
-        });
-      }
-    } catch {
-      unavailable = true;
-    }
-    if (rawAuth && hasProductAccess(rawAuth, app)) {
-      context.locals.auth = rawAuth;
-    }
-    const privatePage = isPrivatePage(app, pathname);
-    context.locals.noindexPage = privatePage || pathname.startsWith('/account');
-    if (privatePage && !context.locals.isolatedDemo) {
-      if (unavailable)
-        return new Response('Account service is temporarily unavailable. Please try again.', {
-          status: 503,
-          headers: { 'Cache-Control': 'no-store' },
-        });
-      if (!rawAuth)
-        return new Response(null, {
-          status: 303,
-          headers: {
-            Location: `/account/signin?next=${encodeURIComponent(pathname + context.url.search)}`,
-            'Cache-Control': 'no-store',
-          },
-        });
-      if (!canAccessPage(app, pathname, rawAuth))
-        return new Response(null, {
-          status: 303,
-          headers: { Location: '/account/access-denied', 'Cache-Control': 'no-store' },
-        });
-    }
-    // After the private-page guard, so a retired private URL still asks anonymous visitors to sign in first.
     const legacy = options.legacyRedirects && matchLegacyRedirect(options.legacyRedirects, context.url);
     if (legacy) return legacy;
     const response = await next();
-    response.headers.set('Cache-Control', pageCacheControl(app, pathname));
-    if (privatePage || pathname.startsWith('/account'))
-      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    response.headers.set('Cache-Control', PAGE_CACHE_CONTROL);
     return response;
   };
 
