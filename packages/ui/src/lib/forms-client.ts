@@ -7,6 +7,7 @@
  *   error (and block submission with a custom validity message);
  * - `[data-submit-button]` disables itself after a submit and shows its pending label, and is restored when
  *   the page is shown again from the back/forward cache;
+ * - `textarea[data-char-counter="<id>"]` shows a live "n / max" count in that (otherwise hidden) element;
  * - `[data-error-summary]` takes focus on load so keyboard and screen-reader users land on it.
  *
  * Loaded by the components with a bundled `<script>` (an external file under the CSP); safe to call twice.
@@ -115,6 +116,18 @@ function bindSubmit(button: HTMLButtonElement): void {
   form.addEventListener('gamo:form-error', restore);
 }
 
+function bindCounter(field: HTMLTextAreaElement): void {
+  const out = document.getElementById(field.dataset.charCounter ?? '');
+  const max = field.maxLength;
+  if (!out || max <= 0) return;
+  const update = () => {
+    out.textContent = `${field.value.length} / ${max}`;
+  };
+  field.addEventListener('input', update);
+  update();
+  out.hidden = false;
+}
+
 let started = false;
 
 export function initForms(root: ParentNode = document): void {
@@ -123,6 +136,7 @@ export function initForms(root: ParentNode = document): void {
   root.querySelectorAll<HTMLInputElement>('input[data-email-typo]').forEach(bindTypo);
   root.querySelectorAll<HTMLInputElement>('input[data-confirm-email-of]').forEach(bindConfirm);
   root.querySelectorAll<HTMLButtonElement>('button[data-submit-button]').forEach(bindSubmit);
+  root.querySelectorAll<HTMLTextAreaElement>('textarea[data-char-counter]').forEach(bindCounter);
   const summary = root.querySelector<HTMLElement>('[data-error-summary]');
   if (summary) summary.focus();
 }
