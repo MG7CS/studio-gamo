@@ -19,7 +19,7 @@ import type { PublicApp } from '../../packages/auth/page-access.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 import { GUARD_SECRETS, siteverifyPass } from './auth-test-kit.ts';
 
-const APPS: PublicApp[] = ['web', 'worship', 'academy', 'live', 'production'];
+const APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
 const SECRET = 'auth-surface-test-session-secret-0123456789';
 const pk = (host: string) => `pk_live_${Buffer.from(`${host}$`).toString('base64').replace(/=+$/, '')}`;
 

@@ -54,7 +54,7 @@ test('email defaults to hello@gamostudio.org as From and Reply-To; explicit valu
       to: 'a@example.test',
       subject: 's',
       text: 't',
-      from: 'Gamo Live <live@gamostudio.org>',
+      from: 'Gamo Academy <academy@gamostudio.org>',
       replyTo: 'support@gamostudio.org',
     });
   } finally {
@@ -62,6 +62,6 @@ test('email defaults to hello@gamostudio.org as From and Reply-To; explicit valu
   }
   assert.equal(bodies[0].from, 'Gamo Studios <hello@gamostudio.org>');
   assert.equal(bodies[0].reply_to, 'hello@gamostudio.org');
-  assert.equal(bodies[1].from, 'Gamo Live <live@gamostudio.org>');
+  assert.equal(bodies[1].from, 'Gamo Academy <academy@gamostudio.org>');
   assert.equal(bodies[1].reply_to, 'support@gamostudio.org');
 });

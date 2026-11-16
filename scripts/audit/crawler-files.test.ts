@@ -8,13 +8,12 @@ import assert from 'node:assert/strict';
 import { isPrivatePage, type PublicApp } from '../../packages/auth/page-access.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 
-const APPS: PublicApp[] = ['web', 'worship', 'academy', 'live', 'production'];
+const APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
 /** Private roots per app (mirrors packages/auth/page-access.ts; the test below keeps them honest). */
 const PRIVATE_ROOTS: Record<PublicApp, string[]> = {
   web: ['/partner'],
   worship: ['/church', '/musician', '/check-in', '/admin'],
   academy: ['/family', '/instructor', '/host'],
-  live: ['/organizer', '/artist', '/agent', '/me', '/workspaces', '/promote'],
   production: ['/client', '/crew'],
 };
 // Partial APIContext: the crawler routes only read request/url/locals.
@@ -59,7 +58,6 @@ for (const app of APPS) {
   test(`${app}: the private roots listed here are really private`, () => {
     for (const root of PRIVATE_ROOTS[app]) {
       const sample = `${root}/x`;
-      if (app === 'live' && root === '/promote') continue; // /promote itself redirects; /promote/create is private
       assert.ok(isPrivatePage(app, sample), `${app} ${sample} should be private`);
     }
   });
@@ -98,7 +96,7 @@ test('web llms.txt uses the approved legal wording and links to every program', 
     body,
     /non-?profit|not-for-profit|501\(c\)|tax-exempt|tax-deductible|\bcharit|\bdonat/i,
   );
-  for (const app of ['worship', 'academy', 'live', 'production'] as const) {
+  for (const app of ['worship', 'academy', 'production'] as const) {
     assert.ok(body.includes(siteOrigin(app)), `llms.txt links to ${app}`);
   }
 });

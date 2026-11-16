@@ -1,5 +1,5 @@
 /**
- * Clerk CONFIGURED, with FAKE keys: the built live and worship workers under Miniflare with Clerk bindings
+ * Clerk CONFIGURED, with FAKE keys: the built academy and worship workers under Miniflare with Clerk bindings
  * that point at a host that cannot exist (`clerk.fake-keys.invalid`). Every other e2e server runs with Clerk
  * off (playwright.config.ts blanks it); this is the one place Clerk is switched on, and it can never reach a
  * real Clerk instance: the workers' outbound network is replaced by a stub that records and refuses calls.
@@ -8,7 +8,7 @@
  * - sign-in and SSO-callback pages wire Clerk in (publishable key on the page, Frontend API in the CSP);
  * - an anonymous visitor on a private page is still sent to sign-in (303), not told the service is down;
  * - rendering those pages calls nothing outside the worker;
- * - Gamo Live's Clerk application id on another product is refused (private pages answer 503).
+ * - a product without Clerk keys (worship) renders its public pages without Clerk.
  *
  * Needs `pnpm build` first (pnpm check runs it before the journeys).
  */
@@ -19,7 +19,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const require = createRequire(new URL('../../apps/live/package.json', import.meta.url));
+const require = createRequire(new URL('../../apps/academy/package.json', import.meta.url));
 const wranglerRequire = createRequire(require.resolve('wrangler'));
 const { Miniflare, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const { build } = wranglerRequire('esbuild');
@@ -30,9 +30,6 @@ const FAKE_JWT_KEY = generateKeyPairSync('rsa', {
   modulusLength: 2048,
   publicKeyEncoding: { type: 'spki', format: 'pem' },
 }).publicKey;
-const LIVE_CLERK_APP_ID = /GAMO_LIVE_CLERK_APP_ID = '([^']+)'/.exec(
-  readFileSync('packages/config/clerk-env.ts', 'utf8'),
-)[1];
 
 const dir = mkdtempSync(join(tmpdir(), 'gamo-clerk-fake-keys-'));
 const outbound = [];
@@ -76,14 +73,14 @@ const worker = async (app, bindings) => ({
 const mf = new Miniflare({
   ...convertV4MiniflareOptions({
     workers: [
-      await worker('live', {
-        PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE: FAKE_PK,
-        CLERK_SECRET_KEY_LIVE: 'sk_test_fake_keys_never_sent_anywhere',
-        CLERK_JWT_KEY_LIVE: FAKE_JWT_KEY,
-        CLERK_ISSUER_LIVE: `https://${FAKE_HOST}`,
+      await worker('academy', {
+        PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY: FAKE_PK,
+        CLERK_SECRET_KEY_ACADEMY: 'sk_test_fake_keys_never_sent_anywhere',
+        CLERK_JWT_KEY_ACADEMY: FAKE_JWT_KEY,
+        CLERK_ISSUER_ACADEMY: `https://${FAKE_HOST}`,
       }),
-      // Another product configured with Gamo Live's Clerk application id (the local mistake this guards).
-      await worker('worship', { CLERK_APP_ID: LIVE_CLERK_APP_ID }),
+      // Another product with Clerk off: its public pages must not pick up the configured product's keys.
+      await worker('worship', {}),
     ],
   }),
   resourcePersistencePath: join(dir, 'state'),
@@ -96,7 +93,7 @@ const get = async (app, path) => {
 
 try {
   await mf.ready;
-  const db = await mf.getD1Database('DB', 'live');
+  const db = await mf.getD1Database('DB', 'academy');
   for (const file of readdirSync('packages/db/migrations')
     .filter((x) => x.endsWith('.sql'))
     .sort()) {
@@ -109,21 +106,19 @@ try {
   }
 
   for (const path of ['/account/signin', '/account/sso-callback']) {
-    const res = await get('live', path);
-    assert.equal(res.status, 200, `live ${path}`);
+    const res = await get('academy', path);
+    assert.equal(res.status, 200, `academy ${path}`);
     const html = await res.text();
-    assert.ok(html.includes(`data-clerk-publishable-key="${FAKE_PK}"`), `live ${path}: Clerk wired in`);
+    assert.ok(html.includes(`data-clerk-publishable-key="${FAKE_PK}"`), `academy ${path}: Clerk wired in`);
     const csp = res.headers.get('content-security-policy') ?? '';
     assert.match(csp, new RegExp(`connect-src [^;]*https://${FAKE_HOST.replace(/\./g, '\\.')}`), path);
     assert.match(csp, new RegExp(`script-src [^;]*https://${FAKE_HOST.replace(/\./g, '\\.')}`), path);
   }
 
-  const anonymous = await get('live', '/account/profile');
+  const anonymous = await get('academy', '/account/profile');
   assert.equal(anonymous.status, 303, 'anonymous visitor on a private page goes to sign-in');
   assert.match(anonymous.headers.get('location') ?? '', /^\/account\/signin\?next=/);
 
-  const isolated = await get('worship', '/account/onboarding?role=musician');
-  assert.equal(isolated.status, 503, "Gamo Live's Clerk app id on worship is refused");
   const publicPage = await get('worship', '/account/signin');
   assert.equal(publicPage.status, 200, 'public pages still render');
   assert.ok(!(await publicPage.text()).includes('data-clerk-publishable-key'));

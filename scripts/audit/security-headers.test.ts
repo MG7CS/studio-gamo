@@ -47,17 +47,14 @@ test("Clerk adds its Frontend API and Cloudflare's bot-protection origin to scri
   );
 });
 
-test('baseline headers; HSTS only over HTTPS; geolocation only where requested', () => {
+test('baseline headers; HSTS only over HTTPS; camera and geolocation always off', () => {
   const h = securityHeaders({ enforceCsp: true, https: true });
   assert.equal(h['X-Content-Type-Options'], 'nosniff');
   assert.equal(h['X-Frame-Options'], 'DENY');
   assert.equal(h['Referrer-Policy'], 'strict-origin-when-cross-origin');
   assert.match(h['Strict-Transport-Security'], /max-age=31536000/);
   assert.match(h['Permissions-Policy'], /geolocation=\(\)/);
-  assert.match(
-    securityHeaders({ enforceCsp: true, https: true, allowGeolocation: true })['Permissions-Policy'],
-    /geolocation=\(self\)/,
-  );
+  assert.match(h['Permissions-Policy'], /camera=\(\)/);
   const dev = securityHeaders({ enforceCsp: false, https: false });
   assert.equal(dev['Strict-Transport-Security'], undefined);
   assert.equal(dev['Content-Security-Policy'], undefined);
@@ -117,24 +114,15 @@ test('form-action accepts only exact https origins', () => {
   assert.equal(directive(csp, 'form-action'), "form-action 'self' https://checkout.stripe.com");
 });
 
-test('camera is off by default and (self) only when requested', () => {
-  assert.match(securityHeaders({ enforceCsp: true, https: true })['Permissions-Policy'], /camera=\(\)/);
-  assert.match(
-    securityHeaders({ enforceCsp: true, https: true, camera: true })['Permissions-Policy'],
-    /camera=\(self\)/,
-  );
-});
-
 test('requestSecurityHeaders merges page requests and filters origins', () => {
   const locals: {
-    securityRequest?: { formActionOrigins?: readonly string[]; camera?: boolean; noReferrer?: boolean };
+    securityRequest?: { formActionOrigins?: readonly string[]; noReferrer?: boolean };
   } = {};
   requestSecurityHeaders(locals, { formActionOrigins: ['https://checkout.stripe.com', 'https://*'] });
-  requestSecurityHeaders(locals, { camera: true, formActionOrigins: ['https://checkout.stripe.com'] });
+  requestSecurityHeaders(locals, { formActionOrigins: ['https://checkout.stripe.com'] });
   requestSecurityHeaders(locals, { noReferrer: true });
   assert.deepEqual(locals.securityRequest, {
     formActionOrigins: ['https://checkout.stripe.com'],
-    camera: true,
     noReferrer: true,
   });
   assert.equal(
@@ -149,9 +137,9 @@ test('requestSecurityHeaders merges page requests and filters origins', () => {
 
 test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page requests reach the headers', async () => {
   const run = async (env: Record<string, unknown>, page: (locals: any) => void = () => {}) => {
-    const url = new URL('https://live.example.test/events/sample');
+    const url = new URL('https://academy.example.test/lessons/sample');
     const locals: Record<string, any> = { runtime: { env: { ENVIRONMENT: 'production', ...env } } };
-    const middleware = applicationPages('live');
+    const middleware = applicationPages('academy');
     const response = await middleware(
       { request: new Request(url), url, locals, redirect: () => new Response(null) } as never,
       async () => {
@@ -164,15 +152,17 @@ test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page 
   };
   const without = await run({});
   assert.match(without.response.headers.get('permissions-policy') ?? '', /camera=\(\)/);
-  const scanner = await run({ PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' }, (locals) =>
-    requestSecurityHeaders(locals, { camera: true, formActionOrigins: ['https://checkout.stripe.com'] }),
+  const requested = await run({ PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' }, (locals) =>
+    requestSecurityHeaders(locals, { formActionOrigins: ['https://checkout.stripe.com'] }),
   );
-  assert.match(scanner.response.headers.get('permissions-policy') ?? '', /camera=\(self\)/);
-  assert.deepEqual(scanner.locals.securityRequest.formActionOrigins, ['https://checkout.stripe.com']);
+  assert.match(requested.response.headers.get('permissions-policy') ?? '', /camera=\(\)/);
+  assert.deepEqual(requested.locals.securityRequest.formActionOrigins, ['https://checkout.stripe.com']);
 
-  const url = new URL('https://live.example.test/scan');
+  const url = new URL('https://academy.example.test/register/sample');
   const csp = (env: Record<string, string>, locals: Record<string, any> = {}) =>
-    securityHeaders(pageSecurityHeaderOptions('live', { url, locals }, env, true))['Content-Security-Policy'];
+    securityHeaders(pageSecurityHeaderOptions('academy', { url, locals }, env, true))[
+      'Content-Security-Policy'
+    ];
   assert.ok(!csp({}).includes('challenges.cloudflare.com'), 'no site key → no Turnstile origin');
   assert.ok(!csp({ PUBLIC_TURNSTILE_SITE_KEY: '  ' }).includes('challenges.cloudflare.com'));
   assert.equal(
@@ -180,7 +170,7 @@ test('page middleware: Turnstile origins follow PUBLIC_TURNSTILE_SITE_KEY; page 
     "frame-src 'self' https://challenges.cloudflare.com",
   );
   assert.equal(
-    directive(csp({}, scanner.locals), 'form-action'),
+    directive(csp({}, requested.locals), 'form-action'),
     "form-action 'self' https://checkout.stripe.com",
   );
 });

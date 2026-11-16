@@ -15,14 +15,12 @@ const APPS = {
   web: 'http://127.0.0.1:4321',
   worship: 'http://127.0.0.1:4322',
   academy: 'http://127.0.0.1:4323',
-  live: 'http://127.0.0.1:4324',
   production: 'http://127.0.0.1:4325',
 } as const;
 const ROLE_CHIPS: Record<string, string[]> = {
   web: [],
   worship: ['Musician', 'Technician', 'Church', 'Not now'],
   academy: ['Teacher', 'Church host', 'Not now'],
-  live: ['Event organizer', 'Artist', 'Agent', 'Church', 'Not now'],
   production: ['Technician', 'Not now'],
 };
 

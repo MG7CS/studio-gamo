@@ -18,7 +18,7 @@ const ALL_WORKSPACES: Workspace[] = [
   clientWorkspace,
 ];
 
-test('Admin workspace exposes full operational control, analytics hub, and Gamo Live screens with valid nav and dialog bindings', () => {
+test('Admin workspace exposes full operational control, analytics hub and program screens with valid nav and dialog bindings', () => {
   const requiredSlugs = [
     '',
     'controls',
@@ -45,14 +45,6 @@ test('Admin workspace exposes full operational control, analytics hub, and Gamo 
     'academy/hosted',
     'academy/sponsorships',
     'academy/safeguarding',
-    'live/submissions',
-    'live/organizers',
-    'live/artists',
-    'live/agents',
-    'live/bookings',
-    'live/sponsored',
-    'live/tickets',
-    'live/policies',
     'production/requests',
     'production/projects',
     'production/training',
@@ -70,6 +62,11 @@ test('Admin workspace exposes full operational control, analytics hub, and Gamo 
     const screen = findScreen(adminWorkspace, slug);
     assert.ok(screen, `Missing required admin screen: "${slug}"`);
   }
+  // Gamo Live was retired (2026-11-16): no Live demo screens remain.
+  assert.deepEqual(
+    adminWorkspace.screens.filter((s) => s.slug.startsWith('live/')).map((s) => s.slug),
+    [],
+  );
 
   // Every sidebar nav item must resolve to an existing screen (or dedicated pages /legal, /security)
   for (const group of adminWorkspace.nav) {

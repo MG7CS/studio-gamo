@@ -1,7 +1,7 @@
 /**
  * Provider onboarding, publish gates and staff review (design §4.3, §4.4): church verification end to end
- * through the real form handlers, stale and concurrent decisions, self-review (own profile and own
- * organization, D-106), first-event review and the always_review toggle, terms versioning.
+ * through the real form handlers, stale and concurrent decisions, self-review (own profile, D-106),
+ * terms versioning.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,11 +11,7 @@ import { createDb } from '../../packages/db/index.ts';
 import { createSession } from '../../packages/auth/index.ts';
 import { IdentityService } from '../../packages/domain/src/services/identity.ts';
 import { createAccountHandlers } from '../../packages/domain/src/http/account.ts';
-import {
-  providerReviewPOST,
-  organizerReviewPOST,
-  zonedLocalToEpochSeconds,
-} from '../../packages/domain/src/http/review.ts';
+import { providerReviewPOST, zonedLocalToEpochSeconds } from '../../packages/domain/src/http/review.ts';
 import {
   createDraftProviderProfile,
   evaluatePublishGates,
@@ -27,9 +23,7 @@ import {
 } from '../../packages/domain/src/services/providers.ts';
 import {
   availableReviewActions,
-  recordEventReviewDecision,
   reviewProviderProfile,
-  setOrganizerAlwaysReview,
   type StaffActor,
 } from '../../packages/domain/src/services/provider-review.ts';
 import {
@@ -57,7 +51,7 @@ async function setup() {
   return { d1, db, identity, one, env };
 }
 
-async function provider(identity: IdentityService, email: string, product: 'worship' | 'live' | 'academy') {
+async function provider(identity: IdentityService, email: string, product: 'worship' | 'academy') {
   const c = await identity.issueEmailChallenge(email, { product, intent: 'signup' });
   return identity.verifyEmailChallenge(email, c.code, {
     product,
@@ -277,7 +271,7 @@ async function submittedMusician(
   return { user, profileId: p.id, ctx };
 }
 
-test('self-review is refused: own profile (same person or same email) and own organization; refusals are audited', async () => {
+test('self-review is refused: own profile (same person or same email); refusals are audited', async () => {
   const { d1, identity, one } = await setup();
   const { user, profileId } = await submittedMusician(d1, identity, 'musician@example.org');
   // Same person as the provider.
@@ -314,97 +308,9 @@ test('self-review is refused: own profile (same person or same email) and own or
     (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
   );
 
-  // An organizer whose organization has the staff member as an active member.
-  const staff = await staffMember(identity, 'staff@example.org', 'Sample Staff');
-  const org = await identity.createOrganization(
-    'Sample Ministry',
-    'sample-ministry',
-    'ministry',
-    staff.userId,
-  );
-  const organizer = one<{ id: string }>(
-    'SELECT id FROM organizer_profiles WHERE organization_id = ?',
-    org.id,
-  );
-  await assert.rejects(
-    () =>
-      setOrganizerAlwaysReview(d1, {
-        organizerProfileId: organizer.id,
-        alwaysReview: false,
-        staff,
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
-  await assert.rejects(
-    () =>
-      recordEventReviewDecision(d1, {
-        eventId: 'evt_sample',
-        organizerProfileId: organizer.id,
-        decision: 'approved',
-        staff,
-        now: NOW,
-      }),
-    (e: Error & { code?: string }) => e.code === 'SELF_REVIEW',
-  );
   assert.equal(
     one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'review.self_review_refused'").n,
-    4,
-  );
-  assert.equal(
-    one<{ always_review: number }>('SELECT always_review FROM organizer_profiles WHERE id = ?', organizer.id)
-      .always_review,
-    0,
-  );
-
-  // Through the admin form handler too.
-  const { db } = { db: createDb(d1 as never) };
-  const session = await createSession(db, staff.userId, SECRET);
-  const res = await organizerReviewPOST({
-    request: form(
-      `http://localhost/api/review/organizers/${organizer.id}`,
-      { always_review: 'on' },
-      `__session=${encodeURIComponent(session.cookieValue)}`,
-    ),
-    locals: { runtime: { env: { ENVIRONMENT: 'local', DB: d1, SESSION_SECRET: SECRET } } },
-    params: { id: organizer.id },
-  });
-  assert.match(res.headers.get('location')!, /error=SELF_REVIEW/);
-
-  // Another staff member may: first approval recorded once; toggle audited.
-  const other = await staffMember(identity, 'other.staff@example.org', 'Other Staff');
-  assert.deepEqual(
-    await recordEventReviewDecision(d1, {
-      eventId: 'evt_1',
-      organizerProfileId: organizer.id,
-      decision: 'approved',
-      staff: other,
-      now: NOW,
-    }),
-    { firstApproval: true },
-  );
-  assert.deepEqual(
-    await recordEventReviewDecision(d1, {
-      eventId: 'evt_2',
-      organizerProfileId: organizer.id,
-      decision: 'approved',
-      staff: other,
-      now: NOW + 5,
-    }),
-    { firstApproval: false },
-  );
-  assert.equal(
-    await setOrganizerAlwaysReview(d1, {
-      organizerProfileId: organizer.id,
-      alwaysReview: true,
-      staff: other,
-      now: NOW,
-    }),
-    true,
-  );
-  assert.equal(
-    one<{ n: number }>("SELECT COUNT(*) AS n FROM audit_logs WHERE action = 'organizer.always_review'").n,
-    1,
+    2,
   );
 });
 
@@ -458,11 +364,11 @@ test('publish gates: staff review for church/musician/technician/teacher; artist
     /PROVIDER_NOT_VERIFIED/,
   );
 
-  const artistUser = await provider(identity, 'artist@example.org', 'live');
+  const artistUser = await provider(identity, 'artist@example.org', 'worship');
   const artist = await createDraftProviderProfile(d1, {
     personId: artistUser.personId!,
     role: 'artist',
-    product: 'live',
+    product: 'worship',
     displayName: 'Sample Artist',
     now: NOW,
   });
@@ -505,7 +411,7 @@ test('publish gates: staff review for church/musician/technician/teacher; artist
   await recordTermsAcceptance(d1, {
     documents: [{ slug: doc.slug, version: doc.version }],
     subject: { personId: artistUser.personId! },
-    context: 'onboarding:live.artist',
+    context: 'onboarding:worship.artist',
     now: NOW,
   });
   const published = await publishProviderProfile(d1, { profileId: artist.id, ctx: actx, now: NOW });
@@ -514,28 +420,28 @@ test('publish gates: staff review for church/musician/technician/teacher; artist
 
 test('terms versioning: an acceptance counts only for the current version; an older one must be accepted again', async () => {
   const { d1, identity } = await setup();
-  const user = await provider(identity, 'terms@example.org', 'live');
-  const doc = getTermsDocument('organizer-terms')!;
+  const user = await provider(identity, 'terms@example.org', 'worship');
+  const doc = getTermsDocument('provider-terms')!;
   d1.sqlite
     .prepare(
-      "INSERT INTO terms_documents (id, slug, version, title, status, content_hash, legal_review_status, created_at) VALUES ('tdoc_old', 'organizer-terms', '2000-01-01-draft.0', 'Organizer Terms', 'retired', ?1, 'draft_requires_review', ?2)",
+      "INSERT INTO terms_documents (id, slug, version, title, status, content_hash, legal_review_status, created_at) VALUES ('tdoc_old', 'provider-terms', '2000-01-01-draft.0', 'Provider Terms', 'retired', ?1, 'draft_requires_review', ?2)",
     )
     .run('0'.repeat(64), NOW);
   d1.sqlite
     .prepare(
-      "INSERT INTO terms_acceptances (id, document_slug, document_version, person_id, context, accepted_at) VALUES ('tacc_old', 'organizer-terms', '2000-01-01-draft.0', ?1, 'onboarding:live.organizer', ?2)",
+      "INSERT INTO terms_acceptances (id, document_slug, document_version, person_id, context, accepted_at) VALUES ('tacc_old', 'provider-terms', '2000-01-01-draft.0', ?1, 'onboarding:worship.musician', ?2)",
     )
     .run(user.personId, NOW);
-  assert.deepEqual(await missingTermsAcceptances(d1, { personId: user.personId! }, ['organizer-terms']), [
-    'organizer-terms',
+  assert.deepEqual(await missingTermsAcceptances(d1, { personId: user.personId! }, ['provider-terms']), [
+    'provider-terms',
   ]);
   await recordTermsAcceptance(d1, {
     documents: [{ slug: doc.slug, version: doc.version }],
     subject: { personId: user.personId! },
-    context: 'onboarding:live.organizer',
+    context: 'onboarding:worship.musician',
     now: NOW,
   });
-  assert.deepEqual(await missingTermsAcceptances(d1, { personId: user.personId! }, ['organizer-terms']), []);
+  assert.deepEqual(await missingTermsAcceptances(d1, { personId: user.personId! }, ['provider-terms']), []);
 });
 
 test('the review actions offered match the state machine', async () => {
