@@ -1,10 +1,9 @@
 ---
 /**
- * Consultation request card. Requests are submitted through the Gamo Studios inquiry form,
- * where staff review them; this card only explains what to include and links there.
+ * Consultation request card: explains what to include and links to this app's /request page,
+ * where staff review each request.
  */
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import { inquiryUrl, providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 interface Props {
   class?: string;
 }
@@ -25,8 +24,7 @@ const helpful = [
     Consultation request
   </h3>
   <p class="mt-2 text-ink-soft">
-    Requests go through the Gamo Studios inquiry form, where our team reviews each one and follows up. It
-    helps to include:
+    Our team reviews each consultation request and follows up. It helps to include:
   </p>
   <ul class="mt-6 space-y-3 text-charcoal">
     {helpful.map((item) => (
@@ -36,15 +34,12 @@ const helpful = [
       </li>
     ))}
   </ul>
-  <ButtonLink href={inquiryUrl('Production consultation')} class="mt-8" arrow>
+  <ButtonLink href="/request" class="mt-8" arrow>
     Request a consultation
   </ButtonLink>
   <p class="mt-4 text-charcoal">
     Are you a sound, video or livestream technician?{' '}
-    <a
-      href={providerSignupUrl('production', 'technician')}
-      class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline"
-    >
+    <a href="/apply" class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline">
       Join the technician team
     </a>
   </p>

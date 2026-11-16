@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 import { getDb } from '@gamo/db';
 import { requireSuperadmin, verifyStaffBoundaryIdentity } from '@gamo/auth';
 import {
-  IdentityService,
+  StaffIdentityService,
   provisionStaffSchema,
   jsonResponse,
   handleApiError,
@@ -29,7 +29,7 @@ export const POST: APIRoute = async (context) => {
     const body = await readContract(context.request, 'ProvisionStaffInput');
     const validated = provisionStaffSchema.parse(body);
 
-    const identityService = new IdentityService(db);
+    const identityService = new StaffIdentityService(db);
     const provisioned = await identityService.provisionStaffIdentity(auth.user.id, validated);
 
     return jsonResponse(

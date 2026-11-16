@@ -387,7 +387,6 @@ const handleAdminRequest: MiddlewareHandler = async (context, next) => {
       const sessionAuth = await resolveAuth(context.request, db, signingSecret);
       if (
         sessionAuth &&
-        sessionAuth.sessionProduct === null &&
         isStaffOrAdmin(sessionAuth) &&
         (await verifyAdminGateCookie(
           context.request,

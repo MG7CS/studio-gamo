@@ -7,7 +7,6 @@ workers_dev = false
 # Local development environment (isolated local Miniflare/workerd SQLite & R2)
 [vars]
 ENVIRONMENT = "local"
-ALLOW_DEMO_SESSION = "false"
 REQUIRE_ADMIN_AUTH = "true"
 PUBLIC_ROOT_DOMAIN = "localhost"
 PUBLIC_SITE_URL_WEB = "http://127.0.0.1:4321"
@@ -40,7 +39,6 @@ name = "gamo-admin-preview"
 workers_dev = false
 [env.preview.vars]
 ENVIRONMENT = "preview"
-ALLOW_DEMO_SESSION = "false"
 REQUIRE_ADMIN_AUTH = "true"
 PUBLIC_ROOT_DOMAIN = "gamostudio.org"
 PUBLIC_SITE_URL_WEB = "https://gamo-web-preview.gamostudio.workers.dev"
@@ -76,7 +74,6 @@ routes = [
 ]
 [env.production.vars]
 ENVIRONMENT = "production"
-ALLOW_DEMO_SESSION = "false"
 REQUIRE_ADMIN_AUTH = "true"
 PUBLIC_ROOT_DOMAIN = "gamostudio.org"
 PUBLIC_SITE_URL_WEB = "https://gamostudio.org"

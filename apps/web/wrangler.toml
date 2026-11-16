@@ -6,16 +6,12 @@ compatibility_flags = ["nodejs_compat"]
 # Local development environment (isolated local Miniflare/workerd SQLite & R2)
 [vars]
 ENVIRONMENT = "local"
-ALLOW_DEMO_SESSION = "false"
 PUBLIC_ROOT_DOMAIN = "localhost"
 PUBLIC_SITE_URL_WEB = "http://127.0.0.1:4321"
 PUBLIC_SITE_URL_WORSHIP = "http://127.0.0.1:4322"
 PUBLIC_SITE_URL_ACADEMY = "http://127.0.0.1:4323"
 PUBLIC_SITE_URL_PRODUCTION = "http://127.0.0.1:4325"
 PUBLIC_SITE_URL_ADMIN = "http://127.0.0.1:4326"
-CLERK_APP_ID_WEB = "pending_clerk_app_gamo_web"
-PUBLIC_CLERK_KEYLESS_DISABLED = "true"
-CLERK_AUTHORIZED_PARTIES_WEB = "http://127.0.0.1:4321,http://localhost:4321"
 
 [[d1_databases]]
 binding = "DB"
@@ -42,16 +38,12 @@ workers_dev = true
 [env.preview.vars]
 ENVIRONMENT = "preview"
 PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa4P6c3vDrYW8Qo"
-ALLOW_DEMO_SESSION = "false"
 PUBLIC_ROOT_DOMAIN = "gamostudio.workers.dev"
 PUBLIC_SITE_URL_WEB = "https://gamo-web-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_WORSHIP = "https://gamo-worship-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_ACADEMY = "https://gamo-academy-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_PRODUCTION = "https://gamo-production-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_ADMIN = "https://admin-preview.gamostudio.org"
-CLERK_APP_ID_WEB = "pending_clerk_app_gamo_web"
-PUBLIC_CLERK_KEYLESS_DISABLED = "true"
-CLERK_AUTHORIZED_PARTIES_WEB = "https://gamo-web-preview.gamostudio.workers.dev"
 
 [[env.preview.d1_databases]]
 binding = "DB"
@@ -81,16 +73,12 @@ routes = [
 [env.production.vars]
 ENVIRONMENT = "production"
 PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAFa5Jse4TTbIFvR9"
-ALLOW_DEMO_SESSION = "false"
 PUBLIC_ROOT_DOMAIN = "gamostudio.org"
 PUBLIC_SITE_URL_WEB = "https://gamostudio.org"
 PUBLIC_SITE_URL_WORSHIP = "https://worship.gamostudio.org"
 PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
 PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
 PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
-CLERK_APP_ID_WEB = "pending_clerk_app_gamo_web"
-PUBLIC_CLERK_KEYLESS_DISABLED = "true"
-CLERK_AUTHORIZED_PARTIES_WEB = "https://gamostudio.org,https://www.gamostudio.org"
 
 [[env.production.d1_databases]]
 binding = "DB"

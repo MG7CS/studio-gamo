@@ -1,0 +1,31 @@
+---
+/**
+ * Temporary contact block for /contact and /partners/interest: a mailto link to the team inbox.
+ * Replaced by the published forms in Phase 2 (docs/superpowers/plans/2026-11-16-forms-emails-invoices.md).
+ */
+interface Props {
+  partnership?: boolean;
+}
+const { partnership = false } = Astro.props;
+const address = 'hello@gamostudio.org';
+const subject = partnership ? 'Partnership inquiry' : 'Inquiry';
+const mailto = `mailto:${address}?subject=${encodeURIComponent(subject)}`;
+---
+
+<section class="rounded-[28px] border border-sand bg-white p-6 sm:p-10">
+  <h2 class="text-2xl font-semibold tracking-tight text-charcoal">
+    {partnership ? 'Share a partnership idea' : 'Send us a message'}
+  </h2>
+  <p class="mt-2.5 text-sm leading-relaxed text-ink-soft">
+    {partnership
+      ? 'Tell us about your church or organization and the partnership you have in mind. Our team reads every message and replies by email.'
+      : 'Tell us how you would like to take part or what you would like to know. Our team reads every message and replies by email.'}
+  </p>
+  <p class="mt-6 text-sm font-medium text-charcoal">Email us at</p>
+  <a
+    href={mailto}
+    class="mt-2 inline-flex min-h-11 items-center rounded-full bg-terracotta px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta-deep"
+  >
+    {address}
+  </a>
+</section>

@@ -1,0 +1,36 @@
+---
+/**
+ * Temporary placeholder for a public form page (apply / request) until the online form lands.
+ * Owns the page's single <h1>.
+ */
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+interface Props {
+  eyebrow: string;
+  title: string;
+  body: string;
+}
+const { eyebrow, title, body } = Astro.props;
+---
+
+<section class="bg-cream page-intro-space" aria-labelledby="form-coming-soon-title">
+  <div class="mx-auto max-w-3xl px-5 pb-20 sm:px-8">
+    <p class="eyebrow text-terracotta">{eyebrow}</p>
+    <h1 id="form-coming-soon-title" class="display-lg mt-4 text-balance text-charcoal">
+      {title}
+    </h1>
+    <p class="mt-5 text-base leading-relaxed text-ink-soft md:text-lg">{body}</p>
+    <p class="mt-5 text-base leading-relaxed text-ink-soft md:text-lg">
+      Our online form is coming soon. In the meantime, email us at
+      <a
+        href="mailto:hello@gamostudio.org"
+        class="inline-flex min-h-11 items-center font-semibold text-terracotta-deep underline"
+      >
+        hello@gamostudio.org
+      </a>
+      .
+    </p>
+    <ButtonLink href="mailto:hello@gamostudio.org" class="mt-8" arrow>
+      Email us
+    </ButtonLink>
+  </div>
+</section>

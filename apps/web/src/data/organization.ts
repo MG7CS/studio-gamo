@@ -18,5 +18,5 @@ export const generalFaq = [
   { q: 'Do churches need a partnership to participate?', a: 'Partnership is never a requirement for ordinary program participation. Contributions and sponsorships never influence musician vetting or rankings.' },
   { q: 'Are scholarships or sponsored lessons available?', a: 'Sponsored and scholarship-supported education is coordinated as community partnerships and dedicated program support are established.' },
   { q: 'Where do programs operate?', a: 'Our initial local service area for Worship, Academy, and Production is the Phoenix metropolitan area, Arizona.' },
-  { q: 'How do I get in touch with the team?', a: 'You can reach us through the contact or partnership inquiry forms on our website, then view staff updates in your account.' },
+  { q: 'How do I get in touch with the team?', a: 'Email us at hello@gamostudio.org. Our team reads every message and replies by email.' },
 ];

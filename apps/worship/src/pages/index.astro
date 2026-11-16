@@ -1,5 +1,4 @@
 ---
-import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import HeroSection from '../components/home/HeroSection.astro';
 import AudienceSection from '../components/home/AudienceSection.astro';
@@ -33,10 +32,10 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     body="Churches can request prepared musicians, and instrumentalists or vocalists can apply to join our reviewed network."
     photo="chapelSpring"
   >
-    <ButtonLink href={providerSignupUrl('worship', 'church')} arrow>
+    <ButtonLink href="/request" arrow>
       Request musicians
     </ButtonLink>
-    <ButtonLink href={providerSignupUrl('worship', 'musician')} variant="secondary">
+    <ButtonLink href="/apply" variant="secondary">
       Apply as a musician
     </ButtonLink>
   </CtaInvitation>

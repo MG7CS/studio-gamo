@@ -3,7 +3,7 @@
  * Manage registrations (behind the customer cookie set by `/registrations/open`). Shows the registrations
  * the link covers (`registration:<id>` → that one; `customer:all` → every registration of that email),
  * and handles the POST actions: update phone, cancel. No account and no password: without a valid session
- * the page offers a new emailed link. Offers "Create a Gamo Academy account" (claim, handled by sign-up).
+ * the page offers a new emailed link.
  */
 import { requireSameOrigin } from '@gamo/auth';
 import {
@@ -17,7 +17,6 @@ import {
   updateRegistrationPhone,
 } from '@gamo/domain';
 import { scopeCovers } from '@gamo/domain/security';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '../../components/shared/PageHero.astro';
 import RegistrationNotice from '../../components/registration/RegistrationNotice.astro';
@@ -167,20 +166,6 @@ const doneMessage = done ? doneMessages[done] : undefined;
           phoneError={phoneError?.id === r.id ? phoneError.message : undefined}
         />
       ))}
-      {session && (
-        <section aria-labelledby="claim-title" class="rounded-[28px] bg-ivory p-6 ring-1 ring-sand sm:p-7">
-          <h2 id="claim-title" class="text-lg font-bold">
-            Want an account? (optional)
-          </h2>
-          <p class="mt-2 text-[15px] text-muted">
-            You never need an account to manage a registration. If you would like one, create it with the same
-            email address and your registrations will appear in it.
-          </p>
-          <ButtonLink href="/account/signup?claim=registration" variant="secondary" class="mt-4">
-            Create a Gamo Academy account with this email
-          </ButtonLink>
-        </section>
-      )}
     </div>
   </section>
 </Layout>

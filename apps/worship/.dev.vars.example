@@ -1,21 +1,6 @@
 # Gamo Worship (apps/worship) — local secrets. Copy to apps/worship/.dev.vars (git-ignored).
-# Shared settings (ENVIRONMENT, SESSION_SECRET, RESEND_API_KEY, local-only flags) come from the root .env.
+# Shared settings (ENVIRONMENT, RESEND_API_KEY, EMAIL_FROM) come from the root .env.
 # In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/worship.
-
-# OPTIONAL. Clerk sign-in for this product only. When unset, sign-in uses Gamo's own email
-# verification codes (D1 sessions). Use this product's own Clerk application — never another product's
-# keys. Locally the un-suffixed names (CLERK_SECRET_KEY, …) also work; a deployed Worker reads only the *_WORSHIP names.
-# Local development uses the Clerk DEVELOPMENT instance (pk_test_/sk_test_). Production keys are never kept here:
-# set them with scripts/set-clerk-secrets.sh --env production (docs/AUTH.md). CLERK_JWT_KEY is a PEM public key,
-# on one line with literal \n sequences or in quotes over several lines.
-CLERK_APP_ID_WORSHIP=
-PUBLIC_CLERK_PUBLISHABLE_KEY_WORSHIP=
-CLERK_SECRET_KEY_WORSHIP=
-# RECOMMENDED. Networkless JWT verification key (PEM) and issuer; the issuer is derived from the publishable key when unset.
-CLERK_JWT_KEY_WORSHIP=
-CLERK_ISSUER_WORSHIP=
-# OPTIONAL. Comma-separated allowed origins for Clerk tokens; defaults to this app's local/preview/production origins.
-CLERK_AUTHORIZED_PARTIES_WORSHIP=
 
 # Identity, consent and abuse protection (docs/design/identity-and-ticketing.md §10; RUNBOOK §3).
 # Gamo HMAC keys (PII_HASH_SECRET, CUSTOMER_LINK_SECRET) need ≥ 32 random
@@ -27,8 +12,3 @@ PII_HASH_SECRET=
 # outside local; locally the dummy token XXXX.DUMMY.TOKEN.XXXX is accepted. PUBLIC_TURNSTILE_SITE_KEY is public (a var).
 PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
-# OPTIONAL. Svix signing secret of this product's Clerk webhook (POST /api/webhook/clerk ends Gamo sessions
-# when a Clerk session ends). Without it the route answers 503.
-CLERK_WEBHOOK_SECRET_WORSHIP=
-# OPTIONAL. "true" shows "Continue with Google" — only once Google is enabled in this product's own Clerk app.
-CLERK_GOOGLE_ENABLED_WORSHIP=

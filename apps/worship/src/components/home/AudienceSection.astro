@@ -1,5 +1,4 @@
 ---
-import { providerSignupUrl } from '@studio-gamo/ui/lib/sites';
 /** Intro + audience switch between churches and musicians. */
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
@@ -48,8 +47,8 @@ const musicians: [IconName, string, string][] = [
         ]}
       >
         {[
-          ['churches', churches, providerSignupUrl('worship', 'church'), 'Start a church request'],
-          ['musicians', musicians, providerSignupUrl('worship', 'musician'), 'Begin an application'],
+          ['churches', churches, '/request', 'Start a church request'],
+          ['musicians', musicians, '/apply', 'Begin an application'],
         ].map(([slot, items, href, cta]) => (
           <div slot={slot as string}>
             <ul class="mt-6 divide-y divide-sand rounded-3xl border border-sand bg-white">
