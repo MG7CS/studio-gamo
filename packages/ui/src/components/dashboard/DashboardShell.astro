@@ -13,15 +13,31 @@ import DashNav from './DashNav.astro';
 import AccountMenu from './AccountMenu.astro';
 import { screenHref, shortNavLabel, type ViewerPersona, type Workspace } from '../../lib/dashboard';
 import { resolveWorkspaceViewer } from '../../lib/session-viewer';
-import { siteUrl } from '../../lib/sites';
 
 interface Props {
   workspace: Workspace;
   current: string;
   title: string;
   viewer?: ViewerPersona;
+  /** Where the logo links (supplied by the app). */
+  homeHref: string;
+  /** Accessible name of the logo link. */
+  homeLabel: string;
+  /** Staff password & security page; the drawer link is hidden when omitted. */
+  securityHref?: string;
+  /** Sign-out route; the drawer sign-out link is hidden when omitted. */
+  signOutHref?: string;
 }
-const { workspace, current, title, viewer: viewerProp } = Astro.props;
+const {
+  workspace,
+  current,
+  title,
+  viewer: viewerProp,
+  homeHref,
+  homeLabel,
+  securityHref,
+  signOutHref,
+} = Astro.props;
 const viewer = viewerProp ?? (await resolveWorkspaceViewer(Astro));
 const activeOrg = viewer.organization || workspace.organization;
 const flat = workspace.nav.flatMap((g) => g.items);
@@ -52,7 +68,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined
       <aside class="hidden bg-charcoal text-cream lg:flex lg:flex-col" data-surface="dark">
         <div class="sticky top-0 flex max-h-screen flex-col overflow-y-auto">
           <div class="border-b border-white/10 px-5 py-5">
-            <a href={siteUrl('web', '/')} class="block text-cream" aria-label="Gamo Studios home">
+            <a href={homeHref} class="block text-cream" aria-label={homeLabel}>
               <Logo width={132} height={24} />
             </a>
             <p class="mt-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-gold">
@@ -96,11 +112,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined
             >
               <Icon name="menu" class="h-5 w-5" />
             </button>
-            <a
-              href={siteUrl('web', '/')}
-              class="hidden text-charcoal sm:block lg:hidden"
-              aria-label="Gamo Studios home"
-            >
+            <a href={homeHref} class="hidden text-charcoal sm:block lg:hidden" aria-label={homeLabel}>
               <Logo width={104} height={20} />
             </a>
             <div class="min-w-0">
@@ -159,11 +171,7 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined
     >
       <div class="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
         <div>
-          <a
-            href={siteUrl('web', '/')}
-            class="mb-1 inline-block text-cream/90 hover:text-cream"
-            aria-label="Gamo Studios home"
-          >
+          <a href={homeHref} class="mb-1 inline-block text-cream/90 hover:text-cream" aria-label={homeLabel}>
             <Logo width={108} height={20} />
           </a>
           <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gold">
@@ -201,9 +209,9 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined
 
       <div class="border-t border-white/10 bg-white/5 p-3 text-[12px]">
         <div class="mb-2 grid grid-cols-2 gap-2">
-          {workspace.staff && (
+          {workspace.staff && securityHref && (
             <a
-              href="/security"
+              href={securityHref}
               class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
             >
               <Icon name="lock" class="h-4 w-4 text-cream/60" />
@@ -220,9 +228,9 @@ const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined
             </a>
           )}
         </div>
-        {viewer.authenticated && (
+        {viewer.authenticated && signOutHref && (
           <a
-            href="/__admin_auth/logout"
+            href={signOutHref}
             class="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream"
           >
             <Icon name="logout" class="h-4 w-4 text-cream/60" />

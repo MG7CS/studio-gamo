@@ -1,7 +1,8 @@
 ---
-/** Global website layout: shared document shell + web stylesheet. */
+/** Global website layout: shared document shell + web stylesheet and shell manifest. */
 import '../app.css';
 import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
+import { shell } from '../site.config';
 
 interface Props {
   title?: string;
@@ -32,6 +33,7 @@ const {
 <BaseLayout
   title={title}
   description={description}
+  shell={shell}
   current={current}
   headerTheme={headerTheme}
   bodyClass={bodyClass}

@@ -2,17 +2,22 @@
 import HeadIcons from './HeadIcons.astro';
 import FontPreload from './FontPreload.astro';
 /**
- * Shared document shell for every public Gamo Studios app.
- * Each app's own Layout imports its `app.css` and then wraps this component.
+ * Shared document shell. App-neutral: each app's own layout imports its `app.css`, then wraps
+ * this component and passes its `ShellConfig` (`src/site.config.ts`). Without a `shell` the page
+ * renders no header or footer (as with `chrome={false}`).
  */
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import { siteOrigin, type SiteKey } from '../lib/sites';
+import type { ShellConfig } from '../shell/types';
 
 interface Props {
   title: string;
+  /** Meta description; defaults to the shell's footer description. */
   description?: string;
-  /** Active primary nav key. */
+  /** The app's shell configuration (brand, nav, footer). */
+  shell?: ShellConfig;
+  /** Active nav item key. */
   current?: string;
   headerTheme?: 'light' | 'dark';
   /** Background/text classes for <body>. */
@@ -29,7 +34,8 @@ interface Props {
 }
 const {
   title,
-  description = 'Gamo Studios brings together Worship, Academy and Production to serve churches, musicians, students and families through music.',
+  shell,
+  description = shell?.footer.description ?? '',
   current,
   headerTheme = 'light',
   bodyClass = 'bg-cream text-charcoal',
@@ -47,6 +53,8 @@ const indexable = Boolean(app) && !noindex && !locals.noindexPage;
 const origin = app ? siteOrigin(app) : '';
 const canonical = indexable ? origin + (Astro.url.pathname.replace(/\/+$/, '') || '/') : undefined;
 const imageUrl = indexable && ogImage ? new URL(ogImage, origin).href : undefined;
+const siteName = shell?.brand.name;
+const showChrome = chrome && Boolean(shell);
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
 
@@ -59,11 +67,11 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <FontPreload />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <meta name="description" content={description} />
+    {description && <meta name="description" content={description} />}
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && (
       <>
-        <meta property="og:site_name" content="Gamo Studios" />
+        {siteName && <meta property="og:site_name" content={siteName} />}
         <meta property="og:type" content={ogType} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
@@ -83,7 +91,7 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   </head>
   <body class:list={['font-sans antialiased', bodyClass]}>
     {/* SiteHeader carries its own skip link; focused flows without chrome still need one. */}
-    {!chrome && (
+    {!showChrome && (
       <a
         href="#main-content"
         class="sr-only z-[60] rounded-full bg-charcoal px-5 text-sm font-semibold text-cream focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:inline-flex focus:min-h-11 focus:items-center"
@@ -91,16 +99,19 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
         Skip to content
       </a>
     )}
-    {chrome &&
+    {showChrome &&
+      shell &&
       (Astro.slots.has('header') ? (
         <slot name="header" />
       ) : (
-        <SiteHeader current={current} theme={headerTheme} />
+        <SiteHeader shell={shell} current={current} theme={headerTheme} />
       ))}
     <main id="main-content" class:list={['overflow-x-clip', !chrome && 'min-h-screen w-full']}>
       <slot />
     </main>
-    {chrome && (Astro.slots.has('footer') ? <slot name="footer" /> : <SiteFooter />)}
+    {showChrome &&
+      shell &&
+      (Astro.slots.has('footer') ? <slot name="footer" /> : <SiteFooter shell={shell} />)}
     <script>
       // Progressive enhancement: reveal elements as they scroll into view.
       document.documentElement.classList.add('js');

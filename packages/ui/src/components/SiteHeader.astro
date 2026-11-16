@@ -1,25 +1,24 @@
 ---
 /**
- * Organization-wide pill navigation, shared by every public app.
- * - theme="light": cream/white pill for bright pages (default).
- * - theme="dark":  charcoal glass pill for cinematic heroes (Production, home).
+ * Pill navigation shared by every public app. App-neutral: brand, nav items and the call to
+ * action come from the app's `ShellConfig` (`src/site.config.ts`).
  * On scroll the bar compacts into a floating pill with stronger contrast.
  * Local UI state only (mobile menu); public visitors have no accounts.
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
-import { primaryNav, siteUrl } from '../lib/sites';
+import type { ShellConfig } from '../shell/types';
 
 interface Props {
-  /** Key of the active primary item: mission | worship | academy | production. */
+  shell: ShellConfig;
+  /** Key of the active nav item. */
   current?: string;
-  /** Accepted for backwards compatibility; header styling is now unified across all pages. */
+  /** Accepted for backwards compatibility; header styling is unified across all pages. */
   theme?: 'light' | 'dark';
 }
-const { current } = Astro.props;
-const items = primaryNav();
-const getInvolved = siteUrl('web', '/get-involved');
-const home = siteUrl('web');
+const { shell, current } = Astro.props;
+const { brand, nav: items, cta } = shell;
+const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` : brand.name} home`;
 ---
 
 <a
@@ -34,14 +33,26 @@ const home = siteUrl('web');
   class="site-header fixed inset-x-0 top-3 z-50 mx-auto w-[calc(100%-1.5rem)] max-w-[1320px] text-charcoal transition-[top] duration-300 sm:top-4 sm:w-[calc(100%-2.5rem)]"
 >
   <div class="site-header__bar flex h-14 items-center justify-between gap-3 rounded-full border border-sand bg-ivory/96 py-1.5 pl-5 pr-1.5 shadow-[0_14px_38px_-12px_rgba(20,26,27,0.28)] ring-1 ring-charcoal/8 backdrop-blur-xl transition-[background-color,box-shadow,border-color,height] duration-300 lg:h-16 lg:pl-6">
-    <a href={home} class="flex min-h-11 shrink-0 items-center rounded-full" aria-label="Gamo Studios home">
+    <a
+      href={brand.href}
+      class="flex min-h-11 shrink-0 items-center gap-2.5 rounded-full"
+      aria-label={homeLabel}
+    >
       <Logo width="138" height="26" />
+      {brand.programLabel && (
+        <span
+          class="border-l border-sand pl-2.5 text-xs font-semibold uppercase tracking-wider text-terracotta sm:text-sm"
+          aria-hidden="true"
+        >
+          {brand.programLabel}
+        </span>
+      )}
     </a>
 
     <nav aria-label="Primary" class="hidden lg:block">
       <ul class="flex items-center gap-1 rounded-full border border-sand bg-white/95 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
         {items.map((item) => {
-          const active = item.key === current;
+          const active = item.key !== undefined && item.key === current;
           return (
             <li>
               <a
@@ -63,12 +74,14 @@ const home = siteUrl('web');
     </nav>
 
     <div class="flex items-center gap-2">
-      <a
-        href={getInvolved}
-        class="hidden min-h-11 items-center gap-2 rounded-full bg-terracotta px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5"
-      >
-        Get Involved <Icon name="arrow" class="h-4 w-4" />
-      </a>
+      {cta && (
+        <a
+          href={cta.href}
+          class="hidden min-h-11 items-center gap-2 rounded-full bg-terracotta px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-dark sm:inline-flex xl:px-5"
+        >
+          {cta.label} <Icon name="arrow" class="h-4 w-4" />
+        </a>
+      )}
       <button
         type="button"
         class="site-header__toggle inline-flex h-11 w-11 items-center justify-center rounded-full bg-charcoal/8 text-charcoal transition-colors hover:bg-charcoal/15 lg:hidden"
@@ -96,10 +109,10 @@ const home = siteUrl('web');
           <li>
             <a
               href={item.href}
-              aria-current={item.key === current ? 'page' : undefined}
+              aria-current={item.key !== undefined && item.key === current ? 'page' : undefined}
               class:list={[
                 'flex items-center justify-between rounded-2xl px-4 py-3 text-base font-semibold transition-colors hover:bg-cream',
-                item.key === current ? 'bg-cream text-terracotta' : 'text-charcoal',
+                item.key !== undefined && item.key === current ? 'bg-cream text-terracotta' : 'text-charcoal',
               ]}
             >
               {item.label}
@@ -109,14 +122,16 @@ const home = siteUrl('web');
         ))}
       </ul>
     </nav>
-    <div class="mt-2 grid gap-2 border-t border-sand pt-3">
-      <a
-        href={getInvolved}
-        class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white"
-      >
-        Get Involved
-      </a>
-    </div>
+    {cta && (
+      <div class="mt-2 grid gap-2 border-t border-sand pt-3">
+        <a
+          href={cta.href}
+          class="rounded-full bg-terracotta px-4 py-3 text-center text-sm font-semibold text-white"
+        >
+          {cta.label}
+        </a>
+      </div>
+    )}
   </div>
 </header>
 

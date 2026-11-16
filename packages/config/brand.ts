@@ -54,7 +54,7 @@ export interface PlatformBrandConfig {
 }
 
 const DEFAULT_DISPLAY_NAME = 'Gamo Studios';
-const DEFAULT_TAGLINE = 'Worship, Academy & Production for Churches';
+const DEFAULT_TAGLINE = 'Academy, Worship & Production for Churches';
 const DEFAULT_DOMAIN = 'gamostudio.org';
 
 function sanitizeDisplayName(raw?: string): string {
@@ -107,7 +107,7 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
       siteName: displayName,
       twitterCard: 'summary_large_image',
       defaultDescription:
-        'Gamo Studios serves churches with worship musicians, music lessons through Gamo Academy, and production support.',
+        'Gamo Studios serves churches and families with music lessons through Gamo Academy, worship musicians and production support.',
     },
     ticketPassHeader: `${displayName} · Confirmation`,
     receiptHeader: `${displayName} · Order Confirmation & Receipt`,

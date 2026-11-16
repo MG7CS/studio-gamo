@@ -1,14 +1,15 @@
 ---
-/** Gamo Academy page shell: shared ProgramLayout + this app's stylesheet. */
+/** Gamo Academy page shell: shared ProgramLayout + this app's stylesheet and shell manifest. */
 import '../app.css';
 import ProgramLayout, {
   type Props as ProgramLayoutProps,
 } from '@studio-gamo/ui/components/ProgramLayout.astro';
+import { PROGRAM_KEY, PROGRAM_LABEL, shell } from '../site.config';
 
-type Props = Omit<ProgramLayoutProps, 'program'>;
+type Props = Omit<ProgramLayoutProps, 'shell' | 'programLabel' | 'current'>;
 ---
 
-<ProgramLayout program="academy" {...Astro.props}>
+<ProgramLayout shell={shell} programLabel={PROGRAM_LABEL} current={PROGRAM_KEY} {...Astro.props}>
   <slot name="head" slot="head" />
   <slot />
 </ProgramLayout>

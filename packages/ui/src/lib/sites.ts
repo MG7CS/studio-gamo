@@ -74,33 +74,9 @@ export function siteUrl(site: SiteKey, path = '/'): string {
 }
 
 /**
- * General program inquiries go through the organization contact form, pre-selecting the topic.
- * Musicians and technicians apply through each program's `/apply` page, churches request service
- * through Gamo Worship's `/request` page, and families register for lessons on Gamo Academy.
+ * Link to the organization contact form with a topic pre-selected. The topic is plain text owned
+ * by the calling app (shared code never lists program-specific topics).
  */
-export type InquiryTopic =
-  | 'Church musician request'
-  | 'Musician application'
-  | 'Lesson interest'
-  | 'Church-hosted lessons'
-  | 'Production consultation';
-
-export function inquiryUrl(topic: InquiryTopic): string {
+export function inquiryUrl(topic: string): string {
   return `${siteUrl('web', '/contact')}?interest=${encodeURIComponent(topic)}`;
-}
-
-export interface NavItem {
-  key: string;
-  label: string;
-  href: string;
-}
-
-/** Organization-wide primary navigation (Mission · Worship · Academy · Production). */
-export function primaryNav(): NavItem[] {
-  return [
-    { key: 'mission', label: 'Mission', href: siteUrl('web', '/mission') },
-    { key: 'worship', label: 'Worship', href: siteUrl('worship') },
-    { key: 'academy', label: 'Academy', href: siteUrl('academy') },
-    { key: 'production', label: 'Production', href: siteUrl('production') },
-  ];
 }

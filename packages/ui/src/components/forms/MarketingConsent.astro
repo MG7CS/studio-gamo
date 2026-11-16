@@ -4,31 +4,28 @@
  * `recordMarketingConsent` only when ticked (an unticked box is not a withdrawal of an earlier choice).
  *
  * Props
- * - product: 'web' | 'worship' | 'academy' | 'production' — picks the neutral default wording.
+ * - label: string — the opt-in wording, supplied by the app (keep it neutral; no guilt or pressure).
+ * - hint?: string — helper line (default 'Optional. You can unsubscribe at any time.').
  * - id?: string (default 'marketing-opt-in'); name?: string (default 'marketing_opt_in'; value 'yes').
- * - label?: string — override the wording (keep it neutral; no guilt or pressure).
  * - class?: string.
  *
  * There is intentionally no `checked` prop.
  */
-type ProductKey = 'web' | 'worship' | 'academy' | 'production';
-
 interface Props {
-  product: ProductKey;
+  label: string;
+  hint?: string;
   id?: string;
   name?: string;
-  label?: string;
   class?: string;
 }
 
-const DEFAULT_LABELS: Record<ProductKey, string> = {
-  web: 'Send me occasional news from Gamo Studios',
-  worship: 'Send me occasional news from Gamo Worship',
-  academy: 'Send me occasional news about Gamo Academy lessons and programs',
-  production: 'Send me occasional news from Gamo Production',
-};
-
-const { product, id = 'marketing-opt-in', name = 'marketing_opt_in', label, class: className } = Astro.props;
+const {
+  label,
+  hint = 'Optional. You can unsubscribe at any time.',
+  id = 'marketing-opt-in',
+  name = 'marketing_opt_in',
+  class: className,
+} = Astro.props;
 const hintId = `${id}-hint`;
 ---
 
@@ -43,10 +40,10 @@ const hintId = `${id}-hint`;
   />
   <div>
     <label for={id} class="text-[15px] leading-6 text-ink">
-      {label ?? DEFAULT_LABELS[product]}
+      {label}
     </label>
     <p id={hintId} class="text-sm text-muted">
-      Optional. You can unsubscribe at any time.
+      {hint}
     </p>
   </div>
 </div>

@@ -3,8 +3,6 @@ interface Props {
   class?: string;
   width?: string | number;
   height?: string | number;
-  /** Accepted for backwards compatibility; every program shows the Gamo Studios mark. */
-  program?: string;
 }
 
 const { class: className, width = 160, height = 30 } = Astro.props;

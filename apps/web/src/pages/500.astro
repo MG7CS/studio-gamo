@@ -1,11 +1,12 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import ErrorPage from '@studio-gamo/ui/components/ErrorPage.astro';
+import { shell } from '../site.config';
 
 // Astro passes the error as a prop; it is intentionally not shown or logged with details here.
 Astro.response.status = 500;
 ---
 
 <SiteLayout title="Something Went Wrong | Gamo Studios" noindex>
-  <ErrorPage status={500} siteName="Gamo Studios" />
+  <ErrorPage status={500} shell={shell} siteName="Gamo Studios" />
 </SiteLayout>

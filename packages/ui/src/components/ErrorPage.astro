@@ -1,20 +1,21 @@
 ---
 /**
  * Body for 404 and 500 pages. Each app renders it inside its own layout (src/pages/404.astro,
- * src/pages/500.astro), so the header, footer and program name match the site. Never shows
- * error details.
+ * src/pages/500.astro) and passes its shell config, so the home and contact links match the
+ * site. Never shows error details.
  */
 import ButtonLink from './ButtonLink.astro';
-import { siteUrl } from '../lib/sites';
+import type { ShellConfig } from '../shell/types';
 
 interface Props {
   status: 404 | 500;
-  /** Program site name, e.g. "Gamo Worship". */
-  siteName: string;
-  /** This site's home path or URL. */
-  homeHref?: string;
+  /** Home and contact links come from the app's shell config. */
+  shell: Pick<ShellConfig, 'brand' | 'contactHref'>;
+  /** Site name shown in the copy; defaults to the shell's brand name. */
+  siteName?: string;
 }
-const { status, siteName, homeHref = '/' } = Astro.props;
+const { status, shell, siteName = shell.brand.name } = Astro.props;
+const homeHref = shell.brand.href;
 const copy =
   status === 404
     ? {
@@ -37,7 +38,7 @@ const copy =
     <ButtonLink href={homeHref} arrow>
       {siteName} home
     </ButtonLink>
-    <ButtonLink href={siteUrl('web', '/contact')} variant="secondary">
+    <ButtonLink href={shell.contactHref} variant="secondary">
       Contact us
     </ButtonLink>
   </div>

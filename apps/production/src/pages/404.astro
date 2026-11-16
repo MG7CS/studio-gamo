@@ -1,10 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ErrorPage from '@studio-gamo/ui/components/ErrorPage.astro';
+import { shell } from '../site.config';
 
 Astro.response.status = 404;
 ---
 
 <Layout title="Page Not Found" noindex>
-  <ErrorPage status={404} siteName="Gamo Production" />
+  <ErrorPage status={404} shell={shell} siteName="Gamo Production" />
 </Layout>

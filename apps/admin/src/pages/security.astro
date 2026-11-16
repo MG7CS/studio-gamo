@@ -1,6 +1,7 @@
 ---
 import '../app.css';
 import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
+import { dashboard } from '../site.config';
 import DashPageHeader from '@studio-gamo/ui/components/dashboard/DashPageHeader.astro';
 import Panel from '@studio-gamo/ui/components/dashboard/Panel.astro';
 import InlineNotice from '@studio-gamo/ui/components/dashboard/InlineNotice.astro';
@@ -44,7 +45,7 @@ try {
 }
 ---
 
-<DashboardShell workspace={adminWorkspace} current="security" title="Password & security">
+<DashboardShell {...dashboard} workspace={adminWorkspace} current="security" title="Password & security">
   <DashPageHeader
     workspace={adminWorkspace}
     title="Password & Security"

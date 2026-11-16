@@ -1,19 +1,19 @@
 ---
 /**
- * Page shell for the program sites (Worship, Academy, Production): BaseLayout with the
- * program's title suffix and nav highlight. Each app wraps this in its own Layout.astro,
- * which imports that app's stylesheet.
+ * Page shell for a program site: BaseLayout with the program's title suffix and nav highlight.
+ * Each app wraps this in its own layout, which imports that app's stylesheet and passes its
+ * `ShellConfig` and program label.
  */
 import BaseLayout from './BaseLayout.astro';
-
-const PROGRAM_NAMES = {
-  worship: 'Gamo Worship',
-  academy: 'Gamo Academy',
-  production: 'Gamo Production',
-} as const;
+import type { ShellConfig } from '../shell/types';
 
 export interface Props {
-  program: keyof typeof PROGRAM_NAMES;
+  /** The app's shell configuration. */
+  shell: ShellConfig;
+  /** Program name used in page title suffixes. */
+  programLabel: string;
+  /** Nav key of this program, highlighted in the header. */
+  current?: string;
   title?: string;
   description?: string;
   headerTheme?: 'light' | 'dark';
@@ -25,7 +25,9 @@ export interface Props {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 const {
-  program,
+  shell,
+  programLabel,
+  current,
   title,
   description,
   headerTheme = 'light',
@@ -36,13 +38,13 @@ const {
   noindex,
   jsonLd,
 } = Astro.props;
-const name = PROGRAM_NAMES[program];
 ---
 
 <BaseLayout
-  title={title ? `${title} | ${name}` : `${name} | Gamo Studios`}
+  title={title ? `${title} | ${programLabel}` : `${programLabel} | ${shell.brand.name}`}
   description={description}
-  current={program}
+  shell={shell}
+  current={current}
   headerTheme={headerTheme}
   bodyClass={bodyClass}
   chrome={chrome}

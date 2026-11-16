@@ -2,10 +2,11 @@
 import '../app.css';
 import BaseLayout from '@studio-gamo/ui/components/BaseLayout.astro';
 import ErrorPage from '@studio-gamo/ui/components/ErrorPage.astro';
+import { errorShell } from '../site.config';
 
 Astro.response.status = 500;
 ---
 
 <BaseLayout title="Something Went Wrong | Gamo Studios Operations" chrome={false} noindex>
-  <ErrorPage status={500} siteName="Gamo Studios Operations" />
+  <ErrorPage status={500} shell={errorShell} />
 </BaseLayout>
