@@ -1,0 +1,64 @@
+---
+/**
+ * Checkbox — one labelled checkbox with a 44 px hit area (consent, "I can teach", yes/no questions).
+ *
+ * Props
+ * - id: string — input id (error summary links point here); hint/error ids `${id}-hint` / `${id}-error`.
+ * - name: string; value?: string (default 'yes').
+ * - label?: string — or rich content (e.g. links to documents) in the default slot.
+ * - hint?: string; error?: string.
+ * - required?: boolean — native `required` and the visible marker.
+ * - checked?: boolean (default false) — only to re-render a submitted choice. Never pre-tick consent.
+ * - disabled?: boolean; class?: string.
+ */
+import ChoiceItem from './ChoiceItem.astro';
+import FieldError from './FieldError.astro';
+import RequiredMark from './RequiredMark.astro';
+import { fieldIds } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  value?: string;
+  label?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  checked?: boolean;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  value = 'yes',
+  label,
+  hint,
+  error,
+  required = false,
+  checked = false,
+  disabled = false,
+  class: className,
+} = Astro.props;
+const ids = fieldIds(id, Boolean(hint));
+---
+
+<div class:list={['gamo-field', className]}>
+  <ChoiceItem
+    type="checkbox"
+    id={id}
+    name={name}
+    value={value}
+    hint={hint}
+    checked={checked}
+    required={required}
+    disabled={disabled}
+    describedBy={ids.describedBy}
+    invalid={Boolean(error)}
+  >
+    <slot>{label}</slot>
+    {required && <RequiredMark />}
+  </ChoiceItem>
+  <FieldError id={ids.errorId} error={error} />
+</div>

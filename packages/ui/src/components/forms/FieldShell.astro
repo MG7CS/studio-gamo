@@ -1,0 +1,47 @@
+---
+/**
+ * FieldShell — label, hint, control slot and error for one labelled control (textarea, select, date,
+ * time, file). Fields pass the same `id` to their control and use `fieldIds()` from `./field` for
+ * aria-describedby, so hint and error ids always match.
+ *
+ * Props
+ * - id: string — the control's id (the label's `for`; error summary links point here).
+ * - label: string — always visible.
+ * - hint?: string — rendered as `${id}-hint` under the label.
+ * - error?: string — rendered as `${id}-error` after the control.
+ * - required?: boolean — shows the required marker (the control sets native `required` itself).
+ * - class?: string — wrapper classes.
+ *
+ * Slots: default — the control; `after` — content after the error (e.g. a character counter).
+ */
+import FieldError from './FieldError.astro';
+import RequiredMark from './RequiredMark.astro';
+import { fieldIds } from './field';
+
+interface Props {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const { id, label, hint, error, required = false, class: className } = Astro.props;
+const ids = fieldIds(id, Boolean(hint));
+---
+
+<div class:list={['gamo-field', className]}>
+  <label for={id} class="block text-body-sm font-semibold text-fg">
+    {label}
+    {required && <RequiredMark />}
+  </label>
+  {hint && (
+    <p id={ids.hintId} class="mt-1 text-small text-fg-muted">
+      {hint}
+    </p>
+  )}
+  <slot />
+  <FieldError id={ids.errorId} error={error} />
+  <slot name="after" />
+</div>

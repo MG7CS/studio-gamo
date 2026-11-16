@@ -1,0 +1,47 @@
+---
+/**
+ * Badge: short, non-interactive label on one line (truncates instead of wrapping). Use it for
+ * eyebrow chips, statuses and the honest labels AGENTS.md requires: tone="sample" for fictional
+ * people, bookings or stories and tone="proposal" for fees, contributions and tiers not yet approved.
+ * Those two tones print "Sample" / "Proposal" when no text is given.
+ *
+ * Usage:
+ *   <Badge tone="sample" />
+ *   <Badge tone="proposal">Proposed fee</Badge>
+ *   <Badge tone="accent">Ages 6 and up</Badge>
+ *   <Badge tone="success" size="sm">Confirmed</Badge>
+ */
+type Tone = 'neutral' | 'accent' | 'proposal' | 'sample' | 'success' | 'danger';
+type Size = 'sm' | 'md';
+interface Props {
+  tone?: Tone;
+  size?: Size;
+  class?: string;
+}
+const { tone = 'neutral', size = 'md', class: className } = Astro.props;
+const toneClass: Record<Tone, string> = {
+  neutral: 'border-border bg-surface-raised text-fg',
+  accent: 'border-transparent bg-action text-on-action',
+  proposal: 'border-action bg-surface text-action-strong',
+  sample: 'border-dashed border-fg-muted bg-surface text-fg',
+  success: 'border-success bg-surface text-success',
+  danger: 'border-danger bg-surface text-danger',
+};
+const sizeClass: Record<Size, string> = { sm: 'px-2 py-0.5', md: 'px-3 py-1' };
+const fallback: Partial<Record<Tone, string>> = { sample: 'Sample', proposal: 'Proposal' };
+---
+
+<span
+  class:list={[
+    'inline-flex max-w-full shrink-0 items-center rounded-pill border text-caption font-semibold tracking-eyebrow whitespace-nowrap uppercase',
+    toneClass[tone],
+    sizeClass[size],
+    className,
+  ]}
+  data-tone={tone}
+  data-size={size}
+>
+  <span class="truncate">
+    <slot>{fallback[tone]}</slot>
+  </span>
+</span>

@@ -1,0 +1,84 @@
+---
+/**
+ * ChoiceCard — a radio or checkbox presented as a selectable card (registration choices such as a
+ * program, lesson length or plan). The whole card is the label (≥ 44 px); the selected state shows a
+ * thicker action border and a check mark, not colour alone. Put several inside a Fieldset
+ * (`role="radiogroup"` for radios) and lay them out with a grid in the page or section.
+ *
+ * Props
+ * - type?: 'radio' | 'checkbox' (default 'radio').
+ * - id: string; name: string; value: string.
+ * - label: string — the card title.
+ * - description?: string — one line under the title (part of the accessible name via the label).
+ * - checked?: boolean (default false) — only to re-render a submitted choice.
+ * - required?: boolean — native `required` (radios: one per group).
+ * - disabled?: boolean; describedBy?: string; class?: string.
+ *
+ * Slot: default — extra card content under the description (e.g. "Sample" price or schedule).
+ */
+interface Props {
+  type?: 'radio' | 'checkbox';
+  id: string;
+  name: string;
+  value: string;
+  label: string;
+  description?: string;
+  checked?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  describedBy?: string;
+  class?: string;
+}
+
+const {
+  type = 'radio',
+  id,
+  name,
+  value,
+  label,
+  description,
+  checked = false,
+  required = false,
+  disabled = false,
+  describedBy,
+  class: className,
+} = Astro.props;
+---
+
+<label
+  for={id}
+  class:list={[
+    'group flex h-full min-h-11 flex-col gap-1 rounded-card border border-fg-muted bg-surface-raised p-5 text-fg transition-colors',
+    'hover:border-action has-checked:border-2 has-checked:border-action has-checked:bg-surface-inset',
+    'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus',
+    disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+    className,
+  ]}
+>
+  <input
+    id={id}
+    name={name}
+    type={type}
+    value={value}
+    checked={checked}
+    required={required}
+    disabled={disabled}
+    aria-describedby={describedBy}
+    class="sr-only"
+  />
+  <span class="flex items-start justify-between gap-3">
+    <span class="text-base font-semibold">{label}</span>
+    <span
+      aria-hidden="true"
+      class:list={[
+        'grid size-6 shrink-0 place-items-center border-2 border-fg-muted text-caption font-black text-transparent',
+        'group-has-checked:border-action group-has-checked:bg-action group-has-checked:text-on-action',
+        type === 'radio' ? 'rounded-pill' : 'rounded-md',
+      ]}
+    >
+      ✓
+    </span>
+  </span>
+  {description && <span class="text-small text-fg-muted">{description}</span>}
+  <slot />
+</label>

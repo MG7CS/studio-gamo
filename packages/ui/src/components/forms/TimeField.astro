@@ -1,0 +1,71 @@
+---
+/**
+ * TimeField — native time input ("Time" questions, clock time). Values are `HH:MM` (24-hour); the browser shows the local format. For a duration use TextField with a pattern.
+ *
+ * Props
+ * - id: string; name: string; label: string — as TextField (hint/error ids `${id}-hint` / `${id}-error`).
+ * - value?: string — e.g. '18:30' (preserved after a failed submit).
+ * - min?: string; max?: string; step?: number — native constraints (state them in `hint` too).
+ * - hint?: string; error?: string; required?: boolean (default false).
+ * - autocomplete?: string.
+ * - disabled?: boolean; readonly?: boolean.
+ * - class?: string — wrapper classes.
+ */
+import FieldShell from './FieldShell.astro';
+import { CONTROL_CLASS, fieldIds } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  value?: string;
+  min?: string;
+  max?: string;
+  step?: number;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  autocomplete?: string;
+  disabled?: boolean;
+  readonly?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  value,
+  min,
+  max,
+  step,
+  hint,
+  error,
+  required = false,
+  autocomplete,
+  disabled = false,
+  readonly = false,
+  class: className,
+} = Astro.props;
+const ids = fieldIds(id, Boolean(hint));
+---
+
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <input
+    id={id}
+    name={name}
+    type="time"
+    value={value}
+    min={min}
+    max={max}
+    step={step}
+    required={required}
+    autocomplete={autocomplete}
+    disabled={disabled}
+    readonly={readonly}
+    aria-describedby={ids.describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    class:list={[CONTROL_CLASS, 'sm:max-w-xs']}
+  />
+</FieldShell>

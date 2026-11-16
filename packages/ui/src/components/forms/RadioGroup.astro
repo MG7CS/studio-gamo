@@ -1,0 +1,107 @@
+---
+/**
+ * RadioGroup — "Multiple choice" questions: a radiogroup fieldset of radio rows with an optional "Other".
+ *
+ * Props
+ * - id: string — fieldset id; option ids are `${id}-0`, `${id}-1` …; "Other" is `${id}-other` with its
+ *   text input `${id}-other-text`.
+ * - name: string — submits `name=value`; "Other" submits `OTHER_VALUE` (from `./field`) and its text as
+ *   `${name}_other`.
+ * - legend: string — the question.
+ * - options: { value: string; label: string; hint?: string; disabled?: boolean }[].
+ * - value?: string — the submitted value to re-render as selected.
+ * - other?: boolean (default false); otherLabel?: string (default 'Other'); otherValue?: string.
+ * - layout?: 'stack' | 'inline' (default 'stack') — 'inline' wraps short options (Yes / No) in a row.
+ * - hint?: string; error?: string; required?: boolean — native `required` on the radios plus the marker.
+ * - class?: string.
+ */
+import ChoiceItem from './ChoiceItem.astro';
+import Fieldset from './Fieldset.astro';
+import { CONTROL_CLASS, OTHER_VALUE, type ChoiceOption } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  legend: string;
+  options: ChoiceOption[];
+  value?: string;
+  other?: boolean;
+  otherLabel?: string;
+  otherValue?: string;
+  layout?: 'stack' | 'inline';
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  legend,
+  options,
+  value,
+  other = false,
+  otherLabel = 'Other',
+  otherValue,
+  layout = 'stack',
+  hint,
+  error,
+  required = false,
+  class: className,
+} = Astro.props;
+const otherId = `${id}-other`;
+const otherTextId = `${id}-other-text`;
+---
+
+<Fieldset
+  id={id}
+  legend={legend}
+  hint={hint}
+  error={error}
+  required={required}
+  role="radiogroup"
+  class={className}
+>
+  <div class:list={[layout === 'inline' && 'flex flex-wrap gap-x-8']}>
+    {options.map((o, i) => (
+      <ChoiceItem
+        type="radio"
+        id={`${id}-${i}`}
+        name={name}
+        value={o.value}
+        label={o.label}
+        hint={o.hint}
+        disabled={o.disabled}
+        required={required}
+        checked={value === o.value}
+      />
+    ))}
+    {other && (
+      <ChoiceItem
+        type="radio"
+        id={otherId}
+        name={name}
+        value={OTHER_VALUE}
+        label={otherLabel}
+        required={required}
+        checked={value === OTHER_VALUE}
+      />
+    )}
+  </div>
+  {other && (
+    <div class="ps-9 pb-2">
+      <label for={otherTextId} class="block text-small font-semibold text-fg">
+        If {otherLabel.toLowerCase()}, please specify
+      </label>
+      <input
+        id={otherTextId}
+        name={`${name}_other`}
+        type="text"
+        value={otherValue}
+        maxlength={200}
+        class={CONTROL_CLASS}
+      />
+    </div>
+  )}
+</Fieldset>

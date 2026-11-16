@@ -1,0 +1,49 @@
+---
+/**
+ * FloatingPreviewCard: frame for a small floating product-UI preview laid over photography
+ * (a booking summary, a lesson slot, a schedule). Previews show fictional data, so the badge slot
+ * falls back to a "Sample" Badge; replace it only with another honest label.
+ * The title is a plain label, not a heading, so previews do not enter the page outline.
+ *
+ * Usage:
+ *   <FloatingPreviewCard title="Next lesson" class="absolute end-6 bottom-6 w-72">
+ *     <p class="text-small">Piano · Thursday 4:30 pm</p>
+ *   </FloatingPreviewCard>
+ *
+ * Slots: title (overrides `title`), badge (defaults to a Sample badge), default (preview body).
+ */
+import Badge from './Badge.astro';
+
+interface Props {
+  title?: string;
+  /** light (default) uses the raised surface; dark switches to dark colour roles. */
+  tone?: 'light' | 'dark';
+  as?: 'div' | 'aside' | 'figure';
+  class?: string;
+}
+const { title, tone = 'light', as: Tag = 'div', class: className } = Astro.props;
+const hasTitle = Boolean(title) || Astro.slots.has('title');
+---
+
+<Tag
+  class:list={[
+    'flex min-w-0 flex-col gap-4 rounded-card border border-border bg-surface-raised p-5 text-fg shadow-raised',
+    className,
+  ]}
+  data-tone={tone}
+  data-surface={tone === 'dark' ? 'dark' : undefined}
+>
+  <div class="flex min-w-0 items-center justify-between gap-3">
+    {hasTitle && (
+      <p class="min-w-0 truncate text-small font-semibold">
+        <slot name="title">{title}</slot>
+      </p>
+    )}
+    <div class="ms-auto flex shrink-0 gap-2">
+      <slot name="badge">
+        <Badge tone="sample" size="sm" />
+      </slot>
+    </div>
+  </div>
+  <slot />
+</Tag>

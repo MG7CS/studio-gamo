@@ -1,0 +1,96 @@
+---
+/**
+ * TextareaField — multi-line text ("Paragraph" questions).
+ *
+ * Props
+ * - id: string; name: string; label: string — as TextField (hint/error ids `${id}-hint` / `${id}-error`).
+ * - value?: string — server-rendered value (preserved after a failed submit).
+ * - hint?: string; error?: string; required?: boolean (default false).
+ * - rows?: number (default 5).
+ * - maxlength?: number; minlength?: number — when `maxlength` is set the hint states the limit.
+ * - counter?: boolean — with JS, show a live "n / max" counter under the field (needs `maxlength`).
+ * - placeholder?: string — an example only; never a replacement for the label.
+ * - autocomplete?: string; spellcheck?: boolean; disabled?: boolean; readonly?: boolean.
+ * - class?: string — wrapper classes.
+ */
+import FieldShell from './FieldShell.astro';
+import { CONTROL_CLASS, fieldIds, joinHints } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  value?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  rows?: number;
+  maxlength?: number;
+  minlength?: number;
+  counter?: boolean;
+  placeholder?: string;
+  autocomplete?: string;
+  spellcheck?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  value,
+  hint: hintText,
+  error,
+  required = false,
+  rows = 5,
+  maxlength,
+  minlength,
+  counter = false,
+  placeholder,
+  autocomplete,
+  spellcheck,
+  disabled = false,
+  readonly = false,
+  class: className,
+} = Astro.props;
+const hint = joinHints(hintText, maxlength ? `Up to ${maxlength} characters.` : null);
+const ids = fieldIds(id, Boolean(hint));
+const showCounter = counter && Boolean(maxlength);
+---
+
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <textarea
+    id={id}
+    name={name}
+    rows={rows}
+    required={required}
+    maxlength={maxlength}
+    minlength={minlength}
+    placeholder={placeholder}
+    autocomplete={autocomplete}
+    spellcheck={spellcheck === undefined ? undefined : spellcheck ? 'true' : 'false'}
+    disabled={disabled}
+    readonly={readonly}
+    aria-describedby={ids.describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    data-char-counter={showCounter ? `${id}-count` : undefined}
+    class:list={[CONTROL_CLASS, 'resize-y leading-6']}
+  >{value}</textarea>
+  {showCounter && (
+    <p
+      id={`${id}-count`}
+      slot="after"
+      class="mt-1 text-right text-small text-fg-muted"
+      aria-hidden="true"
+      hidden
+    />
+  )}
+</FieldShell>
+
+<script>
+  import { initForms } from '../../lib/forms-client';
+  initForms();
+</script>

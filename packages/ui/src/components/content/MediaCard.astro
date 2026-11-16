@@ -1,0 +1,149 @@
+---
+/**
+ * MediaCard: photo card whose text is always readable.
+ *   variant="adaptive" (default): photo above the text in narrow containers, photo beside the text
+ *     once the card's own container is ≥ 36rem. Text sits on the card surface, never on the photo.
+ *   variant="overlay": text sits on the photo inside a scrim band that switches to dark colour
+ *     roles (data-surface="dark"), so contrast holds on bright photos.
+ * The `on-media` slot places chips over the photo's top corner (Badge carries its own background).
+ * With `href`, the title link is stretched over the whole card (one link, ring around the card).
+ *
+ * Usage:
+ *   <MediaCard image={{ name: 'boyGuitar', sizes: '(min-width:1024px) 33vw, 100vw' }}
+ *              title="Guitar" href="/instruments/guitar" variant="overlay">
+ *     <Badge slot="on-media" tone="neutral">Ages 8 and up</Badge>
+ *     <p>Acoustic and electric, from first chords to worship sets.</p>
+ *   </MediaCard>
+ *
+ * Slots: on-media, eyebrow, title (overrides `title`), default (body), meta.
+ */
+import Photo from '../Photo.astro';
+import type { PhotoKey } from '../../lib/images';
+import { cardSurface, cardToneClass, type CardTone } from './card-tone';
+
+/** Photo props the card passes through; the card owns the image class. */
+export interface MediaCardImage {
+  name: PhotoKey;
+  sizes: string;
+  /** alt="" only when the photo is purely decorative. */
+  alt?: string;
+  position?: string;
+  priority?: boolean;
+}
+interface Props {
+  /** Passed to Photo (name, sizes, alt, position, priority). */
+  image: MediaCardImage;
+  title?: string;
+  /** Heading level for the title. Default h3. */
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  href?: string;
+  variant?: 'adaptive' | 'overlay';
+  /** Surface of the text area in the adaptive variant. Default raised. */
+  tone?: Exclude<CardTone, 'outline'>;
+  as?: 'div' | 'article' | 'li';
+  class?: string;
+}
+const {
+  image,
+  title,
+  headingLevel: Heading = 'h3',
+  href,
+  variant = 'adaptive',
+  tone = 'raised',
+  as: Tag = 'article',
+  class: className,
+} = Astro.props;
+const overlay = variant === 'overlay';
+const hasTitle = Boolean(title) || Astro.slots.has('title');
+---
+
+<Tag
+  class:list={[
+    'media-card group @container relative min-w-0 overflow-hidden rounded-card',
+    overlay ? 'bg-surface-inverse' : cardToneClass[tone],
+    href && 'transition-shadow hover:shadow-float',
+    className,
+  ]}
+  data-variant={variant}
+  data-surface={overlay ? undefined : cardSurface(tone)}
+>
+  <div class:list={['grid h-full', !overlay && '@xl:grid-cols-5']}>
+    <div
+      class:list={[
+        'relative overflow-hidden',
+        overlay
+          ? 'col-start-1 row-start-1 aspect-portrait'
+          : 'aspect-landscape @xl:col-span-2 @xl:aspect-auto @xl:min-h-56',
+      ]}
+    >
+      <Photo
+        {...image}
+        class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+      {Astro.slots.has('on-media') && (
+        <div class="absolute start-4 end-4 top-4 flex flex-wrap gap-2">
+          <slot name="on-media" />
+        </div>
+      )}
+    </div>
+    <div
+      class:list={[
+        'z-10 flex min-w-0 flex-col',
+        overlay ? 'col-start-1 row-start-1 self-end text-fg' : '@xl:col-span-3 @xl:justify-center',
+      ]}
+      data-surface={overlay ? 'dark' : undefined}
+    >
+      {overlay && <div class="h-16 bg-linear-to-t from-scrim to-transparent" aria-hidden="true" />}
+      <div
+        class:list={[
+          'flex min-w-0 flex-1 flex-col gap-3 p-6',
+          overlay ? 'bg-scrim pt-0' : '@xl:justify-center @xl:p-8',
+        ]}
+      >
+        {Astro.slots.has('eyebrow') && (
+          <div class="flex min-w-0 flex-wrap gap-2">
+            <slot name="eyebrow" />
+          </div>
+        )}
+        {hasTitle && (
+          <Heading class="text-xl font-black tracking-tight text-balance text-fg uppercase">
+            {href ? (
+              <a href={href} class="media-card__link decoration-2 underline-offset-4 group-hover:underline">
+                <slot name="title">{title}</slot>
+              </a>
+            ) : (
+              <slot name="title">{title}</slot>
+            )}
+          </Heading>
+        )}
+        <div class:list={['text-body-sm', overlay ? 'text-fg' : 'text-fg-muted']}>
+          <slot />
+        </div>
+        {Astro.slots.has('meta') && (
+          <div class:list={['mt-auto pt-2 text-small', overlay ? 'text-fg' : 'text-fg-muted']}>
+            <slot name="meta" />
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</Tag>
+
+<style>
+  /* The text column is a static grid item (z-index without position), so the root card is the
+     containing block and the stretched link covers the whole card, photo included. */
+  .media-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: var(--radius-card);
+  }
+  .media-card__link:focus-visible {
+    outline: none;
+  }
+  .media-card:has(.media-card__link:focus-visible) {
+    outline: 2px solid var(--ui-focus);
+    outline-offset: 3px;
+  }
+</style>

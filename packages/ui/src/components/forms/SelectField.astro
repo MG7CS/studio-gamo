@@ -1,0 +1,74 @@
+---
+/**
+ * SelectField — native `<select>` ("Dropdown" questions).
+ *
+ * Props
+ * - id: string; name: string; label: string — as TextField (hint/error ids `${id}-hint` / `${id}-error`).
+ * - options: { value: string; label: string; disabled?: boolean }[].
+ * - value?: string — the selected value (preserved after a failed submit).
+ * - placeholder?: string — first, empty option (default 'Choose…'); pass '' to omit it. When the field is
+ *   required the placeholder is disabled, so the browser asks for a real choice.
+ * - hint?: string; error?: string; required?: boolean (default false).
+ * - autocomplete?: string; disabled?: boolean.
+ * - class?: string — wrapper classes.
+ */
+import FieldShell from './FieldShell.astro';
+import { CONTROL_CLASS, fieldIds, type ChoiceOption } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  options: Pick<ChoiceOption, 'value' | 'label' | 'disabled'>[];
+  value?: string;
+  placeholder?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  autocomplete?: string;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  options,
+  value,
+  placeholder = 'Choose…',
+  hint,
+  error,
+  required = false,
+  autocomplete,
+  disabled = false,
+  class: className,
+} = Astro.props;
+const ids = fieldIds(id, Boolean(hint));
+const hasValue = value !== undefined && options.some((o) => o.value === value);
+---
+
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <select
+    id={id}
+    name={name}
+    required={required}
+    autocomplete={autocomplete}
+    disabled={disabled}
+    aria-describedby={ids.describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    class:list={[CONTROL_CLASS, 'pe-10']}
+  >
+    {placeholder && (
+      <option value="" disabled={required} selected={!hasValue}>
+        {placeholder}
+      </option>
+    )}
+    {options.map((o) => (
+      <option value={o.value} disabled={o.disabled} selected={hasValue && o.value === value}>
+        {o.label}
+      </option>
+    ))}
+  </select>
+</FieldShell>

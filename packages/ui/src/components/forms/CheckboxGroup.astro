@@ -1,0 +1,102 @@
+---
+/**
+ * CheckboxGroup — "Checkboxes" questions: a fieldset of checkbox rows with an optional "Other" choice.
+ *
+ * Props
+ * - id: string — fieldset id; option ids are `${id}-0`, `${id}-1` …; "Other" is `${id}-other` with its
+ *   text input `${id}-other-text`.
+ * - name: string — every box submits `name=value`; "Other" submits `OTHER_VALUE` (from `./field`) and its
+ *   text as `${name}_other`.
+ * - legend: string — the question.
+ * - options: { value: string; label: string; hint?: string; disabled?: boolean }[].
+ * - values?: string[] — submitted values to re-render as checked (include `OTHER_VALUE` for "Other").
+ * - min?: number; max?: number — stated in the hint ("Choose 1 to 3."); the server enforces them.
+ * - other?: boolean (default false); otherLabel?: string (default 'Other'); otherValue?: string.
+ * - hint?: string; error?: string.
+ * - required?: boolean — marked in the legend; checked by the server (native `required` on a checkbox
+ *   would demand every box).
+ * - class?: string.
+ */
+import ChoiceItem from './ChoiceItem.astro';
+import Fieldset from './Fieldset.astro';
+import { CONTROL_CLASS, OTHER_VALUE, joinHints, rangeHint, type ChoiceOption } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  legend: string;
+  options: ChoiceOption[];
+  values?: string[];
+  min?: number;
+  max?: number;
+  other?: boolean;
+  otherLabel?: string;
+  otherValue?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  legend,
+  options,
+  values = [],
+  min,
+  max,
+  other = false,
+  otherLabel = 'Other',
+  otherValue,
+  hint,
+  error,
+  required = false,
+  class: className,
+} = Astro.props;
+const groupHint = joinHints(hint, rangeHint(min, max));
+const otherId = `${id}-other`;
+const otherTextId = `${id}-other-text`;
+---
+
+<Fieldset id={id} legend={legend} hint={groupHint} error={error} required={required} class={className}>
+  {options.map((o, i) => (
+    <ChoiceItem
+      type="checkbox"
+      id={`${id}-${i}`}
+      name={name}
+      value={o.value}
+      label={o.label}
+      hint={o.hint}
+      disabled={o.disabled}
+      checked={values.includes(o.value)}
+      invalid={Boolean(error)}
+    />
+  ))}
+  {other && (
+    <>
+      <ChoiceItem
+        type="checkbox"
+        id={otherId}
+        name={name}
+        value={OTHER_VALUE}
+        label={otherLabel}
+        checked={values.includes(OTHER_VALUE)}
+        invalid={Boolean(error)}
+      />
+      <div class="ps-9 pb-2">
+        <label for={otherTextId} class="block text-small font-semibold text-fg">
+          If {otherLabel.toLowerCase()}, please specify
+        </label>
+        <input
+          id={otherTextId}
+          name={`${name}_other`}
+          type="text"
+          value={otherValue}
+          maxlength={200}
+          class={CONTROL_CLASS}
+        />
+      </div>
+    </>
+  )}
+</Fieldset>

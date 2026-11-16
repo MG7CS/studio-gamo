@@ -1,0 +1,33 @@
+---
+/**
+ * Stack: vertical flow with one consistent gap between children.
+ *
+ * Usage:
+ *   <Stack gap="lg"><Card>…</Card><Card>…</Card></Stack>
+ *   <Stack as="ul" gap="sm" align="start">…<li>…</li></Stack>
+ */
+type Gap = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+type Align = 'stretch' | 'start' | 'center';
+interface Props {
+  /** xs 0.5rem, sm 0.75rem, md 1rem (default), lg 1.5rem, xl 2.5rem. */
+  gap?: Gap;
+  align?: Align;
+  as?: 'div' | 'ul' | 'ol' | 'section' | 'article';
+  class?: string;
+}
+const { gap = 'md', align = 'stretch', as: Tag = 'div', class: className } = Astro.props;
+const gapClass: Record<Gap, string> = { xs: 'gap-2', sm: 'gap-3', md: 'gap-4', lg: 'gap-6', xl: 'gap-10' };
+const alignClass: Record<Align, string> = {
+  stretch: 'items-stretch',
+  start: 'items-start',
+  center: 'items-center',
+};
+---
+
+<Tag
+  class:list={['flex min-w-0 flex-col', gapClass[gap], alignClass[align], className]}
+  data-gap={gap}
+  data-align={align}
+>
+  <slot />
+</Tag>

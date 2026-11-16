@@ -1,0 +1,29 @@
+---
+/**
+ * Container: centres content at a token width with the page side gutter.
+ * Replaces hand-written centred wrappers with raw max widths and breakpoint gutters.
+ *
+ * Usage:
+ *   <Container width="narrow"><p>…</p></Container>
+ *   <Container as="header" gutter={false}>…</Container>
+ */
+type Width = 'page' | 'narrow' | 'prose';
+interface Props {
+  /** page 82.5rem (default), narrow 56rem, prose 42rem. */
+  width?: Width;
+  /** Adds the fluid page side gutter (padding-inline). Default true. */
+  gutter?: boolean;
+  as?: 'div' | 'header' | 'footer' | 'article' | 'nav';
+  class?: string;
+}
+const { width = 'page', gutter = true, as: Tag = 'div', class: className } = Astro.props;
+const widthClass: Record<Width, string> = {
+  page: 'max-w-page',
+  narrow: 'max-w-narrow',
+  prose: 'max-w-prose',
+};
+---
+
+<Tag class:list={['mx-auto w-full', widthClass[width], gutter && 'gutter-x', className]} data-width={width}>
+  <slot />
+</Tag>

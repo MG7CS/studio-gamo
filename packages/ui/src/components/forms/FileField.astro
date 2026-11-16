@@ -1,0 +1,80 @@
+---
+/**
+ * FileField — native file input ("File upload" questions). States the allowed types, size and count
+ * before the picker. No upload logic: the form must use `method="post"` and
+ * `enctype="multipart/form-data"`, and the server re-checks type (magic bytes), size and count.
+ *
+ * Props
+ * - id: string; name: string; label: string — as TextField (hint/error ids `${id}-hint` / `${id}-error`).
+ * - accept: string — native accept list, e.g. 'application/pdf,.pdf,image/jpeg,image/png'.
+ * - typesLabel: string — the same list in words, e.g. 'PDF, JPEG or PNG' (shown before picking).
+ * - maxSizeMb?: number — per-file limit stated in the hint (enforced by the server).
+ * - multiple?: boolean (default false); maxFiles?: number — stated in the hint when `multiple`.
+ * - hint?: string — extra help, shown before the requirements.
+ * - error?: string; required?: boolean (default false); disabled?: boolean.
+ * - class?: string — wrapper classes.
+ *
+ * A file input can't keep its value after a failed submit; say so in the error ("Choose the file again").
+ */
+import FieldShell from './FieldShell.astro';
+import { fieldIds, fileRequirements, joinHints } from './field';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  accept: string;
+  typesLabel: string;
+  maxSizeMb?: number;
+  multiple?: boolean;
+  maxFiles?: number;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  accept,
+  typesLabel,
+  maxSizeMb,
+  multiple = false,
+  maxFiles,
+  hint: hintText,
+  error,
+  required = false,
+  disabled = false,
+  class: className,
+} = Astro.props;
+const requirementsText = fileRequirements(typesLabel, maxSizeMb, maxFiles, multiple);
+const hint = joinHints(hintText, requirementsText);
+const ids = fieldIds(id, true);
+---
+
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <input
+    id={id}
+    name={name}
+    type="file"
+    accept={accept}
+    multiple={multiple}
+    required={required}
+    disabled={disabled}
+    aria-describedby={ids.describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    data-max-files={multiple && maxFiles ? String(maxFiles) : undefined}
+    data-max-size-mb={maxSizeMb ? String(maxSizeMb) : undefined}
+    class:list={[
+      'mt-2 block min-h-11 w-full rounded-xl border border-dashed border-fg-muted bg-surface-raised p-2 text-small text-fg',
+      'file:me-4 file:min-h-11 file:cursor-pointer file:rounded-pill file:border-0 file:bg-action file:px-5',
+      'file:text-small file:font-semibold file:text-on-action hover:file:bg-action-strong',
+      'disabled:cursor-not-allowed disabled:opacity-60',
+      'aria-invalid:border-2 aria-invalid:border-solid aria-invalid:border-danger',
+    ]}
+  />
+</FieldShell>

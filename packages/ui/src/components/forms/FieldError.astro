@@ -1,0 +1,21 @@
+---
+/**
+ * FieldError — the error line under a field or group. Always rendered (hidden when empty) so
+ * `lib/forms-client.ts` can show client-side errors in the same place; prefixed "Error:" for screen readers.
+ *
+ * Props
+ * - id: string — `${fieldId}-error` (referenced by aria-describedby).
+ * - error?: string — server-rendered message.
+ */
+interface Props {
+  id: string;
+  error?: string;
+}
+
+const { id, error } = Astro.props;
+---
+
+<p id={id} class="mt-1.5 text-small font-semibold text-danger" hidden={!error}>
+  <span class="sr-only">Error: </span>
+  <span data-error-text>{error}</span>
+</p>

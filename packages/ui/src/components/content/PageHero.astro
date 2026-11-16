@@ -1,0 +1,119 @@
+---
+/**
+ * PageHero: the top of an inner page. Owns the page's single <h1>, an optional breadcrumb trail,
+ * eyebrow, intro, actions and an optional media slot that moves beside the copy once the hero's
+ * container is ≥ 56rem (stacked below it in narrower containers).
+ *
+ * Usage:
+ *   <PageHero title="Piano lessons" eyebrow="Lessons"
+ *             breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Lessons', href: '/lessons' }, { label: 'Piano' }]}>
+ *     <p slot="intro">Weekly lessons for students of every age.</p>
+ *     <ButtonLink slot="actions" href="/enroll">Enroll</ButtonLink>
+ *     <Photo slot="media" name="girlPiano" sizes="(min-width:1024px) 40vw, 100vw" class="aspect-portrait w-full rounded-hero object-cover" />
+ *   </PageHero>
+ *
+ * Slots: eyebrow (overrides `eyebrow`), title (overrides `title`), intro, actions, media.
+ * The last breadcrumb item is the current page (no href; aria-current="page").
+ */
+import Container from '../layout/Container.astro';
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+type Tone = 'default' | 'inset' | 'dark';
+interface Props {
+  title?: string;
+  eyebrow?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  /** default keeps the parent surface; inset and dark switch colour roles. */
+  tone?: Tone;
+  width?: 'page' | 'narrow';
+  align?: 'start' | 'center';
+  class?: string;
+}
+const {
+  title,
+  eyebrow,
+  breadcrumbs = [],
+  tone = 'default',
+  width = 'page',
+  align = 'start',
+  class: className,
+} = Astro.props;
+const hasMedia = Astro.slots.has('media');
+const hasEyebrow = Boolean(eyebrow) || Astro.slots.has('eyebrow');
+const centered = align === 'center' && !hasMedia;
+---
+
+<header
+  class:list={['page-intro-space text-fg', tone !== 'default' && 'bg-surface', className]}
+  data-tone={tone}
+  data-surface={tone === 'default' ? undefined : tone}
+>
+  <Container width={width} class="@container">
+    <div class:list={['grid gap-10', hasMedia && '@4xl:grid-cols-2 @4xl:items-center @4xl:gap-16']}>
+      <div
+        class:list={['flex min-w-0 flex-col gap-5', centered ? 'items-center text-center' : 'items-start']}
+      >
+        {breadcrumbs.length > 0 && (
+          <nav aria-label="Breadcrumb">
+            <ol
+              class:list={[
+                'flex flex-wrap items-center gap-x-2 text-small text-fg-muted',
+                centered && 'justify-center',
+              ]}
+            >
+              {breadcrumbs.map((item, i) => {
+                const current = i === breadcrumbs.length - 1;
+                return (
+                  <li class="flex items-center gap-x-2">
+                    {item.href && !current ? (
+                      <a
+                        href={item.href}
+                        class="inline-flex min-h-11 items-center underline-offset-4 hover:text-fg hover:underline"
+                      >
+                        {item.label}
+                      </a>
+                    ) : (
+                      <span
+                        class="inline-flex min-h-11 items-center font-semibold text-fg"
+                        aria-current={current ? 'page' : undefined}
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                    {!current && <span aria-hidden="true">/</span>}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        )}
+        {hasEyebrow && (
+          <p class="eyebrow text-action-strong">
+            <slot name="eyebrow">{eyebrow}</slot>
+          </p>
+        )}
+        <h1 class="display-lg max-w-narrow text-balance text-fg">
+          <slot name="title">{title}</slot>
+        </h1>
+        {Astro.slots.has('intro') && (
+          <div class="max-w-prose text-lg leading-relaxed text-fg-muted">
+            <slot name="intro" />
+          </div>
+        )}
+        {Astro.slots.has('actions') && (
+          <div class:list={['mt-2 flex flex-wrap gap-3', centered && 'justify-center']}>
+            <slot name="actions" />
+          </div>
+        )}
+      </div>
+      {hasMedia && (
+        <div class="min-w-0">
+          <slot name="media" />
+        </div>
+      )}
+    </div>
+  </Container>
+</header>

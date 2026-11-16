@@ -1,0 +1,98 @@
+---
+/**
+ * LinkCard: a card that is one link. The title's link is stretched over the whole card, so the
+ * entire card is the (≥ 44 px) target, screen readers hear one link named by the title, and
+ * keyboard focus draws the ring around the card. Do not put other links or buttons inside.
+ *
+ * Usage:
+ *   <LinkCard href="/lessons/piano" title="Piano lessons" headingLevel="h3">
+ *     <Badge slot="eyebrow" tone="accent">Ages 6 and up</Badge>
+ *     <p>Weekly lessons with a vetted teacher.</p>
+ *     <Fragment slot="meta">30 or 45 minutes</Fragment>
+ *   </LinkCard>
+ *
+ * Slots: eyebrow, title (overrides the `title` prop), body (or the default slot), meta.
+ */
+import Icon from '../Icon.astro';
+import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
+
+interface Props {
+  href: string;
+  title?: string;
+  /** Heading level for the title. Default h3. */
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  tone?: CardTone;
+  padding?: Exclude<CardPadding, 'none'>;
+  as?: 'div' | 'article' | 'li';
+  /** Opens in a new tab with rel="noopener" and says so to screen readers. */
+  external?: boolean;
+  class?: string;
+}
+const {
+  href,
+  title,
+  headingLevel: Heading = 'h3',
+  tone = 'raised',
+  padding = 'md',
+  as: Tag = 'article',
+  external = false,
+  class: className,
+} = Astro.props;
+const hasBody = Astro.slots.has('body');
+---
+
+<Tag
+  class:list={[
+    'link-card group relative flex min-w-0 flex-col rounded-card transition-shadow hover:shadow-float',
+    cardToneClass[tone],
+    cardPaddingClass[padding],
+    className,
+  ]}
+  data-tone={tone}
+  data-surface={cardSurface(tone)}
+>
+  {Astro.slots.has('eyebrow') && (
+    <div class="mb-4 flex min-w-0 flex-wrap gap-2">
+      <slot name="eyebrow" />
+    </div>
+  )}
+  <Heading class="text-xl font-black tracking-tight text-balance uppercase">
+    <a
+      href={href}
+      class="link-card__link decoration-2 underline-offset-4 group-hover:underline"
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener' : undefined}
+    >
+      <slot name="title">{title}</slot>
+      {external && <span class="sr-only"> (opens in a new tab)</span>}
+    </a>
+  </Heading>
+  <div class="mt-3 text-body-sm text-fg-muted">{hasBody ? <slot name="body" /> : <slot />}</div>
+  <div class="mt-auto flex items-end justify-between gap-4 pt-6">
+    <div class="min-w-0 text-small text-fg-muted">
+      <slot name="meta" />
+    </div>
+    <Icon
+      name="arrow"
+      class="size-5 shrink-0 text-action-strong transition-transform group-hover:translate-x-1"
+      strokeWidth={2}
+    />
+  </div>
+</Tag>
+
+<style>
+  .link-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+  }
+  /* The card draws the focus ring, not the title text. */
+  .link-card__link:focus-visible {
+    outline: none;
+  }
+  .link-card:has(.link-card__link:focus-visible) {
+    outline: 2px solid var(--ui-focus);
+    outline-offset: 3px;
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+/**
+ * SplitHero: copy and media side by side once the hero's container is ≥ 48rem; stacked (copy
+ * first) in narrower containers. The copy slot is free-form: on a landing page put the page's
+ * single <h1> in it; when used lower on a page use an <h2>.
+ *
+ * Usage:
+ *   <SplitHero mediaSide="start" tone="dark">
+ *     <h1 class="display-xl">Learn to Play the Instrument You Love</h1>
+ *     <p>Lessons for students and families.</p>
+ *     <ButtonLink href="/enroll">Enroll</ButtonLink>
+ *     <Photo slot="media" name="boyGuitar" sizes="(min-width:1024px) 50vw, 100vw" class="aspect-portrait w-full rounded-hero object-cover" />
+ *   </SplitHero>
+ *
+ * Slots: default (copy), media.
+ */
+import Container from '../layout/Container.astro';
+
+type Tone = 'default' | 'inset' | 'dark';
+type Spacing = 'hero' | 'section' | 'none';
+interface Props {
+  /** Which side the media takes in wide containers. Default end. */
+  mediaSide?: 'start' | 'end';
+  /** default keeps the parent surface; inset and dark switch colour roles. */
+  tone?: Tone;
+  width?: 'page' | 'narrow';
+  /** hero clears the site header (page-intro rhythm), section uses the section rhythm. */
+  spacing?: Spacing;
+  as?: 'header' | 'section' | 'div';
+  class?: string;
+}
+const {
+  mediaSide = 'end',
+  tone = 'default',
+  width = 'page',
+  spacing = 'hero',
+  as: Tag = 'header',
+  class: className,
+} = Astro.props;
+const spacingClass: Record<Spacing, string> = {
+  hero: 'page-intro-space',
+  section: 'section-space',
+  none: '',
+};
+---
+
+<Tag
+  class:list={['text-fg', tone !== 'default' && 'bg-surface', spacingClass[spacing], className]}
+  data-tone={tone}
+  data-media-side={mediaSide}
+  data-surface={tone === 'default' ? undefined : tone}
+>
+  <Container width={width} class="@container">
+    <div class="grid gap-10 @3xl:grid-cols-2 @3xl:items-center @3xl:gap-16">
+      <div class="flex min-w-0 flex-col items-start gap-5">
+        <slot />
+      </div>
+      {Astro.slots.has('media') && (
+        <div class:list={['min-w-0', mediaSide === 'start' && '@3xl:order-first']}>
+          <slot name="media" />
+        </div>
+      )}
+    </div>
+  </Container>
+</Tag>

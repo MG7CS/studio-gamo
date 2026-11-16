@@ -1,0 +1,101 @@
+---
+/**
+ * Section: a page band with a surface tone, token width, vertical rhythm and an optional header
+ * (eyebrow, title, intro, actions). With a title it renders <section aria-labelledby>; without one
+ * it renders a plain <div> so unnamed bands do not create empty landmarks.
+ *
+ * Usage:
+ *   <Section tone="inset" title="How it works">
+ *     <Fragment slot="eyebrow">Step by step</Fragment>
+ *     <p slot="intro">Three calm steps from first lesson to recital.</p>
+ *     <ButtonLink slot="actions" href="/start">Start</ButtonLink>
+ *     <NumberedSteps items={steps} />
+ *   </Section>
+ *
+ * Slots: eyebrow, title (overrides the `title` prop; text only, it is wrapped in the heading),
+ * intro, actions, default (body).
+ */
+import Container from './Container.astro';
+
+type Tone = 'default' | 'raised' | 'inset' | 'dark';
+type Spacing = 'default' | 'tight' | 'none';
+interface Props {
+  /** default keeps the parent surface; raised lifts it; inset and dark switch colour roles. */
+  tone?: Tone;
+  width?: 'page' | 'narrow' | 'prose';
+  spacing?: Spacing;
+  /** Header alignment. Default start. */
+  align?: 'start' | 'center';
+  title?: string;
+  /** Heading level for the title. Default h2 (the page template owns the single h1). */
+  titleAs?: 'h2' | 'h3';
+  /** Id of the heading (used for aria-labelledby). Generated when omitted. */
+  id?: string;
+  class?: string;
+}
+const {
+  tone = 'default',
+  width = 'page',
+  spacing = 'default',
+  align = 'start',
+  title,
+  titleAs: Heading = 'h2',
+  id,
+  class: className,
+} = Astro.props;
+
+const hasTitle = Boolean(title) || Astro.slots.has('title');
+const hasHeader =
+  hasTitle || Astro.slots.has('eyebrow') || Astro.slots.has('intro') || Astro.slots.has('actions');
+const headingId = id ?? `section-${Math.random().toString(36).slice(2, 10)}`;
+const Tag = hasTitle ? 'section' : 'div';
+
+const toneClass: Record<Tone, string> = {
+  default: 'text-fg',
+  raised: 'bg-surface-raised text-fg',
+  inset: 'bg-surface text-fg',
+  dark: 'bg-surface text-fg',
+};
+const surface = tone === 'inset' || tone === 'dark' ? tone : undefined;
+const spacingClass: Record<Spacing, string> = { default: 'section-space', tight: 'py-10', none: '' };
+---
+
+<Tag
+  class:list={[toneClass[tone], spacingClass[spacing], className]}
+  aria-labelledby={hasTitle ? headingId : undefined}
+  data-tone={tone}
+  data-surface={surface}
+>
+  <Container width={width}>
+    {hasHeader && (
+      <div
+        class:list={[
+          'mb-10 flex flex-col gap-4',
+          align === 'center' ? 'items-center text-center' : 'items-start',
+        ]}
+      >
+        {Astro.slots.has('eyebrow') && (
+          <p class="eyebrow text-action-strong">
+            <slot name="eyebrow" />
+          </p>
+        )}
+        {hasTitle && (
+          <Heading id={headingId} class="section-heading max-w-narrow text-balance text-fg">
+            <slot name="title">{title}</slot>
+          </Heading>
+        )}
+        {Astro.slots.has('intro') && (
+          <div class="max-w-prose text-lg leading-relaxed text-fg-muted">
+            <slot name="intro" />
+          </div>
+        )}
+        {Astro.slots.has('actions') && (
+          <div class:list={['mt-2 flex flex-wrap gap-3', align === 'center' && 'justify-center']}>
+            <slot name="actions" />
+          </div>
+        )}
+      </div>
+    )}
+    <slot />
+  </Container>
+</Tag>

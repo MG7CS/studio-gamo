@@ -1,0 +1,119 @@
+---
+/**
+ * FeatureGrid: responsive grid of equal-height children with no orphan gap. Columns come from the
+ * grid's own container width (not the viewport), from 1 up to `max`, keeping each item at least
+ * the `min` width. Items in a row share one height. A short last row either stretches to fill the
+ * row (default) or is centred, so there is never an empty cell beside the last item.
+ *
+ * Usage:
+ *   <FeatureGrid as="ul" max={3}>
+ *     {instruments.map((i) => <MediaCard as="li" image={i.image} title={i.name} href={i.href} />)}
+ *   </FeatureGrid>
+ *   <FeatureGrid min="sm" max={4} lastRow="center">…</FeatureGrid>
+ *
+ * With as="ul" / "ol" every child must be an <li> (Card, LinkCard and MediaCard take as="li").
+ */
+type Min = 'sm' | 'md' | 'lg';
+interface Props {
+  /** Minimum item width: sm ≈ 12rem, md ≈ 16rem (default), lg ≈ 20rem. */
+  min?: Min;
+  /** Most columns at any width. Default 3. */
+  max?: 2 | 3 | 4;
+  /** What a short last row does. Default stretch. */
+  lastRow?: 'stretch' | 'center';
+  gap?: 'md' | 'lg';
+  as?: 'div' | 'ul' | 'ol';
+  class?: string;
+}
+const {
+  min = 'md',
+  max = 3,
+  lastRow = 'stretch',
+  gap = 'md',
+  as: Tag = 'div',
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['feature-grid-host', className]}>
+  <Tag class="feature-grid" data-min={min} data-max={max} data-last-row={lastRow} data-gap={gap}>
+    <slot />
+  </Tag>
+</div>
+
+<style>
+  .feature-grid-host {
+    container-type: inline-size;
+  }
+  .feature-grid {
+    --feature-grid-cols: 1;
+    --feature-grid-gap: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--feature-grid-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .feature-grid[data-gap='lg'] {
+    --feature-grid-gap: 2rem;
+  }
+  .feature-grid[data-last-row='center'] {
+    justify-content: center;
+  }
+  .feature-grid > :global(*) {
+    flex: 0 0
+      calc((100% - (var(--feature-grid-cols) - 1) * var(--feature-grid-gap)) / var(--feature-grid-cols));
+    min-inline-size: 0;
+  }
+  .feature-grid[data-last-row='stretch'] > :global(*) {
+    flex-grow: 1;
+  }
+
+  /* Column steps per minimum item width (container queries cannot read custom properties). */
+  @container (min-width: 26rem) {
+    .feature-grid[data-min='sm'] {
+      --feature-grid-cols: 2;
+    }
+  }
+  @container (min-width: 40rem) {
+    .feature-grid[data-min='sm']:not([data-max='2']) {
+      --feature-grid-cols: 3;
+    }
+  }
+  @container (min-width: 54rem) {
+    .feature-grid[data-min='sm'][data-max='4'] {
+      --feature-grid-cols: 4;
+    }
+  }
+  @container (min-width: 34rem) {
+    .feature-grid[data-min='md'] {
+      --feature-grid-cols: 2;
+    }
+  }
+  @container (min-width: 52rem) {
+    .feature-grid[data-min='md']:not([data-max='2']) {
+      --feature-grid-cols: 3;
+    }
+  }
+  @container (min-width: 70rem) {
+    .feature-grid[data-min='md'][data-max='4'] {
+      --feature-grid-cols: 4;
+    }
+  }
+  @container (min-width: 42rem) {
+    .feature-grid[data-min='lg'] {
+      --feature-grid-cols: 2;
+    }
+  }
+  @container (min-width: 64rem) {
+    .feature-grid[data-min='lg']:not([data-max='2']) {
+      --feature-grid-cols: 3;
+    }
+  }
+  @container (min-width: 86rem) {
+    .feature-grid[data-min='lg'][data-max='4'] {
+      --feature-grid-cols: 4;
+    }
+  }
+</style>

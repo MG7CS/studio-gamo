@@ -1,0 +1,98 @@
+---
+/**
+ * NumberedSteps: an ordered list of steps with aligned numbers. Vertical (number beside the text)
+ * in narrow containers; one aligned row (number above the text, every step top-aligned, no offset)
+ * once the list's container is ≥ 48rem. Up to 4 steps share one row; 5–6 wrap in even rows.
+ *
+ * Usage:
+ *   <NumberedSteps headingLevel="h3" tone="raised" items={[
+ *     { title: 'Tell us about your student', body: 'Age, instrument and schedule.' },
+ *     { title: 'Meet your teacher', body: 'A short first lesson.' },
+ *     { title: 'Keep playing', body: 'Weekly lessons and recitals.' },
+ *   ]} />
+ */
+export interface Step {
+  title: string;
+  body?: string;
+}
+type Tone = 'plain' | 'raised' | 'inset';
+interface Props {
+  items: Step[];
+  /** Heading level for each step title. Default h3. */
+  headingLevel?: 'h3' | 'h4';
+  /** plain (default) separates steps with a rule; raised and inset put each step on a card. */
+  tone?: Tone;
+  /** First number (for a list continued elsewhere). Default 1. */
+  start?: number;
+  class?: string;
+}
+const { items, headingLevel: Heading = 'h3', tone = 'plain', start = 1, class: className } = Astro.props;
+const n = items.length;
+const cols = n <= 4 ? Math.max(n, 1) : n % 3 === 0 ? 3 : n % 4 === 0 ? 4 : 3;
+const stepClass: Record<Tone, string> = {
+  plain: 'border-t border-border pt-5',
+  raised: 'rounded-card bg-surface-raised p-6 shadow-raised',
+  inset: 'rounded-card bg-surface-inset p-6',
+};
+const pad = (i: number) => String(start + i).padStart(2, '0');
+---
+
+<div class:list={['numbered-steps-host', className]}>
+  <ol class="numbered-steps" start={start === 1 ? undefined : start} data-cols={cols} data-tone={tone}>
+    {items.map((item, i) => (
+      <li class:list={['numbered-steps__item text-fg', stepClass[tone]]}>
+        <span class="numbered-steps__number text-action" aria-hidden="true">
+          {pad(i)}
+        </span>
+        <div class="min-w-0">
+          <Heading class="text-lg font-black tracking-tight text-balance uppercase">{item.title}</Heading>
+          {item.body && <p class="mt-2 text-body-sm text-fg-muted">{item.body}</p>}
+        </div>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .numbered-steps-host {
+    container-type: inline-size;
+  }
+  .numbered-steps {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .numbered-steps__item {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+  }
+  .numbered-steps__number {
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  @container (min-width: 48rem) {
+    .numbered-steps {
+      gap: 2rem;
+    }
+    .numbered-steps[data-cols='2'] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .numbered-steps[data-cols='3'] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .numbered-steps[data-cols='4'] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .numbered-steps:not([data-cols='1']) .numbered-steps__item {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+    }
+  }
+</style>

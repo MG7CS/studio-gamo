@@ -1,0 +1,58 @@
+---
+/**
+ * FormComingSoon — temporary page body for a public form (apply / request) until its online form is
+ * published. Owns the page's single `<h1>`; offers email as the way to reach the team meanwhile.
+ *
+ * Props
+ * - eyebrow: string — small line above the title (program and audience).
+ * - title: string — the page `<h1>`.
+ * - intro: string — what the form will ask and what happens next.
+ * - email: string — contact address (from the app; the shared kit names no address).
+ * - subject?: string — mailto subject (defaults to `title`).
+ * - ctaLabel?: string — button text (default 'Email us').
+ * - class?: string.
+ */
+import ButtonLink from '../ButtonLink.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  email: string;
+  subject?: string;
+  ctaLabel?: string;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  intro,
+  email,
+  subject = title,
+  ctaLabel = 'Email us',
+  class: className,
+} = Astro.props;
+const href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+const titleId = 'form-coming-soon-title';
+---
+
+<section class:list={['page-intro-space bg-surface text-fg', className]} aria-labelledby={titleId}>
+  <div class="gutter-x mx-auto max-w-prose box-content pb-20">
+    <p class="eyebrow text-action-strong">{eyebrow}</p>
+    <h1 id={titleId} class="display-lg mt-4 text-balance">
+      {title}
+    </h1>
+    <p class="mt-5 text-base leading-relaxed text-fg-muted md:text-lg">{intro}</p>
+    <p class="mt-5 text-base leading-relaxed text-fg-muted md:text-lg">
+      Our online form is coming soon. In the meantime, email us at
+      <a href={href} class="inline-flex min-h-11 items-center font-semibold text-action-strong underline">
+        {email}
+      </a>
+      .
+    </p>
+    <ButtonLink href={href} class="mt-8" arrow>
+      {ctaLabel}
+    </ButtonLink>
+  </div>
+</section>

@@ -1,0 +1,84 @@
+---
+/**
+ * ChoiceItem — one radio or checkbox row. The whole row is the `<label>`, at least 44 px tall, so the
+ * 24 px box is never the only target. Used by Checkbox, CheckboxGroup and RadioGroup.
+ *
+ * Props
+ * - type: 'checkbox' | 'radio'.
+ * - id: string; name: string; value: string.
+ * - label?: string — and/or rich content (e.g. links) in the default slot, rendered after it.
+ * - hint?: string — rendered as `${id}-hint` under the row.
+ * - checked?: boolean (default false) — only to re-render the submitted choice; never pre-tick consent.
+ * - required?: boolean — native `required` (radios: one per group; a single required checkbox).
+ * - disabled?: boolean.
+ * - describedBy?: string — aria-describedby (defaults to the hint id when there is a hint).
+ * - invalid?: boolean — sets aria-invalid (checkbox only; radio groups mark the radiogroup instead).
+ * - class?: string.
+ */
+interface Props {
+  type: 'checkbox' | 'radio';
+  id: string;
+  name: string;
+  value: string;
+  label?: string;
+  hint?: string;
+  checked?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  describedBy?: string;
+  invalid?: boolean;
+  class?: string;
+}
+
+const {
+  type,
+  id,
+  name,
+  value,
+  label,
+  hint,
+  checked = false,
+  required = false,
+  disabled = false,
+  describedBy,
+  invalid = false,
+  class: className,
+} = Astro.props;
+const hintId = `${id}-hint`;
+const described = describedBy ?? (hint ? hintId : undefined);
+---
+
+<div class:list={['gamo-choice', className]}>
+  <label
+    for={id}
+    class:list={[
+      'flex min-h-11 items-start gap-3 py-2.5 text-body-sm text-fg',
+      disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+    ]}
+  >
+    <input
+      id={id}
+      name={name}
+      type={type}
+      value={value}
+      checked={checked}
+      required={required}
+      disabled={disabled}
+      aria-describedby={described || undefined}
+      aria-invalid={invalid && type === 'checkbox' ? 'true' : undefined}
+      class:list={[
+        'mt-0.5 size-6 shrink-0 accent-action',
+        type === 'checkbox' && 'aria-invalid:outline-2 aria-invalid:outline-danger',
+      ]}
+    />
+    <span>
+      {label}
+      <slot />
+    </span>
+  </label>
+  {hint && (
+    <p id={hintId} class="-mt-1.5 ps-9 pb-1 text-small text-fg-muted">
+      {hint}
+    </p>
+  )}
+</div>

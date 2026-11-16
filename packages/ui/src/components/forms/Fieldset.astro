@@ -1,0 +1,81 @@
+---
+/**
+ * Fieldset — a `<fieldset>` + `<legend>` around a group: radio/checkbox groups, scales, grid rows, or a
+ * whole form section ("Step 2 of 4"). The hint and error are bound to the group with aria-describedby.
+ *
+ * Props
+ * - id: string — fieldset id (focusable with tabindex -1, so error summary links can point here);
+ *   hint/error ids are `${id}-hint` / `${id}-error`, the legend is `${id}-legend`.
+ * - legend?: string — the question or section title (or use the `legend` slot).
+ * - hint?: string; error?: string.
+ * - required?: boolean — shows the required marker in the legend (inputs set native `required` themselves).
+ * - role?: 'group' | 'radiogroup' (default 'group') — 'radiogroup' also carries aria-invalid/aria-required.
+ * - describedBy?: string — extra ids to describe the group with (e.g. a scale's end labels).
+ * - variant?: 'field' | 'section' (default 'field') — 'section' is a larger legend for form sections.
+ * - class?: string.
+ *
+ * Slots: `legend` — rich legend content; default — the group's controls.
+ */
+import FieldError from './FieldError.astro';
+import RequiredMark from './RequiredMark.astro';
+import { fieldIds } from './field';
+
+interface Props {
+  id: string;
+  legend?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  role?: 'group' | 'radiogroup';
+  describedBy?: string;
+  variant?: 'field' | 'section';
+  class?: string;
+}
+
+const {
+  id,
+  legend,
+  hint,
+  error,
+  required = false,
+  role = 'group',
+  describedBy,
+  variant = 'field',
+  class: className,
+} = Astro.props;
+const ids = fieldIds(id, Boolean(hint), [describedBy]);
+const legendId = `${id}-legend`;
+const radiogroup = role === 'radiogroup';
+---
+
+<fieldset
+  id={id}
+  tabindex="-1"
+  role={radiogroup ? 'radiogroup' : undefined}
+  aria-labelledby={radiogroup ? legendId : undefined}
+  aria-describedby={ids.describedBy}
+  aria-invalid={radiogroup && error ? 'true' : undefined}
+  aria-required={radiogroup && required ? 'true' : undefined}
+  data-variant={variant}
+  class:list={['gamo-field m-0 min-w-0 border-0 p-0', className]}
+>
+  <legend
+    id={legendId}
+    class:list={[
+      'p-0 text-fg',
+      variant === 'section' ? 'text-xl font-black tracking-tight uppercase' : 'text-body-sm font-semibold',
+    ]}
+  >
+    <slot name="legend">{legend}</slot>
+    {required && <RequiredMark />}
+  </legend>
+  {hint && (
+    <p id={ids.hintId} class="mt-1 text-small text-fg-muted">
+      {hint}
+    </p>
+  )}
+  <div class:list={[variant === 'section' ? 'mt-6 space-y-6' : 'mt-2']}>
+    <slot />
+  </div>
+  <FieldError id={ids.errorId} error={error} />
+</fieldset>

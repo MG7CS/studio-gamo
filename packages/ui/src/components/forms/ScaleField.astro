@@ -1,0 +1,107 @@
+---
+/**
+ * ScaleField — "Linear scale" and "Rating" questions as an accessible radiogroup of 44 × 44 points, with
+ * optional end labels that are shown at both ends and read with the group.
+ *
+ * Props
+ * - id: string — fieldset id; point ids are `${id}-${n}`; end labels are `${id}-ends`.
+ * - name: string — submits the chosen number as text.
+ * - legend: string — the question.
+ * - min?: 0 | 1 (default 1); max?: number — 2 to 10 (default 5; clamped).
+ * - value?: string | number — the submitted value to re-render as selected.
+ * - minLabel?: string; maxLabel?: string — e.g. 'Not likely' / 'Very likely'.
+ * - kind?: 'scale' | 'rating' (default 'scale') — 'rating' adds a star to each point and reads
+ *   "n of max".
+ * - hint?: string; error?: string; required?: boolean — native `required` plus the marker.
+ * - class?: string.
+ */
+import Fieldset from './Fieldset.astro';
+
+interface Props {
+  id: string;
+  name: string;
+  legend: string;
+  min?: 0 | 1;
+  max?: number;
+  value?: string | number;
+  minLabel?: string;
+  maxLabel?: string;
+  kind?: 'scale' | 'rating';
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  legend,
+  min: minProp = 1,
+  max: maxProp = 5,
+  value,
+  minLabel,
+  maxLabel,
+  kind = 'scale',
+  hint,
+  error,
+  required = false,
+  class: className,
+} = Astro.props;
+const min = minProp === 0 ? 0 : 1;
+const max = Math.min(10, Math.max(2, Math.round(maxProp)));
+const points = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+const selected = value === undefined || value === '' ? undefined : String(value);
+const endsId = `${id}-ends`;
+const hasEnds = Boolean(minLabel || maxLabel);
+const endText = (n: number) => (n === min ? minLabel : n === max ? maxLabel : undefined);
+---
+
+<Fieldset
+  id={id}
+  legend={legend}
+  hint={hint}
+  error={error}
+  required={required}
+  role="radiogroup"
+  describedBy={hasEnds ? endsId : undefined}
+  class={className}
+>
+  <div class="inline-flex max-w-full flex-col gap-2">
+    <div class="flex flex-wrap gap-2">
+      {points.map((n) => (
+        <label
+          for={`${id}-${n}`}
+          class:list={[
+            'grid size-11 cursor-pointer place-items-center rounded-pill border border-fg-muted bg-surface-raised',
+            'text-body-sm font-semibold text-fg transition-colors hover:border-action',
+            'has-checked:border-action has-checked:bg-action has-checked:text-on-action',
+            'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-focus',
+          ]}
+        >
+          <input
+            id={`${id}-${n}`}
+            name={name}
+            type="radio"
+            value={String(n)}
+            checked={selected === String(n)}
+            required={required}
+            class="sr-only"
+          />
+          <span>
+            {kind === 'rating' && <span aria-hidden="true">★</span>}
+            {n}
+            {kind === 'rating' && <span class="sr-only"> of {max}</span>}
+            {endText(n) && <span class="sr-only">, {endText(n)}</span>}
+          </span>
+        </label>
+      ))}
+    </div>
+    {hasEnds && (
+      <p id={endsId} class="flex justify-between gap-4 text-small text-fg-muted">
+        <span>{minLabel && `${min}: ${minLabel}`}</span>
+        <span class="text-right">{maxLabel && `${max}: ${maxLabel}`}</span>
+      </p>
+    )}
+  </div>
+</Fieldset>
