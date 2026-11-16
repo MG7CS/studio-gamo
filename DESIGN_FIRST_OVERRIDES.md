@@ -1,10 +1,12 @@
-# Gamo Studios — CURRENT PHASE OVERRIDE (read before AGENTS.md and ROADMAP.md)
+> **Retired 2026-11-16 — superseded by the forms/emails/invoices plan and the front-end foundation plan; do not follow.** Current direction: [`ROADMAP.md`](ROADMAP.md), [`docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`](docs/superpowers/plans/2026-11-16-forms-emails-invoices.md), [`docs/superpowers/plans/2026-11-16-frontend-foundation.md`](docs/superpowers/plans/2026-11-16-frontend-foundation.md). Kept as history only.
+
+# Gamo Studios — former phase override (historical, 2026-10)
 
 **Scope change — 2026-11-16:** Gamo Live (and `apps/live`) was dropped; the remaining programs are Gamo Academy, Gamo Worship and Gamo Production. References to Live below are historical.
 
 **Approved scope update — 2026-10-12:** the founder authorized the complete public multi-page frontend brief (organization pages, Worship, Academy, Live and Production), including organization support/partnership pages and an isolated bright homepage-hero proposal. Earlier statements requiring separate permission to build these pages are superseded by that instruction. The approved `/` hero is preserved; `/preview/hero-2026` is awaiting visual acceptance. No backend, external integrations or Admin expansion is authorized. Current evidence: [docs/MULTIPAGE_DESIGN_REVIEW.md](docs/MULTIPAGE_DESIGN_REVIEW.md).
 
-**This document overrides older build-order instructions in `AGENTS.md`, `ROADMAP.md`, and `prompts/MASTER-PROMPT.md` when they conflict on build sequence.** Organizational purpose, program positioning and public messaging are governed by [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (Gamo Studios is a proposed Christian nonprofit); every screen built under this override must follow its copy and legal-status rules.
+**This document overrides older build-order instructions in `AGENTS.md`, `ROADMAP.md`, and `prompts/MASTER-PROMPT.md` when they conflict on build sequence.** Organizational purpose, program positioning and public messaging are governed by [`docs/GAMO_NONPROFIT_MODEL.md`](docs/GAMO_NONPROFIT_MODEL.md) (Gamo Studios is a Christian, mission-driven Public Benefit Corporation); every screen built under this override must follow its copy and legal-status rules.
 
 Current milestone: **complete ALL planned responsive screens and UI states before implementing business functionality or external integrations.** The earlier starter documents remain useful for long-term scope, but their sequence of implementing real vertical slices immediately is superseded. Major new sections (e.g. Church Partnerships, Support Our Mission) are proposed in `docs/SCREEN_INVENTORY.md` and require design approval before implementation; donation or payment flows are not built in this phase.
 

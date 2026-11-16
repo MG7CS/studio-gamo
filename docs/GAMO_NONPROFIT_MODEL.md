@@ -1,9 +1,9 @@
-# Gamo Studios — Mission-Driven Organizational Model (Legal-Structure-Neutral)
+# Gamo Studios — Mission-Driven Organizational Model
 
 <!-- status-banner: 2026-10 foundation pass -->
-> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.
+> Legal status (owner-confirmed): Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. The file name is historical; the text below follows the PBC statement in [AGENTS.md](../AGENTS.md).
 
-**Status:** Governing organizational direction, updated 2026-10-13. It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and updates earlier assumptions that a single legal/tax form had already been finalized.
+**Status:** Governing organizational direction, updated 2026-11-16 (legal structure confirmed by the owner as a Public Benefit Corporation). It **supersedes** the earlier commercial business model (marketplace commissions, advertising revenue, commercial subscriptions and separate profit-center verticals) and the earlier legal-structure-neutral and proposed-nonprofit framing.
 
 > [!NOTE]
 > **Program scope changed (owner decision, 2026-11-16):** after conversations with church ministers and pastors, Gamo Studios runs **three programs: Gamo Academy, Gamo Worship and Gamo Production**. Gamo Live (events, ticketing, scanner, Promote/Explore Events) was dropped; its last state is preserved at branch `archive/four-programs-2026-11-16` / tag `four-programs-snapshot` (commit `08c9b44`). See [DECISIONS.md](DECISIONS.md). The church-partnership, sponsored-labeling and dynamic-homepage rules formerly kept in `GAMO_LIVE_AND_PARTNERS.md` now live in [§4](#4-church-partnerships) and [§6](#6-public-website-and-messaging) of this document.
@@ -13,7 +13,7 @@
 Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) · [README.md](../README.md) · [ROADMAP.md](../ROADMAP.md) · [SECURITY.md](../SECURITY.md) · [DECISIONS.md](DECISIONS.md)
 
 > [!IMPORTANT]
-> Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). It has **not** incorporated as a nonprofit corporation and has **not** received IRS recognition of tax-exempt status. Do not describe it as a recognized 501(c)(3), do not describe payments or contributions as tax-deductible, and do not invent registration numbers, board members, sponsors, donors or partners. See [§2](#2-legal-status-and-governance).
+> Gamo Studios is a **Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking** (owner-confirmed). A PBC is a for-profit company type: Gamo Studios is **not** a nonprofit and is **not** tax-exempt. Never describe payments as tax-deductible, and never invent registration numbers, board members, sponsors or partners. See [§2](#2-legal-status-and-governance).
 
 ---
 
@@ -31,7 +31,7 @@ Related: [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) 
 
 ### 1.1 What Gamo Studios is — *Decided*
 
-Gamo Studios is a **Christian, mission-driven organization** serving churches, musicians, students, families, Christian artists and faith communities. Its purpose is **religious, educational and community service, not maximizing commercial returns.** Its software and financial architecture are **legal-structure-neutral** so they support the mission faithfully while final entity incorporation and tax status remain undecided.
+Gamo Studios is a **Christian, mission-driven organization** serving churches, musicians, students, families, Christian artists and faith communities. Its purpose is **religious, educational and community service, not maximizing commercial returns.** It is organized as a **Public Benefit Corporation** so that its mission stands alongside, and is not subordinate to, financial results.
 
 It strengthens Christian worship and community life through musical education, dependable worship support and shared technical resources. Gamo Studios builds and maintains the infrastructure, relationships, programs and resources that let:
 
@@ -80,24 +80,23 @@ Revenue growth is **not** a success metric on its own.
 
 ## 2. Legal status and governance
 
-### 2.1 Legal structure and tax status — *Undecided (Legal-Structure-Neutral)*
+### 2.1 Legal structure and tax status — *Decided (owner-confirmed 2026-11-16)*
 
-- **Final incorporation and tax status are undecided.** Options under evaluation with legal and tax counsel include a nonprofit corporation seeking federal tax-exempt recognition (such as Section 501(c)(3)), an interim fiscal-sponsorship arrangement, or another mission-governed legal structure.
-- Because the legal form is undecided, the organizational and technical architecture must remain **legal-structure-neutral**:
-  - describe Gamo Studios as a **Christian, mission-driven organization** (or developing mission initiative);
-  - do **not** claim 501(c)(3) status, IRS approval, or completed nonprofit incorporation;
-  - do **not** advertise any payments, support, or contributions as tax-deductible;
-  - do **not** generate or publish registration numbers, EINs or determination letters;
-  - do **not** imply board members, sponsors, donors or institutional partners have committed.
-- Legal and governance prerequisites are tracked in [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md).
+- Gamo Studios is a **Christian, mission-driven Public Benefit Corporation**. A PBC is a for-profit company type: Gamo Studios is **not** a nonprofit, is **not** tax-exempt and does not seek tax-exempt recognition.
+- Therefore:
+  - never describe Gamo as a nonprofit, charity or 501(c)(3), and never claim IRS approval;
+  - never advertise any payment, support or contribution as tax-deductible;
+  - do **not** generate or publish registration numbers, EINs or filings;
+  - do **not** imply board members, sponsors or institutional partners have committed.
+- Formation is complete (owner-confirmed 2026-11-16): state filing done, EIN obtained, bylaws adopted with the public benefit purpose, business bank account open. Do not publish filing details or numbers. Remaining governance steps are tracked in [NONPROFIT_TRANSITION_CHECKLIST.md](NONPROFIT_TRANSITION_CHECKLIST.md) (historical file name).
 
-**Approved public status wording** (use until legal and tax status are formally decided):
+**Approved public status wording:**
 
-> Gamo Studios is a developing Christian, mission-driven initiative. Final legal incorporation structure and tax status remain under evaluation, and contributions or payments are not tax-deductible.
+> Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.
 
 ### 2.2 Governance — *Decided intent*
 
-- Appropriate governance and oversight will guide mission accountability, finances, major policy decisions and executive compensation once the legal structure is selected.
+- Appropriate governance and oversight will guide mission accountability, finances, major policy decisions and executive compensation under the PBC's adopted bylaws.
 - The founder may serve as **CEO** and initially carry **CTO** responsibilities.
 - The organization may pay **reasonable compensation** to executives, employees, contractors, musicians and instructors for legitimate services.
 - Executive compensation and related-party decisions follow sound stewardship practice: independent review/approval, comparability data, documentation and conflict-of-interest controls.
@@ -110,11 +109,11 @@ Revenue growth is **not** a success metric on its own.
 | Fair pay to musicians and instructors for engagements and lessons | Commingling third-party payables (musician/instructor/organizer funds) with Gamo operating funds |
 | Reimbursement of documented, legitimate expenses | Personal use of organizational funds or commingled accounts |
 
-Operating surplus is **reinvested** in programs, reserves, infrastructure, accessibility and mission development in accordance with the chosen legal structure.
+Operating surplus is **reinvested** in programs, reserves, infrastructure, accessibility and mission development, consistent with the PBC's stated public benefit (distribution policy: owner-pending).
 
 ### 2.4 Legal and tax review — *Pending approval*
 
-All legal- and tax-sensitive operational details require review by qualified U.S. legal and accounting professionals. In particular, **do not assume** a specific tax-exempt status or tax treatment for musician-engagement fees, production services, sponsorships or contributions. Keep the platform legal-structure-neutral; do not present unverified legal or tax conclusions as settled.
+All legal- and tax-sensitive operational details require review by qualified U.S. legal and accounting professionals. Gamo is not tax-exempt; **do not assume** any particular tax treatment for musician-engagement fees, production services, sponsorships or contributions, and do not present unverified legal or tax conclusions as settled.
 
 ---
 
@@ -124,17 +123,39 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 
 | Program | Domain | Purpose |
 | --- | --- | --- |
-| Organization hub | `gamostudio.org` | Mission, programs, church partnerships, support pathways, account access, legal |
-| **Gamo Worship** | `worship.gamostudio.org` | Dependable worship music through connections with qualified, vetted musicians |
+| Organization hub | `gamostudio.org` | Mission, programs, church partnerships, support pathways, contact, legal |
 | **Gamo Academy** | `academy.gamostudio.org` | Accessible instrument instruction for children, teens, adults and families |
+| **Gamo Worship** | `worship.gamostudio.org` | Dependable worship music through connections with qualified, vetted musicians |
 | **Gamo Production** | `production.gamostudio.org` | Technical capacity for worship, education and Christian events |
 | Administration | `admin.gamostudio.org` | Governance, staff operations, program administration, financial accountability, reporting |
 
-### 3.1 Gamo Worship
+> [!NOTE]
+> **Money flows through Gamo (owner decision 2026-11-16).** Gamo invoices the church or family and pays the musician or instructor. Every invoice keeps the **musician pay** and any **Gamo administrative line** as separate line items; a Gamo administrative line is refused unless the owner has approved it. Invoices use **Stripe Invoicing in test mode** or a manual **mark paid** (check, Zelle, ACH, cash), in integer cents. Live charges stay blocked until the owner approves them. Design: [forms, emails and invoices spec](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
+
+### 3.1 Gamo Academy
+
+**Purpose — Decided.** Expand access to high-quality instrument instruction, particularly for children, teenagers, families, aspiring musicians and church communities. Academy is one of the organization's **principal educational programs**.
+
+**Primary audience — Decided.** Students, individuals, parents and families. Church-hosted classes and sponsorship are a **secondary institutional pathway**.
+
+**Approved homepage headline — Decided:** **"Learn to Play the Instrument You Love."** Keep this exact wording unless the founder instructs otherwise.
+
+**Offerings — Decided scope:** individual lessons; beginner-to-advanced pathways; keyboard and synthesizer; acoustic and electric guitar; bass; drums and percussion; vocals and other supported instruments; church-hosted group lessons; clinics and workshops; youth programs; sponsored lessons; scholarship-supported instruction; pathways for students to eventually serve in church music ministries.
+
+**Church partnership model — Proposed.** Churches with facilities and resources may host or sponsor instruction by contributing classrooms or rehearsal space, instruments and equipment, instructor funding, scholarships, student outreach, and volunteers. Gamo coordinates qualified instructors, scheduling, registration, curriculum support, safeguarding policies and educational administration.
+
+> [!NOTE]
+> Example only: a large Arizona church (for instance Dream City Church) could be **approached** about hosting or sponsoring youth lessons. This is a hypothetical opportunity, **not** an existing relationship. Never name a church as a partner in public copy without a signed agreement.
+
+**Financial model — Proposed.** Instruction is not a commission source. Programs may be fully sponsored and free to students; supported by church contributions; funded through grants or church support; offered with sliding-scale tuition; or offered with reasonable cost-sharing. Any tuition supports delivery, fair instructor pay, accessibility and sustainability.
+
+**Safeguarding — Decided requirement.** Instruction involving minors requires a safeguarding policy, instructor screening, guardian consent and messaging rules **before** any real booking (see [SECURITY.md](../SECURITY.md)).
+
+### 3.2 Gamo Worship
 
 **Purpose — Decided.** Help churches maintain dependable worship music through connections with qualified, vetted musicians. It supports the functioning of worship services, helps churches facing staffing challenges and expands meaningful, fairly paid opportunities for musicians.
 
-**Retained capabilities — Decided:** musician applications and auditions; identity and professional verification; worship-style and instrument profiling; geographic matching; church musician requests; one-time Sunday coverage; recurring assignments; standby availability; emergency replacement coordination; musician and church dashboards; staff review and dispatch tools.
+**Retained capabilities — Decided:** musician applications and auditions; identity and professional verification; worship-style and instrument profiling; geographic matching; church musician requests; one-time Sunday coverage; recurring assignments; staff-editable applications, private roster, offers and invoices in admin. Standby availability, emergency replacement and dispatch are future capabilities, not in the current plan.
 
 **Accurate service claims — Decided.** The vetting and paid-standby model remains a key strength. Describe it as **coordinated coverage with a standby musician where available**. Never promise guaranteed attendance, "zero failure" or guaranteed replacement (see [SECURITY.md](../SECURITY.md)).
 
@@ -151,29 +172,10 @@ The three programs (Academy, Worship, Production) are **connected programs of on
   4. Church sponsorships that subsidize placement operations.
 - **Rules until a decision is made:**
   - Do not implement any deduction from musician pay.
-  - A mandatory deduction from musician earnings is **not** a charitable donation and is **not** tax-deductible.
+  - A mandatory deduction from musician earnings is never presented as a gift or contribution.
   - The musician's **agreed pay** and Gamo's **administrative allocation** are always separate, clearly labeled line items.
   - Avoid financial burdens on musicians that undermine the mission.
   - Fair compensation, consent, payment documentation, worker classification and applicable law must be reviewed before any fee is charged.
-
-### 3.2 Gamo Academy
-
-**Purpose — Decided.** Expand access to high-quality instrument instruction, particularly for children, teenagers, families, aspiring musicians and church communities. Academy is one of the organization's **principal educational programs**.
-
-**Primary audience — Decided.** Students, individuals, parents and families. Church-hosted classes and sponsorship are a **secondary institutional pathway**.
-
-**Approved homepage headline — Decided:** **"Learn to Play the Instrument You Love."** Keep this exact wording unless the founder instructs otherwise.
-
-**Offerings — Decided scope:** individual lessons; beginner-to-advanced pathways; keyboard and synthesizer; acoustic and electric guitar; bass; drums and percussion; vocals and other supported instruments; church-hosted group lessons; clinics and workshops; youth programs; sponsored lessons; scholarship-supported instruction; pathways for students to eventually serve in church music ministries.
-
-**Church partnership model — Proposed.** Churches with facilities and resources may host or sponsor instruction by contributing classrooms or rehearsal space, instruments and equipment, instructor funding, scholarships, student outreach, and volunteers. Gamo coordinates qualified instructors, scheduling, registration, curriculum support, safeguarding policies and educational administration.
-
-> [!NOTE]
-> Example only: a large Arizona church (for instance Dream City Church) could be **approached** about hosting or sponsoring youth lessons. This is a hypothetical opportunity, **not** an existing relationship. Never name a church as a partner in public copy without a signed agreement.
-
-**Financial model — Proposed.** Instruction is not a commission source. Programs may be fully sponsored and free to students; supported by church contributions; funded through grants or donations; offered with sliding-scale tuition; or offered with reasonable cost-sharing. Any tuition supports delivery, fair instructor pay, accessibility and sustainability.
-
-**Safeguarding — Decided requirement.** Instruction involving minors requires a safeguarding policy, instructor screening, guardian consent and messaging rules **before** any real booking (see [SECURITY.md](../SECURITY.md)).
 
 ### 3.3 Gamo Production
 
@@ -181,7 +183,7 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 
 **Retained capabilities:** worship audio consulting; church sound systems; livestreaming; lighting and media setup; concert production support; technical training; event promotion creative; equipment and production guidance.
 
-**Operating model — Proposed.** Prioritize programs that improve churches' and ministries' technical capability and **develop local volunteers**. Consider sponsorships, grants, donated equipment, church contributions and appropriate cost recovery. Do not assume every fee-for-service A/V installation is an exempt charitable activity; treatment of production work and any potentially unrelated activity requires review.
+**Operating model — Proposed.** Prioritize programs that improve churches' and ministries' technical capability and **develop local volunteers**. Consider sponsorships, grants, contributed equipment, church support and appropriate cost recovery. Tax treatment of production work requires accountant review.
 
 ---
 
@@ -191,7 +193,7 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 
 **Potential participation — Proposed:** supporting instrument education; sponsoring students or instructors; hosting Academy classes; accessing worship-musician coordination; collaborative music programs; appropriate operational support; contributing shared equipment and educational resources; supporting youth music development and outreach.
 
-**Potential contribution structures — Proposed:** annual supporting-church contributions; monthly recurring contributions; program-specific sponsorships; institutional grants; in-kind donations; facility and equipment support; volunteer and professional contributions.
+**Potential contribution structures — Proposed:** annual supporting-church contributions; monthly recurring contributions; program-specific sponsorships; institutional grants; in-kind contributions; facility and equipment support; volunteer and professional contributions.
 
 **Ordinary participation never requires partnership — Decided.** Requesting musicians, enrolling students or asking for production help never requires a church to be a partner.
 
@@ -202,12 +204,12 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 | Education | Host Academy classes; sponsor students, instructors or youth programs |
 | Worship | Participate in the musician network; collaborative music programs |
 | Resources | Contribute equipment, facilities, volunteers or professional skills |
-| Support | Annual or monthly supporting contributions; program sponsorships; in-kind gifts |
+| Support | Program sponsorships; in-kind equipment or facilities (contribution structures owner-pending; not enabled) |
 
 **Rules — Decided:**
 
 - **No mandatory prices or membership tiers** without founder/board approval.
-- Do not assume a payment is a tax-deductible gift when the church receives substantial goods or services in return (quid pro quo disclosure rules may apply after recognition).
+- Gamo is not tax-exempt: no payment to Gamo is described as a tax-deductible gift.
 - **No pay-to-win.** Partnership never produces preferential vetting outcomes, musician rankings, trust indicators or exclusive access to shared community resources.
 - Any partner recognition on the website must reflect **signed, real** relationships; no church is named as a partner on public pages without a signed agreement.
 - Musicians' agreed pay is never reduced to fund partner benefits.
@@ -224,29 +226,25 @@ The three programs (Academy, Worship, Production) are **connected programs of on
 
 ## 5. Organizational sustainability
 
-**Decided:** The objective is **financial sustainability in service of the mission**, replacing the previous revenue-maximization strategy. Gamo needs enough resources to pay staff fairly, support musicians and instructors, maintain technology, operate programs and provide reliable services. Surplus is reinvested, never distributed.
+**Decided:** The objective is **financial sustainability in service of the mission**, replacing the previous revenue-maximization strategy. Gamo needs enough resources to pay staff fairly, support musicians and instructors, maintain technology, operate programs and provide reliable services. Surplus is reinvested in the mission (distribution policy: owner-pending).
 
-### 5.1 Potential funding and support sources — *Proposed, non-exclusive*
+### 5.1 Potential sources of support — *Proposed, non-exclusive; owner-pending*
 
-1. Individual donations.
-2. Church contributions.
-3. Recurring supporting memberships.
-4. Program sponsorships.
+1. Academy tuition and appropriate cost-sharing for music instruction.
+2. Reasonable administrative allocations associated with facilitated musician engagements (separate invoice line; owner approval required).
+3. Mission-aligned production service cost recovery.
+4. Program sponsorships and church support.
 5. Institutional grants.
-6. Gifts from Christian foundations and charitable donors.
-7. Sponsored youth music education.
-8. In-kind contributions of instruments, equipment and facilities.
-9. Appropriate cost-sharing for music instruction.
-10. Reasonable administrative allocations associated with facilitated musician engagements.
-11. Mission-aligned production service cost recovery.
+6. Sponsored youth music education.
+7. In-kind contributions of instruments, equipment and facilities.
 
-These sustain programs; they are **not** separate profit centers that must individually maximize returns. Other channels may be added later. **No financial projections, contribution rates, fee percentages or prices are approved.** Do not invent them.
+These sustain programs; they are **not** separate profit centers that must individually maximize returns. Any contribution or sponsorship model is **owner-pending and not enabled**; no contribution, membership or sponsorship payment processing exists. **No financial projections, contribution rates, fee percentages or prices are approved.** Do not invent them.
 
 ### 5.2 Financial controls — *Decided requirements (implementation Pending)*
 
 - Program-level budgets.
-- Restricted vs. unrestricted funds, honoring donor restrictions.
-- Donation and sponsorship records with acknowledgments (wording reviewed by counsel).
+- Restricted vs. unrestricted funds, honoring funder restrictions.
+- Sponsorship and contribution records (owner-pending; not enabled).
 - Correct treatment of fees vs. contributions.
 - Transparent musician and instructor compensation.
 - Payment processing and reconciliation.
@@ -259,37 +257,37 @@ These sustain programs; they are **not** separate profit centers that must indiv
 
 | Category | Description | Organizational income? |
 | --- | --- | --- |
-| `charitable_contribution` | Donations and gifts (restricted or unrestricted) | Yes — contribution income |
+| `contribution` | Contributions or grants (owner-pending; not enabled) | Yes — treatment Pending accountant review |
 | `sponsorship` | Program or event sponsorships (may include recognition benefits) | Yes — treatment Pending review |
 | `program_service_receipt` | Tuition, administrative service charges, production cost recovery | Yes — earned program income |
 | `third_party_payable` | Musician pay, instructor pay, other amounts collected for and owed to third parties | **No** — held for and paid to third parties |
 | `processing_cost` | Payment-processor fees | Expense |
 | `refund` / `dispute` | Reversals and chargebacks | Adjustment |
 
-Stripe Connect may be the payout rail; **Stripe is not a regulated escrow service** and must never be described as escrow.
+Invoices use Stripe Invoicing (test mode) or manual mark-paid; musician payouts are recorded by staff (see the §3 note). **Stripe is not a regulated escrow service** and must never be described as escrow.
 
 ---
 
 ## 6. Public website and messaging
 
-- **Hero:** "**Keep Worship Going.**" remains the recognizable brand message. The homepage must not imply Gamo exists only to supply musicians to churches.
+- **Hero (owner-approved 2026-11-16):** the current homepage hero, "**Where Worship, Learning & Community Meet.**" (`apps/web` `HomeEditorialHero`). The earlier "Keep Worship Going" hero (`design-reference/homepage/01-hero-approved.png`) is historical. The homepage must not imply Gamo exists only to supply musicians to churches.
 - The homepage introduces Gamo as a **unified Christian music and community organization** and shows how the three programs work together.
-- Audiences: churches and ministries; musicians; students and families; Christian artists; potential supporting churches; donors and sponsors; community partners.
+- Audiences: churches and ministries; musicians; students and families; Christian artists; potential supporting churches; potential sponsors; community partners.
 - A **dynamic hero** may eventually spotlight the mission, sponsored programs, Academy, Worship opportunities, Production support, church partnerships and special initiatives. **No carousel is implemented without explicit approval.** Future content rules (not approved for implementation):
   - The approved hero composition is preserved; slides swap content within it.
   - **Motion:** auto-advance ~8–10 s; manual prev/next and indicators; pause on hover, focus and interaction; no auto-rotation under `prefers-reduced-motion`; pause control available.
   - **Not hardcoded:** slides eventually come from placement records weighing campaign window, approximate location, editorial priority and mission priorities. Partnership status may grant recognition but never displaces mission/editorial balance.
   - **Geographic relevance** is approximate, opt-outable and never required.
   - Each slide is labeled *Sponsored*, *Featured* (editorial) or *Gamo Program* (see [§4.1](#41-sponsored-content-labeling--decided)); design-phase slides are labeled *Example*.
-- **Church Partnerships** and **Support Our Mission** pathways are planned (see [SCREEN_INVENTORY.md](SCREEN_INVENTORY.md)). Until legal and donation infrastructure is ready: **no donation processing, no tax-deductibility claims.**
-- Footer: Our Mission · Gamo Worship · Gamo Academy · Gamo Production · Church Partnerships · Opportunities to Support · Contact and legal — with accurate legal status only (§2.1 wording).
+- **Church Partnerships** and **Support Our Mission** pathways are planned (see [SCREEN_INVENTORY.md](SCREEN_INVENTORY.md)). **No donation processing or donation language and no tax-deductibility claims** (PBC, not tax-exempt); any contribution or sponsorship payment needs owner approval.
+- Footer: Our Mission · Gamo Worship · Gamo Academy · Gamo Production · Church Partnerships · Opportunities to Support · Contact and legal — with the approved PBC statement only (§2.1 wording).
 - All fictional musicians, events, bookings and profiles stay labeled as samples.
 
 ---
 
 ## 7. Agent guardrails (permanent)
 
-**We are building a Christian nonprofit organization and its supporting software infrastructure — not a commercial startup designed to maximize revenue.**
+**We are building a Christian, mission-driven Public Benefit Corporation and its supporting software infrastructure — not a commercial startup designed to maximize revenue.** Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking.
 
 Agents must **not**, without explicit founder/board authorization:
 
@@ -297,8 +295,8 @@ Agents must **not**, without explicit founder/board authorization:
 - turn a free or sponsored program into a paid service;
 - add deductions from musician or instructor pay;
 - let payment, sponsorship or partnership status affect vetting, rankings or trust signals;
-- claim nonprofit status, tax-deductibility, partnerships, verified members or real events that do not exist;
-- enable donation, membership or sponsorship payment processing.
+- claim nonprofit or tax-exempt status, tax-deductibility, partnerships, verified members or real events that do not exist;
+- enable donation, membership or sponsorship payment processing, or use donation language.
 
 Financial sustainability is important, but it is **subordinate to the mission**.
 
@@ -308,8 +306,8 @@ Financial sustainability is important, but it is **subordinate to the mission**.
 
 | # | Decision | Approver |
 | --- | --- | --- |
-| 1 | Adopt mission, vision and bylaws | Board (after formation) |
-| 2 | Arizona incorporation and IRS Form 1023 filing | Founder + legal counsel |
+| 1 | ~~Adopt bylaws and PBC benefit purpose~~ | Done (owner-confirmed 2026-11-16); formal adoption of mission and vision wording still owner-pending |
+| 2 | ~~PBC state filing, EIN, business bank account~~ | Done (owner-confirmed 2026-11-16) |
 | 3 | Board composition, independence and conflict-of-interest policy | Founder → Board |
 | 4 | Executive compensation (incl. founder as CEO/CTO) | Independent board members |
 | 5 | Gamo Worship administrative mechanism, payer, amount and contract treatment | Board + legal/tax review |
@@ -320,10 +318,10 @@ Financial sustainability is important, but it is **subordinate to the mission**.
 | 10 | ~~Ticketing/registration administration fee: amount, payer, refund policy~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
 | 11 | Paid placement / sponsored-campaign policy and density cap | Board |
 | 12 | Church partnership contribution structures, recognition and benefits | Board + tax review |
-| 13 | Donation acknowledgment, restricted-fund and gift acceptance policies | Board + accountant |
+| 13 | Restricted-fund and in-kind acceptance policies (owner-pending; not enabled) | Board + accountant |
 | 14 | Treatment of production services and potential unrelated business income | Accountant/tax counsel |
-| 15 | Stripe Connect account type and funds-flow model for a nonprofit entity | Founder + accountant |
-| 16 | Public announcement of nonprofit status and any partnerships | Founder (after confirmation) |
+| 15 | Invoice funds flow (Stripe Invoicing live approval, payout method) for the PBC | Founder + accountant (owner-pending) |
+| 16 | PBC governance decisions to publish (benefit report, any partnerships) | Founder (owner-pending) |
 
 ---
 
@@ -336,7 +334,7 @@ Financial sustainability is important, but it is **subordinate to the mission**.
 | Church Partners as paid advertising/discount subscription | Superseded → mission partnership network, no mandatory tiers |
 | Advertising as a core revenue stream for Gamo Live | Superseded → optional labeled promotion service |
 | Revenue-based promotion rankings / pay-to-win placement | Superseded → prohibited |
-| Separate profitable business verticals | Superseded → connected nonprofit programs |
+| Separate profitable business verticals | Superseded → connected mission programs |
 | Gamo Live framed around a specific ethnic community | Superseded → Christian events nationwide |
 | Gamo Live as a fourth program (events, ticketing, scanner) | Dropped 2026-11-16 → three programs; archived at tag `four-programs-snapshot` |
 | Academy framed mainly as worship-team training / commission source | Superseded → education for individuals and families first |

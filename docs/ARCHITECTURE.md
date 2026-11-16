@@ -1,6 +1,6 @@
 # Architecture
 
-Current as of the 2026-10 foundation pass (`docs/CLEANUP_LOG.md`), updated 2026-11-16 for the removal of Gamo Live (programs: Academy, Worship, Production; the four-program state is at tag `four-programs-snapshot`). The older root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` hold historical design notes; where they differ, this file describes what the code does.
+Current as of the 2026-10 foundation pass (`docs/CLEANUP_LOG.md`), updated 2026-11-16 for the removal of Gamo Live (programs: Academy, Worship, Production; the four-program state is at tag `four-programs-snapshot`). Front-end rules and rationale: [FRONTEND_ARCHITECTURE.md](FRONTEND_ARCHITECTURE.md). The older root `ARCHITECTURE.md` and `docs/BACKEND_ARCHITECTURE.md` are historical; where they differ, this file describes what the code does.
 
 ## Applications
 
@@ -25,9 +25,9 @@ Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloud
 | `packages/config` (`@gamo/config`) | `apps.ts` (domains, ports), `env.ts` (`GamoEnv`, the typed Worker env), `env-validation.ts` (per-isolate checks), `env-loader.ts` (local `.env`/`.dev.vars` loading + Astro/Cloudflare config factory), `brand.ts` |
 | `packages/auth` (`@gamo/auth`) | Staff (admin) sessions with HMAC-signed host-only cookies, `requireStaff`, `requireSameOrigin` (CSRF), admin gateway and Cloudflare Access checks, `GamoLocals` (public accounts and Clerk removed 2026-11-16) |
 | `packages/domain` (`@gamo/domain`) | Services (`NotificationService`, `AdminService`, customers, email outbox, …), API helpers (`api/response.ts`: JSON errors, `getRuntimeEnv`), the shared page middleware (`api/page-middleware.ts`), security headers (`http/security-headers.ts`) |
-| `packages/db` (`@gamo/db`) | Drizzle schema, SQL migrations (`migrations/0000…0018`; `0018` drops the Gamo Live tables), `getDb`, SQLite-backed D1 for tests (`testing.ts`) — see `docs/DATABASE.md` |
+| `packages/db` (`@gamo/db`) | Drizzle schema, SQL migrations (`migrations/0000…0019`; `0018` drops the Gamo Live tables, `0019` drops the public-account tables), `getDb`, SQLite-backed D1 for tests (`testing.ts`) — see `docs/DATABASE.md` |
 | `packages/integrations` (`@studio-gamo/integrations`) | Stripe (test mode only), Resend, R2 storage; each fails closed when unconfigured outside local |
-| `packages/ui` (`@studio-gamo/ui`) | Layouts (`ProgramLayout`, `ErrorPage`), header/footer, form kit (`components/forms`), design tokens (`styles/tokens.css`), self-hosted Inter, crawler helpers |
+| `packages/ui` (`@studio-gamo/ui`) | App-neutral shell (`src/shell`: `ShellConfig`/`NavItem` types consumed by `BaseLayout`, header, footer, error page), layouts, form kit (`components/forms`), design tokens in two tiers (`styles/tokens.base.css` raw palette and scale, `styles/tokens.semantic.css` roles; `tokens.css` imports them), self-hosted Inter, crawler helpers. Each app passes its own `src/site.config.ts` manifest (brand, nav, footer, related programs) into the shell |
 | `packages/api-contracts` | Types and validators **generated** from `openapi/root.yaml` by `scripts/api/generate.mjs` (do not edit) |
 
 ## Request flow
@@ -62,6 +62,14 @@ Shared plumbing: `@gamo/domain/security` (link tokens, rate limiter, Turnstile, 
 - The Gamo Live Stripe webhook (`/api/webhook/stripe`), ticket checkout and the unused `payment_records`/`ledger_entries`/`stripe_webhook_events` tables were removed on 2026-11-16.
 - Outbound Stripe/Resend calls: 10 s timeout, `Idempotency-Key`, one retry on network error/429/5xx only.
 - No donation, membership or sponsorship payments (AGENTS.md).
+- **Planned (cleanup two, Phases 2–4):** staff-editable forms (`DynamicForm`), R2 uploads, submission/offer/invoice emails, invoices via Stripe Invoicing (test mode) or manual mark-paid, and a daily cron. Plan: `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`.
+
+### Money and time rules (carried over from the 2026-10 root `ARCHITECTURE.md`)
+
+- Money flows through Gamo: Gamo invoices the church or family and pays the musician or instructor. Musician (or instructor) pay and any Gamo administrative line are always separate, labeled line items; no deduction from musician pay without an approved policy; a Gamo administrative line needs owner approval.
+- All amounts are integer minor units (cents) with the currency recorded; no floating-point money.
+- Timestamps are stored in UTC; anything shown to people (service dates, call times, lesson times) is rendered in a named local timezone (the church's or class's), never a hard-coded offset.
+- Booking or request fulfillment and musician assignment are separate states; never show a request as staffed before a confirmed offer.
 
 ## Data and storage
 
@@ -76,7 +84,7 @@ Shared plumbing: `@gamo/domain/security` (link tokens, rate limiter, Turnstile, 
 
 ## Front end
 
-Astro components with minimal client JavaScript, no inline scripts (CSP `script-src 'self'`, plus Turnstile on pages with a protected form). Admin also sends a per-request `'nonce-…'` in `script-src` (`generateCspNonce()`): Cloudflare JavaScript Detections (on with Bot Fight Mode) injects an inline script whose content, and so hash, changes on every load, and Cloudflare stamps the nonce from the CSP header onto it. Admin pages themselves have no inline script; `scripts/audit/admin-csp-e2e.test.mjs` fails if one ships. Tailwind 4 with tokens in `packages/ui/src/styles/tokens.css` (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`), self-hosted Inter variable, titles 900 uppercase, 44 px minimum tap targets.
+Astro components with minimal client JavaScript, no inline scripts (CSP `script-src 'self'`, plus Turnstile on pages with a protected form). Admin also sends a per-request `'nonce-…'` in `script-src` (`generateCspNonce()`): Cloudflare JavaScript Detections (on with Bot Fight Mode) injects an inline script whose content, and so hash, changes on every load, and Cloudflare stamps the nonce from the CSP header onto it. Admin pages themselves have no inline script; `scripts/audit/admin-csp-e2e.test.mjs` fails if one ships. Tailwind 4 with base and semantic tokens in `packages/ui/src/styles/tokens.base.css` and `tokens.semantic.css` (apps use semantic roles only; see [FRONTEND_ARCHITECTURE.md](FRONTEND_ARCHITECTURE.md)) (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`), self-hosted Inter variable, titles 900 uppercase, 44 px minimum tap targets.
 
 ## Testing
 

@@ -16,32 +16,32 @@ You are the autonomous engineering team for **Gamo Studios** (`studio-gamo`). Tr
 - **Program order (owner, 2026-11-16):** Gamo Academy leads, then Gamo Worship, then Gamo Production — in navigation, program lists, homepage features and anywhere one program is featured first.
 - Gamo Academy speaks first to students, parents and families. The approved headline is **"Learn to Play the Instrument You Love."**
 - Musician pay and any Gamo administrative allocation are always separate line items; all fees, contributions and tiers remain proposals until approved.
-- Do not enable donation, membership or sponsorship payment processing until the legal prerequisites in [`docs/NONPROFIT_TRANSITION_CHECKLIST.md`](docs/NONPROFIT_TRANSITION_CHECKLIST.md) are met.
+- No donation, membership or sponsorship payment processing or language without owner approval.
 - Avoid corporate growth language ("monetization engine", "revenue optimization", "acquisition funnel", "customer lifetime value") when describing the mission.
 
 Financial sustainability is important, but it is subordinate to the mission.
 
 ## Required reading order
 
-1. `docs/GAMO_NONPROFIT_MODEL.md` — **organizational source of truth** (purpose, programs, governance, sustainability, approval matrix)
+1. `docs/GAMO_NONPROFIT_MODEL.md` — **organizational source of truth** (purpose, programs, governance, sustainability, approval matrix; file name historical)
 2. `README.md` — product and scope
-3. `ARCHITECTURE.md` — technical boundaries
-4. `DESIGN.md` — design system
-5. `SECURITY.md` — mandatory gates
-6. `ROADMAP.md` — mission-aligned milestone definitions
-7. `prompts/MASTER-PROMPT.md` — founder's nonprofit transformation instructions (2026-10-12)
-8. `DESIGN_FIRST_OVERRIDES.md` — UI/UX active priorities (All agents MUST read this before implementing screens).
-9. `design-reference/README.md` — reference materials.
-10. `docs/NONPROFIT_TRANSITION_CHECKLIST.md` — legal formation and governance dependencies (owner-only actions).
+3. `docs/ARCHITECTURE.md` — what the code does today
+4. `docs/FRONTEND_ARCHITECTURE.md` — shared front-end rules, rationale and gaps
+5. `DESIGN.md` — design system
+6. `SECURITY.md` — mandatory gates
+7. `ROADMAP.md` — done, now, next, production gate
+8. `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md` and `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md` — forms, emails, invoices (cleanup two)
+9. `docs/superpowers/plans/2026-11-16-frontend-foundation.md` — front-end foundation plan
+10. `design-reference/README.md` — reference materials (design work)
+11. `docs/NONPROFIT_TRANSITION_CHECKLIST.md` — formation and governance dependencies (owner-only actions; file name historical)
 
 ## Autonomy model & Active Priorities
 
-- **Active Development Priority (2026-10-13 Backend Stabilization & Verified Release Foundation)**: Treat all production blockers in [`docs/BACKEND_INDEPENDENT_AUDIT.md`](docs/BACKEND_INDEPENDENT_AUDIT.md), [`docs/BACKEND_TEST_MATRIX.md`](docs/BACKEND_TEST_MATRIX.md), and [`docs/BACKEND_RELEASE_READINESS.md`](docs/BACKEND_RELEASE_READINESS.md) as unresolved until independently verified. Earlier `353b630` claims of end-to-end backend completion are superseded. The Gamo Live checkout, Stripe ticket webhook and event findings in those documents were closed by removing Gamo Live on 2026-11-16; any paid flow (Academy) stays fail-closed (`503`) in production. Authoritative references: `openapi/root.yaml`, `docs/BACKEND_ARCHITECTURE.md`, and `docs/API_INVENTORY.md`.
+- **Active priority (2026-11-16):** front-end foundation (`docs/superpowers/plans/2026-11-16-frontend-foundation.md`), then cleanup two Phase 2–4 (forms, roster/offers/invoices, admin + cron). Paid flows stay 503 in production until the owner approves real charges. References: `openapi/root.yaml`, `docs/ARCHITECTURE.md`, `docs/API_INVENTORY.md`.
 - **Autonomy**: Agents autonomously make ordinary coding and design decisions, edit workspace files, run local builds and tests, resolve compilation errors, and continue through the screen inventory without asking for confirmation after every step.
 - Preserve existing work and regularly update the progress log (`docs/BUILD_LOG.md`).
-- **Never deploy, push remotely, modify secrets, change security settings, or perform destructive operations without explicit authorization.**
 - Plan briefly, then execute continuously **within the currently approved application and design scope**. Stop for visual sign-off at the defined review checkpoint; never start an unapproved application.
-- Work through `ROADMAP.md` milestones in order, end-to-end, unless blocked by protected external dependencies. Independent work continues even if one integration is blocked.
+- Work through the active plans' phases in order (see `ROADMAP.md`), end-to-end, unless blocked by protected external dependencies. Independent work continues even if one integration is blocked.
 - Routine architectural and UI choices are your responsibility. Choose stable, supported technologies and document architectural decisions in `docs/DECISIONS.md`.
 - Always inspect installed tool versions and vendor docs before pasting framework commands.
 - Never silently add providers/services (Twilio, Firebase, Supabase, proprietary AI APIs, analytics etc.). Request approval for a new paid/external dependency; use adapters for future options.
@@ -52,7 +52,7 @@ Financial sustainability is important, but it is subordinate to the mission.
 `inspect → plan → scaffold → implement real vertical slice → test → inspect browser → improve → document → commit → next slice`
 
 On each meaningful change:
-- During the current design-first phase, implement responsive, accessible visuals with clearly labeled demo states and no live backend integrations. Build persistent actions, validation, and roles only when the functionality phase is authorized.
+- The functionality phase is authorized for forms, emails and invoices (cleanup two plan); no other new integrations without owner approval. Implement responsive, accessible UI with real validation and server-side authority for those flows.
 - Maintain demos that operate locally with fake, clearly labeled data and no external secrets.
 - Write/extend tests alongside implementation, including negative paths.
 - Keep one coherent visual system (Inter, charcoal/terracotta/cream, premium cinematic photography).
@@ -65,7 +65,7 @@ On each meaningful change:
 - All balances are integer minor currency units. Handle timezones intentionally.
 - Do not expose secrets, ID documents, raw financial details or personally identifying user data in screenshots/test fixtures.
 - Minimize client JavaScript with Astro, using islands only for true interaction.
-- Frontend is not authority for check-in, inventory, authorization or payments.
+- Frontend is not authority for authorization, approvals, offers or payments.
 - Unit tests for domain logic, integration tests for D1/API/Stripe webhooks, and Playwright/browser checks for main flows.
 
 ### Established conventions (2026-10 foundation pass — see `docs/ARCHITECTURE.md`, `docs/CLEANUP_LOG.md`)
@@ -82,12 +82,12 @@ On each meaningful change:
 - **CSP:** no inline `<script>` or `on*=` handlers, no third-party script origins except Turnstile (`https://challenges.cloudflare.com`) on pages that show a protected form (Clerk origins were removed 2026-11-16); styles and fonts are self-hosted. Pages are on-demand (not prerendered) so middleware and headers always apply.
 - **UI:** follow "Shared front-end architecture" below; semantic tokens from `packages/ui/src/styles` only (terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`); Inter (self-hosted variable); titles weight 900 uppercase; interactive targets ≥ 44 × 44 px; exactly one `<h1>` per page; every page passes axe WCAG 2.2 AA (serious/critical) and has no horizontal overflow at 360 px.
 - **Sample content:** any fictional person, booking, event or story is visibly labeled *Sample*/*Example*. Sponsored content is always labeled and church partnership or payment never affects musician vetting or rankings (`docs/GAMO_NONPROFIT_MODEL.md` §4).
-- **Database:** add a new numbered migration in `packages/db/migrations` (never edit an applied one; additive by default), update the Drizzle schema and `docs/DATABASE.md`. Local: `pnpm db:migrate:local`, `db:seed:local`, `db:reset:local`.
+- **Database:** add a new numbered migration in `packages/db/migrations` (never edit an applied one; additive by default), update the Drizzle schema and `docs/DATABASE.md`. Local: `pnpm db:migrate:local`, `db:reset:local`.
 - **Logs** name variables and error codes, never secret values or personal data.
 
 ## External operations require explicit permission
 
-**Do not** publish to production, change DNS, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations, change security policies, commit credentials, publish legal terms as finalized, or push to remotes without the owner's approval. Local commits and sandbox payment/webhook simulations are allowed.
+**Do not** deploy or publish to production, push to remotes, change DNS, modify secrets, spend money, send real emails, charge real cards, run live payouts, write destructive database migrations or perform other destructive operations, change security settings or policies, commit credentials, or publish legal terms as finalized without the owner's explicit approval. Local commits and sandbox payment/webhook simulations are allowed.
 
 ## Blocker handling
 
@@ -98,30 +98,24 @@ On each meaningful change:
 
 ## Definition of done
 
-The assigned roadmap milestone is done when its acceptance criteria pass and evidence is recorded. **The platform is not production-complete merely because its pages render**. Finishing local milestones 0–4 and submitting a production-readiness handoff is a valid autonomous build deliverable; milestone 5 requires human approval and accounts/contracts.
+An assigned plan phase is done when its acceptance criteria pass and evidence is recorded. **The platform is not production-complete merely because its pages render**. Finishing the local plan phases and submitting a production-readiness handoff is a valid autonomous build deliverable; the production gate in `ROADMAP.md` requires owner approval and accounts/contracts.
 
 ## Final reporting
 
-Report completed milestones, commands/tests actually run, page URLs, screenshot artifact locations, commits, unfinished items, requested owner actions and known risks. Never claim work continued in the background if the agent process ended.
+Report completed plan phases and tasks, commands/tests actually run, page URLs, screenshot artifact locations, commits, unfinished items, requested owner actions and known risks. Never claim work continued in the background if the agent process ended.
 
-## Custom Specialized Agents
-This repository contains customized Antigravity agents configured to operate autonomously for specialized roles during the development lifecycle:
-- **`design-lead`**: Interprets Gamo Studios design references (`design-reference/`), ensures visual consistency (Inter, brand colors), and reviews application screens without implementing complex logic.
-- **`frontend-builder`**: Scaffolds and implements Astro/Tailwind screens across the global brand hub, Worship, Academy, Production, and Admin domains using plausible demo states (no live backends during the design phase).
-- **`ui-reviewer`**: Compares running browser screenshots against designs, identifies visual regressions or missing screens against `docs/SCREEN_INVENTORY.md`, and validates accessible and responsive outputs.
+## Claude Code agents
 
-These custom agents are located in `.agents/agents/` and can be delegated tasks automatically by the main agent. Ensure they are given the appropriate workspace access contexts. All three must apply the organizational mission rules above and the copy rules in `docs/GAMO_NONPROFIT_MODEL.md` §6–§7 to every screen they plan, build or review.
+Three Claude Code agents live in `.claude/agents/`:
+- **`design-lead`**: interprets `design-reference/`, keeps visual consistency (Inter, brand tokens) and reviews screens without implementing complex logic.
+- **`frontend-builder`**: implements Astro/Tailwind screens across web, Academy, Worship, Production and Admin by composing shared components.
+- **`ui-reviewer`**: compares running screenshots with references, checks `docs/SCREEN_INVENTORY.md`, accessibility, responsiveness and the shared front-end rules.
 
-## Tool Usage
-- **MANDATORY**: For all Gamo Studios workspace agents, strictly prefer native Antigravity workspace file-reading and editing tools (e.g., `view_file`, `write_to_file`, `replace_file_content`) over external Filesystem MCP tools whenever equivalent native tools are available. Do not attempt to bypass workspace permissions.
+All three apply the organizational mission rules above, the copy rules in `docs/GAMO_NONPROFIT_MODEL.md` §6–§7 and "Shared front-end architecture" below.
 
-## Visual fidelity for approved homepage sections
+## Homepage composition
 
-- Treat `design-reference/homepage/02-musicians.png` through `07-footer.png` as the **composition targets** for the global homepage below the hero.
-- Preserve the currently approved hero unless explicitly instructed otherwise.
-- Use photographic mosaics, large asymmetric type, sculptural photo masks, restrained floating product UI and cream/charcoal transitions; avoid generic equal-width SaaS grids.
-- Reconstruct responsive Astro markup, not screenshot backgrounds. Label all fictional musicians, bookings, concert events and story cards as sample content.
-- Capture and compare full-page desktop and mobile screenshots before reporting visual sign-off.
+Composition targets for the global homepage below the hero are in `DESIGN.md` ("Homepage composition targets"). The approved hero is the current "Where Worship, Learning & Community Meet." hero (`HomeEditorialHero`); preserve it unless the owner says otherwise.
 
 ## Shared front-end architecture (permanent; owner direction 2026-11-16)
 
@@ -145,20 +139,20 @@ Existing code that predates these rules (app knowledge in `SiteHeader`/`SiteFoot
 
 ## Permanent OpenAPI-first HTTP contract rule
 
-`openapi/root.yaml` (OpenAPI 3.1.1) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning six applications; no seventh API application by default.
+`openapi/root.yaml` (OpenAPI 3.1.1 format; contract version 4.0.0, 2 operations) is the source of truth for all HTTP API work. Follow `docs/OPENAPI_ARCHITECTURE.md`: contract first → lint → generated types/Worker validators → runtime implementation and permissions → HTTP contract tests. Never manually edit generated artifacts or silently change public contracts; record compatibility decisions in `docs/API_COMPATIBILITY.md`. `make api-check` verifies without rewriting tracked outputs. Keep routes in their owning five applications; no sixth API application by default.
 
-Read `docs/API_INVENTORY.md` before claiming functionality: the original 353b630 service tests did not prove verified login, staff permissions, capacity-safe registration or complete webhook fulfillment. Internal contracts/reference docs must never be published as public assets. This contract foundation precedes the independent backend security/reliability audit. Preserve nonprofit governance and Stripe sandbox boundaries.
+Read `docs/API_INVENTORY.md` before claiming functionality. Internal contracts/reference docs must never be published as public assets. Preserve mission governance and Stripe sandbox boundaries.
 
 ## Forms, emails and admin (owner decision, 2026-11-16)
 
 Spec: [`docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`](docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md); plan: `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`.
 
 - **No public accounts.** Gamo Academy, Gamo Worship and Gamo Production are public pages, staff-editable forms, emails and invoices. There is no public sign-in, sign-up, Clerk, onboarding, provider profile, shared person record, workspace or per-program dashboard. Do not reintroduce any of them without explicit founder approval.
-- **Admin is the only dashboard.** Staff sign in to the admin app with Cloudflare Access plus the admin password (`requireStaff`, `staffContext`). Staff edit forms (versioned on publish), review submissions, approve musicians and technicians into a private roster, match service requests, send offers and issue invoices there.
-- **Forms** are rendered by the shared `DynamicForm` renderer, work without JavaScript and are protected by the public form guard (Turnstile, rate limits, bounded bodies). Uploads go through our Worker into R2 and are served to staff only.
+- **Admin is the only dashboard.** Staff sign in to the admin app with Cloudflare Access plus the admin password (`requireStaff`, `staffContext`). Staff edit forms (versioned on publish), review submissions, approve musicians and technicians into a private roster, match service requests, send offers and issue invoices there (being built: plan Phases 2–4).
+- **Forms** are rendered by the shared `DynamicForm` renderer (being built: plan Phase 2), work without JavaScript and are protected by the public form guard (Turnstile, rate limits, bounded bodies). Uploads go through our Worker into R2 and are served to staff only (being built: plan Phase 2).
 - **People are identified by email, not accounts.** Submitters, churches, parents and musicians act through emails and signed, expiring single-purpose links (offer Accept/Decline acts on POST only; Academy manage links). Email subjects never contain names; logs never contain personal data or tokens.
 - **Money flows through Gamo.** Gamo invoices the church or family and pays the musician; musician pay and any Gamo administrative line are always separate, and a Gamo administrative line is refused unless the owner has approved it. Invoices use Stripe Invoicing in test mode or manual "mark paid"; integer cents.
-- **Daily cron** (approved) retries the email outbox and enforces retention.
+- **Daily cron** (approved; being built: plan Phase 4) retries the email outbox and enforces retention.
 - The retired Shared Authentication, Product Account Independence (including the shared person record exception) and Independent Clerk rules are recorded in `docs/DECISIONS.md` (2026-11-16); `docs/AUTH.md`, `docs/IDENTITY.md` and `docs/design/identity-and-ticketing.md` are historical.
 
 ## Email

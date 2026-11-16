@@ -1,5 +1,7 @@
 # Gamo Studios — Backend Release Readiness Assessment
 
+> **Historical audit (2026-10-13); the surfaces it covers were removed 2026-11-16; current state: [docs/ARCHITECTURE.md](ARCHITECTURE.md), [docs/API_INVENTORY.md](API_INVENTORY.md), [openapi/root.yaml](../openapi/root.yaml).** Still-open gates (Resend production setup, edge rate limiting, R2 upload pipeline) are tracked in [RUNBOOK.md](RUNBOOK.md) §13.
+
 > **2026-11-16 — public accounts removed (owner decision).** Public sign-in, accounts, Clerk and onboarding were removed; related items are historical. Spec: [forms, emails and invoices](superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
 
 > **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. The *Gamo Live Free Registration* and *Paid Ticketing & Stripe Webhooks* rows and **Gate 2** (ticketing order authority) no longer apply; any future paid flow (Academy) needs its own order/fulfillment review. Rate-limit targets for `/api/events*` and `/api/webhook/stripe` are moot. Snapshot: tag `four-programs-snapshot`.

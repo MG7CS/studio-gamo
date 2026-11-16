@@ -1,23 +1,23 @@
 # Gamo Studios — Cinematic Editorial Interface
 
 <!-- status-banner: 2026-10 foundation pass -->
-> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails. Brand tokens in code: `packages/ui/src/styles/tokens.css`.
+> Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking. Shared front-end rules: AGENTS.md "Shared front-end architecture" and [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md). Tokens in code: `packages/ui/src/styles/tokens.base.css` and `tokens.semantic.css` (§4).
 
-## Approved 2026 public design phase
+## 1. Approved 2026 public design phase
 
 The founder's multi-page brief extends this system to **Bright Cinematic Editorial**: warm cream and ivory, large Inter headlines, asymmetric photographic compositions, sculptural masks and restrained floating previews. Organization pages and Academy lead with bright education/community photography; Worship balances warm light with preparation panels; Production alternates light technical education and dark event imagery. All share pill navigation and footer components from `packages/ui`.
 
-The original homepage hero remains approved and preserved. Its bright alternative is isolated at `/preview/hero-2026`; it does not replace `/` without visual acceptance. References under `design-reference/2026-brand-refresh` are composition guides only, never embedded webpage screenshots. Delivered PNG originals stay under `assets/images/2026-brand-refresh`; only responsive AVIF/WebP derivatives are served. See [asset inventory](docs/ASSET_INVENTORY_2026.md), [component ownership](docs/COMPONENT_ARCHITECTURE.md) and [multi-page review](docs/MULTIPAGE_DESIGN_REVIEW.md).
+The approved homepage hero is the current "Where Worship, Learning & Community Meet." hero (`apps/web` `HomeEditorialHero`, owner-confirmed 2026-11-16); preserve it unless the owner says otherwise. References under `design-reference/2026-brand-refresh` are composition guides only, never embedded webpage screenshots. Delivered PNG originals stay under `assets/images/2026-brand-refresh`; only responsive AVIF/WebP derivatives are served. See [asset inventory](docs/ASSET_INVENTORY_2026.md), [front-end architecture](docs/FRONTEND_ARCHITECTURE.md) and [multi-page review](docs/MULTIPAGE_DESIGN_REVIEW.md).
 
-Engineering review does not equal founder visual sign-off. All program launch, scholarship, ticketing, partnership and transaction states remain clearly labeled previews. Reduced motion suppresses movement; scroll reveals keep content visible. Desktop/mobile evidence comes from actual running pages.
+Engineering review does not equal founder visual sign-off. All program launch, scholarship, partnership and transaction states remain clearly labeled previews. Reduced motion suppresses movement; scroll reveals keep content visible. Desktop/mobile evidence comes from actual running pages.
 
-## Design Identity
+## 2. Design Identity
 
 Gamo Studios follows a **Cinematic Editorial Interface** design language: a premium visual system combining authentic music photography, expressive editorial typography, sculptural geometric layouts, and refined, layered application interfaces.
 
-The goal is to create the visual character of a sophisticated music brand while communicating the warmth, trustworthiness and reliability of a Christian nonprofit serving churches, musicians, students and families. The visual system is preserved through the nonprofit transition; only messaging changes (see [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md)).
+The goal is to create the visual character of a sophisticated music brand while communicating the warmth, trustworthiness and reliability of a Christian, mission-driven organization serving students, families, churches and musicians. Messaging follows [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md).
 
-## Core Principles
+## 3. Core Principles
 
 **Photography is structural.** Large photographs shape the composition rather than merely illustrating the content. Images may form full-bleed backgrounds, asymmetric mosaics, organically cropped regions, or visual anchors beneath product interface overlays.
 
@@ -27,23 +27,19 @@ The goal is to create the visual character of a sophisticated music brand while 
 
 **Typography is expressive.** Use Inter with bold, oversized headlines, tight visual proportions, intentional line breaks, and selective terracotta emphasis. Supporting copy remains brief and subordinate to the photography.
 
-**Product interfaces live within the composition.** Present musician profiles, audition controls, booking summaries, standby assignments, and event cards as elegant layered interface elements. Use restrained translucency, subtle borders, and readable contrast.
+**Product interfaces live within the composition.** Present lesson details, musician profiles, form summaries and offer or invoice previews as elegant layered interface elements. Use restrained translucency, subtle borders, and readable contrast.
 
 **Contrast establishes rhythm.** Alternate between cinematic charcoal regions and warm cream editorial surfaces. Terracotta serves as the recognizable brand accent. Allow the photography to supply additional tonal richness.
 
 **Every section has a distinct composition.** Reuse underlying design-system components without forcing all sections into identical grids, cards, or hero templates.
 
-## Brand Tokens
+## 4. Brand Tokens
 
-- Primary terracotta: `#B65B35`
-- Deep terracotta: `#8F432A`
-- Deep charcoal: `#1D2323`
-- Warm cream: `#F4EDE3`
-- Soft copper: `#D7AD86`
-- White: `#FFFFFF`
-- Typography: Inter
+Tokens live in code, not here: `packages/ui/src/styles/tokens.base.css` (tier 1, raw palette and scale) and `packages/ui/src/styles/tokens.semantic.css` (tier 2, roles such as `surface`, `fg`, `action`, `border`, `focus`, plus container widths, radii, type steps and aspect ratios). Component tokens (tier 3) exist only inside a component's CSS. Apps and pages use semantic tokens only; theming overrides semantic tokens on a wrapper (`data-surface`, `data-program`).
 
-## Photography
+Brand palette (from `tokens.base.css`): terracotta `#B34E24`, deep `#8F3B18`, soft `#D98B62`, ink `#18181B`, cream `#F9F6F0`, sand `#EDE6DA`. Typography: Inter (self-hosted variable), titles weight 900 uppercase.
+
+## 5. Photography
 
 Use premium, believable photographs of professional musicians, worship services, music education and Christian concerts. Our existing imagery centers African and African-diaspora church communities, which remain welcome and important; broaden the photography over time so it reflects the diverse Christian communities Gamo serves. Imagery must never imply that program or event eligibility depends on ethnicity or nationality.
 
@@ -51,7 +47,7 @@ Favor natural expressions, realistic instruments, warm stage lighting, authentic
 
 Avoid generic corporate stock imagery, excessive visual effects, artificial-looking anatomy, and photography that lacks relevance to the surrounding content.
 
-## Layout Implementation
+## 6. Layout Implementation
 
 Treat approved section references as binding composition targets rather than loose inspiration.
 
@@ -69,41 +65,13 @@ Reconstruct the layout using genuine responsive Astro components, CSS Grid/Flexb
 
 Do not use complete design screenshots as webpage backgrounds.
 
-## Responsive Design
+## 7. Responsive Design
 
 Mobile layouts must preserve the visual language and content hierarchy without attempting a literal desktop shrink.
 
 Reorganize photographic mosaics, reduce complex overlays, preserve readable text, and keep the primary actions immediately understandable.
 
-## Visual Quality Standard
-
-Correct fonts, colors, headings, and successful builds are not sufficient to establish design fidelity.
-
-Review the rendered page against the approved reference for geometry, photographic composition, color distribution, typography, spacing, image cropping, and layering.
-
-**Gamo Studios must feel like an immersive, carefully art-directed music experience—not a generic SaaS dashboard or conventional church website.**
-
-## Approved homepage narrative
-
-The homepage introduces Gamo Studios as a **unified Christian music and community organization** and shows how its three programs (Academy, Worship, Production) work together. Gamo Live was dropped on 2026-11-16 and has no homepage section. It must not read as a service that only supplies musicians to churches. Copy rules: [docs/GAMO_NONPROFIT_MODEL.md §6](docs/GAMO_NONPROFIT_MODEL.md#6-public-website-and-messaging).
-
-1. **Hero — Keep Worship Going:** strong photo-led composition, two core paths, no invented stats. The hero has been refined to remove the laptop frame, left-side vertical navigation, search icon, hamburger icon; those changes take precedence over older mockups. Supporting copy now introduces the mission across programs. "Keep Worship Going" stays as the permanent brand message. A future dynamic spotlight (mission, sponsored programs, Academy, worship opportunities, Production support, church partnerships, special initiatives) may rotate **within the approved composition** — **not implemented without explicit approval**. If approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
-2. **Meet the Musicians (The Gamo Collection):** musicians presented as skilled people who serve — preparation, trust, contribution and fair pay — never as inventory. Verified status only for actually verified members (sample names explicitly labeled). Never visually boost musicians based on payment, sponsorship or partnership.
-3. **How It Works:** pill selector switching between *For Churches* and *Join the Collection*; framed as a community-supporting coordination process; primary/standby workflow; no absolute attendance guarantee.
-4. **Gamo Academy:** headline exactly **"Learn to Play the Instrument You Love."** Speaks first to students, parents and families; church-hosted and sponsored classes as a secondary pathway.
-5. *(Gamo Live section removed 2026-11-16 with the program.)*
-6. **Final CTA:** "Get involved" invitation to churches, musicians, students, families and supporters; testimonials only once consented real statements exist.
-7. **Footer:** Our Mission · Gamo Worship · Gamo Academy · Gamo Production · Church Partnerships · Opportunities to Support · contact and legal, with the approved legal-status statement. Social links once verified.
-
-**Planned sections requiring design approval (not built):** a *Church Partnerships* homepage section and a *Support Our Mission* section. Propose compositions through the design-lead before implementation; see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md).
-
-### Sponsored content rules
-- Sponsored placements use a visible, consistent "Sponsored" label (not color alone) and must remain visually distinct from editorial picks.
-- Sponsored density is capped so the homepage still reads as an art-directed mission showcase, not an ad wall.
-- Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
-
-
-## Responsive edge cases (2026-10-13)
+### Responsive edge cases (2026-10-13)
 
 - Public split-photo heroes show the photo composition before the copy below the desktop breakpoint. Preserve desktop composition and keep interactive reading/focus order meaningful. Text-only forms and operational screens do not need decorative hero images.
 - Short-height adjustments must also constrain width when intended only for mobile. Browser zoom and landscape windows can have desktop width and short height simultaneously.
@@ -111,9 +79,45 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 - Review image coverage, clipping, header collisions, and image/copy ordering in addition to document overflow. Check 320px mobile, landscape, and reduced CSS viewports corresponding to 110–400% zoom. A viewport simulation verifies reflow, not native browser zoom controls or text-only zoom.
 - Regression command: `ACADEMY_PORT=4332 node scripts/verify-zoom-layout.mjs` (omit the override when Academy uses 4323). Captures and geometry results: `docs/screenshots/zoom-layout/`.
 
-## UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality
+## 8. Visual Quality Standard
 
-Apply these rules by default across all Gamo Studios design, redesign, and implementation work (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`, `apps/admin`, and `packages/ui`):
+Correct fonts, colors, headings, and successful builds are not sufficient to establish design fidelity.
+
+Review the rendered page against the approved reference for geometry, photographic composition, color distribution, typography, spacing, image cropping, and layering.
+
+**Gamo Studios must feel like an immersive, carefully art-directed music experience—not a generic SaaS dashboard or conventional church website.**
+
+## 9. Approved homepage narrative
+
+The homepage introduces Gamo Studios as a **unified Christian music and community organization** and shows how its three programs work together, in order: Academy, Worship, Production. It must not read as a service that only supplies musicians to churches. Copy rules: [docs/GAMO_NONPROFIT_MODEL.md §6](docs/GAMO_NONPROFIT_MODEL.md#6-public-website-and-messaging).
+
+1. **Hero — "Where Worship, Learning & Community Meet."** The current `HomeEditorialHero` is the owner-approved hero (2026-11-16); preserve it. The earlier "Keep Worship Going" hero (`design-reference/homepage/01-hero-approved.png`) is historical. No invented stats. A rotating spotlight is **not implemented without explicit approval**; if approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
+2. **Gamo Academy:** headline exactly **"Learn to Play the Instrument You Love."** Speaks first to students, parents and families; church-hosted and sponsored classes as a secondary pathway.
+3. **Gamo Worship — musicians who serve:** musicians presented as skilled people who serve — preparation, trust, contribution and fair pay — never as inventory. Fictional names are labeled *Sample*. The roster is private; never visually boost musicians based on payment, sponsorship or partnership.
+4. **How it works:** pill selector between *For churches* (request → offer → confirmation → invoice) and *Apply to serve* (application → staff review → private roster); no absolute attendance guarantee.
+5. **Gamo Production:** technical support and volunteer training for churches.
+6. **Final CTA:** "Get involved" invitation to students, families, churches and musicians; testimonials only once consented real statements exist.
+7. **Footer:** Our Mission · Gamo Academy · Gamo Worship · Gamo Production · Church Partnerships · Contact and legal, with the approved PBC statement. Social links once verified.
+
+**Planned sections requiring design approval (not built):** a *Church Partnerships* homepage section. Propose compositions through the design-lead before implementation; see [docs/SCREEN_INVENTORY.md](docs/SCREEN_INVENTORY.md).
+
+### Homepage composition targets
+
+- Treat `design-reference/homepage/02-musicians.png`, `03-worship-coverage.png`, `04-academy.png`, `06-testimonials-cta.png` and `07-footer.png` as **composition targets** for the global homepage below the hero (`05-live.png` is historical: Gamo Live was removed 2026-11-16).
+- Preserve the approved hero (above).
+- Use photographic mosaics, large asymmetric type, sculptural photo masks, restrained floating product UI and cream/charcoal transitions; avoid generic equal-width SaaS grids.
+- Reconstruct responsive Astro markup from shared components, not screenshot backgrounds. Label all fictional musicians, bookings and story cards as sample content.
+- Capture and compare full-page desktop and mobile screenshots before reporting visual sign-off.
+
+### Sponsored content rules
+- Sponsored placements use a visible, consistent "Sponsored" label (not color alone) and must remain visually distinct from editorial picks.
+- Sponsored density is capped so the homepage still reads as an art-directed mission showcase, not an ad wall.
+- Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
+
+
+## 10. UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality
+
+Apply these rules by default across all Gamo Studios design, redesign, and implementation work (`apps/web`, `apps/academy`, `apps/worship`, `apps/production`, `apps/admin`, and `packages/ui`):
 
 1. **Design Restraint Is Mandatory ("Less, But Better")**:
    - Minimize text, cards, badges, icons, buttons, and decorative components.
@@ -127,13 +131,13 @@ Apply these rules by default across all Gamo Studios design, redesign, and imple
 3. **Avoid Generic AI-Generated Interfaces**:
    - Never default to excessive rounded cards arranged in repetitive grids, unnecessary gradients/glowing effects, too many headings/subheadings/captions/explanatory paragraphs, repetitive feature lists, oversized dashboards with meaningless statistics, or excessive icons and badges.
 4. **Design According to the Page's Purpose**:
-   - A sign-in page prioritizes authentication; a registration page prioritizes completing registration; a dashboard prioritizes useful information and actions; a marketing page communicates a clear message.
-   - Never combine multiple page purposes unnecessarily (e.g., do not turn a sign-in page into a marketing page with feature descriptions, testimonials, or decorative cards).
+   - A form prioritizes completing the form; a confirmation page states what happened and what comes next; an admin screen prioritizes real data and actions; a marketing page communicates a clear message.
+   - Never combine multiple page purposes unnecessarily (e.g., do not turn a request form into a marketing page with feature descriptions, testimonials, or decorative cards).
 5. **Content Density**:
    - Use the minimum amount of copy necessary to communicate clearly: short meaningful headings, one supporting sentence when necessary, no repeated information, no subheadings under every heading, progressive disclosure for secondary details, and visually obvious primary actions.
    - Minimalism must never compromise accessibility, error recovery, security, or essential instructions.
 6. **Professional Design Execution & Functional Preservation**:
-   - Maintain excellent typography, pixel-accurate spacing, well-considered component dimensions, authentic photography, restrained color usage, and responsive layouts while preserving all validation, accessibility, loading states, empty states, error messages, account recovery, and navigation.
+   - Maintain excellent typography, pixel-accurate spacing, well-considered component dimensions, authentic photography, restrained color usage, and responsive layouts while preserving all validation, accessibility, loading states, empty states, error messages, confirmations, and navigation.
 7. **Mandatory 8-Point Design Review**:
    - Verify before completion: (1) faithful reference adherence, (2) zero unrequested additions, (3) no unnecessary text/repetition, (4) no excessive cards/icons/decorations, (5) one clear primary page purpose, (6) intentional whitespace, (7) mature commercial product quality, and (8) maximum simplification without losing functionality.
 

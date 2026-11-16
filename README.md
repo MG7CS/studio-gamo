@@ -13,8 +13,8 @@ Gamo Studios is a Christian, mission-driven Public Benefit Corporation. This rep
 | App | Host | Local | What it is |
 | --- | --- | --- | --- |
 | `apps/web` | gamostudio.org | http://127.0.0.1:4321 | Organization site, mission, partnerships, contact and partner-interest forms |
-| `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician application and church request forms, offer links |
 | `apps/academy` | academy.gamostudio.org | http://127.0.0.1:4323 | Gamo Academy: instruments, lessons, account-free registration with emailed manage links |
+| `apps/worship` | worship.gamostudio.org | http://127.0.0.1:4322 | Gamo Worship: musician application and church request forms, offer links |
 | `apps/production` | production.gamostudio.org | http://127.0.0.1:4325 | Gamo Production: technical ministry support, technician application and request forms |
 | `apps/admin` | admin.gamostudio.org | http://127.0.0.1:4326 | The only dashboard: forms, submissions, roster, requests, offers, invoices; behind Cloudflare Access + admin password |
 
@@ -49,7 +49,7 @@ Per-app secrets (Stripe test keys, Turnstile, Cloudflare Access) go in `apps/<ap
 | `pnpm test:journeys` | Browser journeys on built Workers (Miniflare) |
 | `pnpm api:check` | OpenAPI lint, generated-artifact drift, route coverage, HTTP contract tests |
 | `pnpm build` | Build all five apps (local configuration) |
-| `pnpm db:migrate:local` / `db:seed:local` / `db:reset:local` | Local D1 (see [`docs/DATABASE.md`](docs/DATABASE.md)) |
+| `pnpm db:migrate:local` / `db:reset:local` | Local D1 (see [`docs/DATABASE.md`](docs/DATABASE.md)) |
 | `pnpm knip` | Report unused files, exports and dependencies |
 
 ## Deploying
@@ -59,8 +59,11 @@ Deploys, secrets, DNS and database changes are **owner-only** operations. The pr
 ## Documentation
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — apps, packages, request flow, auth, payments, hosting
+- [`docs/FRONTEND_ARCHITECTURE.md`](docs/FRONTEND_ARCHITECTURE.md) — shared front-end rules, rationale and gaps
+- [`docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`](docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md) and [plan](docs/superpowers/plans/2026-11-16-forms-emails-invoices.md) — forms, emails, invoices (cleanup two)
+- [`docs/superpowers/plans/2026-11-16-frontend-foundation.md`](docs/superpowers/plans/2026-11-16-frontend-foundation.md) — front-end foundation plan
 - [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — deploy, rollback, env vars, Cloudflare checks
 - [`docs/DATABASE.md`](docs/DATABASE.md) — schema, migrations, local database
 - [`docs/OPENAPI_ARCHITECTURE.md`](docs/OPENAPI_ARCHITECTURE.md), [`docs/API_COMPATIBILITY.md`](docs/API_COMPATIBILITY.md) — HTTP contract
 - [`docs/CLEANUP_LOG.md`](docs/CLEANUP_LOG.md) — the 2026-10 foundation pass: decisions, findings, open owner questions
-- [`SECURITY.md`](SECURITY.md), [`DESIGN.md`](DESIGN.md), [`ROADMAP.md`](ROADMAP.md) — policy, design system and milestones (see banners for what is current)
+- [`SECURITY.md`](SECURITY.md), [`DESIGN.md`](DESIGN.md), [`ROADMAP.md`](ROADMAP.md) — policy, design system and roadmap

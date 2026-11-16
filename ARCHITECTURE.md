@@ -1,5 +1,7 @@
 # Gamo Studios — Technical Architecture
 
+> **Historical (2026-10). Current: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md).** Still-valid constraints (money separation, integer cents, UTC storage and timezone handling) were moved there on 2026-11-16. Gamo Studios is a Christian, mission-driven Public Benefit Corporation; nonprofit or legal-structure-neutral wording below is superseded.
+
 <!-- status-banner: 2026-10 foundation pass -->
 > **Superseded for current structure by [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md);** this file keeps the original constraints. Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
 
@@ -122,7 +124,7 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 `/hire/plan-selection` → `/hire/gig-details` → `/hire/repertoire` → `/hire/checkout` → `/hire/success`
 
 - Plans: Spot Fill (single weekend), Monthly (four weekends), Quarterly (twelve weeks). Display **proposed** amounts only in development data; do not publish unapproved prices or fees.
-- Every engagement records the **musician's agreed pay** and any **Gamo administrative allocation** as separate, labeled line items. No deduction from musician pay may be implemented until the mechanism is approved (see [docs/GAMO_NONPROFIT_MODEL.md §3.1](docs/GAMO_NONPROFIT_MODEL.md#31-gamo-worship)).
+- Every engagement records the **musician's agreed pay** and any **Gamo administrative allocation** as separate, labeled line items. No deduction from musician pay may be implemented until the mechanism is approved (see [docs/GAMO_NONPROFIT_MODEL.md §3.2](docs/GAMO_NONPROFIT_MODEL.md#32-gamo-worship)).
 - Church records must be protected by membership permission checks; setlists and charts may include licensed/copyrighted materials — restrict storage and access.
 - Checkout success must be established by verified server-side Stripe webhook events, not a redirect URL alone.
 - Booking fulfillment and musician assignment are separate statuses. Never show a booking as staffed before confirmed assignment.

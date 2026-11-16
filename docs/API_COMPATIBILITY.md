@@ -66,7 +66,7 @@ and no external client is known; the removed Live and admin UIs were the only co
   bundles, types and validators; `scripts/api/contract.test.ts` updated (Live tests removed, Resend test now runs
   against web; 30 application operations over loopback HTTP).
 
-## Unreleased — Gamo Live ticketing (Phase 12c, Agent B; the lead assigns the version)
+## Withdrawn (never released; Live removed in 3.0.0) — Gamo Live ticketing (Phase 12c)
 
 Breaking changes (no external client is known; the Live UI is the only consumer and was rewritten with them):
 - `POST /api/events/{id}/register` (`registerAttendee`): the body is now `OrderInput` (`items[]` of `categoryId`/`sectionId`/`quantity`, `purchaserName`, `email`, `emailConfirm`, `termsAccepted`, `termsDocuments`, `idempotencyKey`, Turnstile token) instead of `{ attendeeName, attendeeEmail, quantity }`. It answers `202` with a `confirmToken` (identical for every address, no `201`/`200` split) instead of `201`/`200` + `isDuplicate`; tickets are issued only after `POST /api/orders/confirm`. New errors: `403` (security check), `413`, `415`, `429`, `503`; `409` carries `details.remaining`.

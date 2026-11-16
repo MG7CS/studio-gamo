@@ -224,3 +224,7 @@ Nothing was done remotely by agents. When the forms/emails/invoices release is d
 2. **Clerk clean-up (if anything was ever created):** delete the Gamo Web, Worship, Academy and Production Clerk applications; remove any Clerk DNS records (for example `clerk.`, `accounts.`, `clk._domainkey` CNAMEs) from the `gamostudio.org` zone; delete any `CLERK_*` / `PUBLIC_CLERK_*` secrets left on the Workers (`pnpm exec wrangler secret delete <NAME> --env <env>` from `apps/<app>`).
 3. **Delete retired secrets/vars** if set: `CLERK_WEBHOOK_SECRET_<APP>`, `CLERK_GOOGLE_ENABLED_<APP>`, `CLERK_APP_ID_<APP>`, `CLERK_AUTHORIZED_PARTIES_<APP>`.
 4. Admin staff authentication (Cloudflare Access + admin password, §8) is unchanged.
+5. **Open gates carried over from the 2026-10 backend audit** (`docs/BACKEND_RELEASE_READINESS.md`, historical):
+   - **Resend production setup:** confirm the `gamostudio.org` sending domain is still verified in Resend (SPF, DKIM, DMARC), then set `RESEND_API_KEY` and `EMAIL_FROM` per §3 so form, offer and invoice emails send for real.
+   - **Edge rate limiting:** add Cloudflare WAF / Workers Rate Limiting rules on the public form endpoints and webhooks (`/api/webhook/resend`, and the forms and Stripe webhook routes once Phases 2–3 ship), in addition to the in-app per-IP/per-email limits.
+   - **R2 upload pipeline:** confirm the `gamo-media-<env>` buckets and set the R2 lifecycle rules for form uploads before Phase 2 uploads go live.

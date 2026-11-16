@@ -1,5 +1,7 @@
 # GAMO STUDIOS — COMPLETE NONPROFIT TRANSFORMATION
 
+> **Superseded — history only.** The nonprofit premise below was replaced: Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking (owner-confirmed; not a nonprofit, not tax-exempt). Gamo Live was dropped on 2026-11-16. Do not follow this prompt; current direction is in [AGENTS.md](../AGENTS.md) and [ROADMAP.md](../ROADMAP.md).
+
 <!-- status-banner: 2026-10 foundation pass -->
 > **2026-11-16 note — Gamo Live dropped.** After talking with church ministers and pastors, the owner narrowed Gamo Studios to three programs: **Gamo Academy, Gamo Worship and Gamo Production**. Everything below about Gamo Live (events, Promote/Explore Events, ticketing, scanning, event promotion) no longer applies; the founder's prompt is kept unchanged as history. The four-program state is preserved at tag `four-programs-snapshot`. See [`docs/DECISIONS.md`](../docs/DECISIONS.md).
 > **Historical founder prompt (2026-10-12).** Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](../AGENTS.md) prevails.

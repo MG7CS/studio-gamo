@@ -92,7 +92,7 @@ Tables created by 0001–0016 for Live, public accounts and the old demos no lon
 
 ## Identity (0012)
 
-Design of record: [`docs/design/identity-and-ticketing.md`](design/identity-and-ticketing.md) §4 (its ticketing parts are historical since 0018).
+Design of record: the [forms, emails and invoices spec](superpowers/specs/2026-11-16-forms-emails-invoices-design.md). [`docs/design/identity-and-ticketing.md`](design/identity-and-ticketing.md) is historical. `persons` is kept only because `users.person_id`, `customer_profiles.person_id` and `terms_acceptances.person_id` reference it (dropping it would need table rebuilds); no code links people across products any more.
 
 | Trigger | Guarantees |
 | --- | --- |

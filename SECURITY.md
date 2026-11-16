@@ -1,7 +1,7 @@
 # Gamo Studios — Security, Trust and Safety Rules
 
 <!-- status-banner: 2026-10 foundation pass -->
-> Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails. The implemented controls (headers, CSRF, private routes, fail-closed payments) are summarized in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking (not a nonprofit, not tax-exempt). The implemented controls (headers, CSRF, private routes, fail-closed payments) are summarized in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 **Mandatory for all contributors and autonomous agents.** Security gates outrank speed and visual fidelity.
 
@@ -10,25 +10,24 @@
 - Server-side authN/authZ on every private route, webhook, action and storage fetch.
 - Since 2026-11-16 there are **no public accounts**: the only private surface is the admin app (Cloudflare Access + admin password). Public actions use guarded forms (Turnstile, rate limits, bounded bodies) and signed, expiring, single-purpose emailed links (token hash stored only; state changes on POST only). Uploaded files are verified (size + magic bytes) and served to staff only with `nosniff` and a sandbox CSP. Spec: `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`.
 - Roles/scopes: staff roles only (staff reviewer, dispatcher, finance administrator, superadmin); applicants, roster musicians, churches and families are identified by email, not accounts. Define exact permissions, deny by default.
-- Admin routes must additionally support Cloudflare Access or equivalent staff boundary where feasible.
+- Cloudflare Access is **mandatory** for the admin app, in addition to the admin password; admin has no `workers.dev` route.
 - Real webcam capture does not prove a living person or a valid ID. A specialist identity verification provider must verify identity and/or liveness when required; never treat a local demo as real verification.
 - Government ID images, selfies and background screening data are highly sensitive. No raw ID photographs exposed to church customers. Favor vendor tokens/results and minimal retention, encryption and narrow staff controls.
 - For minors: obtain proper guardian consent and define safety rules for instructor eligibility, messaging and data handling before production Academy bookings.
 
 ## Payments / financial compliance
 
-- Stripe Connect is not blanket escrow. Select a Stripe-supported charge and payout model after verification of legal entity, geographic availability, connected account obligations and current Stripe docs.
+- Money flows through Gamo: invoices go out via Stripe Invoicing (test mode) or are settled manually and marked paid by staff (method + reference recorded). Stripe is never described as escrow. Live charges and any change of payout model need owner approval and current Stripe docs.
 - PCI scope minimization: use Stripe-hosted/payment element surfaces; never store PAN/CVV.
 - Verify and deduplicate Stripe webhooks; treat Stripe event states as authoritative, not browser success redirects.
-- Explicit ledgers for customer payments, refunds, administrative allocations, contributions, sponsorships, standby retainers, musician/instructor payouts, organizer proceeds and disputes. Money in integer minor units, currency recorded; reconciliation required. Categories follow [docs/GAMO_NONPROFIT_MODEL.md §5.3](docs/GAMO_NONPROFIT_MODEL.md#53-money-categories-the-platform-must-distinguish).
+- Invoices record the church or family payment, the musician (or instructor) payout and any Gamo administrative line as separate line items; a Gamo administrative line is refused unless owner-approved. Money in integer minor units, currency recorded; refunds and reconciliation required. Categories follow [docs/GAMO_NONPROFIT_MODEL.md §5.3](docs/GAMO_NONPROFIT_MODEL.md#53-money-categories-the-platform-must-distinguish).
 - Musician and instructor pay must never be silently reduced or netted against Gamo allocations; any deduction requires an approved policy, documented consent and legal review.
 - Never invoke production charges, send live invoices, start external payouts, or set up live connected accounts without explicit owner approval.
-- **Donation, sponsorship and membership payment processing is disabled** until nonprofit formation, tax-exempt recognition (or counsel-approved interim approach) and counsel-reviewed acknowledgment language exist.
+- Donation processing and donation language are not used (PBC, not tax-exempt); no contribution or sponsorship payments without owner approval.
 
 ## Operational reliability
 
-- Paid understudy standby is an agreement with terms, time window, compensation, radius and explicit acceptance.
-- Sunday dispatch must withstand duplicate notifications, retries, simultaneous backup acceptances and network failures; have human escalation and incident audit.
+- *Future capability, not in the current plan:* paid standby and Sunday dispatch. If ever built, standby is an agreement with terms, time window, compensation, radius and explicit acceptance, and dispatch must withstand duplicate notifications, retries, simultaneous acceptances and network failures, with human escalation and incident audit.
 - '100% Sunday attendance' / 'zero failure' / 'guaranteed understudy' statements are prohibited until contractual and operational capability is actually established and approved.
 - Maps and geolocation show estimates; cannot substitute for actual location confirmation or arrival proof.
 
@@ -46,15 +45,15 @@
 
 ## Legal structure, tax status and fundraising claims
 
-- Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). Never state or imply 501(c)(3) recognition, IRS approval, tax-deductibility, state charitable registration, an EIN or any registration number until confirmed by the owner with evidence.
-- Never name churches, sponsors, foundations, donors or board members as committed unless a signed agreement or documented consent exists.
-- Do not describe mandatory fees or deductions as donations. Payments where the payer receives substantial goods or services are not presented as charitable gifts.
+- Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking. It is **not** a nonprofit and **not** tax-exempt: never state or imply 501(c)(3) status, IRS approval, tax-deductibility or charitable registration, and never publish its EIN or filing numbers.
+- Never name churches, sponsors, foundations or board members as committed unless a signed agreement or documented consent exists.
+- Do not describe fees, deductions or any payment to Gamo as gifts or donations.
 - Do not assume program fees, promotion or production services are tax-exempt income; flag for accountant/tax review.
 - Executive compensation and related-party transactions require independent approval and conflict-of-interest documentation; agents never implement compensation logic that bypasses this.
 
 ## Verification trust
 
-- Verified badges (churches, musicians, technicians, teachers) only after a recorded staff verification decision; verification decisions are audited.
+- Approval into the private roster (musicians, technicians) follows a recorded, audited staff decision; there are no public verified badges.
 - Sponsored content is always labeled and never affects vetting, rankings or trust signals ([docs/GAMO_NONPROFIT_MODEL.md §4.1](docs/GAMO_NONPROFIT_MODEL.md#41-sponsored-content-labeling--decided)).
 
 ## Safeguarding & Sensitive Document Prohibition
@@ -66,9 +65,9 @@
 
 - TypeScript strict, validated input schemas, DB constraints, parameterized queries, rate limits on auth/webhooks/application, CSRF where applicable and controlled CORS.
 - Secrets in environment bindings; never repo, logs, screenshots or browser bundle.
-- Audit trails for vetting decisions, payout changes, permissions and emergency dispatch. Limit logs to non-sensitive metadata.
+- Audit trails for vetting decisions, offers, invoices, payout records and permissions. Limit logs to non-sensitive metadata.
 - Dependency review, minimum permissions and no unapproved external telemetry/vendor integrations.
-- Require tests for auth denial, race conditions, webhook deduplication, failed payment, backup dispatch and capacity races.
+- Require tests for auth denial, race conditions, webhook deduplication, failed payment, offer-link replay and capacity races.
 
 ## External-action policy for agents
 

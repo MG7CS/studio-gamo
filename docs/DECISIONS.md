@@ -18,6 +18,7 @@
 - **Homepage pills** (How It Works, Gamo Live) implemented as small vanilla-JS accessible tablists rather than framework islands.
 
 ## 2026-10-12 — Gamo Studios becomes a proposed Christian nonprofit (governing decision)
+> **Superseded 2026-11-16:** legal structure is a Christian, mission-driven Public Benefit Corporation (not a nonprofit, not tax-exempt; no 501(c)(3)). See the 2026-11-16 legal-structure entry below.
 - **Decision (founder):** Gamo Studios is restructured as a proposed Christian nonprofit dedicated to religious, educational and community-serving purposes, intended as an Arizona nonprofit corporation seeking 501(c)(3) recognition. This **supersedes** the commercial business model (commission maximization, advertising revenue, commercial subscriptions, separate profit-center verticals).
 - **Source of truth:** `docs/GAMO_NONPROFIT_MODEL.md`. Legal/governance dependencies: `docs/NONPROFIT_TRANSITION_CHECKLIST.md`. Other documents link rather than restate.
 - **Programs retained:** Worship, Academy, Live, Production and Admin apps and all technical decisions are kept; they are reframed as connected nonprofit programs.
@@ -48,6 +49,7 @@
 - **Concurrent recovery:** preserve incoming work and comparative components; rerun affected checks rather than overwriting another writer. Any later source changes require fresh evidence.
 
 ## 2026-10-13 — Authenticated dashboard UI system (design-first)
+> **Superseded 2026-11-16:** public accounts and all per-program dashboards were removed; admin is the only dashboard (cleanup two entry below).
 
 - **Scope:** founder authorized the complete frontend UI for all signed-in experiences (account entry, Worship, Academy, Live, Production, Church Partner, internal Admin). No authentication, authorization, payments, publishing, dispatch, messaging or database writes.
 - **Shared, data-driven system:** `packages/ui` owns the shell, navigation, switcher, page header, state views and typed blocks; apps declare `Workspace` data and render one dynamic route per workspace. Chosen over hand-written pages to keep one visual system, small page files and consistent responsive behaviour (tables become stacked cards on mobile; container queries adapt blocks to their column width).
@@ -60,6 +62,7 @@
 Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooling, generated `@gamo/api-contracts` types/openapi-fetch client, and build-time Ajv standalone validators. Keep six domain-owned Astro applications and existing `/api` URLs/legacy envelopes. Generate filtered public and restricted internal references; publish neither automatically. Prefer a focused OpenAPI JSON Schema HTTP runner with isolated SQLite and provider mocks for initial coverage; Cloudflare concurrency and actual provider sandbox tests remain separate requirements. Pin TypeScript 5.9.3 because openapi-typescript depends on its compiler API. Production Node SQLite imports are removed. See `docs/OPENAPI_ARCHITECTURE.md` for compatibility, security and idempotency policies.
 
 ## 2026-10-13 — Legal-Structure-Neutral Organizational Architecture & Backend Stabilization
+> **Superseded 2026-11-16 (legal-structure part):** the structure is a Public Benefit Corporation (entry below).
 
 - **Legal-Structure-Neutral Positioning**: Gamo Studios is a Christian, mission-driven organization serving churches, musicians, students, families and faith communities, while its final legal incorporation structure and tax status remain undecided. All documentation and financial ledger models remain legal-structure-neutral: strict separation of third-party payables (`third_party_payable`), program receipts (`program_service_receipt`), processing costs (`processing_cost`), sponsorships, and contributions; zero claims of 501(c)(3) status or tax-deductibility; donation/sponsorship/membership payment processing disabled until legal and tax decisions are finalized.
 - **Independent Audit Reconciliation**: Earlier `353b630` completion claims for end-to-end backend functionality are superseded by [`docs/BACKEND_INDEPENDENT_AUDIT.md`](BACKEND_INDEPENDENT_AUDIT.md). Checkout (`POST /api/checkout/session`) and financial Stripe webhooks (`POST /api/webhook/stripe`) remain fail-closed (`503 Service Unavailable`).
@@ -102,6 +105,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Future rebranding**: **Supported by the existing configurable brand layer** (`PLATFORM_BRAND` in `apps/live/wrangler.toml`, `getPlatformBrandConfig`, and `resolvePlatformBrandConfig` in `@gamo/domain` and `@studio-gamo/ui`), which sets **Gamo Live** as the effective default while preserving the ability to rebrand later without rebuilding routes or templates.
 - **Parent relationship & release gates preserved**: Gamo Live remains an operating program/division of Gamo Studios (legal-structure-neutral; not a separately incorporated entity), with shared authentication, cross-division integrations, and fail-closed live payment (`503`) and artist deposit (`disabled_pending_policy`) gates intact.
 ## 2026-10-15 — Production Readiness Phase 1: Real Authentication, Onboarding, and Public-to-Workspace Journeys
+> **Superseded 2026-11-16:** public authentication, onboarding and workspaces were removed (cleanup two entry below).
 
 - **Server-Enforced Workspace Authorization (`packages/auth/page-access.ts` + App Middlewares)**:
   - All five public applications (`apps/web`, `apps/live`, `apps/worship`, `apps/academy`, `apps/production`) enforce server-side session and role checks in `src/middleware.ts` via `evaluateWorkspacePageAccess(...)`.
@@ -124,6 +128,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   - `/my-tickets` requires a verified 6-digit email challenge code (`POST /api/auth/challenge` + `POST /api/tickets/lookup`) before disclosing registrations or QR admission credentials, and honestly states that SMS recovery is unavailable because no SMS delivery provider is configured.
 
 ## 2026-10-15 — Unified Shared Authentication Component Architecture & Ecosystem Rollout
+> **Superseded 2026-11-16:** shared public authentication UI removed (cleanup two entry below).
 
 - **Canonical Shared Authentication Components (`packages/ui/src/components/auth/`)**:
   - `AuthLayout.astro` (full-viewport desktop split-screen composition and curved mobile photographic header wrapping `AuthPhotoPanel.astro` and `AuthCurvedDivider.astro`), `AuthForm.astro` (shared form presentation composing `AuthNavBar.astro`, `AuthFormHeader.astro`, `AuthFeedback.astro`, `AuthTextField.astro`, `AuthEmailInput.astro`, `AuthCodeInput.astro`, and `AuthActions.astro`), and `GamoAuthExperience.astro` (top-level 4-mode authentication experience wired to `packages/ui/src/lib/auth-flow-client.ts`) are maintained centrally in `@studio-gamo/ui`.
@@ -134,6 +139,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
   - `apps/admin` remains protected by Cloudflare Access (`CF_Access_JWT_Assertion`) and break-glass staff gateway (`/login`) rather than public end-user OTP registration.
 
 ## 2026-10-15 — Product Account Independence Architecture (`product_accounts` & Scoped Sessions)
+> **Superseded 2026-11-16:** product accounts, workspaces and the shared person record were removed (cleanup two entry below).
 
 - **Shared Authentication Infrastructure, Separate Product Accounts**:
   - Gamo Studios applications (`web`, `live`, `worship`, `academy`, `production`) share the cryptographic OTP challenge infrastructure (`users`, `auth_challenges`, `sessions`) and reusable UI components (`@studio-gamo/ui/components/auth/*`), but operate as **independent products** with separate account registration, membership, onboarding, permissions, and workspaces.
@@ -154,6 +160,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 ---
 
 ## Decision 014 — Real Database Events on `gamostudio.org/live` & Past Event Closure Rule (2026-10-15)
+> **Superseded 2026-11-16:** Gamo Live was removed.
 
 - **Context**: `gamostudio.org/live` (`apps/web/src/pages/live.astro`) previously rendered hardcoded sample events (`"Harvest Night of Gospel"`, `"Rise Christian Leadership Conference"`, etc.) instead of querying the `events` table in D1. Additionally, events whose scheduled dates had passed needed an explicit rule marking them closed and past.
 - **Decision**:
@@ -165,6 +172,7 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 ---
 
 ## 2026-10-18 — Test servers run with Clerk off; deploy builds carry no local values
+> **Superseded 2026-11-16 (Clerk part):** Clerk was removed; the deploy-build hygiene part still applies.
 
 - **Context**: four Playwright tests failed because local `.dev.vars` held Clerk Production-instance keys (Clerk rejects `127.0.0.1` with 400) and, in worship, Gamo Live's Clerk app id (the product-isolation guard then answers 503 on private pages). Checking `make deploy-<app>` showed that `@astrojs/cloudflare` copies `.dev.vars` into `process.env` on every build, so Vite inlined the local `PUBLIC_CLERK_PUBLISHABLE_KEY` (and admin's local `CF_ACCESS_*`) into production server chunks, and `@cloudflare/vite-plugin` left `dist/server/.dev.vars` in deploy builds.
 - **Decision**:
@@ -202,3 +210,11 @@ Adopt OpenAPI 3.1.1 multi-file contracts and Redocly lint/bundle/reference tooli
 - **Retired AGENTS.md rules**: "Shared Authentication Design Rule" (and its component locations/route convention), "Product Account Independence Rule" (including the 2026-10-18 shared person record exception) and "Independent Clerk Authentication Rule". The email-domain rule is kept under "Email". The 2026-10-15 entries above (shared authentication components, product account independence) and the 2026-10-18 Clerk test-server entry are superseded and left as written.
 - **Docs retired**: `docs/AUTH.md`, `docs/IDENTITY.md` and `docs/design/identity-and-ticketing.md` carry a retired banner; `docs/CLERK_ARCHITECTURE_AND_MIGRATION.md` was deleted (history at tag `four-programs-snapshot`).
 - **Owner actions**: `docs/RUNBOOK.md` §13 (apply `0019`; delete any Clerk applications, DNS records and `CLERK_*` secrets).
+
+## 2026-11-16 — Legal structure: Christian, mission-driven Public Benefit Corporation
+
+- **Decision (owner-confirmed):** Gamo Studios is a Christian, mission-driven Public Benefit Corporation, formed to be mission-driven and not only profit-seeking. It is **not** a nonprofit and **not** tax-exempt. This supersedes the 2026-10-12 proposed-nonprofit/501(c)(3) entry and the 2026-10-13 legal-structure-neutral positioning.
+- **Formation (owner-confirmed 2026-11-16):** state filing done, EIN obtained, bylaws adopted with the public benefit purpose, business bank account open. Filing details and numbers are never published in the repository.
+- **Consequences:** no nonprofit, charity, tax-exempt, tax-deductible or donation language anywhere; Form 1023, fiscal sponsorship, donation acknowledgment and donation processing are not applicable (`docs/NONPROFIT_TRANSITION_CHECKLIST.md`, historical file name). Contribution or sponsorship payments need owner approval.
+- **Docs:** `docs/GAMO_NONPROFIT_MODEL.md` (file name historical), `AGENTS.md`, `SECURITY.md`, `DESIGN.md`, `ROADMAP.md` updated; `DESIGN_FIRST_OVERRIDES.md`, `prompts/MASTER-PROMPT.md`, the root `ARCHITECTURE.md` and the 2026-10 backend audit documents are marked historical.
+- **Hero (owner-confirmed 2026-11-16):** the approved homepage hero is the current "Where Worship, Learning & Community Meet." (`HomeEditorialHero`); the earlier "Keep Worship Going" reference is historical.
