@@ -101,7 +101,7 @@
 
 ## 2026-10-12 — Nonprofit transformation (supersedes commercial model)
 - Governing brief: `prompts/MASTER-PROMPT.md`. Gamo Studios is now positioned as a **proposed** Christian nonprofit (Arizona nonprofit corporation + 501(c)(3) recognition pending; no tax-deductibility or IRS claims).
-- New docs: `docs/GAMO_NONPROFIT_MODEL.md` (source of truth), `docs/NONPROFIT_TRANSITION_CHECKLIST.md`. Rewrote `docs/GAMO_LIVE_AND_PARTNERS.md` and `ROADMAP.md` (10 mission-aligned priorities). Updated README, ARCHITECTURE, DESIGN, AGENTS, SECURITY, DESIGN_FIRST_OVERRIDES, design-reference/README, SCREEN_INVENTORY, FUNCTIONALITY_PHASE_PLAN, DECISIONS, HOMEPAGE_VISUAL_REVIEW, DESIGN_REVIEW_WEB (historical), and `.agents/agents/*`. (commit `64e378c`)
+- New docs: `docs/GAMO_NONPROFIT_MODEL.md` (source of truth), `docs/NONPROFIT_TRANSITION_CHECKLIST.md`. Rewrote `docs/GAMO_LIVE_AND_PARTNERS.md` and `ROADMAP.md` (10 mission-aligned priorities). Updated README, ARCHITECTURE, DESIGN, AGENTS, SECURITY, DESIGN_FIRST_OVERRIDES, design-reference/README, SCREEN_INVENTORY, FUNCTIONALITY_PHASE_PLAN, DECISIONS, HOMEPAGE_VISUAL_REVIEW, DESIGN_REVIEW_WEB (historical), and `.agents/agents/*`. (commit `61c53a2`)
 - Homepage copy (hero composition, design tokens, photography and components preserved):
   - Hero: mission subheading; primary CTA "Request a Musician".
   - Musicians: auditioned/reviewed + paid fairly; CTA "Explore Gamo Worship"; verified badge removed from sample profile.
@@ -124,7 +124,7 @@
 
 ## 2026-10-12 — Resume interrupted multi-page public frontend
 
-- Inspected the existing `e88ceb5` shared asset/design foundation and substantial uncommitted Worship/Academy/Live/Production implementations. Resumed the founder-approved seven-stage frontend brief, preserving the approved `/` hero, nonprofit model, monorepo, optimized assets and component boundaries. The older web-only development scope is superseded for these public apps; no backend phase was started.
+- Inspected the existing `5e52227` shared asset/design foundation and substantial uncommitted Worship/Academy/Live/Production implementations. Resumed the founder-approved seven-stage frontend brief, preserving the approved `/` hero, nonprofit model, monorepo, optimized assets and component boundaries. The older web-only development scope is superseded for these public apps; no backend phase was started.
 - Added organization Mission, Get Involved, Partnerships/inquiry, Support, Contact, FAQ, legal-status information, account-entry and audience-routing experiences. Proposed bright hero is isolated at `/preview/hero-2026` for review. All forms are local previews; no accounts, real messages or records are created.
 - Worship: completed summary, opportunity board and church roster; removed false attendance/dispatch/payment claims and repaired legacy routes. Academy: preserved discovery/detail/dashboard work, added required local registration checks, removed the acoustic-photo/electric-guitar mismatch and improved the mobile learner-photo composition.
 - Live: completed profiles, organizer builder/status/dashboard/manage/report/promotion and scanner simulation; corrected tier/event continuity, empty/reset filters and canceled/external-ticket behavior. Production: preserved technical sections and six service categories; completed real local assessment review and safe validated inquiry previews.
@@ -289,7 +289,7 @@
 
 **Authorized scope:** user requested authoritative contract adoption before the independent backend security/reliability audit, with commit/push to main. No production deployment, remote D1 mutation, secrets, real email, payment, payout or unrestricted access was enabled.
 
-**Baseline:** clean `main`, HEAD `cb97c37`, four commits ahead of `origin/main` (`fc32b71`, `2ad0aed`, `07bb316`, `cb97c37`). Remote main fetched successfully before final commit. No user changes were overwritten.
+**Baseline:** clean `main`, HEAD `353b630`, four commits ahead of `origin/main` (`4e2587f`, `92e6e33`, `d85be11`, `353b630`). Remote main fetched successfully before final commit. No user changes were overwritten.
 
 **Completed foundation:** discovered 10 route files / 12 HTTP method-path operations; all 12 specified in multi-file OpenAPI 3.1.1 and exercised in initial HTTP contract tests. Six-app topology and existing URLs preserved. Added Redocly lint/bundle/local reference, deterministic public/internal bundles, openapi-typescript declarations, public openapi-fetch factory, generated Ajv standalone Worker validators, root/Make commands and GitHub Actions contract gate. Generation verification writes only temporary artifacts. Public bundle/reference excludes admin operations, identity creation demo and Worship redirect demos. Documentation and source coverage are checked; no planned API was fabricated.
 
@@ -310,7 +310,7 @@
 | `pnpm test` | Existing 39 tests pass, 0 failures |
 | `pnpm typecheck` | All six app TypeScript checks and shared api-contracts package pass |
 | `pnpm build` | All six Cloudflare Astro application builds pass |
-| `pnpm api:compatibility cb97c37` | Initial adoption baseline (no prior contract) |
+| `pnpm api:compatibility 353b630` | Initial adoption baseline (no prior contract) |
 | `git diff --check` | Pass |
 
 **Environment issues resolved:** existing pnpm store needed the approved `/Users/gamo/Library/pnpm/store/v11` path during installation. openapi-typescript failed with the TypeScript 7 compiler API; pinned TypeScript 5.9.3, then all checks passed. Ajv standalone emitted CommonJS helper requires; generation now transforms them to static pure-JS ESM imports and tests/builds pass. Initial test runner/template selection failure was corrected; final tests exercise actual handlers/middleware. Local loopback/tsx IPC and Cloudflare build debug listeners were sandbox-denied; reran with tool approval. No fictitious results or screenshot substitutes were used.
@@ -319,11 +319,11 @@
 
 **Owner actions / production gate:** approve verified identity and staff mapping design, registration pass privacy/access and serialization, financial/accounting/refund/idempotency policies, operational pagination, and legal/safeguarding prerequisites. Configure real sandbox provider and Cloudflare resources only under explicit later authorization. The next phase may independently audit the recorded security/reliability concerns; it was not started here.
 
-**CI follow-up:** First push commit `1cb3434` reached origin/main. GitHub Actions run `38433811975` passed API/docs/contracts/backend tests, then exposed a clean-checkout TypeScript setup gap: apps without tracked `env.d.ts` relied on locally generated `.astro/types.d.ts` for `ImportMeta.env`. Root `pnpm typecheck` now runs `astro sync` for all six apps before tsc so a clean checkout generates its required declarations. This is a tooling correction; no UI or runtime policy changes. A follow-up verified commit/push records this fix.
+**CI follow-up:** First push commit `5d612b8` reached origin/main. GitHub Actions run `38433811975` passed API/docs/contracts/backend tests, then exposed a clean-checkout TypeScript setup gap: apps without tracked `env.d.ts` relied on locally generated `.astro/types.d.ts` for `ImportMeta.env`. Root `pnpm typecheck` now runs `astro sync` for all six apps before tsc so a clean checkout generates its required declarations. This is a tooling correction; no UI or runtime policy changes. A follow-up verified commit/push records this fix.
 
 ## 2026-10-13 — Independent Backend Security, Data Integrity & Runtime Verification Audit
 
-- **Authorized Scope**: Execute an independent adversarial security, data integrity, concurrency, and `workerd` runtime audit against the `cb97c37` / `1cb3434` / `6103121` backend baseline. Repair P0/P1 defects, fail-close incomplete financial/identity paths behind explicit `403`/`503` gates, verify behavior in both Node SQLite and `workerd`/Miniflare, remediate dependency advisories, and produce authoritative audit, test-matrix, and release-readiness documentation. No production deployment, remote D1 mutation, or live external provider call was performed.
+- **Authorized Scope**: Execute an independent adversarial security, data integrity, concurrency, and `workerd` runtime audit against the `353b630` / `5d612b8` / `e813577` backend baseline. Repair P0/P1 defects, fail-close incomplete financial/identity paths behind explicit `403`/`503` gates, verify behavior in both Node SQLite and `workerd`/Miniflare, remediate dependency advisories, and produce authoritative audit, test-matrix, and release-readiness documentation. No production deployment, remote D1 mutation, or live external provider call was performed.
 - **Audit Register & Handoff**:
   - Authored [`docs/BACKEND_INDEPENDENT_AUDIT.md`](BACKEND_INDEPENDENT_AUDIT.md) (12 confirmed P0–P2 findings with file/line citations, repairs, and residual blockers), [`docs/BACKEND_TEST_MATRIX.md`](BACKEND_TEST_MATRIX.md), [`docs/BACKEND_RELEASE_READINESS.md`](BACKEND_RELEASE_READINESS.md), and [`docs/BACKEND_AUDIT_HANDOFF.md`](BACKEND_AUDIT_HANDOFF.md).
   - Updated [`docs/API_COMPATIBILITY.md`](API_COMPATIBILITY.md), [`docs/API_INVENTORY.md`](API_INVENTORY.md), and [`docs/BACKEND_ARCHITECTURE.md`](BACKEND_ARCHITECTURE.md), and bumped `openapi/root.yaml` to `1.1.0` with regenerated public/internal bundles, TypeScript declarations, and standalone Ajv validators.
@@ -418,7 +418,7 @@
 
 ## 2026-10-13 — Authorized public UI deployment
 
-- Owner requested push and deployment. Pushed `main` through `691715b` to `origin/main`, then ran `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` successfully. Production builds used the existing configured domains and resource bindings. No migrations, secret changes or Admin deployment.
+- Owner requested push and deployment. Pushed `main` through `033207d` to `origin/main`, then ran `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` successfully. Production builds used the existing configured domains and resource bindings. No migrations, secret changes or Admin deployment.
 - Cloudflare versions: web `5d980dc6-d036-455d-98e0-5ca0969532d8`; Worship `b8cde1b8-7a8a-463f-8248-f2e48faae03a`; Academy `3211b3f5-71d7-4632-b1bb-ac95e8b0c5c5`; Live `b06e06ba-cfb6-4c9b-a6ef-1ae5d2c18733`; Production `b543804f-7578-402a-990e-9e6a469eb06c`.
 - Read-only live HTTP checks returned 200 for apex, www, Worship, Academy, Live homepage and `/promote`, and Production. Confirmed corrected hero-container markup on apex/www and image-first markup on affected program landing pages. Local browser evidence is recorded above; this deployment does not certify outstanding backend readiness gates.
 
@@ -430,7 +430,7 @@
   - Promoted `Assigned musicians` (`/church/musicians`) to the primary 4-item mobile dock in `apps/worship/src/data/workspaces/church.ts` and added at-a-glance coverage summary cards above compact 2-line horizontal musician row cards on mobile.
 - Verification: `DASHBOARD_URL=http://127.0.0.1:4322 node scripts/verify-dashboard-navigation.mjs` passed all 10 viewport/route checks (`390`, `768`, `1024`, `1440`, `1920` across `/church` and `/musician`) with zero horizontal overflow and zero console/page errors; `pnpm test` passed all 39 tests.
 - Evidence: `docs/screenshots/dashboard-navigation/church-musicians-390-viewport.png`, `docs/screenshots/dashboard-navigation/church-musicians-390-full.png`, `docs/screenshots/dashboard-navigation/church-overview-390-full.png`, `docs/screenshots/dashboard-navigation/church-musicians-1440.png`.
-- Authorized push and deployment (`f196bd3`): `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` succeeded. Cloudflare versions: web `d5ef2d6b-ba59-48ca-9df8-4f0de481cd02`; Worship `570b500a-535a-4339-9aad-bff9c46a848c`; Academy `9628c469-0d07-4039-9b3d-85c3a11adbc8`; Live `119d46e9-093d-42f3-aff3-1abc8a04f8ad`; Production `ff253347-bed4-4975-836a-842e82a869d9`. Verified HTTP 200 on `https://worship.gamostudio.org/church/musicians` and all workspace routes.
+- Authorized push and deployment (`e63ba16`): `make deploy-web deploy-worship deploy-academy deploy-live deploy-production` succeeded. Cloudflare versions: web `d5ef2d6b-ba59-48ca-9df8-4f0de481cd02`; Worship `570b500a-535a-4339-9aad-bff9c46a848c`; Academy `9628c469-0d07-4039-9b3d-85c3a11adbc8`; Live `119d46e9-093d-42f3-aff3-1abc8a04f8ad`; Production `ff253347-bed4-4975-836a-842e82a869d9`. Verified HTTP 200 on `https://worship.gamostudio.org/church/musicians` and all workspace routes.
 
 ## 2026-10-14 — Account Creation, Cross-App Session Sharing & Hybrid Sample Data Mode
 
@@ -741,8 +741,8 @@
 
 ## 2026-11-16 — Gamo Live removed (not deployed)
 - Owner decision after conversations with church ministers and pastors: Gamo Studios focuses on Gamo Academy, Gamo Worship and Gamo Production. Gamo Live (events, ticketing, scanner, Promote/Explore Events) is dropped. Design: `docs/superpowers/specs/2026-11-16-remove-gamo-live-design.md`; decision record: `docs/DECISIONS.md` (2026-11-16).
-- Snapshot of the four-program state: commit `1f764d6`, branch `archive/four-programs-2026-11-16`, tag `four-programs-snapshot`.
-- Removed `apps/live`, Live-only domain code, OpenAPI paths, web/admin Live surfaces, tests and scripts; migration `0018_remove_gamo_live.sql` drops the Live tables. The Resend webhook moved to `apps/web` (`2ca21dd`).
+- Snapshot of the four-program state: commit `08c9b44`, branch `archive/four-programs-2026-11-16`, tag `four-programs-snapshot`.
+- Removed `apps/live`, Live-only domain code, OpenAPI paths, web/admin Live surfaces, tests and scripts; migration `0018_remove_gamo_live.sql` drops the Live tables. The Resend webhook moved to `apps/web` (`0a4fb0f`).
 - Docs: deleted `docs/GAMO_LIVE_AND_PARTNERS.md` (partnership and sponsored-labeling rules moved to `docs/GAMO_NONPROFIT_MODEL.md` §4/§6), `docs/GAMO_LIVE_AGY_LAUNCH_BRIEF_2026-10-15.md`, `docs/GAMO_LIVE_IMPORT_REPORT_2026-10-15.md`/`.json`, `docs/RESUME_LIVE.md`, `docs/TICKETING.md`, `docs/TICKETING_SCANNER.md`; trimmed ticketing from `docs/design/identity-and-ticketing.md`; updated AGENTS, README, ARCHITECTURE, ROADMAP, DESIGN, SECURITY, RUNBOOK (owner actions §12), DEPLOYMENT, SCREEN_INVENTORY, AUTH, IDENTITY, CLERK, backend audit docs and the founder prompt note. Earlier entries in this log are left as written.
 - Owner actions: delete workers `gamo-live`/`gamo-live-preview` and the `live.gamostudio.org` route; move the Resend webhook to `https://gamostudio.org/api/webhook/resend` and `RESEND_WEBHOOK_SECRET` to web; apply `0018`.
 

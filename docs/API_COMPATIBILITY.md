@@ -2,7 +2,7 @@
 
 ## 4.0.0
 
-Base: cd73e4c
+Base: c6ac44b
 
 Intentional breaking removal (2026-11-16, owner decision: public accounts and demo dashboards are retired; people
 reach Gamo through forms and emailed links, and only staff sign in, to the admin app; design and plan:
@@ -33,7 +33,7 @@ shared auth UI and admin review pages were the only consumers and are deleted wi
 
 ## 3.0.0
 
-Base: 413fe51
+Base: 30587e0
 
 Intentional breaking removal (2026-11-16, owner decision: Gamo Studios narrows to Gamo Academy, Gamo Worship
 and Gamo Production; design: `docs/superpowers/specs/2026-11-16-remove-gamo-live-design.md`). Nothing is deployed
@@ -81,8 +81,8 @@ Additive: `POST /api/orders/confirm`, `POST /api/tickets/{id}/transfer`, `POST /
 
 ## 2.1.0
 
-Base: 1d4bbad
-Base: 35d233d
+Base: d83ec97
+Base: 5e964b6
 Base: HEAD
 
 Additive/corrective changes (cleanup pass Phase 3, `docs/CLEANUP_LOG.md` F-06, F-17, F-28):
@@ -96,8 +96,8 @@ Additive/corrective changes (cleanup pass Phase 3, `docs/CLEANUP_LOG.md` F-06, F
 
 ## 2.0.0
 
-Base: 1d4bbad
-Base: 35d233d
+Base: d83ec97
+Base: 5e964b6
 Base: HEAD
 
 Breaking removal of two demo stubs (cleanup pass, `docs/CLEANUP_LOG.md` F-33/F-46):
@@ -109,9 +109,9 @@ Breaking removal of two demo stubs (cleanup pass, `docs/CLEANUP_LOG.md` F-33/F-4
 
 ## 1.5.0
 
-Base: 2be582c
-Base: 1d17ee6
-Base: 6103121
+Base: 06f816a
+Base: 6114795
+Base: e813577
 Base: HEAD
 
 Additive product-specific account registration, sign-in intent, and product membership isolation contracts in `1.5.0`:
@@ -120,9 +120,9 @@ Additive product-specific account registration, sign-in intent, and product memb
 
 ## 1.4.0
 
-Base: 2be582c
-Base: 1d17ee6
-Base: 6103121
+Base: 06f816a
+Base: 6114795
+Base: e813577
 Base: HEAD
 
 Additive Gamo Live public concert discovery and external ticket referral contracts in `1.4.0`:
@@ -131,8 +131,8 @@ Additive Gamo Live public concert discovery and external ticket referral contrac
 
 ## 1.3.0
 
-Base: 1d17ee6
-Base: 6103121
+Base: 6114795
+Base: e813577
 Base: HEAD
 
 Additive standalone Gamo Live consumer platform contracts in `1.3.0`:
@@ -148,7 +148,7 @@ Additive standalone Gamo Live consumer platform contracts in `1.3.0`:
 
 ## 1.2.0
 
-Base: 6103121
+Base: e813577
 Base: HEAD
 
 Additive verified-identity, organization-onboarding, and staff-provisioning contracts in `1.2.0`:
@@ -162,7 +162,7 @@ Additive verified-identity, organization-onboarding, and staff-provisioning cont
 
 ## 1.1.0 (2026-10-13 — Independent Backend Security & Reliability Audit)
 
-Comparison baseline: `6103121` (`0.1.0` contract adoption).
+Comparison baseline: `e813577` (`0.1.0` contract adoption).
 
 Intentional protective and privacy contract updates in `1.1.0`:
 - `POST /api/events/{id}/register` (`RegisterAttendee` / `RegistrationResponse`):
@@ -183,7 +183,7 @@ All generated bundles (`openapi/bundled/{public,internal}.json`), TypeScript dec
 
 ## 0.1.0
 
-Initial OpenAPI adoption of existing unversioned routes; no prior specification baseline. Source baseline: cb97c37 on main, initially four commits ahead of origin/main; clean worktree.
+Initial OpenAPI adoption of existing unversioned routes; no prior specification baseline. Source baseline: 353b630 on main, initially four commits ahead of origin/main; clean worktree.
 
 URLs and legacy JSON envelopes remain. Intentional validation/security behavior changes: production email-only session creation denied (403); event proposals now require organization membership (401/403); unpublished detail returns 404; invalid checkout quantity/tier and extra fields return 400 instead of coercion; unknown/missing checkout events return 404 instead of default pricing; free registration rejects paid/external events and cross-event/nonfree tiers with 409; malformed JSON, wrong media types and non-RFC3339 timestamps rejected; unexpected exceptions no longer expose messages. Signed live webhook events rejected; unapproved 5% administrative allocation and estimated processor deductions removed. Missing D1 binding now produces an explicit failure instead of an unmigrated Node fallback. Local demo session clients must explicitly configure ENVIRONMENT=local and ALLOW_DEMO_SESSION=true.
 

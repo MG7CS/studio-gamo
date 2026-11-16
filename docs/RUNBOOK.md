@@ -175,9 +175,9 @@ Sign in at the admin host through Cloudflare Access with the same email, enter t
 
 ### 8.2 Retire the historical bootstrap credential (CLEANUP_LOG H-02)
 
-Earlier code (first seen in commit `b883c96`, removed in this cleanup) hard-coded a bootstrap admin: an email (`BOOTSTRAP_ADMIN_EMAIL`), a display name and a **temporary password** (`BOOTSTRAP_ADMIN_TEMP_PASSWORD`). `ensureBootstrapAdminAccount` stored its hash in `admin_credentials` for that email with the `superadmin` role. That function only ran for local demos on loopback, so preview/production should not contain it — but the password is in git history, so assume it is known and **verify**.
+Earlier code (first seen in commit `e695029`, removed in this cleanup) hard-coded a bootstrap admin: an email (`BOOTSTRAP_ADMIN_EMAIL`), a display name and a **temporary password** (`BOOTSTRAP_ADMIN_TEMP_PASSWORD`). `ensureBootstrapAdminAccount` stored its hash in `admin_credentials` for that email with the `superadmin` role. That function only ran for local demos on loopback, so preview/production should not contain it — but the password is in git history, so assume it is known and **verify**.
 
-1. Find the email without printing the password: `git show 35d233d:packages/auth/index.ts | grep -n "BOOTSTRAP_ADMIN_EMAIL ="`.
+1. Find the email without printing the password: `git show 5e964b6:packages/auth/index.ts | grep -n "BOOTSTRAP_ADMIN_EMAIL ="`.
 2. Read-only check on each remote database (does the account exist, with a password or roles?):
 
    ```sh

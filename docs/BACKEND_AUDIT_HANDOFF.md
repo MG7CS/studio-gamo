@@ -6,7 +6,7 @@
 
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
-**Base commit:** `6103121` (`main` includes `1cb3434` and requested baseline `cb97c37`)  
+**Base commit:** `e813577` (`main` includes `5d612b8` and requested baseline `353b630`)  
 **Worktree:** Audit fixes and documentation are uncommitted. No commit, push, deployment, production resource access, or real provider request was performed.
 
 ## What was accomplished

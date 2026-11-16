@@ -8,7 +8,7 @@
 **Status:** Completed & Approved for Implementation  
 **Auditor:** Senior Product Designer, Frontend Architect, A11y Specialist & QA Lead  
 **Scope:** Authenticated Workspace UI System across `apps/web`, `apps/worship`, `apps/academy`, `apps/live`, `apps/production`, `apps/admin`, and `packages/ui`.  
-**Baseline Commit:** `7d6a9cd`
+**Baseline Commit:** `9510ae5`
 
 ---
 

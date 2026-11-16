@@ -6,7 +6,7 @@
 
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
-**Baseline Commits:** `cb97c37` (Backend Foundation) → `1cb3434` / `6103121` (OpenAPI Contract Adoption)  
+**Baseline Commits:** `353b630` (Backend Foundation) → `5d612b8` / `e813577` (OpenAPI Contract Adoption)  
 **Test Matrix:** [`docs/BACKEND_TEST_MATRIX.md`](BACKEND_TEST_MATRIX.md)  
 **Release Readiness:** [`docs/BACKEND_RELEASE_READINESS.md`](BACKEND_RELEASE_READINESS.md) — **NO-GO for Production**
 
@@ -16,7 +16,7 @@
 
 This independent audit inspected the implemented backend across `apps/web`, `apps/live`, `apps/admin`, `apps/worship`, `packages/auth`, `packages/db`, `packages/domain`, `packages/integrations`, `packages/api-contracts`, `openapi/`, and all six `wrangler.toml` configurations.
 
-At baseline (`6103121`), `pnpm test` passed 39/39 unit/service tests using Node's in-memory SQLite (`node:sqlite`) and loopback HTTP mocks. However, the baseline suite did **not** test:
+At baseline (`e813577`), `pnpm test` passed 39/39 unit/service tests using Node's in-memory SQLite (`node:sqlite`) and loopback HTTP mocks. However, the baseline suite did **not** test:
 - Route handlers inside `workerd` / Miniflare with real D1 and R2 bindings.
 - Concurrent registration capacity races or batch rollback semantics.
 - Populated database migration upgrades (`0000` → `0002`).

@@ -7,7 +7,7 @@ Events) is dropped. This is the first of two cleanups; the second (later, separa
 remaining programs into simple forms, emails and invoices with the admin dashboard as the only dashboard.
 
 ## Snapshot (done)
-The four-program state is preserved at commit `1f764d6`: branch `archive/four-programs-2026-11-16` and annotated
+The four-program state is preserved at commit `08c9b44`: branch `archive/four-programs-2026-11-16` and annotated
 tag `four-programs-snapshot`, both pushed to GitHub (owner approved the push).
 
 ## Rule (owner's wording)
@@ -34,7 +34,7 @@ Shared account, sign-in, Clerk, customer-link, email and Academy Stripe code. Wh
 `'live'` are not rebuilt (risky table rebuilds, harmless value).
 
 ## Unavoidable fixes
-- Resend bounce/complaint webhook moves to `apps/web` (`/api/webhook/resend`) — done in commit `2ca21dd`.
+- Resend bounce/complaint webhook moves to `apps/web` (`/api/webhook/resend`) — done in commit `0a4fb0f`.
 - Miniflare journey harness stops resolving wrangler from `apps/live` and stops using Live API routes.
 - `persons.ts` stops reading `ticket_orders`.
 - Sign-in email branding (`@gamo/config/brand`) becomes Gamo Studios instead of Gamo Live.
