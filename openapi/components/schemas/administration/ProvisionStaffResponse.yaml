@@ -8,7 +8,7 @@ properties:
     additionalProperties: false
     properties:
       user:
-        $ref: ../identity/User.yaml
+        $ref: ./User.yaml
       role:
         type: string
         enum:

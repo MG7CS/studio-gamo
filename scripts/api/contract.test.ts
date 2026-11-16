@@ -7,26 +7,32 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { createDb } from '../../packages/db/index.ts';
-import { IdentityService, handleApiError, svixSignature } from '../../packages/domain/index.ts';
+import { roles, userRoles, users } from '../../packages/db/schema.ts';
+import { handleApiError, svixSignature } from '../../packages/domain/index.ts';
 import { createSession } from '../../packages/auth/index.ts';
 import { onRequest } from '../../apps/admin/src/middleware.ts';
-import { LOCAL_TURNSTILE, signupTerms } from '../audit/auth-test-kit.ts';
 const spec = JSON.parse(readFileSync('openapi/bundled/internal.json', 'utf8'));
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 addFormats(ajv);
 ajv.addSchema({ $id: 'contract', ...spec });
 const d1 = createInMemoryD1();
 const db = createDb(d1);
-const services = {
-  identity: new IdentityService(db),
-};
+/** Seeds a staff user directly in D1 (public accounts were removed in contract 4.0.0). */
+async function seedStaff(id: string, email: string, roleCode: string) {
+  await db.insert(users).values({ id, email, status: 'active', createdAt: new Date() });
+  await db
+    .insert(roles)
+    .values({ id: `role_${roleCode}`, code: roleCode })
+    .onConflictDoNothing();
+  await db
+    .insert(userRoles)
+    .values({ id: `ur_${id}`, userId: id, roleId: `role_${roleCode}`, createdAt: new Date() });
+}
 const secret = 'contract-test-session-signing-material-only';
 const env: Record<string, unknown> = {
   DB: d1,
   ENVIRONMENT: 'local',
   SESSION_SECRET: secret,
-  ALLOW_DEMO_SESSION: 'true',
-  ALLOW_AUTH_SIMULATION: 'true',
   RESEND_WEBHOOK_SECRET: 'whsec_Y29udHJhY3QtdGVzdC1yZXNlbmQtd2ViaG9vaw==',
   RESEND_API_KEY: 're_mock_contract',
   ENABLE_BREAK_GLASS_AUTH: 'true',
@@ -36,7 +42,7 @@ const servers: Server[] = [];
 const origins: Record<string, string> = {};
 const covered = new Set<string>();
 const nativeFetch = globalThis.fetch;
-let cookie: string, otherCookie: string, staffCookie: string;
+let staffCookie: string, superCookie: string;
 before(async () => {
   globalThis.fetch = ((url: any, options: any) => {
     const host = new URL(typeof url === 'string' ? url : (url.url ?? url.toString())).hostname;
@@ -54,20 +60,10 @@ before(async () => {
       .map((x) => readFileSync(`packages/db/migrations/${x}`, 'utf8')),
   );
   d1.sqlite.exec('PRAGMA foreign_keys=ON');
-  const owner = await services.identity.findOrCreateUser('owner@example.invalid', 'Sample owner');
-  d1.sqlite
-    .prepare('UPDATE users SET verified_email_at = ? WHERE id = ?')
-    .run(Math.floor(Date.now() / 1000), owner.id);
-  const other = await services.identity.findOrCreateUser('other@example.invalid');
-  // Explicit internal demo reviewer matches existing fallback; does not claim Access-to-D1 identity mapping.
-  d1.sqlite
-    .prepare('INSERT INTO users (id,email,status,created_at) VALUES (?,?,?,?)')
-    .run('staff_reviewer_demo', 'reviewer@example.invalid', 'active', Math.floor(Date.now() / 1000));
-  await services.identity.assignSystemRole('staff_reviewer_demo', 'staff_reviewer');
+  await seedStaff('staff_reviewer_demo', 'reviewer@example.invalid', 'staff_reviewer');
   staffCookie = `__session=${encodeURIComponent((await createSession(db, 'staff_reviewer_demo', secret)).cookieValue)}`;
-  await services.identity.createOrganization('Sample ministry', 'contract-ministry', 'church', owner.id);
-  cookie = `__session=${encodeURIComponent((await createSession(db, owner.id, secret)).cookieValue)}`;
-  otherCookie = `__session=${encodeURIComponent((await createSession(db, other.id, secret)).cookieValue)}`;
+  await seedStaff('superadmin_demo', 'superadmin@example.invalid', 'superadmin');
+  superCookie = `__session=${encodeURIComponent((await createSession(db, 'superadmin_demo', secret)).cookieValue)}`;
   for (const app of ['web', 'admin', 'worship', 'academy', 'production']) {
     const operations: any[] = [];
     for (const [path, item] of Object.entries<any>(spec.paths))
@@ -109,9 +105,7 @@ before(async () => {
             runtime: {
               env: {
                 ...env,
-                ...(req.headers['x-contract-production']
-                  ? { ENVIRONMENT: 'production', ALLOW_DEMO_SESSION: 'false' }
-                  : {}),
+                ...(req.headers['x-contract-production'] ? { ENVIRONMENT: 'production' } : {}),
                 ...(req.headers['x-contract-no-resend'] ? { RESEND_WEBHOOK_SECRET: undefined } : {}),
               },
             },
@@ -197,101 +191,7 @@ async function call(
   }
   return { body: parsed, response };
 }
-test('session creation is explicitly local-only; invalid JSON, fields and media type denied', async () => {
-  const good = await call('web', 'POST', '/api/auth/session', 200, { email: 'demo@example.invalid' });
-  assert.match(good.response.headers.get('set-cookie')!, /HttpOnly/);
-  assert.doesNotMatch(good.response.headers.get('set-cookie')!, /Domain=/i);
-  await call(
-    'web',
-    'POST',
-    '/api/auth/session',
-    403,
-    { email: 'owner@example.invalid' },
-    { 'x-contract-production': '1' },
-  );
-  await call('web', 'POST', '/api/auth/session', 400, { email: 'invalid' });
-  await call('web', 'POST', '/api/auth/session', 400, { email: 'demo@example.invalid', role: 'superadmin' });
-  await call('web', 'POST', '/api/auth/session', 400, '{');
-  await call(
-    'web',
-    'POST',
-    '/api/auth/session',
-    400,
-    { email: 'demo@example.invalid' },
-    { 'Content-Type': 'text/plain' },
-  );
-  const logout = await call('web', 'DELETE', '/api/auth/session', 200, undefined, {
-    cookie: good.response.headers.get('set-cookie')!.split(';')[0],
-  });
-  assert.match(logout.response.headers.get('set-cookie')!, /1970/);
-  assert.doesNotMatch(logout.response.headers.get('set-cookie')!, /Domain=/i);
-  await call('web', 'DELETE', '/api/auth/session', 200);
-});
-test('verified email challenge, session inspection, organization onboarding, and staff provisioning contracts', async () => {
-  await call('web', 'POST', '/api/auth/challenge', 400, { email: 'not-an-email', ...LOCAL_TURNSTILE });
-  const challengeRes = await call('web', 'POST', '/api/auth/challenge', 200, {
-    email: 'verified-leader@example.invalid',
-    displayName: 'Verified Leader',
-    intent: 'signup',
-    ...LOCAL_TURNSTILE,
-  });
-  assert.equal(challengeRes.body.data.deliveryStatus, 'simulated');
-  await call('web', 'POST', '/api/auth/verify', 401, {
-    email: 'verified-leader@example.invalid',
-    code: '000000',
-  });
-  // Issue fresh known challenge via service to verify HTTP verify route contract
-  const issued = await services.identity.issueEmailChallenge('verified-leader@example.invalid', {
-    product: 'web',
-    intent: 'signup',
-  });
-  const verified = await call('web', 'POST', '/api/auth/verify', 200, {
-    email: 'verified-leader@example.invalid',
-    code: issued.code,
-    displayName: 'Verified Leader',
-    intent: 'signup',
-    terms: signupTerms(),
-  });
-  assert.ok(verified.body.data.user.verifiedEmailAt);
-  const verifiedCookie = verified.response.headers.get('set-cookie')!.split(';')[0];
-  // Replay of consumed challenge must fail with 401
-  await call('web', 'POST', '/api/auth/verify', 401, {
-    email: 'verified-leader@example.invalid',
-    code: issued.code,
-  });
-  await call('web', 'GET', '/api/auth/me', 401);
-  const meBeforeOrg = await call('web', 'GET', '/api/auth/me', 200, undefined, { cookie: verifiedCookie });
-  assert.equal(meBeforeOrg.body.data.user.email, 'verified-leader@example.invalid');
-  // Unverified user session cannot create an organization (403)
-  await call(
-    'web',
-    'POST',
-    '/api/organizations',
-    403,
-    { name: 'Unverified Org', slug: 'unverified-org', type: 'church' },
-    { cookie: otherCookie },
-  );
-  // Verified user can onboard an organization (201) and duplicate slug returns 409
-  const createdOrg = await call(
-    'web',
-    'POST',
-    '/api/organizations',
-    201,
-    { name: 'Grace Fellowship Ministry', slug: 'grace-fellowship-ministry', type: 'church' },
-    { cookie: verifiedCookie },
-  );
-  assert.equal(createdOrg.body.data.membershipRole, 'owner');
-  await call(
-    'web',
-    'POST',
-    '/api/organizations',
-    409,
-    { name: 'Duplicate Slug Org', slug: 'grace-fellowship-ministry', type: 'ministry' },
-    { cookie: verifiedCookie },
-  );
-  const meAfterOrg = await call('web', 'GET', '/api/auth/me', 200, undefined, { cookie: verifiedCookie });
-  assert.equal(meAfterOrg.body.data.memberships.length, 1);
-  assert.equal(meAfterOrg.body.data.memberships[0].organizationSlug, 'grace-fellowship-ministry');
+test('staff provisioning requires the Access boundary and a superadmin session', async () => {
   // Staff provisioning requires superadmin + Access boundary
   await call('admin', 'POST', '/api/staff/provision', 401, {
     email: 'new-reviewer@example.invalid',
@@ -307,12 +207,6 @@ test('verified email challenge, session inspection, organization onboarding, and
     { email: 'new-reviewer@example.invalid', role: 'staff_reviewer', accessSubject: 'cf-sub-reviewer-1' },
     reviewerHeaders,
   );
-  const superUser = await services.identity.findOrCreateUser(
-    'superadmin@example.invalid',
-    'Sample Superadmin',
-  );
-  await services.identity.assignSystemRole(superUser.id, 'superadmin');
-  const superCookie = `__session=${encodeURIComponent((await createSession(db, superUser.id, secret)).cookieValue)}`;
   const superHeaders = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: superCookie };
   const prov = await call(
     'admin',
@@ -375,78 +269,24 @@ test('error responses never leak implementation details', async () => {
   assert.ok(!(await response.text()).includes('sensitive implementation detail'));
 });
 
-test('all public apps expose the same isolated auth and organization contract, and participation inquiries match OpenAPI contracts', async () => {
-  for (const app of ['web', 'worship', 'academy', 'production']) {
-    const email = `replicated-${app}@example.invalid`;
-    await call(app, 'POST', '/api/auth/session', 200, { email: `demo-${app}@example.invalid` });
-    const challenge = await call(app, 'POST', '/api/auth/challenge', 200, {
-      email,
-      intent: 'signup',
-      ...LOCAL_TURNSTILE,
-    });
-    const code = challenge.body.data.message.match(/Local test code: (\d{6})/)[1];
-    const verified = await call(app, 'POST', '/api/auth/verify', 200, {
-      email,
-      code,
-      displayName: 'Sample participant',
-      intent: 'signup',
-      terms: signupTerms(),
-    });
-    const appCookie = verified.response.headers.get('set-cookie')!.split(';')[0];
-    await call(app, 'GET', '/api/auth/me', 200, undefined, { cookie: appCookie });
-    await call(
-      app,
-      'POST',
-      '/api/organizations',
-      201,
-      { name: `Sample ${app}`, slug: `sample-${app}`, type: 'ministry' },
-      { cookie: appCookie },
+test('only the staff provisioning and Resend webhook operations remain (public accounts removed in 4.0.0)', () => {
+  const operations = Object.entries<any>(spec.paths)
+    .flatMap(([path, item]) =>
+      Object.entries<any>(item)
+        .filter(([, op]) => op?.operationId)
+        .map(([method, op]) => `${op['x-application']} ${method.toUpperCase()} ${path}`),
+    )
+    .sort();
+  assert.deepEqual(operations, ['admin POST /api/staff/provision', 'web POST /api/webhook/resend']);
+  assert.equal(spec.info.version, '4.0.0');
+  for (const name of Object.keys(spec.components.schemas))
+    assert.doesNotMatch(
+      name,
+      /^(Auth|Session|Logout|Clerk|Organization|Participation|PersonLink|ProviderAccount|ProviderReview|TermsDocumentRef)/,
     );
-    await call(app, 'DELETE', '/api/auth/session', 200, undefined, { cookie: appCookie });
-    await call(app, 'GET', '/api/auth/me', 401, undefined, { cookie: appCookie });
-    await call(
-      app,
-      'POST',
-      '/api/auth/challenge',
-      503,
-      { email, ...LOCAL_TURNSTILE },
-      { 'x-contract-production': '1' },
-    );
-  }
-  await call('web', 'POST', '/api/participation', 401, {
-    kind: 'general',
-    interest: 'Gamo Worship',
-    name: 'Sample Applicant',
-    message: 'Unauthenticated inquiry must fail',
-  });
-  const createdInq = await call(
-    'web',
-    'POST',
-    '/api/participation',
-    201,
-    {
-      kind: 'partnership',
-      interest: 'Gamo Worship',
-      name: 'Sample Applicant',
-      organization: 'Sample Fellowship',
-      message: 'Exploring worship coverage coordination for Sunday services.',
-    },
-    { cookie },
-  );
-  const inquiryId = createdInq.body.data.inquiry.id;
-  const myInquiries = await call('web', 'GET', '/api/participation', 200, undefined, { cookie });
-  assert.equal(myInquiries.body.data.inquiries.length, 1);
-  const headers = { authorization: `Bearer ${env.ADMIN_ACCESS_TOKEN}`, cookie: staffCookie };
-  const queue = await call('admin', 'GET', '/api/participation/review-queue', 200, undefined, headers);
-  assert.ok(queue.body.data.inquiries.some((item: any) => item.id === inquiryId));
-  const reviewed = await call(
-    'admin',
-    'POST',
-    `/api/participation/${inquiryId}/review`,
-    200,
-    { status: 'reviewed', notes: 'Followed up with church leadership.' },
-    headers,
-  );
-  assert.equal(reviewed.body.data.inquiry.status, 'reviewed');
-  assert.equal(covered.size, 30);
+  for (const op of Object.values<any>(spec.paths).flatMap((item) => Object.values<any>(item)))
+    assert.equal(op['x-replicated-applications'], undefined);
+});
+test('contract coverage reaches every remaining operation', () => {
+  assert.equal(covered.size, 2);
 });

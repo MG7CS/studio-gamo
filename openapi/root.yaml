@@ -2,7 +2,7 @@ openapi: 3.1.1
 jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
 info:
   title: Gamo Studios HTTP API — local foundation
-  version: 3.0.0
+  version: 4.0.0
   description: Authoritative contract for Gamo Studios, a Christian,
     mission-driven Public Benefit Corporation. Demo/incomplete operations are explicitly
     labeled. Internal operations must not be published. No production readiness
@@ -14,10 +14,6 @@ servers:
     description: Local global site (web); each path specifies its owning application.
 security: []
 tags:
-  - name: Identity and Accounts
-    description: Identity and Accounts domain. No endpoint existence implied by tag.
-  - name: Organizations and Memberships
-    description: Organizations and Memberships domain. No endpoint existence implied by tag.
   - name: Worship
     description: Worship domain. No endpoint existence implied by tag.
   - name: Academy
@@ -33,36 +29,8 @@ tags:
   - name: Email
     description: Email delivery domain (provider delivery events and suppressions). No endpoint existence implied by tag.
 paths:
-  /api/participation:
-    $ref: paths/participation.yaml
-  /api/participation/review-queue:
-    $ref: paths/participation-review-queue.yaml
-  /api/participation/{id}/review:
-    $ref: paths/participation-id-review.yaml
-  /api/auth/session:
-    $ref: paths/auth-session.yaml
-  /api/auth/challenge:
-    $ref: paths/auth-challenge.yaml
-  /api/auth/verify:
-    $ref: paths/auth-verify.yaml
-  /api/auth/clerk-session:
-    $ref: paths/auth-clerk-session.yaml
-  /api/auth/me:
-    $ref: paths/auth-me.yaml
-  /api/organizations:
-    $ref: paths/organizations.yaml
   /api/staff/provision:
     $ref: paths/staff-provision.yaml
-  # --- agent A (identity, onboarding, review) ---
-  /api/auth/clerk-webhook:
-    $ref: paths/auth-clerk-webhook.yaml
-  /api/account/person-link:
-    $ref: paths/account-person-link.yaml
-  /api/account/providers:
-    $ref: paths/account-providers.yaml
-  /api/review/providers/{id}:
-    $ref: paths/review-providers-id.yaml
-  # --- end agent A ---
   /api/webhook/resend:
     $ref: paths/webhook-resend.yaml
 components:
@@ -80,59 +48,11 @@ components:
     Problem:
       $ref: components/schemas/shared/Problem.yaml
     User:
-      $ref: components/schemas/identity/User.yaml
-    SessionInput:
-      $ref: components/schemas/identity/SessionInput.yaml
-    SessionResponse:
-      $ref: components/schemas/identity/SessionResponse.yaml
-    LogoutResponse:
-      $ref: components/schemas/identity/LogoutResponse.yaml
-    AuthChallengeInput:
-      $ref: components/schemas/identity/AuthChallengeInput.yaml
-    AuthChallengeResponse:
-      $ref: components/schemas/identity/AuthChallengeResponse.yaml
-    AuthVerifyInput:
-      $ref: components/schemas/identity/AuthVerifyInput.yaml
-    OrganizationMembershipSummary:
-      $ref: components/schemas/identity/OrganizationMembershipSummary.yaml
-    AuthMeResponse:
-      $ref: components/schemas/identity/AuthMeResponse.yaml
-    Organization:
-      $ref: components/schemas/organizations/Organization.yaml
-    CreateOrganizationInput:
-      $ref: components/schemas/organizations/CreateOrganizationInput.yaml
-    CreateOrganizationResponse:
-      $ref: components/schemas/organizations/CreateOrganizationResponse.yaml
+      $ref: components/schemas/administration/User.yaml
     ProvisionStaffInput:
       $ref: components/schemas/administration/ProvisionStaffInput.yaml
     ProvisionStaffResponse:
       $ref: components/schemas/administration/ProvisionStaffResponse.yaml
-    ParticipationInput:
-      $ref: components/schemas/participation/ParticipationInput.yaml
-    ParticipationReviewInput:
-      $ref: components/schemas/participation/ParticipationReviewInput.yaml
-    ParticipationInquiry:
-      $ref: components/schemas/participation/ParticipationInquiry.yaml
-    ParticipationResponse:
-      $ref: components/schemas/participation/ParticipationResponse.yaml
-    ParticipationListResponse:
-      $ref: components/schemas/participation/ParticipationListResponse.yaml
-    # --- agent A (identity, onboarding, review) ---
-    TermsDocumentRef:
-      $ref: components/schemas/identity/TermsDocumentRef.yaml
-    ClerkSessionInput:
-      $ref: components/schemas/identity/ClerkSessionInput.yaml
-    ClerkWebhookEvent:
-      $ref: components/schemas/identity/ClerkWebhookEvent.yaml
-    ClerkWebhookResponse:
-      $ref: components/schemas/identity/ClerkWebhookResponse.yaml
-    PersonLinkForm:
-      $ref: components/schemas/identity/PersonLinkForm.yaml
-    ProviderAccountForm:
-      $ref: components/schemas/identity/ProviderAccountForm.yaml
-    ProviderReviewForm:
-      $ref: components/schemas/administration/ProviderReviewForm.yaml
-    # --- end agent A ---
     ResendEvent:
       $ref: components/schemas/email/ResendEvent.yaml
     ResendWebhookResponse:

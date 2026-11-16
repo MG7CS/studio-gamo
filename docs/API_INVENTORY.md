@@ -1,30 +1,19 @@
 # Gamo Studios — HTTP API inventory and reconciliation
 
-Updated 2026-11-16. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v3.0.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); compatibility: [API_COMPATIBILITY.md](API_COMPATIBILITY.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
+Updated 2026-11-16. Authoritative contract: [../openapi/root.yaml](../openapi/root.yaml) (`v4.0.0`); workflow: [OPENAPI_ARCHITECTURE.md](OPENAPI_ARCHITECTURE.md); compatibility: [API_COMPATIBILITY.md](API_COMPATIBILITY.md); audit: [BACKEND_INDEPENDENT_AUDIT.md](BACKEND_INDEPENDENT_AUDIT.md); test matrix: [BACKEND_TEST_MATRIX.md](BACKEND_TEST_MATRIX.md); release readiness: [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md).
 
-**2026-11-16 (contract 3.0.0): Gamo Live was removed** (owner decision; design: [superpowers/specs/2026-11-16-remove-gamo-live-design.md](superpowers/specs/2026-11-16-remove-gamo-live-design.md)). Every `apps/live` operation (events, registration, orders, checkout, tickets, scanner, venue maps, artists, representations, bookings, Stripe webhook) and the four admin event/organizer review operations are gone from the contract and the code; the Resend webhook moved to the global site (`apps/web`). The contract now has **17 method/path operations**: Web 11, Worship 1, Admin 4, plus 29 replicated copies of the shared auth/account operations in Worship, Academy and Production (46 implemented handlers, matched one-to-one by `scripts/api/check.mjs`). Contract tests cover 30 application operations over isolated loopback HTTP (`pnpm api:check`).
+**2026-11-16 (contract 4.0.0): public accounts were removed** (owner decision; plan: [superpowers/plans/2026-11-16-forms-emails-invoices.md](superpowers/plans/2026-11-16-forms-emails-invoices.md), "Account removal (Phase 1)"). People reach Gamo through forms and emailed links; only staff sign in, to the admin app. Every public sign-in and account operation (`/api/auth/*`, `/api/account/*`, `/api/organizations`, `/api/participation`) and the admin participation and provider review operations are gone from the contract and the code. The contract now has **2 method/path operations**: Web 1 (`POST /api/webhook/resend`) and Admin 1 (`POST /api/staff/provision`), with no replicated copies (2 implemented handlers, matched one-to-one by `scripts/api/check.mjs`). Contract tests cover both over isolated loopback HTTP (`pnpm api:check`).
+
+**2026-11-16 (contract 3.0.0, history): Gamo Live was removed** (owner decision; design: [superpowers/specs/2026-11-16-remove-gamo-live-design.md](superpowers/specs/2026-11-16-remove-gamo-live-design.md)). Every `apps/live` operation (events, registration, orders, checkout, tickets, scanner, venue maps, artists, representations, bookings, Stripe webhook) and the four admin event/organizer review operations are gone from the contract and the code; the Resend webhook moved to the global site (`apps/web`). The contract then had **17 method/path operations**: Web 11, Worship 1, Admin 4, plus 29 replicated copies of the shared auth/account operations in Worship, Academy and Production (46 implemented handlers, matched one-to-one by `scripts/api/check.mjs`). Contract tests covered 30 application operations.
 
 ## Reconciliation table
 
 | Endpoint (owning app) | Implemented | Specified | Contract Match | Test Status |
 | --- | --- | --- | --- | --- |
-| Web POST /api/auth/challenge | Yes (verified OTP challenge) | Yes | Wire matches; same-origin + 6-digit OTP SHA-256 hash (`0004`) + 10m TTL + 5/15m rate limit | HTTP + workerd + security + Playwright E2E |
-| Web POST /api/auth/verify | Yes (verified OTP sign-in) | Yes | Wire matches; same-origin + single-use constant-time hash verify + sets `verified_email_at` + session rotation | HTTP + workerd + security + Playwright E2E |
-| Web GET /api/auth/me | Yes | Yes | Wire matches; returns verified user, `sessionId`, global `roles`, and active `memberships` (`401` if unauthenticated) | HTTP + workerd + Playwright E2E |
-| Web POST /api/organizations | Yes | Yes | Wire matches; requires `requireVerifiedAuth` (`403` if unverified) + creates org, `owner` membership, `organizer_profiles`, and `audit_logs` (`409` on duplicate slug) | HTTP + workerd + Playwright E2E |
-| Web POST /api/auth/session | Local demo only (`403` outside local loopback) | Yes | Wire matches; same-origin + session rotation + explicit `SESSION_SECRET` required | HTTP + workerd success/validation/non-local 403/CSRF denial |
-| Web DELETE /api/auth/session | Yes | Yes | Wire matches; same-origin enforced; idempotent revoke | HTTP + Playwright E2E cookie clearing, cross-origin 403 |
-| Web POST /api/auth/clerk-session | Yes (optional Clerk; replicated in Worship, Academy, Production) | Yes | Exchanges this product's own Clerk session for a Gamo session; `503` when Clerk is not configured | HTTP + auth suites |
-| Web POST /api/auth/clerk-webhook | Yes (replicated) | Yes | Svix-signed events from this product's own Clerk application | Auth suites |
-| Web POST /api/account/person-link | Yes (replicated) | Yes | Links/unlinks this product's user to the shared person record (verified email only) | Identity suites |
-| Worship POST /api/account/providers | Yes (replicated in Academy, Production) | Yes | Provider profile form (303 redirect) | Identity suites |
-| Web GET/POST /api/participation | Yes | Yes | Own participation inquiries; verified account | HTTP contract test |
 | Web POST /api/webhook/resend | Yes (moved from Live, 3.0.0) | Yes | Svix-signed Resend events update `email_log` and `email_suppressions` for every program's mail; `200 {received, applied}`, `400`/`503` `LegacyError` | HTTP contract test (200/400/503) |
 | Admin POST /api/staff/provision | Internal staff provisioning | Yes, internal | Wire matches; requires `requireSuperadmin` + `verifyStaffBoundaryIdentity`; binds immutable Cloudflare Access `sub` in `external_identities` (`409` on cross-account conflict) | HTTP + workerd + security + Playwright E2E |
-| Admin GET /api/participation/review-queue, POST /api/participation/{id}/review | Internal staff review | Yes, internal | Staff boundary + staff session | HTTP contract test |
-| Admin POST /api/review/providers/{id} | Internal provider review (303 form) | Yes, internal | Staff boundary + `staff_reviewer`/`superadmin` session; conditional on `expected_status` | Provider review suites |
 
-Counts: specified-and-implemented **17** operations (46 handlers with replicas); contract-tested over HTTP **30** application operations; specified-but-unimplemented **0**; wire mismatches remaining **0**.
+Counts: specified-and-implemented **2** operations (2 handlers, no replicas); contract-tested over HTTP **2** application operations; specified-but-unimplemented **0**; wire mismatches remaining **0**.
 
 ## Per-operation contracts and evidence
 
@@ -32,12 +21,12 @@ All paths below are relative to `apps/<app>/src/pages/api/`. Responses are exact
 
 | App/source | Method/path and purpose | Authentication / permission | Request | Response and errors | Data dependencies / verification |
 | --- | --- | --- | --- | --- | --- |
-| web `auth/session.ts` | POST /api/auth/session, demo identity provisioning | Local loopback only (`ENVIRONMENT=local` + `ALLOW_DEMO_SESSION=true`) + same-origin; **not verified login** | SessionInput: email, optional displayName, JSON (<=64 KiB) | 200 SessionResponse + host-only `Set-Cookie`; 400/403/500 LegacyError | `users`, `sessions`; rotates prior session; HTTP + workerd + security tests |
-| web `auth/session.ts` | DELETE /api/auth/session, revoke | Same-origin; optional signed cookie; no-cookie logout permitted | No body | 200 LogoutResponse + cleared cookie; 403/500 LegacyError | `sessions`; HTTP + security tests |
+| web `webhook/resend.ts` | POST /api/webhook/resend, provider delivery events | Public; Svix signature with `RESEND_WEBHOOK_SECRET` (`503` without it) | `ResendEvent`, raw JSON body | 200 `ResendWebhookResponse` `{received, applied}`; 400/503 LegacyError | `email_log`, `email_suppressions`; HTTP contract test (200/400/503) |
+| admin `staff/provision.ts` | POST /api/staff/provision, staff role + Access subject binding | Admin Access boundary (or configured break-glass) AND D1 superadmin session | `ProvisionStaffInput`, JSON | 200 `ProvisionStaffResponse`; 400/403/409/500 LegacyError; 401 middleware | `users`, `roles`, `user_roles`, `external_identities`, `audit_logs`; HTTP contract test (401/403/200/409) |
 
 ## Findings and disposition (post-audit update)
 
-> Findings C02–C04, C06, C08, C10 and C11 concerned Gamo Live event, registration, checkout and moderation endpoints that were removed in contract 3.0.0 (2026-11-16); they are kept below as history.
+> Finding C01 concerned the local demo session route removed with public accounts in contract 4.0.0 (2026-11-16). Findings C02–C04, C06, C08, C10 and C11 concerned Gamo Live event, registration, checkout and moderation endpoints that were removed in contract 3.0.0 (2026-11-16); they are kept below as history.
 
 | ID / priority | Classification | Evidence and disposition |
 | --- | --- | --- |
@@ -58,7 +47,7 @@ All paths below are relative to `apps/<app>/src/pages/api/`. Responses are exact
 
 ## Planned but unimplemented capabilities
 
-The **28 candidate future operations** below remain **proposals with unresolved request/response, roles and policy**; none is added to OpenAPI paths or generated clients. Write an authoritative contract only when implementing an approved slice.
+The **26 candidate future operations** below remain **proposals with unresolved request/response, roles and policy**; none is added to OpenAPI paths or generated clients. Write an authoritative contract only when implementing an approved slice.
 
 | Method | Historical candidate path | Status | Intended audience | Purpose |
 | --- | --- | --- | --- | --- |
@@ -79,8 +68,6 @@ The **28 candidate future operations** below remain **proposals with unresolved 
 | `GET` | `/api/projects/[id]` | **Planned** | Client Church | Tracks milestones, equipment recommendations, and training schedules. |
 | `POST` | `/api/training/request` | **Planned** | Church Volunteer | Schedules technical volunteer development workshops. |
 | `GET` | `/api/portfolio` | **Planned** | Public | Returns verified church case studies and technical transformation logs. |
-| `GET` | `/api/auth/me` | **Planned** | Authenticated | Returns current profile, organization memberships, and active roles. |
-| `POST` | `/api/organizations` | **Planned** | Authenticated | Creates a new church, ministry, or organizer entity. |
 | `POST` | `/api/partnerships/inquire` | **Planned** | Church Leader | Inquires about church partnership, hosting, or mutual support. |
 | `POST` | `/api/contact` | **Planned** | Public | General inquiry intake routed to appropriate program director. |
 | `POST` | `/api/admin/auditions/[id]/review` | **Planned** | Worship Director | Evaluates musician audition recordings against musical rubric. |
@@ -96,3 +83,5 @@ See [BACKEND_RELEASE_READINESS.md](BACKEND_RELEASE_READINESS.md) for the mandato
 > **2026-10-18 (contract 2.0.0):** the worship `POST /api/check-in/confirm` and `POST /api/check-in/fail` demo stubs were removed. See `docs/API_COMPATIBILITY.md` 2.0.0.
 
 > **2026-11-16 (contract 3.0.0):** all Gamo Live operations and the admin event/organizer review operations were removed; `POST /api/webhook/resend` moved to `apps/web`. See `docs/API_COMPATIBILITY.md` 3.0.0.
+
+> **2026-11-16 (contract 4.0.0):** all public sign-in/account operations, organizations, participation and the admin participation/provider review operations were removed. See `docs/API_COMPATIBILITY.md` 4.0.0.

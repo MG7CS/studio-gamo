@@ -1,5 +1,36 @@
 # API compatibility decisions
 
+## 4.0.0
+
+Base: cd73e4c
+
+Intentional breaking removal (2026-11-16, owner decision: public accounts and demo dashboards are retired; people
+reach Gamo through forms and emailed links, and only staff sign in, to the admin app; design and plan:
+`docs/superpowers/plans/2026-11-16-forms-emails-invoices.md`, "Account removal (Phase 1)"). Nothing is deployed
+with real users (production holds test data only) and no external client is known; the removed account pages,
+shared auth UI and admin review pages were the only consumers and are deleted with them.
+
+- Removed the public sign-in operations replicated on web, worship, academy and production:
+  `POST|DELETE /api/auth/session`, `POST /api/auth/challenge`, `POST /api/auth/verify`,
+  `POST /api/auth/clerk-session`, `GET /api/auth/me`, `POST /api/organizations`, and the web-only
+  `POST /api/auth/clerk-webhook`, `POST /api/account/person-link`, `POST /api/account/providers`,
+  `GET|POST /api/participation`.
+- Removed the admin review operations: `GET /api/participation/review-queue`, `POST /api/participation/{id}/review`
+  and `POST /api/review/providers/{id}`.
+- Removed the now-unreferenced schemas (`SessionInput`, `SessionResponse`, `LogoutResponse`, `AuthChallengeInput`,
+  `AuthChallengeResponse`, `AuthVerifyInput`, `OrganizationMembershipSummary`, `AuthMeResponse`, `Organization`,
+  `CreateOrganizationInput`, `CreateOrganizationResponse`, `Participation*`, `TermsDocumentRef`, `ClerkSessionInput`,
+  `ClerkWebhookEvent`, `ClerkWebhookResponse`, `PersonLinkForm`, `ProviderAccountForm`, `ProviderReviewForm`) and
+  the `Identity and Accounts` and `Organizations and Memberships` tags. `components/schemas/identity/**`,
+  `organizations/**` and `participation/**` are deleted.
+- Kept unchanged on the wire: `POST /api/staff/provision` (`provisionStaffIdentity`, admin, internal) and
+  `POST /api/webhook/resend` (`receiveResendWebhook`, web). The `User` schema still describes the provisioned staff
+  user; its source file moved to `components/schemas/administration/User.yaml` (bundled shape identical). All security
+  schemes are kept: `BrowserSession` is the admin staff session cookie used by staff provisioning.
+- Verification: `pnpm api:lint` valid; `node scripts/api/generate.mjs` regenerated bundles, types and validators
+  (`--check` current); `scripts/api/contract.test.ts` now seeds staff users directly in D1 and covers the 2 remaining
+  application operations over loopback HTTP, and asserts that only those operations and no account schemas remain.
+
 ## 3.0.0
 
 Base: 413fe51
