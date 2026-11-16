@@ -1,0 +1,32 @@
+---
+/**
+ * Worship form placeholder (apply / request): the shared FormComingSoon (owns the page <h1>) beside a
+ * short "what happens next" list, so the page uses its width until the online form is published.
+ */
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import NumberedSteps, { type Step } from '@studio-gamo/ui/components/content/NumberedSteps.astro';
+import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  email: string;
+  steps: Step[];
+  stepsTitle?: string;
+}
+const { eyebrow, title, intro, email, steps, stepsTitle = 'What happens next' } = Astro.props;
+---
+
+<Container gutter={false} class="grid lg:grid-cols-2 lg:items-start">
+  <FormComingSoon eyebrow={eyebrow} title={title} intro={intro} email={email} />
+  <section class="gutter-x pb-20 lg:page-intro-space" aria-labelledby="next-steps-title">
+    <Card tone="raised" padding="lg" class="gap-6">
+      <h2 id="next-steps-title" class="section-subheading">
+        {stepsTitle}
+      </h2>
+      <NumberedSteps items={steps} />
+    </Card>
+  </section>
+</Container>

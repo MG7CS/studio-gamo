@@ -1,11 +1,14 @@
 ---
-/** Church scheduling & recurring needs: copy + small sample month calendar preview. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** Church scheduling & recurring needs: key points beside a Sample month roster preview. */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import StatusPill from '@studio-gamo/ui/components/StatusPill.astro';
+
 const days = Array.from({ length: 30 }, (_, i) => i + 1);
+const leadingBlanks = 6; // the sample month starts on a Saturday
 const sundays = new Set([2, 9, 16, 23, 30]);
 const open = new Set([9]);
+const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const points = [
   'Weekly, bi-weekly or monthly patterns',
   'Seasonal needs — Easter, Christmas, revivals',
@@ -13,20 +16,21 @@ const points = [
 ];
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="schedule-title">
-  <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-8 lg:grid-cols-12">
+<Section tone="raised" id="schedule-title">
+  <Fragment slot="eyebrow">Scheduling & recurring needs</Fragment>
+  <Fragment slot="title">
+    Plan the season, <span class="block text-action">not just the week.</span>
+  </Fragment>
+  <p slot="intro">
+    Churches can describe a recurring need once and see every upcoming Sunday in a simple roster.
+  </p>
+
+  <div class="grid items-center gap-14 lg:grid-cols-12">
     <div class="lg:col-span-5">
-      <EditorialHeading
-        id="schedule-title"
-        eyebrow="Scheduling & recurring needs"
-        title="Plan the season,"
-        accent="not just the week."
-        lede="Churches can describe a recurring need once and see every upcoming Sunday in a simple roster."
-      />
-      <ul class="mt-8 space-y-3">
+      <ul class="space-y-3">
         {points.map((p) => (
-          <li class="flex gap-3 text-charcoal">
-            <span class="mt-2 h-1.5 w-6 shrink-0 rounded-full bg-terracotta"></span>
+          <li class="flex gap-3">
+            <span class="mt-2 h-1.5 w-6 shrink-0 rounded-pill bg-action" aria-hidden="true"></span>
             {p}
           </li>
         ))}
@@ -36,46 +40,39 @@ const points = [
       </ButtonLink>
     </div>
     <div class="lg:col-span-7" data-reveal>
-      <div class="mx-auto max-w-lg rounded-[2rem] border border-sand bg-white p-6 shadow-float sm:p-8">
-        <div class="flex items-center justify-between">
-          <p class="text-lg font-semibold">November</p>
-          <StatusPill kind="sample">Sample · Service roster</StatusPill>
-        </div>
-        <div class="mt-5 grid grid-cols-7 gap-1.5 text-center text-xs text-ink-soft" aria-hidden="true">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => (
+      <FloatingPreviewCard title="November · service roster" class="mx-auto w-full max-w-lg">
+        <div class="grid grid-cols-7 gap-1.5 text-center text-caption text-fg-muted" aria-hidden="true">
+          {weekdays.map((d) => (
             <span class="py-1 font-semibold">{d}</span>
           ))}
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
+          {Array.from({ length: leadingBlanks }, () => (
+            <span />
+          ))}
           {days.map((d) => (
             <span
               class:list={[
-                'grid aspect-square place-items-center rounded-xl text-sm',
+                'grid aspect-square place-items-center rounded-xl text-small',
                 sundays.has(d)
                   ? open.has(d)
-                    ? 'border-2 border-dashed border-terracotta text-terracotta font-semibold'
-                    : 'bg-terracotta text-white font-semibold'
-                  : 'text-charcoal/70',
+                    ? 'border-2 border-dashed border-action font-semibold text-action-strong'
+                    : 'bg-action font-semibold text-on-action'
+                  : 'text-fg-muted',
               ]}
             >
               {d}
             </span>
           ))}
         </div>
-        <div class="mt-5 flex flex-wrap gap-4 text-xs text-ink-soft">
+        <div class="flex flex-wrap gap-4 text-caption text-fg-muted" aria-hidden="true">
           <span class="flex items-center gap-2">
-            <span class="h-3 w-3 rounded bg-terracotta"></span>Musicians confirmed
+            <span class="h-3 w-3 rounded bg-action"></span>Musicians confirmed
           </span>
           <span class="flex items-center gap-2">
-            <span class="h-3 w-3 rounded border-2 border-dashed border-terracotta"></span>Role still open
+            <span class="h-3 w-3 rounded border-2 border-dashed border-action"></span>Role still open
           </span>
         </div>
         <p class="sr-only">November calendar: four Sundays confirmed, November 9 has an open role.</p>
-      </div>
+      </FloatingPreviewCard>
     </div>
   </div>
-</section>
+</Section>

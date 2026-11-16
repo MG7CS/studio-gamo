@@ -36,8 +36,8 @@ export const auditionSteps: Step[] = [
 export const faqs = [
   { q: 'How does Gamo Worship work?', a: 'Churches submit a service request with their date, roles, and repertoire, and a Gamo Worship coordinator proposes vetted musicians whose instruments, style, and availability fit.' },
   { q: 'How are musicians vetted?', a: 'Our review process includes an application, recorded audition, a conversation with a coordinator and reference review. Payment, sponsorship or partnership never affects vetting or how musicians are presented.' },
-  { q: 'What does a church contribute?', a: 'Contribution levels are still proposals awaiting board approval. When shown, musician pay and any Gamo administrative allocation always appear as separate line items.' },
+  { q: 'What does a church contribute?', a: 'Contribution levels are proposals until the board approves them. When shown, musician pay and any Gamo administrative allocation always appear as separate line items.' },
   { q: 'What happens if a musician cannot make it?', a: 'Where available, a standby musician who has received the same set list can be asked to step in. Standby support depends on local availability and is never guaranteed.' },
-  { q: 'Which churches can request musicians?', a: 'The program is designed to serve Christian congregations of any size, denomination, language or background. Service areas will be announced as the program develops.' },
+  { q: 'Which churches can request musicians?', a: 'The program is designed to serve Christian congregations of any size, denomination, language or background. Service areas will be announced as they open.' },
   { q: 'Are musicians paid fairly?', a: 'Fair, transparent compensation is a core principle. Musician pay is shown on its own line and is never reduced to fund other parts of the organization.' },
 ];

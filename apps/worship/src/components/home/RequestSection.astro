@@ -1,27 +1,19 @@
 ---
-/** How churches request musicians. */
-import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
+/** How churches request musicians: four aligned steps (shared NumberedSteps). */
+import Section from '@studio-gamo/ui/components/layout/Section.astro';
+import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import ProcessSteps from './ProcessSteps.astro';
 import { requestSteps } from '../../data/worship';
 ---
 
-<section class="bg-ivory section-space" aria-labelledby="request-title">
-  <div class="mx-auto max-w-7xl px-5 sm:px-8">
-    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-      <EditorialHeading
-        id="request-title"
-        eyebrow="For churches"
-        title="Requesting musicians,"
-        accent="in four calm steps."
-        class="max-w-2xl"
-      />
-      <ButtonLink href="/request" variant="secondary" arrow>
-        Start a request
-      </ButtonLink>
-    </div>
-    <div class="mt-14">
-      <ProcessSteps steps={requestSteps} />
-    </div>
-  </div>
-</section>
+<Section tone="raised" id="request-title">
+  <Fragment slot="eyebrow">For churches</Fragment>
+  <Fragment slot="title">
+    Requesting musicians, <span class="block text-action">in four calm steps.</span>
+  </Fragment>
+  <ButtonLink slot="actions" href="/request" variant="secondary" arrow>
+    Start a request
+  </ButtonLink>
+
+  <NumberedSteps items={requestSteps} />
+</Section>
