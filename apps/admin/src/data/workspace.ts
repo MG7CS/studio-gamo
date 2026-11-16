@@ -5,7 +5,6 @@
 import type { Workspace } from '@studio-gamo/ui/lib/dashboard';
 import { academyScreens } from './admin/academy';
 import { analyticsScreens } from './admin/analytics';
-import { liveScreens } from './admin/live';
 import { nonprofitScreens } from './admin/nonprofit';
 import { organizationScreens } from './admin/organization';
 import { productionScreens } from './admin/production';
@@ -42,7 +41,6 @@ export const adminWorkspace: Workspace = {
       items: [
         { slug: 'review/churches', label: 'Church verification', shortLabel: 'Churches', icon: 'church' },
         { slug: 'review/providers', label: 'Provider review', shortLabel: 'Providers', icon: 'verified' },
-        { slug: 'review/events', label: 'First-event review', shortLabel: 'Events', icon: 'ticket' },
       ],
     },
     {
@@ -78,22 +76,9 @@ export const adminWorkspace: Workspace = {
       ],
     },
     {
-      label: 'Gamo Live',
-      items: [
-        { slug: 'review/events', label: 'Event submissions', icon: 'ticket' },
-        { slug: 'live/organizers', label: 'Organizers & event teams', icon: 'verified' },
-        { slug: 'live/artists', label: 'Artists & performers', icon: 'mic', badge: '2' },
-        { slug: 'live/agents', label: 'Agents & mandates', icon: 'users' },
-        { slug: 'live/bookings', label: 'Talent bookings & offers', icon: 'calendar' },
-        { slug: 'live/sponsored', label: 'Sponsored placements', icon: 'star' },
-        { slug: 'live/tickets', label: 'Ticketing, scans & refunds', icon: 'qr' },
-        { slug: 'live/policies', label: 'Safety & lookup policies', icon: 'file' },
-      ],
-    },
-    {
       label: 'Gamo Production',
       items: [
-        { slug: 'production/requests', label: 'Tech & event requests', icon: 'speaker', badge: '2' },
+        { slug: 'production/requests', label: 'Tech requests', icon: 'speaker', badge: '2' },
         { slug: 'production/projects', label: 'Active projects', icon: 'wrench' },
         { slug: 'production/training', label: 'Volunteer training clinics', icon: 'school' },
         { slug: 'production/personnel', label: 'Engineers & crew', icon: 'users' },
@@ -118,7 +103,6 @@ export const adminWorkspace: Workspace = {
     ...analyticsScreens,
     ...worshipScreens,
     ...academyScreens,
-    ...liveScreens,
     ...productionScreens,
     ...nonprofitScreens,
   ],

@@ -1,4 +1,4 @@
-/** Staff operations — Gamo Production screens (Church Assessments, Gamo Live Event Production, Projects & Volunteer Training). */
+/** Staff operations — Gamo Production screens (Church Assessments, Church Event Support, Projects & Volunteer Training). */
 import { b, type DashScreen } from '@studio-gamo/ui/lib/dashboard';
 import { decisionDialog, queue } from './helpers';
 
@@ -7,7 +7,7 @@ export const productionScreens: DashScreen[] = [
     slug: 'production/requests',
     title: 'Production & event technical requests',
     description:
-      'Triage church sanctuary sound/livestream inquiries and Gamo Live event production requests without losing event context.',
+      'Triage church sanctuary sound/livestream inquiries and church event production requests without losing service context.',
     actions: [
       { label: 'Triage request', dialog: 'production-decision', icon: 'speaker', variant: 'primary' },
       { label: 'Export requests (CSV)', exportReport: 'csv', icon: 'download', variant: 'secondary' },
@@ -17,7 +17,7 @@ export const productionScreens: DashScreen[] = [
         type: 'stats',
         span: 3,
         items: [
-          { label: 'Open tech requests', value: '8', delta: '3 Gamo Live linked', deltaTone: 'up', icon: 'speaker' },
+          { label: 'Open tech requests', value: '8', delta: '3 church events', deltaTone: 'up', icon: 'speaker' },
           { label: 'Active projects', value: '9', delta: 'On milestone schedule', deltaTone: 'up', icon: 'wrench' },
           { label: 'Volunteers trained', value: '86', delta: '12 churches served', deltaTone: 'up', icon: 'users' },
           { label: 'Median triage SLA', value: '19 hrs', delta: 'Target ≤ 48 hrs', deltaTone: 'up', icon: 'clock' },
@@ -27,7 +27,7 @@ export const productionScreens: DashScreen[] = [
         type: 'chart',
         span: 3,
         title: 'Technical ministry inquiries by discipline & source',
-        description: 'Comparison of church facility assessments vs. Gamo Live event production requests.',
+        description: 'Comparison of church facility assessments vs. church event production requests.',
         variant: 'bar',
         exportFilename: 'gamo-production-requests-by-discipline',
         series: [
@@ -42,7 +42,7 @@ export const productionScreens: DashScreen[] = [
             ],
           },
           {
-            label: 'Gamo Live event production tie-ins',
+            label: 'Church event production support',
             color: 'terracotta',
             points: [
               { label: 'Live Audio & Mixing', value: 6 },
@@ -54,9 +54,9 @@ export const productionScreens: DashScreen[] = [
         ],
       },
       queue(
-        'Church & Gamo Live technical support queue',
+        'Church technical support queue',
         [
-          ['church', 'Church / Event Organizer'],
+          ['church', 'Church'],
           ['source', 'Source'],
           ['type', 'Technical scope'],
           ['submitted', 'Submitted'],
@@ -66,7 +66,7 @@ export const productionScreens: DashScreen[] = [
         [
           {
             church: 'Grace Fellowship · Night of Worship',
-            source: 'Gamo Live Event Tie-In',
+            source: 'Church Event Request',
             type: 'FOH mixing, 6 wireless IEMs & stage plot sync',
             submitted: 'Oct 12',
             urgency: 'High (Oct 24 event)',
@@ -90,7 +90,7 @@ export const productionScreens: DashScreen[] = [
           },
           {
             church: 'Desert Light Ministries · Gospel Showcase',
-            source: 'Gamo Live Event Tie-In',
+            source: 'Church Event Request',
             type: '24-mic gospel choir input list & monitor wedges',
             submitted: 'Oct 11',
             urgency: 'High (Nov 7 event)',
@@ -289,7 +289,7 @@ export const productionScreens: DashScreen[] = [
           {
             name: 'Jordan Avery',
             specialty: 'FOH audio mixing, RF/IEM coordination, Dante',
-            availability: 'Wednesdays, Saturdays, Gamo Live events',
+            availability: 'Wednesdays, Saturdays, church events',
             region: 'Phoenix, AZ',
             status: b('Active lead', 'verified'),
           },
@@ -320,7 +320,7 @@ export const productionScreens: DashScreen[] = [
         { label: 'Assign / Control', dialog: 'crew-control-dialog', icon: 'check' }
       ),
       decisionDialog('crew-control-dialog', 'Manage technical crew member', 'Jordan Avery', [
-        'Assign to church assessment or Gamo Live event',
+        'Assign to church assessment or church event',
         'Update technical certifications & specialties',
         'Pause availability window',
       ]),

@@ -8,7 +8,7 @@ export const nonprofitScreens: DashScreen[] = [
     slug: 'nonprofit/partnerships',
     title: 'Church collaborations & ministry partners',
     description:
-      'Congregations and Christian ministries collaborating across Gamo Worship, Gamo Academy, Gamo Live, and Gamo Production.',
+      'Congregations and Christian ministries collaborating across Gamo Worship, Gamo Academy, and Gamo Production.',
     actions: [
       { label: 'Manage collaboration', dialog: 'partnership-control-dialog', icon: 'church', variant: 'primary' },
       { label: 'Export collaborations (CSV)', exportReport: 'csv', icon: 'download', variant: 'secondary' },
@@ -18,7 +18,7 @@ export const nonprofitScreens: DashScreen[] = [
         type: 'notice',
         tone: 'info',
         title: 'Fair collaboration & independence principle',
-        body: 'Church collaborations exist to strengthen local worship, youth music education, and community gatherings. Collaboration status or financial support never influences musician vetting, placement order, artist verification, or discovery rankings.',
+        body: 'Church collaborations exist to strengthen local worship, youth music education, and church sound ministry. Collaboration status or financial support never influences musician or instructor vetting, placement order, or rankings.',
       },
       queue(
         'Collaborating churches & ministries',
@@ -33,21 +33,21 @@ export const nonprofitScreens: DashScreen[] = [
           {
             church: 'Grace Fellowship',
             city: 'Phoenix, AZ',
-            programs: 'Worship, Academy, Live, Production',
+            programs: 'Worship, Academy, Production',
             contact: 'Pastor David Clark',
             status: b('Active collaboration', 'success'),
           },
           {
             church: 'Cornerstone Bible Church',
             city: 'Dallas, TX',
-            programs: 'Worship, Live, Production',
+            programs: 'Worship, Production',
             contact: 'Elder Mark Lewis',
             status: b('Active collaboration', 'success'),
           },
           {
             church: 'Trinity Community Chapel',
             city: 'Seattle, WA',
-            programs: 'Academy, Live, Production',
+            programs: 'Academy, Production',
             contact: 'Pastor Rachel Song',
             status: b('Onboarding', 'info'),
           },
@@ -104,13 +104,6 @@ export const nonprofitScreens: DashScreen[] = [
             status: b('Prospective', 'proposal'),
           },
           {
-            entity: 'Southwest Faith Gathering Collective',
-            focus: 'Community worship night sound & venue support',
-            program: 'Gamo Live',
-            stage: 'Introductory discussion',
-            status: b('Prospective', 'proposal'),
-          },
-          {
             entity: 'Church Music Stewardship Circle',
             focus: 'Small-church Sunday standby coverage subsidy',
             program: 'Gamo Worship',
@@ -119,7 +112,7 @@ export const nonprofitScreens: DashScreen[] = [
           },
         ],
         'program',
-        ['Gamo Academy', 'Gamo Live', 'Gamo Worship'],
+        ['Gamo Academy', 'Gamo Worship'],
         { label: 'Update stage', dialog: 'sponsorship-control-dialog', icon: 'check' }
       ),
       decisionDialog('sponsorship-control-dialog', 'Update prospective sponsorship dialogue', 'Christian Community Arts Initiative', [
@@ -149,7 +142,7 @@ export const nonprofitScreens: DashScreen[] = [
         type: 'stats',
         span: 3,
         items: [
-          { label: 'Illustrative program ledger', value: '$42,800', delta: 'Model preview', deltaTone: 'neutral', hint: 'Across 4 divisions', icon: 'wallet' },
+          { label: 'Illustrative program ledger', value: '$42,800', delta: 'Model preview', deltaTone: 'neutral', hint: 'Across 3 programs', icon: 'wallet' },
           { label: 'Direct pass-through & tuition', value: '$28,400', delta: '66.4% of total', deltaTone: 'up', hint: 'Musician pay & class recovery', icon: 'school' },
           { label: 'Proposed mission support', value: '$14,400', delta: 'Proposal only', deltaTone: 'neutral', hint: 'Scholarships & standby pool', icon: 'heart' },
           { label: 'Proposed admin ratio', value: '7.8%', delta: 'Modest overhead', deltaTone: 'up', hint: 'Separate line item', icon: 'chart' },
@@ -170,7 +163,6 @@ export const nonprofitScreens: DashScreen[] = [
             points: [
               { label: 'Gamo Worship', value: 12400 },
               { label: 'Gamo Academy', value: 16000 },
-              { label: 'Gamo Live', value: 3510 },
               { label: 'Gamo Production', value: 2800 },
             ],
           },
@@ -180,7 +172,6 @@ export const nonprofitScreens: DashScreen[] = [
             points: [
               { label: 'Gamo Worship', value: 3200 },
               { label: 'Gamo Academy', value: 8400 },
-              { label: 'Gamo Live', value: 6000 },
               { label: 'Gamo Production', value: 2400 },
             ],
           },
@@ -217,16 +208,9 @@ export const nonprofitScreens: DashScreen[] = [
             amount: '$8,400.00',
             status: b('Proposal only', 'proposal'),
           },
-          {
-            category: 'event_community_support',
-            program: 'Gamo Live',
-            description: 'Proposed community worship night production support',
-            amount: '$6,000.00',
-            status: b('Proposal only', 'proposal'),
-          },
         ],
         'program',
-        ['Gamo Worship', 'Gamo Academy', 'Gamo Live']
+        ['Gamo Worship', 'Gamo Academy']
       ),
     ],
   },
@@ -249,11 +233,10 @@ export const nonprofitScreens: DashScreen[] = [
           { label: 'Gamo Worship: Standby Dispatch & Coverage Reserve', amount: '$24,000.00', note: 'Emergency Sunday coverage backstop' },
           { label: 'Gamo Academy: Instructor Pay & Safeguarding', amount: '$96,000.00', note: 'Teaching stipends & mandatory screening' },
           { label: 'Gamo Academy: Instruments & Student Materials', amount: '$22,000.00', note: 'Keyboards, guitars & rhythm kits for student loan' },
-          { label: 'Gamo Live: Event Moderation & Venue Coordination', amount: '$35,000.00', note: 'Nationwide Christian event verification & safety' },
           { label: 'Gamo Production: Volunteer Audio Training Clinics', amount: '$18,000.00', note: 'Church volunteer curriculum & engineer mentors' },
-          { label: 'Organization Administration & Legal Compliance', amount: '$28,000.00', note: '7.7% modest overhead & independent accounting' },
+          { label: 'Organization Administration & Legal Compliance', amount: '$28,000.00', note: '8.5% modest overhead & independent accounting' },
         ],
-        total: { label: 'Total Proposed Mission Budget', amount: '$363,000.00' },
+        total: { label: 'Total Proposed Mission Budget', amount: '$328,000.00' },
         footnote: 'Draft operational forecast prepared for founder and governance review. All figures remain proposals until formal approval.',
       },
       {
@@ -283,21 +266,21 @@ export const nonprofitScreens: DashScreen[] = [
           {
             title: '2026 Ministry & Educational Impact Review',
             meta: 'Executive Briefing · Draft',
-            body: 'Consolidated review of Sunday worship coverage, youth music literacy, Christian live events, and volunteer audio training.',
+            body: 'Consolidated review of Sunday worship coverage, youth music literacy, and volunteer audio training.',
             icon: 'book',
             badge: b('Ready for review', 'success'),
           },
           {
             title: 'Governance & Fair Ranking Independence Policy',
             meta: 'Organizational Standard · Active',
-            body: 'Conflict-of-interest rules, church autonomy commitments, and strict non-interference between sponsorship and musician/event rankings.',
+            body: 'Conflict-of-interest rules, church autonomy commitments, and strict non-interference between sponsorship and musician or instructor rankings.',
             icon: 'shield',
             badge: b('Enforced', 'verified'),
           },
           {
             title: 'Segregated Fund Accounting Standard',
             meta: 'Financial Procedures · Active',
-            body: 'Protocols ensuring musician/instructor/artist pass-through stipends and student scholarship pools are never commingled.',
+            body: 'Protocols ensuring musician/instructor pass-through stipends and student scholarship pools are never commingled.',
             icon: 'file',
             badge: b('Enforced', 'verified'),
           },
@@ -346,16 +329,9 @@ export const nonprofitScreens: DashScreen[] = [
             balance: '$12,450.00',
             status: b('Reconciled', 'success'),
           },
-          {
-            fund: 'Gamo Live Organizer & Artist Trust',
-            program: 'Gamo Live',
-            restricted: 'Event Settlement Escrow',
-            balance: '$3,510.00',
-            status: b('Reconciled', 'success'),
-          },
         ],
         'program',
-        ['Organization', 'Gamo Worship', 'Gamo Academy', 'Gamo Live'],
+        ['Organization', 'Gamo Worship', 'Gamo Academy'],
         { label: 'Audit fund', dialog: 'fund-reconcile-dialog', icon: 'check' }
       ),
       decisionDialog('fund-reconcile-dialog', 'Record fund reconciliation audit', 'Worship Musician Pass-Through Escrow', [

@@ -1,13 +1,12 @@
 /**
- * Data for the staff review pages (`/review/churches`, `/review/providers`, `/review/providers/[id]`,
- * `/review/events`). Every page requires a staff gateway session whose identity matches Cloudflare Access
+ * Data for the staff review pages (`/review/churches`, `/review/providers`, `/review/providers/[id]`).
+ * Every page requires a staff gateway session whose identity matches Cloudflare Access
  * (`requireStaff` + `verifyStaffBoundaryIdentity`, as `participation.astro`'s API does); without one the
  * page shows a sign-in notice instead of data.
  */
 import { getDb } from '@gamo/db';
 import { requireStaff, verifyStaffBoundaryIdentity, type SessionData } from '@gamo/auth';
 import {
-  AdminService,
   availableReviewActions,
   getProviderProfile,
   getRuntimeEnv,
@@ -82,15 +81,8 @@ export function outcomeFrom(url: URL): { tone: 'success' | 'error'; text: string
     reject: 'Rejected.',
     suspend: 'Suspended.',
     reinstate: 'Reinstated for review.',
-    approved: 'Event approved.',
-    rejected: 'Event rejected.',
-    revision_requested: 'Revision requested.',
-    always_review_on: 'Every event of this organizer will now be reviewed.',
-    always_review_off: 'Only the first event of this organizer is reviewed now.',
   };
-  const first =
-    url.searchParams.get('first') === '1' ? ' This was the organizer’s first approved event.' : '';
-  return { tone: 'success', text: `${labels[done] ?? 'Saved.'}${first}${emailText}` };
+  return { tone: 'success', text: `${labels[done] ?? 'Saved.'}${emailText}` };
 }
 
 export async function loadQueue(env: { DB?: unknown }, roles: readonly ProviderRole[], url: URL) {
@@ -150,30 +142,4 @@ export async function loadProviderDetail(
     actions: availableReviewActions(profile),
     history: await listVerificationRecords(db, 'provider_profile', id),
   };
-}
-
-export async function loadPendingEvents(env: { DB?: unknown }) {
-  const db = getDb(env.DB);
-  const pending = await new AdminService(db).getPendingReviewEvents();
-  const sql = asSqlDatabase(env.DB);
-  const rows = [];
-  for (const p of pending) {
-    const organizer = (await sql
-      .prepare(
-        'SELECT id, first_event_approved_at, always_review FROM organizer_profiles WHERE id = (SELECT organizer_id FROM events WHERE id = ?1)',
-      )
-      .bind(p.event.id)
-      .first()) as { id: string; first_event_approved_at: number | null; always_review: number } | null;
-    rows.push({
-      id: p.event.id,
-      title: p.event.title,
-      organizationName: p.organizationName,
-      startsAt: p.event.startsAt,
-      timezone: p.event.timezone || 'America/Phoenix',
-      organizerId: organizer?.id ?? '',
-      firstEvent: organizer ? organizer.first_event_approved_at === null : true,
-      alwaysReview: organizer ? Number(organizer.always_review) === 1 : false,
-    });
-  }
-  return rows;
 }
