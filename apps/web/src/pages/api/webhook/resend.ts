@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro';
 import {
   applyProviderEvent,
-  asSqlDatabase,
   errorResponse,
   getRuntimeEnv,
   handleApiError,
   verifyResendWebhook,
 } from '@gamo/domain';
+import { asSqlDatabase } from '@gamo/domain/security';
 
 export const prerender = false;
 
