@@ -1,5 +1,7 @@
 # Gamo Studios — Independent Backend Security & Reliability Audit
 
+> **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. Findings **A03, A04, A05, A07 and A11** and the moderation part of **A02** concerned that code; they are **closed by removal, not by repair**, and remaining-blocker item 2 (ticketing order and webhook fulfillment) no longer applies. The record below is kept as written (2026-10-13). Snapshot: tag `four-programs-snapshot`.
+
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
 **Baseline Commits:** `cb97c37` (Backend Foundation) → `1cb3434` / `6103121` (OpenAPI Contract Adoption)  
@@ -59,6 +61,6 @@ Following the initial audit above, the Backend Stabilization engineering phase i
 ### Remaining Production Blockers (`NO-GO` for Public Production Deployment)
 As detailed in [`docs/BACKEND_RELEASE_READINESS.md`](BACKEND_RELEASE_READINESS.md), production remains **NO-GO** until the following blockers are resolved:
 1. **Live Transactional Email Credentials & Verified Domain**: `RESEND_API_KEY` and SPF/DKIM-verified sender domain are not configured; local/preview environments use safe mock email delivery.
-2. **Ticketing Order & Webhook Fulfillment**: Paid checkout (`POST /api/checkout/session`) and financial Stripe webhooks remain fail-closed (`503 Service Unavailable`) until order/inventory holds, refund reversal, and entity/governance prerequisites are completed.
+2. ~~**Ticketing Order & Webhook Fulfillment**~~ *(no longer applicable — Gamo Live removed 2026-11-16)*: Paid checkout (`POST /api/checkout/session`) and financial Stripe webhooks remain fail-closed (`503 Service Unavailable`) until order/inventory holds, refund reversal, and entity/governance prerequisites are completed.
 3. **R2 HTTP Upload/Download Pipeline**: No public/authenticated HTTP media upload or download endpoints exist yet; sensitive student and identity documents (`restricted_verification`, `student_record`, `identity_document`) are hard-blocked in code and D1 triggers (`SENSITIVE_DOCUMENT_PROHIBITED`).
 4. **Edge Rate Limiting & Production Resource Provisioning**: Cloudflare WAF/Workers rate-limiting rules and dedicated production D1/R2 resource IDs require a separate production release-readiness review before any public production deployment.

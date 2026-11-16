@@ -3,6 +3,8 @@
 <!-- status-banner: 2026-10 foundation pass -->
 > Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
 
+> **2026-11-16 scope change:** Gamo Live was dropped (owner decision after talking with church ministers and pastors). The programs are **Gamo Academy, Gamo Worship and Gamo Production**; Milestone 3 below is withdrawn and kept only as history. Snapshot: tag `four-programs-snapshot`. A second cleanup (later, designed separately) will simplify the remaining programs into forms, emails and invoices, with the admin dashboard as the only dashboard.
+
 > **Current phase override:** [DESIGN_FIRST_OVERRIDES.md](DESIGN_FIRST_OVERRIDES.md) governs build order. Design-first remains in force: complete and approve screens before functionality, one application at a time. Organizational direction: [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md).
 
 ### Public frontend resume — 2026-10-12
@@ -23,7 +25,7 @@ Supersedes the previous revenue-oriented ordering (advertising campaigns and pai
 | 2 | **Global website mission and program presentation** | Milestone 0 / current design phase | Homepage copy aligned; Mission, Church Partnerships and Support pages proposed |
 | 3 | **Gamo Worship** musician and church coordination | Milestone 1 | Fair-pay line items; no musician deductions |
 | 4 | **Gamo Academy** instruction and sponsorship support | Milestone 2 | Families first; safeguarding gates for minors |
-| 5 | **Gamo Live** Christian event publishing, discovery, free registration, authorized ticketing | Milestone 3 | Organizer verification before ticketing |
+| 5 | ~~**Gamo Live** Christian event publishing, discovery, free registration, authorized ticketing~~ | ~~Milestone 3~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
 | 6 | **Gamo Production** program support | Milestone 4 | Volunteer development, technical training |
 | 7 | **Supporting church relationships** | Milestone 4b | Partnership records; no tiers/prices without approval |
 | 8 | **Administrative tools and financial stewardship** | Milestones 1–4 (admin slices) | Program ledger, funds, board reports |
@@ -66,14 +68,16 @@ Future functional priorities require the preceding approval gate. The current pu
 
 **Exit:** end-to-end testable demo lesson/class enrollment (tuition, sponsored and scholarship variants) with permission separation.
 
-## Milestone 3 — Gamo Live Christian events
+## Milestone 3 — Gamo Live Christian events (withdrawn 2026-11-16)
+
+> Gamo Live and `apps/live` were removed on 2026-11-16; the items below are historical. The code is preserved at tag `four-programs-snapshot`.
 
 - [x] Organizer event submission, organizer verification states and admin moderation against the Christian-event content policy (local & preview D1).
 - [x] Event pages, one-time and recurring schedules, discovery filters (location, category).
 - [x] Free-event registration flow with atomic D1 capacity triggers, duplicate privacy, and durable `notification_jobs` outbox processor.
 - [ ] Paid ticketing order authority, inventory holds, and recorded organizer authorization enforcement remain unbuilt (`POST /api/checkout/session` and financial webhooks on `POST /api/webhook/stripe` are gated with `503 Service Unavailable` per [`docs/BACKEND_INDEPENDENT_AUDIT.md`](docs/BACKEND_INDEPENDENT_AUDIT.md)).
 - [ ] Simultaneous paid seat/order holds, ticket issuance, QR scan admission route, and refund transitions remain unbuilt.
-- [ ] *(Later, separately approved)* optional managed promotion requests with labeled placements. See [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md).
+- [ ] *(Later, separately approved)* optional managed promotion requests with labeled placements. (Labeling rules now in [docs/GAMO_NONPROFIT_MODEL.md §4](docs/GAMO_NONPROFIT_MODEL.md#4-church-partnerships).)
 
 **Exit:** unverified organizers cannot sell tickets; two simulated buyers cannot secure the same seat; verified demo ticket scans only once; free registration works without payment.
 
@@ -122,4 +126,4 @@ Continue without repetitive confirmation for normal development decisions. Stop 
 
 ## Contract-first prerequisite — 2026-10-13
 
-The OpenAPI foundation covers all 12 existing HTTP operations with generated types/validators and initial local HTTP tests. Earlier completion claims for Milestone 3 do not establish its exit criteria; see `docs/API_INVENTORY.md` for actual behavior and outstanding findings. Verified identity, staff permission/mapping, inventory, ticket fulfillment and payment retry/refund correctness remain blockers. Complete this contract reconciliation before the independent security/reliability audit. No production-readiness milestone is completed by this work.
+The OpenAPI foundation covers all 12 existing HTTP operations with generated types/validators and initial local HTTP tests. Earlier completion claims for Milestone 3 (now withdrawn) did not establish its exit criteria; see `docs/API_INVENTORY.md` for actual behavior and outstanding findings. Verified identity, staff permission/mapping and payment retry/refund correctness remain blockers (ticket inventory and fulfillment left scope with Gamo Live on 2026-11-16). Complete this contract reconciliation before the independent security/reliability audit. No production-readiness milestone is completed by this work.

@@ -1,13 +1,15 @@
 # Gamo Studios — Public frontend screen inventory
 
-Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial implementation. All five public apps are in the founder-approved scope. **UI ready** means implemented as a local frontend preview, not launched or connected. Engineering evidence is in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md); new screens await founder visual acceptance.
+Updated 2026-10-12 after recovering the interrupted Bright Cinematic Editorial implementation. All five public apps are in the founder-approved scope.
+
+> **2026-11-16:** Gamo Live was dropped. `apps/live` (public pages and workspaces), the web `/live` page and the admin `/live/*` demo screens were removed; their rows are deleted below. The four public apps are web, worship, academy and production. The previous inventory is at tag `four-programs-snapshot`. **UI ready** means implemented as a local frontend preview, not launched or connected. Engineering evidence is in [MULTIPAGE_DESIGN_REVIEW.md](MULTIPAGE_DESIGN_REVIEW.md); new screens await founder visual acceptance.
 
 ## Organization hub — apps/web — port 4321
 
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Existing approved hero, nonprofit homepage, local sibling links | UI ready; hero preserved |
-| /mission | Mission, needs, four programs, audiences, values, invitation | UI ready |
+| /mission | Mission, needs, programs, audiences, values, invitation | UI ready |
 | /get-involved | Churches, musicians, families, instructors, volunteers, organizers, supporters | UI ready |
 | /partners | Hosting, sponsorship, shared resources and partnership integrity | UI ready |
 | /partners/interest | Local inquiry; required/invalid-email/preview/reset states | UI ready |
@@ -52,26 +54,6 @@ Identity capture, real vetting/approvals, payments, dispatch and persistence are
 
 No sponsored places, screened instructors or real enrollments are offered. Safeguarding, tuition and launch decisions remain pending.
 
-## Gamo Live — apps/live — port 4324
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| / | Manual cinematic spotlight, nearby rail, location/date, event categories, free/ticketed, organizers | UI ready |
-| /events | Search/filter/clear/no-results collection | UI ready |
-| /events/[id] | Sample event details, organizer identity, venue/date, ticketing state | UI ready |
-| /events/[id]/tickets, /events/[id]/register | Sample tiers/free registration; canceled/external distinctions | UI ready |
-| /organizers/[slug] | Sample organizer profile without fictional verified badges | UI ready |
-| /promote | Distinct organizer introduction | UI ready |
-| /promote/create, /organizer/events/new | Media, recurrence, venue, free/paid tiers, local validation and review | UI ready |
-| /promote/status | Sample submission/review/publishing status | UI ready |
-| /organizer, /organizer/manage | Sample dashboard and event management | UI ready |
-| /organizer/verification | Pending identity/authority and ticketing authorization | UI ready |
-| /organizer/preview, /organizer/report, /organizer/promotion | Preview, sample reports, proposed labeled promotion | UI ready |
-| /checkout, /ticket, /my-tickets | Non-transactional checkout, invalid-for-admission ticket, sample collection | UI ready |
-| /organizer/scan | Manual simulated scan states, no camera or real admission | UI ready |
-
-All events, dates, prices, capacities and organizers are samples/proposals. No publishing, sales, payment, external ticket destination or live inventory is connected.
-
 ## Gamo Production — apps/production — port 4325
 
 | Routes | Screens | Status |
@@ -111,7 +93,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | Routes | Screens | Status |
 | --- | --- | --- |
 | /partner | Grace Fellowship (sample) partnership hub & overview | UI ready |
-| /partner/programs | Supported programs: Worship, Academy, Live, Production | UI ready |
+| /partner/programs | Supported programs: Worship, Academy, Production | UI ready |
 | /partner/commitments | Proposed sponsorships & in-kind facility agreements | UI ready |
 | /partner/activities | Calendar and guidelines for hosted church activities | UI ready |
 | /partner/updates | Mission bulletins & ministry updates | UI ready |
@@ -181,33 +163,6 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /host/outcomes | Community educational impact & student recital reports | UI ready |
 | /host/communications | Church host coordination & program office messages | UI ready |
 
-### Gamo Live Workspaces — apps/live — port 4324
-
-| Routes | Screens | Status |
-| --- | --- | --- |
-| /organizer | Consolidated organizer overview: events, registrations, review | UI ready |
-| /organizer/events | Comprehensive event catalog (draft, in review, scheduled) | UI ready |
-| /organizer/recurring | Recurring Bible study, youth, and prayer schedules | UI ready |
-| /organizer/registrations | Attendee registrations list & ticket tier breakdown | UI ready |
-| /organizer/tickets | Ticket tiers & capacity inventory (authorization pending) | UI ready |
-| /organizer/attendance | Door check-in overview & scanner shortcut | UI ready |
-| /organizer/communications | Attendee broadcast composer & dispatch history | UI ready |
-| /organizer/promotion | Proposed awareness packages (labeled Sponsored) | UI ready |
-| /organizer/reports | Post-event attendance & incident feedback reports | UI ready |
-| /organizer/verification | Organizer verification workflow & ticketing authorization | UI ready |
-| /organizer/payouts | Financial statements (proceeds, proposed fees, processing) | UI ready |
-| /organizer/dashboard | Consolidated redirect to /organizer | UI ready |
-| /organizer/manage | Consolidated redirect to /organizer/events | UI ready |
-| /organizer/report | Consolidated redirect to /organizer/reports | UI ready |
-| /my-tickets | Consolidated redirect to /me/tickets | UI ready |
-| /me | Attendee account hub: upcoming events, saved, ticket counts | UI ready |
-| /me/tickets | Sample digital tickets (clearly marked 'Not valid for admission') | UI ready |
-| /me/registrations | Free RSVPs & event registrations collection | UI ready |
-| /me/upcoming | Personalized chronological event agenda | UI ready |
-| /me/saved | Bookmarked events and followed Christian ministries | UI ready |
-| /me/history | Archive of past gatherings attended | UI ready |
-| /me/settings | Attendee preferences and notification channels | UI ready |
-
 ### Gamo Production Workspaces — apps/production — port 4325
 
 | Routes | Screens | Status |
@@ -233,7 +188,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Staff Command Center: cross-program daily operational queue | UI ready |
-| /programs | Comprehensive program status: Worship, Academy, Live, Production | UI ready |
+| /programs | Comprehensive program status: Worship, Academy, Production | UI ready |
 | /people | Directory of users, churches, and affiliated organizations | UI ready |
 | /staff-roles | Staff roles, permissions matrix, and access tier registry | UI ready |
 | /activity | Operational activity feed and administrative audit trail | UI ready |
@@ -249,13 +204,6 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /academy/hosted | Church-hosted programs & facility partnership oversight | UI ready |
 | /academy/sponsorships | Student scholarship funds & tuition subsidy administration | UI ready |
 | /academy/safeguarding | Background screening tracking & child safety policy compliance | UI ready |
-| /live/submissions | Christian event submission queue awaiting review | UI ready |
-| /live/organizers | Organizer authority & ticketing authorization vetting | UI ready |
-| /live/moderation | Event content moderation & Christian gathering alignment | UI ready |
-| /live/ticketing | Ticketing oversight, tier configuration, capacity caps | UI ready |
-| /live/refunds | Ticket refund requests & cancellation handling (simulated) | UI ready |
-| /live/reports | Post-event attendee feedback & incident reports | UI ready |
-| /live/scanning | Real-time entrance scanning & check-in operational monitoring | UI ready |
 | /production/requests | Church technical support inquiries and intake triage | UI ready |
 | /production/projects | Technical installation & acoustic project tracking | UI ready |
 | /production/training | Volunteer sound & video training program curriculum | UI ready |
@@ -267,7 +215,7 @@ All authenticated experiences operate in **design-first preview mode** with a pe
 | /nonprofit/stewardship | Quarterly stewardship reports & governance publications | UI ready |
 | /nonprofit/reconciliation | Program fund accounting & financial reconciliation | UI ready |
 | /nonprofit/governance | Governance documentation & transition checklist tracker | UI ready |
-| /legal | Draft legal agreements register (Musician, Church, Tickets) | UI ready |
+| /legal | Draft legal agreements register (Musician, Church) | UI ready |
 
 ## Shared state coverage
 

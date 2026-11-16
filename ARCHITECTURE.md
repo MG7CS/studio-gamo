@@ -3,6 +3,8 @@
 <!-- status-banner: 2026-10 foundation pass -->
 > **Superseded for current structure by [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md);** this file keeps the original constraints. Legal status: Gamo Studios is a Christian, mission-driven **Public Benefit Corporation** — not a nonprofit and not tax-exempt. Where this file says "nonprofit", "tax-exempt", "charitable" or "legal-structure-neutral", the PBC statement in [AGENTS.md](AGENTS.md) prevails.
 
+> **2026-11-16:** Gamo Live (events, ticketing, scanner, `apps/live`) was dropped; the programs are Gamo Academy, Gamo Worship and Gamo Production. Live-specific flows and entities were removed from this file; the earlier version is at tag `four-programs-snapshot`.
+
 **Status:** proposed architecture and build constraints; verify vendor APIs and dependencies at implementation time.
 
 **Organizational context:** Gamo Studios is a Christian, mission-driven organization whose final legal incorporation structure and tax status remain undecided (legal-structure-neutral). The software exists to support connected religious, educational and community programs, not to maximize transaction revenue. Organizational purpose, fee philosophy and funding sources are defined in [docs/GAMO_NONPROFIT_MODEL.md](docs/GAMO_NONPROFIT_MODEL.md); this document covers technical boundaries only.
@@ -19,17 +21,17 @@ The backend foundation uses Cloudflare-native primitives with strict safety gate
 - **Shared Authentication (`@gamo/auth`)**: Native Web Crypto session manager with HMAC-SHA256 signed host-only `HttpOnly` cookies (`__session`), verified email challenges (`auth_challenges`), multi-tenant organization onboarding, Cloudflare Access `sub` staff identity binding (`external_identities`), and server-side RBAC + same-origin CSRF guards.
 - **R2 Storage Abstraction (`@studio-gamo/integrations`)**: Scoped upload authorization tickets, prefix ownership checks, MIME/magic-byte spoofing rejection, no-overwrite semantics, and quarantine-by-default for non-public metadata. Sensitive student and identity documents are never collected.
 - **Contract-First API & Domain Services (`openapi/root.yaml`, `@gamo/api-contracts`, `@gamo/domain`)**: OpenAPI 3.1.1 is the source of truth, backed by generated TypeScript types, standalone Ajv Worker validators, and Zod domain validation.
-- **Protective Stripe Sandbox Gates**: Live Stripe keys and `livemode: true` events are rejected (`400`/fatal error). Paid checkout (`POST /api/checkout/session`) and financial webhook events (`checkout.*`, `charge.*`, `payment_intent.*`, `refund.*`) fail closed with `503 Service Unavailable` until authoritative order and inventory hold tables are built.
-- **Gamo Live Free Registration & Durable Outbox**: Organizer event proposal (`pending_review`) → staff moderation (`approved`/`rejected`/`revision_requested`) → public discovery → atomic free attendee registration → transactional `notification_jobs` outbox and worker consumer delivery via Resend. See [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) and [`docs/API_INVENTORY.md`](docs/API_INVENTORY.md).
+- **Protective Stripe Sandbox Gates**: Live-mode Stripe keys are rejected (fatal error). Paid checkout fails closed with `503 Service Unavailable` in production. (The Gamo Live ticket checkout and Stripe webhook were removed on 2026-11-16.)
+- **Email outbox**: idempotent `email_log` outbox with suppressions and delivery via Resend (the Live-only `notification_jobs` table was dropped in `0018`); the Resend bounce/complaint webhook is served by `apps/web`. See [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) and [`docs/API_INVENTORY.md`](docs/API_INVENTORY.md).
 
 ```
                   gamostudio.org (organization hub + entry + account)
                                     |
            +------------------------+-------------------------+
            |                        |                         |
-    worship.gamostudio.org   academy.gamostudio.org    live.gamostudio.org
+    worship.gamostudio.org   academy.gamostudio.org   production.gamostudio.org
            |                        |                         |
-       admin.gamostudio.org    production.gamostudio.org
+                        admin.gamostudio.org
            \_______________________|_________________________/
                        Shared domain model, identity,
                   permissions, design and adapters
@@ -47,7 +49,6 @@ apps/
   web/          # organization hub: mission, programs, partnerships, support pathways
   worship/      # Gamo Worship: church & musician coordination
   academy/      # Gamo Academy: lessons, classes, sponsored programs
-  live/         # Gamo Live: Christian event discovery, registration, authorized ticketing
   production/   # Gamo Production: technical support program for churches
   admin/        # governance, staff operations, program administration, stewardship
 packages/
@@ -101,11 +102,6 @@ payout_records(id, payee_user_id, payment_record_id, amount, state)
 lesson_offerings(id, instructor_id, format, duration_minutes, rate_amount, status)
 lesson_sessions(id, offering_id, student_id, starts_at, status)
 clinics(id, host_organization_id, instructor_id, capacity, starts_at, status)
-events(id, organizer_organization_id, venue_id, starts_at, status)
-ticket_tiers(id, event_id, name, price_amount, capacity)
-ticket_orders(id, event_id, buyer_id, status, total_amount)
-tickets(id, order_id, tier_id, status, credential_hash, checked_in_at)
-seat_holds(id, event_id, seat_key, expires_at, state)
 audit_logs(id, actor_id, action, entity_type, entity_id, metadata, created_at)
 ```
 
@@ -144,25 +140,12 @@ This is a **logical inventory**, not a finished migration. Agents must normalize
 - Instructor eligibility for minors must be policy-gated; background screening and consent/guardian workflows cannot be silently mocked as verified.
 - An enrollment may be funded by tuition, sliding-scale tuition, a sponsor, a scholarship fund or a combination. Represent funding sources and instructor pay as separate ledger rows, independent of provider payout state. Tuition and instructor-pay policy are pending approval.
 
-## Gamo Live flows
-Gamo Live serves **Christian events nationwide** with two audiences (see [docs/GAMO_LIVE_AND_PARTNERS.md](docs/GAMO_LIVE_AND_PARTNERS.md)). Event eligibility is enforced by staff moderation against the approved content policy.
-
-**Attendee (Explore Events):**
-- Event discovery by location, date, organizer, type and free/paid, with user-controlled location fallback; IP-based location is approximate and opt-outable.
-- Event, ticket tier, inventory, cart, Checkout, QR ticket, free-event registration, "my tickets". Prices, fees, refund policy and organizer identity are shown before purchase.
-- **Do not use Cloudflare KV as the sole seat lock.** Use a Durable Object per event/inventory shard or equivalent serialized transactional reservation authority; expiry via alarms/job; commit inventory only after verified payment confirmation.
-- QR codes must be unpredictable, scoped, revocable and single-use for admission. Do not expose raw personally identifying data in token payloads.
-- Multiple scans must be idempotent and guarded against races; maintain audit trail and offline policy.
-
-**Organizer (Promote Event):**
-- `/promote` landing → event submission → organizer identity/authority verification → staff review → published → reports. Optional promotion request (website, social, partner communications, creative) is a separate, staff-managed step.
-- Paid ticketing is enabled only when organizer authorization is recorded (`ticketing_authorized_at`, evidence reference).
-- Promotion is a **managed service**: staff run campaigns manually. No third-party ad-platform API is assumed connected; any future integration sits behind an `integrations` adapter and requires approval.
-- Organizer panel: events, recurring schedules, ticket tiers, registrations, scanner access, updates/cancellations, attendance and ticket reports, promotion status.
+## Gamo Live flows (removed 2026-11-16)
+Gamo Live was dropped; its attendee/organizer flows, ticket inventory and QR admission rules are preserved at tag `four-programs-snapshot`. Placement and sponsored-labeling rules below still apply to the remaining programs.
 
 ## Placements & dynamic homepage (future)
 - Homepage hero and featured slots are driven by placement records, not hardcoded slides. **No carousel without explicit approval.**
-- Selection inputs: event date, campaign window/expiry, approximate location, editorial priority and mission priorities; capped sponsored density.
+- Selection inputs: campaign window/expiry, approximate location, editorial priority and mission priorities; capped sponsored density.
 - Every placement has a `kind` of `sponsored | editorial | gamo_program`, rendered as a visible label.
 - Ranking/vetting data for musicians is in a separate domain that promotion, sponsorship and partnership code **cannot** read or write.
 - Design phase: static, clearly labeled example content only.
@@ -173,13 +156,13 @@ The ledger supports nonprofit accounting and must keep these categories distinct
 | Category | Examples | Notes |
 | --- | --- | --- |
 | `charitable_contribution` | donations, gifts | `fund_id` + restricted/unrestricted; no processing until approved |
-| `sponsorship` | program or event sponsorship | may carry recognition benefits; treatment pending review |
-| `program_service_receipt` | tuition, Worship administrative allocation, ticketing admin fee, production cost recovery | each tied to a program |
-| `third_party_payable` | musician pay, instructor pay, organizer ticket proceeds, organizer-funded media budgets | **not organizational income** |
+| `sponsorship` | program sponsorship | may carry recognition benefits; treatment pending review |
+| `program_service_receipt` | tuition, Worship administrative allocation, production cost recovery | each tied to a program |
+| `third_party_payable` | musician pay, instructor pay | **not organizational income** |
 | `processing_cost` | processor fees | expense |
 | `refund` / `dispute` | reversals, chargebacks | adjustments |
 
-- Every row carries `program` (`worship | academy | live | production | general`) for program-level budgets and board reporting.
+- Every row carries `program` (`worship | academy | production | general`; database CHECK constraints may still accept the retired `live` value) for program-level budgets and board reporting.
 - Musician and instructor pay are never netted against Gamo allocations inside a single amount.
 - Stripe Connect is the intended payout rail; Stripe is **not** regulated escrow and must not be described as such.
 - Any fee, contribution amount or tier remains a configuration value set by approved policy, never a hardcoded assumption.
@@ -199,16 +182,10 @@ Existing payment and database foundations (D1 schema, auth, Stripe adapters) are
 
 ## Production and admin
 - Production: technical support for churches and ministries — worship audio, livestreaming, lighting, technical training, volunteer development, portfolio/case studies (real work only), consultation intake, optional event creative. Do not fabricate client results.
-- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, **program ledger and fund tracking, board financial reports**, audit logs, **event moderation & organizer verification, promotion intake, placement scheduling, ticketing oversight, church partnership and contribution records**.
+- Admin: staff-only audition review, identity-verification decision status (no ID scans for churches), gig and dispatch radar, incident history, **program ledger and fund tracking, board financial reports**, audit logs, **placement scheduling, church partnership and contribution records**.
 
 ### Additional logical entities (proposed)
 ```
-organizer_profiles(id, organization_id, kind, verification_status, ticketing_authorized_at)
-event_registrations(id, event_id, user_id, status)
-event_schedules(id, event_id, recurrence_rule, timezone)
-promotion_requests(id, event_id, organization_id, scope_json, status, starts_at, ends_at)
-promotion_channels(id, promotion_request_id, channel, external_reference, status)
-promotion_metrics(id, promotion_request_id, date, views, clicks, registrations, ticket_sales)
 placements(id, slot, kind, target_type, target_id, priority, region, starts_at, ends_at, status)  -- kind: sponsored | editorial | gamo_program
 church_partnerships(id, organization_id, participation_json, status, started_at)              -- no tiers/prices until approved
 funds(id, name, restriction, program, status)                                                  -- restricted | unrestricted
@@ -236,7 +213,7 @@ ledger_entries(id, category, program, fund_id, scope_type, scope_id, amount, cur
 - `local`, `preview`, `production`, independently scoped D1/R2/DO resources and Stripe modes.
 - Maintain `.dev.vars.example` with placeholders only. Real secrets remain in Cloudflare secrets and ignored local secret files.
 - Never automatically promote schema migrations/data from development to production.
-- Local development must offer seeded sample churches/musicians/events clearly labeled **demo**.
+- Local development must offer seeded sample churches, musicians and lessons clearly labeled **demo**.
 
 ## Definition of deployable
 An application is deployable only after real tests, verified migrations, access controls, webhook verification, secret management, observability, rollback documentation, and user approval for external deployments.
@@ -269,6 +246,6 @@ Large monolithic page files are prohibited.
 
 ## Authoritative HTTP contracts — 2026-10-13
 
-All REST work is now contract-first: [openapi/root.yaml](openapi/root.yaml), then generated `@gamo/api-contracts` types and Worker validators, then routes/services and HTTP contract tests. See [docs/OPENAPI_ARCHITECTURE.md](docs/OPENAPI_ARCHITECTURE.md) and the corrected [docs/API_INVENTORY.md](docs/API_INVENTORY.md). Keep six apps and domain-owned origins; no central API deployable is added.
+All REST work is now contract-first: [openapi/root.yaml](openapi/root.yaml), then generated `@gamo/api-contracts` types and Worker validators, then routes/services and HTTP contract tests. See [docs/OPENAPI_ARCHITECTURE.md](docs/OPENAPI_ARCHITECTURE.md) and the corrected [docs/API_INVENTORY.md](docs/API_INVENTORY.md). Keep five apps (Live removed 2026-11-16) and domain-owned origins; no central API deployable is added.
 
 The earlier “fully wired / end-to-end verified” backend wording above describes service tests, not a proven production/browser workflow. Verified identity login, real Access-to-D1 staff identity mapping, domain staff authorization, capacity-safe registration and full payment fulfillment remain incomplete. Node SQLite is isolated in `@gamo/db/testing`; Workers require a real D1 binding. Contract tests use isolated local HTTP handlers/middleware and SQL migrations, without production changes or real provider calls.

@@ -50,14 +50,14 @@
 | # | Item | Status |
 | --- | --- | --- |
 | 3.1 | Organizational bank account, fully separate from personal finances | Blocked (1.6) |
-| 3.2 | Chart of accounts by program (Worship, Academy, Live, Production, Management & General, Fundraising) | Proposed |
+| 3.2 | Chart of accounts by program (Worship, Academy, Production, Management & General, Fundraising) | Proposed |
 | 3.3 | Restricted vs. unrestricted fund tracking | Proposed |
 | 3.4 | Donation acknowledgment templates (quid pro quo language reviewed by counsel) | Blocked (1.8) |
 | 3.5 | Gift acceptance policy (incl. in-kind instruments and equipment) | Proposed |
 | 3.6 | Operating reserve policy | Proposed |
 | 3.7 | Stripe Connect account type and funds-flow decision for a nonprofit entity | Awaiting approval |
 | 3.8 | Payment reconciliation and monthly close process | Proposed |
-| 3.9 | Review of potential unrelated business income (production services, promotion, ticketing fees) | Awaiting approval |
+| 3.9 | Review of potential unrelated business income (production services, promotion) | Awaiting approval |
 
 ## 4. Program policies
 
@@ -68,8 +68,8 @@
 | 4.3 | Musician agreement and paid-standby terms (legal draft) | Proposed |
 | 4.4 | Minor safeguarding policy, screening provider, guardian consent and messaging rules | Awaiting approval |
 | 4.5 | Academy tuition, sliding-scale and scholarship policy | Awaiting approval |
-| 4.6 | Gamo Live eligibility and content policy (Christian events), organizer verification standard | Awaiting approval |
-| 4.7 | Free event and registration policy; ticketing administration fee and refund policy | Awaiting approval |
+| 4.6 | ~~Gamo Live eligibility and content policy (Christian events), organizer verification standard~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
+| 4.7 | ~~Free event and registration policy; ticketing administration fee and refund policy~~ | Withdrawn 2026-11-16 (Gamo Live dropped) |
 | 4.8 | Sponsored placement labeling and density policy | Awaiting approval |
 | 4.9 | Church partnership contribution structures, recognition and benefits | Awaiting approval |
 | 4.10 | Privacy policy, terms of service, cookie policy (legal drafts until counsel review) | Proposed |

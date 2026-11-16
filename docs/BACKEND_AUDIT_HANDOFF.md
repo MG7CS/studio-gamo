@@ -1,5 +1,7 @@
 # Backend independent audit handoff
 
+> **2026-11-16 — Gamo Live removed.** `apps/live`, Live event/registration/ticketing APIs, the Stripe checkout and webhook routes, admin event moderation and their D1 tables (migration `0018`) were deleted. Items about checkout, Stripe ticket webhooks and the free-event slice are historical. Snapshot: tag `four-programs-snapshot`.
+
 **Prepared:** 2026-10-13  
 **Branch:** `main`  
 **Base commit:** `6103121` (`main` includes `1cb3434` and requested baseline `cb97c37`)  

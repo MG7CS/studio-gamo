@@ -8,7 +8,7 @@
 ## Identity and access
 
 - Server-side authN/authZ on every private route, webhook, action and storage fetch.
-- Roles/scopes: visitor, student, musician applicant, approved musician, church member/director, event organizer, academy host/instructor, staff reviewer, dispatcher, finance administrator and superadmin. Define exact permissions, deny by default.
+- Roles/scopes: visitor, student, musician applicant, approved musician, church member/director, academy host/instructor, staff reviewer, dispatcher, finance administrator and superadmin. Define exact permissions, deny by default.
 - Admin routes must additionally support Cloudflare Access or equivalent staff boundary where feasible.
 - Real webcam capture does not prove a living person or a valid ID. A specialist identity verification provider must verify identity and/or liveness when required; never treat a local demo as real verification.
 - Government ID images, selfies and background screening data are highly sensitive. No raw ID photographs exposed to church customers. Favor vendor tokens/results and minimal retention, encryption and narrow staff controls.
@@ -31,17 +31,16 @@
 - '100% Sunday attendance' / 'zero failure' / 'guaranteed understudy' statements are prohibited until contractual and operational capability is actually established and approved.
 - Maps and geolocation show estimates; cannot substitute for actual location confirmation or arrival proof.
 
-## Events and inventory
+## Capacity and inventory
 
-- Lock seat/tier inventory with transactionally safe reservation authority (Durable Objects or another well-justified serialized design). KV alone is not concurrency control.
-- Ticket credentials must be unpredictable and invalidated on refund/transfer if supported; QR scanner needs scoped staff role and replay-resistant admission.
+- Any limited capacity (for example Academy class seats) uses transactionally safe reservation authority (atomic D1 statements/triggers or another well-justified serialized design). KV alone is not concurrency control. (Event ticketing and door scanning left scope with Gamo Live on 2026-11-16.)
 
 ## Legal/compliance
 
 - Do not assume a 1099 contract determines legal worker classification; obtain jurisdiction-specific professional review.
 - Background checks require consent and applicable law compliance; do not instantiate automatic adverse action without safeguards.
 - Music/lyrics/chord charts may be licensed; avoid public rehosting; enforce access and takedown path.
-- Treat all public example reviews, gig availability, profiles, clients and event listings as demo unless sourced and approved.
+- Treat all public example reviews, gig availability, profiles and clients as demo unless sourced and approved.
 - Terms, privacy policy, waivers, refund policy and independent-contractor agreements are legal drafts until counsel review; no fake 'approved' status.
 
 ## Legal structure, tax status and fundraising claims
@@ -49,13 +48,13 @@
 - Gamo Studios is a **Christian, mission-driven organization** whose **final legal incorporation structure and tax status remain undecided** (legal-structure-neutral). Never state or imply 501(c)(3) recognition, IRS approval, tax-deductibility, state charitable registration, an EIN or any registration number until confirmed by the owner with evidence.
 - Never name churches, sponsors, foundations, donors or board members as committed unless a signed agreement or documented consent exists.
 - Do not describe mandatory fees or deductions as donations. Payments where the payer receives substantial goods or services are not presented as charitable gifts.
-- Do not assume program fees, ticketing fees, promotion or production services are tax-exempt income; flag for accountant/tax review.
+- Do not assume program fees, promotion or production services are tax-exempt income; flag for accountant/tax review.
 - Executive compensation and related-party transactions require independent approval and conflict-of-interest documentation; agents never implement compensation logic that bypasses this.
 
-## Events trust
+## Verification trust
 
-- Ticket sales only for organizers with recorded authorization; verified-organizer badges only after a staff verification decision.
-- Gamo Live accepts Christian events per the approved content policy; moderation decisions are audited.
+- Verified badges (churches, musicians, technicians, teachers) only after a recorded staff verification decision; verification decisions are audited.
+- Sponsored content is always labeled and never affects vetting, rankings or trust signals ([docs/GAMO_NONPROFIT_MODEL.md §4.1](docs/GAMO_NONPROFIT_MODEL.md#41-sponsored-content-labeling--decided)).
 
 ## Safeguarding & Sensitive Document Prohibition
 
@@ -68,7 +67,7 @@
 - Secrets in environment bindings; never repo, logs, screenshots or browser bundle.
 - Audit trails for vetting decisions, payout changes, permissions and emergency dispatch. Limit logs to non-sensitive metadata.
 - Dependency review, minimum permissions and no unapproved external telemetry/vendor integrations.
-- Require tests for auth denial, race conditions, webhook deduplication, failed payment, backup dispatch and ticket double scan.
+- Require tests for auth denial, race conditions, webhook deduplication, failed payment, backup dispatch and capacity races.
 
 ## External-action policy for agents
 

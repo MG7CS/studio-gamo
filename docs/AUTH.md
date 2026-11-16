@@ -1,6 +1,6 @@
 # Authentication
 
-How people sign in to the five public apps (`web`, `worship`, `academy`, `live`, `production`), what the owner must configure, and how to test it by hand. `admin` does not use Clerk: it sits behind Cloudflare Access plus a D1 superadmin password (`docs/RUNBOOK.md` §8).
+How people sign in to the four public apps (`web`, `worship`, `academy`, `production`; Gamo Live and its Clerk application were removed on 2026-11-16), what the owner must configure, and how to test it by hand. `admin` does not use Clerk: it sits behind Cloudflare Access plus a D1 superadmin password (`docs/RUNBOOK.md` §8).
 
 Rules that never change (AGENTS.md): every product has its **own** Clerk application, users and keys; nothing links accounts across products; the sign-in screens are the shared `GamoAuthExperience`; nobody runs `clerk init`, the Clerk CLI or a dashboard-generated setup prompt in this repository.
 
@@ -50,7 +50,6 @@ Consequence to accept: a Gamo session outlives a Clerk session that ends elsewhe
 | web | gamostudio.org (+ www) | `WEB` | 4321 | `pending_clerk_app_gamo_web` |
 | worship | worship.gamostudio.org | `WORSHIP` | 4322 | `pending_clerk_app_gamo_worship` |
 | academy | academy.gamostudio.org | `ACADEMY` | 4323 | `pending_clerk_app_gamo_academy` |
-| live | live.gamostudio.org | `LIVE` | 4324 | `app_3KlWyOBL2xL2YzhJuvgk8QdrWIt` (exclusive to Gamo Live; the code refuses it anywhere else) |
 | production | production.gamostudio.org | `PRODUCTION` | 4325 | `pending_clerk_app_gamo_production` |
 
 A `pending_clerk_app_…` value is treated as "no app id yet": with keys set the app uses a derived id (`clerk_app_gamo_<product>`). Put the real `app_…` id of that product's Clerk application in `wrangler.toml` (all three environments) so the id stored in `clerk_identity_links` is the real one.
@@ -59,7 +58,7 @@ A `pending_clerk_app_…` value is treated as "no app id yet": with keys set the
 
 **One naming scheme:** every deployed Clerk variable carries the product suffix. `packages/config/clerk-env.ts` is the single definition; `packages/auth/clerk.ts`, startup validation, `pnpm preflight`, `scripts/set-clerk-secrets.sh` and the `.dev.vars.example` files all use it, and a test (`scripts/clerk/clerk-tools.test.ts`) keeps them equal.
 
-| Name (APP = WEB, WORSHIP, ACADEMY, LIVE, PRODUCTION) | Kind | Needed | Meaning |
+| Name (APP = WEB, WORSHIP, ACADEMY, PRODUCTION) | Kind | Needed | Meaning |
 | --- | --- | --- | --- |
 | `PUBLIC_CLERK_PUBLISHABLE_KEY_<APP>` | secret | yes | `pk_test_…` (development) or `pk_live_…` (production). Encodes the Frontend API host. |
 | `CLERK_SECRET_KEY_<APP>` | secret | yes, unless the JWT key is set | `sk_test_…` / `sk_live_…`. Also used to look up the user when the token has no email claim. |
@@ -90,7 +89,7 @@ scripts/set-clerk-secrets.sh --env preview --app academy --file ~/clerk-academy.
 For production it accepts only Production instance keys (`pk_live_…`, `sk_live_…`) and always sets the `<APP>`-suffixed names; it refuses to write production without a person at an interactive terminal (there is no `--yes`), and when started by a test or CI it only accepts a stub `WRANGLER_BIN` in the temp directory and refuses `--env production` except `--dry-run`. It refuses one key used for two products, derives a missing issuer, converts literal `\n` and quoted PEM keys, and prints only `ok <app> <NAME>`. After an earlier hand-made upload with the un-suffixed names, remove those leftovers (each asks for confirmation):
 
 ```sh
-for a in web worship academy live production; do (cd apps/$a && for n in PUBLIC_CLERK_PUBLISHABLE_KEY CLERK_SECRET_KEY CLERK_JWT_KEY CLERK_ISSUER; do pnpm exec wrangler secret delete $n --env production; done); done
+for a in web worship academy production; do (cd apps/$a && for n in PUBLIC_CLERK_PUBLISHABLE_KEY CLERK_SECRET_KEY CLERK_JWT_KEY CLERK_ISSUER; do pnpm exec wrangler secret delete $n --env production; done); done
 ```
 
 (A "not found" answer for a name that was never set is fine.) `pnpm preflight all --env production` warns `clerk-legacy-name` while any remain.
@@ -120,7 +119,7 @@ for a in web worship academy live production; do (cd apps/$a && for n in PUBLIC_
 
 - **First sign-in:** creates a D1 user (`usr_<product>_<clerkId>`), a product account and a `clerk_identity_links` row (`migration_source = clerk_registration`). Parallel first requests are safe: inserts are conflict-tolerant and only the winner writes the audit row.
 - **Same email, other product:** a separate user (the stored address is namespaced `email#product:id`; the real address is shown). Never merged.
-- **Same email, same product, before Clerk:** the earlier unlinked product account is claimed once, only for a **verified** email (`verified_domain_claim`), so organizer, enrollment and profile data survive.
+- **Same email, same product, before Clerk:** the earlier unlinked product account is claimed once, only for a **verified** email (`verified_domain_claim`), so enrollment and profile data survive.
 - **Email changed in Clerk:** the next request updates the link and, if no other account holds the new address, the user row (audit `clerk.email_changed`).
 - **Suspended or revoked link, or disabled user:** 403, and existing Gamo sessions of that identity stop working.
 - **Roles:** a new registration has none. Unscoped roles and roles scoped to `program:<this product>` apply; another product's roles never do.
@@ -131,13 +130,13 @@ for a in web worship academy live production; do (cd apps/$a && for n in PUBLIC_
 | Email | Sent by | When | From / Reply-To |
 | --- | --- | --- | --- |
 | Sign-in verification code | Gamo (Resend) | emailed-code flow (Clerk off, or `/api/auth/challenge` called directly) | `EMAIL_FROM` (must be on `gamostudio.org`; default `Gamo Studios <hello@gamostudio.org>`), Reply-To `hello@gamostudio.org` |
-| Gamo Live registration confirmation (and retries from the outbox) | Gamo (Resend) | free RSVP on Gamo Live | same |
+| Academy registration receipt (and retries from the outbox) | Gamo (Resend) | Academy guest registration | same |
 | Verification code for Clerk sign-up and sign-in | **Clerk** | Clerk on | Clerk's mail domain unless you add a custom email domain in Clerk |
 | Any other Clerk email (new-device alerts, password or magic-link mail, invitations) | **Clerk** | only if you switch those features on; this app uses none of them | Clerk |
 
 Handling: a failed send invalidates the unsent challenge and answers `503 UNAVAILABLE` ("We could not send a verification email"); the person can ask again. Per address: 5 codes per 15 minutes and 5 wrong guesses lock the code. Logs carry neither codes nor addresses nor bodies (`auth-surface` test captures every console line during a send). In local simulation (`ENVIRONMENT=local`, loopback host, `ALLOW_AUTH_SIMULATION=true`) the code is shown on screen instead of sent; every other mode is refused (503/403).
 
-## 7. Clerk dashboard checklist (do for each of the five applications)
+## 7. Clerk dashboard checklist (do for each of the four applications)
 
 Menu labels in Clerk's dashboard change from time to time; match by function. Work on the **Development** instance first, then repeat on **Production** (§7.2). Each product is a separate Clerk application: never reuse a setting screenshot's keys.
 
@@ -204,5 +203,5 @@ Automated coverage of the same flows (all Clerk calls mocked): `packages/auth/cl
 3. **Abuse protection (built).** Challenge, verify and clerk-session are limited per hashed IP and per hashed email; the challenge needs a Turnstile token outside local. Add Cloudflare rate rules on top if desired.
 4. **Account existence is no longer visible**: sign-in for an address without an account answers like any other and sends nothing (`docs/IDENTITY.md` §4).
 5. **Cookie scope of Clerk's own cookies** and **Clerk's real emails, bot challenge and browser SDK** need the live manual tests above.
-6. **Local files found during the audit (fix before re-running the script):** `CLERK_APP_ID` in web, worship, academy and production `.dev.vars` is Gamo Live's id, and academy's `CLERK_JWT_KEY` is Live's key (it is also on the production academy Worker). Each must come from that product's own Clerk application.
+6. **Local files found during the audit (fix before re-running the script):** `CLERK_APP_ID` in web, worship, academy and production `.dev.vars` is Gamo Live's id, and academy's `CLERK_JWT_KEY` is Live's key (it is also on the production academy Worker). Each must come from that product's own Clerk application. Gamo Live itself was removed on 2026-11-16, so its Clerk application (`app_3KlWyOBL2xL2YzhJuvgk8QdrWIt`) can be deleted by the owner; these values must still be replaced.
 7. **`app_3KsAGwTVJ38hAKcdP6Kv8u5R3ji`** (selected in the Clerk dashboard) is not assigned to any product yet; tell the agent which product it belongs to.
