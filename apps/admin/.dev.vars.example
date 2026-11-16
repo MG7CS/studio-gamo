@@ -6,6 +6,18 @@
 CF_ACCESS_TEAM_NAME=
 CF_ACCESS_AUD=
 
+# RECOMMENDED outside local. One plain address that receives "new submission" staff notices (same value as on web).
+INQUIRY_INBOX_EMAIL=
+
+# Invoices (docs/RUNBOOK.md §3b). OPTIONAL. Text on manual (non-Stripe) invoice emails: how to pay Gamo.
+INVOICE_PAYMENT_INSTRUCTIONS=
+# Stripe Invoicing in TEST mode only (sk_test_… / rk_test_…). A live key makes admin refuse to serve. Unset: invoices are
+# sent as manual invoices with INVOICE_PAYMENT_INSTRUCTIONS.
+STRIPE_SECRET_KEY=
+# Gate for Gamo administrative lines on invoices. Keep false (or unset) until the board approves a fee; musician pay and
+# any Gamo allocation are always separate line items.
+GAMO_ADMIN_FEE_APPROVED=false
+
 # BREAK-GLASS (emergency) access. Ignored unless ENABLE_BREAK_GLASS_AUTH=true outside local.
 # Tokens must be at least 16 characters. Leave empty in normal operation.
 ENABLE_BREAK_GLASS_AUTH=

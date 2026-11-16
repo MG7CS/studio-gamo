@@ -19,6 +19,9 @@ database_name = "gamo-db-local"
 database_id = "00000000-0000-0000-0000-000000000001"
 migrations_dir = "../../packages/db/migrations"
 
+# MEDIA_BUCKET holds form uploads (R2 multipart; lifecycle rules: docs/RUNBOOK.md §3b). The IMAGES binding
+# (Cloudflare Images, re-encodes uploaded photos) needs no entry here: @astrojs/cloudflare adds `images = { binding = "IMAGES" }`
+# to the generated config for every environment.
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
 bucket_name = "gamo-media-local"
@@ -44,6 +47,14 @@ PUBLIC_SITE_URL_WORSHIP = "https://gamo-worship-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_ACADEMY = "https://gamo-academy-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_PRODUCTION = "https://gamo-production-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_ADMIN = "https://admin-preview.gamostudio.org"
+
+# Daily job (email retry + retention, 06:00 UTC) — NOT ENABLED YET.
+# A cron trigger needs a Worker `scheduled` handler, but @astrojs/cloudflare 14.3.x defaults `main` to
+# "@astrojs/cloudflare/entrypoints/server", which exports only `fetch`. The daily-jobs task adds a custom entry
+# (`main = "src/worker.ts"` exporting `{ fetch: handle, scheduled }` via "@astrojs/cloudflare/handler");
+# uncomment the `[env.preview.triggers]` block below with it. Enabling the trigger earlier would fire a Worker with no handler.
+# [env.preview.triggers]
+# crons = ["0 6 * * *"]
 
 [[env.preview.d1_databases]]
 binding = "DB"
@@ -79,6 +90,14 @@ PUBLIC_SITE_URL_WORSHIP = "https://worship.gamostudio.org"
 PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
 PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
 PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
+
+# Daily job (email retry + retention, 06:00 UTC) — NOT ENABLED YET.
+# A cron trigger needs a Worker `scheduled` handler, but @astrojs/cloudflare 14.3.x defaults `main` to
+# "@astrojs/cloudflare/entrypoints/server", which exports only `fetch`. The daily-jobs task adds a custom entry
+# (`main = "src/worker.ts"` exporting `{ fetch: handle, scheduled }` via "@astrojs/cloudflare/handler");
+# uncomment the `[env.production.triggers]` block below with it. Enabling the trigger earlier would fire a Worker with no handler.
+# [env.production.triggers]
+# crons = ["0 6 * * *"]
 
 [[env.production.d1_databases]]
 binding = "DB"

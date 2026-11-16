@@ -2,8 +2,8 @@
 # Shared settings (ENVIRONMENT, RESEND_API_KEY, EMAIL_FROM) come from the root .env.
 # In preview/production: `wrangler secret put <NAME> --env <preview|production>` from apps/web.
 
-# Identity, consent and abuse protection (docs/design/identity-and-ticketing.md §10; RUNBOOK §3).
-# Gamo HMAC keys (PII_HASH_SECRET, TICKET_QR_SECRET_GL1, CUSTOMER_LINK_SECRET, SCANNER_SESSION_SECRET) need ≥ 32 random
+# Consent and abuse protection (RUNBOOK §3).
+# Gamo HMAC keys (PII_HASH_SECRET, FORM_UPLOAD_SECRET, CUSTOMER_LINK_SECRET) need ≥ 32 random
 # characters each and must differ from SESSION_SECRET and from each other. Provider secrets are pasted as issued.
 # Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 # OPTIONAL locally. HMAC key for hashed IPs/emails (consents, rate limits, email log). Outside local: forms that need it answer 503.
@@ -15,3 +15,14 @@ TURNSTILE_SECRET_KEY=
 
 # Resend webhook signing secret (Svix). Without it /api/webhook/resend answers 503.
 RESEND_WEBHOOK_SECRET=
+
+# Form uploads (docs/RUNBOOK.md §3b). OPTIONAL locally. HMAC key (≥ 32 chars, different from every other secret) that signs
+# upload-session tokens. Outside local it is required wherever MEDIA_BUCKET is bound; without it uploads answer 503.
+FORM_UPLOAD_SECRET=
+# RECOMMENDED outside local. One plain address that receives "new submission" staff notices. Unset: staff notices are skipped
+# (the submitter's receipt is still sent).
+INQUIRY_INBOX_EMAIL=
+
+# Stripe invoice webhook signing secret (`whsec_…`, test mode) for /api/webhook/stripe. Without it the route answers 503
+# and invoices are marked paid by hand in admin. For local testing: `stripe listen --forward-to 127.0.0.1:4321/api/webhook/stripe`.
+STRIPE_WEBHOOK_SECRET=

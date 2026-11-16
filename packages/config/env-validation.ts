@@ -22,6 +22,12 @@ const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 const present = (value: unknown): boolean => typeof value === 'string' && value.trim().length > 0;
 
+/** A single plain address (no display name, no list): where staff notifications are delivered. */
+const PLAIN_EMAIL = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
+
+/** Apps that host public forms and therefore send the staff notification (admin only reads them). */
+const FORM_HOSTING_APPS: ReadonlySet<AppName> = new Set<AppName>(['web', 'worship', 'production']);
+
 /**
  * Checks `env` for app `app` as served on `hostname`.
  * Rules that depend on the deployment only apply when ENVIRONMENT is `preview` or `production`.
@@ -51,6 +57,14 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       'must not be "true" in production; paid checkout stays closed (503) in production',
     );
 
+  // Stripe is test mode only (AGENTS.md; `assertStripeTestMode`): a live key anywhere is unsafe to serve.
+  if (/^(sk|rk)_live_/.test(env.STRIPE_SECRET_KEY?.trim() ?? ''))
+    add(
+      'fatal',
+      'STRIPE_SECRET_KEY',
+      'is a live-mode key; only test-mode keys (sk_test_/rk_test_) are allowed until the legal prerequisites are met',
+    );
+
   if (!env.DB) add('error', 'DB', 'D1 binding is missing; data features are unavailable');
 
   if (app === 'admin') {
@@ -62,6 +76,24 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
     if (!present(env.CF_ACCESS_AUD)) add('error', 'CF_ACCESS_AUD', 'Cloudflare Access is required for admin');
     if (env.ENABLE_BREAK_GLASS_AUTH === 'true')
       add('warning', 'ENABLE_BREAK_GLASS_AUTH', 'emergency access is enabled');
+    addInquiryInboxProblems(app, env, add);
+    if (!env.MEDIA_BUCKET)
+      add('warning', 'MEDIA_BUCKET', 'R2 binding is missing; uploaded form files cannot be viewed');
+    if (!present(env.INVOICE_PAYMENT_INSTRUCTIONS))
+      add(
+        'warning',
+        'INVOICE_PAYMENT_INSTRUCTIONS',
+        'is not set; manual invoice emails will carry no payment instructions',
+      );
+    const fee = env.GAMO_ADMIN_FEE_APPROVED?.trim();
+    if (fee === 'true')
+      add(
+        'warning',
+        'GAMO_ADMIN_FEE_APPROVED',
+        'is "true": gamo_admin invoice lines are allowed; keep it "false" until the board approves a fee',
+      );
+    else if (present(fee) && fee !== 'false')
+      add('error', 'GAMO_ADMIN_FEE_APPROVED', 'must be "true" or "false"; treated as false');
     return problems;
   }
 
@@ -78,14 +110,30 @@ export function validateEnv(app: AppName, env: GamoEnv, hostname: string): EnvPr
       );
     }
   }
+  addInquiryInboxProblems(app, env, add);
   addIdentitySecretProblems(app, env, add);
   return problems;
+}
+
+/** `INQUIRY_INBOX_EMAIL`: recommended where staff notifications are sent or read; must be one plain address. */
+function addInquiryInboxProblems(
+  app: AppName,
+  env: GamoEnv,
+  add: (severity: EnvSeverity, name: string, message: string) => void,
+): void {
+  if (app !== 'admin' && !FORM_HOSTING_APPS.has(app)) return;
+  if (!present(env.INQUIRY_INBOX_EMAIL)) {
+    add('warning', 'INQUIRY_INBOX_EMAIL', 'is not set; staff are not emailed about new form submissions');
+  } else if (!PLAIN_EMAIL.test(env.INQUIRY_INBOX_EMAIL!.trim())) {
+    add('error', 'INQUIRY_INBOX_EMAIL', 'must be a single plain email address; staff notices are skipped');
+  }
 }
 
 /** What each identity secret switches on (design §10), for messages. */
 const SECRET_FEATURES: Record<(typeof HMAC_SECRET_NAMES)[number], string> = {
   CUSTOMER_LINK_SECRET: 'registration manage and recovery links answer 503',
   PII_HASH_SECRET: 'forms that record consent or rate-limit by address answer 503',
+  FORM_UPLOAD_SECRET: 'form file uploads answer 503',
 };
 
 /** Secrets each public app uses (missing → warning by name). */
@@ -103,6 +151,16 @@ function addIdentitySecretProblems(
   add: (severity: EnvSeverity, name: string, message: string) => void,
 ): void {
   const values = env as Record<string, unknown>;
+  if (FORM_HOSTING_APPS.has(app) && !present(env.FORM_UPLOAD_SECRET)) {
+    // With a bucket bound the app would accept uploads, so a missing key is a configuration error.
+    add(
+      env.MEDIA_BUCKET ? 'error' : 'warning',
+      'FORM_UPLOAD_SECRET',
+      env.MEDIA_BUCKET
+        ? 'is not set although MEDIA_BUCKET is bound; form file uploads answer 503'
+        : 'is not set (and MEDIA_BUCKET is not bound); form file uploads are unavailable',
+    );
+  }
   const seen = new Map<string, string>();
   if (present(env.SESSION_SECRET)) seen.set(env.SESSION_SECRET!.trim(), 'SESSION_SECRET');
   for (const name of HMAC_SECRET_NAMES) {
