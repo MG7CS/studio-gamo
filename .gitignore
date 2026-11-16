@@ -43,3 +43,6 @@ docs/api-reference/*.html
 # Generated staff-account SQL (contains password hashes; owner-reviewed, never committed)
 .staff-sql/
 .claude/worktrees/
+
+# D1 exports from docs/RUNBOOK.md §4 (contain personal data; never commit)
+backup-*.sql
