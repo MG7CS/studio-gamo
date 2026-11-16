@@ -149,11 +149,13 @@ test('every legal page and the components show the DRAFT banner; pages are on de
   }
 });
 
-test('the shared footer links the legal documents', () => {
-  const footer = readFileSync('packages/ui/src/components/SiteFooter.astro', 'utf8');
-  assert.match(footer, /\/legal'/);
-  assert.match(footer, /\/legal\/privacy-policy/);
-  assert.match(footer, /\/legal\/site-terms/);
+test('every public app footer links the legal documents', () => {
+  for (const app of ['web', 'academy', 'worship', 'production']) {
+    const config = readFileSync(`apps/${app}/src/site.config.ts`, 'utf8');
+    assert.match(config, /'\/legal'/, `${app}: legal index`);
+    assert.match(config, /\/legal\/privacy-policy/, `${app}: privacy policy`);
+    assert.match(config, /\/legal\/site-terms/, `${app}: site terms`);
+  }
 });
 
 test('syncTermsDocuments inserts every current version once and never rewrites rows', async () => {

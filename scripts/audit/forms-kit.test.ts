@@ -5,7 +5,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { TURNSTILE_DUMMY_TOKEN } from '../../packages/domain/src/security/turnstile.ts';
 import {
   TURNSTILE_RESPONSE_FIELD,
@@ -17,6 +17,30 @@ import { termsConsentDocuments } from '../../packages/ui/src/lib/terms-links.ts'
 const DIR = 'packages/ui/src/components/forms';
 const files = readdirSync(DIR).filter((f) => f.endsWith('.astro'));
 const source = (name: string) => readFileSync(`${DIR}/${name}`, 'utf8');
+/** Source without the props comment block and frontmatter comments, for markup assertions. */
+const markup = (name: string) => source(name).replace(/\/\*\*[\s\S]*?\*\//g, '');
+
+/** Primitives behind the dynamic form renderer (Google-Forms question types) and registration forms. */
+const FIELD_PRIMITIVES = [
+  'TextareaField.astro',
+  'SelectField.astro',
+  'DateField.astro',
+  'TimeField.astro',
+  'FileField.astro',
+];
+const GROUP_PRIMITIVES = ['CheckboxGroup.astro', 'RadioGroup.astro', 'ScaleField.astro'];
+const PRIMITIVES = [
+  'RequiredMark.astro',
+  'FieldError.astro',
+  'FieldShell.astro',
+  'Fieldset.astro',
+  'ChoiceItem.astro',
+  'Checkbox.astro',
+  'ChoiceCard.astro',
+  'FormComingSoon.astro',
+  ...FIELD_PRIMITIVES,
+  ...GROUP_PRIMITIVES,
+];
 
 test('the kit has every component, each with a props comment block', () => {
   for (const name of [
@@ -28,6 +52,7 @@ test('the kit has every component, each with a props comment block', () => {
     'TurnstileWidget.astro',
     'FormErrorSummary.astro',
     'SubmitButton.astro',
+    ...PRIMITIVES,
   ]) {
     assert.ok(files.includes(name), name);
     assert.match(source(name), /^---\n\/\*\*[\s\S]*?Props/, `${name} documents its props`);
@@ -95,4 +120,110 @@ test('terms links point at gamostudio.org/legal/<slug> with the registry version
     assert.equal(d.version, TERMS_DOCUMENTS[i].version);
     assert.equal(d.label, TERMS_DOCUMENTS[i].title);
   }
+});
+
+test('labelled fields: visible label, hint and error bound with aria-describedby, aria-invalid on error', () => {
+  const shell = markup('FieldShell.astro');
+  assert.match(shell, /<label for=\{id\}/, 'FieldShell renders a visible <label for>');
+  assert.match(shell, /<RequiredMark/, 'required is marked in text');
+  assert.match(shell, /id=\{ids\.hintId\}/);
+  assert.match(shell, /<FieldError id=\{ids\.errorId\}/);
+  for (const name of FIELD_PRIMITIVES) {
+    const text = markup(name);
+    assert.match(text, /<FieldShell\b/, `${name} uses FieldShell (label, hint, error)`);
+    assert.match(text, /aria-describedby=\{ids\.describedBy\}/, `${name} binds hint + error`);
+    assert.match(text, /aria-invalid=\{error \? 'true' : undefined\}/, `${name} marks errors`);
+    assert.match(text, /required=\{required\}/, `${name} passes native required`);
+  }
+  const error = markup('FieldError.astro');
+  assert.match(error, /data-error-text/, 'forms-client can update the error text');
+  assert.match(error, /<span class="sr-only">Error: <\/span>/);
+  assert.match(markup('RequiredMark.astro'), /<span class="sr-only">\(required\)<\/span>/);
+});
+
+test('groups use fieldset/legend with hint and error described, and an optional labelled "Other"', () => {
+  const fieldset = markup('Fieldset.astro');
+  assert.match(fieldset, /<fieldset\b/);
+  assert.match(fieldset, /<legend\b/);
+  assert.match(fieldset, /<slot name="legend">/, 'legend can be a slot');
+  assert.match(fieldset, /aria-describedby=/);
+  assert.match(fieldset, /<RequiredMark/);
+  assert.match(fieldset, /<FieldError\b/);
+  for (const name of GROUP_PRIMITIVES) {
+    assert.match(markup(name), /<Fieldset\b/, `${name} is a fieldset`);
+  }
+  for (const name of ['CheckboxGroup.astro', 'RadioGroup.astro']) {
+    const text = markup(name);
+    assert.match(text, /OTHER_VALUE/, `${name} offers "Other"`);
+    assert.match(text, /<label for=\{otherTextId\}/, `${name}: the "Other" text input has a label`);
+  }
+  assert.match(markup('CheckboxGroup.astro'), /rangeHint\(/, 'min/max stated as a hint');
+  assert.match(markup('ScaleField.astro'), /role="radiogroup"/);
+  assert.match(markup('RadioGroup.astro'), /role="radiogroup"/);
+});
+
+test('choices have 44 px hit areas and are never pre-ticked by default', () => {
+  const item = markup('ChoiceItem.astro');
+  assert.match(
+    item,
+    /<label\b[^>]*for=\{id\}[^>]*class:list=\{\[\s*'[^']*min-h-11/,
+    'the whole row is the label',
+  );
+  assert.match(item, /type=\{type\}/);
+  for (const name of ['Checkbox.astro', 'ChoiceItem.astro', 'ChoiceCard.astro']) {
+    assert.match(source(name), /checked = false/, `${name}: unchecked unless the server re-renders a choice`);
+  }
+  assert.match(markup('Checkbox.astro'), /<ChoiceItem\b/);
+  assert.match(markup('ChoiceCard.astro'), /min-h-11/);
+  assert.match(markup('ScaleField.astro'), /size-11/, 'scale points are 44 × 44');
+  // The 24 px audit finding: no bare 24 px checkbox without a 44 px label around it.
+  for (const name of files.filter((f) => !['TermsConsent.astro', 'MarketingConsent.astro'].includes(f))) {
+    assert.ok(!/type="checkbox"[^>]*h-6 w-6/.test(markup(name)), `${name}: use ChoiceItem for checkboxes`);
+  }
+});
+
+test('file inputs state the allowed types and size before picking', () => {
+  const text = markup('FileField.astro');
+  assert.match(text, /type="file"/);
+  assert.match(text, /accept=\{accept\}/);
+  assert.match(text, /multiple=\{multiple\}/);
+  assert.match(source('FileField.astro'), /requirementsText/, 'requirements text is built from props');
+  assert.ok(
+    text.indexOf('requirementsText') < text.indexOf('type="file"'),
+    'requirements are rendered before the input',
+  );
+});
+
+test('new primitives use semantic tokens only: no base palette names, arbitrary values or inline styles', () => {
+  const base =
+    /\b(?:bg|text|border|outline|ring|accent|fill|from|to|placeholder|file:bg|file:text)-(?:terracotta|ink|cream|sand|tan|line|muted|ivory|night|charcoal|gold|white|black|stone|crimson|forest)\b/;
+  for (const name of PRIMITIVES) {
+    const text = markup(name);
+    assert.ok(!base.test(text), `${name}: ${text.match(base)?.[0]} is a base token`);
+    assert.ok(!/\w-\[[^\]]+\]/.test(text), `${name}: no arbitrary values`);
+    assert.ok(!/\sstyle=/.test(text), `${name}: no inline style`);
+    assert.ok(!/#[0-9a-f]{3,8}\b/i.test(text), `${name}: no hex colours`);
+  }
+});
+
+test('FormComingSoon is shared: app copies are gone and pages pass the contact email', () => {
+  for (const app of ['worship', 'production']) {
+    assert.ok(!existsSync(`apps/${app}/src/components/FormComingSoon.astro`), `${app} copy removed`);
+    for (const page of ['apply', 'request']) {
+      const text = readFileSync(`apps/${app}/src/pages/${page}.astro`, 'utf8');
+      assert.match(
+        text,
+        /from '@studio-gamo\/ui\/components\/forms\/FormComingSoon\.astro'/,
+        `${app}/${page}`,
+      );
+      assert.match(text, /email="hello@gamostudio\.org"/, `${app}/${page} passes the email`);
+    }
+  }
+  const text = markup('FormComingSoon.astro');
+  assert.ok(
+    !/gamostudio|Worship|Production|Academy/.test(text),
+    'no app or contact copy in the shared piece',
+  );
+  assert.match(text, /<h1\b/, 'owns the page h1');
+  assert.match(text, /encodeURIComponent\(subject\)/);
 });
