@@ -94,7 +94,7 @@ export interface AccountExtrasView {
 export async function loadAccountExtras(
   locals: PageLocals,
   url: URL,
-  siteUrlFor: (product: 'live' | 'academy', path: string) => string,
+  siteUrlFor: (product: 'academy', path: string) => string,
 ): Promise<AccountExtrasView | null> {
   const auth = locals.auth;
   if (!auth || !isSqlDatabase(locals.runtimeEnv?.DB)) return null;

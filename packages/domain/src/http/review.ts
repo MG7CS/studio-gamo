@@ -2,8 +2,6 @@
  * Admin review form handlers (apps/admin, behind Cloudflare Access + the staff gateway session):
  *
  *   POST /api/review/providers/{id}   church verification and provider review decisions
- *   POST /api/review/events/{id}      organizer first-event review (wraps AdminService.reviewEvent)
- *   POST /api/review/organizers/{id}  "review every event" toggle
  *
  * Order: staff session + Access identity match → same origin → bounded body → validation → one D1 batch.
  * Plain HTML form posts that 303 back to the review pages with the outcome in the query string.
@@ -19,13 +17,11 @@ import { getDb } from '@gamo/db';
 import { ContractValidationError, validateContract } from '@gamo/api-contracts/runtime';
 import { getRuntimeEnv } from '../api/response.ts';
 import { readPublicFormBody, type PublicFormBody } from '../api/public-form-guard.ts';
-import { asSqlDatabase, allRows } from '../security/sql-database.ts';
-import { AdminService } from '../services/admin.ts';
+import { asSqlDatabase } from '../security/sql-database.ts';
 import {
   notifyProviderOfDecision,
   reviewProviderProfile,
   ReviewError,
-  setOrganizerAlwaysReview,
   latestMeeting,
   type ProviderReviewAction,
   type StaffActor,
@@ -128,13 +124,6 @@ function failure(path: string, err: unknown): Response {
   if (err instanceof ReviewError)
     return seeOther(query(path, { error: err.code, message: err.message, field: err.field }));
   const code = err instanceof Error ? /^([A-Z_]+):/.exec(err.message)?.[1] : undefined;
-  if (code === 'CONFLICT')
-    return seeOther(
-      query(path, {
-        error: 'CONFLICT',
-        message: 'This event was already reviewed. Reload to see the latest.',
-      }),
-    );
   if (code === 'FORBIDDEN')
     return seeOther(query(path, { error: 'FORBIDDEN', message: 'You cannot review your own organization.' }));
   if (code === 'NOT_FOUND')
@@ -199,64 +188,5 @@ export async function providerReviewPOST(context: Context): Promise<Response> {
     return seeOther(query(detail, { done: form.action, email: notified.status }));
   } catch (err) {
     return failure(detail, err);
-  }
-}
-
-/** POST /api/review/events/{id} */
-export async function eventReviewPOST(context: Context): Promise<Response> {
-  const id = String(context.params?.id ?? '');
-  const list = '/review/events';
-  try {
-    const { db, sql, staff } = await staffContext(context);
-    const read = await readPublicFormBody(context.request);
-    if (!read.ok) return seeOther(query(list, { error: read.error.code, message: read.error.message }));
-    const form = validateContract('EventReviewForm', formObject(read.body));
-    const [event] = await allRows<{ organizer_id: string }>(sql, {
-      sql: 'SELECT organizer_id FROM events WHERE id = ?1',
-      params: [id],
-    });
-    if (!event) return seeOther(query(list, { error: 'NOT_FOUND', message: 'That event no longer exists.' }));
-    if (form.decision !== 'approved' && !form.notes?.trim())
-      return seeOther(
-        query(list, {
-          error: 'INVALID',
-          message: 'Add a note for the organizer explaining the decision.',
-          event: id,
-        }),
-      );
-    // AdminService.reviewEvent applies the self-review rule and records the first approval.
-    const reviewed = await new AdminService(db).reviewEvent(staff.userId, id, {
-      decision: form.decision,
-      notes: form.notes,
-    });
-    const recorded = { firstApproval: reviewed.firstApproval };
-    return seeOther(query(list, { done: form.decision, first: recorded.firstApproval ? '1' : null }));
-  } catch (err) {
-    return failure(list, err);
-  }
-}
-
-/** POST /api/review/organizers/{id} */
-export async function organizerReviewPOST(context: Context): Promise<Response> {
-  const id = String(context.params?.id ?? '');
-  const list = '/review/events';
-  try {
-    const { sql, staff } = await staffContext(context);
-    const read = await readPublicFormBody(context.request);
-    if (!read.ok) return seeOther(query(list, { error: read.error.code, message: read.error.message }));
-    const form = validateContract('OrganizerReviewForm', formObject(read.body));
-    const changed = await setOrganizerAlwaysReview(sql, {
-      organizerProfileId: id,
-      alwaysReview: form.always_review === 'on',
-      staff,
-      now: Math.floor(Date.now() / 1000),
-    });
-    if (!changed)
-      return seeOther(query(list, { error: 'NOT_FOUND', message: 'That organizer no longer exists.' }));
-    return seeOther(
-      query(list, { done: form.always_review === 'on' ? 'always_review_on' : 'always_review_off' }),
-    );
-  } catch (err) {
-    return failure(list, err);
   }
 }

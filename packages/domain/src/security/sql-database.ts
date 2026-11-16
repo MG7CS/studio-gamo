@@ -19,7 +19,7 @@ export interface SqlDatabase {
   batch(statements: SqlStatement[]): Promise<unknown[]>;
 }
 
-/** A SQL text plus its positional parameters; build with the `packages/domain/src/ticketing/sql.ts` builders. */
+/** A SQL text plus its positional parameters (one statement of a `runBatch`). */
 export interface SqlStatementSpec {
   sql: string;
   params: SqlParam[];

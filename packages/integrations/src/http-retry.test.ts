@@ -25,8 +25,8 @@ const json = (status: number, body: unknown) => () =>
 const checkout = {
   mode: 'payment' as const,
   amountMinorUnits: 2500,
-  successUrl: 'https://live.example.test/my-tickets?order=A1',
-  cancelUrl: 'https://live.example.test/events/x',
+  successUrl: 'https://academy.example.test/registrations/receipt?ref=A1',
+  cancelUrl: 'https://academy.example.test/register/x',
 };
 
 test('Stripe: idempotency key is sent and one retry follows a 5xx', async () => {

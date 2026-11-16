@@ -9,7 +9,6 @@ import {
   productAccounts,
   organizations,
   organizationMembers,
-  organizerProfiles,
   roles,
   userRoles,
   authChallenges,
@@ -500,7 +499,7 @@ export class IdentityService {
   }
 
   /**
-   * Creates an organization, assigns the owner membership, initializes an organizer profile, and logs an audit entry.
+   * Creates an organization, assigns the owner membership, and logs an audit entry.
    */
   async createOrganization(
     name: string,
@@ -521,9 +520,7 @@ export class IdentityService {
 
     const orgId = `org_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const memberId = `mem_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const organizerId = `orgprof_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date();
-    const validKind = ['church', 'ministry', 'school', 'sponsor', 'other'].includes(type) ? type : 'other';
 
     await this.db.insert(organizations).values({
       id: orgId,
@@ -540,14 +537,6 @@ export class IdentityService {
       userId: ownerUserId,
       role: 'owner',
       status: 'active',
-      createdAt: now,
-    });
-
-    await this.db.insert(organizerProfiles).values({
-      id: organizerId,
-      organizationId: orgId,
-      kind: validKind,
-      verificationStatus: 'unverified',
       createdAt: now,
     });
 

@@ -35,8 +35,8 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
         client.createTestCheckoutSession({
           mode: 'payment',
           amountMinorUnits: 2500,
-          successUrl: 'https://live.gamostudio.org/my-tickets?order=A1',
-          cancelUrl: 'https://live.gamostudio.org/events/concert-1',
+          successUrl: 'https://academy.gamostudio.org/registrations/receipt?ref=A1',
+          cancelUrl: 'https://academy.gamostudio.org/register/keyboard',
         }),
         StripeNotConfiguredError,
       );
@@ -61,9 +61,9 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
     const session = await client.createTestCheckoutSession({
       mode: 'payment',
       amountMinorUnits: 2500, // $25.00
-      description: 'Gamo Live Event Ticket (Test)',
-      successUrl: 'https://live.gamostudio.org/tickets/success?session_id={CHECKOUT_SESSION_ID}',
-      cancelUrl: 'https://live.gamostudio.org/events/concert-1',
+      description: 'Gamo Academy Lesson (Test)',
+      successUrl: 'https://academy.gamostudio.org/registrations/receipt?session_id={CHECKOUT_SESSION_ID}',
+      cancelUrl: 'https://academy.gamostudio.org/register/keyboard',
     });
 
     assert.equal(session.mock, true);
@@ -77,11 +77,11 @@ describe('Stripe Integration & Nonprofit Governance Gates', () => {
     const session = await client.createTestCheckoutSession({
       mode: 'payment',
       amountMinorUnits: 2500,
-      successUrl: 'https://live.gamostudio.org/my-tickets?order=A1',
-      cancelUrl: 'https://live.gamostudio.org/events/concert-1',
+      successUrl: 'https://academy.gamostudio.org/registrations/receipt?ref=A1',
+      cancelUrl: 'https://academy.gamostudio.org/register/keyboard',
     });
     const url = new URL(session.url!);
-    assert.equal(url.searchParams.get('order'), 'A1');
+    assert.equal(url.searchParams.get('ref'), 'A1');
     assert.equal(url.searchParams.get('session_id'), session.id);
     assert.equal((session.url!.match(/\?/g) ?? []).length, 1);
   });

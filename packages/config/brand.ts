@@ -1,8 +1,11 @@
+/**
+ * Gamo Studios platform brand configuration (display name, sender, disclosures) shared by every app.
+ * Overridable per Worker through the `PLATFORM_*` variables.
+ */
 export interface PlatformBrandEnv {
   PLATFORM_BRAND?: string;
   PLATFORM_BRAND_TAGLINE?: string;
   PLATFORM_PRIMARY_DOMAIN?: string;
-  PLATFORM_IS_LIVE_DOMAIN?: string;
   PLATFORM_SUPPORT_EMAIL?: string;
   PLATFORM_SENDER_NAME?: string;
   PLATFORM_SENDER_EMAIL?: string;
@@ -19,12 +22,12 @@ export interface PlatformBrandConfig {
   /** Public tagline for discovery & social cards */
   tagline: string;
   /** Internal operating division */
-  operatingDivision: 'Gamo Live';
+  operatingDivision: 'Gamo Studios';
   /** Parent organization */
   parentOrganization: 'Gamo Studios';
-  /** Configured primary domain (treated as non-live placeholder until PLATFORM_IS_LIVE_DOMAIN='true') */
+  /** Configured primary domain */
   primaryDomain: string;
-  /** True until founder approves and activates a live production domain */
+  /** True when no `PLATFORM_PRIMARY_DOMAIN` is configured (canonical origin falls back to localhost) */
   isPlaceholderDomain: boolean;
   /** Canonical origin URL for metadata and pass generation */
   canonicalOrigin: string;
@@ -40,19 +43,19 @@ export interface PlatformBrandConfig {
     twitterCard: 'summary_large_image';
     defaultDescription: string;
   };
-  /** Header label used on QR admission passes and printable ticket PDFs */
+  /** Header label for confirmation passes (kept for compatibility; no ticketing remains) */
   ticketPassHeader: string;
   /** Header label used on checkout summaries and order receipts */
   receiptHeader: string;
   /** Accurate legal/operator disclosure for legal, privacy, payment, and transactional footer contexts */
   operatorDisclosure: string;
-  /** Accurate financial & non-escrow disclosure for checkout, settlements, and booking agreements */
+  /** Accurate financial & non-escrow disclosure for checkout and receipts */
   paymentDisclosure: string;
 }
 
-const DEFAULT_DISPLAY_NAME = 'Gamo Live';
-const DEFAULT_TAGLINE = 'Christian Concerts, Worship Nights & Live Gatherings';
-const DEFAULT_DOMAIN = 'live.example.invalid';
+const DEFAULT_DISPLAY_NAME = 'Gamo Studios';
+const DEFAULT_TAGLINE = 'Worship, Academy & Production for Churches';
+const DEFAULT_DOMAIN = 'gamostudio.org';
 
 function sanitizeDisplayName(raw?: string): string {
   const trimmed = raw?.trim();
@@ -78,9 +81,9 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
   const displayName = sanitizeDisplayName(env.PLATFORM_BRAND);
   const tagline = env.PLATFORM_BRAND_TAGLINE?.trim() || DEFAULT_TAGLINE;
   const primaryDomain = env.PLATFORM_PRIMARY_DOMAIN?.trim() || DEFAULT_DOMAIN;
-  const isPlaceholderDomain = env.PLATFORM_IS_LIVE_DOMAIN !== 'true';
+  const isPlaceholderDomain = !env.PLATFORM_PRIMARY_DOMAIN?.trim();
   const canonicalOrigin = isPlaceholderDomain
-    ? 'http://localhost:4324'
+    ? 'http://localhost:4321'
     : `https://${primaryDomain.replace(/^https?:\/\//, '')}`;
   const supportEmail = env.PLATFORM_SUPPORT_EMAIL?.trim() || 'hello@gamostudio.org';
   const emailSenderName = sanitizeDisplayName(env.PLATFORM_SENDER_NAME || displayName);
@@ -92,7 +95,7 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
     displayName,
     logoMark,
     tagline,
-    operatingDivision: 'Gamo Live',
+    operatingDivision: 'Gamo Studios',
     parentOrganization: 'Gamo Studios',
     primaryDomain,
     isPlaceholderDomain,
@@ -104,13 +107,12 @@ export function getPlatformBrandConfig(env: PlatformBrandEnv = {}): PlatformBran
       siteName: displayName,
       twitterCard: 'summary_large_image',
       defaultDescription:
-        'Discover Christian concerts, worship nights, gospel performances, conferences, and community gatherings nationwide.',
+        'Gamo Studios serves churches with worship musicians, music lessons through Gamo Academy, and production support.',
     },
-    ticketPassHeader: `${displayName} · Official Admission Pass`,
+    ticketPassHeader: `${displayName} · Confirmation`,
     receiptHeader: `${displayName} · Order Confirmation & Receipt`,
-    operatorDisclosure:
-      'Operated by the Gamo Live division of Gamo Studios, a Christian, mission-driven Public Benefit Corporation.',
+    operatorDisclosure: 'Operated by Gamo Studios, a Christian, mission-driven Public Benefit Corporation.',
     paymentDisclosure:
-      'Ticket orders and booking terms are facilitated by the Gamo Live division of Gamo Studios. Organizer proceeds, performer payables, agent commissions, processing costs, and platform administrative allocations are tracked as separate line items. The platform is not a bank, escrow agent, or fiduciary.',
+      'Payments are facilitated by Gamo Studios. Musician and instructor pay, processing costs, and any administrative allocation are tracked as separate line items. Gamo Studios is not a bank, escrow agent, or fiduciary.',
   };
 }

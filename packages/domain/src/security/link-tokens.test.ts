@@ -11,7 +11,6 @@ import {
   isExpired,
   isWellFormedLinkToken,
   LINK_TOKEN_RETENTION_SECONDS,
-  orderLinkExpiresAt,
   parseScope,
   recoveryLinkExpiresAt,
   RECOVERY_LINK_TTL_SECONDS,
@@ -30,7 +29,7 @@ async function setup() {
     )
     .run(NOW, NOW, NOW, NOW);
   const db: SqlDatabase = d1;
-  return { d1, db, tokens: new CustomerLinkTokens(db, SECRET, 'live') };
+  return { d1, db, tokens: new CustomerLinkTokens(db, SECRET, 'academy') };
 }
 
 test('tokens are 256-bit base64url and hashed with the secret (never stored in clear)', async () => {
@@ -40,11 +39,14 @@ test('tokens are 256-bit base64url and hashed with the secret (never stored in c
   assert.notEqual(generateLinkToken(), t);
   for (const bad of ['', 'x'.repeat(43), t + 'A', t.slice(1), t.replace(/./, '+'), null])
     assert.equal(isWellFormedLinkToken(bad), false, String(bad));
-  const h = await hashLinkToken(t, SECRET, 'live');
+  const h = await hashLinkToken(t, SECRET, 'academy');
   assert.match(h, /^[0-9a-f]{64}$/);
-  assert.notEqual(h, await hashLinkToken(t, SECRET.replace('0001', '0002'), 'live'));
-  await assert.rejects(() => hashLinkToken(t, 'short', 'live'), SecretNotConfiguredError);
-  assert.throws(() => new CustomerLinkTokens({} as SqlDatabase, undefined, 'live'), SecretNotConfiguredError);
+  assert.notEqual(h, await hashLinkToken(t, SECRET.replace('0001', '0002'), 'academy'));
+  await assert.rejects(() => hashLinkToken(t, 'short', 'academy'), SecretNotConfiguredError);
+  assert.throws(
+    () => new CustomerLinkTokens({} as SqlDatabase, undefined, 'academy'),
+    SecretNotConfiguredError,
+  );
 
   const { d1, tokens } = await setup();
   const issued = await tokens.issue({
@@ -58,36 +60,39 @@ test('tokens are 256-bit base64url and hashed with the secret (never stored in c
     string,
     unknown
   >;
-  assert.equal(row.token_hash, await hashLinkToken(issued.token, SECRET, 'live'));
+  assert.equal(row.token_hash, await hashLinkToken(issued.token, SECRET, 'academy'));
   assert.ok(!Object.values(row).includes(issued.token), 'the plaintext token is not stored');
 });
 
 test('scopes: format, parse, cover rules', () => {
   assert.equal(formatScope('customer'), 'customer:all');
-  assert.equal(formatScope('order', 'ord_1'), 'order:ord_1');
-  assert.throws(() => formatScope('order'), RangeError);
-  assert.throws(() => formatScope('ticket', 'a b'), RangeError);
-  assert.deepEqual(parseScope('ticket:tkt_1'), { kind: 'ticket', id: 'tkt_1' });
-  for (const bad of ['customer:me', 'order:', ':x', 'admin:1', 'order:a;b', 42, null])
+  assert.equal(formatScope('registration', 'acr_1'), 'registration:acr_1');
+  assert.throws(() => formatScope('registration'), RangeError);
+  assert.throws(() => formatScope('registration', 'a b'), RangeError);
+  assert.deepEqual(parseScope('registration:acr_1'), { kind: 'registration', id: 'acr_1' });
+  for (const bad of [
+    'customer:me',
+    'registration:',
+    ':x',
+    'admin:1',
+    'registration:a;b',
+    'order:ord_1',
+    42,
+    null,
+  ])
     assert.equal(parseScope(bad), null, String(bad));
-  assert.ok(isCustomerScope('transfer:tkt_1'));
+  assert.ok(isCustomerScope('registration:acr_1'));
+  assert.ok(!isCustomerScope('ticket:tkt_1'), 'retired Live scopes no longer parse');
 
-  assert.ok(scopeCovers('customer:all', { kind: 'order', id: 'ord_1' }));
-  assert.ok(scopeCovers('customer:all', { kind: 'registration', id: 'reg_1' }));
-  assert.ok(!scopeCovers('customer:all', { kind: 'transfer', id: 'tkt_1' }), 'transfers need their own link');
-  assert.ok(scopeCovers('order:ord_1', { kind: 'order', id: 'ord_1' }));
-  assert.ok(!scopeCovers('order:ord_1', { kind: 'order', id: 'ord_2' }));
-  assert.ok(scopeCovers('order:ord_1', { kind: 'ticket', id: 'tkt_1', orderId: 'ord_1' }));
-  assert.ok(!scopeCovers('order:ord_1', { kind: 'ticket', id: 'tkt_1', orderId: 'ord_2' }));
-  assert.ok(!scopeCovers('order:ord_1', { kind: 'customer' }));
-  assert.ok(!scopeCovers('ticket:tkt_1', { kind: 'order', id: 'tkt_1' }));
-  assert.ok(!scopeCovers('garbage', { kind: 'order', id: 'x' }));
+  assert.ok(scopeCovers('customer:all', { kind: 'registration', id: 'acr_1' }));
+  assert.ok(scopeCovers('registration:acr_1', { kind: 'registration', id: 'acr_1' }));
+  assert.ok(!scopeCovers('registration:acr_1', { kind: 'registration', id: 'acr_2' }));
+  assert.ok(!scopeCovers('registration:acr_1', { kind: 'customer' }));
+  assert.ok(!scopeCovers('garbage', { kind: 'registration', id: 'x' }));
 });
 
 test('expiry helpers', () => {
   assert.equal(recoveryLinkExpiresAt(NOW), NOW + RECOVERY_LINK_TTL_SECONDS);
-  assert.equal(orderLinkExpiresAt({ startsAt: NOW + 100, endsAt: NOW + 200 }, NOW), NOW + 200 + 30 * 86400);
-  assert.equal(orderLinkExpiresAt({ startsAt: NOW - 90 * 86400 }, NOW), NOW + 86400, 'never already expired');
   assert.equal(isExpired(NOW, NOW), true);
   assert.equal(isExpired(NOW + 1, NOW), false);
 });
@@ -96,8 +101,8 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
   const { d1, db, tokens } = await setup();
   const a = await tokens.issue({
     customerProfileId: 'cus_1',
-    scope: 'order:ord_1',
-    purpose: 'order',
+    scope: 'registration:acr_1',
+    purpose: 'registration',
     expiresAt: NOW + 600,
     now: NOW,
   });
@@ -107,8 +112,8 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
   assert.deepEqual(first.record, {
     id: a.id,
     customerProfileId: 'cus_1',
-    scope: 'order:ord_1',
-    purpose: 'order',
+    scope: 'registration:acr_1',
+    purpose: 'registration',
     expiresAt: NOW + 600,
     useCount: 1,
     maxUses: null,
@@ -127,7 +132,7 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
   assert.deepEqual(await tokens.consume(generateLinkToken(), NOW), { ok: false, reason: 'invalid' });
   assert.deepEqual(await tokens.consume('not-a-token', NOW), { ok: false, reason: 'invalid' });
   assert.deepEqual(
-    await new CustomerLinkTokens(db, SECRET.replace('0001', '9999'), 'live').consume(a.token, NOW),
+    await new CustomerLinkTokens(db, SECRET.replace('0001', '9999'), 'academy').consume(a.token, NOW),
     {
       ok: false,
       reason: 'invalid',
@@ -136,8 +141,8 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
 
   const single = await tokens.issue({
     customerProfileId: 'cus_2',
-    scope: 'transfer:tkt_1',
-    purpose: 'transfer',
+    scope: 'registration:acr_2',
+    purpose: 'registration',
     expiresAt: NOW + 600,
     now: NOW,
     maxUses: 1,
@@ -158,14 +163,14 @@ test('consume: verifies hash, expiry, revocation and max uses atomically; counts
 
   const b = await tokens.issue({
     customerProfileId: 'cus_1',
-    scope: 'order:ord_1',
-    purpose: 'order',
+    scope: 'registration:acr_1',
+    purpose: 'registration',
     expiresAt: NOW + 600,
     now: NOW,
   });
-  assert.equal(await tokens.revokeForScope('order:ord_1', NOW + 3), 2);
+  assert.equal(await tokens.revokeForScope('registration:acr_1', NOW + 3), 2);
   assert.deepEqual(await tokens.consume(b.token, NOW + 4), { ok: false, reason: 'revoked' });
-  assert.equal(await tokens.revokeForScope('order:ord_1', NOW + 5), 0, 'already revoked');
+  assert.equal(await tokens.revokeForScope('registration:acr_1', NOW + 5), 0, 'already revoked');
   assert.equal(await tokens.revoke(single.id, NOW), true);
   assert.equal(await tokens.revoke(single.id, NOW), false);
 });
@@ -177,7 +182,7 @@ test('issue validates input and the database enforces the scope shape; purge hon
       tokens.issue({
         customerProfileId: 'cus_1',
         scope: 'admin:1' as never,
-        purpose: 'order',
+        purpose: 'registration',
         expiresAt: NOW + 1,
         now: NOW,
       }),
@@ -197,7 +202,7 @@ test('issue validates input and the database enforces the scope shape; purge hon
   assert.throws(() =>
     d1.sqlite
       .prepare(
-        "INSERT INTO customer_access_tokens (id, customer_profile_id, token_hash, scope, purpose, expires_at, created_at) VALUES ('x', 'cus_1', ?, 'order:a b', 'order', ?, ?)",
+        "INSERT INTO customer_access_tokens (id, customer_profile_id, token_hash, scope, purpose, expires_at, created_at) VALUES ('x', 'cus_1', ?, 'registration:a b', 'registration', ?, ?)",
       )
       .run('a'.repeat(64), NOW + 10, NOW),
   );

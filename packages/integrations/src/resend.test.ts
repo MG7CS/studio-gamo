@@ -18,12 +18,12 @@ test('attachments and headers map to Resend field names (content_type, content_i
   const client = createResendClient({ apiKey: 're_live_example_key', fetchImpl: r.impl });
   const result = await client.send({
     to: 'guest@example.test',
-    subject: 'Your tickets (Sample)',
+    subject: 'Your registration (Sample)',
     html: '<img src="cid:qr-1" alt="Ticket QR code">',
-    text: 'Your tickets',
-    idempotencyKey: 'ticket_email:ord_1',
+    text: 'Your registration',
+    idempotencyKey: 'academy_receipt:acr_1',
     attachments: [
-      { filename: 'tickets.pdf', content: 'JVBERi0=', contentType: 'application/pdf' },
+      { filename: 'receipt.pdf', content: 'JVBERi0=', contentType: 'application/pdf' },
       { filename: 'qr-1.png', content: 'iVBORw0=', contentType: 'image/png', contentId: 'qr-1' },
       { filename: 'event.ics', content: 'QkVHSU4=' },
     ],
@@ -32,9 +32,9 @@ test('attachments and headers map to Resend field names (content_type, content_i
   assert.deepEqual(result, { success: true, id: 'msg_1', mock: false });
   const { url, init, body } = r.calls[0];
   assert.equal(url, 'https://api.resend.com/emails');
-  assert.equal((init.headers as Record<string, string>)['Idempotency-Key'], 'ticket_email:ord_1');
+  assert.equal((init.headers as Record<string, string>)['Idempotency-Key'], 'academy_receipt:acr_1');
   assert.deepEqual(body.attachments, [
-    { filename: 'tickets.pdf', content: 'JVBERi0=', content_type: 'application/pdf' },
+    { filename: 'receipt.pdf', content: 'JVBERi0=', content_type: 'application/pdf' },
     { filename: 'qr-1.png', content: 'iVBORw0=', content_type: 'image/png', content_id: 'qr-1' },
     { filename: 'event.ics', content: 'QkVHSU4=' },
   ]);

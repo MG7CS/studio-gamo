@@ -8,28 +8,18 @@ import { newPrefixedId } from './ids.ts';
 import { changesOf, runBatch, type SqlDatabase } from './sql-database.ts';
 
 export const LINK_TOKEN_BYTES = 32;
-/** `/tickets/find`, `/registrations/find`: `customer:all` links last 30 minutes. */
+/** `/registrations/find`: `customer:all` links last 30 minutes. */
 export const RECOVERY_LINK_TTL_SECONDS = 30 * 60;
-/** Per-order links stay valid until the event ends + 30 days. */
-export const ORDER_LINK_GRACE_SECONDS = 30 * 24 * 60 * 60;
 /** The customer cookie opened from a link lasts 2 hours. */
 export const CUSTOMER_SESSION_TTL_SECONDS = 2 * 60 * 60;
 /** Retention: token rows are deleted 30 days after they expire. */
 export const LINK_TOKEN_RETENTION_SECONDS = 30 * 24 * 60 * 60;
 
-export const CUSTOMER_SCOPE_KINDS = ['customer', 'order', 'ticket', 'registration', 'transfer'] as const;
+export const CUSTOMER_SCOPE_KINDS = ['customer', 'registration'] as const;
 export type CustomerScopeKind = (typeof CUSTOMER_SCOPE_KINDS)[number];
-export type CustomerScope =
-  'customer:all' | `order:${string}` | `ticket:${string}` | `registration:${string}` | `transfer:${string}`;
+export type CustomerScope = 'customer:all' | `registration:${string}`;
 
-export const LINK_TOKEN_PURPOSES = [
-  'recovery',
-  'order',
-  'verification',
-  'ticket',
-  'registration',
-  'transfer',
-] as const;
+export const LINK_TOKEN_PURPOSES = ['recovery', 'registration'] as const;
 export type LinkTokenPurpose = (typeof LINK_TOKEN_PURPOSES)[number];
 
 export type ParsedScope =
@@ -43,7 +33,7 @@ export function formatScope(kind: CustomerScopeKind, id?: string): CustomerScope
   return `${kind}:${id}`;
 }
 
-/** Parses a stored or requested scope; null when it is not one of the five shapes. */
+/** Parses a stored or requested scope; null when it is not one of the two shapes. */
 export function parseScope(scope: unknown): ParsedScope | null {
   if (scope === 'customer:all') return { kind: 'customer', id: null };
   if (typeof scope !== 'string') return null;
@@ -51,8 +41,7 @@ export function parseScope(scope: unknown): ParsedScope | null {
   const kind = scope.slice(0, at);
   const id = scope.slice(at + 1);
   if (at < 1 || !SCOPE_ID.test(id)) return null;
-  if (kind === 'order' || kind === 'ticket' || kind === 'registration' || kind === 'transfer')
-    return { kind, id };
+  if (kind === 'registration') return { kind, id };
   return null;
 }
 
@@ -63,30 +52,19 @@ export function isCustomerScope(scope: unknown): scope is CustomerScope {
 /**
  * Does a granted scope cover the requested resource? The caller has already checked that the
  * resource belongs to the token's customer profile (scopes never cross customers).
- *   - `customer:all` covers that customer's orders, tickets and registrations (not transfers);
- *   - `order:<id>` covers the order and its tickets (pass `orderId` for a ticket);
- *   - everything else must match exactly.
+ *   - `customer:all` covers every registration of that customer;
+ *   - `registration:<id>` covers exactly that registration.
  */
-export function scopeCovers(
-  granted: string,
-  requested: { kind: CustomerScopeKind; id?: string; orderId?: string },
-): boolean {
+export function scopeCovers(granted: string, requested: { kind: CustomerScopeKind; id?: string }): boolean {
   const g = parseScope(granted);
   if (!g) return false;
-  if (g.kind === 'customer') return requested.kind !== 'transfer';
+  if (g.kind === 'customer') return true;
   if (requested.kind === 'customer') return false;
-  if (g.kind === requested.kind) return g.id === requested.id;
-  return g.kind === 'order' && requested.kind === 'ticket' && requested.orderId === g.id;
+  return g.id === requested.id;
 }
 
 export function recoveryLinkExpiresAt(now: number): number {
   return now + RECOVERY_LINK_TTL_SECONDS;
-}
-
-/** Event end (or start when no end) + 30 days, never earlier than `now` + 1 day. */
-export function orderLinkExpiresAt(event: { startsAt: number; endsAt?: number | null }, now: number): number {
-  const end = event.endsAt ?? event.startsAt;
-  return Math.max(end + ORDER_LINK_GRACE_SECONDS, now + 24 * 60 * 60);
 }
 
 export function isExpired(expiresAt: number, now: number): boolean {
@@ -103,7 +81,10 @@ export function isWellFormedLinkToken(token: unknown): token is string {
   return base64UrlToBytes(token)?.length === LINK_TOKEN_BYTES;
 }
 
-/** Products whose customers use emailed links (Live tickets, Academy registrations). */
+/**
+ * Products whose customers use emailed links. Only Academy issues links now; 'live' stays because stored
+ * `customer_access_tokens.product` / `customer_sessions.product` values (and their CHECKs) still allow it.
+ */
 export const LINK_PRODUCTS = ['live', 'academy'] as const;
 export type LinkProduct = (typeof LINK_PRODUCTS)[number];
 export function isLinkProduct(value: unknown): value is LinkProduct {
@@ -112,7 +93,7 @@ export function isLinkProduct(value: unknown): value is LinkProduct {
 
 /**
  * HMAC-SHA256 hex of the token, keyed by CUSTOMER_LINK_SECRET (≥ 32 characters) and bound to the product
- * (`customer-link|<product>|<token>`): a link issued for Academy hashes differently in Live and vice versa.
+ * (`customer-link|<product>|<token>`): a link issued for one product never verifies in another.
  */
 export async function hashLinkToken(token: string, secret: string, product: LinkProduct): Promise<string> {
   if (!isLinkProduct(product)) throw new RangeError('hashLinkToken: product');
@@ -236,7 +217,7 @@ export class CustomerLinkTokens {
   }
 
   /**
-   * Revokes every live token with exactly this scope (e.g. after a transfer) **and** every customer
+   * Revokes every live token with exactly this scope **and** every customer
    * session opened from those tokens, in one batch. Returns how many tokens were revoked.
    */
   async revokeForScope(scope: CustomerScope, now: number): Promise<number> {

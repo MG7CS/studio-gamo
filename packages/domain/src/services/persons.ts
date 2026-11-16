@@ -244,10 +244,10 @@ export async function listPersonProducts(
 }
 
 export interface CustomerRecord {
-  kind: 'ticket_order' | 'academy_registration';
+  kind: 'academy_registration';
   id: string;
-  product: Extract<Product, 'live' | 'academy'>;
-  /** Human reference (order reference or registration reference) when there is one. */
+  product: Extract<Product, 'academy'>;
+  /** Human registration reference when there is one. */
   reference: string | null;
   title: string;
   status: string;
@@ -257,7 +257,7 @@ export interface CustomerRecord {
 }
 
 /**
- * The customer records (Live ticket orders, Academy registrations) of a person, read through
+ * The customer records (Academy registrations) of a person, read through
  * `customer_profiles.person_id` (design §4.2 "claim an account"). Read-only; the manage pages stay with
  * their owning product and still require the customer's emailed link.
  */
@@ -267,21 +267,6 @@ export async function listCustomerRecordsForPerson(
   options: { limit?: number } = {},
 ): Promise<CustomerRecord[]> {
   const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
-  const orders = await allRows<{
-    id: string;
-    order_reference: string | null;
-    status: string;
-    created_at: number;
-    title: string | null;
-  }>(db, {
-    sql: `SELECT o.id, coalesce(o.order_reference, o.order_number) AS order_reference, o.status, o.created_at, e.title AS title
-            FROM ticket_orders o
-            JOIN customer_profiles c ON c.id = o.customer_profile_id
-            LEFT JOIN events e ON e.id = o.event_id
-           WHERE c.person_id = ?1 AND c.erased_at IS NULL
-           ORDER BY o.created_at DESC LIMIT ?2`,
-    params: [personId, limit],
-  });
   const registrations = await allRows<{
     id: string;
     reference: string | null;
@@ -297,35 +282,22 @@ export async function listCustomerRecordsForPerson(
            ORDER BY r.created_at DESC LIMIT ?2`,
     params: [personId, limit],
   });
-  const records: CustomerRecord[] = [
-    ...orders.map((o) => ({
-      kind: 'ticket_order' as const,
-      id: o.id,
-      product: 'live' as const,
-      reference: o.order_reference ?? null,
-      title: o.title ?? 'Gamo Live order',
-      status: o.status,
-      createdAt: Number(o.created_at),
-      managePath: '/tickets/find',
-    })),
-    ...registrations.map((r) => ({
-      kind: 'academy_registration' as const,
-      id: r.id,
-      product: 'academy' as const,
-      reference: r.reference ?? null,
-      title: (r.lesson_slug ?? r.program_slug).replace(/-/g, ' '),
-      status: r.status,
-      createdAt: Number(r.created_at),
-      managePath: '/registrations/find',
-    })),
-  ];
-  return records.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
+  return registrations.map((r) => ({
+    kind: 'academy_registration' as const,
+    id: r.id,
+    product: 'academy' as const,
+    reference: r.reference ?? null,
+    title: (r.lesson_slug ?? r.program_slug).replace(/-/g, ' '),
+    status: r.status,
+    createdAt: Number(r.created_at),
+    managePath: '/registrations/find',
+  }));
 }
 
 /**
  * Customer account claim (design §4.2): an account sign-up or sign-in just verified this email, which also
  * proves control of the guest customer profile with the same address. Marks that profile verified and
- * links it to the same person, so the account page lists its orders and registrations. No-op when there
+ * links it to the same person, so the account page lists its registrations. No-op when there
  * is no (or an erased) customer profile.
  */
 export async function attachCustomerProfileForVerifiedEmail(

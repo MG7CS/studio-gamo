@@ -33,20 +33,20 @@ const ok = (id: string) => () => Response.json({ id });
 const status = (code: number) => () => new Response('{}', { status: code });
 
 const message = (extra: Partial<OutboxMessage> = {}): OutboxMessage => ({
-  kind: 'ticket_email',
-  idempotencyKey: 'ticket_email:ord_sample',
+  kind: 'academy_receipt',
+  idempotencyKey: 'academy_receipt:acr_sample',
   to: 'Guest@Example.org',
-  subject: 'Your tickets (Sample)',
+  subject: 'Your registration (Sample)',
   html: '<p>Sample</p>',
   text: 'Sample',
-  relatedType: 'order',
-  relatedId: 'ord_sample',
-  product: 'live',
+  relatedType: 'academy_registration',
+  relatedId: 'acr_sample',
+  product: 'academy',
   now: NOW,
   ...extra,
 });
 
-const row = (db: any, key = 'ticket_email:ord_sample') =>
+const row = (db: any, key = 'academy_receipt:acr_sample') =>
   db.sqlite.prepare('SELECT * FROM email_log WHERE idempotency_key = ?').get(key) as any;
 
 test('send: records the row, passes the idempotency key, and a repeat with the same key sends nothing', async () => {
@@ -56,14 +56,14 @@ test('send: records the row, passes the idempotency key, and a repeat with the s
   assert.equal(first.status, 'sent');
   assert.equal(first.sentNow, true);
   assert.equal(first.providerMessageId, 're_msg_1');
-  assert.equal(r.calls[0].headers['Idempotency-Key'], 'ticket_email:ord_sample');
+  assert.equal(r.calls[0].headers['Idempotency-Key'], 'academy_receipt:acr_sample');
   const stored = row(db);
   assert.equal(stored.status, 'sent');
   assert.equal(stored.recipient_email, 'guest@example.org');
   assert.match(stored.recipient_hash, /^[0-9a-f]{64}$/);
   assert.equal(stored.attempts, 1);
   assert.equal(stored.sent_at, NOW);
-  assert.equal(stored.product, 'live');
+  assert.equal(stored.product, 'academy');
   assert.ok(!JSON.stringify(stored).includes('<p>Sample</p>'), 'no message body is stored');
   const again = await sendOutboxEmail(db, ENV, message({ now: NOW + 5 }), { fetchImpl: r.impl });
   assert.deepEqual(
@@ -209,7 +209,7 @@ test('provider events: delivered, never backwards; hard bounce and complaint sup
   );
 
   const skip = resend([]);
-  const next = await sendOutboxEmail(db, ENV, message({ idempotencyKey: 'ticket_email:ord_2' }), {
+  const next = await sendOutboxEmail(db, ENV, message({ idempotencyKey: 'academy_receipt:acr_2' }), {
     fetchImpl: skip.impl,
   });
   assert.equal(next.status, 'suppressed');
@@ -233,7 +233,7 @@ test('retryDue re-renders due rows; unrenderable rows stop; purge nulls old addr
   await sendOutboxEmail(
     db,
     { ...ENV, RESEND_API_KEY: undefined },
-    message({ idempotencyKey: 'gone', relatedId: 'ord_gone' }),
+    message({ idempotencyKey: 'gone', relatedId: 'acr_gone' }),
   );
   const r = resend([ok('re_retry')]);
   const results = await retryDueOutboxEmails(
@@ -242,8 +242,8 @@ test('retryDue re-renders due rows; unrenderable rows stop; purge nulls old addr
     {
       now: NOW + 600,
       render: async (due) =>
-        due.relatedId === 'ord_sample'
-          ? { subject: 'Your tickets (Sample)', text: 'again', relatedId: due.relatedId }
+        due.relatedId === 'acr_sample'
+          ? { subject: 'Your registration (Sample)', text: 'again', relatedId: due.relatedId }
           : null,
     },
     { fetchImpl: r.impl },
@@ -271,7 +271,7 @@ const sign = (id: string, ts: number, body: string, key = KEY) =>
   createHmac('sha256', key).update(`${id}.${ts}.${body}`).digest('base64');
 
 const webhook = (body: string, headers: Record<string, string>) =>
-  new Request('https://live.example.test/api/webhook/resend', { method: 'POST', body, headers });
+  new Request('https://gamostudio.example.test/api/webhook/resend', { method: 'POST', body, headers });
 
 test('verifyResendWebhook accepts a valid Svix signature (any of several v1 entries) and returns the payload', async () => {
   const body = JSON.stringify({ type: 'email.delivered', data: { email_id: 're_1' } });

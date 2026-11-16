@@ -1,36 +1,13 @@
 /**
- * Identifiers. Ticket ids carry the 130 random bits the QR code encodes (design §6); other ids
- * are prefixed random strings; order references are short, human-readable and unambiguous.
+ * Identifiers: prefixed random strings, and short, human-readable, unambiguous references
+ * (Academy registrations use the `GA` prefix).
  */
 import { randomBase32 } from './base32.ts';
-
-/** `tkt_` + 26 lower-case Crockford symbols = 130 random bits. */
-export function newTicketId(): string {
-  return `tkt_${randomBase32(26).toLowerCase()}`;
-}
-
-const TICKET_ID = /^tkt_[0-9a-hjkmnp-tv-z]{26}$/;
-
-/** True for ids produced by `newTicketId()` (legacy `tkt_<order>_<n>` ids are not QR-addressable). */
-export function isTicketId(value: unknown): value is string {
-  return typeof value === 'string' && TICKET_ID.test(value);
-}
-
-/** The QR form of a ticket id: the 26 symbols in upper case. Null for any other id. */
-export function ticketIdToQrPart(ticketId: string): string | null {
-  return isTicketId(ticketId) ? ticketId.slice(4).toUpperCase() : null;
-}
-
-/** Inverse of `ticketIdToQrPart` (case-insensitive). Null when the part is not 26 valid symbols. */
-export function qrPartToTicketId(part: string): string | null {
-  const id = `tkt_${String(part).toLowerCase()}`;
-  return isTicketId(id) ? id : null;
-}
 
 const PREFIX = /^[a-z][a-z0-9]{0,15}$/;
 
 /**
- * `<prefix>_<26 lower-case Crockford symbols>` (130 random bits), e.g. `ord_…`, `oit_…`, `hold_…`.
+ * `<prefix>_<26 lower-case Crockford symbols>` (130 random bits), e.g. `acr_…`, `cus_…`, `csn_…`.
  * Prefixes are 1–16 lower-case letters/digits starting with a letter.
  */
 export function newPrefixedId(prefix: string, randomSymbols = 26): string {
