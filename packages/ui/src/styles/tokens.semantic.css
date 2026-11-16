@@ -1,0 +1,162 @@
+/*
+ * Tier 2: semantic tokens (roles). Apps and pages use THESE, never base palette names or raw values.
+ *
+ * Colours (Tailwind colour utilities: bg-*, text-*, border-*, outline-*, ring-*, fill-*, from-* ...):
+ *   surface          page background (cream; ink under data-surface="dark"; sand under "inset")
+ *   surface-raised   cards and panels lifted off the surface (ivory)
+ *   surface-inset    wells, input backgrounds, quiet bands (sand)
+ *   surface-inverse  opposite-tone band inside the current surface (ink on light, cream on dark)
+ *   fg               primary text and icons on surface (ink / cream)
+ *   fg-muted         secondary text, captions, meta (muted / stone); AA on surface and inset
+ *   fg-inverse       text on surface-inverse (cream on light, ink on dark)
+ *   action           primary action fill and large accent type (terracotta / terracotta-soft)
+ *   action-strong    hover/pressed action, small accent text (terracotta-deep / terracotta-pale)
+ *   on-action        text and icons on an action fill (cream / ink)
+ *   border           hairlines, dividers, field borders (line / white 16%)
+ *   focus            focus-visible outline colour (terracotta / cream); used by the global ring
+ *   danger           error text, invalid borders, destructive actions (crimson)
+ *   success          confirmation text and states (forest)
+ *   scrim            overlay on photos behind text, modal backdrop (night 60%)
+ *
+ * Sizes (Tailwind theme values):
+ *   max-w-page (82.5rem / 1320px), max-w-narrow (56rem), max-w-prose (42rem)  — containers;
+ *     the same names work for w-*, min-w-*, basis-* and @container variants (@page:, @narrow:, @prose:)
+ *   px-gutter / gap-gutter / mx-gutter (spacing-gutter: 1.25rem → 2rem fluid), utility gutter-x
+ *     (padding-inline: gutter) — page side gutters, replaces "px-5 sm:px-8"
+ *   rounded-card (28px), rounded-panel (2rem), rounded-hero (2.5rem), rounded-pill (9999px)
+ *   aspect-portrait (4/5), aspect-landscape (3/2), aspect-wide (21/8)
+ *   text-caption (12px/16px), text-small (14px/20px), text-body-sm (15px/24px)
+ *     — replace text-[12px] … text-[15px]
+ *   tracking-eyebrow (0.16em)
+ *   shadow-raised (subtle card lift); shadow-float stays for floating product UI (tokens.css)
+ *
+ * Theming: wrappers switch roles, components never fork for a theme.
+ *   data-surface="light" | "dark" | "inset"  — re-maps every colour role for the subtree.
+ *     The attribute only switches tokens; the element still sets its own bg-surface/text-fg.
+ *   data-program="<id>"  — reserved hook. An app may override SEMANTIC tokens (--ui-*) for a
+ *     program wrapper in its own CSS; it must never override base palette tokens or add new
+ *     global classes. No per-program colours are defined here yet.
+ *
+ * Mechanics: the roles live in --ui-* custom properties so a wrapper can override them;
+ * `@theme inline` makes each utility read the --ui-* variable at the element, not at :root.
+ * Inline theme values are not emitted as --color-* variables, so component CSS reads the
+ * role directly: var(--ui-surface), var(--ui-fg), var(--ui-focus) ...
+ */
+
+@layer base {
+  :root,
+  [data-surface='light'] {
+    --ui-surface: var(--color-cream);
+    --ui-surface-raised: var(--color-ivory);
+    --ui-surface-inset: var(--color-sand);
+    --ui-surface-inverse: var(--color-ink);
+    --ui-fg: var(--color-ink);
+    --ui-fg-muted: var(--color-muted);
+    --ui-fg-inverse: var(--color-cream);
+    --ui-action: var(--color-terracotta);
+    --ui-action-strong: var(--color-terracotta-deep);
+    --ui-on-action: var(--color-cream);
+    --ui-border: var(--color-line);
+    --ui-focus: var(--color-terracotta);
+    --ui-danger: var(--color-crimson);
+    --ui-success: var(--color-forest);
+    --ui-scrim: rgb(15 15 18 / 0.6);
+  }
+
+  [data-surface='inset'] {
+    --ui-surface: var(--color-sand);
+    --ui-surface-raised: var(--color-ivory);
+    --ui-surface-inset: var(--color-cream);
+    --ui-surface-inverse: var(--color-ink);
+    --ui-fg: var(--color-ink);
+    --ui-fg-muted: var(--color-muted);
+    --ui-fg-inverse: var(--color-cream);
+    --ui-action: var(--color-terracotta);
+    /* Small terracotta text is only 4.2:1 on sand; strong action (deep) is 6.0:1. */
+    --ui-action-strong: var(--color-terracotta-deep);
+    --ui-on-action: var(--color-cream);
+    --ui-border: var(--color-tan);
+    --ui-focus: var(--color-terracotta-deep);
+    --ui-danger: var(--color-crimson);
+    --ui-success: var(--color-forest);
+    --ui-scrim: rgb(15 15 18 / 0.6);
+  }
+
+  [data-surface='dark'] {
+    --ui-surface: var(--color-ink);
+    --ui-surface-raised: var(--color-ink-raised);
+    --ui-surface-inset: var(--color-night);
+    --ui-surface-inverse: var(--color-cream);
+    --ui-fg: var(--color-cream);
+    --ui-fg-muted: var(--color-stone);
+    --ui-fg-inverse: var(--color-ink);
+    --ui-action: var(--color-terracotta-soft);
+    --ui-action-strong: var(--color-terracotta-pale);
+    --ui-on-action: var(--color-ink);
+    --ui-border: rgb(249 246 240 / 0.16);
+    --ui-focus: var(--color-cream);
+    --ui-danger: var(--color-crimson-soft);
+    --ui-success: var(--color-forest-soft);
+    --ui-scrim: rgb(15 15 18 / 0.7);
+  }
+
+  /* data-program: reserved theming hook (see header). Intentionally empty in the shared package. */
+}
+
+@theme inline {
+  --color-surface: var(--ui-surface);
+  --color-surface-raised: var(--ui-surface-raised);
+  --color-surface-inset: var(--ui-surface-inset);
+  --color-surface-inverse: var(--ui-surface-inverse);
+  --color-fg: var(--ui-fg);
+  --color-fg-muted: var(--ui-fg-muted);
+  --color-fg-inverse: var(--ui-fg-inverse);
+  --color-action: var(--ui-action);
+  --color-action-strong: var(--ui-action-strong);
+  --color-on-action: var(--ui-on-action);
+  --color-border: var(--ui-border);
+  --color-focus: var(--ui-focus);
+  --color-danger: var(--ui-danger);
+  --color-success: var(--ui-success);
+  --color-scrim: var(--ui-scrim);
+}
+
+@theme {
+  /* Containers (max-w-page, max-w-narrow, max-w-prose). */
+  --container-page: 82.5rem;
+  --container-narrow: 56rem;
+  --container-prose: 42rem;
+
+  /* Page side gutter (px-gutter, gap-gutter): 20px at 360px wide, 32px from ~800px. */
+  --spacing-gutter: clamp(1.25rem, 4vw, 2rem);
+
+  /* Radii (rounded-card, rounded-panel, rounded-hero, rounded-pill). */
+  --radius-card: 28px;
+  --radius-panel: 2rem;
+  --radius-hero: 2.5rem;
+  --radius-pill: 9999px;
+
+  /* Aspect ratios (aspect-portrait, aspect-landscape, aspect-wide). */
+  --aspect-portrait: 4 / 5;
+  --aspect-landscape: 3 / 2;
+  --aspect-wide: 21 / 8;
+
+  /* Small type steps (text-caption, text-small, text-body-sm). */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.5rem;
+
+  /* Tracking (tracking-eyebrow). */
+  --tracking-eyebrow: 0.16em;
+
+  /* Elevation (shadow-raised). shadow-float is a utility in tokens.css. */
+  --shadow-raised: 0 1px 2px rgb(24 24 27 / 0.06), 0 10px 30px -14px rgb(24 24 27 / 0.22);
+}
+
+/* Page side gutter as one utility (padding-inline: var(--spacing-gutter)). */
+@utility gutter-x {
+  padding-inline: var(--spacing-gutter);
+}

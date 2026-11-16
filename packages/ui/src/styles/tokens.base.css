@@ -1,0 +1,43 @@
+/*
+ * Tier 1: base tokens (raw palette, font and display scale).
+ * Apps and pages must not use these directly in new code; use the semantic roles in
+ * tokens.semantic.css (`bg-surface`, `text-fg`, `bg-action`, ...). Base names stay available
+ * as Tailwind colours because existing markup uses them; they will be migrated, then removed.
+ */
+@theme {
+  /* Brand palette — values from the Gamo Studios booklet (design-reference/gamo-studios-booklet.html). */
+  --color-terracotta: #b34e24;
+  --color-terracotta-deep: #8f3b18;
+  --color-terracotta-soft: #d98b62;
+  --color-ink: #18181b;
+  --color-cream: #f9f6f0;
+  --color-sand: #ede6da;
+  --color-tan: #d8c5ae;
+  --color-line: #dcd3c6;
+  --color-muted: #57534e;
+  /* Surfaces derived from the palette (not in the booklet): a lighter paper and a deeper night. */
+  --color-ivory: #fcfaf6;
+  --color-night: #0f0f12;
+
+  /* Derived steps used only by semantic roles (dark-surface text, hover, status). */
+  --color-terracotta-pale: #e8ad8c; /* hover/strong action on dark surfaces: 9.1:1 on ink */
+  --color-ink-raised: #232327; /* raised panels on dark surfaces */
+  --color-stone: #a8a29e; /* muted text on dark surfaces: 7.0:1 on ink */
+  --color-crimson: #b42318; /* danger on light surfaces: 6.1:1 on cream, 5.3:1 on sand */
+  --color-crimson-soft: #f2a196; /* danger on dark surfaces */
+  --color-forest: #2e6b3f; /* success on light surfaces: 5.9:1 on cream, 5.1:1 on sand */
+  --color-forest-soft: #8fcf9c; /* success on dark surfaces */
+
+  /* Deprecated aliases (kept so existing class names keep working; do not use in new code). */
+  --color-terracotta-dark: var(--color-terracotta-deep); /* $deprecated → terracotta-deep / action-strong */
+  --color-charcoal: var(--color-ink); /* $deprecated → ink / surface-inverse */
+  --color-ink-soft: var(--color-muted); /* $deprecated → muted / fg-muted */
+  --color-gold: var(--color-tan); /* $deprecated → tan */
+
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Display scale (used by the display-xl / display-lg / section-heading utilities). */
+  --text-hero: clamp(2.5rem, 5.2vw, 4.75rem);
+  --text-page-title: clamp(2.25rem, 4.7vw, 4.25rem);
+  --text-section-title: clamp(2rem, 3.6vw, 3.25rem);
+}
