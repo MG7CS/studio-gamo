@@ -1,22 +1,15 @@
 ---
-/** Account menu: active user or demo persona summary, account links, and sign-in/sign-out controls. */
+/** Staff account menu: signed-in staff summary, password & security, and sign-out. Public visitors have no accounts. */
 import Icon from '../Icon.astro';
 import { DEMO_PERSONA, type ViewerPersona } from '../../lib/dashboard';
-import { siteUrl } from '../../lib/sites';
 interface Props {
   viewer?: ViewerPersona;
   staff?: boolean;
 }
 const { viewer = DEMO_PERSONA, staff = false } = Astro.props;
 const isAuth = Boolean(viewer?.authenticated);
-const links: [string, string, 'user' | 'settings' | 'bell' | 'users' | 'lock' | 'logout'][] = [
-  ...(staff ? ([['Admin password & security', '/security', 'lock']] as [string, string, 'lock'][]) : []),
-  ['Profile', siteUrl('web', '/account/profile'), 'user'],
-  ['Roles & organizations', siteUrl('web', '/account/roles'), 'users'],
-  ['Notifications', siteUrl('web', '/account/notifications'), 'bell'],
-  ['Account settings', siteUrl('web', '/account/settings'), 'settings'],
-];
-const signOutHref = staff ? '/__admin_auth/logout' : siteUrl('web', '/account/signed-out');
+const links: [string, string, 'lock'][] = staff ? [['Admin password & security', '/security', 'lock']] : [];
+const signOutHref = '/__admin_auth/logout';
 ---
 
 <details class="dash-menu relative" data-dash-menu>
@@ -49,22 +42,6 @@ const signOutHref = staff ? '/__admin_auth/logout' : siteUrl('web', '/account/si
         {viewer.note}
       </p>
     </div>
-    {!isAuth && (
-      <div class="mb-1 grid grid-cols-2 gap-1.5 border-t border-sand/70 px-1 pt-2">
-        <a
-          href={siteUrl('web', '/account/signin')}
-          class="flex items-center justify-center rounded-lg bg-charcoal px-2.5 py-1.5 text-[12px] font-semibold text-cream hover:bg-charcoal/90"
-        >
-          Sign in
-        </a>
-        <a
-          href={siteUrl('web', '/account/signup')}
-          class="flex items-center justify-center rounded-lg bg-terracotta px-2.5 py-1.5 text-[12px] font-semibold text-white hover:bg-terracotta-dark"
-        >
-          Create account
-        </a>
-      </div>
-    )}
     <ul class="border-t border-sand/70 pt-1">
       {links.map(([label, href, icon]) => (
         <li>

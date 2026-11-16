@@ -23,8 +23,8 @@ export const privacyPolicy: LegalDocumentContent = {
       id: 'providers',
       heading: 'Providers: musicians, technicians, teachers and churches',
       items: [
-        'Your account email, name and the role you sign up for.',
-        'The profile you build for that role, for example instruments, skills, region, availability, sample links, church service times or past services.',
+        'Your name, email address and the role you apply for.',
+        'The details you give in your application for that role, for example instruments, skills, region, availability, sample links, church service times or past services.',
         'Staff review notes, and for churches the date and place of the in-person verification meeting.',
         'The terms you accepted, with the version and date.',
       ],
@@ -33,14 +33,14 @@ export const privacyPolicy: LegalDocumentContent = {
       id: 'emailed-links',
       heading: 'Emailed codes and links',
       paragraphs: [
-        'We sign people in with one-time codes and let guests manage their registrations with links sent to their email address. Links are long random codes that expire; we store only a keyed fingerprint of each link, never the link itself. Anyone who has the email can use the link, so please do not forward it.',
+        'We let guests manage their registrations with links sent to their email address. Links are long random codes that expire; we store only a keyed fingerprint of each link, never the link itself. Anyone who has the email can use the link, so please do not forward it.',
       ],
     },
     {
       id: 'security-records',
       heading: 'Security records',
       paragraphs: [
-        'To stop abuse we keep a keyed fingerprint (not the address itself) of the IP address behind sign-ins, form submissions and registration lookups, count recent attempts to apply rate limits, and use Cloudflare Turnstile to check that a form is not being sent by a bot.',
+        'To stop abuse we keep a keyed fingerprint (not the address itself) of the IP address behind form submissions and registration lookups, count recent attempts to apply rate limits, and use Cloudflare Turnstile to check that a form is not being sent by a bot.',
       ],
     },
     {
@@ -48,7 +48,7 @@ export const privacyPolicy: LegalDocumentContent = {
       heading: 'How we use it',
       items: [
         'To deliver registrations, lessons, bookings and the services you asked for, and to send the emails that go with them.',
-        'To review providers and verify churches before their profiles are published.',
+        'To review provider applications and verify churches before they serve.',
         'To keep the sites secure and to meet legal obligations.',
         'To send program updates only if you ticked the box asking for them. That box is never ticked for you, and you can opt out at any time.',
       ],
@@ -59,8 +59,7 @@ export const privacyPolicy: LegalDocumentContent = {
       heading: 'Who sees it',
       items: [
         'Academy staff and the teacher of a lesson see the registration for that lesson.',
-        'Staff who review providers see the profiles and documents submitted for review.',
-        'One person, one record: if you hold provider accounts in more than one program and verified the same email address in each, your profile and roles are linked to one person record so you do not have to repeat them. Each program still has its own account and sign-in, and you can unlink a program from its account page.',
+        'Staff who review providers see the applications and documents submitted for review.',
       ],
     },
     {
@@ -71,7 +70,6 @@ export const privacyPolicy: LegalDocumentContent = {
         'Cloudflare — hosting, database, file storage and bot checks (Turnstile).',
         'Stripe — payment processing for paid lessons. Payments currently run in Stripe’s test mode only; no real cards are charged.',
         'Resend — sending email.',
-        'Clerk — sign-in, only for a program where Clerk sign-in has been turned on.',
       ],
     },
     {
@@ -82,7 +80,7 @@ export const privacyPolicy: LegalDocumentContent = {
         'The email address on each sent-email record is removed after 180 days; a keyed fingerprint stays so we can honour unsubscribes and bounce reports.',
         'Rate-limit counters are deleted as soon as their time window ends.',
         'Orders, payments and refunds are kept as long as the law requires for financial records.',
-        'Provider profiles are kept while the account is open and deleted or anonymised when you ask us to close it.',
+        'Provider applications and records are kept while you serve with us and deleted or anonymised when you ask us to remove them.',
       ],
     },
     {

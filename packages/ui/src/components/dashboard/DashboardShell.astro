@@ -4,13 +4,12 @@ import FontPreload from '../FontPreload.astro';
 /**
  * Authenticated application shell (design-first demo).
  * Full document: demo banner · desktop sidebar · top bar (search, notifications,
- * workspace switcher, account menu) · mobile drawer + bottom tab bar · content slot.
+ * workspace label, account menu) · mobile drawer + bottom tab bar · content slot.
  * Each app wraps this in its own `DashboardLayout.astro` that imports the app stylesheet.
  */
 import Logo from '../Logo.astro';
 import Icon from '../Icon.astro';
 import DashNav from './DashNav.astro';
-import WorkspaceSwitcher from './WorkspaceSwitcher.astro';
 import AccountMenu from './AccountMenu.astro';
 import { screenHref, shortNavLabel, type ViewerPersona, type Workspace } from '../../lib/dashboard';
 import { resolveWorkspaceViewer } from '../../lib/session-viewer';
@@ -29,9 +28,7 @@ const flat = workspace.nav.flatMap((g) => g.items);
 const tabs = flat.slice(0, 4);
 const isMoreActive = !tabs.some((t) => t.slug === current);
 const notifSlug = flat.find((i) => i.slug === 'notifications');
-const notifHref = notifSlug
-  ? screenHref(workspace, 'notifications')
-  : siteUrl('web', '/account/notifications');
+const notifHref = notifSlug ? screenHref(workspace, 'notifications') : undefined;
 ---
 
 <!doctype html>
@@ -107,7 +104,8 @@ const notifHref = notifSlug
               <Logo width={104} height={20} />
             </a>
             <div class="min-w-0">
-              <WorkspaceSwitcher currentId={workspace.id} />
+              <p class="truncate text-[13px] font-semibold leading-4">{workspace.name}</p>
+              <p class="hidden truncate text-[11px] leading-4 text-ink-soft sm:block">{workspace.role}</p>
             </div>
             <form role="search" class="ml-auto hidden max-w-sm flex-1 md:block" data-dash-search>
               <label class="relative block">
@@ -124,17 +122,21 @@ const notifHref = notifSlug
                 />
               </label>
             </form>
-            <a
-              href={notifHref}
-              class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0"
-              aria-label="Notifications"
-            >
-              <Icon name="bell" class="h-5 w-5" />
-              <span
-                class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta"
-                aria-hidden="true"
-              ></span>
-            </a>
+            {notifHref ? (
+              <a
+                href={notifHref}
+                class="relative ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full border border-sand/80 bg-white transition-colors hover:bg-cream md:ml-0"
+                aria-label="Notifications"
+              >
+                <Icon name="bell" class="h-5 w-5" />
+                <span
+                  class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-terracotta"
+                  aria-hidden="true"
+                ></span>
+              </a>
+            ) : (
+              <span class="ml-auto md:ml-0" aria-hidden="true"></span>
+            )}
             <AccountMenu viewer={viewer} staff={workspace.staff} />
           </div>
         </header>
@@ -199,44 +201,33 @@ const notifHref = notifSlug
 
       <div class="border-t border-white/10 bg-white/5 p-3 text-[12px]">
         <div class="mb-2 grid grid-cols-2 gap-2">
-          <a
-            href={siteUrl('web', '/account/profile')}
-            class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
-          >
-            <Icon name="user" class="h-4 w-4 text-cream/60" />
-            Profile
-          </a>
-          <a
-            href={notifHref}
-            class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
-          >
-            <Icon name="bell" class="h-4 w-4 text-cream/60" />
-            Alerts
-          </a>
+          {workspace.staff && (
+            <a
+              href="/security"
+              class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
+            >
+              <Icon name="lock" class="h-4 w-4 text-cream/60" />
+              Security
+            </a>
+          )}
+          {notifHref && (
+            <a
+              href={notifHref}
+              class="flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
+            >
+              <Icon name="bell" class="h-4 w-4 text-cream/60" />
+              Alerts
+            </a>
+          )}
         </div>
-        {viewer.authenticated ? (
+        {viewer.authenticated && (
           <a
-            href={siteUrl('web', '/account/signed-out')}
+            href="/__admin_auth/logout"
             class="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream/80 hover:bg-white/10 hover:text-cream"
           >
             <Icon name="logout" class="h-4 w-4 text-cream/60" />
             Sign out ({viewer.email})
           </a>
-        ) : (
-          <div class="grid grid-cols-2 gap-2">
-            <a
-              href={siteUrl('web', '/account/signin')}
-              class="flex items-center justify-center rounded-xl bg-gold px-3 py-2 text-[12px] font-semibold text-charcoal hover:bg-gold/90"
-            >
-              Sign in
-            </a>
-            <a
-              href={siteUrl('web', '/account/signup')}
-              class="flex items-center justify-center rounded-xl border border-white/15 px-3 py-2 text-[12px] font-medium text-cream hover:bg-white/10"
-            >
-              Create account
-            </a>
-          </div>
         )}
       </div>
     </dialog>

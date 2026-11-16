@@ -31,7 +31,7 @@ export const AI_TRAINING_BOTS = [
 ] as const;
 
 /** Paths no app should ever expose to crawlers. */
-const COMMON_PRIVATE_PATHS = ['/api/', '/account'];
+const COMMON_PRIVATE_PATHS = ['/api/'];
 
 export interface RobotsOptions {
   app: SiteKey;
@@ -56,7 +56,7 @@ export function buildRobotsTxt({ app, privatePaths, origin, sitemap = true }: Ro
   const rules = ['Allow: /', ...[...COMMON_PRIVATE_PATHS, ...privatePaths].map((p) => `Disallow: ${p}`)];
   const lines = [
     '# Gamo Studios — public marketing pages are open to search engines and AI assistants.',
-    '# Account, sign-in, dashboards, checkout and API routes are not.',
+    '# Transactional and API routes are not.',
     '',
     '# Traditional search engines (Googlebot, Bingbot and all other crawlers)',
     ...group(['*'], rules),

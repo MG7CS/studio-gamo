@@ -7,21 +7,20 @@ export const providerTerms: LegalDocumentContent = {
     'These terms apply to musicians, technicians, teachers and churches who serve through Gamo Worship, Gamo Academy and Gamo Production.',
   sections: [
     {
-      id: 'profiles',
-      heading: 'Your profile',
+      id: 'applications',
+      heading: 'Your application',
       items: [
-        'Your profile starts as a draft that only you can see. It is published only when your email is verified, your profile is complete for your role, you have accepted the current terms, and — where required — staff have reviewed it.',
-        'Keep your profile accurate and up to date: skills, instruments, availability, region and links.',
-        'If you have accounts in more than one Gamo program with the same verified email, your profile and roles are shared between them; each program keeps its own account, and you can unlink a program.',
+        'You apply to serve through the program’s application form and accept the current terms when you apply. Staff review your application before you serve.',
+        'Keep the information you give us accurate and tell us when it changes: skills, instruments, availability, region and links.',
       ],
     },
     {
       id: 'review',
       heading: 'Review and verification',
       items: [
-        'Churches are verified in person: a member of Gamo Studios staff meets with the church before its profile can be published. The staff member, date and notes are recorded.',
-        'Musicians and technicians are reviewed by staff before they are published. Teachers may also be reviewed.',
-        'Staff may ask for changes, decline a profile or suspend a published one, and will tell you why.',
+        'Churches are verified in person: a member of Gamo Studios staff meets with the church before it is accepted. The staff member, date and notes are recorded.',
+        'Musicians and technicians are reviewed by staff before they serve. Teachers may also be reviewed.',
+        'Staff may ask for more information, decline an application or pause someone who is serving, and will tell you why.',
         'Payment, sponsorship or partnership never affects vetting, review decisions or rankings.',
       ],
     },
@@ -46,9 +45,9 @@ export const providerTerms: LegalDocumentContent = {
     },
     {
       id: 'ending',
-      heading: 'Pausing or closing your profile',
+      heading: 'Pausing or stopping',
       paragraphs: [
-        'You can unpublish or close your profile at any time. Gamo Studios may suspend a profile that breaks these terms or puts others at risk.',
+        'You can stop serving or ask us to remove your application at any time. Gamo Studios may pause anyone who breaks these terms or puts others at risk.',
       ],
     },
   ],

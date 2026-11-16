@@ -17,7 +17,7 @@ interface Props {
   headerTheme?: 'light' | 'dark';
   /** Background/text classes for <body>. */
   bodyClass?: string;
-  /** Hide shared chrome for focused flows (e.g. sign-in). */
+  /** Hide shared chrome for focused flows. */
   chrome?: boolean;
   /** Absolute or root-relative 1200x630 share image; defaults to the app's /og-image.png (scripts/generate-share-images.mjs). */
   ogImage?: string;
@@ -40,7 +40,7 @@ const {
   jsonLd,
 } = Astro.props;
 
-// Private and account pages (flagged by the page middleware) get no canonical or social tags.
+// Private pages (flagged by the page middleware) get no canonical or social tags.
 const locals = Astro.locals;
 const app = locals.product as SiteKey | undefined;
 const indexable = Boolean(app) && !noindex && !locals.noindexPage;

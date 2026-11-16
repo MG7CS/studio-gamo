@@ -18,18 +18,18 @@ export const siteTerms: LegalDocumentContent = {
       id: 'using-the-sites',
       heading: 'Using the sites',
       items: [
-        'You may browse the sites, register for lessons, and create a provider account for the program you serve in.',
-        'Please give accurate information. Do not sign up or register in someone else’s name without their permission.',
+        'You may browse the sites, register for lessons, and apply to serve in a program.',
+        'Please give accurate information. Do not apply or register in someone else’s name without their permission.',
         'Do not try to break, overload or get around the security of the sites, scrape them in bulk, or use them to send spam.',
         'Do not post or upload anything unlawful, hateful, misleading or that you do not have the right to share.',
       ],
     },
     {
-      id: 'accounts',
-      heading: 'Accounts and sign-in',
+      id: 'forms-and-email',
+      heading: 'Forms and emailed links',
       paragraphs: [
-        'Each program has its own account. We sign you in with a one-time code sent to your email address (or, where a program offers it, through that program’s own sign-in provider). Keep access to your email account secure: anyone who can read your email can sign in as you.',
-        'Guests who register a student do not need an account. They manage their registration through links we send to their email address.',
+        'You do not need an account to use the sites. Applications, requests and registrations are sent through forms, and we reply by email.',
+        'Guests who register a student manage their registration through links we send to their email address. Keep access to your email account secure: anyone who can read your email can use those links.',
       ],
     },
     {
@@ -44,7 +44,7 @@ export const siteTerms: LegalDocumentContent = {
       heading: 'Our content and yours',
       paragraphs: [
         'The text, photographs, logos and design of the sites belong to Gamo Studios or the people who licensed them to us. Please do not copy them for other purposes without asking.',
-        'When you add a profile, photo or recording, you keep ownership of it and allow us to show it on the sites for the purpose you added it. You can ask us to remove it at any time.',
+        'When you send us a photo, recording or other material, you keep ownership of it and allow us to use it for the purpose you sent it. You can ask us to remove it at any time.',
         'Fictional people, events or stories shown as examples are labelled “Sample”.',
       ],
     },

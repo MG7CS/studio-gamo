@@ -10,7 +10,7 @@
  * docs/DASHBOARD_ARCHITECTURE.md and must be enforced server-side, never by this UI.
  */
 import type { IconName } from './icons';
-import { siteUrl, type SiteKey } from './sites';
+import type { SiteKey } from './sites';
 
 export type Tone =
   | 'sample'
@@ -271,97 +271,6 @@ export const DEMO_PERSONA: ViewerPersona = {
   note: 'Member account',
   authenticated: false,
 };
-
-export interface WorkspaceLink {
-  id: string;
-  program: string;
-  label: string;
-  role: string;
-  organization?: string;
-  href: string;
-  staff?: boolean;
-}
-
-/** Every workspace the account can switch between (one account, many roles). */
-export function workspaceDirectory(): WorkspaceLink[] {
-  return [
-    {
-      id: 'account',
-      program: 'Gamo Studios',
-      label: 'Personal account',
-      role: 'Account holder',
-      href: siteUrl('web', '/account'),
-    },
-    {
-      id: 'musician',
-      program: 'Gamo Worship',
-      label: 'Musician workspace',
-      role: 'Musician',
-      href: siteUrl('worship', '/musician'),
-    },
-    {
-      id: 'church',
-      program: 'Gamo Worship',
-      label: 'Church workspace',
-      role: 'Church administrator',
-      organization: 'Grace Fellowship',
-      href: siteUrl('worship', '/church'),
-    },
-    {
-      id: 'family',
-      program: 'Gamo Academy',
-      label: 'Student & family',
-      role: 'Parent / guardian',
-      href: siteUrl('academy', '/family'),
-    },
-    {
-      id: 'instructor',
-      program: 'Gamo Academy',
-      label: 'Instructor workspace',
-      role: 'Instructor',
-      href: siteUrl('academy', '/instructor'),
-    },
-    {
-      id: 'host',
-      program: 'Gamo Academy',
-      label: 'Church host & sponsor',
-      role: 'Program host',
-      organization: 'Grace Fellowship',
-      href: siteUrl('academy', '/host'),
-    },
-    {
-      id: 'client',
-      program: 'Gamo Production',
-      label: 'Church projects',
-      role: 'Church client',
-      organization: 'Grace Fellowship',
-      href: siteUrl('production', '/client'),
-    },
-    {
-      id: 'crew',
-      program: 'Gamo Production',
-      label: 'Volunteer & technician',
-      role: 'Technician',
-      href: siteUrl('production', '/crew'),
-    },
-    {
-      id: 'partner',
-      program: 'Gamo Studios',
-      label: 'Church partner & supporter',
-      role: 'Partner contact',
-      organization: 'Grace Fellowship',
-      href: siteUrl('web', '/account/inquiries'),
-    },
-    {
-      id: 'admin',
-      program: 'Internal',
-      label: 'Staff operations',
-      role: 'Staff',
-      href: siteUrl('admin', '/'),
-      staff: true,
-    },
-  ];
-}
 
 export function screenHref(ws: Workspace, slug: string): string {
   return slug ? `${ws.basePath}/${slug}` : ws.basePath || '/';
