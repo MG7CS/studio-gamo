@@ -25,7 +25,7 @@ const FAKE_LIVE_SECRET = 'sk_live_FAKE_DO_NOT_PRINT_0123456789';
 test('blanked names: every Clerk credential and app id, un-suffixed and per product; nothing else', () => {
   for (const name of [
     'PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+    'PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY',
     'CLERK_SECRET_KEY_WORSHIP',
     'CLERK_JWT_KEY',
     'CLERK_ISSUER_ACADEMY',
@@ -34,20 +34,20 @@ test('blanked names: every Clerk credential and app id, un-suffixed and per prod
     'CLERK_APP_ID_PRODUCTION',
   ])
     assert.ok(isClerkTestBlankedName(name), name);
-  for (const name of ['PUBLIC_CLERK_KEYLESS_DISABLED', 'CLERK_AUTHORIZED_PARTIES_LIVE', 'SESSION_SECRET'])
+  for (const name of ['PUBLIC_CLERK_KEYLESS_DISABLED', 'CLERK_AUTHORIZED_PARTIES_ACADEMY', 'SESSION_SECRET'])
     assert.ok(!isClerkTestBlankedName(name), name);
   const blanks = clerkOffTestVars();
   assert.ok(Object.values(blanks).every((v) => v === ''));
-  assert.ok('CLERK_SECRET_KEY_LIVE' in blanks && 'CLERK_WEBHOOK_SECRET' in blanks);
+  assert.ok('CLERK_SECRET_KEY_ACADEMY' in blanks && 'CLERK_WEBHOOK_SECRET' in blanks);
 });
 
 test('dist .dev.vars: Clerk values become blank, every other value survives byte for byte', () => {
   const pem = '-----BEGIN PUBLIC KEY-----\nAAAA\n-----END PUBLIC KEY-----';
   // The format @cloudflare/vite-plugin writes: one quoted value per name, quotes chosen per value.
   const input = [
-    `PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE='pk_live_ZmFrZSQ'`,
+    `PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY='pk_live_ZmFrZSQ'`,
     `CLERK_SECRET_KEY='${FAKE_LIVE_SECRET}'`,
-    `CLERK_JWT_KEY_LIVE='${pem}'`,
+    `CLERK_JWT_KEY_ACADEMY='${pem}'`,
     `CLERK_APP_ID='app_someone_else'`,
     `SESSION_SECRET='keep-me-0123456789'`,
     "QUOTE_IN_VALUE=`it's kept`",
@@ -59,18 +59,18 @@ test('dist .dev.vars: Clerk values become blank, every other value survives byte
   assert.equal(out.get('QUOTE_IN_VALUE'), "it's kept");
   assert.equal(out.get('MULTI_LINE'), pem);
   for (const name of [
-    'PUBLIC_CLERK_PUBLISHABLE_KEY_LIVE',
+    'PUBLIC_CLERK_PUBLISHABLE_KEY_ACADEMY',
     'CLERK_SECRET_KEY',
-    'CLERK_JWT_KEY_LIVE',
+    'CLERK_JWT_KEY_ACADEMY',
     'CLERK_APP_ID',
   ])
     assert.equal(out.get(name), '', name);
   assert.ok(!blankClerkInDevVars(input).includes(FAKE_LIVE_SECRET));
 
   const apps = mkdtempSync(join(tmpdir(), 'gamo-test-servers-'));
-  mkdirSync(join(apps, 'live/dist/server'), { recursive: true });
-  writeFileSync(join(apps, 'live/dist/server/.dev.vars'), input);
-  const file = prepareTestServer('live', apps);
+  mkdirSync(join(apps, 'academy/dist/server'), { recursive: true });
+  writeFileSync(join(apps, 'academy/dist/server/.dev.vars'), input);
+  const file = prepareTestServer('academy', apps);
   assert.ok(!readFileSync(file, 'utf8').includes(FAKE_LIVE_SECRET));
   mkdirSync(join(apps, 'web/dist/server'), { recursive: true });
   const fresh = prepareTestServer('web', apps);
@@ -83,26 +83,26 @@ test('dist .dev.vars: Clerk values become blank, every other value survives byte
 
 test('live keys in local env files are found by file and name; the message never holds a value', () => {
   const root = mkdtempSync(join(tmpdir(), 'gamo-live-keys-'));
-  const appDir = join(root, 'apps/live');
+  const appDir = join(root, 'apps/academy');
   mkdirSync(appDir, { recursive: true });
   writeFileSync(join(root, '.env'), 'ENVIRONMENT=local\nSTRIPE_SECRET_KEY=sk_test_fine\n');
   writeFileSync(
     join(appDir, '.dev.vars'),
     [
       'PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_ZmFrZSQ',
-      `CLERK_SECRET_KEY_LIVE="${FAKE_LIVE_SECRET}"`,
+      `CLERK_SECRET_KEY_ACADEMY="${FAKE_LIVE_SECRET}"`,
       'PUBLIC_CLERK_PUBLISHABLE_KEY_WEB=pk_test_fine',
       'STRIPE_RESTRICTED=rk_live_FAKE',
     ].join('\n'),
   );
-  const findings = findLiveKeysInLocalEnv({ app: 'live', appDir, monorepoRoot: root });
+  const findings = findLiveKeysInLocalEnv({ app: 'academy', appDir, monorepoRoot: root });
   assert.deepEqual(findings, [
-    { file: 'apps/live/.dev.vars', name: 'PUBLIC_CLERK_PUBLISHABLE_KEY' },
-    { file: 'apps/live/.dev.vars', name: 'CLERK_SECRET_KEY_LIVE' },
-    { file: 'apps/live/.dev.vars', name: 'STRIPE_RESTRICTED' },
+    { file: 'apps/academy/.dev.vars', name: 'PUBLIC_CLERK_PUBLISHABLE_KEY' },
+    { file: 'apps/academy/.dev.vars', name: 'CLERK_SECRET_KEY_ACADEMY' },
+    { file: 'apps/academy/.dev.vars', name: 'STRIPE_RESTRICTED' },
   ]);
   const message = describeLiveKeyFindings(findings);
-  assert.match(message, /apps\/live\/\.dev\.vars: CLERK_SECRET_KEY_LIVE/);
+  assert.match(message, /apps\/academy\/\.dev\.vars: CLERK_SECRET_KEY_ACADEMY/);
   assert.match(message, /reject 127\.0\.0\.1/);
   assert.ok(!message.includes(FAKE_LIVE_SECRET) && !message.includes('pk_live_ZmFrZSQ'));
   assert.deepEqual(
@@ -139,15 +139,15 @@ test('a preview or production build deletes dist/server/.dev.vars; a local build
 
 test('a deploy build that still contains a local value fails, naming the variable and file but not the value', () => {
   const root = mkdtempSync(join(tmpdir(), 'gamo-dist-leak-'));
-  const appDir = join(root, 'apps/live');
+  const appDir = join(root, 'apps/academy');
   mkdirSync(join(appDir, 'dist/server/chunks'), { recursive: true });
   writeFileSync(
     join(appDir, 'wrangler.toml'),
-    'name = "x"\n[vars]\nPUBLIC_SITE_URL_LIVE = "https://live.example.org"\n',
+    'name = "x"\n[vars]\nPUBLIC_SITE_URL_ACADEMY = "https://academy.example.org"\n',
   );
   writeFileSync(
     join(appDir, '.env'),
-    'LOCAL_TOKEN=local-only-value-0123456789\nPUBLIC_SITE_URL_LIVE=https://live.example.org\n',
+    'LOCAL_TOKEN=local-only-value-0123456789\nPUBLIC_SITE_URL_ACADEMY=https://academy.example.org\n',
   );
   const values = localOnlyValues(appDir, {
     CLERK_SECRET_KEY: FAKE_LIVE_SECRET,
@@ -160,7 +160,7 @@ test('a deploy build that still contains a local value fails, naming the variabl
     'committed values, PEM lines and short values are not counted',
   );
   writeFileSync(join(appDir, 'dist/server/chunks/a.mjs'), `const e = { K: "${FAKE_LIVE_SECRET}" };`);
-  writeFileSync(join(appDir, 'dist/server/chunks/b.mjs'), 'const url = "https://live.example.org";');
+  writeFileSync(join(appDir, 'dist/server/chunks/b.mjs'), 'const url = "https://academy.example.org";');
   const hits = findLocalValuesInDist(join(appDir, 'dist'), values);
   assert.deepEqual(hits, ['CLERK_SECRET_KEY (local vars (.dev.vars)) in server/chunks/a.mjs']);
 
@@ -173,7 +173,7 @@ test('a deploy build that still contains a local value fails, naming the variabl
     assert.throws(
       () => hooks['astro:build:done'](),
       (e: Error) =>
-        /LOCAL_TOKEN \(apps\/live\/\.env\) in server\/chunks\/a\.mjs/.test(e.message) &&
+        /LOCAL_TOKEN \(apps\/academy\/\.env\) in server\/chunks\/a\.mjs/.test(e.message) &&
         !e.message.includes('local-only-value-0123456789'),
     );
     delete process.env.CLOUDFLARE_ENV;

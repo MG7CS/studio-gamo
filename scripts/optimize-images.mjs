@@ -137,7 +137,7 @@ const BRAND_FORMATS = [
   { ext: 'webp', format: 'webp', options: { quality: 80, effort: 6 } },
   { ext: 'avif', format: 'avif', options: { quality: 55, effort: 5 } },
 ];
-const APP_PUBLIC_DIRS = ['web', 'worship', 'academy', 'live', 'production'].map((app) =>
+const APP_PUBLIC_DIRS = ['web', 'worship', 'academy', 'production'].map((app) =>
   path.join(__dirname, `../apps/${app}/public/images/optimized`),
 );
 const MANIFEST_FILE = path.join(__dirname, '../packages/ui/src/lib/image-manifest.json');

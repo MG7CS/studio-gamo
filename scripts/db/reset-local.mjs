@@ -4,7 +4,7 @@
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-const apps = ['web', 'worship', 'academy', 'live', 'production', 'admin'];
+const apps = ['web', 'worship', 'academy', 'production', 'admin'];
 for (const app of apps) {
   const dir = join('apps', app, '.wrangler', 'state', 'v3', 'd1');
   if (existsSync(dir)) {

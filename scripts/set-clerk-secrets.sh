@@ -3,16 +3,16 @@
 # `wrangler secret put` with the value piped on stdin. Nothing but "ok <app> <NAME>" is printed;
 # values never reach the terminal, a log or an argument list.
 #
-#   scripts/set-clerk-secrets.sh --env preview|production [--app web|worship|academy|live|production]...
+#   scripts/set-clerk-secrets.sh --env preview|production [--app web|worship|academy|production]...
 #                                [--file PATH] [--dry-run]
 #
 #   --env      required. production also requires a person at an interactive terminal who types
 #              "production"; there is no flag to skip that, and it is refused when run by a test or CI.
-#   --app      limit to one or more apps (default: all five public apps).
+#   --app      limit to one or more apps (default: all four public apps).
 #   --file     read this file instead of apps/<app>/.dev.vars (needs exactly one --app).
 #   --dry-run  check the files and print what would be set; call nothing remote.
 #
-# Names set per app (APP is WEB, WORSHIP, ACADEMY, LIVE or PRODUCTION; docs/AUTH.md):
+# Names set per app (APP is WEB, WORSHIP, ACADEMY or PRODUCTION; docs/AUTH.md):
 #   PUBLIC_CLERK_PUBLISHABLE_KEY_APP  CLERK_SECRET_KEY_APP  CLERK_JWT_KEY_APP  CLERK_ISSUER_APP
 # The file may hold either those names or Clerk's un-suffixed names (PUBLIC_CLERK_PUBLISHABLE_KEY, …);
 # the suffixed name is always what is set. A missing issuer is derived from the publishable key.
@@ -33,7 +33,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 helper=(pnpm --silent exec tsx "$repo_root/scripts/clerk/dotenv-value.ts")
 read -r -a wrangler <<<"${WRANGLER_BIN:-pnpm exec wrangler}"
 
-all_apps=(web worship academy live production)
+all_apps=(web worship academy production)
 kinds=(publishable secret jwt issuer)
 
 usage() { sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' >&2; }

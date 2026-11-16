@@ -16,7 +16,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TERRACOTTA = '#B34E24';
 const INK = '#18181B';
 const CREAM = '#F9F6F0';
-const APPS = ['web', 'worship', 'academy', 'live', 'production'];
+const APPS = ['web', 'worship', 'academy', 'production'];
 
 const logoSvg = readFileSync(
   join(root, 'design-reference/branding/svg/gamo-studios-horizontal-primary-cropped.svg'),
