@@ -89,3 +89,24 @@ import { shell } from '../site.config';
 4. Missing primitives/patterns, each with catalog entries; migrate duplicates app by app.
 5. Catalog page with axe + screenshots as the shared-change gate.
 6. Then the public UI/UX polish pass, fixing findings in shared pieces.
+
+## Photo frames (decision 2026-11-16)
+
+**Owner decision:** one calm frame language. Every photo is a rounded rectangle with one radius token and one of four fixed ratios, rendered only by the shared `Frame`; clusters only by the shared `PhotoGrid`. The organic masks (arch, leaf, pebble) are retired. Rule 14 in `AGENTS.md`.
+
+**Research (2026-11-16) and what we took from it**
+- Mature systems keep ratio sets small (Thumbprint five, Carbon four, others six to seven) and justify it as consistent proportions and easier development: https://thumbprint.design/guidelines/aspect-ratio. Ours is stricter (four) and has no exemption, so it is enforced in code.
+- Nested radius: inner radius = outer radius − padding (clamped at 0); store one radius token and derive: https://cloudfour.com/thinks/the-math-behind-nesting-rounded-corners/. We avoid padded photos inside rounded cards; if unavoidable, `Frame` reads `--frame-radius`.
+- Reserve space before load: width/height on `img` and `source` plus `aspect-ratio` on the frame, all `srcset` candidates in one ratio: https://web.dev/articles/optimize-cls.
+- Focal point is catalog data mapped to `object-position`: https://developer.mozilla.org/en-US/docs/Web/CSS/object-position; validate which ratios a photo supports because one focal point cannot serve every ratio.
+- Text on photos: captions outside the frame by default; overlays only through a scrim with known contrast (WCAG 1.4.3, 4.5:1 body / 3:1 large): https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html.
+- Alt text required by type, decorative = `alt=""`: https://design-system.service.gov.uk/styles/images/, https://www.w3.org/WAI/tutorials/images/decision-tree/.
+- LCP: one `priority` frame per page (`fetchpriority="high"`, eager), others lazy: https://web.dev/articles/fetch-priority.
+- Safari clipping: rounded `overflow: hidden` fails with composited children; use `clip-path: inset(0 round R)` and no transforms on frames: https://bugs.webkit.org/show_bug.cgi?id=98538.
+- Reveal motion: opacity fade only; under reduced motion show content directly.
+
+**Tokens:** ratios `portrait` 4/5, `landscape` 3/2, `wide` 21/8, `square` 1/1; one radius `--radius-photo` (1.25rem); one `--photo-gap`; scrim `rgb(24 24 27 / .62–.72)` bottom gradient (about 4.7:1 for white text on a white pixel, to be verified on the real photos).
+
+**`Frame` props:** `photo` (catalog id), `ratio` (required, four values), `alt` or `decorative`, `sizes` preset (`full` | `half` | `third` | `grid-tall`), `priority`, `caption`, `scrim`. No radius, fit, position, class-for-geometry or style props. `wide` falls back to `landscape` inside narrow containers (about 30rem).
+
+**`PhotoGrid` layouts (2–4 photos, container-query collapse, apps pass ordered ids, never positions):** `pair`, `trio` (one tall), `quad` (mosaic), `hero-pair`. Five or more photos means two clusters in different sections.
