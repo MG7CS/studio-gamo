@@ -63,7 +63,7 @@ test('short_text: email, url, number between, length, text contains', () => {
   assert.equal(run(notContains, { q1: 'SPAM here' }).ok, false);
 });
 
-test('short_text: regex uses the custom message and ignores unsafe patterns', () => {
+test('short_text: regex uses the custom message and fails closed on unsafe patterns', () => {
   const f = form(
     q({ validation: { kind: 'regex', pattern: '^GW-\\d{4}$', message: 'Use the GW-1234 format.' } }),
   );
@@ -71,8 +71,14 @@ test('short_text: regex uses the custom message and ignores unsafe patterns', ()
   assert.deepEqual(errorsOf(run(f, { q1: 'x' })), [{ questionId: 'q1', message: 'Use the GW-1234 format.' }]);
   const unsafe = form(q({ validation: { kind: 'regex', pattern: '(a+)+$' } }));
   const started = Date.now();
-  assert.equal(run(unsafe, { q1: `${'a'.repeat(400)}!` }).ok, true);
+  // would match if it were run; an unsafe pattern is never run and fails closed
+  assert.equal(run(unsafe, { q1: 'aaaa' }).ok, false);
+  assert.equal(run(unsafe, { q1: `${'a'.repeat(400)}!` }).ok, false);
   assert.ok(Date.now() - started < 500);
+  const withMessage = form(q({ validation: { kind: 'regex', pattern: '(a+)+$', message: 'Nope.' } }));
+  assert.deepEqual(errorsOf(run(withMessage, { q1: 'aaaa' })), [{ questionId: 'q1', message: 'Nope.' }]);
+  const defaultMessage = errorsOf(run(unsafe, { q1: 'aaaa' }))[0]!.message;
+  assert.equal(defaultMessage, 'This answer is not in the expected format.');
 });
 
 test('short_text: over-long answers are refused', () => {
@@ -579,10 +585,28 @@ test('short_text presets: phone and US postal code', () => {
   assert.equal(run(zip, { q1: 'ABCDE' }).ok, false);
 });
 
-test('regex rule only tests the first 500 characters of a long paragraph', () => {
+test('regex rule fails closed above 500 characters and never tests a prefix', () => {
+  // `tail$` would match the full 600-character value, so a pass or a fail on a prefix would both be wrong:
+  // the value must be refused without running the pattern.
   const f = form(q({ type: 'paragraph', validation: { kind: 'regex', pattern: 'tail$' } }));
-  assert.equal(run(f, { q1: `${'x'.repeat(600)}tail` }).ok, false);
-  const g = form(q({ type: 'paragraph', validation: { kind: 'regex', pattern: 'worship' } }));
-  assert.equal(run(g, { q1: `${'x'.repeat(900)}worship` }).ok, false);
-  assert.equal(run(g, { q1: `worship ${'x'.repeat(900)}` }).ok, true);
+  const long = `${'x'.repeat(596)}tail`;
+  assert.equal(long.length, 600);
+  assert.deepEqual(errorsOf(run(f, { q1: long })), [
+    { questionId: 'q1', message: 'This answer is not in the expected format.' },
+  ]);
+  const exactly500 = `${'x'.repeat(496)}tail`;
+  assert.equal(exactly500.length, 500);
+  assert.equal(run(f, { q1: exactly500 }).ok, true);
+  assert.equal(run(f, { q1: `${exactly500}x` }).ok, false);
+  const g = form(
+    q({ type: 'paragraph', validation: { kind: 'regex', pattern: 'worship', message: 'Too long or off.' } }),
+  );
+  assert.deepEqual(errorsOf(run(g, { q1: `${'x'.repeat(900)}worship` })), [
+    { questionId: 'q1', message: 'Too long or off.' },
+  ]);
+  assert.equal(run(g, { q1: `worship ${'x'.repeat(400)}` }).ok, true);
+  // a regex that would not match a prefix but matches the whole is also refused (not accepted by truncation)
+  const h = form(q({ type: 'paragraph', validation: { kind: 'regex', pattern: '^x+$' } }));
+  assert.equal(run(h, { q1: 'x'.repeat(501) }).ok, false);
+  assert.equal(run(h, { q1: 'x'.repeat(500) }).ok, true);
 });

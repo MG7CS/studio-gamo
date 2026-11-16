@@ -182,44 +182,96 @@ test('checkPublishable: binds on non-answerable types and bad ranges are flagged
   assert.ok(errorsOf('contact', dupOpts).some((p) => /duplicate option/i.test(p)));
 });
 
-test('checkPublishable: unsafe or long regex patterns are refused', () => {
+const SAFE_PATTERNS = [
+  '^[A-Z]{3}-\\d{4}$',
+  '^[A-Z]{2}\\d{4}$',
+  '^\\d{3}-\\d{4}$',
+  '^[a-z]+@[a-z]+\\.[a-z]{2,}$',
+  '^\\d+-\\d+$',
+  '^(?:GW|GP)-\\d+$',
+  '^[a-z ]+$',
+  '^(a|b)?c$',
+  '^(ab)+$',
+  '^a?b?c?d?e?f?$',
+  '^(?:ab)?x$',
+  '^(a)(b)$',
+  '^[a-z]{1,100}$',
+  'x'.repeat(100),
+];
+const UNSAFE_PATTERNS = [
+  ['nested plus', '(a+)+$'],
+  ['quantified alternation', '(a|a)*b'],
+  ['nested optional inside star', '(\\w+\\s?)*$'],
+  ['nested star', '^(a*)*$'],
+  ['bounded outer over unbounded inner', '(.*a){20}'],
+  ['bounded in bounded', '(a{1,50}){1,50}'],
+  ['bounded alternation', '(ab|a){2,9}'],
+  ['exact repeat of unbounded', '(a+){2}'],
+  ['exact repeat of exact group', '(\\d{3}-){2}\\d{4}'],
+  ['optional repeated', '(a?){2}'],
+  ['optional repeated unbounded', '(a?)+'],
+  ['bounded repeat of nested group', '((a{2})b){2}'],
+  ['backreference', '(a)\\1'],
+  ['named backreference', '(?<n>a)\\k<n>'],
+  ['named group', '(?<n>a)'],
+  ['lookahead', '(?=a)b'],
+  ['negative lookahead', 'a(?!b)'],
+  ['lookbehind', '(?<=a)b'],
+  ['negative lookbehind', '(?<!a)b'],
+  ['inline flags', '(?i)a'],
+  ['four unbounded', '.*.*.*.*x'],
+  ['four counted exact quantifiers', '[a-z]{2}[a-z]{2}[a-z]{2}[a-z]{2}'],
+  ['mixed budget', 'a+b{2}c{2,}d{3,9}'],
+  ['max above 100', 'a{1,101}'],
+  ['exact above 100', 'a{101}'],
+  ['min above 100', 'a{101,}'],
+  ['invalid', '['],
+  ['unbalanced', '(a'],
+  ['stray close', 'a)'],
+  ['empty', ''],
+  ['too long', 'x'.repeat(101)],
+] as const;
+
+test('isSafeRegexPattern: accepted patterns', () => {
+  for (const pattern of SAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), true, pattern);
+  // quantifiers with an upper bound of 1 are not counted against the budget
+  assert.equal(isSafeRegexPattern('a{1}b{0,1}c?d?e?f?g?h?'), true);
+  // exactly three counted quantifiers is allowed, four is not
+  assert.equal(isSafeRegexPattern('a+b+c+'), true);
+  assert.equal(isSafeRegexPattern('a+b+c+d+'), false);
+});
+
+test('isSafeRegexPattern: rejected patterns', () => {
+  for (const [name, pattern] of UNSAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), false, name);
+});
+
+test('checkPublishable: unsafe or long regex patterns are errors, safe ones are not', () => {
   const base = [q({ id: 'name', bind: 'contact.name' }), q({ id: 'email', bind: 'contact.email' })];
-  for (const pattern of [
-    '(a+)+$',
-    '(a|a)*b',
-    '(\\w+\\s?)*$',
-    '^(a*)*$',
-    '(.*a){20}',
-    '(a)\\1',
-    '[',
-    '(?=a)b',
-    '(?<!a)b',
-    'a(?!b)',
-  ]) {
+  for (const [name, pattern] of UNSAFE_PATTERNS) {
+    if (pattern.length > 100 || pattern === '') continue; // refused at parse time instead
     const f = form(...base, q({ id: 'r', validation: { kind: 'regex', pattern } }));
     assert.ok(
       errorsOf('contact', f).some((p) => /pattern|regex/i.test(p)),
-      pattern,
+      name,
     );
   }
-  for (const pattern of [
-    '^[A-Z]{3}-\\d{4}$',
-    '^\\d+-\\d+$',
-    '^(\\d{3}-){2}\\d{4}$',
-    '^(?:GW|GP)-\\d+$',
-    '^[a-z ]+$',
-  ]) {
+  for (const pattern of SAFE_PATTERNS) {
     const f = form(...base, q({ id: 'r', validation: { kind: 'regex', pattern } }));
     assert.deepEqual(errorsOf('contact', f), [], pattern);
-    assert.equal(isSafeRegexPattern(pattern), true, pattern);
   }
-  assert.equal(isSafeRegexPattern('.*.*.*.*x'), false);
-  assert.equal(isSafeRegexPattern('x'.repeat(100)), true);
-  assert.equal(isSafeRegexPattern('x'.repeat(101)), false);
   assert.throws(
     () => form(q({ validation: { kind: 'regex', pattern: 'x'.repeat(101) } })),
     (e: unknown) => e instanceof FormSchemaError && /pattern/.test(e.path),
   );
+});
+
+test('checkPublishable: warns that regex on a paragraph only accepts 500 characters', () => {
+  const base = [q({ id: 'name', bind: 'contact.name' }), q({ id: 'email', bind: 'contact.email' })];
+  const f = form(
+    ...base,
+    q({ id: 'p', label: 'Story', type: 'paragraph', validation: { kind: 'regex', pattern: 'a' } }),
+  );
+  assert.ok(warningsOf('contact', f).some((w) => /500 characters/.test(w)));
 });
 
 test('checkPublishable: total question count is limited', () => {

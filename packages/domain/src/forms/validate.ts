@@ -148,14 +148,16 @@ function applyTextRule(rule: TextRule, text: string): string | null {
         return custom(`Keep this under ${rule.max} characters.`);
       return null;
     case 'regex': {
-      // Unsafe patterns are refused at publish time; if one slips through, skip it rather than risk ReDoS.
-      if (!isSafeRegexPattern(rule.pattern)) return null;
+      // Fail closed. The pattern runs only if it passes the ReDoS screen AND the value is at most
+      // FORM_LIMITS.maxRegexTested characters. Longer values are refused with the rule's message without
+      // running the pattern; we never match a truncated prefix, because an anchored or "ends with" pattern
+      // would then pass or fail on text the applicant did not submit.
+      const refused = custom('This answer is not in the expected format.');
+      if (!isSafeRegexPattern(rule.pattern) || text.length > FORM_LIMITS.maxRegexTested) return refused;
       try {
-        return new RegExp(rule.pattern).test(text.slice(0, FORM_LIMITS.maxRegexTested))
-          ? null
-          : custom('This answer is not in the expected format.');
+        return new RegExp(rule.pattern).test(text) ? null : refused;
       } catch {
-        return null;
+        return refused;
       }
     }
   }

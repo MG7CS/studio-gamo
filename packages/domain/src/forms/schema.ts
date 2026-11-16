@@ -435,28 +435,39 @@ export function parseFormSchema(input: unknown): FormSchema {
 // Regex safety (staff-authored patterns run against applicant text)
 // ---------------------------------------------------------------------------
 
-type Level = 0 | 1 | 2; // 0 none (or exact {n}), 1 optional/bounded, 2 unbounded
-type Frame = { inner: Level; alt: boolean };
+type Frame = { hasQuantifier: boolean; hasAlternation: boolean };
+
+const MAX_REPEAT = 100;
+const MAX_REPEATING_QUANTIFIERS = 3;
 
 /**
- * Conservative ReDoS screen: refuses invalid or long (>100) patterns, backreferences, lookarounds, nested
- * quantifiers such as `(a+)+`, quantified alternation such as `(a|a)*`, and more than three
- * unbounded quantifiers. It may refuse harmless patterns; it never needs to run the pattern.
+ * Conservative ReDoS screen for staff-authored patterns that run against applicant text. A pattern
+ * is refused when it:
+ * - is empty, longer than 100 characters, or does not compile;
+ * - uses backreferences or any `(?` construct other than non-capturing `(?:` (so no lookarounds,
+ *   named groups or inline flags);
+ * - has a quantifier whose bound exceeds 100;
+ * - has more than 3 quantifiers whose upper bound can exceed 1 (`*`, `+`, `{n,}`, `{n,m}` with m>1,
+ *   `{n}` with n>1; `?` and `{0,1}` are free);
+ * - repeats a group more than once (upper bound > 1) when that group contains any quantifier
+ *   (including `?`) or an alternation, e.g. `(a+)+`, `(a|a)*`, `(a{1,50}){1,50}`, `(ab|a){2,9}`,
+ *   `(a+){2}`, `(a?){2}`.
+ * It may refuse harmless patterns (for example `(\d{3}-){2}`); it never runs the pattern.
  */
 export function isSafeRegexPattern(pattern: string): boolean {
-  if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > FORM_LIMITS.maxRegex)
+  if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > FORM_LIMITS.maxRegex) {
     return false;
+  }
   try {
     new RegExp(pattern);
   } catch {
     return false;
   }
   if (/\\[1-9]|\\k</.test(pattern)) return false;
-  if (/\(\?<?[=!]/.test(pattern)) return false; // lookahead / lookbehind
 
-  const stack: Frame[] = [{ inner: 0, alt: false }];
+  const stack: Frame[] = [{ hasQuantifier: false, hasAlternation: false }];
   let lastGroup: Frame | null = null;
-  let unbounded = 0;
+  let repeating = 0;
   let i = 0;
   while (i < pattern.length) {
     const c = pattern[i]!;
@@ -473,17 +484,13 @@ export function isSafeRegexPattern(pattern: string): boolean {
       continue;
     }
     if (c === '(') {
-      stack.push({ inner: 0, alt: false });
-      i += 1;
-      if (pattern[i] === '?') {
-        i += 1;
-        if (pattern[i] === '<' && pattern[i + 1] !== '=' && pattern[i + 1] !== '!') {
-          while (i < pattern.length && pattern[i] !== '>') i += 1;
-        } else if (pattern[i] === '<') {
-          i += 1;
-        }
+      if (pattern[i + 1] === '?') {
+        if (pattern[i + 2] !== ':') return false; // lookaround, named group, inline flags
+        i += 3;
+      } else {
         i += 1;
       }
+      stack.push({ hasQuantifier: false, hasAlternation: false });
       lastGroup = null;
       continue;
     }
@@ -491,52 +498,48 @@ export function isSafeRegexPattern(pattern: string): boolean {
       if (stack.length < 2) return false;
       const frame = stack.pop()!;
       const parent = stack[stack.length - 1]!;
-      parent.inner = Math.max(parent.inner, frame.inner) as Level;
-      parent.alt = parent.alt || frame.alt;
+      parent.hasQuantifier = parent.hasQuantifier || frame.hasQuantifier;
+      parent.hasAlternation = parent.hasAlternation || frame.hasAlternation;
       lastGroup = frame;
       i += 1;
       continue;
     }
     if (c === '|') {
-      stack[stack.length - 1]!.alt = true;
+      stack[stack.length - 1]!.hasAlternation = true;
       lastGroup = null;
       i += 1;
       continue;
     }
-    let kind: 'optional' | 'bounded' | 'unbounded' | 'exact' | null = null;
+    // Quantifier: upper bound `max` (Infinity when unbounded)
+    let max: number | null = null;
     let length = 1;
-    let repeats = 1;
-    if (c === '*' || c === '+') kind = 'unbounded';
-    else if (c === '?') kind = 'optional';
+    if (c === '*' || c === '+') max = Infinity;
+    else if (c === '?') max = 1;
     else if (c === '{') {
-      const m = /^\{(\d+)(?:(,)(\d*))?\}/.exec(pattern.slice(i, i + 20));
+      const m = /^\{(\d{1,4})(?:(,)(\d{0,4}))?\}/.exec(pattern.slice(i, i + 12));
       if (m) {
         length = m[0].length;
-        repeats = Number(m[1]);
-        kind = m[2] === undefined ? 'exact' : m[3] === '' ? 'unbounded' : 'bounded';
+        const min = Number(m[1]);
+        max = m[2] === undefined ? min : m[3] === '' ? Infinity : Number(m[3]);
+        if (min > MAX_REPEAT || (max !== Infinity && max > MAX_REPEAT)) return false;
       }
     }
-    if (kind === null) {
-      lastGroup = null;
+    if (max === null) {
+      lastGroup = null; // a literal "{"
       i += 1;
       continue;
     }
     i += length;
-    if (pattern[i] === '?') i += 1; // lazy suffix
-    if (kind === 'unbounded') unbounded += 1;
-    const level: Level = kind === 'exact' ? 0 : kind === 'unbounded' ? 2 : 1;
-    const top = stack[stack.length - 1]!;
-    if (lastGroup) {
-      const g = lastGroup;
-      if (g.inner === 2 && (kind === 'bounded' || kind === 'unbounded' || repeats > 1)) return false;
-      if ((g.inner >= 1 || g.alt) && kind === 'unbounded') return false;
-      if (g.alt && kind === 'bounded') return false;
+    if (pattern[i] === '?') i += 1; // lazy suffix, not another quantifier
+    if (max > 1) {
+      repeating += 1;
+      if (repeating > MAX_REPEATING_QUANTIFIERS) return false;
+      if (lastGroup && (lastGroup.hasQuantifier || lastGroup.hasAlternation)) return false;
     }
-    top.inner = Math.max(top.inner, level) as Level;
+    stack[stack.length - 1]!.hasQuantifier = true;
     lastGroup = null;
   }
-  if (stack.length !== 1) return false;
-  return unbounded <= 3;
+  return stack.length === 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -736,6 +739,11 @@ export function checkPublishable(kind: FormKind, schema: FormSchema): PublishChe
       if (rule?.kind === 'regex' && !isSafeRegexPattern(rule.pattern)) {
         errors.push(
           `${who} has an unsafe, invalid or too long regex pattern (max ${FORM_LIMITS.maxRegex} characters, no nested repeats, backreferences or lookarounds).`,
+        );
+      }
+      if (q.type === 'paragraph' && rule?.kind === 'regex') {
+        warnings.push(
+          `${who} uses a regex on a paragraph; answers over ${FORM_LIMITS.maxRegexTested} characters are refused.`,
         );
       }
       if (
