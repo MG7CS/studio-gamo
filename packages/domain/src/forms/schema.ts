@@ -120,6 +120,12 @@ export const FORM_LIMITS = {
 
 const RESERVED_IDS = new Set(['constructor', 'prototype']);
 
+/** Field names the renderer and the submit handler own (case-insensitive): a question id must not shadow them. */
+function isBuiltInFieldId(id: string): boolean {
+  const lower = id.toLowerCase();
+  return lower === 'idempotency_key' || lower.startsWith('terms_') || lower.startsWith('cf-turnstile');
+}
+
 // ---------------------------------------------------------------------------
 // Zod schema
 // ---------------------------------------------------------------------------
@@ -127,7 +133,8 @@ const RESERVED_IDS = new Set(['constructor', 'prototype']);
 const idSchema = z
   .string()
   .regex(/^[A-Za-z][A-Za-z0-9_-]{0,39}$/, 'Use letters, digits, "_" or "-" (start with a letter, max 40).')
-  .refine((id) => !RESERVED_IDS.has(id), 'This id is reserved.');
+  .refine((id) => !RESERVED_IDS.has(id), 'This id is reserved.')
+  .refine((id) => !isBuiltInFieldId(id), 'This id is used by a built-in form field.');
 const labelSchema = z.string().trim().min(1).max(FORM_LIMITS.maxLabel);
 const helpSchema = z.string().trim().max(FORM_LIMITS.maxHelp).optional();
 const messageSchema = z.string().trim().max(200).optional();

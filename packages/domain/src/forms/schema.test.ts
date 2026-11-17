@@ -597,3 +597,46 @@ test('a required single-option checkbox (a consent box) is not warned about; oth
   assert.match(w, /"drop".*fewer than 2/i);
   assert.match(w, /"mc".*fewer than 2/i);
 });
+
+test('ids that collide with built-in form fields are reserved', () => {
+  for (const id of [
+    'idempotency_key',
+    'terms_accept',
+    'terms_slug',
+    'terms_version',
+    'cf-turnstile-response',
+    'Idempotency_Key',
+    'TERMS_accept',
+  ]) {
+    assert.throws(
+      () =>
+        parseFormSchema({
+          sections: [{ id: 's', title: 'S', questions: [{ id, label: 'X', type: 'short_text' }] }],
+        }),
+      FormSchemaError,
+      id,
+    );
+    assert.throws(
+      () =>
+        parseFormSchema({
+          sections: [{ id, title: 'S', questions: [{ id: 'q', label: 'X', type: 'short_text' }] }],
+        }),
+      FormSchemaError,
+      `section ${id}`,
+    );
+  }
+  assert.doesNotThrow(() =>
+    parseFormSchema({
+      sections: [
+        {
+          id: 's',
+          title: 'S',
+          questions: [
+            { id: 'terms', label: 'X', type: 'short_text' },
+            { id: 'key', label: 'Y', type: 'short_text' },
+          ],
+        },
+      ],
+    }),
+  );
+});
