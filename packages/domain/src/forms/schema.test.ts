@@ -183,19 +183,31 @@ test('checkPublishable: binds on non-answerable types and bad ranges are flagged
 });
 
 const SAFE_PATTERNS = [
-  '^[A-Z]{3}-\\d{4}$',
   '^[A-Z]{2}\\d{4}$',
   '^\\d{3}-\\d{4}$',
   '^[a-z]+@[a-z]+\\.[a-z]{2,}$',
+  '^ABC-\\d+$',
+  '^[A-Z]{3}-\\d{4}$',
+  '^GW-\\d{4}$',
   '^\\d+-\\d+$',
-  '^(?:GW|GP)-\\d+$',
   '^[a-z ]+$',
-  '^(a|b)?c$',
-  '^(ab)+$',
-  '^a?b?c?d?e?f?$',
-  '^(?:ab)?x$',
-  '^(a)(b)$',
+  'worship',
+  '^\\$\\d+\\.\\d{2}$',
+  '^\\(\\d{3}\\) \\d{3}-\\d{4}',
+  '[a-z0-9_.-]+',
+  '[-a-z]+',
+  '[a-z-]+',
+  '[^0-9]+',
+  '[\\d\\s.-]+',
+  '[a\\]]+',
+  '[\\\\/]',
+  'a?b?c?d?e?f?g?h?',
+  'a?a?a?a?a?a?a?aaaaaaa$',
+  'a*a*b$',
+  'a{1}b{0,1}',
   '^[a-z]{1,100}$',
+  '^',
+  '$',
   'x'.repeat(100),
 ];
 const UNSAFE_PATTERNS = [
@@ -210,7 +222,10 @@ const UNSAFE_PATTERNS = [
   ['exact repeat of exact group', '(\\d{3}-){2}\\d{4}'],
   ['optional repeated', '(a?){2}'],
   ['optional repeated unbounded', '(a?)+'],
-  ['bounded repeat of nested group', '((a{2})b){2}'],
+  ['ZIP with group', '^\\d{5}(-\\d{4})?$'],
+  ['capturing group', '(ab)'],
+  ['non-capturing group', '(?:ab)'],
+  ['alternation', 'a|b'],
   ['backreference', '(a)\\1'],
   ['named backreference', '(?<n>a)\\k<n>'],
   ['named group', '(?<n>a)'],
@@ -219,30 +234,118 @@ const UNSAFE_PATTERNS = [
   ['lookbehind', '(?<=a)b'],
   ['negative lookbehind', '(?<!a)b'],
   ['inline flags', '(?i)a'],
-  ['four unbounded', '.*.*.*.*x'],
-  ['four counted exact quantifiers', '[a-z]{2}[a-z]{2}[a-z]{2}[a-z]{2}'],
-  ['mixed budget', 'a+b{2}c{2,}d{3,9}'],
+  ['word boundary', '\\bfoo'],
+  ['non word boundary', 'foo\\B'],
+  ['unicode escape', '\\u0041'],
+  ['hex escape', '\\x41'],
+  ['property escape', '\\p{L}'],
+  ['k escape', '\\k'],
+  ['unknown escape', '\\Z'],
+  ['control escape', '\\n'],
+  ['trailing backslash', 'a\\'],
+  ['four multi-repeat quantifiers', '^.*.*.*.*x'],
+  ['three multi-repeat quantifiers unanchored', 'a*a*a*b$'],
+  ['three unanchored dot stars', '.*.*.*x'],
+  ['four exact repeats', '[a-z]{2}[a-z]{2}[a-z]{2}[a-z]{2}'],
+  ['mixed multi budget', 'a+b{2}c{2,}d{3,9}'],
+  ['nine quantifiers', 'a?a?a?a?a?a?a?a?a?aaaaaaaaa'],
   ['max above 100', 'a{1,101}'],
   ['exact above 100', 'a{101}'],
   ['min above 100', 'a{101,}'],
-  ['invalid', '['],
-  ['unbalanced', '(a'],
-  ['stray close', 'a)'],
+  ['four digit bound', 'a{1000}'],
+  ['huge bound', 'a{99999999999}'],
+  ['huge huge bound', 'x{12345678901234567890}'],
+  ['bare open brace', 'a{'],
+  ['lone open brace', '{'],
+  ['lone close brace', '}'],
+  ['unclosed brace quantifier', 'a{1'],
+  ['too many bounds', 'a{1,2,3}'],
+  ['non numeric brace', 'a{abc}'],
+  ['missing lower bound', 'a{,5}'],
+  ['inverted bounds', 'a{2,1}'],
+  ['zero repeat', 'a{0}'],
+  ['double brace quantifier', 'a{1}{2}'],
+  ['lazy brace quantifier', 'a{1,2}?'],
+  ['double star', 'a**'],
+  ['lazy plus', 'a+?'],
+  ['lazy star', 'a*?'],
+  ['lazy optional', 'a??'],
+  ['possessive plus', 'a++'],
+  ['leading quantifier', '*a'],
+  ['quantified anchor', '^*a'],
+  ['posix class', '[[:alpha:]]'],
+  ['unclosed class', '[a-z'],
+  ['stray close bracket', 'a]'],
+  ['empty class', '[]'],
+  ['empty negated class', '[^]'],
+  ['reversed range', '[z-a]'],
+  ['class escape in range', '[\\d-z]'],
+  ['dash in the middle', '[a-z-9]'],
+  ['nested class', '[a[b]]'],
+  ['class too long', `[${'a'.repeat(41)}]`],
+  ['class bad escape', '[a\\b]'],
+  ['anchor in the middle', 'a$b'],
+  ['caret in the middle', 'a^b'],
+  ['double caret', '^^a'],
+  ['stray paren', 'a)'],
+  ['non ascii', 'café'],
+  ['non ascii in class', '[é]'],
+  ['emoji', '\u{1F600}'],
+  ['null byte', 'a\u0000b'],
+  ['newline', 'a\nb'],
   ['empty', ''],
   ['too long', 'x'.repeat(101)],
 ] as const;
 
 test('isSafeRegexPattern: accepted patterns', () => {
   for (const pattern of SAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), true, pattern);
-  // quantifiers with an upper bound of 1 are not counted against the budget
-  assert.equal(isSafeRegexPattern('a{1}b{0,1}c?d?e?f?g?h?'), true);
-  // exactly three counted quantifiers is allowed, four is not
-  assert.equal(isSafeRegexPattern('a+b+c+'), true);
-  assert.equal(isSafeRegexPattern('a+b+c+d+'), false);
+  // budgets: 3 repeating quantifiers is fine, 4 is not; 8 quantifiers is fine, 9 is not
+  assert.equal(isSafeRegexPattern('^a+b+c+'), true);
+  assert.equal(isSafeRegexPattern('a+b+'), true);
+  assert.equal(isSafeRegexPattern('a+b+c+'), false); // unanchored: only 2 repeating quantifiers
+  assert.equal(isSafeRegexPattern('^a+b+c+d+'), false);
+  assert.equal(isSafeRegexPattern(`[${'a'.repeat(40)}]`), true);
+  assert.equal(isSafeRegexPattern('a?b?c?d?e?f?g?h?'), true);
+  assert.equal(isSafeRegexPattern('a?b?c?d?e?f?g?h?i?'), false);
 });
 
 test('isSafeRegexPattern: rejected patterns', () => {
   for (const [name, pattern] of UNSAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), false, name);
+  assert.equal(isSafeRegexPattern(undefined as never), false);
+  assert.equal(isSafeRegexPattern(42 as never), false);
+});
+
+test('isSafeRegexPattern: accepted patterns stay fast on 500-character hostile input', () => {
+  const hostile = [
+    'a'.repeat(500),
+    `${'a'.repeat(499)}!`,
+    `${'ab'.repeat(249)}!!`,
+    `${'1'.repeat(499)}!`,
+    ' '.repeat(500),
+    `${'a '.repeat(249)}!!`,
+  ];
+  const patterns = [
+    'a?a?a?a?a?a?a?aaaaaaa$',
+    'a?a?a?a?a?a?a?a?aaaaaaaa$',
+    'a*a*b$',
+    '^a*a*a*b$',
+    '^[a-z]*[a-z]*[a-z]*!$',
+    '^[a-z ]*[a-z ]*[a-z ]*!$',
+    '^\\w*\\w*#$',
+    '^.*.*.*x',
+    '^\\d{1,100}\\d{1,100}x',
+    '^[a-z]+@[a-z]+\\.[a-z]{2,}$',
+  ];
+  for (const pattern of patterns) {
+    assert.equal(isSafeRegexPattern(pattern), true, pattern);
+    const re = new RegExp(pattern);
+    for (const input of hostile) {
+      const started = performance.now();
+      re.test(input);
+      const elapsed = performance.now() - started;
+      assert.ok(elapsed < 200, `${pattern} took ${elapsed.toFixed(0)} ms`);
+    }
+  }
 });
 
 test('checkPublishable: unsafe or long regex patterns are errors, safe ones are not', () => {
@@ -256,9 +359,13 @@ test('checkPublishable: unsafe or long regex patterns are errors, safe ones are 
     );
   }
   for (const pattern of SAFE_PATTERNS) {
+    if (pattern === '') continue;
     const f = form(...base, q({ id: 'r', validation: { kind: 'regex', pattern } }));
     assert.deepEqual(errorsOf('contact', f), [], pattern);
   }
+  // staff are pointed to the presets
+  const bad = form(...base, q({ id: 'r', validation: { kind: 'regex', pattern: '(a+)+' } }));
+  assert.ok(errorsOf('contact', bad).some((p) => /preset/i.test(p)));
   assert.throws(
     () => form(q({ validation: { kind: 'regex', pattern: 'x'.repeat(101) } })),
     (e: unknown) => e instanceof FormSchemaError && /pattern/.test(e.path),

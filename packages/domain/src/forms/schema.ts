@@ -435,111 +435,154 @@ export function parseFormSchema(input: unknown): FormSchema {
 // Regex safety (staff-authored patterns run against applicant text)
 // ---------------------------------------------------------------------------
 
-type Frame = { hasQuantifier: boolean; hasAlternation: boolean };
-
+const MAX_QUANTIFIERS = 8;
+const MAX_REPEATING_ANCHORED = 3;
+const MAX_REPEATING_UNANCHORED = 2;
 const MAX_REPEAT = 100;
-const MAX_REPEATING_QUANTIFIERS = 3;
+const MAX_CLASS_LENGTH = 40;
+
+/** Characters that match themselves when written bare. Everything else must be escaped or is refused. */
+const LITERAL_CHAR = /^[A-Za-z0-9 _\-:,;/@#%&'"!=~<>`]$/;
+/** Punctuation that may be written as `\x` to match itself. */
+const ESCAPABLE = new Set('.-/+()[]{}\\^$|*?');
+/** Shorthand classes. */
+const SHORTHAND = new Set('dwsDWS');
 
 /**
- * Conservative ReDoS screen for staff-authored patterns that run against applicant text. A pattern
- * is refused when it:
- * - is empty, longer than 100 characters, or does not compile;
- * - uses backreferences or any `(?` construct other than non-capturing `(?:` (so no lookarounds,
- *   named groups or inline flags);
- * - has a quantifier whose bound exceeds 100;
- * - has more than 3 quantifiers whose upper bound can exceed 1 (`*`, `+`, `{n,}`, `{n,m}` with m>1,
- *   `{n}` with n>1; `?` and `{0,1}` are free);
- * - repeats a group more than once (upper bound > 1) when that group contains any quantifier
- *   (including `?`) or an alternation, e.g. `(a+)+`, `(a|a)*`, `(a{1,50}){1,50}`, `(ab|a){2,9}`,
- *   `(a+){2}`, `(a?){2}`.
- * It may refuse harmless patterns (for example `(\d{3}-){2}`); it never runs the pattern.
+ * Custom regex rules are restricted to a small, strictly parsed subset. Presets (email, phone,
+ * postal code, number range, length) remain the recommended path; a custom pattern is for simple
+ * codes such as `^[A-Z]{2}\d{4}$`.
+ *
+ * Why a whitelist: OWASP's ReDoS guidance (Regular expression Denial of Service, owasp.org/www-community/
+ * attacks/Regular_expression_Denial_of_Service_-_ReDoS) shows catastrophic backtracking needs nested or
+ * overlapping repetition: groups with quantifiers, alternation with overlap, or backreferences. Blacklisting those
+ * shapes is brittle (parser differentials, `a?a?a?...aaa`), so instead only a grammar that cannot nest is
+ * accepted, and because it is this small the screen and `RegExp` agree by construction.
+ *
+ * Grammar (pattern length 1..100, compiled with `new RegExp(pattern)` and refused on SyntaxError):
+ *
+ *   pattern    = [ "^" ] { atom [ quantifier ] } [ "$" ]
+ *   atom       = literal | "\" punctuation | "." | "\" ("d"|"w"|"s"|"D"|"W"|"S") | class
+ *   literal    = letter | digit | space | one of  _ - : , ; / @ # % & ' " ! = ~ < > `
+ *   punctuation= one of  . - / + ( ) [ ] { } \ ^ $ | * ?
+ *   class      = "[" [ "^" ] item+ "]"   (at most 40 characters between the brackets)
+ *   item       = literal | "." | "\" punctuation | "\" shorthand | literal "-" literal  (range, ascending)
+ *                (a "-" is literal only as the first or last item; no nested "[", no "[:posix:]")
+ *   quantifier = "?" | "*" | "+" | "{n}" | "{n,}" | "{n,m}"   (digit run of 1..3 digits, n <= m <= 100, m >= 1)
+ *
+ * Refused: groups of any kind, alternation, backreferences, lookarounds, flags, `\b \B \u \x \p \k` and any
+ * other escape, lazy/possessive/double quantifiers, a `{` that is not a strictly valid quantifier (never a
+ * literal), unescaped `) ] }`, non-ASCII, anchors anywhere except the very start/end.
+ *
+ * Budgets: at most 8 quantifiers (bounds `a?a?...` at 2^8) and a cap on quantifiers whose upper bound
+ * exceeds 1 (`*`, `+`, `{n,}`, `{n,m}` with m>1, `{n}` with n>1): 2 for an unanchored pattern, 3 when it
+ * starts with `^`. An unanchored search retries from every start offset, which multiplies the cost by n
+ * (measured: `a*a*a*b$` takes seconds on 500 characters, `^a*a*a*b$` about 70 ms), so the anchored form
+ * gets the third quantifier that shapes like `^[a-z]+@[a-z]+\.[a-z]{2,}$` need.
  */
 export function isSafeRegexPattern(pattern: string): boolean {
   if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > FORM_LIMITS.maxRegex) {
     return false;
+  }
+  const n = pattern.length;
+  let i = pattern[0] === '^' ? 1 : 0;
+  let quantifiers = 0;
+  let repeating = 0;
+  const maxRepeating = pattern[0] === '^' ? MAX_REPEATING_ANCHORED : MAX_REPEATING_UNANCHORED;
+
+  /** Parse an escape at `at` (pattern[at] === "\\"); returns the code of a single-character escape, 'class' for shorthand, or null. */
+  const escapeAt = (at: number): number | 'class' | null => {
+    const next = pattern[at + 1];
+    if (next === undefined) return null;
+    if (SHORTHAND.has(next)) return 'class';
+    if (ESCAPABLE.has(next)) return next.charCodeAt(0);
+    return null;
+  };
+
+  /** Parse a character class starting at the "[" at `at`; returns the index after its "]" or -1. */
+  const classEnd = (at: number): number => {
+    let j = at + 1;
+    if (pattern[j] === '^') j += 1;
+    type Item = { kind: 'char'; code: number } | { kind: 'class' } | { kind: 'dash' };
+    const items: Item[] = [];
+    const start = j;
+    while (j < n && pattern[j] !== ']') {
+      const c = pattern[j]!;
+      if (c === '\\') {
+        const escaped = escapeAt(j);
+        if (escaped === null) return -1;
+        items.push(escaped === 'class' ? { kind: 'class' } : { kind: 'char', code: escaped });
+        j += 2;
+      } else if (c === '-') {
+        items.push({ kind: 'dash' });
+        j += 1;
+      } else if (LITERAL_CHAR.test(c) || c === '.') {
+        items.push({ kind: 'char', code: c.charCodeAt(0) });
+        j += 1;
+      } else {
+        return -1; // includes a nested "[", "[:posix:]", non-ASCII and control characters
+      }
+      if (j - start > MAX_CLASS_LENGTH) return -1;
+    }
+    if (j >= n || items.length === 0) return -1; // unclosed or empty
+    for (let k = 0; k < items.length; k += 1) {
+      const item = items[k]!;
+      if (item.kind === 'dash') {
+        if (k !== 0 && k !== items.length - 1) return -1;
+      } else if (item.kind === 'char' && items[k + 1]?.kind === 'dash' && k + 2 < items.length) {
+        const to = items[k + 2]!;
+        if (to.kind !== 'char' || to.code < item.code) return -1;
+        k += 2;
+      } else if (item.kind === 'class' && items[k + 1]?.kind === 'dash' && k + 2 < items.length) {
+        return -1; // shorthand cannot start a range
+      }
+    }
+    return j + 1;
+  };
+
+  while (i < n) {
+    const c = pattern[i]!;
+    if (c === '$') {
+      if (i !== n - 1) return false;
+      break;
+    }
+    // atom
+    if (c === '\\') {
+      if (escapeAt(i) === null) return false;
+      i += 2;
+    } else if (c === '[') {
+      const end = classEnd(i);
+      if (end < 0) return false;
+      i = end;
+    } else if (c === '.' || LITERAL_CHAR.test(c)) {
+      i += 1;
+    } else {
+      return false; // ( ) | ^ * + ? { } ] and everything non-ASCII
+    }
+    // optional single quantifier
+    const q = pattern[i];
+    if (q === '?' || q === '*' || q === '+') {
+      quantifiers += 1;
+      if (q !== '?') repeating += 1;
+      i += 1;
+    } else if (q === '{') {
+      const m = /^\{(\d{1,3})(?:(,)(\d{0,3}))?\}/.exec(pattern.slice(i, i + 9));
+      if (!m) return false;
+      const min = Number(m[1]);
+      const max = m[2] === undefined ? min : m[3] === '' ? Infinity : Number(m[3]);
+      if (min > MAX_REPEAT || max < min || max < 1 || (max !== Infinity && max > MAX_REPEAT)) return false;
+      quantifiers += 1;
+      if (max > 1) repeating += 1;
+      i += m[0].length;
+    }
+    if (quantifiers > MAX_QUANTIFIERS || repeating > maxRepeating) return false;
   }
   try {
     new RegExp(pattern);
   } catch {
     return false;
   }
-  if (/\\[1-9]|\\k</.test(pattern)) return false;
-
-  const stack: Frame[] = [{ hasQuantifier: false, hasAlternation: false }];
-  let lastGroup: Frame | null = null;
-  let repeating = 0;
-  let i = 0;
-  while (i < pattern.length) {
-    const c = pattern[i]!;
-    if (c === '\\') {
-      i += 2;
-      lastGroup = null;
-      continue;
-    }
-    if (c === '[') {
-      i += 1;
-      while (i < pattern.length && pattern[i] !== ']') i += pattern[i] === '\\' ? 2 : 1;
-      i += 1;
-      lastGroup = null;
-      continue;
-    }
-    if (c === '(') {
-      if (pattern[i + 1] === '?') {
-        if (pattern[i + 2] !== ':') return false; // lookaround, named group, inline flags
-        i += 3;
-      } else {
-        i += 1;
-      }
-      stack.push({ hasQuantifier: false, hasAlternation: false });
-      lastGroup = null;
-      continue;
-    }
-    if (c === ')') {
-      if (stack.length < 2) return false;
-      const frame = stack.pop()!;
-      const parent = stack[stack.length - 1]!;
-      parent.hasQuantifier = parent.hasQuantifier || frame.hasQuantifier;
-      parent.hasAlternation = parent.hasAlternation || frame.hasAlternation;
-      lastGroup = frame;
-      i += 1;
-      continue;
-    }
-    if (c === '|') {
-      stack[stack.length - 1]!.hasAlternation = true;
-      lastGroup = null;
-      i += 1;
-      continue;
-    }
-    // Quantifier: upper bound `max` (Infinity when unbounded)
-    let max: number | null = null;
-    let length = 1;
-    if (c === '*' || c === '+') max = Infinity;
-    else if (c === '?') max = 1;
-    else if (c === '{') {
-      const m = /^\{(\d{1,4})(?:(,)(\d{0,4}))?\}/.exec(pattern.slice(i, i + 12));
-      if (m) {
-        length = m[0].length;
-        const min = Number(m[1]);
-        max = m[2] === undefined ? min : m[3] === '' ? Infinity : Number(m[3]);
-        if (min > MAX_REPEAT || (max !== Infinity && max > MAX_REPEAT)) return false;
-      }
-    }
-    if (max === null) {
-      lastGroup = null; // a literal "{"
-      i += 1;
-      continue;
-    }
-    i += length;
-    if (pattern[i] === '?') i += 1; // lazy suffix, not another quantifier
-    if (max > 1) {
-      repeating += 1;
-      if (repeating > MAX_REPEATING_QUANTIFIERS) return false;
-      if (lastGroup && (lastGroup.hasQuantifier || lastGroup.hasAlternation)) return false;
-    }
-    stack[stack.length - 1]!.hasQuantifier = true;
-    lastGroup = null;
-  }
-  return stack.length === 1;
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -738,7 +781,7 @@ export function checkPublishable(kind: FormKind, schema: FormSchema): PublishChe
       const rule = q.validation;
       if (rule?.kind === 'regex' && !isSafeRegexPattern(rule.pattern)) {
         errors.push(
-          `${who} has an unsafe, invalid or too long regex pattern (max ${FORM_LIMITS.maxRegex} characters, no nested repeats, backreferences or lookarounds).`,
+          `${who} has a regex pattern that is not allowed. Use a preset (email, phone, postal code, number range, length) where you can; custom patterns may only use literals, character classes and simple repeats (no groups, alternation or lookarounds), at most ${FORM_LIMITS.maxRegex} characters.`,
         );
       }
       if (q.type === 'paragraph' && rule?.kind === 'regex') {
