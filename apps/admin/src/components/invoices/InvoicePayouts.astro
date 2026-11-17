@@ -1,0 +1,89 @@
+---
+/**
+ * Musician payouts: one block per musician pay line. After the invoice is paid, staff record that Gamo paid
+ * the musician (method and reference). A line has one payout, always the full line amount: nothing is
+ * deducted for any administrative allocation. A recorded payout shows its date instead of the form.
+ *
+ * Props
+ * - invoice: InvoiceDetail; payees: Record<string, string> — roster names by id.
+ */
+import type { InvoiceDetail } from '@gamo/domain/invoices';
+import { PAYMENT_METHODS } from '@gamo/domain/invoices';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import { formatUsd } from '../../lib/invoices/money';
+import { PAYMENT_METHOD_LABEL, epochDate } from '../../lib/invoices/view';
+import InvoicePanel from './InvoicePanel.astro';
+
+interface Props {
+  invoice: InvoiceDetail;
+  payees: Record<string, string>;
+}
+
+const { invoice, payees } = Astro.props;
+const lines = invoice.groups.musicianPay;
+const paid = invoice.status === 'paid';
+const methods = PAYMENT_METHODS.map((m) => ({ value: m, label: PAYMENT_METHOD_LABEL[m] }));
+---
+
+{lines.length > 0 && (
+  <InvoicePanel
+    id="payouts"
+    title="Musician payouts"
+    description={
+      paid
+        ? 'Record each payout once Gamo has paid the musician. The musician receives the full line amount.'
+        : 'Payouts can be recorded after the invoice is paid.'
+    }
+  >
+    <ul class="space-y-4">
+      {lines.map((line) => {
+        const who = payees[line.payeeRosterMemberId ?? ''] ?? 'Unknown musician';
+        return (
+          <li id={`payout-${line.id}`} class="rounded-card border border-border p-4">
+            <p class="text-small font-semibold text-fg">
+              {who}: {line.description}
+            </p>
+            <p class="text-small tabular-nums text-fg-muted">{formatUsd(line.amountCents)}</p>
+            {line.payoutRecordedAt !== null ? (
+              <p class="mt-2 text-small font-semibold text-success">
+                Payout recorded on {epochDate(line.payoutRecordedAt)}
+              </p>
+            ) : paid ? (
+              <form
+                method="post"
+                action={`/api/invoice-lines/${encodeURIComponent(line.id)}/payout`}
+                class="mt-3 grid gap-4 sm:grid-cols-2"
+              >
+                <SelectField
+                  id={`payout-${line.id}-method`}
+                  name="method"
+                  label="How the musician was paid"
+                  options={methods}
+                  placeholder="Choose a method"
+                  required
+                />
+                <TextField
+                  id={`payout-${line.id}-reference`}
+                  name="reference"
+                  label="Reference (optional)"
+                  maxlength={200}
+                  autocomplete="off"
+                />
+                <div class="sm:col-span-2">
+                  <SubmitButton
+                    label={`Record payout for ${who} (${line.description})`}
+                    pendingLabel="Recording…"
+                  />
+                </div>
+              </form>
+            ) : (
+              <p class="mt-2 text-small text-fg-muted">Waiting for the invoice to be paid.</p>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  </InvoicePanel>
+)}

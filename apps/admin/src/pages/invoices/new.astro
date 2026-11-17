@@ -1,0 +1,110 @@
+---
+/**
+ * New invoice. GET shows the form, prefilled from `?requestId=` (accepted offers) or `?registrationId=`
+ * (the registration amount) or empty for a manual invoice. POST handles "Add another line", "Remove line N"
+ * (the form is shown again with your values) and "Create draft invoice" (validate, create, then redirect to
+ * the invoice). Prices are typed in dollars and stored as integer cents.
+ */
+import { InvoiceError, type InvoiceDraftPrefill } from '@gamo/domain/invoices';
+import AdminLayout from '../../components/AdminLayout.astro';
+import InvoiceForm from '../../components/invoices/InvoiceForm.astro';
+import { adminPage, readBody, see, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { processNewInvoiceForm } from '../../lib/invoices/actions';
+import {
+  blankLine,
+  defaultDueDate,
+  linesToForm,
+  type FieldProblem,
+  type InvoiceFormValues,
+} from '../../lib/invoices/form';
+import { INVOICE_NOTICES, invoiceNoticeKey } from '../../lib/invoices/notices';
+import { invoiceService, listRosterOptions } from '../../lib/invoices/queries';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const nowSeconds = Math.floor(Date.now() / 1000);
+let values: InvoiceFormValues = {
+  sourceType: 'manual',
+  sourceId: '',
+  billToName: '',
+  billToEmail: '',
+  dueDate: defaultDueDate(nowSeconds),
+  lines: [blankLine()],
+};
+let problems: FieldProblem[] = [];
+let sourceNote: string | undefined;
+let notice = noticeFrom(Astro.url, INVOICE_NOTICES);
+
+if (Astro.request.method === 'POST') {
+  try {
+    const body = await readBody(Astro.request);
+    const outcome = await processNewInvoiceForm(body, { env: admin.env, staffId: admin.staff.userId });
+    if (outcome.kind === 'created') return see(`/invoices/${outcome.invoice.id}`, 'created');
+    values = outcome.values;
+    if (outcome.kind === 'problems') {
+      problems = outcome.problems;
+      Astro.response.status = 422;
+    }
+    if (values.sourceType === 'service_request') sourceNote = 'From a service request.';
+    if (values.sourceType === 'academy_registration') sourceNote = 'From an Academy registration.';
+  } catch (error) {
+    if (error instanceof Response) return error;
+    if (error instanceof InvoiceError) return see('/invoices/new', invoiceNoticeKey(error));
+    throw error;
+  }
+} else {
+  const requestId = Astro.url.searchParams.get('requestId');
+  const registrationId = Astro.url.searchParams.get('registrationId');
+  if (requestId || registrationId) {
+    try {
+      const service = invoiceService(admin.env);
+      const prefill: InvoiceDraftPrefill = requestId
+        ? await service.draftFromServiceRequest(requestId)
+        : await service.draftFromAcademyRegistration(registrationId as string);
+      values = {
+        sourceType: prefill.source.type,
+        sourceId: prefill.source.id ?? '',
+        billToName: prefill.billTo.name,
+        billToEmail: prefill.billTo.email,
+        dueDate: values.dueDate,
+        lines: linesToForm(prefill.lines),
+      };
+      sourceNote = requestId
+        ? 'Prefilled from the service request: one musician pay line for each accepted offer. Check each line.'
+        : 'Prefilled from the Academy registration. Check the amount and add lines if needed.';
+    } catch (error) {
+      if (!(error instanceof InvoiceError)) throw error;
+      Astro.response.status = 404;
+      notice = INVOICE_NOTICES[invoiceNoticeKey(error)] ?? null;
+    }
+  }
+}
+
+const roster = await listRosterOptions(admin.db);
+const gamoAdminApproved = admin.env.GAMO_ADMIN_FEE_APPROVED === 'true';
+---
+
+<AdminLayout
+  title="New invoice"
+  current="invoices"
+  notice={notice}
+  breadcrumbs={[{ label: 'Invoices', href: '/invoices' }, { label: 'New invoice' }]}
+  description="A draft is not sent until you choose Send on the invoice page."
+>
+  <InvoiceForm
+    values={values}
+    problems={problems}
+    roster={roster}
+    gamoAdminApproved={gamoAdminApproved}
+    sourceNote={sourceNote}
+  />
+</AdminLayout>

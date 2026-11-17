@@ -1,0 +1,46 @@
+---
+/**
+ * Status filter for the invoice list: plain links (`?status=open`), the current one marked with
+ * aria-current. Each link is a real page, so it works without JavaScript.
+ *
+ * Props
+ * - current?: InvoiceStatus — the active filter; omit for "All".
+ */
+import { INVOICE_STATUSES, type InvoiceStatus } from '@gamo/domain/invoices';
+import { STATUS_LABEL } from '../../lib/invoices/view';
+
+interface Props {
+  current?: InvoiceStatus;
+}
+
+const { current } = Astro.props;
+const items: { label: string; href: string; active: boolean }[] = [
+  { label: 'All', href: '/invoices', active: !current },
+  ...INVOICE_STATUSES.map((s) => ({
+    label: STATUS_LABEL[s],
+    href: `/invoices?status=${s}`,
+    active: current === s,
+  })),
+];
+---
+
+<nav aria-label="Filter invoices by status">
+  <ul class="flex flex-wrap gap-2">
+    {items.map((item) => (
+      <li>
+        <a
+          href={item.href}
+          aria-current={item.active ? 'true' : undefined}
+          class:list={[
+            'inline-flex min-h-11 items-center rounded-pill border px-4 text-small font-semibold',
+            item.active
+              ? 'border-action-strong bg-action-strong text-on-action'
+              : 'border-fg-muted bg-surface-raised text-fg hover:bg-surface-inset',
+          ]}
+        >
+          {item.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

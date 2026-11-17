@@ -1,0 +1,33 @@
+---
+/**
+ * Status chip: the status is always written out ("Draft", "Open", "Paid", "Void"); the outline colour only
+ * reinforces it.
+ *
+ * Props
+ * - status: 'draft' | 'open' | 'paid' | 'void'
+ */
+import type { InvoiceStatus } from '@gamo/domain/invoices';
+import { STATUS_LABEL } from '../../lib/invoices/view';
+
+interface Props {
+  status: InvoiceStatus;
+}
+
+const { status } = Astro.props;
+const tone: Record<InvoiceStatus, string> = {
+  draft: 'border-fg-muted text-fg-muted',
+  open: 'border-action-strong text-action-strong',
+  paid: 'border-success text-success',
+  void: 'border-border text-fg-muted',
+};
+---
+
+<span
+  data-status={status}
+  class:list={[
+    'inline-flex items-center rounded-pill border bg-surface-raised px-2.5 py-0.5 text-caption font-semibold',
+    tone[status],
+  ]}
+>
+  {STATUS_LABEL[status]}
+</span>

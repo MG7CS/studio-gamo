@@ -1,0 +1,94 @@
+---
+/**
+ * Invoices: newest first, filter by status, keyset paging. Staff create drafts from a service request, an
+ * Academy registration or by hand (/invoices/new), then send, mark paid or void on the invoice page.
+ */
+import {
+  INVOICE_STATUSES,
+  InvoiceError,
+  type InvoiceListPage,
+  type InvoiceStatus,
+} from '@gamo/domain/invoices';
+import AdminLayout from '../../components/AdminLayout.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import InvoiceListTable from '../../components/invoices/InvoiceListTable.astro';
+import InvoiceStatusFilter from '../../components/invoices/InvoiceStatusFilter.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { INVOICE_NOTICES } from '../../lib/invoices/notices';
+import { invoiceService } from '../../lib/invoices/queries';
+import { STATUS_LABEL } from '../../lib/invoices/view';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const statusParam = Astro.url.searchParams.get('status');
+const status = (INVOICE_STATUSES as readonly string[]).includes(statusParam ?? '')
+  ? (statusParam as InvoiceStatus)
+  : undefined;
+const cursor = Astro.url.searchParams.get('cursor');
+
+let page: InvoiceListPage = { items: [], nextCursor: null };
+let notice = noticeFrom(Astro.url, INVOICE_NOTICES);
+try {
+  page = await invoiceService(admin.env).list({ ...(status ? { status } : {}) }, cursor);
+} catch (error) {
+  if (!(error instanceof InvoiceError)) throw error;
+  Astro.response.status = 400;
+  notice = INVOICE_NOTICES.invalid ?? null;
+}
+
+const caption = `${status ? STATUS_LABEL[status] : 'All'} invoices, newest first`;
+const nextHref = page.nextCursor
+  ? `/invoices?${new URLSearchParams({ ...(status ? { status } : {}), cursor: page.nextCursor }).toString()}`
+  : null;
+---
+
+<AdminLayout
+  title="Invoices"
+  current="invoices"
+  notice={notice}
+  description="Bill churches and families, record payments and record musician payouts. Stripe stays in test mode."
+>
+  <ButtonLink slot="actions" href="/invoices/new">
+    New invoice
+  </ButtonLink>
+  <ButtonLink slot="actions" href="/registrations" variant="secondary">
+    Academy registrations
+  </ButtonLink>
+
+  <div class="space-y-5">
+    <InvoiceStatusFilter current={status} />
+    {page.items.length === 0 ? (
+      <p class="rounded-card border border-border bg-surface-raised p-5 text-small text-fg">
+        {status ? `No ${STATUS_LABEL[status].toLowerCase()} invoices.` : 'No invoices yet.'}{' '}
+        <a
+          href="/invoices/new"
+          class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+        >
+          Create the first invoice
+        </a>
+      </p>
+    ) : (
+      <InvoiceListTable invoices={page.items} caption={caption} />
+    )}
+    {nextHref && (
+      <p>
+        <a
+          href={nextHref}
+          rel="next"
+          class="inline-flex min-h-11 items-center rounded-pill border border-fg-muted bg-surface-raised px-5 text-small font-semibold text-fg hover:bg-surface-inset"
+        >
+          Next page
+        </a>
+      </p>
+    )}
+  </div>
+</AdminLayout>

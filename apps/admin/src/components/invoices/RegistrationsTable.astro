@@ -1,0 +1,102 @@
+---
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex -- the scrollable table region must be reachable by keyboard */
+/**
+ * Academy registrations (read-only): reference, lesson, status, guardian email (masked), amount, paid and
+ * the way to an invoice. Registrations are made on the public Academy page; staff only look here and
+ * create an invoice. Emails are shown partially (a***@d***.org); the full address is on the invoice form.
+ *
+ * Props
+ * - rows: RegistrationRow[] — one page of registrations.
+ */
+import { formatUsd } from '../../lib/invoices/money';
+import { registrationLabel, type RegistrationRow } from '../../lib/invoices/queries';
+import { epochDate, maskEmail } from '../../lib/invoices/view';
+
+interface Props {
+  rows: RegistrationRow[];
+}
+
+const { rows } = Astro.props;
+const STATUS: Record<string, string> = {
+  reserved: 'Reserved',
+  pending_payment: 'Waiting for payment',
+  paid: 'Paid',
+  cancelled: 'Cancelled',
+  waitlisted: 'Waitlisted',
+};
+---
+
+<div
+  role="region"
+  aria-label="Academy registrations (scrollable table)"
+  tabindex="0"
+  class="overflow-x-auto rounded-card border border-border bg-surface-raised"
+>
+  <table class="w-full min-w-176 border-collapse text-left text-small">
+    <caption class="px-4 pt-4 pb-2 text-left text-small font-semibold text-fg">
+      Academy registrations, newest first
+    </caption>
+    <thead>
+      <tr class="border-b border-border text-caption text-fg-muted">
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Reference
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Lesson
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Status
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Guardian email
+        </th>
+        <th scope="col" class="px-4 py-2 text-right font-semibold">
+          Amount
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Paid
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Invoice
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => {
+        const ref = row.reference ?? row.id;
+        return (
+          <tr class="border-b border-border last:border-b-0">
+            <th scope="row" class="px-4 py-2 font-semibold text-fg">
+              {ref}
+            </th>
+            <td class="px-4 py-2 capitalize text-fg">{registrationLabel(row)}</td>
+            <td class="px-4 py-2 text-fg">{STATUS[row.status] ?? row.status}</td>
+            <td class="px-4 py-2 text-fg-muted">{maskEmail(row.email)}</td>
+            <td class="px-4 py-2 text-right tabular-nums text-fg">{formatUsd(row.amountCents)}</td>
+            <td class="px-4 py-2 text-fg-muted">
+              {row.paidAt === null ? 'Not paid' : epochDate(row.paidAt)}
+            </td>
+            <td class="px-4 py-2">
+              {row.invoiceId ? (
+                <a
+                  href={`/invoices/${encodeURIComponent(row.invoiceId)}`}
+                  class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+                >
+                  {`View invoice ${row.invoiceNumber ?? ''}`.trim()}
+                </a>
+              ) : (
+                <a
+                  href={`/invoices/new?registrationId=${encodeURIComponent(row.id)}`}
+                  aria-label={`Create invoice for registration ${ref}`}
+                  class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+                >
+                  Create invoice
+                </a>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>

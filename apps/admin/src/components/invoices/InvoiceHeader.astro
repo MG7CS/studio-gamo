@@ -1,0 +1,102 @@
+---
+/**
+ * The facts of one invoice: number, status, who is billed, dates, mode, the record it came from and, once
+ * paid, how it was paid (the minimal status history). No Stripe ids are shown; a Stripe hosted payment link
+ * is shown as a link only.
+ *
+ * Props
+ * - invoice: Invoice — the service record.
+ * - sourceHref/sourceLabel: where the invoice came from (a link when the record has a screen).
+ */
+import type { Invoice } from '@gamo/domain/invoices';
+import { formatUsd } from '../../lib/invoices/money';
+import {
+  PAYMENT_METHOD_LABEL,
+  epochDate,
+  invoiceMode,
+  shortDate,
+  STATUS_HELP,
+} from '../../lib/invoices/view';
+import InvoiceStatusChip from './InvoiceStatusChip.astro';
+
+interface Props {
+  invoice: Invoice;
+  sourceLabel: string;
+  sourceHref: string | null;
+}
+
+const { invoice, sourceLabel, sourceHref } = Astro.props;
+---
+
+<dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Status</dt>
+    <dd class="mt-1 flex flex-wrap items-center gap-2 text-small text-fg">
+      <InvoiceStatusChip status={invoice.status} />
+      <span class="text-fg-muted">{STATUS_HELP[invoice.status]}</span>
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Total</dt>
+    <dd class="mt-1 text-lg font-bold tabular-nums text-fg">{formatUsd(invoice.totalCents)}</dd>
+  </div>
+  <div class="min-w-0">
+    <dt class="text-caption font-semibold text-fg-muted">Bill to</dt>
+    <dd class="mt-1 break-words text-small text-fg">
+      {invoice.billToName}
+      <br />
+      {invoice.billToEmail}
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Issued and due</dt>
+    <dd class="mt-1 text-small text-fg">
+      Created {epochDate(invoice.createdAt)}; due {shortDate(invoice.dueDate)}
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Payment mode</dt>
+    <dd class="mt-1 text-small text-fg">
+      {invoiceMode(invoice)}
+      {invoice.stripeInvoiceId && <span class="text-fg-muted"> (Stripe test mode)</span>}
+      {invoice.hostedUrl && invoice.status === 'open' && (
+        <>
+          {' '}
+          <a
+            href={invoice.hostedUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+            class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+          >
+            Open the payment page<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </>
+      )}
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Created from</dt>
+    <dd class="mt-1 text-small text-fg">
+      {sourceHref ? (
+        <a
+          href={sourceHref}
+          class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+        >
+          {sourceLabel}
+        </a>
+      ) : (
+        sourceLabel
+      )}
+    </dd>
+  </div>
+  {invoice.status === 'paid' && invoice.paidAt !== null && (
+    <div class="sm:col-span-2">
+      <dt class="text-caption font-semibold text-fg-muted">Payment recorded</dt>
+      <dd class="mt-1 break-words text-small text-fg">
+        {epochDate(invoice.paidAt)}
+        {invoice.paidMethod && <> by {PAYMENT_METHOD_LABEL[invoice.paidMethod]}</>}
+        {invoice.paidReference && <>, reference {invoice.paidReference}</>}
+      </dd>
+    </div>
+  )}
+</dl>

@@ -1,0 +1,84 @@
+---
+/**
+ * One invoice: facts, lines in separate groups (musician pay, Gamo administrative contribution, other) with
+ * subtotals and the total, the actions its status allows, and musician payouts once it is paid.
+ */
+import { InvoiceError, type InvoiceDetail } from '@gamo/domain/invoices';
+import AdminLayout from '../../components/AdminLayout.astro';
+import InvoiceActions from '../../components/invoices/InvoiceActions.astro';
+import InvoiceHeader from '../../components/invoices/InvoiceHeader.astro';
+import InvoiceLineGroups from '../../components/invoices/InvoiceLineGroups.astro';
+import InvoicePanel from '../../components/invoices/InvoicePanel.astro';
+import InvoicePayouts from '../../components/invoices/InvoicePayouts.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { INVOICE_NOTICES } from '../../lib/invoices/notices';
+import { invoiceService, rosterNames } from '../../lib/invoices/queries';
+import { sourceLink, stripeTestConfigured } from '../../lib/invoices/view';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+let invoice: InvoiceDetail | null = null;
+try {
+  invoice = await invoiceService(admin.env).get(Astro.params.id ?? '');
+} catch (error) {
+  if (!(error instanceof InvoiceError)) throw error;
+  Astro.response.status = 404;
+}
+
+const payees = invoice
+  ? Object.fromEntries(
+      await rosterNames(
+        admin.db,
+        invoice.lines.flatMap((l) => (l.payeeRosterMemberId ? [l.payeeRosterMemberId] : [])),
+      ),
+    )
+  : {};
+const source = invoice ? sourceLink(invoice) : null;
+const notice = noticeFrom(Astro.url, INVOICE_NOTICES);
+---
+
+{invoice && source ? (
+  <AdminLayout
+    title={`Invoice ${invoice.number}`}
+    current="invoices"
+    notice={notice}
+    breadcrumbs={[{ label: 'Invoices', href: '/invoices' }, { label: invoice.number }]}
+  >
+    <div class="space-y-6">
+      <InvoicePanel title="Details">
+        <InvoiceHeader invoice={invoice} sourceLabel={source.label} sourceHref={source.href} />
+      </InvoicePanel>
+      <InvoicePanel title="Lines">
+        <InvoiceLineGroups invoice={invoice} payees={payees} />
+      </InvoicePanel>
+      <InvoiceActions invoice={invoice} stripeTest={stripeTestConfigured(admin.env)} />
+      <InvoicePayouts invoice={invoice} payees={payees} />
+    </div>
+  </AdminLayout>
+) : (
+  <AdminLayout
+    title="Invoice not found"
+    current="invoices"
+    notice={notice}
+    breadcrumbs={[{ label: 'Invoices', href: '/invoices' }, { label: 'Not found' }]}
+  >
+    <p class="text-small text-fg">
+      There is no invoice with this address.
+      <a
+        href="/invoices"
+        class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+      >
+        Back to invoices
+      </a>
+    </p>
+  </AdminLayout>
+)}

@@ -1,0 +1,100 @@
+---
+/**
+ * The new-invoice form: bill-to, due date and the line editor, with an error summary that links to each
+ * field with a problem. It posts to the page itself (`/invoices/new`), which re-renders it with your values
+ * for "Add another line", "Remove line N" and validation errors, and redirects to the invoice once the draft
+ * is created. Works without JavaScript; `novalidate` because the server states every problem in words.
+ *
+ * Props
+ * - values: InvoiceFormValues — what the fields contain.
+ * - problems: FieldProblem[] — errors to list in the summary and show beside fields.
+ * - roster: RosterOption[]; gamoAdminApproved: boolean — see InvoiceLineEditor.
+ * - sourceNote?: string — one line saying where the invoice came from ("From service request …").
+ */
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import DateField from '@studio-gamo/ui/components/forms/DateField.astro';
+import { problemsByField, type FieldProblem, type InvoiceFormValues } from '../../lib/invoices/form';
+import type { RosterOption } from '../../lib/invoices/queries';
+import InvoiceLineEditor from './InvoiceLineEditor.astro';
+import InvoicePanel from './InvoicePanel.astro';
+
+interface Props {
+  values: InvoiceFormValues;
+  problems: FieldProblem[];
+  roster: RosterOption[];
+  gamoAdminApproved: boolean;
+  sourceNote?: string;
+}
+
+const { values, problems, roster, gamoAdminApproved, sourceNote } = Astro.props;
+const errors = problemsByField(problems);
+---
+
+<form method="post" action="/invoices/new" novalidate class="space-y-6">
+  <FormErrorSummary
+    errors={problems.map((p) => ({ message: p.message, fieldId: p.fieldId }))}
+    title="Check these before creating the invoice"
+  />
+  <input type="hidden" name="sourceType" value={values.sourceType} />
+  <input type="hidden" name="sourceId" value={values.sourceId} />
+  <button type="submit" name="action" value="create" tabindex="-1" aria-hidden="true" class="sr-only">
+    Create draft invoice
+  </button>
+
+  <InvoicePanel title="Who is billed" description={sourceNote}>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <TextField
+        id="bill-to-name"
+        name="billToName"
+        label="Bill-to name"
+        value={values.billToName}
+        maxlength={200}
+        autocomplete="off"
+        error={errors['bill-to-name']}
+        required
+      />
+      <TextField
+        id="bill-to-email"
+        name="billToEmail"
+        label="Bill-to email"
+        type="email"
+        value={values.billToEmail}
+        autocomplete="off"
+        spellcheck={false}
+        hint="The invoice and receipt are emailed here."
+        error={errors['bill-to-email']}
+        required
+      />
+      <DateField
+        id="due-date"
+        name="dueDate"
+        label="Due date"
+        value={values.dueDate}
+        hint="Format YYYY-MM-DD."
+        error={errors['due-date']}
+        required
+      />
+    </div>
+  </InvoicePanel>
+
+  <div class="min-w-0 rounded-card border border-border bg-surface-raised p-5 sm:p-6">
+    <InvoiceLineEditor
+      lines={values.lines}
+      roster={roster}
+      errors={errors}
+      gamoAdminApproved={gamoAdminApproved}
+    />
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <SubmitButton label="Create draft invoice" pendingLabel="Creating…" name="action" value="create" />
+    <a
+      href="/invoices"
+      class="inline-flex min-h-11 items-center px-3 text-small font-semibold text-action-strong underline underline-offset-4"
+    >
+      Cancel
+    </a>
+  </div>
+</form>

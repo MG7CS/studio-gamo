@@ -1,0 +1,33 @@
+---
+/**
+ * A titled card for one block of an invoice screen.
+ *
+ * Props
+ * - title: string — the block heading (h2).
+ * - description?: string — one supporting sentence.
+ * - id?: string — anchor for links and notices.
+ * Slot: default — the block's content.
+ */
+interface Props {
+  title: string;
+  description?: string;
+  id?: string;
+}
+
+const { title, description, id } = Astro.props;
+const headingId = id ? `${id}-heading` : undefined;
+---
+
+<section
+  id={id}
+  aria-labelledby={headingId}
+  class="min-w-0 rounded-card border border-border bg-surface-raised p-5 sm:p-6"
+>
+  <h2 id={headingId} class="text-lg font-bold tracking-tight text-fg">
+    {title}
+  </h2>
+  {description && <p class="mt-1 max-w-prose text-small text-fg-muted">{description}</p>}
+  <div class="mt-4">
+    <slot />
+  </div>
+</section>

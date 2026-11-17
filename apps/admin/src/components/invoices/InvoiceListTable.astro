@@ -1,0 +1,83 @@
+---
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex -- the scrollable table region must be reachable by keyboard */
+/**
+ * The invoice list: a captioned table (number, bill to, issued, due, total, status, mode) inside a
+ * keyboard-scrollable region, so it never forces the page to scroll sideways on a phone. Amounts are
+ * formatted from integer cents.
+ *
+ * Props
+ * - invoices: Invoice[] — one page of invoices (service records).
+ * - caption: string — what the table lists, e.g. "Open invoices, newest first".
+ */
+import type { Invoice } from '@gamo/domain/invoices';
+import { formatUsd } from '../../lib/invoices/money';
+import { epochDate, invoiceMode, shortDate } from '../../lib/invoices/view';
+import InvoiceStatusChip from './InvoiceStatusChip.astro';
+
+interface Props {
+  invoices: Invoice[];
+  caption: string;
+}
+
+const { invoices, caption } = Astro.props;
+---
+
+<div
+  role="region"
+  aria-label={`${caption} (scrollable table)`}
+  tabindex="0"
+  class="overflow-x-auto rounded-card border border-border bg-surface-raised"
+>
+  <table class="w-full min-w-176 border-collapse text-left text-small">
+    <caption class="px-4 pt-4 pb-2 text-left text-small font-semibold text-fg">{caption}</caption>
+    <thead>
+      <tr class="border-b border-border text-caption text-fg-muted">
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Number
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Bill to
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Issued
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Due
+        </th>
+        <th scope="col" class="px-4 py-2 text-right font-semibold">
+          Total
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Status
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Mode
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {invoices.map((invoice) => (
+        <tr class="border-b border-border last:border-b-0">
+          <th scope="row" class="px-4 py-2 font-semibold">
+            <a
+              href={`/invoices/${encodeURIComponent(invoice.id)}`}
+              class="inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg"
+            >
+              {invoice.number}
+            </a>
+          </th>
+          <td class="px-4 py-2 text-fg">{invoice.billToName}</td>
+          <td class="px-4 py-2 text-fg-muted">{epochDate(invoice.createdAt)}</td>
+          <td class="px-4 py-2 text-fg-muted">{shortDate(invoice.dueDate)}</td>
+          <td class="px-4 py-2 text-right font-semibold tabular-nums text-fg">
+            {formatUsd(invoice.totalCents)}
+          </td>
+          <td class="px-4 py-2">
+            <InvoiceStatusChip status={invoice.status} />
+          </td>
+          <td class="px-4 py-2 text-fg-muted">{invoiceMode(invoice)}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

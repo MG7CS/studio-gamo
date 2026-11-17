@@ -1,0 +1,51 @@
+---
+/**
+ * Academy registrations (read-only): what families reserved on the public Academy page, with a link to
+ * create an invoice for each. Guardian emails are masked here.
+ */
+import AdminLayout from '../../components/AdminLayout.astro';
+import RegistrationsTable from '../../components/invoices/RegistrationsTable.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { listRegistrations, type RegistrationPage } from '../../lib/invoices/queries';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const page: RegistrationPage = await listRegistrations(admin.db, Astro.url.searchParams.get('cursor'));
+const nextHref = page.nextCursor ? `/registrations?cursor=${encodeURIComponent(page.nextCursor)}` : null;
+---
+
+<AdminLayout
+  title="Academy registrations"
+  current="invoices"
+  breadcrumbs={[{ label: 'Invoices', href: '/invoices' }, { label: 'Academy registrations' }]}
+  description="Registrations are made on the public Academy page. Create an invoice from a registration when a family should be billed."
+>
+  <div class="space-y-5">
+    {page.items.length === 0 ? (
+      <p class="rounded-card border border-border bg-surface-raised p-5 text-small text-fg">
+        No Academy registrations yet.
+      </p>
+    ) : (
+      <RegistrationsTable rows={page.items} />
+    )}
+    {nextHref && (
+      <p>
+        <a
+          href={nextHref}
+          rel="next"
+          class="inline-flex min-h-11 items-center rounded-pill border border-fg-muted bg-surface-raised px-5 text-small font-semibold text-fg hover:bg-surface-inset"
+        >
+          Next page
+        </a>
+      </p>
+    )}
+  </div>
+</AdminLayout>

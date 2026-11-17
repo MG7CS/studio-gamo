@@ -1,0 +1,99 @@
+---
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex -- the scrollable table region must be reachable by keyboard */
+/**
+ * The lines of an invoice in three separate groups, each with its own subtotal, then the total:
+ * Musician pay, Gamo administrative contribution and Other. Musician pay and the Gamo allocation are never
+ * mixed in one table. All amounts are formatted from integer cents.
+ *
+ * Props
+ * - invoice: InvoiceDetail — the service record with its grouped lines.
+ * - payees: Record<string, string> — roster member names by id, for musician pay lines.
+ */
+import type { InvoiceDetail } from '@gamo/domain/invoices';
+import { formatUsd } from '../../lib/invoices/money';
+import { LINE_KIND_LABEL, lineGroups } from '../../lib/invoices/view';
+
+interface Props {
+  invoice: InvoiceDetail;
+  payees: Record<string, string>;
+}
+
+const { invoice, payees } = Astro.props;
+const groups = lineGroups(invoice);
+---
+
+<div class="space-y-6">
+  {groups.map((group) => (
+    <section aria-labelledby={`group-${group.key}`} data-line-group={group.key}>
+      <h3 id={`group-${group.key}`} class="text-base font-bold text-fg">
+        {group.title}
+      </h3>
+      <div
+        role="region"
+        aria-label={`${group.title} lines (scrollable table)`}
+        tabindex="0"
+        class="mt-2 overflow-x-auto rounded-card border border-border"
+      >
+        <table class="w-full min-w-136 border-collapse text-left text-small">
+          <caption class="sr-only">
+            {group.title} lines of invoice {invoice.number}
+          </caption>
+          <thead>
+            <tr class="border-b border-border text-caption text-fg-muted">
+              <th scope="col" class="px-4 py-2 font-semibold">
+                Description
+              </th>
+              <th scope="col" class="px-4 py-2 font-semibold">
+                {group.key === 'musician_pay' ? 'Musician' : 'Kind'}
+              </th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">
+                Qty
+              </th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">
+                Each
+              </th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">
+                Amount
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {group.lines.map((line) => (
+              <tr class="border-b border-border last:border-b-0">
+                <th scope="row" class="px-4 py-2 font-medium text-fg">
+                  {line.description}
+                </th>
+                <td class="px-4 py-2 text-fg-muted">
+                  {group.key === 'musician_pay'
+                    ? (payees[line.payeeRosterMemberId ?? ''] ?? 'Unknown musician')
+                    : LINE_KIND_LABEL[line.kind]}
+                </td>
+                <td class="px-4 py-2 text-right tabular-nums text-fg">{line.quantity}</td>
+                <td class="px-4 py-2 text-right tabular-nums text-fg">{formatUsd(line.unitAmountCents)}</td>
+                <td class="px-4 py-2 text-right font-semibold tabular-nums text-fg">
+                  {formatUsd(line.amountCents)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-border bg-surface-inset">
+              <th scope="row" colspan="4" class="px-4 py-2 text-right font-semibold text-fg">
+                Subtotal: {group.title}
+              </th>
+              <td class="px-4 py-2 text-right font-bold tabular-nums text-fg">
+                {formatUsd(group.subtotalCents)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  ))}
+  <p class="flex items-baseline justify-between gap-4 border-t-2 border-fg pt-3 text-base font-bold text-fg">
+    <span>Invoice total</span>
+    <span class="tabular-nums" data-invoice-total>
+      {formatUsd(invoice.totalCents)}
+    </span>
+  </p>
+</div>

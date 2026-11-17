@@ -1,0 +1,146 @@
+---
+/**
+ * The line editor of the new-invoice form: one fieldset per line, rendered by the server, so adding and
+ * removing lines works without JavaScript ("Add another line" and "Remove line N" submit the form and the
+ * page shows it again with your values). Prices are typed in dollars and become integer cents on the server.
+ *
+ * Musician pay and the Gamo administrative contribution are always separate lines (separate kinds). The
+ * administrative option is disabled, with an explanation, until the founder approves fees
+ * (GAMO_ADMIN_FEE_APPROVED=true).
+ *
+ * Props
+ * - lines: LineFormValue[] — the rows to show (at least one).
+ * - roster: { id, name }[] — payee choices for musician pay lines.
+ * - errors: Record<string, string> — messages by field id (`line-2-price`, ...), plus `lines` for the editor.
+ * - gamoAdminApproved: boolean — enables the Gamo administrative contribution kind.
+ */
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import { MAX_FORM_LINES, fieldIdFor, type LineFormValue } from '../../lib/invoices/form';
+import { LINE_KIND_LABEL } from '../../lib/invoices/view';
+import type { RosterOption } from '../../lib/invoices/queries';
+
+interface Props {
+  lines: LineFormValue[];
+  roster: RosterOption[];
+  errors: Record<string, string>;
+  gamoAdminApproved: boolean;
+}
+
+const { lines, roster, errors, gamoAdminApproved } = Astro.props;
+const kindOptions = [
+  { value: 'musician_pay', label: LINE_KIND_LABEL.musician_pay },
+  { value: 'lesson', label: LINE_KIND_LABEL.lesson },
+  { value: 'production', label: LINE_KIND_LABEL.production },
+  { value: 'other', label: LINE_KIND_LABEL.other },
+  {
+    value: 'gamo_admin',
+    label: gamoAdminApproved
+      ? LINE_KIND_LABEL.gamo_admin
+      : `${LINE_KIND_LABEL.gamo_admin} (not approved yet)`,
+    disabled: !gamoAdminApproved,
+  },
+];
+const payeeOptions = roster.map((m) => ({ value: m.id, label: m.name }));
+---
+
+<Fieldset
+  id="lines"
+  legend="Invoice lines"
+  variant="section"
+  hint="Musician pay and any Gamo administrative contribution are always separate lines. Prices are in US dollars."
+  error={errors.lines}
+  required
+>
+  <input type="hidden" name="line_count" value={String(lines.length)} />
+  <div class="mt-4 space-y-4">
+    {lines.map((line, i) => (
+      <Fieldset id={`line-${i}`} legend={`Line ${i + 1}`} class="rounded-card border border-border p-4">
+        <div class="mt-3 grid gap-4 sm:grid-cols-2">
+          <SelectField
+            id={fieldIdFor(i, 'kind')}
+            name={`line_kind_${i}`}
+            label="What this line is for"
+            options={kindOptions}
+            value={line.kind}
+            placeholder=""
+            error={errors[fieldIdFor(i, 'kind')]}
+            required
+          />
+          <SelectField
+            id={fieldIdFor(i, 'payee')}
+            name={`line_payee_${i}`}
+            label="Musician paid (musician pay lines only)"
+            options={payeeOptions}
+            value={line.payee}
+            placeholder="Not a musician pay line"
+            error={errors[fieldIdFor(i, 'payee')]}
+          />
+          <TextField
+            id={fieldIdFor(i, 'description')}
+            name={`line_description_${i}`}
+            label="Description"
+            value={line.description}
+            maxlength={200}
+            error={errors[fieldIdFor(i, 'description')]}
+            required
+            class="sm:col-span-2"
+          />
+          <TextField
+            id={fieldIdFor(i, 'quantity')}
+            name={`line_quantity_${i}`}
+            label="Quantity"
+            type="text"
+            inputmode="numeric"
+            value={line.quantity}
+            error={errors[fieldIdFor(i, 'quantity')]}
+            required
+          />
+          <TextField
+            id={fieldIdFor(i, 'price')}
+            name={`line_price_${i}`}
+            label="Price each (US dollars)"
+            type="text"
+            inputmode="decimal"
+            value={line.price}
+            hint="For example 125.00"
+            error={errors[fieldIdFor(i, 'price')]}
+            required
+          />
+        </div>
+        {lines.length > 1 && (
+          <div class="mt-4">
+            <SubmitButton
+              variant="secondary"
+              name="action"
+              value={`remove_line_${i}`}
+              label={`Remove line ${i + 1}`}
+              pendingLabel="Removing…"
+            />
+          </div>
+        )}
+      </Fieldset>
+    ))}
+  </div>
+  {lines.length < MAX_FORM_LINES ? (
+    <div class="mt-4">
+      <SubmitButton
+        variant="secondary"
+        name="action"
+        value="add_line"
+        label="Add another line"
+        pendingLabel="Adding…"
+      />
+    </div>
+  ) : (
+    <p class="mt-4 text-small text-fg-muted">An invoice can have at most {MAX_FORM_LINES} lines.</p>
+  )}
+  {!gamoAdminApproved && (
+    <p class="mt-4 max-w-prose text-small text-fg-muted">
+      The Gamo administrative contribution line is unavailable: any fee or contribution stays a proposal until
+      the founder and board approve it. Musician pay is never reduced to cover it.
+    </p>
+  )}
+</Fieldset>
