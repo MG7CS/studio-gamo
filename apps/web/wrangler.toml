@@ -1,4 +1,6 @@
 name = "gamo-web"
+# Custom entry: Astro `fetch` + the daily cron `scheduled` handler (src/worker.ts; why: header comment there).
+main = "src/worker.ts"
 account_id = "ebae7bded6ab45950aeba1d6cf51eb7f"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
@@ -48,13 +50,10 @@ PUBLIC_SITE_URL_ACADEMY = "https://gamo-academy-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_PRODUCTION = "https://gamo-production-preview.gamostudio.workers.dev"
 PUBLIC_SITE_URL_ADMIN = "https://admin-preview.gamostudio.org"
 
-# Daily job (email retry + retention, 06:00 UTC) — NOT ENABLED YET.
-# A cron trigger needs a Worker `scheduled` handler, but @astrojs/cloudflare 14.3.x defaults `main` to
-# "@astrojs/cloudflare/entrypoints/server", which exports only `fetch`. The daily-jobs task adds a custom entry
-# (`main = "src/worker.ts"` exporting `{ fetch: handle, scheduled }` via "@astrojs/cloudflare/handler");
-# uncomment the `[env.preview.triggers]` block below with it. Enabling the trigger earlier would fire a Worker with no handler.
-# [env.preview.triggers]
-# crons = ["0 6 * * *"]
+# Daily job (email retry + retention, 06:00 UTC): handler in src/worker.ts, jobs in packages/domain/src/jobs/daily.ts,
+# schedule and checks in docs/RUNBOOK.md §3b. Web only.
+[env.preview.triggers]
+crons = ["0 6 * * *"]
 
 [[env.preview.d1_databases]]
 binding = "DB"
@@ -91,13 +90,10 @@ PUBLIC_SITE_URL_ACADEMY = "https://academy.gamostudio.org"
 PUBLIC_SITE_URL_PRODUCTION = "https://production.gamostudio.org"
 PUBLIC_SITE_URL_ADMIN = "https://admin.gamostudio.org"
 
-# Daily job (email retry + retention, 06:00 UTC) — NOT ENABLED YET.
-# A cron trigger needs a Worker `scheduled` handler, but @astrojs/cloudflare 14.3.x defaults `main` to
-# "@astrojs/cloudflare/entrypoints/server", which exports only `fetch`. The daily-jobs task adds a custom entry
-# (`main = "src/worker.ts"` exporting `{ fetch: handle, scheduled }` via "@astrojs/cloudflare/handler");
-# uncomment the `[env.production.triggers]` block below with it. Enabling the trigger earlier would fire a Worker with no handler.
-# [env.production.triggers]
-# crons = ["0 6 * * *"]
+# Daily job (email retry + retention, 06:00 UTC): handler in src/worker.ts, jobs in packages/domain/src/jobs/daily.ts,
+# schedule and checks in docs/RUNBOOK.md §3b. Web only.
+[env.production.triggers]
+crons = ["0 6 * * *"]
 
 [[env.production.d1_databases]]
 binding = "DB"
