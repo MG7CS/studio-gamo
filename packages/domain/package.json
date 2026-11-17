@@ -18,6 +18,10 @@
     "./security": "./src/security/index.ts",
     "./types": "./src/types/index.ts",
     "./terms": "./src/terms/index.ts",
-    "./public-form-guard": "./src/api/public-form-guard.ts"
+    "./public-form-guard": "./src/api/public-form-guard.ts",
+    "./forms": "./src/forms/all.ts",
+    "./invoices": "./src/invoices/all.ts",
+    "./worship": "./src/worship/index.ts",
+    "./email": "./src/email/index.ts"
   }
 }
