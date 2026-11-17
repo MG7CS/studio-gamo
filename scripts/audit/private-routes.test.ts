@@ -90,6 +90,12 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
 /** API methods anyone may call (each enforces its own gate: signature, Turnstile, signed link, etc.). */
 const PUBLIC_API = new Set([
   'web POST /api/webhook/resend', // Svix signature; 503 without RESEND_WEBHOOK_SECRET
+  'web POST /api/webhook/stripe', // Stripe signature; 503 without STRIPE_WEBHOOK_SECRET
+  'web POST /api/forms/[slug]/upload-session', // same-origin + Turnstile + per-IP limit
+  'web POST /api/forms/uploads', // same-origin + live upload-session token + per-IP limit
+  'web PUT /api/forms/uploads/[id]/parts/[n]', // same-origin + X-Upload-Token + Content-Length cap
+  'web POST /api/forms/uploads/[id]/complete', // same-origin + X-Upload-Token
+  'web DELETE /api/forms/uploads/[id]', // same-origin + X-Upload-Token
 ]);
 
 function walk(dir: string, base = ''): string[] {
