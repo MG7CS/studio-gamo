@@ -1,0 +1,82 @@
+---
+/**
+ * One service request as a description list: church, service date and time, address, contact, roles
+ * needed, status and the submission it came from.
+ *
+ * Props
+ * - request: ServiceRequest
+ * - timeZone: string — IANA zone for the received time.
+ */
+import type { ServiceRequest } from '@gamo/domain/worship';
+import { formatInstant, formatService } from '../../lib/worship/format';
+import { PROGRAM_LABEL, REQUEST_LABEL } from '../../lib/worship/labels';
+import StatusLabel from './StatusLabel.astro';
+
+interface Props {
+  request: ServiceRequest;
+  timeZone: string;
+}
+
+const { request, timeZone } = Astro.props;
+const linkClass =
+  'inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg';
+---
+
+<dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Church</dt>
+    <dd class="mt-1 text-fg">{request.churchName}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Status</dt>
+    <dd class="mt-1">
+      <StatusLabel label={REQUEST_LABEL[request.status]} />
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Service</dt>
+    <dd class="mt-1 text-fg">{formatService(request.serviceDate, request.startTime)}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Program</dt>
+    <dd class="mt-1 text-fg">{PROGRAM_LABEL[request.program] ?? request.program}</dd>
+  </div>
+  <div class="sm:col-span-2">
+    <dt class="text-caption font-semibold text-fg-muted">Address</dt>
+    <dd class="mt-1 text-fg">{request.address ?? 'Not given'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Contact</dt>
+    <dd class="mt-1 text-fg">{request.contactName ?? 'Not given'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Contact email</dt>
+    <dd class="mt-1 break-all">
+      <a href={`mailto:${request.contactEmail}`} class={linkClass}>
+        {request.contactEmail}
+      </a>
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Contact phone</dt>
+    <dd class="mt-1 text-fg">{request.contactPhone ?? 'Not given'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Roles needed</dt>
+    <dd class="mt-1 text-fg">
+      {request.rolesNeeded.length > 0 ? request.rolesNeeded.join(', ') : 'Not specified'}
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Received</dt>
+    <dd class="mt-1 text-fg">{formatInstant(request.createdAt, timeZone)}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Submission</dt>
+    <dd class="mt-1">
+      <a href={`/submissions/${encodeURIComponent(request.submissionId)}`} class={linkClass}>
+        View the original submission
+      </a>
+    </dd>
+  </div>
+</dl>

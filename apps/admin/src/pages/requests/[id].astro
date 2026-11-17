@@ -1,0 +1,135 @@
+---
+/**
+ * One service request: its details, a match panel per needed role (candidates by role and city, a Propose
+ * form each), every offer with Withdraw, and the status actions. Status changes post back to this page
+ * (303 with a notice); offers go through /api/requests/{id}/offers and /api/offers/{id}/withdraw. The offer
+ * link and token are never shown.
+ */
+import { cityFromAddress, getRequest, serviceTimeZone, type RequestDetail } from '@gamo/domain/worship';
+import AdminLayout from '../../components/AdminLayout.astro';
+import OfferList from '../../components/worship/OfferList.astro';
+import RequestStatusActions from '../../components/worship/RequestStatusActions.astro';
+import RequestSummary from '../../components/worship/RequestSummary.astro';
+import RoleMatchPanel from '../../components/worship/RoleMatchPanel.astro';
+import SentOfferNote from '../../components/worship/SentOfferNote.astro';
+import WorshipPanel from '../../components/worship/WorshipPanel.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { domainErrorResponse } from '../../lib/domain-errors';
+import { candidatesForRole } from '../../lib/worship/actions';
+import { formatInstant } from '../../lib/worship/format';
+import { handleRequestPost, ID_SHAPE } from '../../lib/worship/http';
+import { OPEN_FOR_OFFERS } from '../../lib/worship/labels';
+import { REQUEST_NOTICES } from '../../lib/worship/notices';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const id = Astro.params.id ?? '';
+if (Astro.request.method === 'POST') {
+  try {
+    return await handleRequestPost(admin, Astro.request, id);
+  } catch (error) {
+    return domainErrorResponse(error);
+  }
+}
+
+const request: RequestDetail | null = ID_SHAPE.test(id) ? await getRequest(admin.db, id) : null;
+if (!request) Astro.response.status = 404;
+const timeZone = serviceTimeZone(admin.env);
+const city = request ? cityFromAddress(request.address) : null;
+const widened = Astro.url.searchParams.get('anyCity') === '1';
+const panels = request
+  ? await Promise.all(
+      request.rolesNeeded.map((role) =>
+        candidatesForRole(admin.db, request, role, { city, widenCity: widened }),
+      ),
+    )
+  : [];
+const base = `/requests/${encodeURIComponent(id)}`;
+const pending = request ? request.offers.filter((o) => o.status === 'pending').length : 0;
+const sent =
+  request && Astro.url.searchParams.get('notice') === 'offer-sent'
+    ? request.offers.find((o) => o.id === Astro.url.searchParams.get('offer') && o.status === 'pending')
+    : undefined;
+const notice = noticeFrom(Astro.url, REQUEST_NOTICES);
+const crumbs = [{ label: 'Requests', href: '/requests' }];
+---
+
+{request ? (
+  <AdminLayout
+    title={request.churchName}
+    current="requests"
+    notice={notice}
+    breadcrumbs={[...crumbs, { label: request.churchName }]}
+  >
+    <div class="space-y-6">
+      {sent && (
+        <SentOfferNote
+          memberName={sent.memberName}
+          role={sent.role}
+          expiresAt={formatInstant(sent.expiresAt, timeZone)}
+        />
+      )}
+      <WorshipPanel title="Request">
+        <RequestSummary request={request} timeZone={timeZone} />
+      </WorshipPanel>
+      {panels.map((panel, index) => (
+        <RoleMatchPanel
+          panel={panel}
+          requestId={request.id}
+          index={index}
+          canOffer={OPEN_FOR_OFFERS.includes(request.status)}
+          city={city}
+          widened={widened}
+          widenHref={`${base}?anyCity=1#role-${index}`}
+          narrowHref={`${base}#role-${index}`}
+        />
+      ))}
+      {request.rolesNeeded.length === 0 && (
+        <WorshipPanel title="Roles" description="This request does not name the roles it needs.">
+          <p class="text-small text-fg">
+            Contact the church to confirm the roles, then find people in the
+            <a
+              href="/roster"
+              class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+            >
+              roster
+            </a>
+            .
+          </p>
+        </WorshipPanel>
+      )}
+      <WorshipPanel title="Offers" id="offers">
+        <OfferList offers={request.offers} requestId={request.id} timeZone={timeZone} />
+      </WorshipPanel>
+      <WorshipPanel title="Request status" id="status">
+        <RequestStatusActions requestId={request.id} status={request.status} pendingOffers={pending} />
+      </WorshipPanel>
+    </div>
+  </AdminLayout>
+) : (
+  <AdminLayout
+    title="Request not found"
+    current="requests"
+    notice={notice}
+    breadcrumbs={[...crumbs, { label: 'Not found' }]}
+  >
+    <p class="text-small text-fg">
+      That request does not exist.
+      <a
+        href="/requests"
+        class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+      >
+        Back to requests
+      </a>
+    </p>
+  </AdminLayout>
+)}

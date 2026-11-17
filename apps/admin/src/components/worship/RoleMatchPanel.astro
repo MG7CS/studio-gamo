@@ -1,0 +1,121 @@
+---
+/**
+ * The match panel for one needed role: active roster members who list the role (case-insensitive), in the
+ * request's city when it can be read from the address, in name order. Nothing about pay, sponsorship or
+ * how a member joined affects who is listed first. Availability is not tracked, so the panel tells staff to
+ * check it by contact before proposing.
+ *
+ * Each candidate has a Propose form posting dollars to `POST /api/requests/{id}/offers`; its button names
+ * the person and role ("Propose Ana R. for Drums") so repeated buttons stay distinguishable.
+ *
+ * Props
+ * - panel: RolePanel — the role, candidates and who accepted, if anyone.
+ * - requestId: string
+ * - index: number — position of the role (unique ids).
+ * - canOffer: boolean — false once the request is confirmed, completed or cancelled.
+ * - city: string | null — the city read from the request address.
+ * - widened: boolean — candidates from every city are shown.
+ * - widenHref / narrowHref: string — links that toggle the city narrowing.
+ */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { RolePanel } from '../../lib/worship/actions';
+import { shortName } from '../../lib/worship/format';
+import WorshipPanel from './WorshipPanel.astro';
+
+interface Props {
+  panel: RolePanel;
+  requestId: string;
+  index: number;
+  canOffer: boolean;
+  city: string | null;
+  widened: boolean;
+  widenHref: string;
+  narrowHref: string;
+}
+
+const { panel, requestId, index, canOffer, city, widened, widenHref, narrowHref } = Astro.props;
+const linkClass =
+  'inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg';
+const scope = city && !widened ? ` in ${city}` : '';
+---
+
+<WorshipPanel
+  id={`role-${index}`}
+  title={panel.role}
+  description="Check availability by contact before you propose: availability is not tracked here. Candidates are listed by name."
+>
+  {panel.acceptedBy && (
+    <p class="mb-4 rounded-card border border-success px-4 py-3 text-small text-fg">
+      <strong class="font-semibold">Filled.</strong> {panel.acceptedBy.name} accepted this role.
+    </p>
+  )}
+  {panel.candidates.length === 0 ? (
+    <p class="text-small text-fg">
+      No active roster member lists {panel.role}
+      {scope}.
+    </p>
+  ) : (
+    <ul class="divide-y divide-border">
+      {panel.candidates.map((c) => {
+        const label = shortName(c.member.displayName);
+        const fieldId = `pay-${index}-${c.member.id}`;
+        return (
+          <li class="py-4">
+            <p class="text-small">
+              <a href={`/roster/${encodeURIComponent(c.member.id)}`} class={`${linkClass} font-semibold`}>
+                {c.member.displayName}
+              </a>
+              <span class="text-fg-muted">
+                {' '}
+                · {c.member.city ?? 'City not given'} · {c.member.roles.join(', ')}
+              </span>
+            </p>
+            <p class="break-all text-small text-fg-muted">
+              {c.member.email}
+              {c.member.phone ? ` · ${c.member.phone}` : ''}
+            </p>
+            {c.pendingOfferId ? (
+              <p class="mt-2 text-small text-fg">
+                An offer to {label} for {panel.role} is pending. Withdraw it under Offers to send a new one.
+              </p>
+            ) : canOffer && !panel.acceptedBy ? (
+              <form
+                method="post"
+                action={`/api/requests/${encodeURIComponent(requestId)}/offers`}
+                class="mt-2 grid max-w-prose gap-3 sm:grid-cols-2 sm:items-end"
+              >
+                <input type="hidden" name="rosterMemberId" value={c.member.id} />
+                <input type="hidden" name="role" value={panel.role} />
+                <TextField
+                  id={fieldId}
+                  name="payDollars"
+                  label={`Pay for ${label} as ${panel.role} (US dollars)`}
+                  inputmode="decimal"
+                  required
+                  maxlength={9}
+                  pattern="\$?[0-9][0-9,]*(\.[0-9]{1,2})?"
+                  hint="For example 150 or 150.00. Up to $5,000.00. Shown to the musician as a separate amount."
+                />
+                <SubmitButton label={`Propose ${label} for ${panel.role}`} pendingLabel="Sending…" />
+              </form>
+            ) : null}
+          </li>
+        );
+      })}
+    </ul>
+  )}
+  {city && (
+    <p class="mt-3">
+      {widened ? (
+        <a href={narrowHref} class={linkClass}>
+          Show only members in {city}
+        </a>
+      ) : (
+        <a href={widenHref} class={linkClass}>
+          Show members from any city
+        </a>
+      )}
+    </p>
+  )}
+</WorshipPanel>

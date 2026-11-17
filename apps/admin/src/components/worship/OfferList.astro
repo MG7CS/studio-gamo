@@ -1,0 +1,79 @@
+---
+/**
+ * Every offer on a request, grouped by what is still open: pending first (with a Withdraw button), then
+ * accepted, declined, expired and withdrawn. Pay and expiry are shown; the offer link and token never are.
+ * The withdraw button names the musician and role, so repeated buttons stay distinguishable.
+ *
+ * Props
+ * - offers: OfferSummary[]
+ * - requestId: string — where a refused withdraw returns to.
+ * - timeZone: string — IANA zone for expiry times.
+ */
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { OfferStatus, OfferSummary } from '@gamo/domain/worship';
+import { formatInstant, shortName } from '../../lib/worship/format';
+import { OFFER_LABEL } from '../../lib/worship/labels';
+import { formatCents } from '../../lib/worship/money';
+import StatusLabel from './StatusLabel.astro';
+
+interface Props {
+  offers: OfferSummary[];
+  requestId: string;
+  timeZone: string;
+}
+
+const { offers, requestId, timeZone } = Astro.props;
+const ORDER: OfferStatus[] = ['pending', 'accepted', 'declined', 'expired', 'withdrawn'];
+const groups = ORDER.map((status) => ({ status, items: offers.filter((o) => o.status === status) })).filter(
+  (g) => g.items.length > 0,
+);
+---
+
+{offers.length === 0 ? (
+  <p class="text-small text-fg-muted">No offers yet. Propose a musician under a role above.</p>
+) : (
+  <div class="space-y-5">
+    {groups.map((group) => (
+      <section aria-label={`${OFFER_LABEL[group.status].text} offers`}>
+        <h3 class="text-small font-semibold text-fg">
+          {OFFER_LABEL[group.status].text} ({group.items.length})
+        </h3>
+        <ul class="mt-1 divide-y divide-border">
+          {group.items.map((o) => (
+            <li
+              id={`offer-${o.id}`}
+              class="flex scroll-mt-24 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 text-small"
+            >
+              <div class="min-w-0">
+                <p class="font-semibold text-fg">
+                  {o.memberName}{' '}
+                  <span class="font-normal text-fg-muted">
+                    · {o.role} · {formatCents(o.payCents)}
+                  </span>
+                </p>
+                <p class="text-fg-muted">
+                  {o.status === 'pending'
+                    ? `Sent to ${shortName(o.memberName)}; the link expires ${formatInstant(o.expiresAt, timeZone)}.`
+                    : `Sent ${formatInstant(o.sentAt, timeZone)}${o.respondedAt ? `, answered ${formatInstant(o.respondedAt, timeZone)}` : ''}.`}
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <StatusLabel label={OFFER_LABEL[o.status]} />
+                {o.status === 'pending' && (
+                  <form method="post" action={`/api/offers/${encodeURIComponent(o.id)}/withdraw`}>
+                    <input type="hidden" name="requestId" value={requestId} />
+                    <SubmitButton
+                      label={`Withdraw offer to ${shortName(o.memberName)} for ${o.role}`}
+                      pendingLabel="Withdrawing…"
+                      variant="secondary"
+                    />
+                  </form>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+)}

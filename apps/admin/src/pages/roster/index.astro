@@ -1,0 +1,79 @@
+---
+/**
+ * The private roster: musicians and technicians staff approved from an application. Filter by role, city,
+ * status and program; ordered by name only (nothing commercial ever reorders it); keyset paging. People
+ * join the roster only through the review of an application, never from here.
+ */
+import { WorshipError, searchRoster, type RosterPage } from '@gamo/domain/worship';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import AdminLayout from '../../components/AdminLayout.astro';
+import ListPager from '../../components/worship/ListPager.astro';
+import RosterFilterForm from '../../components/worship/RosterFilterForm.astro';
+import RosterTable from '../../components/worship/RosterTable.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { filterQuery, parseRosterFilters } from '../../lib/worship/filters';
+import { ROSTER_LABEL } from '../../lib/worship/labels';
+import { ROSTER_NOTICES } from '../../lib/worship/notices';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const { search, values, invalid } = parseRosterFilters(Astro.url.searchParams);
+let page: RosterPage = { members: [], nextCursor: null };
+let notice = noticeFrom(Astro.url, ROSTER_NOTICES);
+if (invalid.length > 0) {
+  Astro.response.status = 400;
+  notice = ROSTER_NOTICES['filter-invalid'] ?? null;
+} else {
+  try {
+    page = await searchRoster(admin.db, search);
+  } catch (error) {
+    if (!(error instanceof WorshipError)) throw error;
+    Astro.response.status = 400;
+    notice = ROSTER_NOTICES['filter-invalid'] ?? null;
+  }
+}
+
+const filters = [
+  values.role && `role ${values.role}`,
+  values.city && `city ${values.city}`,
+  values.status && ROSTER_LABEL[values.status].text.toLowerCase(),
+  values.program && values.program,
+].filter(Boolean);
+const caption = `Roster, by name${filters.length > 0 ? ` (${filters.join(', ')})` : ''}`;
+const nextHref = page.nextCursor ? `/roster${filterQuery(values, { cursor: page.nextCursor })}` : null;
+const firstHref = search.cursor ? `/roster${filterQuery(values)}` : null;
+---
+
+<AdminLayout
+  title="Roster"
+  current="roster"
+  notice={notice}
+  description="Private list of approved musicians and technicians, used only for matching. People join it when staff approve an application."
+>
+  <ButtonLink slot="actions" href="/submissions" variant="secondary">
+    Review applications
+  </ButtonLink>
+
+  <div class="space-y-5">
+    <RosterFilterForm values={values} />
+    {page.members.length === 0 ? (
+      <p class="rounded-card border border-border bg-surface-raised p-5 text-small text-fg">
+        {filters.length > 0
+          ? 'No roster member matches these filters.'
+          : 'The roster is empty. Approve a musician or technician application to add the first member.'}
+      </p>
+    ) : (
+      <RosterTable members={page.members} caption={caption} />
+    )}
+    <ListPager nextHref={nextHref} firstHref={firstHref} />
+  </div>
+</AdminLayout>

@@ -1,0 +1,80 @@
+---
+/**
+ * A roster member's profile as a description list, with a link to the application they came from. Staff
+ * only: the roster has no public directory.
+ *
+ * Props
+ * - member: RosterMember
+ */
+import type { RosterMember } from '@gamo/domain/worship';
+import { formatUtcDay } from '../../lib/worship/format';
+import { PROGRAM_LABEL, ROSTER_LABEL } from '../../lib/worship/labels';
+import StatusLabel from './StatusLabel.astro';
+
+interface Props {
+  member: RosterMember;
+}
+
+const { member } = Astro.props;
+const linkClass =
+  'inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg';
+---
+
+<dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Name</dt>
+    <dd class="mt-1 text-fg">{member.displayName}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Status</dt>
+    <dd class="mt-1">
+      <StatusLabel label={ROSTER_LABEL[member.status]} />
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Roles</dt>
+    <dd class="mt-1 text-fg">{member.roles.join(', ')}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">City</dt>
+    <dd class="mt-1 text-fg">{member.city ?? 'Not given'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Email</dt>
+    <dd class="mt-1 break-all">
+      <a href={`mailto:${member.email}`} class={linkClass}>
+        {member.email}
+      </a>
+    </dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Phone</dt>
+    <dd class="mt-1 text-fg">{member.phone ?? 'Not given'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Program</dt>
+    <dd class="mt-1 text-fg">{PROGRAM_LABEL[member.program] ?? member.program}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Can teach</dt>
+    <dd class="mt-1 text-fg">{member.canTeach ? 'Yes' : 'No'}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">Added to the roster</dt>
+    <dd class="mt-1 text-fg">{formatUtcDay(member.approvedAt)}</dd>
+  </div>
+  <div>
+    <dt class="text-caption font-semibold text-fg-muted">W-9 received</dt>
+    <dd class="mt-1 text-fg">
+      {member.w9ReceivedAt === null ? 'Not received' : formatUtcDay(member.w9ReceivedAt)}
+    </dd>
+  </div>
+  <div class="sm:col-span-2">
+    <dt class="text-caption font-semibold text-fg-muted">Application</dt>
+    <dd class="mt-1">
+      <a href={`/submissions/${encodeURIComponent(member.submissionId)}`} class={linkClass}>
+        View the original application
+      </a>
+    </dd>
+  </div>
+</dl>

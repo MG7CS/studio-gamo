@@ -1,0 +1,76 @@
+---
+/**
+ * The status actions staff can take on a request: set it back to matching, mark it completed (once
+ * confirmed) or cancel it. Cancelling asks for a tick first (a disclosure with a required checkbox) and
+ * says that pending offers are withdrawn. A confirmed or completed request links to the invoice screen.
+ *
+ * Props
+ * - requestId: string
+ * - status: RequestStatus — the current status.
+ * - pendingOffers: number — how many pending offers a cancellation would withdraw.
+ */
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { RequestStatus } from '@gamo/domain/worship';
+import { REQUEST_LABEL } from '../../lib/worship/labels';
+
+interface Props {
+  requestId: string;
+  status: RequestStatus;
+  pendingOffers: number;
+}
+
+const { requestId, status, pendingOffers } = Astro.props;
+const action = `/requests/${encodeURIComponent(requestId)}`;
+const closed = status === 'completed' || status === 'cancelled';
+const withdrawNote =
+  pendingOffers === 0
+    ? 'No offers are pending.'
+    : `${pendingOffers} pending offer${pendingOffers === 1 ? ' is' : 's are'} withdrawn and their links stop working.`;
+---
+
+<div class="space-y-4">
+  {closed ? (
+    <p class="text-small text-fg">
+      This request is {REQUEST_LABEL[status].text.toLowerCase()} and can no longer change.
+    </p>
+  ) : (
+    <div class="flex flex-wrap items-start gap-3">
+      {status !== 'matching' && (
+        <form method="post" action={action}>
+          <input type="hidden" name="status" value="matching" />
+          <SubmitButton label="Set to matching" pendingLabel="Saving…" variant="secondary" />
+        </form>
+      )}
+      {status === 'confirmed' && (
+        <form method="post" action={action}>
+          <input type="hidden" name="status" value="completed" />
+          <SubmitButton label="Mark completed" pendingLabel="Saving…" />
+        </form>
+      )}
+    </div>
+  )}
+  {(status === 'confirmed' || status === 'completed') && (
+    <p>
+      <ButtonLink href={`/invoices/new?requestId=${encodeURIComponent(requestId)}`} variant="secondary">
+        Create an invoice for this request
+      </ButtonLink>
+    </p>
+  )}
+  {!closed && (
+    <details class="max-w-prose rounded-card border border-border p-4">
+      <summary class="inline-flex min-h-11 cursor-pointer items-center text-small font-semibold text-danger">
+        Cancel this request
+      </summary>
+      <form method="post" action={action} class="mt-3 space-y-3">
+        <input type="hidden" name="status" value="cancelled" />
+        <p class="text-small text-fg">
+          Cancelling closes the request for the church. {withdrawNote} A cancelled request cannot be reopened.
+        </p>
+        <Checkbox id="cancel-confirm" name="confirm" value="yes" label="Yes, cancel this request" required />
+        <SubmitButton label="Cancel request" pendingLabel="Cancelling…" variant="secondary" />
+      </form>
+    </details>
+  )}
+</div>

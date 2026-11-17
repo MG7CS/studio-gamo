@@ -1,0 +1,44 @@
+---
+/**
+ * Change a member's roster status. The select only changes the form value; nothing happens until Apply.
+ * Pausing or removing withdraws the member's pending offers (their emailed links stop working), and the
+ * warning says so before the button.
+ *
+ * Props
+ * - memberId: string
+ * - status: RosterStatus — the current status.
+ * - pendingOffers: number — how many pending offers a pause or removal would withdraw.
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { ROSTER_STATUSES, type RosterStatus } from '@gamo/domain/worship';
+import { ROSTER_LABEL } from '../../lib/worship/labels';
+
+interface Props {
+  memberId: string;
+  status: RosterStatus;
+  pendingOffers: number;
+}
+
+const { memberId, status, pendingOffers } = Astro.props;
+const pending =
+  pendingOffers === 0
+    ? 'This member has no pending offers.'
+    : `This member has ${pendingOffers} pending offer${pendingOffers === 1 ? '' : 's'}.`;
+---
+
+<form method="post" action={`/roster/${encodeURIComponent(memberId)}`} class="max-w-prose">
+  <input type="hidden" name="intent" value="status" />
+  <SelectField
+    id="roster-member-status"
+    name="status"
+    label="Roster status"
+    placeholder=""
+    value={status}
+    hint={`Pausing or removing a member withdraws their pending offers, and their emailed links stop working. ${pending} Paused and removed members never appear as candidates.`}
+    options={ROSTER_STATUSES.map((s) => ({ value: s, label: ROSTER_LABEL[s].text }))}
+  />
+  <div class="mt-4">
+    <SubmitButton label="Apply status" pendingLabel="Applying…" />
+  </div>
+</form>

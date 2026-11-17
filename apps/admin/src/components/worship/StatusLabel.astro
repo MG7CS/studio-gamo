@@ -1,0 +1,30 @@
+---
+/**
+ * A status written out in words; the outline colour only reinforces it (never colour alone).
+ *
+ * Props
+ * - label: { text: string; tone: 'neutral' | 'good' | 'attention' | 'closed' } — from lib/worship/labels.
+ */
+import type { Label } from '../../lib/worship/labels';
+
+interface Props {
+  label: Label;
+}
+
+const { label } = Astro.props;
+const tone: Record<Label['tone'], string> = {
+  neutral: 'border-fg-muted text-fg',
+  good: 'border-success text-success',
+  attention: 'border-action-strong text-action-strong',
+  closed: 'border-border text-fg-muted',
+};
+---
+
+<span
+  class:list={[
+    'inline-flex items-center rounded-pill border bg-surface-raised px-2.5 py-0.5 text-caption font-semibold',
+    tone[label.tone],
+  ]}
+>
+  {label.text}
+</span>

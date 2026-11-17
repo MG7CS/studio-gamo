@@ -1,0 +1,23 @@
+---
+/**
+ * Shown right after an offer is sent: who it went to, for which role, and when the link expires. The link
+ * itself is never shown, here or anywhere in admin.
+ *
+ * Props
+ * - memberName: string
+ * - role: string
+ * - expiresAt: string — preformatted expiry, e.g. "Sun, Mar 24, 10:00 AM MST".
+ */
+interface Props {
+  memberName: string;
+  role: string;
+  expiresAt: string;
+}
+
+const { memberName, role, expiresAt } = Astro.props;
+---
+
+<p role="status" class="rounded-card border border-success bg-surface-raised px-4 py-3 text-small text-fg">
+  <strong class="font-semibold">Offer sent to {memberName}</strong> for {role}. The private link expires{' '}
+  {expiresAt}.
+</p>

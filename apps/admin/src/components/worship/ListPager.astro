@@ -1,0 +1,33 @@
+---
+/**
+ * Paging links for a keyset-paged list: "Next page" when there is one and "First page" when the current
+ * page was reached with a cursor. Plain links, so paging works without JavaScript.
+ *
+ * Props
+ * - nextHref?: string | null — link to the next page.
+ * - firstHref?: string | null — link back to the first page (omit on the first page).
+ */
+interface Props {
+  nextHref?: string | null;
+  firstHref?: string | null;
+}
+
+const { nextHref, firstHref } = Astro.props;
+const linkClass =
+  'inline-flex min-h-11 items-center rounded-pill border border-fg-muted bg-surface-raised px-5 text-small font-semibold text-fg hover:bg-surface-inset';
+---
+
+{(nextHref || firstHref) && (
+  <nav aria-label="Pages" class="flex flex-wrap gap-2">
+    {firstHref && (
+      <a href={firstHref} class={linkClass}>
+        First page
+      </a>
+    )}
+    {nextHref && (
+      <a href={nextHref} rel="next" class={linkClass}>
+        Next page
+      </a>
+    )}
+  </nav>
+)}

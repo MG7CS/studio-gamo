@@ -1,0 +1,83 @@
+---
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex -- the scrollable table region must be reachable by keyboard */
+/**
+ * The roster as a captioned table (name, roles, city, email, phone, status, W-9 received). The name links
+ * to the member's page. The table scrolls inside a keyboard-focusable region, so a phone never scrolls
+ * sideways. Rows keep the order the domain gives them: name, then id; nothing commercial reorders them.
+ *
+ * Props
+ * - members: RosterMember[] — one page of members.
+ * - caption: string — what the table lists.
+ */
+import type { RosterMember } from '@gamo/domain/worship';
+import { formatUtcDay } from '../../lib/worship/format';
+import { ROSTER_LABEL } from '../../lib/worship/labels';
+import StatusLabel from './StatusLabel.astro';
+
+interface Props {
+  members: RosterMember[];
+  caption: string;
+}
+
+const { members, caption } = Astro.props;
+---
+
+<div
+  role="region"
+  aria-label={`${caption} (scrollable table)`}
+  tabindex="0"
+  class="overflow-x-auto rounded-card border border-border bg-surface-raised"
+>
+  <table class="w-full min-w-208 border-collapse text-left text-small">
+    <caption class="px-4 pt-4 pb-2 text-left text-small font-semibold text-fg">{caption}</caption>
+    <thead>
+      <tr class="border-b border-border text-caption text-fg-muted">
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Name
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Roles
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          City
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Email
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Phone
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          Status
+        </th>
+        <th scope="col" class="px-4 py-2 font-semibold">
+          W-9 received
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {members.map((m) => (
+        <tr class="border-b border-border align-top last:border-b-0">
+          <th scope="row" class="px-4 py-2 font-semibold">
+            <a
+              href={`/roster/${encodeURIComponent(m.id)}`}
+              class="inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg"
+            >
+              {m.displayName}
+            </a>
+          </th>
+          <td class="px-4 py-3 text-fg">{m.roles.join(', ')}</td>
+          <td class="px-4 py-3 text-fg">{m.city ?? 'Not given'}</td>
+          <td class="px-4 py-3 break-all text-fg">{m.email}</td>
+          <td class="px-4 py-3 text-fg">{m.phone ?? 'Not given'}</td>
+          <td class="px-4 py-3">
+            <StatusLabel label={ROSTER_LABEL[m.status]} />
+          </td>
+          <td class="px-4 py-3 text-fg">
+            {m.w9ReceivedAt === null ? 'Not received' : formatUtcDay(m.w9ReceivedAt)}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

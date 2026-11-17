@@ -1,0 +1,61 @@
+---
+/**
+ * The request filters: status, program and a service-date range. A plain GET form with an explicit Apply
+ * button; "Clear filters" appears when any filter is set.
+ *
+ * Props
+ * - values: RequestFilterValues — the current filters.
+ */
+import DateField from '@studio-gamo/ui/components/forms/DateField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { REQUEST_STATUSES } from '@gamo/domain/worship';
+import { REQUEST_PROGRAMS, type RequestFilterValues } from '../../lib/worship/filters';
+import { PROGRAM_LABEL, REQUEST_LABEL } from '../../lib/worship/labels';
+
+interface Props {
+  values: RequestFilterValues;
+}
+
+const { values } = Astro.props;
+const active = Object.values(values).some(Boolean);
+---
+
+<form
+  method="get"
+  action="/requests"
+  aria-label="Filter requests"
+  class="rounded-card border border-border bg-surface-raised p-5"
+>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <SelectField
+      id="request-status"
+      name="status"
+      label="Status"
+      placeholder="Any status"
+      value={values.status}
+      options={REQUEST_STATUSES.map((s) => ({ value: s, label: REQUEST_LABEL[s].text }))}
+    />
+    <SelectField
+      id="request-program"
+      name="program"
+      label="Program"
+      placeholder="Any program"
+      value={values.program}
+      options={REQUEST_PROGRAMS.map((p) => ({ value: p, label: PROGRAM_LABEL[p] ?? p }))}
+    />
+    <DateField id="request-from" name="from" label="Service date from" value={values.from} />
+    <DateField id="request-to" name="to" label="Service date to" value={values.to} />
+  </div>
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <SubmitButton label="Apply filters" pendingLabel="Filtering…" />
+    {active && (
+      <a
+        href="/requests"
+        class="inline-flex min-h-11 items-center text-small font-semibold text-action-strong underline underline-offset-4"
+      >
+        Clear filters
+      </a>
+    )}
+  </div>
+</form>

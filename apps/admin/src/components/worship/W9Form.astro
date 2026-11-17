@@ -1,0 +1,52 @@
+---
+/**
+ * W-9 tracking: only the date a form arrived is stored (never a tax identifier). "Mark W-9 received" takes
+ * the date (today when left empty); once recorded, "Clear W-9 record" removes it. Two separate forms, so
+ * Enter in the date field can only mark.
+ *
+ * Props
+ * - memberId: string
+ * - receivedOn?: string — `YYYY-MM-DD` of the recorded date, when there is one.
+ * - today: string — `YYYY-MM-DD`, the latest date a W-9 can have arrived.
+ */
+import DateField from '@studio-gamo/ui/components/forms/DateField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+
+interface Props {
+  memberId: string;
+  receivedOn?: string;
+  today: string;
+}
+
+const { memberId, receivedOn, today } = Astro.props;
+const action = `/roster/${encodeURIComponent(memberId)}`;
+---
+
+<div class="max-w-prose space-y-4">
+  <form method="post" action={action}>
+    <input type="hidden" name="intent" value="w9" />
+    <DateField
+      id="w9-date"
+      name="date"
+      label="Date the W-9 arrived"
+      value={receivedOn ?? today}
+      max={today}
+      hint="Record the date only. Never type a tax ID number here or anywhere in Gamo systems."
+    />
+    <div class="mt-4">
+      <SubmitButton label="Mark W-9 received" pendingLabel="Saving…" />
+    </div>
+  </form>
+  {receivedOn && (
+    <form method="post" action={action}>
+      <input type="hidden" name="intent" value="w9" />
+      <SubmitButton
+        label="Clear W-9 record"
+        pendingLabel="Clearing…"
+        variant="secondary"
+        name="clear"
+        value="1"
+      />
+    </form>
+  )}
+</div>

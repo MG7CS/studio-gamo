@@ -1,0 +1,93 @@
+---
+/**
+ * One roster member: profile, status (with the pause warning), W-9 received date, the original application
+ * and the offers sent to them. Status and W-9 changes post back to this page and redirect (303) with a
+ * notice. Staff only.
+ */
+import { getRosterMember, serviceTimeZone, type RosterMember } from '@gamo/domain/worship';
+import AdminLayout from '../../components/AdminLayout.astro';
+import MemberOfferHistory from '../../components/worship/MemberOfferHistory.astro';
+import RosterProfile from '../../components/worship/RosterProfile.astro';
+import RosterStatusForm from '../../components/worship/RosterStatusForm.astro';
+import W9Form from '../../components/worship/W9Form.astro';
+import WorshipPanel from '../../components/worship/WorshipPanel.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { domainErrorResponse } from '../../lib/domain-errors';
+import { nowSeconds } from '../../lib/worship/actions';
+import { isoDay } from '../../lib/worship/format';
+import { handleRosterPost, ID_SHAPE } from '../../lib/worship/http';
+import { ROSTER_NOTICES } from '../../lib/worship/notices';
+import { listMemberOffers } from '../../lib/worship/queries';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const id = Astro.params.id ?? '';
+if (Astro.request.method === 'POST') {
+  try {
+    return await handleRosterPost(admin, Astro.request, id);
+  } catch (error) {
+    return domainErrorResponse(error);
+  }
+}
+
+const member: RosterMember | null = ID_SHAPE.test(id) ? await getRosterMember(admin.db, id) : null;
+if (!member) Astro.response.status = 404;
+const offers = member ? await listMemberOffers(admin.db, member.id) : [];
+const pendingOffers = offers.filter((o) => o.status === 'pending').length;
+const notice = noticeFrom(Astro.url, ROSTER_NOTICES);
+const crumbs = [{ label: 'Roster', href: '/roster' }];
+---
+
+{member ? (
+  <AdminLayout
+    title={member.displayName}
+    current="roster"
+    notice={notice}
+    breadcrumbs={[...crumbs, { label: member.displayName }]}
+  >
+    <div class="space-y-6">
+      <WorshipPanel title="Profile">
+        <RosterProfile member={member} />
+      </WorshipPanel>
+      <WorshipPanel title="Roster status" id="status">
+        <RosterStatusForm memberId={member.id} status={member.status} pendingOffers={pendingOffers} />
+      </WorshipPanel>
+      <WorshipPanel title="W-9" id="w9" description="Only the date a W-9 arrived is recorded.">
+        <W9Form
+          memberId={member.id}
+          receivedOn={member.w9ReceivedAt === null ? undefined : isoDay(member.w9ReceivedAt)}
+          today={isoDay(nowSeconds())}
+        />
+      </WorshipPanel>
+      <WorshipPanel title="Offers" id="offers">
+        <MemberOfferHistory offers={offers} timeZone={serviceTimeZone(admin.env)} />
+      </WorshipPanel>
+    </div>
+  </AdminLayout>
+) : (
+  <AdminLayout
+    title="Roster member not found"
+    current="roster"
+    notice={notice}
+    breadcrumbs={[...crumbs, { label: 'Not found' }]}
+  >
+    <p class="text-small text-fg">
+      That roster member does not exist.
+      <a
+        href="/roster"
+        class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+      >
+        Back to the roster
+      </a>
+    </p>
+  </AdminLayout>
+)}

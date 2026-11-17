@@ -1,0 +1,73 @@
+---
+/**
+ * The request inbox: church and production requests, earliest service first. Filter by status, program and
+ * service-date range; keyset paging. Open a request to match musicians and send offers.
+ */
+import { WorshipError, listRequests, type RequestPage } from '@gamo/domain/worship';
+import AdminLayout from '../../components/AdminLayout.astro';
+import ListPager from '../../components/worship/ListPager.astro';
+import RequestFilterForm from '../../components/worship/RequestFilterForm.astro';
+import RequestsTable from '../../components/worship/RequestsTable.astro';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { filterQuery, parseRequestFilters } from '../../lib/worship/filters';
+import { REQUEST_LABEL } from '../../lib/worship/labels';
+import { REQUEST_NOTICES } from '../../lib/worship/notices';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const { filter, values, invalid } = parseRequestFilters(Astro.url.searchParams);
+let page: RequestPage = { requests: [], nextCursor: null };
+let notice = noticeFrom(Astro.url, REQUEST_NOTICES);
+if (invalid.length > 0) {
+  Astro.response.status = 400;
+  notice = REQUEST_NOTICES['filter-invalid'] ?? null;
+} else {
+  try {
+    page = await listRequests(admin.db, filter);
+  } catch (error) {
+    if (!(error instanceof WorshipError)) throw error;
+    Astro.response.status = 400;
+    notice = REQUEST_NOTICES['filter-invalid'] ?? null;
+  }
+}
+
+const filters = [
+  values.status && REQUEST_LABEL[values.status].text.toLowerCase(),
+  values.program,
+  values.from && `from ${values.from}`,
+  values.to && `to ${values.to}`,
+].filter(Boolean);
+const caption = `Requests, earliest service first${filters.length > 0 ? ` (${filters.join(', ')})` : ''}`;
+const nextHref = page.nextCursor ? `/requests${filterQuery(values, { cursor: page.nextCursor })}` : null;
+const firstHref = filter.cursor ? `/requests${filterQuery(values)}` : null;
+---
+
+<AdminLayout
+  title="Requests"
+  current="requests"
+  notice={notice}
+  description="Church and production requests waiting to be matched. Open one to propose musicians."
+>
+  <div class="space-y-5">
+    <RequestFilterForm values={values} />
+    {page.requests.length === 0 ? (
+      <p class="rounded-card border border-border bg-surface-raised p-5 text-small text-fg">
+        {filters.length > 0
+          ? 'No request matches these filters.'
+          : 'No requests yet. They appear here when a church or production team submits the request form.'}
+      </p>
+    ) : (
+      <RequestsTable requests={page.requests} caption={caption} />
+    )}
+    <ListPager nextHref={nextHref} firstHref={firstHref} />
+  </div>
+</AdminLayout>
