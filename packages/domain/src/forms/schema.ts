@@ -607,7 +607,9 @@ export function checkPublishable(kind: FormKind, schema: FormSchema): PublishChe
         errors.push(`${who} has an option longer than ${FORM_LIMITS.maxOptionLabel} characters.`);
       }
       for (const d of duplicates(options)) errors.push(`${who} has a duplicate option "${d}".`);
-      if (options.length < 2) warnings.push(`${who} has fewer than 2 options.`);
+      // A required single-option checkbox is a consent box ("I agree"): the only way to enforce consent.
+      const isConsentBox = q.type === 'checkboxes' && q.required === true && options.length === 1;
+      if (options.length < 2 && !isConsentBox) warnings.push(`${who} has fewer than 2 options.`);
       if (options.some((o) => o.trim() === '')) warnings.push(`${who} has an option with no label.`);
       if ((q.type === 'multiple_choice' || q.type === 'checkboxes') && q.other) {
         if (q.otherLabel !== undefined && q.otherLabel.trim() === '') {

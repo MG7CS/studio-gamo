@@ -577,3 +577,23 @@ test('checkPublishable: errors vs warnings are split', () => {
   big.sections[0]!.questions[0]!.label = 'x'.repeat(201);
   assert.ok(checkPublishable('contact', big).errors.some((p) => /label/i.test(p)));
 });
+
+test('a required single-option checkbox (a consent box) is not warned about; other single-option questions still are', () => {
+  const f = form(
+    q({
+      id: 'consent',
+      label: 'I agree to the privacy notice',
+      type: 'checkboxes',
+      options: ['I agree'],
+      required: true,
+    }),
+    q({ id: 'opt', label: 'Optional tick', type: 'checkboxes', options: ['Only one'] }),
+    q({ id: 'drop', label: 'Pick', type: 'dropdown', options: ['only'], required: true }),
+    q({ id: 'mc', label: 'Choose', type: 'multiple_choice', options: ['only'], required: true }),
+  );
+  const w = checkPublishable('contact', f).warnings.join('\n');
+  assert.doesNotMatch(w, /"consent".*fewer than 2/i);
+  assert.match(w, /"opt".*fewer than 2/i);
+  assert.match(w, /"drop".*fewer than 2/i);
+  assert.match(w, /"mc".*fewer than 2/i);
+});

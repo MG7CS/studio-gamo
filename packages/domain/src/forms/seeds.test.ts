@@ -24,13 +24,11 @@ test('six seeds cover every form kind with the specified slugs', () => {
   assert.deepEqual([...seeds.map((s) => s.kind)].sort(), [...FORM_KINDS].sort());
 });
 
-test('every seed passes checkPublishable with no errors; the only warnings are single-option consent boxes', () => {
+test('every seed passes checkPublishable with no errors; and no warnings', () => {
   for (const seed of defaultFormSeeds()) {
     const check = checkPublishable(seed.kind, seed.schema);
     assert.deepEqual(check.errors, [], `${seed.slug}: ${check.errors.join(' | ')}`);
-    for (const w of check.warnings) {
-      assert.match(w, /fewer than 2 options/, `${seed.slug}: ${w}`);
-    }
+    assert.deepEqual(check.warnings, [], `${seed.slug}: ${check.warnings.join(' | ')}`);
     for (const bind of REQUIRED_BINDS[seed.kind]) {
       assert.ok(
         questionsOf(seed.schema).some((q) => q.bind === bind),
