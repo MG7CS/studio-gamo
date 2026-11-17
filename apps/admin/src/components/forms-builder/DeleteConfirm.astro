@@ -1,0 +1,36 @@
+---
+/** The confirmation step before a question is deleted (shown for `?confirm=delete`). */
+import HiddenFields from './HiddenFields.astro';
+import { BTN_DANGER, LINK } from './ui';
+interface Props {
+  formId: string;
+  questionId: string;
+  label: string;
+  revision: number;
+}
+const { formId, questionId, label, revision } = Astro.props;
+---
+
+<div
+  id="delete-confirm"
+  tabindex="-1"
+  role="alert"
+  class="mb-4 rounded-card border-2 border-danger bg-surface-raised p-4 text-body-sm text-fg"
+>
+  <h4 class="font-semibold">Delete this question?</h4>
+  <p class="mt-2 break-words">
+    “{label}” will be removed from the draft. Answers already received are kept with the version they were
+    given on. This cannot be undone.
+  </p>
+  <div class="mt-3 flex flex-wrap items-center gap-3">
+    <form method="post" action={`/forms/${formId}/edit`}>
+      <HiddenFields action="question.delete" revision={revision} extra={{ qid: questionId, confirm: '1' }} />
+      <button type="submit" class={BTN_DANGER} aria-label={`Delete question: ${label}`}>
+        Delete question
+      </button>
+    </form>
+    <a href={`/forms/${formId}/edit?q=${questionId}#editor`} class={LINK}>
+      Cancel
+    </a>
+  </div>
+</div>

@@ -1,0 +1,109 @@
+---
+/**
+ * "Show this question only if…" as a sentence builder: a join (all or any) and up to ten rules, each a
+ * question that comes earlier, a comparison and an answer (one per line). The next empty rule is always
+ * offered; clearing a rule's question removes it. Plain text only; no JavaScript.
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
+import type { FlatQuestion } from '../../lib/forms-builder/schema-edit';
+import { SHOW_IF_SLOTS, fieldValue, type FieldValues } from '../../lib/forms-builder/question-form';
+import { HELP } from './ui';
+interface Props {
+  /** The questions that come before this one. */
+  sources: FlatQuestion[];
+  values: FieldValues;
+  errors: Record<string, string>;
+}
+const { sources, values, errors } = Astro.props;
+let used = 0;
+for (let i = 0; i < SHOW_IF_SLOTS; i += 1) if (fieldValue(values, `si_q_${i}`) !== '') used = i + 1;
+const slots = Math.min(SHOW_IF_SLOTS, used + 1);
+const short = (text: string) => (text.length > 70 ? `${text.slice(0, 70)}…` : text);
+const sourceOptions = [
+  { value: '', label: '(no rule)' },
+  ...sources.map((s) => ({ value: s.question.id, label: `${s.position}. ${short(s.question.label)}` })),
+];
+const withOptions = sources.filter((s) => 'options' in s.question);
+---
+
+<Fieldset
+  id="qe-showif"
+  legend="Show this question only if…"
+  hint={
+    sources.length === 0
+      ? 'This is the first question, so there is nothing earlier to depend on.'
+      : 'Leave empty to always show the question. Rules can only use earlier questions.'
+  }
+>
+  {sources.length > 0 && (
+    <div class="mt-3 space-y-4">
+      <SelectField
+        id="qe-si_join"
+        name="si_join"
+        label="When there are several rules"
+        options={[
+          { value: 'all', label: 'All of them are true' },
+          { value: 'any', label: 'Any one of them is true' },
+        ]}
+        value={fieldValue(values, 'si_join') || 'all'}
+        placeholder=""
+      />
+      {Array.from({ length: slots }, (_, i) => (
+        <fieldset class="m-0 min-w-0 space-y-3 rounded-card border border-border p-4">
+          <legend class="px-1 text-small font-semibold text-fg">Rule {i + 1}</legend>
+          <SelectField
+            id={`qe-si_q_${i}`}
+            name={`si_q_${i}`}
+            label={`Rule ${i + 1}: question`}
+            options={sourceOptions}
+            value={fieldValue(values, `si_q_${i}`)}
+            placeholder=""
+            error={errors[`si_q_${i}`]}
+          />
+          <SelectField
+            id={`qe-si_op_${i}`}
+            name={`si_op_${i}`}
+            label={`Rule ${i + 1}: comparison`}
+            options={[
+              { value: 'eq', label: 'is' },
+              { value: 'neq', label: 'is not' },
+              { value: 'in', label: 'is one of' },
+              { value: 'answered', label: 'is answered' },
+            ]}
+            value={fieldValue(values, `si_op_${i}`) || 'eq'}
+            placeholder=""
+            error={errors[`si_op_${i}`]}
+          />
+          <TextareaField
+            id={`qe-si_val_${i}`}
+            name={`si_val_${i}`}
+            label={`Rule ${i + 1}: answer`}
+            rows={2}
+            value={fieldValue(values, `si_val_${i}`)}
+            hint="One answer per line. Not needed for “is answered”."
+            error={errors[`si_val_${i}`]}
+          />
+        </fieldset>
+      ))}
+      {withOptions.length > 0 && (
+        <details>
+          <summary class="inline-flex min-h-11 cursor-pointer items-center text-body-sm font-semibold text-action-strong">
+            Options of earlier choice questions
+          </summary>
+          <ul class={`mt-2 space-y-2 ${HELP}`}>
+            {withOptions.map((s) => (
+              <li class="break-words">
+                <strong>
+                  {s.position}. {short(s.question.label)}:
+                </strong>{' '}
+                {'options' in s.question ? s.question.options.join(', ') : ''}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  )}
+</Fieldset>

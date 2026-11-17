@@ -1,0 +1,49 @@
+---
+/**
+ * Forms list (staff). One row per form with its status, counts and actions. Closing and reopening a form are
+ * browser form posts to this page (post-redirect-get); a refusal re-renders here with its message.
+ */
+import AdminLayout from '../../components/AdminLayout.astro';
+import FormsTable from '../../components/forms-builder/FormsTable.astro';
+import OutcomeNotice from '../../components/forms-builder/OutcomeNotice.astro';
+import { BTN_PRIMARY, HELP } from '../../components/forms-builder/ui';
+import { FormsService } from '@gamo/domain/forms';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { noticeFrom } from '../../lib/flash';
+import { handleBuilderPost } from '../../lib/forms-builder/page';
+import { FORM_NOTICES } from '../../lib/forms-builder/notices';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const posted = await handleBuilderPost(admin, Astro.request, null, ['form.close', 'form.reopen']);
+if (posted?.response) return posted.response;
+if (posted?.failed) Astro.response.status = posted.failed.status;
+
+const forms = await new FormsService(admin.db).listForms();
+const notice = noticeFrom(Astro.url, FORM_NOTICES);
+---
+
+<AdminLayout
+  title="Forms"
+  current="forms"
+  notice={notice}
+  description="Edit the questions people answer on the public forms. Changes go public only when you publish."
+>
+  <a slot="actions" href="/forms/new" class={BTN_PRIMARY}>
+    New form
+  </a>
+  {posted?.failed && <OutcomeNotice failed={posted.failed} />}
+  {forms.length === 0 ? (
+    <p class={HELP}>There are no forms yet. Create the first one with New form.</p>
+  ) : (
+    <FormsTable forms={forms} />
+  )}
+</AdminLayout>

@@ -1,0 +1,24 @@
+---
+/** Under the page title: status chip, program and kind, and the draft revision (what Save checks against). */
+import StatusChip from './StatusChip.astro';
+import type { FormForEdit } from '@gamo/domain/forms';
+import { KIND_LABELS, PROGRAM_LABELS, statusChip } from '../../lib/forms-builder/view';
+import { HELP } from './ui';
+interface Props {
+  edit: FormForEdit;
+}
+const { edit } = Astro.props;
+const chip = statusChip({
+  status: edit.form.status,
+  publishedVersion: edit.latestVersion?.version ?? null,
+  hasUnpublishedChanges: edit.hasUnpublishedChanges,
+});
+---
+
+<div class="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+  <StatusChip label={chip.label} tone={chip.tone} />
+  <p class={HELP}>
+    {PROGRAM_LABELS[edit.form.program] ?? edit.form.program} · {KIND_LABELS[edit.form.kind] ?? edit.form.kind}{' '}
+    · address: {edit.form.slug} · draft revision {edit.revision}
+  </p>
+</div>

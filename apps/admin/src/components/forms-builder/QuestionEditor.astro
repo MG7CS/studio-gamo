@@ -1,0 +1,179 @@
+---
+/**
+ * The open question's editor: ONE form ("Save question") with every setting, plus separate small forms for
+ * the type change, move to position, duplicate and delete. Duplicate and Delete sit next to Save through
+ * `form="…"` so forms never nest; Save is the only submit button of the main form, so Enter in a text
+ * field saves. `values` is either the stored question or what was just submitted (kept after a refusal).
+ */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import {
+  BIND_KEYS,
+  FORM_LIMITS,
+  QUESTION_TYPES,
+  type BindKey,
+  type FormSchema,
+  type QuestionType,
+} from '@gamo/domain/forms';
+import {
+  BINDABLE_TYPES,
+  flattenQuestions,
+  changeQuestionType,
+  type FlatQuestion,
+} from '../../lib/forms-builder/schema-edit';
+import { BIND_LABELS, fieldOn, fieldValue, type FieldValues } from '../../lib/forms-builder/question-form';
+import { TYPE_LABELS } from '../../lib/forms-builder/view';
+import HiddenFields from './HiddenFields.astro';
+import TypeFields from './TypeFields.astro';
+import ShowIfFields from './ShowIfFields.astro';
+import TypeChange from './TypeChange.astro';
+import DeleteConfirm from './DeleteConfirm.astro';
+import MoveToPosition from './MoveToPosition.astro';
+import { BTN_DANGER, BTN_PRIMARY, BTN_SECONDARY, HELP } from './ui';
+interface Props {
+  formId: string;
+  schema: FormSchema;
+  item: FlatQuestion;
+  revision: number;
+  values: FieldValues;
+  errors?: Record<string, string>;
+  /** `?type=` awaiting confirmation. */
+  pendingType?: QuestionType;
+  /** `?confirm=delete`. */
+  confirmDelete?: boolean;
+}
+const {
+  formId,
+  schema,
+  item,
+  revision,
+  values,
+  errors = {},
+  pendingType,
+  confirmDelete = false,
+} = Astro.props;
+const q = item.question;
+const flat = flattenQuestions(schema);
+const sources = flat.filter((f) => f.position < item.position && f.question.type !== 'statement');
+const bindable = BINDABLE_TYPES.includes(q.type);
+const usedBy = new Map<BindKey, FlatQuestion>();
+for (const f of flat) if (f.question.bind && f.question.id !== q.id) usedBy.set(f.question.bind, f);
+const bindOptions = [
+  { value: '', label: 'None' },
+  ...BIND_KEYS.map((key) => {
+    const other = usedBy.get(key);
+    return {
+      value: key,
+      label: other ? `${BIND_LABELS[key]} (already used by question ${other.position})` : BIND_LABELS[key],
+    };
+  }),
+];
+const action = `/forms/${formId}/edit`;
+const pending =
+  pendingType && QUESTION_TYPES.includes(pendingType) && pendingType !== q.type
+    ? { type: pendingType, change: changeQuestionType(schema, q.id, pendingType) }
+    : undefined;
+---
+
+<section
+  id="editor"
+  aria-labelledby="qe-title"
+  class="scroll-mt-24 space-y-5 rounded-card border-2 border-action bg-surface-raised p-4 sm:p-5"
+>
+  <div>
+    <h2 id="qe-title" class="text-lg font-bold text-fg">
+      Edit question {item.position}
+    </h2>
+    <p class={HELP}>
+      {TYPE_LABELS[q.type]}. Changes are saved to the draft; nothing is public until you publish.
+    </p>
+  </div>
+
+  {confirmDelete && <DeleteConfirm formId={formId} questionId={q.id} label={q.label} revision={revision} />}
+
+  <form method="post" action={action} id="qe-form" class="space-y-5">
+    <HiddenFields action="question.save" revision={revision} extra={{ qid: q.id, open: q.id }} />
+    <TextField
+      id="qe-label"
+      name="label"
+      label="Question text"
+      value={fieldValue(values, 'label')}
+      required
+      maxlength={FORM_LIMITS.maxLabel}
+      error={errors.label}
+    />
+    <TextareaField
+      id="qe-help"
+      name="help"
+      label="Help text (optional)"
+      rows={2}
+      value={fieldValue(values, 'help')}
+      maxlength={FORM_LIMITS.maxHelp}
+      error={errors.help}
+    />
+    {q.type !== 'statement' && (
+      <Checkbox
+        id="qe-required"
+        name="required"
+        label="Required: people must answer before they can send the form"
+        checked={fieldOn(values, 'required')}
+      />
+    )}
+    <TypeFields type={q.type} values={values} errors={errors} />
+    <ShowIfFields sources={sources} values={values} errors={errors} />
+    {bindable && (
+      <SelectField
+        id="qe-bind"
+        name="bind"
+        label="Fills this system field"
+        options={bindOptions}
+        value={fieldValue(values, 'bind')}
+        placeholder=""
+        hint="Links the answer to the contact, roster or request it feeds. Each field should be used by one question."
+        error={errors.bind}
+      />
+    )}
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="submit" class={BTN_PRIMARY}>
+        Save question
+      </button>
+      <button
+        type="submit"
+        form="qdup-form"
+        class={BTN_SECONDARY}
+        aria-label={`Duplicate question ${item.position}`}
+      >
+        Duplicate
+      </button>
+      <button
+        type="submit"
+        form="qdel-form"
+        class={BTN_DANGER}
+        aria-label={`Delete question ${item.position}`}
+      >
+        Delete…
+      </button>
+    </div>
+  </form>
+
+  <form method="post" action={action} id="qdup-form">
+    <HiddenFields action="question.duplicate" revision={revision} extra={{ qid: q.id, open: q.id }} />
+  </form>
+  <form method="post" action={action} id="qdel-form">
+    <HiddenFields action="question.delete" revision={revision} extra={{ qid: q.id }} />
+  </form>
+
+  <div class="space-y-4 border-t border-border pt-5">
+    <TypeChange formId={formId} questionId={q.id} type={q.type} revision={revision} pending={pending} />
+    <MoveToPosition
+      formId={formId}
+      questionId={q.id}
+      label={q.label}
+      revision={revision}
+      position={item.position}
+      total={flat.length}
+    />
+  </div>
+</section>

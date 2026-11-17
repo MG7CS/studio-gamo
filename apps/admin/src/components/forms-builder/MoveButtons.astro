@@ -1,0 +1,45 @@
+---
+/**
+ * Move up / Move down for one question: two tiny forms (one action each, never nested). The accessible name
+ * is "Move up: <label>" and contains the visible words. Focus returns to the moved question through the
+ * redirect to `#q-<id>`.
+ */
+import HiddenFields from './HiddenFields.astro';
+import { BTN_SMALL } from './ui';
+interface Props {
+  formId: string;
+  questionId: string;
+  label: string;
+  revision: number;
+  /** The question whose editor is open (kept open after the move). */
+  openId?: string;
+  first: boolean;
+  last: boolean;
+}
+const { formId, questionId, label, revision, openId, first, last } = Astro.props;
+const action = `/forms/${formId}/edit`;
+const directions = [
+  { dir: 'up', text: 'Move up', disabled: first },
+  { dir: 'down', text: 'Move down', disabled: last },
+] as const;
+---
+
+<div class="flex flex-wrap gap-2">
+  {directions.map((d) => (
+    <form method="post" action={action}>
+      <HiddenFields
+        action="question.move"
+        revision={revision}
+        extra={{ qid: questionId, dir: d.dir, open: openId }}
+      />
+      <button
+        type="submit"
+        class:list={[BTN_SMALL, d.disabled && 'opacity-60']}
+        aria-disabled={d.disabled ? 'true' : undefined}
+        aria-label={`${d.text}: ${label}`}
+      >
+        {d.text}
+      </button>
+    </form>
+  ))}
+</div>

@@ -1,0 +1,36 @@
+---
+/** "+ Add section" at the end of the outline. */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import { FORM_LIMITS } from '@gamo/domain/forms';
+import HiddenFields from './HiddenFields.astro';
+import { BTN_SECONDARY } from './ui';
+interface Props {
+  formId: string;
+  revision: number;
+  count: number;
+}
+const { formId, revision, count } = Astro.props;
+---
+
+{count >= FORM_LIMITS.maxSections ? (
+  <p class="text-small text-fg-muted">A form can have at most {FORM_LIMITS.maxSections} sections.</p>
+) : (
+  <form
+    method="post"
+    action={`/forms/${formId}/edit`}
+    class="flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface-raised p-4"
+  >
+    <HiddenFields action="section.add" revision={revision} />
+    <TextField
+      id="new-section-title"
+      name="title"
+      label="New section title"
+      required
+      maxlength={FORM_LIMITS.maxLabel}
+      class="min-w-0 flex-1"
+    />
+    <button type="submit" class={BTN_SECONDARY}>
+      + Add section
+    </button>
+  </form>
+)}

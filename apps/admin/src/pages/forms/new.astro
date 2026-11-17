@@ -1,0 +1,88 @@
+---
+/** Create a draft form, then go straight to its builder. */
+import AdminLayout from '../../components/AdminLayout.astro';
+import OutcomeNotice from '../../components/forms-builder/OutcomeNotice.astro';
+import HiddenFields from '../../components/forms-builder/HiddenFields.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import { BTN_PRIMARY, HELP } from '../../components/forms-builder/ui';
+import { FORM_KINDS, FORM_PROGRAMS } from '@gamo/domain/forms';
+import { adminPage, type AdminContext } from '../../lib/admin-page';
+import { handleBuilderPost } from '../../lib/forms-builder/page';
+import { fieldValue } from '../../lib/forms-builder/question-form';
+import { KIND_LABELS, PROGRAM_LABELS } from '../../lib/forms-builder/view';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const posted = await handleBuilderPost(admin, Astro.request, null, ['form.create']);
+if (posted?.response) return posted.response;
+const failed = posted?.failed;
+if (failed) Astro.response.status = failed.status;
+const values = failed?.values ?? {};
+const v = (key: string) => fieldValue(values, key);
+---
+
+<AdminLayout
+  title="New form"
+  current="forms"
+  breadcrumbs={[{ label: 'Forms', href: '/forms' }, { label: 'New form' }]}
+  description="Pick what the form is for. It starts as a draft with one empty section."
+>
+  {failed && <OutcomeNotice failed={failed} fieldPrefix="nf" title="The form was not created" />}
+  <form method="post" action="/forms/new" class="max-w-prose space-y-5">
+    <HiddenFields action="form.create" op={false} />
+    <TextField id="nf-title" name="title" label="Form title" value={v('title')} required maxlength={200} />
+    <TextField
+      id="nf-slug"
+      name="slug"
+      label="Web address name"
+      value={v('slug')}
+      required
+      maxlength={80}
+      hint="Lower-case letters, digits and hyphens, for example volunteer-sign-up. It cannot be changed later."
+      spellcheck={false}
+      autocapitalize="off"
+    />
+    <SelectField
+      id="nf-program"
+      name="program"
+      label="Program"
+      options={FORM_PROGRAMS.map((p) => ({ value: p, label: PROGRAM_LABELS[p] ?? p }))}
+      value={v('program')}
+      required
+    />
+    <SelectField
+      id="nf-kind"
+      name="kind"
+      label="What kind of form is it?"
+      options={FORM_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] ?? k }))}
+      value={v('kind')}
+      required
+      hint="The kind decides which system fields the form must fill before it can be published."
+    />
+    <TextareaField
+      id="nf-description"
+      name="description"
+      label="Description (optional)"
+      rows={3}
+      value={v('description')}
+      maxlength={1000}
+    />
+    <p class={HELP}>
+      The default forms already have public pages. A new web address needs a public page added by a developer
+      before it appears on the site.
+    </p>
+    <button type="submit" class={BTN_PRIMARY}>
+      Create draft form
+    </button>
+  </form>
+</AdminLayout>

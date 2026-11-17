@@ -1,0 +1,44 @@
+---
+/**
+ * "+ Add question" for one section: a closed <details> with one form whose type buttons are grouped
+ * (Text, Choice, Scale, Grid, Date and time, Files and links, Content). The new question opens in the editor.
+ */
+import HiddenFields from './HiddenFields.astro';
+import { BTN_SMALL, BTN_SECONDARY } from './ui';
+import { TYPE_GROUPS, TYPE_LABELS } from '../../lib/forms-builder/view';
+interface Props {
+  formId: string;
+  sectionId: string;
+  sectionTitle: string;
+  revision: number;
+}
+const { formId, sectionId, sectionTitle, revision } = Astro.props;
+---
+
+<details class="mt-4">
+  <summary
+    class:list={[BTN_SECONDARY, 'cursor-pointer list-none']}
+    aria-label={`+ Add question to section: ${sectionTitle}`}
+  >
+    + Add question
+  </summary>
+  <form
+    method="post"
+    action={`/forms/${formId}/edit`}
+    class="mt-3 space-y-4 rounded-card border border-border bg-surface p-4"
+  >
+    <HiddenFields action="question.add" revision={revision} extra={{ section: sectionId }} />
+    {TYPE_GROUPS.map((group) => (
+      <fieldset class="m-0 min-w-0 border-0 p-0">
+        <legend class="text-small font-semibold text-fg-muted">{group.label}</legend>
+        <div class="mt-2 flex flex-wrap gap-2">
+          {group.types.map((type) => (
+            <button type="submit" name="type" value={type} class={BTN_SMALL}>
+              {TYPE_LABELS[type]}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+    ))}
+  </form>
+</details>

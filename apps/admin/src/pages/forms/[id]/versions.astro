@@ -1,0 +1,163 @@
+---
+/**
+ * Version history: every published version (newest first) with who published it, when and why; view one
+ * as a read-only outline (`?v=N`); restore one into the draft (the published version never changes).
+ */
+import AdminLayout from '../../../components/AdminLayout.astro';
+import FormMeta from '../../../components/forms-builder/FormMeta.astro';
+import HiddenFields from '../../../components/forms-builder/HiddenFields.astro';
+import OutcomeNotice from '../../../components/forms-builder/OutcomeNotice.astro';
+import SchemaOutline from '../../../components/forms-builder/SchemaOutline.astro';
+import { BTN_SMALL, HELP, LINK, PANEL } from '../../../components/forms-builder/ui';
+import { FormsService, FormsError } from '@gamo/domain/forms';
+import { adminPage, see, type AdminContext } from '../../../lib/admin-page';
+import { noticeFrom } from '../../../lib/flash';
+import { handleBuilderPost } from '../../../lib/forms-builder/page';
+import { FORM_NOTICES } from '../../../lib/forms-builder/notices';
+import { staffNames } from '../../../lib/forms-builder/names';
+import { formatUtc } from '../../../lib/forms-builder/view';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const formId = Astro.params.id ?? '';
+const posted = await handleBuilderPost(admin, Astro.request, formId, ['version.restore']);
+if (posted?.response) return posted.response;
+const failed = posted?.failed;
+if (failed) Astro.response.status = failed.status;
+
+const forms = new FormsService(admin.db);
+let edit;
+try {
+  edit = await forms.getForEdit(formId);
+} catch (error) {
+  if (error instanceof FormsError && error.code === 'NOT_FOUND') return see('/forms', 'not-found');
+  throw error;
+}
+const versions = await forms.listVersions(formId);
+const names = await staffNames(
+  admin.db,
+  versions.map((v) => v.publishedByUserId),
+);
+const wanted = Number(Astro.url.searchParams.get('v'));
+const viewing = Number.isInteger(wanted) && wanted >= 1 ? await forms.getVersion(formId, wanted) : null;
+const notice = failed ? null : noticeFrom(Astro.url, FORM_NOTICES);
+---
+
+<AdminLayout
+  title={`Version history: ${edit.form.title}`}
+  current="forms"
+  notice={notice}
+  breadcrumbs={[
+    { label: 'Forms', href: '/forms' },
+    { label: edit.form.title, href: `/forms/${formId}/edit` },
+    { label: 'Version history' },
+  ]}
+  description="Restoring a version copies it into the draft. Published versions are never edited."
+>
+  <FormMeta edit={edit} />
+  {failed && <OutcomeNotice failed={failed} title="The version was not restored" />}
+  {versions.length === 0 ? (
+    <p class={HELP}>Nothing has been published yet. Publish the draft to create version 1.</p>
+  ) : (
+    <table class="w-full text-left text-body-sm">
+      <caption class="mb-3 text-left text-body-sm text-fg-muted">
+        {versions.length} published version{versions.length === 1 ? '' : 's'}, newest first.
+      </caption>
+      <thead class="hidden md:table-header-group">
+        <tr class="border-b border-border text-fg-muted">
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            Version
+          </th>
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            Published
+          </th>
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            By
+          </th>
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            Note
+          </th>
+          <th scope="col" class="py-2 font-semibold">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="block md:table-row-group">
+        {versions.map((v) => (
+          <tr class="mb-4 block rounded-card border border-border bg-surface-raised p-4 align-top md:mb-0 md:table-row md:rounded-none md:border-0 md:border-b md:bg-transparent md:p-0">
+            <th scope="row" class="block py-1 text-left font-semibold md:table-cell md:py-3 md:pr-4">
+              Version {v.version}
+              {v.id === edit.form.currentVersionId ? ' (live)' : ''}
+            </th>
+            <td class="block py-1 md:table-cell md:py-3 md:pr-4">
+              <span class="font-semibold md:hidden">Published: </span>
+              {formatUtc(v.publishedAt)}
+            </td>
+            <td class="block py-1 md:table-cell md:py-3 md:pr-4">
+              <span class="font-semibold md:hidden">By: </span>
+              {(v.publishedByUserId && names[v.publishedByUserId]) || 'Staff'}
+            </td>
+            <td class="block max-w-prose break-words py-1 md:table-cell md:py-3 md:pr-4">
+              <span class="font-semibold md:hidden">Note: </span>
+              {v.changeNote ?? 'No note'}
+            </td>
+            <td class="block py-1 md:table-cell md:py-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <a
+                  href={`/forms/${formId}/versions?v=${v.version}#version-view`}
+                  class={BTN_SMALL}
+                  aria-label={`View version ${v.version}`}
+                >
+                  View
+                </a>
+                <form method="post" action={`/forms/${formId}/versions`}>
+                  <HiddenFields
+                    action="version.restore"
+                    revision={edit.revision}
+                    extra={{ version: String(v.version) }}
+                  />
+                  <button
+                    type="submit"
+                    class={BTN_SMALL}
+                    aria-label={`Restore to draft: version ${v.version}`}
+                  >
+                    Restore to draft
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+  {viewing && (
+    <section
+      id="version-view"
+      tabindex="-1"
+      aria-labelledby="version-view-title"
+      class={`mt-8 scroll-mt-24 ${PANEL}`}
+    >
+      <h2 id="version-view-title" class="text-lg font-bold text-fg">
+        Version {viewing.version} (read-only)
+      </h2>
+      <p class={`mt-1 ${HELP}`}>
+        Published {formatUtc(viewing.publishedAt)}. This is exactly what people who answered this version saw.
+      </p>
+      <div class="mt-4">
+        <SchemaOutline schema={viewing.schema} />
+      </div>
+      <a href={`/forms/${formId}/versions`} class={`mt-4 ${LINK}`}>
+        Close this view
+      </a>
+    </section>
+  )}
+</AdminLayout>

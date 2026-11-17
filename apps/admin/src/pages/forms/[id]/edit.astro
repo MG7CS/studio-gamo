@@ -1,0 +1,150 @@
+---
+/**
+ * The form builder: `/forms/:id/edit?q=<questionId>&view=<questions|logic|settings>`.
+ *
+ * Questions view: the outline of sections and question cards, and the editor of the ONE open question
+ * (`?q=`). Every write is a small browser form posted here (post-redirect-get). A refusal re-renders this
+ * page with its message, the submitted values and, on a conflict, who saved first and when.
+ */
+import AdminLayout from '../../../components/AdminLayout.astro';
+import BuilderTabs from '../../../components/forms-builder/BuilderTabs.astro';
+import FormMeta from '../../../components/forms-builder/FormMeta.astro';
+import OutcomeNotice from '../../../components/forms-builder/OutcomeNotice.astro';
+import OutlineSection from '../../../components/forms-builder/OutlineSection.astro';
+import AddSection from '../../../components/forms-builder/AddSection.astro';
+import QuestionEditor from '../../../components/forms-builder/QuestionEditor.astro';
+import SettingsForm from '../../../components/forms-builder/SettingsForm.astro';
+import LogicOverview from '../../../components/forms-builder/LogicOverview.astro';
+import { BTN_PRIMARY, BTN_SECONDARY, HELP, PANEL } from '../../../components/forms-builder/ui';
+import { FormsService, FormsError, QUESTION_TYPES, type QuestionType } from '@gamo/domain/forms';
+import { adminPage, see, type AdminContext } from '../../../lib/admin-page';
+import { noticeFrom } from '../../../lib/flash';
+import { handleBuilderPost } from '../../../lib/forms-builder/page';
+import { FORM_NOTICES } from '../../../lib/forms-builder/notices';
+import { toFormValues } from '../../../lib/forms-builder/question-form';
+import { findQuestion, flattenQuestions } from '../../../lib/forms-builder/schema-edit';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const formId = Astro.params.id ?? '';
+const ACTIONS = [
+  'question.add',
+  'question.save',
+  'question.move',
+  'question.duplicate',
+  'question.delete',
+  'question.type',
+  'section.add',
+  'section.update',
+  'section.delete',
+  'settings.save',
+] as const;
+const posted = await handleBuilderPost(admin, Astro.request, formId, ACTIONS);
+if (posted?.response) return posted.response;
+const failed = posted?.failed;
+if (failed) Astro.response.status = failed.status;
+
+const forms = new FormsService(admin.db);
+let edit;
+try {
+  edit = await forms.getForEdit(formId);
+} catch (error) {
+  if (error instanceof FormsError && error.code === 'NOT_FOUND') return see('/forms', 'not-found');
+  throw error;
+}
+
+const ID_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,39}$/;
+const postedBody = posted?.body ?? {};
+const text = (key: string) => {
+  const value = postedBody[key];
+  return typeof value === 'string' ? value : '';
+};
+const viewParam =
+  Astro.url.searchParams.get('view') ?? (failed && text('action') === 'settings.save' ? 'settings' : '');
+const view = viewParam === 'logic' || viewParam === 'settings' ? viewParam : 'questions';
+const candidate = (failed ? text('qid') || text('open') : '') || Astro.url.searchParams.get('q') || '';
+const open = ID_PATTERN.test(candidate) ? findQuestion(edit.draft, candidate) : null;
+const typeParam = Astro.url.searchParams.get('type') ?? '';
+const pendingType = (QUESTION_TYPES as readonly string[]).includes(typeParam)
+  ? (typeParam as QuestionType)
+  : undefined;
+const keepValues =
+  Boolean(failed?.values) && text('action') === 'question.save' && open?.question.id === text('qid');
+const editorValues = open ? (keepValues ? failed!.values! : toFormValues(open.question)) : {};
+const fieldErrors = Object.fromEntries((failed?.fieldErrors ?? []).map((e) => [e.field, e.message]));
+const flat = flattenQuestions(edit.draft);
+const notice = failed ? null : noticeFrom(Astro.url, FORM_NOTICES);
+const settingsValues = failed && text('action') === 'settings.save' ? failed.values : undefined;
+---
+
+<AdminLayout
+  title={edit.form.title}
+  current="forms"
+  notice={notice}
+  breadcrumbs={[{ label: 'Forms', href: '/forms' }, { label: edit.form.title }]}
+>
+  <Fragment slot="actions">
+    <a href={`/forms/${formId}/preview`} class={BTN_SECONDARY}>
+      Preview
+    </a>
+    <a href={`/forms/${formId}/versions`} class={BTN_SECONDARY}>
+      Version history ({edit.versionCount})
+    </a>
+    <a href={`/forms/${formId}/publish`} class={BTN_PRIMARY}>
+      Publish…
+    </a>
+  </Fragment>
+
+  <FormMeta edit={edit} />
+  <BuilderTabs formId={formId} current={view} responses={edit.submissionCount} />
+  {failed && <OutcomeNotice failed={failed} />}
+
+  {view === 'questions' && (
+    <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+      <div id="outline" class="space-y-8">
+        {edit.draft.sections.map((section) => (
+          <OutlineSection
+            formId={formId}
+            section={section}
+            items={flat.filter((f) => f.sectionId === section.id)}
+            schema={edit.draft}
+            total={flat.length}
+            revision={edit.revision}
+            openId={open?.question.id}
+            canDelete={edit.draft.sections.length > 1}
+          />
+        ))}
+        <AddSection formId={formId} revision={edit.revision} count={edit.draft.sections.length} />
+      </div>
+      {open ? (
+        <QuestionEditor
+          formId={formId}
+          schema={edit.draft}
+          item={open}
+          revision={edit.revision}
+          values={editorValues}
+          errors={fieldErrors}
+          pendingType={pendingType}
+          confirmDelete={Astro.url.searchParams.get('confirm') === 'delete'}
+        />
+      ) : (
+        <aside id="editor" class={PANEL}>
+          <h2 class="text-lg font-bold text-fg">Edit a question</h2>
+          <p class={`mt-1 ${HELP}`}>
+            Choose Edit on a question to change its text, options, rules and system field here.
+          </p>
+        </aside>
+      )}
+    </div>
+  )}
+  {view === 'logic' && <LogicOverview formId={formId} schema={edit.draft} />}
+  {view === 'settings' && <SettingsForm form={edit.form} values={settingsValues} errors={fieldErrors} />}
+</AdminLayout>

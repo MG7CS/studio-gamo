@@ -1,0 +1,37 @@
+---
+/** The builder's tabs as plain links: Questions, Logic overview, Settings, Responses. */
+import { TAB } from './ui';
+interface Props {
+  formId: string;
+  current: 'questions' | 'logic' | 'settings';
+  responses?: number;
+}
+const { formId, current, responses } = Astro.props;
+const base = `/forms/${formId}/edit`;
+const tabs = [
+  { key: 'questions', label: 'Questions', href: base },
+  { key: 'logic', label: 'Logic overview', href: `${base}?view=logic` },
+  { key: 'settings', label: 'Settings', href: `${base}?view=settings` },
+] as const;
+---
+
+<nav aria-label="Form sections" class="mb-6 border-b border-border">
+  <ul class="flex flex-wrap gap-x-5">
+    {tabs.map((tab) => (
+      <li>
+        <a
+          href={tab.href}
+          aria-current={tab.key === current ? 'page' : undefined}
+          class:list={[TAB, tab.key === current ? 'border-action' : 'border-transparent']}
+        >
+          {tab.label}
+        </a>
+      </li>
+    ))}
+    <li>
+      <a href={`/submissions?formId=${encodeURIComponent(formId)}`} class:list={[TAB, 'border-transparent']}>
+        Responses{responses !== undefined ? ` (${responses})` : ''}
+      </a>
+    </li>
+  </ul>
+</nav>

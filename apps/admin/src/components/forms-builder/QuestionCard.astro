@@ -1,0 +1,67 @@
+---
+/**
+ * One question in the outline: position, type, label, Required, the show-if sentence and the system field
+ * it fills. "Edit" opens the editor through `?q=`; Move up / Move down are their own forms. The card is a
+ * focus target (`tabindex="-1"`) so the redirect to `#q-<id>` leaves focus on the question that moved.
+ */
+import type { FlatQuestion } from '../../lib/forms-builder/schema-edit';
+import type { FormSchema } from '@gamo/domain/forms';
+import { describeShowIf } from '../../lib/forms-builder/show-if';
+import { BIND_LABELS } from '../../lib/forms-builder/question-form';
+import { TYPE_LABELS } from '../../lib/forms-builder/view';
+import MoveButtons from './MoveButtons.astro';
+import { HELP, LINK } from './ui';
+interface Props {
+  formId: string;
+  item: FlatQuestion;
+  schema: FormSchema;
+  total: number;
+  revision: number;
+  open: boolean;
+  openId?: string;
+}
+const { formId, item, schema, total, revision, open, openId } = Astro.props;
+const q = item.question;
+---
+
+<li
+  id={`q-${q.id}`}
+  tabindex="-1"
+  aria-current={open ? 'true' : undefined}
+  class:list={[
+    'scroll-mt-24 rounded-card bg-surface-raised p-4',
+    open ? 'border-2 border-action' : 'border border-border',
+  ]}
+>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0 flex-1">
+      <p class={HELP}>
+        Question {item.position} · {TYPE_LABELS[q.type]}
+        {q.required ? ' · Required' : ''}
+      </p>
+      <h3 class="mt-1 break-words text-body-sm font-semibold text-fg">{q.label}</h3>
+      {q.showIf && <p class={`mt-1 break-words ${HELP}`}>{describeShowIf(q.showIf, schema)}</p>}
+      {q.bind && <p class={`mt-1 ${HELP}`}>Fills: {BIND_LABELS[q.bind]}</p>}
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <a
+        href={`/forms/${formId}/edit?q=${q.id}#editor`}
+        class={LINK}
+        aria-label={`${open ? 'Editing' : 'Edit'} question ${item.position}: ${q.label}`}
+      >
+        {open ? 'Editing' : 'Edit'}
+      </a>
+    </div>
+  </div>
+  <div class="mt-3">
+    <MoveButtons
+      formId={formId}
+      questionId={q.id}
+      label={q.label}
+      revision={revision}
+      openId={openId}
+      first={item.position === 1}
+      last={item.position === total}
+    />
+  </div>
+</li>

@@ -1,0 +1,35 @@
+---
+/** "Move to position" for the open question: a select of positions and its own submit (no change on input). */
+import HiddenFields from './HiddenFields.astro';
+import { BTN_SMALL } from './ui';
+import { CONTROL_CLASS } from '@studio-gamo/ui/components/forms/field.ts';
+interface Props {
+  formId: string;
+  questionId: string;
+  label: string;
+  revision: number;
+  position: number;
+  total: number;
+}
+const { formId, questionId, label, revision, position, total } = Astro.props;
+const selectId = `mv-${questionId}`;
+---
+
+<form method="post" action={`/forms/${formId}/edit`} class="flex flex-wrap items-end gap-3">
+  <HiddenFields action="question.move" revision={revision} extra={{ qid: questionId, open: questionId }} />
+  <div>
+    <label for={selectId} class="block text-body-sm font-semibold text-fg">
+      Position in the form
+    </label>
+    <select id={selectId} name="to" class:list={[CONTROL_CLASS, 'w-auto min-w-24']}>
+      {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+        <option value={String(n)} selected={n === position}>
+          {n}
+        </option>
+      ))}
+    </select>
+  </div>
+  <button type="submit" class={BTN_SMALL} aria-label={`Move to position: ${label}`}>
+    Move to position
+  </button>
+</form>

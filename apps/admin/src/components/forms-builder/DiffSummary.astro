@@ -1,0 +1,46 @@
+---
+/** What changed since the published version, in plain English. */
+import type { FormDiff } from '@gamo/domain/forms';
+import { HELP, PANEL } from './ui';
+interface Props {
+  diff: FormDiff;
+}
+const { diff } = Astro.props;
+const groups = [
+  { title: 'Added', items: diff.added },
+  { title: 'Changed', items: diff.changed },
+  { title: 'Removed', items: diff.removed },
+] as const;
+---
+
+<section aria-labelledby="diff-heading" class={PANEL}>
+  <h2 id="diff-heading" class="text-lg font-bold text-fg">
+    What changed
+  </h2>
+  {diff.publishedVersion === null ? (
+    <p class={`mt-2 ${HELP}`}>Nothing is published yet, so everything below is new in version 1.</p>
+  ) : (
+    <p class={`mt-2 ${HELP}`}>Compared with published version {diff.publishedVersion}.</p>
+  )}
+  {!diff.hasChanges && (
+    <p class="mt-2 text-body-sm text-fg">No changes: publishing would not create a new version.</p>
+  )}
+  {groups.map(
+    (g) =>
+      g.items.length > 0 && (
+        <div class="mt-3">
+          <h3 class="text-body-sm font-semibold text-fg">
+            {g.title} ({g.items.length})
+          </h3>
+          <ul class="mt-1 list-disc space-y-1 pl-5">
+            {g.items.map((item) => (
+              <li class="break-words text-body-sm text-fg">
+                {item.kind === 'section' ? 'Section' : 'Question'}: {item.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+  )}
+  {diff.reordered && <p class="mt-3 text-body-sm text-fg">The order of the questions changed.</p>}
+</section>

@@ -1,0 +1,104 @@
+---
+/**
+ * Publish page: the checklist (each problem links to its question), a plain-English summary of what changed
+ * since the published version, a change note and "Publish version N". The post carries `expected_revision`
+ * so publishing a draft someone else just changed is refused (409) instead of publishing what you did not see.
+ */
+import AdminLayout from '../../../components/AdminLayout.astro';
+import DiffSummary from '../../../components/forms-builder/DiffSummary.astro';
+import FormMeta from '../../../components/forms-builder/FormMeta.astro';
+import HiddenFields from '../../../components/forms-builder/HiddenFields.astro';
+import OutcomeNotice from '../../../components/forms-builder/OutcomeNotice.astro';
+import PublishChecklist from '../../../components/forms-builder/PublishChecklist.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import { BTN_PRIMARY, BTN_SECONDARY, HELP, PANEL } from '../../../components/forms-builder/ui';
+import { FormsService, FormsError, VERSION_NOTE_MAX, checkPublishable } from '@gamo/domain/forms';
+import { adminPage, see, type AdminContext } from '../../../lib/admin-page';
+import { handleBuilderPost } from '../../../lib/forms-builder/page';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const formId = Astro.params.id ?? '';
+const posted = await handleBuilderPost(admin, Astro.request, formId, ['publish']);
+if (posted?.response) return posted.response;
+const failed = posted?.failed;
+if (failed) Astro.response.status = failed.status;
+
+const forms = new FormsService(admin.db);
+let edit;
+try {
+  edit = await forms.getForEdit(formId);
+} catch (error) {
+  if (error instanceof FormsError && error.code === 'NOT_FOUND') return see('/forms', 'not-found');
+  throw error;
+}
+const check = checkPublishable(edit.form.kind, edit.draft);
+const diff = await forms.diffAgainstPublished(formId);
+const nextVersion = (edit.latestVersion?.version ?? 0) + 1;
+const canPublish = check.errors.length === 0 && (diff.hasChanges || edit.latestVersion === null);
+const note = typeof posted?.body.change_note === 'string' ? posted.body.change_note : '';
+---
+
+<AdminLayout
+  title={`Publish: ${edit.form.title}`}
+  current="forms"
+  breadcrumbs={[
+    { label: 'Forms', href: '/forms' },
+    { label: edit.form.title, href: `/forms/${formId}/edit` },
+    { label: 'Publish' },
+  ]}
+  description="Publishing makes the draft the version the public form shows. People who already sent the form keep the version they answered."
+>
+  <FormMeta edit={edit} />
+  {failed && <OutcomeNotice failed={failed} title="It was not published" />}
+  <div class="grid gap-6 lg:grid-cols-2 lg:items-start">
+    <PublishChecklist formId={formId} schema={edit.draft} errors={check.errors} warnings={check.warnings} />
+    <DiffSummary diff={diff} />
+  </div>
+  <section aria-labelledby="publish-heading" class={`mt-6 max-w-prose ${PANEL}`}>
+    <h2 id="publish-heading" class="text-lg font-bold text-fg">
+      Publish version {nextVersion}
+    </h2>
+    {canPublish ? (
+      <form method="post" action={`/forms/${formId}/publish`} class="mt-3 space-y-4">
+        <HiddenFields action="publish" op={false} extra={{ expected_revision: String(edit.revision) }} />
+        <TextareaField
+          id="pb-note"
+          name="change_note"
+          label="What changed? (optional)"
+          rows={3}
+          maxlength={VERSION_NOTE_MAX}
+          value={note}
+          hint="Shown in the version history."
+        />
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class={BTN_PRIMARY}>
+            Publish version {nextVersion}
+          </button>
+          <a href={`/forms/${formId}/edit`} class={BTN_SECONDARY}>
+            Back to the builder
+          </a>
+        </div>
+      </form>
+    ) : (
+      <>
+        <p class={`mt-2 ${HELP}`}>
+          {check.errors.length > 0
+            ? 'Fix the problems in the checklist first. Each one links to the question to change.'
+            : 'Nothing has changed since the last published version, so there is nothing to publish.'}
+        </p>
+        <a href={`/forms/${formId}/edit`} class={`mt-3 ${BTN_SECONDARY}`}>
+          Back to the builder
+        </a>
+      </>
+    )}
+  </section>
+</AdminLayout>

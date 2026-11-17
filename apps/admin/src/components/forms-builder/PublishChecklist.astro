@@ -1,0 +1,64 @@
+---
+/**
+ * The publish checklist: blocking problems (each links to the question to fix) and warnings (advice;
+ * publishing is still allowed). Both are lists with a heading, never colour alone.
+ */
+import type { FormSchema } from '@gamo/domain/forms';
+import { checkLine } from '../../lib/forms-builder/view';
+import { HELP, LINK, PANEL } from './ui';
+interface Props {
+  formId: string;
+  schema: FormSchema;
+  errors: string[];
+  warnings: string[];
+}
+const { formId, schema, errors, warnings } = Astro.props;
+const errorLines = errors.map((m) => checkLine(formId, schema, m));
+const warningLines = warnings.map((m) => checkLine(formId, schema, m));
+---
+
+<section aria-labelledby="checklist-heading" class={PANEL}>
+  <h2 id="checklist-heading" class="text-lg font-bold text-fg">
+    Before you publish
+  </h2>
+  {errorLines.length === 0 && warningLines.length === 0 ? (
+    <p class="mt-2 text-body-sm text-fg">All checks passed.</p>
+  ) : null}
+  {errorLines.length > 0 && (
+    <div class="mt-3" id="checklist-errors">
+      <h3 class="text-body-sm font-semibold text-danger">Fix these first ({errorLines.length})</h3>
+      <ul class="mt-2 space-y-1">
+        {errorLines.map((line) => (
+          <li class="break-words text-body-sm text-fg">
+            {line.href ? (
+              <a href={line.href} class={LINK}>
+                {line.text}
+              </a>
+            ) : (
+              line.text
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+  {warningLines.length > 0 && (
+    <div class="mt-4">
+      <h3 class="text-body-sm font-semibold text-fg">Worth a look ({warningLines.length})</h3>
+      <p class={HELP}>These do not stop you from publishing.</p>
+      <ul class="mt-2 space-y-1">
+        {warningLines.map((line) => (
+          <li class="break-words text-body-sm text-fg">
+            {line.href ? (
+              <a href={line.href} class={LINK}>
+                {line.text}
+              </a>
+            ) : (
+              line.text
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</section>

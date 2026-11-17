@@ -1,0 +1,51 @@
+---
+/** One section of the outline: its title (h2), the question cards, "+ Add question" and the section's own forms. */
+import type { Section, FormSchema } from '@gamo/domain/forms';
+import type { FlatQuestion } from '../../lib/forms-builder/schema-edit';
+import QuestionCard from './QuestionCard.astro';
+import AddQuestion from './AddQuestion.astro';
+import SectionSettings from './SectionSettings.astro';
+import { HELP } from './ui';
+interface Props {
+  formId: string;
+  section: Section;
+  items: FlatQuestion[];
+  schema: FormSchema;
+  total: number;
+  revision: number;
+  openId?: string;
+  canDelete: boolean;
+}
+const { formId, section, items, schema, total, revision, openId, canDelete } = Astro.props;
+---
+
+<section id={`section-${section.id}`} aria-labelledby={`section-${section.id}-title`} class="scroll-mt-24">
+  <h2 id={`section-${section.id}-title`} class="text-lg font-bold text-fg">
+    {section.title}
+  </h2>
+  {section.description && <p class={`mt-1 break-words ${HELP}`}>{section.description}</p>}
+  {items.length > 0 ? (
+    <ol class="mt-4 space-y-3">
+      {items.map((item) => (
+        <QuestionCard
+          formId={formId}
+          item={item}
+          schema={schema}
+          total={total}
+          revision={revision}
+          open={item.question.id === openId}
+          openId={openId}
+        />
+      ))}
+    </ol>
+  ) : (
+    <p class={`mt-3 ${HELP}`}>This section has no questions yet.</p>
+  )}
+  <AddQuestion formId={formId} sectionId={section.id} sectionTitle={section.title} revision={revision} />
+  <SectionSettings
+    formId={formId}
+    section={section}
+    revision={revision}
+    canDelete={canDelete && items.length === 0}
+  />
+</section>

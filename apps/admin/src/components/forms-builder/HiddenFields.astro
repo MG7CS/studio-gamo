@@ -1,0 +1,22 @@
+---
+/**
+ * The hidden inputs every builder write carries: the action, the revision the staff member saw, a fresh
+ * per-render `op_id` (a double click or a replayed post is a no-op), and optional extras.
+ */
+interface Props {
+  action: string;
+  revision?: number;
+  /** Add a fresh op_id (draft writes). */
+  op?: boolean;
+  extra?: Record<string, string | undefined>;
+}
+const { action, revision, op = true, extra = {} } = Astro.props;
+const opId = op ? `op-${crypto.randomUUID()}` : undefined;
+---
+
+<input type="hidden" name="action" value={action} />
+{revision !== undefined && <input type="hidden" name="revision" value={String(revision)} />}
+{opId && <input type="hidden" name="op_id" value={opId} />}
+{Object.entries(extra).map(([name, value]) =>
+  value === undefined ? null : <input type="hidden" name={name} value={value} />,
+)}

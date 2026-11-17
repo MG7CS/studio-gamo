@@ -1,0 +1,66 @@
+---
+/**
+ * Preview mode: the draft rendered by the same shared renderer the public form uses. Nothing is saved or
+ * sent: the form posts back to this page, which only says so. Staff only; the shell marks it noindex.
+ */
+import AdminLayout from '../../../components/AdminLayout.astro';
+import FormMeta from '../../../components/forms-builder/FormMeta.astro';
+import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import { BTN_SECONDARY, PANEL } from '../../../components/forms-builder/ui';
+import { FormsService, FormsError } from '@gamo/domain/forms';
+import { adminPage, see, type AdminContext } from '../../../lib/admin-page';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const formId = Astro.params.id ?? '';
+let edit;
+try {
+  edit = await new FormsService(admin.db).getForEdit(formId);
+} catch (error) {
+  if (error instanceof FormsError && error.code === 'NOT_FOUND') return see('/forms', 'not-found');
+  throw error;
+}
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+const submitted = Astro.request.method === 'POST';
+---
+
+<AdminLayout
+  title={`Preview: ${edit.form.title}`}
+  current="forms"
+  breadcrumbs={[
+    { label: 'Forms', href: '/forms' },
+    { label: edit.form.title, href: `/forms/${formId}/edit` },
+    { label: 'Preview' },
+  ]}
+>
+  <a slot="actions" href={`/forms/${formId}/edit`} class={BTN_SECONDARY}>
+    Back to the builder
+  </a>
+  <FormMeta edit={edit} />
+  <div role="status" class={`mb-6 ${PANEL}`}>
+    <p class="text-body-sm font-semibold text-fg">Preview: nothing is saved.</p>
+    <p class="mt-1 text-small text-fg-muted">
+      {submitted ? 'You pressed the button, and nothing was sent or stored. ' : ''}This is the draft as people
+      will see it once it is published. Try the show-if rules by answering the questions.
+    </p>
+  </div>
+  <div class="max-w-narrow">
+    <DynamicForm
+      schema={edit.draft}
+      formSlug={edit.form.slug}
+      action={`/forms/${formId}/preview`}
+      turnstile={false}
+      submitLabel="Send (preview only)"
+      idPrefix="pv"
+      headingLevel={2}
+    />
+  </div>
+</AdminLayout>

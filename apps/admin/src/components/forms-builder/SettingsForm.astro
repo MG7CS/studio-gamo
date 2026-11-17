@@ -1,0 +1,64 @@
+---
+/** Form settings: title, description, confirmation message, retention months. Not part of a version's questions. */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import type { Form } from '@gamo/domain/forms';
+import type { FieldValues } from '../../lib/forms-builder/question-form';
+import { fieldValue } from '../../lib/forms-builder/question-form';
+import HiddenFields from './HiddenFields.astro';
+import { BTN_PRIMARY, HELP } from './ui';
+interface Props {
+  form: Form;
+  values?: FieldValues;
+  errors?: Record<string, string>;
+}
+const { form, values, errors = {} } = Astro.props;
+const v = (key: string, fallback: string) => (values ? fieldValue(values, key) : fallback);
+---
+
+<form method="post" action={`/forms/${form.id}/edit?view=settings`} class="max-w-prose space-y-5">
+  <HiddenFields action="settings.save" op={false} />
+  <TextField
+    id="st-title"
+    name="title"
+    label="Form title"
+    value={v('title', form.title)}
+    required
+    maxlength={200}
+    error={errors.title}
+  />
+  <TextareaField
+    id="st-description"
+    name="description"
+    label="Description (optional)"
+    rows={3}
+    value={v('description', form.description ?? '')}
+    maxlength={1000}
+    error={errors.description}
+    hint="Shown above the questions on the public form."
+  />
+  <TextareaField
+    id="st-confirmation"
+    name="confirmation_message"
+    label="Confirmation message (optional)"
+    rows={3}
+    value={v('confirmation_message', form.confirmationMessage ?? '')}
+    maxlength={1000}
+    error={errors.confirmation_message}
+    hint="Shown after someone sends the form."
+  />
+  <TextField
+    id="st-retention"
+    name="retention_months"
+    type="number"
+    inputmode="numeric"
+    label="Keep handled submissions for (months)"
+    value={v('retention_months', form.retentionMonths === null ? '' : String(form.retentionMonths))}
+    error={errors.retention_months}
+    hint="1 to 240. Declined, spam, archived and handled submissions are deleted after this time. Leave empty to keep them."
+  />
+  <p class={HELP}>The web address ({form.slug}) cannot be changed, so existing links keep working.</p>
+  <button type="submit" class={BTN_PRIMARY}>
+    Save settings
+  </button>
+</form>

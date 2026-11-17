@@ -1,0 +1,287 @@
+---
+/** The settings that belong to the question's type: options, scale, grid, date, link, upload, text block. */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import Fieldset from '@studio-gamo/ui/components/forms/Fieldset.astro';
+import { FILE_GROUPS, FORM_LIMITS, LINK_PROVIDER_NAMES, type QuestionType } from '@gamo/domain/forms';
+import { fieldOn, fieldValue, fieldValues, type FieldValues } from '../../lib/forms-builder/question-form';
+import ValidationFields from './ValidationFields.astro';
+interface Props {
+  type: QuestionType;
+  values: FieldValues;
+  errors: Record<string, string>;
+}
+const { type, values, errors } = Astro.props;
+const FILE_LABELS: Record<string, string> = {
+  image: 'Images',
+  video: 'Video',
+  pdf: 'PDF',
+  document: 'Documents',
+  audio: 'Audio',
+};
+const PROVIDER_LABELS: Record<string, string> = {
+  youtube: 'YouTube',
+  vimeo: 'Vimeo',
+  drive: 'Google Drive',
+  dropbox: 'Dropbox',
+};
+const accepted = fieldValues(values, 'accept');
+const providers = fieldValues(values, 'providers');
+---
+
+{(type === 'short_text' || type === 'paragraph') && (
+  <>
+    <TextField
+      id="qe-max_length"
+      name="max_length"
+      type="number"
+      inputmode="numeric"
+      label="Maximum length (optional)"
+      value={fieldValue(values, 'max_length')}
+      hint={`Up to ${type === 'short_text' ? FORM_LIMITS.maxShortText : FORM_LIMITS.maxParagraph} characters.`}
+      error={errors.max_length}
+    />
+    <ValidationFields values={values} errors={errors} paragraph={type === 'paragraph'} />
+  </>
+)}
+{(type === 'multiple_choice' || type === 'checkboxes' || type === 'dropdown') && (
+  <>
+    <TextareaField
+      id="qe-options"
+      name="options"
+      label="Options"
+      rows={5}
+      value={fieldValue(values, 'options')}
+      hint="One option per line. Each must be different."
+      error={errors.options}
+    />
+    <Checkbox
+      id="qe-shuffle"
+      name="shuffle"
+      label="Show the options in a random order"
+      checked={fieldOn(values, 'shuffle')}
+    />
+  </>
+)}
+{(type === 'multiple_choice' || type === 'checkboxes') && (
+  <>
+    <Checkbox
+      id="qe-other"
+      name="other"
+      label='Add an "Other" choice with a text box'
+      checked={fieldOn(values, 'other')}
+    />
+    <TextField
+      id="qe-other_label"
+      name="other_label"
+      label='Label of the "Other" choice (optional)'
+      value={fieldValue(values, 'other_label')}
+      error={errors.other_label}
+    />
+  </>
+)}
+{type === 'checkboxes' && (
+  <div class="grid gap-4 sm:grid-cols-2">
+    <SelectField
+      id="qe-limit_kind"
+      name="limit_kind"
+      label="Limit how many can be ticked"
+      options={[
+        { value: '', label: 'No limit' },
+        { value: 'at_least', label: 'At least' },
+        { value: 'at_most', label: 'At most' },
+        { value: 'exactly', label: 'Exactly' },
+      ]}
+      value={fieldValue(values, 'limit_kind')}
+      placeholder=""
+      error={errors.limit_kind}
+    />
+    <TextField
+      id="qe-limit_n"
+      name="limit_n"
+      type="number"
+      inputmode="numeric"
+      label="Number of choices"
+      value={fieldValue(values, 'limit_n')}
+      error={errors.limit_n}
+    />
+  </div>
+)}
+{type === 'linear_scale' && (
+  <div class="grid gap-4 sm:grid-cols-2">
+    <SelectField
+      id="qe-scale_min"
+      name="scale_min"
+      label="Starts at"
+      options={[
+        { value: '0', label: '0' },
+        { value: '1', label: '1' },
+      ]}
+      value={fieldValue(values, 'scale_min') || '1'}
+      placeholder=""
+    />
+    <TextField
+      id="qe-scale_max"
+      name="scale_max"
+      type="number"
+      inputmode="numeric"
+      label="Highest value (2 to 10)"
+      value={fieldValue(values, 'scale_max')}
+      error={errors.scale_max}
+    />
+    <TextField
+      id="qe-min_label"
+      name="min_label"
+      label="Label for the lowest value (optional)"
+      value={fieldValue(values, 'min_label')}
+      error={errors.min_label}
+    />
+    <TextField
+      id="qe-max_label"
+      name="max_label"
+      label="Label for the highest value (optional)"
+      value={fieldValue(values, 'max_label')}
+      error={errors.max_label}
+    />
+  </div>
+)}
+{type === 'rating' && (
+  <TextField
+    id="qe-scale_max"
+    name="scale_max"
+    type="number"
+    inputmode="numeric"
+    label="Number of stars (3 to 10)"
+    value={fieldValue(values, 'scale_max')}
+    error={errors.scale_max}
+  />
+)}
+{(type === 'choice_grid' || type === 'checkbox_grid') && (
+  <>
+    <TextareaField
+      id="qe-rows"
+      name="rows"
+      label="Rows"
+      rows={4}
+      value={fieldValue(values, 'rows')}
+      hint="One row per line."
+      error={errors.rows}
+    />
+    <TextareaField
+      id="qe-columns"
+      name="columns"
+      label="Columns"
+      rows={4}
+      value={fieldValue(values, 'columns')}
+      hint="One column per line."
+      error={errors.columns}
+    />
+    <Checkbox
+      id="qe-require_each_row"
+      name="require_each_row"
+      label="Every row needs an answer"
+      checked={fieldOn(values, 'require_each_row')}
+    />
+    <Checkbox
+      id="qe-one_per_column"
+      name="one_per_column"
+      label="Each column can be used once"
+      checked={fieldOn(values, 'one_per_column')}
+    />
+  </>
+)}
+{type === 'date' && (
+  <>
+    <Checkbox
+      id="qe-include_year"
+      name="include_year"
+      label="Ask for the year"
+      checked={fieldOn(values, 'include_year')}
+    />
+    <Checkbox
+      id="qe-include_time"
+      name="include_time"
+      label="Also ask for a time"
+      checked={fieldOn(values, 'include_time')}
+    />
+  </>
+)}
+{type === 'time' && (
+  <SelectField
+    id="qe-time_mode"
+    name="time_mode"
+    label="Kind of time"
+    options={[
+      { value: 'clock', label: 'Time of day' },
+      { value: 'duration', label: 'Duration' },
+    ]}
+    value={fieldValue(values, 'time_mode') || 'clock'}
+    placeholder=""
+  />
+)}
+{type === 'link' && (
+  <Fieldset
+    id="qe-providers"
+    legend="Accepted link providers"
+    hint="Leave all unticked to accept any https address."
+    error={errors.providers}
+  >
+    {LINK_PROVIDER_NAMES.map((p) => (
+      <Checkbox
+        id={`qe-providers-${p}`}
+        name="providers"
+        value={p}
+        label={PROVIDER_LABELS[p] ?? p}
+        checked={providers.includes(p)}
+      />
+    ))}
+  </Fieldset>
+)}
+{type === 'file_upload' && (
+  <>
+    <Fieldset id="qe-accept" legend="Accepted file types" error={errors.accept}>
+      {FILE_GROUPS.map((g) => (
+        <Checkbox
+          id={`qe-accept-${g}`}
+          name="accept"
+          value={g}
+          label={FILE_LABELS[g] ?? g}
+          checked={accepted.includes(g)}
+        />
+      ))}
+    </Fieldset>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <TextField
+        id="qe-max_files"
+        name="max_files"
+        type="number"
+        inputmode="numeric"
+        label={`Number of files (1 to ${FORM_LIMITS.maxFiles})`}
+        value={fieldValue(values, 'max_files')}
+        error={errors.max_files}
+      />
+      <TextField
+        id="qe-max_mb"
+        name="max_mb"
+        type="number"
+        inputmode="numeric"
+        label={`Largest file in MB (1 to ${FORM_LIMITS.maxUploadMb})`}
+        value={fieldValue(values, 'max_mb')}
+        error={errors.max_mb}
+      />
+    </div>
+  </>
+)}
+{type === 'statement' && (
+  <TextareaField
+    id="qe-body"
+    name="body"
+    label="Text shown to the reader"
+    rows={4}
+    value={fieldValue(values, 'body')}
+    maxlength={FORM_LIMITS.maxHelp}
+    error={errors.body}
+  />
+)}

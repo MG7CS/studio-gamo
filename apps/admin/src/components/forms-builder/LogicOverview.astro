@@ -1,0 +1,72 @@
+---
+/** Every show-if rule of the draft in one captioned table, so nothing stays hidden inside a question. */
+import type { FormSchema } from '@gamo/domain/forms';
+import { flattenQuestions } from '../../lib/forms-builder/schema-edit';
+import { describeShowIf } from '../../lib/forms-builder/show-if';
+import { HELP, LINK } from './ui';
+interface Props {
+  formId: string;
+  schema: FormSchema;
+}
+const { formId, schema } = Astro.props;
+const rows = [
+  ...schema.sections.flatMap((s) =>
+    s.showIf
+      ? [
+          {
+            kind: 'Section',
+            name: s.title,
+            text: describeShowIf(s.showIf, schema),
+            href: `/forms/${formId}/edit#section-${s.id}`,
+          },
+        ]
+      : [],
+  ),
+  ...flattenQuestions(schema).flatMap((f) =>
+    f.question.showIf
+      ? [
+          {
+            kind: `Question ${f.position}`,
+            name: f.question.label,
+            text: describeShowIf(f.question.showIf, schema),
+            href: `/forms/${formId}/edit?q=${f.question.id}#editor`,
+          },
+        ]
+      : [],
+  ),
+];
+---
+
+{rows.length === 0 ? (
+  <p class={HELP}>No question depends on another answer. Every question is always shown.</p>
+) : (
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <caption class="mb-3 text-left text-body-sm font-semibold text-fg">
+        Show-if rules in this draft ({rows.length})
+      </caption>
+      <thead>
+        <tr class="border-b border-border text-fg-muted">
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            Item
+          </th>
+          <th scope="col" class="py-2 pr-4 font-semibold">
+            Rule
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr class="border-b border-border align-top">
+            <th scope="row" class="max-w-prose py-2 pr-4 font-semibold break-words">
+              <a href={r.href} class={LINK}>
+                {r.kind}: {r.name}
+              </a>
+            </th>
+            <td class="py-2 pr-4 break-words text-fg">{r.text}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}

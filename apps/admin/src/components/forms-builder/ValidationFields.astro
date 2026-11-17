@@ -1,0 +1,103 @@
+---
+/**
+ * Validation for a text question: presets first (email, phone, postal code, web address, number range,
+ * length, contains text), then a constrained custom pattern for parity with other form tools. Every detail
+ * field is shown with a hint saying which rule uses it, because the page works without JavaScript.
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import { REGEX_HINT, fieldOn, fieldValue, type FieldValues } from '../../lib/forms-builder/question-form';
+interface Props {
+  values: FieldValues;
+  errors: Record<string, string>;
+  paragraph?: boolean;
+}
+const { values, errors, paragraph = false } = Astro.props;
+const all = [
+  { value: 'email', label: 'Email address' },
+  { value: 'phone', label: 'Phone number' },
+  { value: 'postal_code', label: 'Postal code' },
+  { value: 'url', label: 'Web address (URL)' },
+  { value: 'number', label: 'Number, with a range' },
+  { value: 'length', label: 'Length (number of characters)' },
+  { value: 'text_contains', label: 'Must contain some text' },
+  { value: 'text_not_contains', label: 'Must not contain some text' },
+  { value: 'regex', label: 'Custom pattern (advanced)' },
+];
+const options = [
+  { value: '', label: 'No validation' },
+  ...(paragraph ? all.filter((o) => o.value === 'length' || o.value === 'regex') : all),
+];
+---
+
+<fieldset class="m-0 min-w-0 space-y-4 rounded-card border border-border p-4">
+  <legend class="px-1 text-body-sm font-semibold text-fg">Validation</legend>
+  <SelectField
+    id="qe-validation_kind"
+    name="validation_kind"
+    label="Check answers against"
+    options={options}
+    value={fieldValue(values, 'validation_kind')}
+    placeholder=""
+    error={errors.validation_kind}
+  />
+  <div class="grid gap-4 sm:grid-cols-2">
+    <TextField
+      id="qe-v_min"
+      name="v_min"
+      label="Minimum"
+      type="text"
+      inputmode="decimal"
+      value={fieldValue(values, 'v_min')}
+      hint="For number range and length."
+      error={errors.v_min}
+    />
+    <TextField
+      id="qe-v_max"
+      name="v_max"
+      label="Maximum"
+      type="text"
+      inputmode="decimal"
+      value={fieldValue(values, 'v_max')}
+      hint="For number range and length."
+      error={errors.v_max}
+    />
+  </div>
+  {!paragraph && (
+    <Checkbox
+      id="qe-v_integer"
+      name="v_integer"
+      label="Whole numbers only (number range)"
+      checked={fieldOn(values, 'v_integer')}
+    />
+  )}
+  {!paragraph && (
+    <TextField
+      id="qe-v_value"
+      name="v_value"
+      label="Text to look for"
+      value={fieldValue(values, 'v_value')}
+      hint="For the contains and does-not-contain rules."
+      error={errors.v_value}
+    />
+  )}
+  <TextField
+    id="qe-v_pattern"
+    name="v_pattern"
+    label="Custom pattern"
+    value={fieldValue(values, 'v_pattern')}
+    hint={REGEX_HINT}
+    error={errors.v_pattern}
+    spellcheck={false}
+    autocapitalize="off"
+  />
+  <TextField
+    id="qe-validation_message"
+    name="validation_message"
+    label="Message when the answer does not match (optional)"
+    value={fieldValue(values, 'validation_message')}
+    maxlength={200}
+    error={errors.validation_message}
+  />
+</fieldset>

@@ -1,0 +1,18 @@
+---
+/** Form status chip. The words carry the meaning; the border colour only echoes it. */
+import { CHIP_TONES } from './ui';
+interface Props {
+  label: string;
+  tone?: keyof typeof CHIP_TONES;
+}
+const { label, tone = 'neutral' } = Astro.props;
+---
+
+<span
+  class:list={[
+    'inline-flex items-center rounded-pill border bg-surface-raised px-3 py-1 text-caption font-semibold',
+    CHIP_TONES[tone],
+  ]}
+>
+  {label}
+</span>

@@ -1,0 +1,58 @@
+---
+/** Rename a section or delete an empty one (two forms inside a closed <details>). */
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import type { Section } from '@gamo/domain/forms';
+import { FORM_LIMITS } from '@gamo/domain/forms';
+import HiddenFields from './HiddenFields.astro';
+import { BTN_DANGER, BTN_SMALL } from './ui';
+interface Props {
+  formId: string;
+  section: Section;
+  revision: number;
+  canDelete: boolean;
+}
+const { formId, section, revision, canDelete } = Astro.props;
+const action = `/forms/${formId}/edit`;
+---
+
+<details class="mt-3">
+  <summary
+    class="inline-flex min-h-11 cursor-pointer items-center text-body-sm font-semibold text-action-strong"
+    aria-label={`Section settings: ${section.title}`}
+  >
+    Section settings
+  </summary>
+  <div class="mt-3 space-y-4 rounded-card border border-border bg-surface p-4">
+    <form method="post" action={action} class="space-y-4">
+      <HiddenFields action="section.update" revision={revision} extra={{ sid: section.id }} />
+      <TextField
+        id={`sec-${section.id}-title`}
+        name="title"
+        label="Section title"
+        value={section.title}
+        required
+        maxlength={FORM_LIMITS.maxLabel}
+      />
+      <TextareaField
+        id={`sec-${section.id}-description`}
+        name="description"
+        label="Description (optional)"
+        rows={2}
+        value={section.description ?? ''}
+        maxlength={FORM_LIMITS.maxHelp}
+      />
+      <button type="submit" class={BTN_SMALL}>
+        Save section
+      </button>
+    </form>
+    {canDelete && (
+      <form method="post" action={action}>
+        <HiddenFields action="section.delete" revision={revision} extra={{ sid: section.id }} />
+        <button type="submit" class={BTN_DANGER} aria-label={`Delete empty section: ${section.title}`}>
+          Delete empty section
+        </button>
+      </form>
+    )}
+  </div>
+</details>

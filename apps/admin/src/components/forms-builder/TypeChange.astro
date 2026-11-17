@@ -1,0 +1,92 @@
+---
+/**
+ * Change the question type: its own small form with an explicit Apply (changing a select never submits).
+ * When something would be discarded, the server redirects back here with `?type=` and the confirmation
+ * below lists exactly what is lost before anything changes.
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import { QUESTION_TYPES, type QuestionType } from '@gamo/domain/forms';
+import type { TypeChange } from '../../lib/forms-builder/schema-edit';
+import { TYPE_LABELS } from '../../lib/forms-builder/view';
+import HiddenFields from './HiddenFields.astro';
+import { BTN_DANGER, BTN_SMALL, HELP, LINK } from './ui';
+interface Props {
+  formId: string;
+  questionId: string;
+  type: QuestionType;
+  revision: number;
+  /** The proposed type awaiting confirmation (from `?type=`). */
+  pending?: { type: QuestionType; change: TypeChange };
+}
+const { formId, questionId, type, revision, pending } = Astro.props;
+const action = `/forms/${formId}/edit`;
+---
+
+<form method="post" action={action} class="flex flex-wrap items-end gap-3" aria-labelledby="qt-heading">
+  <HiddenFields action="question.type" revision={revision} extra={{ qid: questionId, open: questionId }} />
+  <p id="qt-heading" class="sr-only">
+    Change the question type
+  </p>
+  <SelectField
+    id="qt-type"
+    name="type"
+    label="Question type"
+    options={QUESTION_TYPES.map((t) => ({ value: t, label: TYPE_LABELS[t] }))}
+    value={type}
+    placeholder=""
+    hint="Changing the type keeps the question text, help, required, show-if and system field where the new type allows it. You will see what would be lost before anything changes."
+    class="min-w-0 flex-1"
+  />
+  <button type="submit" class={BTN_SMALL}>
+    Apply type
+  </button>
+</form>
+
+{pending && (
+  <div
+    id="type-confirm"
+    tabindex="-1"
+    role="alert"
+    class="mt-4 rounded-card border-2 border-danger bg-surface-raised p-4 text-body-sm text-fg"
+  >
+    <h4 class="font-semibold">Change the type to {TYPE_LABELS[pending.type]}?</h4>
+    {pending.change.lost.length > 0 ? (
+      <>
+        <p class="mt-2">This will discard:</p>
+        <ul class="mt-1 list-disc space-y-1 pl-5">
+          {pending.change.lost.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </>
+    ) : (
+      <p class="mt-2">Nothing is discarded.</p>
+    )}
+    {pending.change.dependents.length > 0 && (
+      <>
+        <p class="mt-3">These are shown depending on this question; check their rules afterwards:</p>
+        <ul class="mt-1 list-disc space-y-1 pl-5">
+          {pending.change.dependents.map((d) => (
+            <li class="break-words">{d.label}</li>
+          ))}
+        </ul>
+      </>
+    )}
+    <p class={`mt-3 ${HELP}`}>This changes the draft only. Published versions are never changed.</p>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <form method="post" action={action}>
+        <HiddenFields
+          action="question.type"
+          revision={revision}
+          extra={{ qid: questionId, type: pending.type, confirm: '1', open: questionId }}
+        />
+        <button type="submit" class={BTN_DANGER}>
+          Change type
+        </button>
+      </form>
+      <a href={`/forms/${formId}/edit?q=${questionId}#editor`} class={LINK}>
+        Cancel
+      </a>
+    </div>
+  </div>
+)}

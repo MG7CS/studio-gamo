@@ -1,0 +1,40 @@
+---
+/**
+ * The message block after a refused write that re-rendered the page: what went wrong, the field errors as
+ * links, who saved first on a conflict, the dependents that block a delete, the publish checklist.
+ * `role="alert"` (inside FormErrorSummary) announces it and the shared script moves focus to it.
+ */
+import FormErrorSummary from '@studio-gamo/ui/components/forms/FormErrorSummary.astro';
+import type { Failed } from '../../lib/forms-builder/page';
+import { formatUtc } from '../../lib/forms-builder/view';
+import { HELP } from './ui';
+interface Props {
+  failed: Failed;
+  /** Prefix of the editor's DOM ids (`qe-<field>`). */
+  fieldPrefix?: string;
+  title?: string;
+}
+const { failed, fieldPrefix = 'qe', title = 'This could not be saved' } = Astro.props;
+const entries = [
+  ...(failed.fieldErrors && failed.fieldErrors.length > 0
+    ? failed.fieldErrors.map((e) => ({ message: e.message, fieldId: `${fieldPrefix}-${e.field}` }))
+    : [{ message: failed.message }]),
+  ...(failed.dependents ?? []).map((d) => ({
+    message: `${d.kind === 'section' ? 'Section' : 'Question'} shown depending on it: ${d.label}`,
+  })),
+];
+---
+
+<FormErrorSummary id="builder-error" errors={entries} title={title} class="mb-5" />
+{failed.conflict && (
+  <div class="mb-5 rounded-card border border-border bg-surface-raised p-4 text-body-sm text-fg">
+    <p>
+      <strong>{failed.conflict.by}</strong> saved this form at {formatUtc(failed.conflict.at)} (now revision{' '}
+      {failed.conflict.currentRevision}). Your changes were not saved and nothing was overwritten. Your values
+      are kept below: check them against the latest version, then save again to apply them on top.
+    </p>
+  </div>
+)}
+{failed.dependents && failed.dependents.length > 0 && (
+  <p class={`mb-5 ${HELP}`}>Remove or change their show-if rules, then delete this question.</p>
+)}
