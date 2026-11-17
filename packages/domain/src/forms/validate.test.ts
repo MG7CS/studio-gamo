@@ -610,3 +610,11 @@ test('regex rule fails closed above 500 characters and never tests a prefix', ()
   assert.equal(run(h, { q1: 'x'.repeat(501) }).ok, false);
   assert.equal(run(h, { q1: 'x'.repeat(500) }).ok, true);
 });
+
+test('regex rule uses the linear-time matcher: formerly dangerous patterns are fast and correct', () => {
+  const f = form(q({ validation: { kind: 'regex', pattern: 'a*a*a?a?a?a?a?a?b$' } }));
+  const started = performance.now();
+  assert.equal(run(f, { q1: 'a'.repeat(500) }).ok, false);
+  assert.equal(run(f, { q1: `${'a'.repeat(499)}b` }).ok, true);
+  assert.ok(performance.now() - started < 200);
+});

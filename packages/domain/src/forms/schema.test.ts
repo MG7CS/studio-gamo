@@ -182,7 +182,17 @@ test('checkPublishable: binds on non-answerable types and bad ranges are flagged
   assert.ok(errorsOf('contact', dupOpts).some((p) => /duplicate option/i.test(p)));
 });
 
+// Budget-style limits (number of quantifiers, repeating quantifiers) were removed when custom regexes moved
+// to the linear-time matcher in ./safe-regex.ts: cost is bounded by construction, so these are now accepted.
 const SAFE_PATTERNS = [
+  '^.*.*.*.*x',
+  'a*a*a*b$',
+  '.*.*.*x',
+  '[a-z]{2}[a-z]{2}[a-z]{2}[a-z]{2}',
+  'a+b{2}c{2,}d{3,9}',
+  'a?a?a?a?a?a?a?a?a?aaaaaaaaa',
+  'a*a*a*a?a?a?a?a?b',
+  '^\\w*\\w*\\w*\\w*#$',
   '^[A-Z]{2}\\d{4}$',
   '^\\d{3}-\\d{4}$',
   '^[a-z]+@[a-z]+\\.[a-z]{2,}$',
@@ -243,12 +253,7 @@ const UNSAFE_PATTERNS = [
   ['unknown escape', '\\Z'],
   ['control escape', '\\n'],
   ['trailing backslash', 'a\\'],
-  ['four multi-repeat quantifiers', '^.*.*.*.*x'],
-  ['three multi-repeat quantifiers unanchored', 'a*a*a*b$'],
-  ['three unanchored dot stars', '.*.*.*x'],
-  ['four exact repeats', '[a-z]{2}[a-z]{2}[a-z]{2}[a-z]{2}'],
-  ['mixed multi budget', 'a+b{2}c{2,}d{3,9}'],
-  ['nine quantifiers', 'a?a?a?a?a?a?a?a?a?aaaaaaaaa'],
+  ['more than the state budget', 'a{100}'.repeat(11)],
   ['max above 100', 'a{1,101}'],
   ['exact above 100', 'a{101}'],
   ['min above 100', 'a{101,}'],
@@ -299,53 +304,18 @@ const UNSAFE_PATTERNS = [
 
 test('isSafeRegexPattern: accepted patterns', () => {
   for (const pattern of SAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), true, pattern);
-  // budgets: 3 repeating quantifiers is fine, 4 is not; 8 quantifiers is fine, 9 is not
-  assert.equal(isSafeRegexPattern('^a+b+c+'), true);
-  assert.equal(isSafeRegexPattern('a+b+'), true);
-  assert.equal(isSafeRegexPattern('a+b+c+'), false); // unanchored: only 2 repeating quantifiers
-  assert.equal(isSafeRegexPattern('^a+b+c+d+'), false);
+  // no quantifier-count budgets any more; only the expanded state budget applies
+  assert.equal(isSafeRegexPattern('a+b+c+d+e+f+g+h+i+j+'), true);
+  assert.equal(isSafeRegexPattern('a?b?c?d?e?f?g?h?i?j?k?l?'), true);
+  assert.equal(isSafeRegexPattern('a{100}'.repeat(10)), true);
+  assert.equal(isSafeRegexPattern('a{100}'.repeat(11)), false);
   assert.equal(isSafeRegexPattern(`[${'a'.repeat(40)}]`), true);
-  assert.equal(isSafeRegexPattern('a?b?c?d?e?f?g?h?'), true);
-  assert.equal(isSafeRegexPattern('a?b?c?d?e?f?g?h?i?'), false);
 });
 
 test('isSafeRegexPattern: rejected patterns', () => {
   for (const [name, pattern] of UNSAFE_PATTERNS) assert.equal(isSafeRegexPattern(pattern), false, name);
   assert.equal(isSafeRegexPattern(undefined as never), false);
   assert.equal(isSafeRegexPattern(42 as never), false);
-});
-
-test('isSafeRegexPattern: accepted patterns stay fast on 500-character hostile input', () => {
-  const hostile = [
-    'a'.repeat(500),
-    `${'a'.repeat(499)}!`,
-    `${'ab'.repeat(249)}!!`,
-    `${'1'.repeat(499)}!`,
-    ' '.repeat(500),
-    `${'a '.repeat(249)}!!`,
-  ];
-  const patterns = [
-    'a?a?a?a?a?a?a?aaaaaaa$',
-    'a?a?a?a?a?a?a?a?aaaaaaaa$',
-    'a*a*b$',
-    '^a*a*a*b$',
-    '^[a-z]*[a-z]*[a-z]*!$',
-    '^[a-z ]*[a-z ]*[a-z ]*!$',
-    '^\\w*\\w*#$',
-    '^.*.*.*x',
-    '^\\d{1,100}\\d{1,100}x',
-    '^[a-z]+@[a-z]+\\.[a-z]{2,}$',
-  ];
-  for (const pattern of patterns) {
-    assert.equal(isSafeRegexPattern(pattern), true, pattern);
-    const re = new RegExp(pattern);
-    for (const input of hostile) {
-      const started = performance.now();
-      re.test(input);
-      const elapsed = performance.now() - started;
-      assert.ok(elapsed < 200, `${pattern} took ${elapsed.toFixed(0)} ms`);
-    }
-  }
 });
 
 test('checkPublishable: unsafe or long regex patterns are errors, safe ones are not', () => {

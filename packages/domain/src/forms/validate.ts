@@ -9,11 +9,11 @@
  * - file_upload: not in `raw`; `uploads[questionId]` is the list of finished uploads.
  */
 import { normalizeLink } from './links.ts';
+import { compileSafePattern } from './safe-regex.ts';
 import type { NormalizedLink } from './links.ts';
 import {
   FILE_GROUP_KINDS,
   FORM_LIMITS,
-  isSafeRegexPattern,
   uploadRefSchema,
   type BindKey,
   type FormSchema,
@@ -148,17 +148,14 @@ function applyTextRule(rule: TextRule, text: string): string | null {
         return custom(`Keep this under ${rule.max} characters.`);
       return null;
     case 'regex': {
-      // Fail closed. The pattern runs only if it passes the ReDoS screen AND the value is at most
-      // FORM_LIMITS.maxRegexTested characters. Longer values are refused with the rule's message without
-      // running the pattern; we never match a truncated prefix, because an anchored or "ends with" pattern
-      // would then pass or fail on text the applicant did not submit.
+      // Fail closed, and never use the native RegExp engine: the pattern must parse in the restricted grammar
+      // (./safe-regex.ts) and is matched by a linear-time NFA simulation. Values longer than
+      // FORM_LIMITS.maxRegexTested are refused without matching, never tested as a truncated prefix (an
+      // anchored or "ends with" pattern would then pass or fail on text the applicant did not submit).
       const refused = custom('This answer is not in the expected format.');
-      if (!isSafeRegexPattern(rule.pattern) || text.length > FORM_LIMITS.maxRegexTested) return refused;
-      try {
-        return new RegExp(rule.pattern).test(text) ? null : refused;
-      } catch {
-        return refused;
-      }
+      if (text.length > FORM_LIMITS.maxRegexTested) return refused;
+      const compiled = compileSafePattern(rule.pattern);
+      return compiled?.test(text) ? null : refused;
     }
   }
 }
