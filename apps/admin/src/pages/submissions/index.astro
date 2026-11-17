@@ -1,0 +1,100 @@
+---
+/**
+ * The submissions inbox: every answer to every public form, newest first. The filter is the URL
+ * (form, version, status, dates, attachments, search), so any view is a link. See
+ * docs/superpowers/specs/2026-11-16-form-builder-ux-design.md (decision 12).
+ */
+import { FormsError, type SubmissionSummary } from '@gamo/domain/forms';
+import AdminLayout from '../../components/AdminLayout.astro';
+import InboxExport from '../../components/submissions/InboxExport.astro';
+import InboxFilters from '../../components/submissions/InboxFilters.astro';
+import InboxPager from '../../components/submissions/InboxPager.astro';
+import InboxTable from '../../components/submissions/InboxTable.astro';
+import { noticeFrom } from '../../lib/flash';
+import { submissionsPage, type SubmissionsContext } from '../../lib/submissions/context';
+import { inboxQueryString, parseInboxQuery } from '../../lib/submissions/filters';
+import { SUBMISSION_NOTICES } from '../../lib/submissions/notices';
+import { INBOX_PAGE_SIZE } from '../../lib/submissions/statuses';
+
+export const prerender = false;
+
+let ctx: SubmissionsContext;
+try {
+  ctx = await submissionsPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const query = parseInboxQuery(Astro.url.searchParams);
+const forms = (await ctx.forms.listForms()).map((f) => ({ id: f.id, label: `${f.title} (${f.program})` }));
+
+let items: SubmissionSummary[] = [];
+let nextCursor: string | null = null;
+let refused = false;
+try {
+  const page = await ctx.forms.listSubmissions({
+    ...query.filter,
+    cursor: query.cursor,
+    limit: INBOX_PAGE_SIZE,
+  });
+  items = page.items;
+  nextCursor = page.nextCursor;
+} catch (error) {
+  if (!(error instanceof FormsError)) throw error;
+  refused = true;
+}
+
+const returnTo = `/submissions${inboxQueryString(query.values, { cursor: query.cursor })}`;
+const active = Object.keys(query.filter).length > 0;
+const notice = noticeFrom(Astro.url, SUBMISSION_NOTICES);
+const caption = active ? 'Submissions matching the filters, newest first' : 'All submissions, newest first';
+---
+
+<AdminLayout
+  title="Submissions"
+  current="submissions"
+  notice={notice}
+  description="Answers to your public forms. Applications are approved or declined from their own page."
+>
+  <div class="space-y-6">
+    <section
+      aria-labelledby="filters-heading"
+      class="rounded-card border border-border bg-surface-raised p-5 sm:p-6"
+    >
+      <h2 id="filters-heading" class="text-lg font-bold tracking-tight text-fg">
+        Filter
+      </h2>
+      <div class="mt-4">
+        <InboxFilters values={query.values} forms={forms} active={active} />
+      </div>
+      {query.ignored.length > 0 && (
+        <p role="status" class="mt-4 text-small text-fg">
+          Some filters were not understood and were ignored: {query.ignored.join(', ')}.
+        </p>
+      )}
+    </section>
+
+    <InboxExport values={query.values} returnTo={returnTo} />
+
+    {refused ? (
+      <p
+        role="alert"
+        class="rounded-card border border-danger bg-surface-raised px-4 py-3 text-small text-fg"
+      >
+        This list could not be shown. Check the filters or the page link and try again.
+      </p>
+    ) : items.length === 0 ? (
+      <p class="rounded-card border border-border bg-surface-raised px-4 py-6 text-body-sm text-fg">
+        {active
+          ? 'No submissions match these filters.'
+          : 'No submissions yet. Answers to your forms appear here.'}
+      </p>
+    ) : (
+      <>
+        <InboxTable items={items} values={query.values} returnTo={returnTo} caption={caption} />
+        <InboxPager values={query.values} nextCursor={nextCursor} onFirstPage={query.cursor === undefined} />
+      </>
+    )}
+  </div>
+</AdminLayout>

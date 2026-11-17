@@ -1,0 +1,27 @@
+---
+/**
+ * A definition list of questions and answers (labels come from the form version the person answered).
+ *
+ * Props
+ * - items: AnswerItem[]
+ */
+import type { AnswerItem } from '../../lib/submissions/view';
+import AnswerValue from './AnswerValue.astro';
+
+interface Props {
+  items: AnswerItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<dl class="grid gap-4">
+  {items.map((item) => (
+    <div class="min-w-0 border-b border-border pb-3 last:border-b-0 last:pb-0">
+      <dt class="text-small font-semibold text-fg">{item.label}</dt>
+      <dd class="mt-1 text-body-sm text-fg">
+        <AnswerValue answer={item.answer} />
+      </dd>
+    </div>
+  ))}
+</dl>

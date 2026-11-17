@@ -1,0 +1,75 @@
+---
+/**
+ * One answer, by shape. Everything is plain text rendered by Astro (escaped); there is no raw HTML. A link
+ * answer is a link only when the server re-validated it against the allow-list (https, YouTube, Vimeo,
+ * Google Drive or Dropbox); it opens in a new tab with `rel="noopener noreferrer"`.
+ *
+ * Props
+ * - answer: AnswerView (see lib/submissions/view.ts)
+ */
+import type { AnswerView } from '../../lib/submissions/view';
+
+interface Props {
+  answer: AnswerView;
+}
+
+const { answer } = Astro.props;
+---
+
+{answer.kind === 'text' ? (
+  <span class:list={['break-words', answer.multiline && 'whitespace-pre-line']}>{answer.text}</span>
+) : answer.kind === 'list' ? (
+  <ul class="list-disc space-y-0.5 ps-5">
+    {answer.items.map((item) => (
+      <li class="break-words">{item}</li>
+    ))}
+  </ul>
+) : answer.kind === 'grid' ? (
+  <ul class="space-y-0.5">
+    {answer.rows.map((r) => (
+      <li class="break-words">
+        <span class="font-semibold">{r.row}:</span> {r.value}
+      </li>
+    ))}
+  </ul>
+) : answer.kind === 'link' ? (
+  answer.link ? (
+    <span class="block space-y-3">
+      <a
+        href={answer.link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-11 items-center break-all text-action-strong underline underline-offset-4 hover:text-fg"
+      >
+        {answer.link.providerLabel}: {answer.link.href}
+        <span class="sr-only"> (opens in a new tab)</span>
+      </a>
+      {answer.link.embedSrc && (
+        <iframe
+          src={answer.link.embedSrc}
+          title={`${answer.link.providerLabel} video preview`}
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          loading="lazy"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+          class="aspect-video w-full max-w-prose rounded-card border border-border"
+        />
+      )}
+    </span>
+  ) : (
+    <span class="text-fg-muted">The link could not be verified, so it is not shown.</span>
+  )
+) : answer.kind === 'files' ? (
+  answer.count > 0 ? (
+    <a
+      href="#attachments"
+      class="inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg"
+    >
+      {answer.count} {answer.count === 1 ? 'file' : 'files'}: see Attachments
+    </a>
+  ) : (
+    <span class="text-fg-muted">No files</span>
+  )
+) : (
+  <span class="text-fg-muted">Not answered</span>
+)}

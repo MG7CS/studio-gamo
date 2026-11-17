@@ -1,0 +1,143 @@
+---
+/**
+ * One submission: the answers as the person saw the form (labels from the form version they answered),
+ * contact and request cards first, attachments, then the staff side (status, decision for applications,
+ * internal notes, history). Previous/Next stay inside the inbox filter carried in the URL.
+ */
+import { APPLICATION_KINDS } from '@gamo/domain/forms';
+import AdminLayout from '../../components/AdminLayout.astro';
+import AnswerList from '../../components/submissions/AnswerList.astro';
+import AttachmentsCard from '../../components/submissions/AttachmentsCard.astro';
+import DecisionPanel from '../../components/submissions/DecisionPanel.astro';
+import HistoryList from '../../components/submissions/HistoryList.astro';
+import NeighbourNav from '../../components/submissions/NeighbourNav.astro';
+import NotesPanel from '../../components/submissions/NotesPanel.astro';
+import StatusChip from '../../components/submissions/StatusChip.astro';
+import StatusForm from '../../components/submissions/StatusForm.astro';
+import SubmissionPanel from '../../components/submissions/SubmissionPanel.astro';
+import { noticeFrom } from '../../lib/flash';
+import { actorNames } from '../../lib/submissions/bulk';
+import { submissionsPage, type SubmissionsContext } from '../../lib/submissions/context';
+import { filterOnlyQuery, inboxQueryString, parseInboxQuery } from '../../lib/submissions/filters';
+import { formatUtc, formatUtcDate } from '../../lib/submissions/format';
+import { findNeighbours } from '../../lib/submissions/neighbours';
+import { SUBMISSION_NOTICES } from '../../lib/submissions/notices';
+import { ID_PATTERN } from '../../lib/submissions/statuses';
+import { buildTimeline } from '../../lib/submissions/timeline';
+import { buildDetailView } from '../../lib/submissions/view';
+
+export const prerender = false;
+
+let ctx: SubmissionsContext;
+try {
+  ctx = await submissionsPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const id = Astro.params.id ?? '';
+const detail = ID_PATTERN.test(id) ? await ctx.forms.getSubmission(id) : null;
+const notice = noticeFrom(Astro.url, SUBMISSION_NOTICES);
+
+if (!detail) Astro.response.status = 404;
+
+const query = parseInboxQuery(Astro.url.searchParams);
+const carry = filterOnlyQuery(Astro.url.searchParams);
+const returnTo = `/submissions/${encodeURIComponent(id)}${carry}`;
+
+const view = detail ? buildDetailView(detail) : null;
+const neighbours = detail
+  ? await findNeighbours(ctx.db, query.filter, {
+      submittedAt: detail.submission.submittedAt,
+      id: detail.submission.id,
+    })
+  : null;
+const timeline = detail
+  ? buildTimeline(
+      detail.events,
+      await actorNames(
+        ctx.db,
+        detail.events.map((e) => e.actorUserId),
+      ),
+    )
+  : null;
+const isApplication = detail ? APPLICATION_KINDS.includes(detail.form.kind) : false;
+const s = detail?.submission;
+---
+
+{detail && view && neighbours && timeline && s ? (
+  <AdminLayout
+    title={s.reference}
+    current="submissions"
+    notice={notice}
+    breadcrumbs={[
+      { label: 'Submissions', href: `/submissions${inboxQueryString(query.values)}` },
+      { label: s.reference },
+    ]}
+    description={`${detail.form.title}, form version ${detail.version.version}. Submitted ${formatUtc(s.submittedAt)}.`}
+  >
+    <div class="space-y-6">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <p class="flex items-center gap-2 text-small text-fg">
+          Status: <StatusChip status={s.status} />
+        </p>
+        {s.deleteAfter !== null && (
+          <p class="text-small text-fg-muted">
+            Retention ends {formatUtcDate(s.deleteAfter)} (UTC). After that date it is deleted if its status
+            is Handled, Spam, Archived or Declined.
+          </p>
+        )}
+      </div>
+      <NeighbourNav values={query.values} newer={neighbours.newer} older={neighbours.older} />
+
+      <div class="grid gap-6 lg:grid-cols-3">
+        <div class="min-w-0 space-y-6 lg:col-span-2">
+          {view.contact.length > 0 && (
+            <SubmissionPanel id="contact" title="Contact">
+              <AnswerList items={view.contact} />
+            </SubmissionPanel>
+          )}
+          {view.request.length > 0 && (
+            <SubmissionPanel id="request" title={view.requestTitle}>
+              <AnswerList items={view.request} />
+            </SubmissionPanel>
+          )}
+          {view.sections.map((section) => (
+            <SubmissionPanel
+              id={`section-${section.id}`}
+              title={section.title}
+              description={section.description ?? undefined}
+            >
+              <AnswerList items={section.items} />
+            </SubmissionPanel>
+          ))}
+          <AttachmentsCard attachments={view.attachments} />
+        </div>
+        <div class="min-w-0 space-y-6">
+          <StatusForm submissionId={s.id} current={s.status} returnTo={returnTo} />
+          {isApplication && <DecisionPanel submissionId={s.id} status={s.status} returnTo={returnTo} />}
+          <NotesPanel submissionId={s.id} notes={timeline.notes} returnTo={returnTo} />
+          <HistoryList entries={timeline.history} />
+        </div>
+      </div>
+    </div>
+  </AdminLayout>
+) : (
+  <AdminLayout
+    title="Submission not found"
+    current="submissions"
+    notice={notice}
+    breadcrumbs={[{ label: 'Submissions', href: '/submissions' }, { label: 'Not found' }]}
+  >
+    <p class="max-w-prose text-body-sm text-fg">
+      This submission does not exist or was deleted by the retention schedule.{' '}
+      <a
+        href="/submissions"
+        class="font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+      >
+        Back to the inbox
+      </a>
+    </p>
+  </AdminLayout>
+)}

@@ -1,0 +1,34 @@
+---
+/**
+ * Status history, oldest first, from the submission's events: who changed what and when (UTC), with the
+ * note that went with a change. CSV exports that included the submission are listed too.
+ *
+ * Props
+ * - entries: { id, text, note, who, when }[]
+ */
+import SubmissionPanel from './SubmissionPanel.astro';
+
+interface Props {
+  entries: { id: string; text: string; note: string | null; who: string; when: string }[];
+}
+
+const { entries } = Astro.props;
+---
+
+<SubmissionPanel id="history" title="History">
+  {entries.length === 0 ? (
+    <p class="text-body-sm text-fg-muted">No changes yet.</p>
+  ) : (
+    <ol class="space-y-4">
+      {entries.map((e) => (
+        <li class="min-w-0 border-b border-border pb-4 last:border-b-0 last:pb-0">
+          <p class="break-words text-body-sm font-semibold text-fg">{e.text}</p>
+          {e.note && <p class="mt-1 whitespace-pre-line break-words text-small text-fg">{e.note}</p>}
+          <p class="mt-1 text-caption text-fg-muted">
+            {e.who} · {e.when}
+          </p>
+        </li>
+      ))}
+    </ol>
+  )}
+</SubmissionPanel>

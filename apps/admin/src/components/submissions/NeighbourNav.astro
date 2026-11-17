@@ -1,0 +1,39 @@
+---
+/**
+ * Back to the inbox, plus the newer and older submission within the same filter. Each link keeps the filter
+ * in the URL so the list stays the same while staff move through it.
+ *
+ * Props
+ * - values: InboxValues — the filter the page was opened with.
+ * - newer / older: { id, reference } | null
+ */
+import { inboxQueryString, type InboxValues } from '../../lib/submissions/filters';
+import type { Neighbour } from '../../lib/submissions/neighbours';
+
+interface Props {
+  values: InboxValues;
+  newer: Neighbour | null;
+  older: Neighbour | null;
+}
+
+const { values, newer, older } = Astro.props;
+const carry = inboxQueryString(values);
+const link =
+  'inline-flex min-h-11 items-center text-base font-semibold text-action-strong underline underline-offset-4 hover:text-fg';
+---
+
+<nav aria-label="Submissions in this list" class="flex flex-wrap items-center gap-x-6 gap-y-1">
+  <a href={`/submissions${carry}`} class={link}>
+    Back to the inbox
+  </a>
+  {newer && (
+    <a href={`/submissions/${encodeURIComponent(newer.id)}${carry}`} class={link}>
+      Newer: {newer.reference}
+    </a>
+  )}
+  {older && (
+    <a href={`/submissions/${encodeURIComponent(older.id)}${carry}`} class={link}>
+      Older: {older.reference}
+    </a>
+  )}
+</nav>

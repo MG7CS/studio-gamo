@@ -1,0 +1,47 @@
+---
+/**
+ * Export CSV for the chosen form and filter: a same-origin POST (a download is never a link, so a stray
+ * request cannot start one). Offered only once a form is chosen, because a CSV has one column set per form.
+ *
+ * Props
+ * - values: InboxValues — the current filter (carried as hidden fields).
+ * - returnTo: string — the inbox URL staff come back to if the export is refused.
+ */
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import { EXPORT_ROW_CAP } from '@gamo/domain/forms';
+import type { InboxValues } from '../../lib/submissions/filters';
+
+interface Props {
+  values: InboxValues;
+  returnTo: string;
+}
+
+const { values, returnTo } = Astro.props;
+const hidden: [string, string][] = [
+  ['form', values.form],
+  ['version', values.version],
+  ['status', values.status],
+  ['from', values.from],
+  ['to', values.to],
+  ['attachments', values.attachments ? '1' : ''],
+  ['q', values.q],
+  ['return', returnTo],
+];
+---
+
+{values.form ? (
+  <form method="post" action="/api/submissions/export" class="flex flex-wrap items-center gap-3">
+    {hidden
+      .filter(([, v]) => v)
+      .map(([name, value]) => (
+        <input type="hidden" name={name} value={value} />
+      ))}
+    <SubmitButton label="Export CSV" pendingLabel="Preparing…" variant="secondary" />
+    <p class="max-w-prose text-small text-fg-muted">
+      Exports every submission of this form that matches the filters (oldest first, up to {EXPORT_ROW_CAP}).
+      The export is recorded in the audit log.
+    </p>
+  </form>
+) : (
+  <p class="max-w-prose text-small text-fg-muted">Choose a form above to export its submissions as a CSV.</p>
+)}

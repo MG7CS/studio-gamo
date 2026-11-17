@@ -1,0 +1,47 @@
+---
+/**
+ * Internal notes: append-only (they cannot be edited or deleted) and never shown to the submitter.
+ *
+ * Props
+ * - submissionId: string
+ * - notes: { id, body, who, when }[] — oldest first.
+ * - returnTo: string
+ */
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import SubmissionPanel from './SubmissionPanel.astro';
+
+interface Props {
+  submissionId: string;
+  notes: { id: string; body: string; who: string; when: string }[];
+  returnTo: string;
+}
+
+const { submissionId, notes, returnTo } = Astro.props;
+---
+
+<SubmissionPanel
+  id="notes"
+  title="Internal notes"
+  description="Only staff see these. They cannot be edited or deleted."
+>
+  {notes.length === 0 ? (
+    <p class="mb-4 text-body-sm text-fg-muted">No notes yet.</p>
+  ) : (
+    <ul class="mb-6 space-y-4">
+      {notes.map((n) => (
+        <li class="min-w-0 border-b border-border pb-4 last:border-b-0 last:pb-0">
+          <p class="whitespace-pre-line break-words text-body-sm text-fg">{n.body}</p>
+          <p class="mt-1 text-caption text-fg-muted">
+            {n.who} · {n.when}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )}
+  <form method="post" action={`/api/submissions/${encodeURIComponent(submissionId)}/note`} class="space-y-4">
+    <input type="hidden" name="return" value={returnTo} />
+    <TextareaField id="note-body" name="note" label="Add a note" rows={3} maxlength={2000} required />
+    <SubmitButton label="Add note" pendingLabel="Saving…" variant="secondary" />
+  </form>
+</SubmissionPanel>

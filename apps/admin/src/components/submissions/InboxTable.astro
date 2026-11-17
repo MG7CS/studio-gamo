@@ -1,0 +1,135 @@
+---
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex -- the scrollable table region must be reachable by keyboard */
+/**
+ * The inbox table inside the bulk-action form. Every row has a checkbox with its own accessible name; one
+ * "Action" select and one Apply button act on the ticked rows of THIS page only (the server touches the
+ * posted ids and nothing else). Archive and spam go to a confirmation page that states the count.
+ *
+ * The table scrolls inside a keyboard-focusable region, so a narrow screen never scrolls the whole page
+ * sideways. Times are UTC.
+ *
+ * Props
+ * - items: SubmissionSummary[] — one page of submissions.
+ * - values: InboxValues — the current filter (carried in each row link so Previous/Next stay in the list).
+ * - returnTo: string — this page's URL, where the bulk action comes back to.
+ * - caption: string — what the table lists.
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { SubmissionSummary } from '@gamo/domain/forms';
+import { formatUtc, formatUtcDate } from '../../lib/submissions/format';
+import { inboxQueryString, type InboxValues } from '../../lib/submissions/filters';
+import { BULK_ACTIONS } from '../../lib/submissions/statuses';
+import StatusChip from './StatusChip.astro';
+
+interface Props {
+  items: SubmissionSummary[];
+  values: InboxValues;
+  returnTo: string;
+  caption: string;
+}
+
+const { items, values, returnTo, caption } = Astro.props;
+const carry = inboxQueryString(values);
+const actionOptions = BULK_ACTIONS.map((a) => ({ value: a.id, label: a.label }));
+---
+
+<form method="post" action="/api/submissions/bulk" aria-label="Bulk actions for the submissions listed below">
+  <input type="hidden" name="return" value={returnTo} />
+  <div class="mb-4 flex flex-wrap items-end gap-3">
+    <SelectField
+      id="bulk-action"
+      name="action"
+      label="Action for ticked rows"
+      options={actionOptions}
+      placeholder="Choose an action"
+      class="min-w-56"
+    />
+    <SubmitButton label="Apply to ticked rows" pendingLabel="Applying…" variant="secondary" />
+    <p class="max-w-prose text-small text-fg-muted">
+      Only the rows ticked on this page change. Archive and spam ask you to confirm first; decided
+      applications are left as they are.
+    </p>
+  </div>
+
+  <div
+    role="region"
+    aria-label={`${caption} (scrollable table)`}
+    tabindex="0"
+    class="overflow-x-auto rounded-card border border-border bg-surface-raised"
+  >
+    <table class="w-full min-w-208 border-collapse text-left text-small">
+      <caption class="px-4 pt-4 pb-2 text-left text-small font-semibold text-fg">{caption}</caption>
+      <thead>
+        <tr class="border-b border-border text-caption text-fg-muted">
+          <th scope="col" class="px-4 py-2 font-semibold">
+            <span class="sr-only">Select</span>
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            Reference
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            Form
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            From
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            Submitted (UTC)
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            Status
+          </th>
+          <th scope="col" class="px-4 py-2 text-right font-semibold">
+            Files
+          </th>
+          <th scope="col" class="px-4 py-2 font-semibold">
+            Deleted after (UTC)
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((s) => (
+          <tr class="border-b border-border last:border-b-0">
+            <td class="px-4 py-2">
+              <label class="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center">
+                <input
+                  type="checkbox"
+                  name="ids"
+                  value={s.id}
+                  aria-label={`Select ${s.reference}`}
+                  class="h-5 w-5 rounded border-fg-muted accent-action"
+                />
+              </label>
+            </td>
+            <th scope="row" class="px-4 py-2 font-semibold">
+              <a
+                href={`/submissions/${encodeURIComponent(s.id)}${carry}`}
+                class="inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg"
+              >
+                {s.reference}
+              </a>
+            </th>
+            <td class="px-4 py-2 text-fg">
+              {s.formTitle} <span class="text-fg-muted">v{s.version}</span>
+            </td>
+            <td class="px-4 py-2 text-fg">
+              {s.submitterName ?? <span class="text-fg-muted">No name</span>}
+              {s.submitterEmail && (
+                <span class="block break-all text-caption text-fg-muted">{s.submitterEmail}</span>
+              )}
+            </td>
+            <td class="px-4 py-2 whitespace-nowrap text-fg-muted">{formatUtc(s.submittedAt)}</td>
+            <td class="px-4 py-2">
+              <StatusChip status={s.status} />
+            </td>
+            <td class="px-4 py-2 text-right tabular-nums text-fg">{s.attachmentCount}</td>
+            <td class="px-4 py-2 whitespace-nowrap text-fg-muted">
+              {s.deleteAfter === null ? 'Not scheduled' : formatUtcDate(s.deleteAfter)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</form>

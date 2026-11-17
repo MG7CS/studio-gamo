@@ -1,0 +1,59 @@
+---
+/**
+ * Change a submission's status. Nothing changes until "Change status" is pressed (no auto-submit on the
+ * select). Approve and decline are separate, below, for applications.
+ *
+ * Props
+ * - submissionId: string
+ * - current: SubmissionStatus
+ * - returnTo: string — where the form comes back to (this page with the filter).
+ */
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import type { SubmissionStatus } from '@gamo/domain/forms';
+import { SETTABLE_STATUSES, STATUS_LABEL } from '../../lib/submissions/statuses';
+import StatusChip from './StatusChip.astro';
+import SubmissionPanel from './SubmissionPanel.astro';
+
+interface Props {
+  submissionId: string;
+  current: SubmissionStatus;
+  returnTo: string;
+}
+
+const { submissionId, current, returnTo } = Astro.props;
+const options = SETTABLE_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }));
+const isSettable = (SETTABLE_STATUSES as readonly string[]).includes(current);
+---
+
+<SubmissionPanel id="status" title="Status">
+  <p class="mb-4 flex items-center gap-2 text-small text-fg">
+    Current status: <StatusChip status={current} />
+  </p>
+  <form
+    method="post"
+    action={`/api/submissions/${encodeURIComponent(submissionId)}/status`}
+    class="space-y-4"
+  >
+    <input type="hidden" name="return" value={returnTo} />
+    <SelectField
+      id="status-select"
+      name="status"
+      label="New status"
+      options={options}
+      value={isSettable ? current : undefined}
+      placeholder="Choose a status"
+      required
+    />
+    <TextareaField
+      id="status-note"
+      name="notes"
+      label="Note (optional)"
+      hint="Saved with the status change in the history."
+      rows={3}
+      maxlength={2000}
+    />
+    <SubmitButton label="Change status" pendingLabel="Saving…" />
+  </form>
+</SubmissionPanel>

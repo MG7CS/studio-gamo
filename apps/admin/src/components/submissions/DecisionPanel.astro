@@ -1,0 +1,81 @@
+---
+/**
+ * Approve or decline a musician or technician application. Shown only for application forms. Each decision
+ * sits behind a disclosure with an explicit confirm button and says what it does (an email is sent), so
+ * nothing happens on a single click. A decided application shows its outcome instead of the buttons.
+ *
+ * Props
+ * - submissionId: string
+ * - status: SubmissionStatus
+ * - returnTo: string
+ */
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextareaField from '@studio-gamo/ui/components/forms/TextareaField.astro';
+import type { SubmissionStatus } from '@gamo/domain/forms';
+import SubmissionPanel from './SubmissionPanel.astro';
+
+interface Props {
+  submissionId: string;
+  status: SubmissionStatus;
+  returnTo: string;
+}
+
+const { submissionId, status, returnTo } = Astro.props;
+const base = `/api/submissions/${encodeURIComponent(submissionId)}`;
+const open = status === 'new' || status === 'in_review';
+const summary =
+  'inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-fg-muted bg-surface-raised px-5 text-base font-semibold text-fg hover:bg-surface-inset';
+---
+
+<SubmissionPanel id="decision" title="Decision">
+  {open ? (
+    <div class="space-y-4">
+      <details class="rounded-card border border-border p-4">
+        <summary class={summary}>Approve this application</summary>
+        <form method="post" action={`${base}/approve`} class="mt-4 space-y-4">
+          <input type="hidden" name="return" value={returnTo} />
+          <p class="max-w-prose text-small text-fg">
+            Approving adds this person to the private roster and sends them an approval email. There is no
+            public directory.
+          </p>
+          <TextareaField
+            id="approve-note"
+            name="notes"
+            label="Internal note (optional)"
+            hint="Kept as an internal note. It is not sent to the applicant."
+            rows={3}
+            maxlength={2000}
+          />
+          <SubmitButton label="Approve and add to roster" pendingLabel="Approving…" />
+        </form>
+      </details>
+      <details class="rounded-card border border-border p-4">
+        <summary class={summary}>Decline this application</summary>
+        <form method="post" action={`${base}/decline`} class="mt-4 space-y-4">
+          <input type="hidden" name="return" value={returnTo} />
+          <p class="max-w-prose text-small text-fg">
+            Declining emails the applicant, keeps this record for 12 months and removes their uploaded files
+            after 90 days.
+          </p>
+          <TextareaField
+            id="decline-note"
+            name="notes"
+            label="Note to the applicant (optional)"
+            hint="This is the only reason the applicant sees. Keep it kind and brief."
+            rows={3}
+            maxlength={600}
+          />
+          <SubmitButton label="Decline application" pendingLabel="Declining…" variant="secondary" />
+        </form>
+      </details>
+    </div>
+  ) : (
+    <p class="max-w-prose text-body-sm text-fg">
+      {status === 'approved'
+        ? 'This application was approved and the person is on the private roster.'
+        : status === 'declined'
+          ? 'This application was declined.'
+          : 'This application is no longer open for a decision. Set its status to New or In review to decide it.'}
+    </p>
+  )}
+</SubmissionPanel>

@@ -1,0 +1,91 @@
+---
+/**
+ * Confirmation for a bulk action that makes records eligible for deletion (archive, spam). It states how many
+ * submissions will change, counted by the server from the ids it received (decided applications excluded),
+ * and posts them with `confirm=1`. Nothing here changes data: opening this page is safe.
+ */
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import AdminLayout from '../../components/AdminLayout.astro';
+import { bulkTargets } from '../../lib/submissions/bulk';
+import { submissionsPage, type SubmissionsContext } from '../../lib/submissions/context';
+import { ids as readIds, returnTo as readReturn } from '../../lib/submissions/input';
+import { BULK_MAX, bulkActionFor } from '../../lib/submissions/statuses';
+
+export const prerender = false;
+
+let ctx: SubmissionsContext;
+try {
+  ctx = await submissionsPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const params = Astro.url.searchParams;
+const action = bulkActionFor(params.get('action'));
+const back = readReturn({ return: params.get('return') ?? '' }, '/submissions');
+if (!action || !action.destructive) return Astro.redirect(back, 303);
+
+let selected: string[] = [];
+let tooMany = false;
+try {
+  selected = readIds({ ids: params.getAll('ids') });
+} catch {
+  tooMany = true;
+}
+const targets = tooMany ? { eligible: [], skipped: 0 } : await bulkTargets(ctx.db, selected);
+const n = targets.eligible.length;
+const noun = n === 1 ? 'submission' : 'submissions';
+const effect =
+  action.id === 'spam'
+    ? 'Spam is hidden from the default view and the records are deleted once their retention date passes.'
+    : 'Archived submissions are kept until their retention date, then deleted.';
+---
+
+<AdminLayout
+  title={n > 0 ? `${action.label}: ${n} ${noun}` : 'Nothing to change'}
+  current="submissions"
+  breadcrumbs={[{ label: 'Submissions', href: back }, { label: 'Confirm' }]}
+>
+  {tooMany ? (
+    <p role="alert" class="max-w-prose text-body-sm text-fg">
+      More than {BULK_MAX} submissions were selected. Go back and select fewer.
+    </p>
+  ) : n === 0 ? (
+    <p class="max-w-prose text-body-sm text-fg">
+      None of the selected submissions can be changed. Decided applications and unknown submissions are left
+      alone.
+    </p>
+  ) : (
+    <form method="post" action="/api/submissions/bulk" class="max-w-prose space-y-5">
+      <input type="hidden" name="action" value={action.id} />
+      <input type="hidden" name="confirm" value="1" />
+      <input type="hidden" name="return" value={back} />
+      {targets.eligible.map((id) => (
+        <input type="hidden" name="ids" value={id} />
+      ))}
+      <p class="text-body-sm text-fg">
+        You are about to {action.label.toLowerCase()}{' '}
+        <strong>
+          {n} {noun}
+        </strong>
+        . {effect}
+      </p>
+      {targets.skipped > 0 && (
+        <p class="text-small text-fg-muted">
+          {targets.skipped} decided {targets.skipped === 1 ? 'application is' : 'applications are'} left as{' '}
+          {targets.skipped === 1 ? 'it is' : 'they are'}.
+        </p>
+      )}
+      <div class="flex flex-wrap items-center gap-3">
+        <SubmitButton label={`Yes, ${action.label.toLowerCase()} ${n} ${noun}`} pendingLabel="Applying…" />
+        <a
+          href={back}
+          class="inline-flex min-h-11 items-center text-base font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+        >
+          Cancel and go back
+        </a>
+      </div>
+    </form>
+  )}
+</AdminLayout>

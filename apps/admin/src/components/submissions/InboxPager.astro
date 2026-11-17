@@ -1,0 +1,39 @@
+---
+/**
+ * Keyset pagination: the inbox is newest first and can only move toward older submissions, so the links are
+ * "Older submissions" (the next page) and "Newest" (back to the first page). Both keep the filter.
+ *
+ * Props
+ * - values: InboxValues — the current filter.
+ * - nextCursor: string | null — from the list call.
+ * - onFirstPage: boolean — no cursor in the URL.
+ */
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import { inboxQueryString, type InboxValues } from '../../lib/submissions/filters';
+
+interface Props {
+  values: InboxValues;
+  nextCursor: string | null;
+  onFirstPage: boolean;
+}
+
+const { values, nextCursor, onFirstPage } = Astro.props;
+---
+
+{(nextCursor || !onFirstPage) && (
+  <nav aria-label="Pagination" class="mt-4 flex flex-wrap items-center gap-3">
+    {!onFirstPage && (
+      <ButtonLink href={`/submissions${inboxQueryString(values)}`} variant="secondary">
+        Newest submissions
+      </ButtonLink>
+    )}
+    {nextCursor && (
+      <ButtonLink
+        href={`/submissions${inboxQueryString(values, { cursor: nextCursor })}`}
+        variant="secondary"
+      >
+        Older submissions
+      </ButtonLink>
+    )}
+  </nav>
+)}

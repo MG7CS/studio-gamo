@@ -1,0 +1,36 @@
+---
+/**
+ * Submission status chip: the status is always written out ("New", "In review", …); the outline colour only
+ * reinforces it.
+ *
+ * Props
+ * - status: SubmissionStatus
+ */
+import type { SubmissionStatus } from '@gamo/domain/forms';
+import { STATUS_LABEL } from '../../lib/submissions/statuses';
+
+interface Props {
+  status: SubmissionStatus;
+}
+
+const { status } = Astro.props;
+const tone: Record<SubmissionStatus, string> = {
+  new: 'border-action-strong text-action-strong',
+  in_review: 'border-fg text-fg',
+  handled: 'border-success text-success',
+  approved: 'border-success text-success',
+  declined: 'border-danger text-danger',
+  spam: 'border-danger text-danger',
+  archived: 'border-border text-fg-muted',
+};
+---
+
+<span
+  data-status={status}
+  class:list={[
+    'inline-flex items-center rounded-pill border bg-surface-raised px-2.5 py-0.5 text-caption font-semibold',
+    tone[status],
+  ]}
+>
+  {STATUS_LABEL[status]}
+</span>

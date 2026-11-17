@@ -1,0 +1,70 @@
+---
+/* eslint-disable astro/jsx-a11y/media-has-caption -- applicant uploads have no caption track; the file is also offered as a download */
+/**
+ * The files a person attached. Each one is served by the staff-only `/files/{id}` handler: photos inline,
+ * video with controls and no preloading (nothing downloads until play), everything else (PDFs and other
+ * files) as a download only. The file name is applicant-supplied text and is escaped like any other text.
+ *
+ * Props
+ * - attachments: AttachmentView[]
+ */
+import type { AttachmentView } from '../../lib/submissions/view';
+import SubmissionPanel from './SubmissionPanel.astro';
+
+interface Props {
+  attachments: AttachmentView[];
+}
+
+const { attachments } = Astro.props;
+const link =
+  'inline-flex min-h-11 items-center text-action-strong underline underline-offset-4 hover:text-fg';
+---
+
+<SubmissionPanel
+  id="attachments"
+  title="Attachments"
+  description="Only signed-in staff can open these files. PDFs and other files download; they never open in the browser."
+>
+  {attachments.length === 0 ? (
+    <p class="text-body-sm text-fg-muted">No files were attached.</p>
+  ) : (
+    <ul class="space-y-6">
+      {attachments.map((a) => (
+        <li
+          class="min-w-0 space-y-3 border-b border-border pb-6 last:border-b-0 last:pb-0"
+          data-attachment={a.kind}
+        >
+          <div>
+            <h3 class="break-words text-body-sm font-semibold text-fg">{a.name}</h3>
+            <p class="text-small text-fg-muted">
+              {a.questionLabel} · {a.sizeLabel} · {a.contentType}
+            </p>
+          </div>
+          {a.kind === 'image' && (
+            <img
+              src={a.href}
+              alt={`Photo: ${a.name}`}
+              loading="lazy"
+              class="max-h-96 w-auto max-w-full rounded-card border border-border"
+            />
+          )}
+          {a.kind === 'video' && (
+            <video
+              controls
+              preload="none"
+              aria-label={`Video: ${a.name}`}
+              class="w-full max-w-prose rounded-card border border-border"
+            >
+              <a href={a.href} download>
+                Download the video
+              </a>
+            </video>
+          )}
+          <a href={a.href} download class={link}>
+            Download<span class="sr-only"> {a.name}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</SubmissionPanel>

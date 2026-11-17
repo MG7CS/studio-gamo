@@ -1,0 +1,92 @@
+---
+/**
+ * The inbox filter: a plain GET form, so every filtered view is a link that can be bookmarked or shared.
+ * Dates are UTC calendar days (the hint says so).
+ *
+ * Props
+ * - values: InboxValues — the current (normalised) filter, to refill the fields.
+ * - forms: { id, label }[] — the forms staff can choose.
+ * - active: boolean — any filter is set (shows "Clear filters").
+ */
+import Checkbox from '@studio-gamo/ui/components/forms/Checkbox.astro';
+import DateField from '@studio-gamo/ui/components/forms/DateField.astro';
+import SelectField from '@studio-gamo/ui/components/forms/SelectField.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import TextField from '@studio-gamo/ui/components/forms/TextField.astro';
+import type { InboxValues } from '../../lib/submissions/filters';
+import { STATUS_LABEL } from '../../lib/submissions/statuses';
+import { SUBMISSION_STATUSES } from '@gamo/domain/forms';
+
+interface Props {
+  values: InboxValues;
+  forms: { id: string; label: string }[];
+  active: boolean;
+}
+
+const { values, forms, active } = Astro.props;
+const statusOptions = SUBMISSION_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }));
+---
+
+<form
+  method="get"
+  action="/submissions"
+  aria-label="Filter submissions"
+  class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+>
+  <SelectField
+    id="filter-form"
+    name="form"
+    label="Form"
+    options={forms.map((f) => ({ value: f.id, label: f.label }))}
+    value={values.form}
+    placeholder="All forms"
+  />
+  <TextField
+    id="filter-version"
+    name="version"
+    label="Form version"
+    type="number"
+    inputmode="numeric"
+    value={values.version}
+    hint="Optional. The version number the person answered."
+  />
+  <SelectField
+    id="filter-status"
+    name="status"
+    label="Status"
+    options={statusOptions}
+    value={values.status}
+    placeholder="Any status"
+  />
+  <TextField
+    id="filter-q"
+    name="q"
+    label="Name, email or reference"
+    type="search"
+    value={values.q}
+    maxlength={100}
+    autocomplete="off"
+  />
+  <DateField id="filter-from" name="from" label="Submitted from" value={values.from} hint="UTC date." />
+  <DateField id="filter-to" name="to" label="Submitted to" value={values.to} hint="UTC date, included." />
+  <div class="flex items-end sm:col-span-2">
+    <Checkbox
+      id="filter-attachments"
+      name="attachments"
+      value="1"
+      label="Has attachments"
+      checked={values.attachments}
+    />
+  </div>
+  <div class="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4">
+    <SubmitButton label="Apply filters" pendingLabel="Applying…" />
+    {active && (
+      <a
+        href="/submissions"
+        class="inline-flex min-h-11 items-center text-base font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+      >
+        Clear filters
+      </a>
+    )}
+  </div>
+</form>
