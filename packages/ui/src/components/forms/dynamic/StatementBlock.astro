@@ -1,0 +1,28 @@
+---
+/**
+ * StatementBlock — a "Statement" question: a plain text block (no input). The label is the lead line; the
+ * body is split into paragraphs on blank lines. Text only, never rendered as HTML.
+ *
+ * Props
+ * - question: DynQuestion of type 'statement'.
+ * - class?: string.
+ */
+import { splitParagraphs } from '../../../lib/dynamic-form';
+import type { DynQuestionOf } from '../../../lib/dynamic-form';
+
+interface Props {
+  question: DynQuestionOf<'statement'>;
+  class?: string;
+}
+
+const { question: q, class: className } = Astro.props;
+const paragraphs = splitParagraphs(q.body);
+---
+
+<div class:list={['space-y-2 rounded-xl bg-surface-inset px-5 py-4 text-fg', className]}>
+  <p class="text-body-sm font-semibold">{q.label}</p>
+  {q.help && <p class="text-small text-fg-muted">{q.help}</p>}
+  {paragraphs.map((paragraph) => (
+    <p class="text-body-sm whitespace-pre-line">{paragraph}</p>
+  ))}
+</div>

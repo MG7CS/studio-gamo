@@ -1,0 +1,66 @@
+---
+/**
+ * SectionBlock — one section of a form: a labelled `<section>` with a heading, an optional description and
+ * its questions. The section's show-if travels as `data-show-join` / `data-show-rules`; a hidden section is
+ * still rendered (the server ignores its answers).
+ *
+ * Props
+ * - section: DynSection.
+ * - ctx: DynamicFormContext.
+ * - headingLevel?: 2 | 3 | 4 (default 2) — the section title's heading level; the page owns the single `<h1>`.
+ * - step?: { index: number; total: number } — shows "Step 1 of 3" above the title (omit for a one-section form).
+ * - titleVisible?: boolean (default true) — false keeps the title for assistive technology only.
+ * - class?: string.
+ */
+import QuestionField from './QuestionField.astro';
+import { buildFieldId, linkAlternativeFor, sectionDomId, showIfAttributes } from '../../../lib/dynamic-form';
+import type { DynSection } from '../../../lib/dynamic-form';
+import type { DynamicFormContext, DynLinkAlternative } from './index';
+
+interface Props {
+  section: DynSection;
+  ctx: DynamicFormContext;
+  headingLevel?: 2 | 3 | 4;
+  step?: { index: number; total: number };
+  titleVisible?: boolean;
+  class?: string;
+}
+
+const { section, ctx, headingLevel = 2, step, titleVisible = true, class: className } = Astro.props;
+const domId = sectionDomId(ctx.idPrefix, section.id);
+const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+
+function alternativeFor(q: (typeof section.questions)[number]): DynLinkAlternative | undefined {
+  if (q.type !== 'file_upload') return undefined;
+  const link = linkAlternativeFor(section, q);
+  return link ? { fieldId: buildFieldId(ctx.idPrefix, link.id), label: link.label } : undefined;
+}
+---
+
+<section
+  id={domId}
+  aria-labelledby={`${domId}-title`}
+  data-dyn-section={section.id}
+  class:list={['space-y-6', className]}
+  {...showIfAttributes(section.showIf)}
+>
+  <div>
+    {step && (
+      <p class="text-small font-semibold text-fg-muted">
+        Step {step.index} of {step.total}
+      </p>
+    )}
+    <Heading
+      id={`${domId}-title`}
+      class:list={['text-xl font-black tracking-tight text-fg uppercase', !titleVisible && 'sr-only']}
+    >
+      {section.title}
+    </Heading>
+    {section.description && <p class="mt-2 text-body-sm text-fg-muted">{section.description}</p>}
+  </div>
+  <div class="space-y-6">
+    {section.questions.map((question) => (
+      <QuestionField question={question} ctx={ctx} linkAlternative={alternativeFor(question)} />
+    ))}
+  </div>
+</section>

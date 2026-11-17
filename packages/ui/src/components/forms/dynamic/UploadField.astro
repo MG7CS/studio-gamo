@@ -1,0 +1,138 @@
+---
+/**
+ * UploadField — a "File upload" question. Works without JavaScript as a native file input (posted as
+ * `${questionId}.file`, multipart). With JavaScript, `lib/dynamic-form-client.ts` takes over: each chosen
+ * file goes through the chunked uploader (`lib/chunked-upload.ts`), shows progress, can be removed, and
+ * every finished upload is posted as a hidden `${questionId}.upload` input holding only its `uploadId`.
+ *
+ * Props
+ * - id: string — the native input's id (error summary links point here).
+ * - question: DynQuestion of type 'file_upload'.
+ * - uploads?: DynUploadSummary[] — finished uploads to re-render after a failed submit.
+ * - linkAlternative?: { fieldId: string; label: string } — a link question that can stand in for a video;
+ *   the hint points to it and, after a failed upload, the page offers to jump there.
+ * - error?: string.
+ * - class?: string.
+ *
+ * Markup contract for the client script: the wrapper's `data-dyn-upload`, `data-question-id`,
+ * `data-upload-name`, `data-max-bytes`, `data-max-files`, `data-types-label`, `data-link-fallback`; inside it
+ * `[data-upload-list]` (with `[data-upload-id]` items), `[data-upload-template]`, `[data-upload-wait]`,
+ * `[data-upload-status]` and `[data-upload-link-note]`.
+ */
+import FileField from '../FileField.astro';
+import { joinHints } from '../field';
+import {
+  acceptAttribute,
+  acceptedTypesLabel,
+  effectiveMaxMb,
+  fileInputName,
+  maxBytesFor,
+  uploadFieldName,
+} from '../../../lib/dynamic-form';
+import type { DynQuestionOf, DynUploadSummary } from '../../../lib/dynamic-form';
+import type { DynLinkAlternative } from './index';
+
+interface Props {
+  id: string;
+  question: DynQuestionOf<'file_upload'>;
+  uploads?: DynUploadSummary[];
+  linkAlternative?: DynLinkAlternative;
+  error?: string;
+  class?: string;
+}
+
+const { id, question: q, uploads = [], linkAlternative, error, class: className } = Astro.props;
+const multiple = q.maxFiles > 1;
+const hint = joinHints(
+  q.help,
+  linkAlternative ? `Prefer not to upload? Share a link in "${linkAlternative.label}" instead.` : null,
+);
+---
+
+<div
+  class:list={['space-y-3', className]}
+  data-dyn-upload
+  data-question-id={q.id}
+  data-upload-name={uploadFieldName(q.id)}
+  data-max-bytes={String(maxBytesFor(q))}
+  data-max-files={String(q.maxFiles)}
+  data-types-label={acceptedTypesLabel(q.accept)}
+  data-link-fallback={linkAlternative?.fieldId}
+>
+  <FileField
+    id={id}
+    name={fileInputName(q.id)}
+    label={q.label}
+    accept={acceptAttribute(q.accept)}
+    typesLabel={acceptedTypesLabel(q.accept)}
+    maxSizeMb={effectiveMaxMb(q)}
+    multiple={multiple}
+    maxFiles={q.maxFiles}
+    hint={hint}
+    error={error}
+    required={q.required && uploads.length === 0}
+  />
+  <ul data-upload-list class="space-y-2" aria-label={`Files for ${q.label}`} hidden={uploads.length === 0}>
+    {uploads.map((upload) => (
+      <li
+        data-upload-item
+        data-upload-id={upload.uploadId}
+        data-state="done"
+        class="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-border bg-surface-raised px-4 py-2 text-body-sm text-fg"
+      >
+        <span class="min-w-0 font-semibold break-words" data-upload-name-text>
+          {upload.filename ?? 'Uploaded file'}
+        </span>
+        <span class="text-small text-fg-muted" data-upload-state>
+          Uploaded
+        </span>
+        <button
+          type="button"
+          data-upload-remove
+          hidden
+          class="inline-flex min-h-11 items-center rounded-lg px-1 text-small font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+        >
+          Remove<span class="sr-only"> {upload.filename ?? 'uploaded file'}</span>
+        </button>
+        <input type="hidden" name={uploadFieldName(q.id)} value={upload.uploadId} />
+      </li>
+    ))}
+  </ul>
+  <template data-upload-template>
+    <li
+      data-upload-item
+      data-state="uploading"
+      class="group flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-border bg-surface-raised px-4 py-2 text-body-sm text-fg"
+    >
+      <span class="min-w-0 font-semibold break-words" data-upload-name-text></span>
+      <span
+        class="text-small text-fg-muted group-data-[state=error]:font-semibold group-data-[state=error]:text-danger"
+        data-upload-state
+      ></span>
+      <progress data-upload-progress class="h-2 w-full accent-action" max="100" value="0"></progress>
+      <button
+        type="button"
+        data-upload-remove
+        class="inline-flex min-h-11 items-center rounded-lg px-1 text-small font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+      >
+        <span data-upload-remove-label>Cancel</span>
+        <span class="sr-only" data-upload-remove-name></span>
+      </button>
+    </li>
+  </template>
+  <p data-upload-wait hidden class="text-small font-semibold text-danger">
+    Wait for the upload to finish, then send the form.
+  </p>
+  <p data-upload-status role="status" aria-live="polite" class="sr-only"></p>
+  {linkAlternative && (
+    <p data-upload-link-note hidden class="text-small text-fg">
+      <button
+        type="button"
+        data-upload-use-link
+        class="inline-flex min-h-11 items-center rounded-lg px-1 text-left font-semibold text-action-strong underline underline-offset-4 hover:text-fg"
+      >
+        Go to "{linkAlternative.label}" to share a link
+      </button>
+    </p>
+  )}
+</div>

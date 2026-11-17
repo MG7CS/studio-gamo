@@ -1,0 +1,236 @@
+---
+/**
+ * QuestionField — renders one question of a published form with the shared form primitives and wraps it in
+ * the element the browser enhancement looks for.
+ *
+ * Wrapper: `<div data-dyn-question="{id}" data-dyn-type="{type}">`, plus `data-dyn-rows` for grids and the
+ * question's show-if as `data-show-join` / `data-show-rules` (encoded by `showIfAttributes`, no JSON). A
+ * question hidden by show-if is still rendered, so the form is complete without JavaScript; the server
+ * ignores its answer.
+ *
+ * Props
+ * - question: DynQuestion — any of the schema's question types.
+ * - ctx: DynamicFormContext — id prefix, re-rendered values, errors and uploads (see `./index`).
+ * - linkAlternative?: DynLinkAlternative — for a video file question, the link question that can replace it.
+ *
+ * Field names are the server's: the question id; `${id}.other` for "Other" text; `${id}.${row}` per grid row;
+ * `${id}.upload` (hidden) and `${id}.file` (native input) for files.
+ */
+import TextField from '../TextField.astro';
+import EmailField from '../EmailField.astro';
+import TextareaField from '../TextareaField.astro';
+import SelectField from '../SelectField.astro';
+import ScaleField from '../ScaleField.astro';
+import TimeField from '../TimeField.astro';
+import ChoiceGroup from './ChoiceGroup.astro';
+import GridField from './GridField.astro';
+import DateTimeField from './DateTimeField.astro';
+import LinkField from './LinkField.astro';
+import StatementBlock from './StatementBlock.astro';
+import UploadField from './UploadField.astro';
+import { joinHints } from '../field';
+import {
+  asValues,
+  buildFieldId,
+  checkboxLimitHint,
+  dateHint,
+  DURATION_PATTERN,
+  firstValue,
+  otherFieldName,
+  showIfAttributes,
+  textInputConfig,
+} from '../../../lib/dynamic-form';
+import type { DynQuestion } from '../../../lib/dynamic-form';
+import type { DynamicFormContext, DynLinkAlternative } from './index';
+
+interface Props {
+  question: DynQuestion;
+  ctx: DynamicFormContext;
+  linkAlternative?: DynLinkAlternative;
+}
+
+const { question: q, ctx, linkAlternative } = Astro.props;
+const id = buildFieldId(ctx.idPrefix, q.id);
+const error = ctx.errors[q.id];
+const value = firstValue(ctx.values[q.id]);
+const gridRows = q.type === 'choice_grid' || q.type === 'checkbox_grid' ? String(q.rows.length) : undefined;
+const mode =
+  q.type === 'date'
+    ? q.includeYear
+      ? q.includeTime
+        ? 'datetime-local'
+        : 'date'
+      : q.includeTime
+        ? 'month-day-time'
+        : 'month-day'
+    : 'date';
+---
+
+<div data-dyn-question={q.id} data-dyn-type={q.type} data-dyn-rows={gridRows} {...showIfAttributes(q.showIf)}>
+  {q.type === 'short_text' &&
+    (() => {
+      const config = textInputConfig(q);
+      const hint = joinHints(q.help, config.hint);
+      return config.type === 'email' && q.validation?.kind === 'email' ? (
+        <EmailField
+          id={id}
+          name={q.id}
+          label={q.label}
+          value={value}
+          hint={hint}
+          error={error}
+          required={q.required}
+        />
+      ) : (
+        <TextField
+          id={id}
+          name={q.id}
+          label={q.label}
+          type={config.type}
+          inputmode={config.inputmode}
+          autocomplete={config.autocomplete}
+          value={value}
+          hint={hint}
+          error={error}
+          required={q.required}
+          maxlength={q.maxLength}
+          data={q.maxLength ? { dynCounter: `${id}-count` } : {}}
+        >
+          {q.maxLength && (
+            <p
+              slot="after"
+              id={`${id}-count`}
+              class="mt-1 text-right text-small text-fg-muted"
+              aria-hidden="true"
+              hidden
+            />
+          )}
+        </TextField>
+      );
+    })()}
+  {q.type === 'paragraph' && (
+    <TextareaField
+      id={id}
+      name={q.id}
+      label={q.label}
+      value={value}
+      hint={q.help}
+      error={error}
+      required={q.required}
+      maxlength={q.maxLength}
+      counter={Boolean(q.maxLength)}
+    />
+  )}
+  {q.type === 'multiple_choice' && (
+    <ChoiceGroup
+      id={id}
+      name={q.id}
+      legend={q.label}
+      type="radio"
+      options={q.options}
+      values={value === undefined ? [] : [value]}
+      other={q.other}
+      otherLabel={q.otherLabel}
+      otherText={firstValue(ctx.values[otherFieldName(q.id)])}
+      hint={q.help}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {q.type === 'checkboxes' && (
+    <ChoiceGroup
+      id={id}
+      name={q.id}
+      legend={q.label}
+      type="checkbox"
+      options={q.options}
+      values={asValues(ctx.values[q.id])}
+      other={q.other}
+      otherLabel={q.otherLabel}
+      otherText={firstValue(ctx.values[otherFieldName(q.id)])}
+      hint={joinHints(q.help, checkboxLimitHint(q.limit))}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {q.type === 'dropdown' && (
+    <SelectField
+      id={id}
+      name={q.id}
+      label={q.label}
+      options={q.options.map((o) => ({ value: o, label: o }))}
+      value={value}
+      hint={q.help}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {q.type === 'file_upload' && (
+    <UploadField
+      id={id}
+      question={q}
+      uploads={ctx.uploads[q.id]}
+      linkAlternative={linkAlternative}
+      error={error}
+    />
+  )}
+  {(q.type === 'linear_scale' || q.type === 'rating') && (
+    <ScaleField
+      id={id}
+      name={q.id}
+      legend={q.label}
+      kind={q.type === 'rating' ? 'rating' : 'scale'}
+      min={q.type === 'linear_scale' ? q.min : 1}
+      max={q.max}
+      minLabel={q.type === 'linear_scale' ? q.minLabel : undefined}
+      maxLabel={q.type === 'linear_scale' ? q.maxLabel : undefined}
+      value={value}
+      hint={q.help}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {(q.type === 'choice_grid' || q.type === 'checkbox_grid') && (
+    <GridField id={id} question={q} values={ctx.values} error={error} />
+  )}
+  {q.type === 'date' && (
+    <DateTimeField
+      id={id}
+      name={q.id}
+      label={q.label}
+      mode={mode}
+      value={value}
+      hint={joinHints(q.help, dateHint(q))}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {q.type === 'time' && q.mode === 'clock' && (
+    <TimeField
+      id={id}
+      name={q.id}
+      label={q.label}
+      value={value}
+      hint={q.help}
+      error={error}
+      required={q.required}
+    />
+  )}
+  {q.type === 'time' && q.mode === 'duration' && (
+    <TextField
+      id={id}
+      name={q.id}
+      label={q.label}
+      value={value}
+      hint={joinHints(q.help, 'Hours, minutes and seconds as HH:MM:SS, for example 00:03:30.')}
+      error={error}
+      required={q.required}
+      inputmode="numeric"
+      pattern={DURATION_PATTERN}
+      maxlength={9}
+      autocomplete="off"
+    />
+  )}
+  {q.type === 'link' && <LinkField id={id} name={q.id} question={q} value={value} error={error} />}
+  {q.type === 'statement' && <StatementBlock question={q} />}
+</div>

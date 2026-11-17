@@ -1,0 +1,66 @@
+---
+/**
+ * GridField — "Multiple choice grid" and "Checkbox grid" questions. An outer fieldset carries the question;
+ * each row is its own fieldset (legend = the row label) of radios (one answer) or checkboxes (any), each
+ * labelled by its column. Rows stack at any width, so it works at 360 px; choices wrap inside a row.
+ * Posts `${questionId}.${rowIndex}` (`gridFieldName`) with the column label(s).
+ *
+ * Props
+ * - id: string — outer fieldset id (error summary links point here); row fieldsets are `${id}-row-${i}`.
+ * - question: DynQuestion of type 'choice_grid' | 'checkbox_grid'.
+ * - values?: DynRawValues — posted values to re-render as checked.
+ * - error?: string.
+ * - class?: string.
+ */
+import ChoiceItem from '../ChoiceItem.astro';
+import Fieldset from '../Fieldset.astro';
+import { joinHints } from '../field';
+import { asValues, gridFieldName, gridHint } from '../../../lib/dynamic-form';
+import type { DynQuestionOf, DynRawValues } from '../../../lib/dynamic-form';
+
+interface Props {
+  id: string;
+  question: DynQuestionOf<'choice_grid'> | DynQuestionOf<'checkbox_grid'>;
+  values?: DynRawValues;
+  error?: string;
+  class?: string;
+}
+
+const { id, question: q, values = {}, error, class: className } = Astro.props;
+const single = q.type === 'choice_grid';
+const hint = joinHints(q.help, gridHint(q));
+// Native `required` only where it matches the server: every row of a required, row-by-row radio grid.
+const nativeRequired = single && q.required && q.requireEachRow;
+---
+
+<Fieldset id={id} legend={q.label} hint={hint} error={error} required={q.required} class={className}>
+  <div class="space-y-4">
+    {q.rows.map((row, i) => {
+      const rowId = `${id}-row-${i}`;
+      const chosen = asValues(values[gridFieldName(q.id, i)]);
+      return (
+        <Fieldset
+          id={rowId}
+          legend={row}
+          required={q.requireEachRow && q.required}
+          role={single ? 'radiogroup' : 'group'}
+          class="rounded-xl border border-border bg-surface-raised px-4 py-3"
+        >
+          <div class="flex flex-wrap gap-x-8">
+            {q.columns.map((column, j) => (
+              <ChoiceItem
+                type={single ? 'radio' : 'checkbox'}
+                id={`${rowId}-${j}`}
+                name={gridFieldName(q.id, i)}
+                value={column}
+                label={column}
+                checked={chosen.includes(column)}
+                required={nativeRequired}
+              />
+            ))}
+          </div>
+        </Fieldset>
+      );
+    })}
+  </div>
+</Fieldset>

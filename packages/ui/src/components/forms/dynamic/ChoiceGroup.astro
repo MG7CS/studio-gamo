@@ -1,0 +1,113 @@
+---
+/**
+ * ChoiceGroup — a "Multiple choice" (radios) or "Checkboxes" question with an optional "Other" choice,
+ * posting exactly what the server reads: every choice as `name=value`, "Other" as `OTHER_VALUE` with its text
+ * as `${name}.other` (`otherFieldName`). The shared RadioGroup/CheckboxGroup post the text as `${name}_other`,
+ * so the dynamic renderer uses this instead.
+ *
+ * Props
+ * - id: string — fieldset id (error summary links point here); option ids are `${id}-0`, `${id}-1` …;
+ *   "Other" is `${id}-other` and its text input `${id}-other-text`.
+ * - name: string — the question id.
+ * - legend: string — the question.
+ * - type: 'radio' | 'checkbox'.
+ * - options: string[] — each option is both its value and its label.
+ * - values?: string[] — posted values to re-render as checked (include `OTHER_VALUE` for "Other").
+ * - other?: boolean (default false); otherLabel?: string (default 'Other'); otherText?: string.
+ * - hint?: string; error?: string.
+ * - required?: boolean — marked in the legend; radios also get native `required`; checkboxes are checked by
+ *   the server (native `required` would demand every box).
+ * - class?: string.
+ */
+import ChoiceItem from '../ChoiceItem.astro';
+import Fieldset from '../Fieldset.astro';
+import { CONTROL_CLASS } from '../field';
+import { OTHER_VALUE, otherFieldName } from '../../../lib/dynamic-form';
+
+interface Props {
+  id: string;
+  name: string;
+  legend: string;
+  type: 'radio' | 'checkbox';
+  options: string[];
+  values?: string[];
+  other?: boolean;
+  otherLabel?: string;
+  otherText?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  legend,
+  type,
+  options,
+  values = [],
+  other = false,
+  otherLabel,
+  otherText,
+  hint,
+  error,
+  required = false,
+  class: className,
+} = Astro.props;
+const label = otherLabel?.trim() || 'Other';
+const radios = type === 'radio';
+const otherId = `${id}-other`;
+const otherTextId = `${id}-other-text`;
+---
+
+<Fieldset
+  id={id}
+  legend={legend}
+  hint={hint}
+  error={error}
+  required={required}
+  role={radios ? 'radiogroup' : 'group'}
+  class={className}
+>
+  {options.map((option, i) => (
+    <ChoiceItem
+      type={type}
+      id={`${id}-${i}`}
+      name={name}
+      value={option}
+      label={option}
+      checked={values.includes(option)}
+      required={radios && required}
+      invalid={!radios && Boolean(error)}
+    />
+  ))}
+  {other && (
+    <ChoiceItem
+      type={type}
+      id={otherId}
+      name={name}
+      value={OTHER_VALUE}
+      label={label}
+      checked={values.includes(OTHER_VALUE)}
+      required={radios && required}
+      invalid={!radios && Boolean(error)}
+    />
+  )}
+  {other && (
+    <div class="ps-9 pb-2">
+      <label for={otherTextId} class="block text-small font-semibold text-fg">
+        If {label.toLowerCase()}, please specify
+      </label>
+      <input
+        id={otherTextId}
+        name={otherFieldName(name)}
+        type="text"
+        value={otherText}
+        maxlength={300}
+        autocomplete="off"
+        class={CONTROL_CLASS}
+      />
+    </div>
+  )}
+</Fieldset>

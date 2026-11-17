@@ -1,0 +1,46 @@
+---
+/**
+ * LinkField — a "Link" question: a URL input that names the providers it accepts (YouTube, Vimeo, Google
+ * Drive, Dropbox; the server checks the host list, never this field).
+ *
+ * Props
+ * - id: string; name: string — the field id and the question id.
+ * - question: DynQuestion of type 'link'.
+ * - value?: string — posted value to re-render.
+ * - error?: string.
+ * - class?: string.
+ */
+import TextField from '../TextField.astro';
+import { joinHints } from '../field';
+import { linkHint } from '../../../lib/dynamic-form';
+import type { DynQuestionOf } from '../../../lib/dynamic-form';
+
+interface Props {
+  id: string;
+  name: string;
+  question: DynQuestionOf<'link'>;
+  value?: string;
+  error?: string;
+  class?: string;
+}
+
+const { id, name, question: q, value, error, class: className } = Astro.props;
+---
+
+<TextField
+  id={id}
+  name={name}
+  label={q.label}
+  type="url"
+  inputmode="url"
+  value={value}
+  hint={joinHints(q.help, linkHint(q.providers))}
+  error={error}
+  required={q.required}
+  autocomplete="off"
+  autocapitalize="off"
+  spellcheck={false}
+  maxlength={2048}
+  placeholder="https://"
+  class={className}
+/>

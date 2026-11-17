@@ -1,0 +1,45 @@
+---
+/**
+ * Private fixture for the shared dynamic form renderer (/preview/dynamic-form): every question type, show-if
+ * on questions and on a section, and (with `?errors=1`) the failed-submit state: error summary with focus,
+ * per-field errors, kept values and a kept upload. noindex; /preview/ is disallowed in robots.txt.
+ * Regression gate: tests/e2e/dynamic-form.spec.ts. All content is Sample; the form submits nowhere that stores data.
+ */
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import {
+  FIXTURE_SLUG,
+  fixtureErrors,
+  fixtureSchema,
+  fixtureUploads,
+  fixtureValues,
+} from '../../components/catalog/dynamic-form-fixture';
+
+const withErrors = Astro.url.searchParams.get('errors') === '1';
+---
+
+<SiteLayout
+  title="Dynamic form preview | Gamo Studios"
+  description="Private preview of the shared dynamic form."
+  noindex
+>
+  <Container width="narrow" class="py-12 lg:py-16">
+    <p class="text-small font-semibold text-fg-muted">Private preview · Sample content</p>
+    <h1 class="mt-2 text-3xl font-black tracking-tight text-fg uppercase">Dynamic form</h1>
+    <p class="mt-3 mb-10 text-body-sm text-fg-muted">
+      Every question type from the form builder. Choose Drums to see a question and a section appear.
+    </p>
+    <DynamicForm
+      schema={fixtureSchema}
+      formSlug={FIXTURE_SLUG}
+      action="/preview/dynamic-form"
+      method="get"
+      idempotencyKey="sample-preview-key-0000000000"
+      values={withErrors ? fixtureValues : {}}
+      errors={withErrors ? fixtureErrors : []}
+      uploads={withErrors ? fixtureUploads : {}}
+      submitLabel="Send sample"
+    />
+  </Container>
+</SiteLayout>

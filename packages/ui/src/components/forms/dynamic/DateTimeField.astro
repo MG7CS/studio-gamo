@@ -1,0 +1,72 @@
+---
+/**
+ * DateTimeField — "Date" questions in every shape the server accepts:
+ * - mode 'date': native date picker, `YYYY-MM-DD`;
+ * - mode 'datetime-local': native date and time picker, `YYYY-MM-DDTHH:MM`;
+ * - mode 'month-day': text, `MM-DD` (a date without a year, e.g. a birthday);
+ * - mode 'month-day-time': text, `MM-DD HH:MM`.
+ *
+ * Props
+ * - id: string; name: string; label: string — as TextField (hint/error ids `${id}-hint` / `${id}-error`).
+ * - mode?: 'date' | 'datetime-local' | 'month-day' | 'month-day-time' (default 'date').
+ * - value?: string — posted value to re-render.
+ * - hint?: string; error?: string; required?: boolean (default false).
+ * - class?: string.
+ */
+import FieldShell from '../FieldShell.astro';
+import { CONTROL_CLASS, fieldIds } from '../field';
+import { MONTH_DAY_PATTERN, MONTH_DAY_TIME_PATTERN } from '../../../lib/dynamic-form';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  mode?: 'date' | 'datetime-local' | 'month-day' | 'month-day-time';
+  value?: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  mode = 'date',
+  value,
+  hint,
+  error,
+  required = false,
+  class: className,
+} = Astro.props;
+const ids = fieldIds(id, Boolean(hint));
+const native = mode === 'date' || mode === 'datetime-local';
+const timed = mode === 'datetime-local' || mode === 'month-day-time';
+---
+
+<FieldShell id={id} label={label} hint={hint} error={error} required={required} class={className}>
+  <input
+    id={id}
+    name={name}
+    type={native ? mode : 'text'}
+    value={value}
+    required={required}
+    min={mode === 'date' ? '1900-01-01' : mode === 'datetime-local' ? '1900-01-01T00:00' : undefined}
+    max={mode === 'date' ? '2200-12-31' : mode === 'datetime-local' ? '2200-12-31T23:59' : undefined}
+    inputmode={native ? undefined : 'numeric'}
+    pattern={
+      mode === 'month-day'
+        ? MONTH_DAY_PATTERN
+        : mode === 'month-day-time'
+          ? MONTH_DAY_TIME_PATTERN
+          : undefined
+    }
+    maxlength={mode === 'month-day' ? 5 : mode === 'month-day-time' ? 11 : undefined}
+    autocomplete="off"
+    aria-describedby={ids.describedBy}
+    aria-invalid={error ? 'true' : undefined}
+    data-server-error={error ? 'true' : undefined}
+    class:list={[CONTROL_CLASS, timed || !native ? 'sm:max-w-sm' : 'sm:max-w-xs']}
+  />
+</FieldShell>

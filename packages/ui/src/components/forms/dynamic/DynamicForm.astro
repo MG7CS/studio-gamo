@@ -1,0 +1,152 @@
+---
+/**
+ * DynamicForm — renders a published form schema (`FormSchema`) as one accessible, server-rendered HTML
+ * form from the shared primitives. It works without JavaScript: every section and question is rendered
+ * (the server drops answers hidden by show-if), file questions are native inputs, and errors come back as a
+ * summary plus per-field messages. With JavaScript (`lib/dynamic-form-client.ts`, bundled, no inline script)
+ * questions hide and show live, character counters appear and files upload in chunks.
+ *
+ * Props
+ * - schema: DynFormSchema — the published schema (a domain `FormSchema` is accepted as is).
+ * - formSlug: string — the form's slug (upload endpoints, default Turnstile action).
+ * - action?: string — where to post (default: the current URL). method?: 'post' | 'get' (default 'post').
+ * - idempotencyKey?: string — rendered as the hidden `idempotency_key`.
+ * - values?: DynRawValues — raw posted values to re-render (`id`, `${id}.other`, `${id}.${row}`).
+ * - errors?: { questionId, message }[] — `validateAnswers` errors; shown in the summary and per field.
+ * - uploads?: Record<questionId, { uploadId, filename? }[]> — finished uploads to keep after a failed submit.
+ * - summaryExtra?: { message, fieldId? }[] — more summary entries (a guard or Turnstile failure).
+ * - turnstile?: { action?, id?, siteKey?, environment?, error? } | false — passthrough to TurnstileWidget
+ *   (action defaults to `turnstileActionFor(formSlug)`); false omits the widget.
+ * - termsConsent?: { documents, id?, error?, newTab? } — adds the TermsConsent checkbox.
+ * - submitLabel?: string (default 'Send'); pendingLabel?: string.
+ * - idPrefix?: string (default 'df') — prefix of every DOM id, for two forms on one page.
+ * - headingLevel?: 2 | 3 | 4 (default 2) — section titles; the form renders no `<h1>`.
+ * - enctype?: string — default `multipart/form-data` when the schema has a file question, else urlencoded.
+ * - class?: string.
+ *
+ * Slots: `before` — inside the form, above the first section (after the error summary);
+ * `after` — below the last section, above consent, Turnstile and the submit button.
+ *
+ * The posted conventions (the server's `validateAnswers`): see `lib/dynamic-form.ts`.
+ */
+import FormErrorSummary from '../FormErrorSummary.astro';
+import SubmitButton from '../SubmitButton.astro';
+import TermsConsent from '../TermsConsent.astro';
+import TurnstileWidget from '../TurnstileWidget.astro';
+import SectionBlock from './SectionBlock.astro';
+import { errorsByQuestion, summaryEntries, turnstileActionFor } from '../../../lib/dynamic-form';
+import type {
+  DynAnswerError,
+  DynFormSchema,
+  DynRawValues,
+  DynUploadSummary,
+} from '../../../lib/dynamic-form';
+import type { TermsConsentDocument } from '../../../lib/terms-links';
+import type { DynamicFormContext } from './index';
+
+interface Props {
+  schema: DynFormSchema;
+  formSlug: string;
+  action?: string;
+  method?: 'post' | 'get';
+  idempotencyKey?: string;
+  values?: DynRawValues;
+  errors?: DynAnswerError[];
+  uploads?: Record<string, DynUploadSummary[]>;
+  summaryExtra?: { message: string; fieldId?: string }[];
+  turnstile?:
+    { action?: string; id?: string; siteKey?: string; environment?: string; error?: string } | false;
+  termsConsent?: { documents: TermsConsentDocument[]; id?: string; error?: string; newTab?: boolean };
+  submitLabel?: string;
+  pendingLabel?: string;
+  idPrefix?: string;
+  headingLevel?: 2 | 3 | 4;
+  enctype?: string;
+  class?: string;
+}
+
+const {
+  schema,
+  formSlug,
+  action,
+  method = 'post',
+  idempotencyKey,
+  values = {},
+  errors = [],
+  uploads = {},
+  summaryExtra = [],
+  turnstile = {},
+  termsConsent,
+  submitLabel = 'Send',
+  pendingLabel,
+  idPrefix = 'df',
+  headingLevel = 2,
+  enctype,
+  class: className,
+} = Astro.props;
+
+const ctx: DynamicFormContext = {
+  idPrefix,
+  formSlug,
+  values,
+  errors: errorsByQuestion(errors),
+  uploads,
+};
+const hasFiles = schema.sections.some((s) => s.questions.some((q) => q.type === 'file_upload'));
+const termsId = termsConsent?.id ?? 'terms-accept';
+const summary = [
+  ...summaryEntries(schema, errors, idPrefix),
+  ...(termsConsent?.error ? [{ message: termsConsent.error, fieldId: termsId }] : []),
+  ...summaryExtra,
+];
+const oneSection = schema.sections.length === 1;
+const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.showIf);
+---
+
+<form
+  method={method}
+  action={action}
+  enctype={method === 'post' ? (enctype ?? (hasFiles ? 'multipart/form-data' : undefined)) : undefined}
+  data-dynamic-form
+  data-form-slug={formSlug}
+  class:list={['space-y-10', className]}
+>
+  <FormErrorSummary errors={summary} />
+  {idempotencyKey && <input type="hidden" name="idempotency_key" value={idempotencyKey} />}
+  <slot name="before" />
+  {schema.sections.map((section, index) => (
+    <SectionBlock
+      section={section}
+      ctx={ctx}
+      headingLevel={headingLevel}
+      step={stepped ? { index: index + 1, total: schema.sections.length } : undefined}
+      titleVisible={!oneSection}
+    />
+  ))}
+  <slot name="after" />
+  <div class="space-y-6">
+    {termsConsent && (
+      <TermsConsent
+        documents={termsConsent.documents}
+        id={termsId}
+        error={termsConsent.error}
+        newTab={termsConsent.newTab}
+      />
+    )}
+    {turnstile !== false && (
+      <TurnstileWidget
+        action={turnstile.action ?? turnstileActionFor(formSlug)}
+        id={turnstile.id}
+        siteKey={turnstile.siteKey}
+        environment={turnstile.environment}
+        error={turnstile.error}
+      />
+    )}
+    <SubmitButton label={submitLabel} pendingLabel={pendingLabel} />
+  </div>
+</form>
+
+<script>
+  import { initDynamicForms } from '../../../lib/dynamic-form-client';
+  initDynamicForms();
+</script>

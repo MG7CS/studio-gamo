@@ -40,6 +40,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
   web: [
     '/',
     '/preview/catalog',
+    '/preview/dynamic-form',
     '/mission',
     '/get-started',
     '/get-involved',
