@@ -5,17 +5,14 @@
  * (`syncTermsDocuments`, idempotent) and shows acceptance counts from D1. Without a database the registry
  * still renders and the counts say "Unavailable".
  */
-import '../app.css';
-import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
-import { dashboard } from '../site.config';
-import DashPageHeader from '@studio-gamo/ui/components/dashboard/DashPageHeader.astro';
+import AdminLayout from '../components/AdminLayout.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import DashBlocks from '@studio-gamo/ui/components/dashboard/DashBlocks.astro';
 import { b, type DashBlock } from '@studio-gamo/ui/lib/dashboard';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { getRuntimeEnv } from '@gamo/domain';
 import { TERMS_DOCUMENTS, syncTermsDocuments } from '@gamo/domain/terms';
 import { allRows, asSqlDatabase } from '@gamo/domain/security';
-import { adminWorkspace } from '../data/workspace';
 
 /** Acceptances per `slug@version`, or null when D1 is not available. */
 let counts: Map<string, number> | null = null;
@@ -116,21 +113,13 @@ const blocks: DashBlock[] = [
 ];
 ---
 
-<DashboardShell {...dashboard} workspace={adminWorkspace} current="legal" title="Legal documents">
-  <DashPageHeader
-    workspace={adminWorkspace}
-    title="Legal Document Registry"
-    description="Draft terms people accept across Gamo Studios: versions, review status and acceptance counts."
-    path="/legal"
-    actions={[
-      { label: 'Export registry (CSV)', exportReport: 'csv', icon: 'download', variant: 'primary' },
-      {
-        label: 'View public legal page',
-        href: siteUrl('web', '/legal'),
-        icon: 'external',
-        variant: 'secondary',
-      },
-    ]}
-  />
+<AdminLayout
+  title="Legal Document Registry"
+  current="legal"
+  description="Draft terms people accept across Gamo Studios: versions, review status and acceptance counts."
+>
+  <ButtonLink slot="actions" href={siteUrl('web', '/legal')} variant="secondary">
+    View public legal page
+  </ButtonLink>
   <DashBlocks blocks={blocks} idPrefix="admin-legal" />
-</DashboardShell>
+</AdminLayout>

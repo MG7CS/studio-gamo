@@ -210,7 +210,6 @@ function styleCounts(source: string): Counts {
  */
 const STYLE_BASELINE: Record<string, Counts> = {
   'apps/admin/src/middleware.ts': { colour: 26 },
-  'apps/admin/src/pages/security.astro': { arbitrary: 4, textPx: 10 },
   // Data-driven level height of the mixer bars.
   'apps/production/src/components/production/MixerStripPreview.astro': { style: 1 },
   // Approved hero: two values kept so the hero looks the same.

@@ -1,0 +1,35 @@
+---
+/** One "what is waiting" card on the admin home page: a count and the link to the area that handles it. */
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+
+interface Props {
+  label: string;
+  /** Null when the count could not be read. */
+  count: number | null;
+  href: string;
+  /** What the number means, shown when it is above zero. */
+  hint: string;
+}
+const { label, count, href, hint } = Astro.props;
+---
+
+<li>
+  <a
+    href={href}
+    class="group flex h-full min-h-11 flex-col gap-1 rounded-card border border-border bg-surface-raised p-5 shadow-raised transition-colors hover:border-action-strong"
+  >
+    <span class="text-small font-semibold text-fg-muted">{label}</span>
+    {count === null ? (
+      <span class="text-small font-semibold text-fg">Unavailable right now</span>
+    ) : (
+      <span class="text-4xl font-bold leading-none tracking-tight text-fg">{count}</span>
+    )}
+    <span class="text-small text-fg-muted">
+      {count === 0 ? 'Nothing waiting' : count === null ? 'Try again in a moment.' : hint}
+    </span>
+    <span class="mt-auto inline-flex items-center gap-1 pt-3 text-small font-semibold text-action-strong">
+      Open
+      <Icon name="arrow" class="h-4 w-4" strokeWidth={2} />
+    </span>
+  </a>
+</li>

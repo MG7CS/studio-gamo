@@ -150,7 +150,8 @@ try {
     nonces.push(nonce);
     assert.deepEqual(cspViolations(html, csp), [], `${path} (${res.status})`);
   }
-  assert.ok([...pages.values()].filter((s) => s === 200).length >= 20, 'crawled the admin workspace');
+  // Home, Security, Legal and each area in the navigation (admin has no demo screens any more).
+  assert.ok([...pages.values()].filter((s) => s === 200).length >= 3, 'crawled the admin workspace');
 
   // The gateway sign-in and error responses the middleware renders itself.
   for (const [label, res] of [

@@ -1,0 +1,105 @@
+---
+/**
+ * The frame of every admin screen: the shared dashboard shell with the admin navigation, one page title (the
+ * only h1), optional breadcrumbs and actions, and the flash notice from a redirect.
+ *
+ * <AdminLayout title="Forms" current="forms" notice={noticeFrom(Astro.url, NOTICES)}>
+ *   <Button slot="actions" …>New form</Button>
+ *   …page content…
+ * </AdminLayout>
+ */
+import '../app.css';
+import DashboardShell from '@studio-gamo/ui/components/dashboard/DashboardShell.astro';
+import Icon from '@studio-gamo/ui/components/Icon.astro';
+import { dashboard } from '../site.config';
+import { SHELL_WORKSPACE, navSlug, type NavKey } from '../data/nav';
+import type { Notice } from '../lib/flash';
+
+interface Props {
+  /** The page title: the h1 and the start of the document title. */
+  title: string;
+  /** The navigation entry this page belongs to. */
+  current: NavKey;
+  /** A flash notice (`noticeFrom`); focused on load so assistive technology announces it. */
+  notice?: Notice | null;
+  /** Trail above the title; the last entry is the current page (no link needed). */
+  breadcrumbs?: { label: string; href?: string }[];
+  /** One sentence under the title. */
+  description?: string;
+}
+const { title, current, notice = null, breadcrumbs = [], description } = Astro.props;
+const hasActions = Astro.slots.has('actions');
+---
+
+<DashboardShell {...dashboard} workspace={SHELL_WORKSPACE} current={navSlug(current)} title={title}>
+  {notice && (
+    <div
+      id="admin-notice"
+      data-admin-notice
+      role={notice.kind === 'error' ? 'alert' : 'status'}
+      tabindex="-1"
+      autofocus
+      class:list={[
+        'mb-5 flex scroll-mt-24 items-start gap-3 rounded-card border bg-surface-raised px-4 py-3 text-small text-fg',
+        notice.kind === 'error' ? 'border-danger' : 'border-success',
+      ]}
+    >
+      <Icon
+        name={notice.kind === 'error' ? 'alert' : 'check'}
+        class:list={['mt-0.5 h-5 w-5 shrink-0', notice.kind === 'error' ? 'text-danger' : 'text-success']}
+        strokeWidth={2}
+      />
+      <p>
+        <strong class="font-semibold">{notice.kind === 'error' ? 'Problem. ' : 'Done. '}</strong>
+        {notice.text}
+      </p>
+    </div>
+  )}
+
+  <header class="mb-6 flex flex-col gap-3 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
+    <div class="min-w-0 flex-1">
+      {breadcrumbs.length > 0 && (
+        <nav aria-label="Breadcrumb" class="mb-1.5 text-caption text-fg-muted">
+          <ol class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+            {breadcrumbs.map((crumb, index) => {
+              const last = index === breadcrumbs.length - 1;
+              return (
+                <li class="inline-flex items-center gap-1.5">
+                  {crumb.href && !last ? (
+                    <a
+                      href={crumb.href}
+                      class="inline-flex min-h-11 items-center font-medium text-action-strong underline-offset-2 hover:underline"
+                    >
+                      {crumb.label}
+                    </a>
+                  ) : (
+                    <span aria-current={last ? 'page' : undefined} class="font-medium text-fg">
+                      {crumb.label}
+                    </span>
+                  )}
+                  {!last && <span aria-hidden="true">/</span>}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+      )}
+      <h1 class="text-2xl font-bold leading-tight tracking-tight text-fg sm:text-3xl">{title}</h1>
+      {description && <p class="mt-1 max-w-prose text-body-sm text-fg-muted">{description}</p>}
+    </div>
+    {hasActions && (
+      <div class="flex flex-wrap items-center gap-2">
+        <slot name="actions" />
+      </div>
+    )}
+  </header>
+
+  <slot />
+</DashboardShell>
+
+<script>
+  // The notice is rendered by the server; focusing it makes screen readers announce it (a live region
+  // present at load is often silent). Skipped when the URL points at a fragment the browser scrolls to.
+  const notice = document.querySelector<HTMLElement>('[data-admin-notice]');
+  if (notice && !window.location.hash) notice.focus();
+</script>

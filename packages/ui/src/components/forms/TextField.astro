@@ -6,7 +6,7 @@
  * - id: string — element id (error summary links point here); hint/error ids are `${id}-hint` / `${id}-error`.
  * - name: string — form field name.
  * - label: string — always visible (never screen-reader-only).
- * - type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search' (default 'text').
+ * - type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search' | 'password' (default 'text').
  * - value?: string — server-rendered value (e.g. after a failed submit).
  * - hint?: string — help text under the label, bound with aria-describedby.
  * - error?: string — server-rendered error; sets aria-invalid and is bound with aria-describedby.
@@ -30,7 +30,7 @@ interface Props {
   id: string;
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search';
+  type?: 'text' | 'email' | 'tel' | 'url' | 'number' | 'search' | 'password';
   value?: string;
   hint?: string;
   error?: string;

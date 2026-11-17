@@ -1,0 +1,73 @@
+---
+/**
+ * Admin home (/): what is waiting for staff, as counts that link to the area that handles them. Counts only;
+ * no names, emails or answers are shown here.
+ */
+import AdminLayout from '../components/AdminLayout.astro';
+import HomeAreaCard from '../components/HomeAreaCard.astro';
+import StateView from '@studio-gamo/ui/components/dashboard/StateView.astro';
+import { adminPage, type AdminContext } from '../lib/admin-page';
+import { getHomeCounts } from '../lib/home-counts';
+
+export const prerender = false;
+
+let admin: AdminContext;
+try {
+  admin = await adminPage(Astro);
+} catch (error) {
+  if (error instanceof Response) return error;
+  throw error;
+}
+
+const counts = await getHomeCounts(admin.db);
+const cards = [
+  {
+    label: 'New submissions',
+    count: counts.newSubmissions,
+    href: '/submissions?status=new',
+    hint: 'Waiting to be opened',
+  },
+  {
+    label: 'Open requests',
+    count: counts.openRequests,
+    href: '/requests',
+    hint: 'Church requests that need people or a reply',
+  },
+  {
+    label: 'Pending offers',
+    count: counts.pendingOffers,
+    href: '/requests',
+    hint: 'Sent to musicians, not answered yet',
+  },
+  {
+    label: 'Unpaid invoices',
+    count: counts.unpaidInvoices,
+    href: '/invoices?status=open',
+    hint: 'Sent and not yet paid',
+  },
+  {
+    label: 'Forms with unpublished changes',
+    count: counts.draftsWithChanges,
+    href: '/forms',
+    hint: 'Edited, but visitors still see the older version',
+  },
+];
+const allClear = cards.every((card) => card.count === 0);
+---
+
+<AdminLayout title="Home" current="home" description="What is waiting for staff.">
+  {allClear && (
+    <div class="mb-6">
+      <StateView
+        state="empty"
+        title="Nothing is waiting"
+        body="New submissions, requests, offers and invoices will show up here as they arrive."
+      />
+    </div>
+  )}
+  <ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Areas that need attention">
+    {cards.map((card) => (
+      <HomeAreaCard {...card} />
+    ))}
+  </ul>
+</AdminLayout>
