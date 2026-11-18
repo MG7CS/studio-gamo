@@ -2,7 +2,7 @@
 
 Agents do none of this (AGENTS.md "External operations"). Run from the repository root of the branch `cleanup/forms-emails-invoices-verify` after it is merged or checked out. Details and reasons: `docs/RUNBOOK.md` §1, §3, §4, §13. Do **preview first** (public apps only; admin has no preview route), then production.
 
-**Scope warning.** This branch ships the admin screens and the account-free public apps. Staff cannot yet receive real submissions (Worship/Production `/apply` and `/request` are placeholders) and offer sending answers 503 until the public offer page exists (`docs/DECISIONS.md` 2026-11-18). Decide whether that is acceptable before deploying.
+**What ships.** The admin screens, the account-free public apps, the public Worship and Production forms (`/worship/apply`, `/worship/request`, `/production/apply`, `/production/request` on gamostudio.org) and the emailed offer page. Known gaps: the Worship application's photo upload needs JavaScript, and the contact and partner pages are still static (`docs/BUILD_LOG.md` 2026-11-18).
 
 ## 0. Before anything
 
@@ -89,5 +89,7 @@ Dashboard only: WAF or Workers Rate Limiting rules on the public form endpoints 
 make verify-config
 make deploy-all          # web, worship, academy, production, admin
 ```
+
+**Publish the forms:** sign in to admin and open **Forms** once; the first visit publishes the six default forms. Until you do, the four form pages answer 404 and nobody can apply or request. Then send one test application and one test request from each public form (use your own address), check the staff notice arrives at `INQUIRY_INBOX_EMAIL`, approve and offer from admin, and open the offer link from the email.
 
 After: RUNBOOK §7 (each host answers, old account URLs redirect, `pnpm exec wrangler tail --env production` shows no `fatal`/`error`), admin is stopped by Access when signed out, and Workers → `gamo-web` → Settings → Triggers shows the `0 6 * * *` cron. Rollback: RUNBOOK §2 (code only; the database is restored from the §3 backup).
