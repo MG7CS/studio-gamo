@@ -115,4 +115,4 @@ on `FieldShell`.
 
 ## Clean style (owner, 2026-11-18; `DESIGN.md` §11)
 
-New work must not use the `eyebrow` slot or prop (`Section`, `PageHero`, `CtaInvitation`, `LinkCard`, `MediaCard`), a `Badge` as a card label, or pill-shaped buttons and tabs (`ButtonLink`, `SubmitButton`, selectors). Those parts still exist and are being migrated (home page first); keep `Badge` only for labels the copy rules require (Sample, Proposal, Sponsored). Buttons move to a single small-radius token; cards move toward photo-led variants of different sizes.
+New work must not use the `eyebrow` slot (`Section`, `PageHero`, `LinkCard`, `MediaCard`; `CtaInvitation` no longer has one), a `Badge` as a card label, or pill-shaped controls. `ButtonLink`, `SubmitButton` and `SiteHeader` are already rectangles (`rounded-button`); the eyebrow slots and `Badge` card labels still exist and are being migrated (home page first). Keep `Badge` only for labels the copy rules require (Sample, Proposal, Sponsored). For a photo-led card use `MediaCard variant="overlay"` (the whole card is the photo, the title sits on the scrim); a photo can only be used in the ratios the catalog lists for it.

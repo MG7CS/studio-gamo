@@ -1,51 +1,51 @@
 ---
 /**
- * The three programs in owner order: Gamo Academy as the featured card, Worship and Production side by side
- * below it. Used on the homepage and /mission; each program has its own site for the details.
+ * The three programs in owner order: Gamo Academy as the wide leading card, Worship and Production side by side
+ * below it. Photo-led (DESIGN.md section 11): the whole card is the photo, the program name and one line sit on it,
+ * and there is no label, badge or paragraph. Used on the homepage and /mission.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
 import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
-import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { programs } from '../../data/programs';
 
 interface Props {
-  eyebrow: string;
   title: string;
-  intro: string;
   /** Heading id; also the in-page anchor ("programs" for #programs). */
   id?: string;
-  action: { label: string; href: string };
   tone?: 'default' | 'raised';
 }
-const { eyebrow, title, intro, id, action, tone = 'raised' } = Astro.props;
+const { title, id, tone = 'default' } = Astro.props;
 const [featured, ...others] = programs;
 ---
 
 <Section tone={tone} title={title} id={id}>
-  <Fragment slot="eyebrow">{eyebrow}</Fragment>
-  <p slot="intro">{intro}</p>
-  <ButtonLink slot="actions" href={action.href} variant="secondary" arrow>
-    {action.label}
-  </ButtonLink>
   <Stack gap="lg">
     {featured && (
-      <MediaCard image={{ name: featured.photo, sizes: 'half' }} title={featured.name} href={featured.href}>
-        <Badge slot="eyebrow" tone="accent">
-          {featured.audience}
-        </Badge>
-        <p class="text-xl font-bold tracking-tight text-fg">{featured.lead}</p>
-        <p class="mt-2">{featured.summary}</p>
+      <MediaCard
+        variant="overlay"
+        image={{
+          name: featured.bannerPhoto ?? featured.photo,
+          ratio: featured.bannerPhoto ? 'wide' : 'landscape',
+          sizes: 'full',
+        }}
+        title={featured.name}
+        href={featured.href}
+      >
+        <p class="text-base font-semibold">{featured.lead}</p>
       </MediaCard>
     )}
     <FeatureGrid max={2} min="lg" gap="lg" as="ul">
       {others.map((p) => (
-        <MediaCard as="li" image={{ name: p.photo, sizes: 'half' }} title={p.name} href={p.href}>
-          <Badge slot="eyebrow">{p.audience}</Badge>
-          <p class="font-bold text-fg">{p.lead}</p>
-          <p class="mt-2">{p.summary}</p>
+        <MediaCard
+          as="li"
+          variant="overlay"
+          image={{ name: p.photo, ratio: 'landscape', sizes: 'half' }}
+          title={p.name}
+          href={p.href}
+        >
+          <p class="text-base font-semibold">{p.lead}</p>
         </MediaCard>
       ))}
     </FeatureGrid>

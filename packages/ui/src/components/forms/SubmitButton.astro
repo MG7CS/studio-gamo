@@ -42,11 +42,11 @@ const {
   data-submit-button
   data-pending-label={pendingLabel}
   class:list={[
-    'inline-flex min-h-11 w-full items-center justify-center rounded-pill px-7 py-2.5 text-base font-semibold transition-colors sm:w-auto',
+    'inline-flex min-h-11 w-full items-center justify-center rounded-button px-7 py-2.5 text-base font-semibold transition-colors sm:w-auto',
     'disabled:cursor-progress aria-disabled:cursor-progress',
     variant === 'primary'
       ? 'bg-action text-on-action hover:bg-action-strong disabled:bg-action-strong'
-      : 'border border-fg-muted bg-surface-raised text-fg hover:bg-surface-inset',
+      : 'border border-fg/60 text-fg hover:bg-fg/5',
     fullWidth && 'sm:w-full',
     className,
   ]}

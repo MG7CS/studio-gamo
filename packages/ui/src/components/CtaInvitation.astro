@@ -1,13 +1,14 @@
 ---
 /**
- * Warm photographic closing invitation used at the end of pages. The photo is a landscape `Frame` (one
- * radius, catalog focal point) inset in the panel so the corners stay concentric.
- * `photoAlt`: omit for the catalog description, '' when the photo is purely decorative.
+ * Closing invitation used at the end of pages: a heading, one sentence, the actions (the default slot) and a photo.
+ * A plain band, not a boxed card, with no label above the heading (DESIGN.md section 11). The photo is a landscape
+ * `Frame` (one radius, catalog focal point). `photoAlt`: omit for the catalog description, '' when the photo is purely
+ * decorative.
  */
 import Frame from './media/Frame.astro';
+import Container from './layout/Container.astro';
 import { photos, type PhotoKey } from '../lib/images';
 interface Props {
-  eyebrow?: string;
   title: string;
   body: string;
   photo: PhotoKey;
@@ -15,7 +16,7 @@ interface Props {
   tone?: 'light' | 'dark';
   id?: string;
 }
-const { eyebrow, title, body, photo, photoAlt, tone = 'light', id } = Astro.props;
+const { title, body, photo, photoAlt, tone = 'light', id } = Astro.props;
 const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 const dark = tone === 'dark';
 ---
@@ -23,28 +24,16 @@ const dark = tone === 'dark';
 <section
   id={id}
   data-surface={dark ? 'dark' : undefined}
-  class:list={['section-space px-gutter', 'bg-surface']}
+  class:list={['section-space text-fg', dark ? 'bg-surface-inset' : 'bg-surface']}
 >
-  <div
-    class:list={[
-      'mx-auto grid max-w-page items-stretch overflow-hidden rounded-hero lg:grid-cols-2',
-      dark ? 'bg-surface-inset text-fg' : 'bg-surface-raised text-fg ring-1 ring-border',
-    ]}
-  >
-    <div class="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
-      {eyebrow && (
-        <p class:list={['eyebrow mb-4', dark ? 'text-fg-muted' : 'text-action-strong']}>{eyebrow}</p>
-      )}
+  <Container class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div>
       <h2 class="section-heading text-balance">{title}</h2>
-      <p class:list={['mt-5 max-w-xl text-lg leading-relaxed', 'text-fg-muted']}>{body}</p>
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-fg-muted">{body}</p>
       <div class="mt-8 flex flex-wrap gap-3">
         <slot />
       </div>
     </div>
-    <div class="flex items-center p-5">
-      <div class="w-full">
-        <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
-      </div>
-    </div>
-  </div>
+    <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
+  </Container>
 </section>

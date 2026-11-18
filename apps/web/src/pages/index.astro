@@ -30,26 +30,11 @@ const organizationJsonLd = {
   description="Gamo Studios connects Academy, Worship and Production to serve students, families, churches and musicians through music and worship."
 >
   <HomeEditorialHero />
-  <ProgramsShowcase
-    id="programs"
-    eyebrow="One mission · three programs"
-    title="Three connected ways we serve together."
-    intro="Gamo Academy, Gamo Worship and Gamo Production serve one religious and educational mission. Each program has its own site with the details."
-    action={{ label: 'Read our mission', href: '/mission' }}
-  />
+  <ProgramsShowcase id="programs" title="Three connected ways we serve together." />
   <Section title="Find your place in the mission.">
-    <Fragment slot="eyebrow">Where to begin</Fragment>
-    <p slot="intro">
-      Learning an instrument, leading a congregation, playing in a worship team or serving behind the sound
-      board: start here.
-    </p>
-    <ButtonLink slot="actions" href="/get-involved" variant="secondary" arrow>
-      See every way to get involved
-    </ButtonLink>
     <PathChooser />
   </Section>
   <CtaInvitation
-    eyebrow="Join the mission"
     title="Ready to take your first step with Gamo Studios?"
     body="Find your place in Academy, Worship or Production, or talk with us about how your church or community can partner with us."
     photo="chapelSpring"

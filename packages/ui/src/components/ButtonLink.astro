@@ -1,6 +1,7 @@
 ---
 /**
- * Pill link-button. Always a real <a>; use a <button> elsewhere for in-page actions.
+ * Link button: a small-radius rectangle (`rounded-button`, DESIGN.md section 11). Always a real <a>; use a <button>
+ * elsewhere for in-page actions.
  * Variants: primary and secondary follow the parent's colour roles; `ghost-dark` (outline) and
  * `light` (cream fill) are for dark bands and set data-surface="dark" on the link so text, fill and
  * focus ring stay readable whether or not the band itself declares its surface.
@@ -17,7 +18,7 @@ interface Props {
 const { href, variant = 'primary', size = 'md', arrow = false, class: className, ...rest } = Astro.props;
 const variants = {
   primary: 'bg-action text-on-action hover:bg-action-strong',
-  secondary: 'border border-fg/20 bg-surface-raised/60 text-fg hover:bg-surface-raised',
+  secondary: 'border border-fg/60 text-fg hover:bg-fg/5',
   'ghost-dark': 'border border-fg/45 text-fg hover:bg-fg/10',
   light: 'bg-surface-inverse text-fg-inverse hover:bg-surface-inverse/85',
 };
@@ -29,7 +30,7 @@ const sizes = { md: 'min-h-11 px-5 py-3 text-sm', lg: 'min-h-12 px-6 py-3 text-b
   href={href}
   data-surface={onDark ? 'dark' : undefined}
   class:list={[
-    'inline-flex items-center justify-center gap-3 rounded-pill font-semibold transition-colors',
+    'inline-flex items-center justify-center gap-3 rounded-button font-semibold transition-colors',
     variants[variant],
     sizes[size],
     className,

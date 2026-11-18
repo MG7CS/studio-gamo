@@ -15,6 +15,8 @@ export interface Program {
   summary: string;
   href: string;
   photo: PhotoKey;
+  /** A photo that crops to the wide ratio, for the leading card (Academy). */
+  bannerPhoto?: PhotoKey;
 }
 
 export const programs: Program[] = [
@@ -27,6 +29,7 @@ export const programs: Program[] = [
       'Patient, caring lessons in piano, guitar, voice, bass and drums for children, teens and adults, private or in small groups.',
     href: siteUrl('academy'),
     photo: 'girlGuitar',
+    bannerPhoto: 'guitarMentor',
   },
   {
     key: 'worship',

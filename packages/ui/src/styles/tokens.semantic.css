@@ -25,7 +25,7 @@
  *     the same names work for w-*, min-w-*, basis-* and @container variants (@page:, @narrow:, @prose:)
  *   px-gutter / gap-gutter / mx-gutter (spacing-gutter: 1.25rem → 2rem fluid), utility gutter-x
  *     (padding-inline: gutter) — page side gutters, replaces "px-5 sm:px-8"
- *   rounded-card (28px), rounded-panel (2rem), rounded-hero (2.5rem), rounded-pill (9999px)
+ *   rounded-button (6px), rounded-card (28px), rounded-panel (2rem), rounded-hero (2.5rem), rounded-pill (9999px)
  *   aspect-portrait (4/5), aspect-landscape (3/2), aspect-wide (21/8)
  *   text-caption (12px/16px), text-small (14px/20px), text-body-sm (15px/24px)
  *     — replace text-[12px] … text-[15px]
@@ -137,7 +137,9 @@
   /* Page side gutter (px-gutter, gap-gutter): 20px at 360px wide, 32px from ~800px. */
   --spacing-gutter: clamp(1.25rem, 4vw, 2rem);
 
-  /* Radii (rounded-card, rounded-panel, rounded-hero, rounded-pill). */
+  /* Radii (rounded-button, rounded-card, rounded-panel, rounded-hero, rounded-pill). Buttons, links, tabs and chips use
+     rounded-button; rounded-pill is kept only for round dots and progress bars (DESIGN.md section 11). */
+  --radius-button: 6px;
   --radius-card: 28px;
   --radius-panel: 2rem;
   --radius-hero: 2.5rem;
