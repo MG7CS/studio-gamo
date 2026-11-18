@@ -110,3 +110,7 @@ import { shell } from '../site.config';
 **`Frame` props:** `photo` (catalog id), `ratio` (required, four values), `alt` or `decorative`, `sizes` preset (`full` | `half` | `third` | `grid-tall`), `priority`, `caption`, `scrim`. No radius, fit, position, class-for-geometry or style props. `wide` falls back to `landscape` inside narrow containers (about 30rem).
 
 **`PhotoGrid` layouts (2–4 photos, container-query collapse, apps pass ordered ids, never positions):** `pair`, `trio` (one tall), `quad` (mosaic), `hero-pair`. Five or more photos means two clusters in different sections.
+
+## Clean style migration (2026-11-18)
+
+The owner's clean layout rules (`DESIGN.md` §11) are permanent. Components that still carry the old pattern: the `eyebrow` slot of `Section`, `PageHero`, `CtaInvitation`, `LinkCard` and `MediaCard`; `Badge` used as a card label; pill-shaped `ButtonLink`, `SubmitButton` and selectors (including the home path chooser); identical card grids. Order of work: redesign the home page in a browser and get sign-off, then change the shared components so every page follows, then add a ratcheting guard (eyebrow slots and pill radii) to `scripts/audit/ui-boundaries.test.ts`. Record the research and decision in `docs/DECISIONS.md` as each step lands.

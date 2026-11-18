@@ -94,7 +94,7 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 1. **Hero — "Where Worship, Learning & Community Meet."** The current `HomeEditorialHero` is the owner-approved hero (2026-11-16); preserve it. The earlier "Keep Worship Going" hero (`design-reference/homepage/01-hero-approved.png`) is historical. No invented stats. A rotating spotlight is **not implemented without explicit approval**; if approved: rotation ~8–10 s, manual controls, pause on interaction/focus, no auto-rotation under reduced motion; each slide labeled *Sponsored*, *Featured* or *Gamo Program* (and *Example* during design).
 2. **Gamo Academy:** headline exactly **"Learn to Play the Instrument You Love."** Speaks first to students, parents and families; church-hosted and sponsored classes as a secondary pathway.
 3. **Gamo Worship — musicians who serve:** musicians presented as skilled people who serve — preparation, trust, contribution and fair pay — never as inventory. Fictional names are labeled *Sample*. The roster is private; never visually boost musicians based on payment, sponsorship or partnership.
-4. **How it works:** pill selector between *For churches* (request → offer → confirmation → invoice) and *Apply to serve* (application → staff review → private roster); no absolute attendance guarantee.
+4. **How it works:** selector (rectangular tabs, §11) between *For churches* (request → offer → confirmation → invoice) and *Apply to serve* (application → staff review → private roster); no absolute attendance guarantee.
 5. **Gamo Production:** technical support and volunteer training for churches.
 6. **Final CTA:** "Get involved" invitation to students, families, churches and musicians; testimonials only once consented real statements exist.
 7. **Footer:** Our Mission · Gamo Academy · Gamo Worship · Gamo Production · Church Partnerships · Contact and legal, with the approved PBC statement. Social links once verified.
@@ -112,7 +112,7 @@ The homepage introduces Gamo Studios as a **unified Christian music and communit
 ### Sponsored content rules
 - Sponsored placements use a visible, consistent "Sponsored" label (not color alone) and must remain visually distinct from editorial picks.
 - Sponsored density is capped so the homepage still reads as an art-directed mission showcase, not an ad wall.
-- Pill selectors are accessible tablists (arrow-key navigation, `aria-selected`) styled as terracotta-filled pills.
+- Selectors are accessible tablists (arrow-key navigation, `aria-selected`) as small-radius rectangles, not pills (see §11; the current pill styling is being migrated).
 
 
 ## 10. UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality
@@ -141,3 +141,18 @@ Apply these rules by default across all Gamo Studios design, redesign, and imple
 7. **Mandatory 8-Point Design Review**:
    - Verify before completion: (1) faithful reference adherence, (2) zero unrequested additions, (3) no unnecessary text/repetition, (4) no excessive cards/icons/decorations, (5) one clear primary page purpose, (6) intentional whitespace, (7) mature commercial product quality, and (8) maximum simplification without losing functionality.
 
+## 11. Clean layout rules (owner direction, 2026-11-18)
+
+The owner rejects the layout most generated interfaces default to: **a pill or small uppercase label, then a big heading, then a grey subheading, then a button, then a grid of identical rounded cards, each with its own pill label.** Reference examples the owner called clean: spacex.com (a heading, one short paragraph, one square outlined button over a single large image) and tesla.com (photo-led cards with the title on the image, a price line and square buttons, plus flat blocks of different sizes: heading, one sentence, one button, a small image). These rules apply to every page of every app and to `packages/ui`.
+
+1. **No eyebrows, no pills above headings.** Do not put a small uppercase line, label, chip or pill above a heading (page, section, hero or card). The first thing a visitor reads is the heading. This includes the `eyebrow` slot or prop of `Section`, `PageHero`, `CtaInvitation`, `LinkCard` and `MediaCard`.
+2. **A heading, and a subheading only where the heading alone is unclear.** At most one short supporting line, usually none. Never a default stack of label, heading, intro paragraph and button. If you add a second line, say what it adds.
+3. **Buttons and tabs are rectangles.** Use one small corner radius token (a `--radius-button`, about 4 to 6 px). Never `rounded-full` or `rounded-pill` on a button, link, tab, selector or chip. One main action per block (solid); a second action only when it is a different task (outlined, same shape). No arrow glyph is required.
+4. **Cards are not a wall of identical tiles.** Prefer photo-led cards where the title sits on or directly under the image and the whole card is the link, and flat blocks (heading, one sentence, one button, optionally a small image). Vary scale and shape between cards; a row of six matching boxes is a smell. No category tag on a card: the title and photo say what it is.
+5. **Restraint.** One strong image or one strong heading per section; few colours; no decorative gradients, glows, icons or ghost words. Text over a photo uses the scrim token. Spacing and type do the work that borders and boxes do in generic layouts.
+6. **Required labels stay, but quiet.** Labels the copy rules require (Sample, Proposal, Sponsored), status chips in admin tables, form legends, breadcrumbs and navigation are information, not decoration: keep them, small, rectangular and used only where a rule requires them.
+7. **When unsure, remove it.** Before finishing a screen, delete the one element you would miss least, then check again.
+
+**Review test:** cover the page with your hand except for one section. If the first thing you see is a small label rather than the heading, or if two or more cards look the same, the section fails.
+
+**Status:** adopted 2026-11-18. Existing components still carry the old pattern (eyebrow slots, `Badge` pills on cards, pill-shaped `ButtonLink`, the pill path chooser, identical card grids). They are migrated home page first, then the shared components so every page follows (`docs/FRONTEND_ARCHITECTURE.md`). A ratcheting guard that counts eyebrow slots and pill radii in `apps/*` and `packages/ui` will be added with that migration. New and changed UI must follow these rules now.

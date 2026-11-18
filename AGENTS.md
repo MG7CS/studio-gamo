@@ -27,7 +27,7 @@ Financial sustainability is important, but it is subordinate to the mission.
 2. `README.md` — product and scope
 3. `docs/ARCHITECTURE.md` — what the code does today
 4. `docs/FRONTEND_ARCHITECTURE.md` — shared front-end rules, rationale and gaps
-5. `DESIGN.md` — design system
+5. `DESIGN.md` — design system (§11: the owner's clean layout rules; read before any UI work)
 6. `SECURITY.md` — mandatory gates
 7. `ROADMAP.md` — done, now, next, production gate
 8. `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md` and `docs/superpowers/plans/2026-11-16-forms-emails-invoices.md` — forms, emails, invoices (cleanup two)
@@ -142,6 +142,17 @@ Composition targets for the global homepage below the hero are in `DESIGN.md` ("
 14. **Photos live in shared frames.** One calm frame language (owner decision 2026-11-16): every photo is a rounded rectangle with the single `rounded-card` radius and one of four fixed ratios (`portrait` 4/5, `landscape` 3/2, `wide` 21/8, `square` 1/1), rendered only by the shared `Frame` component (`packages/ui/src/components/media/`), with clusters built by the shared `PhotoGrid`. Apps never set a photo's radius, mask, aspect or crop themselves; the organic mask utilities (`mask-arch`, `mask-leaf`, `mask-pebble`) are retired. Focal points come from the photo catalog. A guard test fails on any `mask-*` or custom radius/aspect on a photo in `apps/*`.
 
 Existing code that predates these rules (app knowledge in `SiteHeader`/`SiteFooter`/`ProgramLayout`/`sites.ts`, per-app heroes and cards, raw values) is migrated before the public UI/UX polish pass; see the gap list in `docs/FRONTEND_ARCHITECTURE.md`. All specialized agents (`frontend-builder`, `design-lead`, `ui-reviewer`) apply these rules.
+
+## Clean visual style (permanent; owner direction 2026-11-18)
+
+Full rules, reference examples and review test: `DESIGN.md` §11. In short, for every page, in every app and in `packages/ui`:
+
+- **No eyebrow labels and no pills above headings or card titles.** Start with the heading.
+- **A heading, and a subheading only where the heading alone is unclear** (one short line at most). Not the default label, heading, intro, button stack.
+- **Buttons, links, tabs and chips are small-radius rectangles**, never `rounded-full` or `rounded-pill`. One main action per block.
+- **Cards are photo-led and vary in size**, with the whole card as the link and no category tag. Do not build a wall of identical rounded tiles.
+- Required labels (Sample, Proposal, Sponsored), admin status chips, legends and breadcrumbs are information and stay, quietly.
+- **When unsure, remove the element.** Reviewers (`ui-reviewer`, `design-lead`) flag every violation. Existing components still carry the old pattern and are being migrated (home page first, then the shared components); do not copy it into new work.
 
 ## Permanent OpenAPI-first HTTP contract rule
 

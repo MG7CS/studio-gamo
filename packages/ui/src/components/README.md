@@ -112,3 +112,7 @@ on `FieldShell`.
 `ButtonLink`, `EditorialHeading`, `Photo`, `ResponsivePicture`, `Icon`, `StatusPill`,
 `EditorialFeatureCard`, `CtaInvitation`, `FaqAccordion`, `AudienceSwitch`; shell (`BaseLayout`,
 `ProgramLayout`, `SiteHeader`, `SiteFooter`, `ErrorPage`, `Logo`); `forms/`, `dashboard/`, `legal/`.
+
+## Clean style (owner, 2026-11-18; `DESIGN.md` §11)
+
+New work must not use the `eyebrow` slot or prop (`Section`, `PageHero`, `CtaInvitation`, `LinkCard`, `MediaCard`), a `Badge` as a card label, or pill-shaped buttons and tabs (`ButtonLink`, `SubmitButton`, selectors). Those parts still exist and are being migrated (home page first); keep `Badge` only for labels the copy rules require (Sample, Proposal, Sponsored). Buttons move to a single small-radius token; cards move toward photo-led variants of different sizes.

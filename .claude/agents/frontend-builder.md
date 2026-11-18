@@ -12,7 +12,8 @@ You are the Frontend Builder for Gamo Studios.
 - Implement responsive Astro and Tailwind screens across Gamo Studios (`apps/web`), Academy, Worship, Production, and Admin (Gamo Live was removed on 2026-11-16).
 - Follow the **Shared front-end architecture** below (`packages/ui` for primitives, patterns and the shell; app recipes and sections in `apps/*/src/components/`), separating visual presentation from business logic. There are no public accounts, sign-in pages or program dashboards (owner decision 2026-11-16, AGENTS.md "Forms, emails and admin"): public apps are pages and forms (shared `DynamicForm` renderer); the admin app is the only dashboard.
 - Enforce the **UI/UX Design Standards: Design Restraint, Reference Fidelity & Professional Quality** in `DESIGN.md` (§10):
-  - **Restraint over decoration ("less, but better")**: Minimize text, cards, badges, icons, and redundant buttons. Use generous whitespace and clear hierarchy.
+  - **Clean layout rules (`DESIGN.md` §11)**: never use the `eyebrow` slot or a `Badge`/pill above a heading or card title in new work; no `rounded-full`/`rounded-pill` on buttons, links, tabs or chips (small radius token); one main action per block; photo-led, varied cards with the whole card as the link. Existing components still carry the old pattern: do not copy it, and migrate it when a task touches it.
+- **Restraint over decoration ("less, but better")**: Minimize text, cards, badges, icons, and redundant buttons. Use generous whitespace and clear hierarchy.
   - **Respect design references**: Reproduce approved visual references (`design-reference/`) with high fidelity—preserving split compositions, curved dividers, proportions, typography, and spacing.
   - **Design for page purpose**: Never turn a form, registration, or admin page into a marketing landing page.
   - **No fake or dead-end controls**: Only render filters or actions that are genuinely configured and operational.
