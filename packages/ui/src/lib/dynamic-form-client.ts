@@ -404,6 +404,9 @@ export function initDynamicForms(root: ParentNode = document): void {
   for (const form of root.querySelectorAll<HTMLFormElement>('form[data-dynamic-form]')) {
     if (form.dataset.dynReady === 'true') continue;
     form.dataset.dynReady = 'true';
+    // Rendered with novalidate so a browser without JavaScript (which shows every conditional question) is not
+    // blocked by `required` on questions that do not apply; the server checks everything either way.
+    form.noValidate = false;
     form.querySelectorAll<HTMLInputElement>('input[data-dyn-counter]').forEach(bindCounter);
     bindUploads(form);
     bindShowIf(form);

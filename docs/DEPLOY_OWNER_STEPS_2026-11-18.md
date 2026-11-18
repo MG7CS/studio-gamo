@@ -2,7 +2,7 @@
 
 Agents do none of this (AGENTS.md "External operations"). Run from the repository root of the branch `cleanup/forms-emails-invoices-verify` after it is merged or checked out. Details and reasons: `docs/RUNBOOK.md` §1, §3, §4, §13. Do **preview first** (public apps only; admin has no preview route), then production.
 
-**What ships.** The admin screens, the account-free public apps, the public Worship and Production forms (`/worship/apply`, `/worship/request`, `/production/apply`, `/production/request` on gamostudio.org) and the emailed offer page. The contact and partner-interest pages show their forms too. Known gap: the Worship application's photo upload needs JavaScript (`docs/BUILD_LOG.md` 2026-11-18).
+**What ships.** The admin screens, the account-free public apps, the public Worship and Production forms (`/worship/apply`, `/worship/request`, `/production/apply`, `/production/request` on gamostudio.org) and the emailed offer page. The contact and partner-interest pages show their forms too. Photos and PDFs also upload without JavaScript; videos need JavaScript or the link question.
 
 ## 0. Before anything
 

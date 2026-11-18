@@ -5,6 +5,9 @@ import type { GamoEnv } from '@gamo/config/env';
 import { TURNSTILE_DUMMY_TOKEN } from '../security/turnstile.ts';
 import { seedDefaultForms } from './seeds.ts';
 import { FormsService } from './service.ts';
+import { UploadService } from './uploads.ts';
+import { FakeBucket, fakeImages, withHeader } from './uploads-test-support.ts';
+import { parseFormSchema } from './schema.ts';
 import { FORM_TURNSTILE_ACTION, readSentReference, submitFormPage, UPLOAD_TOKEN_FIELD } from './http.ts';
 
 const NOW = 1_900_000_000;
@@ -207,4 +210,205 @@ test('an unknown form is not_found and a closed form is closed', async () => {
 test('the form and the guard agree on one Turnstile action, and the token field is not an answer', () => {
   assert.match(FORM_TURNSTILE_ACTION, /^[A-Za-z0-9_-]{1,32}$/);
   assert.equal(UPLOAD_TOKEN_FIELD, 'upload_session_token');
+});
+
+// ---- files posted inside the form (a browser without JavaScript) -----------------------------------------
+
+async function withPhotoForm() {
+  const s = await setup();
+  const forms = new FormsService(s.d1, { now: NOW });
+  const form = await forms.create({
+    slug: 'photo-contact',
+    program: 'web',
+    kind: 'contact',
+    title: 'Photo contact',
+    staffId: 'staff_1',
+    now: NOW,
+  });
+  const { revision } = await forms.saveDraft({
+    formId: form.id,
+    expectedRevision: form.revision,
+    staffId: 'staff_1',
+    now: NOW,
+    schema: parseFormSchema({
+      sections: [
+        {
+          id: 'main',
+          title: 'Send',
+          questions: [
+            { id: 'name', type: 'short_text', label: 'Name', required: true, bind: 'contact.name' },
+            {
+              id: 'email',
+              type: 'short_text',
+              label: 'Email',
+              required: true,
+              bind: 'contact.email',
+              validation: { kind: 'email' },
+            },
+            {
+              id: 'photo',
+              type: 'file_upload',
+              label: 'Photo',
+              accept: ['image'],
+              maxFiles: 1,
+              maxMb: 10,
+              required: true,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+  await forms.publish({
+    formId: form.id,
+    expectedRevision: revision,
+    changeNote: 'First.',
+    staffId: 'staff_1',
+    now: NOW,
+  });
+  const bucket = new FakeBucket();
+  const images = fakeImages();
+  const uploads = new UploadService(s.d1, bucket, { secret: SECRET, images: images.binding, now: () => NOW });
+  return { ...s, bucket, uploads, images };
+}
+
+function multipart(
+  fields: Record<string, string>,
+  files: { field: string; name: string; type: string; bytes: Uint8Array }[],
+  ip = '203.0.113.21',
+) {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
+  form.append('cf-turnstile-response', TURNSTILE_DUMMY_TOKEN);
+  for (const f of files)
+    form.append(`${f.field}.file`, new File([f.bytes as Uint8Array<ArrayBuffer>], f.name, { type: f.type }));
+  return new Request('https://gamostudio.org/contact', {
+    method: 'POST',
+    headers: { 'cf-connecting-ip': ip },
+    body: form,
+  });
+}
+
+const TEXT = {
+  name: 'Sample Visitor',
+  email: 'visitor@example.org',
+  idempotency_key: 'key-ffffffffffffffff',
+};
+
+async function send(s: Awaited<ReturnType<typeof withPhotoForm>>, request: Request) {
+  return submitFormPage({
+    slug: 'photo-contact',
+    env: s.env,
+    db: s.d1,
+    request,
+    locals: {},
+    uploads: s.uploads,
+    adminUrlFor,
+    now: NOW,
+    email: s.email,
+  });
+}
+
+test('a photo posted inside the form is checked, stored and attached to the submission', async () => {
+  const s = await withPhotoForm();
+  const out = await send(
+    s,
+    multipart(TEXT, [
+      { field: 'photo', name: 'me.webp', type: 'image/webp', bytes: withHeader('webp', 4000) },
+    ]),
+  );
+  assert.equal(out.kind, 'sent');
+  assert.equal(s.count('form_submissions'), 1);
+  const upload = s.d1.sqlite
+    .prepare('SELECT status, submission_id, kind, r2_key FROM form_uploads')
+    .get() as {
+    status: string;
+    submission_id: string | null;
+    kind: string;
+    r2_key: string;
+  };
+  assert.equal(upload.status, 'verified');
+  assert.equal(upload.kind, 'image');
+  assert.ok(upload.submission_id, 'attached to the submission');
+  assert.match(upload.r2_key, /^forms\/submissions\//);
+  assert.ok(s.images.seen.outputs.length > 0, 'the photo was re-encoded');
+});
+
+test('a video, a disguised file and an oversized photo are refused next to their question; nothing is stored', async () => {
+  const s = await withPhotoForm();
+  const cases: [string, { name: string; type: string; bytes: Uint8Array }, RegExp][] = [
+    ['video', { name: 'clip.mp4', type: 'video/mp4', bytes: withHeader('mp4', 2000) }, /JavaScript/],
+    [
+      'disguised',
+      { name: 'x.webp', type: 'image/webp', bytes: withHeader('html', 2000) },
+      /couldn't be accepted/,
+    ],
+    [
+      'too big',
+      { name: 'big.webp', type: 'image/webp', bytes: withHeader('webp', 10 * 1024 * 1024 + 1) },
+      /10 MB/,
+    ],
+    ['wrong type', { name: 'a.zip', type: 'application/zip', bytes: new Uint8Array(100) }, /isn't accepted/],
+  ];
+  for (const [label, file, message] of cases) {
+    const out = await send(
+      s,
+      multipart({ ...TEXT, idempotency_key: `key-${label.replace(/\W/g, '')}-aaaaaaaaaa` }, [
+        { field: 'photo', ...file },
+      ]),
+    );
+    assert.equal(out.kind, 'redisplay', label);
+    if (out.kind !== 'redisplay') return;
+    assert.equal(out.status, 422, label);
+    assert.ok(
+      out.errors.some((e) => e.questionId === 'photo' && message.test(e.message)),
+      label,
+    );
+  }
+  assert.equal(s.count('form_submissions'), 0);
+});
+
+test('a photo is kept when the rest of the form has a mistake, so it is not asked for again', async () => {
+  const s = await withPhotoForm();
+  const out = await send(
+    s,
+    multipart({ ...TEXT, email: 'not-an-email' }, [
+      { field: 'photo', name: 'me.webp', type: 'image/webp', bytes: withHeader('webp', 3000) },
+    ]),
+  );
+  assert.equal(out.kind, 'redisplay');
+  if (out.kind !== 'redisplay') return;
+  assert.ok(out.errors.some((e) => e.questionId === 'email'));
+  assert.equal(out.uploads.photo?.length, 1, 'the finished photo is shown again');
+  assert.equal(out.uploadTokens.length, 1, 'with the token that proves it is theirs');
+
+  // The retry carries the finished photo by id and token, no file at all.
+  const again = await send(
+    s,
+    multipart(
+      {
+        ...TEXT,
+        'photo.upload': out.uploads.photo![0]!.uploadId,
+        [UPLOAD_TOKEN_FIELD]: out.uploadTokens[0]!,
+      },
+      [],
+    ),
+  );
+  assert.equal(again.kind, 'sent');
+  assert.equal(s.count('form_submissions'), 1);
+});
+
+test('a post far larger than two photos is refused with a message about JavaScript', async () => {
+  const s = await withPhotoForm();
+  const out = await send(
+    s,
+    multipart(TEXT, [
+      { field: 'photo', name: 'huge.webp', type: 'image/webp', bytes: new Uint8Array(25 * 1024 * 1024) },
+    ]),
+  );
+  assert.equal(out.kind, 'redisplay');
+  if (out.kind !== 'redisplay') return;
+  assert.equal(out.status, 413);
+  assert.match(out.summaryExtra[0]!.message, /JavaScript/);
+  assert.equal(s.count('form_uploads'), 0);
 });

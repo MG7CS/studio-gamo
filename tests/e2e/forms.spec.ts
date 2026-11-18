@@ -199,3 +199,72 @@ test('the partner interest form works, also with JavaScript turned off', async (
     await context.close();
   }
 });
+
+/** A real 1 × 1 PNG: the photo a visitor without JavaScript sends inside the form. */
+const PNG_1X1 = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+async function fillApplication(page: Page, email: string) {
+  await field(page, 'name').fill('Sample Musician');
+  await field(page, 'email').fill(email);
+  await field(page, 'phone').fill('555-0100');
+  await field(page, 'city').fill('Phoenix');
+  await page.getByLabel('18 or older').check();
+  await page.getByLabel('Keys').check();
+  await page.getByLabel('No', { exact: true }).first().check();
+  await field(page, 'experience').fill('Six years leading keys at a sample church.');
+  await field(page, 'home_church').fill('Sample Church');
+  await field(page, 'reference_name').fill('Sample Reference');
+  await field(page, 'reference_relationship').fill('Worship leader');
+  await field(page, 'reference_contact').fill('reference@example.org');
+  await page.getByLabel(/This person has agreed that Gamo Studios may contact them/).check();
+  await page.getByLabel('Send a link').check();
+  await field(page, 'video_link').fill('https://youtu.be/dQw4w9WgXcQ');
+  await page.getByLabel(/I confirm that my answers are true/).check();
+}
+
+test('a Worship application with a photo works without JavaScript: the photo goes up inside the form', async ({
+  browser,
+}) => {
+  const { context, page } = await visitor(browser, false);
+  await page.goto(`${WEB}/worship/apply`);
+  await fillApplication(page, `apply-${unique()}@example.org`);
+  await page.locator('input[type="file"][name="photo.file"]').setInputFiles({
+    name: 'me.png',
+    mimeType: 'image/png',
+    buffer: PNG_1X1,
+  });
+  await page.getByRole('button', { name: 'Send' }).click();
+
+  await expect(page).toHaveURL(/\/worship\/apply\?sent=/);
+  await expect(page.locator('[data-form-reference]')).toHaveText(/^GW-\d{4}-\d{4}$/);
+  await context.close();
+});
+
+test('without JavaScript a video file is refused with the link alternative named, and the rest is kept', async ({
+  browser,
+}) => {
+  const { context, page } = await visitor(browser, false);
+  await page.goto(`${WEB}/worship/apply`);
+  const email = `video-${unique()}@example.org`;
+  await fillApplication(page, email);
+  await page.getByLabel('Upload a file').check();
+  await page.locator('input[type="file"][name="photo.file"]').setInputFiles({
+    name: 'me.png',
+    mimeType: 'image/png',
+    buffer: PNG_1X1,
+  });
+  await page.locator('input[type="file"][name="video_file.file"]').setInputFiles({
+    name: 'clip.mp4',
+    mimeType: 'video/mp4',
+    buffer: Buffer.alloc(2000, 1),
+  });
+  await page.getByRole('button', { name: 'Send' }).click();
+
+  await expect(page).toHaveURL(`${WEB}/worship/apply`);
+  await expect(page.locator('[data-error-summary]')).toContainText('Videos need JavaScript');
+  await expect(field(page, 'email')).toHaveValue(email);
+  await context.close();
+});

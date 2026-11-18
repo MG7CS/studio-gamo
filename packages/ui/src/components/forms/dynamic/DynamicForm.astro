@@ -3,7 +3,10 @@
  * DynamicForm — renders a published form schema (`FormSchema`) as one accessible, server-rendered HTML
  * form from the shared primitives. It works without JavaScript: every section and question is rendered
  * (the server drops answers hidden by show-if), file questions are native inputs, and errors come back as a
- * summary plus per-field messages. With JavaScript (`lib/dynamic-form-client.ts`, bundled, no inline script)
+ * summary plus per-field messages. The form is rendered `novalidate` (a no-JavaScript browser shows every
+ * conditional question, so native `required` would block questions that do not apply; the server checks
+ * everything). Photos and PDFs picked without JavaScript are posted inside the form and stored by the server;
+ * videos need JavaScript or the link question. With JavaScript (`lib/dynamic-form-client.ts`, bundled, no inline script)
  * questions hide and show live, character counters appear and files upload in chunks.
  *
  * Props
@@ -112,6 +115,7 @@ const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.sh
   action={action}
   enctype={method === 'post' ? (enctype ?? (hasFiles ? 'multipart/form-data' : undefined)) : undefined}
   data-dynamic-form
+  novalidate
   data-form-slug={formSlug}
   class:list={['space-y-10', className]}
 >
