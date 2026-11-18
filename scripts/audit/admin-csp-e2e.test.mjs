@@ -88,11 +88,14 @@ export function cspViolations(html, csp) {
   return found;
 }
 
+// The workspace pages act as a staff member, so the crawl signs in the way staff do (a throwaway account,
+// seeded below; the hash is of a password used only by this test). Break-glass alone no longer opens them.
+let staffCookies = '';
 const get = async (path, authed = true) => {
   const w = await mf.getWorker('admin');
   return w.fetch(`http://127.0.0.1${path}`, {
     redirect: 'manual',
-    headers: authed ? { 'x-admin-key': TOKEN } : {},
+    headers: authed ? { 'x-admin-key': TOKEN, cookie: staffCookies } : {},
   });
 };
 
@@ -109,6 +112,32 @@ try {
       if (sql) await db.exec(sql.replace(/\n/g, ' '));
     }
   }
+
+  await db.exec(
+    "INSERT INTO users (id, email, verified_email_at, status, created_at, display_name) VALUES ('usr_csp_staff', 'csp.e2e@example.invalid', 1, 'active', 1, 'Sample Staff (csp)')",
+  );
+  await db.exec(
+    "INSERT OR IGNORE INTO roles (id, code, description) VALUES ('role_superadmin', 'superadmin', 'Global system administrator')",
+  );
+  await db.exec(
+    "INSERT INTO user_roles (id, user_id, role_id, scope_type, scope_id, created_at) VALUES ('ur_csp', 'usr_csp_staff', (SELECT id FROM roles WHERE code = 'superadmin'), NULL, NULL, 1)",
+  );
+  await db.exec(
+    "INSERT INTO admin_credentials (user_id, password_hash, must_change_password, failed_attempts, locked_until, updated_at, created_at) VALUES ('usr_csp_staff', 'pbkdf2_sha256$100000$180d154249dc246ddf3e52cd6bfac055$c1265dfc3f943ef1f75fdcfa7c67728d2e4feab54e5bb9b246a2b0383ce99dbd', 0, 0, NULL, 1, 1)",
+  );
+  const login = await (
+    await mf.getWorker('admin')
+  ).fetch('http://127.0.0.1/__admin_auth/login', {
+    method: 'POST',
+    redirect: 'manual',
+    headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'http://127.0.0.1' },
+    body: new URLSearchParams({ email: 'csp.e2e@example.invalid', password: 'Csp-E2E-Password-2026' }),
+  });
+  assert.equal(login.status, 303, 'the seeded staff account signs in');
+  staffCookies = login.headers
+    .getSetCookie()
+    .map((c) => c.split(';')[0])
+    .join('; ');
 
   // The checker itself: it must reject what the CSP would block and accept what it allows.
   const nonceCsp = "script-src 'self' 'nonce-abc123abc123abc123'";
