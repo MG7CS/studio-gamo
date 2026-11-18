@@ -32,6 +32,7 @@ Nothing below is done by agents. Before real use:
 - Set production environment secrets (per `docs/RUNBOOK.md` §3) and complete the owner actions in `docs/RUNBOOK.md` §12–§13.
 - Accountant review of invoice, payout and administrative-line treatment; worker classification review.
 - Safeguarding policy for minors before real Academy bookings.
+- At the first public launch, end the "no old-URL redirects" exception in `AGENTS.md` (DECISIONS 2026-11-18): restore redirects for any address real people or search engines could have used.
 
 ## Routine for each change
 

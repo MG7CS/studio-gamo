@@ -16,14 +16,14 @@ const APPS = {
   production: 'http://127.0.0.1:4325',
 } as const;
 /**
- * Pages always checked even if a sitemap drops them. Public accounts were removed (2026-11-16); Worship and
- * Production keep their public apply/request placeholder pages until the forms engine lands.
+ * Pages always checked even if a sitemap drops them. Public accounts were removed (2026-11-16); the apply and
+ * request forms live on the main site, so they are in web's sitemap and no program app has pages of its own for them.
  */
 const EXTRA_PAGES: Record<keyof typeof APPS, string[]> = {
   web: [],
-  worship: ['/apply', '/request'],
+  worship: [],
   academy: [],
-  production: ['/apply', '/request'],
+  production: [],
 };
 const LOCAL_ORIGIN = /^http:\/\/127\.0\.0\.1:432[1-6]$/;
 
