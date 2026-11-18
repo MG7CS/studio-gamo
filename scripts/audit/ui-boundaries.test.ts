@@ -310,7 +310,6 @@ const ROUND = /\brounded-(?:pill|full)\b/g;
  * Buttons, links, tabs and chips use `rounded-button` (DESIGN.md section 11). Numbers may only go down.
  */
 const ROUND_BASELINE: Record<string, number> = {
-  'apps/academy/src/components/home/AcademyHero.astro': 2,
   'apps/academy/src/components/home/FamilyJourney.astro': 1,
   'apps/production/src/components/production/ChecklistPreview.astro': 1,
   'apps/production/src/components/production/ConsultationRequest.astro': 1,

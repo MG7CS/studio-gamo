@@ -1,0 +1,48 @@
+---
+/**
+ * LinkRows: links as flat rows between hairlines, each a title, one line under it and an arrow (DESIGN.md section 11).
+ * Use it instead of a grid of identical cards when the items are simply ways to go somewhere. The whole row is the link.
+ *
+ * Usage:
+ *   <LinkRows items={[{ href: '/piano', title: 'Piano', body: 'First songs in weeks.', meta: 'Ages 6 and up' }]} />
+ *
+ * Props: items, headingLevel (h2 to h4, default h3), columns (1 or 2, default 2: two columns from 768 px), class.
+ */
+import Icon from '../Icon.astro';
+
+export interface LinkRow {
+  href: string;
+  title: string;
+  /** One sentence under the title. */
+  body?: string;
+  /** Small muted line under the sentence (for example an age range). */
+  meta?: string;
+}
+interface Props {
+  items: LinkRow[];
+  headingLevel?: 'h2' | 'h3' | 'h4';
+  columns?: 1 | 2;
+  class?: string;
+}
+const { items, headingLevel: Heading = 'h3', columns = 2, class: className } = Astro.props;
+---
+
+<ul class:list={['grid gap-x-12 border-b border-border', columns === 2 && 'md:grid-cols-2', className]}>
+  {items.map((item) => (
+    <li class="border-t border-border">
+      <a href={item.href} class="group flex items-start justify-between gap-6 py-6">
+        <span class="min-w-0">
+          <Heading class="text-xl font-semibold tracking-tight text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+            {item.title}
+          </Heading>
+          {item.body && <p class="mt-1 text-body text-fg-muted">{item.body}</p>}
+          {item.meta && <p class="mt-1 text-small text-fg-muted">{item.meta}</p>}
+        </span>
+        <Icon
+          name="arrow"
+          class="mt-1.5 h-5 w-5 shrink-0 text-action transition-transform group-hover:translate-x-1"
+        />
+      </a>
+    </li>
+  ))}
+</ul>

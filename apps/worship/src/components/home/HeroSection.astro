@@ -1,11 +1,9 @@
 ---
 import { APPLY_HREF, REQUEST_HREF } from '../../site.config';
-/** Worship landing hero: shared SplitHero with the editorial headline, photo mosaic and a Sample match preview. */
+/** Worship landing hero: shared SplitHero with the editorial headline and the photo mosaic (nothing over the photos). */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
 ---
 
 <SplitHero class="flex min-h-dvh flex-col justify-center overflow-hidden">
@@ -43,26 +41,5 @@ import Icon from '@studio-gamo/ui/components/Icon.astro';
         ]}
       />
     </div>
-
-    <FloatingPreviewCard
-      title="Sunday match"
-      class="relative z-10 -mt-14 ms-2 w-11/12 max-w-xs sm:absolute sm:start-0 sm:bottom-8 sm:mt-0"
-    >
-      <div>
-        <p class="font-semibold">Riverside Fellowship</p>
-        <p class="text-small text-fg-muted">Sun · 8:00 AM call · Contemporary</p>
-      </div>
-      <ul class="space-y-2 text-small">
-        <li class="flex items-center gap-2">
-          <Icon name="piano" class="h-4 w-4 text-action" /> Keys — <span class="font-medium">Ana R.</span>
-          <span class="ms-auto text-caption text-success">Primary</span>
-        </li>
-        <li class="flex items-center gap-2">
-          <Icon name="repeat" class="h-4 w-4 text-action" /> Standby —{' '}
-          <span class="font-medium">David K.</span>
-          <span class="ms-auto text-caption text-fg-muted">Set list shared</span>
-        </li>
-      </ul>
-    </FloatingPreviewCard>
   </div>
 </SplitHero>

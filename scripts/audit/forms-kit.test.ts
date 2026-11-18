@@ -37,7 +37,6 @@ const PRIMITIVES = [
   'ChoiceItem.astro',
   'Checkbox.astro',
   'ChoiceCard.astro',
-  'FormComingSoon.astro',
   ...FIELD_PRIMITIVES,
   ...GROUP_PRIMITIVES,
 ];
@@ -231,22 +230,13 @@ test('every form component uses semantic tokens only: no base palette names, arb
   }
 });
 
-test('FormComingSoon is shared (no app copies); the apply and request forms live only on the main site', () => {
+test('the apply and request forms live only on the main site', () => {
   for (const app of ['worship', 'production']) {
-    assert.ok(!existsSync(`apps/${app}/src/components/FormComingSoon.astro`), `${app} copy removed`);
     for (const page of ['apply', 'request']) {
       assert.ok(!existsSync(`apps/${app}/src/pages/${page}.astro`), `${app}/${page} page is gone`);
       assert.ok(existsSync(`apps/web/src/pages/${app}/${page}.astro`), `web hosts /${app}/${page}`);
     }
   }
-  const text = markup('FormComingSoon.astro');
-  assert.ok(
-    !/gamostudio|Worship|Production|Academy/.test(text),
-    'no app or contact copy in the shared piece',
-  );
-  assert.match(source('FormComingSoon.astro'), /titleAs: TitleTag = 'h1'/, 'owns the page h1 by default');
-  assert.match(text, /<TitleTag\b/, 'heading level from titleAs');
-  assert.match(text, /encodeURIComponent\(subject\)/);
 });
 
 const UI = 'packages/ui/src/components';

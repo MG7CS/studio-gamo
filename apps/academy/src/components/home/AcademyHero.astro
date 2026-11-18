@@ -1,15 +1,11 @@
 ---
 /**
  * Academy landing hero: SplitHero with the approved headline (the page's <h1>), the photo cluster (shared PhotoGrid trio)
- * with a Sample next-lesson preview, and the quick instrument picker below.
+ * (no widget over the photos, no row of tiles below).
  */
 import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
-import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
-import Container from '@studio-gamo/ui/components/layout/Container.astro';
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import { instruments } from '../../data/instruments';
 ---
 
 <header class="page-intro-space relative overflow-hidden">
@@ -46,39 +42,6 @@ import { instruments } from '../../data/instruments';
           },
         ]}
       />
-      <FloatingPreviewCard
-        title="Next lesson"
-        class="mt-4 w-full max-w-xs gap-2 p-4 shadow-float xl:absolute xl:start-4 xl:-bottom-6 xl:mt-0 xl:w-64"
-      >
-        <p class="font-bold">Guitar · Week 3</p>
-        <p class="flex items-center gap-1.5 text-small text-fg-muted">
-          <Icon name="clock" class="size-4" /> Saturday · 30 min
-        </p>
-        <div class="h-1.5 overflow-hidden rounded-pill bg-surface-inset" aria-hidden="true">
-          <div class="h-full w-2/5 rounded-pill bg-action"></div>
-        </div>
-      </FloatingPreviewCard>
     </div>
   </SplitHero>
-
-  <Container class="relative mt-7">
-    <nav aria-label="Pick an instrument">
-      <p class="mb-3 text-small font-semibold text-fg-muted">What would you like to play?</p>
-      <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {instruments.map((i) => (
-          <li>
-            <a
-              href={`/instruments/${i.slug}`}
-              class="group flex items-center gap-3 rounded-2xl border border-border bg-surface-raised p-3 transition hover:shadow-float"
-            >
-              <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-surface-inset text-action-strong transition group-hover:bg-action group-hover:text-on-action">
-                <Icon name={i.icon} class="size-5" />
-              </span>
-              <span class="text-small leading-tight font-semibold">{i.name}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  </Container>
 </header>

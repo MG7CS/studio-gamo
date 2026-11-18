@@ -2,11 +2,8 @@
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import Card from '@studio-gamo/ui/components/content/Card.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
+import LinkRows from '@studio-gamo/ui/components/content/LinkRows.astro';
 import HeroPhoto from '../../components/shared/HeroPhoto.astro';
-import InstrumentCard from '../../components/shared/InstrumentCard.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import { instruments, plannedInstruments } from '../../data/instruments';
@@ -26,24 +23,18 @@ import { instruments, plannedInstruments } from '../../data/instruments';
     <HeroPhoto slot="media" photo="youngPianist" />
   </PageHero>
   <Container class="pb-16 lg:pb-24">
-    <FeatureGrid as="ul" max={3}>
-      {instruments.map((i) => (
-        <InstrumentCard instrument={i} headingLevel="h2" />
-      ))}
-    </FeatureGrid>
-    <Card tone="inset" padding="lg" class="mt-10">
-      <h2 class="section-subheading">Additional instruments</h2>
-      <p class="mt-2 text-fg-muted">
-        These instruments are added as specialized instructors join local cohorts.
-      </p>
-      <ul class="mt-5 flex flex-wrap gap-2">
-        {plannedInstruments.map((p) => (
-          <li>
-            <Badge>{p}</Badge>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    <LinkRows
+      headingLevel="h2"
+      items={instruments.map((i) => ({
+        href: `/instruments/${i.slug}`,
+        title: i.name,
+        body: i.blurb,
+        meta: i.ages,
+      }))}
+    />
+    <p class="mt-8 text-body text-fg-muted">
+      More planned as specialized instructors join local cohorts: {plannedInstruments.join(' · ')}.
+    </p>
   </Container>
   <CtaInvitation
     title="Find a lesson path that fits."
