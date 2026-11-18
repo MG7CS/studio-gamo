@@ -7,7 +7,7 @@ import AdminLayout from '../../components/AdminLayout.astro';
 import FormsTable from '../../components/forms-builder/FormsTable.astro';
 import OutcomeNotice from '../../components/forms-builder/OutcomeNotice.astro';
 import { BTN_PRIMARY, HELP } from '../../components/forms-builder/ui';
-import { FormsService } from '@gamo/domain/forms';
+import { FormsService, seedDefaultForms } from '@gamo/domain/forms';
 import { adminPage, type AdminContext } from '../../lib/admin-page';
 import { noticeFrom } from '../../lib/flash';
 import { handleBuilderPost } from '../../lib/forms-builder/page';
@@ -27,7 +27,17 @@ const posted = await handleBuilderPost(admin, Astro.request, null, ['form.close'
 if (posted?.response) return posted.response;
 if (posted?.failed) Astro.response.status = posted.failed.status;
 
-const forms = await new FormsService(admin.db).listForms();
+let forms = await new FormsService(admin.db).listForms();
+if (forms.length === 0 && Astro.request.method === 'GET') {
+  // First visit: publish the default forms (Worship and Production apply and request, contact, partner
+  // interest) once, so the public pages exist. Staff edit them here; a second visitor racing this is harmless.
+  try {
+    await seedDefaultForms(admin.db, Math.floor(Date.now() / 1000));
+  } catch {
+    console.warn('[admin.forms] seeding the default forms did not finish');
+  }
+  forms = await new FormsService(admin.db).listForms();
+}
 const notice = noticeFrom(Astro.url, FORM_NOTICES);
 ---
 

@@ -5,7 +5,6 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { AstroGlobal } from 'astro';
 import { loadOfferPage, type OfferPageData } from '../../apps/web/src/lib/offer-page.ts';
 import {
   approveApplication,
@@ -26,6 +25,7 @@ import {
   seedSubmission,
 } from '../../packages/domain/src/worship/test-support.ts';
 
+type AstroGlobal = Parameters<typeof loadOfferPage>[0];
 const ORIGIN = 'https://gamostudio.org';
 const staffId = 'staff_1';
 
@@ -198,12 +198,13 @@ test('a withdrawn offer through the real withdraw path is unavailable', async ()
 test('a cross-origin or cross-site POST is refused (403) before the token is looked at', async () => {
   const s = await scenario();
   const before = rows(s);
-  for (const headers of [
+  const refused: Record<string, string>[] = [
     { origin: 'https://evil.example' },
     { 'sec-fetch-site': 'cross-site' },
     { origin: 'null', 'sec-fetch-site': 'cross-site' },
     { origin: 'null', 'sec-fetch-site': 'same-site' },
-  ]) {
+  ];
+  for (const headers of refused) {
     const { astro, response } = post(s, s.token, 'accept', headers);
     const page = await loadOfferPage(astro, s.token);
     assert.equal(view(page), 'unavailable');
@@ -214,7 +215,11 @@ test('a cross-origin or cross-site POST is refused (403) before the token is loo
 
 test('a no-referrer page gets Origin: null from the browser: that is accepted when the browser says same-origin', async () => {
   const s = await scenario();
-  for (const headers of [{ origin: 'null', 'sec-fetch-site': 'same-origin' }, { origin: 'null' }]) {
+  const accepted: Record<string, string>[] = [
+    { origin: 'null', 'sec-fetch-site': 'same-origin' },
+    { origin: 'null' },
+  ];
+  for (const headers of accepted) {
     const fresh = await scenario();
     const out = await loadOfferPage(post(fresh, fresh.token, 'accept', headers).astro, fresh.token);
     assert.equal(out.view === 'result' && out.state, 'accepted', JSON.stringify(headers));
