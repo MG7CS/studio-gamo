@@ -25,6 +25,7 @@ if (!file) {
   process.exit(0);
 }
 const db = createSqliteD1(join(dir, file));
+db.sqlite.exec('PRAGMA busy_timeout = 15000');
 const result = await seedDefaultForms(db as unknown as SqlDatabase, Math.floor(Date.now() / 1000));
 db.sqlite.close();
 console.log(`[e2e] seed-forms ${app}: created ${result.created.length}, skipped ${result.skipped.length}`);

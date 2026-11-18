@@ -28,6 +28,8 @@ if (!file) {
 }
 
 const d1 = createSqliteD1(join(dir, file));
+// Tests seed offers in parallel and the preview server writes too: wait for the lock instead of failing.
+d1.sqlite.exec('PRAGMA busy_timeout = 15000');
 const db = d1 as unknown as SqlDatabase;
 const now = Math.floor(Date.now() / 1000);
 const unique = `${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
