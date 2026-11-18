@@ -17,6 +17,8 @@ import type { HTMLAttributes } from 'astro/types';
  *   time; five or more photos are two clusters in different sections.
  * - photos: ordered { photo, alt | decorative, caption?, priority? }. `priority` only on the first.
  *   Each photo must allow every crop its cell takes (assertGridPhotos names the cell and ratios).
+ * - tall: trio only. On a viewport at least 64rem wide and 54rem tall the three photos fill a square instead of a
+ *   3:2 shape, so a hero can use the height of a large display. On smaller screens it is the normal trio.
  * - Extra HTML attributes (data-reveal, id, aria-*) go onto the wrapper. No class, no style.
  *
  * Shapes (container width of the grid itself)
@@ -33,8 +35,10 @@ import { GRID_LAYOUTS, assertGridPhotos, type GridLayout, type GridPhoto } from 
 interface Props extends Omit<HTMLAttributes<'div'>, 'class' | 'class:list' | 'style' | 'children'> {
   layout: GridLayout;
   photos: GridPhoto[];
+  /** Trio only: a squarer shape on large screens (see the doc comment). */
+  tall?: boolean;
 }
-const { layout, photos: items, ...rest } = Astro.props;
+const { layout, photos: items, tall = false, ...rest } = Astro.props;
 
 for (const forbidden of ['class', 'class:list', 'style']) {
   if (forbidden in rest) {
@@ -45,7 +49,7 @@ assertGridPhotos(layout, items);
 const cells = GRID_LAYOUTS[layout];
 ---
 
-<div class="photo-grid" data-layout={layout} {...rest}>
+<div class="photo-grid" data-layout={layout} data-tall={tall && layout === 'trio' ? '' : undefined} {...rest}>
   <div class="photo-grid__tiles">
     {items.map((item, i) => {
       const Tag = item.caption ? 'figure' : 'div';
@@ -140,6 +144,15 @@ const cells = GRID_LAYOUTS[layout];
     }
     [data-layout='trio'] .photo-grid__media {
       aspect-ratio: auto;
+    }
+  }
+
+  /* trio, tall: a square instead of 3:2 on wide and tall screens, so the group fills more of the display. */
+  @media (min-width: 64rem) and (min-height: 54rem) {
+    @container (min-width: 40rem) {
+      [data-layout='trio'][data-tall] .photo-grid__tiles {
+        aspect-ratio: var(--ratio-square);
+      }
     }
   }
 

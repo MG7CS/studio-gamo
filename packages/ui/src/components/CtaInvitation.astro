@@ -1,6 +1,6 @@
 ---
 /**
- * Closing invitation used at the end of pages: a heading, one sentence, the actions (the default slot) and a photo.
+ * Closing invitation used at the end of pages: a heading, an optional sentence, the actions (the default slot) and a photo.
  * A plain band, not a boxed card, with no label above the heading (DESIGN.md section 11). The photo is a landscape
  * `Frame` (one radius, catalog focal point). `photoAlt`: omit for the catalog description, '' when the photo is purely
  * decorative.
@@ -10,7 +10,8 @@ import Container from './layout/Container.astro';
 import { photos, type PhotoKey } from '../lib/images';
 interface Props {
   title: string;
-  body: string;
+  /** Optional sentence under the heading; omit it for a heading and actions only. */
+  body?: string;
   photo: PhotoKey;
   photoAlt?: string;
   tone?: 'light' | 'dark';
@@ -29,7 +30,7 @@ const dark = tone === 'dark';
   <Container class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
     <div>
       <h2 class="section-heading text-balance">{title}</h2>
-      <p class="mt-5 max-w-xl text-lg leading-relaxed text-fg-muted">{body}</p>
+      {body && <p class="mt-5 max-w-xl text-lg leading-relaxed text-fg-muted">{body}</p>}
       <div class="mt-8 flex flex-wrap gap-3">
         <slot />
       </div>

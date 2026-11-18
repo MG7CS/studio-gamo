@@ -815,3 +815,9 @@
 - **Software for Churches** (`/services/software` on Production): a proposed support area for church websites, apps and email, with no prices and no pricing claims until the board approves.
 - **Found by the checks:** tall-only photos in landscape frames cut the Production home and services pages off mid-page with a 200 response. The frames now pick a shape the photo allows, and the smoke test fails any page without its footer. The smoke test also no longer waits for images inside closed menu panels. A flaky worship audit test that matched "555" inside random IDs now matches the real test values.
 - Checked: `pnpm check` passes (949 unit tests, journeys, 88 Playwright tests), plus screenshots of the three panels and the phone drawer.
+
+## 2026-11-18 — Home page: no sub-headings, hero fills the screen
+
+- Owner direction: remove the sub-heading under (almost) every section heading, starting with the home page. The home page now has the heading only: no paragraph in the hero, no line under each program name, no sentence under each "Find your place" row, no sentence in the closing invitation. `ProgramsShowcase` (`lead`), `PathChooser` (`detail="none"`) and `CtaInvitation` (`body` optional) gained the options; other pages still show their sub-headings until they are cleaned the same way.
+- With the paragraph gone the hero left empty bands on tall screens, because its photo group was a fixed 3:2 shape. `PhotoGrid` has a new `tall` option (trio only): on viewports at least 64rem wide and 54rem tall the three photos fill a square, so the hero uses the screen height; smaller screens keep the normal shape.
+- Checked: `pnpm check` (949 unit tests, journeys, 88 Playwright tests) and screenshots at 1920x990, 1440x800 and 390x844.

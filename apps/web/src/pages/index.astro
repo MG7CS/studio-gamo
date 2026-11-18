@@ -30,15 +30,11 @@ const organizationJsonLd = {
   description="Gamo Studios connects Academy, Worship and Production to serve students, families, churches and musicians through music and worship."
 >
   <HomeEditorialHero />
-  <ProgramsShowcase id="programs" title="Three connected ways we serve together." />
+  <ProgramsShowcase id="programs" title="Three connected ways we serve together." lead={false} />
   <Section title="Find your place in the mission.">
-    <PathChooser />
+    <PathChooser detail="none" />
   </Section>
-  <CtaInvitation
-    title="Ready to take your first step with Gamo Studios?"
-    body="Find your place in Academy, Worship or Production, or talk with us about how your church or community can partner with us."
-    photo="chapelSpring"
-  >
+  <CtaInvitation title="Ready to take your first step with Gamo Studios?" photo="chapelSpring">
     <ButtonLink href="/get-started" arrow>
       Find your first step
     </ButtonLink>

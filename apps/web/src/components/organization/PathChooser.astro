@@ -10,13 +10,17 @@ import { participation } from '../../data/organization';
 interface Props {
   /** Heading level of each row title. Default h3. */
   headingLevel?: 'h2' | 'h3';
-  /** Which sentence sits under the title: the short next step (default) or the longer description. */
-  detail?: 'next' | 'body';
+  /** Which sentence sits under the title: the short next step (default), the longer description, or none. */
+  detail?: 'next' | 'body' | 'none';
 }
 const { headingLevel = 'h3', detail = 'next' } = Astro.props;
 ---
 
 <LinkRows
   headingLevel={headingLevel}
-  items={participation.map((p) => ({ href: p.href, title: p.title, body: p[detail] }))}
+  items={participation.map((p) => ({
+    href: p.href,
+    title: p.title,
+    ...(detail === 'none' ? {} : { body: p[detail] }),
+  }))}
 />

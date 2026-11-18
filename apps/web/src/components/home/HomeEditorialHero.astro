@@ -1,8 +1,9 @@
 ---
 /**
  * Global homepage hero ("Worship, Learning & Community"). Clean layout rules (DESIGN.md section 11): the
- * heading comes first, one short paragraph, one action; no label above, no glow behind, no card over the photos.
- * The three photos are one shared PhotoGrid (rounded frames, one radius).
+ * heading comes first, then one action; no sentence under it, no label above, no glow behind, no card over the
+ * photos. The three photos are one shared PhotoGrid in its `tall` shape so they fill the screen height on large
+ * displays instead of leaving empty bands above and below.
  */
 import PhotoGrid from '@studio-gamo/ui/components/media/PhotoGrid.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
@@ -18,12 +19,7 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
       <h1 id="home-hero-title" class="display-xl max-w-[14ch] text-balance text-fg">
         Worship, Learning &amp; <span class="block text-action">Community</span>
       </h1>
-      <p class="mt-6 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">
-        Gamo Studios brings together three connected programs serving students, families, churches and
-        musicians: teaching instruments, preparing worship teams and supporting technical ministry.
-      </p>
-
-      <div class="mt-8">
+      <div class="mt-10">
         <ButtonLink href="#programs" size="lg" arrow>
           Explore our programs
         </ButtonLink>
@@ -33,6 +29,7 @@ import Container from '@studio-gamo/ui/components/layout/Container.astro';
     <div class="order-first lg:order-none lg:col-span-7">
       <PhotoGrid
         layout="trio"
+        tall
         photos={[
           {
             photo: 'instrumentVocals',

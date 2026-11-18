@@ -15,8 +15,10 @@ interface Props {
   /** Heading id; also the in-page anchor ("programs" for #programs). */
   id?: string;
   tone?: 'default' | 'raised';
+  /** Show the one line under each program name. Default true; the home page leaves it out. */
+  lead?: boolean;
 }
-const { title, id, tone = 'default' } = Astro.props;
+const { title, id, tone = 'default', lead = true } = Astro.props;
 const [featured, ...others] = programs;
 ---
 
@@ -33,7 +35,7 @@ const [featured, ...others] = programs;
         title={featured.name}
         href={featured.href}
       >
-        <p class="text-base font-semibold">{featured.lead}</p>
+        {lead && <p class="text-base font-semibold">{featured.lead}</p>}
       </MediaCard>
     )}
     <FeatureGrid max={2} min="lg" gap="lg" as="ul">
@@ -45,7 +47,7 @@ const [featured, ...others] = programs;
           title={p.name}
           href={p.href}
         >
-          <p class="text-base font-semibold">{p.lead}</p>
+          {lead && <p class="text-base font-semibold">{p.lead}</p>}
         </MediaCard>
       ))}
     </FeatureGrid>
