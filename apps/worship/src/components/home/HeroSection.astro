@@ -10,10 +10,6 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
   <h1 class="display-lg text-balance">
     Stronger Worship <span class="block text-action">Starts Together.</span>
   </h1>
-  <p class="max-w-xl text-base leading-relaxed text-fg-muted lg:text-lg">
-    We are building a trusted way for churches to find prepared, vetted musicians — and for musicians to serve
-    congregations with excellence, dependable scheduling and fair pay.
-  </p>
   <div class="mt-1 flex flex-wrap gap-3">
     <ButtonLink href={REQUEST_HREF} size="lg" arrow>
       Request musicians
@@ -24,9 +20,10 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
   </div>
 
   <div slot="media" class="relative">
-    <div class="ms-auto max-w-xl">
+    <div class="ms-auto">
       <PhotoGrid
         layout="trio"
+        tall
         photos={[
           {
             photo: 'musicianElectricGuitarist',

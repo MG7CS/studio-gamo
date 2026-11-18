@@ -34,10 +34,9 @@ if ('response' in page) return page.response;
     <Fragment slot="title">
       Let's start <span class="block text-action">a conversation.</span>
     </Fragment>
-    <div slot="intro" class="flex flex-col gap-4">
-      <p>Ask about a program, a way to serve or a community collaboration with the Gamo Studios team.</p>
-      <p class="text-small">Programs begin in the Phoenix metropolitan area, Arizona.</p>
-    </div>
+    <p slot="intro" class="text-small">
+      Programs begin in the Phoenix metropolitan area, Arizona.
+    </p>
     <EmailUsBlock slot="media" />
   </PageHero>
   <FormPanel page={page} />

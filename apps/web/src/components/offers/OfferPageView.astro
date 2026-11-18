@@ -54,13 +54,8 @@ const RESULT_TEXT = {
 {page.view === 'offer' ? (
   <>
     <PageHero title="Your offer to serve" width="narrow">
-      <p slot="intro">
-        {page.offerState === 'pending'
-          ? 'Please read the details, then accept or decline.'
-          : page.offerState === 'accepted'
-            ? 'You accepted this offer. Nothing more is needed.'
-            : 'You declined this offer. Nothing more is needed.'}
-      </p>
+      {page.offerState === 'accepted' && <p slot="intro">You accepted this offer. Nothing more is needed.</p>}
+      {page.offerState === 'declined' && <p slot="intro">You declined this offer. Nothing more is needed.</p>}
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">
       <Card padding="lg" class="space-y-6">

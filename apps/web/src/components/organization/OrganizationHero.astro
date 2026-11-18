@@ -1,7 +1,7 @@
 ---
 /**
  * Organization-page hero (mission, get-involved, partners, support): the shared PageHero with a two-line
- * title (second line in the accent colour), an intro, actions and one landscape photo Frame in the media slot (the page's priority image).
+ * title (second line in the accent colour), an optional intro, actions and one landscape photo Frame in the media slot (the page's priority image).
  *
  * Slots: default (actions), caption (optional note under the photo).
  */
@@ -12,7 +12,7 @@ import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
 interface Props {
   title: string;
   accent: string;
-  body: string;
+  body?: string;
   photo: PhotoKey;
   /** Omit for the catalog description. */
   photoAlt?: string;
@@ -27,7 +27,7 @@ const hasCaption = Astro.slots.has('caption');
     {title}
     <span class="block text-action">{accent}</span>
   </Fragment>
-  <p slot="intro">{body}</p>
+  {body && <p slot="intro">{body}</p>}
   <Fragment slot="actions">
     <slot />
   </Fragment>

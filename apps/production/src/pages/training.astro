@@ -17,7 +17,6 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     <Fragment slot="title">
       Equip every <span class="text-action">volunteer who serves.</span>
     </Fragment>
-    <p slot="intro">Hands-on training paths for sound, livestream, lighting and team leadership.</p>
     <div slot="media">
       <Frame
         photo="techTraining"
@@ -29,11 +28,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </div>
   </PageHero>
   <TrainingSection showLink={false} />
-  <CtaInvitation
-    title="Let us know what your team needs."
-    body="Share your church's training goals through a consultation request."
-    photo="techLighting"
-  >
+  <CtaInvitation title="Let us know what your team needs." photo="techLighting">
     <ButtonLink href={REQUEST_HREF} arrow>
       Share training interest
     </ButtonLink>

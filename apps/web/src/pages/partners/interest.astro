@@ -23,12 +23,9 @@ if ('response' in page) return page.response;
     <Fragment slot="title">
       Every partnership <span class="block text-action">starts with an idea.</span>
     </Fragment>
-    <div slot="intro" class="flex flex-col gap-4">
-      <p>
-        Talk with our team about hosting lessons, learning cohorts, worship development or shared resources.
-      </p>
-      <p class="text-small">Programs begin in the Phoenix metropolitan area, Arizona.</p>
-    </div>
+    <p slot="intro" class="text-small">
+      Programs begin in the Phoenix metropolitan area, Arizona.
+    </p>
     <EmailUsBlock slot="media" partnership />
   </PageHero>
   <FormPanel page={page} id="share-an-idea" />

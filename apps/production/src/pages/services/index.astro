@@ -19,19 +19,12 @@ import { productionFaq } from '../../data/production';
     <Fragment slot="title">
       Seven ways to support <span class="text-action">church ministry.</span>
     </Fragment>
-    <p slot="intro">
-      Support for churches and their volunteer teams, designed around people first and equipment second.
-    </p>
   </PageHero>
   <ServicesIndex />
   <Section title="Questions" width="narrow">
     <FaqAccordion items={productionFaq} />
   </Section>
-  <CtaInvitation
-    title="Start with a needs assessment."
-    body="A short walk-through of your church, current setup, priorities and volunteer team."
-    photo="techSlides"
-  >
+  <CtaInvitation title="Start with a needs assessment." photo="techSlides">
     <ButtonLink href={REQUEST_HREF} arrow>
       Request a consultation
     </ButtonLink>

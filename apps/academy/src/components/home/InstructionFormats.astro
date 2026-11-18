@@ -10,14 +10,17 @@ const formats = [
   {
     icon: 'users' as const,
     name: 'Private lessons',
-    text: 'One student, one instructor. Lessons follow your pace, goals and favorite music.',
     items: ['30, 45 or 60 minutes', 'In person or online', 'Personal practice plan'],
   },
   {
     icon: 'music' as const,
     name: 'Group classes',
-    text: 'Learn alongside 3–8 others in an encouraging, social setting.',
-    items: ['Weekly sessions', 'Play together early', 'Great for siblings & friends'],
+    items: [
+      '3–8 students per class',
+      'Weekly sessions',
+      'Play together early',
+      'Great for siblings & friends',
+    ],
   },
 ];
 ---
@@ -34,11 +37,7 @@ const formats = [
       />
     </div>
     <div>
-      <EditorialHeading
-        title="One-on-one focus"
-        accent="or the joy of a group."
-        lede="Both formats use the same caring instructors and the same step-by-step approach."
-      />
+      <EditorialHeading title="One-on-one focus" accent="or the joy of a group." />
       <FeatureGrid as="ul" min="lg" max={2} class="mt-10">
         {formats.map((f) => (
           <Card as="li" padding="lg">
@@ -48,7 +47,6 @@ const formats = [
               </span>
               <h3 class="text-2xl font-bold tracking-tight">{f.name}</h3>
             </div>
-            <p class="mt-4 leading-relaxed text-fg-muted">{f.text}</p>
             <ul class="mt-4 grid gap-2 text-small">
               {f.items.map((i) => (
                 <li class="flex items-center gap-2">

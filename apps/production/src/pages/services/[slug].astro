@@ -23,7 +23,7 @@ const area: SupportArea = found;
       { label: area.title },
     ]}
   >
-    <p slot="intro">{area.summary}</p>
+    {area.slug === 'software' && <p slot="intro">{area.summary}</p>}
     <div slot="media">
       <Frame
         photo={area.photo}

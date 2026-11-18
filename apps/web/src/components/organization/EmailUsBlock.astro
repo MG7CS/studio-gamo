@@ -19,11 +19,6 @@ const mailto = `mailto:${address}?subject=${encodeURIComponent(subject)}`;
   <h2 class="text-2xl font-semibold tracking-tight">
     {partnership ? 'Share a partnership idea' : 'Send us a message'}
   </h2>
-  <p class="text-small text-fg-muted">
-    {partnership
-      ? 'Tell us about your church or organization and the partnership you have in mind. Our team reads every message and replies by email.'
-      : 'Tell us how you would like to take part or what you would like to know. Our team reads every message and replies by email.'}
-  </p>
-  <p class="mt-3 text-small font-medium">Email us at</p>
+  <p class="text-small font-medium">Email us at</p>
   <ButtonLink href={mailto}>{address}</ButtonLink>
 </Card>

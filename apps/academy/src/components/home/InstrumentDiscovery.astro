@@ -9,15 +9,10 @@ import { instruments, plannedInstruments } from '../../data/instruments';
   <Fragment slot="title">
     Every musician starts <span class="block text-action">with one song.</span>
   </Fragment>
-  <p slot="intro">
-    Not sure where to begin? Explore each instrument, see what first lessons look like and pick the one that
-    excites you.
-  </p>
   <LinkRows
     items={instruments.map((i) => ({
       href: `/instruments/${i.slug}`,
       title: i.name,
-      body: i.blurb,
       meta: i.ages,
     }))}
   />

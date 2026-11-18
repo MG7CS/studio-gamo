@@ -20,7 +20,6 @@ const shown = lessons.filter((l) => lessonMatches(l, filters)).length;
     <Fragment slot="title">
       Find a lesson <span class="block text-action">that fits your week.</span>
     </Fragment>
-    <p slot="intro">Filter lessons by instrument, age, level and format.</p>
   </PageHero>
   <Container class="pb-16 lg:pb-24">
     <LessonFilters values={filters} shown={shown} />

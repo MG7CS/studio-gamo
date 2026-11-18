@@ -41,7 +41,8 @@ interface Props {
   pillKind?: 'sample' | 'proposal' | 'verified';
   title: string;
   accent?: string;
-  body: string;
+  /** Optional sentence under the title; omit it for a heading and the points only. */
+  body?: string;
   points?: EditorialFeaturePoint[];
   photo: PhotoKey;
   photoAlt?: string;
@@ -115,7 +116,7 @@ const iconBadgeSurface = {
         {title} {accent && <span class="text-accent">{accent}</span>}
       </h2>
 
-      <p class="mt-4 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">{body}</p>
+      {body && <p class="mt-4 max-w-xl text-base leading-relaxed text-fg-muted sm:text-lg">{body}</p>}
 
       {points.length > 0 && (
         <ul class="mt-7 grid gap-3">

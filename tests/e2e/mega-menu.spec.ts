@@ -118,6 +118,8 @@ test.describe('desktop', () => {
     for (const name of Object.keys(TILES) as (keyof typeof TILES)[]) {
       await button(page, name).click();
       await expect(panel(page, name)).toBeVisible();
+      // The panel fades in; axe must not measure contrast against a half-transparent panel.
+      await expect(panel(page, name)).toHaveCSS('opacity', '1');
       await page.evaluate(async () => {
         for (const img of Array.from(document.images)) img.loading = 'eager';
         await Promise.all(Array.from(document.images).map((img) => img.decode().catch(() => undefined)));

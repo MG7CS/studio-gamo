@@ -8,16 +8,12 @@ import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 ---
 
-<SplitHero>
+<SplitHero class="flex min-h-dvh flex-col justify-center overflow-hidden">
   <h1 class="display-lg text-balance text-fg">
     Better Tools.
     <br />
     <span class="text-action">Stronger Worship.</span>
   </h1>
-  <p class="max-w-prose text-lg leading-relaxed text-fg-muted">
-    Gamo Production helps churches grow in worship audio, video, lighting and livestreaming — and equips the
-    volunteers who serve behind the board every Sunday.
-  </p>
   <div class="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
     <ButtonLink href={REQUEST_HREF} arrow>
       Start a needs assessment
@@ -27,7 +23,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </ButtonLink>
   </div>
   <div slot="media" class="relative">
-    <div class="ms-auto w-full max-w-md">
+    <div class="ms-auto w-full max-w-lg">
       <Frame
         photo="techAudio"
         ratio="portrait"

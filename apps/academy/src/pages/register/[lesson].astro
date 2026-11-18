@@ -176,12 +176,7 @@ if (Astro.request.method === 'POST') {
       { label: lesson.title, href: `/lessons/${lesson.slug}` },
       { label: 'Register' },
     ]}
-  >
-    <p slot="intro">
-      Tell us about the student and how to reach you. We email a receipt with a private link to view, update
-      or cancel the registration.
-    </p>
-  </PageHero>
+  />
   <Container class="pb-16 lg:pb-24">
     <div class="grid gap-8 lg:grid-cols-3">
       <Card padding="lg" class="space-y-6 lg:col-span-2">

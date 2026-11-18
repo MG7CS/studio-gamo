@@ -13,10 +13,6 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     <h1 class="display-xl text-balance">
       Learn to Play the <span class="text-action">Instrument You Love.</span>
     </h1>
-    <p class="max-w-xl text-base leading-relaxed text-fg-muted lg:text-lg">
-      Friendly, patient music lessons for students and families — private or in small groups, online or close
-      to home, including planned church-hosted and sponsored programs.
-    </p>
     <div class="flex flex-wrap gap-3">
       <ButtonLink href="/instruments" size="lg" arrow>
         Choose an instrument
@@ -29,6 +25,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     <div slot="media" class="relative w-full">
       <PhotoGrid
         layout="trio"
+        tall
         photos={[
           {
             photo: 'musicianAcousticGuitarist',

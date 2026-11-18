@@ -34,7 +34,6 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
       { label: instrument.short },
     ]}
   >
-    <p slot="intro">{instrument.blurb}</p>
     <Fragment slot="actions">
       <ButtonLink href={siteUrl('academy', '/lessons')} size="lg" arrow>
         Register for {instrument.short.toLowerCase()}

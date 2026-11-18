@@ -15,10 +15,6 @@ const choices = [
 
 <SplitHero as="section" spacing="section" mediaSide="start">
   <h2 class="section-heading text-balance text-fg">Steward what you have before buying what you don’t.</h2>
-  <p class="text-lg text-fg-muted">
-    Independent guidance with no vendor ties — helping churches decide what to keep, repair, replace or wait
-    on.
-  </p>
   <FeatureGrid as="ul" min="sm" max={2} class="mt-4 w-full">
     {choices.map((c, i) => (
       <Card as="li" tone={i === 1 ? 'dark' : 'raised'}>
