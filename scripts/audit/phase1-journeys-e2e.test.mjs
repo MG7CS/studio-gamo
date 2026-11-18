@@ -206,12 +206,8 @@ try {
     ['web', '/get-involved', "There's a place"],
     ['web', '/contact', 'hello@gamostudio.org'],
     ['worship', '/', 'Gamo Worship'],
-    ['worship', '/apply', 'Gamo Worship'],
-    ['worship', '/request', 'Gamo Worship'],
     ['academy', '/', 'Learn to Play the Instrument You Love'],
     ['production', '/', 'Gamo Production'],
-    ['production', '/apply', 'Gamo Production'],
-    ['production', '/request', 'Gamo Production'],
   ];
   for (const [app, path, expectedText] of publicChecks) {
     const res = await anonPage.goto(`${urls[app]}${path}`, { waitUntil: 'domcontentloaded' });
@@ -221,6 +217,18 @@ try {
     assert.ok(bodyText.includes(expectedText), `Expected "${expectedText}" on ${app}${path}`);
     assert.ok(!bodyText.includes('Jordan Avery'), `Must not expose demo persona on ${app}${path}`);
     assert.ok(!/\/account\/sign(in|up)/.test(await anonPage.content()), `No sign-in link on ${app}${path}`);
+  }
+
+  // The forms live on the main site now (/worship/apply and friends); the old addresses redirect there.
+  for (const [app, path] of [
+    ['worship', '/apply'],
+    ['worship', '/request'],
+    ['production', '/apply'],
+    ['production', '/request'],
+  ]) {
+    const res = await fetch(`${urls[app]}${path}`, { redirect: 'manual' });
+    assert.equal(res.status, 302, `Expected 302 on ${app}${path}`);
+    assert.match(res.headers.get('location') || '', new RegExp(`/${app}${path}$`), `${app}${path}`);
   }
 
   // Retired multi-step demo forms keep their 303 and go to the public request page or lessons.
