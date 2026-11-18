@@ -48,7 +48,7 @@ const approved = (deps: ActionDeps) => deps.env.GAMO_ADMIN_FEE_APPROVED === 'tru
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 
 /** A failed action: JSON error for API clients, a redirect with a notice for forms. */
-export function failure(request: Request, err: unknown, location: string): Response {
+function failure(request: Request, err: unknown, location: string): Response {
   if (wantsJson(request)) return domainErrorResponse(err);
   const key = err instanceof InvoiceError ? invoiceNoticeKey(err) : noticeKeyForError(err);
   // Not an expected refusal (auth, unknown error): answer it as an error, never a redirect.

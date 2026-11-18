@@ -73,16 +73,6 @@ export function formatUtc(epochSeconds: number): string {
   return `${UTC.format(new Date(epochSeconds * 1000))} UTC`;
 }
 
-/** The public path of a form's page (where the shared renderer is mounted for each seeded form). */
-export const PUBLIC_PATHS: Record<string, string> = {
-  'worship-apply': '/worship/apply',
-  'worship-request': '/worship/request',
-  'production-apply': '/production/apply',
-  'production-request': '/production/request',
-  contact: '/contact',
-  'partner-interest': '/partners/interest',
-};
-
 // ---------------------------------------------------------------------------------------------
 // Publish checklist messages
 // ---------------------------------------------------------------------------------------------

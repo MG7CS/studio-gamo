@@ -17,7 +17,7 @@ import {
 } from '@gamo/domain/security';
 import { readBoundedBody, TURNSTILE_RESPONSE_FIELD } from '@gamo/domain/public-form-guard';
 
-export const UPLOAD_TOKEN_HEADER = 'x-upload-token';
+const UPLOAD_TOKEN_HEADER = 'x-upload-token';
 /** The shape `UploadService` issues (43 random base64url characters, a dot, a 22-character hex tag). */
 const TOKEN_FORMAT = /^[A-Za-z0-9_-]{43}\.[0-9a-f]{22}$/;
 

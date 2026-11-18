@@ -22,8 +22,3 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
-
-/** Whole days from `now` to `at` (rounded up), for "will be deleted in N days"; never negative. */
-export function daysUntil(at: number, now: number): number {
-  return Math.max(0, Math.ceil((at - now) / 86_400));
-}

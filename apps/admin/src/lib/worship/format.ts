@@ -1,7 +1,7 @@
 /** Display helpers for the roster and request screens. Pure; every value is plain text (the page escapes). */
 import { DEFAULT_SERVICE_TIME_ZONE, formatClockTime, formatServiceDate } from '@gamo/domain/worship';
 
-export { formatClockTime, formatServiceDate };
+export { formatServiceDate };
 
 /** `Mon, Mar 17, 2030` for an epoch-seconds instant, in UTC (W-9 dates are stored as a UTC calendar date). */
 export function formatUtcDay(epoch: number): string {

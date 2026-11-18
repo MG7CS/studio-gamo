@@ -14,7 +14,7 @@ const MAX_JSON_BYTES = 256 * 1024;
  * The request body for the create endpoint. JSON is parsed here (not by `readBody`, which flattens nested
  * values) so the `lines` array of objects survives; anything else goes through `readBody`.
  */
-export async function readInvoiceBody(request: Request): Promise<Record<string, unknown>> {
+async function readInvoiceBody(request: Request): Promise<Record<string, unknown>> {
   const type = (request.headers.get('content-type') ?? '').toLowerCase();
   if (!type.startsWith('application/json')) return readBody(request);
   const declared = Number(request.headers.get('content-length'));

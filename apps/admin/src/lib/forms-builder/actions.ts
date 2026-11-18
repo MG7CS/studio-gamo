@@ -52,7 +52,7 @@ export interface BuilderDeps {
   now?: number;
 }
 
-export interface ConflictInfo {
+interface ConflictInfo {
   currentRevision: number;
   /** Who saved first (display name or email, or a generic phrase). */
   by: string;

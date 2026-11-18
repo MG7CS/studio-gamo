@@ -33,7 +33,7 @@ export interface InboxQuery {
 const DAY = 86_400;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const CURSOR = /^\d{1,12}:[A-Za-z0-9_-]{1,80}$/;
-export const SEARCH_MAX = 100;
+const SEARCH_MAX = 100;
 
 /** `YYYY-MM-DD` to epoch seconds at 00:00 UTC, or null for anything that is not a real calendar day. */
 export function dayStartUtc(text: string): number | null {
@@ -154,9 +154,4 @@ export function inboxQueryString(
 /** Keeps only the filter keys of a query string (drops cursor, notice and anything else). */
 export function filterOnlyQuery(params: URLSearchParams): string {
   return inboxQueryString(parseInboxQuery(params).values);
-}
-
-/** The cursor that starts the page after `submission` (matches `FormsService.listSubmissions`). */
-export function cursorAfter(submission: { submittedAt: number; id: string }): string {
-  return `${submission.submittedAt}:${submission.id}`;
 }

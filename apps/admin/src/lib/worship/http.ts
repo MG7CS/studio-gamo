@@ -29,7 +29,7 @@ export interface HandlerDeps {
 
 export const ID_SHAPE = /^[A-Za-z0-9_-]{1,100}$/;
 
-export function worshipCtx(admin: AdminContext, deps: HandlerDeps = {}): WorshipCtx {
+function worshipCtx(admin: AdminContext, deps: HandlerDeps = {}): WorshipCtx {
   return {
     sql: admin.db,
     env: admin.env,

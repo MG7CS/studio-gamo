@@ -8,12 +8,10 @@ import {
   FORM_LIMITS,
   FormSchemaError,
   parseFormSchema,
-  type BindKey,
   type FormSchema,
   type Question,
   type QuestionType,
   type Section,
-  type ShowIf,
 } from '@gamo/domain/forms';
 
 /** A refusal whose message is plain language for the staff member (never contains input echoes). */
@@ -53,7 +51,7 @@ export function findQuestion(schema: FormSchema, id: string): FlatQuestion | nul
   return flattenQuestions(schema).find((f) => f.question.id === id) ?? null;
 }
 
-export function questionCount(schema: FormSchema): number {
+function questionCount(schema: FormSchema): number {
   return schema.sections.reduce((n, s) => n + s.questions.length, 0);
 }
 
@@ -197,7 +195,7 @@ function labelOfId(schema: FormSchema, id: string): string {
 }
 
 /** Other questions and sections whose show-if rules use `id`. */
-export function dependentsOf(schema: FormSchema, id: string): Dependent[] {
+function dependentsOf(schema: FormSchema, id: string): Dependent[] {
   const out: Dependent[] = [];
   for (const section of schema.sections) {
     if (section.showIf?.rules.some((r) => r.questionId === id)) {
@@ -564,5 +562,3 @@ export function changeQuestionType(schema: FormSchema, questionId: string, type:
   }));
   return { schema: out, changed: true, lost, dependents };
 }
-
-export type { BindKey, ShowIf };

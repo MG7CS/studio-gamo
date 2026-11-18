@@ -3,9 +3,9 @@ import { formatUsd } from '@studio-gamo/ui/lib/format';
  * SAMPLE lesson listings for the design phase. Tuition amounts are proposals only
  * and stored as integer minor units (cents). No booking or payment exists yet.
  */
-export type Level = 'Beginner' | 'Developing' | 'Advancing';
+type Level = 'Beginner' | 'Developing' | 'Advancing';
 export type Age = 'Kids' | 'Teens' | 'Adults';
-export type Format = 'Private' | 'Group' | 'Church-hosted';
+type Format = 'Private' | 'Group' | 'Church-hosted';
 
 export interface Lesson {
   slug: string;

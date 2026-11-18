@@ -35,7 +35,7 @@ export function unavailable(): Response {
  * messages are generic by construction: never tokens, filenames or keys); a missing secret is a 503 that
  * names no variable; everything else goes through `handleApiError` (same-origin 403, unexpected 500).
  */
-export function errorToResponse(error: unknown): Response {
+function errorToResponse(error: unknown): Response {
   if (isUploadError(error)) return errorResponse(error.code, error.message, error.status);
   if (error instanceof SecretNotConfiguredError) {
     console.error('[forms-api] a required secret is not configured');

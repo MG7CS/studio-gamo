@@ -63,7 +63,7 @@ export const BIND_LABELS: Record<BindKey, string> = {
 
 export const REGEX_HINT = `A custom pattern may only use literal characters, . \\d \\w \\s, [character classes], ^ and $, and one repeat (? * + {n} {n,} {n,m}, up to 100) per item: no groups, alternation, backreferences or lookarounds. At most ${FORM_LIMITS.maxRegex} characters.`;
 
-export const VALIDATION_KINDS = [
+const VALIDATION_KINDS = [
   'email',
   'phone',
   'postal_code',

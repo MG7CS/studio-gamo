@@ -8,7 +8,7 @@
  */
 import { WorshipError } from '@gamo/domain/worship';
 
-export interface WorshipNotice {
+interface WorshipNotice {
   kind: 'ok' | 'error';
   text: string;
 }
@@ -121,7 +121,7 @@ const ERRORS = {
   'not-found': { status: 404, code: 'NOT_FOUND', text: 'That record was not found.' },
 } as const satisfies Record<string, ErrorEntry>;
 
-export type WorshipErrorKey = keyof typeof ERRORS;
+type WorshipErrorKey = keyof typeof ERRORS;
 
 const errorNotices = (keys: readonly WorshipErrorKey[]): WorshipNoticeTable =>
   Object.fromEntries(keys.map((k) => [k, { kind: 'error' as const, text: ERRORS[k].text }]));

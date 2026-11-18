@@ -24,7 +24,7 @@ import {
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 import { databaseOf, uploadServiceFor } from './forms-api';
 
-export interface PublicFormInfo {
+interface PublicFormInfo {
   slug: string;
   title: string;
   description: string | null;

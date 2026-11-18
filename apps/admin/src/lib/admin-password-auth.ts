@@ -6,6 +6,4 @@ export {
   buildAdminGateCookie,
   buildClearAdminGateCookie,
   verifyAdminGateCookie,
-  type AdminAuthResult,
-  type BootstrapAdminIdentity,
 } from '@gamo/auth';

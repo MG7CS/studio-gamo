@@ -11,4 +11,3 @@
  * `true` while the admin CSP does not allow the origin.
  */
 export const YOUTUBE_EMBED_ALLOWED = false;
-export const YOUTUBE_EMBED_ORIGIN = 'https://www.youtube-nocookie.com';

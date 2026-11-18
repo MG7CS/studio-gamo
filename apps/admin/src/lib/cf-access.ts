@@ -20,7 +20,7 @@ interface JwksResponse {
   public_certs?: { kid: string; cert: string }[];
 }
 
-export interface CfAccessClaims {
+interface CfAccessClaims {
   aud: string[] | string;
   email: string;
   exp: number;
@@ -34,7 +34,7 @@ export interface CfAccessClaims {
 }
 
 /** Why an assertion was refused. Fixed names only, so a log line never carries token or config values. */
-export type VerificationFailure =
+type VerificationFailure =
   | 'not_configured'
   | 'missing'
   | 'malformed'

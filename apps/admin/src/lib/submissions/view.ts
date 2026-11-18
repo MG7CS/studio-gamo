@@ -43,14 +43,14 @@ export interface AnswerItem {
   answer: AnswerView;
 }
 
-export interface SectionView {
+interface SectionView {
   id: string;
   title: string;
   description: string | null;
   items: AnswerItem[];
 }
 
-export type AttachmentKind = 'image' | 'video' | 'file';
+type AttachmentKind = 'image' | 'video' | 'file';
 
 export interface AttachmentView {
   id: string;
@@ -85,7 +85,7 @@ const PROVIDER_LABEL: Record<string, string> = {
 const INLINE_IMAGES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const INLINE_VIDEOS = new Set(['video/mp4', 'video/webm', 'video/quicktime']);
 
-export const fileHref = (uploadId: string): string => `/files/${encodeURIComponent(uploadId)}`;
+const fileHref = (uploadId: string): string => `/files/${encodeURIComponent(uploadId)}`;
 
 // ---- show-if on stored answers ---------------------------------------------------------------------------
 

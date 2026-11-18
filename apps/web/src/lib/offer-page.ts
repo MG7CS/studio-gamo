@@ -52,7 +52,7 @@ function hardenHeaders(astro: AstroGlobal): void {
  * cross-site. Anything else goes through the shared `requireSameOrigin`. The unguessable token in the URL is the
  * credential; this check only keeps other sites from driving the buttons.
  */
-export function isSameOriginPost(request: Request): boolean {
+function isSameOriginPost(request: Request): boolean {
   if (request.headers.get('origin') === 'null') {
     const site = request.headers.get('sec-fetch-site');
     return site === null || site === 'same-origin' || site === 'none';

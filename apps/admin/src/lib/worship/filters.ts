@@ -14,10 +14,10 @@ import {
 } from '@gamo/domain/worship';
 
 export const ROSTER_PROGRAMS = ['worship', 'production', 'academy'] as const;
-export type RosterProgram = (typeof ROSTER_PROGRAMS)[number];
+type RosterProgram = (typeof ROSTER_PROGRAMS)[number];
 export const REQUEST_PROGRAMS = ['worship', 'production'] as const;
 
-export const PAGE_SIZE = 25;
+const PAGE_SIZE = 25;
 const MAX_CURSOR = 512;
 
 export interface RosterFilterValues {

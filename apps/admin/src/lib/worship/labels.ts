@@ -1,7 +1,7 @@
 /** Visible words (and a tone for the outline colour) for statuses. The word always carries the meaning. */
 import type { OfferStatus, RequestStatus, RosterStatus } from '@gamo/domain/worship';
 
-export type Tone = 'neutral' | 'good' | 'attention' | 'closed';
+type Tone = 'neutral' | 'good' | 'attention' | 'closed';
 export interface Label {
   text: string;
   tone: Tone;

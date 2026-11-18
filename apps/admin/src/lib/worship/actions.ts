@@ -206,7 +206,7 @@ const base = (ctx: WorshipCtx, rosterMemberId: string) => ({
 
 // ---- requests --------------------------------------------------------------------------------------
 
-export type StaffRequestStatus = (typeof STAFF_REQUEST_STATUSES)[number];
+type StaffRequestStatus = (typeof STAFF_REQUEST_STATUSES)[number];
 
 export interface RequestStatusResult {
   status: string;
@@ -243,7 +243,7 @@ const isTicked = (v: unknown): boolean =>
 
 // ---- candidates ------------------------------------------------------------------------------------
 
-export interface RoleCandidate {
+interface RoleCandidate {
   member: RosterMember;
   /** An offer already pending for this member and role (so the form is replaced by a note). */
   pendingOfferId: string | null;

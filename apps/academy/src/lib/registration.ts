@@ -44,7 +44,7 @@ export function registrationConsentDocuments() {
 
 const RECEIPT_PURPOSE = 'academy_receipt';
 /** A receipt reference stays readable for 2 hours (long enough for a Stripe test checkout and back). */
-export const RECEIPT_REFERENCE_TTL_SECONDS = 2 * 60 * 60;
+const RECEIPT_REFERENCE_TTL_SECONDS = 2 * 60 * 60;
 
 type SecretEnv = Record<string, unknown> & { ENVIRONMENT?: unknown };
 
