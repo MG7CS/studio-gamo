@@ -46,3 +46,6 @@ docs/api-reference/*.html
 
 # D1 exports from docs/RUNBOOK.md §4 (contain personal data; never commit)
 backup-*.sql
+
+# Candidate photos downloaded for owner review (untrusted files; only approved picks are cataloged and committed)
+assets/images/candidates/
