@@ -8,7 +8,7 @@ Updated 2026-11-16. Four public apps (web, academy, worship, production) plus th
 
 | Routes | Screens | Status |
 | --- | --- | --- |
-| / | Approved hero "Where Worship, Learning & Community Meet." (`HomeEditorialHero`), mission homepage, program links (Academy, Worship, Production) | UI ready |
+| / | Approved hero "Worship, Learning & Community" (`HomeEditorialHero`), mission homepage, program links (Academy, Worship, Production) | UI ready |
 | /mission | Mission, needs, programs, audiences, values, invitation | UI ready |
 | /get-involved | Families, students, churches, musicians, instructors, volunteers | UI ready |
 | /get-started | Audience routing to program destinations | UI ready |

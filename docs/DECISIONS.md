@@ -254,3 +254,7 @@ Owner: the apps have never been used by real users, so old URLs, retired flows a
 ## 2026-11-18 — Clean layout rules: no eyebrows or pills, rectangular buttons, varied photo-led cards
 
 Owner direction after comparing our home page with spacex.com and tesla.com (screenshots supplied by the owner, which stand in for the research step; no external source needed beyond these references). The layout most generated UIs default to (label, heading, grey subheading, button, then identical rounded cards each with a pill) is rejected. Rules are in `DESIGN.md` §11, summarised in `AGENTS.md`, `CLAUDE.md`, the three agent briefs, `packages/ui/src/components/README.md` and `docs/FRONTEND_ARCHITECTURE.md`. Nothing in the code has changed yet: the home page is redesigned first, then the shared components, then a ratcheting guard is added.
+
+## 2026-11-18 — Home hero heading shortened
+
+Owner: the home hero heading is now "Worship, Learning & Community" (was "Where Worship, Learning & Community Meet."). Composition, copy under it and photos are unchanged. The 2026-11-16 entry above is history.

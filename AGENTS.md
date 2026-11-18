@@ -119,7 +119,7 @@ All three apply the organizational mission rules above, the copy rules in `docs/
 
 ## Homepage composition
 
-Composition targets for the global homepage below the hero are in `DESIGN.md` ("Homepage composition targets"). The approved hero is the current "Where Worship, Learning & Community Meet." hero (`HomeEditorialHero`); preserve it unless the owner says otherwise.
+Composition targets for the global homepage below the hero are in `DESIGN.md` ("Homepage composition targets"). The approved hero is the current "Worship, Learning & Community" hero (`HomeEditorialHero`); preserve it unless the owner says otherwise.
 
 ## Shared front-end architecture (permanent; owner direction 2026-11-16)
 

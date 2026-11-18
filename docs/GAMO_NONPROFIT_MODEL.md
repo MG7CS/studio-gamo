@@ -270,7 +270,7 @@ Invoices use Stripe Invoicing (test mode) or manual mark-paid; musician payouts 
 
 ## 6. Public website and messaging
 
-- **Hero (owner-approved 2026-11-16):** the current homepage hero, "**Where Worship, Learning & Community Meet.**" (`apps/web` `HomeEditorialHero`). The earlier "Keep Worship Going" hero (`design-reference/homepage/01-hero-approved.png`) is historical. The homepage must not imply Gamo exists only to supply musicians to churches.
+- **Hero (owner-approved 2026-11-16):** the current homepage hero, "**Worship, Learning & Community**" (`apps/web` `HomeEditorialHero`). The earlier "Keep Worship Going" hero (`design-reference/homepage/01-hero-approved.png`) is historical. The homepage must not imply Gamo exists only to supply musicians to churches.
 - The homepage introduces Gamo as a **unified Christian music and community organization** and shows how the three programs work together.
 - Audiences: churches and ministries; musicians; students and families; Christian artists; potential supporting churches; potential sponsors; community partners.
 - A **dynamic hero** may eventually spotlight the mission, sponsored programs, Academy, Worship opportunities, Production support, church partnerships and special initiatives. **No carousel is implemented without explicit approval.** Future content rules (not approved for implementation):
