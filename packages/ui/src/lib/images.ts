@@ -50,48 +50,6 @@ export interface PhotoEntry {
 }
 
 const meta = {
-  worshipLeaderGolden: {
-    stem: 'worship-gospel-worship-leader-golden-light',
-    alt: 'Gospel worship leader singing with eyes closed in warm golden light',
-    position: '50% 22%',
-    tone: 'warm',
-  },
-  acousticLeader: {
-    stem: 'worship-acoustic-worship-leader-stage',
-    alt: 'Worship leader singing and playing acoustic guitar on stage',
-    position: '45% 25%',
-    tone: 'dark',
-  },
-  acousticLeaderAlt: {
-    stem: 'worship-acoustic-worship-leader-stage-alt',
-    alt: 'Musician leading worship with an acoustic guitar under warm stage lights',
-    position: '45% 25%',
-    tone: 'dark',
-  },
-  worshipBand: {
-    stem: 'worship-worship-band-sanctuary',
-    alt: 'Worship team with vocalists, guitar, drums and keys leading in a bright sanctuary',
-    position: '55% 35%',
-    tone: 'warm',
-  },
-  boyGuitar: {
-    stem: 'academy-boy-learning-acoustic-guitar',
-    alt: 'Smiling boy learning to play acoustic guitar in a sunlit room',
-    position: '50% 30%',
-    tone: 'bright',
-  },
-  girlGuitar: {
-    stem: 'academy-girl-practicing-acoustic-guitar',
-    alt: 'Young girl practicing acoustic guitar beside a music stand',
-    position: '50% 28%',
-    tone: 'bright',
-  },
-  youngPianist: {
-    stem: 'academy-young-pianist-bright-classroom',
-    alt: 'Young pianist smiling while playing a keyboard in a bright classroom',
-    position: '45% 30%',
-    tone: 'bright',
-  },
   churchModernDay: {
     stem: 'churches-modern-church-exterior-daylight',
     alt: 'Modern church building with a cross on a sunny day',
@@ -109,42 +67,6 @@ const meta = {
     alt: 'White chapel with a steeple surrounded by spring trees',
     position: '60% 50%',
     tone: 'bright',
-  },
-  sanctuaryCongregation: {
-    stem: 'community-sunlit-sanctuary-congregation',
-    alt: 'Congregation worshipping together in a sunlit sanctuary',
-    position: '50% 45%',
-    tone: 'bright',
-  },
-  guitarMentor: {
-    stem: 'community-guitar-mentor-with-student',
-    alt: 'Guitar instructor guiding a young student through a chord',
-    position: '55% 40%',
-    tone: 'warm',
-  },
-  concertCrowdWide: {
-    stem: 'live-worship-concert-crowd-wide',
-    alt: 'Crowd with hands raised at a worship concert beneath a lit cross',
-    position: '50% 40%',
-    tone: 'dark',
-  },
-  worshipNight: {
-    stem: 'live-worship-night-hands-raised',
-    alt: 'Worship night audience with raised hands under colourful stage lights',
-    position: '50% 40%',
-    tone: 'dark',
-  },
-  gospelVocalists: {
-    stem: 'live-gospel-vocalists-concert-stage',
-    alt: 'Gospel vocalists leading a concert as the audience worships',
-    position: '50% 30%',
-    tone: 'dark',
-  },
-  soundEngineer: {
-    stem: 'production-sound-engineer-mixing-console',
-    alt: 'Sound engineer wearing headphones at a digital mixing console during worship',
-    position: '40% 40%',
-    tone: 'dark',
   },
   instrumentPianoKeyboard: {
     stem: 'instruments-piano-keyboard',

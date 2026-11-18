@@ -65,8 +65,8 @@ app cannot set a radius, mask, aspect or crop; the catalog gives each photo's fo
 | `Frame`     | `photo` (catalog id), `ratio` portrait \| landscape \| wide \| square (required), `alt` OR `decorative: true`, `sizes` full \| half \| third \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
 | `PhotoGrid` | `layout` pair (2) \| trio (3) \| quad (4) \| hero (2), `photos` ordered `{ photo, alt \| decorative, caption?, priority? }[]`            | none                                    |
 
-- `<Frame photo="guitarMentor" ratio="landscape" sizes="half" alt="Guitar instructor with a student" />`;
-  `<PhotoGrid layout="trio" photos={[{ photo: 'worshipBand', alt: '…', priority: true }, { photo: 'boyGuitar', alt: '…' }, { photo: 'girlGuitar', decorative: true }]} />`.
+- `<Frame photo="instrumentMusicTheory" ratio="landscape" sizes="half" alt="Open music book on a piano desk" />`;
+  `<PhotoGrid layout="trio" photos={[{ photo: 'musicianChoir', alt: '…', priority: true }, { photo: 'instrumentUkulele', alt: '…' }, { photo: 'instrumentAcousticGuitar', decorative: true }]} />`.
 - Ratios 4/5, 3/2, 21/8, 1/1; one radius `--radius-photo`; `wide` becomes landscape under 30rem. The build throws when
   a photo cannot be cropped to a ratio (see `ratios` on the catalog entry) or a grid gets the wrong count.
 - `priority` on at most one frame per page (the likely LCP image). `caption` renders below the photo.

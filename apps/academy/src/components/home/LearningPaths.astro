@@ -20,7 +20,7 @@ const groups: {
   {
     age: 'Kids',
     label: 'Kids (6–12)',
-    photo: 'youngPianist',
+    photo: 'instrumentPianoKeyboard',
     title: 'Playful, patient first steps',
     body: 'Short lessons, lots of encouragement and practice plans that parents can follow at home.',
     points: ['30-minute lessons', 'Games for rhythm and reading', 'Progress notes for families'],
@@ -28,7 +28,7 @@ const groups: {
   {
     age: 'Teens',
     label: 'Teens (13–17)',
-    photo: 'girlGuitar',
+    photo: 'instrumentAcousticGuitar',
     title: 'Real songs, real confidence',
     body: 'Teens learn the music they actually want to play, with chances to play together in small groups.',
     points: ['Songs they choose', 'Group sessions with peers', 'Technique that lasts'],
@@ -36,7 +36,7 @@ const groups: {
   {
     age: 'Adults',
     label: 'Adults',
-    photo: 'guitarMentor',
+    photo: 'instrumentMusicTheory',
     title: 'It is never too late to start',
     body: 'Whether you are a first-timer or returning after years away, lessons fit around work and family life.',
     points: ['Evening and online options', 'Beginner-friendly pacing', 'Goals you set'],
@@ -50,7 +50,12 @@ const groups: {
   </Fragment>
   <FeatureGrid as="ul" max={3}>
     {groups.map((g) => (
-      <MediaCard as="li" href={`/lessons?ages=${g.age}`} title={g.title} image={{ name: g.photo, alt: '' }}>
+      <MediaCard
+        as="li"
+        href={`/lessons?ages=${g.age}`}
+        title={g.title}
+        image={{ name: g.photo, alt: '', ratio: 'square' }}
+      >
         <p>{g.body}</p>
         <p slot="meta" class="text-small text-fg-muted">
           {g.label} · {g.points.join(' · ')}

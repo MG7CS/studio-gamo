@@ -25,8 +25,8 @@ export const programs: Program[] = [
     summary:
       'Patient, caring lessons in piano, guitar, voice, bass and drums for children, teens and adults, private or in small groups.',
     href: siteUrl('academy'),
-    photo: 'girlGuitar',
-    bannerPhoto: 'guitarMentor',
+    photo: 'instrumentUkulele',
+    bannerPhoto: 'instrumentMusicTheory',
   },
   {
     key: 'worship',
@@ -35,7 +35,7 @@ export const programs: Program[] = [
     summary:
       'Vetted worship musicians who help churches keep Sunday services and special gatherings going, with musician pay always shown as its own line item.',
     href: siteUrl('worship'),
-    photo: 'worshipBand',
+    photo: 'musicianChoir',
   },
   {
     key: 'production',
@@ -44,6 +44,6 @@ export const programs: Program[] = [
     summary:
       'Practical audio, livestream and lighting support, with hands-on training for the church volunteers behind the board.',
     href: siteUrl('production'),
-    photo: 'soundEngineer',
+    photo: 'techAudio',
   },
 ];

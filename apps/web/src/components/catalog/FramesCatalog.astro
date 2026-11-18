@@ -22,26 +22,26 @@ import Specimen from './Specimen.astro';
     <div class="grid gap-8 md:grid-cols-3">
       <Specimen name='Frame · ratio="portrait"' note="4 / 5">
         <Frame
-          photo="boyGuitar"
+          photo="musicianAcousticGuitarist"
           ratio="portrait"
           sizes="third"
-          alt="Smiling boy learning to play acoustic guitar in a sunlit room"
+          alt="Guitarist playing an acoustic guitar by a window"
         />
       </Specimen>
       <Specimen name='Frame · ratio="landscape"' note="3 / 2">
         <Frame
-          photo="guitarMentor"
+          photo="musicianBassist"
           ratio="landscape"
           sizes="third"
-          alt="Guitar instructor guiding a young student through a chord"
+          alt="Hands on a bass guitar in soft light"
         />
       </Specimen>
       <Specimen name='Frame · ratio="square"' note="1 / 1">
         <Frame
-          photo="worshipBand"
+          photo="musicianChoir"
           ratio="square"
           sizes="third"
-          alt="Worship team leading in a bright sanctuary"
+          alt="Adult choir singing in terracotta robes"
         />
       </Specimen>
     </div>
@@ -71,11 +71,11 @@ import Specimen from './Specimen.astro';
     <div class="grid gap-8 md:grid-cols-2">
       <Specimen name='Frame · scrim="bottom"' note="Overlay text sits on a dark scrim with known contrast.">
         <Frame
-          photo="worshipBand"
+          photo="musicianChoir"
           ratio="landscape"
           sizes="half"
           scrim="bottom"
-          alt="Worship team with vocalists, guitar, drums and keys in a bright sanctuary"
+          alt="Adult choir singing in terracotta robes"
         >
           <p class="text-xl font-black tracking-tight text-fg uppercase">Sunday worship team</p>
           <p class="text-body-sm text-fg">Overlay text stays readable on a bright photo.</p>
@@ -83,10 +83,10 @@ import Specimen from './Specimen.astro';
       </Specimen>
       <Specimen name="Frame · caption" note="Caption renders below the photo as figcaption, never over it.">
         <Frame
-          photo="sanctuaryCongregation"
+          photo="techSlides"
           ratio="landscape"
           sizes="half"
-          alt="Congregation worshipping together in a sunlit sanctuary"
+          alt="Congregation facing a band and a projected slide"
           caption="A Sunday morning in a sunlit sanctuary (Sample caption)."
         />
       </Specimen>
@@ -99,10 +99,10 @@ import Specimen from './Specimen.astro';
       <Specimen name="Frame · inside a link" note="The link owns the focus ring, so it is never clipped.">
         <a href="#catalog-frames" class="frame-link" data-testid="frame-link">
           <Frame
-            photo="girlGuitar"
+            photo="instrumentUkulele"
             ratio="landscape"
             sizes="half"
-            alt="Young girl practicing acoustic guitar beside a music stand. Link to the top of this section."
+            alt="Ukulele resting on a cream sofa. Link to the top of this section."
           />
         </a>
       </Specimen>
@@ -112,10 +112,10 @@ import Specimen from './Specimen.astro';
       >
         <Card padding="md">
           <Frame
-            photo="youngPianist"
+            photo="instrumentMusicTheory"
             ratio="landscape"
             sizes="half"
-            alt="Young pianist smiling while playing a keyboard in a bright classroom"
+            alt="Open music book on a piano desk"
           />
         </Card>
       </Specimen>
@@ -133,8 +133,12 @@ import Specimen from './Specimen.astro';
       <PhotoGrid
         layout="pair"
         photos={[
-          { photo: 'guitarMentor', alt: 'Guitar instructor guiding a young student through a chord' },
-          { photo: 'worshipBand', alt: 'Worship team in a bright sanctuary', caption: 'Sample caption' },
+          { photo: 'musicianBassist', alt: 'Hands on a bass guitar in soft light' },
+          {
+            photo: 'musicianChoir',
+            alt: 'Adult choir singing in terracotta robes',
+            caption: 'Sample caption',
+          },
         ]}
       />
     </Specimen>
@@ -145,9 +149,9 @@ import Specimen from './Specimen.astro';
       <PhotoGrid
         layout="trio"
         photos={[
-          { photo: 'worshipBand', alt: 'Worship team with vocalists, guitar, drums and keys' },
-          { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
-          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar' },
+          { photo: 'musicianChoir', alt: 'Adult choir singing in terracotta robes' },
+          { photo: 'musicianAcousticGuitarist', alt: 'Guitarist playing an acoustic guitar by a window' },
+          { photo: 'instrumentUkulele', alt: 'Ukulele resting on a cream sofa' },
         ]}
       />
     </Specimen>
@@ -155,10 +159,10 @@ import Specimen from './Specimen.astro';
       <PhotoGrid
         layout="quad"
         photos={[
-          { photo: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar' },
-          { photo: 'girlGuitar', alt: 'Young girl practicing acoustic guitar' },
-          { photo: 'youngPianist', alt: 'Young pianist smiling at a keyboard' },
-          { photo: 'worshipBand', alt: 'Worship team in a bright sanctuary' },
+          { photo: 'musicianAcousticGuitarist', alt: 'Guitarist playing an acoustic guitar by a window' },
+          { photo: 'instrumentUkulele', alt: 'Ukulele resting on a cream sofa' },
+          { photo: 'instrumentMusicTheory', alt: 'Open music book on a piano desk' },
+          { photo: 'musicianChoir', alt: 'Adult choir singing in terracotta robes' },
         ]}
       />
     </Specimen>
@@ -170,7 +174,7 @@ import Specimen from './Specimen.astro';
         layout="hero"
         photos={[
           { photo: 'churchModernDay', alt: 'Modern church building with a cross on a sunny day' },
-          { photo: 'youngPianist', alt: 'Young pianist smiling at a keyboard' },
+          { photo: 'instrumentMusicTheory', alt: 'Open music book on a piano desk' },
         ]}
       />
     </Specimen>
