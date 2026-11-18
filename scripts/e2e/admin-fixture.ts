@@ -11,6 +11,8 @@ export const ADMIN_E2E_PORT = 4326;
 export const ADMIN_E2E_ORIGIN = `http://127.0.0.1:${ADMIN_E2E_PORT}`;
 
 export const STAFF_EMAIL = 'staff.e2e@example.invalid';
+/** A second seeded staff account for the form-builder spec, which changes its password; the sign-in spec keeps its own. */
+export const BUILDER_EMAIL = 'builder.e2e@example.invalid';
 export const STAFF_TEMPORARY_PASSWORD = 'Temp-Password-E2E-2026';
 export const STAFF_NEW_PASSWORD = 'New-Password-E2E-2026!';
 

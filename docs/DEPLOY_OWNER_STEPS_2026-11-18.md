@@ -8,8 +8,8 @@ Agents do none of this (AGENTS.md "External operations"). Run from the repositor
 
 ```sh
 git push -u origin cleanup/forms-emails-invoices-verify        # then open a PR and wait for CI (pnpm check)
-# Stop any local `astro dev` for admin (port 4326), then run the admin browser specs once:
-pnpm --filter apps-admin build && E2E_APPS=admin pnpm exec playwright test --workers=1
+# The browser specs start their own servers on ports 4321-4326: stop any local `astro dev` first, then `pnpm check` runs them all
+# (the admin specs passed 9 of 9 on 2026-11-18: pnpm --filter apps-admin build && E2E_APPS=admin pnpm exec playwright test --workers=1)
 ```
 
 ## 1. Secrets (production; values are never printed)

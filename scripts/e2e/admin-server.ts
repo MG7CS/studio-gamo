@@ -23,6 +23,7 @@ import {
   ACCESS_KID,
   ACCESS_TEAM,
   ADMIN_E2E_PORT,
+  BUILDER_EMAIL,
   STAFF_EMAIL,
   STAFF_TEMPORARY_PASSWORD,
 } from './admin-fixture.ts';
@@ -143,15 +144,20 @@ for (const file of readdirSync(join(repoRoot, 'packages/db/migrations'))
   }
 }
 // The seed is plain statements ending in `;` at the end of a line, with no `;` inside a value.
-const seed = buildFirstSuperadminSql({
-  email: STAFF_EMAIL,
-  displayName: 'Sample Staff (e2e)',
-  passwordHash: await hashAdminPassword(STAFF_TEMPORARY_PASSWORD),
-  now: new Date(),
-});
-for (const statement of seed.replace(/^\s*--.*$/gm, '').split(/;\s*\n/)) {
-  const sql = statement.replace(/\s+/g, ' ').trim();
-  if (sql) await db.exec(sql);
+for (const [email, displayName] of [
+  [STAFF_EMAIL, 'Sample Staff (e2e)'],
+  [BUILDER_EMAIL, 'Sample Builder (e2e)'],
+] as const) {
+  const seed = buildFirstSuperadminSql({
+    email,
+    displayName,
+    passwordHash: await hashAdminPassword(STAFF_TEMPORARY_PASSWORD),
+    now: new Date(),
+  });
+  for (const statement of seed.replace(/^\s*--.*$/gm, '').split(/;\s*\n/)) {
+    const sql = statement.replace(/\s+/g, ' ').trim();
+    if (sql) await db.exec(sql);
+  }
 }
 console.log(
   `[admin-e2e] ready on http://127.0.0.1:${ADMIN_E2E_PORT} (ENVIRONMENT=production, Access mocked)`,

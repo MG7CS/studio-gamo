@@ -10,7 +10,7 @@ import { test, expect, type Browser, type BrowserContext, type Page } from '@pla
 import {
   ACCESS_KEY_FILE,
   ADMIN_E2E_ORIGIN,
-  STAFF_EMAIL,
+  BUILDER_EMAIL,
   STAFF_NEW_PASSWORD,
   STAFF_TEMPORARY_PASSWORD,
   mintAccessJwt,
@@ -20,7 +20,7 @@ import { expectAccessible, watchErrors } from './helpers/a11y';
 test.describe.configure({ mode: 'serial' });
 
 async function signedIn(browser: Browser): Promise<{ context: BrowserContext; page: Page }> {
-  const jwt = mintAccessJwt(readFileSync(ACCESS_KEY_FILE, 'utf8'), STAFF_EMAIL);
+  const jwt = mintAccessJwt(readFileSync(ACCESS_KEY_FILE, 'utf8'), BUILDER_EMAIL);
   const context = await browser.newContext({ extraHTTPHeaders: { 'cf-access-jwt-assertion': jwt } });
   const page = await context.newPage();
   await page.goto(`${ADMIN_E2E_ORIGIN}/forms`);
@@ -190,7 +190,8 @@ test('the list, new form, logic overview and settings screens are accessible and
   const { context, page } = await signedIn(browser);
   await page.goto(`${ADMIN_E2E_ORIGIN}/forms`);
   await expect(page.getByRole('table')).toBeVisible();
-  await expect(page.getByRole('cell', { name: /Published v1/ })).toBeVisible();
+  // The first visit published the six default forms, so several rows read Published v1.
+  await expect(page.getByRole('cell', { name: /Published v1/ }).first()).toBeVisible();
   await expectAccessible(page, 'forms list');
   await page.goto(`${ADMIN_E2E_ORIGIN}/forms/new`);
   await expectAccessible(page, 'new form');

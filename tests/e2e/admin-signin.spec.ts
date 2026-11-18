@@ -77,7 +77,7 @@ test('staff sign in with the temporary password, are forced to change it, and re
 
   // Forced password change.
   await page.getByLabel('Current Password').fill(STAFF_TEMPORARY_PASSWORD);
-  await page.getByLabel('New Password (required)', { exact: true }).fill(STAFF_NEW_PASSWORD);
+  await page.getByLabel(/^New Password/).fill(STAFF_NEW_PASSWORD);
   await page.getByLabel('Confirm New Password').fill(STAFF_NEW_PASSWORD);
   await Promise.all([
     page.waitForURL(`${ADMIN_E2E_ORIGIN}/security?updated=1`),
