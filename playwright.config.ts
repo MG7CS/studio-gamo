@@ -73,6 +73,8 @@ export default defineConfig({
       command:
         `(pnpm --filter apps-${app} exec wrangler d1 migrations apply gamo-db-local --local >/dev/null 2>&1 || ` +
         `echo "[e2e] ${app}: local D1 migrations could not be applied; run pnpm db:reset:local" >&2); ` +
+        // The public form pages (hosted by web) 404 until their forms are published; admin does this on first load.
+        (app === 'web' ? 'pnpm exec tsx scripts/e2e/seed-forms.ts web 2>/dev/null; ' : '') +
         `env -u CLAUDECODE -u AI_AGENT -u CLAUDE_CODE_ENTRYPOINT ASTRO_TELEMETRY_DISABLED=1 pnpm --filter apps-${app} exec astro preview`,
       url: `http://127.0.0.1:${port}/robots.txt`,
       reuseExistingServer: false,

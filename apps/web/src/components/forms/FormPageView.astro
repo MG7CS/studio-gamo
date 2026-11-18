@@ -1,0 +1,116 @@
+---
+/**
+ * FormPageView: the body of a public form page for every state `loadFormPage` can return: the form, the
+ * confirmation after a send, a closed form, or "temporarily unavailable". The page owns the single <h1>
+ * (the form's own title, which staff edit in the admin form builder). Content-agnostic: the eyebrow and the
+ * back link come from the page.
+ */
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
+import { FORM_TURNSTILE_ACTION } from '@gamo/domain/forms';
+import type { FormPageData } from '../../lib/form-page';
+
+type Page = Exclude<FormPageData, { response: Response }>;
+
+interface Props {
+  page: Page;
+  eyebrow: string;
+  backHref: string;
+  backLabel: string;
+  fallbackTitle: string;
+}
+const { page, eyebrow, backHref, backLabel, fallbackTitle } = Astro.props;
+const title = 'form' in page ? page.form.title : fallbackTitle;
+---
+
+{page.view === 'form' ? (
+  <>
+    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+      {page.form.description && <p slot="intro">{page.form.description}</p>}
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <DynamicForm
+        schema={page.schema}
+        formSlug={page.form.slug}
+        idempotencyKey={page.idempotencyKey}
+        values={page.values}
+        errors={page.errors}
+        uploads={page.uploads}
+        uploadTokens={page.uploadTokens}
+        summaryExtra={page.summaryExtra}
+        turnstile={{ action: FORM_TURNSTILE_ACTION, error: page.turnstileError }}
+        submitLabel="Send"
+        pendingLabel="Sending…"
+      />
+    </Container>
+  </>
+) : page.view === 'sent' ? (
+  <>
+    <PageHero title="Thank you" eyebrow={eyebrow} width="narrow">
+      <p slot="intro">{page.form.confirmationMessage}</p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <Card padding="lg" class="space-y-4">
+        <p class="text-body">
+          Your reference is{' '}
+          <strong class="font-semibold text-fg" data-form-reference>
+            {page.reference}
+          </strong>
+          . Keep it if you write to us about this {page.form.title.toLowerCase()}.
+        </p>
+        {page.problem === 'uploads' && (
+          <p class="text-body text-fg" role="status">
+            We saved your answers, but a file did not finish saving. Please email hello@gamostudio.org and
+            quote your reference so we can ask for it again.
+          </p>
+        )}
+        {page.problem === 'request' && (
+          <p class="text-body text-fg" role="status">
+            We saved your answers, but could not add them to our schedule yet. Our team has been notified; you
+            can also email hello@gamostudio.org with your reference.
+          </p>
+        )}
+        <ButtonLink href={backHref} arrow>
+          {backLabel}
+        </ButtonLink>
+      </Card>
+    </Container>
+  </>
+) : page.view === 'closed' ? (
+  <>
+    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+      <p slot="intro">This form is not taking responses right now.</p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <Card padding="lg" class="space-y-4">
+        <p class="text-body">
+          Please check back soon, or write to{' '}
+          <a
+            href="mailto:hello@gamostudio.org"
+            class="font-semibold text-action-strong underline underline-offset-4"
+          >
+            hello@gamostudio.org
+          </a>
+          .
+        </p>
+        <ButtonLink href={backHref} arrow>
+          {backLabel}
+        </ButtonLink>
+      </Card>
+    </Container>
+  </>
+) : (
+  <>
+    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+      <p slot="intro">{page.message}</p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <ButtonLink href={backHref} arrow>
+        {backLabel}
+      </ButtonLink>
+    </Container>
+  </>
+)}

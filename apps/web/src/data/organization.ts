@@ -40,7 +40,7 @@ export const participation: ParticipationPath[] = [
     area: 'Gamo Worship',
     next: 'Request worship musicians for your services.',
     body: 'Request prepared worship musicians, host lessons or share what your community can offer.',
-    href: siteUrl('worship', '/request'),
+    href: siteUrl('web', '/worship/request'),
     photo: 'churchModernDay',
   },
   {
@@ -48,7 +48,7 @@ export const participation: ParticipationPath[] = [
     area: 'Gamo Worship',
     next: 'Apply to serve churches as a worship musician.',
     body: 'Learn about the preparation and audition journey for serving churches as a Gamo Worship musician.',
-    href: siteUrl('worship', '/apply'),
+    href: siteUrl('web', '/worship/apply'),
     photo: 'acousticLeader',
   },
   {

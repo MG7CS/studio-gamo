@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'production-request');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  title="Request Production Help | Gamo Production"
+  description="Churches can ask Gamo Production to arrange sound, video or lighting help for a service or event."
+>
+  <FormPageView
+    page={page}
+    eyebrow="Gamo Production · churches"
+    fallbackTitle="Request production help"
+    backHref={siteUrl('production')}
+    backLabel="Back to Gamo Production"
+  />
+</SiteLayout>

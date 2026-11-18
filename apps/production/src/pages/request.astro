@@ -1,26 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
-import WhatHappensNext from '../components/production/WhatHappensNext.astro';
-const steps = [
-  {
-    title: 'Send your request',
-    body: 'Email your church and city, the area you need help with and a short description of your setup.',
-  },
-  { title: 'We review it', body: 'Our team reads every request and may ask a few questions.' },
-  { title: 'We plan next steps', body: 'We follow up to arrange a consultation with your team.' },
-];
----
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
-<Layout
-  title="Request a Consultation"
-  description="Churches can request a Gamo Production consultation for worship audio, video, lighting, livestreaming and volunteer training."
->
-  <FormComingSoon
-    eyebrow="Gamo Production · churches"
-    title="Request a consultation"
-    intro="Tell us about your church, your current setup and what your technical team hopes to improve. Our team reviews every request and follows up."
-    email="hello@gamostudio.org"
-  />
-  <WhatHappensNext steps={steps} />
-</Layout>
+export const prerender = false;
+
+// The form moved to the main site (one public app): old links keep working.
+return Astro.redirect(siteUrl('web', '/production/request'), 302);
+---

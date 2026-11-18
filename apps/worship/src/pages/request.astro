@@ -1,18 +1,8 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import FormPlaceholder from '../components/forms/FormPlaceholder.astro';
-import { requestSteps } from '../data/worship';
----
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
-<Layout
-  title="Request Musicians"
-  description="Churches can request prepared, vetted musicians for services and special gatherings through Gamo Worship."
->
-  <FormPlaceholder
-    eyebrow="Gamo Worship · churches"
-    title="Request musicians"
-    intro="Tell us about your church, the date and the roles you need. Our team reviews every request and follows up."
-    email="hello@gamostudio.org"
-    steps={requestSteps}
-  />
-</Layout>
+export const prerender = false;
+
+// The form moved to the main site (one public app): old links keep working.
+return Astro.redirect(siteUrl('web', '/worship/request'), 302);
+---

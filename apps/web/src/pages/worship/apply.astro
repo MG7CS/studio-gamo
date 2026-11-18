@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'worship-apply');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  title="Apply as a Musician | Gamo Worship"
+  description="Christian instrumentalists and vocalists can apply to serve local churches through Gamo Worship."
+>
+  <FormPageView
+    page={page}
+    eyebrow="Gamo Worship · musicians"
+    fallbackTitle="Apply as a musician"
+    backHref={siteUrl('worship')}
+    backLabel="Back to Gamo Worship"
+  />
+</SiteLayout>

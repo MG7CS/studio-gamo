@@ -51,11 +51,16 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/contact',
     '/partners',
     '/partners/interest',
+    // The public forms (staff-edited; Worship and Production apply and request).
+    '/worship/apply',
+    '/worship/request',
+    '/production/apply',
+    '/production/request',
     '/llms.txt',
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
-  // Apply to serve / request musicians: placeholder pages until the Phase 2 forms engine lands.
+  // Apply and request moved to web (/worship/apply, /worship/request); these pages only redirect there.
   worship: ['/', '/apply', '/request', ...CRAWLER_FILES, ...ERROR_PAGES],
   academy: [
     '/',

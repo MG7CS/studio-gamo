@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import FormPageView from '../../components/forms/FormPageView.astro';
+import { loadFormPage } from '../../lib/form-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadFormPage(Astro, 'production-apply');
+if ('response' in page) return page.response;
+---
+
+<SiteLayout
+  title="Apply as a Technician | Gamo Production"
+  description="Sound, video and lighting volunteers can apply to serve churches through Gamo Production."
+>
+  <FormPageView
+    page={page}
+    eyebrow="Gamo Production · technicians"
+    fallbackTitle="Apply as a technician"
+    backHref={siteUrl('production')}
+    backLabel="Back to Gamo Production"
+  />
+</SiteLayout>
