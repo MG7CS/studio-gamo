@@ -16,7 +16,9 @@ interface Props {
   alt?: string;
   ratio?: 'landscape' | 'portrait' | 'square';
 }
-const { photo, alt, ratio = 'landscape' } = Astro.props;
+const { photo, alt, ratio } = Astro.props;
+// Landscape unless the photo is tall-only; a frame ratio the photo does not allow throws at render.
+const shape = ratio ?? (photos[photo].ratios.includes('landscape') ? 'landscape' : 'square');
 ---
 
-<Frame photo={photo} ratio={ratio} sizes="half" alt={alt ?? photos[photo].alt} priority />
+<Frame photo={photo} ratio={shape} sizes="half" alt={alt ?? photos[photo].alt} priority />

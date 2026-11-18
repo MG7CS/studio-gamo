@@ -2,6 +2,7 @@
 import { REQUEST_HREF } from '../site.config';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import { photos } from '@studio-gamo/ui/lib/images';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import TrainingSection from '../components/production/TrainingSection.astro';
 import CtaInvitation from '@studio-gamo/ui/components/CtaInvitation.astro';
@@ -19,11 +20,11 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     </Fragment>
     <div slot="media">
       <Frame
-        photo="guitarMentor"
-        ratio="landscape"
+        photo="techTraining"
+        ratio={photos.techTraining.ratios.includes('landscape') ? 'landscape' : 'square'}
         priority
         sizes="half"
-        alt="Guitar instructor guiding a young student through a chord"
+        alt={photos.techTraining.alt}
       />
     </div>
   </PageHero>

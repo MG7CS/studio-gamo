@@ -25,7 +25,13 @@ const area: SupportArea = found;
   >
     {area.slug === 'software' && <p slot="intro">{area.summary}</p>}
     <div slot="media">
-      <Frame photo={area.photo} ratio="landscape" priority sizes="half" alt={photos[area.photo].alt} />
+      <Frame
+        photo={area.photo}
+        ratio={photos[area.photo].ratios.includes('landscape') ? 'landscape' : 'square'}
+        priority
+        sizes="half"
+        alt={photos[area.photo].alt}
+      />
     </div>
   </PageHero>
   <AreaDetail area={area} />
