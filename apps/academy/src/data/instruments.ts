@@ -12,7 +12,7 @@ export interface Instrument {
   short: string;
   blurb: string;
   icon: InstrumentIcon;
-  /** Photo of this instrument. */
+  /** Only set when a genuinely matching photo exists; otherwise a typographic card is used. */
   photo?: PhotoKey;
   ages: string;
   firstSteps: string[];
@@ -24,7 +24,7 @@ export const instruments: Instrument[] = [
     name: 'Piano & keyboards',
     short: 'Piano',
     icon: 'piano',
-    photo: 'instrumentPianoKeyboard',
+    photo: 'youngPianist',
     blurb: 'Read music, play chords and grow from your first melody to accompanying others.',
     ages: 'Ages 6 and up',
     firstSteps: [
@@ -38,7 +38,7 @@ export const instruments: Instrument[] = [
     name: 'Acoustic guitar',
     short: 'Acoustic',
     icon: 'guitar',
-    photo: 'instrumentAcousticGuitar',
+    photo: 'girlGuitar',
     blurb: 'Strum your first songs in weeks, then build rhythm, fingerstyle and confidence.',
     ages: 'Ages 7 and up',
     firstSteps: ['Holding the guitar and tuning', 'First open chords', 'Strumming patterns and simple songs'],
@@ -48,7 +48,6 @@ export const instruments: Instrument[] = [
     name: 'Electric guitar',
     short: 'Electric',
     icon: 'guitar',
-    photo: 'instrumentElectricGuitar',
     blurb: 'Tone, riffs, lead lines and playing with a band, at a pace that fits you.',
     ages: 'Ages 9 and up',
     firstSteps: ['Amp and tone basics', 'Power chords and riffs', 'Playing along with a band track'],
@@ -58,7 +57,6 @@ export const instruments: Instrument[] = [
     name: 'Bass guitar',
     short: 'Bass',
     icon: 'music',
-    photo: 'instrumentBassGuitar',
     blurb: 'Lock in with the drums and learn the instrument that holds every song together.',
     ages: 'Ages 9 and up',
     firstSteps: ['Root notes and timing', 'Simple grooves', 'Listening to and following a drummer'],
@@ -68,7 +66,6 @@ export const instruments: Instrument[] = [
     name: 'Drums & percussion',
     short: 'Drums',
     icon: 'drums',
-    photo: 'instrumentDrums',
     blurb: 'Rhythm, coordination and groove, starting on practice pads and growing to a full kit.',
     ages: 'Ages 7 and up',
     firstSteps: ['Grip, posture and counting', 'Basic rock and ballad grooves', 'Fills and dynamics'],
@@ -78,7 +75,7 @@ export const instruments: Instrument[] = [
     name: 'Vocals',
     short: 'Voice',
     icon: 'mic',
-    photo: 'instrumentVocals',
+    photo: 'worshipLeaderGolden',
     blurb: 'Breath, pitch and healthy technique for solo singing, choirs and harmony.',
     ages: 'Ages 8 and up',
     firstSteps: ['Breathing and warm-ups', 'Finding your comfortable range', 'Pitch, harmony and confidence'],

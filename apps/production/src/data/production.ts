@@ -27,7 +27,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Church Audio',
     short: 'Clear, intelligible sound for worship and the spoken word.',
     icon: 'sliders',
-    photo: 'techAudio',
+    photo: 'soundEngineer',
     summary:
       'Help for sound teams who want every lyric, prayer and sermon to be heard clearly — from gain structure and monitor mixes to simple, repeatable Sunday routines.',
     covers: ['Gain staging and channel organization', 'Monitor and in-ear mix strategy', 'Speech intelligibility for preaching', 'Saving scenes and service templates'],
@@ -39,7 +39,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Livestreaming & Video',
     short: 'Reliable streams for members who worship from home.',
     icon: 'video',
-    photo: 'techLivestream',
+    photo: 'concertCrowdWide',
     summary:
       'Guidance for churches serving homebound members, families and travelers online — camera placement, stream audio, encoder settings and a pre-service checklist.',
     covers: ['Camera placement and framing', 'A dedicated stream audio mix', 'Encoder and bandwidth basics', 'Pre-service stream checklist'],
@@ -51,7 +51,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Lighting & Media',
     short: 'Warm, distraction-free light and clear presentation.',
     icon: 'light',
-    photo: 'techLighting',
+    photo: 'gospelVocalists',
     summary:
       'Support for lighting and presentation teams so faces are visible, lyrics are legible and the room serves worship rather than distracting from it.',
     covers: ['Front light for faces and cameras', 'Simple cue stacks for services', 'Lyric and scripture slide standards', 'Screen visibility and contrast'],
@@ -63,7 +63,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Technical Education',
     short: 'Volunteer training that builds confidence and continuity.',
     icon: 'school',
-    photo: 'techTraining',
+    photo: 'guitarMentor',
     summary:
       'Patient, hands-on teaching for volunteers of every experience level, so technical ministry does not depend on one person and new servers are welcomed well.',
     covers: ['Role-based onboarding paths', 'Hands-on practice sessions', 'Written routines for each position', 'Mentoring newer volunteers'],
@@ -75,7 +75,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Event Production Support',
     short: 'Planning help for conferences, concerts and special services.',
     icon: 'calendar',
-    photo: 'techStageSetup',
+    photo: 'worshipNight',
     summary:
       'Planning support for Christmas and Easter services, worship nights and conferences — run-of-show, stage plots, input lists and a calm advance plan.',
     covers: ['Run-of-show and cue planning', 'Stage plots and input lists', 'Rental and staffing considerations', 'Rehearsal and changeover timing'],
@@ -87,7 +87,7 @@ export const supportAreas: SupportArea[] = [
     title: 'Software for Churches',
     short: 'Websites, mobile apps and church email that churches need.',
     icon: 'phone',
-    photo: 'softwareWebsite',
+    photo: 'sanctuaryCongregation',
     summary:
       'A proposed support area for the websites, mobile apps and church email that congregations rely on, helping members find information and helping staff keep it current. It is still being scoped, and its scope and any contribution remain proposals until approved.',
     covers: [

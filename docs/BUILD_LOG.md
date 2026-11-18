@@ -802,13 +802,10 @@
 - **Guard.** `scripts/audit/ui-boundaries.test.ts` now fails on any `eyebrow` prop, slot or class and ratchets round shapes (`rounded-pill`/`rounded-full`) per file; tested by adding a violation.
 - Checks: lint, format, typecheck, 941 unit tests, `pnpm check` exit 0 (76 Playwright tests); darwin catalog baselines regenerated.
 - **Still open under the clean rules:** the sample preview widgets inside program sections (Worship coverage and scheduling, Academy family journey, Production support areas), the Worship audience tabs with icon rows, and the admin dashboard library's remaining decorative circles.
+## 2026-11-18 — The original photos come back on the pages
 
-## 2026-11-18 — Free-licence photos replace the AI photos
-
-- 33 Unsplash and Pexels photos (instruments, musicians, technical work, software) are in the catalog with their licences recorded in `docs/ASSET_MANIFEST.md`; the 13 replaced AI photos and their files are removed. The three church exteriors stay until the owner supplies free ones. The church email tile is the original illustration `assets/illustrations/church-email.svg`.
-- Every page that used an old photo now uses a new one with a truthful description. Several new photos are tall-only (no landscape crop), and a wrong frame shape throws when the page is rendered, not at build, so hero and card frames now pick landscape or square by what the photo allows (`HeroPhoto`, production service pages, Academy learning paths).
-- Checked: typecheck, lint, format, 941 unit tests, all four builds and the 76 Playwright tests; catalog screenshot baselines refreshed on purpose.
-
+- Owner direction after seeing the live site: bring back the photos used before (the AI-generated worship, Academy and Production set). The photo swap commit was reverted: every page uses the original photos again, with their original descriptions. The 33 free-licence photos stay in the catalog and in `docs/ASSET_MANIFEST.md`; the header menu tiles and the Production software area still use them, because the original set has no instrument, musician-type or software photos.
+- Note for later: the original set is AI-generated and includes a child, which the owner's earlier free-photo and child-safety decisions had ruled against; this reversal is the owner's explicit instruction.
 ## 2026-11-18 — Image-led header menu and the proposed software support area
 
 - **Header menu** (all four public sites): Academy, Worship and Production each open a full-width panel of photo tiles (instruments, kinds of musicians, kinds of technical work) with a short text link list; Mission stays a plain link. Disclosure pattern with real links, keyboard, hover-intent and touch behaviour, images fetched only when a panel opens, accordion rows in the phone drawer. Content comes from `packages/config/menus.ts` through each app's `site.config.ts`; the shared components (`SiteHeader`, `MegaMenuPanel`, `MenuTile`) name no program or photo. Details in `docs/DECISIONS.md`.

@@ -119,18 +119,15 @@ test('allowed ratios follow the crop rule: at least half of the source stays in 
     }
   }
   // A 4:5 portrait source cannot become a 21:8 banner; a 3:2 source can.
-  assert.ok(!photos.instrumentAcousticGuitar.ratios.includes('wide'));
-  assert.ok(photos.instrumentAcousticGuitar.ratios.includes('portrait'));
-  assert.ok(photos.instrumentMusicTheory.ratios.includes('wide'));
+  assert.ok(!photos.boyGuitar.ratios.includes('wide'));
+  assert.ok(photos.boyGuitar.ratios.includes('portrait'));
+  assert.ok(photos.guitarMentor.ratios.includes('wide'));
 });
 
 test('a Frame with a disallowed ratio throws, naming the photo and the allowed ratios', () => {
-  assert.throws(
-    () => assertFrameRatio('instrumentAcousticGuitar', 'wide'),
-    /instrumentAcousticGuitar[\s\S]*wide[\s\S]*portrait/,
-  );
-  assert.doesNotThrow(() => assertFrameRatio('instrumentAcousticGuitar', 'portrait'));
-  assert.throws(() => assertFrameRatio('instrumentAcousticGuitar', 'banner' as FrameRatio), /ratio/i);
+  assert.throws(() => assertFrameRatio('boyGuitar', 'wide'), /boyGuitar[\s\S]*wide[\s\S]*portrait/);
+  assert.doesNotThrow(() => assertFrameRatio('boyGuitar', 'portrait'));
+  assert.throws(() => assertFrameRatio('boyGuitar', 'banner' as FrameRatio), /ratio/i);
 });
 
 test('sizes presets are real sizes strings built from the shared breakpoints', () => {
@@ -145,52 +142,41 @@ test('sizes presets are real sizes strings built from the shared breakpoints', (
 test('PhotoGrid layouts validate the photo count, alt text and priority', () => {
   const p = (photo: keyof typeof photos, extra: object = {}) => ({ photo, alt: 'x', ...extra });
   assert.deepEqual(Object.keys(GRID_LAYOUTS).sort(), ['hero', 'pair', 'quad', 'trio']);
-  assert.doesNotThrow(() => assertGridPhotos('pair', [p('instrumentMusicTheory'), p('musicianChoir')]));
-  assert.throws(() => assertGridPhotos('pair', [p('instrumentMusicTheory')]), /pair[\s\S]*2/);
-  assert.throws(
-    () => assertGridPhotos('trio', [p('instrumentMusicTheory'), p('musicianChoir')]),
-    /trio[\s\S]*3/,
-  );
+  assert.doesNotThrow(() => assertGridPhotos('pair', [p('guitarMentor'), p('worshipBand')]));
+  assert.throws(() => assertGridPhotos('pair', [p('guitarMentor')]), /pair[\s\S]*2/);
+  assert.throws(() => assertGridPhotos('trio', [p('guitarMentor'), p('worshipBand')]), /trio[\s\S]*3/);
   assert.throws(
     () =>
       assertGridPhotos('quad', [
-        p('instrumentMusicTheory'),
-        p('musicianChoir'),
-        p('instrumentAcousticGuitar'),
-        p('instrumentUkulele'),
-        p('instrumentPianoKeyboard'),
+        p('guitarMentor'),
+        p('worshipBand'),
+        p('boyGuitar'),
+        p('girlGuitar'),
+        p('youngPianist'),
       ]),
     /quad[\s\S]*4/,
   );
   // Priority only on the first photo.
   assert.throws(
-    () => assertGridPhotos('pair', [p('instrumentMusicTheory'), p('musicianChoir', { priority: true })]),
+    () => assertGridPhotos('pair', [p('guitarMentor'), p('worshipBand', { priority: true })]),
     /priority/,
   );
   assert.doesNotThrow(() =>
-    assertGridPhotos('pair', [p('instrumentMusicTheory', { priority: true }), p('musicianChoir')]),
+    assertGridPhotos('pair', [p('guitarMentor', { priority: true }), p('worshipBand')]),
   );
   // Every cell needs alt or decorative.
   assert.throws(
-    () => assertGridPhotos('pair', [p('instrumentMusicTheory'), { photo: 'musicianChoir' } as never]),
+    () => assertGridPhotos('pair', [p('guitarMentor'), { photo: 'worshipBand' } as never]),
     /alt/,
   );
   assert.doesNotThrow(() =>
-    assertGridPhotos('pair', [
-      p('instrumentMusicTheory'),
-      { photo: 'musicianChoir', decorative: true } as never,
-    ]),
+    assertGridPhotos('pair', [p('guitarMentor'), { photo: 'worshipBand', decorative: true } as never]),
   );
   // A photo that cannot make a cell's crop is named.
   assert.throws(
     () =>
-      assertGridPhotos('quad', [
-        p('musicianKeysPlayer'),
-        p('instrumentUkulele'),
-        p('instrumentPianoKeyboard'),
-        p('instrumentAcousticGuitar'),
-      ]),
-    /musicianKeysPlayer[\s\S]*portrait/,
+      assertGridPhotos('quad', [p('concertCrowdWide'), p('girlGuitar'), p('youngPianist'), p('boyGuitar')]),
+    /concertCrowdWide[\s\S]*portrait/,
   );
 });
 

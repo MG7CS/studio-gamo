@@ -17,17 +17,24 @@ To add a photo: drop it in the right category folder with a descriptive kebab-ca
 
 ## Photographs
 
-Since 2026-11-18 the photo set is free-licence photography (Unsplash and Pexels, no attribution needed). Source page, creator, licence and retrieval date of every photo are in [`ASSET_MANIFEST.md`](ASSET_MANIFEST.md) ("Free-licence photos"). Sources are JPEGs in `assets/images/2026-brand-refresh/<category>/`; the catalog key names the subject.
-
-| Category | Catalog keys |
-|---|---|
-| `instruments` | `instrumentPianoKeyboard`, `instrumentAcousticGuitar`, `instrumentElectricGuitar`, `instrumentBassGuitar`, `instrumentDrums`, `instrumentVocals`, `instrumentViolin`, `instrumentCello`, `instrumentSaxophone`, `instrumentTrumpet`, `instrumentUkulele`, `instrumentMusicTheory` |
-| `musicians` | `musicianWorshipLeader`, `musicianAcousticGuitarist`, `musicianElectricGuitarist`, `musicianKeysPlayer`, `musicianDrummer`, `musicianBassist`, `musicianChoir`, `musicianFullBand`, `musicianStrings`, `musicianBrass` |
-| `tech` | `techAudio`, `techVideoCamera`, `techLighting`, `techLivestream`, `techStageSetup`, `techTraining`, `techSlides` |
-| `software` | `softwareWebsite`, `softwareMobileApp`, `softwareTeam`, `softwareSupport` |
-| `churches` | `churchModernDay`, `churchGoldenHour`, `chapelSpring`: the last AI-generated photos, kept until the owner supplies free-licence church-building photos (`DECISIONS.md`, 2026-11-18) |
-
-The church email tile is an original illustration, `assets/illustrations/church-email.svg`, not a photo.
+| Catalog key | Original source file (as delivered) | Organized source | Size / orientation | Subject | Intended use |
+|---|---|---|---|---|---|
+| `worshipLeaderGolden` | ChatGPT Image Oct 12, 2026, 09_48_57 PM-1.png | worship/gospel-worship-leader-golden-light.png | 1122×1402 portrait | Female gospel worship leader singing, warm golden light | Proposed global hero, Worship hero, Mission |
+| `boyGuitar` | ChatGPT Image Oct 12, 2026, 09_48_59 PM-2.png | academy/boy-learning-acoustic-guitar.png | 1122×1402 portrait | Boy learning acoustic guitar, sunlit room | Academy hero, global Academy card, Get Involved |
+| `girlGuitar` | ChatGPT Image Oct 12, 2026, 09_49_00 PM-3.png | academy/girl-practicing-acoustic-guitar.png | 1122×1402 portrait | Girl practicing guitar with music stand | Academy hero/cards, Mission |
+| `churchModernDay` | ChatGPT Image Oct 12, 2026, 09_49_01 PM-4.png | churches/modern-church-exterior-daylight.png | 1448×1086 landscape | Modern church exterior, daylight | Partners, Worship churches, Mission |
+| `chapelSpring` | ChatGPT Image Oct 12, 2026, 09_49_02 PM-5.png | churches/white-chapel-steeple-spring.png | 1448×1086 landscape | White chapel with steeple, spring | Partners, Academy church-hosted, Support |
+| `sanctuaryCongregation` | ChatGPT Image Oct 12, 2026, 09_49_03 PM-6.png | community/sunlit-sanctuary-congregation.png | 1448×1086 landscape | Congregation worshipping in sunlit sanctuary | Mission hero, Get Involved, Live worship gatherings |
+| `concertCrowdWide` | ChatGPT Image Oct 12, 2026, 09_49_15 PM-1.png | live/worship-concert-crowd-wide.png | 1672×941 wide | Worship concert crowd beneath lit cross | Live hero spotlight |
+| `acousticLeader` | ChatGPT Image Oct 12, 2026, 09_49_16 PM-2.png | worship/acoustic-worship-leader-stage.png | 1122×1402 portrait | Male worship leader with acoustic guitar | Worship musicians, Live events |
+| `worshipNight` | ChatGPT Image Oct 12, 2026, 09_49_17 PM-3.png | live/worship-night-hands-raised.png | 1254×1254 square | Worship night audience, hands raised | Live cards, global Live card |
+| `gospelVocalists` | ChatGPT Image Oct 12, 2026, 09_49_18 PM-4.png | live/gospel-vocalists-concert-stage.png | 1254×1254 square | Gospel vocalists leading a concert | Live gospel concerts |
+| `worshipBand` | ChatGPT Image Oct 12, 2026, 09_49_19 PM-5.png | worship/worship-band-sanctuary.png | 1254×1254 square | Full worship team in bright sanctuary | Worship hero/teams, Production |
+| `acousticLeaderAlt` | ChatGPT Image Oct 12, 2026, 09_49_20 PM-6.png | worship/acoustic-worship-leader-stage-alt.png | 1122×1402 portrait | Near-duplicate variant of `acousticLeader` | Spare; avoid placing beside its twin |
+| `youngPianist` | ChatGPT Image Oct 12, 2026, 09_49_22 PM-7.png | academy/young-pianist-bright-classroom.png | 1122×1402 portrait | Young pianist in bright classroom | Academy piano, Mission |
+| `churchGoldenHour` | ChatGPT Image Oct 12, 2026, 09_49_23 PM-8.png | churches/modern-church-exterior-golden-hour.png | 1122×1402 portrait | Contemporary church at golden hour | Partners, Support |
+| `guitarMentor` | ChatGPT Image Oct 12, 2026, 09_49_24 PM-9.png | community/guitar-mentor-with-student.png | 1536×1024 landscape | Instructor mentoring young guitarist | Academy instructors, Get Involved (instructors), Production training |
+| `soundEngineer` | ChatGPT Image Oct 12, 2026, 09_49_25 PM-10.png | production/sound-engineer-mixing-console.png | 1254×1254 square | Engineer at mixing console during worship | Production hero, global Production card |
 
 ## Design concepts (reference only — never embedded)
 
@@ -44,10 +51,9 @@ Moved to `design-reference/2026-brand-refresh/`. They contain UI, navigation and
 
 ## Gaps
 
-- No free-licence church-building photos yet (the three AI exteriors remain).
-- No photo of a choir inside a church, a drummer inside a church, brass in a church setting, or a clean presentation-software operator.
-- Some picks are portrait-only (`musicianWorshipLeader`, `musicianFullBand`, `instrumentPianoKeyboard` and most single-instrument photos), so they cannot fill wide or landscape frames; the frame ratio check enforces this at build time.
-- The people pictured are not Gamo members or staff; photos are illustration only and are never captioned as if they were.
+- No photography yet for electric guitar, bass, drums or vocals lessons; Academy uses typographic/icon treatments for those cards instead of mismatched photos.
+- No dedicated volunteer, lighting-rig, livestream-camera or Bible-study photography.
+- All photos are AI-generated originals for Gamo Studios; review faces/hands at large sizes before any print use.
 
 ## Generated output map
 

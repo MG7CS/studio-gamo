@@ -25,7 +25,7 @@ export const participation: ParticipationPath[] = [
     next: 'Find an instrument and a lesson close to home.',
     body: 'Find an instrument you love and a welcoming way into music lessons, for children, teens and adults.',
     href: siteUrl('academy', '/lessons'),
-    photo: 'instrumentUkulele',
+    photo: 'girlGuitar',
   },
   {
     title: 'Instructors',
@@ -33,7 +33,7 @@ export const participation: ParticipationPath[] = [
     next: 'Teach private, group and community lessons.',
     body: 'Bring your teaching experience to private, small-group and community lessons with Gamo Academy.',
     href: '/contact?interest=Teaching',
-    photo: 'instrumentMusicTheory',
+    photo: 'guitarMentor',
   },
   {
     title: 'Churches & ministries',
@@ -49,7 +49,7 @@ export const participation: ParticipationPath[] = [
     next: 'Apply to serve churches as a worship musician.',
     body: 'Learn about the preparation and audition journey for serving churches as a Gamo Worship musician.',
     href: siteUrl('web', '/worship/apply'),
-    photo: 'musicianAcousticGuitarist',
+    photo: 'acousticLeader',
   },
   {
     title: 'Sound & media volunteers',
@@ -57,7 +57,7 @@ export const participation: ParticipationPath[] = [
     next: 'Grow in sound, livestream and lighting ministry.',
     body: 'Grow in sanctuary audio, livestreaming and lighting through hands-on training for church volunteers.',
     href: siteUrl('production', '/training'),
-    photo: 'techAudio',
+    photo: 'soundEngineer',
   },
   {
     title: 'Partners & supporters',
@@ -65,7 +65,7 @@ export const participation: ParticipationPath[] = [
     next: 'Share a space, instruments, skills or time.',
     body: 'Offer your time, a learning space, instruments or practical skills, or explore a church partnership.',
     href: '/support',
-    photo: 'techSlides',
+    photo: 'sanctuaryCongregation',
   },
 ];
 

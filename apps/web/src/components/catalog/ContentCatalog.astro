@@ -115,10 +115,7 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
     <FeatureGrid max={3} as="ul">
       <MediaCard
         as="li"
-        image={{
-          name: 'musicianAcousticGuitarist',
-          alt: 'Guitarist playing an acoustic guitar by a window (Sample)',
-        }}
+        image={{ name: 'boyGuitar', alt: 'Smiling boy learning to play acoustic guitar (Sample)' }}
         title="Guitar · overlay, link"
         href="#catalog-mediacard"
         variant="overlay"
@@ -128,7 +125,7 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
       </MediaCard>
       <MediaCard
         as="li"
-        image={{ name: 'instrumentMusicTheory', alt: 'Open music book on a piano desk (Sample)' }}
+        image={{ name: 'youngPianist', alt: 'Young pianist smiling at a keyboard (Sample)' }}
         title="Piano · adaptive, raised"
       >
         <p>Sample lesson: weekly piano for beginners.</p>
@@ -136,7 +133,7 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
       </MediaCard>
       <MediaCard
         as="li"
-        image={{ name: 'musicianStrings', alt: 'Close view of a cello being played (Sample)' }}
+        image={{ name: 'gospelVocalists', alt: 'Gospel vocalists leading a concert (Sample)' }}
         title="Voice · adaptive, inset"
         tone="inset"
         href="#catalog-mediacard"
@@ -147,11 +144,7 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
     </FeatureGrid>
     <Specimen name='MediaCard · variant="adaptive", tone="dark" (wide container)'>
       <MediaCard
-        image={{
-          name: 'techAudio',
-          alt: 'Sound engineer at a large live mixing console (Sample)',
-          sizes: 'half',
-        }}
+        image={{ name: 'soundEngineer', alt: 'Sound engineer at a mixing console (Sample)', sizes: 'half' }}
         title="Sound · dark"
         tone="dark"
       >
@@ -211,12 +204,7 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
     {(['light', 'dark'] as const).map((tone, i) => (
       <Specimen name={`FloatingPreviewCard · tone="${tone}"`}>
         <div class="relative">
-          <Frame
-            photo={i === 0 ? 'instrumentUkulele' : 'techLighting'}
-            ratio="landscape"
-            sizes="half"
-            decorative
-          />
+          <Frame photo={i === 0 ? 'girlGuitar' : 'worshipNight'} ratio="landscape" sizes="half" decorative />
           <FloatingPreviewCard
             title={i === 0 ? 'Next lesson' : 'Service plan'}
             tone={tone}
@@ -247,10 +235,10 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
   </ButtonLink>
   <Frame
     slot="media"
-    photo="musicianChoir"
+    photo="worshipBand"
     ratio="portrait"
     sizes="half"
-    alt="Adult choir singing in terracotta robes (Sample)"
+    alt="Worship team with vocalists, guitar, drums and keys in a bright sanctuary (Sample)"
   />
 </SplitHero>
 
@@ -261,10 +249,10 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
   </p>
   <Frame
     slot="media"
-    photo="musicianBassist"
+    photo="guitarMentor"
     ratio="landscape"
     sizes="half"
-    alt="Hands on a bass guitar in soft light (Sample)"
+    alt="Guitar instructor guiding a young student through a chord (Sample)"
   />
 </SplitHero>
 

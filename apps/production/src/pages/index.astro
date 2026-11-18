@@ -24,7 +24,7 @@ const lighting = getArea('lighting-media')!;
 >
   <ProductionHero />
   <MinistryIntro />
-  <SupportAreaFeature area={audio}>
+  <SupportAreaFeature area={{ ...audio, photo: 'worshipBand' }}>
     <MixerStripPreview slot="preview" class="w-60" />
   </SupportAreaFeature>
   <SupportAreaFeature area={stream} reverse tone="dark">

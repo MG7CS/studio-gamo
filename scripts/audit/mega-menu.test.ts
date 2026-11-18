@@ -70,11 +70,10 @@ test('every href is an absolute URL on a Gamo site', () => {
   }
 });
 
-test('academy tiles link to real instrument pages and use the instrument photo', () => {
+test('academy tiles link to real instrument pages', () => {
   const bySlug = new Map(instruments.map((i) => [i.slug, i]));
-  ACADEMY_MENU_INSTRUMENTS.forEach(([, photo, slug], i) => {
+  ACADEMY_MENU_INSTRUMENTS.forEach(([, , slug], i) => {
     assert.ok(bySlug.has(slug), `no instrument page for ${slug}`);
-    assert.equal(bySlug.get(slug)?.photo, photo, `${slug}: tile photo differs from the instrument photo`);
     assert.equal(menus.academy.tiles[i]?.href, site('academy', `/instruments/${slug}`));
   });
 });

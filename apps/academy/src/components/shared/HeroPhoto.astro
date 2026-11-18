@@ -4,8 +4,8 @@
  * rectangle, catalog focal point) and the page's priority image.
  *
  * Usage:
- *   <HeroPhoto slot="media" photo="instrumentPianoKeyboard" />
- *   <HeroPhoto slot="media" photo="instrumentMusicTheory" alt="Open music book on a piano desk" ratio="portrait" />
+ *   <HeroPhoto slot="media" photo="youngPianist" />
+ *   <HeroPhoto slot="media" photo="guitarMentor" alt="Guitar instructor with a student" ratio="portrait" />
  */
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
@@ -16,9 +16,7 @@ interface Props {
   alt?: string;
   ratio?: 'landscape' | 'portrait' | 'square';
 }
-const { photo, alt, ratio } = Astro.props;
-// Landscape unless the photo is tall-only; a frame ratio the photo does not allow throws at render.
-const shape = ratio ?? (photos[photo].ratios.includes('landscape') ? 'landscape' : 'square');
+const { photo, alt, ratio = 'landscape' } = Astro.props;
 ---
 
-<Frame photo={photo} ratio={shape} sizes="half" alt={alt ?? photos[photo].alt} priority />
+<Frame photo={photo} ratio={ratio} sizes="half" alt={alt ?? photos[photo].alt} priority />
