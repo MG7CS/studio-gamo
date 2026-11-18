@@ -521,6 +521,40 @@ export class UploadService {
   }
 
   /**
+   * PUBLIC (session token required). Describes the finished uploads a visitor lists on a form post, so the
+   * answers can be validated before anything is stored: each id must belong to the token's session, which
+   * must be the session of `formSlug`, and be verified and not yet attached. Anything else (other session,
+   * unknown id, still uploading, rejected, attached) answers UPLOAD_NOT_FOUND, so existence is not revealed.
+   * An expired token still proves ownership. Writes nothing; `attach` binds them once the submission exists.
+   */
+  async describeForSubmit(
+    uploadIds: string[],
+    token: string,
+    formSlug: string,
+    now: number,
+  ): Promise<AttachedUpload[]> {
+    const session = await this.requireSession(token, now, true);
+    if (session.form_slug !== formSlug) throw new UploadError('UPLOAD_TOKEN_INVALID');
+    const ids = [...new Set(uploadIds)];
+    if (ids.length > MAX_ATTACH) throw new UploadError('UPLOAD_LIMIT');
+    const described: AttachedUpload[] = [];
+    for (const id of ids) {
+      const row = await this.loadUpload(id, session.id);
+      if (!row || row.status !== 'verified' || row.submission_id !== null)
+        throw new UploadError('UPLOAD_NOT_FOUND');
+      described.push({
+        uploadId: row.id,
+        kind: row.kind,
+        bytes: row.bytes,
+        questionId: row.question_id,
+        contentType: row.content_type,
+        originalName: row.original_name,
+      });
+    }
+    return described;
+  }
+
+  /**
    * STAFF / INTERNAL ONLY. Attaches uploads of ANY session with no ownership check. Never call this from a
    * public route handler, and never pass it ids that came from a visitor: use `attach` with the session token.
    */

@@ -14,6 +14,8 @@
  * - values?: DynRawValues — raw posted values to re-render (`id`, `${id}.other`, `${id}.${row}`).
  * - errors?: { questionId, message }[] — `validateAnswers` errors; shown in the summary and per field.
  * - uploads?: Record<questionId, { uploadId, filename? }[]> — finished uploads to keep after a failed submit.
+ * - uploadTokens?: string[] — upload session tokens to post again with the kept uploads (hidden `upload_session_token`
+ *   fields; the browser script adds the token of each new session itself).
  * - summaryExtra?: { message, fieldId? }[] — more summary entries (a guard or Turnstile failure).
  * - turnstile?: { action?, id?, siteKey?, environment?, error? } | false — passthrough to TurnstileWidget
  *   (action defaults to `turnstileActionFor(formSlug)`); false omits the widget.
@@ -53,6 +55,7 @@ interface Props {
   values?: DynRawValues;
   errors?: DynAnswerError[];
   uploads?: Record<string, DynUploadSummary[]>;
+  uploadTokens?: string[];
   summaryExtra?: { message: string; fieldId?: string }[];
   turnstile?:
     { action?: string; id?: string; siteKey?: string; environment?: string; error?: string } | false;
@@ -74,6 +77,7 @@ const {
   values = {},
   errors = [],
   uploads = {},
+  uploadTokens = [],
   summaryExtra = [],
   turnstile = {},
   termsConsent,
@@ -113,6 +117,9 @@ const stepped = schema.sections.length > 1 && schema.sections.every((s) => !s.sh
 >
   <FormErrorSummary errors={summary} />
   {idempotencyKey && <input type="hidden" name="idempotency_key" value={idempotencyKey} />}
+  {uploadTokens.map((token) => (
+    <input type="hidden" name="upload_session_token" value={token} />
+  ))}
   <slot name="before" />
   {schema.sections.map((section, index) => (
     <SectionBlock

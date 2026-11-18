@@ -4,3 +4,4 @@ export * from './service-index.ts';
 export * from './uploads-index.ts';
 export * from './emails.ts';
 export * from './seeds.ts';
+export * from './http.ts';

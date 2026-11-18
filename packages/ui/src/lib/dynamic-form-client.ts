@@ -185,6 +185,17 @@ function resetTurnstile(): void {
   }
 }
 
+/** The server attaches finished files with the session token they were uploaded under: post it with the form. */
+function addUploadToken(form: HTMLFormElement, token: string): void {
+  const known = Array.from(form.querySelectorAll<HTMLInputElement>('input[name="upload_session_token"]'));
+  if (known.some((input) => input.value === token)) return;
+  const hidden = document.createElement('input');
+  hidden.type = 'hidden';
+  hidden.name = 'upload_session_token';
+  hidden.value = token;
+  form.append(hidden);
+}
+
 function bindUploads(form: HTMLFormElement): void {
   const containers = form.querySelectorAll<HTMLElement>('[data-dyn-upload]');
   if (containers.length === 0) return;
@@ -194,7 +205,10 @@ function bindUploads(form: HTMLFormElement): void {
       formSlug: form.dataset.formSlug ?? '',
       getTurnstileToken: () =>
         form.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value ?? '',
-      onSessionCreated: resetTurnstile,
+      onSessionCreated: (token) => {
+        resetTurnstile();
+        addUploadToken(form, token);
+      },
     }));
 
   const waits = new Set<() => void>();

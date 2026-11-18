@@ -187,8 +187,11 @@ export interface ChunkedUploaderOptions {
   formSlug: string;
   /** Returns the Turnstile token the page holds; asked once per upload session. */
   getTurnstileToken: () => string | null | undefined | Promise<string | null | undefined>;
-  /** Called after a session was created (the page can reset its single-use Turnstile widget). */
-  onSessionCreated?: () => void;
+  /**
+   * Called after a session was created with its token: the page resets its single-use Turnstile widget and
+   * posts the token with the form, because the server needs it to attach the finished files.
+   */
+  onSessionCreated?: (token: string) => void;
   fetch?: FetchLike;
   sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
   /** Milliseconds since the epoch. */
@@ -370,7 +373,7 @@ export class ChunkedUploader {
     if (!body || typeof body.token !== 'string' || body.token === '') throw new UploadFailure('failed');
     this.session = { token: body.token, expiresAt: parseExpiry(body.expiresAt) };
     try {
-      this.options.onSessionCreated?.();
+      this.options.onSessionCreated?.(this.session.token);
     } catch {
       // The page's hook must never break an upload.
     }

@@ -436,7 +436,14 @@ test('the session is created once and reused; an expired one is replaced; the ho
   const server = new FakeServer();
   let clock = Date.now();
   let hooks = 0;
-  const uploader = server.uploader({ now: () => clock, onSessionCreated: () => void hooks++ });
+  const tokens: string[] = [];
+  const uploader = server.uploader({
+    now: () => clock,
+    onSessionCreated: (token) => {
+      hooks++;
+      tokens.push(token);
+    },
+  });
   await uploader.upload(fileOf(3), { questionId: 'a' });
   await uploader.upload(fileOf(3), { questionId: 'b' });
   assert.equal(server.urls('POST').filter((u) => u.endsWith('/upload-session')).length, 1);
@@ -445,6 +452,10 @@ test('the session is created once and reused; an expired one is replaced; the ho
   await uploader.upload(fileOf(3), { questionId: 'c' });
   assert.equal(server.urls('POST').filter((u) => u.endsWith('/upload-session')).length, 2);
   assert.equal(hooks, 2);
+  assert.ok(
+    tokens.every((t) => t.length > 0),
+    'the hook gets the session token to post with the form',
+  );
 });
 
 test('the session expiry may be epoch seconds or milliseconds', async () => {

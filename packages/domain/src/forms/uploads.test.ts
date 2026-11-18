@@ -980,6 +980,40 @@ test('attach moves keys to forms/submissions/{id}/ (copy then delete) and binds 
   );
 });
 
+test("describeForSubmit lists only this session's verified, unattached uploads of this form and writes nothing", async () => {
+  const f = await setup();
+  const good = await verifiedUpload(f);
+  const pending = await startSingle(f, 'mp4', 'video/mp4');
+  const rejected = await startSingle(f, 'html', 'video/mp4');
+  await f.service.complete(rejected.uploadId, f.token);
+  const slug = f.rows<{ form_slug: string }>('SELECT form_slug FROM upload_sessions')[0].form_slug;
+
+  const [one] = await f.service.describeForSubmit([good, good], f.token, slug, T0);
+  assert.equal(one.uploadId, good);
+  assert.equal(one.questionId, 'q_video');
+  assert.equal(one.kind, 'video');
+  assert.equal(
+    f.rows<{ n: number }>('SELECT count(*) AS n FROM form_uploads WHERE submission_id IS NOT NULL')[0].n,
+    0,
+  );
+
+  for (const id of [pending.uploadId, rejected.uploadId, 'fup_nope'])
+    await expectCode(f.service.describeForSubmit([good, id], f.token, slug, T0), 'UPLOAD_NOT_FOUND', 404);
+  await expectCode(
+    f.service.describeForSubmit([good], f.token, 'another-form', T0),
+    'UPLOAD_TOKEN_INVALID',
+    401,
+  );
+  await expectCode(f.service.describeForSubmit([good], 'garbage', slug, T0), 'UPLOAD_TOKEN_INVALID', 401);
+  const other = await f.service.startSession({ formSlug: slug, ipHash: null, now: T0 });
+  await expectCode(f.service.describeForSubmit([good], other.token, slug, T0), 'UPLOAD_NOT_FOUND', 404);
+
+  await f.service.attach([good], 'sub_1', T0, { token: f.token });
+  await expectCode(f.service.describeForSubmit([good], f.token, slug, T0), 'UPLOAD_NOT_FOUND', 404);
+  const expired = await f.service.describeForSubmit([], f.token, slug, T0 + 10 * 86_400);
+  assert.deepEqual(expired, [], 'an expired token still proves ownership');
+});
+
 test('attach refuses pending, rejected, foreign-session and already-attached uploads, and attaches nothing then', async () => {
   const f = await setup();
   const good = await verifiedUpload(f);
