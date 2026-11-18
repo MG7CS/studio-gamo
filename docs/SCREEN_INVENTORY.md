@@ -16,6 +16,8 @@ Updated 2026-11-16. Four public apps (web, academy, worship, production) plus th
 | /partners/interest | Shows `hello@gamostudio.org` until the staff-editable `partner_interest` form lands | Placeholder |
 | /support | Ways to support the mission (no donation processing) | UI ready |
 | /contact | Shows `hello@gamostudio.org` until the staff-editable `contact` form lands | Placeholder |
+| /worship/apply, /worship/request, /production/apply, /production/request | Staff-editable public forms (shared `DynamicForm`; Turnstile, chunked uploads, signed confirmation); 404 until the forms are published from admin | Real (D1) |
+| /worship/offers/[token] | Emailed offer Accept/Decline page | Real (D1) |
 | /faq | Native accessible FAQ expansion | UI ready |
 | /legal, /legal/[slug] | Current status and draft policies pending review | UI ready; not final legal terms |
 | /preview/catalog | Private catalog of every shared primitive and pattern (foundation task F5) | Planned |
@@ -41,9 +43,8 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Worship hero, instruments, preparation, FAQs; CTAs "Apply to serve" → /apply, "Request a musician" → /request | UI ready |
-| /apply | Placeholder; becomes the staff-editable `musician_application` form (photo, video by link or upload, PDFs) | Placeholder |
-| /request | Placeholder; becomes the staff-editable `church_request` form | Placeholder |
-| /offers/[token] | Offer Accept/Decline page (GET shows details, POST acts) — Phase 3 | Planned |
+| /apply, /request | Redirect (302) to the forms on the main site: `/worship/apply` (staff-editable `musician_application`: photo, video by link or upload, PDFs) and `/worship/request` (`church_request`), served by `apps/web` | Real (D1) |
+| /worship/offers/[token] on web | Emailed offer page (GET read-only, POST accepts or declines once; no-referrer, noindex) | Real (D1) |
 
 ## Gamo Production — apps/production — port 4325
 
@@ -52,8 +53,7 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 | / | Technical ministry, audio/video/lighting, volunteers, event support | UI ready |
 | /services, /services/[slug] | Support categories, learning skills and planning prompts | UI ready |
 | /training | Proposed technical/volunteer training | UI ready |
-| /apply | Placeholder; becomes the staff-editable `technician_application` form | Placeholder |
-| /request | Placeholder; becomes the staff-editable `production_request` form | Placeholder |
+| /apply, /request | Redirect (302) to `/production/apply` (`technician_application`) and `/production/request` (`production_request`) on the main site | Real (D1) |
 
 No completed projects, customers, scheduled consultations or available training places are claimed.
 

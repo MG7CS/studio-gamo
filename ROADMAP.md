@@ -8,13 +8,14 @@ Updated 2026-11-16. The earlier milestone checklists (Milestones 0–5, the desi
 
 - **Gamo Live removed** (2026-11-16): `apps/live`, ticketing, scanner and their tables (migration `0018`). Snapshot: tag `four-programs-snapshot`.
 - **Public accounts removed** (cleanup two, Phase 1, 2026-11-16): public sign-in, Clerk, onboarding, provider profiles, the shared person record and all per-program dashboards (migration `0019`). Admin is the only dashboard.
+- **Cleanup two built locally, not deployed** (2026-11-18): forms engine and builder, submissions inbox and file viewer, roster, requests, offers and the emailed offer page, invoices, admin home and daily cron, public Worship and Production forms on the main site. Remaining: contact and partner-interest pages, admin browser specs, the owner steps in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md`.
 
 ## Now
 
 1. **Front-end foundation** — [docs/superpowers/plans/2026-11-16-frontend-foundation.md](docs/superpowers/plans/2026-11-16-frontend-foundation.md): guard tests, base/semantic tokens, app-neutral shell with per-app `site.config.ts` manifests, primitives and patterns, catalog page, app migration. Rules: AGENTS.md "Shared front-end architecture" and [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md).
 2. **Public UI/UX polish pass**, Academy first, then Worship, then Production; findings are fixed in shared pieces.
 
-## Next — cleanup two, Phases 2–4
+## Cleanup two plan (history)
 
 Plan: [docs/superpowers/plans/2026-11-16-forms-emails-invoices.md](docs/superpowers/plans/2026-11-16-forms-emails-invoices.md) · spec: [docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md](docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md).
 
