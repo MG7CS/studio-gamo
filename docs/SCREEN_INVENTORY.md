@@ -13,9 +13,9 @@ Updated 2026-11-16. Four public apps (web, academy, worship, production) plus th
 | /get-involved | Families, students, churches, musicians, instructors, volunteers | UI ready |
 | /get-started | Audience routing to program destinations | UI ready |
 | /partners | Hosting, sponsorship, shared resources and partnership integrity | UI ready |
-| /partners/interest | Shows `hello@gamostudio.org` until the staff-editable `partner_interest` form lands | Placeholder |
+| /partners/interest | Partnership heading and email card, with the staff-editable `partner_interest` form below it (email card only until the form is published) | Real (D1) |
 | /support | Ways to support the mission (no donation processing) | UI ready |
-| /contact | Shows `hello@gamostudio.org` until the staff-editable `contact` form lands | Placeholder |
+| /contact | Heading and email card, with the staff-editable `contact` form below it; `?interest=` pre-selects the topic (email card only until the form is published) | Real (D1) |
 | /worship/apply, /worship/request, /production/apply, /production/request | Staff-editable public forms (shared `DynamicForm`; Turnstile, chunked uploads, signed confirmation); 404 until the forms are published from admin | Real (D1) |
 | /worship/offers/[token] | Emailed offer Accept/Decline page | Real (D1) |
 | /faq | Native accessible FAQ expansion | UI ready |

@@ -8,7 +8,7 @@ Updated 2026-11-16. The earlier milestone checklists (Milestones 0–5, the desi
 
 - **Gamo Live removed** (2026-11-16): `apps/live`, ticketing, scanner and their tables (migration `0018`). Snapshot: tag `four-programs-snapshot`.
 - **Public accounts removed** (cleanup two, Phase 1, 2026-11-16): public sign-in, Clerk, onboarding, provider profiles, the shared person record and all per-program dashboards (migration `0019`). Admin is the only dashboard.
-- **Cleanup two built locally, not deployed** (2026-11-18): forms engine and builder, submissions inbox and file viewer, roster, requests, offers and the emailed offer page, invoices, admin home and daily cron, public Worship and Production forms on the main site. Remaining: contact and partner-interest pages, admin browser specs, the owner steps in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md`.
+- **Cleanup two built locally, not deployed** (2026-11-18): forms engine and builder, submissions inbox and file viewer, roster, requests, offers and the emailed offer page, invoices, admin home and daily cron, public Worship and Production forms on the main site. Remaining: admin browser specs, the owner steps in `docs/DEPLOY_OWNER_STEPS_2026-11-18.md`.
 
 ## Now
 

@@ -2,6 +2,17 @@
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import EmailUsBlock from '../../components/organization/EmailUsBlock.astro';
+import FormPanel from '../../components/forms/FormPanel.astro';
+import { loadFormPage } from '../../lib/form-page';
+
+export const prerender = false;
+
+// If the form is not published yet the page keeps its email card and shows no form.
+const page = await loadFormPage(Astro, 'partner-interest', {
+  fallbackWhenMissing: true,
+  anchor: 'share-an-idea',
+});
+if ('response' in page) return page.response;
 ---
 
 <SiteLayout
@@ -23,4 +34,5 @@ import EmailUsBlock from '../../components/organization/EmailUsBlock.astro';
     </div>
     <EmailUsBlock slot="media" partnership />
   </PageHero>
+  <FormPanel page={page} id="share-an-idea" />
 </SiteLayout>

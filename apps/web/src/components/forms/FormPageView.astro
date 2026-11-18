@@ -12,6 +12,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import DynamicForm from '@studio-gamo/ui/components/forms/dynamic/DynamicForm.astro';
 import { FORM_TURNSTILE_ACTION } from '@gamo/domain/forms';
 import type { FormPageData } from '../../lib/form-page';
+import FormReceipt from './FormReceipt.astro';
 
 type Page = Exclude<FormPageData, { response: Response }>;
 
@@ -54,25 +55,11 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">
       <Card padding="lg" class="space-y-4">
-        <p class="text-body">
-          Your reference is{' '}
-          <strong class="font-semibold text-fg" data-form-reference>
-            {page.reference}
-          </strong>
-          . Keep it if you write to us about this {page.form.title.toLowerCase()}.
-        </p>
-        {page.problem === 'uploads' && (
-          <p class="text-body text-fg" role="status">
-            We saved your answers, but a file did not finish saving. Please email hello@gamostudio.org and
-            quote your reference so we can ask for it again.
-          </p>
-        )}
-        {page.problem === 'request' && (
-          <p class="text-body text-fg" role="status">
-            We saved your answers, but could not add them to our schedule yet. Our team has been notified; you
-            can also email hello@gamostudio.org with your reference.
-          </p>
-        )}
+        <FormReceipt
+          reference={page.reference}
+          subject={page.form.title.toLowerCase()}
+          problem={page.problem}
+        />
         <ButtonLink href={backHref} arrow>
           {backLabel}
         </ButtonLink>
@@ -102,7 +89,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
       </Card>
     </Container>
   </>
-) : (
+) : page.view === 'unavailable' ? (
   <>
     <PageHero title={title} eyebrow={eyebrow} width="narrow">
       <p slot="intro">{page.message}</p>
@@ -113,4 +100,4 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
       </ButtonLink>
     </Container>
   </>
-)}
+) : null}

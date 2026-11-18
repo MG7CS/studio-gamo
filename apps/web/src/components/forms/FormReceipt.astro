@@ -1,0 +1,33 @@
+---
+/**
+ * FormReceipt: what the visitor keeps after a send: the reference, and an honest note when the answers were saved
+ * but a file or the schedule entry was not. Used by the full form page and by pages that embed a form panel.
+ */
+interface Props {
+  reference: string;
+  /** What was sent, lower case, for "Keep it if you write to us about this …". */
+  subject: string;
+  problem: 'uploads' | 'request' | null;
+}
+const { reference, subject, problem } = Astro.props;
+---
+
+<p class="text-body">
+  Your reference is{' '}
+  <strong class="font-semibold text-fg" data-form-reference>
+    {reference}
+  </strong>
+  . Keep it if you write to us about this {subject}.
+</p>
+{problem === 'uploads' && (
+  <p class="text-body text-fg" role="status">
+    We saved your answers, but a file did not finish saving. Please email hello@gamostudio.org and quote your
+    reference so we can ask for it again.
+  </p>
+)}
+{problem === 'request' && (
+  <p class="text-body text-fg" role="status">
+    We saved your answers, but could not add them to our schedule yet. Our team has been notified; you can
+    also email hello@gamostudio.org with your reference.
+  </p>
+)}

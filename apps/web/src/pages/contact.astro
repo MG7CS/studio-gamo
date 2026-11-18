@@ -2,6 +2,28 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import EmailUsBlock from '../components/organization/EmailUsBlock.astro';
+import FormPanel from '../components/forms/FormPanel.astro';
+import { loadFormPage } from '../lib/form-page';
+
+export const prerender = false;
+
+/** Links such as `/contact?interest=Church-hosted lessons` pre-select the topic the form offers. */
+const TOPICS: [RegExp, string][] = [
+  [/academy|lesson/i, 'Gamo Academy'],
+  [/worship|musician/i, 'Gamo Worship'],
+  [/production|sound|video/i, 'Gamo Production'],
+  [/partner|host|church|sponsor/i, 'Partnering with us'],
+];
+const interest = Astro.url.searchParams.get('interest') ?? '';
+const topic = TOPICS.find(([pattern]) => pattern.test(interest))?.[1];
+
+// If the form is not published yet the page keeps its email card and shows no form.
+const page = await loadFormPage(Astro, 'contact', {
+  fallbackWhenMissing: true,
+  anchor: 'send-a-message',
+  ...(topic ? { prefill: { topic } } : {}),
+});
+if ('response' in page) return page.response;
 ---
 
 <SiteLayout
@@ -18,4 +40,5 @@ import EmailUsBlock from '../components/organization/EmailUsBlock.astro';
     </div>
     <EmailUsBlock slot="media" />
   </PageHero>
+  <FormPanel page={page} />
 </SiteLayout>

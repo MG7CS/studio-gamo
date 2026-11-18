@@ -47,7 +47,18 @@ export type FormPageData =
     }
   | { view: 'sent'; form: PublicFormInfo; reference: string; problem: 'uploads' | 'request' | null }
   | { view: 'closed'; form: PublicFormInfo }
-  | { view: 'unavailable'; message: string };
+  | { view: 'unavailable'; message: string }
+  /** The form is not published (yet) and the page asked for a fallback instead of a 404. */
+  | { view: 'missing' };
+
+export interface LoadFormPageOptions {
+  /** Show the page's own fallback (`view: 'missing'`) instead of a 404 when the form is not published. */
+  fallbackWhenMissing?: boolean;
+  /** Raw values to pre-fill on first load (e.g. a topic from the link that brought the visitor). */
+  prefill?: Record<string, string>;
+  /** Element id to scroll to after a send, for a form that sits below other content on its page. */
+  anchor?: string;
+}
 
 const UNAVAILABLE =
   'This form is temporarily unavailable. Please try again in a few minutes, or write to hello@gamostudio.org.';
@@ -78,7 +89,13 @@ function uploadServiceOrNull(
   }
 }
 
-export async function loadFormPage(astro: AstroGlobal, slug: string): Promise<FormPageData> {
+export async function loadFormPage(
+  astro: AstroGlobal,
+  slug: string,
+  options: LoadFormPageOptions = {},
+): Promise<FormPageData> {
+  const notFound = async (): Promise<FormPageData> =>
+    options.fallbackWhenMissing ? { view: 'missing' } : { response: await astro.rewrite('/404') };
   const env = astro.locals.runtimeEnv ?? (await getRuntimeEnv(astro));
   const db = databaseOf(env);
   if (!db) {
@@ -87,7 +104,7 @@ export async function loadFormPage(astro: AstroGlobal, slug: string): Promise<Fo
   }
 
   const published = await new FormsService(db).getPublished(slug);
-  if (!published) return { response: await astro.rewrite('/404') };
+  if (!published) return notFound();
   const form = infoOf(published.form);
   if (!published.accepting) return { view: 'closed', form };
   const schema = published.version.schema;
@@ -120,11 +137,14 @@ export async function loadFormPage(astro: AstroGlobal, slug: string): Promise<Fo
         return {
           response: new Response(null, {
             status: 303,
-            headers: { Location: `${astro.url.pathname}?${query}`, 'Cache-Control': 'no-store' },
+            headers: {
+              Location: `${astro.url.pathname}?${query}${options.anchor ? `#${options.anchor}` : ''}`,
+              'Cache-Control': 'no-store',
+            },
           }),
         };
       }
-      if (outcome.kind === 'not_found') return { response: await astro.rewrite('/404') };
+      if (outcome.kind === 'not_found') return notFound();
       if (outcome.kind === 'closed') return { view: 'closed', form };
       astro.response.status = outcome.status;
       for (const [name, value] of Object.entries(outcome.headers)) astro.response.headers.set(name, value);
@@ -165,7 +185,7 @@ export async function loadFormPage(astro: AstroGlobal, slug: string): Promise<Fo
     view: 'form',
     form,
     schema,
-    values: {},
+    values: options.prefill ?? {},
     errors: [],
     summaryExtra: [],
     uploads: {},

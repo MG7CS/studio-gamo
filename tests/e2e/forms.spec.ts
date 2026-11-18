@@ -143,3 +143,59 @@ test('the old Worship and Production addresses lead to the new pages', async ({ 
     expect(response.headers().location).toBe(to);
   }
 });
+
+const CONTACT = `${WEB}/contact`;
+const PARTNER = `${WEB}/partners/interest`;
+const REPLY_TERMS =
+  'I agree that Gamo Studios may use these details to reply to me, as described in the privacy notice.';
+
+test('the contact page shows the form below its own heading, with the topic from the link pre-selected', async ({
+  browser,
+}) => {
+  const { context, page } = await visitor(browser);
+  await page.goto(`${CONTACT}?interest=${encodeURIComponent('Church-hosted lessons')}`);
+  await expect(page.locator('form[data-dynamic-form]')).toHaveCount(1);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  await expect(field(page, 'topic')).toHaveValue('Gamo Academy');
+  await page.goto(`${CONTACT}?interest=Sponsorship`);
+  await expect(field(page, 'topic')).toHaveValue('Partnering with us');
+  await page.goto(`${CONTACT}?interest=unrelated`);
+  await expect(field(page, 'topic')).toHaveValue('');
+  await expectAccessible(page, 'contact');
+  await context.close();
+});
+
+test('a contact message is sent and the confirmation appears on the same page', async ({ browser }) => {
+  const { context, page } = await visitor(browser);
+  await page.goto(CONTACT);
+  await field(page, 'name').fill('Sample Visitor');
+  await field(page, 'email').fill(`contact-${unique()}@example.org`);
+  await field(page, 'topic').selectOption('Gamo Academy');
+  await field(page, 'message').fill('A sample question about lessons.');
+  await page.getByLabel(REPLY_TERMS).check();
+  await page.getByRole('button', { name: 'Send' }).click();
+
+  await expect(page).toHaveURL(/\/contact\?sent=.*#send-a-message$/);
+  await expect(page.getByRole('heading', { level: 2, name: 'Thank you' })).toBeVisible();
+  await expect(page.locator('[data-form-reference]')).toHaveText(/^GS-\d{4}-\d{4}$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  await expectAccessible(page, 'contact sent');
+  await context.close();
+});
+
+test('the partner interest form works, also with JavaScript turned off', async ({ browser }) => {
+  for (const javaScript of [true, false]) {
+    const { context, page } = await visitor(browser, javaScript);
+    await page.goto(PARTNER);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await field(page, 'name').fill('Sample Pastor');
+    await field(page, 'email').fill(`partner-${unique()}@example.org`);
+    await field(page, 'organization').fill('Sample Church');
+    await page.getByLabel('Hosting Gamo Academy lessons at our church').check();
+    await page.getByLabel(REPLY_TERMS).check();
+    await page.getByRole('button', { name: 'Send' }).click();
+    await expect(page).toHaveURL(/\/partners\/interest\?sent=.*#share-an-idea$/);
+    await expect(page.locator('[data-form-reference]')).toHaveText(/^GS-\d{4}-\d{4}$/);
+    await context.close();
+  }
+});
