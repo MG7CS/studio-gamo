@@ -1,0 +1,158 @@
+---
+/**
+ * OfferPageView: the body of the emailed offer page for every state `loadOfferPage` can return. The page
+ * owns nothing else; the single <h1> is rendered here. Accept and Decline are two submit buttons of one
+ * POST form, so the page works without JavaScript and a prefetching mail scanner (GET only) changes nothing.
+ */
+import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
+import Container from '@studio-gamo/ui/components/layout/Container.astro';
+import Card from '@studio-gamo/ui/components/content/Card.astro';
+import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
+import SubmitButton from '@studio-gamo/ui/components/forms/SubmitButton.astro';
+import type { OfferDetails } from '@gamo/domain/worship';
+import { usd, type OfferPageData } from '../../lib/offer-page';
+
+type Page = OfferPageData;
+interface Props {
+  page: Page;
+  homeHref: string;
+}
+const { page, homeHref } = Astro.props;
+
+const deadline = (details: OfferDetails) =>
+  new Date(details.expiresAt * 1000).toLocaleString('en-US', {
+    timeZone: 'America/Phoenix',
+    dateStyle: 'medium',
+    // 'long' includes the time zone name (it cannot be combined with timeZoneName).
+    timeStyle: 'long',
+  });
+
+const RESULT_TEXT = {
+  accepted: {
+    title: 'You are confirmed',
+    body: 'Thank you. We told the church and our team that you accepted.',
+  },
+  already_accepted: {
+    title: 'You already accepted',
+    body: 'Your acceptance is on record. Nothing more is needed.',
+  },
+  declined: {
+    title: 'You declined',
+    body: 'Thank you for letting us know. We will offer this to someone else.',
+  },
+  already_declined: {
+    title: 'You already declined',
+    body: 'Your answer is on record. Nothing more is needed.',
+  },
+  unavailable: {
+    title: 'This offer is no longer available',
+    body: 'It may have expired, been withdrawn or been filled. If you think this is a mistake, email hello@gamostudio.org.',
+  },
+} as const;
+---
+
+{page.view === 'offer' ? (
+  <>
+    <PageHero title="Your offer to serve" eyebrow="Gamo Worship" width="narrow">
+      <p slot="intro">
+        {page.offerState === 'pending'
+          ? 'Please read the details, then accept or decline.'
+          : page.offerState === 'accepted'
+            ? 'You accepted this offer. Nothing more is needed.'
+            : 'You declined this offer. Nothing more is needed.'}
+      </p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <Card padding="lg" class="space-y-6">
+        <dl class="grid gap-4 sm:grid-cols-2" data-offer-details>
+          <div>
+            <dt class="text-small font-semibold text-fg-muted">Church</dt>
+            <dd class="text-body text-fg">{page.details.churchName}</dd>
+          </div>
+          <div>
+            <dt class="text-small font-semibold text-fg-muted">Role</dt>
+            <dd class="text-body text-fg">{page.details.role}</dd>
+          </div>
+          <div>
+            <dt class="text-small font-semibold text-fg-muted">Date</dt>
+            <dd class="text-body text-fg">{page.details.serviceDateText}</dd>
+          </div>
+          {page.details.startTimeText && (
+            <div>
+              <dt class="text-small font-semibold text-fg-muted">Start time</dt>
+              <dd class="text-body text-fg">{page.details.startTimeText}</dd>
+            </div>
+          )}
+          <div>
+            <dt class="text-small font-semibold text-fg-muted">Place</dt>
+            <dd class="text-body text-fg">{page.details.address ?? page.details.city}</dd>
+          </div>
+          <div>
+            <dt class="text-small font-semibold text-fg-muted">Pay for this service</dt>
+            <dd class="text-body text-fg">{usd(page.details.payCents)}</dd>
+          </div>
+        </dl>
+        {page.offerState === 'pending' && (
+          <>
+            <p class="text-body-sm text-fg-muted">Please answer by {deadline(page.details)}.</p>
+            <form method="post" class="flex flex-wrap gap-3">
+              <SubmitButton label="Accept" pendingLabel="Sending…" name="action" value="accept" />
+              <SubmitButton
+                label="Decline"
+                pendingLabel="Sending…"
+                variant="secondary"
+                name="action"
+                value="decline"
+              />
+            </form>
+          </>
+        )}
+      </Card>
+    </Container>
+  </>
+) : page.view === 'result' ? (
+  <>
+    <PageHero title={RESULT_TEXT[page.state].title} eyebrow="Gamo Worship" width="narrow">
+      <p slot="intro">{RESULT_TEXT[page.state].body}</p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <Card padding="lg" class="space-y-4">
+        {page.details && (
+          <p class="text-body">
+            {page.details.churchName} · {page.details.serviceDateText}
+            {page.details.startTimeText ? ` · ${page.details.startTimeText}` : ''}
+            {page.details.address ? ` · ${page.details.address}` : ''}
+          </p>
+        )}
+        <ButtonLink href={homeHref} arrow>
+          Gamo Worship
+        </ButtonLink>
+      </Card>
+    </Container>
+  </>
+) : page.view === 'gone' || page.view === 'unknown' ? (
+  <>
+    <PageHero title="This offer is not available" eyebrow="Gamo Worship" width="narrow">
+      <p slot="intro">
+        The link may be old, or the offer may have been filled or withdrawn. If you think this is a mistake,
+        email hello@gamostudio.org.
+      </p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <ButtonLink href={homeHref} arrow>
+        Gamo Worship
+      </ButtonLink>
+    </Container>
+  </>
+) : page.view === 'unavailable' ? (
+  <>
+    <PageHero title="We could not do that" eyebrow="Gamo Worship" width="narrow">
+      <p slot="intro">{page.message}</p>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <ButtonLink href={homeHref} arrow>
+        Gamo Worship
+      </ButtonLink>
+    </Container>
+  </>
+) : null}

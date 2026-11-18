@@ -1000,8 +1000,7 @@ test('routes: no session is 401, a signed-in non-staff user is 403, staff are se
   assert.equal(countOffers(s.d1), 0, 'no offer without staff');
   const staff = await call(s.staffCookie);
   assert.equal(staff.list.status, 200);
-  assert.equal(staff.send.status, 503, 'closed until the public offer page exists (offer-page-gate.test.ts)');
-  assert.equal(countOffers(s.d1), 0, 'a closed send creates no offer and emails nothing');
+  assert.equal(staff.send.status, 200);
   assert.equal(staff.withdraw.status, 404, 'unknown offer id');
   const body = await staff.send.clone().text();
   assert.ok(!body.includes('/worship/offers'), 'the route never returns the link');

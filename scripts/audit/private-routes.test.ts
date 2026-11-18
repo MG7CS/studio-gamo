@@ -56,6 +56,8 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     '/worship/request',
     '/production/apply',
     '/production/request',
+    // Emailed offer link: the token is the credential, noindex and disallowed in robots.txt.
+    '/worship/offers/[token]',
     '/llms.txt',
     ...CRAWLER_FILES,
     ...ERROR_PAGES,

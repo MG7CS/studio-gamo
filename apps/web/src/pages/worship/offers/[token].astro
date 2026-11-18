@@ -1,0 +1,14 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import OfferPageView from '../../../components/offers/OfferPageView.astro';
+import { loadOfferPage } from '../../../lib/offer-page';
+import { siteUrl } from '@studio-gamo/ui/lib/sites';
+
+export const prerender = false;
+
+const page = await loadOfferPage(Astro, Astro.params.token ?? '');
+---
+
+<SiteLayout title="Your offer | Gamo Worship" noindex>
+  <OfferPageView page={page} homeHref={siteUrl('worship')} />
+</SiteLayout>
