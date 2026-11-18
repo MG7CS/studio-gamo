@@ -1,5 +1,5 @@
 ---
-/** Sample instructor card recipe (LinkCard) with an initials avatar (no photos of real or fictional faces). */
+/** Sample instructor card recipe (LinkCard). No photos of real or fictional faces and no decorative avatar. */
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
 import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import type { Instructor } from '../../data/instructors';
@@ -20,26 +20,11 @@ const { instructor: t, headingLevel = 'h3', as = 'article', class: className } =
   headingLevel={headingLevel}
   class={className}
 >
-  <div slot="eyebrow" class="flex w-full items-center justify-between gap-3">
-    <span
-      aria-hidden="true"
-      class:list={['grid size-16 place-items-center rounded-3xl rounded-bl-md text-xl font-bold', t.tone]}
-    >
-      {t.initials}
-    </span>
-    <Badge tone="sample">Sample instructor</Badge>
-  </div>
+  <Badge tone="sample" class="mb-3">
+    Sample instructor
+  </Badge>
   <p class="font-medium text-action-strong">{t.instruments.join(' · ')}</p>
   <p class="mt-3">{t.bio}</p>
-  <ul class="mt-4 flex flex-wrap gap-2">
-    <li>
-      <Badge size="sm">{t.teaches}</Badge>
-    </li>
-    {t.formats.map((f) => (
-      <li>
-        <Badge size="sm">{f}</Badge>
-      </li>
-    ))}
-  </ul>
+  <p class="mt-4 text-small text-fg-muted">{[t.teaches, ...t.formats].join(' · ')}</p>
   <Fragment slot="meta">View profile</Fragment>
 </LinkCard>

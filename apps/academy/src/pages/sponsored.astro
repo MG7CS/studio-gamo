@@ -41,10 +41,7 @@ const qa = [
   title="Sponsored & Scholarship Programs"
   description="Gamo Academy coordinates sponsored and scholarship-supported lessons with community partners, guided by family need and never by ability to pay."
 >
-  <PageHero
-    eyebrow="Sponsored programs"
-    breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}
-  >
+  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}>
     <Fragment slot="title">
       Music for every family, <span class="block text-action">whatever the budget.</span>
     </Fragment>
@@ -56,7 +53,6 @@ const qa = [
     <HeroPhoto slot="media" photo="boyGuitar" />
   </PageHero>
   <Section tone="raised">
-    <Fragment slot="eyebrow">Guiding principles</Fragment>
     <Fragment slot="title">
       How support is <span class="block text-action">meant to work.</span>
     </Fragment>
@@ -79,7 +75,7 @@ const qa = [
   <Section>
     <div class="grid gap-10 lg:grid-cols-5">
       <div class="lg:col-span-2">
-        <EditorialHeading eyebrow="Questions" title="How sponsored learning works" />
+        <EditorialHeading title="How sponsored learning works" />
         <div class="mt-6 flex flex-wrap gap-3">
           <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
             Apply to host lessons

@@ -24,7 +24,7 @@ const { submissionId, status, returnTo } = Astro.props;
 const base = `/api/submissions/${encodeURIComponent(submissionId)}`;
 const open = status === 'new' || status === 'in_review';
 const summary =
-  'inline-flex min-h-11 cursor-pointer items-center rounded-pill border border-fg-muted bg-surface-raised px-5 text-base font-semibold text-fg hover:bg-surface-inset';
+  'inline-flex min-h-11 cursor-pointer items-center rounded-button border border-fg-muted bg-surface-raised px-5 text-base font-semibold text-fg hover:bg-surface-inset';
 ---
 
 <SubmissionPanel id="decision" title="Decision">

@@ -2,8 +2,8 @@
 /**
  * FormPageView: the body of a public form page for every state `loadFormPage` can return: the form, the
  * confirmation after a send, a closed form, or "temporarily unavailable". The page owns the single <h1>
- * (the form's own title, which staff edit in the admin form builder). Content-agnostic: the eyebrow and the
- * back link come from the page.
+ * (the form's own title, which staff edit in the admin form builder). Content-agnostic: the back link comes
+ * from the page.
  */
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Container from '@studio-gamo/ui/components/layout/Container.astro';
@@ -18,18 +18,17 @@ type Page = Exclude<FormPageData, { response: Response }>;
 
 interface Props {
   page: Page;
-  eyebrow: string;
   backHref: string;
   backLabel: string;
   fallbackTitle: string;
 }
-const { page, eyebrow, backHref, backLabel, fallbackTitle } = Astro.props;
+const { page, backHref, backLabel, fallbackTitle } = Astro.props;
 const title = 'form' in page ? page.form.title : fallbackTitle;
 ---
 
 {page.view === 'form' ? (
   <>
-    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+    <PageHero title={title} width="narrow">
       {page.form.description && <p slot="intro">{page.form.description}</p>}
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">
@@ -50,7 +49,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
   </>
 ) : page.view === 'sent' ? (
   <>
-    <PageHero title="Thank you" eyebrow={eyebrow} width="narrow">
+    <PageHero title="Thank you" width="narrow">
       <p slot="intro">{page.form.confirmationMessage}</p>
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">
@@ -68,7 +67,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
   </>
 ) : page.view === 'closed' ? (
   <>
-    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+    <PageHero title={title} width="narrow">
       <p slot="intro">This form is not taking responses right now.</p>
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">
@@ -91,7 +90,7 @@ const title = 'form' in page ? page.form.title : fallbackTitle;
   </>
 ) : page.view === 'unavailable' ? (
   <>
-    <PageHero title={title} eyebrow={eyebrow} width="narrow">
+    <PageHero title={title} width="narrow">
       <p slot="intro">{page.message}</p>
     </PageHero>
     <Container width="narrow" class="pb-16 lg:pb-24">

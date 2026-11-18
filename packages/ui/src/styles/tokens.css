@@ -55,14 +55,6 @@
   padding-top: clamp(6.5rem, 8vw, 7.5rem);
   padding-bottom: clamp(2.5rem, 4vw, 3.5rem);
 }
-/* Eyebrow keeps its 0.22em tracking; tracking-eyebrow (0.16em) is the token for new components. */
-@utility eyebrow {
-  font-size: 0.75rem;
-  line-height: 1rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-weight: 600;
-}
 
 @utility shadow-float {
   box-shadow:
@@ -129,7 +121,6 @@ html {
 /* Deprecated: prefer text-action-strong for small accent text. Kept for existing markup.
    Small terracotta text: 4.8:1 on cream passes, but only 4.2:1 on sand, so small accent text
    uses the deep shade everywhere (6.0:1 on sand). Large brand type and button fills keep terracotta. */
-.eyebrow.text-terracotta,
 .text-xs.text-terracotta,
 .text-sm.text-terracotta,
 .text-base.text-terracotta {

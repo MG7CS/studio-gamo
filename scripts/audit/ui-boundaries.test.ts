@@ -276,3 +276,80 @@ test('style guard recognises colours, arbitrary values, inline styles and text-[
   });
   assert.deepEqual(styleCounts(`const first = items[0]; const href = '#faq';`), {});
 });
+
+// ---------------------------------------------------------------------------------------------
+// 4. clean layout rules (DESIGN.md section 11, owner direction 2026-11-18)
+// ---------------------------------------------------------------------------------------------
+
+const CLEAN_FILES = (): string[] =>
+  [
+    ...readdirSync(APPS_DIR, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .flatMap((e) => walk(join(APPS_DIR, e.name, 'src'), /\.(astro|ts)$/)),
+    ...walk(join(ROOT, 'packages/ui/src'), /\.(astro|ts)$/),
+  ].filter((file) => !/\.(test|spec)\.ts$|\.d\.ts$/.test(file));
+
+/** The word "eyebrow" as a prop, slot or class (the `tracking-eyebrow` token is a different word). */
+const EYEBROW = /(?<![\w-])eyebrow(?![\w-])/g;
+
+test('no eyebrow label above any heading or card title (slot, prop or class)', () => {
+  const offenders = CLEAN_FILES()
+    .map((file) => [rel(file), readFileSync(file, 'utf8').match(EYEBROW)?.length ?? 0] as const)
+    .filter(([, n]) => n > 0)
+    .map(([file, n]) => `${file}: ${n}`);
+  assert.deepEqual(
+    offenders,
+    [],
+    'DESIGN.md section 11: start with the heading; no eyebrow or pill label above headings or card titles',
+  );
+});
+
+const ROUND = /\brounded-(?:pill|full)\b/g;
+/**
+ * Round shapes left on purpose: dots, avatars, switches, progress bars, radio buttons, step numbers and icon holders.
+ * Buttons, links, tabs and chips use `rounded-button` (DESIGN.md section 11). Numbers may only go down.
+ */
+const ROUND_BASELINE: Record<string, number> = {
+  'apps/academy/src/components/home/AcademyHero.astro': 2,
+  'apps/academy/src/components/home/FamilyJourney.astro': 1,
+  'apps/production/src/components/production/ChecklistPreview.astro': 1,
+  'apps/production/src/components/production/ConsultationRequest.astro': 1,
+  'apps/production/src/components/production/EventSupportSection.astro': 1,
+  'apps/production/src/components/production/MixerStripPreview.astro': 2,
+  'apps/worship/src/components/home/AudienceSection.astro': 1,
+  'apps/worship/src/components/home/CoverageSection.astro': 1,
+  'apps/worship/src/components/home/SchedulingSection.astro': 1,
+  'packages/ui/src/components/dashboard/AccountMenu.astro': 1,
+  'packages/ui/src/components/dashboard/AnalyticsChart.astro': 4,
+  'packages/ui/src/components/dashboard/DashboardShell.astro': 2,
+  'packages/ui/src/components/dashboard/MonthCalendar.astro': 2,
+  'packages/ui/src/components/dashboard/ProgressList.astro': 2,
+  'packages/ui/src/components/dashboard/SettingsPanel.astro': 2,
+  'packages/ui/src/components/dashboard/StatGrid.astro': 1,
+  'packages/ui/src/components/dashboard/StateView.astro': 1,
+  'packages/ui/src/components/dashboard/StepList.astro': 1,
+  'packages/ui/src/components/forms/ChoiceCard.astro': 1,
+};
+
+test('round shapes: only dots, bars, avatars and switches; controls are small-radius rectangles', () => {
+  const found: Record<string, number> = {};
+  for (const file of CLEAN_FILES()) {
+    const n = readFileSync(file, 'utf8').match(ROUND)?.length ?? 0;
+    if (n) found[rel(file)] = n;
+  }
+  if (DUMP) console.log('ROUND_BASELINE current counts:\n' + JSON.stringify(found, null, 2));
+  const worse: string[] = [];
+  const better: string[] = [];
+  for (const file of new Set([...Object.keys(found), ...Object.keys(ROUND_BASELINE)])) {
+    const a = found[file] ?? 0;
+    const b = ROUND_BASELINE[file] ?? 0;
+    if (a > b) worse.push(`${file}: ${a} (baseline ${b})`);
+    else if (a < b) better.push(`${file}: ${a} (baseline ${b})`);
+  }
+  assert.deepEqual(worse, [], 'a pill or round control was added: use rounded-button (DESIGN.md section 11)');
+  assert.deepEqual(
+    better,
+    [],
+    'ROUND_BASELINE is higher than actual: lower these entries to lock in the improvement',
+  );
+});

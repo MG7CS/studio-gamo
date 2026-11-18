@@ -1,22 +1,10 @@
 ---
-/** Every way to take part (/get-involved), as photo cards in owner order. */
+/** Every way to take part (/get-involved), as flat rows in owner order (the same list as the home page, with the longer text). */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
-import { participation } from '../../data/organization';
+import PathChooser from './PathChooser.astro';
 ---
 
 <Section tone="raised" id="paths" title="Find your place.">
   <p slot="intro">Different gifts. Different starting points. One shared purpose.</p>
-  <FeatureGrid as="ul" max={3}>
-    {participation.map((p) => (
-      <MediaCard as="li" image={{ name: p.photo, alt: '' }} title={p.title} href={p.href}>
-        <Badge slot="eyebrow" size="sm">
-          {p.area}
-        </Badge>
-        <p>{p.body}</p>
-      </MediaCard>
-    ))}
-  </FeatureGrid>
+  <PathChooser detail="body" />
 </Section>

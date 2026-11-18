@@ -7,7 +7,6 @@ import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Stack from '@studio-gamo/ui/components/layout/Stack.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -50,7 +49,6 @@ const programBlurb: Record<string, string> = {
 ---
 
 <Section title="ButtonLink" id="catalog-buttons">
-  <Fragment slot="eyebrow">ButtonLink</Fragment>
   <Stack gap="lg">
     {(['md', 'lg'] as const).map((size) => (
       <Specimen name={`ButtonLink · size="${size}"`}>
@@ -85,29 +83,21 @@ const programBlurb: Record<string, string> = {
 </Section>
 
 <Section title="EditorialHeading" id="catalog-editorial">
-  <Fragment slot="eyebrow">EditorialHeading</Fragment>
   <Stack gap="xl">
     <EditorialHeading
-      eyebrow="size display"
       title="A calm, honest title."
       accent="With an accent line."
       lede="Lede copy under the title."
       size="display"
     />
-    <EditorialHeading
-      eyebrow="size section, centred"
-      title="Section heading"
-      lede="Centred lede copy."
-      align="center"
-    />
-    <EditorialHeading eyebrow="size sub" title="Sub heading" size="sub" as="h3" />
+    <EditorialHeading title="Section heading" lede="Centred lede copy." align="center" />
+    <EditorialHeading title="Sub heading" size="sub" as="h3" />
   </Stack>
 </Section>
 
 <Section tone="dark" title="EditorialHeading, FAQ and pills on dark" id="catalog-dark-existing">
   <Stack gap="xl">
     <EditorialHeading
-      eyebrow="tone dark"
       title="Dark heading"
       accent="Accent on dark."
       lede="Lede copy on dark."
@@ -124,7 +114,6 @@ const programBlurb: Record<string, string> = {
 </Section>
 
 <Section title="StatusPill" id="catalog-pills">
-  <Fragment slot="eyebrow">StatusPill</Fragment>
   <Stack gap="lg">
     {(['md', 'sm'] as const).map((size) => (
       <Specimen name={`StatusPill · size="${size}"`}>
@@ -139,7 +128,6 @@ const programBlurb: Record<string, string> = {
 </Section>
 
 <Section tone="raised" title="Frame and FaqAccordion" id="catalog-photo">
-  <Fragment slot="eyebrow">Frame · FaqAccordion</Fragment>
   <div class="grid gap-10 md:grid-cols-2">
     <Specimen name='Frame · ratio="portrait"' note="Full coverage in FramesCatalog below.">
       <Frame
@@ -179,7 +167,6 @@ const programBlurb: Record<string, string> = {
 </CtaInvitation>
 
 <Section tone="inset" title="Programs in owner order" id="catalog-programs">
-  <Fragment slot="eyebrow">Example</Fragment>
   <p slot="intro">
     Wherever programs appear together they follow one order: Gamo Academy, then Gamo Worship, then Gamo
     Production (from <code>@gamo/config/programs</code>).
@@ -187,9 +174,6 @@ const programBlurb: Record<string, string> = {
   <FeatureGrid max={3} as="ol">
     {PROGRAMS.map((program) => (
       <LinkCard as="li" href={siteUrl(program.id)} title={program.fullName}>
-        <Badge slot="eyebrow" tone="accent" size="sm">
-          {program.name}
-        </Badge>
         <p>{programBlurb[program.id]}</p>
       </LinkCard>
     ))}

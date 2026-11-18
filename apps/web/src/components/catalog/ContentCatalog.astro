@@ -2,7 +2,6 @@
 /**
  * ContentCatalog — content primitives and patterns (Badge, Card, LinkCard, MediaCard, FeatureGrid,
  * NumberedSteps, FloatingPreviewCard, SplitHero, a second PageHero tone) in every variant, plus
- * FormComingSoon as an h2, for the private catalog.
  * All people, lessons and schedules shown are labelled Sample.
  */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
@@ -18,7 +17,6 @@ import SplitHero from '@studio-gamo/ui/components/content/SplitHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
-import FormComingSoon from '@studio-gamo/ui/components/forms/FormComingSoon.astro';
 import Specimen from './Specimen.astro';
 
 const badgeTones = ['neutral', 'accent', 'proposal', 'sample', 'success', 'danger'] as const;
@@ -34,7 +32,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 ---
 
 <Section title="Content · Badge" id="catalog-badge">
-  <Fragment slot="eyebrow">content/Badge</Fragment>
   <Stack gap="lg">
     {(['md', 'sm'] as const).map((size) => (
       <Specimen name={`Badge · size="${size}"`}>
@@ -71,7 +68,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section title="Content · Card" id="catalog-card">
-  <Fragment slot="eyebrow">content/Card</Fragment>
   <Stack gap="xl">
     <FeatureGrid min="sm" max={4} as="ul">
       {cardTones.map((tone) => (
@@ -92,7 +88,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section tone="inset" title="Content · LinkCard" id="catalog-linkcard">
-  <Fragment slot="eyebrow">content/LinkCard</Fragment>
   <p slot="intro">The whole card is one link named by its title.</p>
   <FeatureGrid min="sm" max={4} as="ul">
     {cardTones.map((tone, i) => (
@@ -104,7 +99,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
         padding={i === 3 ? 'lg' : i === 0 ? 'sm' : 'md'}
         headingLevel="h3"
       >
-        <Badge slot="eyebrow" tone="sample" size="sm" />
         <p>Short body copy about where this link goes.</p>
         <Fragment slot="meta">Sample meta line</Fragment>
       </LinkCard>
@@ -113,7 +107,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section title="Content · MediaCard" id="catalog-mediacard">
-  <Fragment slot="eyebrow">content/MediaCard</Fragment>
   <p slot="intro">
     Adaptive keeps text on the card surface (photo beside the text in wide containers); overlay puts text on
     the photo's bottom scrim.
@@ -135,7 +128,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
         image={{ name: 'youngPianist', alt: 'Young pianist smiling at a keyboard (Sample)' }}
         title="Piano · adaptive, raised"
       >
-        <Badge slot="eyebrow" tone="sample" size="sm" />
         <p>Sample lesson: weekly piano for beginners.</p>
         <Fragment slot="meta">Sample · 30 minutes</Fragment>
       </MediaCard>
@@ -156,7 +148,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
         title="Sound · dark"
         tone="dark"
       >
-        <Badge slot="eyebrow" tone="sample" size="sm" />
         <p>Sample: the photo moves beside the text once the card is at least 36rem wide.</p>
       </MediaCard>
     </Specimen>
@@ -164,7 +155,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section tone="raised" title="Content · FeatureGrid" id="catalog-featuregrid">
-  <Fragment slot="eyebrow">content/FeatureGrid</Fragment>
   <Stack gap="xl">
     {(
       [
@@ -187,7 +177,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section title="Content · NumberedSteps" id="catalog-steps">
-  <Fragment slot="eyebrow">content/NumberedSteps</Fragment>
   <Stack gap="xl">
     {stepTones.map((tone) => (
       <Specimen name={`NumberedSteps · tone="${tone}"`}>
@@ -211,7 +200,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <Section tone="inset" title="Content · FloatingPreviewCard" id="catalog-preview-card">
-  <Fragment slot="eyebrow">content/FloatingPreviewCard</Fragment>
   <div class="grid gap-10 md:grid-cols-2">
     {(['light', 'dark'] as const).map((tone, i) => (
       <Specimen name={`FloatingPreviewCard · tone="${tone}"`}>
@@ -238,7 +226,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </Section>
 
 <SplitHero as="section" spacing="section" mediaSide="start" tone="dark">
-  <p class="eyebrow text-action-strong">content/SplitHero</p>
   <h2 class="section-heading text-balance">SplitHero · tone="dark", mediaSide="start"</h2>
   <p class="text-lg text-fg-muted">
     Copy and media side by side from a 48rem container. Used lower on a page it takes an h2.
@@ -256,7 +243,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </SplitHero>
 
 <SplitHero as="section" spacing="section" tone="inset">
-  <p class="eyebrow text-action-strong">content/SplitHero</p>
   <h2 class="section-heading text-balance">SplitHero · tone="inset", mediaSide="end"</h2>
   <p class="text-lg text-fg-muted">
     The default media side is end. <Badge tone="sample" size="sm" />
@@ -277,7 +263,6 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
   aria-label="SplitHero raised example"
   data-catalog="split-hero-raised"
 >
-  <p class="eyebrow text-action-strong">content/SplitHero</p>
   <h2 class="section-heading text-balance">SplitHero · tone="raised", forwarded attributes</h2>
   <p class="text-lg text-fg-muted">
     Lifts the band onto the raised surface; extra HTML attributes pass through.
@@ -292,12 +277,11 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
 </SplitHero>
 
 <SplitHero as="div" spacing="section">
-  <p class="eyebrow text-action-strong">content/SplitHero</p>
   <h2 class="section-heading text-balance">SplitHero · tone="default", copy only</h2>
   <p class="text-lg text-fg-muted">Without media the copy takes the first column.</p>
 </SplitHero>
 
-<PageHero titleAs="h2" tone="dark" title='PageHero · tone="dark", titleAs="h2"' eyebrow="content/PageHero">
+<PageHero titleAs="h2" tone="dark" title='PageHero · tone="dark", titleAs="h2"'>
   <p slot="intro">A second hero on one page takes an h2, so the page keeps a single h1.</p>
   <ButtonLink slot="actions" href="#catalog-forms" variant="light">
     Sample action
@@ -309,11 +293,3 @@ const gridItems = ['One', 'Two', 'Three', 'Four', 'Five'];
     Centred copy without media. <Badge tone="sample" size="sm" />
   </p>
 </PageHero>
-
-<FormComingSoon
-  titleAs="h2"
-  eyebrow='forms/FormComingSoon · titleAs="h2"'
-  title="Sample form coming soon"
-  intro="Sample: what the form will ask and what happens next."
-  email="hello@gamostudio.org"
-/>

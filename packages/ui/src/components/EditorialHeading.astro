@@ -1,11 +1,10 @@
 ---
 /**
- * Editorial section heading: eyebrow, large title (optional accent line) and lede.
+ * Editorial section heading: large title (optional accent line) and lede.
  * Semantic tokens only: `tone="dark"` sets data-surface="dark" on the wrapper (cream title, tan
  * accent, muted lede) for use on a dark band; light keeps the parent's roles.
  */
 interface Props {
-  eyebrow?: string;
   title: string;
   /** Optional second line rendered in the accent colour. */
   accent?: string;
@@ -18,7 +17,6 @@ interface Props {
   class?: string;
 }
 const {
-  eyebrow,
   title,
   accent,
   lede,
@@ -37,7 +35,6 @@ const dark = tone === 'dark';
   data-surface={dark ? 'dark' : undefined}
   class:list={[align === 'center' ? 'mx-auto text-center' : '', 'max-w-3xl', className]}
 >
-  {eyebrow && <p class="eyebrow mb-4 text-accent">{eyebrow}</p>}
   <Tag id={id} class:list={[sizeClass, 'text-fg text-balance']}>
     {title}
     {accent && <span class="block text-accent">{accent}</span>}

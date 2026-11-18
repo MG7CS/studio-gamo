@@ -7,12 +7,11 @@ import type { HTMLAttributes } from 'astro/types';
  *
  * Usage:
  *   <LinkCard href="/lessons/piano" title="Piano lessons" headingLevel="h3">
- *     <Badge slot="eyebrow" tone="accent">Ages 6 and up</Badge>
  *     <p>Weekly lessons with a vetted teacher.</p>
  *     <Fragment slot="meta">30 or 45 minutes</Fragment>
  *   </LinkCard>
  *
- * Slots: eyebrow, title (overrides the `title` prop), body (or the default slot), meta.
+ * Slots: title (overrides the `title` prop), body (or the default slot), meta.
  */
 import Icon from '../Icon.astro';
 import { cardPaddingClass, cardSurface, cardToneClass, type CardPadding, type CardTone } from './card-tone';
@@ -54,11 +53,6 @@ const hasBody = Astro.slots.has('body');
   data-tone={tone}
   data-surface={cardSurface(tone)}
 >
-  {Astro.slots.has('eyebrow') && (
-    <div class="mb-4 flex min-w-0 flex-wrap gap-2">
-      <slot name="eyebrow" />
-    </div>
-  )}
   <Heading class="text-xl font-black tracking-tight text-balance uppercase">
     <a
       href={href}

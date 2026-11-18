@@ -10,8 +10,10 @@ import { participation } from '../../data/organization';
 interface Props {
   /** Heading level of each row title. Default h3. */
   headingLevel?: 'h2' | 'h3';
+  /** Which sentence sits under the title: the short next step (default) or the longer description. */
+  detail?: 'next' | 'body';
 }
-const { headingLevel: Heading = 'h3' } = Astro.props;
+const { headingLevel: Heading = 'h3', detail = 'next' } = Astro.props;
 ---
 
 <ul class="grid gap-x-12 border-b border-border md:grid-cols-2">
@@ -22,7 +24,7 @@ const { headingLevel: Heading = 'h3' } = Astro.props;
           <Heading class="text-xl font-semibold tracking-tight text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
             {p.title}
           </Heading>
-          <p class="mt-1 text-body text-fg-muted">{p.next}</p>
+          <p class="mt-1 text-body text-fg-muted">{p[detail]}</p>
         </span>
         <Icon
           name="arrow"

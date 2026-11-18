@@ -2,18 +2,17 @@
 import type { HTMLAttributes } from 'astro/types';
 /**
  * Section: a page band with a surface tone, token width, vertical rhythm and an optional header
- * (eyebrow, title, intro, actions). With a title it renders <section aria-labelledby>; without one
+ * (title, intro, actions; no label above the heading, DESIGN.md section 11). With a title it renders <section aria-labelledby>; without one
  * it renders a plain <div> so unnamed bands do not create empty landmarks.
  *
  * Usage:
  *   <Section tone="inset" title="How it works">
- *     <Fragment slot="eyebrow">Step by step</Fragment>
- *     <p slot="intro">Three calm steps from first lesson to recital.</p>
+ *  *     <p slot="intro">Three calm steps from first lesson to recital.</p>
  *     <ButtonLink slot="actions" href="/start">Start</ButtonLink>
  *     <NumberedSteps items={steps} />
  *   </Section>
  *
- * Slots: eyebrow, title (overrides the `title` prop; text only, it is wrapped in the heading),
+ * Slots: title (overrides the `title` prop; text only, it is wrapped in the heading),
  * intro, actions, default (body).
  */
 import Container from './Container.astro';
@@ -47,8 +46,7 @@ const {
 } = Astro.props;
 
 const hasTitle = Boolean(title) || Astro.slots.has('title');
-const hasHeader =
-  hasTitle || Astro.slots.has('eyebrow') || Astro.slots.has('intro') || Astro.slots.has('actions');
+const hasHeader = hasTitle || Astro.slots.has('intro') || Astro.slots.has('actions');
 const headingId = id ?? `section-${Math.random().toString(36).slice(2, 10)}`;
 const Tag = hasTitle ? 'section' : 'div';
 
@@ -78,11 +76,6 @@ const spacingClass: Record<Spacing, string> = { default: 'section-space', tight:
           align === 'center' ? 'items-center text-center' : 'items-start',
         ]}
       >
-        {Astro.slots.has('eyebrow') && (
-          <p class="eyebrow text-action-strong">
-            <slot name="eyebrow" />
-          </p>
-        )}
         {hasTitle && (
           <Heading id={headingId} class="section-heading max-w-narrow text-balance text-fg">
             <slot name="title">{title}</slot>

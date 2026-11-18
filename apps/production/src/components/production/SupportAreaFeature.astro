@@ -13,12 +13,11 @@ import type { SupportArea } from '../../data/production';
 
 interface Props {
   area: SupportArea;
-  index: number;
   /** Puts the photo on the start side in wide containers. */
   reverse?: boolean;
   tone?: 'default' | 'raised' | 'dark';
 }
-const { area, index, reverse = false, tone = 'default' } = Astro.props;
+const { area, reverse = false, tone = 'default' } = Astro.props;
 const dark = tone === 'dark';
 const id = `area-${area.slug}`;
 ---
@@ -30,9 +29,6 @@ const id = `area-${area.slug}`;
   tone={dark ? 'dark' : 'default'}
   class={tone === 'raised' ? 'bg-surface-raised' : undefined}
 >
-  <p class="eyebrow flex items-center gap-2 text-action-strong">
-    <Icon name={area.icon} class="size-4" /> 0{index} · Support area
-  </p>
   <h2 id={id} class="section-heading text-balance text-fg">
     {area.title}
   </h2>

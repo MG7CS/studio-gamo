@@ -41,7 +41,7 @@ const socials = (footer.social ?? []).filter((s) => s.key && SOCIAL_ICONS[s.key]
                 <a
                   href={s.href}
                   title={s.label}
-                  class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                  class="flex h-11 w-11 items-center justify-center rounded-button bg-white/10 text-white transition-colors hover:bg-white/20"
                 >
                   <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
                     <path d={SOCIAL_ICONS[s.key as string]} />

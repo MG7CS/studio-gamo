@@ -72,10 +72,7 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
 ---
 
 <Layout title="Registration received" description="Your Gamo Academy registration receipt." noindex>
-  <PageHero
-    eyebrow="Gamo Academy · Registration"
-    title={registration ? 'Registration received' : 'Registration receipt'}
-  >
+  <PageHero title={registration ? 'Registration received' : 'Registration receipt'}>
     <p slot="intro">
       {registration
         ? 'Thank you. Keep the reference below; the email has a private link to manage the registration.'

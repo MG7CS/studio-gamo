@@ -10,7 +10,6 @@ import Frame from '@studio-gamo/ui/components/media/Frame.astro';
 import { photos, type PhotoKey } from '@studio-gamo/ui/lib/images';
 
 interface Props {
-  eyebrow: string;
   title: string;
   accent: string;
   body: string;
@@ -19,11 +18,11 @@ interface Props {
   photoAlt?: string;
   tone?: 'default' | 'inset';
 }
-const { eyebrow, title, accent, body, photo, photoAlt, tone = 'default' } = Astro.props;
+const { title, accent, body, photo, photoAlt, tone = 'default' } = Astro.props;
 const hasCaption = Astro.slots.has('caption');
 ---
 
-<PageHero eyebrow={eyebrow} tone={tone}>
+<PageHero tone={tone}>
   <Fragment slot="title">
     {title}
     <span class="block text-action">{accent}</span>

@@ -24,13 +24,13 @@ const lighting = getArea('lighting-media')!;
 >
   <ProductionHero />
   <MinistryIntro />
-  <SupportAreaFeature area={{ ...audio, photo: 'worshipBand' }} index={2}>
+  <SupportAreaFeature area={{ ...audio, photo: 'worshipBand' }}>
     <MixerStripPreview slot="preview" class="w-60" />
   </SupportAreaFeature>
-  <SupportAreaFeature area={stream} index={3} reverse tone="dark">
+  <SupportAreaFeature area={stream} reverse tone="dark">
     <ChecklistPreview slot="preview" tone="dark" class="max-w-xs" />
   </SupportAreaFeature>
-  <SupportAreaFeature area={lighting} index={4} tone="raised">
+  <SupportAreaFeature area={lighting} tone="raised">
     <CueStackPreview slot="preview" />
   </SupportAreaFeature>
   <TrainingSection />

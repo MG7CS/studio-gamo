@@ -153,7 +153,7 @@ const exportPayload = JSON.stringify({
             {m.delta && (
               <span
                 class:list={[
-                  'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                  'inline-flex items-center rounded-button px-2 py-0.5 text-[11px] font-semibold',
                   m.tone === 'up'
                     ? 'bg-[#E6F2EA] text-[#1F5A37]'
                     : m.tone === 'down'
@@ -185,7 +185,7 @@ const exportPayload = JSON.stringify({
 
     <div class="flex flex-wrap items-center gap-1.5">
       <div
-        class="inline-flex rounded-full border border-sand bg-ivory p-0.5 text-[11px] font-semibold"
+        class="inline-flex rounded-button border border-sand bg-ivory p-0.5 text-[11px] font-semibold"
         role="group"
         aria-label="Chart view mode"
       >
@@ -193,7 +193,7 @@ const exportPayload = JSON.stringify({
           type="button"
           data-chart-view="visual"
           aria-pressed="true"
-          class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
+          class="rounded-button px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
         >
           Graph
         </button>
@@ -201,7 +201,7 @@ const exportPayload = JSON.stringify({
           type="button"
           data-chart-view="table"
           aria-pressed="false"
-          class="rounded-full px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
+          class="rounded-button px-2.5 py-1 transition-colors aria-pressed:bg-charcoal aria-pressed:text-cream"
         >
           Data table
         </button>
@@ -209,7 +209,7 @@ const exportPayload = JSON.stringify({
       <button
         type="button"
         data-chart-export="csv"
-        class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+        class="inline-flex h-8 items-center gap-1 rounded-button border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
         aria-label={`Export ${title} as CSV`}
       >
         <Icon name="download" class="h-3.5 w-3.5 text-terracotta-dark" />
@@ -218,7 +218,7 @@ const exportPayload = JSON.stringify({
       <button
         type="button"
         data-chart-export="json"
-        class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+        class="inline-flex h-8 items-center gap-1 rounded-button border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
         aria-label={`Export ${title} as JSON`}
       >
         <Icon name="file" class="h-3.5 w-3.5 text-ink-soft" />

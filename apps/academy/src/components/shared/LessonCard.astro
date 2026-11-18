@@ -35,11 +35,14 @@ const facts: [string, string][] = [
   class="flex"
 >
   <LinkCard href={`/lessons/${l.slug}`} title={l.title} headingLevel={headingLevel} class="w-full">
-    <Fragment slot="eyebrow">
-      {l.sample && <Badge tone="sample">Sample lesson</Badge>}
-      <Badge>{l.format}</Badge>
-      <Badge>{l.level}</Badge>
-    </Fragment>
+    {l.sample && (
+      <Badge tone="sample" class="mb-3">
+        Sample lesson
+      </Badge>
+    )}
+    <p class="mb-2 text-small font-semibold text-fg-muted">
+      {l.level} · {l.format}
+    </p>
     <p>{l.summary}</p>
     <dl class="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
       {facts.map(([k, v]) => (

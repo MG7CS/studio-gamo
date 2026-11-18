@@ -2,7 +2,7 @@
 /**
  * Badge: short, non-interactive label, on one line by default (truncates instead of wrapping; pass
  * `wrap` to let a longer label break onto several lines on small screens). Use it for
- * eyebrow chips, statuses and the honest labels AGENTS.md requires: tone="sample" for fictional
+ * statuses and the honest labels AGENTS.md requires: tone="sample" for fictional
  * people, bookings or stories and tone="proposal" for fees, contributions and tiers not yet approved.
  * Those two tones print "Sample" / "Proposal" when no text is given.
  *
@@ -43,7 +43,7 @@ const fallback: Partial<Record<Tone, string>> = { sample: 'Sample', proposal: 'P
 <span
   class:list={[
     'inline-flex max-w-full shrink-0 items-center border text-caption font-semibold tracking-eyebrow uppercase',
-    wrap ? 'rounded-card text-balance' : 'rounded-pill whitespace-nowrap',
+    wrap ? 'rounded-card text-balance' : 'rounded-button whitespace-nowrap',
     toneClass[tone],
     sizeClass[size],
     className,

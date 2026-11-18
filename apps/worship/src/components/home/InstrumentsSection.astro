@@ -7,7 +7,6 @@ import { instruments, styles } from '../../data/worship';
 ---
 
 <Section id="instruments-title" title="The whole team, not just a player.">
-  <Fragment slot="eyebrow">Instruments & categories</Fragment>
   <p slot="intro">
     Musicians apply by instrument and by the styles of worship they know well, so churches can request exactly
     the support their service needs.
@@ -41,7 +40,7 @@ import { instruments, styles } from '../../data/worship';
       </h3>
       <ul class="mt-3 flex flex-wrap gap-2">
         {styles.map((s) => (
-          <li class="rounded-pill border border-border bg-surface-raised px-4 py-2 text-small">{s}</li>
+          <li class="rounded-button border border-border bg-surface-raised px-4 py-2 text-small">{s}</li>
         ))}
       </ul>
     </div>

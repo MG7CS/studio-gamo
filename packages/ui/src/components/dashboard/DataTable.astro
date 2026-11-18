@@ -96,7 +96,7 @@ const tablePayload = JSON.stringify({
           <button
             type="button"
             data-table-export="csv"
-            class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+            class="inline-flex h-8 items-center gap-1 rounded-button border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
             aria-label={`Export ${caption} as CSV`}
           >
             <Icon name="download" class="h-3.5 w-3.5 text-terracotta-dark" />
@@ -105,7 +105,7 @@ const tablePayload = JSON.stringify({
           <button
             type="button"
             data-table-export="json"
-            class="inline-flex h-8 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
+            class="inline-flex h-8 items-center gap-1 rounded-button border border-sand bg-white px-2.5 text-[11px] font-semibold text-charcoal transition-colors hover:border-charcoal hover:bg-cream"
             aria-label={`Export ${caption} as JSON`}
           >
             <Icon name="file" class="h-3.5 w-3.5 text-ink-soft" />
@@ -157,7 +157,7 @@ const tablePayload = JSON.stringify({
                   type="button"
                   data-dialog-open={rowAction.dialog}
                   data-dialog-subject={text(r[primary.key])}
-                  class="inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-sand bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark transition-colors hover:border-charcoal hover:bg-cream"
+                  class="inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-button border border-sand bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark transition-colors hover:border-charcoal hover:bg-cream"
                 >
                   {rowAction.icon && <Icon name={rowAction.icon} class="h-3.5 w-3.5" />}
                   <span>{rowAction.label}</span>
@@ -186,7 +186,7 @@ const tablePayload = JSON.stringify({
               type="button"
               data-dialog-open={rowAction.dialog}
               data-dialog-subject={text(r[primary.key])}
-              class="inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-sand bg-white px-2.5 text-[11px] font-semibold text-terracotta-dark"
+              class="inline-flex h-7 shrink-0 items-center gap-1 rounded-button border border-sand bg-white px-2.5 text-[11px] font-semibold text-terracotta-dark"
             >
               {rowAction.icon && <Icon name={rowAction.icon} class="h-3 w-3" />}
               <span>{rowAction.label}</span>

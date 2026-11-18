@@ -23,7 +23,7 @@ import type { HTMLAttributes } from 'astro/types';
  * (default landscape; portrait for overlay), sizes (Frame preset, default third), priority }. A photo that
  * cannot take the ratio fails the build: pick another ratio or photo.
  *
- * Slots: on-media, eyebrow, title (overrides `title`), default (body), meta.
+ * Slots: on-media, title (overrides `title`), default (body), meta.
  */
 import Frame from '../media/Frame.astro';
 import { photos, type PhotoKey } from '../../lib/images';
@@ -101,11 +101,6 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
               <slot name="on-media" />
             </div>
           )}
-          {Astro.slots.has('eyebrow') && (
-            <div class="flex min-w-0 flex-wrap gap-2">
-              <slot name="eyebrow" />
-            </div>
-          )}
           {hasTitle && (
             <Heading
               class:list={[
@@ -142,11 +137,6 @@ const wrapProps = overlay && href ? { href, class: 'media-card__cover frame-link
         {Astro.slots.has('on-media') && (
           <div class="flex flex-wrap gap-2">
             <slot name="on-media" />
-          </div>
-        )}
-        {Astro.slots.has('eyebrow') && (
-          <div class="flex min-w-0 flex-wrap gap-2">
-            <slot name="eyebrow" />
           </div>
         )}
         {hasTitle && (

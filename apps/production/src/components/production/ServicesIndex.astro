@@ -8,7 +8,7 @@ import { supportAreas } from '../../data/production';
 
 <Section tone="raised">
   <FeatureGrid as="ul" min="md" max={3} gap="lg">
-    {supportAreas.map((a, i) => (
+    {supportAreas.map((a) => (
       <MediaCard
         as="li"
         href={`/services/${a.slug}`}
@@ -16,9 +16,6 @@ import { supportAreas } from '../../data/production';
         headingLevel="h2"
         image={{ name: a.photo, sizes: 'third' }}
       >
-        <p slot="eyebrow" class="eyebrow text-action-strong">
-          {String(i + 1).padStart(2, '0')}
-        </p>
         {a.short}
       </MediaCard>
     ))}

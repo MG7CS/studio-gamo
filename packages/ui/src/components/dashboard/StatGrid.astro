@@ -61,7 +61,7 @@ const { items } = Astro.props;
           {s.delta && (
             <span
               class:list={[
-                'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                'shrink-0 rounded-button px-2 py-0.5 text-[11px] font-semibold',
                 s.deltaTone === 'up'
                   ? 'bg-[#E6F2EA] text-[#1F5A37]'
                   : s.deltaTone === 'down'
@@ -77,7 +77,7 @@ const { items } = Astro.props;
           <p class="mt-2.5">
             <span
               class:list={[
-                'inline-flex max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                'inline-flex max-w-full truncate rounded-button px-2 py-0.5 text-[11px] font-semibold',
                 featured ? 'bg-charcoal/10 text-[#4A2F17]' : 'bg-ivory text-ink-soft ring-1 ring-sand/70',
               ]}
             >

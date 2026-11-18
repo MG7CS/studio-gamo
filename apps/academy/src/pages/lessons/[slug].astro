@@ -33,7 +33,6 @@ const facts = [
   description={clampDescription(`${l.title} (${l.format}, ${l.schedule}): ${l.summary}`)}
 >
   <PageHero
-    eyebrow={`${l.instrument} · ${l.level} · ${l.format}`}
     title={l.title}
     breadcrumbs={[
       { label: 'Academy', href: '/' },
@@ -41,7 +40,12 @@ const facts = [
       { label: l.title },
     ]}
   >
-    <p slot="intro">{l.summary}</p>
+    <Fragment slot="intro">
+      <p class="mb-2 text-small font-semibold text-fg-muted">
+        {l.instrument} · {l.level} · {l.format}
+      </p>
+      <p>{l.summary}</p>
+    </Fragment>
     {l.sample && (
       <Badge slot="actions" tone="sample">
         Sample lesson

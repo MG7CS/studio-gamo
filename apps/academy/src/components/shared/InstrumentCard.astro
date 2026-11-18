@@ -41,17 +41,7 @@ const href = `/instruments/${i.slug}`;
   </MediaCard>
 ) : (
   <LinkCard as={as} href={href} title={i.name} headingLevel={headingLevel} tone="inset" class={className}>
-    <Fragment slot="eyebrow">
-      <span
-        aria-hidden="true"
-        class="grid size-14 place-items-center rounded-2xl bg-surface-raised text-action-strong"
-      >
-        <Icon name={i.icon} class="size-7" />
-      </span>
-      <Badge tone="neutral" class="self-center">
-        {i.ages}
-      </Badge>
-    </Fragment>
+    <p class="mb-2 text-small font-semibold text-fg-muted">{i.ages}</p>
     <p>{i.blurb}</p>
     <Fragment slot="meta">Explore {i.short.toLowerCase()}</Fragment>
   </LinkCard>

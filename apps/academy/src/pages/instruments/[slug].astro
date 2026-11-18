@@ -27,7 +27,6 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   description={`${instrument.name} lessons at Gamo Academy. ${instrument.blurb} ${instrument.ages}.`}
 >
   <PageHero
-    eyebrow={instrument.ages}
     title={instrument.name}
     breadcrumbs={[
       { label: 'Academy', href: '/' },
@@ -48,7 +47,6 @@ const teachers = instructors.filter((t) => t.instrumentSlugs.includes(instrument
   </PageHero>
   <InstrumentOverview instrument={instrument} />
   <Section title={`Ways to learn ${instrument.short.toLowerCase()}`}>
-    <Fragment slot="eyebrow">Available lessons</Fragment>
     <FeatureGrid as="ul" max={3}>
       {related.map((l) => (
         <LessonCard lesson={l} />

@@ -32,7 +32,7 @@ const H = headingLevel;
           <button
             type="button"
             data-export-report={action.exportReport}
-            class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
+            class="inline-flex min-h-9 items-center gap-1.5 rounded-button bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
           >
             {action.icon && <Icon name={action.icon} class="h-3.5 w-3.5" />}
             {action.label}
@@ -41,7 +41,7 @@ const H = headingLevel;
           <button
             type="button"
             data-dialog-open={action.dialog}
-            class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
+            class="inline-flex min-h-9 items-center gap-1.5 rounded-button bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
           >
             {action.icon && <Icon name={action.icon} class="h-3.5 w-3.5" />}
             {action.label}
@@ -49,7 +49,7 @@ const H = headingLevel;
         ) : (
           <a
             href={action.href}
-            class="inline-flex min-h-9 items-center gap-1 rounded-full bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
+            class="inline-flex min-h-9 items-center gap-1 rounded-button bg-ivory px-3 text-[12px] font-semibold text-terracotta-dark ring-1 ring-sand/80 hover:bg-cream sm:text-[13px]"
           >
             {action.label}
             <Icon name={action.icon ?? 'chevron-right'} class="h-3.5 w-3.5" />

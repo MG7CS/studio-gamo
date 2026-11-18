@@ -23,7 +23,7 @@ const hasHeadingSlot = Astro.slots.has('heading');
       role="tablist"
       aria-label={label}
       class:list={[
-        'inline-flex flex-wrap justify-center rounded-full p-1.5 shadow-sm',
+        'inline-flex flex-wrap justify-center rounded-button p-1.5 shadow-sm',
         tone === 'dark' ? 'bg-white/10' : 'border border-sand bg-white/95',
       ]}
     >
@@ -36,7 +36,7 @@ const hasHeadingSlot = Astro.slots.has('heading');
           aria-selected={i === 0 ? 'true' : 'false'}
           tabindex={i === 0 ? 0 : -1}
           class:list={[
-            'min-h-11 rounded-full px-5 text-sm font-semibold transition-colors sm:px-6',
+            'min-h-11 rounded-button px-5 text-sm font-semibold transition-colors sm:px-6',
             tone === 'dark'
               ? 'text-cream/75 aria-selected:bg-cream aria-selected:text-charcoal'
               : 'text-charcoal/75 aria-selected:bg-charcoal aria-selected:text-cream',

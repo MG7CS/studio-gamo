@@ -37,7 +37,6 @@ const TONE_ALIAS: Record<DeprecatedEditorialFeatureTone, EditorialFeatureTone> =
 
 interface Props {
   id?: string;
-  eyebrow?: string;
   pillText?: string;
   pillKind?: 'sample' | 'proposal' | 'verified';
   title: string;
@@ -55,7 +54,6 @@ interface Props {
 
 const {
   id,
-  eyebrow,
   pillText,
   pillKind = 'proposal',
   title,
@@ -111,7 +109,6 @@ const iconBadgeSurface = {
     >
       <div class="flex flex-wrap items-center gap-3">
         {pillText && <StatusPill kind={pillKind} label={pillText} />}
-        {eyebrow && <p class="eyebrow text-accent">{eyebrow}</p>}
       </div>
 
       <h2 class="section-heading mt-4 text-balance">

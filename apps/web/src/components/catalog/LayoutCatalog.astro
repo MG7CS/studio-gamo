@@ -17,7 +17,6 @@ const widths = ['page', 'narrow', 'prose'] as const;
 ---
 
 <Section title="Layout · Container" id="catalog-container">
-  <Fragment slot="eyebrow">layout/Container</Fragment>
   <p slot="intro">Token widths with the page gutter. Each bar below is a Container inside this section.</p>
   <Stack gap="lg">
     {widths.map((width) => (
@@ -41,7 +40,6 @@ const widths = ['page', 'narrow', 'prose'] as const;
 
 {tones.map((tone) => (
   <Section tone={tone} title={`Section · tone="${tone}"`} id={`catalog-section-${tone}`}>
-    <Fragment slot="eyebrow">layout/Section</Fragment>
     <p slot="intro">
       Eyebrow, title, intro and actions slots. Colour roles switch with the tone, so text, links and buttons
       stay readable.
@@ -69,7 +67,6 @@ const widths = ['page', 'narrow', 'prose'] as const;
 </Section>
 
 <Section title="Layout · Stack" id="catalog-stack">
-  <Fragment slot="eyebrow">layout/Stack</Fragment>
   <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
     {gaps.map((gap) => (
       <Specimen name={`Stack · gap="${gap}"`}>

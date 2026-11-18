@@ -74,7 +74,7 @@ const endText = (n: number) => (n === min ? minLabel : n === max ? maxLabel : un
         <label
           for={`${id}-${n}`}
           class:list={[
-            'grid size-11 cursor-pointer place-items-center rounded-pill border bg-surface-raised',
+            'grid size-11 cursor-pointer place-items-center rounded-button border bg-surface-raised',
             error ? 'border-2 border-danger' : 'border-fg-muted',
             'text-body-sm font-semibold text-fg transition-colors hover:border-action',
             'has-checked:border-action has-checked:bg-action has-checked:text-on-action',

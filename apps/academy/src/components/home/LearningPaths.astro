@@ -6,7 +6,6 @@
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
 import MediaCard from '@studio-gamo/ui/components/content/MediaCard.astro';
-import Badge from '@studio-gamo/ui/components/content/Badge.astro';
 import type { PhotoKey } from '@studio-gamo/ui/lib/images';
 import type { Age } from '../../data/lessons';
 
@@ -52,17 +51,10 @@ const groups: {
   <FeatureGrid as="ul" max={3}>
     {groups.map((g) => (
       <MediaCard as="li" href={`/lessons?ages=${g.age}`} title={g.title} image={{ name: g.photo, alt: '' }}>
-        <Badge slot="eyebrow" tone="accent">
-          {g.label}
-        </Badge>
         <p>{g.body}</p>
-        <ul slot="meta" class="flex flex-wrap gap-2">
-          {g.points.map((p) => (
-            <li>
-              <Badge size="sm">{p}</Badge>
-            </li>
-          ))}
-        </ul>
+        <p slot="meta" class="text-small text-fg-muted">
+          {g.label} · {g.points.join(' · ')}
+        </p>
       </MediaCard>
     ))}
   </FeatureGrid>

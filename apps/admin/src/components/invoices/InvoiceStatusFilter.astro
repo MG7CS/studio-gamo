@@ -32,7 +32,7 @@ const items: { label: string; href: string; active: boolean }[] = [
           href={item.href}
           aria-current={item.active ? 'true' : undefined}
           class:list={[
-            'inline-flex min-h-11 items-center rounded-pill border px-4 text-small font-semibold',
+            'inline-flex min-h-11 items-center rounded-button border px-4 text-small font-semibold',
             item.active
               ? 'border-action-strong bg-action-strong text-on-action'
               : 'border-fg-muted bg-surface-raised text-fg hover:bg-surface-inset',
