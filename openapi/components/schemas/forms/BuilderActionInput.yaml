@@ -1,0 +1,7 @@
+type: object
+description: Fields of one form-builder or submissions action, sent as JSON or as an HTML form post. The route validates them against the draft schema or submission rules and rejects what does not fit (400); `return` is an optional same-origin path used for the 303 redirect.
+additionalProperties: true
+properties:
+  return:
+    type: string
+    maxLength: 512

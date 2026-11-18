@@ -87,6 +87,39 @@ paths:
     $ref: paths/invoice-line-payout.yaml
   /files/{id}:
     $ref: paths/files.yaml
+  /api/forms/{id}/close:
+    $ref: paths/forms-close.yaml
+  /api/forms/{id}/reopen:
+    $ref: paths/forms-reopen.yaml
+  /api/forms/{id}/restore:
+    $ref: paths/forms-restore.yaml
+  /api/forms/{id}/settings:
+    $ref: paths/forms-settings.yaml
+  /api/forms/{id}/questions:
+    $ref: paths/forms-questions.yaml
+  /api/forms/{id}/questions/{qid}:
+    $ref: paths/forms-question-item.yaml
+  /api/forms/{id}/questions/{qid}/delete:
+    $ref: paths/forms-question-delete.yaml
+  /api/forms/{id}/questions/{qid}/duplicate:
+    $ref: paths/forms-question-duplicate.yaml
+  /api/forms/{id}/questions/{qid}/move:
+    $ref: paths/forms-question-move.yaml
+  /api/forms/{id}/questions/{qid}/type:
+    $ref: paths/forms-question-type.yaml
+  /api/forms/{id}/sections:
+    $ref: paths/forms-sections.yaml
+  /api/forms/{id}/sections/{sid}:
+    $ref: paths/forms-section-item.yaml
+  /api/forms/{id}/sections/{sid}/delete:
+    $ref: paths/forms-section-delete.yaml
+  /api/submissions/bulk:
+    $ref: paths/submissions-bulk.yaml
+  /api/submissions/export:
+    $ref: paths/submissions-export.yaml
+  /api/submissions/{id}/note:
+    $ref: paths/submissions-note.yaml
+
 components:
   schemas:
     Identifier:

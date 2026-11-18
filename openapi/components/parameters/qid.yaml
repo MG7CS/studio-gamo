@@ -1,0 +1,7 @@
+name: qid
+in: path
+required: true
+description: Question id inside the draft form schema.
+schema:
+  type: string
+  minLength: 1

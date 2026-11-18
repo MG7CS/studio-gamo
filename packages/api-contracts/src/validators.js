@@ -14443,3 +14443,127 @@ validate103.errors = vErrors;
 return errors === 0;
 }
 validate103.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_BuilderActionInput = validate104;
+const schema219 = {"$id":"schema_BuilderActionInput","type":"object","description":"Fields of one form-builder or submissions action, sent as JSON or as an HTML form post. The route validates them against the draft schema or submission rules and rejects what does not fit (400); `return` is an optional same-origin path used for the 303 redirect.","additionalProperties":true,"properties":{"return":{"type":"string","maxLength":512}}};
+
+function validate104(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_BuilderActionInput" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate104.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.return !== undefined){
+let data0 = data.return;
+if(typeof data0 === "string"){
+if(func1(data0) > 512){
+const err0 = {instancePath:instancePath+"/return",schemaPath:"#/properties/return/maxLength",keyword:"maxLength",params:{limit: 512},message:"must NOT have more than 512 characters"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+}
+else {
+const err1 = {instancePath:instancePath+"/return",schemaPath:"#/properties/return/type",keyword:"type",params:{type: "string"},message:"must be string"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+}
+else {
+const err2 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+validate104.errors = vErrors;
+return errors === 0;
+}
+validate104.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};
+
+export const schema_BuilderActionResponse = validate105;
+const schema220 = {"$id":"schema_BuilderActionResponse","type":"object","additionalProperties":false,"properties":{"data":{"type":"object","additionalProperties":true,"description":"Result of the action; shape depends on the action and carries no personal data."}},"required":["data"]};
+
+function validate105(data, {instancePath="", parentData, parentDataProperty, rootData=data, dynamicAnchors={}}={}){
+/*# sourceURL="schema_BuilderActionResponse" */;
+let vErrors = null;
+let errors = 0;
+const evaluated0 = validate105.evaluated;
+if(evaluated0.dynamicProps){
+evaluated0.props = undefined;
+}
+if(evaluated0.dynamicItems){
+evaluated0.items = undefined;
+}
+if(data && typeof data == "object" && !Array.isArray(data)){
+if(data.data === undefined){
+const err0 = {instancePath,schemaPath:"#/required",keyword:"required",params:{missingProperty: "data"},message:"must have required property '"+"data"+"'"};
+if(vErrors === null){
+vErrors = [err0];
+}
+else {
+vErrors.push(err0);
+}
+errors++;
+}
+for(const key0 in data){
+if(!(key0 === "data")){
+const err1 = {instancePath,schemaPath:"#/additionalProperties",keyword:"additionalProperties",params:{additionalProperty: key0},message:"must NOT have additional properties"};
+if(vErrors === null){
+vErrors = [err1];
+}
+else {
+vErrors.push(err1);
+}
+errors++;
+}
+}
+if(data.data !== undefined){
+let data0 = data.data;
+if(data0 && typeof data0 == "object" && !Array.isArray(data0)){
+}
+else {
+const err2 = {instancePath:instancePath+"/data",schemaPath:"#/properties/data/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err2];
+}
+else {
+vErrors.push(err2);
+}
+errors++;
+}
+}
+}
+else {
+const err3 = {instancePath,schemaPath:"#/type",keyword:"type",params:{type: "object"},message:"must be object"};
+if(vErrors === null){
+vErrors = [err3];
+}
+else {
+vErrors.push(err3);
+}
+errors++;
+}
+validate105.errors = vErrors;
+return errors === 0;
+}
+validate105.evaluated = {"props":true,"dynamicProps":false,"dynamicItems":false};

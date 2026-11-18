@@ -299,6 +299,26 @@ const NEW_IN_4_1_0 = [
   'web POST /api/webhook/stripe',
   'web POST /worship/offers/{token}',
   'web PUT /api/forms/uploads/{id}/parts/{n}',
+  'admin POST /api/forms/{id}',
+  'admin POST /api/forms/{id}/close',
+  'admin POST /api/forms/{id}/questions',
+  'admin POST /api/forms/{id}/questions/{qid}',
+  'admin PUT /api/forms/{id}/questions/{qid}',
+  'admin POST /api/forms/{id}/questions/{qid}/delete',
+  'admin POST /api/forms/{id}/questions/{qid}/duplicate',
+  'admin POST /api/forms/{id}/questions/{qid}/move',
+  'admin POST /api/forms/{id}/questions/{qid}/type',
+  'admin POST /api/forms/{id}/reopen',
+  'admin POST /api/forms/{id}/restore',
+  'admin POST /api/forms/{id}/sections',
+  'admin POST /api/forms/{id}/sections/{sid}',
+  'admin PUT /api/forms/{id}/sections/{sid}',
+  'admin POST /api/forms/{id}/sections/{sid}/delete',
+  'admin POST /api/forms/{id}/settings',
+  'admin PUT /api/forms/{id}/settings',
+  'admin POST /api/submissions/bulk',
+  'admin POST /api/submissions/export',
+  'admin POST /api/submissions/{id}/note',
 ];
 const listOperations = (filter: (op: any) => boolean = () => true) =>
   Object.entries<any>(spec.paths)
@@ -317,7 +337,7 @@ test('operation inventory: 2 implemented operations plus the forms, offers and i
     listOperations((op) => op['x-status'] === 'planned'),
     [...NEW_IN_4_1_0].sort(),
   );
-  assert.equal(listOperations().length, 30);
+  assert.equal(listOperations().length, 50);
   assert.equal(spec.info.version, '4.1.0');
   for (const name of Object.keys(spec.components.schemas))
     assert.doesNotMatch(

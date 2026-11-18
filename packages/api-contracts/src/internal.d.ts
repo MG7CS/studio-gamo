@@ -225,7 +225,11 @@ export interface paths {
          * @description Replaces the draft after parseFormSchema validation (400 with the failing path). Published versions are immutable and unaffected.
          */
         put: operations["saveFormDraft"];
-        post?: never;
+        /**
+         * Save the draft schema (HTML form)
+         * @description Same action as PUT, for the browser form post; answers 303 back to the builder.
+         */
+        post: operations["saveFormDraftForm"];
         delete?: never;
         options?: never;
         head?: never;
@@ -530,6 +534,338 @@ export interface paths {
         get: operations["getUploadedFile"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop accepting submissions
+         * @description Closes the form; the published version stays and existing submissions are kept.
+         */
+        post: operations["closeForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept submissions again
+         * @description Reopens a closed form on its published version.
+         */
+        post: operations["reopenForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore a published version into the draft
+         * @description Copies a published version into the draft; published versions are never changed.
+         */
+        post: operations["restoreFormVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save form settings
+         * @description Updates the draft settings (title, intro, confirmation text). Same action for POST (HTML form) and PUT (JSON).
+         */
+        put: operations["saveFormSettingsPut"];
+        /**
+         * Save form settings
+         * @description Updates the draft settings (title, intro, confirmation text). Same action for POST (HTML form) and PUT (JSON).
+         */
+        post: operations["saveFormSettings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a question to the draft
+         * @description Appends a question of the given type to the draft schema.
+         */
+        post: operations["addFormQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions/{qid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save a draft question
+         * @description Replaces the question after schema validation. Same action for POST (HTML form) and PUT (JSON).
+         */
+        put: operations["saveFormQuestionPut"];
+        /**
+         * Save a draft question
+         * @description Replaces the question after schema validation. Same action for POST (HTML form) and PUT (JSON).
+         */
+        post: operations["saveFormQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions/{qid}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete a draft question
+         * @description Removes the question from the draft; published versions are unaffected.
+         */
+        post: operations["deleteFormQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions/{qid}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Duplicate a draft question
+         * @description Inserts a copy with a new id after the original.
+         */
+        post: operations["duplicateFormQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions/{qid}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move a draft question
+         * @description Moves the question up or down (or to another section) in the draft.
+         */
+        post: operations["moveFormQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/questions/{qid}/type": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change a draft question type
+         * @description Converts the question to another compatible type, keeping what carries over.
+         */
+        post: operations["changeFormQuestionType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a section to the draft
+         * @description Appends a section to the draft schema.
+         */
+        post: operations["addFormSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/sections/{sid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save a draft section
+         * @description Updates the section (title, description, showIf). Same action for POST (HTML form) and PUT (JSON).
+         */
+        put: operations["saveFormSectionPut"];
+        /**
+         * Save a draft section
+         * @description Updates the section (title, description, showIf). Same action for POST (HTML form) and PUT (JSON).
+         */
+        post: operations["saveFormSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{id}/sections/{sid}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete a draft section
+         * @description Removes the section from the draft; published versions are unaffected.
+         */
+        post: operations["deleteFormSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/submissions/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply one status action to ticked submissions
+         * @description Action handled, archived or spam on the listed ids only. Archive and spam make records eligible for deletion, so form posts without confirm=1 are sent to a confirmation page and JSON clients must send confirm true. Decided applications are skipped.
+         */
+        post: operations["bulkSubmissionAction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/submissions/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Export one form’s submissions as safe CSV
+         * @description Returns text/csv for the submissions matching the filter; spreadsheet formula characters are neutralised.
+         */
+        post: operations["exportSubmissions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/submissions/{id}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add an internal note
+         * @description Appends a staff-only note (max 4000 characters); notes cannot be edited or deleted and are never shown to the submitter.
+         */
+        post: operations["addSubmissionNote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1009,6 +1345,18 @@ export interface components {
             received: true;
             applied: boolean;
         };
+        /** @description Fields of one form-builder or submissions action, sent as JSON or as an HTML form post. The route validates them against the draft schema or submission rules and rejects what does not fit (400); `return` is an optional same-origin path used for the 303 redirect. */
+        BuilderActionInput: {
+            return?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        BuilderActionResponse: {
+            /** @description Result of the action; shape depends on the action and carries no personal data. */
+            data: {
+                [key: string]: unknown;
+            };
+        };
     };
     responses: {
         /** @description Documented API failure. Internal details are suppressed. */
@@ -1065,6 +1413,10 @@ export interface components {
         limit: number;
         /** @description Opaque keyset cursor from meta.nextCursor. */
         cursor: string;
+        /** @description Question id inside the draft form schema. */
+        qid: string;
+        /** @description Section id inside the draft form schema. */
+        sid: string;
     };
     requestBodies: never;
     headers: never;
@@ -1544,6 +1896,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FormResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormDraftForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
                 };
             };
             303: components["responses"]["SeeOther"];
@@ -2077,6 +2463,664 @@ export interface operations {
             403: components["responses"]["LegacyError"];
             404: components["responses"]["LegacyError"];
             416: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    closeForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    reopenForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    restoreFormVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormSettingsPut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    addFormQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormQuestionPut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    deleteFormQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    duplicateFormQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    moveFormQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    changeFormQuestionType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Question id inside the draft form schema. */
+                qid: components["parameters"]["qid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    addFormSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormSectionPut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Section id inside the draft form schema. */
+                sid: components["parameters"]["sid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    saveFormSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Section id inside the draft form schema. */
+                sid: components["parameters"]["sid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    deleteFormSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+                /** @description Section id inside the draft form schema. */
+                sid: components["parameters"]["sid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    bulkSubmissionAction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    exportSubmissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
+            500: components["responses"]["LegacyError"];
+        };
+    };
+    addSubmissionNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Resource identifier from the path. */
+                id: components["parameters"]["id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderActionInput"];
+                "application/x-www-form-urlencoded": components["schemas"]["BuilderActionInput"];
+            };
+        };
+        responses: {
+            /** @description Done (JSON clients). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderActionResponse"];
+                };
+            };
+            303: components["responses"]["SeeOther"];
+            400: components["responses"]["LegacyError"];
+            401: components["responses"]["StaffUnauthorized"];
+            403: components["responses"]["LegacyError"];
+            404: components["responses"]["LegacyError"];
             500: components["responses"]["LegacyError"];
         };
     };

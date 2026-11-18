@@ -1,5 +1,9 @@
 # API compatibility decisions
 
+## 4.1.0 addendum — admin form-builder and submission actions
+
+Additive only, no version bump (4.1.0 is unreleased). Added 20 admin operations that were built before they were listed: the form-builder actions (`POST /api/forms/{id}`, `close`, `reopen`, `restore`, `settings`, `questions`, `questions/{qid}` with `delete`, `duplicate`, `move`, `type`, `sections`, `sections/{sid}` with `delete`, plus the `PUT` twins of draft save, question, section and settings) and `POST /api/submissions/{bulk,export,{id}/note}`. All are internal (`x-internal`), staff-session only, same-origin checked, and share the generic `BuilderActionInput`/`BuilderActionResponse` schemas; no existing operation or schema changed, so no consumer is affected. Found by `node scripts/api/check.mjs` during the full `pnpm check` of 2026-11-18. Verification: `pnpm api:check` passes.
+
 ## 4.1.0
 
 Base: a2fecb7

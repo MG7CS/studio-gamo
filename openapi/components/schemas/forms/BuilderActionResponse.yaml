@@ -1,0 +1,9 @@
+type: object
+additionalProperties: false
+properties:
+  data:
+    type: object
+    additionalProperties: true
+    description: Result of the action; shape depends on the action and carries no personal data.
+required:
+  - data

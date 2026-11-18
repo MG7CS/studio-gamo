@@ -962,6 +962,74 @@
           }
         },
         "x-internal": true
+      },
+      "post": {
+        "operationId": "saveFormDraftForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save the draft schema (HTML form)",
+        "description": "Same action as PUT, for the browser form post; answers 303 back to the builder.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
       }
     },
     "/api/forms/{id}/publish": {
@@ -2178,6 +2246,1443 @@
             "$ref": "#/components/responses/LegacyError"
           },
           "416": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/close": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "closeForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Stop accepting submissions",
+        "description": "Closes the form; the published version stays and existing submissions are kept.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/close.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/reopen": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "reopenForm",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Accept submissions again",
+        "description": "Reopens a closed form on its published version.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/reopen.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/restore": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "restoreFormVersion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Restore a published version into the draft",
+        "description": "Copies a published version into the draft; published versions are never changed.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/restore.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/settings": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "saveFormSettings",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save form settings",
+        "description": "Updates the draft settings (title, intro, confirmation text). Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/settings.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "put": {
+        "operationId": "saveFormSettingsPut",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save form settings",
+        "description": "Updates the draft settings (title, intro, confirmation text). Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/settings.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "addFormQuestion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Add a question to the draft",
+        "description": "Appends a question of the given type to the draft schema.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions/{qid}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "saveFormQuestion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save a draft question",
+        "description": "Replaces the question after schema validation. Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "put": {
+        "operationId": "saveFormQuestionPut",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save a draft question",
+        "description": "Replaces the question after schema validation. Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions/{qid}/delete": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "deleteFormQuestion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Delete a draft question",
+        "description": "Removes the question from the draft; published versions are unaffected.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/delete.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions/{qid}/duplicate": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "duplicateFormQuestion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Duplicate a draft question",
+        "description": "Inserts a copy with a new id after the original.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/duplicate.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions/{qid}/move": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "moveFormQuestion",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Move a draft question",
+        "description": "Moves the question up or down (or to another section) in the draft.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/move.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/questions/{qid}/type": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "changeFormQuestionType",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Change a draft question type",
+        "description": "Converts the question to another compatible type, keeping what carries over.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/questions/[qid]/type.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/qid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/sections": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "addFormSection",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Add a section to the draft",
+        "description": "Appends a section to the draft schema.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/sections/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/sections/{sid}": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "saveFormSection",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save a draft section",
+        "description": "Updates the section (title, description, showIf). Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/sections/[sid]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/sid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      },
+      "put": {
+        "operationId": "saveFormSectionPut",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Save a draft section",
+        "description": "Updates the section (title, description, showIf). Same action for POST (HTML form) and PUT (JSON).",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/sections/[sid]/index.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/sid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/forms/{id}/sections/{sid}/delete": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "deleteFormSection",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Delete a draft section",
+        "description": "Removes the section from the draft; published versions are unaffected.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/forms/[id]/sections/[sid]/delete.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          },
+          {
+            "$ref": "#/components/parameters/sid"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/bulk": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "bulkSubmissionAction",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Apply one status action to ticked submissions",
+        "description": "Action handled, archived or spam on the listed ids only. Archive and spam make records eligible for deletion, so form posts without confirm=1 are sent to a confirmation page and JSON clients must send confirm true. Decided applications are skipped.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/submissions/bulk.ts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/export": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "exportSubmissions",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Export one form’s submissions as safe CSV",
+        "description": "Returns text/csv for the submissions matching the filter; spreadsheet formula characters are neutralised.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/submissions/export.ts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "500": {
+            "$ref": "#/components/responses/LegacyError"
+          }
+        },
+        "x-internal": true
+      }
+    },
+    "/api/submissions/{id}/note": {
+      "servers": [
+        {
+          "url": "http://127.0.0.1:4326",
+          "description": "Local admin application"
+        }
+      ],
+      "post": {
+        "operationId": "addSubmissionNote",
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Add an internal note",
+        "description": "Appends a staff-only note (max 4000 characters); notes cannot be edited or deleted and are never shown to the submitter.",
+        "security": [
+          {
+            "BrowserSession": []
+          }
+        ],
+        "x-application": "admin",
+        "x-status": "planned",
+        "x-authorization": "Staff session (BrowserSession) behind the Admin Access boundary; same-origin check (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit finding, not yet enforced).",
+        "x-source": "apps/admin/src/pages/api/submissions/[id]/note.ts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BuilderActionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done (JSON clients).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderActionResponse"
+                }
+              }
+            }
+          },
+          "303": {
+            "$ref": "#/components/responses/SeeOther"
+          },
+          "400": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "401": {
+            "$ref": "#/components/responses/StaffUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/LegacyError"
+          },
+          "404": {
             "$ref": "#/components/responses/LegacyError"
           },
           "500": {
@@ -3925,6 +5430,31 @@
           "received",
           "applied"
         ]
+      },
+      "BuilderActionInput": {
+        "type": "object",
+        "description": "Fields of one form-builder or submissions action, sent as JSON or as an HTML form post. The route validates them against the draft schema or submission rules and rejects what does not fit (400); `return` is an optional same-origin path used for the 303 redirect.",
+        "additionalProperties": true,
+        "properties": {
+          "return": {
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      },
+      "BuilderActionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Result of the action; shape depends on the action and carries no personal data."
+          }
+        },
+        "required": [
+          "data"
+        ]
       }
     },
     "securitySchemes": {
@@ -4094,6 +5624,26 @@
         "schema": {
           "type": "string",
           "maxLength": 512
+        }
+      },
+      "qid": {
+        "name": "qid",
+        "in": "path",
+        "required": true,
+        "description": "Question id inside the draft form schema.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "sid": {
+        "name": "sid",
+        "in": "path",
+        "required": true,
+        "description": "Section id inside the draft form schema.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

@@ -1,0 +1,45 @@
+servers:
+  - url: http://127.0.0.1:4326
+    description: Local admin application
+post:
+  operationId: moveFormQuestion
+  tags:
+    - Forms
+  summary: Move a draft question
+  description: Moves the question up or down (or to another section) in the draft.
+  security:
+    - BrowserSession: []
+  x-application: admin
+  x-status: planned
+  x-authorization: Staff session (BrowserSession) behind the Admin Access boundary; same-origin check
+    (requireSameOrigin) on every state-changing request; any staff role (role scoping is audit
+    finding, not yet enforced).
+  x-source: apps/admin/src/pages/api/forms/[id]/questions/[qid]/move.ts
+  parameters:
+    - $ref: ../components/parameters/id.yaml
+    - $ref: ../components/parameters/qid.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema: &b
+          $ref: ../components/schemas/forms/BuilderActionInput.yaml
+      application/x-www-form-urlencoded:
+        schema: *b
+  responses:
+    '200':
+      description: Done (JSON clients).
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/forms/BuilderActionResponse.yaml
+    '303':
+      $ref: ../components/responses/SeeOther.yaml
+    '400': &e
+      $ref: ../components/responses/LegacyError.yaml
+    '401':
+      $ref: ../components/responses/StaffUnauthorized.yaml
+    '403': *e
+    '404': *e
+    '500': *e
+  x-internal: true
