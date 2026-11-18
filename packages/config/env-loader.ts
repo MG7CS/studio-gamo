@@ -364,7 +364,8 @@ export function createGamoCloudflareConfig(app: AppName, appConfigUrl: string | 
   return {
     // Fixed per-app inspector in dev; none for builds (prerendering also starts workerd, and a
     // build must not collide with running dev servers).
-    inspectorPort: isLocalDev ? LOCAL_INSPECTOR_PORTS[app] : false,
+    // GAMO_INSPECTOR_PORT lets a second copy of an app (e.g. a branch preview next to the main checkout) start.
+    inspectorPort: isLocalDev ? Number(process.env.GAMO_INSPECTOR_PORT) || LOCAL_INSPECTOR_PORTS[app] : false,
     persistState: { path: resolve(appDir, '.wrangler/state') },
     config(workerConfig: { vars?: Record<string, unknown> }) {
       if (!isLocalDev) {
