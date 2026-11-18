@@ -83,6 +83,25 @@ export const supportAreas: SupportArea[] = [
     questions: ['What event are you preparing for and when?', 'How large is the expected gathering?', 'What equipment would need to be added?'],
   },
   {
+    slug: 'software',
+    title: 'Software for Churches',
+    short: 'Websites, mobile apps and church email that churches need.',
+    icon: 'phone',
+    photo: 'softwareWebsite',
+    summary:
+      'A proposed support area for the websites, mobile apps and church email that congregations rely on, helping members find information and helping staff keep it current. It is still being scoped, and its scope and any contribution remain proposals until approved.',
+    covers: [
+      'A clear church website',
+      'A mobile app for members',
+      'Church-organization email set-up and care',
+      'Forms and giving pages connected to existing approved tools only',
+      'Maintenance and plain-language support',
+      'Accessibility and privacy basics',
+    ],
+    volunteerSkills: ['Keeping website content current', 'Making simple site changes', 'Helping with email accounts', 'Testing pages and apps on phones'],
+    questions: ['What website, app or email does your church use today?', 'Who maintains them now?', 'What do you need help with first?'],
+  },
+  {
     slug: 'facility-guidance',
     title: 'Equipment & Facility Guidance',
     short: 'Steward resources well before buying anything new.',

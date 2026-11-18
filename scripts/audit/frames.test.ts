@@ -134,9 +134,9 @@ test('a Frame with a disallowed ratio throws, naming the photo and the allowed r
 });
 
 test('sizes presets are real sizes strings built from the shared breakpoints', () => {
-  assert.deepEqual(Object.keys(FRAME_SIZES).sort(), ['full', 'grid-tall', 'half', 'third']);
+  assert.deepEqual(Object.keys(FRAME_SIZES).sort(), ['full', 'grid-tall', 'half', 'third', 'tile']);
   for (const [name, sizes] of Object.entries(FRAME_SIZES)) {
-    assert.match(sizes, /\b100vw$/, `${name} ends with the mobile default`);
+    assert.match(sizes, /\b\d+vw$/, `${name} ends with the mobile default`);
     assert.match(sizes, /\(min-width:\s*\d+px\)/, `${name} has a breakpoint`);
   }
   assert.ok(FRAME_BREAKPOINTS.md < FRAME_BREAKPOINTS.lg && FRAME_BREAKPOINTS.lg < FRAME_BREAKPOINTS.page);

@@ -1,1 +1,1 @@
-export type { FooterGroup, NavItem, ShellConfig } from './types.ts';
+export type { FooterGroup, NavItem, NavMenu, NavTile, ShellConfig } from './types.ts';

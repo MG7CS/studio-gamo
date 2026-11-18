@@ -1,0 +1,61 @@
+---
+/**
+ * MenuTile: one image-led entry of a header panel or of the mobile menu. The link wraps the picture and
+ * the name, so the picture is decorative (`alt=""`: the link text names it). App-neutral: the photo key
+ * or image path comes from the app's `NavTile`.
+ *
+ * Props
+ * - tile: `NavTile` ({ label, href, photo | src }).
+ * - variant: panel (square picture over the name, default) | row (48 px thumbnail beside the name, ≥ 44 px).
+ */
+import Frame from './media/Frame.astro';
+import type { PhotoKey } from '../lib/images';
+import type { NavTile } from '../shell/types';
+
+interface Props {
+  tile: NavTile;
+  variant?: 'panel' | 'row';
+}
+const { tile, variant = 'panel' } = Astro.props;
+const { label, href, photo, src } = tile;
+if (Boolean(photo) === Boolean(src)) {
+  throw new Error(`MenuTile "${label}": give exactly one of photo or src.`);
+}
+const row = variant === 'row';
+---
+
+<a
+  href={href}
+  class:list={[
+    'menu-tile group',
+    row
+      ? 'flex min-h-12 items-center gap-4 py-1 text-base font-semibold text-fg hover:text-action-strong'
+      : 'flex flex-col gap-3 text-sm font-semibold text-fg hover:text-action-strong',
+  ]}
+>
+  <span
+    class:list={['menu-tile__image block shrink-0', row && 'menu-tile__image--row w-12']}
+    aria-hidden="true"
+  >
+    {photo ? (
+      <Frame photo={photo as PhotoKey} ratio="square" decorative sizes="tile" />
+    ) : (
+      <img src={src} alt="" width="400" height="400" loading="lazy" decoding="async" class="menu-tile__img" />
+    )}
+  </span>
+  <span>{label}</span>
+</a>
+
+<style>
+  .menu-tile__image--row {
+    --frame-radius: var(--radius-button);
+  }
+  .menu-tile__img {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--frame-radius, var(--radius-photo));
+  }
+</style>

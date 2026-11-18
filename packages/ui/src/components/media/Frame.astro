@@ -17,7 +17,7 @@ import type { HTMLAttributes } from 'astro/types';
  *   inside containers narrower than 30rem. Build fails when the photo cannot be cropped to the ratio
  *   (the catalog lists each photo's allowed ratios).
  * - alt: description, OR decorative: true for alt="" (exactly one; enforced by the TypeScript union).
- * - sizes: full | half | third | grid-tall (default full): presets from media/frame.ts.
+ * - sizes: full | half | third | tile | grid-tall (default full): presets from media/frame.ts.
  * - priority: eager + fetchpriority="high". Use on at most one frame per page (the likely LCP image).
  * - caption: renders <figure>/<figcaption> BELOW the photo, never over it.
  * - scrim: 'none' (default) | 'bottom'. With 'bottom' the default slot is placed over the photo on a

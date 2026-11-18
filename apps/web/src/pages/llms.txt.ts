@@ -15,7 +15,7 @@ export const GET: APIRoute = () => {
 
 - [Gamo Academy](${siteOrigin('academy')}): friendly, patient music lessons for students and families, private or in small groups. "Learn to Play the Instrument You Love."
 - [Gamo Worship](${siteOrigin('worship')}): helps churches find prepared, vetted worship musicians, and helps musicians serve congregations with dependable scheduling and fair pay shown as its own line item.
-- [Gamo Production](${siteOrigin('production')}): helps churches grow in worship audio, video, lighting and livestreaming, with hands-on training for the volunteers who serve behind the board.
+- [Gamo Production](${siteOrigin('production')}): helps churches grow in worship audio, video, lighting and livestreaming, with a proposed software area for church websites, apps and email, and hands-on training for the volunteers who serve behind the board.
 
 ## About Gamo Studios
 

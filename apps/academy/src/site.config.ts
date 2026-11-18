@@ -3,6 +3,7 @@
  * Programs are listed in owner order (Academy, Worship, Production) from `@gamo/config/programs`.
  */
 import { programById, programNavItems } from '@gamo/config/programs';
+import { withMenus } from '@gamo/config/menus';
 import type { ShellConfig } from '@studio-gamo/ui/shell';
 import { siteUrl } from '@studio-gamo/ui/lib/sites';
 
@@ -18,7 +19,10 @@ const contact = siteUrl('web', '/contact');
 export const shell: ShellConfig = {
   brand: { name: 'Gamo Studios', programLabel: program.name, href: siteUrl(program.id) },
   nav: [
-    ...programNavItems((id) => siteUrl(id)),
+    ...withMenus(
+      programNavItems((id) => siteUrl(id)),
+      siteUrl,
+    ),
     { key: 'mission', label: 'Mission', href: siteUrl('web', '/mission') },
   ],
   cta: { label: 'Get Involved', href: siteUrl('web', '/get-involved') },

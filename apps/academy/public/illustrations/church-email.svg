@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="An envelope with a letter coming out of it">
+  <rect width="800" height="800" fill="#efe2d3"/>
+  <ellipse cx="400" cy="650" rx="240" ry="26" fill="#d9c3ac"/>
+  <!-- letter -->
+  <rect x="236" y="110" width="328" height="320" rx="10" fill="#f9f6f0"/>
+  <rect x="236" y="110" width="328" height="320" rx="10" fill="none" stroke="#e3d3c0" stroke-width="3"/>
+  <rect x="280" y="150" width="150" height="16" rx="8" fill="#b34e24"/>
+  <rect x="280" y="198" width="240" height="12" rx="6" fill="#dccbb8"/>
+  <rect x="280" y="234" width="240" height="12" rx="6" fill="#dccbb8"/>
+  <rect x="280" y="270" width="200" height="12" rx="6" fill="#dccbb8"/>
+  <!-- envelope body -->
+  <path d="M150 330 L400 500 L650 330 V610 a24 24 0 0 1 -24 24 H174 a24 24 0 0 1 -24 -24 Z" fill="#b34e24"/>
+  <path d="M150 610 L340 470 L400 510 L460 470 L650 610 a24 24 0 0 1 -24 24 H174 a24 24 0 0 1 -24 -24 Z" fill="#8f3b18" opacity="0.55"/>
+  <!-- envelope back flap, open -->
+  <path d="M150 330 a24 24 0 0 1 24 -24 H626 a24 24 0 0 1 24 24 L400 500 Z" fill="#c9622f"/>
+</svg>

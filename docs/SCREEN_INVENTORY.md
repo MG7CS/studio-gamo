@@ -51,7 +51,7 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Technical ministry, audio/video/lighting, volunteers, event support | UI ready |
-| /services, /services/[slug] | Support categories, learning skills and planning prompts | UI ready |
+| /services, /services/[slug] | Seven support areas (including proposed software for churches), learning skills and planning prompts | UI ready |
 | /training | Proposed technical/volunteer training | UI ready |
 | /apply, /request | Removed: the forms are `/production/apply` and `/production/request` on the main site | Removed |
 

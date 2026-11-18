@@ -8,7 +8,7 @@ Resumed the interrupted component-first Production implementation without replac
 ## Completed and preserved
 
 - Landing page: sculptural engineer hero, technical ministry introduction, distinct audio/video/lighting sections, volunteer training, event planning, equipment guidance, honest project empty state and consultation invitation.
-- Routes: `/`, `/services`, six `/services/<area>` detail pages, `/training`, `/assessment`, `/consultation`, `/consultation/confirmation`; legacy `/contact` redirects to `/consultation` (301).
+- Routes: `/`, `/services`, seven `/services/<area>` detail pages, `/training`, `/assessment`, `/consultation`, `/consultation/confirmation`; legacy `/contact` redirects to `/consultation` (301).
 - Assessment now validates church/city before advancing, renders a real local answer summary using safe `textContent`, preserves answers when moving Back, announces progress and focuses the new step heading. Nothing persists or transfers to the consultation page.
 - Consultation validates name/email/church/area and navigates to the demonstration confirmation without putting contact information in the URL. JavaScript-disabled fallback cannot submit fields and offers a sample-confirmation link.
 - Production data imports the shared TypeScript icon type, allowing TypeScript checks to resolve it.

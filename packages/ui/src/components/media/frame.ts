@@ -21,12 +21,14 @@ const px = (n: number) => `(min-width: ${n}px)`;
  *  - full: the whole page container.
  *  - half: half of it from the md breakpoint (two columns).
  *  - third: a third from lg, half from md (three-up lists).
+ *  - tile: a small square tile (header panel, about 200 px; a fifth of the page from lg).
  *  - grid-tall: the tall or dominant cell of a PhotoGrid mosaic, about 40% from md.
  */
 export const FRAME_SIZES = {
   full: `${px(page)} ${page}px, 100vw`,
   half: `${px(page)} ${Math.round(page / 2)}px, ${px(md)} 50vw, 100vw`,
   third: `${px(page)} ${Math.round(page / 3)}px, ${px(lg)} 33vw, ${px(md)} 50vw, 100vw`,
+  tile: `${px(page)} 200px, ${px(lg)} 20vw, 40vw`,
   'grid-tall': `${px(page)} ${Math.round(page * 0.4)}px, ${px(md)} 40vw, 100vw`,
 } as const;
 export type FrameSizes = keyof typeof FRAME_SIZES;

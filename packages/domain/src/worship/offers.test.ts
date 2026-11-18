@@ -127,7 +127,7 @@ test('sendOffer: hashed token, link, expiry, email, request offered, audit; the 
   }
   const audit = get(d1, "SELECT actor_user_id, payload_json FROM audit_logs WHERE action = 'offer.sent'")!;
   assert.equal(audit.actor_user_id, staffId);
-  assert.ok(!/Ana|example\.org/.test(String(audit.payload_json)));
+  assert.ok(!/Reyes|example\.org/i.test(String(audit.payload_json)));
   const detail = await getRequest(d1, request.id);
   assert.equal(detail!.offers.length, 1);
   assert.ok(!JSON.stringify(detail).includes('token'));

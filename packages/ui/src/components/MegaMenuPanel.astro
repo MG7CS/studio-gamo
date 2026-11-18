@@ -1,0 +1,44 @@
+---
+/**
+ * MegaMenuPanel: the content of one header panel: a grid of photo tiles on the left and a short text
+ * link list plus the "all" link on the right. App-neutral: it only renders the `NavMenu` it is given.
+ * The header owns the panel element (id, `hidden`, positioning) and the script that opens it.
+ */
+import MenuTile from './MenuTile.astro';
+import type { NavMenu } from '../shell/types';
+
+interface Props {
+  menu: NavMenu;
+}
+const { menu } = Astro.props;
+---
+
+<div class="mx-auto grid max-w-page gap-x-8 gap-y-8 px-gutter py-8 lg:grid-cols-12">
+  <ul class="grid grid-cols-4 gap-x-5 gap-y-6 lg:col-span-8">
+    {menu.tiles.map((tile) => (
+      <li>
+        <MenuTile tile={tile} />
+      </li>
+    ))}
+  </ul>
+  <ul class="flex flex-col lg:col-span-3 lg:col-start-10">
+    {menu.links.map((link) => (
+      <li>
+        <a
+          href={link.href}
+          class="inline-flex min-h-11 items-center text-sm font-semibold text-fg-muted transition-colors hover:text-fg"
+        >
+          {link.label}
+        </a>
+      </li>
+    ))}
+    <li class="mt-2 border-t border-border pt-2">
+      <a
+        href={menu.all.href}
+        class="inline-flex min-h-11 items-center text-sm font-semibold text-action-strong transition-colors hover:text-fg"
+      >
+        {menu.all.label}
+      </a>
+    </li>
+  </ul>
+</div>

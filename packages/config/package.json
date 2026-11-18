@@ -10,6 +10,7 @@
     "./env": "./env.ts",
     "./brand": "./brand.ts",
     "./programs": "./programs.ts",
+    "./menus": "./menus.ts",
     "./env-validation": "./env-validation.ts"
   }
 }

@@ -3,10 +3,18 @@
  * Site navigation shared by every public app: a flat bar with a hairline border, plain text links (the active
  * page is underlined) and a rectangular call to action (`DESIGN.md` §11: no pills, no floating capsule).
  * App-neutral: brand, nav items and the call to action come from the app's `ShellConfig` (`src/site.config.ts`).
- * Local UI state only (mobile menu); public visitors have no accounts.
+ *
+ * An item with a `menu` also gets an image-led panel (W3C APG "Disclosure Navigation", progressively
+ * enhanced): the top item stays a real link, a small chevron button (revealed by the script) toggles the
+ * panel, which is `hidden` until opened so its images are not fetched. Not `role="menu"`: the buttons are
+ * disclosure buttons, so there is deliberately no `aria-haspopup` (docs/DECISIONS.md, 2026-11-18).
+ * Below `lg` the drawer shows the same menus as accordions.
+ * Local UI state only (menus); public visitors have no accounts.
  */
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
+import MegaMenuPanel from './MegaMenuPanel.astro';
+import MenuTile from './MenuTile.astro';
 import type { ShellConfig } from '../shell/types';
 
 interface Props {
@@ -42,22 +50,48 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       )}
     </a>
 
-    <nav aria-label="Primary" class="hidden lg:block">
-      <ul class="flex items-center gap-8">
-        {items.map((item) => {
+    <nav aria-label="Primary" class="hidden h-full lg:block">
+      <ul class="flex h-full items-center gap-8">
+        {items.map((item, index) => {
           const active = item.key !== undefined && item.key === current;
+          const link = (
+            <a
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'inline-flex min-h-11 items-center border-b-2 text-sm font-semibold transition-colors',
+                active ? 'border-action text-fg' : 'border-transparent text-fg-muted hover:text-fg',
+              ]}
+            >
+              {item.label}
+            </a>
+          );
+          if (!item.menu) return <li class="flex h-full items-center">{link}</li>;
+          const panelId = `site-menu-${index}`;
           return (
-            <li>
-              <a
-                href={item.href}
-                aria-current={active ? 'page' : undefined}
-                class:list={[
-                  'inline-flex min-h-11 items-center border-b-2 text-sm font-semibold transition-colors',
-                  active ? 'border-action text-fg' : 'border-transparent text-fg-muted hover:text-fg',
-                ]}
+            <li class="flex h-full items-center" data-mega>
+              <div class="flex items-center">
+                {link}
+                <button
+                  type="button"
+                  hidden
+                  data-mega-button
+                  class="inline-flex h-11 w-8 items-center justify-center rounded-button text-fg-muted transition-colors hover:text-fg"
+                  aria-expanded="false"
+                  aria-controls={panelId}
+                  aria-label={`${item.label} menu`}
+                >
+                  <Icon name="chevron-down" class="h-4 w-4" strokeWidth={2} />
+                </button>
+              </div>
+              <div
+                id={panelId}
+                hidden
+                data-mega-panel
+                class="mega-fade absolute inset-x-0 top-full z-10 border-b border-border bg-surface text-fg"
               >
-                {item.label}
-              </a>
+                <MegaMenuPanel menu={item.menu} />
+              </div>
             </li>
           );
         })}
@@ -90,25 +124,85 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
     </div>
   </div>
 
+  <div
+    hidden
+    data-mega-backdrop
+    aria-hidden="true"
+    class="mega-fade absolute inset-x-0 top-full z-0 h-screen bg-scrim"
+  ></div>
+
   <div id="site-mobile-menu" class="hidden border-t border-border bg-surface lg:hidden">
     <div class="mx-auto max-w-page px-gutter py-2">
       <nav aria-label="Mobile primary">
         <ul class="flex flex-col divide-y divide-border">
-          {items.map((item) => (
-            <li>
-              <a
-                href={item.href}
-                aria-current={item.key !== undefined && item.key === current ? 'page' : undefined}
-                class:list={[
-                  'flex min-h-12 items-center justify-between py-3 text-base font-semibold transition-colors hover:text-action-strong',
-                  item.key !== undefined && item.key === current ? 'text-action-strong' : 'text-fg',
-                ]}
-              >
-                {item.label}
-                <Icon name="chevron-right" class="h-4 w-4 opacity-50" />
-              </a>
-            </li>
-          ))}
+          {items.map((item, index) => {
+            const active = item.key !== undefined && item.key === current;
+            if (!item.menu) {
+              return (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    class:list={[
+                      'flex min-h-12 items-center justify-between py-3 text-base font-semibold transition-colors hover:text-action-strong',
+                      active ? 'text-action-strong' : 'text-fg',
+                    ]}
+                  >
+                    {item.label}
+                    <Icon name="chevron-right" class="h-4 w-4 opacity-50" />
+                  </a>
+                </li>
+              );
+            }
+            const sectionId = `site-mobile-section-${index}`;
+            return (
+              <li>
+                <button
+                  type="button"
+                  data-accordion-button
+                  aria-expanded="false"
+                  aria-controls={sectionId}
+                  aria-current={active ? 'true' : undefined}
+                  class:list={[
+                    'flex min-h-12 w-full items-center justify-between py-3 text-left text-base font-semibold transition-colors hover:text-action-strong',
+                    active ? 'text-action-strong' : 'text-fg',
+                  ]}
+                >
+                  {item.label}
+                  <Icon name="chevron-down" class="accordion-chevron h-4 w-4 opacity-50" />
+                </button>
+                <div id={sectionId} hidden class="pb-3">
+                  <ul class="flex flex-col">
+                    {item.menu.tiles.map((tile) => (
+                      <li>
+                        <MenuTile tile={tile} variant="row" />
+                      </li>
+                    ))}
+                  </ul>
+                  <ul class="mt-2 flex flex-col border-t border-border pt-2">
+                    {item.menu.links.map((link) => (
+                      <li>
+                        <a
+                          href={link.href}
+                          class="flex min-h-11 items-center text-sm font-semibold text-fg-muted hover:text-fg"
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                    <li>
+                      <a
+                        href={item.menu.all.href}
+                        class="flex min-h-11 items-center text-sm font-semibold text-action-strong hover:text-fg"
+                      >
+                        {item.menu.all.label}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       {cta && (
@@ -122,6 +216,23 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
     </div>
   </div>
 </header>
+
+<style>
+  /* Short fade-in only; no motion at all for visitors who ask for less (WCAG 2.3.3). */
+  @media (prefers-reduced-motion: no-preference) {
+    .mega-fade:not([hidden]) {
+      animation: mega-fade 150ms ease-out;
+    }
+  }
+  @keyframes mega-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  [aria-expanded='true'] > :global(.accordion-chevron) {
+    transform: rotate(180deg);
+  }
+</style>
 
 <script>
   const header = document.getElementById('site-header');
@@ -147,4 +258,100 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       toggle.focus();
     }
   });
+
+  // Mobile accordions: one button per program with a menu.
+  header?.querySelectorAll<HTMLButtonElement>('[data-accordion-button]').forEach((button) => {
+    const section = document.getElementById(button.getAttribute('aria-controls') ?? '');
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(open));
+      if (section) section.hidden = !open;
+    });
+  });
+
+  // Desktop panels (APG Disclosure Navigation). The chevron buttons ship `hidden` and appear here, so
+  // without JavaScript the top links simply navigate and the panels stay closed.
+  const backdrop = header?.querySelector<HTMLElement>('[data-mega-backdrop]');
+  const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const OPEN_DELAY = 150;
+  const CLOSE_DELAY = 300;
+
+  interface Mega {
+    item: HTMLElement;
+    button: HTMLButtonElement;
+    panel: HTMLElement;
+    timer?: number;
+    /** Opened with the button or keyboard: the pointer leaving must not close it. */
+    pinned: boolean;
+  }
+  const megas: Mega[] = [];
+  header?.querySelectorAll<HTMLElement>('[data-mega]').forEach((item) => {
+    const button = item.querySelector<HTMLButtonElement>('[data-mega-button]');
+    const panel = item.querySelector<HTMLElement>('[data-mega-panel]');
+    if (button && panel) {
+      button.hidden = false;
+      megas.push({ item, button, panel, pinned: false });
+    }
+  });
+
+  const isOpen = (m: Mega) => !m.panel.hidden;
+  const show = (m: Mega, open: boolean) => {
+    window.clearTimeout(m.timer);
+    m.panel.hidden = !open;
+    m.button.setAttribute('aria-expanded', String(open));
+    if (!open) m.pinned = false;
+    if (backdrop) backdrop.hidden = !megas.some(isOpen);
+  };
+  const openOnly = (m: Mega) => {
+    megas.forEach((other) => other !== m && show(other, false));
+    show(m, true);
+  };
+  const closeAll = () => megas.forEach((m) => show(m, false));
+
+  megas.forEach((m) => {
+    m.button.addEventListener('click', () => {
+      if (isOpen(m) && m.pinned) {
+        show(m, false);
+      } else {
+        openOnly(m);
+        m.pinned = true;
+      }
+    });
+    m.button.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      openOnly(m);
+      m.pinned = true;
+      m.panel.querySelector<HTMLElement>('a')?.focus();
+    });
+    m.item.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse' || !hoverable.matches) return;
+      window.clearTimeout(m.timer);
+      if (!isOpen(m)) m.timer = window.setTimeout(() => openOnly(m), OPEN_DELAY);
+    });
+    m.item.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse' || !hoverable.matches) return;
+      window.clearTimeout(m.timer);
+      if (isOpen(m) && !m.pinned) m.timer = window.setTimeout(() => show(m, false), CLOSE_DELAY);
+    });
+    m.item.addEventListener('focusout', (e) => {
+      const next = e.relatedTarget as Node | null;
+      if (next && !m.item.contains(next)) show(m, false);
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = megas.find(isOpen);
+    if (!open) return;
+    const focusInside =
+      open.item.contains(document.activeElement) || document.activeElement === document.body;
+    closeAll();
+    if (focusInside) open.button.focus();
+  });
+  document.addEventListener('pointerdown', (e) => {
+    const target = e.target as Node;
+    if (megas.some((m) => isOpen(m) && !m.item.contains(target))) closeAll();
+  });
+  backdrop?.addEventListener('click', closeAll);
 </script>

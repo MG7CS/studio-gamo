@@ -37,6 +37,8 @@ async function collectProblems(page: Page): Promise<string[]> {
     const problems: string[] = [];
     const h1 = document.querySelectorAll('h1').length;
     if (h1 !== 1) problems.push(`expected one <h1>, found ${h1}`);
+    // A component that throws while the page streams leaves a 200 response cut off mid-page.
+    if (!document.querySelector('footer')) problems.push('page is cut off: no <footer>');
     for (const img of Array.from(document.images)) {
       if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) {
         problems.push(`broken image ${img.currentSrc || img.src}`);
@@ -89,8 +91,9 @@ for (const [app, origin] of Object.entries(APPS) as Array<[keyof typeof APPS, st
         // <img> fires load or error (never loadend); cap the wait so a stalled image cannot hang the test.
         await Promise.race([
           Promise.all(
+            // Images inside a closed header menu panel are not fetched until it opens.
             Array.from(document.images).map((img) =>
-              img.complete
+              img.complete || img.closest('[hidden]')
                 ? null
                 : new Promise((r) => {
                     img.addEventListener('load', r, { once: true });

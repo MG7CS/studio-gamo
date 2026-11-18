@@ -45,7 +45,12 @@ const id = `area-${area.slug}`;
     Explore {area.title.toLowerCase()}
   </ButtonLink>
   <div slot="media" class="relative">
-    <Frame photo={area.photo} ratio="landscape" sizes="half" alt={photos[area.photo].alt} />
+    <Frame
+      photo={area.photo}
+      ratio={photos[area.photo].ratios.includes('landscape') ? 'landscape' : 'square'}
+      sizes="half"
+      alt={photos[area.photo].alt}
+    />
     {Astro.slots.has('preview') && (
       <div
         class:list={[

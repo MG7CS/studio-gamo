@@ -62,7 +62,7 @@ app cannot set a radius, mask, aspect or crop; the catalog gives each photo's fo
 
 | Component   | Props                                                                                                                                  | Slots                                   |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `Frame`     | `photo` (catalog id), `ratio` portrait \| landscape \| wide \| square (required), `alt` OR `decorative: true`, `sizes` full \| half \| third \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
+| `Frame`     | `photo` (catalog id), `ratio` portrait \| landscape \| wide \| square (required), `alt` OR `decorative: true`, `sizes` full \| half \| third \| tile \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
 | `PhotoGrid` | `layout` pair (2) \| trio (3) \| quad (4) \| hero (2), `photos` ordered `{ photo, alt \| decorative, caption?, priority? }[]`            | none                                    |
 
 - `<Frame photo="instrumentMusicTheory" ratio="landscape" sizes="half" alt="Open music book on a piano desk" />`;
@@ -116,3 +116,10 @@ on `FieldShell`.
 ## Clean style (owner, 2026-11-18; `DESIGN.md` §11)
 
 There is no `eyebrow` slot or prop any more and the guard test fails if one returns. Do not use a `Badge` as a card label or a pill-shaped control: `ButtonLink`, `SubmitButton`, `SiteHeader`, chips and admin controls are `rounded-button`. For a list of links use `LinkRows` (flat rows, one title, one line, an arrow) instead of a grid of identical cards. Keep `Badge` only for labels the copy rules require (Sample, Proposal, Sponsored). For a photo-led card use `MediaCard variant="overlay"` (the whole card is the photo, the title sits on the scrim); a photo can only be used in the ratios the catalog lists for it.
+
+## Header menu (`SiteHeader`, `MegaMenuPanel`, `MenuTile`)
+
+- `SiteHeader` shows an image-led panel for each `ShellConfig.nav` item that has a `menu` (`NavMenu`: `tiles`, `links`, `all`); items without one stay plain links. Disclosure navigation, not `role="menu"`: no `aria-haspopup` on purpose. Chevron buttons and the open/close script are progressive enhancement; panels are `hidden` until opened so their images are not fetched.
+- `MegaMenuPanel`: `menu` (a `NavMenu`). The grid of tiles plus the text links and the "all" link; the header owns the panel element.
+- `MenuTile`: `tile` (`NavTile`: `label`, `href`, exactly one of `photo` catalog key or `src` static image), `variant` panel (default) \| row (48 px thumbnail, at least 44 px tall, used in the mobile drawer). The picture is decorative (`alt=""`): the label names the link.
+- These components name no program or photo; the content comes from the app's `site.config.ts` (`packages/config/menus.ts`).

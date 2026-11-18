@@ -8,6 +8,25 @@ export interface NavItem {
   href: string;
   /** Stable key used to mark the current item (e.g. 'academy'). */
   key?: string;
+  /** Optional image-led panel opened from this item in the header. */
+  menu?: NavMenu;
+}
+
+/** One photo tile of a header panel: the image with its name under it. Exactly one of `photo` or `src`. */
+export interface NavTile {
+  label: string;
+  href: string;
+  /** Catalog key of a photo (validated at render and by a test). */
+  photo?: string;
+  /** Or a static image, e.g. an illustration under /illustrations. */
+  src?: string;
+}
+
+/** Header panel: photo tiles on the left, a short text link list and an "all" link on the right. */
+export interface NavMenu {
+  tiles: NavTile[];
+  links: NavItem[];
+  all: NavItem;
 }
 
 export interface FooterGroup {

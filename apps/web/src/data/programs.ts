@@ -42,7 +42,7 @@ export const programs: Program[] = [
     name: 'Gamo Production',
     lead: 'Clear sound, light and livestreams.',
     summary:
-      'Practical audio, livestream and lighting support, with hands-on training for the church volunteers behind the board.',
+      'Practical audio, livestream and lighting support, a proposed software area for church websites, apps and email, and hands-on training for the church volunteers behind the board.',
     href: siteUrl('production'),
     photo: 'techAudio',
   },

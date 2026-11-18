@@ -74,7 +74,10 @@ test('approve: one roster row from the binds, status approved, event, email; sec
   );
   assert.equal(audit.length, 1);
   assert.equal(audit[0]!.actor_user_id, staffId);
-  assert.ok(!/Ana|example\.org|555/.test(String(audit[0]!.payload_json)), 'no personal data in audit');
+  assert.ok(
+    !/Reyes|example\.org|555-0100/i.test(String(audit[0]!.payload_json)),
+    'no personal data in audit',
+  );
 });
 
 test('approve: refuses non-applications, unknown, declined and incomplete submissions', async () => {
