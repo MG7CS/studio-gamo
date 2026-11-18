@@ -209,6 +209,8 @@ function styleCounts(source: string): Counts {
  * lower (or delete) an entry in the same change that removes the raw values. Never raise one.
  */
 const STYLE_BASELINE: Record<string, Counts> = {
+  // The staff sign-in gateway page is one self-contained HTML string rendered by the middleware before the app and
+  // its stylesheet exist, so it carries its own copy of the brand palette (terracotta, ink, cream, sand).
   'apps/admin/src/middleware.ts': { colour: 26 },
   // Data-driven level height of the mixer bars.
   'apps/production/src/components/production/MixerStripPreview.astro': { style: 1 },
