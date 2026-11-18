@@ -231,21 +231,16 @@ test('every form component uses semantic tokens only: no base palette names, arb
   }
 });
 
-const SHARED_COMING_SOON = /from '@studio-gamo\/ui\/components\/forms\/FormComingSoon\.astro'/;
-
-test('FormComingSoon is shared: app copies are gone and pages pass the contact email', () => {
+test('FormComingSoon is shared (no app copies); the old apply and request pages redirect to the main-site forms', () => {
   for (const app of ['worship', 'production']) {
     assert.ok(!existsSync(`apps/${app}/src/components/FormComingSoon.astro`), `${app} copy removed`);
     for (const page of ['apply', 'request']) {
       const text = readFileSync(`apps/${app}/src/pages/${page}.astro`, 'utf8');
-      // Directly, or through one app wrapper component that renders the shared piece.
-      const wrapper = text.match(/from '\.\.\/(components\/[^']+\.astro)'/g) ?? [];
-      const viaWrapper = wrapper.some((m) => {
-        const path = `apps/${app}/src/${m.slice(9, -1)}`;
-        return existsSync(path) && SHARED_COMING_SOON.test(readFileSync(path, 'utf8'));
-      });
-      assert.ok(SHARED_COMING_SOON.test(text) || viaWrapper, `${app}/${page} uses the shared FormComingSoon`);
-      assert.match(text, /email="hello@gamostudio\.org"/, `${app}/${page} passes the email`);
+      assert.match(
+        text,
+        new RegExp(`Astro\\.redirect\\(siteUrl\\('web', '/${app}/${page}'\\)`),
+        `${app}/${page} redirects to the form on the main site`,
+      );
     }
   }
   const text = markup('FormComingSoon.astro');
