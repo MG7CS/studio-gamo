@@ -83,6 +83,138 @@
       1448
     ]
   },
+  "instruments-acoustic-guitar": {
+    "source": "2026-brand-refresh/instruments/acoustic-guitar.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-bass-guitar": {
+    "source": "2026-brand-refresh/instruments/bass-guitar.jpg",
+    "width": 1717,
+    "height": 3051,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-cello": {
+    "source": "2026-brand-refresh/instruments/cello.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-drums": {
+    "source": "2026-brand-refresh/instruments/drums.jpg",
+    "width": 2400,
+    "height": 1350,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-electric-guitar": {
+    "source": "2026-brand-refresh/instruments/electric-guitar.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-music-theory": {
+    "source": "2026-brand-refresh/instruments/music-theory.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-piano-keyboard": {
+    "source": "2026-brand-refresh/instruments/piano-keyboard.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-saxophone": {
+    "source": "2026-brand-refresh/instruments/saxophone.jpg",
+    "width": 2268,
+    "height": 4032,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-trumpet": {
+    "source": "2026-brand-refresh/instruments/trumpet.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-ukulele": {
+    "source": "2026-brand-refresh/instruments/ukulele.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-violin": {
+    "source": "2026-brand-refresh/instruments/violin.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "instruments-vocals-microphone": {
+    "source": "2026-brand-refresh/instruments/vocals-microphone.jpg",
+    "width": 2400,
+    "height": 3200,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
   "live-gospel-vocalists-concert-stage": {
     "source": "2026-brand-refresh/live/gospel-vocalists-concert-stage.png",
     "width": 1254,
@@ -116,6 +248,116 @@
       1254
     ]
   },
+  "musicians-acoustic-guitarist": {
+    "source": "2026-brand-refresh/musicians/acoustic-guitarist.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-bassist": {
+    "source": "2026-brand-refresh/musicians/bassist.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-brass-player": {
+    "source": "2026-brand-refresh/musicians/brass-player.jpg",
+    "width": 2400,
+    "height": 1350,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-choir": {
+    "source": "2026-brand-refresh/musicians/choir.jpg",
+    "width": 2400,
+    "height": 1602,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-drummer": {
+    "source": "2026-brand-refresh/musicians/drummer.jpg",
+    "width": 2400,
+    "height": 1350,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-electric-guitarist": {
+    "source": "2026-brand-refresh/musicians/electric-guitarist.jpg",
+    "width": 2400,
+    "height": 3060,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-full-band": {
+    "source": "2026-brand-refresh/musicians/full-band.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-keys-player": {
+    "source": "2026-brand-refresh/musicians/keys-player.jpg",
+    "width": 2400,
+    "height": 1352,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-strings-player": {
+    "source": "2026-brand-refresh/musicians/strings-player.jpg",
+    "width": 2400,
+    "height": 1601,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "musicians-worship-leader-vocalist": {
+    "source": "2026-brand-refresh/musicians/worship-leader-vocalist.jpg",
+    "width": 2400,
+    "height": 3600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
   "production-sound-engineer-mixing-console": {
     "source": "2026-brand-refresh/production/sound-engineer-mixing-console.png",
     "width": 1254,
@@ -125,6 +367,127 @@
       800,
       1200,
       1254
+    ]
+  },
+  "software-mobile-app": {
+    "source": "2026-brand-refresh/software/mobile-app.jpg",
+    "width": 2400,
+    "height": 1601,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "software-support-maintenance": {
+    "source": "2026-brand-refresh/software/support-maintenance.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "software-team-collaboration": {
+    "source": "2026-brand-refresh/software/team-collaboration.jpg",
+    "width": 2400,
+    "height": 1601,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "software-website-development": {
+    "source": "2026-brand-refresh/software/website-development.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-audio-sound": {
+    "source": "2026-brand-refresh/tech/audio-sound.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-lighting": {
+    "source": "2026-brand-refresh/tech/lighting.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-livestream": {
+    "source": "2026-brand-refresh/tech/livestream.jpg",
+    "width": 1600,
+    "height": 2400,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-slides-lyrics": {
+    "source": "2026-brand-refresh/tech/slides-lyrics.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-stage-setup": {
+    "source": "2026-brand-refresh/tech/stage-setup.jpg",
+    "width": 1600,
+    "height": 2400,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-training": {
+    "source": "2026-brand-refresh/tech/training.jpg",
+    "width": 2400,
+    "height": 1600,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
+    ]
+  },
+  "tech-video-camera": {
+    "source": "2026-brand-refresh/tech/video-camera.jpg",
+    "width": 1920,
+    "height": 2400,
+    "widths": [
+      480,
+      800,
+      1200,
+      1600
     ]
   },
   "worship-acoustic-worship-leader-stage-alt": {

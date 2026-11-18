@@ -1320,5 +1320,1820 @@
         "format": "avif"
       }
     ]
+  },
+  "2026-brand-refresh/instruments/acoustic-guitar.jpg": {
+    "hash": "58dea3ed0fb2f5d464ff00e21527a07a",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 2069419,
+    "variants": [
+      {
+        "name": "instruments-acoustic-guitar-480w.webp",
+        "size": 33300,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-acoustic-guitar-480w.avif",
+        "size": 20393,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-acoustic-guitar-800w.webp",
+        "size": 76764,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-acoustic-guitar-800w.avif",
+        "size": 44944,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-acoustic-guitar-1200w.webp",
+        "size": 158138,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-acoustic-guitar-1200w.avif",
+        "size": 89434,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-acoustic-guitar-1600w.webp",
+        "size": 345302,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-acoustic-guitar-1600w.avif",
+        "size": 189990,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/bass-guitar.jpg": {
+    "hash": "f22cf295cf7cea00be916411b03a9dfc",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 449218,
+    "variants": [
+      {
+        "name": "instruments-bass-guitar-480w.webp",
+        "size": 24982,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-bass-guitar-480w.avif",
+        "size": 16966,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-bass-guitar-800w.webp",
+        "size": 50442,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-bass-guitar-800w.avif",
+        "size": 33923,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-bass-guitar-1200w.webp",
+        "size": 84752,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-bass-guitar-1200w.avif",
+        "size": 59872,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-bass-guitar-1600w.webp",
+        "size": 120694,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-bass-guitar-1600w.avif",
+        "size": 87938,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/cello.jpg": {
+    "hash": "a01db5ce01d436f19fd30974bf67da03",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 401616,
+    "variants": [
+      {
+        "name": "instruments-cello-480w.webp",
+        "size": 9980,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-cello-480w.avif",
+        "size": 7110,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-cello-800w.webp",
+        "size": 22024,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-cello-800w.avif",
+        "size": 14118,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-cello-1200w.webp",
+        "size": 42854,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-cello-1200w.avif",
+        "size": 27349,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-cello-1600w.webp",
+        "size": 67848,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-cello-1600w.avif",
+        "size": 43233,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/drums.jpg": {
+    "hash": "6955d1201ead7c786180dd092b5959fd",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 312811,
+    "variants": [
+      {
+        "name": "instruments-drums-480w.webp",
+        "size": 14670,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-drums-480w.avif",
+        "size": 10331,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-drums-800w.webp",
+        "size": 28844,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-drums-800w.avif",
+        "size": 20465,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-drums-1200w.webp",
+        "size": 48668,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-drums-1200w.avif",
+        "size": 34494,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-drums-1600w.webp",
+        "size": 69716,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-drums-1600w.avif",
+        "size": 49537,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/electric-guitar.jpg": {
+    "hash": "dbc7e37d43f4bfabe8d20d854a55f5c1",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 939664,
+    "variants": [
+      {
+        "name": "instruments-electric-guitar-480w.webp",
+        "size": 24068,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-electric-guitar-480w.avif",
+        "size": 16387,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-electric-guitar-800w.webp",
+        "size": 48040,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-electric-guitar-800w.avif",
+        "size": 32325,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-electric-guitar-1200w.webp",
+        "size": 84420,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-electric-guitar-1200w.avif",
+        "size": 56878,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-electric-guitar-1600w.webp",
+        "size": 126084,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-electric-guitar-1600w.avif",
+        "size": 86702,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/music-theory.jpg": {
+    "hash": "f583113f83f16a384295e842dcfad63a",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 638047,
+    "variants": [
+      {
+        "name": "instruments-music-theory-480w.webp",
+        "size": 19894,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-music-theory-480w.avif",
+        "size": 12071,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-music-theory-800w.webp",
+        "size": 40646,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-music-theory-800w.avif",
+        "size": 25241,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-music-theory-1200w.webp",
+        "size": 72884,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-music-theory-1200w.avif",
+        "size": 45639,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-music-theory-1600w.webp",
+        "size": 110730,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-music-theory-1600w.avif",
+        "size": 68837,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/piano-keyboard.jpg": {
+    "hash": "de1467942b27a1eb8f562f1067ae2fa4",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 655424,
+    "variants": [
+      {
+        "name": "instruments-piano-keyboard-480w.webp",
+        "size": 16910,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-piano-keyboard-480w.avif",
+        "size": 11316,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-piano-keyboard-800w.webp",
+        "size": 30466,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-piano-keyboard-800w.avif",
+        "size": 19554,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-piano-keyboard-1200w.webp",
+        "size": 51280,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-piano-keyboard-1200w.avif",
+        "size": 32492,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-piano-keyboard-1600w.webp",
+        "size": 74772,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-piano-keyboard-1600w.avif",
+        "size": 48688,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/saxophone.jpg": {
+    "hash": "b9135216fd175e319501959283e47300",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 839409,
+    "variants": [
+      {
+        "name": "instruments-saxophone-480w.webp",
+        "size": 28286,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-saxophone-480w.avif",
+        "size": 19858,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-saxophone-800w.webp",
+        "size": 64514,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-saxophone-800w.avif",
+        "size": 43882,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-saxophone-1200w.webp",
+        "size": 113578,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-saxophone-1200w.avif",
+        "size": 79060,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-saxophone-1600w.webp",
+        "size": 165948,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-saxophone-1600w.avif",
+        "size": 117119,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/trumpet.jpg": {
+    "hash": "f599a825418c690c8a5421b921729fb3",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 939889,
+    "variants": [
+      {
+        "name": "instruments-trumpet-480w.webp",
+        "size": 18770,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-trumpet-480w.avif",
+        "size": 12676,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-trumpet-800w.webp",
+        "size": 43824,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-trumpet-800w.avif",
+        "size": 29488,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-trumpet-1200w.webp",
+        "size": 86556,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-trumpet-1200w.avif",
+        "size": 57057,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-trumpet-1600w.webp",
+        "size": 136128,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-trumpet-1600w.avif",
+        "size": 92752,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/ukulele.jpg": {
+    "hash": "db946dec6c5be0ff88f6800f4b8ec0ec",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 482633,
+    "variants": [
+      {
+        "name": "instruments-ukulele-480w.webp",
+        "size": 10304,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-ukulele-480w.avif",
+        "size": 7615,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-ukulele-800w.webp",
+        "size": 24608,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-ukulele-800w.avif",
+        "size": 17732,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-ukulele-1200w.webp",
+        "size": 48518,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-ukulele-1200w.avif",
+        "size": 35334,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-ukulele-1600w.webp",
+        "size": 76040,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-ukulele-1600w.avif",
+        "size": 56768,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/violin.jpg": {
+    "hash": "e807e370a0fe42f938592ec33b9c6cbf",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 2576668,
+    "variants": [
+      {
+        "name": "instruments-violin-480w.webp",
+        "size": 30056,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-violin-480w.avif",
+        "size": 20866,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-violin-800w.webp",
+        "size": 73868,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-violin-800w.avif",
+        "size": 53963,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-violin-1200w.webp",
+        "size": 227024,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-violin-1200w.avif",
+        "size": 149757,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-violin-1600w.webp",
+        "size": 564128,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-violin-1600w.avif",
+        "size": 359744,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/instruments/vocals-microphone.jpg": {
+    "hash": "9e682e240bff2d768c5b61c591086d5e",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 1239149,
+    "variants": [
+      {
+        "name": "instruments-vocals-microphone-480w.webp",
+        "size": 6780,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-vocals-microphone-480w.avif",
+        "size": 5005,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-vocals-microphone-800w.webp",
+        "size": 14742,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-vocals-microphone-800w.avif",
+        "size": 9985,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-vocals-microphone-1200w.webp",
+        "size": 49492,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-vocals-microphone-1200w.avif",
+        "size": 29089,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "instruments-vocals-microphone-1600w.webp",
+        "size": 132334,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "instruments-vocals-microphone-1600w.avif",
+        "size": 113745,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/acoustic-guitarist.jpg": {
+    "hash": "a5a112225330fed8cf1afa6c33912e95",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 348569,
+    "variants": [
+      {
+        "name": "musicians-acoustic-guitarist-480w.webp",
+        "size": 11336,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-480w.avif",
+        "size": 8271,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-800w.webp",
+        "size": 22422,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-800w.avif",
+        "size": 15878,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-1200w.webp",
+        "size": 39302,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-1200w.avif",
+        "size": 27572,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-1600w.webp",
+        "size": 58728,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-acoustic-guitarist-1600w.avif",
+        "size": 41121,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/bassist.jpg": {
+    "hash": "91b08c8d5fc752c3d8dbd284f4c4ade1",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 407935,
+    "variants": [
+      {
+        "name": "musicians-bassist-480w.webp",
+        "size": 6964,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-bassist-480w.avif",
+        "size": 5202,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-bassist-800w.webp",
+        "size": 12760,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-bassist-800w.avif",
+        "size": 9447,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-bassist-1200w.webp",
+        "size": 22110,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-bassist-1200w.avif",
+        "size": 15735,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-bassist-1600w.webp",
+        "size": 34286,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-bassist-1600w.avif",
+        "size": 24605,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/brass-player.jpg": {
+    "hash": "7b58bb12401e9ab977e122010e528b00",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 513191,
+    "variants": [
+      {
+        "name": "musicians-brass-player-480w.webp",
+        "size": 12308,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-brass-player-480w.avif",
+        "size": 8762,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-brass-player-800w.webp",
+        "size": 25712,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-brass-player-800w.avif",
+        "size": 18524,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-brass-player-1200w.webp",
+        "size": 48176,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-brass-player-1200w.avif",
+        "size": 34210,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-brass-player-1600w.webp",
+        "size": 81182,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-brass-player-1600w.avif",
+        "size": 55496,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/choir.jpg": {
+    "hash": "6db9b5c76ee0e6d2b477d5cc3a864b56",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 312338,
+    "variants": [
+      {
+        "name": "musicians-choir-480w.webp",
+        "size": 17608,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-choir-480w.avif",
+        "size": 11722,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-choir-800w.webp",
+        "size": 34658,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-choir-800w.avif",
+        "size": 23042,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-choir-1200w.webp",
+        "size": 57674,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-choir-1200w.avif",
+        "size": 40121,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-choir-1600w.webp",
+        "size": 82648,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-choir-1600w.avif",
+        "size": 58774,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/drummer.jpg": {
+    "hash": "bf6074d4b23edfa3e371af98571a95a2",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 361971,
+    "variants": [
+      {
+        "name": "musicians-drummer-480w.webp",
+        "size": 17094,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-drummer-480w.avif",
+        "size": 12591,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-drummer-800w.webp",
+        "size": 33734,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-drummer-800w.avif",
+        "size": 24767,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-drummer-1200w.webp",
+        "size": 58048,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-drummer-1200w.avif",
+        "size": 42521,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-drummer-1600w.webp",
+        "size": 80828,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-drummer-1600w.avif",
+        "size": 60960,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/electric-guitarist.jpg": {
+    "hash": "f476f1649948305377672c287d135dc8",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 1223534,
+    "variants": [
+      {
+        "name": "musicians-electric-guitarist-480w.webp",
+        "size": 18412,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-electric-guitarist-480w.avif",
+        "size": 12032,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-electric-guitarist-800w.webp",
+        "size": 34424,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-electric-guitarist-800w.avif",
+        "size": 22263,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-electric-guitarist-1200w.webp",
+        "size": 57204,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-electric-guitarist-1200w.avif",
+        "size": 37375,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-electric-guitarist-1600w.webp",
+        "size": 86684,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-electric-guitarist-1600w.avif",
+        "size": 58249,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/full-band.jpg": {
+    "hash": "7cd237b50d74fd00ff73fae4dfdf9aeb",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 1483168,
+    "variants": [
+      {
+        "name": "musicians-full-band-480w.webp",
+        "size": 28838,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-full-band-480w.avif",
+        "size": 19981,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-full-band-800w.webp",
+        "size": 58632,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-full-band-800w.avif",
+        "size": 39228,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-full-band-1200w.webp",
+        "size": 106262,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-full-band-1200w.avif",
+        "size": 73221,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-full-band-1600w.webp",
+        "size": 190448,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-full-band-1600w.avif",
+        "size": 119293,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/keys-player.jpg": {
+    "hash": "0c7950631e6b3279ae13fd722cfb83cf",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 401389,
+    "variants": [
+      {
+        "name": "musicians-keys-player-480w.webp",
+        "size": 11898,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-keys-player-480w.avif",
+        "size": 7846,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-keys-player-800w.webp",
+        "size": 22440,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-keys-player-800w.avif",
+        "size": 15197,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-keys-player-1200w.webp",
+        "size": 38700,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-keys-player-1200w.avif",
+        "size": 25533,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-keys-player-1600w.webp",
+        "size": 56260,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-keys-player-1600w.avif",
+        "size": 38871,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/strings-player.jpg": {
+    "hash": "ac2196eaf1813b6df14cc8100dbb0cd3",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 359449,
+    "variants": [
+      {
+        "name": "musicians-strings-player-480w.webp",
+        "size": 12712,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-strings-player-480w.avif",
+        "size": 8711,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-strings-player-800w.webp",
+        "size": 23450,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-strings-player-800w.avif",
+        "size": 15726,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-strings-player-1200w.webp",
+        "size": 39512,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-strings-player-1200w.avif",
+        "size": 25397,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-strings-player-1600w.webp",
+        "size": 57552,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-strings-player-1600w.avif",
+        "size": 36796,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/musicians/worship-leader-vocalist.jpg": {
+    "hash": "1e3a3624b151c90d2f7fe4bcf6b805b1",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 653287,
+    "variants": [
+      {
+        "name": "musicians-worship-leader-vocalist-480w.webp",
+        "size": 6968,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-480w.avif",
+        "size": 5963,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-800w.webp",
+        "size": 14286,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-800w.avif",
+        "size": 11068,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-1200w.webp",
+        "size": 26388,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-1200w.avif",
+        "size": 19544,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-1600w.webp",
+        "size": 41898,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "musicians-worship-leader-vocalist-1600w.avif",
+        "size": 30454,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/software/mobile-app.jpg": {
+    "hash": "b840328182ed175fb51142a98a0c4210",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 624838,
+    "variants": [
+      {
+        "name": "software-mobile-app-480w.webp",
+        "size": 7546,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "software-mobile-app-480w.avif",
+        "size": 5238,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "software-mobile-app-800w.webp",
+        "size": 14000,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "software-mobile-app-800w.avif",
+        "size": 9091,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "software-mobile-app-1200w.webp",
+        "size": 25340,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "software-mobile-app-1200w.avif",
+        "size": 15761,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "software-mobile-app-1600w.webp",
+        "size": 46612,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "software-mobile-app-1600w.avif",
+        "size": 25618,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/software/support-maintenance.jpg": {
+    "hash": "3458e15c5e76b49421ea30132a0cd9d2",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 233909,
+    "variants": [
+      {
+        "name": "software-support-maintenance-480w.webp",
+        "size": 11784,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "software-support-maintenance-480w.avif",
+        "size": 8771,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "software-support-maintenance-800w.webp",
+        "size": 23108,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "software-support-maintenance-800w.avif",
+        "size": 17348,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "software-support-maintenance-1200w.webp",
+        "size": 41060,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "software-support-maintenance-1200w.avif",
+        "size": 29414,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "software-support-maintenance-1600w.webp",
+        "size": 60216,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "software-support-maintenance-1600w.avif",
+        "size": 43591,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/software/team-collaboration.jpg": {
+    "hash": "06140e4efde87c8781fb5fe37a450b1b",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 758833,
+    "variants": [
+      {
+        "name": "software-team-collaboration-480w.webp",
+        "size": 18994,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "software-team-collaboration-480w.avif",
+        "size": 11916,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "software-team-collaboration-800w.webp",
+        "size": 37676,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "software-team-collaboration-800w.avif",
+        "size": 25321,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "software-team-collaboration-1200w.webp",
+        "size": 66796,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "software-team-collaboration-1200w.avif",
+        "size": 46886,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "software-team-collaboration-1600w.webp",
+        "size": 104624,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "software-team-collaboration-1600w.avif",
+        "size": 72632,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/software/website-development.jpg": {
+    "hash": "7a0e7f3344ab2585e1193ecc8977f4c1",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 404689,
+    "variants": [
+      {
+        "name": "software-website-development-480w.webp",
+        "size": 12496,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "software-website-development-480w.avif",
+        "size": 8330,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "software-website-development-800w.webp",
+        "size": 24902,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "software-website-development-800w.avif",
+        "size": 16807,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "software-website-development-1200w.webp",
+        "size": 41422,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "software-website-development-1200w.avif",
+        "size": 28166,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "software-website-development-1600w.webp",
+        "size": 59978,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "software-website-development-1600w.avif",
+        "size": 41549,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/audio-sound.jpg": {
+    "hash": "e3e096b010fdcb908031e4c3849cd8ef",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 393922,
+    "variants": [
+      {
+        "name": "tech-audio-sound-480w.webp",
+        "size": 16854,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-audio-sound-480w.avif",
+        "size": 11313,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-audio-sound-800w.webp",
+        "size": 33708,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-audio-sound-800w.avif",
+        "size": 22629,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-audio-sound-1200w.webp",
+        "size": 55168,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-audio-sound-1200w.avif",
+        "size": 38554,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-audio-sound-1600w.webp",
+        "size": 77740,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-audio-sound-1600w.avif",
+        "size": 55752,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/lighting.jpg": {
+    "hash": "5b37be58ed1a67c6f18fc685fae29b7b",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 291881,
+    "variants": [
+      {
+        "name": "tech-lighting-480w.webp",
+        "size": 7430,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-lighting-480w.avif",
+        "size": 6175,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-lighting-800w.webp",
+        "size": 14784,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-lighting-800w.avif",
+        "size": 12569,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-lighting-1200w.webp",
+        "size": 26342,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-lighting-1200w.avif",
+        "size": 21266,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-lighting-1600w.webp",
+        "size": 38956,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-lighting-1600w.avif",
+        "size": 31184,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/livestream.jpg": {
+    "hash": "3282285f11a4fadac7c4fcc2804f37cc",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 762850,
+    "variants": [
+      {
+        "name": "tech-livestream-480w.webp",
+        "size": 30162,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-livestream-480w.avif",
+        "size": 18813,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-livestream-800w.webp",
+        "size": 75266,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-livestream-800w.avif",
+        "size": 51293,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-livestream-1200w.webp",
+        "size": 170186,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-livestream-1200w.avif",
+        "size": 123813,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-livestream-1600w.webp",
+        "size": 313328,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-livestream-1600w.avif",
+        "size": 257163,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/slides-lyrics.jpg": {
+    "hash": "c13ec364630d4469405a1f1f0ac858bb",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 978010,
+    "variants": [
+      {
+        "name": "tech-slides-lyrics-480w.webp",
+        "size": 9298,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-slides-lyrics-480w.avif",
+        "size": 7456,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-slides-lyrics-800w.webp",
+        "size": 29032,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-slides-lyrics-800w.avif",
+        "size": 21310,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-slides-lyrics-1200w.webp",
+        "size": 90862,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-slides-lyrics-1200w.avif",
+        "size": 60408,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-slides-lyrics-1600w.webp",
+        "size": 203808,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-slides-lyrics-1600w.avif",
+        "size": 130987,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/stage-setup.jpg": {
+    "hash": "4849a776ab238e7e58ed27e7ecdc7000",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 915168,
+    "variants": [
+      {
+        "name": "tech-stage-setup-480w.webp",
+        "size": 57716,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-stage-setup-480w.avif",
+        "size": 33713,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-stage-setup-800w.webp",
+        "size": 122056,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-stage-setup-800w.avif",
+        "size": 71823,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-stage-setup-1200w.webp",
+        "size": 233464,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-stage-setup-1200w.avif",
+        "size": 139614,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-stage-setup-1600w.webp",
+        "size": 444506,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-stage-setup-1600w.avif",
+        "size": 285087,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/training.jpg": {
+    "hash": "7e8e5793046c120bed8c21c19c6db252",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 647301,
+    "variants": [
+      {
+        "name": "tech-training-480w.webp",
+        "size": 17500,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-training-480w.avif",
+        "size": 12177,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-training-800w.webp",
+        "size": 34894,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-training-800w.avif",
+        "size": 24622,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-training-1200w.webp",
+        "size": 59340,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-training-1200w.avif",
+        "size": 41446,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-training-1600w.webp",
+        "size": 91962,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-training-1600w.avif",
+        "size": 65430,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
+  },
+  "2026-brand-refresh/tech/video-camera.jpg": {
+    "hash": "57aa7939b0a22ef47da9f93d0565e879",
+    "configuration": "9735174c9d66d217da9a444d0b66a6ef869ba20ae444110b2042fa96896129cb",
+    "originalSize": 939686,
+    "variants": [
+      {
+        "name": "tech-video-camera-480w.webp",
+        "size": 19590,
+        "width": 480,
+        "format": "webp"
+      },
+      {
+        "name": "tech-video-camera-480w.avif",
+        "size": 13459,
+        "width": 480,
+        "format": "avif"
+      },
+      {
+        "name": "tech-video-camera-800w.webp",
+        "size": 40110,
+        "width": 800,
+        "format": "webp"
+      },
+      {
+        "name": "tech-video-camera-800w.avif",
+        "size": 26577,
+        "width": 800,
+        "format": "avif"
+      },
+      {
+        "name": "tech-video-camera-1200w.webp",
+        "size": 97534,
+        "width": 1200,
+        "format": "webp"
+      },
+      {
+        "name": "tech-video-camera-1200w.avif",
+        "size": 55067,
+        "width": 1200,
+        "format": "avif"
+      },
+      {
+        "name": "tech-video-camera-1600w.webp",
+        "size": 243570,
+        "width": 1600,
+        "format": "webp"
+      },
+      {
+        "name": "tech-video-camera-1600w.avif",
+        "size": 134564,
+        "width": 1600,
+        "format": "avif"
+      }
+    ]
   }
 }
