@@ -144,6 +144,30 @@ test('an email failure never undoes the approval', async () => {
   assert.equal(get(d1, 'SELECT status FROM form_submissions WHERE id = ?', id)!.status, 'approved');
 });
 
+test('approve: a decline that lands between the load and the claim never creates a roster member', async () => {
+  const d1 = await newDb();
+  const r = fakeResend();
+  const id = seedSubmission(d1, { kind: 'musician_application', program: 'worship', binds: musicianBinds() });
+  const prepare = d1.prepare.bind(d1);
+  let raced = false;
+  d1.prepare = ((sql: string) => {
+    if (!raced && sql.includes("SET status = 'approved'")) {
+      raced = true;
+      run(d1, "UPDATE form_submissions SET status = 'declined' WHERE id = ?", id);
+    }
+    return prepare(sql);
+  }) as typeof d1.prepare;
+
+  await rejects(
+    approveApplication(d1, ENV, { submissionId: id, staffId, now: NOW }, r.options),
+    'INVALID_STATE',
+  );
+  assert.equal(raced, true);
+  assert.equal(get(d1, 'SELECT count(*) AS c FROM roster_members')!.c, 0);
+  assert.equal(r.calls.length, 0, 'no approval email');
+  assert.equal(get(d1, 'SELECT status FROM form_submissions WHERE id = ?', id)!.status, 'declined');
+});
+
 test('decline: status, delete_after = now + 365 days, events, email, hook; repeat is a no-op', async () => {
   const d1 = await newDb();
   const r = fakeResend();

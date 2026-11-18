@@ -182,6 +182,17 @@ export async function approveApplication(
       staffId,
       now,
     );
+    if (!claimed) {
+      // Another staff member decided or moved the application after it was loaded: only an approval that
+      // already happened may continue (the insert below is then a no-op), anything else must not join the roster.
+      const current = await firstRow<{ status: string }>(
+        db,
+        'SELECT status FROM form_submissions WHERE id = ?1',
+        submissionId,
+      );
+      if (current?.status !== 'approved')
+        throw new WorshipError('INVALID_STATE', `application is ${current?.status ?? 'missing'}`);
+    }
     const rosterId = newPrefixedId('ros');
     const statements = [
       db

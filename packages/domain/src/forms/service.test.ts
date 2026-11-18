@@ -1227,6 +1227,37 @@ describe('retention purge', () => {
     );
   });
 
+  test('submissions that a roster member or service request references are kept, and the rest still go', async () => {
+    const { db, forms, ids, due } = await aged();
+    db.sqlite
+      .prepare(
+        `INSERT INTO roster_members (id, submission_id, program, display_name, email_normalized, status, approved_at)
+         VALUES ('ros_k', ?, 'worship', 'Kept Member', 'kept@example.org', 'active', ?)`,
+      )
+      .run(ids.archived!, T0);
+    db.sqlite
+      .prepare(
+        `INSERT INTO service_requests (id, submission_id, program, church_name, contact_email_normalized, service_date, created_at)
+         VALUES ('req_k', ?, 'worship', 'Kept Church', 'church@example.org', '2030-01-06', ?)`,
+      )
+      .run(ids.handled!, T0);
+    const hooked: string[][] = [];
+    const result = await forms.purgeExpiredSubmissions(due + 1, {
+      beforeDelete: async (hookIds) => {
+        hooked.push([...hookIds]);
+      },
+    });
+    assert.deepEqual([...result.ids].sort(), [ids.declined, ids.spam].sort());
+    assert.deepEqual(
+      hooked.flat().sort(),
+      [ids.declined, ids.spam].sort(),
+      'files of kept rows are not touched',
+    );
+    assert.equal(count(db, 'roster_members'), 1);
+    assert.equal(count(db, 'service_requests'), 1);
+    assert.equal(count(db, 'form_submissions'), 4);
+  });
+
   test('if the files hook throws nothing is deleted', async () => {
     const { db, forms, due } = await aged();
     await assert.rejects(

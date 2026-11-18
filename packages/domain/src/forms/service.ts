@@ -577,6 +577,10 @@ const SUBMISSION_COLUMNS = `id, form_id, form_version_id, reference, status, sub
 // Service
 // ---------------------------------------------------------------------------
 
+/** A submission that a roster member or service request references can never be purged (foreign keys). */
+const NOT_REFERENCED = `NOT EXISTS (SELECT 1 FROM roster_members WHERE roster_members.submission_id = form_submissions.id)
+  AND NOT EXISTS (SELECT 1 FROM service_requests WHERE service_requests.submission_id = form_submissions.id)`;
+
 export class FormsService {
   constructor(
     private readonly db: SqlDatabase,
@@ -1567,7 +1571,8 @@ export class FormsService {
    * Deletes submissions whose `delete_after` has passed and whose status is declined, spam, archived or
    * handled (never new, in review or approved), up to `limit` per call (default 500, oldest first).
    * `beforeDelete(ids)` runs first so the caller can delete the stored files; if it throws nothing is deleted.
-   * Their `form_uploads` rows and events go with them. Returns the ids actually deleted.
+   * Submissions that a roster member or service request still points at are kept (those rows reference
+   * them, so deleting would fail the whole batch). Their `form_uploads` rows and events go with the rest. Returns the ids actually deleted.
    */
   async purgeExpiredSubmissions(
     now: number,
@@ -1579,6 +1584,7 @@ export class FormsService {
     const due = await allRows<{ id: string }>(this.db, {
       sql: `SELECT id FROM form_submissions
             WHERE delete_after IS NOT NULL AND delete_after < ? AND status IN (${marks})
+              AND ${NOT_REFERENCED}
             ORDER BY delete_after, id LIMIT ?`,
       params: [now, ...statuses, limit],
     });
@@ -1591,7 +1597,7 @@ export class FormsService {
       const chunk = ids.slice(i, i + 40);
       const inList = chunk.map(() => '?').join(', ');
       // The status and date are re-checked: a submission reopened since the read is not deleted.
-      const guard = `id IN (${inList}) AND delete_after IS NOT NULL AND delete_after < ? AND status IN (${marks})`;
+      const guard = `id IN (${inList}) AND delete_after IS NOT NULL AND delete_after < ? AND status IN (${marks}) AND ${NOT_REFERENCED}`;
       specs.push(
         {
           sql: `DELETE FROM form_uploads WHERE submission_id IN (SELECT id FROM form_submissions WHERE ${guard})`,
