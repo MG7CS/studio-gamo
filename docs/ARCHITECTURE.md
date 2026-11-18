@@ -16,7 +16,7 @@ Five Astro 7 SSR apps, each built with `@astrojs/cloudflare` into its own Cloudf
 
 Hosts, ports and inspector ports are defined once in `packages/config/apps.ts`; links between apps go through `packages/ui/src/lib/sites.ts` (`siteUrl`, `siteOrigin`, `inquiryUrl`), never hard-coded origins.
 
-Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloudflareConfig`/`createGamoDevServer`), `wrangler.toml` (local, `[env.preview]`, `[env.production]`), `src/middleware.ts`, `src/lib/legacy-redirects.ts` (public apps), `src/pages/` (pages + `api/` routes), branded `404.astro`/`500.astro`, `public/_headers`, web manifest and icons.
+Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloudflareConfig`/`createGamoDevServer`), `wrangler.toml` (local, `[env.preview]`, `[env.production]`), `src/middleware.ts`, `src/pages/` (pages + `api/` routes), branded `404.astro`/`500.astro`, `public/_headers`, web manifest and icons.
 
 ## Packages
 
@@ -34,11 +34,10 @@ Each app has the same layout: `astro.config.mjs` (uniform, from `createGamoCloud
 
 ```
 request → Worker (Astro) → src/middleware.ts
-            └─ applicationPages(app, { legacyRedirects })      packages/domain/src/api/page-middleware.ts
+            └─ applicationPages(app)                      packages/domain/src/api/page-middleware.ts
                  1. checkEnvOnce()      unsafe config (e.g. ENVIRONMENT=local on a real host) → 503
-                 2. legacy redirects    old URLs (incl. retired /account/* and workspace paths) → new
-                 3. render page / API route
-                 4. withSecurityHeaders CSP, HSTS, nosniff, frame/referrer/permissions policies,
+                 2. render page / API route
+                 3. withSecurityHeaders CSP, HSTS, nosniff, frame/referrer/permissions policies,
                                         Cache-Control: private, no-store on pages
 ```
 

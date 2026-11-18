@@ -1,8 +1,0 @@
----
-import { siteUrl } from '@studio-gamo/ui/lib/sites';
-
-export const prerender = false;
-
-// The form moved to the main site (one public app): old links keep working.
-return Astro.redirect(siteUrl('web', '/worship/request'), 302);
----

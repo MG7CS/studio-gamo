@@ -176,7 +176,7 @@ For each public host:
 
 - `/` returns 200; `/robots.txt`, `/sitemap.xml` return 200 (and `/llms.txt` on gamostudio.org).
 - An unknown path shows the branded 404.
-- Old account URLs (e.g. `/account/signin`) redirect (302) as listed in each app's `legacy-redirects.ts`; there is no public sign-in.
+- Old account URLs (e.g. `/account/signin`) answer 404; there is no public sign-in.
 - Academy: paid registration answers 503 in production by design; "Reserve" works.
 - `wrangler tail` shows no `[env:<app>] fatal` or `error` lines.
 - Admin: an unauthenticated visit is stopped by Cloudflare Access.

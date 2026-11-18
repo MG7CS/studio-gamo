@@ -1,4 +1,5 @@
 ---
+import { REQUEST_HREF } from '../../site.config';
 /**
  * Production landing hero: the shared SplitHero with the page's <h1> beside an engineer
  * photo and a floating mixer-strip preview.
@@ -21,7 +22,7 @@ import MixerStripPreview from './MixerStripPreview.astro';
     volunteers who serve behind the board every Sunday.
   </p>
   <div class="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-    <ButtonLink href="/request" arrow>
+    <ButtonLink href={REQUEST_HREF} arrow>
       Start a needs assessment
     </ButtonLink>
     <ButtonLink href="/services" variant="secondary">

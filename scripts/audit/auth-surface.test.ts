@@ -1,8 +1,7 @@
 /**
  * Public accounts were removed (2026-11-16): the four public apps have no sign-in surface. Through the
  * real middleware and route handlers this checks that no session or Clerk state is established on a
- * public page (even with old Clerk variables or a session cookie present), that retired account URLs only
- * redirect home, and that no public source file links to sign-in, Clerk or the removed auth APIs.
+ * public page (even with old Clerk variables or a session cookie present), and that no public source file links to sign-in, Clerk or the removed auth APIs.
  * Admin staff sign-in (Cloudflare Access + admin password) is covered by security.test.ts.
  */
 import { test } from 'node:test';
@@ -11,21 +10,10 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { applicationPages } from '../../packages/domain/src/api/page-middleware.ts';
-import { legacyRedirects as webRedirects } from '../../apps/web/src/lib/legacy-redirects.ts';
-import { legacyRedirects as worshipRedirects } from '../../apps/worship/src/lib/legacy-redirects.ts';
-import { legacyRedirects as academyRedirects } from '../../apps/academy/src/lib/legacy-redirects.ts';
-import { legacyRedirects as productionRedirects } from '../../apps/production/src/lib/legacy-redirects.ts';
 import { siteOrigin } from '../../packages/ui/src/lib/sites.ts';
 
 type PublicApp = 'web' | 'worship' | 'academy' | 'production';
-/** The public-site middleware exactly as each app's src/middleware.ts configures it. */
-const LEGACY = {
-  web: webRedirects,
-  worship: worshipRedirects,
-  academy: academyRedirects,
-  production: productionRedirects,
-};
-const appMiddleware = (app: PublicApp) => applicationPages(app, { legacyRedirects: LEGACY[app] });
+const appMiddleware = (app: PublicApp) => applicationPages(app);
 const APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
 const SECRET = 'auth-surface-test-session-secret-0123456789';
 const pk = (host: string) => `pk_live_${Buffer.from(`${host}$`).toString('base64').replace(/=+$/, '')}`;
@@ -90,25 +78,6 @@ for (const app of APPS) {
     assert.equal(context.locals.auth ?? null, null, `${app}: no public session`);
     assert.ok(!context.locals.clerkConfig?.isConfigured, `${app}: Clerk is never wired in`);
     assert.doesNotMatch(response.headers.get('content-security-policy') ?? '', /clerk/i);
-  });
-
-  test(`${app}: retired sign-in and account URLs redirect home and are never cached`, async () => {
-    const env = { ENVIRONMENT: 'production', DB: await migratedD1(), SESSION_SECRET: SECRET };
-    for (const path of [
-      '/account/signin',
-      '/account/signup',
-      '/account/verify',
-      '/account/recover',
-      '/account',
-    ]) {
-      const response = await appMiddleware(app)(
-        pageContext(app, path, env) as never,
-        async () => new Response('page'),
-      );
-      assert.equal(response.status, 302, `${app} ${path}`);
-      assert.equal(response.headers.get('location'), '/', `${app} ${path}`);
-      assert.equal(response.headers.get('cache-control'), 'no-store', `${app} ${path}`);
-    }
   });
 
   test(`${app}: sitemap.xml lists no account page`, async () => {

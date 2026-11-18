@@ -1,6 +1,6 @@
 /**
  * Public apps have no accounts, sign-in or dashboards (removed 2026-11-16): every page is public by
- * allowlist and renders for an anonymous visitor, retired account URLs redirect home, and the only
+ * allowlist and renders for an anonymous visitor, and the only
  * public-app API methods are allowlisted ones that enforce their own gate. The admin app stays fully
  * private through its middleware (Cloudflare Access + admin password).
  *
@@ -15,20 +15,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { createInMemoryD1, applyMigrations } from '../../packages/db/testing.ts';
 import { applicationPages } from '../../packages/domain/src/api/page-middleware.ts';
-import { legacyRedirects as webRedirects } from '../../apps/web/src/lib/legacy-redirects.ts';
-import { legacyRedirects as worshipRedirects } from '../../apps/worship/src/lib/legacy-redirects.ts';
-import { legacyRedirects as academyRedirects } from '../../apps/academy/src/lib/legacy-redirects.ts';
-import { legacyRedirects as productionRedirects } from '../../apps/production/src/lib/legacy-redirects.ts';
 
 type PublicApp = 'web' | 'worship' | 'academy' | 'production';
-/** The public-site middleware exactly as each app's src/middleware.ts configures it. */
-const LEGACY = {
-  web: webRedirects,
-  worship: worshipRedirects,
-  academy: academyRedirects,
-  production: productionRedirects,
-};
-const appMiddleware = (app: PublicApp) => applicationPages(app, { legacyRedirects: LEGACY[app] });
+const appMiddleware = (app: PublicApp) => applicationPages(app);
 const SECRET = 'private-routes-test-session-secret-0123456789';
 const PUBLIC_APPS: PublicApp[] = ['web', 'worship', 'academy', 'production'];
 const CRAWLER_FILES = ['/robots.txt', '/sitemap.xml'];
@@ -62,8 +51,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
-  // Apply and request moved to web (/worship/apply, /worship/request); these pages only redirect there.
-  worship: ['/', '/apply', '/request', ...CRAWLER_FILES, ...ERROR_PAGES],
+  worship: ['/', ...CRAWLER_FILES, ...ERROR_PAGES],
   academy: [
     '/',
     '/instruments',
@@ -82,16 +70,7 @@ const PUBLIC_PAGES: Record<PublicApp, string[]> = {
     ...CRAWLER_FILES,
     ...ERROR_PAGES,
   ],
-  production: [
-    '/',
-    '/services',
-    '/services/[slug]',
-    '/training',
-    '/apply',
-    '/request',
-    ...CRAWLER_FILES,
-    ...ERROR_PAGES,
-  ],
+  production: ['/', '/services', '/services/[slug]', '/training', ...CRAWLER_FILES, ...ERROR_PAGES],
 };
 
 /** API methods anyone may call (each enforces its own gate: signature, Turnstile, signed link, etc.). */
@@ -187,21 +166,6 @@ for (const app of PUBLIC_APPS) {
       assert.equal(rendered, true, `${app} ${route} did not render for an anonymous visitor`);
       assert.equal(response.status, 200, `${app} ${route}`);
       assert.doesNotMatch(response.headers.get('location') ?? '', /\/account\//, `${app} ${route}`);
-    }
-  });
-
-  test(`${app}: retired account and sign-in URLs redirect home without rendering`, async () => {
-    const env = await migratedEnv();
-    const middleware = appMiddleware(app);
-    for (const path of ['/account', '/account/signin', '/account/signup?role=church', '/account/profile']) {
-      let rendered = false;
-      const response = await middleware(pageContext(app, path, env) as never, async () => {
-        rendered = true;
-        return new Response('page body');
-      });
-      assert.equal(rendered, false, `${app} ${path} rendered`);
-      assert.equal(response.status, 302, `${app} ${path}`);
-      assert.equal(response.headers.get('location'), '/', `${app} ${path}`);
     }
   });
 

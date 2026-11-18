@@ -1,21 +1,20 @@
 /**
  * The public form pages hosted by web (`/worship/apply`, `/worship/request`, `/production/apply`,
- * `/production/request`), the old Worship and Production URLs that redirect to them, and the whole send:
+ * `/production/request`), and the whole send:
  * validation errors keep every value, a good post redirects to a signed confirmation, a reload never posts
  * twice, a forged confirmation shows the form, and it all works with JavaScript off.
  *
  * Each test posts from its own made-up address and IP, so the per-IP and per-email limits (which persist in the
  * local database between runs) never get in the way. All content is Sample.
  *
- * Run: build web and worship, then
- * `E2E_APPS=web,worship pnpm exec playwright test tests/e2e/forms.spec.ts` (the web server publishes the
+ * Run: build web, then
+ * `E2E_APPS=web pnpm exec playwright test tests/e2e/forms.spec.ts` (the web server publishes the
  * default forms first: scripts/e2e/seed-forms.ts).
  */
 import { test, expect, type Browser, type Page } from '@playwright/test';
 import { expectAccessible, watchErrors } from './helpers/a11y';
 
 const WEB = process.env.CATALOG_ORIGIN ?? 'http://127.0.0.1:4321';
-const WORSHIP = 'http://127.0.0.1:4322';
 const REQUEST = `${WEB}/worship/request`;
 const TERMS =
   'I agree that Gamo Studios may use these details to arrange musicians and contact me, as described in the privacy notice.';
@@ -131,17 +130,6 @@ test('a cross-site post is refused before anything is read', async ({ request })
     data: 'church_name=x',
   });
   expect(response.status()).toBe(403);
-});
-
-test('the old Worship and Production addresses lead to the new pages', async ({ request }) => {
-  for (const [from, to] of [
-    [`${WORSHIP}/apply`, `${WEB}/worship/apply`],
-    [`${WORSHIP}/request`, `${WEB}/worship/request`],
-  ] as const) {
-    const response = await request.get(from, { maxRedirects: 0 });
-    expect([301, 302]).toContain(response.status());
-    expect(response.headers().location).toBe(to);
-  }
 });
 
 const CONTACT = `${WEB}/contact`;

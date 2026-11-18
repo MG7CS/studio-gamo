@@ -1,4 +1,5 @@
 ---
+import { APPLY_HREF, REQUEST_HREF } from '../../site.config';
 /**
  * Consultation request card: what to include, then links to this app's /request page (staff review
  * each request) and to /apply for technicians.
@@ -30,12 +31,12 @@ const helpful = [
       </li>
     ))}
   </ul>
-  <ButtonLink href="/request" class="mt-8 self-start" arrow>
+  <ButtonLink href={REQUEST_HREF} class="mt-8 self-start" arrow>
     Request a consultation
   </ButtonLink>
   <p class="mt-4 text-fg">
     Are you a sound, video or livestream technician?{' '}
-    <a href="/apply" class="inline-flex min-h-11 items-center font-semibold text-action-strong underline">
+    <a href={APPLY_HREF} class="inline-flex min-h-11 items-center font-semibold text-action-strong underline">
       Join the technician team
     </a>
   </p>

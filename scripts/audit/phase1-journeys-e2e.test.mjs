@@ -193,7 +193,7 @@ try {
 
   // =========================================================================
   // Public accounts were removed (2026-11-16). Anonymous visitors reach every public page, retired demo
-  // flows and account/workspace URLs redirect to the public apply/request pages or home, and the admin
+  // flows and account/workspace URLs are gone (404), and the admin
   // app (the only signed-in area) refuses anonymous requests. Admin staff sign-in is covered in a real
   // browser by tests/e2e/admin-signin.spec.ts.
   // =========================================================================
@@ -219,54 +219,28 @@ try {
     assert.ok(!/\/account\/sign(in|up)/.test(await anonPage.content()), `No sign-in link on ${app}${path}`);
   }
 
-  // The forms live on the main site now (/worship/apply and friends); the old addresses redirect there.
+  // Retired account pages, demo workspaces and old demo flows no longer exist: nothing renders, even with a
+  // demo key (no real users ever used them, so nothing redirects either).
   for (const [app, path] of [
+    ['web', '/account'],
+    ['web', '/account/signin'],
+    ['web', '/partner'],
+    ['worship', '/account/signup'],
+    ['worship', '/church'],
+    ['worship', '/musician'],
+    ['worship', '/hire'],
     ['worship', '/apply'],
-    ['worship', '/request'],
+    ['academy', '/account'],
+    ['academy', '/family'],
+    ['academy', '/instructor'],
+    ['academy', '/host'],
+    ['production', '/account'],
+    ['production', '/client'],
+    ['production', '/assessment'],
     ['production', '/apply'],
-    ['production', '/request'],
-  ]) {
-    const res = await fetch(`${urls[app]}${path}`, { redirect: 'manual' });
-    assert.equal(res.status, 302, `Expected 302 on ${app}${path}`);
-    assert.match(res.headers.get('location') || '', new RegExp(`/${app}${path}$`), `${app}${path}`);
-  }
-
-  // Retired multi-step demo forms keep their 303 and go to the public request page or lessons.
-  for (const [app, path, expected] of [
-    ['worship', '/hire', /^\/request$/],
-    ['academy', '/register', /\/lessons$/],
-    ['production', '/assessment', /^\/request$/],
-    ['production', '/consultation', /^\/request$/],
-  ]) {
-    const res = await fetch(`${urls[app]}${path}`, { redirect: 'manual' });
-    assert.equal(res.status, 303, `Expected 303 redirect on legacy form ${app}${path}`);
-    assert.match(res.headers.get('location') || '', expected, `${app}${path}`);
-  }
-
-  // Retired account pages and demo workspaces redirect (even with ?demo_key=); nothing renders.
-  for (const [app, path, expected] of [
-    ['web', '/account', '/'],
-    ['web', '/account/signin', '/'],
-    ['web', '/partner', '/'],
-    ['worship', '/account/signup', '/'],
-    ['worship', '/church', '/request'],
-    ['worship', '/musician', '/apply'],
-    ['worship', '/check-in/sample', '/'],
-    ['worship', '/opportunities', '/'],
-    ['academy', '/account', '/'],
-    ['academy', '/family', '/'],
-    ['academy', '/instructor', '/'],
-    ['academy', '/host', '/'],
-    ['production', '/account', '/'],
-    ['production', '/client', '/request'],
-    ['production', '/crew', '/apply'],
   ]) {
     const res = await fetch(`${urls[app]}${path}?demo_key=bypass_attempt`, { redirect: 'manual' });
-    assert.ok(
-      [301, 302].includes(res.status),
-      `Expected a redirect on retired ${app}${path}, got ${res.status}`,
-    );
-    assert.equal(res.headers.get('location'), expected, `${app}${path}`);
+    assert.equal(res.status, 404, `Expected 404 on retired ${app}${path}, got ${res.status}`);
   }
 
   // Admin blocks unauthenticated requests with the 401 Operations Gateway.

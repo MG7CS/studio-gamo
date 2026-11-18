@@ -244,3 +244,7 @@ The first visit to admin `/forms` publishes the six default forms when none exis
 ## 2026-11-18 — Photos and PDFs may be posted inside the form without JavaScript
 
 Owner choice (2026-11-18): do not make the photo optional; let a normal form post carry it. Only for forms with a file question the body limit is 24 MiB (two 10 MB files plus text) instead of 128 KiB; Turnstile, the per-IP and per-email limits and the type, size and first-bytes checks all still run before and while the file is stored, and a post over the limit is cut off as it streams. Videos (500 MB) are never taken this way. The form is rendered `novalidate` and the browser script re-enables native validation, so a visitor without JavaScript is not blocked by `required` on questions that do not apply.
+
+## 2026-11-18 — No old-URL compatibility: redirect lists removed
+
+Owner: the apps have never been used by real users, so old URLs, retired flows and legacy data owe nothing. The per-app `legacy-redirects.ts` lists, the `legacyRedirects` middleware option and their tests are deleted; retired `/account/*`, demo and old form URLs answer 404. The single-public-app plan (`docs/superpowers/plans/2026-11-16-single-public-app.md`) therefore needs no old-URL redirect map, Search Console change of address or sitemap migration: when the program apps merge into the main site the old subdomains can simply be retired. Re-introduce a redirect only for an address real people or search engines have used.

@@ -1,4 +1,5 @@
 ---
+import { REQUEST_HREF } from '../../site.config';
 /** Detail body for one support area: what it covers, questions to consider and volunteer skills. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
@@ -54,7 +55,7 @@ const { area } = Astro.props;
           <p class="mt-2 text-small text-fg-muted">
             A consultation request walks through your setup, priorities and team.
           </p>
-          <ButtonLink href="/request" arrow class="mt-5 self-start">
+          <ButtonLink href={REQUEST_HREF} arrow class="mt-5 self-start">
             Request a consultation
           </ButtonLink>
         </Card>

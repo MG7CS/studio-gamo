@@ -1,4 +1,5 @@
 ---
+import { REQUEST_HREF } from '../../site.config';
 /** How churches request musicians: four aligned steps (shared NumberedSteps). */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
@@ -11,7 +12,7 @@ import { requestSteps } from '../../data/worship';
   <Fragment slot="title">
     Requesting musicians, <span class="block text-action">in four calm steps.</span>
   </Fragment>
-  <ButtonLink slot="actions" href="/request" variant="secondary" arrow>
+  <ButtonLink slot="actions" href={REQUEST_HREF} variant="secondary" arrow>
     Start a request
   </ButtonLink>
 

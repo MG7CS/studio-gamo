@@ -1,4 +1,5 @@
 ---
+import { REQUEST_HREF } from '../site.config';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Frame from '@studio-gamo/ui/components/media/Frame.astro';
@@ -34,7 +35,7 @@ import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
     body="Share your church's training goals through a consultation request."
     photo="worshipBand"
   >
-    <ButtonLink href="/request" arrow>
+    <ButtonLink href={REQUEST_HREF} arrow>
       Share training interest
     </ButtonLink>
   </CtaInvitation>

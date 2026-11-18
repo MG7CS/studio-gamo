@@ -1,4 +1,5 @@
 ---
+import { REQUEST_HREF } from '../../site.config';
 /** Church scheduling & recurring needs: key points beside a Sample month roster preview. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import FloatingPreviewCard from '@studio-gamo/ui/components/content/FloatingPreviewCard.astro';
@@ -35,7 +36,7 @@ const points = [
           </li>
         ))}
       </ul>
-      <ButtonLink href="/request" variant="secondary" class="mt-8" arrow>
+      <ButtonLink href={REQUEST_HREF} variant="secondary" class="mt-8" arrow>
         Describe your need
       </ButtonLink>
     </div>

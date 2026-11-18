@@ -13,6 +13,10 @@ export const PROGRAM_LABEL = program.fullName;
 /** Nav key highlighted on every page of this site. */
 export const PROGRAM_KEY = program.id;
 
+/** The forms live on the main site; link to them directly instead of through this app's redirects. */
+export const APPLY_HREF = siteUrl('web', '/production/apply');
+export const REQUEST_HREF = siteUrl('web', '/production/request');
+
 const contact = siteUrl('web', '/contact');
 
 export const shell: ShellConfig = {
@@ -31,8 +35,8 @@ export const shell: ShellConfig = {
         title: 'Get involved',
         links: [
           { label: 'Find a lesson', href: siteUrl('academy', '/lessons') },
-          { label: 'Request a musician', href: siteUrl('worship', '/request') },
-          { label: 'Apply as a musician', href: siteUrl('worship', '/apply') },
+          { label: 'Request a musician', href: siteUrl('web', '/worship/request') },
+          { label: 'Apply as a musician', href: siteUrl('web', '/worship/apply') },
           { label: 'Partnerships', href: siteUrl('web', '/partners') },
         ],
       },

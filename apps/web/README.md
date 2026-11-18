@@ -1,43 +1,36 @@
-# Astro Starter Kit: Minimal
+# Gamo Studios main site
+
+`apps/web` · production host `gamostudio.org` · local port 4321
+
+The organization site and the home of everything people send to us:
+
+- Marketing pages: home, mission, get started, get involved, partners, support, FAQ, legal.
+- **Public forms**, rendered from the published forms staff edit in admin (`src/lib/form-page.ts` → `FormPageView` / `FormPanel` → the shared `DynamicForm`): `/worship/apply`, `/worship/request`, `/production/apply`, `/production/request`, and the forms on `/contact` and `/partners/interest`. Until a form is published (open admin **Forms** once) its page answers 404, except `/contact` and `/partners/interest`, which show only their email card.
+- The emailed **offer page** `/worship/offers/[token]` (`src/lib/offer-page.ts`): opening it changes nothing; Accept or Decline posts once.
+- API routes: chunked file uploads (`/api/forms/...`), and the Resend and Stripe webhooks (`/api/webhook/...`).
+- The daily job (`src/worker.ts`): email retry, upload cleanup, offer expiry and data retention (`packages/domain/src/jobs/daily.ts`).
+- `/preview/*`: private design catalogs (noindex, disallowed in `robots.txt`).
+
+## Run it
+
+From the repository root:
 
 ```sh
-pnpm create astro@latest -- --template minimal
+pnpm --filter apps-web dev          # http://127.0.0.1:4321 (or `pnpm dev:all` for every app)
+pnpm --filter apps-web build        # production build into ./dist (deploys use `make deploy-web`, which sets the environment)
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Hosts and ports come from `packages/config/apps.ts`; cross-app links come from `siteUrl()` in `packages/ui/src/lib/sites.ts`. Never hard-code an origin.
 
-## 🚀 Project Structure
+## Test it
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+pnpm exec tsx --test <file>                                            # the unit or audit test for what you changed
+E2E_APPS=web pnpm exec playwright test tests/e2e/<spec>.spec.ts      # after building this app
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Run the full `pnpm check` once per merge, not in a loop (`AGENTS.md`, "Test economy").
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Read more
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+[`AGENTS.md`](../../AGENTS.md) (rules), [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) (what the code does), [`docs/FRONTEND_ARCHITECTURE.md`](../../docs/FRONTEND_ARCHITECTURE.md) (shared UI rules), [`docs/RUNBOOK.md`](../../docs/RUNBOOK.md) (deploys, secrets, owner actions).

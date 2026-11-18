@@ -1,6 +1,6 @@
 # Gamo Studios — Screen inventory
 
-Updated 2026-11-16. Four public apps (web, academy, worship, production) plus the staff admin app, the only dashboard. Gamo Live and public accounts were removed on 2026-11-16 (history: tag `four-programs-snapshot` and git history of this file); their old URLs redirect through each app's `legacy-redirects.ts`.
+Updated 2026-11-16. Four public apps (web, academy, worship, production) plus the staff admin app, the only dashboard. Gamo Live and public accounts were removed on 2026-11-16 (history: tag `four-programs-snapshot` and git history of this file); their old URLs were removed, not redirected.
 
 **Status values:** *UI ready* = implemented as a local preview, not launched; *Real (D1)* = persists data; *Placeholder* = replaced by a staff-editable form in plan Phase 2; *Planned* = in the forms/emails/invoices plan ([docs/superpowers/plans/2026-11-16-forms-emails-invoices.md](superpowers/plans/2026-11-16-forms-emails-invoices.md)). Founder visual acceptance is pending for public screens.
 
@@ -43,7 +43,7 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 | Routes | Screens | Status |
 | --- | --- | --- |
 | / | Worship hero, instruments, preparation, FAQs; CTAs "Apply to serve" → /apply, "Request a musician" → /request | UI ready |
-| /apply, /request | Redirect (302) to the forms on the main site: `/worship/apply` (staff-editable `musician_application`: photo, video by link or upload, PDFs) and `/worship/request` (`church_request`), served by `apps/web` | Real (D1) |
+| /apply, /request | Removed: the forms are `/worship/apply` and `/worship/request` on the main site (see Gamo Studios above) | Removed |
 | /worship/offers/[token] on web | Emailed offer page (GET read-only, POST accepts or declines once; no-referrer, noindex) | Real (D1) |
 
 ## Gamo Production — apps/production — port 4325
@@ -53,7 +53,7 @@ No sponsored places, screened instructors or real enrollments are offered. Safeg
 | / | Technical ministry, audio/video/lighting, volunteers, event support | UI ready |
 | /services, /services/[slug] | Support categories, learning skills and planning prompts | UI ready |
 | /training | Proposed technical/volunteer training | UI ready |
-| /apply, /request | Redirect (302) to `/production/apply` (`technician_application`) and `/production/request` (`production_request`) on the main site | Real (D1) |
+| /apply, /request | Removed: the forms are `/production/apply` and `/production/request` on the main site | Removed |
 
 No completed projects, customers, scheduled consultations or available training places are claimed.
 

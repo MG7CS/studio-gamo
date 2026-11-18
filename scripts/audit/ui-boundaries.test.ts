@@ -124,8 +124,6 @@ function programHits(source: string): string[] {
  * `src/site.config.ts` and delete the entry here; never add a file to make the test pass.
  */
 const PROGRAM_ALLOWLIST: Record<string, string> = {
-  'packages/ui/src/components/dashboard/WorkspaceScreen.astro':
-    'siteUrl(web) public-site link (F3: href prop) [program id literal x1]',
   'packages/ui/src/components/legal/content/academy-child-safety-consent.ts':
     'Academy legal text (move to app or legal content package) [program product copy x1]',
   'packages/ui/src/components/legal/content/academy-enrollment-terms.ts':

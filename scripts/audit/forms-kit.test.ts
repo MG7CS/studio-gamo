@@ -231,16 +231,12 @@ test('every form component uses semantic tokens only: no base palette names, arb
   }
 });
 
-test('FormComingSoon is shared (no app copies); the old apply and request pages redirect to the main-site forms', () => {
+test('FormComingSoon is shared (no app copies); the apply and request forms live only on the main site', () => {
   for (const app of ['worship', 'production']) {
     assert.ok(!existsSync(`apps/${app}/src/components/FormComingSoon.astro`), `${app} copy removed`);
     for (const page of ['apply', 'request']) {
-      const text = readFileSync(`apps/${app}/src/pages/${page}.astro`, 'utf8');
-      assert.match(
-        text,
-        new RegExp(`Astro\\.redirect\\(siteUrl\\('web', '/${app}/${page}'\\)`),
-        `${app}/${page} redirects to the form on the main site`,
-      );
+      assert.ok(!existsSync(`apps/${app}/src/pages/${page}.astro`), `${app}/${page} page is gone`);
+      assert.ok(existsSync(`apps/web/src/pages/${app}/${page}.astro`), `web hosts /${app}/${page}`);
     }
   }
   const text = markup('FormComingSoon.astro');

@@ -1,4 +1,5 @@
 ---
+import { APPLY_HREF, REQUEST_HREF } from '../../site.config';
 /** Intro + audience switch between churches and musicians. */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import AudienceSwitch from '@studio-gamo/ui/components/AudienceSwitch.astro';
@@ -23,8 +24,8 @@ const musicians: Item[] = [
   ['heart', 'Fair compensation', 'Your pay is always its own line — never reduced.'],
 ];
 const panels: { slot: string; items: Item[]; href: string; cta: string }[] = [
-  { slot: 'churches', items: churches, href: '/request', cta: 'Start a church request' },
-  { slot: 'musicians', items: musicians, href: '/apply', cta: 'Begin an application' },
+  { slot: 'churches', items: churches, href: REQUEST_HREF, cta: 'Start a church request' },
+  { slot: 'musicians', items: musicians, href: APPLY_HREF, cta: 'Begin an application' },
 ];
 ---
 

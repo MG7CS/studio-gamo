@@ -53,7 +53,7 @@ Access protection is enforced at two distinct layers:
 
 ### 2.2 Public applications have no accounts (2026-11-16)
 
-Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`) have no sign-in, sessions, private pages or demo workspaces since public accounts were removed (spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`). Their middleware runs env check → legacy redirects → page → security headers; retired `/account/*` and workspace URLs redirect via each app's `legacy-redirects.ts`. Public forms are protected by the public form guard (Turnstile, rate limits, bounded bodies). Staff work only in admin (§2.1). Local-only flags listed in `packages/config/env-validation.ts` must remain `false` or unset outside local.
+Public applications (`apps/web`, `apps/worship`, `apps/academy`, `apps/production`) have no sign-in, sessions, private pages or demo workspaces since public accounts were removed (spec `docs/superpowers/specs/2026-11-16-forms-emails-invoices-design.md`). Their middleware runs env check → page → security headers; retired `/account/*` and workspace URLs no longer exist (404). Public forms are protected by the public form guard (Turnstile, rate limits, bounded bodies). Staff work only in admin (§2.1). Local-only flags listed in `packages/config/env-validation.ts` must remain `false` or unset outside local.
 
 ---
 

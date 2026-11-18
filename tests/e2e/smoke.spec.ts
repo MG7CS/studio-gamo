@@ -142,11 +142,10 @@ for (const [app, origin] of Object.entries(APPS) as Array<[keyof typeof APPS, st
     await expect(page.locator('h1')).toHaveText(/page not found/i);
   });
 
-  test(`${app}: retired account URLs redirect to the homepage`, async ({ request }) => {
+  test(`${app}: there are no account pages`, async ({ request }) => {
     for (const path of ['/account/signin', '/account/signup', '/account']) {
       const res = await request.get(`${origin}${path}`, { maxRedirects: 0, failOnStatusCode: false });
-      expect(res.status(), path).toBe(302);
-      expect(res.headers()['location'], path).toBe('/');
+      expect(res.status(), path).toBe(404);
     }
   });
 
