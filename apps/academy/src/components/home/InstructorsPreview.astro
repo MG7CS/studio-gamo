@@ -10,10 +10,6 @@ import { instructors } from '../../data/instructors';
   <Fragment slot="title">
     Teachers who care <span class="block text-action">how you grow.</span>
   </Fragment>
-  <p slot="intro">
-    Every Gamo Academy instructor goes through an application, teaching interview, and background review
-    before teaching students.
-  </p>
   <FeatureGrid as="ul" min="sm" max={4}>
     {instructors.map((t) => (
       <InstructorCard instructor={t} as="li" />
