@@ -30,6 +30,8 @@ interface Props extends Omit<HTMLAttributes<'section'>, 'class'> {
   width?: 'page' | 'narrow';
   /** hero clears the site header (page-intro rhythm), section uses the section rhythm. */
   spacing?: Spacing;
+  /** When the copy and media stack (narrow containers), put the media first and the copy and buttons below it. */
+  mediaFirstStacked?: boolean;
   /** half (default) or wide: the media takes 7/12 of the width and the copy 5/12. */
   mediaWidth?: 'half' | 'wide';
   as?: 'header' | 'section' | 'div';
@@ -41,6 +43,7 @@ const {
   width = 'page',
   spacing = 'hero',
   mediaWidth = 'half',
+  mediaFirstStacked = false,
   as: Tag = 'header',
   class: className,
   ...rest
@@ -74,7 +77,13 @@ const spacingClass: Record<Spacing, string> = {
         <slot />
       </div>
       {Astro.slots.has('media') && (
-        <div class:list={['min-w-0', mediaSide === 'start' && '@3xl:order-first']}>
+        <div
+          class:list={[
+            'min-w-0',
+            (mediaSide === 'start' || mediaFirstStacked) && 'order-first',
+            mediaFirstStacked && mediaSide === 'end' && '@3xl:order-last',
+          ]}
+        >
           <slot name="media" />
         </div>
       )}

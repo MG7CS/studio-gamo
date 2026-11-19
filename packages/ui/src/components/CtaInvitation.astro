@@ -16,8 +16,10 @@ interface Props {
   photoAlt?: string;
   tone?: 'light' | 'dark';
   id?: string;
+  /** When the copy and the photo stack (below lg), put the photo first and the copy and buttons below it. */
+  mediaFirstStacked?: boolean;
 }
-const { title, body, photo, photoAlt, tone = 'light', id } = Astro.props;
+const { title, body, photo, photoAlt, tone = 'light', id, mediaFirstStacked = false } = Astro.props;
 const frameAlt = photoAlt === '' ? { decorative: true as const } : { alt: photoAlt ?? photos[photo].alt };
 const dark = tone === 'dark';
 ---
@@ -35,6 +37,8 @@ const dark = tone === 'dark';
         <slot />
       </div>
     </div>
-    <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
+    <div class:list={[mediaFirstStacked && 'max-lg:order-first']}>
+      <Frame photo={photo} ratio="landscape" sizes="half" {...frameAlt} />
+    </div>
   </Container>
 </section>
