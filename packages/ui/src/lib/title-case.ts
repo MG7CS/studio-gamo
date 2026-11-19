@@ -31,7 +31,6 @@ export const SMALL_WORDS: ReadonlySet<string> = new Set([
   'of',
   'on',
   'to',
-  'up',
   'from',
   'with',
   'into',
