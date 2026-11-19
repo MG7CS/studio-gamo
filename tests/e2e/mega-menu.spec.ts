@@ -21,13 +21,9 @@ test.describe('desktop', () => {
   test('each panel opens with its tiles, closes with Escape, and is accessible', async ({ page }) => {
     await page.goto(WEB);
     const nav = page.getByRole('navigation', { name: 'Primary' });
-    // Top items are real links; Mission has no panel; tile images are decorative.
+    // Top items are real links; the header has no Mission link (it lives in the footer); tile images are decorative.
     await expect(nav.getByRole('link', { name: 'Academy', exact: true })).toHaveAttribute('href', /\/$/);
-    await expect(nav.getByRole('link', { name: 'Mission', exact: true })).toHaveAttribute(
-      'href',
-      /\/mission$/,
-    );
-    await expect(nav.getByRole('button', { name: /Mission/ })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: 'Mission', exact: true })).toHaveCount(0);
     await expect(page.locator('[data-mega-panel] img:not([alt=""])')).toHaveCount(0);
 
     for (const name of Object.keys(TILES) as (keyof typeof TILES)[]) {

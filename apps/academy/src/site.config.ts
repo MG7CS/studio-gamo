@@ -23,7 +23,6 @@ export const shell: ShellConfig = {
       programNavItems((id) => siteUrl(id)),
       siteUrl,
     ),
-    { key: 'mission', label: 'Mission', href: siteUrl('web', '/mission') },
   ],
   cta: { label: 'Get Involved', href: siteUrl('web', '/get-involved') },
   footer: {
