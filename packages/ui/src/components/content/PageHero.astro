@@ -32,6 +32,8 @@ interface Props {
   tone?: Tone;
   width?: 'page' | 'narrow';
   align?: 'start' | 'center';
+  /** When the copy and media stack (narrow containers), put the media first and the copy below it. */
+  mediaFirstStacked?: boolean;
   class?: string;
 }
 const {
@@ -41,6 +43,7 @@ const {
   tone = 'default',
   width = 'page',
   align = 'start',
+  mediaFirstStacked = false,
   class: className,
 } = Astro.props;
 const hasMedia = Astro.slots.has('media');
@@ -106,7 +109,7 @@ const centered = align === 'center' && !hasMedia;
         )}
       </div>
       {hasMedia && (
-        <div class="min-w-0">
+        <div class:list={['min-w-0', mediaFirstStacked && 'order-first @4xl:order-none']}>
           <slot name="media" />
         </div>
       )}

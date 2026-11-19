@@ -28,7 +28,7 @@ const details = [
   title={t.name}
   description={clampDescription(`Gamo Academy ${t.name.toLowerCase()} profile: ${t.teaches}. ${t.bio}`)}
 >
-  <Container class="page-intro-space">
+  <Container class="page-intro-space" data-heading-case="as-written">
     <div class="grid gap-10 lg:grid-cols-3">
       <Card as="aside" padding="lg" class="lg:sticky lg:top-28 lg:self-start">
         <span
@@ -80,14 +80,14 @@ const details = [
           </ol>
         </nav>
         <h2 class="section-heading mt-4 text-balance">{t.bio}</h2>
-        <h3 class="section-subheading mt-12">Teaching approach</h3>
+        <h3 class="section-subheading mt-12">Teaching Approach</h3>
         <NumberedSteps
           items={t.approach.map((title) => ({ title }))}
           headingLevel="h4"
           tone="inset"
           class="mt-6"
         />
-        <h3 class="section-subheading mt-12">Available lessons</h3>
+        <h3 class="section-subheading mt-12">Available Lessons</h3>
         <FeatureGrid as="ul" max={2} class="mt-6">
           {taught.map((l) => (
             <LessonCard lesson={l} headingLevel="h4" />

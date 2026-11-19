@@ -16,17 +16,19 @@ const shown = lessons.filter((l) => lessonMatches(l, filters)).length;
   title="Discover Lessons"
   description="Browse Gamo Academy lessons and filter by instrument, age, level and format to find music lessons that fit your family's week."
 >
-  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Lessons' }]}>
-    <Fragment slot="title">
-      Find a lesson <span class="block text-action">that fits your week.</span>
-    </Fragment>
-  </PageHero>
-  <Container class="pb-16 lg:pb-24">
-    <LessonFilters values={filters} shown={shown} />
-    <FeatureGrid as="ul" max={3} class="mt-8">
-      {lessons.map((l) => (
-        <LessonCard lesson={l} headingLevel="h2" hidden={!lessonMatches(l, filters)} />
-      ))}
-    </FeatureGrid>
-  </Container>
+  <div data-heading-case="as-written">
+    <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Lessons' }]}>
+      <Fragment slot="title">
+        Find a Lesson <span class="block text-action">That Fits Your Week.</span>
+      </Fragment>
+    </PageHero>
+    <Container class="pb-16 lg:pb-24">
+      <LessonFilters values={filters} shown={shown} />
+      <FeatureGrid as="ul" max={3} class="mt-8">
+        {lessons.map((l) => (
+          <LessonCard lesson={l} headingLevel="h2" hidden={!lessonMatches(l, filters)} />
+        ))}
+      </FeatureGrid>
+    </Container>
+  </div>
 </Layout>

@@ -17,11 +17,11 @@ interface Props {
   ratio?: 'landscape' | 'portrait' | 'square';
 }
 const { photo, alt, ratio } = Astro.props;
-// The allowed hero ratio closest to the photo's own shape, so it crops least: landscape for 3:2 and
-// wide photos, square for portrait and square ones (a 4:5 hero would push the page below the fold).
+// The allowed ratio closest to the photo's own shape, so it crops least and the photo is at least as tall
+// as the text beside it: landscape for 3:2 and wide photos, portrait or square for tall ones.
 const entry = photos[photo];
 const source = entry.width / entry.height;
-const fits = (['landscape', 'square'] as const).filter((r) => entry.ratios.includes(r));
+const fits = (['landscape', 'portrait', 'square'] as const).filter((r) => entry.ratios.includes(r));
 const shape =
   ratio ??
   fits.reduce((best, r) =>

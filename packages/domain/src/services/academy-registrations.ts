@@ -687,7 +687,7 @@ export function renderRegistrationReceipt(input: {
       : 'Your place is reserved. Nothing has been charged.';
   const lines = [
     `Thank you for registering ${r.studentFirstName} for ${input.lessonTitle}.`,
-    ...(input.sample ? ['(Sample lesson — this registration is a demonstration in a preview.)'] : []),
+    ...(input.sample ? ['This lesson is an example of what we plan to offer.'] : []),
     statusLine,
     '',
     `Reference: ${r.reference}`,

@@ -45,20 +45,22 @@ if (Astro.response.status === 200) Astro.response.status = 400;
 
 <Layout title="Open your registration" description="Open a Gamo Academy registration link." noindex>
   <meta slot="head" name="referrer" content="no-referrer" />
-  <PageHero title="Open your registration" />
-  <Container width="narrow" class="pb-16 lg:pb-24">
-    <div class="space-y-6">
-      <RegistrationNotice tone="problem" title="We couldn't open this link">
-        <p>{message}</p>
-        <p>
-          <a
-            href="/registrations/find"
-            class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
-          >
-            Email me a new link
-          </a>
-        </p>
-      </RegistrationNotice>
-    </div>
-  </Container>
+  <div data-heading-case="as-written">
+    <PageHero title="Open Your Registration" />
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <div class="space-y-6">
+        <RegistrationNotice tone="problem" title="We couldn't open this link">
+          <p>{message}</p>
+          <p>
+            <a
+              href="/registrations/find"
+              class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+            >
+              Email me a new link
+            </a>
+          </p>
+        </RegistrationNotice>
+      </div>
+    </Container>
+  </div>
 </Layout>

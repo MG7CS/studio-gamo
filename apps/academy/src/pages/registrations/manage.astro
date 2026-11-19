@@ -116,53 +116,57 @@ const doneMessage = done ? doneMessages[done] : undefined;
   description="View, update or cancel a Gamo Academy registration."
   noindex
 >
-  <PageHero title="Manage your registration" />
-  <Container width="narrow" class="pb-16 lg:pb-24">
-    <div class="space-y-6">
-      {unavailable && (
-        <RegistrationNotice tone="problem" title="This page is temporarily unavailable">
-          <p>Please try again in a few minutes, or write to hello@gamostudio.org.</p>
-        </RegistrationNotice>
-      )}
-      {!unavailable && !session && (
-        <RegistrationNotice tone="problem" title="Your link has expired">
-          <p>For your privacy, registration links stop working after a while. We can email you a new one.</p>
-          <p>
-            <a
-              href="/registrations/find"
-              class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
-            >
-              Email me a new link
-            </a>
-          </p>
-        </RegistrationNotice>
-      )}
-      {doneMessage && session && (
-        <RegistrationNotice tone="success" title={doneMessage[0]}>
-          <p>{doneMessage[1]}</p>
-        </RegistrationNotice>
-      )}
-      {problem && (
-        <RegistrationNotice tone="problem" title="That didn't work">
-          <p>{problem}</p>
-        </RegistrationNotice>
-      )}
-      {session && registrations.length === 0 && (
-        <RegistrationNotice title="No registrations found">
-          <p>
-            <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
-              Browse lessons
-            </a>
-          </p>
-        </RegistrationNotice>
-      )}
-      {registrations.map((r) => (
-        <ManageRegistrationCard
-          registration={r}
-          lessonTitle={findLesson(r.lessonSlug ?? undefined)?.title ?? 'Lesson'}
-          phoneError={phoneError?.id === r.id ? phoneError.message : undefined}
-        />
-      ))}
-    </div>
-  </Container>
+  <div data-heading-case="as-written">
+    <PageHero title="Manage Your Registration" />
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <div class="space-y-6">
+        {unavailable && (
+          <RegistrationNotice tone="problem" title="This page is temporarily unavailable">
+            <p>Please try again in a few minutes, or write to hello@gamostudio.org.</p>
+          </RegistrationNotice>
+        )}
+        {!unavailable && !session && (
+          <RegistrationNotice tone="problem" title="Your link has expired">
+            <p>
+              For your privacy, registration links stop working after a while. We can email you a new one.
+            </p>
+            <p>
+              <a
+                href="/registrations/find"
+                class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+              >
+                Email me a new link
+              </a>
+            </p>
+          </RegistrationNotice>
+        )}
+        {doneMessage && session && (
+          <RegistrationNotice tone="success" title={doneMessage[0]}>
+            <p>{doneMessage[1]}</p>
+          </RegistrationNotice>
+        )}
+        {problem && (
+          <RegistrationNotice tone="problem" title="That didn't work">
+            <p>{problem}</p>
+          </RegistrationNotice>
+        )}
+        {session && registrations.length === 0 && (
+          <RegistrationNotice title="No registrations found">
+            <p>
+              <a href="/lessons" class="font-semibold text-action-strong underline underline-offset-4">
+                Browse lessons
+              </a>
+            </p>
+          </RegistrationNotice>
+        )}
+        {registrations.map((r) => (
+          <ManageRegistrationCard
+            registration={r}
+            lessonTitle={findLesson(r.lessonSlug ?? undefined)?.title ?? 'Lesson'}
+            phoneError={phoneError?.id === r.id ? phoneError.message : undefined}
+          />
+        ))}
+      </div>
+    </Container>
+  </div>
 </Layout>

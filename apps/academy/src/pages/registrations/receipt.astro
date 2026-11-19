@@ -72,74 +72,76 @@ const emailSent = !simulated && (emailStatus === 'sent' || emailStatus === 'deli
 ---
 
 <Layout title="Registration received" description="Your Gamo Academy registration receipt." noindex>
-  <PageHero title={registration ? 'Registration received' : 'Registration receipt'}>
-    <p slot="intro">
-      {registration
-        ? 'Thank you. Keep the reference below; the email has a private link to manage the registration.'
-        : 'This receipt link has expired. Your registration is safe — find it again with your email address.'}
-    </p>
-  </PageHero>
-  <Container width="narrow" class="pb-16 lg:pb-24">
-    <div class="space-y-6">
-      {unavailable && (
-        <RegistrationNotice tone="problem" title="We couldn't load the receipt">
-          <p>Please reload the page in a moment. Your registration was saved if you saw no error before.</p>
-        </RegistrationNotice>
-      )}
-      {registration && (
-        <>
-          {registration.status === 'pending_payment' && (
-            <RegistrationNotice title="Payment is being confirmed (test mode)">
-              <p>
-                Your spot is held. The registration shows as paid once Stripe confirms the test payment; until
-                then it stays "payment pending". No real card is charged.
-              </p>
-            </RegistrationNotice>
-          )}
-          {simulated ? (
-            <RegistrationNotice title="Email simulated (local development)">
-              <p>No email was sent: email delivery is simulated on this local preview.</p>
-            </RegistrationNotice>
-          ) : emailSent ? (
-            <RegistrationNotice tone="success" title="Receipt emailed">
-              <p>
-                We emailed the receipt and a private link to manage the registration. If you can't find it,
-                check your spam folder.
-              </p>
-            </RegistrationNotice>
-          ) : (
-            <RegistrationNotice title="We couldn't email the receipt yet">
-              <p>
-                Your registration is saved. Write down the reference below. You can ask for a new link at any
-                time on the "Find your registration" page.
-              </p>
-            </RegistrationNotice>
-          )}
-          <RegistrationDetails registration={registration} lessonTitle={lesson?.title ?? 'Lesson'} />
-          {previewLink && (
-            <RegistrationNotice title="Local preview only">
-              <p>
-                Email is simulated in local development, so the manage link is shown here instead:{' '}
-                <a
-                  href={previewLink}
-                  data-preview-manage-link
-                  class="font-semibold text-action-strong underline underline-offset-4"
-                >
-                  Open the manage page
-                </a>
-              </p>
-            </RegistrationNotice>
-          )}
-        </>
-      )}
-      <p class="text-body-sm">
-        <a
-          href="/registrations/find"
-          class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
-        >
-          Find your registration
-        </a>
+  <div data-heading-case="as-written">
+    <PageHero title={registration ? 'Registration Received' : 'Registration Receipt'}>
+      <p slot="intro">
+        {registration
+          ? 'Thank you. Keep the reference below; the email has a private link to manage the registration.'
+          : 'This receipt link has expired. Your registration is safe — find it again with your email address.'}
       </p>
-    </div>
-  </Container>
+    </PageHero>
+    <Container width="narrow" class="pb-16 lg:pb-24">
+      <div class="space-y-6">
+        {unavailable && (
+          <RegistrationNotice tone="problem" title="We couldn't load the receipt">
+            <p>Please reload the page in a moment. Your registration was saved if you saw no error before.</p>
+          </RegistrationNotice>
+        )}
+        {registration && (
+          <>
+            {registration.status === 'pending_payment' && (
+              <RegistrationNotice title="Payment is being confirmed (test mode)">
+                <p>
+                  Your spot is held. The registration shows as paid once Stripe confirms the test payment;
+                  until then it stays "payment pending". No real card is charged.
+                </p>
+              </RegistrationNotice>
+            )}
+            {simulated ? (
+              <RegistrationNotice title="Email simulated (local development)">
+                <p>No email was sent: email delivery is simulated on this local preview.</p>
+              </RegistrationNotice>
+            ) : emailSent ? (
+              <RegistrationNotice tone="success" title="Receipt emailed">
+                <p>
+                  We emailed the receipt and a private link to manage the registration. If you can't find it,
+                  check your spam folder.
+                </p>
+              </RegistrationNotice>
+            ) : (
+              <RegistrationNotice title="We couldn't email the receipt yet">
+                <p>
+                  Your registration is saved. Write down the reference below. You can ask for a new link at
+                  any time on the "Find your registration" page.
+                </p>
+              </RegistrationNotice>
+            )}
+            <RegistrationDetails registration={registration} lessonTitle={lesson?.title ?? 'Lesson'} />
+            {previewLink && (
+              <RegistrationNotice title="Local preview only">
+                <p>
+                  Email is simulated in local development, so the manage link is shown here instead:{' '}
+                  <a
+                    href={previewLink}
+                    data-preview-manage-link
+                    class="font-semibold text-action-strong underline underline-offset-4"
+                  >
+                    Open the manage page
+                  </a>
+                </p>
+              </RegistrationNotice>
+            )}
+          </>
+        )}
+        <p class="text-body-sm">
+          <a
+            href="/registrations/find"
+            class="inline-flex min-h-11 items-center font-semibold text-action-strong underline underline-offset-4"
+          >
+            Find your registration
+          </a>
+        </p>
+      </div>
+    </Container>
+  </div>
 </Layout>

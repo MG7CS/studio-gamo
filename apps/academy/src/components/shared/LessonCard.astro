@@ -6,7 +6,6 @@
  */
 import LinkCard from '@studio-gamo/ui/components/content/LinkCard.astro';
 import type { Lesson } from '../../data/lessons';
-import { instructorBySlug } from '../../data/instructors';
 
 interface Props {
   lesson: Lesson;
@@ -16,12 +15,10 @@ interface Props {
   hidden?: boolean;
 }
 const { lesson: l, headingLevel = 'h3', as: Tag = 'li', hidden = false } = Astro.props;
-const t = instructorBySlug(l.instructorSlug);
+// Two plain facts only: no level or format tags, no invented length or instructor line.
 const facts: [string, string][] = [
   ['Schedule', l.schedule],
-  ['Length', l.length],
   ['Ages', l.ages.join(', ')],
-  ['Instructor', t?.name ?? ''],
 ];
 ---
 
@@ -35,9 +32,6 @@ const facts: [string, string][] = [
   class="flex"
 >
   <LinkCard href={`/lessons/${l.slug}`} title={l.title} headingLevel={headingLevel} class="w-full">
-    <p class="mb-2 text-small font-semibold text-fg-muted">
-      {l.level} · {l.format}
-    </p>
     <p>{l.summary}</p>
     <dl class="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
       {facts.map(([k, v]) => (

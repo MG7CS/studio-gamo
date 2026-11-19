@@ -89,27 +89,29 @@ if (Astro.request.method === 'POST') {
   description="Get a link to view, update or cancel a Gamo Academy registration."
   noindex
 >
-  <PageHero title="Find your registration">
-    <p slot="intro">
-      Enter the email address you registered with. We'll email you a private link to your registrations.
-    </p>
-  </PageHero>
-  <Container width="prose" class="pb-16 lg:pb-24">
-    <div class="space-y-6">
-      {sent && (
-        <RegistrationNotice tone="success" title="Check your email">
-          <p>{REGISTRATION_RECOVERY_MESSAGE}</p>
-          <p>Can't find it? Check your spam folder, or try again in a few minutes.</p>
-        </RegistrationNotice>
-      )}
-      <Card padding="lg">
-        <form method="post" class="space-y-5">
-          <FormErrorSummary errors={summary} />
-          <EmailField label="Email address" value={email} error={emailError} />
-          <TurnstileWidget action="registrations_find" error={turnstileError} />
-          <SubmitButton label="Email me a link" pendingLabel="Sending…" />
-        </form>
-      </Card>
-    </div>
-  </Container>
+  <div data-heading-case="as-written">
+    <PageHero title="Find Your Registration">
+      <p slot="intro">
+        Enter the email address you registered with. We'll email you a private link to your registrations.
+      </p>
+    </PageHero>
+    <Container width="prose" class="pb-16 lg:pb-24">
+      <div class="space-y-6">
+        {sent && (
+          <RegistrationNotice tone="success" title="Check your email">
+            <p>{REGISTRATION_RECOVERY_MESSAGE}</p>
+            <p>Can't find it? Check your spam folder, or try again in a few minutes.</p>
+          </RegistrationNotice>
+        )}
+        <Card padding="lg">
+          <form method="post" class="space-y-5">
+            <FormErrorSummary errors={summary} />
+            <EmailField label="Email address" value={email} error={emailError} />
+            <TurnstileWidget action="registrations_find" error={turnstileError} />
+            <SubmitButton label="Email me a link" pendingLabel="Sending…" />
+          </form>
+        </Card>
+      </div>
+    </Container>
+  </div>
 </Layout>

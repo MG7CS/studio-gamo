@@ -1,5 +1,5 @@
 ---
-/** Instrument landing body: first-steps list beside a "who it suits" panel. */
+/** Instrument landing body: first-steps list beside a "Who It Suits" panel (headings typed in title case). */
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
 import Card from '@studio-gamo/ui/components/content/Card.astro';
 import NumberedSteps from '@studio-gamo/ui/components/content/NumberedSteps.astro';
@@ -15,14 +15,11 @@ const suits = [i.ages, 'Complete beginners welcome', 'Private or group formats',
 <Section tone="raised" data-reveal>
   <div class="grid gap-6 lg:grid-cols-5">
     <Card padding="lg" class="lg:col-span-3">
-      <h2 class="section-subheading mt-3">What you'll learn first</h2>
+      <h2 class="section-subheading">What You'll Learn First</h2>
       <NumberedSteps items={i.firstSteps.map((title) => ({ title }))} class="mt-8" />
     </Card>
     <Card tone="inset" padding="lg" class="lg:col-span-2">
-      <span class="grid size-14 place-items-center rounded-2xl bg-surface-raised text-action-strong">
-        <Icon name={i.icon} class="size-7" />
-      </span>
-      <h2 class="mt-6 text-2xl font-bold">Who it suits</h2>
+      <h2 class="section-subheading">Who It Suits</h2>
       <ul class="mt-4 space-y-3">
         {suits.map((t) => (
           <li class="flex items-center gap-2">

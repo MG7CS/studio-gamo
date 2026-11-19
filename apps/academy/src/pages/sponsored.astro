@@ -3,22 +3,18 @@ import { inquiryUrl } from '@studio-gamo/ui/lib/sites';
 import Layout from '../layouts/Layout.astro';
 import PageHero from '@studio-gamo/ui/components/content/PageHero.astro';
 import Section from '@studio-gamo/ui/components/layout/Section.astro';
-import FeatureGrid from '@studio-gamo/ui/components/content/FeatureGrid.astro';
-import Card from '@studio-gamo/ui/components/content/Card.astro';
 import HeroPhoto from '../components/shared/HeroPhoto.astro';
 import FaqAccordion from '@studio-gamo/ui/components/FaqAccordion.astro';
 import EditorialHeading from '@studio-gamo/ui/components/EditorialHeading.astro';
 import ButtonLink from '@studio-gamo/ui/components/ButtonLink.astro';
-import Icon from '@studio-gamo/ui/components/Icon.astro';
 const principles = [
-  ['heart', 'Need first', 'Support would be guided by family need, never by ability to pay.'],
-  ['shield', 'Dignity & privacy', 'Family financial information would be handled privately and minimally.'],
+  ['Need First', 'Support would be guided by family need, never by ability to pay.'],
+  ['Dignity & Privacy', 'Family financial information would be handled privately and minimally.'],
   [
-    'users',
-    'Fair to instructors',
+    'Fair to Instructors',
     'Instructors would be paid fully for sponsored lessons, shown as a separate line item.',
   ],
-  ['book', 'Open to all', 'Not limited to church members, worship teams or any background.'],
+  ['Open to All', 'Not limited to church members, worship teams or any background.'],
 ] as const;
 const qa = [
   {
@@ -40,43 +36,41 @@ const qa = [
   title="Sponsored & Scholarship Programs"
   description="Gamo Academy is preparing sponsored and scholarship-supported lessons with churches and community supporters, guided by family need and never by ability to pay."
 >
-  <PageHero breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}>
-    <Fragment slot="title">
-      Music for every family, <span class="block text-action">whatever the budget.</span>
-    </Fragment>
-    <HeroPhoto slot="media" photo="boyGuitar" />
-  </PageHero>
-  <Section tone="raised">
-    <Fragment slot="title">
-      How support is <span class="block text-action">meant to work.</span>
-    </Fragment>
-    <FeatureGrid as="ul" min="lg" max={2}>
-      {principles.map(([icon, t, d]) => (
-        <Card as="li" padding="lg">
-          <div class="flex gap-5">
-            <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-surface-inset text-action-strong">
-              <Icon name={icon} class="size-6" />
-            </span>
-            <div>
-              <h3 class="text-xl font-bold">{t}</h3>
-              <p class="mt-1 text-fg-muted">{d}</p>
-            </div>
+  <div data-heading-case="as-written">
+    <PageHero
+      mediaFirstStacked
+      breadcrumbs={[{ label: 'Academy', href: '/' }, { label: 'Sponsored programs' }]}
+    >
+      <Fragment slot="title">
+        Music for Every Family, <span class="block text-action">Whatever the Budget.</span>
+      </Fragment>
+      <HeroPhoto slot="media" photo="boyGuitar" />
+    </PageHero>
+    <Section tone="raised">
+      <Fragment slot="title">
+        How Support is <span class="block text-action">Meant to Work.</span>
+      </Fragment>
+      <ul class="grid gap-x-12 border-b border-border md:grid-cols-2">
+        {principles.map(([t, d]) => (
+          <li class="border-t border-border py-6">
+            <h3 class="text-xl font-semibold tracking-tight">{t}</h3>
+            <p class="mt-1 text-fg-muted">{d}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section>
+      <div class="grid gap-10 lg:grid-cols-5">
+        <div class="lg:col-span-2">
+          <EditorialHeading title="How Sponsored Learning Works" />
+          <div class="mt-6 flex flex-wrap gap-3">
+            <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
+              Apply to host lessons
+            </ButtonLink>
           </div>
-        </Card>
-      ))}
-    </FeatureGrid>
-  </Section>
-  <Section>
-    <div class="grid gap-10 lg:grid-cols-5">
-      <div class="lg:col-span-2">
-        <EditorialHeading title="How sponsored learning works" />
-        <div class="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href={inquiryUrl('Church-hosted lessons')} variant="secondary" arrow>
-            Apply to host lessons
-          </ButtonLink>
         </div>
+        <FaqAccordion items={qa} class="lg:col-span-3" />
       </div>
-      <FaqAccordion items={qa} class="lg:col-span-3" />
-    </div>
-  </Section>
+    </Section>
+  </div>
 </Layout>
