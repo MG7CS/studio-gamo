@@ -8,7 +8,7 @@
  * enhanced): the top item stays a real link, a small chevron button (revealed by the script) toggles the
  * panel, which is `hidden` until opened so its images are not fetched. Not `role="menu"`: the buttons are
  * disclosure buttons, so there is deliberately no `aria-haspopup` (docs/DECISIONS.md, 2026-11-18).
- * Below `lg` the drawer shows the same menus as accordions.
+ * Below `lg` a full-screen layer (Tesla-style) lists the programs; each opens its own screen with a Back control.
  * Local UI state only (menus); public visitors have no accounts.
  */
 import Logo from './Logo.astro';
@@ -109,10 +109,9 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       )}
       <button
         type="button"
-        class="site-header__toggle inline-flex h-11 w-11 items-center justify-center rounded-button border border-border text-fg transition-colors hover:bg-surface-inset lg:hidden"
+        class="site-header__toggle inline-flex min-h-11 items-center gap-2 rounded-button border border-border px-3 text-sm font-semibold text-fg transition-colors hover:bg-surface-inset lg:hidden"
         aria-expanded="false"
         aria-controls="site-mobile-menu"
-        aria-label="Open menu"
       >
         <span class="icon-open">
           <Icon name="menu" class="h-5 w-5" strokeWidth={2} />
@@ -120,6 +119,7 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
         <span class="icon-close hidden">
           <Icon name="x" class="h-5 w-5" strokeWidth={2} />
         </span>
+        <span class="toggle-label">Menu</span>
       </button>
     </div>
   </div>
@@ -130,92 +130,109 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
     aria-hidden="true"
     class="mega-fade absolute inset-x-0 top-full z-0 h-screen bg-scrim"
   ></div>
+</header>
 
-  <div id="site-mobile-menu" class="hidden border-t border-border bg-surface lg:hidden">
-    <div class="mx-auto max-w-page px-gutter py-2">
-      <nav aria-label="Mobile primary">
-        <ul class="flex flex-col divide-y divide-border">
-          {items.map((item, index) => {
-            const active = item.key !== undefined && item.key === current;
-            if (!item.menu) {
-              return (
-                <li>
-                  <a
-                    href={item.href}
-                    aria-current={active ? 'page' : undefined}
-                    class:list={[
-                      'flex min-h-12 items-center justify-between py-3 text-base font-semibold transition-colors hover:text-action-strong',
-                      active ? 'text-action-strong' : 'text-fg',
-                    ]}
-                  >
-                    {item.label}
-                    <Icon name="chevron-right" class="h-4 w-4 opacity-50" />
-                  </a>
-                </li>
-              );
-            }
-            const sectionId = `site-mobile-section-${index}`;
-            return (
-              <li>
+<!-- Below lg: a full-screen white layer (Tesla-style). A sibling of the header, not a child, because the header's
+     backdrop blur would otherwise become the containing block of this fixed layer. -->
+<div
+  id="site-mobile-menu"
+  class="fixed inset-0 z-40 hidden overflow-y-auto overscroll-contain bg-surface pt-16 lg:hidden"
+>
+  <nav aria-label="Mobile primary" class="mx-auto max-w-page pt-4 pb-10">
+    <div data-mobile-root>
+      <ul class="flex flex-col">
+        {items.map((item, index) => {
+          const active = item.key !== undefined && item.key === current;
+          const rowClass = [
+            'flex min-h-14 w-full items-center justify-between px-gutter text-left text-xl font-semibold transition-colors hover:text-action-strong',
+            active ? 'text-action-strong' : 'text-fg',
+          ];
+          const screenId = `site-mobile-screen-${index}`;
+          return (
+            <li>
+              <a
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                class:list={rowClass}
+                data-mobile-link
+              >
+                {item.label}
+              </a>
+              {item.menu && (
                 <button
                   type="button"
-                  data-accordion-button
+                  hidden
+                  data-mobile-drill
                   aria-expanded="false"
-                  aria-controls={sectionId}
-                  aria-current={active ? 'true' : undefined}
-                  class:list={[
-                    'flex min-h-12 w-full items-center justify-between py-3 text-left text-base font-semibold transition-colors hover:text-action-strong',
-                    active ? 'text-action-strong' : 'text-fg',
-                  ]}
+                  aria-controls={screenId}
+                  class:list={rowClass}
                 >
                   {item.label}
-                  <Icon name="chevron-down" class="accordion-chevron h-4 w-4 opacity-50" />
+                  <Icon name="chevron-right" class="h-5 w-5 text-fg-muted" strokeWidth={2} />
                 </button>
-                <div id={sectionId} hidden class="pb-3">
-                  <ul class="flex flex-col">
-                    {item.menu.tiles.map((tile) => (
-                      <li>
-                        <MenuTile tile={tile} variant="row" />
-                      </li>
-                    ))}
-                  </ul>
-                  <ul class="mt-2 flex flex-col border-t border-border pt-2">
-                    {item.menu.links.map((link) => (
-                      <li>
-                        <a
-                          href={link.href}
-                          class="flex min-h-11 items-center text-sm font-semibold text-fg-muted hover:text-fg"
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    ))}
-                    <li>
-                      <a
-                        href={item.menu.all.href}
-                        class="flex min-h-11 items-center text-sm font-semibold text-action-strong hover:text-fg"
-                      >
-                        {item.menu.all.label}
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+              )}
+            </li>
+          );
+        })}
+      </ul>
       {cta && (
-        <a
-          href={cta.href}
-          class="my-3 flex min-h-12 items-center justify-center rounded-button bg-action px-4 text-sm font-semibold text-on-action"
-        >
-          {cta.label}
-        </a>
+        <div class="px-gutter pt-8">
+          <a
+            href={cta.href}
+            class="flex min-h-14 w-full items-center justify-center rounded-button bg-action px-5 text-base font-semibold text-on-action transition-colors hover:bg-action-strong"
+          >
+            {cta.label}
+          </a>
+        </div>
       )}
     </div>
-  </div>
-</header>
+
+    {items.map((item, index) => {
+      if (!item.menu) return null;
+      const screenId = `site-mobile-screen-${index}`;
+      const rowClass =
+        'flex min-h-14 items-center px-gutter text-xl font-semibold text-fg transition-colors hover:text-action-strong';
+      return (
+        <section id={screenId} hidden data-mobile-screen aria-labelledby={`${screenId}-title`}>
+          <div class="px-gutter">
+            <button
+              type="button"
+              data-mobile-back
+              class="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-button pr-3 pl-1 text-base font-semibold text-fg-muted transition-colors hover:text-fg"
+            >
+              <Icon name="chevron-left" class="h-5 w-5" strokeWidth={2} />
+              Back
+            </button>
+          </div>
+          <h2 id={`${screenId}-title`} class="px-gutter pt-4 pb-2 text-3xl font-semibold text-fg">
+            {item.label}
+          </h2>
+          <ul class="flex flex-col">
+            <li>
+              <a href={item.menu.all.href} class={rowClass}>
+                {item.menu.all.label}
+              </a>
+            </li>
+            {item.menu.links.map((link) => (
+              <li>
+                <a href={link.href} class={rowClass}>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <ul class="flex flex-col pt-4">
+            {item.menu.tiles.map((tile) => (
+              <li class="px-gutter">
+                <MenuTile tile={tile} variant="row" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      );
+    })}
+  </nav>
+</div>
 
 <style>
   /* Short fade-in only; no motion at all for visitors who ask for less (WCAG 2.3.3). */
@@ -229,8 +246,24 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
       opacity: 0;
     }
   }
-  [aria-expanded='true'] > :global(.accordion-chevron) {
-    transform: rotate(180deg);
+  /* Page behind the open mobile menu does not scroll. */
+  :global(html.menu-open) {
+    overflow: hidden;
+  }
+  /* Screens slide in (200 ms); the first screen only fades. None of it for visitors who ask for less. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-mobile-screen]:not([hidden]) {
+      animation: mobile-slide 200ms ease-out;
+    }
+    [data-mobile-root]:not([hidden]) {
+      animation: mega-fade 200ms ease-out;
+    }
+  }
+  @keyframes mobile-slide {
+    from {
+      opacity: 0;
+      transform: translateX(1.5rem);
+    }
   }
 </style>
 
@@ -238,35 +271,76 @@ const homeLabel = `${brand.programLabel ? `${brand.name} ${brand.programLabel}` 
   const header = document.getElementById('site-header');
   const toggle = header?.querySelector<HTMLButtonElement>('.site-header__toggle');
   const menu = document.getElementById('site-mobile-menu');
+  const root = menu?.querySelector<HTMLElement>('[data-mobile-root]');
+  const screens = Array.from(menu?.querySelectorAll<HTMLElement>('[data-mobile-screen]') ?? []);
+  const drills = Array.from(menu?.querySelectorAll<HTMLButtonElement>('[data-mobile-drill]') ?? []);
+  const desktop = window.matchMedia('(min-width: 1024px)');
+  let current: HTMLElement | null = null;
+  let opener: HTMLButtonElement | null = null;
+
+  // Level 1 rows ship as plain links; with JavaScript the program rows become drill-down buttons.
+  drills.forEach((button) => {
+    button.hidden = false;
+    const link = button.parentElement?.querySelector<HTMLElement>('[data-mobile-link]');
+    if (link) link.hidden = true;
+  });
+
+  const showScreen = (screen: HTMLElement | null) => {
+    current = screen;
+    if (root) root.hidden = screen !== null;
+    screens.forEach((s) => (s.hidden = s !== screen));
+    drills.forEach((b) => b.setAttribute('aria-expanded', String(screen !== null && b === opener)));
+    if (menu) menu.scrollTop = 0;
+  };
+  const goBack = () => {
+    const from = opener;
+    showScreen(null);
+    from?.focus();
+  };
 
   const setOpen = (open: boolean) => {
     if (!toggle || !menu) return;
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    const label = toggle.querySelector('.toggle-label');
+    if (label) label.textContent = open ? 'Close' : 'Menu';
     menu.classList.toggle('hidden', !open);
+    document.documentElement.classList.toggle('menu-open', open);
     toggle.querySelector('.icon-open')?.classList.toggle('hidden', open);
     toggle.querySelector('.icon-close')?.classList.toggle('hidden', !open);
+    if (open) {
+      root?.querySelector<HTMLElement>('a:not([hidden]), button:not([hidden])')?.focus();
+    } else {
+      showScreen(null);
+    }
   };
 
   toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
   menu?.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('a')) setOpen(false);
   });
+  drills.forEach((button) => {
+    button.addEventListener('click', () => {
+      const screen = document.getElementById(button.getAttribute('aria-controls') ?? '');
+      if (!screen) return;
+      opener = button;
+      showScreen(screen);
+      screen.querySelector<HTMLElement>('[data-mobile-back]')?.focus();
+    });
+  });
+  screens.forEach((screen) => {
+    screen.querySelector('[data-mobile-back]')?.addEventListener('click', goBack);
+  });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+    if (e.key !== 'Escape' || toggle?.getAttribute('aria-expanded') !== 'true') return;
+    if (current) {
+      goBack();
+    } else {
       setOpen(false);
       toggle.focus();
     }
   });
-
-  // Mobile accordions: one button per program with a menu.
-  header?.querySelectorAll<HTMLButtonElement>('[data-accordion-button]').forEach((button) => {
-    const section = document.getElementById(button.getAttribute('aria-controls') ?? '');
-    button.addEventListener('click', () => {
-      const open = button.getAttribute('aria-expanded') !== 'true';
-      button.setAttribute('aria-expanded', String(open));
-      if (section) section.hidden = !open;
-    });
+  desktop.addEventListener('change', (e) => {
+    if (e.matches) setOpen(false);
   });
 
   // Desktop panels (APG Disclosure Navigation). The chevron buttons ship `hidden` and appear here, so

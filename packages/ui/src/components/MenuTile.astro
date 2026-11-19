@@ -7,7 +7,7 @@
  *
  * Props
  * - tile: `NavTile` ({ label, href, photo | src }).
- * - variant: panel (square picture over the name, default) | row (48 px thumbnail beside the name, ≥ 44 px).
+ * - variant: panel (square picture over the name, default) | row (48 px thumbnail beside the name, ≥ 56 px, muted text when it is not a link).
  */
 import Frame from './media/Frame.astro';
 import type { PhotoKey } from '../lib/images';
@@ -31,8 +31,9 @@ const Tag = href ? 'a' : 'div';
   class:list={[
     'menu-tile group',
     row
-      ? 'flex min-h-12 items-center gap-4 py-1 text-base font-semibold text-fg'
-      : 'flex flex-col gap-3 text-sm font-semibold text-fg',
+      ? 'flex min-h-14 items-center gap-4 py-1 text-base font-semibold'
+      : 'flex flex-col gap-3 text-sm font-semibold',
+    row && !href ? 'text-fg-muted' : 'text-fg',
     href && 'hover:text-action-strong',
   ]}
 >
