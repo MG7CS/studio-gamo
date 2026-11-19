@@ -118,3 +118,18 @@ The owner's clean layout rules (`DESIGN.md` §11) are permanent. Done (2026-11-1
 ## Header mega menu (2026-11-18)
 
 `SiteHeader` renders a `NavMenu` for any nav item that has one: `MegaMenuPanel` (photo tiles left, text links and "all" link right) and `MenuTile` (a `Frame` at square, or a plain `<img>` for a static illustration, with the name under or beside it). The content is built in `packages/config/menus.ts` and attached by each app's `site.config.ts` with `withMenus(...)`; `packages/ui` names no program or photo. Behaviour (disclosure navigation, hover delays, mobile accordions) and the reasons are in `docs/DECISIONS.md`; the guards are `scripts/audit/mega-menu.test.ts` and `tests/e2e/mega-menu.spec.ts`. The `Frame` `tile` size preset serves these small squares.
+
+## Shared defaults, no page-by-page flags (2026-11-19)
+
+The layers are page, recipe, shared section, component, primitive, tokens. Pages only assemble. Five behaviours are
+defaults of the shared layers and apply to every page of every app; no page sets a marker, flag or ratio for them.
+
+| Behaviour | Where it lives |
+| --- | --- |
+| Headings in title case (small words lower case, first word capital, entities and words with inner capitals untouched) | `lib/title-case.ts` (`titleCase`, `titleCaseHtml`, `titleCaseHeadingsIn`) and `components/TitleCase.astro`; used by `Section`, `PageHero`, `SplitHero` (headings in its copy slot), `EditorialFeatureCard`, `CtaInvitation`, `EditorialHeading`, `MediaCard`, `LinkCard`, `LinkRows`, `NumberedSteps`, `FaqAccordion`, `ErrorPage`, legal and form section headings. No `text-transform` in the heading utilities. App heading markup outside these wraps its content in `<TitleCase>`. |
+| Photo first when a photo and text stack (phone, iPad) | `SplitHero`, `EditorialFeatureCard`, `CtaInvitation`, `PageHero` (media slot). No prop. |
+| Photo shape follows the photo (`ratio="auto"`) | `Frame` defaults to `auto`: `closestRatio(photo)` in `lib/images.ts` picks portrait, landscape or square, whichever crops least (always one the photo allows). `commonRatio(photos)` picks the one shape that crops a set least; `MediaCardGrid` uses it so a grid of cards always has equal shapes. A `ratio` or `photoRatio` prop is an override only. |
+| No status badge or caption unless passed | `FloatingPreviewCard` has an empty `badge` slot; `Frame` and `EditorialFeatureCard` show a caption only when one is passed. |
+| Narrow screens never overflow, at any zoom | `@layer base` in `tokens.css`: `min-width: 0` on grid and flex children, `overflow-wrap: anywhere` on headings and text, `max-width: 100%` on media, tables and `pre`, `text-size-adjust: 100%`; fluid heading sizes whose clamp minimum also shrinks with the viewport (`tokens.base.css`); `NumberedSteps`, `SplitHero`, `PageHero`, `EditorialFeatureCard`, cards and the header brand block shrink instead of overflowing. `xs` (24rem) and `2xs` (17rem) breakpoints exist for very narrow screens. |
+
+An opt-out is added to a shared component only when a real page needs it, and is named for the exception, never for the default.

@@ -32,7 +32,7 @@ the same page takes `titleAs="h2"`.
 | `SplitHero`           | `mediaSide` start \| end, `tone`, `width`, `spacing` hero \| section \| none, `as`                            | default (copy), `media`                                    |
 | `FeatureGrid`         | `min` sm \| md \| lg, `max` 2 \| 3 \| 4, `lastRow` stretch \| center, `gap` md \| lg, `as` div \| ul \| ol    | default (items)                                            |
 | `NumberedSteps`       | `items` {title, body?}[], `headingLevel` h3 \| h4, `tone` plain \| raised \| inset, `start`                   | none                                                       |
-| `FloatingPreviewCard` | `title`, `tone` light \| dark, `as` div \| aside \| figure                                                    | `title`, `badge` (defaults to a Sample badge), default     |
+| `FloatingPreviewCard` | `title`, `tone` light \| dark, `as` div \| aside \| figure                                                    | `title`, `badge` (empty by default), default               |
 
 Behaviour notes:
 
@@ -62,7 +62,7 @@ app cannot set a radius, mask, aspect or crop; the catalog gives each photo's fo
 
 | Component   | Props                                                                                                                                  | Slots                                   |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `Frame`     | `photo` (catalog id), `ratio` portrait \| landscape \| wide \| square (required), `alt` OR `decorative: true`, `sizes` full \| half \| third \| tile \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
+| `Frame`     | `photo` (catalog id), `ratio` auto (default) \| portrait \| landscape \| wide \| square, `alt` OR `decorative: true`, `sizes` full \| half \| third \| tile \| grid-tall, `priority`, `caption`, `scrim` none \| bottom | default (overlay text, needs `scrim="bottom"`) |
 | `PhotoGrid` | `layout` pair (2) \| trio (3) \| quad (4) \| hero (2), `photos` ordered `{ photo, alt \| decorative, caption?, priority? }[]`            | none                                    |
 
 - `<Frame photo="guitarMentor" ratio="landscape" sizes="half" alt="Guitar instructor with a student" />`;
@@ -100,8 +100,8 @@ on `FieldShell`.
 - `EditorialHeading`, `FaqAccordion`: `tone` light \| dark (dark sets `data-surface="dark"`).
 - `EditorialFeatureCard`: `tone` inset (default) \| raised \| dark; `sand` → inset and `ivory` → raised are
   deprecated aliases. The photo is a `Frame` inset in the panel: `photo`, `photoAlt` (omit = catalog
-  description, `''` = decorative), `photoRatio` landscape (default) \| portrait \| square, `caption` (below the photo).
-- `CtaInvitation`: `photo` and `photoAlt` (same convention), shown as a landscape `Frame` inset in the panel.
+  description, `''` = decorative), `photoRatio` override (default: auto), `caption` (below the photo, only when passed).
+- `CtaInvitation`: `photo` and `photoAlt` (same convention), shown as an auto-shaped `Frame`; `photoRatio` overrides.
 - `BaseLayout`: `noindex` outputs `<meta name="robots" content="noindex, nofollow">` and drops
   canonical and social tags.
 - Semantic colour role `accent` (`text-accent`): editorial eyebrows and accent lines (terracotta on light,
@@ -123,3 +123,19 @@ There is no `eyebrow` slot or prop any more and the guard test fails if one retu
 - `MegaMenuPanel`: `menu` (a `NavMenu`). The grid of tiles plus the text links and the "all" link; the header owns the panel element.
 - `MenuTile`: `tile` (`NavTile`: `label`, `href`, exactly one of `photo` catalog key or `src` static image), `variant` panel (default) \| row (48 px thumbnail, at least 44 px tall, used in the mobile drawer). The picture is decorative (`alt=""`): the label names the link.
 - These components name no program or photo; the content comes from the app's `site.config.ts` (`packages/config/menus.ts`).
+
+## Defaults every page gets (2026-11-19; `docs/FRONTEND_ARCHITECTURE.md`, "Shared defaults")
+
+- **Title case**: every heading rendered by these components is title cased automatically by `TitleCase.astro`
+  (`lib/title-case.ts`: small words stay lower case, the first word is capital, `&`, digits, entities and words like
+  "FAQ" are kept). Type headings normally. App heading markup that bypasses the components wraps its content in
+  `<TitleCase>`; headings inside the `SplitHero` copy slot are handled by `SplitHero`.
+- **Photo first when stacked**: `SplitHero`, `PageHero` (media slot), `EditorialFeatureCard` and `CtaInvitation` put the
+  photo before the text on phone and iPad. There is no prop for it.
+- **Photo shape by the photo**: `Frame` `ratio` defaults to `auto` (`closestRatio`); `EditorialFeatureCard` and
+  `CtaInvitation` pass it through (`photoRatio` is an override). `MediaCard` without `image.ratio` uses `auto`;
+  `MediaCardGrid` (`items`, `variant`, `min`, `max`, `gap`, `ratio?`) gives every card of the grid the one shape that crops the
+  set least (`commonRatio`).
+- **No badge or caption by default**: `FloatingPreviewCard` shows a badge only if the `badge` slot is filled.
+- **No overflow on narrow screens**: base-layer `min-width: 0`, `overflow-wrap`, `max-width: 100%`, fluid heading
+  sizes; use `xs:` and `max-2xs:` for very narrow adjustments, never fixed widths wider than a phone.
